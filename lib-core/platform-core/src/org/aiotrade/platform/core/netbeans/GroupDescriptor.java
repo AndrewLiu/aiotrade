@@ -32,7 +32,7 @@ package org.aiotrade.platform.core.netbeans;
 
 import java.awt.Image;
 import javax.swing.Action;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 
 /**
  * A lightweight class to carry the information that will be wrapped in Node

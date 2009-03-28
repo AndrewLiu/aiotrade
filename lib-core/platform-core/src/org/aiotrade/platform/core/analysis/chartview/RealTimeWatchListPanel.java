@@ -47,7 +47,7 @@ import javax.swing.table.TableCellRenderer;
 import org.aiotrade.platform.core.sec.Ticker;
 import org.aiotrade.platform.core.sec.TickerObserver;
 import org.aiotrade.platform.core.sec.TickerSnapshot;
-import org.aiotrade.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.laf.LookFeel;
 
 /**
  *

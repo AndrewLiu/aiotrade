@@ -30,9 +30,9 @@
  */
 package org.aiotrade.platform.core.analysis.indicator;
 
-import org.aiotrade.math.timeseries.computable.SpotComputable;
-import org.aiotrade.math.timeseries.SerItem;
-import org.aiotrade.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.computable.SpotComputable;
+import org.aiotrade.lib.math.timeseries.SerItem;
+import org.aiotrade.lib.math.timeseries.Ser;
 
 /**
  * Abstract Profile Indicator

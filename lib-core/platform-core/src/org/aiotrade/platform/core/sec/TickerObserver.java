@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.core.sec;
 
-import org.aiotrade.util.Observer;
+import org.aiotrade.lib.util.Observer;
 
 /**
  * Just for clearly name.

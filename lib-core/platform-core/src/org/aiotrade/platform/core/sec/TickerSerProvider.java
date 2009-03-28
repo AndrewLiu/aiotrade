@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.sec;
-import org.aiotrade.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.platform.core.dataserver.TickerServer;
 import org.aiotrade.platform.core.dataserver.TickerContract;
 

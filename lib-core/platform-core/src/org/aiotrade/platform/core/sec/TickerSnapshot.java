@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.core.sec;
 
-import org.aiotrade.util.ObservableHelper;
+import org.aiotrade.lib.util.ObservableHelper;
 
 /**
  * We use composite pattern here, wrap a ticker instead of inheriting it. So we

@@ -30,8 +30,8 @@
  */
 package org.aiotrade.platform.core.analysis.indicator;
 
-import org.aiotrade.math.timeseries.computable.ContComputable;
-import org.aiotrade.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.Ser;
 
 /**
  * Abstract Continumm Indicator

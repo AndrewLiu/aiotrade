@@ -32,19 +32,19 @@ package org.aiotrade.platform.core.analysis.chartview;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.aiotrade.charting.chart.QuoteChart;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.ChartingController;
-import org.aiotrade.charting.view.WithQuoteChart;
-import org.aiotrade.charting.view.pane.Pane;
-import org.aiotrade.charting.view.scalar.Scalar;
-import org.aiotrade.charting.view.scalar.LgScalar;
-import org.aiotrade.charting.view.scalar.LinearScalar;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.QuoteItem;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.math.timeseries.Var;
-import org.aiotrade.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.charting.chart.QuoteChart;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.ChartingController;
+import org.aiotrade.lib.charting.view.WithQuoteChart;
+import org.aiotrade.lib.charting.view.pane.Pane;
+import org.aiotrade.lib.charting.view.scalar.Scalar;
+import org.aiotrade.lib.charting.view.scalar.LgScalar;
+import org.aiotrade.lib.charting.view.scalar.LinearScalar;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.QuoteItem;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.platform.core.sec.Sec;
 
 /**

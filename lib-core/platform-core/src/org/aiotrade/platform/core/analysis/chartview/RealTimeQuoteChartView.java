@@ -36,19 +36,19 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.Calendar;
 import java.util.Date;
-import org.aiotrade.charting.chart.GridChart;
-import org.aiotrade.charting.view.ChartingController;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.SerChangeEvent;
-import org.aiotrade.charting.chart.QuoteChart;
-import org.aiotrade.math.timeseries.QuoteSer;
+import org.aiotrade.lib.charting.chart.GridChart;
+import org.aiotrade.lib.charting.view.ChartingController;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.SerChangeEvent;
+import org.aiotrade.lib.charting.chart.QuoteChart;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.platform.core.sec.Ticker;
-import org.aiotrade.charting.laf.LookFeel;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.pane.Pane;
-import org.aiotrade.math.timeseries.QuoteItem;
+import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.pane.Pane;
+import org.aiotrade.lib.math.timeseries.QuoteItem;
 import org.aiotrade.platform.core.sec.Market;
-import org.aiotrade.util.swing.GBC;
+import org.aiotrade.lib.util.swing.GBC;
 
 /**
  *

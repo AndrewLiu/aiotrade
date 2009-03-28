@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.core.analysis.indicator;
 
-import org.aiotrade.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
 
 /**
  * Usually, indicator instances are created by call createNewInstance(),

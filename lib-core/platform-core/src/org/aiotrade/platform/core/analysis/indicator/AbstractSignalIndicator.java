@@ -30,13 +30,13 @@
  */
 package org.aiotrade.platform.core.analysis.indicator;
 
-import org.aiotrade.math.timeseries.DefaultSer.SparseVar;
-import org.aiotrade.math.timeseries.computable.ContComputable;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
-import org.aiotrade.math.timeseries.plottable.Plot;
-import org.aiotrade.math.util.Sign;
-import org.aiotrade.math.util.Signal;
+import org.aiotrade.lib.math.timeseries.DefaultSer.SparseVar;
+import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.math.util.Sign;
+import org.aiotrade.lib.math.util.Signal;
 
 /**
  * Abstract Signal Indicator

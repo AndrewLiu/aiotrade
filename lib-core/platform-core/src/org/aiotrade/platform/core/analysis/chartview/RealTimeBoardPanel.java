@@ -51,20 +51,20 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-import org.aiotrade.charting.laf.LookFeel;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.core.dataserver.TickerContract;
 import org.aiotrade.platform.core.sec.Sec;
 import org.aiotrade.platform.core.sec.Ticker;
 import org.aiotrade.platform.core.sec.TickerObserver;
 import org.aiotrade.platform.core.sec.TickerSnapshot;
-import org.aiotrade.util.swing.GBC;
-import org.aiotrade.util.swing.plaf.AIOScrollPaneStyleBorder;
-import org.aiotrade.util.swing.table.AttributiveCellRenderer;
-import org.aiotrade.util.swing.table.AttributiveCellTableModel;
-import org.aiotrade.util.swing.table.DefaultCellAttribute;
-import org.aiotrade.util.swing.table.MultiSpanCellTable;
+import org.aiotrade.lib.util.swing.GBC;
+import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder;
+import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer;
+import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel;
+import org.aiotrade.lib.util.swing.table.DefaultCellAttribute;
+import org.aiotrade.lib.util.swing.table.MultiSpanCellTable;
 
 /**
  *

@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import org.aiotrade.platform.core.analysis.indicator.Direction;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.math.timeseries.DefaultSer;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.DefaultSer;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
 
 /**
  *

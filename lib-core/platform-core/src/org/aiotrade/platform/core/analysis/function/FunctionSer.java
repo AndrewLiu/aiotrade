@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.core.analysis.function;
 
-import org.aiotrade.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Ser;
 
 /**
  *

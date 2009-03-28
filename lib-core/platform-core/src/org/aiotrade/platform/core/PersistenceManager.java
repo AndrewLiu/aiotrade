@@ -31,12 +31,12 @@
 package org.aiotrade.platform.core;
 
 import java.util.List;
-import org.aiotrade.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Frequency;
 import org.aiotrade.platform.core.PersistenceManager.I;
 import org.aiotrade.platform.core.sec.Quote;
 import org.aiotrade.platform.core.sec.QuotePool;
 import org.aiotrade.platform.core.sec.TickerPool;
-import org.aiotrade.util.ServiceLoader;
+import org.aiotrade.lib.util.ServiceLoader;
 
 /**
  *
@@ -49,7 +49,7 @@ public class PersistenceManager {
         return i == null ? i = ServiceLoader.load(I.class).iterator().next() : i;
     }
     
-    public static interface I extends org.aiotrade.math.PersistenceManager.I {
+    public static interface I extends org.aiotrade.lib.math.PersistenceManager.I {
         
         void saveQuotes(String symbol, Frequency freq, List<Quote> quotes, long sourceId);
         List<Quote> restoreQuotes(String symbol, Frequency freq);

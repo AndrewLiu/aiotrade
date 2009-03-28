@@ -35,14 +35,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.DateFormatter;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.charting.chart.handledchart.HandledChart;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.charting.chart.util.ValuePoint;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.charting.chart.handledchart.HandledChart;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.charting.chart.util.ValuePoint;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
-import org.aiotrade.util.serialization.BeansDocument;
+import org.aiotrade.lib.util.serialization.BeansDocument;
 
 /**
  * @author Caoyuan Deng

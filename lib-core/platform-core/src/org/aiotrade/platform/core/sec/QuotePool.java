@@ -30,8 +30,8 @@
  */
 package org.aiotrade.platform.core.sec;
 
-import org.aiotrade.util.pool.PoolableObjectFactory;
-import org.aiotrade.util.pool.StackObjectPool;
+import org.aiotrade.lib.util.pool.PoolableObjectFactory;
+import org.aiotrade.lib.util.pool.StackObjectPool;
 
 /**
  * @author Caoyuan Deng

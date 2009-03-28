@@ -60,14 +60,14 @@ import org.aiotrade.platform.core.analysis.function.STOCHKFunction;
 import org.aiotrade.platform.core.analysis.function.SUMFunction;
 import org.aiotrade.platform.core.analysis.function.TRFunction;
 import org.aiotrade.platform.core.analysis.function.WMSFunction;
-import org.aiotrade.math.timeseries.computable.Indicator;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.computable.Option;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.math.timeseries.DefaultSer;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
-import org.aiotrade.math.timeseries.computable.ComputableHelper;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Option;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.DefaultSer;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.ComputableHelper;
 
 /**
  *

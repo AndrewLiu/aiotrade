@@ -32,10 +32,10 @@ package org.aiotrade.platform.core.analysis.function;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.DefaultSer.DefaultVar;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.DefaultSer.DefaultVar;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
 
 /**
  *

@@ -31,12 +31,12 @@
 package org.aiotrade.platform.core.analysis.indicator;
 
 import org.aiotrade.platform.core.analysis.indicator.AbstractIndicator.DefaultOpt;
-import org.aiotrade.math.timeseries.plottable.Plot;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.DefaultSer.DefaultVar;
-import org.aiotrade.math.timeseries.SerItem;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.DefaultSer.DefaultVar;
+import org.aiotrade.lib.math.timeseries.SerItem;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
 
 /**
  *

@@ -48,7 +48,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 import javax.imageio.ImageIO;
-import org.aiotrade.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Frequency;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
 import org.aiotrade.platform.core.dataserver.QuoteServer;
 import org.aiotrade.platform.core.sec.Market;

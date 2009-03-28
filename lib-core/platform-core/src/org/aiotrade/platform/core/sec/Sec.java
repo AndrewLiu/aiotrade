@@ -29,8 +29,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.sec;
-import org.aiotrade.math.timeseries.datasource.SerProvider;
-import org.aiotrade.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
 
 /**
  * sofic: Stock, Options, Futures, Index, Currency

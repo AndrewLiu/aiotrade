@@ -35,15 +35,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.view.ChartingController;
-import org.aiotrade.charting.view.WithDrawingPane;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.charting.view.pane.DrawingPane;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.math.timeseries.computable.Indicator;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.util.swing.GBC;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartingController;
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.util.swing.GBC;
 
 /**
  *

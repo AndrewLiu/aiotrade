@@ -32,7 +32,7 @@ package org.aiotrade.platform.core.dataserver;
 
 import java.awt.Image;
 import java.util.Calendar;
-import org.aiotrade.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Frequency;
 import org.aiotrade.platform.core.PersistenceManager;
 
 /**

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.core.sec;
 
 import java.util.Calendar;
-import org.aiotrade.math.timeseries.datasource.TimeValue;
+import org.aiotrade.lib.math.timeseries.datasource.TimeValue;
 
 
 /**

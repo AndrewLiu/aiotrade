@@ -30,10 +30,10 @@
  */
 package org.aiotrade.platform.core.analysis.function;
 
-import org.aiotrade.math.StatisticFunction;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.Ser;
-import org.aiotrade.math.timeseries.Var;
+import org.aiotrade.lib.math.StatisticFunction;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
 
 /**
  *
