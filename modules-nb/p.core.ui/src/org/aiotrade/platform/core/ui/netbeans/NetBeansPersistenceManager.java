@@ -67,13 +67,11 @@ import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.Repository;
-import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
-import org.openide.loaders.FolderLookup;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
+import org.openide.util.lookup.Lookups;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -187,8 +185,6 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
     public void saveContents(AnalysisContents contents) {
         if (contents.getUniSymbol().equalsIgnoreCase("Default")) {
             FileObject defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
-//            FileObject defaultContentsFile = Repository.getDefault().getDefaultFileSystem().findResource(
-//                    "UserOptions/DefaultContents.xml");
             if (defaultContentsFile != null) {
                 FileLock lock = null;
                 try {
@@ -245,8 +241,6 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
 
         if (symbol.equalsIgnoreCase("Default")) {
             FileObject defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
-//                    Repository.getDefault()..findResource(
-//                    "UserOptions/DefaultContents.xml");
             if (defaultContentsFile != null) {
                 try {
                     InputStream is = defaultContentsFile.getInputStream();
@@ -275,8 +269,6 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
     public void saveProperties() {
         synchronized (inSavingProperties) {
             FileObject propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
-//            FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
-//                    "UserOptions/aiotrade.properties");
             if (propertiesFile != null) {
                 Properties properties = null;
                 FileLock lock = null;
@@ -366,8 +358,6 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
 
     public void restoreProperties() {
         FileObject propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
-//        FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
-//                "UserOptions/aiotrade.properties");
         if (propertiesFile != null) {
             userOptionsProp = null;
             try {
@@ -463,13 +453,9 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
     public <T extends Comparable> Collection<T> lookupAllRegisteredServices(Class<T> clazz, String folderName) {
         SortedSet<T> result = new TreeSet<T>();
 
-        FileObject fo = FileUtil.getConfigFile(folderName);
-        //FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource(folderName);
-        if (fo != null) {
-            Lookup lookup = new FolderLookup(DataFolder.findFolder(fo)).getLookup();
-            Lookup.Template template = new Lookup.Template(clazz);
-            result.addAll(lookup.lookup(template).allInstances());
-        }
+        Lookup lookup = Lookups.forPath(folderName);
+        Lookup.Template tp = new Lookup.Template(clazz);
+        result.addAll(lookup.lookup(tp).allInstances());
 
         return result;
     }
