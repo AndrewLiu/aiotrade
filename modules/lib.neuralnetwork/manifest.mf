@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.lib.neuralnetwork
+OpenIDE-Module-Layer: org/aiotrade/lib/neuralnetwork/resource/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/lib/neuralnetwork/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
