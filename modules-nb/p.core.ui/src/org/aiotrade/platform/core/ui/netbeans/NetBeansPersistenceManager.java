@@ -66,6 +66,7 @@ import org.aiotrade.platform.core.sec.TickerPool;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
@@ -78,7 +79,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-
 /**
  * This class implements persistence via NetBeans Node system
  * Actually it will be an application context
@@ -86,68 +86,63 @@ import org.xml.sax.XMLReader;
  * @author Caoyuan Deng
  */
 public class NetBeansPersistenceManager implements PersistenceManager.I {
-    
+
     /** @TODO
      * WindowManager.getDefault()
      */
     private final static WindowManager WIN_MAN = new NetBeansWindowManager();
-
     /**
      * we perfer contents instances long lives in application context, so, don't
      * use weak reference map here.
      */
     private final static Map<AnalysisContents, Node> contentMapOccuptantNode =
             new HashMap<AnalysisContents, Node>();
-    
     private static AnalysisContents defaultContents;
-    
     private static final String TABLE_EXISTS_MARK = Long.toString(Long.MAX_VALUE);
     private static final String SYMBOL_INDEX_TABLE_NAME = "AIOTRADESYMBOLINDEX";
-    
-    private QuotePool  quotePool  = new QuotePool();
+    private QuotePool quotePool = new QuotePool();
     private TickerPool tickerPool = new TickerPool();
-    
     private Properties userOptionsProp;
     private Properties dbProp;
     private String dbUrl;
-    
+
     public NetBeansPersistenceManager() {
         init();
     }
-    
+
     private void init() {
         restoreProperties();
         checkAndCreateDatabaseIfNecessary();
     }
-    
+
     public static Node getOccupantNode(AnalysisContents contents) {
         return contentMapOccuptantNode.get(contents);
     }
-    
+
     public static AnalysisContents getOccupiedContents(Node node) {
         for (AnalysisContents contents : contentMapOccuptantNode.keySet()) {
             if (contentMapOccuptantNode.get(contents) == node) {
                 return contents;
             }
         }
-        
+
         return null;
     }
-    
+
     public static AnalysisContents lookupContents(String symbol) {
         for (AnalysisContents contents : contentMapOccuptantNode.keySet()) {
             if (contents.getUniSymbol().equals(symbol)) {
                 return contents;
             }
         }
-        
+
         return null;
     }
-    
+
     public static void putNode(AnalysisContents contents, Node node) {
         contentMapOccuptantNode.put(contents, node);
     }
-    
+
     /**
      * Remove node will not remove the contents, we prefer contents instances
      * long lives in application context, so if node is moved to other place, we
@@ -171,15 +166,15 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
             contentMapOccuptantNode.put(contents, null);
         }
     }
-    
+
     public final QuotePool getQuotePool() {
         return quotePool;
     }
-    
+
     public final TickerPool getTickerPool() {
         return tickerPool;
     }
-    
+
     public AnalysisContents getDefaultContents() {
         if (defaultContents != null) {
             return defaultContents;
@@ -188,25 +183,28 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
             return defaultContents;
         }
     }
-    
+
     public void saveContents(AnalysisContents contents) {
         if (contents.getUniSymbol().equalsIgnoreCase("Default")) {
-            FileObject defaultContentsFile = Repository.getDefault().getDefaultFileSystem().findResource(
-                    "UserOptions/DefaultContents.xml");
+            FileObject defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
+//            FileObject defaultContentsFile = Repository.getDefault().getDefaultFileSystem().findResource(
+//                    "UserOptions/DefaultContents.xml");
             if (defaultContentsFile != null) {
                 FileLock lock = null;
                 try {
                     lock = defaultContentsFile.lock();
-                    
+
                     PrintStream out = new PrintStream(defaultContentsFile.getOutputStream(lock));
                     out.print(ContentsPersistenceHandler.dumpContents(contents));
-                    
+
                     /** should remember to do out.close() here */
                     out.close();
                 } catch (IOException ioe) {
                     ErrorManager.getDefault().notify(ioe);
                 } finally {
-                    if (lock != null) lock.releaseLock();
+                    if (lock != null) {
+                        lock.releaseLock();
+                    }
                 }
             }
         } else {
@@ -217,36 +215,38 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                 for (Node child : children.getNodes()) {
                     child.getLookup().lookup(RefreshAction.class).execute();
                 }
-                
+
                 DataObject dob = node.getLookup().lookup(DataObject.class);
                 FileObject writeTo = dob.getPrimaryFile();
                 FileLock lock = null;
                 try {
                     lock = writeTo.lock();
-                    
+
                     PrintStream out = new PrintStream(writeTo.getOutputStream(lock));
                     out.print(ContentsPersistenceHandler.dumpContents(contents));
-                    
+
                     /** should remember to do out.close() here */
                     out.close();
                 } catch (IOException ioe) {
                     ErrorManager.getDefault().notify(ioe);
                 } finally {
-                    if (lock != null) lock.releaseLock();
+                    if (lock != null) {
+                        lock.releaseLock();
+                    }
                 }
             }
-            
-            
+
+
         }
     }
-    
-    
+
     public AnalysisContents restoreContents(String symbol) {
         AnalysisContents contents = null;
-        
+
         if (symbol.equalsIgnoreCase("Default")) {
-            FileObject defaultContentsFile = Repository.getDefault().getDefaultFileSystem().findResource(
-                    "UserOptions/DefaultContents.xml");
+            FileObject defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
+//                    Repository.getDefault()..findResource(
+//                    "UserOptions/DefaultContents.xml");
             if (defaultContentsFile != null) {
                 try {
                     InputStream is = defaultContentsFile.getInputStream();
@@ -255,7 +255,7 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                     xmlReader.setContentHandler(handler);
                     xmlReader.parse(new InputSource(is));
                     contents = handler.getContents();
-                    
+
                     is.close();
                 } catch (IOException ex) {
                     ErrorManager.getDefault().notify(ex);
@@ -267,33 +267,33 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
             /** @TODO
              *  useful or useless in this case? */
         }
-        
+
         return contents;
     }
-    
     private final Object inSavingProperties = new Object();
+
     public void saveProperties() {
         synchronized (inSavingProperties) {
-            
-            FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
-                    "UserOptions/aiotrade.properties");
+            FileObject propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
+//            FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
+//                    "UserOptions/aiotrade.properties");
             if (propertiesFile != null) {
                 Properties properties = null;
                 FileLock lock = null;
                 try {
                     lock = propertiesFile.lock();
-                    
+
                     properties = new Properties();
-                    
+
                     LookFeel laf = LookFeel.getCurrent();
-                    
-                    String lafStr            = laf.getClass().getName();
-                    String colorReversedStr  = Boolean.toString(LookFeel.getCurrent().isPositiveNegativeColorReversed());
-                    String thinVolumeStr     = Boolean.toString(LookFeel.getCurrent().isThinVolumeBar());
+
+                    String lafStr = laf.getClass().getName();
+                    String colorReversedStr = Boolean.toString(LookFeel.getCurrent().isPositiveNegativeColorReversed());
+                    String thinVolumeStr = Boolean.toString(LookFeel.getCurrent().isThinVolumeBar());
                     String quoteChartTypeStr = LookFeel.getCurrent().getQuoteChartType().toString();
-                    String antiAliasStr      = Boolean.toString(LookFeel.getCurrent().isAntiAlias());
+                    String antiAliasStr = Boolean.toString(LookFeel.getCurrent().isAntiAlias());
                     String autoHideScrollStr = Boolean.toString(LookFeel.getCurrent().isAutoHideScroll());
-                    
+
                     String proxyTypeStr = "";
                     String proxyHostStr = "";
                     String proxyPortStr = "";
@@ -310,7 +310,7 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                                 break;
                             case HTTP:
                                 proxyTypeStr = proxyType.toString();
-                                InetSocketAddress addr = (InetSocketAddress)proxy.address();
+                                InetSocketAddress addr = (InetSocketAddress) proxy.address();
                                 proxyHostStr = addr.getHostName();
                                 proxyPortStr = String.valueOf(addr.getPort());
                                 break;
@@ -318,96 +318,99 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                                 proxyTypeStr = "SYSTEM";
                         }
                     }
-                    
-                    String strDbDriver   = "";
-                    String strDbUrl      = "";
-                    String strDbUser     = "";
+
+                    String strDbDriver = "";
+                    String strDbUrl = "";
+                    String strDbUser = "";
                     String strDbPassword = "";
                     if (userOptionsProp != null) {
-                        strDbDriver    = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver");
-                        strDbUrl       = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url");
-                        strDbUser      = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user");
-                        strDbPassword  = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password");
+                        strDbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver");
+                        strDbUrl = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url");
+                        strDbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user");
+                        strDbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password");
                     }
-                    
-                    properties.setProperty("org.aiotrade.platform.option.lookfeel",       lafStr);
-                    properties.setProperty("org.aiotrade.platform.option.colorreversed",  colorReversedStr);
-                    properties.setProperty("org.aiotrade.platform.option.thinvolume",     thinVolumeStr);
+
+                    properties.setProperty("org.aiotrade.platform.option.lookfeel", lafStr);
+                    properties.setProperty("org.aiotrade.platform.option.colorreversed", colorReversedStr);
+                    properties.setProperty("org.aiotrade.platform.option.thinvolume", thinVolumeStr);
                     properties.setProperty("org.aiotrade.platform.option.quotecharttype", quoteChartTypeStr);
-                    properties.setProperty("org.aiotrade.platform.option.antialias",      antiAliasStr);
+                    properties.setProperty("org.aiotrade.platform.option.antialias", antiAliasStr);
                     properties.setProperty("org.aiotrade.platform.option.autohidescroll", autoHideScrollStr);
-                    
-                    properties.setProperty("org.aiotrade.platform.option.proxytype",      proxyTypeStr);
-                    properties.setProperty("org.aiotrade.platform.option.proxyhost",      proxyHostStr);
-                    properties.setProperty("org.aiotrade.platform.option.proxyport",      proxyPortStr);
-                    
-                    properties.setProperty("org.aiotrade.platform.jdbc.driver",           strDbDriver);
-                    properties.setProperty("org.aiotrade.platform.jdbc.url",              strDbUrl);
-                    properties.setProperty("org.aiotrade.platform.jdbc.user",             strDbUser);
-                    properties.setProperty("org.aiotrade.platform.jdbc.password",         strDbPassword);
-                    
+
+                    properties.setProperty("org.aiotrade.platform.option.proxytype", proxyTypeStr);
+                    properties.setProperty("org.aiotrade.platform.option.proxyhost", proxyHostStr);
+                    properties.setProperty("org.aiotrade.platform.option.proxyport", proxyPortStr);
+
+                    properties.setProperty("org.aiotrade.platform.jdbc.driver", strDbDriver);
+                    properties.setProperty("org.aiotrade.platform.jdbc.url", strDbUrl);
+                    properties.setProperty("org.aiotrade.platform.jdbc.user", strDbUser);
+                    properties.setProperty("org.aiotrade.platform.jdbc.password", strDbPassword);
+
                     /** save to file */
                     OutputStream out = propertiesFile.getOutputStream(lock);
                     properties.store(out, null);
-                    
+
                     out.close();
                 } catch (IOException ioe) {
                     ErrorManager.getDefault().notify(ioe);
                 } finally {
-                    if (lock != null) lock.releaseLock();
+                    if (lock != null) {
+                        lock.releaseLock();
+                    }
                 }
-                
+
             }
         }
-        
+
     }
-    
+
     public void restoreProperties() {
-        FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
-                "UserOptions/aiotrade.properties");
+        FileObject propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
+//        FileObject propertiesFile = Repository.getDefault().getDefaultFileSystem().findResource(
+//                "UserOptions/aiotrade.properties");
         if (propertiesFile != null) {
             userOptionsProp = null;
             try {
                 userOptionsProp = new Properties();
                 InputStream is = propertiesFile.getInputStream();
                 userOptionsProp.load(is);
-                
+
                 is.close();
             } catch (IOException ioe) {
                 ErrorManager.getDefault().notify(ioe);
             }
-            
+
             if (userOptionsProp != null) {
-                String lafStr            = userOptionsProp.getProperty("org.aiotrade.platform.option.lookfeel");
-                String colorReversedStr  = userOptionsProp.getProperty("org.aiotrade.platform.option.colorreversed");
-                String thinVolumeStr     = userOptionsProp.getProperty("org.aiotrade.platform.option.thinvolume");
+                String lafStr = userOptionsProp.getProperty("org.aiotrade.platform.option.lookfeel");
+                String colorReversedStr = userOptionsProp.getProperty("org.aiotrade.platform.option.colorreversed");
+                String thinVolumeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.thinvolume");
                 String quoteChartTypeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.quotecharttype");
-                String antiAliasStr      = userOptionsProp.getProperty("org.aiotrade.platform.option.antialias");
+                String antiAliasStr = userOptionsProp.getProperty("org.aiotrade.platform.option.antialias");
                 String autoHideScrollStr = userOptionsProp.getProperty("org.aiotrade.platform.option.autohidescroll");
-                String proxyTypeStr      = userOptionsProp.getProperty("org.aiotrade.platform.option.proxytype");
-                String proxyHostStr      = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyhost");
-                String proxyPortStr      = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyport", "80");
-                
+                String proxyTypeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxytype");
+                String proxyHostStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyhost");
+                String proxyPortStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyport", "80");
+
                 if (lafStr != null) {
                     try {
-                        LookFeel laf = (LookFeel)Class.forName(lafStr.trim()).newInstance();
+                        LookFeel laf = (LookFeel) Class.forName(lafStr.trim()).newInstance();
                         LookFeel.setCurrent(laf);
                     } catch (Exception ex) {
                         ErrorManager.getDefault().notify(ex);
                     }
-                    
+
                 }
-                
+
                 if (colorReversedStr != null) {
                     LookFeel.getCurrent().setPositiveNegativeColorReversed(
                             Boolean.parseBoolean(colorReversedStr.trim()));
                 }
-                
+
                 if (thinVolumeStr != null) {
                     LookFeel.getCurrent().setThinVolumeBar(
                             Boolean.parseBoolean(thinVolumeStr.trim()));
                 }
-                
+
                 if (quoteChartTypeStr != null) {
                     quoteChartTypeStr = quoteChartTypeStr.trim();
                     if (quoteChartTypeStr.equalsIgnoreCase("bar")) {
@@ -418,24 +421,24 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                         LookFeel.getCurrent().setQuoteChartType(QuoteChart.Type.Line);
                     }
                 }
-                
+
                 if (antiAliasStr != null) {
                     LookFeel.getCurrent().setAntiAlias(Boolean.parseBoolean(antiAliasStr.trim()));
                 }
-                
+
                 /** there may be too many hidden exceptions in the following code, try {} it */
                 try {
                     proxyHostStr = (proxyHostStr == null) ? "" : proxyHostStr;
                     int port = Integer.parseInt(proxyPortStr.trim());
                     InetSocketAddress proxyAddr = new InetSocketAddress(proxyHostStr, port);
-                    
+
                     Proxy proxy = null;
                     if (proxyTypeStr != null) {
                         if (proxyTypeStr.equalsIgnoreCase("SYSTEM")) {
                             proxy = null;
-                        } else  {
+                        } else {
                             Proxy.Type type = Proxy.Type.valueOf(proxyTypeStr);
-                            switch(type) {
+                            switch (type) {
                                 case DIRECT:
                                     proxy = Proxy.NO_PROXY;
                                     break;
@@ -447,78 +450,77 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                             }
                         }
                     }
-                    
+
                     UserOptionsManager.setProxy(proxy);
                 } catch (Exception ex) {
-                    
                 }
-                
+
                 UserOptionsManager.setOptionsLoaded(true);
             }
         }
     }
-    
+
     public <T extends Comparable> Collection<T> lookupAllRegisteredServices(Class<T> clazz, String folderName) {
         SortedSet<T> result = new TreeSet<T>();
-        
-        FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource(folderName);
+
+        FileObject fo = FileUtil.getConfigFile(folderName);
+        //FileObject fo = Repository.getDefault().getDefaultFileSystem().findResource(folderName);
         if (fo != null) {
             Lookup lookup = new FolderLookup(DataFolder.findFolder(fo)).getLookup();
             Lookup.Template template = new Lookup.Template(clazz);
             result.addAll(lookup.lookup(template).allInstances());
         }
-        
+
         return result;
     }
-    
+
     private void checkAndCreateDatabaseIfNecessary() {
         String strDbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver");
-        
+
         try {
             Class.forName(strDbDriver);
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
         }
-        
+
         String strUserDir = System.getProperty("netbeans.user");
         dbUrl = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade";
-        
-        String strDbUser     = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user");
+
+        String strDbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user");
         String strDbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password");
-        
+
         dbProp = new Properties();
         dbProp.put("user", strDbUser);
         dbProp.put("password", strDbPassword);
-        
+
         /** test if database exists, if not, create it: */
-        
         /** derby special properties */
         dbProp.put("create", "true");
-        
+
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(dbUrl, dbProp);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        
+
         try {
             if (conn != null && !conn.isClosed()) {
                 /** check and create symbol index table if necessary */
                 if (!symbolIndexTableExists(conn)) {
                     createSymbolIndexTable(conn);
                 }
-                
+
                 conn.close();
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        
+
         /** derby special properties */
         dbProp.remove("create");
     }
-    
+
     private Connection getDbConnection() {
         Connection conn = null;
         try {
@@ -526,7 +528,7 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        
+
         /**
          * Try to set Transaction Isolation to TRANSACTION_READ_UNCOMMITTED
          * level to get better perfomance.
@@ -540,16 +542,16 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
              * followed actions.
              */
         }
-        
+
         try {
             conn.setAutoCommit(false);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        
+
         return conn;
     }
-    
+
     /**
      * @param conn a db connection
      * @return true if exists, false if none
@@ -558,11 +560,8 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
         if (conn != null) {
             try {
                 Statement stmt = conn.createStatement();
-                
-                String existsTestStr = new StringBuilder(100)
-                        .append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" WHERE qsymbol = '").append(TABLE_EXISTS_MARK).append("'")
-                        .toString();
+
+                String existsTestStr = new StringBuilder(100).append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(TABLE_EXISTS_MARK).append("'").toString();
                 try {
                     ResultSet rs = stmt.executeQuery(existsTestStr);
                     if (rs.next()) {
@@ -575,68 +574,33 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                 ex.printStackTrace();
             }
         }
-        
+
         return false;
     }
-    
+
     private void createSymbolIndexTable(Connection conn) {
         if (conn != null) {
             try {
                 Statement stmt = conn.createStatement();
-                
-                String stmtCreatTableStr_derby = new StringBuilder(200)
-                        .append("CREATE TABLE ")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (")
-                        .append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ")
-                        .append("qsymbol CHAR(30) not null, ")
-                        .append("qtablename CHAR(60), ")
-                        .append("qfreq CHAR(10)")
-                        .append(")")
-                        .toString();
-                
-                String stmtCreatTableStr_h2_hsqldb = new StringBuilder(200)
-                        .append("CREATE CACHED TABLE ")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (")
-                        .append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ")
-                        .append("qsymbol CHAR(30) not null, ")
-                        .append("qtablename CHAR(60), ")
-                        .append("qfreq CHAR(10)")
-                        .append(")")
-                        .toString();
-                
+
+                String stmtCreatTableStr_derby = new StringBuilder(200).append("CREATE TABLE ").append(SYMBOL_INDEX_TABLE_NAME).append(" (").append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ").append("qsymbol CHAR(30) not null, ").append("qtablename CHAR(60), ").append("qfreq CHAR(10)").append(")").toString();
+
+                String stmtCreatTableStr_h2_hsqldb = new StringBuilder(200).append("CREATE CACHED TABLE ").append(SYMBOL_INDEX_TABLE_NAME).append(" (").append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ").append("qsymbol CHAR(30) not null, ").append("qtablename CHAR(60), ").append("qfreq CHAR(10)").append(")").toString();
+
                 String stmtStr = stmtCreatTableStr_h2_hsqldb;
                 stmt.executeUpdate(stmtStr);
-                
+
                 /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-                stmtStr = new StringBuilder(100)
-                        .append("CREATE INDEX idx_")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append("_qsymbol ON ")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (qsymbol)")
-                        .toString();
+                stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(SYMBOL_INDEX_TABLE_NAME).append("_qsymbol ON ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol)").toString();
                 stmt.executeUpdate(stmtStr);
-                
-                stmtStr = new StringBuilder(100)
-                        .append("CREATE INDEX idx_")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append("_qfreq ON ")
-                        .append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (qfreq)")
-                        .toString();
+
+                stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(SYMBOL_INDEX_TABLE_NAME).append("_qfreq ON ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qfreq)").toString();
                 stmt.executeUpdate(stmtStr);
-                
+
                 /** insert a mark record for testing if table exists further */
-                stmtStr = new StringBuilder(100)
-                        .append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (qsymbol) VALUES (")
-                        .append("'").append(TABLE_EXISTS_MARK).append("'")
-                        .append(")")
-                        .toString();
+                stmtStr = new StringBuilder(100).append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol) VALUES (").append("'").append(TABLE_EXISTS_MARK).append("'").append(")").toString();
                 stmt.executeUpdate(stmtStr);
-                
+
                 stmt.close();
                 conn.commit();
             } catch (SQLException ex) {
@@ -644,7 +608,7 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
             }
         }
     }
-    
+
     /**
      * @param symbol
      * @param freq
@@ -656,12 +620,9 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
         if (conn != null) {
             try {
                 Statement stmt = conn.createStatement();
-                
+
                 String tableName = propTableName(symbol, freq);
-                String existsTestStr = new StringBuilder(100)
-                        .append("SELECT * FROM ").append(tableName)
-                        .append(" WHERE qtime = ").append(TABLE_EXISTS_MARK)
-                        .toString();
+                String existsTestStr = new StringBuilder(100).append("SELECT * FROM ").append(tableName).append(" WHERE qtime = ").append(TABLE_EXISTS_MARK).toString();
                 try {
                     ResultSet rs = stmt.executeQuery(existsTestStr);
                     if (rs.next()) {
@@ -674,10 +635,10 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                 ex.printStackTrace();
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * @return connection for following usage
      */
@@ -686,7 +647,7 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
         if (conn != null) {
             try {
                 Statement stmt = conn.createStatement();
-                
+
                 /**
                  * Only one identity column is allowed in each table. Identity
                  * columns are autoincrement columns. They must be of INTEGER or
@@ -694,97 +655,41 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                  * result, multi-column primary keys are not possible with an
                  * IDENTITY column present)
                  */
-                
                 String tableName = propTableName(symbol, freq);
-                String stmtCreatTableStr_derby = new StringBuilder(200)
-                        .append("CREATE TABLE ")
-                        .append(tableName)
-                        .append(" (")
-                        .append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ")
-                        .append("qtime BIGINT not null, ")
-                        .append("qopen FLOAT, ")
-                        .append("qhigh FLOAT, ")
-                        .append("qlow FLOAT, ")
-                        .append("qclose FLOAT, ")
-                        .append("qclose_adj FLOAT, ")
-                        .append("qvolume FLOAT, ")
-                        .append("qamount FLOAT, ")
-                        .append("qwap FLOAT, ")
-                        .append("qhasgaps SMALLINT, ")
-                        .append("qsourceid BIGINT")
-                        .append(")")
-                        .toString();
-                
-                String stmtCreatTableStr_h2_hsqldb = new StringBuilder(200)
-                        .append("CREATE CACHED TABLE ")
-                        .append(tableName)
-                        .append(" (")
-                        .append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ") // IDENTITY(startInt, incrementInt)
-                        .append("qtime BIGINT not null, ")
-                        .append("qopen FLOAT, ")
-                        .append("qhigh FLOAT, ")
-                        .append("qlow FLOAT, ")
-                        .append("qclose FLOAT, ")
-                        .append("qclose_adj FLOAT, ")
-                        .append("qvolume FLOAT, ")
-                        .append("qamount FLOAT, ")
-                        .append("qwap FLOAT, ")
-                        .append("qhasgaps SMALLINT, ")
-                        .append("qsourceid BIGINT")
-                        .append(")")
-                        .toString();
-                
+                String stmtCreatTableStr_derby = new StringBuilder(200).append("CREATE TABLE ").append(tableName).append(" (").append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ").append("qtime BIGINT not null, ").append("qopen FLOAT, ").append("qhigh FLOAT, ").append("qlow FLOAT, ").append("qclose FLOAT, ").append("qclose_adj FLOAT, ").append("qvolume FLOAT, ").append("qamount FLOAT, ").append("qwap FLOAT, ").append("qhasgaps SMALLINT, ").append("qsourceid BIGINT").append(")").toString();
+
+                String stmtCreatTableStr_h2_hsqldb = new StringBuilder(200).append("CREATE CACHED TABLE ").append(tableName).append(" (").append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ") // IDENTITY(startInt, incrementInt)
+                        .append("qtime BIGINT not null, ").append("qopen FLOAT, ").append("qhigh FLOAT, ").append("qlow FLOAT, ").append("qclose FLOAT, ").append("qclose_adj FLOAT, ").append("qvolume FLOAT, ").append("qamount FLOAT, ").append("qwap FLOAT, ").append("qhasgaps SMALLINT, ").append("qsourceid BIGINT").append(")").toString();
+
                 String stmtStr = stmtCreatTableStr_h2_hsqldb;
                 stmt.executeUpdate(stmtStr);
-                
+
                 /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-                stmtStr = new StringBuilder(100)
-                        .append("CREATE INDEX idx_")
-                        .append(tableName)
-                        .append("_qtime ON ")
-                        .append(tableName)
-                        .append(" (qtime)")
-                        .toString();
+                stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(tableName).append("_qtime ON ").append(tableName).append(" (qtime)").toString();
                 stmt.executeUpdate(stmtStr);
-                
-                stmtStr = new StringBuilder(100)
-                        .append("CREATE INDEX idx_")
-                        .append(tableName)
-                        .append("_qsourceid ON ")
-                        .append(tableName)
-                        .append(" (qsourceid)")
-                        .toString();
+
+                stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(tableName).append("_qsourceid ON ").append(tableName).append(" (qsourceid)").toString();
                 stmt.executeUpdate(stmtStr);
-                
+
                 /** insert a mark record for testing if table exists further */
-                stmtStr = new StringBuilder(100)
-                        .append("INSERT INTO ").append(tableName)
-                        .append(" (qtime) VALUES (").append(TABLE_EXISTS_MARK).append(")")
-                        .toString();
+                stmtStr = new StringBuilder(100).append("INSERT INTO ").append(tableName).append(" (qtime) VALUES (").append(TABLE_EXISTS_MARK).append(")").toString();
                 stmt.executeUpdate(stmtStr);
-                
+
                 /** insert a symbol index record into symbol index table */
-                stmtStr = new StringBuilder(100)
-                        .append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" (qsymbol, qtablename, qfreq) VALUES (")
-                        .append("'").append(propSymbol(symbol))
-                        .append("', '").append(tableName)
-                        .append("', '").append(freq.toString())
-                        .append("')")
-                        .toString();
+                stmtStr = new StringBuilder(100).append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol, qtablename, qfreq) VALUES (").append("'").append(propSymbol(symbol)).append("', '").append(tableName).append("', '").append(freq.toString()).append("')").toString();
                 stmt.executeUpdate(stmtStr);
-                
+
                 stmt.close();
                 conn.commit();
-                
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
-        
+
         return conn;
     }
-    
+
     public void saveQuotes(String symbol, Frequency freq, List<Quote> quotes, long sourceId) {
         Connection conn = tableExists(symbol, freq);
         if (conn == null) {
@@ -793,18 +698,14 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                 return;
             }
         }
-        
+
         try {
             String tableName = propTableName(symbol, freq);
-            String stmtStr = new StringBuilder(200)
-                    .append("INSERT INTO ").append(tableName)
-                    .append(" (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qwap, qhasgaps, qsourceid)")
-                    .append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                    .toString();
-            
+            String stmtStr = new StringBuilder(200).append("INSERT INTO ").append(tableName).append(" (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qwap, qhasgaps, qsourceid)").append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+
             PreparedStatement stmt = conn.prepareStatement(stmtStr);
             for (Quote quote : quotes) {
-                stmt.setLong( 1, quote.getTime());
+                stmt.setLong(1, quote.getTime());
                 stmt.setFloat(2, quote.getOpen());
                 stmt.setFloat(3, quote.getHigh());
                 stmt.setFloat(4, quote.getLow());
@@ -813,13 +714,13 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                 stmt.setFloat(7, quote.getAmount());
                 stmt.setFloat(8, quote.getClose_adj());
                 stmt.setFloat(9, quote.getWAP());
-                stmt.setByte(10, quote.hasGaps() ? (byte)-1 : (byte)1);
+                stmt.setByte(10, quote.hasGaps() ? (byte) -1 : (byte) 1);
                 stmt.setLong(11, sourceId);
-                
+
                 stmt.addBatch();
             }
             stmt.executeBatch();
-            
+
             stmt.close();
             conn.commit();
             conn.close();
@@ -827,25 +728,21 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
             ex.printStackTrace();
         }
     }
-    
+
     public List<Quote> restoreQuotes(String symbol, Frequency freq) {
         List<Quote> quotes = new ArrayList();
-        
+
         Connection conn = tableExists(symbol, freq);
         if (conn != null) {
             try {
                 String tableName = propTableName(symbol, freq);
-                String strStmt = new StringBuilder(100)
-                        .append("SELECT * FROM ").append(tableName)
-                        .append(" WHERE qtime != ").append(TABLE_EXISTS_MARK)
-                        .append(" ORDER BY qtime ASC")
-                        .toString();
-                
+                String strStmt = new StringBuilder(100).append("SELECT * FROM ").append(tableName).append(" WHERE qtime != ").append(TABLE_EXISTS_MARK).append(" ORDER BY qtime ASC").toString();
+
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(strStmt);
                 while (rs.next()) {
                     Quote quote = getQuotePool().borrowObject();
-                    
+
                     quote.setTime(rs.getLong("qtime"));
                     quote.setOpen(rs.getFloat("qopen"));
                     quote.setHigh(rs.getFloat("qhigh"));
@@ -857,64 +754,57 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                     quote.setWAP(rs.getFloat("qwap"));
                     quote.setHasGaps(rs.getByte("qhasgaps") < 0 ? true : false);
                     quote.setSourceId(rs.getLong("qsourceid"));
-                    
+
                     quotes.add(quote);
                 }
                 rs.close();
-                
+
                 stmt.close();
                 conn.commit();
                 conn.close();
-                
+
                 WIN_MAN.setStatusText(quotes.size() + " quotes restored from database.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
-        
+
         return quotes;
     }
-    
+
     public void deleteQuotes(String symbol, Frequency freq, long fromTime, long toTime) {
         Connection conn = tableExists(symbol, freq);
         if (conn != null) {
             try {
                 String tableName = propTableName(symbol, freq);
-                String strStmt = new StringBuilder(100)
-                        .append("DELETE FROM ").append(tableName)
-                        .append(" WHERE qtime != ").append(TABLE_EXISTS_MARK)
-                        .append(" AND qtime BETWEEN ? AND ? ")
-                        .toString();
-                
+                String strStmt = new StringBuilder(100).append("DELETE FROM ").append(tableName).append(" WHERE qtime != ").append(TABLE_EXISTS_MARK).append(" AND qtime BETWEEN ? AND ? ").toString();
+
                 PreparedStatement stmt = conn.prepareStatement(strStmt);
-                
+
                 stmt.setLong(1, fromTime);
                 stmt.setLong(2, toTime);
-                
+
                 stmt.execute();
-                
+
                 stmt.close();
                 conn.commit();
                 conn.close();
-                
+
                 WIN_MAN.setStatusText("Delete data of " + tableName + " successfully.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
     }
-    
+
     public void dropAllQuoteTables(String symbol) {
         Connection conn = getDbConnection();
         if (symbolIndexTableExists(conn)) {
             try {
                 List<String> tableNames = new ArrayList<String>();
-                
-                String strStmt = new StringBuilder(100)
-                        .append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'")
-                        .toString();
-                
+
+                String strStmt = new StringBuilder(100).append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'").toString();
+
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(strStmt);
                 while (rs.next()) {
@@ -922,40 +812,35 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
                     tableNames.add(tableName);
                 }
                 rs.close();
-                
+
                 stmt.close();
                 conn.commit();
-                
+
                 for (String tableName : tableNames) {
-                    strStmt = new StringBuilder(100)
-                            .append("DROP TABLE ").append(tableName)
-                            .toString();
+                    strStmt = new StringBuilder(100).append("DROP TABLE ").append(tableName).toString();
                     PreparedStatement dropStmt = conn.prepareStatement(strStmt);
                     dropStmt.execute();
-                    
+
                     dropStmt.close();
                     conn.commit();
                 }
-                
-                strStmt = new StringBuilder(100)
-                        .append("DELETE FROM ").append(SYMBOL_INDEX_TABLE_NAME)
-                        .append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'")
-                        .toString();
+
+                strStmt = new StringBuilder(100).append("DELETE FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'").toString();
                 PreparedStatement deleteStmt = conn.prepareStatement(strStmt);
                 deleteStmt.execute();
-                
+
                 deleteStmt.close();
                 conn.commit();
-                
+
                 conn.close();
-                
+
                 WIN_MAN.setStatusText("Clear data of " + symbol + " successfully.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
     }
-    
+
     public void shutdown() {
         /**
          * Derby special action:
@@ -976,7 +861,6 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
          * virtual machine exists normally.
          *
          */
-        
         boolean SQLExGot = false;
         try {
             dbProp.put("shutdown", "true");
@@ -984,34 +868,23 @@ public class NetBeansPersistenceManager implements PersistenceManager.I {
         } catch (SQLException ex) {
             SQLExGot = true;
         }
-        
+
         if (SQLExGot == true) {
             /** shutdown sucessfully */
         }
-        
+
     }
-    
+
     private final String propTableName(String symbol, Frequency freq) {
         String propSymbol = propSymbol(symbol);
-        return new StringBuilder(20)
-                .append(propSymbol)
-                .append("_")
-                .append(freq.getName())
-                .toString();
+        return new StringBuilder(20).append(propSymbol).append("_").append(freq.getName()).toString();
     }
-    
+
     /**
      * table name can not contain '.', '^', '-' etc, and should start with letter instead of number
      */
     private final String propSymbol(String symbol) {
-        String propSymbol = symbol.trim()
-                .replace('^', '_')
-                .replace('.', '_')
-                .replace('-', '_');
-        return new StringBuilder(20)
-                .append("q")
-                .append(propSymbol)
-                .toString();
+        String propSymbol = symbol.trim().replace('^', '_').replace('.', '_').replace('-', '_');
+        return new StringBuilder(20).append("q").append(propSymbol).toString();
     }
-    
 }
