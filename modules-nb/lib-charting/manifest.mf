@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotarde.lib.charting
+OpenIDE-Module-Localizing-Bundle: org/aiotarde/lib/charting/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
