@@ -56,9 +56,6 @@
         <file name="GMMA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.GMMAIndicator"/>
         </file>
-        <file name="VOL.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
-        </file>
         <file name="ZIGZAG.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.ZIGZAGIndicator"/>
         </file>
