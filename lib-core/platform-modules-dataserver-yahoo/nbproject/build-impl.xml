@@ -324,6 +324,7 @@ is divided into following sections:
                 ===================
             -->
     <target depends="init" name="deps-jar" unless="no.deps">
+        <ant antfile="${project.AIOTrade_Lib_Charting}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.AIOTrade_Lib_Math}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.AIOTrade_Lib_Util}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.AIOTrade_Platform_Core}/build.xml" inheritall="false" target="jar"/>
@@ -661,6 +662,7 @@ is divided into following sections:
                 ===============
             -->
     <target depends="init" name="deps-clean" unless="no.deps">
+        <ant antfile="${project.AIOTrade_Lib_Charting}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.AIOTrade_Lib_Math}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.AIOTrade_Lib_Util}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.AIOTrade_Platform_Core}/build.xml" inheritall="false" target="clean"/>
