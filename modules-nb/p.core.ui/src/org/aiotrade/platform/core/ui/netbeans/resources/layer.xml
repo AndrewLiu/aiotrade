@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Actions">
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-AddSymbolAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-AddStatisticChartAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-ChangeStatisticChartOptsAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-StartSelectedWatchAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-StopSelectedWatchAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-ZoomOutAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-ZoomInAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowCursorCrossAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchCalendarTradingTimeViewAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchCandleOhlcAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchLinearLogScaleAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchAdjustQuoteAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-RemoveCompareQuoteChartsAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-PickIndicatorAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-ChangeOptsAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-PickDrawingLineAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-explorer-SymbolListOpenAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-OnlineHelpAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SymbolLookupHelpAction.instance"/>
+        <file name="org-aiotrade-platform-core-ui-netbeans-actions-SaveToImageAction.instance"/>
+        <!--file name="org-aiotrade-platform-core-ui-netbeans-actions-SaveToCustomSizeImageAction.instance"/-->
+    </folder>
+    
+    <folder name="Menu">
+        <folder name="File">
+            <file name="AddSymbolAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-AddSymbolAction.instance"/>
+            </file>
+        </folder>
+        <folder name="Window">
+            <file name="SymbolListOpenAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-explorer-SymbolListOpenAction.instance"/>
+            </file>
+        </folder>
+        <folder name="Help">
+            <file name="OnlineHelpAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-OnlineHelpAction.instance"/>
+            </file>
+        </folder>
+        
+    </folder>
+    
+    <folder name="Toolbars">
+        <folder name="View">
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-AddSymbolAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-AddSymbolAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-ZoomOutAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ZoomOutAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-ZoomInAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ZoomInAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchCursorAcceleratedAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchNatualTradingTimeViewAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCalendarTradingTimeViewAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchCandleOhlcAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCandleOhlcAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowCursorCrossAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowCursorCrossAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchLinearLogScaleAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchLinearLogScaleAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchAdjustQuoteAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchAdjustQuoteAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SaveToImageAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SaveToImageAction.instance"/>
+            </file>
+            <!--file name="org-aiotrade-platform-core-ui-netbeans-actions-SaveToCustomSizeImageAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SaveToCustomSizeImageAction.instance"/>
+            </file-->
+        </folder>
+        
+        <attr name="Stock/Indicator" boolvalue="true"/>
+        <folder name="Indicator">
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-PickIndicatorAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-PickIndicatorAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-ChangeOptsAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ChangeOptsAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-AddStatChartAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-AddStatisticChartAction.instance"/>
+            </file>
+        </folder>
+        
+        <attr name="Indicator/Draw" boolvalue="true"/>
+        <folder name="Draw">
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-PickDrawingLineAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-PickDrawingLineAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-RemoveDrawingLineAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
+            </file>
+            <file name="org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowDrawingLineAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
+            </file>
+        </folder>
+        
+        <attr name="Draw/Memory" boolvalue="true"/>
+        
+    </folder>
+    
+    <!-- 
+    http://www.netbeans.org/project/www/download/dev/javadoc/org-openide-util/org/openide/util/Utilities.html#stringToKey(java.lang.String) 
+    http://java.sun.com/j2se/1.5.0/docs/api/java/awt/event/KeyEvent.html
+    
+    This format has following form:
+    [C][A][S][M]-identifier
+
+    Where:
+
+    * C stands for the Control key
+    * A stands for the Alt key
+    * S stands for the Shift key
+    * M stands for the Meta key
+    
+    identifier can be any text constant from KeyEvent but without the leading VK_ characters. 
+    So KeyEvent.VK_ENTER is described as ENTER
+    -->
+    <folder name="Shortcuts">
+        <file name="SPACE.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
+        </file>
+        <file name="C-N.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-AddSymbolAction.instance"/>
+        </file>
+        <file name="C-B.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCandleOhlcAction.instance"/>
+        </file>
+        <file name="UP.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ZoomInAction.instance"/>
+        </file>
+        <file name="DOWN.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ZoomOutAction.instance"/>
+        </file>
+        <file name="ESCAPE.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowCursorCrossAction.instance"/>
+        </file> 
+        <file name="C-L.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-PickDrawingLineAction.instance"/>
+        </file>
+        <file name="C-D.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
+        </file>
+        <file name="DELETE.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
+        </file> 
+        <file name="C-I.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-PickIndicatorAction.instance"/>
+        </file>
+        <file name="C-P.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-ChangeOptsAction.instance"/>
+        </file> 
+        <file name="C-T.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-SwitchCalendarTradingTimeViewAction.instance"/>
+        </file> 
+        <file name="C-S.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-core-ui-netbeans-actions-AddStatisticChartAction.instance"/>
+        </file> 
+    </folder>
+    
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="SymbolListTopComponent.settings" url="SymbolListTopComponent.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="explorer">
+                <file name="SymbolListTopComponent.wstcref" url="SymbolListTopComponent_1.xml"/>
+            </folder>
+            <file name="realtime_1.wsmode" url="realtime_1.wsmode"/>
+            <file name="realtime_2.wsmode" url="realtime_2.wsmode"/>
+            <file name="realtime_3.wsmode" url="realtime_3.wsmode"/>
+            <file name="realtimeWatchList.wsmode" url="realtimeWatchList.wsmode"/>
+            <file name="realtimeCharts.wsmode" url="realtimeCharts.wsmode"/>
+            <file name="realtimeBoard.wsmode" url="realtimeBoard.wsmode"/>
+        </folder>
+    </folder>
+    
+    <folder name="OptionsDialog">
+        <attr name="GeneralOptions.instance/ColorFontOptions.instance" boolvalue="true"/>
+        <file name="GeneralOptions.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.core.ui.netbeans.options.general.GeneralOptionsCategory"/>
+        </file>
+        
+        <attr name="ColorFontOptions.instance/Advanced.instance" boolvalue="true"/>
+        <file name="ColorFontOptions.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.core.ui.netbeans.options.colors.ColorFontOptionsCategory"/>
+        </file>
+    </folder>
+    
+    <folder name="HandledCharts">
+        <file name="StraightLine.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.StraightLineHandledChart"/>
+        </file>
+        <file name="StraightLineSegment.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.StraightLineSegmentHandledChart"/>
+        </file>
+        <file name="PolyStraightLineSegmentHandledChart.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.PolyStraightLineSegmentHandledChart"/>
+        </file>
+        <file name="Parallel.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.ParallelLinesHandledChart"/>
+        </file>
+        <file name="FibonacciTimeZones.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.FibonacciTimeZonesHandledChart"/>
+        </file>
+        <file name="FibonacciArcs.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.FibonacciArcsHandledChart"/>
+        </file>
+        <file name="FibonacciFanLines.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.FibonacciFanLinesHandledChart"/>
+        </file>
+        <file name="GannAngle.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.GannAngleHandledChart"/>
+        </file>
+        <file name="GannPeriods.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.GannPeriodsHandledChart"/>
+        </file>
+        <file name="FibonacciRetracements.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.FibonacciRetracementsHandledChart"/>
+        </file>
+        <file name="FibonacciVerticalRetracements.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.FibonacciVerticalRetracementsHandledChart"/>
+        </file>
+        <file name="Percent.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.PercentHandledChart"/>
+        </file>
+        <file name="Periods.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.PeriodsHandledChart"/>
+        </file>
+        <file name="Text.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.charting.chart.handledchart.TextHandledChart"/>
+        </file>
+    </folder>
+    
+    <folder name="DescriptorGroups">
+        <file name="IndicatorGroupDescriptor.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.core.ui.netbeans.explorer.IndicatorGroupDescriptor"/>
+        </file>
+        <file name="DrawingGroupDescriptor.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.core.ui.netbeans.explorer.DrawingGroupDescriptor"/>
+        </file>
+    </folder>
+    
+    <!-- tell the loader to create "Symbols" folder at ../config/ -->
+    <folder name="Symbols">
+    </folder>
+    
+    <folder name="UserOptions">
+        <!-- 
+        The files declared like here, will be automatically copied to <userdir>/config/ 
+        only when you modify and save it. 
+        -->
+        <file name="DefaultContents.xml" url="DefaultContents.xml"/>
+        <file name="aiotrade.properties" url="aiotrade.properties"/>
+        <folder name="Template">
+            <file name="preview.csv" url="preview.csv"/>
+        </folder>
+    </folder>
+    
+</filesystem>

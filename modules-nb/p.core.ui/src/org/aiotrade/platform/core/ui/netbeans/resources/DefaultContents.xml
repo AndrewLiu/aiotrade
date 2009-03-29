@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sec unisymbol="Default">
+    <sources>
+        <source active="false" class="org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer" 
+                symbol="hsi" sectype="Stock" exchange="" primaryexchange="" currency="HKD"
+                dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="10" 
+                begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
+        </source>
+    </sources>
+    <indicators>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.MAIndicator" nunits="1" unit="Day">
+            <opt name="Period 1" value="5"/>
+            <opt name="Period 2" value="10"/>
+            <opt name="Period 3" value="20"/>
+        </indicator>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Day">
+            <opt name="Period Short" value="5"/>
+            <opt name="Period Mediaum" value="10"/>
+        </indicator>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.MACDIndicator" nunits="1" unit="Day">
+            <opt name="Period Short" value="10"/>
+            <opt name="Period Long"  value="26"/>
+            <opt name="Period Diff"  value="9"/>
+        </indicator>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Week">
+            <opt name="Period Short" value="5"/>
+            <opt name="Period Mediaum" value="10"/>
+        </indicator>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Month">
+            <opt name="Period Short" value="5"/>
+            <opt name="Period Mediaum" value="10"/>
+        </indicator>
+        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Minute">
+            <opt name="Period Short" value="5"/>
+            <opt name="Period Mediaum" value="10"/>
+        </indicator>
+    </indicators>
+    <drawings>
+        <layer name="Layer One" nunits="1" unit="Day">
+        </layer>
+        <layer name="Layer One" nunits="1" unit="Week">
+        </layer>
+        <layer name="Layer One" nunits="1" unit="Month">
+        </layer>
+        <layer name="Layer One" nunits="1" unit="Minute">
+        </layer>
+    </drawings>
+    
+</sec>

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.platform.modules.dataserver.ib
+OpenIDE-Module-Layer: org/aiotrade/platform/modules/dataserver/ib/netbeans/resources/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/modules/dataserver/ib/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

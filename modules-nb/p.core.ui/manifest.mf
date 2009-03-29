@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.platform.core.ui
+OpenIDE-Module-Layer: org/aiotrade/platform/core/ui/netbeans/resources/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/core/ui/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

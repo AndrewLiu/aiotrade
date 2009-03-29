@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.platform.modules.dataserver.basic
+OpenIDE-Module-Layer: org/aiotrade/platform/modules/dataserver/basic/resources/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/modules/dataserver/basic/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

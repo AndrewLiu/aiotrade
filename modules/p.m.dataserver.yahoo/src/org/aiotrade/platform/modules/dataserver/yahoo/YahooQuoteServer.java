@@ -265,7 +265,7 @@ public class YahooQuoteServer extends QuoteServer {
     public Image getIcon() {
         BufferedImage img;
         try {
-            img = ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/basic/netbeans/resources/favicon_yahoo.png"));
+            img = ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/yahoo/resources/favicon_yahoo.png"));
         } catch (IOException e) {
             img = null;
         }
