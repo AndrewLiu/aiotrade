@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.platform.modules.indicator.basic
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/modules/indicator/basic/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
