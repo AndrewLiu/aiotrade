@@ -38,8 +38,8 @@ import java.util.Calendar;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
-import org.aiotrade.math.timeseries.MasterSer;
-import org.aiotrade.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.math.timeseries.MasterSer;
 
 /**
  *

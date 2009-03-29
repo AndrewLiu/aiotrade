@@ -29,9 +29,9 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import org.aiotrade.platform.core.analysis.chartview.AnalysisQuoteChartView;
 import org.aiotrade.platform.core.analysis.indicator.QuoteCompareIndicator;
-import org.aiotrade.math.timeseries.Ser;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -83,6 +83,7 @@ public class RemoveCompareQuoteChartsAction extends CallableSystemAction {
 //        return "org/aiotrade/platform/core/ui/netbeans/resources/removeDrawingLine.gif";
 //    }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

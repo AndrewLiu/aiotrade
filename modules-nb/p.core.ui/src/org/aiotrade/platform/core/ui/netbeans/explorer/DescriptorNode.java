@@ -34,18 +34,17 @@ import java.awt.Image;
 import java.beans.IntrospectionException;
 import java.beans.PropertyChangeEvent;
 import javax.swing.Action;
-import org.aiotrade.util.swing.action.DeleteAction;
-import org.aiotrade.util.swing.action.EditAction;
-import org.aiotrade.util.swing.action.HideAction;
-import org.aiotrade.util.swing.action.SaveAction;
-import org.aiotrade.util.swing.action.ViewAction;
-import org.aiotrade.charting.view.pane.DrawingPane;
-import org.aiotrade.math.timeseries.descriptor.AnalysisDescriptor;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.util.swing.action.DeleteAction;
+import org.aiotrade.lib.util.swing.action.EditAction;
+import org.aiotrade.lib.util.swing.action.HideAction;
+import org.aiotrade.lib.util.swing.action.SaveAction;
+import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.nodes.BeanNode;
-import org.openide.nodes.Children;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.NodeEvent;
 import org.openide.nodes.NodeListener;
@@ -123,6 +122,7 @@ public class DescriptorNode extends FilterNode {
         content.add(contents);
     }
     
+    @Override
     public String getDisplayName() {
         return descriptor.getDisplayName();
     }
@@ -130,10 +130,12 @@ public class DescriptorNode extends FilterNode {
     /**
      * Making a tooltip out of the descriptorInfo's description
      */
+    @Override
     public String getShortDescription()    {
         return descriptor.getDisplayName();
     }
     
+    @Override
     public boolean canRename() {
         if (descriptor instanceof DrawingDescriptor) {
             return true;
@@ -145,6 +147,7 @@ public class DescriptorNode extends FilterNode {
     /**
      * Providing the Open action on a stock descriptorInfo
      */
+    @Override
     public Action[] getActions(boolean popup) {
         final AnalysisContents contents = getLookup().lookup(AnalysisContents.class);
         
@@ -160,14 +163,17 @@ public class DescriptorNode extends FilterNode {
         return actions;
     }
     
+    @Override
     public Action getPreferredAction() {
         return descriptor.lookupAction(ViewAction.class);
     }
     
+    @Override
     public Image getIcon(int type) {
         return descriptor.isActive() ? ACTIVE_ICON : NOACTIVE_ICON;
     }
     
+    @Override
     public Image getOpenedIcon(int type) {
         return getIcon(0);
     }

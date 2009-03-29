@@ -31,6 +31,7 @@
 package org.aiotrade.platform.core.ui.dialog;
 
 import java.awt.Component;
+import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.text.DateFormat;
@@ -43,8 +44,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import org.aiotrade.math.timeseries.Frequency;
-import org.aiotrade.math.timeseries.Unit;
+import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Unit;
 import org.aiotrade.platform.core.UserOptionsManager;
 import org.aiotrade.platform.core.dataserver.QuoteServer;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
@@ -461,7 +462,11 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         }
         
         QuoteServer selectedServer = (QuoteServer)evt.getItem();
-        iconLabel.setIcon(new ImageIcon(selectedServer.getIcon()));
+        Image icon = selectedServer.getIcon();
+        if (icon != null) {
+            iconLabel.setIcon(new ImageIcon(icon));
+        }
+        
         if (selectedServer.getDisplayName().toUpperCase().contains("INTERNET") == false) {
             chooseButton.setEnabled(true);
             pathField.setEnabled(true);

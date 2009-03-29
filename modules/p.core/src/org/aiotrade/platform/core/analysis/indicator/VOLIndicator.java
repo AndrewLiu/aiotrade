@@ -31,9 +31,7 @@
 package org.aiotrade.platform.core.analysis.indicator;
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.platform.core.analysis.indicator.AbstractContIndicator;
 import org.aiotrade.platform.core.analysis.indicator.AbstractIndicator.DefaultOpt;
-import org.aiotrade.platform.core.analysis.indicator.IndicatorName;
 import org.aiotrade.lib.math.timeseries.computable.Opt;
 import org.aiotrade.lib.math.timeseries.DefaultSer.DefaultVar;
 import org.aiotrade.lib.math.timeseries.Var;

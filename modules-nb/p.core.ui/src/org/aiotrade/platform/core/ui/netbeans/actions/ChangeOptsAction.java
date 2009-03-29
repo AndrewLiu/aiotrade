@@ -29,13 +29,13 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
-import org.aiotrade.util.swing.action.EditAction;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.WithQuoteChart;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.math.timeseries.computable.Indicator;
-import org.aiotrade.math.timeseries.Ser;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.WithQuoteChart;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.util.swing.action.EditAction;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;

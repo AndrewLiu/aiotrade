@@ -29,6 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -45,8 +46,8 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import org.aiotrade.math.timeseries.Unit;
-import org.aiotrade.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.Unit;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
@@ -82,10 +83,12 @@ public class SwitchFrequencyAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }
     
+    @Override
     public Component getToolbarPresenter() {
         Image iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/dropdown.png");
         ImageIcon icon = new ImageIcon(iconImage);

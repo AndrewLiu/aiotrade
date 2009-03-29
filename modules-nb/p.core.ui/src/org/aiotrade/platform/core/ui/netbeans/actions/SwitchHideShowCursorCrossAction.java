@@ -30,10 +30,10 @@
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
 import java.lang.ref.WeakReference;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.view.ChartingController;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartsTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.TopComponent;
@@ -66,8 +66,8 @@ public class SwitchHideShowCursorCrossAction extends CallableSystemAction {
                         controller.setCursorCrossLineVisible(!controller.isCursorCrossLineVisible());
                         controller.updateViews();
                     }
-                } else if (tc instanceof RealtimeChartsTopComponent) {
-                    for (WeakReference<RealtimeChartsTopComponent> ref : RealtimeChartsTopComponent.getInstanceRefs()) {
+                } else if (tc instanceof RealTimeChartsTopComponent) {
+                    for (WeakReference<RealTimeChartsTopComponent> ref : RealTimeChartsTopComponent.getInstanceRefs()) {
                         for (ChartViewContainer vc : ref.get().getViewContainers()) {
                             controller = vc.getController();
                             controller.setCursorCrossLineVisible(!controller.isCursorCrossLineVisible());

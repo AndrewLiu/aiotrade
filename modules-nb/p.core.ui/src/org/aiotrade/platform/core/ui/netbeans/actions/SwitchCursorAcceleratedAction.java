@@ -29,13 +29,14 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
-import org.aiotrade.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
@@ -83,10 +84,12 @@ public class SwitchCursorAcceleratedAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected String iconResource() {
         return "org/aiotrade/platform/core/ui/netbeans/resources/switchCursorAcceleratedAction.gif";
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }
@@ -95,6 +98,7 @@ public class SwitchCursorAcceleratedAction extends CallableSystemAction {
         toggleButton.setSelected(b);
     }
     
+    @Override
     public Component getToolbarPresenter() {
         Image iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/switchCursorAcceleratedAction.gif");
         ImageIcon icon = new ImageIcon(iconImage);

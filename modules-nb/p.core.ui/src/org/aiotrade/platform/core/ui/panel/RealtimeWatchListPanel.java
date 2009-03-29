@@ -41,10 +41,10 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.platform.core.sec.Ticker;
 import org.aiotrade.platform.core.sec.TickerObserver;
 import org.aiotrade.platform.core.sec.TickerSnapshot;
-import org.aiotrade.charting.laf.LookFeel;
 
 /**
  *
@@ -111,10 +111,12 @@ public class RealtimeWatchListPanel extends javax.swing.JPanel implements Ticker
             super(columnNames, rowCount);
         }
         
+        @Override
         public Class getColumnClass(int columnIndex) {
             return types[columnIndex];
         }
         
+        @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
             return canEdit[columnIndex];
         }
@@ -174,9 +176,9 @@ public class RealtimeWatchListPanel extends javax.swing.JPanel implements Ticker
                 Map<String, Color> symbolMapColColor = rowMapColColors.get(row);
                 setColColorsByTicker(symbolMapColColor, snapshotTicker, previousTicker, inWatching);
                 
-                Object[] rowData = composeRowData(symbol, snapshotTicker);
-                for (int i = 0; i < rowData.length; i++) {
-                    table.setValueAt(rowData[i], row, i);
+                Object[] rowData1 = composeRowData(symbol, snapshotTicker);
+                for (int i = 0; i < rowData1.length; i++) {
+                    table.setValueAt(rowData1[i], row, i);
                 }
             }
         }

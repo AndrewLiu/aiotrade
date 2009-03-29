@@ -29,6 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
@@ -43,65 +44,66 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.util.swing.action.ViewAction;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.view.WithDrawingPane;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.chart.handledchart.HandledChart;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.charting.view.pane.DrawingPane;
-import org.aiotrade.charting.chart.handledchart.HandledChart;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
-
 
 /**
  *
  * @author Caoyuan Deng
  */
 public class PickDrawingLineAction extends CallableSystemAction {
+
     private static JToggleButton toggleButton;
     private static JPopupMenu popupMenu;
     private MyMenuItemListener menuItemListener;
-    
     Collection<HandledChart> handledCharts;
-    
+
     public PickDrawingLineAction() {
     }
-    
-    
+
     public void performAction() {
         java.awt.EventQueue.invokeLater(new Runnable() {
+
             public void run() {
                 toggleButton.setSelected(true);
             }
         });
     }
-    
+
     public String getName() {
         return "Pick Drawing Line";
     }
-    
+
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }
-    
+
+    @Override
     protected boolean asynchronous() {
         return false;
     }
-    
+
+    @Override
     public Component getToolbarPresenter() {
         Image iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/drawingLine.png");
         ImageIcon icon = new ImageIcon(iconImage);
-        
+
         toggleButton = new JToggleButton();
         toggleButton.setIcon(icon);
         toggleButton.setToolTipText("Pick Drawing Line");
-        
+
         handledCharts = PersistenceManager.getDefault().lookupAllRegisteredServices(HandledChart.class, "HandledCharts");
         popupMenu = new JPopupMenu();
         popupMenu.setSelectionModel(new DefaultSingleSelectionModel());
@@ -112,8 +114,9 @@ public class PickDrawingLineAction extends CallableSystemAction {
             item.addItemListener(menuItemListener);
             popupMenu.add(item);
         }
-        
+
         toggleButton.addItemListener(new ItemListener() {
+
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     /** show popup menu on toggleButton at position: (0, height) */
@@ -121,30 +124,32 @@ public class PickDrawingLineAction extends CallableSystemAction {
                 }
             }
         });
-        
+
         popupMenu.addPopupMenuListener(new PopupMenuListener() {
+
             public void popupMenuCanceled(PopupMenuEvent e) {
                 toggleButton.setSelected(false);
             }
-            
+
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
                 toggleButton.setSelected(false);
             }
-            
+
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
             }
         });
-        
+
         return toggleButton;
     }
-    
+
     private class MyMenuItemListener implements ItemListener {
+
         public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() != ItemEvent.SELECTED) {
                 return;
             }
-            
-            JMenuItem item = (JMenuItem)e.getSource();
+
+            JMenuItem item = (JMenuItem) e.getSource();
             /**
              * clear selected state. if want to do this, do not add items to buttonGroup. see bug report:
              * http://sourceforge.net/tracker/index.php?func=detail&aid=1579592&group_id=152032&atid=782880
@@ -154,14 +159,14 @@ public class PickDrawingLineAction extends CallableSystemAction {
             if (analysisWin == null) {
                 return;
             }
-            
+
             ChartViewContainer viewContainer = analysisWin.getSelectedViewContainer();
             ChartView masterView = viewContainer.getMasterView();
             if (!(masterView instanceof WithDrawingPane)) {
                 return;
             }
-            
-            DrawingPane drawingPane = ((WithDrawingPane)masterView).getSelectedDrawing();
+
+            DrawingPane drawingPane = ((WithDrawingPane) masterView).getSelectedDrawing();
             if (drawingPane == null) {
                 JOptionPane.showMessageDialog(
                         WindowManager.getDefault().getMainWindow(),
@@ -171,7 +176,7 @@ public class PickDrawingLineAction extends CallableSystemAction {
                         null);
                 return;
             }
-            
+
             String selectedStr = item.getText();
             HandledChart theHandledChart = null;
             for (HandledChart handledChart : handledCharts) {
@@ -181,9 +186,9 @@ public class PickDrawingLineAction extends CallableSystemAction {
                 }
             }
             assert theHandledChart != null : "A just picked handled chart should be there!";
-            
+
             AnalysisContents contents = viewContainer.getController().getContents();
-            
+
             DrawingDescriptor descriptor = contents.lookupDescriptor(
                     DrawingDescriptor.class,
                     drawingPane.getLayerName(),
@@ -192,18 +197,17 @@ public class PickDrawingLineAction extends CallableSystemAction {
                 HandledChart handledChart = theHandledChart.createNewInstance();
                 handledChart.attachDrawingPane(drawingPane);
                 drawingPane.setSelectedHandledChart(handledChart);
-                
+
                 descriptor.lookupAction(ViewAction.class).execute();
             } else {
                 /** best effort, should not happen */
                 viewContainer.getController().setCursorCrossLineVisible(false);
                 drawingPane.activate();
-                
+
                 SwitchHideShowDrawingLineAction.updateToolbar(viewContainer);
             }
         }
     }
-    
 }
 
 

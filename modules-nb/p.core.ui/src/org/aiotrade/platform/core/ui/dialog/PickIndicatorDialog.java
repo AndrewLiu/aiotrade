@@ -37,11 +37,11 @@ import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.computable.Indicator;
-import org.aiotrade.math.timeseries.Unit;
-import org.aiotrade.math.timeseries.MasterSer;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.Unit;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 

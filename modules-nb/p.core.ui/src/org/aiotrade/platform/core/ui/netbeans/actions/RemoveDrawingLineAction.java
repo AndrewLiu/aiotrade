@@ -29,9 +29,10 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
-import org.aiotrade.charting.view.WithDrawingPane;
+
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.charting.view.pane.DrawingPane;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
 

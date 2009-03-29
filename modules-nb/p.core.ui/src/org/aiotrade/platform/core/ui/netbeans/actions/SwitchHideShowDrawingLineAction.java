@@ -29,22 +29,23 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
-import org.aiotrade.util.swing.action.HideAction;
-import org.aiotrade.util.swing.action.ViewAction;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.view.WithDrawingPane;
-import org.aiotrade.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.util.swing.action.HideAction;
+import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.math.timeseries.MasterSer;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
@@ -83,10 +84,12 @@ public class SwitchHideShowDrawingLineAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected String iconResource() {
         return "org/aiotrade/platform/core/ui/netbeans/resources/hideDrawingLine.gif";
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

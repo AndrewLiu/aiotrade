@@ -36,9 +36,9 @@ import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
-import org.aiotrade.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.Utilities;
 import org.openide.util.actions.CallableSystemAction;
@@ -110,8 +110,8 @@ public class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
                 ChartViewContainer viewContainer = null;
                 if (tc instanceof AnalysisChartTopComponent) {
                     viewContainer = ((AnalysisChartTopComponent)tc).getSelectedViewContainer();
-                } else if (tc instanceof RealtimeChartTopComponent) {
-                    viewContainer = ((RealtimeChartTopComponent)tc).getViewContainer();
+                } else if (tc instanceof RealTimeChartTopComponent) {
+                    viewContainer = ((RealTimeChartTopComponent)tc).getViewContainer();
                 } else {
                     JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), "Please select a view by clicking on it first!");
                 }

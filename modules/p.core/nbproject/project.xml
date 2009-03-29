@@ -38,6 +38,7 @@
                 <package>org.aiotrade.platform.core.analysis.function</package>
                 <package>org.aiotrade.platform.core.analysis.indicator</package>
                 <package>org.aiotrade.platform.core.dataserver</package>
+                <package>org.aiotrade.platform.core.netbeans</package>
                 <package>org.aiotrade.platform.core.sec</package>
                 <package>org.aiotrade.platform.core.util</package>
             </public-packages>

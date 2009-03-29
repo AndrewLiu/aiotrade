@@ -32,11 +32,11 @@ package org.aiotrade.platform.core.ui.netbeans.actions;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.platform.core.analysis.indicator.ProbMassIndicator;
-import org.aiotrade.math.timeseries.Ser;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.core.ui.dialog.ChangeIndicatorOptsPane;
 import org.openide.util.HelpCtx;
@@ -124,6 +124,7 @@ public class ChangeStatisticChartOptsAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

@@ -33,22 +33,23 @@ package org.aiotrade.platform.core.ui.netbeans.options.colors;
 import java.awt.BorderLayout;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import org.aiotrade.charting.chart.QuoteChart;
+import org.aiotrade.lib.charting.chart.QuoteChart;
+import org.aiotrade.lib.charting.laf.CityLights;
+import org.aiotrade.lib.charting.laf.Gray;
+import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.laf.Modern;
+import org.aiotrade.lib.charting.laf.White;
+import org.aiotrade.lib.charting.view.ChartingController;
+import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.WithQuoteChart;
+import org.aiotrade.lib.math.PersistenceManager;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.core.analysis.chartview.AnalysisChartViewContainer;
-import org.aiotrade.charting.view.ChartingController;
-import org.aiotrade.charting.view.WithQuoteChart;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
 import org.aiotrade.platform.core.dataserver.QuoteServer;
-import org.aiotrade.charting.laf.CityLights;
-import org.aiotrade.charting.laf.LookFeel;
-import org.aiotrade.charting.laf.Gray;
-import org.aiotrade.charting.laf.Modern;
-import org.aiotrade.charting.laf.White;
-import org.aiotrade.platform.core.PersistenceManager;
-import org.aiotrade.charting.view.ChartingControllerFactory;
 import org.aiotrade.platform.core.sec.Stock;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileObject;
@@ -112,7 +113,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         AnalysisContents contents = PersistenceManager.getDefault().getDefaultContents();
         contents.addDescriptor(quoteContract);
         
-        Stock stock = new Stock(symbol, quoteContract);
+        Stock stock = new Stock(symbol, Collections.singleton(quoteContract));
         
         if (!stock.isSerLoaded(quoteContract.getFreq())) {
             stock.loadSer(quoteContract.getFreq());

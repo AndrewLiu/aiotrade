@@ -29,13 +29,13 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.lang.ref.WeakReference;
 import javax.swing.JOptionPane;
 import org.aiotrade.platform.core.analysis.chartview.AnalysisQuoteChartView;
-import org.aiotrade.platform.core.analysis.chartview.RealtimeQuoteChartView;
+import org.aiotrade.platform.core.analysis.chartview.RealTimeQuoteChartView;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartsTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.TopComponent;
@@ -69,9 +69,9 @@ public class SwitchCandleOhlcAction extends CallableSystemAction {
                         for (WeakReference<AnalysisChartTopComponent> ref : AnalysisChartTopComponent.getInstanceRefs()) {
                             ref.get().repaint();
                         }
-                    } else if (tc instanceof RealtimeChartsTopComponent) {
+                    } else if (tc instanceof RealTimeChartsTopComponent) {
                         /** As all RealtimeQuoteChartView have the static quoteChartType, so call static method */
-                        RealtimeQuoteChartView.switchAllQuoteChartType(null);
+                        RealTimeQuoteChartView.switchAllQuoteChartType(null);
                     } else {
                         JOptionPane.showMessageDialog(
                                 WindowManager.getDefault().getMainWindow(), 
@@ -95,10 +95,12 @@ public class SwitchCandleOhlcAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected String iconResource() {
         return "org/aiotrade/platform/core/ui/netbeans/resources/candleOhlc.gif";
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

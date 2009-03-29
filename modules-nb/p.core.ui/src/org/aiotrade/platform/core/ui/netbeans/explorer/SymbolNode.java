@@ -29,6 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.explorer;
+
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.beans.IntrospectionException;
@@ -37,36 +38,37 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
-import org.aiotrade.math.timeseries.Frequency;
-import org.aiotrade.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.SerChangeListener;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.util.swing.action.GeneralAction;
+import org.aiotrade.lib.util.swing.action.SaveAction;
+import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
-import org.aiotrade.util.swing.action.GeneralAction;
-import org.aiotrade.util.swing.action.SaveAction;
-import org.aiotrade.util.swing.action.ViewAction;
-import org.aiotrade.charting.view.ChartViewContainer;
 import org.aiotrade.platform.core.analysis.chartview.AnalysisQuoteChartView;
-import org.aiotrade.math.timeseries.SerChangeListener;
-import org.aiotrade.platform.core.netbeans.NetBeansPersistenceManager;
 import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.sec.Stock;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.core.analysis.ContentsParseHandler;
 import org.aiotrade.platform.core.analysis.indicator.QuoteCompareIndicator;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.math.timeseries.Ser;
 import org.aiotrade.platform.core.netbeans.GroupDescriptor;
 import org.aiotrade.platform.core.sec.Sec;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.core.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.platform.core.ui.dialog.ImportSymbolDialog;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartsTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeBoardTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeWatchListTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.NetBeansPersistenceManager;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeChartsTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeBoardTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.openide.ErrorManager;
 import org.openide.actions.DeleteAction;
 import org.openide.filesystems.FileObject;
@@ -95,7 +97,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-
 /**
  * SymbolNode is a representation for sec serialization file "xxx.ser"  or
  * folder contains these files.
@@ -123,7 +124,9 @@ import org.xml.sax.XMLReader;
  * @author Caoyuan Deng
  */
 public class SymbolNode extends FilterNode {
+
     private final static Image DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/symbol.gif");
+
     /**
      * Declaring the children of the root sec node
      *
@@ -133,20 +136,20 @@ public class SymbolNode extends FilterNode {
     public SymbolNode(Node symbolFolderNode) throws DataObjectNotFoundException, IntrospectionException {
         this(symbolFolderNode, new InstanceContent());
     }
-    
+
     private SymbolNode(Node symbolFolderNode, InstanceContent content) throws IntrospectionException {
         /** Create proxy of node with a different set of children. */
         super(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content));
-        
+
         /* add the node to our own lookup */
         content.add(this);
-        
+
         /** add delegate's all lookup contents */
         Lookup.Result<Object> result = symbolFolderNode.getLookup().lookup(new Lookup.Template<Object>(Object.class));
         for (Object o : result.allInstances()) {
             content.add(o);
         }
-        
+
         /* add additional items to the lookup */
         content.add(SystemAction.get(AddSymbolAction.class));
         content.add(new SymbolStartWatchAction(this));
@@ -155,60 +158,62 @@ public class SymbolNode extends FilterNode {
         content.add(new SymbolReimportDataAction(this));
         content.add(new SymbolViewAction(this));
     }
-    
+
     /** Declaring the actions that can be applied to this node */
+    @Override
     public Action[] getActions(boolean popup) {
         DataFolder df = getLookup().lookup(DataFolder.class);
-        return new Action[] {
-            getLookup().lookup(AddSymbolAction.class),
-            new AddFolderAction(df),
-            null,
-            getLookup().lookup(SymbolViewAction.class),
-            null,
-            getLookup().lookup(SymbolStartWatchAction.class),
-            getLookup().lookup(SymbolStopWatchAction.class),
-            null,
-            getLookup().lookup(SymbolRefreshDataAction.class),
-            getLookup().lookup(SymbolReimportDataAction.class),
-            null,
-            SystemAction.get(DeleteAction.class),
-        };
+        return new Action[]{
+                    getLookup().lookup(AddSymbolAction.class),
+                    new AddFolderAction(df),
+                    null,
+                    getLookup().lookup(SymbolViewAction.class),
+                    null,
+                    getLookup().lookup(SymbolStartWatchAction.class),
+                    getLookup().lookup(SymbolStopWatchAction.class),
+                    null,
+                    getLookup().lookup(SymbolRefreshDataAction.class),
+                    getLookup().lookup(SymbolReimportDataAction.class),
+                    null,
+                    SystemAction.get(DeleteAction.class),};
     }
-    
+
     /**
      * The root node of SymbolNode
      *  It will be 'Symbols' folder in default file system, usually the 'config' dir in userdir
      *  Physical folder "Symbols" is defined in layer.xml
      */
     public static class RootSymbolNode extends SymbolNode {
+
         public RootSymbolNode() throws DataObjectNotFoundException, IntrospectionException {
             super(DataObject.find(
-                    Repository.getDefault().getDefaultFileSystem().getRoot()
-                    .getFileObject("Symbols")).getNodeDelegate());
+                    Repository.getDefault().getDefaultFileSystem().getRoot().getFileObject("Symbols")).getNodeDelegate());
         }
-        
+
+        @Override
         public String getDisplayName() {
             return NbBundle.getMessage(SymbolNode.class, "SN_title");
         }
     }
-    
+
     /** The child of the folder node, it may be a folder or Symbol ser file */
     private static class SymbolFolderChildren extends FilterNode.Children {
+
         Node oneSymbolNode;
-        
+
         SymbolFolderChildren(Node symbolFolderNode) {
             super(symbolFolderNode);
         }
-        
+
+        @Override
         protected Node[] createNodes(Node key) {
             Node node = key;
-            
+
             try {
                 /** is a folder? if true, creat a folder node */
                 if (node.getLookup().lookup(DataFolder.class) != null) {
-                    return new Node[] { new SymbolNode(node) };
-                }
-                /**
+                    return new Node[]{new SymbolNode(node)};
+                } /**
                  * else, deserilize a contents instance from the sec xml file,
                  * and create a sec node for it
                  */
@@ -223,46 +228,46 @@ public class SymbolNode extends FilterNode {
                         if (existedOne != null) {
                             contents = existedOne;
                         }
-                        
+
                         oneSymbolNode = new OneSymbolNode(node, contents);
                         FileObject fileObject = oneSymbolNode.getLookup().lookup(DataObject.class).getPrimaryFile();
-                        
+
                         Object newAttr = fileObject.getAttribute("new");
-                        if ( newAttr != null && (Boolean)newAttr == true) {
+                        if (newAttr != null && (Boolean) newAttr == true) {
                             fileObject.setAttribute("new", false);
-                            
+
                             /** open view for new added sec */
                             java.awt.EventQueue.invokeLater(new Runnable() {
+
                                 public void run() {
                                     oneSymbolNode.getLookup().lookup(ViewAction.class).execute();
                                 }
                             });
                         }
-                        
-                        return new Node[] { oneSymbolNode };
-                        
+
+                        return new Node[]{oneSymbolNode};
+
                     } else {
                         // best effort
-                        return new Node[] { new FilterNode(node) };
-                        
+                        return new Node[]{new FilterNode(node)};
+
                     }
-                    
+
                 }
             } catch (IOException ioe) {
                 ErrorManager.getDefault().notify(ioe);
             } catch (IntrospectionException exc) {
                 ErrorManager.getDefault().notify(exc);
             }
-            
+
             // Some other type of Node (gotta do something)
-            return new Node[] { new FilterNode(node) };
+            return new Node[]{new FilterNode(node)};
         }
-        
     }
-    
+
     /** Getting the Symbol node and wrapping it in a FilterNode */
     public static class OneSymbolNode extends FilterNode {
-        
+
         /* As the lookup needs to be constucted before Node's constructor is called,
          * it might not be obvious how to add Node or other objects into it without
          * type casting. Here is the recommended suggestion that uses public/private
@@ -271,15 +276,15 @@ public class SymbolNode extends FilterNode {
         private OneSymbolNode(Node symbolFileNode, AnalysisContents contents) throws IOException, IntrospectionException {
             this(symbolFileNode, contents, new InstanceContent());
         }
-        
+
         private OneSymbolNode(Node symbolFileNode, AnalysisContents contents, InstanceContent content) {
             super(symbolFileNode, new SymbolChildren(contents), new AbstractLookup(content));
-            
+
             NetBeansPersistenceManager.putNode(contents, this);
-            
+
             /* add the node to our own lookup */
             content.add(this);
-            
+
             /* add additional items to the lookup */
             content.add(contents);
             content.add(new SymbolViewAction(this));
@@ -290,76 +295,82 @@ public class SymbolNode extends FilterNode {
             content.add(new SymbolStopWatchAction(this));
             content.add(new SymbolCompareToAction(this));
             content.add(new SymbolClearDataAction(this));
-            
+
             /** add delegate's all lookup contents */
             Lookup.Result<Object> result = symbolFileNode.getLookup().lookup(new Lookup.Template<Object>(Object.class));
             for (Object o : result.allInstances()) {
                 content.add(o);
             }
         }
-        
+
+        @Override
         public String getDisplayName() {
             AnalysisContents contents = getLookup().lookup(AnalysisContents.class);
-            return  contents.getUniSymbol();
+            return contents.getUniSymbol();
         }
-        
+
+        @Override
         public Image getIcon(int type) {
             Image icon = null;
-            
+
             AnalysisContents contents = getLookup().lookup(AnalysisContents.class);
             QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
             if (quoteContract != null) {
                 icon = quoteContract.getIcon();
             }
-            
+
             return icon != null ? icon : DEFAUTL_SOURCE_ICON;
         }
-        
+
+        @Override
         public Image getOpenedIcon(int type) {
             return getIcon(0);
         }
-        
+
+        @Override
         public Action[] getActions(boolean context) {
-            return new Action[] {
-                getLookup().lookup(SymbolViewAction.class),
-                getLookup().lookup(SymbolRefreshDataAction.class),
-                getLookup().lookup(SymbolReimportDataAction.class),
-                null,
-                getLookup().lookup(SymbolStartWatchAction.class),
-                getLookup().lookup(SymbolStopWatchAction.class),
-                null,
-                getLookup().lookup(SymbolCompareToAction.class),
-                null,
-                getLookup().lookup(SymbolSetDataSourceAction.class),
-                null,
-                getLookup().lookup(SymbolClearDataAction.class),
-                SystemAction.get(DeleteAction.class),
-            };
+            return new Action[]{
+                        getLookup().lookup(SymbolViewAction.class),
+                        getLookup().lookup(SymbolRefreshDataAction.class),
+                        getLookup().lookup(SymbolReimportDataAction.class),
+                        null,
+                        getLookup().lookup(SymbolStartWatchAction.class),
+                        getLookup().lookup(SymbolStopWatchAction.class),
+                        null,
+                        getLookup().lookup(SymbolCompareToAction.class),
+                        null,
+                        getLookup().lookup(SymbolSetDataSourceAction.class),
+                        null,
+                        getLookup().lookup(SymbolClearDataAction.class),
+                        SystemAction.get(DeleteAction.class),};
         }
-        
+
         /**
          * The getPreferredAction() simply returns the action that should be
          * run if the user double-clicks this node
          */
+        @Override
         public Action getPreferredAction() {
             return getActions(true)[0];
         }
-        
+
+        @Override
         protected NodeListener createNodeListener() {
             final NodeListener delegate = super.createNodeListener();
             NodeListener newListener = new NodeListener() {
+
                 public void childrenAdded(NodeMemberEvent nodeMemberEvent) {
                     delegate.childrenAdded(nodeMemberEvent);
                 }
-                
+
                 public void childrenRemoved(NodeMemberEvent nodeMemberEvent) {
                     delegate.childrenRemoved(nodeMemberEvent);
                 }
-                
+
                 public void childrenReordered(NodeReorderEvent nodeReorderEvent) {
                     delegate.childrenReordered(nodeReorderEvent);
                 }
-                
+
                 public void nodeDestroyed(NodeEvent nodeEvent) {
                     /**
                      * We should check if this is a delete call, and clear data in db
@@ -377,21 +388,19 @@ public class SymbolNode extends FilterNode {
                     if (NetBeansPersistenceManager.getOccupiedContents(OneSymbolNode.this) != null) {
                         getLookup().lookup(SymbolClearDataAction.class).perform(false);
                     }
-                    
+
                     NetBeansPersistenceManager.removeNode(nodeEvent.getNode());
                     delegate.nodeDestroyed(nodeEvent);
                 }
-                
+
                 public void propertyChange(PropertyChangeEvent evt) {
                     delegate.propertyChange(evt);
                 }
             };
             return newListener;
         }
-        
-        
     }
-    
+
     /**
      * The children wrap class
      * ------------------------------------------------------------------------
@@ -412,13 +421,12 @@ public class SymbolNode extends FilterNode {
      *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
      */
     private static class SymbolChildren extends Children.Keys<GroupDescriptor<AnalysisDescriptor>> {
-        
+
         private AnalysisContents contents;
-        
+
         public SymbolChildren(AnalysisContents contents) {
             this.contents = contents;
         }
-        
         /**
          * Called when children are first asked for nodes. Typical implementations at this time
          * calculate their node list (or keys for Children.Keys etc.).
@@ -430,43 +438,46 @@ public class SymbolNode extends FilterNode {
          * And, to sort them in letter order, we can use a SortedSet to copy from collection.(TODO)
          */
         private Set<GroupDescriptor<AnalysisDescriptor>> bufChildrenKeys = new HashSet<GroupDescriptor<AnalysisDescriptor>>();
+
         @SuppressWarnings("unchecked")
+        @Override
         protected void addNotify() {
             Collection<GroupDescriptor> groups = PersistenceManager.getDefault().lookupAllRegisteredServices(GroupDescriptor.class, "DescriptorGroups");
-            
+
             bufChildrenKeys.clear();
             /** each symbol should create new NodeInfo instances that belong to itself */
             for (GroupDescriptor nodeInfo : groups) {
-                bufChildrenKeys.add((GroupDescriptor<AnalysisDescriptor>)nodeInfo.clone());
+                bufChildrenKeys.add((GroupDescriptor<AnalysisDescriptor>) nodeInfo.clone());
             }
             setKeys(bufChildrenKeys);
         }
-        
+
         public Node[] createNodes(GroupDescriptor<AnalysisDescriptor> key) {
             try {
-                return new Node[] { new GroupNode(key, contents) };
+                return new Node[]{new GroupNode(key, contents)};
             } catch (final IntrospectionException ex) {
                 ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex);
                 /** Should never happen - no reason for it to fail above */
-                return new Node[] { new AbstractNode(Children.LEAF) {
-                    public String getHtmlDisplayName() {
-                        return "<font color='red'>" + ex.getMessage() + "</font>";
-                    }
-                }};
+                return new Node[]{new AbstractNode(Children.LEAF) {
+
+                        @Override
+                        public String getHtmlDisplayName() {
+                            return "<font color='red'>" + ex.getMessage() + "</font>";
+                        }
+                    }};
             }
         }
-        
     }
-    
+
     private static class SymbolViewAction extends ViewAction {
-        
+
         private Node node;
-        
+
         public SymbolViewAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "View");
         }
-        
+
         public void execute() {
             /** is this a folder ? if true, go recursively */
             if (node.getLookup().lookup(DataFolder.class) != null) {
@@ -475,21 +486,21 @@ public class SymbolNode extends FilterNode {
                 }
                 return;
             }
-            
+
             /** otherwise, it's an OneSymbolNode, do real things */
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
             QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
-            
-            Sec sec = (Sec)contents.getSerProvider();
-            
+
+            Sec sec = (Sec) contents.getSerProvider();
+
             boolean mayNeedsReload = false;
             if (sec == null) {
-                sec = new Stock(contents.getUniSymbol(), quoteContract);
+                sec = new Stock(contents.getUniSymbol(), Collections.singleton(quoteContract));
                 contents.setSerProvider(sec);
             } else {
                 mayNeedsReload = true;
             }
-            
+
             AnalysisChartTopComponent analysisTc = AnalysisChartTopComponent.lookupTopComponent(sec.getUniSymbol());
             /**
              * !NOTICE
@@ -504,30 +515,29 @@ public class SymbolNode extends FilterNode {
                 /** here should be the only place to new AnalysisChartTopComponent instance */
                 analysisTc = new AnalysisChartTopComponent(sec, contents);
             }
-            
+
             if (!sec.isSerLoaded(quoteContract.getFreq())) {
                 sec.loadSer(quoteContract.getFreq());
             }
-            
+
             if (!analysisTc.isOpened()) {
                 analysisTc.open();
             }
-            
+
             analysisTc.requestActive();
         }
-        
     }
-    
+
     public static class SymbolStartWatchAction extends GeneralAction {
-        
+
         private Node node;
-        
+
         public SymbolStartWatchAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Start Watching");
             putValue(Action.SMALL_ICON, "org/aiotrade/platform/core/ui/netbeans/resources/startWatch.gif");
         }
-        
+
         public void execute() {
             /** is this a folder ? if true, go recursively */
             if (node.getLookup().lookup(DataFolder.class) != null) {
@@ -536,41 +546,40 @@ public class SymbolNode extends FilterNode {
                 }
                 return;
             }
-            
+
             /** otherwise, it's an OneSymbolNode, do real things */
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
-            
-            Sec sec = (Sec)contents.getSerProvider();
+
+            Sec sec = (Sec) contents.getSerProvider();
             if (sec == null) {
                 QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
-                sec = new Stock(contents.getUniSymbol(), quoteContract);
+                sec = new Stock(contents.getUniSymbol(), Collections.singleton(quoteContract));
                 contents.setSerProvider(sec);
             }
-            
+
             sec.subscribeTickerServer();
-            
-            RealtimeWatchListTopComponent rtWatchListWin = RealtimeWatchListTopComponent.getInstance();
+
+            RealTimeWatchListTopComponent rtWatchListWin = RealTimeWatchListTopComponent.getInstance();
             rtWatchListWin.requestActive();
             rtWatchListWin.watch(sec, node);
-            
-            RealtimeChartsTopComponent rtChartsWin = RealtimeChartsTopComponent.getInstance();
+
+            RealTimeChartsTopComponent rtChartsWin = RealTimeChartsTopComponent.getInstance();
             rtChartsWin.requestActive();
             rtChartsWin.watch(sec, contents);
-            
-            RealtimeBoardTopComponent rtBoardWin = RealtimeBoardTopComponent.getInstance(sec, contents);
+
+            RealTimeBoardTopComponent rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents);
             rtBoardWin.watch();
             rtBoardWin.requestActive();
-            
+
             node.getLookup().lookup(SymbolStopWatchAction.class).setEnabled(true);
             this.setEnabled(false);
         }
-        
     }
-    
+
     public static class SymbolStopWatchAction extends GeneralAction {
-        
+
         private Node node;
-        
+
         public SymbolStopWatchAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Stop Watching");
@@ -581,7 +590,7 @@ public class SymbolNode extends FilterNode {
                 this.setEnabled(false);
             }
         }
-        
+
         public void execute() {
             /** is this a folder ? if true, go recursively */
             if (node.getLookup().lookup(DataFolder.class) != null) {
@@ -590,37 +599,35 @@ public class SymbolNode extends FilterNode {
                 }
                 return;
             }
-            
+
             /** otherwise, it's an OneSymbolNode, do real things */
-            
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
-            
-            Sec sec = (Sec)contents.getSerProvider();
+
+            Sec sec = (Sec) contents.getSerProvider();
             if (sec == null) {
                 return;
             }
-            
-            if (RealtimeWatchListTopComponent.getInstanceRefs().size() > 0) {
-                RealtimeWatchListTopComponent.getInstanceRefs().get(0).get().unWatch(sec);
+
+            if (RealTimeWatchListTopComponent.getInstanceRefs().size() > 0) {
+                RealTimeWatchListTopComponent.getInstanceRefs().get(0).get().unWatch(sec);
             }
-            
-            if (RealtimeChartsTopComponent.getInstanceRefs().size() > 0) {
-                RealtimeChartsTopComponent.getInstanceRefs().get(0).get().unWatch(sec);
+
+            if (RealTimeChartsTopComponent.getInstanceRefs().size() > 0) {
+                RealTimeChartsTopComponent.getInstanceRefs().get(0).get().unWatch(sec);
             }
-            
-            RealtimeBoardTopComponent rtBoardWin = RealtimeBoardTopComponent.findInstance(sec);
+
+            RealTimeBoardTopComponent rtBoardWin = RealTimeBoardTopComponent.findInstance(sec);
             if (rtBoardWin != null) {
                 rtBoardWin.unWatch();
             }
-            
+
             sec.unSubscribeTickerServer();
-            
+
             node.getLookup().lookup(SymbolStartWatchAction.class).setEnabled(true);
             this.setEnabled(false);
         }
-        
     }
-    
+
     /**
      * We We shouldn't implement deleting data in db in NodeListener#nodeDestroyed(NodeEvent),
      * since  it will be called also when you move a node from a folder to another
@@ -629,14 +636,15 @@ public class SymbolNode extends FilterNode {
      * @TODO
      */
     public static class SymbolClearDataAction extends GeneralAction {
+
         private final static String CLEAR = "Clear data in database";
         private final OneSymbolNode node;
-        
+
         SymbolClearDataAction(OneSymbolNode node) {
             this.node = node;
             putValue(Action.NAME, CLEAR);
         }
-        
+
         public void perform(boolean shouldConfirm) {
             /**
              * don't get descriptors from getLookup().lookup(..), becuase
@@ -660,22 +668,21 @@ public class SymbolNode extends FilterNode {
                 }
             }
         }
-        
+
         public void execute() {
             perform(true);
         }
-        
     }
-    
+
     private static class SymbolReimportDataAction extends GeneralAction {
-        
+
         private Node node;
-        
+
         SymbolReimportDataAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Reimport Data");
         }
-        
+
         public void execute() {
             /** is this a folder ? if true, go recursively */
             if (node.getLookup().lookup(DataFolder.class) != null) {
@@ -684,49 +691,48 @@ public class SymbolNode extends FilterNode {
                 }
                 return;
             }
-            
-            
+
+
             /** otherwise, it's an OneSymbolNode, do real things */
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
             QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
-            
+
             Calendar calendar = Calendar.getInstance();
             calendar.clear();
-            
+
             calendar.setTime(quoteContract.getBegDate());
             long fromTime = calendar.getTimeInMillis();
-            
+
             Frequency freq = quoteContract.getFreq();
             PersistenceManager.getDefault().deleteQuotes(contents.getUniSymbol(), freq, fromTime, Long.MAX_VALUE);
-            
-            Sec sec = (Sec)contents.getSerProvider();
+
+            Sec sec = (Sec) contents.getSerProvider();
             if (sec == null) {
-                sec = new Stock(contents.getUniSymbol(), quoteContract);
+                sec = new Stock(contents.getUniSymbol(), Collections.singleton(quoteContract));
                 contents.setSerProvider(sec);
             } else {
                 sec.setDataContract(quoteContract);
             }
-            
+
             /**
              * @TODO
              * need more works, the clear(long) in default implement of Ser doesn't work good!
              */
             sec.clearSer(freq);
-            
+
             node.getLookup().lookup(ViewAction.class).execute();
         }
-        
     }
-    
+
     private static class SymbolRefreshDataAction extends GeneralAction {
-        
+
         private Node node;
-        
+
         SymbolRefreshDataAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Refresh Data");
         }
-        
+
         public void execute() {
             /** is this a folder ? if true, go recursively */
             if (node.getLookup().lookup(DataFolder.class) != null) {
@@ -735,39 +741,37 @@ public class SymbolNode extends FilterNode {
                 }
                 return;
             }
-            
+
             /** otherwise, it's an OneSymbolNode, do real things */
-            
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
             QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
-            
-            Sec sec = (Sec)contents.getSerProvider();
+
+            Sec sec = (Sec) contents.getSerProvider();
             if (sec == null) {
-                sec = new Stock(contents.getUniSymbol(), quoteContract);
+                sec = new Stock(contents.getUniSymbol(), Collections.singleton(quoteContract));
                 contents.setSerProvider(sec);
             } else {
                 sec.setDataContract(quoteContract);
             }
-            
+
             sec.clearSer(quoteContract.getFreq());
-            
+
             node.getLookup().lookup(ViewAction.class).execute();
         }
-        
     }
-    
+
     private static class SymbolSetDataSourceAction extends GeneralAction {
-        
+
         private Node node;
-        
+
         SymbolSetDataSourceAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Set Data Source");
         }
-        
+
         public void execute() {
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
-            
+
             ImportSymbolDialog pane = new ImportSymbolDialog(
                     WindowManager.getDefault().getMainWindow(),
                     contents.lookupActiveDescriptor(QuoteContract.class),
@@ -775,88 +779,87 @@ public class SymbolNode extends FilterNode {
             if (pane.showDialog() != JOptionPane.OK_OPTION) {
                 return;
             }
-            
+
             contents.lookupAction(SaveAction.class).execute();
             node.getLookup().lookup(SymbolReimportDataAction.class).execute();
         }
-        
     }
-    
+
     private static class SymbolCompareToAction extends GeneralAction {
-        
+
         private Node node;
         private AnalysisChartTopComponent analysisTc;
         private Sec sec;
         private SerChangeListener listener;
-        
+
         SymbolCompareToAction(Node node) {
             this.node = node;
             putValue(Action.NAME, "Compare to Current");
         }
-        
+
         public void execute() {
             AnalysisContents contents = node.getLookup().lookup(AnalysisContents.class);
             QuoteContract quoteContract = contents.lookupActiveDescriptor(QuoteContract.class);
-            
-            sec = (Sec)contents.getSerProvider();
+
+            sec = (Sec) contents.getSerProvider();
             if (sec == null) {
-                sec = new Stock(contents.getUniSymbol(), quoteContract);
+                sec = new Stock(contents.getUniSymbol(), Collections.singleton(quoteContract));
                 contents.setSerProvider(sec);
             }
-            
+
             analysisTc = AnalysisChartTopComponent.getSelected();
-            
+
             if (!sec.isSerLoaded(quoteContract.getFreq())) {
                 boolean loadBegins = sec.loadSer(quoteContract.getFreq());
             }
-            
+
             if (analysisTc != null) {
                 QuoteSer serToBeCompared = sec.getSer(quoteContract.getFreq());
                 ChartViewContainer viewContainer = analysisTc.lookupViewContainer(serToBeCompared.getFreq());
-                
+
                 if (viewContainer == null) {
                     return;
                 }
-                
+
                 Ser baseSer = viewContainer.getController().getMasterSer();
                 QuoteCompareIndicator quoteCompareIndicator = new QuoteCompareIndicator(baseSer);
                 quoteCompareIndicator.setShortDescription(sec.getUniSymbol());
                 quoteCompareIndicator.setSerToBeCompared(serToBeCompared);
                 quoteCompareIndicator.computeFrom(0);
-                
+
                 viewContainer.getController().scrollReferCursorToLeftSide();
-                ((AnalysisQuoteChartView)viewContainer.getMasterView()).addQuoteCompareChart(quoteCompareIndicator);
-                
+                ((AnalysisQuoteChartView) viewContainer.getMasterView()).addQuoteCompareChart(quoteCompareIndicator);
+
                 analysisTc.setSelectedViewContainer(viewContainer);
                 analysisTc.requestActive();
             }
-            
+
         }
-        
     }
-    
+
     /** Creating an action for adding a folder to organize stocks into groups */
     private static class AddFolderAction extends AbstractAction {
+
         private DataFolder folder;
-        
+
         public AddFolderAction(DataFolder df) {
             folder = df;
             putValue(Action.NAME, NbBundle.getMessage(SymbolNode.class, "SN_addfolderbutton"));
         }
-        
+
         public void actionPerformed(ActionEvent ae) {
             String floderName = JOptionPane.showInputDialog(
                     WindowManager.getDefault().getMainWindow(),
                     "Please Input Folder Name",
                     "Add Folder",
                     JOptionPane.OK_CANCEL_OPTION);
-            
+
             if (floderName == null) {
                 return;
             }
-            
+
             floderName = floderName.trim();
-            
+
             try {
                 DataFolder.create(folder, floderName);
             } catch (IOException ex) {
@@ -864,8 +867,7 @@ public class SymbolNode extends FilterNode {
             }
         }
     }
-    
-    
+
     /** Deserialize a Symbol from xml file */
     private static AnalysisContents readContents(Node node) {
         XMLDataObject xdo = node.getLookup().lookup(XMLDataObject.class);
@@ -879,15 +881,14 @@ public class SymbolNode extends FilterNode {
             ContentsParseHandler handler = new ContentsParseHandler();
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(is));
-            
+
             return handler.getContents();
         } catch (IOException ex) {
             ErrorManager.getDefault().notify(ex);
         } catch (SAXException ex) {
             ErrorManager.getDefault().notify(ex);
         }
-        
+
         return null;
     }
-    
 }

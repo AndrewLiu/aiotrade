@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <bean class="org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents" id="9546996">
+        <property name="descriptors">
+            <list>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="6422973">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.MAIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="86400000">
+                            <constructor-arg index="0" value="Day"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="10918764">
+                                <property name="name" value="Period 1"/>
+                                <property name="value" value="5.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="7359828">
+                                <property name="name" value="Period 2"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="15001567">
+                                <property name="name" value="Period 3"/>
+                                <property name="value" value="20.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="6312385">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="86400000">
+                            <constructor-arg index="0" value="Day"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="3346455">
+                                <property name="name" value="Period Short"/>
+                                <property name="value" value="5.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="6655097">
+                                <property name="name" value="Period Mediaum"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="9920077">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.MACDIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="86400000">
+                            <constructor-arg index="0" value="Day"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="15301615">
+                                <property name="name" value="Period Short"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="13092858">
+                                <property name="name" value="Period Long"/>
+                                <property name="value" value="26.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="1708381">
+                                <property name="name" value="Period Diff"/>
+                                <property name="value" value="9.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="11543420">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="604800000">
+                            <constructor-arg index="0" value="Week"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="6946055">
+                                <property name="name" value="Period Short"/>
+                                <property name="value" value="5.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="6488934">
+                                <property name="name" value="Period Mediaum"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="15316411">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="-1702967296">
+                            <constructor-arg index="0" value="Month"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="7624363">
+                                <property name="name" value="Period Short"/>
+                                <property name="value" value="5.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="15080519">
+                                <property name="name" value="Period Mediaum"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.IndicatorDescriptor" id="10110071">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="60000">
+                            <constructor-arg index="0" value="Minute"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="opts">
+                        <list>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="4882939">
+                                <property name="name" value="Period Short"/>
+                                <property name="value" value="5.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                            <bean class="org.aiotrade.lib.math.timeseries.computable.Option" id="10207455">
+                                <property name="name" value="Period Mediaum"/>
+                                <property name="value" value="10.0"/>
+                                <property name="step" value="1.0"/>
+                                <property name="minValue" value="-3.4028235E38"/>
+                                <property name="maxValue" value="3.4028235E38"/>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.DrawingDescriptor" id="328394">
+                    <property name="active" value="false"/>
+                    <property name="serviceClassName" value="Layer One"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="86400000">
+                            <constructor-arg index="0" value="Day"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.DrawingDescriptor" id="16395051">
+                    <property name="active" value="false"/>
+                    <property name="serviceClassName" value="Layer One"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="604800000">
+                            <constructor-arg index="0" value="Week"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.DrawingDescriptor" id="2638518">
+                    <property name="active" value="false"/>
+                    <property name="serviceClassName" value="Layer One"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="-1702967296">
+                            <constructor-arg index="0" value="Month"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.lib.charting.descriptor.DrawingDescriptor" id="3402501">
+                    <property name="active" value="false"/>
+                    <property name="serviceClassName" value="Layer One"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="60000">
+                            <constructor-arg index="0" value="Minute"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                </bean>
+                <bean class="org.aiotrade.platform.core.dataserver.QuoteContract" id="9666866">
+                    <property name="active" value="true"/>
+                    <property name="serviceClassName" value="org.aiotrade.platform.modules.dataserver.yahoo.YahooQuoteServer"/>
+                    <property name="freq">
+                        <bean class="org.aiotrade.lib.math.timeseries.Frequency" id="86400000">
+                            <constructor-arg index="0" value="Day"/>
+                            <constructor-arg index="1" value="1"/>
+                        </bean>
+                    </property>
+                    <property name="symbol" value="GOOG"/>
+                    <property name="dateFormatString" value="yyyy-mm-dd"/>
+                    <property name="begDate">
+                        <bean class="java.util.Date" id="28799999">
+                            <constructor-arg index="0" value="-28800000"/>
+                        </bean>
+                    </property>
+                    <property name="endDate">
+                        <bean class="java.util.Date" id="1305419040">
+                            <constructor-arg index="0" value="1238256000000"/>
+                        </bean>
+                    </property>
+                    <property name="urlString" value=""/>
+                    <property name="refreshable" value="false"/>
+                    <property name="refreshInterval" value="5"/>
+                    <property name="secType" value="Stock"/>
+                    <property name="exchange" value="SMART"/>
+                    <property name="primaryExchange" value="SUPERSOES"/>
+                    <property name="currency" value="USD"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+</beans>

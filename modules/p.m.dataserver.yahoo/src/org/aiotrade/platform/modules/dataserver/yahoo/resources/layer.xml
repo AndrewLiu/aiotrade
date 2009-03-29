@@ -3,13 +3,13 @@
 <filesystem>
     <folder name="QuoteServers">
         <file name="Yahoo.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"/>
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.yahoo.YahooQuoteServer"/>
         </file>
     </folder>
 
     <folder name="TickerServers">
         <file name="Yahoo.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"/>
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.yahoo.YahooTickerServer"/>
         </file>
     </folder>
 </filesystem>

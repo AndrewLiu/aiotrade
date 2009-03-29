@@ -29,11 +29,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import javax.swing.JOptionPane;
-import org.aiotrade.math.timeseries.datasource.DataContract;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.datasource.DataContract;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.analysis.ContentsPersistenceHandler;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
@@ -173,10 +174,12 @@ public class AddSymbolAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected String iconResource() {
         return "org/aiotrade/platform/core/ui/netbeans/resources/newSymbol.gif";
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

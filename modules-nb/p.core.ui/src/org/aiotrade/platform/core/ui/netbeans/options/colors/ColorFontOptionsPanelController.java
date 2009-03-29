@@ -33,16 +33,16 @@ package org.aiotrade.platform.core.ui.netbeans.options.colors;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import javax.swing.JComponent;
-import org.aiotrade.charting.chart.QuoteChart;
+import org.aiotrade.lib.charting.chart.QuoteChart;
+import org.aiotrade.lib.charting.laf.CityLights;
+import org.aiotrade.lib.charting.laf.Gray;
+import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.laf.Modern;
+import org.aiotrade.lib.charting.laf.White;
 import org.aiotrade.platform.core.analysis.chartview.AnalysisQuoteChartView;
-import org.aiotrade.platform.core.analysis.chartview.RealtimeQuoteChartView;
-import org.aiotrade.charting.laf.CityLights;
-import org.aiotrade.charting.laf.LookFeel;
-import org.aiotrade.charting.laf.Gray;
-import org.aiotrade.charting.laf.Modern;
 import org.aiotrade.platform.core.UserOptionsManager;
-import org.aiotrade.charting.laf.White;
 import org.aiotrade.platform.core.PersistenceManager;
+import org.aiotrade.platform.core.analysis.chartview.RealTimeQuoteChartView;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
@@ -126,7 +126,7 @@ public final class ColorFontOptionsPanelController extends OptionsPanelControlle
         PersistenceManager.getDefault().saveProperties();
         
         AnalysisQuoteChartView.switchAllQuoteChartType(type);
-        RealtimeQuoteChartView.switchAllQuoteChartType(type);
+        RealTimeQuoteChartView.switchAllQuoteChartType(type);
         
         for (Object c : TopComponent.getRegistry().getOpened()) {
             if (c instanceof TopComponent) {

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.core.ui.netbeans.actions;
 import java.lang.ref.WeakReference;
 import org.aiotrade.platform.core.ui.netbeans.explorer.SymbolNode.SymbolStartWatchAction;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeWatchListTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -52,7 +52,7 @@ public class StartSelectedWatchAction extends CallableSystemAction {
         try {
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    for (WeakReference<RealtimeWatchListTopComponent> ref : RealtimeWatchListTopComponent.getInstanceRefs()) {
+                    for (WeakReference<RealTimeWatchListTopComponent> ref : RealTimeWatchListTopComponent.getInstanceRefs()) {
                         for (Node node : ref.get().getSelectedSymbolNodes()) {
                             SymbolStartWatchAction action = node.getLookup().lookup(SymbolStartWatchAction.class);
                             if (action != null) {

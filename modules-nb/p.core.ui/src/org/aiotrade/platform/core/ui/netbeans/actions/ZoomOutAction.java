@@ -29,11 +29,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.core.ui.netbeans.actions;
+
 import javax.swing.JOptionPane;
-import org.aiotrade.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeBoardTopComponent;
-import org.aiotrade.platform.core.ui.netbeans.windows.RealtimeChartsTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeBoardTopComponent;
+import org.aiotrade.platform.core.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.TopComponent;
@@ -61,12 +62,12 @@ public class ZoomOutAction extends CallableSystemAction {
                     
                     if (tc instanceof AnalysisChartTopComponent) {
                         ((AnalysisChartTopComponent)tc).getSelectedViewContainer().getController().growWBar(-1);
-                    } else if (tc instanceof RealtimeChartsTopComponent) {
-                        for (ChartViewContainer c : ((RealtimeChartsTopComponent)tc).getViewContainers()) {
+                    } else if (tc instanceof RealTimeChartsTopComponent) {
+                        for (ChartViewContainer c : ((RealTimeChartsTopComponent)tc).getViewContainers()) {
                             c.getController().growWBar(-1);
                         }
-                    } else if (tc instanceof RealtimeBoardTopComponent) {
-                        ((RealtimeBoardTopComponent)tc).getChartViewContainer().getController().growWBar(-1);
+                    } else if (tc instanceof RealTimeBoardTopComponent) {
+                        ((RealTimeBoardTopComponent)tc).getChartViewContainer().getController().growWBar(-1);
                     } else {
                         JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), "Please select a view by clicking on it first!");
                     }
@@ -86,10 +87,12 @@ public class ZoomOutAction extends CallableSystemAction {
         return HelpCtx.DEFAULT_HELP;
     }
     
+    @Override
     protected String iconResource() {
         return "org/aiotrade/platform/core/ui/netbeans/resources/zoomOut.gif";
     }
     
+    @Override
     protected boolean asynchronous() {
         return false;
     }

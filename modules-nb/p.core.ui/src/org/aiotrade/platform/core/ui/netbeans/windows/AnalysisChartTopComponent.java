@@ -53,27 +53,28 @@ import javax.swing.OverlayLayout;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.aiotrade.math.timeseries.Frequency;
-import org.aiotrade.math.timeseries.MasterSer;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.ChartingController;
+import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.QuoteSer;
+import org.aiotrade.lib.math.timeseries.QuoteSerCombiner;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Unit;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.util.ReferenceOnly;
 import org.aiotrade.platform.core.analysis.chartview.AnalysisChartViewContainer;
-import org.aiotrade.charting.view.ChartingController;
-import org.aiotrade.charting.view.ChartingControllerFactory;
-import org.aiotrade.charting.view.WithDrawingPane;
-import org.aiotrade.charting.view.pane.DrawingPane;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.math.timeseries.Unit;
-import org.aiotrade.math.timeseries.QuoteSerCombiner;
-import org.aiotrade.platform.core.netbeans.NetBeansPersistenceManager;
-import org.aiotrade.platform.core.ui.netbeans.actions.SwitchHideShowDrawingLineAction;
-import org.aiotrade.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.computable.Indicator;
-import org.aiotrade.math.timeseries.QuoteSer;
-import org.aiotrade.math.timeseries.Ser;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
 import org.aiotrade.platform.core.sec.Sec;
+import org.aiotrade.platform.core.ui.netbeans.NetBeansPersistenceManager;
 import org.aiotrade.platform.core.ui.netbeans.actions.ChangeOptsAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.ChangeStatisticChartOptsAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.PickIndicatorAction;
@@ -82,11 +83,10 @@ import org.aiotrade.platform.core.ui.netbeans.actions.SwitchAdjustQuoteAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.SwitchCandleOhlcAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.SwitchLinearLogScaleAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
+import org.aiotrade.platform.core.ui.netbeans.actions.SwitchHideShowDrawingLineAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.platform.core.ui.netbeans.actions.ZoomOutAction;
 import org.aiotrade.platform.core.ui.netbeans.explorer.GroupNode;
-import org.aiotrade.charting.laf.LookFeel;
-import org.aiotrade.util.ReferenceOnly;
 import org.openide.nodes.Node;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.Mode;
@@ -235,6 +235,7 @@ public class AnalysisChartTopComponent extends TopComponent {
         setFocusable(true);
         /** as the NetBeans window system manage focus in a strange manner, we should do: */
         addFocusListener(new FocusAdapter() {
+            @Override
             public void focusGained(FocusEvent e) {
                 ChartViewContainer selectedViewContainer = getSelectedViewContainer();
                 if (selectedViewContainer != null) {
@@ -242,6 +243,7 @@ public class AnalysisChartTopComponent extends TopComponent {
                 }
             }
             
+            @Override
             public void focusLost(FocusEvent e) {
             }
         });
@@ -421,6 +423,7 @@ public class AnalysisChartTopComponent extends TopComponent {
         }
     }
     
+    @Override
     public void open() {
         Mode mode = WindowManager.getDefault().findMode(MODE);
         /**
@@ -433,15 +436,18 @@ public class AnalysisChartTopComponent extends TopComponent {
         super.open();
     }
     
+    @Override
     protected void componentActivated() {
         super.componentActivated();
         updateToolbar();
     }
     
+    @Override
     protected void componentShowing() {
         super.componentShowing();
     }
     
+    @Override
     protected void componentClosed() {
         sec.stopAllDataServer();
         
@@ -454,6 +460,7 @@ public class AnalysisChartTopComponent extends TopComponent {
         //sec.setSignSeriesLoaded(false);
     }
     
+    @Override
     protected String preferredID() {
         if (defaultViewContainer != null) {
             defaultViewContainer.requestFocusInWindow();
@@ -462,8 +469,9 @@ public class AnalysisChartTopComponent extends TopComponent {
         return s_id;
     }
     
+    @Override
     public int getPersistenceType() {
-        return this.PERSISTENCE_NEVER;
+        return PERSISTENCE_NEVER;
     }
     
     public Sec getStock() {

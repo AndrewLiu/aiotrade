@@ -50,8 +50,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.NumberFormatter;
-import org.aiotrade.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.math.timeseries.computable.Opt;
+import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
 
 /**
  * 
@@ -108,6 +108,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         /** @TODO use this NumberFormatter ? */
         DecimalFormat df = new DecimalFormat("#####");
         NumberFormatter nf = new NumberFormatter(df) {
+            @Override
             public String valueToString(Object iv) throws ParseException {
                 if ((iv == null) || (((Float)iv).floatValue() == -1)) {
                     return "";
@@ -115,6 +116,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
                     return super.valueToString(iv);
                 }
             }
+            @Override
             public Object stringToValue(String text) throws ParseException {
                 if ("".equals(text)) {
                     return null;

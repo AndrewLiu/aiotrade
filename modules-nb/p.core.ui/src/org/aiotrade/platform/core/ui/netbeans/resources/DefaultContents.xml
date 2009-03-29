@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sec unisymbol="Default">
     <sources>
-        <source active="false" class="org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer" 
+        <source active="false" class="org.aiotrade.platform.modules.dataserver.yahoo.YahooQuoteServer"
                 symbol="hsi" sectype="Stock" exchange="" primaryexchange="" currency="HKD"
                 dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="10" 
                 begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">

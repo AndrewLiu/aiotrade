@@ -3,8 +3,8 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.h2</code-name-base>
-            <standalone/>
+            <code-name-base>org.h2database</code-name-base>
+            <suite-component/>
             <module-dependencies/>
             <public-packages>
                 <package>org.h2</package>
@@ -17,24 +17,22 @@
                 <package>org.h2.constraint</package>
                 <package>org.h2.engine</package>
                 <package>org.h2.expression</package>
+                <package>org.h2.fulltext</package>
                 <package>org.h2.index</package>
                 <package>org.h2.jdbc</package>
                 <package>org.h2.jdbcx</package>
                 <package>org.h2.message</package>
                 <package>org.h2.result</package>
-                <package>org.h2.samples</package>
+                <package>org.h2.schema</package>
                 <package>org.h2.security</package>
                 <package>org.h2.server</package>
+                <package>org.h2.server.ftp</package>
+                <package>org.h2.server.web</package>
                 <package>org.h2.store</package>
                 <package>org.h2.table</package>
                 <package>org.h2.tools</package>
-                <package>org.h2.tools.code</package>
-                <package>org.h2.tools.doc</package>
-                <package>org.h2.tools.doclet</package>
-                <package>org.h2.tools.indexer</package>
                 <package>org.h2.util</package>
                 <package>org.h2.value</package>
-                <package>org.h2.web</package>
                 <package>snoozesoft.systray4j</package>
             </public-packages>
             <class-path-extension>

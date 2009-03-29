@@ -33,17 +33,17 @@ package org.aiotrade.platform.core.ui.netbeans.actionfactories;
 import java.util.Collection;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
-import org.aiotrade.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.charting.descriptor.DrawingDescriptorActionFactory;
-import org.aiotrade.charting.view.ChartView;
-import org.aiotrade.charting.view.ChartViewContainer;
-import org.aiotrade.charting.view.WithDrawingPane;
-import org.aiotrade.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptorActionFactory;
+import org.aiotrade.lib.charting.view.ChartView;
+import org.aiotrade.lib.charting.view.ChartViewContainer;
+import org.aiotrade.lib.charting.view.WithDrawingPane;
+import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.util.swing.action.DeleteAction;
+import org.aiotrade.lib.util.swing.action.HideAction;
+import org.aiotrade.lib.util.swing.action.SaveAction;
+import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.util.swing.action.DeleteAction;
-import org.aiotrade.util.swing.action.HideAction;
-import org.aiotrade.util.swing.action.SaveAction;
-import org.aiotrade.util.swing.action.ViewAction;
 import org.openide.windows.WindowManager;
 
 /**

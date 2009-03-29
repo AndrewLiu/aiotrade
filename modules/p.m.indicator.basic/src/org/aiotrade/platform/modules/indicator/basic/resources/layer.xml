@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<filesystem>
+    <folder name="Indicators">
+        <file name="MA.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.MAIndicator"/>
+        </file>
+        <file name="MP.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.HVDIndicator"/>
+        </file>
+        <file name="EMA.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.EMAIndicator"/>
+        </file>
+        <file name="BOLL.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.BOLLIndicator"/>
+        </file>
+        <file name="BIAS.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.BIASIndicator"/>
+        </file>
+        <file name="DMI.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.DMIIndicator"/>
+        </file>
+        <file name="KD.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.KDIndicator"/>
+        </file>
+        <file name="MACD.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.MACDIndicator"/>
+        </file>
+        <file name="MTM.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.MTMIndicator"/>
+        </file>
+        <file name="OBV.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.OBVIndicator"/>
+        </file>
+        <file name="ROC.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.ROCIndicator"/>
+        </file>
+        <file name="RSI.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.RSIIndicator"/>
+        </file>
+        <file name="WMS.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.WMSIndicator"/>
+        </file>
+        <file name="SAR.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.SARIndicator"/>
+        </file>
+        <file name="CCI.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.CCIIndicator"/>
+        </file>
+        <file name="MFI.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.MFIIndicator"/>
+        </file>
+        <file name="ARBR.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.ARBRIndicator"/>
+        </file>
+        <file name="GMMA.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.GMMAIndicator"/>
+        </file>
+        <file name="VOL.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.VOLIndicator"/>
+        </file>
+        <file name="ZIGZAG.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.ZIGZAGIndicator"/>
+        </file>
+        <!--file name="ZIGZAGFA.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.indicator.basic.ZIGZAGFAIndicator"/>
+        </file-->
+    </folder>
+
+    
+</filesystem>
