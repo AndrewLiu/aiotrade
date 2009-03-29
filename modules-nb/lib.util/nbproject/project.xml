@@ -18,7 +18,7 @@
             </public-packages>
             <class-path-extension>
                 <runtime-relative-path>ext/AIOTrade_Lib_Util.jar</runtime-relative-path>
-                <binary-origin>../../lib-core/lib-util/dist/AIOTrade_Lib_Util.jar</binary-origin>
+                <binary-origin>../../lib-core/lib.util/dist/AIOTrade_Lib_Util.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>

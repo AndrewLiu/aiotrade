@@ -2,12 +2,12 @@
 <!-- You may freely edit this file. See harness/README in the NetBeans platform -->
 <!-- for some information on what you could do (e.g. targets to override). -->
 <!-- If you delete this file and reopen the project it will be recreated. -->
-<project name="org.aiotrade.lib.util" default="netbeans" basedir=".">
-    <description>Builds, tests, and runs the project org.aiotrade.lib.</description>
+<project name="org.aiotrade.platform.modules.dataserver.yahoo" default="netbeans" basedir=".">
+    <description>Builds, tests, and runs the project org.aiotrade.platform.modules.dataserver.yahoo.</description>
     <import file="nbproject/build-impl.xml"/>
 
-    <property name="original.project.dir" value="../../lib-core/lib-util"/>
-    <property name="original.project.jar" value="${original.project.dir}/dist/AIOTrade_Lib_Util.jar"/>
+    <property name="original.project.dir" value="../../lib-core/p.m.dataserver.yahoo"/>
+    <property name="original.project.jar" value="${original.project.dir}/dist/AIOTrade_Platform_Modules_DataServer_Yahoo.jar"/>
 
     <target name="release">
         <echo message="Building ${original.project.dir}"/>
@@ -22,5 +22,5 @@
         <ant dir="${original.project.dir}" target="clean" inheritall="false" inheritrefs="false"/>
         <echo message="Done cleaning ${original.project.dir}"/>
     </target>
-    
+
 </project>

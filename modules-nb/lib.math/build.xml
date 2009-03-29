@@ -6,7 +6,7 @@
     <description>Builds, tests, and runs the project org.aiotrade.lib.math.</description>
     <import file="nbproject/build-impl.xml"/>
 
-    <property name="original.project.dir" value="../../lib-core/lib-math"/>
+    <property name="original.project.dir" value="../../lib-core/lib.math"/>
     <property name="original.project.jar" value="${original.project.dir}/dist/AIOTrade_Lib_Math.jar"/>
 
     <target name="release">
