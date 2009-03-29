@@ -40,9 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.aiotrade.math.timeseries.Frequency;
-import org.aiotrade.math.timeseries.Unit;
-import org.aiotrade.math.timeseries.datasource.DataServer;
+import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Unit;
+import org.aiotrade.lib.math.timeseries.datasource.DataServer;
 import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.WindowManager;
 import org.aiotrade.platform.core.sec.Quote;
@@ -108,8 +108,8 @@ public class IBWrapper extends EWrapperAdapter {
     
     /** in IB, the next valid id after connected should be 1 */
     private int nextReqId = 1;
-    private SortedMap<Integer, HistoricalDataRequest> hisDataRequestMap = new TreeMap<Integer, HistoricalDataRequest>();
-    private SortedMap<Integer, MarketDataRequest> mktDataRequestMap = new TreeMap<Integer, MarketDataRequest>();
+    private final SortedMap<Integer, HistoricalDataRequest> hisDataRequestMap = new TreeMap<Integer, HistoricalDataRequest>();
+    private final SortedMap<Integer, MarketDataRequest> mktDataRequestMap = new TreeMap<Integer, MarketDataRequest>();
     
     private int serverVersion;
     
@@ -366,16 +366,16 @@ public class IBWrapper extends EWrapperAdapter {
             tickerSnapshot.setTime(System.currentTimeMillis());
             switch (field) {
                 case TickType.ASK:
-                    tickerSnapshot.set(Ticker.ASK_PRICE, value);
+                    tickerSnapshot.setAskPrice(0, value);
                     break;
                 case TickType.ASK_SIZE:
-                    tickerSnapshot.set(Ticker.ASK_SIZE, value);
+                    tickerSnapshot.setAskSize(0, value);
                     break;
                 case TickType.BID:
-                    tickerSnapshot.set(Ticker.BID_PRICE, value);
+                    tickerSnapshot.setBidPrice(0, value);
                     break;
                 case TickType.BID_SIZE:
-                    tickerSnapshot.set(Ticker.BID_SIZE, value);
+                    tickerSnapshot.setBidSize(0, value);
                     break;
                 case TickType.CLOSE:
                     tickerSnapshot.set(Ticker.PREV_CLOSE, value);

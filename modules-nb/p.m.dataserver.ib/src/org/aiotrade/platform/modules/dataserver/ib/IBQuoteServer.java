@@ -33,15 +33,20 @@ package org.aiotrade.platform.modules.dataserver.ib;
 import com.ib.client.Contract;
 import com.ib.client.Order;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import org.aiotrade.math.timeseries.Frequency;
-import org.aiotrade.math.timeseries.Unit;
+import java.util.TimeZone;
+import javax.imageio.ImageIO;
+import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Unit;
 import org.aiotrade.platform.core.dataserver.QuoteContract;
 import org.aiotrade.platform.core.dataserver.QuoteServer;
+import org.aiotrade.platform.core.sec.Market;
 import org.aiotrade.platform.core.sec.Quote;
-import org.openide.util.Utilities;
 
 /**
  * TWS demo user/password
@@ -189,7 +194,7 @@ public class IBQuoteServer extends QuoteServer {
             m_whatToShow = "MIDPOINT";
             
             /**
-             * formatDate = 1, dates applying to bars are returned in a format ¡°yyyymmdd{space}{space}hh:mm:dd¡±
+             * formatDate = 1, dates applying to bars are returned in a format ï¿½ï¿½yyyymmdd{space}{space}hh:mm:ddï¿½ï¿½
              *   - the same format already used when reporting executions.
              * formatDate = 2, dates are returned as a integer specifying the number of seconds since 1/1/1970 GMT.
              */
@@ -293,11 +298,27 @@ public class IBQuoteServer extends QuoteServer {
     public Frequency[] getSupportedFreqs() {
         return IBWrapper.getSupportedFreqs();
     }
-    
+
     @Override
     public Image getIcon() {
-        return Utilities.loadImage("org/aiotrade/platform/modules/dataserver/ib/netbeans/resources/favicon_ib.png");
+        BufferedImage img;
+        try {
+            img = ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/ib/resources/favicon_ib.png"));
+        } catch (IOException e) {
+            img = null;
+        }
+        return img;
     }
+
+    @Override
+    public TimeZone getSourceTimeZone() {
+        return TimeZone.getTimeZone("America/New_York");
+    }
+
+    public Market getMarket(String symbol) {
+        return Market.NYSE;
+    }
+
     
     /**
      * 1 1sec "<30;2000> S"

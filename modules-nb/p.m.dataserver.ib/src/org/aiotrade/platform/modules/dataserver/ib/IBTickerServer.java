@@ -32,8 +32,10 @@ package org.aiotrade.platform.modules.dataserver.ib;
 
 import com.ib.client.Contract;
 import java.util.Calendar;
+import java.util.TimeZone;
 import org.aiotrade.platform.core.dataserver.TickerContract;
 import org.aiotrade.platform.core.dataserver.TickerServer;
+import org.aiotrade.platform.core.sec.Market;
 import org.aiotrade.platform.core.sec.TickerSnapshot;
 
 /**
@@ -188,6 +190,16 @@ public class IBTickerServer extends TickerServer {
     public byte getSourceSerialNumber() {
         return (byte)6;
     }
+
+    public TimeZone getSourceTimeZone() {
+        return TimeZone.getTimeZone("America/New_York");
+    }
+
+    @Override
+    public Market getMarket(String symbol) {
+        return Market.NYSE;
+    }
+
 }
 
 
