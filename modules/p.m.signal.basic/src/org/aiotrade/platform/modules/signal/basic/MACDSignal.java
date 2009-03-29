@@ -30,12 +30,11 @@
  */
 package org.aiotrade.platform.modules.signal.basic;
 
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.util.Sign;
 import org.aiotrade.platform.core.analysis.indicator.AbstractSignalIndicator;
 import org.aiotrade.platform.core.analysis.indicator.AbstractIndicator.DefaultOpt;
-import org.aiotrade.math.util.Sign;
-import org.aiotrade.math.timeseries.computable.Opt;
-import org.aiotrade.math.timeseries.DefaultSer.DefaultVar;
-import org.aiotrade.math.timeseries.Var;
 
 /**
  *
