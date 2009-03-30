@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.aiotrade.lib.util.swing.action.UpdateAction;
-import org.aiotrade.platform.core.netbeans.GroupDescriptor;
+import org.aiotrade.platform.core.GroupDescriptor;
 import org.openide.ErrorManager;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.BeanNode;

@@ -44,7 +44,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
-import org.aiotrade.platform.core.netbeans.GroupDescriptor;
+import org.aiotrade.platform.core.GroupDescriptor;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.core.ui.dialog.PickIndicatorDialog;
 import org.openide.util.Utilities;

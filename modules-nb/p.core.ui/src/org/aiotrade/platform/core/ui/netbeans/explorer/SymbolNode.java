@@ -60,7 +60,7 @@ import org.aiotrade.platform.core.PersistenceManager;
 import org.aiotrade.platform.core.sec.Stock;
 import org.aiotrade.platform.core.analysis.ContentsParseHandler;
 import org.aiotrade.platform.core.analysis.indicator.QuoteCompareIndicator;
-import org.aiotrade.platform.core.netbeans.GroupDescriptor;
+import org.aiotrade.platform.core.GroupDescriptor;
 import org.aiotrade.platform.core.sec.Sec;
 import org.aiotrade.platform.core.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.core.ui.netbeans.actions.AddSymbolAction;
