@@ -98,6 +98,7 @@ public abstract class NetworkDescriptor implements Descriptor {
         this.dataSource = dataSource;
     }
     
+    @Override
     public NetworkDescriptor clone() throws CloneNotSupportedException {
         /** 
          * @TODO 
