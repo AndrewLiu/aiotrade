@@ -46,6 +46,7 @@ import org.openide.util.Utilities;
 
 public final class ColorFontOptionsCategory extends OptionsCategory {
     
+    @Override
     public Icon getIcon() {
         Image image = Utilities.loadImage("org/netbeans/modules/options/resources/colors.png");
         return new ImageIcon(image);

@@ -13,7 +13,7 @@
             <opt name="Period 2" value="10"/>
             <opt name="Period 3" value="20"/>
         </indicator>
-        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Day">
+        <indicator active="true" class="org.aiotrade.platform.core.analysis.indicator.VOLIndicator" nunits="1" unit="Day">
             <opt name="Period Short" value="5"/>
             <opt name="Period Mediaum" value="10"/>
         </indicator>
@@ -22,15 +22,15 @@
             <opt name="Period Long"  value="26"/>
             <opt name="Period Diff"  value="9"/>
         </indicator>
-        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Week">
+        <indicator active="true" class="org.aiotrade.platform.core.analysis.indicator.VOLIndicator" nunits="1" unit="Week">
             <opt name="Period Short" value="5"/>
             <opt name="Period Mediaum" value="10"/>
         </indicator>
-        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Month">
+        <indicator active="true" class="org.aiotrade.platform.core.analysis.indicator.VOLIndicator" nunits="1" unit="Month">
             <opt name="Period Short" value="5"/>
             <opt name="Period Mediaum" value="10"/>
         </indicator>
-        <indicator active="true" class="org.aiotrade.platform.modules.indicator.basic.VOLIndicator" nunits="1" unit="Minute">
+        <indicator active="true" class="org.aiotrade.platform.core.analysis.indicator.VOLIndicator" nunits="1" unit="Minute">
             <opt name="Period Short" value="5"/>
             <opt name="Period Mediaum" value="10"/>
         </indicator>

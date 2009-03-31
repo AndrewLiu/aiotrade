@@ -53,7 +53,7 @@ import org.aiotrade.platform.core.dataserver.QuoteServer;
 import org.aiotrade.platform.core.sec.Stock;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.FileUtil;
 
 /**
  *
@@ -100,7 +100,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         quoteContract.setSymbol(symbol);
         quoteContract.setDateFormatString(previewQuoteServer.getDefaultDateFormatString());
         
-        FileObject previewFile = Repository.getDefault().getDefaultFileSystem().findResource("UserOptions/Template/preview.csv");
+        FileObject previewFile = FileUtil.getConfigFile("UserOptions/Template/preview.csv");
         if (previewFile != null) {
             try {
                 InputStream is = previewFile.getInputStream();
