@@ -114,7 +114,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         contents.addDescriptor(quoteContract);
         
         Stock stock = new Stock(symbol, Collections.singleton(quoteContract));
-        
+        contents.setSerProvider(stock);
         if (!stock.isSerLoaded(quoteContract.getFreq())) {
             stock.loadSer(quoteContract.getFreq());
         }
