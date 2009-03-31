@@ -134,6 +134,10 @@ public class Modern extends LookFeel {
         handleColor = new Color(0, 0, 153); // new Color(128, 128, 255); //new Color(128, 0, 128);
 
         astrologyColor = Color.BLACK;
+
+        axisColor = Color.BLACK;
+        trackColor = Color.WHITE;
+        thumbColor = Color.BLACK;
     }
 
 }
