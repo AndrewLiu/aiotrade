@@ -141,7 +141,7 @@ public class ContentsPersistenceHandler {
         
         buffer.append("</sec>");
         
-        beans.saveDoc();
+        //beans.saveDoc();
         
         return buffer.toString();
     }
