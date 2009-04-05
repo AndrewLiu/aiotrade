@@ -133,10 +133,6 @@ public abstract class AbstractDataServer<K extends DataContract, V extends TimeV
         return dateFormat;
     }
 
-    protected final void setLoadedTime(long time) {
-        this.loadedTime = time;
-    }
-
     protected final long getLoadedTime() {
         return loadedTime;
     }
@@ -363,7 +359,7 @@ public abstract class AbstractDataServer<K extends DataContract, V extends TimeV
         return inLoading;
     }
 
-    protected abstract void loadFromPersistence();
+    protected abstract long loadFromPersistence();
 
     /**
      * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
@@ -380,9 +376,15 @@ public abstract class AbstractDataServer<K extends DataContract, V extends TimeV
     protected class LoadServer implements Runnable {
 
         public void run() {
-            loadFromPersistence();
+            long loadedTime1 = loadFromPersistence();
+            if (loadedTime1 > loadedTime) {
+                loadedTime = loadedTime1;
+            }
 
-            loadedTime = loadFromSource(loadedTime);
+            long loadedTime2 = loadFromSource(loadedTime);
+            if (loadedTime2 > loadedTime) {
+                loadedTime = loadedTime2;
+            }
 
             inLoading = false;
 

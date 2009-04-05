@@ -84,7 +84,6 @@ public class YahooTickerServer extends TickerServer {
         Collection<TickerContract> contracts = getSubscribedContracts();
         if (contracts.size() == 0) {
             setInputStream(null);
-            setLoadedTime(getFromTime());
             return;
         }
 
@@ -120,7 +119,7 @@ public class YahooTickerServer extends TickerServer {
     protected long read() throws Exception {
         InputStream is = getInputStream();
         if (is == null) {
-            return 0;
+            return getLoadedTime();
         }
 
         BufferedReader reader;

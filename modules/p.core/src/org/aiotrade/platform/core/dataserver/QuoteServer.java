@@ -67,13 +67,15 @@ public abstract class QuoteServer extends AbstractDataServer<QuoteContract, Quot
         }
     }
 
-    protected void loadFromPersistence() {
+    protected long loadFromPersistence() {
+        long loadedTime = getLoadedTime();
         for (QuoteContract contract : getSubscribedContracts()) {
-            loadFromPersistence(contract);
+            loadedTime = loadFromPersistence(contract);
         }
+        return loadedTime;
     }
 
-    private void loadFromPersistence(QuoteContract contract) {
+    private long loadFromPersistence(QuoteContract contract) {
         Ser serToBeFilled = getSer(contract);
 
         /**
@@ -89,7 +91,7 @@ public abstract class QuoteServer extends AbstractDataServer<QuoteContract, Quot
          * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
          */
         int size = storage.size();
-        setLoadedTime(size > 0 ? storage.get(size - 1).getTime() : 0);
+        long loadedTime = (size > 0 ? storage.get(size - 1).getTime() : 0);
         serToBeFilled.fireSerChangeEvent(new SerChangeEvent(serToBeFilled, SerChangeEvent.Type.RefreshInLoading, contract.getSymbol(), 0, getLoadedTime()));
 
         /**
@@ -100,6 +102,8 @@ public abstract class QuoteServer extends AbstractDataServer<QuoteContract, Quot
             returnBorrowedTimeValues(storage);
             storage.clear();
         }
+        
+        return loadedTime;
     }
 
     @Override

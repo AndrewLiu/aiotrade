@@ -192,8 +192,9 @@ public abstract class TickerServer extends AbstractDataServer<TickerContract, Ti
         }
     }
 
-    protected void loadFromPersistence() {
+    protected long loadFromPersistence() {
         /** do nothing (tickers can be load from persistence? ) */
+        return getLoadedTime();
     }
 
     public void update(TickerSnapshot tickerSnapshot) {
