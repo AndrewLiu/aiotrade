@@ -124,7 +124,7 @@ object StatisticFunction {
         val n = values.size
         var ema = 0f
         for (i <- begIdx to n if i < n) {
-            ema += ((period1 - 1.0f) / (period1 + 1.0f)) * ema + (2.0f / (period1 + 1.0f)) * values(i)
+            ema += ((period1 - 1f) / (period1 + 1f)) * ema + (2f / (period1 + 1f)) * values(i)
         }
 
         ema
@@ -308,8 +308,7 @@ object StatisticFunction {
         val begIdx1 = if (begIdx < 0) 0 else begIdx
 
         val interval = (max - min) / ((nIntervals - 1) * 1f)
-        val mass = new Array[Array[Float]](2)
-        mass.map{x => new Array[Float](nIntervals)}
+        val mass = new Array[Array[Float]](2, nIntervals)
         for (i <- 0 until nIntervals) {
             mass(VALUE)(i) = min + i * interval
             mass(MASS)(i) = 0f
@@ -349,8 +348,7 @@ object StatisticFunction {
         val min = maxmin1(MIN)
         val nIntervals = (((max - min) / interval) + 1).asInstanceOf[Int]
         val period1 = period(begIdx, endIdx)
-        val mass = new Array[Array[Float]](2)
-        mass.map{x => new Array[Float](nIntervals)}
+        val mass = new Array[Array[Float]](2, nIntervals)
         for (i <- 0 until nIntervals) {
             mass(VALUE)(i) = min + i * interval
             mass(MASS)(i) = 0f

@@ -153,7 +153,7 @@ object IndicatorFunction {
             val dms = new ArrayBuffer[Float]
             val trs = new ArrayBuffer[Float]
             
-            val fromIdx = idx - (period - 1);
+            val fromIdx = idx - (period - 1)
             val toIdx   = idx;
             
             for (i <- fromIdx to toIdx) {
@@ -204,7 +204,7 @@ object IndicatorFunction {
                 
             }
             
-            StatisticFunction.ma(dxes, 0, periodADX - 1);
+            StatisticFunction.ma(dxes, 0, periodADX - 1)
             
         }
     }
