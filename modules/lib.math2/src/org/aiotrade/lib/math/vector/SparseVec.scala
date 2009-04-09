@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.math.vector;
 
-import java.util.Random;
-import java.util.StringTokenizer;
+import java.util.Random
+import java.util.StringTokenizer
 import scala.collection.mutable.ArrayBuffer
 
 /**

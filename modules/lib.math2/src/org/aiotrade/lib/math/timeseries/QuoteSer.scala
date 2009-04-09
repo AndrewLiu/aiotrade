@@ -28,10 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries;
+package org.aiotrade.lib.math.timeseries
 
-import java.util.List;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
  *
@@ -47,8 +46,8 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     val close  = new DefaultVar[Float]("C", Plot.Quote)
     val volume = new DefaultVar[Float]("V", Plot.Volume)
     
-    val close_ori = new DefaultVar[Float]()
-    val close_adj = new DefaultVar[Float]()
+    val close_ori = new DefaultVar[Float]
+    val close_adj = new DefaultVar[Float]
     
     
     override
@@ -81,7 +80,7 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
         
         adjusted = b
         
-        val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, null, 0, lastOccurredTime);
+        val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, null, 0, lastOccurredTime)
         fireSerChangeEvent(evt)
     }
     

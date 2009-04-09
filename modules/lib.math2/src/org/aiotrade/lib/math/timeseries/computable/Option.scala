@@ -54,7 +54,7 @@ class Option(namex:String, valuex:Number, stepx:Number, minValuex:Number, maxVal
     }
     
     def this(name:String, value:Number, step:Number) = {
-        this(name, value, step, null, null);
+        this(name, value, step, null, null)
     }
     
     def value :Float = _value

@@ -179,13 +179,12 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     
     def postComputeFrom :Unit = {
         /** construct resultSer's change event, forward baseSerChangeEventCallBack */
-        resultSer.fireSerChangeEvent(
-            new SerChangeEvent(resultSer,
-                               SerChangeEvent.Type.FinishedComputing,
-                               null,
-                               begTime,
-                               resultSer.computedTime,
-                               baseSerChangeEventCallBack))
+        resultSer.fireSerChangeEvent(new SerChangeEvent(resultSer,
+                                                        SerChangeEvent.Type.FinishedComputing,
+                                                        null,
+                                                        begTime,
+                                                        resultSer.computedTime,
+                                                        baseSerChangeEventCallBack))
     }
     
     def addOpt(opt:Opt) :Unit = {
@@ -206,10 +205,10 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                      */
                     if (evt.getSource.equals(_opts(0))) {
                         /** call back */
-                        resultSer.computeFrom(0);
+                        resultSer.computeFrom(0)
                     }
                 }
-            });
+            })
     }
 
     def opts :ArrayBuffer[Opt] = _opts

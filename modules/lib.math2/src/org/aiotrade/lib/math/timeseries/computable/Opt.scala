@@ -28,11 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable;
+package org.aiotrade.lib.math.timeseries.computable
 
-import javax.swing.event.EventListenerList;
-import org.aiotrade.lib.util.serialization.BeansDocument;
-import org.w3c.dom.Element;
+import javax.swing.event.EventListenerList
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.w3c.dom.Element
 
 /**
  * Class for defining indicator's option

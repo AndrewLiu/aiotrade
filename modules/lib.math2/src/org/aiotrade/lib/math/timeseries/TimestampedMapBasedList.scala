@@ -28,14 +28,14 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries;
+package org.aiotrade.lib.math.timeseries
 
-import java.util.AbstractList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.RandomAccess;
+import java.util.AbstractList
+import java.util.Collection
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import java.util.RandomAccess
 
 /**
  * A package class that implements timestamped Map based List, used to store

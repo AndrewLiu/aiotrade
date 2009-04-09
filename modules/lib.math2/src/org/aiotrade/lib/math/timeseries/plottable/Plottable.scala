@@ -28,9 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.plottable;
+package org.aiotrade.lib.math.timeseries.plottable
 
-import java.awt.Color;
+import java.awt.Color
 
 /**
  *
@@ -41,7 +41,7 @@ trait Plottable {
     def plot :Plot
     def plot_=(plot:Plot) :unit
     
-    def getColor(idx:Int):Color;
+    def getColor(idx:Int):Color
     def setColor(idx:Int, color:Color) :Unit
     
     def layer :Int

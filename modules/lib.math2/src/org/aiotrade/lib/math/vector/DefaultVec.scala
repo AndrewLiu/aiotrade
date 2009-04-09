@@ -28,10 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.vector;
+package org.aiotrade.lib.math.vector
 
-import java.util.Random;
-import java.util.StringTokenizer;
+import java.util.Random
+import java.util.StringTokenizer
 
 /**
  * Default implement of Vec.

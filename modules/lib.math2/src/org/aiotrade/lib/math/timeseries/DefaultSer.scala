@@ -28,10 +28,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries;
+package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import java.awt.Color;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -39,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import org.aiotrade.lib.math.timeseries.computable.SpotComputable
+import org.aiotrade.lib.math.timeseries.plottable.Plot
 import scala.collection.Set
 import scala.collection.mutable.{ArrayBuffer,LinkedHashMap}
 
@@ -256,7 +256,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         item
     }
 
-    def size :Int = timestamps.size()
+    def size :Int = timestamps.size
 
     def indexOfOccurredTime(time:Long) :Int = timestamps.indexOfOccurredTime(time)
 
@@ -264,16 +264,16 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     override
     def toString :String = {
-        val sb = new StringBuilder(20);
-        sb.append(this.getClass().getSimpleName()).append("(").append(freq)
+        val sb = new StringBuilder(20)
+        sb.append(this.getClass.getSimpleName).append("(").append(freq)
         if (timestamps.size() > 0) {
             val start = timestamps.get(0)
             val end = timestamps.get(size - 1)
-            val cal = Calendar.getInstance()
+            val cal = Calendar.getInstance
             cal.setTimeInMillis(start)
-            sb.append(", from ").append(cal.getTime())
+            sb.append(", from ").append(cal.getTime)
             cal.setTimeInMillis(end)
-            sb.append(" to ").append(cal.getTime()).append(")")
+            sb.append(" to ").append(cal.getTime).append(")")
         }
         sb.toString
     }
@@ -449,38 +449,38 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     }
 
     /*-
-    /**
-     * @deprecated
-     * This method inject declared Var(s) of current instance into vars, sub-
-     * class should also call it in the constructor (except no-arg constructor)
-     * after all Var(s) have got the proper value(s) to return a useful
-     * instance.
-     *
-     * We define it as a final to keep this contract.
+     /**
+      * @deprecated
+      * This method inject declared Var(s) of current instance into vars, sub-
+      * class should also call it in the constructor (except no-arg constructor)
+      * after all Var(s) have got the proper value(s) to return a useful
+      * instance.
+      *
+      * We define it as a final to keep this contract.
+      */
+     @ReferenceOnly
+     @Deprecated
+     protected def injectVarsIntoSer :Unit = {
+     val fields = this.getClass.getDeclaredFields
+
+     AccessibleObject.setAccessible(fields, true)
+
+     for (field <- fields) {
+     var value:Object = null
+
+     try {
+     value = field.get(this)
+     } catch  {
+     case ex:IllegalArgumentException => ex.printStackTrace
+     case ex:IllegalAccessException => ex.printStackTrace
+     }
+
+     if (value != null && value.isInstanceOf[Var[_]]) {
+     addVar(value.asInstanceOf[Var[_]])
+     }
+     }
+     }
      */
-    @ReferenceOnly
-    @Deprecated
-    protected def injectVarsIntoSer :Unit = {
-        val fields = this.getClass.getDeclaredFields
-
-        AccessibleObject.setAccessible(fields, true)
-
-        for (field <- fields) {
-            var value:Object = null
-
-            try {
-                value = field.get(this)
-            } catch  {
-                case ex:IllegalArgumentException => ex.printStackTrace
-                case ex:IllegalAccessException => ex.printStackTrace
-            }
-
-            if (value != null && value.isInstanceOf[Var[_]]) {
-                addVar(value.asInstanceOf[Var[_]])
-            }
-        }
-    }
-    */
     /*-
      abstract public class BaseHibernateEntityDao<T> extends HibernateDaoSupport {
      private Class<T> entityClass;

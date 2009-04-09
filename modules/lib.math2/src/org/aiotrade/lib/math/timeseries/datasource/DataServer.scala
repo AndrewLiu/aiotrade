@@ -32,8 +32,8 @@ package org.aiotrade.lib.math.timeseries.datasource;
 
 import java.awt.Image;
 import java.util.Collection;
-import java.util.TimeZone;
-import org.aiotrade.lib.math.timeseries.Ser;
+import java.util.TimeZone
+import org.aiotrade.lib.math.timeseries.Ser
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.

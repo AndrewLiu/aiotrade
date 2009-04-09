@@ -215,8 +215,8 @@ object StatisticFunction {
         val lastIdx = Math.min(endIdx, values.length - 1)
         for (i <- begIdx to lastIdx) {
             val value = values(i)
-            max = if (max >= value) max else value
-            min = if (min <= value) min else value
+            max = Math.max(max, value)
+            min = Math.min(min, value)
         }
 
         Array(max, min)

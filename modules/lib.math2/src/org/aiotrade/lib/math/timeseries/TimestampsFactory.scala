@@ -92,9 +92,9 @@ object TimestampsFactory {
          * This is an efficent method
          */
         def timeOfRow(row:Int, freq:Frequency) :Long = {
-            val lastOccurredIdx = size() - 1;
+            val lastOccurredIdx = size() - 1
             if (lastOccurredIdx < 0) {
-                return 0;
+                return 0
             }
             
             val firstOccurredTime = get(0);
@@ -118,12 +118,12 @@ object TimestampsFactory {
         def indexOfOccurredTime(time:Long) :Int = {
             val size1 = size()
             if (size1 == 0) {
-                return -1;
+                return -1
             } else if (size1 == 1) {
                 if (get(0) == time) {
-                    return 0;
+                    return 0
                 } else {
-                    return -1;
+                    return -1
                 }
             }
             
@@ -230,11 +230,11 @@ object TimestampsFactory {
              * if can't get exact index, just return -1.
              */
             if (get(from) >= time) {
-                return from;
+                from
             } else if (get(from + 1) >= time) {
-                return from + 1
+                from + 1
             } else {
-                return -1
+                -1
             }
         }
         
@@ -300,9 +300,6 @@ object TimestampsFactory {
             return new ItrOnOccurred(freq, fromTime, toTime);
         }
 
-        /**@TODO transient */
-        //protected var modCount = 0;
-        
         class ItrOnOccurred(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
             val timeZone = TimeZone.getDefault
 
@@ -346,7 +343,7 @@ object TimestampsFactory {
                     val next = if (cursorRow >= size()) freq.nextTime(cursorTime) else get(cursorRow)
                     cursorTime = next
                     lastReturnTime = cursorTime
-                    return next;
+                    return next
                 } catch {
                     case e:IndexOutOfBoundsException =>
                         checkForComodification
@@ -360,7 +357,7 @@ object TimestampsFactory {
             }
             
             def hasPrevious :Boolean = {
-                cursorTime >= fromTime;
+                cursorTime >= fromTime
             }
             
             def previous :Long = {
@@ -529,7 +526,7 @@ object TimestampsFactory {
             new ItrOnCalendar(freq, fromTime, toTime)
         }
 
-        /** @todo transient */
+        @transient
         protected var modCount = 0
         
         class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
@@ -620,7 +617,7 @@ object TimestampsFactory {
             }
             
             def previousRow :Int = {
-                cursorRow - 1;
+                cursorRow - 1
             }
         }
         

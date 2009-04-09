@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries;
+package org.aiotrade.lib.math.timeseries
 
 /**
  *
@@ -38,7 +38,7 @@ package org.aiotrade.lib.math.timeseries;
  */
 trait TimestampsIterator {
     
-    def hasNext :Boolean;
+    def hasNext :Boolean
     
     def next :Long
     

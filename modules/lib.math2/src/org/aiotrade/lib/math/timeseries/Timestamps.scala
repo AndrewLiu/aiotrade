@@ -51,7 +51,7 @@ import java.util.List
  * @since   1.0.4
  */
 trait Timestamps extends List[Long] {
-    val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis()
+    val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
     
     def isOnCalendar :Boolean
     

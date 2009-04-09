@@ -28,9 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable;
+package org.aiotrade.lib.math.timeseries.computable
 
-import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeEvent
 
 /**
  *

@@ -284,7 +284,7 @@ object Unit extends Enumeration {
                 case _      => DateFormat.getDateInstance(DateFormat.SHORT)
             }
 
-            val buffer = new StringBuffer()
+            val buffer = new StringBuffer
             df.setTimeZone(timeZone)
             df.format(date, buffer, new FieldPosition(DateFormat.MONTH_FIELD))
             buffer.toString()
