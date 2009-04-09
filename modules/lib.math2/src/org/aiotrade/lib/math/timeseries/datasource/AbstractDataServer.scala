@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.datasource;
+package org.aiotrade.lib.math.timeseries.datasource
 
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -158,11 +158,11 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
         /** don't get storage via getStorage(contract), which will create a new one if none */
         for (storage <- contractToStorage.get(contract)) {
             returnBorrowedTimeValues(storage)
-            synchronized { // synchronized (storage)
+            storage.synchronized {
                 storage.clear
             }
         }
-        synchronized { // synchronized (contractToStorage)
+        contractToStorage.synchronized {
             contractToStorage.removeKey(contract)
         }
     }
@@ -223,13 +223,13 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
     }
 
     def subscribe(contract:K, ser:Ser, chainSers:Seq[Ser]) :Unit = {
-        synchronized { // synchronized (subscribedContractToSer)
+        subscribedContractToSer.synchronized { 
             subscribedContractToSer.put(contract, ser)
         }
-        synchronized { // synchronized (subscribedSymbolToContract)
-            subscribedSymbolToContract.put(contract.symbol, contract);
+        subscribedSymbolToContract.synchronized {
+            subscribedSymbolToContract.put(contract.symbol, contract)
         }
-        synchronized { // synchronized (serToChainSers)
+        serToChainSers.synchronized {
             val chainSersX = serToChainSers.get(ser) match {
                 case None =>
                     val chainSers1 = new ArrayBuffer[Ser]
@@ -243,13 +243,13 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
 
     def unSubscribe(contract:K) :Unit = {
         cancelRequest(contract)
-        synchronized { // synchronized (serToChainSers)
+        serToChainSers.synchronized {
             serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
         }
-        synchronized { // synchronized (subscribedContractToSer)
+        subscribedContractToSer.synchronized {
             subscribedContractToSer.removeKey(contract)
         }
-        synchronized { // synchronized (subscribedSymbolToContract)
+        subscribedSymbolToContract.synchronized {
             subscribedSymbolToContract.removeKey(contract.symbol)
         }
         releaseStorage(contract)

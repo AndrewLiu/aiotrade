@@ -63,8 +63,7 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
             val item = itemList1.get(i).asInstanceOf[QuoteItem]
             
             var prevNorm = item.close
-            var postNorm =
-            if (b == true) {
+            var postNorm = if (b) {
                 /** do adjust */
                 item.close_adj
             } else {

@@ -49,12 +49,12 @@ trait Var[E] extends Plottable {
     def getByTime(time:Long) :E
     def setByTime(time:Long, value:E) :E
     
-    def apply(idx:Int):E
+    def apply(idx:Int) :E
     def update(idx:Int, value:E) :Unit
     
     def clear(fromIdx:Int) :Unit
     
-    def size:Int
+    def size :Int
     
     def toDoubleArray :Array[Double]
     
