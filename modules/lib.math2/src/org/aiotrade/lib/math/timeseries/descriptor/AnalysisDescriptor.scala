@@ -51,7 +51,7 @@ abstract class AnalysisDescriptor[S](var serviceClassName:String, var freq:Frequ
     
     var containerContents :AnalysisContents = _
     
-    private var serviceInstance :S = _
+    private var _serviceInstance :Option[S] = None
     
     def this() {
         this(null, Frequency.DAILY, false)
@@ -62,23 +62,23 @@ abstract class AnalysisDescriptor[S](var serviceClassName:String, var freq:Frequ
         this.freq = freq.clone
     }
             
-    def createdServerInstance : S =  {
-        assert(serviceInstance != null, "This method should only be called after serviceInstance created!")
-        serviceInstance
+    def createdServerInstance(args:Object*) :Option[S] =  {
+        assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
+        serviceInstance()
     }
     
-    def serviceInstance(args:Object*) :S = {
-        if (serviceInstance == null) {
-            serviceInstance = createServiceInstance(args)
+    def serviceInstance(args:Object*) :Option[S] = {
+        if (_serviceInstance == None) {
+            _serviceInstance = createServiceInstance(args)
         }
-        serviceInstance
+        _serviceInstance
     }
     
     protected def isServiceInstanceCreated :Boolean = {
-        serviceInstance != null
+        _serviceInstance != None
     }
     
-    protected def createServiceInstance(args:Object* ) :S
+    protected def createServiceInstance(args:Object* ) :Option[S]
     
     def getDisplayName:String
     

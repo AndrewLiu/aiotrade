@@ -50,19 +50,21 @@ import org.w3c.dom.Element;
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[T <: DataServer[Any]] extends AnalysisDescriptor[T] {
+abstract class DataContract[T <: DataServer[_]] extends AnalysisDescriptor[T] {
 
     var symbol :String // symbol in source
     var category :String
     var shortName :String
     var longName :String
     var dateFormatString :String
-    var beginDate :Date = new GregorianCalendar(1990, Calendar.JANUARY, 1).getTime
-    var endDate :Date = new GregorianCalendar().getTime
+    val cal = Calendar.getInstance
+    cal.set(1990, Calendar.JANUARY, 1)
+    var beginDate :Date = cal.getTime
+    var endDate :Date = cal.getTime
     var urlString :String = ""
     var refreshable :Boolean = false
     var refreshInterval :Int = 5 // seconds
-    var inputStream :InputStream
+    var inputStream :Option[InputStream]
 
     def displayName :String
 

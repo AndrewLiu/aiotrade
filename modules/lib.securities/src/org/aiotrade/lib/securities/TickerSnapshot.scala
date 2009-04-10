@@ -28,51 +28,74 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities
 
-import javax.swing.event.EventListenerList
+import org.aiotrade.lib.util.ObservableHelper
 
 /**
+ * We use composite pattern here, wrap a ticker instead of inheriting it. So we
+ * can inherit ObservableHelper, and apply org.aiotrade.util.observer to it's observers.
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
-    
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
+class TickerSnapshot extends ObservableHelper {
 
-    def this() = {
-        this(Frequency.DAILY)
+    val ticker = new Ticker
+    var symbol :String
+    var fullName :String
+
+    def time :Long = {
+        ticker.time
     }
-    
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
+
+    def time_=(time:Long) :Unit = {
+        ticker.time = time
     }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
+
+    def apply(field:Int) :Float = {
+        ticker(field)
     }
-    
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
-    }
-    
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
+
+    def update(field:Int, value:Float) :Unit = {
+        if (ticker(field) != value) {
+            setChanged
         }
+        ticker(field) = value
     }
-    
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
+
+    def setAskPrice(idx:Int, value:Float) :Unit = {
+        if (ticker.askPrice(idx) != value) {
+            setChanged
+        }
+        ticker.setAskPrice(idx, value);
+    }
+
+    def setAskSize(idx:Int, value:Float) :Unit = {
+        if (ticker.askSize(idx) != value) {
+            setChanged
+        }
+        ticker.setAskSize(idx, value)
+    }
+
+    def setBidPrice(idx:Int, value:Float) :Unit = {
+        if (ticker.bidPrice(idx) != value) {
+            setChanged
+        }
+        ticker.setBidPrice(idx, value);
+    }
+
+    def setBidSize(idx:Int, value:Float) :Unit = {
+        if (ticker.bidSize(idx) != value) {
+            setChanged
+        }
+        ticker.setBidSize(idx, value)
+    }
+
+    def copy(another:Ticker) :Unit = {
+        if (ticker.isValueChanged(another)) {
+            ticker.copy(another)
+            setChanged
+        }
     }
 }
 

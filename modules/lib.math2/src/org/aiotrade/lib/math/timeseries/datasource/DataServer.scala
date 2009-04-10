@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.Ser
  *
  * @author Caoyuan Deng
  */
-trait DataServer[K <: DataContract[Any]] extends Comparable[DataServer[K]] {
+trait DataServer[C <: DataContract[_]] extends Comparable[DataServer[_]] {
     
     def displayName:String
     
@@ -54,7 +54,7 @@ trait DataServer[K <: DataContract[Any]] extends Comparable[DataServer[K]] {
      * @param contract DataContract which contains all the type, market info for this source
      * @param ser the Ser that will be filled by this server
      */
-    def subscribe(contract:K, ser:Ser) :Unit
+    def subscribe(contract:C, ser:Ser) :Unit
     
     /**
      * first ser is the master one,
@@ -67,11 +67,11 @@ trait DataServer[K <: DataContract[Any]] extends Comparable[DataServer[K]] {
      * @param ser the Ser that will be filled by this server
      * @param chairSers
      */
-    def subscribe(contract:K, ser:Ser, chainSers:Seq[Ser])
+    def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser])
     
-    def unSubscribe(contract:K)
+    def unSubscribe(contract:C)
     
-    def isContractSubsrcribed(contract:K) :Boolean
+    def isContractSubsrcribed(contract:C) :Boolean
     
     def startLoadServer :Unit
     
@@ -82,7 +82,7 @@ trait DataServer[K <: DataContract[Any]] extends Comparable[DataServer[K]] {
     def inLoading: Boolean
     def inUpdating :boolean
     
-    def createNewInstance :DataServer[_]
+    def createNewInstance :Option[DataServer[_]]
     
     /**
      * @return a long type source id, the format will be only 1 none-zero bit, 
@@ -95,7 +95,7 @@ trait DataServer[K <: DataContract[Any]] extends Comparable[DataServer[K]] {
      */
     def sourceSerialNumber :Byte
     
-    def icon :Image
+    def icon :Option[Image]
 
     def sourceTimeZone :TimeZone
 }

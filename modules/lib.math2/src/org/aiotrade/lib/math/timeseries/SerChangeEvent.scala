@@ -46,6 +46,7 @@ object SerChangeEvent {
         case object Updated  extends Type
         case object FinishedComputing  extends Type
         case object Clear extends Type
+        case object None extends Type
     }
 }
 

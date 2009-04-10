@@ -59,7 +59,7 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  */
 object AbstractDataServer {
     val ANCIENT_TIME: Long = -1
-    var DEFAULT_ICON:Image = _
+    var DEFAULT_ICON :Option[Image] = None
     private var _executorService:ExecutorService = _
     
     protected def executorService :ExecutorService = {
@@ -71,14 +71,14 @@ object AbstractDataServer {
     }
 }
 
-abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extends DataServer[K] {
+abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends DataServer[C] {
     import AbstractDataServer._
 
     // --- Following maps should be created once here, since server may be singleton:
-    private val contractToStorage = new HashMap[K, ArrayBuffer[V]]
-    private val subscribedContractToSer = new HashMap[K, Ser]
+    private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
+    private val subscribedContractToSer = new HashMap[C, Ser]
     /** a quick seaching map */
-    private val subscribedSymbolToContract = new HashMap[String, K]
+    private val subscribedSymbolToContract = new HashMap[String, C]
     /**
      * first ser is the master one,
      * second one (if available) is that who concerns first one.
@@ -135,7 +135,7 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
          */
     }
 
-    protected def storageOf(contract:K) :ArrayBuffer[V] = {
+    protected def storageOf(contract:C) :ArrayBuffer[V] = {
         contractToStorage.get(contract) match {
             case None => 
                 val storage1 = new ArrayBuffer[V]
@@ -150,11 +150,11 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
      * temporary method? As in some data feed, the symbol is not unique,
      * it may be same in different markets with different secType.
      */
-    protected def lookupContract(symbol:String) :Option[K] = {
+    protected def lookupContract(symbol:String) :Option[C] = {
         subscribedSymbolToContract.get(symbol)
     }
 
-    private def releaseStorage(contract:K) :Unit = {
+    private def releaseStorage(contract:C) :Unit = {
         /** don't get storage via getStorage(contract), which will create a new one if none */
         for (storage <- contractToStorage.get(contract)) {
             returnBorrowedTimeValues(storage)
@@ -187,7 +187,7 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
     }
 
 
-    protected def currentContract :Option[K] = {
+    protected def currentContract :Option[C] = {
         /**
          * simplely return the contract currently in the front
          * @Todo, do we need to implement a scheduler in case of multiple contract?
@@ -201,13 +201,13 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
         None
     }
 
-    def subscribedContracts :Set[K]= subscribedContractToSer.keySet
+    def subscribedContracts :Set[C]= subscribedContractToSer.keySet
 
-    protected def serOf(contract:K): Option[Ser] = {
+    protected def serOf(contract:C): Option[Ser] = {
         subscribedContractToSer.get(contract)
     }
 
-    protected def chainSers(ser:Ser) :Seq[Ser] = {
+    protected def chainSersOf(ser:Ser) :Seq[Ser] = {
         serToChainSers.get(ser) match {
             case None => Nil
             case Some(x) => x
@@ -218,11 +218,11 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
      * @param symbol symbol in source
      * @param set the Ser that will be filled by this server
      */
-    def subscribe(contract:K, ser:Ser) :Unit = {
+    def subscribe(contract:C, ser:Ser) :Unit = {
         subscribe(contract, ser, Nil)
     }
 
-    def subscribe(contract:K, ser:Ser, chainSers:Seq[Ser]) :Unit = {
+    def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser]) :Unit = {
         subscribedContractToSer.synchronized { 
             subscribedContractToSer.put(contract, ser)
         }
@@ -241,7 +241,7 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
         }
     }
 
-    def unSubscribe(contract:K) :Unit = {
+    def unSubscribe(contract:C) :Unit = {
         cancelRequest(contract)
         serToChainSers.synchronized {
             serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
@@ -255,10 +255,10 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
         releaseStorage(contract)
     }
 
-    protected def cancelRequest(contract:K) :Unit = {
+    protected def cancelRequest(contract:C) :Unit = {
     }
 
-    def isContractSubsrcribed(contract:K) :Boolean = {
+    def isContractSubsrcribed(contract:C) :Boolean = {
         for (contract1 <- subscribedContractToSer.keySet) {
             if (contract1.symbol.equals(contract.symbol)) {
                 return true
@@ -368,30 +368,29 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
     }
 
     override
-    def createNewInstance:DataServer[_] = {
+    def createNewInstance:Option[DataServer[_]] = {
         try {
             val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[_, _]]
             instance.init
 
-            return instance;
+            return Some(instance)
         } catch {
             case ex:InstantiationException => ex.printStackTrace
             case ex:IllegalAccessException => ex.printStackTrace
         }
 
-        null
+        None
     }
 
     /**
      * Override it to return your icon
      * @return a predifined image as the default icon
      */
-    def icon :Image = {
-        if (DEFAULT_ICON == null) {
+    def icon :Option[Image] = {
+        if (DEFAULT_ICON == None) {
             val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
-            DEFAULT_ICON = if (url != null) Toolkit.getDefaultToolkit().createImage(url) else null
+            DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit().createImage(url)) else None
         }
-
         DEFAULT_ICON
     }
 
@@ -413,6 +412,7 @@ abstract class AbstractDataServer[K <: DataContract[Any], V <: TimeValue] extend
         if (sn == 0) 0 else 1 << (sn - 1)
     }
 
+    override
     def compareTo(another:DataServer[_]) :Int = {
         if (this.displayName.equalsIgnoreCase(another.displayName)) {
             if (this.hashCode < another.hashCode) -1

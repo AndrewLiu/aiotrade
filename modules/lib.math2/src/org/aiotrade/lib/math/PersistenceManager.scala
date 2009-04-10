@@ -31,8 +31,8 @@
 package org.aiotrade.lib.math;
 
 import java.util.Collection;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.util.ServiceLoader;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.util.ServiceLoader
 
 /**
  *
@@ -44,7 +44,10 @@ object PersistenceManager {
     private var i:I = null
 
     def getDefault :I = {
-        if (i == null) {i = ServiceLoader.load(classOf[I]).iterator.next; i} else i
+        if (i == null) {
+            i = ServiceLoader.load(classOf[I]).iterator.next
+        }
+        i
     }
     
     /** Interface of PersistenceManager */
@@ -54,9 +57,9 @@ object PersistenceManager {
         
         def saveContents(contents:AnalysisContents) :Unit
         def restoreContents(symbol:String) :AnalysisContents
-        def getDefaultContents :AnalysisContents
+        def defaultContents :AnalysisContents
         
-        def lookupAllRegisteredServices[T <: Comparable[T]](tpe:Class[T], folderName:String) :Collection[T]
+        def lookupAllRegisteredServices[T <: Comparable[T]](tpe:Class[T], folderName:String) :Seq[T]
     }
     
 }

@@ -28,51 +28,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities;
 
-import javax.swing.event.EventListenerList
+import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.util.ServiceLoader
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
-    
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
+object PersistenceManager {
+    protected var i:I = null
 
-    def this() = {
-        this(Frequency.DAILY)
-    }
-    
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
-    }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
-    }
-    
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
-    }
-    
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
+    def getDefault :I = {
+        if (i == null) {
+            i = ServiceLoader.load(classOf[I]).iterator.next
         }
+        i
+    }
+
+    trait I extends org.aiotrade.lib.math.PersistenceManager.I {
+        
+        def saveQuotes(symbol:String, freq:Frequency, quotes:ArrayBuffer[Quote], sourceId:Long) :Unit
+        def restoreQuotes(symbol:String, freq:Frequency) :ArrayBuffer[Quote]
+        def deleteQuotes(symbol:String, freq:Frequency, fromTime:Long, toTime:Long) :Unit
+        def dropAllQuoteTables(symbol:String) :Unit
+        
+        def shutdown :Unit
     }
     
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
-    }
 }
-

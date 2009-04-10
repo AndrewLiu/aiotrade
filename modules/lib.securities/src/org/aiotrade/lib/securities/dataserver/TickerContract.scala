@@ -28,51 +28,72 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities.dataserver
 
-import javax.swing.event.EventListenerList
+import java.util.Calendar
+import org.aiotrade.lib.math.timeseries.Frequency
 
 /**
  *
+ * most fields' default value should be OK.
+ *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
-    
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
+object TickerContract {
+    val folderName = "TickerServers"
+}
 
-    def this() = {
-        this(Frequency.DAILY)
+class TickerContract extends SecDataContract[TickerServer] {
+    import TickerContract._
+    
+    serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
+    dateFormatString = "MM/dd/yyyy h:mma"
+    freq = Frequency.ONE_MIN
+    val cal = Calendar.getInstance
+    endDate = cal.getTime
+    cal.set(1990, Calendar.JANUARY, 1)
+    beginDate = cal.getTime
+    urlString = ""
+    refreshable = true
+    refreshInterval = 5 // seconds
+
+    override
+    def displayName = {
+        "Ticker Data Contract[" + symbol + "]"
     }
     
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
-    }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
-    }
-    
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
-    }
-    
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
+    /**
+     * @param none args are needed
+     */
+    override
+    def createServiceInstance(args:Object*) :Option[TickerServer] = {
+        lookupServiceTemplate match {
+            case None => None
+            case Some(template) => template.createNewInstance match {
+                    case None => None
+                    case Some(x) => Some(x.asInstanceOf[TickerServer])
+                }
         }
     }
     
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
+    def lookupServiceTemplate :Option[TickerServer] = {
+        for (server <- PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[TickerServer], folderName)) {
+            if (server.getClass.getName.equalsIgnoreCase(serviceClassName)) {
+                Some(server)
+            }
+        }
+        
+        None
     }
+        
+    /**
+     * Ticker contract don't care about freq, so override super
+     */
+    override
+    def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
+        if (this.serviceClassName.equals(serviceClassName)) true
+        else false
+    }
+    
 }
 

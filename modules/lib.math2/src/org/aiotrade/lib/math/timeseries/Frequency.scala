@@ -79,11 +79,11 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
      */
     def round(time:long, timeZone:TimeZone) :Long = {
         val rawOffset = timeZone.getRawOffset
-        return ((time + rawOffset) / interval) * interval - rawOffset
+        ((time + rawOffset) / interval) * interval - rawOffset
     }
 
     def sameInterval(timeA:Long, timeB:Long, timeZone:TimeZone) :Boolean = {
-        return round(timeA, timeZone) == round(timeB, timeZone)
+        round(timeA, timeZone) == round(timeB, timeZone)
     }
 
     def getName :String = {

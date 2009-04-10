@@ -28,51 +28,32 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities;
 
-import javax.swing.event.EventListenerList
+import org.aiotrade.lib.math.timeseries.QuoteSer
+import org.aiotrade.lib.securities.dataserver.{TickerServer,TickerContract}
 
 /**
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
+trait TickerSerProvider {
     
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
-
-    def this() = {
-        this(Frequency.DAILY)
-    }
+    def uniSymbol :String
     
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
-    }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
-    }
+    def name :String
     
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
-    }
+    def tickerSer :QuoteSer
     
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
-        }
-    }
+    def tickerServer :TickerServer
     
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
-    }
+    def tickerContract :TickerContract
+    
+    def subscribeTickerServer :Unit
+    
+    def unSubscribeTickerServer :Unit
+    
+    def isTickerServerSubscribed :Boolean
+    
 }
 

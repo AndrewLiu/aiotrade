@@ -55,7 +55,7 @@ trait SerProvider[T <: Ser] {
     
     def isSerLoaded(freq:Frequency) :Boolean
     
-    def getSer(freq:Frequency) :T
+    def serOf(freq:Frequency) :T
     
     def clearSer(freq:Frequency) :Unit
     

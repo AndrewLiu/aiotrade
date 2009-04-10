@@ -75,9 +75,9 @@ trait Ser {
     
     def fireSerChangeEvent(evt:SerChangeEvent) :Unit
     
-    def isLoaded :Boolean
+    def loaded :Boolean
     
-    def setLoaded(b:Boolean)
+    def loaded_=(b:Boolean)
 }
 
 

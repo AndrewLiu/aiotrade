@@ -28,51 +28,38 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities
 
-import javax.swing.event.EventListenerList
+import org.aiotrade.lib.util.pool.{PoolableObjectFactory,StackObjectPool}
 
 /**
- *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
-    
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
 
-    def this() = {
-        this(Frequency.DAILY)
+class QuotePool extends StackObjectPool[Quote](500, 200) with PoolableObjectFactory[Quote] {
+
+    setFactory(this)
+
+    @throws(classOf[RuntimeException])
+    def activateObject(obj:Quote) :Unit = {
+        obj.reset
+    }
+
+    @throws(classOf[RuntimeException])
+    def destroyObject(obj:Quote) :Unit = {
+        //obj = null
     }
     
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
+    @throws(classOf[RuntimeException])
+    def makeObject :Quote = {
+        new Quote
     }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
-    }
-    
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
+
+    @throws(classOf[RuntimeException])
+    def passivateObject(obj:Quote) :Unit = {
     }
     
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
-        }
-    }
-    
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
-    }
+    def validateObject(obj:Quote) :Boolean = true
 }
+
 

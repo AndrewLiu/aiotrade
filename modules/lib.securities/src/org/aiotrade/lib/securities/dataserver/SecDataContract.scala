@@ -28,51 +28,55 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities.dataserver
 
-import javax.swing.event.EventListenerList
+import java.util.Calendar
+import org.aiotrade.lib.math.timeseries.datasource.{DataContract,DataServer}
+import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.util.serialization.JavaDocument
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.w3c.dom.Element
 
 /**
+ * most fields' default value should be OK.
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
+abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
+    var reqId :int
+    var secType = Sec.Type.Stock
+    var primaryExchange = "SUPERSOES"
+    var exchange = "SMART"
+    var currency = "USD"
     
-    private val serChangeListenerList = new EventListenerList
+    active = true
+    val cal = Calendar.getInstance
+    endDate = cal.getTime
+    cal.set(1970, Calendar.JANUARY, 1)
+    beginDate = cal.getTime
+    urlString = ""
+    refreshable = false
+    refreshInterval = 60 // seconds
+    inputStream = None
+    
+    def writeToBean(doc:BeansDocument) :Element = {
+        val bean = super.writeToBean(doc)
         
-    var loaded:Boolean = false
-
-    def this() = {
-        this(Frequency.DAILY)
-    }
-    
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
-    }
+        doc.valuePropertyOfBean(bean, "secType", secType)
+        doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
+        doc.valuePropertyOfBean(bean, "exchange", exchange)
+        doc.valuePropertyOfBean(bean, "currency", currency)
         
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
+        bean
     }
     
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
+    def writeToJava(id:String) :String = {
+        super.writeToJava(id) +
+        JavaDocument.set(id, "setSecType", classOf[Sec.Type].getName + "." + secType) +
+        JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
+        JavaDocument.set(id, "setExchange", "" + exchange) +
+        JavaDocument.set(id, "setCurrency", "" + currency)
     }
     
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
-        }
-    }
-    
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
-    }
 }
 

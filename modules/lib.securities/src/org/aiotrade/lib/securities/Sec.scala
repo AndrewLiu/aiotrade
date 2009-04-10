@@ -28,51 +28,33 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities
 
-import javax.swing.event.EventListenerList
+import org.aiotrade.lib.math.timeseries.QuoteSer
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
 /**
+ * sofic: Stock, Options, Futures, Index, Currency
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
-    
-    private val serChangeListenerList = new EventListenerList
-        
-    var loaded:Boolean = false
+object Sec {
+    abstract class Type
+    object Type {
+        case object Stock extends Type
+        case object Option extends Type
+        case object Future extends Type
+        case object Index extends Type
+        case object FutureOption extends Type
+        case object Currency extends Type
+        case object Bag extends Type
+    }
 
-    def this() = {
-        this(Frequency.DAILY)
-    }
-    
-    def init(freq:Frequency) :Unit = {
-        this.freq = freq.clone
-    }
-        
-    def addSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.add(classOf[SerChangeListener], listener)
-    }
-    
-    def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-        serChangeListenerList.remove(classOf[SerChangeListener], listener)
-    }
-    
-    def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
-        /** Each listener occupies two elements - the first is the listener class */
-        var i = 0
-        while (i < listeners.length) {
-            if (listeners(i) == classOf[SerChangeListener]) {
-                listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-            }
-            i += 2
-        }
-    }
-    
-    override
-    def toString :String = {
-        this.getClass.getSimpleName + "(" + freq + ")"
-    }
+}
+
+trait Sec extends SerProvider[QuoteSer] with TickerSerProvider {
+
+    def market_=(market:Market) :Unit
+    def market :Market
 }
 
