@@ -58,10 +58,9 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @author Caoyuan Deng
  */
 object AbstractDataServer {
-    val ANCIENT_TIME: Long = -1
     var DEFAULT_ICON :Option[Image] = None
+
     private var _executorService:ExecutorService = _
-    
     protected def executorService :ExecutorService = {
         if (_executorService == null) {
             _executorService = Executors.newFixedThreadPool(5)
@@ -74,29 +73,32 @@ object AbstractDataServer {
 abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends DataServer[C] {
     import AbstractDataServer._
 
+    val ANCIENT_TIME: Long = -1
     // --- Following maps should be created once here, since server may be singleton:
     private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
     private val subscribedContractToSer = new HashMap[C, Ser]
     /** a quick seaching map */
     private val subscribedSymbolToContract = new HashMap[String, C]
+    // --- Above maps should be created once here, since server may be singleton
+    
     /**
      * first ser is the master one,
      * second one (if available) is that who concerns first one.
      * Example: ticker ser also will compose today's quoteSer
      */
     private val serToChainSers = new HashMap[Ser, Seq[Ser]]
-    // --- Above maps should be created once here, since server may be singleton:
-    var inLoading :Boolean = _
-    var inUpdating :boolean = _
     private var loadServer :LoadServer = _
     private var updateServer :UpdateServer = _
     private var updateTimer :Timer = _
     private var _dateFormat :DateFormat = _
-    protected var count :Int = _
-    protected var inputStream :InputStream = _
+    protected var count :Int = 0
     protected var loadedTime :Long = _
     protected var fromTime :Long = _
-    protected val sourceCal = Calendar.getInstance(sourceTimeZone)
+    protected val sourceCalendar = Calendar.getInstance(sourceTimeZone)
+    protected var inputStream :Option[InputStream] = None
+
+    var inLoading :Boolean = _
+    var inUpdating :boolean = _
 
     protected def init :Unit = {
     }
@@ -112,7 +114,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
         }
 
         _dateFormat.setTimeZone(sourceTimeZone)
-        return _dateFormat;
+        return _dateFormat
     }
 
     protected def resetCount :Unit = {
