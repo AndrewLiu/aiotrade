@@ -49,13 +49,14 @@ class TickerContract extends SecDataContract[TickerServer] {
     serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
     dateFormatString = "MM/dd/yyyy h:mma"
     freq = Frequency.ONE_MIN
-    val cal = Calendar.getInstance
-    endDate = cal.getTime
-    cal.set(1990, Calendar.JANUARY, 1)
-    beginDate = cal.getTime
     urlString = ""
     refreshable = true
     refreshInterval = 5 // seconds
+
+    private val cal = Calendar.getInstance
+    endDate = cal.getTime
+    cal.set(1990, Calendar.JANUARY, 1)
+    beginDate = cal.getTime
 
     override
     def displayName = {

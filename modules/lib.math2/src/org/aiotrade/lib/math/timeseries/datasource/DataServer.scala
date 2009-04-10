@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.Ser
  *
  * @author Caoyuan Deng
  */
-trait DataServer[C <: DataContract[_]] extends Comparable[DataServer[_]] {
+trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
     
     def displayName:String
     

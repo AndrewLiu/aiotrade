@@ -28,9 +28,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math;
+package org.aiotrade.lib.math
 
-import java.util.Collection;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ServiceLoader
 
@@ -41,25 +40,26 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object PersistenceManager {
-    private var i:I = null
+    private var manager:PersistenceManager = null
 
-    def getDefault :I = {
-        if (i == null) {
-            i = ServiceLoader.load(classOf[I]).iterator.next
+    def getDefault :PersistenceManager = {
+        if (manager == null) {
+            manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
         }
-        i
-    }
-    
-    /** Interface of PersistenceManager */
-    trait I {
-        def restoreProperties :Unit
-        def saveProperties :Unit
-        
-        def saveContents(contents:AnalysisContents) :Unit
-        def restoreContents(symbol:String) :AnalysisContents
-        def defaultContents :AnalysisContents
-        
-        def lookupAllRegisteredServices[T <: Comparable[T]](tpe:Class[T], folderName:String) :Seq[T]
+        manager
     }
     
 }
+/** Interface of PersistenceManager */
+trait PersistenceManager {
+    def restoreProperties :Unit
+    def saveProperties :Unit
+
+    def saveContents(contents:AnalysisContents) :Unit
+    def restoreContents(symbol:String) :AnalysisContents
+    def defaultContents :AnalysisContents
+
+    //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
+    def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T]
+}
+

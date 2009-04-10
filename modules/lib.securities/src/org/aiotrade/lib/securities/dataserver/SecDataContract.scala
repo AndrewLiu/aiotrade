@@ -43,22 +43,24 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
-    var reqId :int
+    var reqId :int = _
     var secType = Sec.Type.Stock
     var primaryExchange = "SUPERSOES"
     var exchange = "SMART"
     var currency = "USD"
     
     active = true
-    val cal = Calendar.getInstance
-    endDate = cal.getTime
-    cal.set(1970, Calendar.JANUARY, 1)
-    beginDate = cal.getTime
     urlString = ""
     refreshable = false
     refreshInterval = 60 // seconds
     inputStream = None
     
+    private val cal = Calendar.getInstance
+    endDate = cal.getTime
+    cal.set(1970, Calendar.JANUARY, 1)
+    beginDate = cal.getTime
+
+    override
     def writeToBean(doc:BeansDocument) :Element = {
         val bean = super.writeToBean(doc)
         
@@ -70,6 +72,7 @@ abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
         bean
     }
     
+    override
     def writeToJava(id:String) :String = {
         super.writeToJava(id) +
         JavaDocument.set(id, "setSecType", classOf[Sec.Type].getName + "." + secType) +

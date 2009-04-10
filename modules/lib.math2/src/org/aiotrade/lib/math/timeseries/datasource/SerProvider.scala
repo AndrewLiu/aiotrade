@@ -55,7 +55,7 @@ trait SerProvider[T <: Ser] {
     
     def isSerLoaded(freq:Frequency) :Boolean
     
-    def serOf(freq:Frequency) :T
+    def serOf(freq:Frequency) :Option[T]
     
     def clearSer(freq:Frequency) :Unit
     
@@ -65,6 +65,5 @@ trait SerProvider[T <: Ser] {
     def description_=(description:String) :Unit
     
     def dataContract :DataContract[_]
-    def dataContract_=(dataContract:DataContract[_]) :Unit
 }
 

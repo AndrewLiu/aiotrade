@@ -61,7 +61,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     var market = Market.NYSE
     var description:String = ""
     var name :String = _uniSymbol.replace('.', '_')
-    var defaultFreq :Frequency
+    var defaultFreq :Frequency = _
     var tickerServer :TickerServer = _
 
     /** create freq ser */

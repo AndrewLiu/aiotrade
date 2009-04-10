@@ -60,7 +60,7 @@ object Ticker {
 class Ticker(val depth:Int) extends TimeValue {
     import Ticker._
     
-    var time :Long
+    var time :Long = _
     private val values = new Array[float](8)
     private val bidPrices = new Array[float](depth)
     private val bidSizes  = new Array[float](depth)

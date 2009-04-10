@@ -324,7 +324,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     protected def postStopUpdateServer :Unit = {
     }
 
-    protected def loadFromPersistence :Unit
+    protected def loadFromPersistence :Long
 
     /**
      * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
@@ -412,7 +412,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
         if (sn == 0) 0 else 1 << (sn - 1)
     }
 
-    override
     def compareTo(another:DataServer[_]) :Int = {
         if (this.displayName.equalsIgnoreCase(another.displayName)) {
             if (this.hashCode < another.hashCode) -1

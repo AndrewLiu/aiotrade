@@ -52,22 +52,21 @@ import org.w3c.dom.Element;
  */
 abstract class DataContract[T <: DataServer[_]] extends AnalysisDescriptor[T] {
 
-    var symbol :String // symbol in source
-    var category :String
-    var shortName :String
-    var longName :String
-    var dateFormatString :String
-    val cal = Calendar.getInstance
-    cal.set(1990, Calendar.JANUARY, 1)
-    var beginDate :Date = cal.getTime
-    var endDate :Date = cal.getTime
+    var symbol :String = _ // symbol in source
+    var category :String = _
+    var shortName :String = _
+    var longName :String = _
+    var dateFormatString :String = _
     var urlString :String = ""
     var refreshable :Boolean = false
     var refreshInterval :Int = 5 // seconds
-    var inputStream :Option[InputStream]
+    var inputStream :Option[InputStream] = None
 
-    def displayName :String
-
+    private val cal = Calendar.getInstance
+    cal.set(1990, Calendar.JANUARY, 1)
+    var beginDate :Date = cal.getTime
+    var endDate :Date = cal.getTime
+    
     override
     def toString :String = displayName
 

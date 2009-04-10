@@ -51,8 +51,8 @@ class Quote extends TimeValue {
     
     private val values = new Array[Float](8)
     
-    var time :Long
-    var sourceId :Long
+    var time :Long = _
+    var sourceId :Long = _
     
     var hasGaps :Boolean = false
         

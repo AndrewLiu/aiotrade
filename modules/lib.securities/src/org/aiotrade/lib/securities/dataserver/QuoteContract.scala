@@ -51,14 +51,15 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     /** default freq */
     freq = Frequency.DAILY
     dateFormatString = "dd-MMM-yy"
-    val calendar = Calendar.getInstance
-    endDate = calendar.getTime
-    calendar.set(1970, Calendar.JANUARY, 1)
-    beginDate = calendar.getTime
     urlString = ""
     refreshable = false
     refreshInterval = 60 // seconds
     inputStream = None
+
+    private val cal = Calendar.getInstance
+    endDate = cal.getTime
+    cal.set(1970, Calendar.JANUARY, 1)
+    beginDate = cal.getTime
 
     def icon :Option[Image] =  {
         val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate

@@ -41,8 +41,8 @@ import org.aiotrade.lib.util.ObservableHelper
 class TickerSnapshot extends ObservableHelper {
 
     val ticker = new Ticker
-    var symbol :String
-    var fullName :String
+    var symbol :String = _
+    var fullName :String = _
 
     def time :Long = {
         ticker.time

@@ -80,7 +80,7 @@ abstract class AnalysisDescriptor[S](var serviceClassName:String, var freq:Frequ
     
     protected def createServiceInstance(args:Object* ) :Option[S]
     
-    def getDisplayName:String
+    def displayName:String
     
     def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
         this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
