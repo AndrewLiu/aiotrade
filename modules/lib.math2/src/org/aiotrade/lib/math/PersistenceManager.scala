@@ -59,7 +59,6 @@ trait PersistenceManager {
     def restoreContents(symbol:String) :AnalysisContents
     def defaultContents :AnalysisContents
 
-    //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
-    def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T]
+    def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
 }
 

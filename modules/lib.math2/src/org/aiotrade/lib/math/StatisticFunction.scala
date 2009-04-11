@@ -108,7 +108,7 @@ object StatisticFunction {
                  * element, thus cause the prevSum to be a NaN, we should
                  * precess this case by:
                  */
-                return ma(values, lookbackIdx, idx);
+                ma(values, lookbackIdx, idx);
             } else {
                 prev + (values(idx) - values(lookbackIdx - 1)) / (period * 1f)
             }

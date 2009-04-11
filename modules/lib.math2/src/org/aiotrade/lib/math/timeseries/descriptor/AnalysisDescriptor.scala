@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries.descriptor;
 
 import javax.swing.Action;
-import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.util.serialization.BeansDocument;
 import org.aiotrade.lib.util.serialization.DeserializationConstructor;
 import org.aiotrade.lib.util.serialization.JavaDocument;
@@ -42,16 +42,17 @@ import org.w3c.dom.Element;
 /**
  * Descriptor is something like NetBeans' DataObject
  *
- * <S> Service class type
+ * [S] Service class type
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[S](var serviceClassName:String, var freq:Frequency, var active:Boolean) extends WithActions {
+abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Frequency, var active:Boolean) extends WithActions {
     private val withActionsHelper = new WithActionsHelper(this)
     
     var containerContents :AnalysisContents = _
-    
-    private var _serviceInstance :Option[S] = None
+
+    /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
+    private var _serviceInstance :Option[_] = None
     
     def this() {
         this(null, Frequency.DAILY, false)
@@ -71,7 +72,7 @@ abstract class AnalysisDescriptor[S](var serviceClassName:String, var freq:Frequ
         if (_serviceInstance == None) {
             _serviceInstance = createServiceInstance(args)
         }
-        _serviceInstance
+        _serviceInstance.asInstanceOf[Option[S]]
     }
     
     protected def isServiceInstanceCreated :Boolean = {

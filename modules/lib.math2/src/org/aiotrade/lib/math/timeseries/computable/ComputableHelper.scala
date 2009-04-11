@@ -28,14 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable;
+package org.aiotrade.lib.math.timeseries.computable
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.SerChangeEvent;
-import org.aiotrade.lib.math.timeseries.SerChangeListener;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DecimalFormat
+import org.aiotrade.lib.math.timeseries.{Ser,SerChangeEvent,SerChangeListener}
 import org.aiotrade.lib.util.CallBack
 import scala.collection.mutable.ArrayBuffer
 
@@ -301,7 +297,7 @@ object ComputableHelper {
         val size = opts.size
         for (i <- 0 until size) {
             if (i == 0) {
-                buffer.append(" (");
+                buffer.append(" (")
             }
             buffer.append(OPT_DECIMAL_FORMAT.format(opts(i).value))
             if (i < size - 1) {

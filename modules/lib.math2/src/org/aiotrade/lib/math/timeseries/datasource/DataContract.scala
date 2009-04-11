@@ -50,7 +50,7 @@ import org.w3c.dom.Element;
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[T <: DataServer[_]] extends AnalysisDescriptor[T] {
+abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
 
     var symbol :String = _ // symbol in source
     var category :String = _
