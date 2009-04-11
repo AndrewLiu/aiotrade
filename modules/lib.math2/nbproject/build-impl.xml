@@ -34,5 +34,5 @@
             </not>
         </condition>
     </fail>
-    <import file="${harness.dir}/build.xml"/>
+    <import file="harness/build.xml"/>
 </project>
