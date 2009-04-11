@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="scala-module" default="netbeans" basedir=".">
+    <import file="nbproject/build-impl.xml"/>
+
+    <target name="scala-taskdef" depends="init">
+        <property name="scala.library" value="${cluster}/modules/ext/scala-library.jar"/>
+        <property name="scala.compiler" value="${cluster}/modules/ext/scala-compiler.jar"/>
+        <property name="scala.libs" value="${scala.library}:${scala.compiler}"/>
+
+        <echo message="cluster: ${cluster}"/>
+        <echo message="Compiling scala sources via ${scala.library}, ${scala.compiler}"/>
+
+        <taskdef resource="scala/tools/ant/antlib.xml">
+            <classpath>
+                <pathelement location="${cluster}/modules/ext/scala-library.jar"/>
+                <pathelement location="${cluster}/modules/ext/scala-compiler.jar"/>
+            </classpath>
+        </taskdef>
+    </target>
+
+    <property name="jar-excludes" value="**/*.java,**/*.form,**/package.html,**/doc-files/,**/*.scala"/>
+
+    <target name="compile" depends="init,up-to-date,scala-taskdef" unless="is.jar.uptodate">
+        <!-- javac's classpath should include scala.library and all these paths of "cp" -->
+        <path id="javac.cp">
+            <pathelement path="${scala.libs}"/>
+            <pathelement path="${module.classpath}"/>
+            <pathelement path="${cp.extra}"/>
+        </path>
+        <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+        <path id="scalac.cp">
+            <pathelement path="${scala.libs}"/>
+            <pathelement path="${module.run.classpath}"/>
+            <pathelement path="${cp.extra}"/>
+        </path>
+        <mkdir dir="${build.classes.dir}"/>
+        <depend srcdir="${src.dir}" destdir="${build.classes.dir}" cache="build/depcache">
+            <classpath refid="scalac.cp"/>
+        </depend>
+        <!-- scalac -->
+        <scalac srcdir="${src.dir}" destdir="${build.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
+            <classpath refid="scalac.cp"/>
+        </scalac>
+        <!-- javac -->
+        <nb-javac srcdir="${src.dir}" destdir="${build.classes.dir}" debug="${build.compiler.debug}" debuglevel="${build.compiler.debuglevel}" encoding="UTF-8"
+                deprecation="${build.compiler.deprecation}" optimize="${build.compiler.optimize}" source="${javac.source}" target="${javac.target}" includeantruntime="false">
+            <classpath refid="javac.cp"/>
+            <compilerarg line="${javac.compilerargs}"/>
+            <processorpath refid="processor.cp"/>
+        </nb-javac>
+        <!-- Sanity check: -->
+        <pathconvert pathsep=":" property="class.files.in.src">
+            <path>
+                <fileset dir="${src.dir}">
+                    <include name="**/*.class"/>
+                </fileset>
+            </path>
+        </pathconvert>
+        <fail>
+            <condition>
+                <not>
+                    <equals arg1="${class.files.in.src}" arg2=""/>
+                </not>
+            </condition>
+            You have stray *.class files in ${src.dir} which you must remove.
+            Probably you failed to clean your sources before updating them.
+        </fail>
+        <!-- OK, continue: -->
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${src.dir}" excludes="${jar-excludes}"/>
+        </copy>
+    </target>
+
+    <target name="test-preinit" depends="init"/>
+    <target name="test-init" depends="init,test-preinit,test-lib-init">
+        <property name="test.timeout" value="600000"/> <!-- 10min per test -->
+        <property name="test.run.args" value="-ea"/>
+        <property name="test.filter.trace" value="true"/>
+        <macrodef name="test-init">
+            <attribute name="test.type"/>
+            <sequential>
+                <property name="test.@{test.type}.dir" location="test/@{test.type}"/>
+                <property name="test.@{test.type}.src.dir" location="${test.@{test.type}.dir}/src"/>
+                <property name="test.@{test.type}.data.dir" location="${test.@{test.type}.dir}/data"/>
+                <property name="build.test.@{test.type}.dir" location="build/test/@{test.type}"/>
+                <property name="build.test.@{test.type}.classes.dir" location="${build.test.@{test.type}.dir}/classes"/>
+                <property name="build.test.@{test.type}.results.dir" location="${build.test.@{test.type}.dir}/results"/>
+                <property name="build.test.@{test.type}.work.dir" location="${build.test.@{test.type}.dir}/work"/>
+                <property name="extra.test.libs.dir" location="${test.dist.dir}/extralibs"/>
+                <!-- if project.xml doesn't contain test dependencies -->
+                <property name="test.@{test.type}.folder" location="build/test/@{test.type}/dist"/>
+                <property name="test.@{test.type}.out.folder" location="${test.@{test.type}.folder}"/>
+                <property name="test.@{test.type}.cp.extra" value=""/>
+                <path id="test.@{test.type}.cp">
+                    <!-- Cannot use <path refid="cp"/> since that uses ${module.classpath} and we want ${module.run.classpath}: -->
+                    <pathelement path="${test.@{test.type}.compile.cp}"/>
+                    <pathelement path="${cp.extra}"/>
+                    <pathelement location="${cluster}/${module.jar}"/>
+                    <path refid="test.unit.lib.cp"/>
+                    <!-- for compatibility with property based classpath-->
+                    <pathelement path="${module.run.classpath}"/>
+                    <pathelement path="${test.@{test.type}.cp.extra}"/>
+                </path>
+                <path id="test.@{test.type}.run.cp">
+                    <!-- Cannot use <path refid="cp"/> since that uses ${module.classpath} and we want ${module.run.classpath}: -->
+                    <pathelement path="${test.@{test.type}.runtime.cp}"/>
+                    <pathelement path="${cp.extra}"/>
+                    <pathelement location="${cluster}/${module.jar}"/>
+                    <path refid="test.unit.lib.cp"/>
+                    <pathelement path="${build.test.@{test.type}.classes.dir}"/>
+                    <!-- for compatibility with property based classpath-->
+                    <pathelement path="${module.run.classpath}"/>
+                    <pathelement path="${test.@{test.type}.run.cp.extra}"/>
+                    <pathelement path="${test.@{test.type}.cp.extra}"/>
+                </path>
+                <path id="test.@{test.type}.processor.cp">
+                    <path refid="processor.cp"/>
+                    <pathelement location="${cluster}/${module.jar}"/>
+                    <pathelement path="${test.@{test.type}.runtime.cp}"/>
+                    <pathelement path="${test.@{test.type}.cp.extra}"/>
+                </path>
+                <!-- path reference used in both compiler and executor -->
+                <propertyset id="test.@{test.type}.properties">
+                    <propertyset>
+                        <propertyref prefix="test-@{test.type}-sys-prop."/>
+                        <mapper type="glob" from="test-@{test.type}-sys-prop.*" to="*"/>
+                    </propertyset>
+                    <propertyset>
+                        <propertyref name="build.test.@{test.type}.work.dir"/>
+                        <mapper type="glob" from="build.test.@{test.type}.work.dir" to="nbjunit.workdir"/>
+                    </propertyset>
+                </propertyset>
+                <condition property="exists.test.@{test.type}.src.dir">
+                    <and>
+                        <available file="${test.@{test.type}.src.dir}" type="dir"/>
+                        <not>
+                            <istrue value="${disable.@{test.type}.tests}"/>
+                        </not>
+                    </and>
+                </condition>
+
+            </sequential>
+        </macrodef>
+        <test-init test.type="unit"/>
+        <test-init test.type="qa-functional"/>
+    </target>
+
+    <target name="test-build" depends="netbeans,test-dep-build,do-test-build,test-build-datajar" description="Compile and package all tests."/>
+
+    <macrodef name="test-dep-build">
+        <attribute name="test.type"/>
+        <sequential>
+            <sortsuitemodules unsortedmodules="${test.@{test.type}.testdep}" sortedmodulesproperty="mods.sorted" sorttests="true"/>
+            <subant buildpath="${mods.sorted}" target="do-test-build" />
+        </sequential>
+    </macrodef>
+    <target name="test-unit-dep-build" if="test.unit.testdep">
+        <test-dep-build test.type="unit"/>
+    </target>
+    <target name="test-qa-functional-dep-build" if="test.qa-functional.testdep">
+        <test-dep-build test.type="qa-functional"/>
+    </target>
+    <target name="test-dep-build" depends="test-unit-dep-build,test-qa-functional-dep-build"/>
+
+
+    <macrodef name="do-test-build-scala">
+        <attribute name="test.type"/>
+        <sequential>
+            <fail >
+             Missing test dependency
+              Runtime classpath: ${test.@{test.type}.runtime.cp}
+              Compile classpath: ${test.@{test.type}.compile.cp}
+                <condition>
+                    <or>
+                        <contains string="${test.@{test.type}.runtime.cp}" substring="-missing-Module-Entries-:" />
+                        <contains string="${test.@{test.type}.compile.cp}" substring="-missing-Module-Entries-:" />
+                    </or>
+                </condition>
+            </fail>
+            <mkdir dir="${build.test.@{test.type}.classes.dir}"/>
+            <mkdir dir="${test.dist.dir}"/>
+            <depend srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" cache="${build.test.@{test.type}.dir}/depcache">
+                <classpath refid="test.@{test.type}.cp"/>
+            </depend>
+            <property name="test.excludes" value=""/> <!-- # 113770 -->
+             <!-- javac's classpath should include scala.library and all these paths of "cp" -->
+            <path id="test.@{test.type}.javac.cp">
+                <pathelement path="${scala.libs}"/>
+                <path refid="test.@{test.type}.cp"/>
+            </path>
+            <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+            <path id="test.@{test.type}.scalac.cp">
+                <pathelement path="${scala.libs}"/>
+                <path refid="test.@{test.type}.cp"/>
+            </path>
+            <!-- scalac -->
+            <scalac srcdir="$${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
+                <classpath refid="test.@{test.type}.scalac.cp"/>
+            </scalac>
+            <!-- javac -->
+            <nb-javac srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" excludes="${test.excludes}"
+                   debug="true" deprecation="${build.compiler.deprecation}" encoding="UTF-8"
+                   source="${javac.source}" target="${javac.target}" optimize="${build.compiler.optimize}" includeantruntime="false">
+                <classpath refid="test.@{test.type}.javac.cp"/>
+                <compilerarg line="${javac.compilerargs}"/>
+                <processorpath refid="test.@{test.type}.processor.cp"/>
+            </nb-javac>
+            <copy todir="${build.test.@{test.type}.classes.dir}">
+                <fileset dir="${test.@{test.type}.src.dir}">
+                    <exclude name="**/*.java"/>
+                </fileset>
+            </copy>
+            <delete dir="${build.test.@{test.type}.dir}/data"/>
+            <copy todir="${build.test.@{test.type}.dir}">
+                <fileset dir="${test.@{test.type}.dir}">
+                    <include name="data/**"/>
+                </fileset>
+            </copy>
+
+            <available file="${test.@{test.type}.data.dir}" type="dir" property="exists.test.@{test.type}.data"/>
+            <!-- test distribution -->
+            <mkdir dir="${extra.test.libs.dir}"/>
+            <mkdir dir="${test.@{test.type}.out.folder}"/>
+            <jar destfile="${test.@{test.type}.out.folder}/tests.jar" basedir="${build.test.@{test.type}.classes.dir}" filesetmanifest="merge"/>
+            <!-- create properties -->
+            <shorterpaths inref="test.@{test.type}.run.cp"
+                          out="test.@{test.type}.run.cp.short"
+                          extralibs="extra.test.libs.short"
+                          extralibsdir="${extra.test.libs.dir}"
+                          testproperties="${test.@{test.type}.out.folder}/test.properties">
+                <replacement dir="${netbeans.dest.dir}" name="netbeans.dest.dir"/> <!-- for pre-7.0 and NB.org projects -->
+                <replacement dir="${test.dist.dir}" name="test.dist.dir"/>
+                <!-- XXX this will not be right on Macs: -->
+                <replacement dir="${nbjdk.home}/jre" name="java.home"/>
+                <replacement dir="${nbjdk.home}" name="java.home.parent"/>
+            </shorterpaths>
+        </sequential>
+    </macrodef>
+    
+    <target name="do-unit-test-build" depends="init,test-init" if="exists.test.unit.src.dir">
+        <do-test-build-scala test.type="unit"/>
+    </target>
+    <target name="do-qa-functional-test-build" depends="init,test-init" if="exists.test.qa-functional.src.dir">
+        <do-test-build-scala test.type="qa-functional"/>
+    </target>
+
+</project>
