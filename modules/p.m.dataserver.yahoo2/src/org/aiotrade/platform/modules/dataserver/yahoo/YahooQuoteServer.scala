@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.dataserver.yahoo;
+package org.aiotrade.platform.modules.dataserver.yahoo
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -48,7 +48,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 import javax.imageio.ImageIO;
-import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.securities.{Market,Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract,QuoteServer}
 
