@@ -218,11 +218,12 @@ class YahooTickerServer extends TickerServer {
         if (!connect) {
             return loadedTime
         }
+        
         try {
             request
             loadedTime1 = read
         } catch {
-            case ex:Exception => println("Error in loading from source: " + ex.getMessage)
+            case ex:Exception => ex.printStackTrace
         }
 
         loadedTime1

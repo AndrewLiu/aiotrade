@@ -62,6 +62,14 @@ class TestHelper {
         dailyContents.addDescriptor(dailyQuoteContract)
         dailyContents.serProvider = sec
         loadSer(dailyContents)
+
+        val rtContents = createAnalysisContents(symbol, freqOneMin)
+        rtContents.addDescriptor(oneMinQuoteContract)
+        rtContents.serProvider = sec
+        loadSer(rtContents)
+
+        sec.subscribeTickerServer
+        sec.serOf(freqDaily).foreach{x => println(x.size)}
     }
 
     private def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {

@@ -94,7 +94,10 @@ class YahooQuoteServer extends QuoteServer {
     protected def request :Unit = {
         sourceCalendar.clear
 
-        contract = currentContract.asInstanceOf[QuoteContract]
+        contract = currentContract match {
+            case Some(x:QuoteContract) => x
+            case _ => return
+        }
 
         val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
             (contract.beginDate, contract.endDate)
@@ -231,11 +234,12 @@ class YahooQuoteServer extends QuoteServer {
         if (!connect) {
             return loadedTime1
         }
+        
         try {
             request
             loadedTime1 = read
         } catch {
-            case ex:Exception => println("Error in loading from source: " + ex.getMessage)
+            case ex:Exception => ex.printStackTrace
         }
 
         loadedTime1

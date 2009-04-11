@@ -375,13 +375,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
             val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
             instance.init
 
-            return Some(instance)
+            Some(instance)
         } catch {
-            case ex:InstantiationException => ex.printStackTrace
-            case ex:IllegalAccessException => ex.printStackTrace
+            case ex:InstantiationException => ex.printStackTrace; None
+            case ex:IllegalAccessException => ex.printStackTrace; None
         }
-
-        None
     }
 
     /**
