@@ -414,7 +414,8 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
         if (sn == 0) 0 else 1 << (sn - 1)
     }
 
-    def compareTo(another:DataServer[_]) :Int = {
+    override
+    def compare(another:DataServer[C]) :Int = {
         if (this.displayName.equalsIgnoreCase(another.displayName)) {
             if (this.hashCode < another.hashCode) -1
             else {

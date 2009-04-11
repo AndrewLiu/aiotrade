@@ -30,24 +30,10 @@
                         <specification-version>1.0</specification-version>
                     </run-dependency>
                 </dependency>
-                <dependency>
-                    <code-name-base>scala.comipler</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.aiotrade.lib.math</package>
-                <package>org.aiotrade.lib.math.timeseries</package>
-                <package>org.aiotrade.lib.math.timeseries.computable</package>
-                <package>org.aiotrade.lib.math.timeseries.datasource</package>
-                <package>org.aiotrade.lib.math.timeseries.descriptor</package>
-                <package>org.aiotrade.lib.math.timeseries.plottable</package>
-                <package>org.aiotrade.lib.math.util</package>
-                <package>org.aiotrade.lib.math.vector</package>
+                <package>org.aiotrade.lib.securities</package>
+                <package>org.aiotrade.lib.securities.dataserver</package>
             </public-packages>
         </data>
     </configuration>

@@ -249,7 +249,7 @@ class YahooTickerServer extends TickerServer {
     def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 
     override
-    def market(symbol:String) :Market = {
+    def marketOf(symbol:String) :Market = {
         return YahooQuoteServer.marketOf(symbol)
     }
 }
