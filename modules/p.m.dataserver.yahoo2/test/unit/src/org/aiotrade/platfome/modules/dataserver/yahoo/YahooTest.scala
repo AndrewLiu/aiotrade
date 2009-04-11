@@ -28,9 +28,8 @@ class YahooTest {
     def tearDown: Unit = {
     }
 
-    @Test
+    @Test{val timeout=30000}
     def example = {
-        println(Frequency.DAILY)
         new TestHelper().main("600373.SS")
     }
 
@@ -69,7 +68,13 @@ class TestHelper {
         loadSer(rtContents)
 
         sec.subscribeTickerServer
-        sec.serOf(freqDaily).foreach{x => println(x.size)}
+
+        // wait for some seconds
+        val t0 = System.currentTimeMillis
+        var t1 = t0
+        while (t1 - t0 < 10000) {t1 = System.currentTimeMillis}
+
+        sec.serOf(freqDaily).foreach{x => println("size of daily quote: " + x.size)}
     }
 
     private def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {
