@@ -338,7 +338,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     /**
      * compose ser using data from storage
      */
-    def composeSer(symbol:String, serToBeFilled:Ser,  storage:ArrayBuffer[V]) :SerChangeEvent
+    def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
 
     protected class LoadServer extends Runnable {
 
@@ -370,9 +370,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
 
     override
-    def createNewInstance:Option[DataServer[_]] = {
+    def createNewInstance:Option[DataServer[C]] = {
         try {
-            val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[_, _]]
+            val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
             instance.init
 
             return Some(instance)

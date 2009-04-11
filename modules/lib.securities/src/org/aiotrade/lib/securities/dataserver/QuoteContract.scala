@@ -102,7 +102,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     def createServiceInstance(args:Object*) :Option[QuoteServer] = {
         lookupServiceTemplate match {
             case None => None
-            case Some(template) => Some(template.createNewInstance.asInstanceOf[QuoteServer])
+            case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
         }
     }
 

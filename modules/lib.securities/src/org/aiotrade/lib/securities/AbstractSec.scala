@@ -120,7 +120,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
 
         val quoteServer = freqToQuoteServer.get(freq) match {
             case None => contract.serviceInstance() match {
-                    case None => null
+                    case None => return false
                     case Some(x) => freqToQuoteServer.put(freq, x); x
                 }
             case Some(x) => x
