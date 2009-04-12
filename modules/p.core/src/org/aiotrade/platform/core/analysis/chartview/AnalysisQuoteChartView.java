@@ -47,7 +47,7 @@ import org.aiotrade.lib.math.timeseries.computable.Option;
 import org.aiotrade.lib.charting.chart.QuoteChart;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.platform.core.analysis.indicator.QuoteCompareIndicator;
+import org.aiotrade.lib.indicator.QuoteCompareIndicator;
 import org.aiotrade.lib.math.timeseries.computable.Opt;
 import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.lib.math.timeseries.SerItem;

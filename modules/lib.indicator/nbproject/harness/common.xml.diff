@@ -1,0 +1,76 @@
+73c73
+<         <property name="jar-excludes" value="**/*.java,**/*.form,**/package.html,**/doc-files/,**/*.scala"/>
+---
+>         <property name="jar-excludes" value="**/*.java,**/*.form,**/package.html,**/doc-files/"/>
+144,156c144
+<     <target name="compile" depends="init,up-to-date,scala-taskdef" unless="is.jar.uptodate">
+<         <!-- javac's classpath should include scala.library and all these paths of "cp" -->
+<         <path id="javac.cp">
+<             <pathelement path="${scala.libs}"/>
+<             <pathelement path="${module.classpath}"/>
+<             <pathelement path="${cp.extra}"/>
+<         </path>
+<         <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+<         <path id="scalac.cp">
+<             <pathelement path="${scala.libs}"/>
+<             <pathelement path="${module.run.classpath}"/>
+<             <pathelement path="${cp.extra}"/>
+<         </path>
+---
+>     <target name="compile" depends="init,up-to-date" unless="is.jar.uptodate">
+159c147
+<             <classpath refid="scalac.cp"/>
+---
+>             <classpath refid="cp"/>
+161,165d148
+<         <!-- scalac -->
+<         <scalac srcdir="${src.dir}" destdir="${build.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
+<             <classpath refid="scalac.cp"/>
+<         </scalac>
+<         <!-- javac -->
+168c151
+<             <classpath refid="javac.cp"/>
+---
+>             <classpath refid="cp"/>
+486,500d468
+<              <!-- javac's classpath should include scala.library and all these paths of "cp" -->
+<             <path id="test.@{test.type}.javac.cp">
+<                 <pathelement path="${scala.libs}"/>
+<                 <path refid="test.@{test.type}.cp"/>
+<             </path>
+<             <!-- scalac will check class dependencies deeply, so we can not rely on public package only which is refed by ${module.classpath} -->
+<             <path id="test.@{test.type}.scalac.cp">
+<                 <pathelement path="${scala.libs}"/>
+<                 <path refid="test.@{test.type}.cp"/>
+<             </path>
+<             <!-- scalac -->
+<             <scalac srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
+<                 <classpath refid="test.@{test.type}.scalac.cp"/>
+<             </scalac>
+<             <!-- javac -->
+504c472
+<                 <classpath refid="test.@{test.type}.javac.cp"/>
+---
+>                 <classpath refid="test.@{test.type}.cp"/>
+794c762
+< 
+---
+>     
+961,977d928
+< 
+<     <target name="scala-taskdef" depends="init">
+<         <property name="scala.library" value="${cluster}/modules/ext/scala-library.jar"/>
+<         <property name="scala.compiler" value="${cluster}/modules/ext/scala-compiler.jar"/>
+<         <property name="scala.libs" value="${scala.library}:${scala.compiler}"/>
+< 
+<         <echo message="cluster: ${cluster}"/>
+<         <echo message="Compiling scala sources via ${scala.library}, ${scala.compiler}"/>
+< 
+<         <taskdef resource="scala/tools/ant/antlib.xml">
+<             <classpath>
+<                 <pathelement location="${scala.library}"/>
+<                 <pathelement location="${scala.compiler}"/>
+<             </classpath>
+<         </taskdef>
+<     </target>
+< 

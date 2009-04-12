@@ -274,7 +274,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
             if (time < timestamps.apply(middle)) {
                 if (middle == 0) -1 else binarySearch(time, left, middle - 1)
             } else {
-                binarySearch(time, middle, right);
+                binarySearch(time, middle, right)
             }
         }
     }

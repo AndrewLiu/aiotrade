@@ -36,12 +36,12 @@ import org.aiotrade.lib.math.timeseries.Ser
  *
  * @author Caoyuan Deng
  */
-trait Indicator extends Ser with Computable with Comparable[Indicator] {
+trait Indicator extends Ser with Computable with Ordered[Indicator] {
     
     def init(baseSer:Ser) :Unit
     
     def isOverlapping :Boolean
-    def setOverlapping(b:Boolean) :Unit
+    def overlapping_=(b:Boolean) :Unit
     
     def grids :Array[Float]
     

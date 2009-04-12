@@ -40,7 +40,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.lib.math.timeseries.computable.Indicator;
-import org.aiotrade.platform.core.analysis.indicator.VOLIndicator;
+import org.aiotrade.lib.indicator.VOLIndicator;
 import org.aiotrade.lib.util.swing.GBC;
 
 /**
