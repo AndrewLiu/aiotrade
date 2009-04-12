@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import java.util.List
 import org.aiotrade.lib.math.timeseries.plottable.Plottable
 import scala.collection.mutable.ArrayBuffer
 
@@ -58,7 +57,7 @@ trait Var[E] extends Plottable {
     
     def toDoubleArray :Array[Double]
     
-    def values :List[E]
+    def values :ArrayBuffer[E]
     
     def nullValue :E
     

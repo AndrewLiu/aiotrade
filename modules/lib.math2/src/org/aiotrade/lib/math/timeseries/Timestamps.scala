@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries
 
 import java.util.Calendar
 import java.util.GregorianCalendar
-import java.util.List
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -50,7 +50,7 @@ import java.util.List
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-trait Timestamps extends List[Long] {
+trait Timestamps extends ArrayBuffer[Long] {
     val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
     
     def isOnCalendar :Boolean
@@ -67,7 +67,7 @@ trait Timestamps extends List[Long] {
     
     def lastRow(freq:Frequency) :Int
     
-    def size(freq:Frequency) :Int
+    def sizeOf(freq:Frequency) :Int
     
     def indexOfOccurredTime(time:Long) :Int
     

@@ -106,7 +106,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          * position <-> time <-> item mapping
          */
         val idx = timestamps.indexOfOccurredTime(time)
-        if (idx >= 0 && idx < timestamps.size()) {
+        if (idx >= 0 && idx < timestamps.size) {
             items.get(idx)
         } else null
     }
@@ -152,7 +152,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     private def internal_addTime_addClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
         /** should add timestamps first */
-        timestamps.add(idx, time);
+        timestamps.insert(idx, time)
 
         for (v <- varToName.keySet) {
             v.add(time, null)
@@ -164,7 +164,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     private def internal_addTime_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
         /** should add timestamps first */
-        timestamps.add(time)
+        timestamps + time
 
         for (v <- varToName.keySet) {
             v.add(time, null)
@@ -195,7 +195,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         for (v <- varToName.keySet) {
             v.clear(fromIdx)
         }
-        for (i <- timestamps.size() - 1 to fromIdx) {
+        for (i <- timestamps.size - 1 to fromIdx) {
             timestamps.remove(i)
         }
         for (i <- items.size - 1 to fromIdx) {
@@ -266,9 +266,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def toString :String = {
         val sb = new StringBuilder(20)
         sb.append(this.getClass.getSimpleName).append("(").append(freq)
-        if (timestamps.size() > 0) {
-            val start = timestamps.get(0)
-            val end = timestamps.get(size - 1)
+        if (timestamps.size > 0) {
+            val start = timestamps(0)
+            val end = timestamps(size - 1)
             val cal = Calendar.getInstance
             cal.setTimeInMillis(start)
             sb.append(", from ").append(cal.getTime)
@@ -280,7 +280,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     class DefaultVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
 
-        val values = new ArrayList[E](INIT_CAPACITY)
+        val values = new ArrayBuffer[E]
 
         def this() = {
             this("", Plot.None)
@@ -293,7 +293,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         def add(time:Long, value:E) :Boolean = {
             val idx = timestamps.indexOfOccurredTime(time)
             if (idx >= 0) {
-                values.add(idx, value)
+                values.insert(idx, value)
                 true
             } else {
                 assert(false, "Add timestamps first before add an element!")
@@ -303,12 +303,13 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
         def getByTime(time:long) :E = {
             val idx = timestamps.indexOfOccurredTime(time)
-            values.get(idx)
+            values(idx)
         }
 
         def setByTime(time:Long, value:E) :E = {
             val idx = timestamps.indexOfOccurredTime(time)
-            values.set(idx, value)
+            values(idx) = value
+            value
         }
 
         /**
@@ -406,7 +407,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         override
         def apply(idx:Int) :E = {
             if (idx >= 0 && idx < values.size) {
-                val value = values.get(idx)
+                val value = values(idx)
                 if (value != null) {
                     value
                 } else {
@@ -420,7 +421,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         override
         def update(idx:Int, value:E) :Unit = {
             if (idx >= 0 && idx < values.size) {
-                values.set(idx, value)
+                values(idx) = value
             } else {
                 assert(false, "DefaultVar.set(index, value): this index's value of Var not init yet! " +
                        idx + " size:" + values.size)
@@ -440,10 +441,10 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         def setColor(idx:Int, color:Color) :Unit = {
-            colors.set(idx, color)
+            colors(idx) = color
         }
 
-        def getColor(idx:Int) :Color = colors.get(idx)
+        def getColor(idx:Int) :Color = colors.apply(idx)
 
         def size :Int = values.size
     }

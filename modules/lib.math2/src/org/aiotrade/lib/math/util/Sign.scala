@@ -36,10 +36,10 @@ package org.aiotrade.lib.math.util
  */
 abstract class Sign
 object Sign {
-    case object EnterLong extends Sign
-    case object ExitLong extends Sign
+    case object EnterLong  extends Sign
+    case object ExitLong   extends Sign
     case object EnterShort extends Sign
-    case object ExitShort
+    case object ExitShort  extends Sign
 }
 
 

@@ -28,16 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries;
+package org.aiotrade.lib.math.timeseries
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.TimeZone;
+import java.util.ConcurrentModificationException
+import java.util.TimeZone
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -49,10 +44,10 @@ import java.util.TimeZone;
 object TimestampsFactory {
     
     def createInstance(initialCapacity:Int) :Timestamps = {
-        new TimestampsOnOccurred(initialCapacity);
+        new TimestampsOnOccurred(initialCapacity)
     }
     
-    private class TimestampsOnOccurred(initialCapacity:Int) extends ArrayList[Long](initialCapacity) with Timestamps {
+    private class TimestampsOnOccurred(initialCapacity:Int) extends ArrayBuffer[Long] with Timestamps {
         private val onCalendarShadow = new TimestampsOnCalendar(this)
         
         def isOnCalendar :Boolean = false
@@ -64,13 +59,13 @@ object TimestampsFactory {
          * or after lastOccurredTime
          */
         def rowOfTime(time:Long, freq:Frequency) :Int = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             if (lastOccurredIdx == -1) {
                 return -1
             }
             
-            val firstOccurredTime = get(0)
-            val lastOccurredTime  = get(lastOccurredIdx)
+            val firstOccurredTime = apply(0)
+            val lastOccurredTime  = apply(lastOccurredIdx)
             if (time <= firstOccurredTime) {
                 freq.nFreqsBetween(firstOccurredTime, time)
             } else if (time >= lastOccurredTime) {
@@ -92,35 +87,35 @@ object TimestampsFactory {
          * This is an efficent method
          */
         def timeOfRow(row:Int, freq:Frequency) :Long = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             if (lastOccurredIdx < 0) {
                 return 0
             }
             
-            val firstOccurredTime = get(0);
-            val lastOccurredTime  = get(lastOccurredIdx)
+            val firstOccurredTime = apply(0)
+            val lastOccurredTime  = apply(lastOccurredIdx)
             if (row < 0) {
                 freq.timeAfterNFreqs(firstOccurredTime, row)
             } else if (row > lastOccurredIdx) {
                 freq.timeAfterNFreqs(lastOccurredTime, row - lastOccurredIdx)
             } else {
-                get(row)
+                apply(row)
             }
         }
         
         def lastRow(freq:Frequency) :Int = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             lastOccurredIdx
         }
         
-        def size(freq:Frequency) :Int = size
+        def sizeOf(freq:Frequency) :Int = size
         
         def indexOfOccurredTime(time:Long) :Int = {
-            val size1 = size()
+            val size1 = size
             if (size1 == 0) {
                 return -1
             } else if (size1 == 1) {
-                if (get(0) == time) {
+                if (apply(0) == time) {
                     return 0
                 } else {
                     return -1
@@ -132,7 +127,7 @@ object TimestampsFactory {
             var length = to - from
             while (length > 1) {
                 length /= 2
-                val midTime = get(from + length);
+                val midTime = apply(from + length)
                 if (time > midTime) {
                     from += length
                 } else if (time < midTime) {
@@ -149,9 +144,9 @@ object TimestampsFactory {
              * and the length should be 1 (end - start). So, just do following checking,
              * if can't get exact index, just return -1.
              */
-            if (time == get(from)) {
+            if (time == apply(from)) {
                 from
-            } else if (time == get(from + 1)) {
+            } else if (time == apply(from + 1)) {
                 from + 1
             } else {
                 -1
@@ -164,11 +159,11 @@ object TimestampsFactory {
          */
         def nearestIndexOfOccurredTime(time:Long) :Int = {
             var from = 0
-            var to = size() - 1
+            var to = size - 1
             var length = to - from
             while (length > 1) {
                 length /= 2
-                val midTime = get(from + length)
+                val midTime = apply(from + length)
                 if (time > midTime) {
                     from += length
                 } else if (time < midTime) {
@@ -185,9 +180,9 @@ object TimestampsFactory {
              * and the length should be 1 (end - start). So, just do following checking,
              * if can't get exact index, just return nearest one: 'start'
              */
-            if (time == get(from)) {
+            if (time == apply(from)) {
                 from
-            } else if (time == get(from + 1)) {
+            } else if (time == apply(from + 1)) {
                 from + 1
             } else {
                 from
@@ -196,11 +191,11 @@ object TimestampsFactory {
         
         /** return index of nearest behind or equal(if exist) time */
         def indexOfNearestOccurredTimeBehind(time:Long) :Int = {
-            val size1 = size()
+            val size1 = size
             if (size1 == 0) {
                 return -1
             } else if (size1 == 1) {
-                if (get(0) >= time) {
+                if (apply(0) >= time) {
                     return 0
                 } else {
                     return -1
@@ -212,7 +207,7 @@ object TimestampsFactory {
             var length = to - from
             while (length > 1) {
                 length /= 2
-                val midTime = get(from + length);
+                val midTime = apply(from + length)
                 if (time > midTime) {
                     from += length
                 } else if (time < midTime) {
@@ -229,9 +224,9 @@ object TimestampsFactory {
              * and the 'length' should be 1 (end - start). So, just do following checking,
              * if can't get exact index, just return -1.
              */
-            if (get(from) >= time) {
+            if (apply(from) >= time) {
                 from
-            } else if (get(from + 1) >= time) {
+            } else if (apply(from + 1) >= time) {
                 from + 1
             } else {
                 -1
@@ -240,11 +235,11 @@ object TimestampsFactory {
         
         /** return index of nearest before or equal(if exist) time */
         def indexOfNearestOccurredTimeBefore(time:Long) :Int = {
-            val size1 = size()
+            val size1 = size
             if (size1 == 0) {
                 return -1
             } else if (size1 == 1) {
-                if (get(0) <= time) {
+                if (apply(0) <= time) {
                     return 0
                 } else {
                     return -1
@@ -256,7 +251,7 @@ object TimestampsFactory {
             var length = to - from
             while (length > 1) {
                 length /= 2
-                val midTime = get(from + length)
+                val midTime = apply(from + length)
                 if (time > midTime) {
                     from += length
                 } else if (time < midTime) {
@@ -273,9 +268,9 @@ object TimestampsFactory {
              * and the 'length' should be 1 (end - start). So, just do following checking,
              * if can't get exact index, just return -1.
              */
-            if (get(from + 1) <= time) {
+            if (apply(from + 1) <= time) {
                 from + 1
-            } else if (get(from) <= time) {
+            } else if (apply(from) <= time) {
                 from
             } else {
                 -1
@@ -283,13 +278,13 @@ object TimestampsFactory {
         }
         
         def firstOccurredTime :Long = {
-            val size1 = size()
-            if (size1 > 0) get(0) else 0
+            val size1 = size
+            if (size1 > 0) apply(0) else 0
         }
         
         def lastOccurredTime :Long = {
-            val size1 = size()
-            if (size1 > 0) get(size1 - 1) else 0
+            val size1 = size
+            if (size1 > 0) apply(size1 - 1) else 0
         }
         
         def iterator(freq:Frequency) :TimestampsIterator = {
@@ -330,6 +325,9 @@ object TimestampsFactory {
              * List should have.  If this expectation is violated, the iterator
              * has detected concurrent modification.
              */
+            @transient @volatile
+            var modCount:Long = _
+
             var expectedModCount = modCount
             
             def hasNext :Boolean = {
@@ -340,7 +338,7 @@ object TimestampsFactory {
                 checkForComodification
                 try {
                     cursorRow += 1
-                    val next = if (cursorRow >= size()) freq.nextTime(cursorTime) else get(cursorRow)
+                    val next = if (cursorRow >= size) freq.nextTime(cursorTime) else apply(cursorRow)
                     cursorTime = next
                     lastReturnTime = cursorTime
                     return next
@@ -364,7 +362,7 @@ object TimestampsFactory {
                 checkForComodification
                 try {
                     cursorRow -= 1
-                    val previous = if (cursorRow < 0) freq.previousTime(cursorTime) else get(cursorRow)
+                    val previous = if (cursorRow < 0) freq.previousTime(cursorTime) else apply(cursorRow)
                     cursorTime = previous
                     lastReturnTime = cursorTime
                     return previous;
@@ -414,12 +412,12 @@ object TimestampsFactory {
          * or after lastOccurredTime
          */
         def rowOfTime(time:Long, freq:Frequency) :Int = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             if (lastOccurredIdx == -1) {
                 return -1
             }
             
-            val firstOccurredTime = get(0)
+            val firstOccurredTime = apply(0)
             freq.nFreqsBetween(firstOccurredTime, time)
         }
         
@@ -427,27 +425,27 @@ object TimestampsFactory {
          * This is an efficent method
          */
         def timeOfRow(row:Int, freq:Frequency) :Long = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             if (lastOccurredIdx < 0) {
                 return 0
             }
             
-            val firstOccurredTime = get(0)
+            val firstOccurredTime = apply(0)
             freq.timeAfterNFreqs(firstOccurredTime, row)
         }
         
         def lastRow(freq:Frequency) :Int = {
-            val lastOccurredIdx = size() - 1
+            val lastOccurredIdx = size - 1
             if (lastOccurredIdx < 0) {
                 return 0
             }
             
-            val firstOccurredTime = get(0)
-            val lastOccurredTime  = get(lastOccurredIdx)
+            val firstOccurredTime = apply(0)
+            val lastOccurredTime  = apply(lastOccurredIdx)
             freq.nFreqsBetween(firstOccurredTime, lastOccurredTime)
         }
         
-        def size(freq:Frequency) :Int = {
+        def sizeOf(freq:Frequency) :Int = {
             lastRow(freq) + 1
         }
         
@@ -465,33 +463,40 @@ object TimestampsFactory {
         def firstOccurredTime = delegateTimestamps.firstOccurredTime
         
         def lastOccurredTime = delegateTimestamps.lastOccurredTime
-        
+
+        override
         def size = delegateTimestamps.size
         
+        override
         def isEmpty = delegateTimestamps.isEmpty
         
-        def contains(o:Object) = delegateTimestamps.contains(o)
+        override
+        def elements = delegateTimestamps.elements
         
-        def iterator = delegateTimestamps.iterator
+        override
+        def toArray[B >: Long] = delegateTimestamps.toArray
         
-        def toArray = delegateTimestamps.toArray()
+        override  
+        def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
         
-        def toArray[T](a:Array[T]) = delegateTimestamps.toArray(a)
+        override
+        def +(elem:Long) = delegateTimestamps + elem
         
-        def add(o:Long) = delegateTimestamps.add(o)
+        override
+        def remove(idx:Int) = delegateTimestamps.remove(idx)
         
-        def remove(o:Object) = delegateTimestamps.remove(o)
+        override
+        def contains(elem:Any) = delegateTimestamps.contains(elem)
         
-        def containsAll(c:Collection[_]) = delegateTimestamps.containsAll(c)
+        override
+        def ++[B >: Long](that:Iterable[B]) = delegateTimestamps ++ that
+
+        def insert(n:Int, elems:Long) = delegateTimestamps.insert(n, elems)
+
+        override
+        def insertAll(n:Int, iter:Iterable[Long]) = delegateTimestamps.insertAll(n, iter)
         
-        def addAll(c:Collection[_ <: Long]) = delegateTimestamps.addAll(c)
-        
-        def addAll(index:Int, c:Collection[_ <: Long]) = delegateTimestamps.addAll(index, c)
-        
-        def removeAll(c:Collection[_]) = delegateTimestamps.removeAll(c)
-        
-        def retainAll(c:Collection[_]) = delegateTimestamps.retainAll(c)
-        
+        override
         def clear = delegateTimestamps.clear
         
         override
@@ -500,24 +505,18 @@ object TimestampsFactory {
         override
         def hashCode = delegateTimestamps.hashCode
         
-        def get(index:Int) = delegateTimestamps.get(index)
+        override
+        def apply(index:Int) = delegateTimestamps.apply(index)
         
-        def set(index:Int, element:Long) = delegateTimestamps.set(index, element)
+        override
+        def update(index:Int, element:Long) = delegateTimestamps.update(index, element)
+                
+        override
+        def indexOf[B >: Long](o:B) = delegateTimestamps.indexOf(o)
         
-        def add(index:Int, element:Long) = delegateTimestamps.add(index, element)
-        
-        def remove(index:Int) = delegateTimestamps.remove(index)
-        
-        def indexOf(o:Object) = delegateTimestamps.indexOf(o)
-        
-        def lastIndexOf(o:Object) = delegateTimestamps.lastIndexOf(o)
-        
-        def listIterator = delegateTimestamps.listIterator
-        
-        def listIterator(index:Int) = delegateTimestamps.listIterator(index)
-        
-        def subList(fromIndex:Int, toIndex:Int) = delegateTimestamps.subList(fromIndex, toIndex)
-        
+        override
+        def lastIndexOf[B >: Long](o:B) = delegateTimestamps.lastIndexOf(o)
+                        
         def iterator(freq:Frequency) :TimestampsIterator = {
             new ItrOnCalendar(freq)
         }
@@ -526,8 +525,8 @@ object TimestampsFactory {
             new ItrOnCalendar(freq, fromTime, toTime)
         }
 
-        @transient
-        protected var modCount = 0
+        @transient @volatile
+        protected var modCount:Long = 0
         
         class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
             val fromTime = freq.round(_fromTime, timeZone)

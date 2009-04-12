@@ -30,12 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import java.util.AbstractList
-import java.util.Collection
-import java.util.HashMap
-import java.util.List
-import java.util.Map
-import java.util.RandomAccess
+import scala.collection.mutable.{ArrayBuffer,HashMap}
 
 /**
  * A package class that implements timestamped Map based List, used to store
@@ -127,48 +122,48 @@ import java.util.RandomAccess
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TimestampedMapBasedList[E](timestamps:Timestamps) extends AbstractList[E] with List[E] with RandomAccess {
+class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     
-    private val timeMapElementData = new HashMap[Long, E]()
-    
+    private val timeMapElementData = new HashMap[Long, A]()
+
+    override
     def size :Int = timestamps.size
 
     override
     def isEmpty :Boolean = timestamps.isEmpty
     
     override
-    def contains(o:Object) :Boolean = timeMapElementData.containsValue(o)
+    def contains(o:Any) :Boolean = timeMapElementData.values.contains(o)
     
     override
-    def containsAll(c:Collection[_]) :Boolean = timeMapElementData.values.containsAll(c)
-
-    override
-    def toArray :Array[Object] = {
-        val length = timestamps.size()
-        toArray(new Array[Object](length))
+    def toArray[B >: A] :Array[B]  = {
+        val length = timestamps.size
+        val array = new Array[B](length)
+        copyToArray(array, 0)
+        array
     }
     
     override
-    def toArray[T](a:Array[T]) :Array[T] = {
-        val length = timestamps.size()
-        val array = if (a.length == length) a else new Array[T](size)
+    def copyToArray[B >: A](xs:Array[B], start:Int) :Unit = {
+        val length = timestamps.size
+        val array = if (xs.length == length) xs else new Array[B](size)
         for (i <- 0 until length) {
-            val time = timestamps.get(i)
-            array(i) = if (time != null) timeMapElementData.get(time).asInstanceOf[T] else null.asInstanceOf[T]
+            val time = timestamps.apply(i)
+            array(i) = if (time != null) timeMapElementData.get(time).asInstanceOf[B] else null.asInstanceOf[B]
         }
         
         array
     }
     
-    def add(time:Long, o:E) :Boolean = {
-        if (o == null) {
+    def add(time:Long, elem:A) :Boolean = {
+        if (elem == null) {
             /** null value needs not to be put in map, this will spare the memory usage */
             return true;
         }
         
         val idx = timestamps.indexOfOccurredTime(time)
         if (idx >= 0) {
-            timeMapElementData.put(time, o)
+            timeMapElementData.put(time, elem)
             true;
         } else {
             assert(false, "Add timestamps first before add an element!")
@@ -176,65 +171,37 @@ class TimestampedMapBasedList[E](timestamps:Timestamps) extends AbstractList[E] 
         }
     }
     
-    def getByTime(time:Long) :E = timeMapElementData.get(time)
+    def getByTime(time:Long) :A = timeMapElementData.get(time).get
     
-    def setByTime(time:Long, o:E) :E = {
+    def setByTime(time:Long, elem:A) :A = {
         if (timestamps.contains(time)) {
-            timeMapElementData.put(time, o)
+            timeMapElementData.put(time, elem)
+            elem
         } else {
             assert(false, "Time out of bounds = " + time)
-            null.asInstanceOf[E]
+            null.asInstanceOf[A]
         }
     }
     
     /**
-     * @deprecated
+     * 
      */
-    override
-    def add(o:E) :Boolean = {
-        assert(false, "add(E) is not supported by this collection! " +
+    @deprecated override
+    def +(elem:A) :ArrayBuffer[A] = {
+        assert(false, "+(elem:A) is not supported by this collection! " +
                ", please use add(long time, E o)")
-        false
+        this
     }
     
     /**
      * @deprecated
      */
     override
-    def add(index:Int, element:E) :Unit = {
-        assert(false, "add(int index, E element) is not supported by this collection! " +
+    def insert(n:Int, elems:A*) :Unit = {
+        assert(false, "insert(n:Int, elems:A*) is not supported by this collection! " +
                ", please use add(long time, E o)")
     }
-    
-    /**
-     * @deprecated
-     */
-    override
-    def addAll(c:Collection[_ <: E]) :Boolean = {
-        assert(false, "addAll(Collection<? extends E> c) is not supported by this collection! " +
-               ", please use add(long time, E o)")
-        false
-    }
-    
-    /**
-     * @deprecated
-     */
-    override
-    def addAll(index:Int, c:Collection[_ <: E]) :Boolean = {
-        assert(false, "addAll(int index, Collection<? extends E> c) is not supported by this collection! " +
-               " please use add(long time, E o)")
-        false
-    }
-    
-    override
-    def remove(o:Object) :Boolean = timeMapElementData.values.remove(o)
-    
-    override
-    def removeAll(c:Collection[_]) :Boolean = timeMapElementData.values.removeAll(c)
-    
-    override
-    def retainAll(c:Collection[_]) :Boolean = timeMapElementData.values.retainAll(c)
-    
+                    
     override
     def clear :Unit = timeMapElementData.clear
     
@@ -243,40 +210,42 @@ class TimestampedMapBasedList[E](timestamps:Timestamps) extends AbstractList[E] 
     
     override
     def hashCode :Int = timeMapElementData.hashCode
-    
-    def get(index:Int) :E = {
-        val time = timestamps.get(index)
-        if (time != null) timeMapElementData.get(time) else null.asInstanceOf[E]
+
+    override
+    def apply(n:Int) :A = {
+        val time = timestamps.apply(n)
+        if (time != null) timeMapElementData.get(time).get else null.asInstanceOf[A]
     }
     
     override
-    def set(index:Int, o:E) :E = {
-        val time = timestamps.get(index)
+    def update(n:Int, newelem:A) : Unit = {
+        val time = timestamps(n)
         if (time != null) {
-            timeMapElementData.put(time, o)
+            timeMapElementData.put(time, newelem)
         } else {
-            assert(false, "Index out of bounds! index = " + index)
-            null.asInstanceOf[E]
+            assert(false, "Index out of bounds! index = " + n)
         }
     }
     
     override
-    def remove(index:Int) :E = {
-        val time = timestamps.get(index)
+    def remove(index:Int) :A = {
+        val time = timestamps(index)
         if (time != null) {
-            timeMapElementData.remove(time)
+            val e = timeMapElementData.get(index).get
+            timeMapElementData.removeKey(time)
+            e
         } else {
-            null.asInstanceOf[E]
+            null.asInstanceOf[A]
         }
     }
     
     override
-    def indexOf(o:Object) :Int = {
-        val itr = timeMapElementData.keySet.iterator
+    def indexOf[B >: A](elem:B) : Int = {
+        val itr = timeMapElementData.keys
         while (itr.hasNext) {
             val time = itr.next
-            if (timeMapElementData.get(time) == o) {
-                return binarySearch(time, 0, timestamps.size() - 1)
+            if (timeMapElementData.get(time).get == elem) {
+                return binarySearch(time, 0, timestamps.size - 1)
             }
         }
         
@@ -284,13 +253,13 @@ class TimestampedMapBasedList[E](timestamps:Timestamps) extends AbstractList[E] 
     }
     
     override
-    def lastIndexOf(o:Object) :Int = {
+    def lastIndexOf[B >: A](elem:B) : Int = {
         var found = -1
-        val itr = timeMapElementData.keySet.iterator
+        val itr = timeMapElementData.keys
         while (itr.hasNext) {
             val time = itr.next
-            if (timeMapElementData.get(time) == o) {
-                found = binarySearch(time, 0, timestamps.size() - 1)
+            if (timeMapElementData.get(time).get == elem) {
+                found = binarySearch(time, 0, timestamps.size - 1)
             }
         }
         
@@ -299,10 +268,10 @@ class TimestampedMapBasedList[E](timestamps:Timestamps) extends AbstractList[E] 
     
     private def binarySearch(time:Long, left:Int, right:Int) :Int = {
         if (left == right) {
-            if (timestamps.get(left) == time) left else -1
+            if (timestamps.apply(left) == time) left else -1
         } else {
             val middle = ((left + right) * 0.5).asInstanceOf[Int]
-            if (time < timestamps.get(middle)) {
+            if (time < timestamps.apply(middle)) {
                 if (middle == 0) -1 else binarySearch(time, left, middle - 1)
             } else {
                 binarySearch(time, middle, right);

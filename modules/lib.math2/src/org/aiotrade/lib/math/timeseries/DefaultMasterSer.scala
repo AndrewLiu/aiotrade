@@ -59,7 +59,7 @@ class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
     def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
     
     override
-    def size :Int = activeTimestamps.size(freq)
+    def size :Int = activeTimestamps.sizeOf(freq)
 
     private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
 }
