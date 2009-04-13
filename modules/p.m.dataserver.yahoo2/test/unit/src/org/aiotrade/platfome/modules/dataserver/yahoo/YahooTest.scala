@@ -19,6 +19,7 @@ import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.securities.dataserver._
 import org.aiotrade.platform.modules.dataserver.yahoo._
+import org.aiotrade.platform.modules.indicator.basic.{MAIndicator,RSIIndicator}
 
 class YahooTest {
 
@@ -126,14 +127,14 @@ class TestHelper {
     private def createAnalysisContents(symbol:String, freq:Frequency) :AnalysisContents = {
         val contents = new AnalysisContents(symbol)
 
-        //        contents.addDescriptor(createIndicatorDescriptor(MAIndicator.class, freq));
-        //        contents.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
-        //        contents.addDescriptor(createIndicatorDescriptor(RSIIndicator.class, freq));
-        //
+        contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
+        //contents.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
+        contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
+        
         contents
     }
 
-    private def createIndicatorDescriptor(clazz:Class[Indicator], freq:Frequency) :IndicatorDescriptor = {
+    private def createIndicatorDescriptor[T <: Indicator](clazz:Class[T], freq:Frequency) :IndicatorDescriptor = {
         val indicator = new IndicatorDescriptor
         indicator.active = true
         indicator.serviceClassName = clazz.getName
