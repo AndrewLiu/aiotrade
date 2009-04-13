@@ -28,20 +28,47 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class BOLLIndicator extends AbstractContIndicator {
+    _sname = "BOLL";
+    _lname = "Bollinger Bands";
+    _overlapping = true;
 
-    def this() = {
-        this(null)
+    
+    val period = new DefaultOpt("Period", 20.0);
+    val alpha1 = new DefaultOpt("Alpha1", 2.0, 0.1);
+    val alpha2 = new DefaultOpt("Alpha2", 2.0, 0.1);
+    
+    val boll_m  = new DefaultVar[Float]("MA",    Plot.Line);
+    val boll_u1 = new DefaultVar[Float]("UPPER", Plot.Line);
+    val boll_l1 = new DefaultVar[Float]("LOWER", Plot.Line);
+    val boll_u2 = new DefaultVar[Float]("UPPER", Plot.Line);
+    val boll_l2 = new DefaultVar[Float]("LOWER", Plot.Line);
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            boll_m (i) = bollMiddle(i, C, period, alpha1)
+            boll_u1(i) = bollUpper( i, C, period, alpha1)
+            boll_l1(i) = bollLower( i, C, period, alpha1)
+            boll_u2(i) = bollUpper( i, C, period, alpha2)
+            boll_l2(i) = bollLower( i, C, period, alpha2)
+            i += 1
+        }
     }
+    
+    
 }
+
+
+

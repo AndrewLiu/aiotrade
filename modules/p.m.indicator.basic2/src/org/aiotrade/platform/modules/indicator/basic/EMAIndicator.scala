@@ -28,20 +28,42 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class EMAIndicator extends AbstractContIndicator {
+    _sname = "EMA"
+    _lname = "Exponential Moving Average"
+    _overlapping = true;
+    
+    val period1 = new DefaultOpt("Period Short",   5.0)
+    val period2 = new DefaultOpt("Period Mediaum", 10.0)
+    val period3 = new DefaultOpt("Period Long",    20.0)
+    
+    val ema1 = new DefaultVar[Float]("EMA1", Plot.Line)
+    val ema2 = new DefaultVar[Float]("EMA2", Plot.Line)
+    val ema3 = new DefaultVar[Float]("EMA3", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx
+        while (i < _itemSize) {
+            ema1(i) = ema(i, C, period1)
+            ema2(i) = ema(i, C, period2)
+            ema3(i) = ema(i, C, period3)
+            i += 1
+        }
     }
+    
 }
+
+
+
+

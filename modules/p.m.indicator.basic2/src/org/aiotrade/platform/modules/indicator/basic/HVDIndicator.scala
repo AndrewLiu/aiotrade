@@ -28,20 +28,50 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.SerItem
+import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.AbstractSpotIndicator
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class HVDIndicator extends AbstractSpotIndicator {
+    _sname = "HVD"
+    _lname = "Historical Volume Distribution"
+    _overlapping = true
+    
+    val nIntervals = new DefaultOpt("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
+    val period1    = new DefaultOpt("Period1",  50.0)
+    val period2    = new DefaultOpt("Period2",  100.0)
+    val period3    = new DefaultOpt("Period3",  200.0)
+    
+    val HVD1 = new DefaultVar[Array[Array[Float]]]("HVD1", Plot.Profile)
+    val HVD2 = new DefaultVar[Array[Array[Float]]]("HVD2", Plot.Profile)
+    val HVD3 = new DefaultVar[Array[Array[Float]]]("HVD3", Plot.Profile)
+    
+    def computeSpot(time:Long, baseIdx:Int) :SerItem = {
+        val item = createItemOrClearIt(time)
+        
+        val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
+        val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
+        val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)
+        
+        item.set(HVD1, probability_mass1)
+        item.set(HVD2, probability_mass2)
+        item.set(HVD3, probability_mass3)
+        
+        item
     }
 }
+
+
+
+
+
+
+

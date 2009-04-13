@@ -28,20 +28,42 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class DMIIndicator extends AbstractContIndicator {
+    _sname = "DMI"
+    _lname = "Directional Movement Index"
+    _grids = Array(20f, 80f)
 
-    def this() = {
-        this(null)
+    val periodDi  = new DefaultOpt("Period DI",  6.0)
+    val periodAdx = new DefaultOpt("Period ADX", 14.0)
+    
+    val diPlus  = new DefaultVar[Float]("+DI",  Plot.Line);
+    val diMinus = new DefaultVar[Float]("-DI",  Plot.Line);
+    val adx     = new DefaultVar[Float]("ADX",  Plot.Line);
+    val adxr    = new DefaultVar[Float]("ADXR", Plot.Line);
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            
+            diPlus (i) = diPlus( i, periodDi)
+            diMinus(i) = diMinus(i, periodDi)
+            adx    (i) = adx(    i, periodDi, periodAdx)
+            adxr   (i) = adxr(   i, periodDi, periodAdx)
+
+            i += 1
+        }
     }
+    
 }
+

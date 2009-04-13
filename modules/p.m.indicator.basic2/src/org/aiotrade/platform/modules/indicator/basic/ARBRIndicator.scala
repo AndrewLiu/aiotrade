@@ -28,20 +28,57 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.{Ser,Var}
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class ARBRIndicator extends AbstractContIndicator {
+    _sname = "AR/BR";
+    _grids = Array(50f, 200f)
+    
+    val period = new DefaultOpt("Period", 10.0);
+    
+    val up = new DefaultVar[Float]("up");
+    val dn = new DefaultVar[Float]("dn");
+    val bs = new DefaultVar[Float]("bs");
+    val ss = new DefaultVar[Float]("ss");
+    
+    val ar = new DefaultVar[Float]("AR", Plot.Line)
+    val br = new DefaultVar[Float]("BR", Plot.Line)
+    
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx; while (i < _itemSize) {
+            up(i) = H(i) - O(i)
+            val up_sum_i = sum(i, up, period)
+            
+            dn(i) = O(i) - L(i)
+            val dn_sum_i = sum(i, dn, period)
+            
+            ar(i) = up_sum_i / dn_sum_i * 100
+            
+            val bs_tmp = H(i) - C(i);
+            bs(i) = Math.max(0, bs_tmp)
+            val bs_sum_i = sum(i, bs, period);
+            
+            val ss_tmp = C(i) - L(i);
+            ss(i) = Math.max(0, ss_tmp)
+            val ss_sum_i = sum(i, ss, period);
+            
+            br(i) = bs_sum_i / ss_sum_i * 100
 
-    def this() = {
-        this(null)
+            i += 1
+        }
     }
+    
 }
+
+
+

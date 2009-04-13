@@ -28,20 +28,38 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class ZIGZAGFAIndicator extends AbstractContIndicator {
+    _sname = "ZIGZAGFA"
+    _lname = "Zigzag with Fibonacci Arcs"
+    _overlapping = true
+    
+    val percent = new DefaultOpt("Turn Percent", 3.0)  // Percent for judge if trend turns over
+    
+    //    TimeVar zigzag        = function("zigzag")
+    //    TimeVar pseudoZigzag  = function("pseudoZigzag")
+    
+    //    TimeVar zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
+    //    TimeVar pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
+        var i = begIdx;
+        while (i < _itemSize) {
+            i += 1
+        }
     }
 }
+
+
+
+
+

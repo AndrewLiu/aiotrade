@@ -28,20 +28,28 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class OBVIndicator extends AbstractContIndicator {
+    _sname = "OBV"
+    _lname = "On Balance Volume"
 
-    def this() = {
-        this(null)
+    val obv1 = new DefaultVar[Float]("OBV", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            obv1(i) = obv(i)
+            i += 1
+        }
     }
+    
 }

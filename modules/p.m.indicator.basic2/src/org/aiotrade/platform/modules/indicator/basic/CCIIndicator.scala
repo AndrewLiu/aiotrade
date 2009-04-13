@@ -28,20 +28,39 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class CCIIndicator extends AbstractContIndicator {
+    _sname = "CCI"
+    _lname = "Commodity Channel Index"
+    _grids = Array(100f, -100f)
 
-    def this() = {
-        this(null)
+    val alpha    = new DefaultOpt("Alpha",     0.015)
+    val period   = new DefaultOpt("Period",    20.0)
+    val periodMa = new DefaultOpt("Period MA", 3.0)
+    
+    val cci    = new DefaultVar[Float]("CCI",   Plot.Line)
+    val cci_ma = new DefaultVar[Float]("MACCI", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            cci(i)    = cci(i, period, alpha)
+            cci_ma(i) = ma (i, cci, periodMa)
+            i += 1
+        }
     }
 }
+
+
+
+

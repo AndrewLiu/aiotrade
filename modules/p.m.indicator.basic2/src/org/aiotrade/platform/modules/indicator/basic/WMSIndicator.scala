@@ -28,20 +28,37 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class WMSIndicator extends AbstractContIndicator {
+    _sname = "WMS"
+    _lname = "Williams' %R"
+    _grids = Array(10f, 90f)
+    
+    val period1 = new DefaultOpt("Period Short",  6.0)
+    val period2 = new DefaultOpt("Period Long",  10.0)
+    
+    val wms1 = new DefaultVar[Float]("WMS1", Plot.Line)
+    val wms2 = new DefaultVar[Float]("WMS2", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            wms1(i) = wms(i, period1)
+            wms2(i) = wms(i, period2)
+            i += 1
+        }
     }
+    
 }
+
+

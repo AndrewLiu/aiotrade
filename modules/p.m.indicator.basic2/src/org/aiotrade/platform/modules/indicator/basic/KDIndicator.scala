@@ -28,20 +28,40 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class KDIndicator extends AbstractContIndicator {
+    _sname = "KD"
+    _lname = "Stochastics"
+    _grids = Array(20f, 80f)
+    
+    val period  = new DefaultOpt("Period K",           9.0)
+    val periodK = new DefaultOpt("Period K Smoothing", 3.0)
+    val periodD = new DefaultOpt("Period D Smoothing", 3.0)
+    
+    val k = new DefaultVar[Float]("K", Plot.Line)
+    val d = new DefaultVar[Float]("D", Plot.Line)
+    val j = new DefaultVar[Float]("J", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            k(i) = stochK(i, period, periodK)
+            d(i) = stochD(i, period, periodK, periodD)
+            j(i) = stochJ(i, period, periodK, periodD)
+            i += 1
+        }
     }
+    
 }
+
+

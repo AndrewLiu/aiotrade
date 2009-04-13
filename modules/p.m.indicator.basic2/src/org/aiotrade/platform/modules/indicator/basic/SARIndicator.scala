@@ -28,20 +28,37 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class SARIndicator extends AbstractContIndicator {
+    _sname = "SAR"
+    _lname = "Parabolic SAR"
+    _overlapping = true
 
-    def this() = {
-        this(null)
+    val initial = new DefaultOpt("Primary AF", 0.02, 0.01)
+    val step    = new DefaultOpt("AF step",    0.02, 0.01)
+    val maximum = new DefaultOpt("Maximum AF",  0.20, 0.10)
+    
+    val sar = new DefaultVar[Float]("SAR", Plot.Dot)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            sar(i) = sar(i, initial, step, maximum)
+            i += 1
+        }
     }
+    
 }
+
+
+

@@ -28,20 +28,35 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class ROCIndicator extends AbstractContIndicator {
+    _sname = "ROC"
+    _lname = "Rate of Change"
+    
+    val period1 = new DefaultOpt("Period Short", 12.0)
+    val period2 = new DefaultOpt("Period Long",  25.0)
+    
+    val roc1 = new DefaultVar[Float]("ROC1", Plot.Line)
+    val roc2 = new DefaultVar[Float]("ROC2", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            roc1(i) = roc(i, C, period1)
+            roc2(i) = roc(i, C, period2)
+            i += 1
+        }
     }
+    
 }
+

@@ -28,20 +28,40 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+class RSIIndicator extends AbstractContIndicator {
+    _sname = "RSI"
+    _lname = "Relative Strength Index"
+    _grids = Array(20f, 80f)
 
-    def this() = {
-        this(null)
+    val periodS = new DefaultOpt("Period Short",   6.0 )
+    val periodM = new DefaultOpt("Period Mediaum", 12.0)
+    val periodL = new DefaultOpt("Period Long",    24.0)
+    
+    val rsi1 = new DefaultVar[Float]("RSI1", Plot.Line)
+    val rsi2 = new DefaultVar[Float]("RSI2", Plot.Line)
+    val rsi3 = new DefaultVar[Float]("RSI3", Plot.Line)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            rsi1(i) = rsi(i, periodS)
+            rsi2(i) = rsi(i, periodM)
+            rsi3(i) = rsi(i, periodL)
+            i += 1
+        }
     }
+    
 }
+
+

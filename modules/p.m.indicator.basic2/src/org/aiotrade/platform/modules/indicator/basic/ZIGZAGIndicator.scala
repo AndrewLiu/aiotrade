@@ -28,20 +28,38 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.AbstractContIndicator
 
 /**
- * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
-
-    def this() = {
-        this(null)
+class ZIGZAGIndicator extends AbstractContIndicator {
+    _sname = "ZIGZAG"
+    _lname = "Zigzag"
+    _overlapping = true
+    
+    val percent = new DefaultOpt("Turn Persent", 0.03, 0.01)
+    
+    val zigzag       = new DefaultVar[Float]("ZIGZAG", Plot.Zigzag)
+    val pseudoZigzag = new DefaultVar[Float]("PSEUDO", Plot.Zigzag)
+    
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx;
+        while (i < _itemSize) {
+            zigzag(i) = zigzag(i, percent)
+            pseudoZigzag(i) = pseudoZigzag(i, percent)
+            i += 1
+        }
     }
+    
 }
+
+
+
+
