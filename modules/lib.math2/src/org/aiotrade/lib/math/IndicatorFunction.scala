@@ -127,12 +127,14 @@ object IndicatorFunction {
             
             val fromIdx = idx - (period - 1)
             val toIdx   = idx
-            
-            for (i <- fromIdx to toIdx) {
+
+            var i = fromIdx
+            while (i <= toIdx) {
                 
                 dms += dmPlus(i, highs, lows)
                 trs += tr(i, highs, lows, closes)
-                
+
+                i += 1
             }
             
             val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
@@ -156,11 +158,13 @@ object IndicatorFunction {
             val fromIdx = idx - (period - 1)
             val toIdx   = idx;
             
-            for (i <- fromIdx to toIdx) {
+            var i = fromIdx
+            while (i <= toIdx) {
                 
                 dms += dmMinus(i, highs, lows)
                 trs += tr(i, highs, lows, closes)
-                
+
+                i += 1
             }
             
             val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
@@ -198,10 +202,12 @@ object IndicatorFunction {
             val fromIdx = idx - (periodADX - 1)
             val toIdx   = idx
             
-            for (i <- fromIdx to toIdx) {
+            var i = fromIdx
+            while (i <= toIdx) {
                 
                 dxes += dx(i, periodDI, highs, lows, closes)
-                
+
+                i += 1
             }
             
             StatisticFunction.ma(dxes, 0, periodADX - 1)

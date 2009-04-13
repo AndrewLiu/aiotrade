@@ -49,11 +49,13 @@ object StatisticFunction {
         }
 
         var sum = 0f
-        for (i <- begIdx to endIdx) {
+        var i = begIdx
+        while (i <= endIdx) {
             val v = values(i)
             if (v != null) {  // @todo why this happens?
                 sum += v
             }
+            i += 1
         }
 
         sum
@@ -121,10 +123,11 @@ object StatisticFunction {
         }
 
         val period1 = period(begIdx, endIdx) * 1f
-        val n = values.size
         var ema = 0f
-        for (i <- begIdx to n if i < n) {
+        var i = begIdx
+        while (i <= endIdx) {
             ema += ((period1 - 1f) / (period1 + 1f)) * ema + (2f / (period1 + 1f)) * values(i)
+            i += 1
         }
 
         ema
@@ -196,10 +199,12 @@ object StatisticFunction {
         var max = -Float.MaxValue
         var min = +Float.MaxValue
         val lastIdx = Math.min(endIdx, values.size - 1)
-        for (i <- begIdx to lastIdx) {
+        var i = begIdx
+        while (i <= lastIdx) {
             val value = values(i)
             max = if (max >= value) max else value
             min = if (min <= value) min else value
+            i += 1
         }
 
         Array(max, min)
@@ -213,10 +218,12 @@ object StatisticFunction {
         var max = -Float.MaxValue
         var min = +Float.MaxValue
         val lastIdx = Math.min(endIdx, values.length - 1)
-        for (i <- begIdx to lastIdx) {
+        var i = begIdx
+        while (i <= lastIdx) {
             val value = values(i)
             max = Math.max(max, value)
             min = Math.min(min, value)
+            i += 1
         }
 
         Array(max, min)
@@ -233,9 +240,11 @@ object StatisticFunction {
         val ma1 = ma(values, begIdx, endIdx)
         val lastIdx = Math.min(endIdx, values.size - 1)
         var deviation_square_sum = 0d
-        for (i <- begIdx to lastIdx) {
+        var i = begIdx
+        while (i <= lastIdx) {
             val deviation = values(i) - ma1
             deviation_square_sum += deviation * deviation
+            i += 1
         }
 
         val period1 = period(begIdx, endIdx) * 1d
@@ -309,14 +318,17 @@ object StatisticFunction {
 
         val interval = (max - min) / ((nIntervals - 1) * 1f)
         val mass = new Array[Array[Float]](2, nIntervals)
-        for (i <- 0 until nIntervals) {
+        var i = 0
+        while (i < nIntervals) {
             mass(VALUE)(i) = min + i * interval
             mass(MASS)(i) = 0f
+            i += 1
         }
 
         val lastIdx = Math.min(endIdx, values.size - 1)
         var total = 0f
-        for (i <- begIdx1 to lastIdx) {
+        i = begIdx1
+        while (i <= lastIdx) {
             val value = values(i)
             val weight = if (weights == null) 1f else weights(i).floatValue
             if (value >= min && value <= max) {
@@ -326,6 +338,7 @@ object StatisticFunction {
             }
 
             total += weight
+            i += 1
         }
 
         mass(MASS).map{x => x / total}
@@ -349,14 +362,17 @@ object StatisticFunction {
         val nIntervals = (((max - min) / interval) + 1).asInstanceOf[Int]
         val period1 = period(begIdx, endIdx)
         val mass = new Array[Array[Float]](2, nIntervals)
-        for (i <- 0 until nIntervals) {
+        var i = 0
+        while (i < nIntervals) {
             mass(VALUE)(i) = min + i * interval
-            mass(MASS)(i) = 0f
+            mass(MASS) (i) = 0f
+            i += 1
         }
 
         val lastIdx = Math.min(endIdx, values.size - 1)
         var total = 0f
-        for (i <- begIdx to lastIdx) {
+        i = begIdx
+        while (i <= lastIdx) {
             val value = values(i)
             val weight = if (weights == null) 1f else weights(i)
             if (value >= min && value <= max) {
@@ -366,6 +382,7 @@ object StatisticFunction {
             }
 
             total += weight
+            i += 1
         }
 
         mass(MASS).map{x => x / total}
