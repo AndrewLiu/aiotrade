@@ -11,7 +11,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert._
+import org.aiotrade.lib.math.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
@@ -131,12 +133,12 @@ class TestHelper {
         contents
     }
 
-    private def createIndicatorDescriptor(clazz:Class, frenquency:Frequency) :IndicatorDescriptor = {
-        IndicatorDescriptor indicator = new IndicatorDescriptor();
-        indicator.setActive(true);
-        indicator.setServiceClassName(clazz.getName());
-        indicator.setFreq(frenquency);
-        return indicator;
+    private def createIndicatorDescriptor(clazz:Class[Indicator], freq:Frequency) :IndicatorDescriptor = {
+        val indicator = new IndicatorDescriptor
+        indicator.active = true
+        indicator.serviceClassName = clazz.getName
+        indicator.freq = freq
+        indicator
     }
 
 
