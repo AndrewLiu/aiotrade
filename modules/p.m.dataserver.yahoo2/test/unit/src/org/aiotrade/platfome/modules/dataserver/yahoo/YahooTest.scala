@@ -11,6 +11,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert._
+import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.math.timeseries.computable.Indicator
@@ -128,7 +129,7 @@ class TestHelper {
         val contents = new AnalysisContents(symbol)
 
         contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
-        //contents.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
+        contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
         contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
         
         contents

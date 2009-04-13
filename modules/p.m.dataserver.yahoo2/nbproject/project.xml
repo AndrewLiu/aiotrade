@@ -7,14 +7,6 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.aiotrade.lib.indicator</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.aiotrade.lib.math</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -50,6 +42,10 @@
             <test-dependencies>
                 <test-type>
                     <name>unit</name>
+                    <test-dependency>
+                        <code-name-base>org.aiotrade.lib.indicator</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
                     <test-dependency>
                         <code-name-base>org.aiotrade.platform.modules.indicator.basic</code-name-base>
                         <compile-dependency/>
