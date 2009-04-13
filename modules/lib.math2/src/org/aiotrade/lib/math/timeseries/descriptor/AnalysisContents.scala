@@ -135,7 +135,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
         result
     }
     
-    def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe:Class[T], serviceClassName:String, freq:Frequency) :Option[T] = {
+    def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe:Class[T], serviceClassName:String, freq:Frequency) :Option[T] = {
         for (descriptor <- lookupDescriptors(tpe)) {
             if (descriptor.idEquals(serviceClassName, freq)) {
                 return Some(descriptor)

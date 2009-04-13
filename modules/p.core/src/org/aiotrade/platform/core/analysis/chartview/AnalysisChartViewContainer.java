@@ -38,7 +38,7 @@ import java.util.List;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.lib.charting.view.WithDrawingPane;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
 import org.aiotrade.lib.math.timeseries.computable.Indicator;

@@ -54,7 +54,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.event.MouseInputAdapter;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.math.timeseries.QuoteItem;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;

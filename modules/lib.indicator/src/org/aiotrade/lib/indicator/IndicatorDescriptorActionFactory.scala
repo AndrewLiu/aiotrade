@@ -28,10 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.descriptor;
+package org.aiotrade.lib.indicator
 
-import javax.swing.Action;
-import org.aiotrade.lib.util.ServiceLoader;
+import javax.swing.Action
+import org.aiotrade.lib.util.ServiceLoader
 
 /**
  *
@@ -39,16 +39,18 @@ import org.aiotrade.lib.util.ServiceLoader;
  * @version 1.0, December 11, 2006, 10:20 PM
  * @since   1.0.4
  */
-public class IndicatorDescriptorActionFactory {
-    private static I i;
+object IndicatorDescriptorActionFactory {
+    private var i :IndicatorDescriptorActionFactory = _
 
-    public static I getDefault() {
-        return i == null ? i = ServiceLoader.load(I.class).iterator().next() : i;
+    def getDefault :IndicatorDescriptorActionFactory = {
+        if (i == null) {
+            i = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
+        }
+        i
     }
-    
-    public static interface I {
-        Action[] createActions(IndicatorDescriptor descriptor);
-    }
-    
+}
+
+trait IndicatorDescriptorActionFactory {
+    def createActions(descriptor:IndicatorDescriptor) :Array[Action]
 }
 

@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.text.DateFormatter;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart;
 import org.aiotrade.lib.math.timeseries.computable.Opt;

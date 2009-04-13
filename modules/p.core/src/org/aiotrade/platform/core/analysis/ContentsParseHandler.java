@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.math.timeseries.Frequency;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.charting.chart.util.ValuePoint;

@@ -131,6 +131,15 @@ class TestHelper {
         contents
     }
 
+    private def createIndicatorDescriptor(clazz:Class, frenquency:Frequency) :IndicatorDescriptor = {
+        IndicatorDescriptor indicator = new IndicatorDescriptor();
+        indicator.setActive(true);
+        indicator.setServiceClassName(clazz.getName());
+        indicator.setFreq(frenquency);
+        return indicator;
+    }
+
+
     private def loadSer(contents:AnalysisContents) :Unit = {
         val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) match {
             case None => return

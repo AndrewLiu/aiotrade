@@ -35,7 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
+import org.aiotrade.lib.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.lib.math.timeseries.QuoteSer;

@@ -79,7 +79,7 @@ abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Freq
         _serviceInstance != None
     }
     
-    protected def createServiceInstance(args:Object* ) :Option[S]
+    protected def createServiceInstance(args:Any* ) :Option[S]
     
     def displayName:String
     
