@@ -49,15 +49,15 @@ class SARFunction extends AbstractFunction {
     val _sar = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+    def set(baseSer:Ser, args:Seq[_]) :Unit = {
+        super.set(baseSer, Nil)
         
         this.initial = args(0).asInstanceOf[Opt]
         this.step = args(1).asInstanceOf[Opt]
         this.maximum = args(2).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
+    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
         this._baseSer == baseSer &&
         this.initial == args(0) &&
         this.step == args(1) &&

@@ -36,7 +36,7 @@ import javax.swing.event.ChangeEvent
  *
  * @author Caoyuan Deng
  */
-class OptChangeEvent(private var _source:Object) extends ChangeEvent(_source) {
+class OptChangeEvent(private var _source:AnyRef) extends ChangeEvent(_source) {
 
     override
     def getSource :Opt = {

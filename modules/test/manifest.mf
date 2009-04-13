@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.aiotrade.platform.test
+OpenIDE-Module-Layer: org/aiotrade/platform/test/resources/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/test/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

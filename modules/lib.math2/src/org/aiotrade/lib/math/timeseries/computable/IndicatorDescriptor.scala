@@ -46,7 +46,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(serviceClassName:String, freq:Frequency, optsX:ArrayBuffer[Opt], active:Boolean) extends AnalysisDescriptor[Indicator](serviceClassName, freq, active) {
+class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:ArrayBuffer[Opt], activeX:Boolean) extends AnalysisDescriptor[Indicator](serviceClassNameX, freqX, activeX) {
 
     private var _opts:ArrayBuffer[Opt] = optsX
 
@@ -66,28 +66,28 @@ class IndicatorDescriptor(serviceClassName:String, freq:Frequency, optsX:ArrayBu
     def opts_=(opts:ArrayBuffer[Opt]) :Unit = {
         /**
          * @NOTICE:
-         * always create a new copy of inOpts to seperate the opts of this
+         * always create a new copy of in opts to seperate the opts of this
          * and that transfered in (we don't know who transfer it in, so, be more
          * carefule is always good)
          */
-        val mySize = _opts.size
-        if (_opts != null) {
+        val mySize = this._opts.size
+        if (opts != null) {
             for (i <- 0 until opts.size) {
-                val newOpt = _opts(i).clone
+                val newOpt = opts(i).clone
                 if (i < mySize) {
-                    _opts(i) = newOpt
+                    this._opts(i) = newOpt
                 } else {
-                    _opts += newOpt
+                    this._opts += newOpt
                 }
             }
         } else {
-            _opts.clear
+            this._opts.clear
         }
     }
 
     override
     def displayName :String = {
-        val indicator = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
+        val indicator = if (isServiceInstanceCreated) createdServerInstance(Nil) else lookupServiceTemplate
         val displayStr = indicator match {
             case None => serviceClassName
             case Some(x) => x.shortDescription
@@ -105,25 +105,24 @@ class IndicatorDescriptor(serviceClassName:String, freq:Frequency, optsX:ArrayBu
      * @param baseSer for indicator
      */
     override
-    protected def createServiceInstance(args:Any*) :Option[Indicator] = {
-        val baseSer = args(0).asInstanceOf[Ser]
-
-        lookupServiceTemplate match {
-            case None => None
-            case Some(x) => 
-                val instance = x.createNewInstance(baseSer)
+    protected def createServiceInstance(args:Seq[_]) :Option[Indicator] = args match {
+        case Seq(baseSer:Ser) => lookupServiceTemplate match {
+                case None => None
+                case Some(x) =>
+                    val instance = x.createNewInstance(baseSer)
                 
-                if (opts.size == 0) {
-                    /** this means this indicatorDescritor's opts may not be set yet, so set a default one now */
-                    opts = instance.opts
-                } else {
-                    /** should set opts here, because it's from those stored in xml */
-                    instance.opts = opts
-                }
-                Some(instance)
-        }
+                    if (opts.size == 0) {
+                        /** this means this indicatorDescritor's opts may not be set yet, so set a default one now */
+                        opts = instance.opts
+                    } else {
+                        /** should set opts here, because it's from those stored in xml */
+                        instance.opts = opts
+                    }
+                    Some(instance)
+            }
+        case _ => None
     }
-
+    
     def setOptsToDefault :Unit = {
         val defaultOpts = PersistenceManager.getDefault.defaultContents.lookupDescriptor(
             classOf[IndicatorDescriptor], serviceClassName, freq) match {
@@ -142,10 +141,16 @@ class IndicatorDescriptor(serviceClassName:String, freq:Frequency, optsX:ArrayBu
 
     def lookupServiceTemplate :Option[Indicator] = {
         val indicators = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[Indicator], folderName)
-        indicators.find{x => x.getClass.getName.equals(serviceClassName)}
+        indicators.find{x => x.getClass.getName.equals(serviceClassName)} match {
+            case None =>
+                try {
+                    Some(Class.forName(serviceClassName).asInstanceOf[Indicator])
+                } catch {case ex:Exception => ex.printStackTrace; None}
+            case some => some
+        }
     }
 
-    def folderName = "Indicators"
+    val folderName = "Indicators"
 
     override
     def createDefaultActions :Array[Action] = {

@@ -63,12 +63,18 @@ abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Freq
         this.freq = freq.clone
     }
             
-    def createdServerInstance(args:Object*) :Option[S] =  {
+    protected def createServiceInstance(args:Seq[_]) :Option[S]
+
+    /**
+     * init and return a server instance
+     * @param args args to init server instance
+     */
+    def createdServerInstance(args:Seq[_]) :Option[S] =  {
         assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
-        serviceInstance()
+        serviceInstance(args)
     }
     
-    def serviceInstance(args:Object*) :Option[S] = {
+    def serviceInstance(args:Seq[_]) :Option[S] = {
         if (_serviceInstance == None) {
             _serviceInstance = createServiceInstance(args)
         }
@@ -78,8 +84,6 @@ abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Freq
     protected def isServiceInstanceCreated :Boolean = {
         _serviceInstance != None
     }
-    
-    protected def createServiceInstance(args:Any* ) :Option[S]
     
     def displayName:String
     

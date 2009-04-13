@@ -97,9 +97,9 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
         super.writeToJava(id) +
         JavaDocument.set(id, "setSymbol", "" + symbol) +
         JavaDocument.set(id, "setDateFormatString", "" + dateFormatString) +
-        JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[Object]) +
+        JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
         JavaDocument.set(id, "setBegDate", "begDate") +
-        JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[Object]) +
+        JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +
         JavaDocument.set(id, "setEndDate", "endDate") +
         JavaDocument.set(id, "setUrlString", urlString) +
         JavaDocument.set(id, "setRefreshable", refreshable) +

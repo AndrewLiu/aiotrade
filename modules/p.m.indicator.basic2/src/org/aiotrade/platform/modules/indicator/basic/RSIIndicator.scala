@@ -39,7 +39,7 @@ import org.aiotrade.lib.indicator.AbstractContIndicator;
  *
  * @author Caoyuan Deng
  */
-class RSIIndicator extends AbstractContIndicator {
+class RSIIndicator() extends AbstractContIndicator() {
     _sname = "RSI"
     _lname = "Relative Strength Index"
     _grids = Array(20f, 80f)

@@ -43,11 +43,11 @@ class DMFunction extends AbstractFunction {
     val _dmMinus = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+    def set(baseSer:Ser, args:Seq[_]) :Unit = {
+        super.set(baseSer, Nil)
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
+    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
         this._baseSer == baseSer
     }
     

@@ -13,7 +13,7 @@ import org.junit.Test
 import org.junit.Assert._
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.computable.IndicatorDescriptor
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
@@ -45,15 +45,15 @@ class TestHelper {
         val quoteServer  = classOf[YahooQuoteServer]
         val tickerServer = classOf[YahooTickerServer]
 
-        val freqOneMin = Frequency.ONE_MIN
-        val freqDaily = Frequency.DAILY
+        val oneMinFreq = Frequency.ONE_MIN
+        val dailyFreq = Frequency.DAILY
 
-        val dailyQuoteContract = createQuoteContract(symbol, "", "", freqDaily, false, quoteServer)
+        val dailyQuoteContract = createQuoteContract(symbol, "", "", dailyFreq, false, quoteServer)
 
-        val supportOneMin = dailyQuoteContract.isFreqSupported(freqOneMin)
+        val supportOneMin = dailyQuoteContract.isFreqSupported(oneMinFreq)
 
-        val oneMinQuoteContract = createQuoteContract(symbol, "", "", freqOneMin, false, quoteServer)
-        val tickerContract = createTickerContract(symbol, "", "", freqOneMin, tickerServer)
+        val oneMinQuoteContract = createQuoteContract(symbol, "", "", oneMinFreq, false, quoteServer)
+        val tickerContract = createTickerContract(symbol, "", "", oneMinFreq, tickerServer)
 
         val quoteContracts = List(dailyQuoteContract, oneMinQuoteContract)
 
@@ -61,12 +61,12 @@ class TestHelper {
         val market = YahooQuoteServer.marketOf(symbol)
         sec.market = market
 
-        val dailyContents = createAnalysisContents(symbol, freqDaily)
+        val dailyContents = createAnalysisContents(symbol, dailyFreq)
         dailyContents.addDescriptor(dailyQuoteContract)
         dailyContents.serProvider = sec
         loadSer(dailyContents)
 
-        val rtContents = createAnalysisContents(symbol, freqOneMin)
+        val rtContents = createAnalysisContents(symbol, oneMinFreq)
         rtContents.addDescriptor(oneMinQuoteContract)
         rtContents.serProvider = sec
         loadSer(rtContents)
@@ -78,7 +78,8 @@ class TestHelper {
         var t1 = t0
         while (t1 - t0 < 10000) {t1 = System.currentTimeMillis}
 
-        sec.serOf(freqDaily).foreach{x => println("size of daily quote: " + x.size)}
+        sec.serOf(dailyFreq).foreach{x => println("size of daily quote: " + x.size)}
+        computeIndicators(dailyContents, sec.serOf(dailyFreq).get)
     }
 
     private def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {
@@ -129,18 +130,18 @@ class TestHelper {
         val contents = new AnalysisContents(symbol)
 
         contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
-        contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
+        //contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
         contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
         
         contents
     }
 
     private def createIndicatorDescriptor[T <: Indicator](clazz:Class[T], freq:Frequency) :IndicatorDescriptor = {
-        val indicator = new IndicatorDescriptor
-        indicator.active = true
-        indicator.serviceClassName = clazz.getName
-        indicator.freq = freq
-        indicator
+        val descriptor = new IndicatorDescriptor
+        descriptor.active = true
+        descriptor.serviceClassName = clazz.getName
+        descriptor.freq = freq
+        descriptor
     }
 
 
@@ -172,4 +173,20 @@ class TestHelper {
         }
     }
 
+    def computeIndicators(contents:AnalysisContents, masterSer:MasterSer) :Unit = {
+        for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])) {
+            if (descriptor.active && descriptor.freq.equals(masterSer.freq)) {
+                descriptor.serviceInstance(Seq(masterSer)) match {
+                    case None => println("Can not init instance of: " + descriptor.serviceClassName)
+                    case Some(indicator) =>
+                        /**
+                         * @NOTICE
+                         * As the quoteSer may has been loaded, there may be no more UpdatedEvent
+                         * etc. fired, so, computeFrom(0) first.
+                         */
+                        indicator.computeFrom(0)
+                }
+            }
+        }
+    }
 }

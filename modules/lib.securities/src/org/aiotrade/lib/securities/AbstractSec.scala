@@ -119,7 +119,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
         }
 
         val quoteServer = freqToQuoteServer.get(freq) match {
-            case None => contract.serviceInstance() match {
+            case None => contract.serviceInstance(Nil) match {
                     case None => return false
                     case Some(x) => freqToQuoteServer.put(freq, x); x
                 }
@@ -250,7 +250,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
          * @TODO, if tickerServer switched, should check here.
          */
         if (tickerServer == null) {
-            tickerServer = tickerContract.serviceInstance().get
+            tickerServer = tickerContract.serviceInstance(Nil).get
         }
 
         if (!tickerServer.isContractSubsrcribed(tickerContract)) {

@@ -28,9 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Ser
 
 /**
  *
@@ -42,9 +42,9 @@ trait Function {
      * set the function's arguments. 
      * @param baseSer, the ser that this function is based, ie. used to compute
      */
-    def set(baseSer:Ser, args:Any*) :Unit
+    def set(baseSer:Ser, args:Seq[_]) :Unit
 
-    def idEquals(baseSer:Ser, args:Any*) :Boolean
+    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean
 
     /**
      * This method will compute from computedIdx <b>to</b> idx.

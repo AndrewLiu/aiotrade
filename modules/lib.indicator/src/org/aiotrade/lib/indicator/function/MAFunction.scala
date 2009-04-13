@@ -53,8 +53,8 @@ class MAFunction extends AbstractFunction {
     val _ma = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Any*):Unit = {
-        super.set(baseSer)
+    def set(baseSer:Ser, args:Seq[_]):Unit = {
+        super.set(baseSer, Nil)
         args match {
             case Seq(varX:Var[Float], periodX:Opt) =>
                 this.var1 = varX
@@ -62,7 +62,7 @@ class MAFunction extends AbstractFunction {
         }
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
+    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
         this._baseSer == baseSer &&
         this.var1 == args(0) &&
         this.period == args(1)

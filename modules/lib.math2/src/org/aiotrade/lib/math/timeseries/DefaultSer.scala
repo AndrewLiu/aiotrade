@@ -467,7 +467,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      AccessibleObject.setAccessible(fields, true)
 
      for (field <- fields) {
-     var value:Object = null
+     var value:Any = null
 
      try {
      value = field.get(this)

@@ -56,14 +56,14 @@ class SerChangeEvent(var _source:Ser,
                      val symbol:String,
                      val beginTime:Long,
                      val endTime:Long,
-                     val lastObject:Object, // object the event carries (It can be any thing other than a SerItem)
+                     val lastObject:AnyRef, // object the event carries (It can be any thing other than a SerItem)
                      var callBack:CallBack) extends ChangeEvent(_source) {
     
     def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long) = {
         this(source, tpe, symbol, beginTime, endTime, null, null)
     }
     
-    def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, lastObject:Object) = {
+    def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, lastObject:AnyRef) = {
         this(source, tpe, symbol, beginTime, endTime, lastObject, null)
     }
 

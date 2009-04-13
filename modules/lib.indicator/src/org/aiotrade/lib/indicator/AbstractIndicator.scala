@@ -91,7 +91,7 @@ object AbstractIndicator {
      * a helper function for keeping the same functin form as Function, don't be
      * puzzled by the name, it actully will return funcion instance
      */
-    protected def getInstance[T <: Function](clazz:Class[T], baseSer:Ser, args:Object*) :T = {
+    protected def getInstance[T <: Function](clazz:Class[T], baseSer:Ser, args:Any*) :T = {
         AbstractFunction.getInstance(clazz, baseSer, args)
     }
 

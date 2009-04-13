@@ -67,7 +67,7 @@ class TickerContract extends SecDataContract[TickerServer] {
      * @param none args are needed
      */
     override
-    def createServiceInstance(args:Object*) :Option[TickerServer] = {
+    def createServiceInstance(args:Seq[_]) :Option[TickerServer] = {
         lookupServiceTemplate match {
             case None => None
             case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]

@@ -91,10 +91,10 @@ class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerIte
         v.getByTime(time) match {
             case null => Float.NaN
             case n:Number => n.floatValue
-            case o:Object =>
+            case o:AnyRef =>
                 assert(false, "Why you get here(DefaultItem.getFloat(Var<?> var)) ? " +
                        time + " Check your code and give me Float instead of float: " +
-                       o.asInstanceOf[Object].getClass.getCanonicalName)
+                       o.asInstanceOf[AnyRef].getClass.getCanonicalName)
                 Float.NaN
         }
     }

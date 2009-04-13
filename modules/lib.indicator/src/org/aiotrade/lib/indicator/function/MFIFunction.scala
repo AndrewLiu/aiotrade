@@ -49,13 +49,13 @@ class MFIFunction extends AbstractFunction {
     val _mfi = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+    def set(baseSer:Ser, args:Seq[_]) :Unit = {
+        super.set(baseSer, Nil)
         
         this.period = args(0).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
+    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
         this._baseSer == baseSer &&
         this.period == args(0)
     }
