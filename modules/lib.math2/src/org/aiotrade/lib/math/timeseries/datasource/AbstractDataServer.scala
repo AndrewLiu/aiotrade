@@ -86,7 +86,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
      * second one (if available) is that who concerns first one.
      * Example: ticker ser also will compose today's quoteSer
      */
-    private val serToChainSers = new HashMap[Ser, Seq[Ser]]
+    private val serToChainSers = new HashMap[Ser, ArrayBuffer[Ser]]
     private var loadServer :LoadServer = _
     private var updateServer :UpdateServer = _
     private var updateTimer :Timer = _
@@ -233,13 +233,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
         }
         serToChainSers.synchronized {
             val chainSersX = serToChainSers.get(ser) match {
-                case None =>
-                    val chainSers1 = new ArrayBuffer[Ser]
-                    serToChainSers.put(ser, chainSers1)
-                    chainSers1
+                case None => new ArrayBuffer[Ser]
                 case Some(x) => x
             }
-            chainSersX ++ chainSers
+            chainSersX ++= chainSers
+            serToChainSers.put(ser, chainSersX)
         }
     }
 
