@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.computable
+package org.aiotrade.lib.math.timeseries.computable
 
 import javax.swing.Action
 import org.aiotrade.lib.util.ServiceLoader

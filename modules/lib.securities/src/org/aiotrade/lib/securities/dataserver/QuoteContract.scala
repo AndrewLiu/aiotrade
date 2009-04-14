@@ -107,8 +107,14 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
 
     def lookupServiceTemplate :Option[QuoteServer] =  {
-        val servers = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-        servers.find{x => x.getClass.getName.equalsIgnoreCase(serviceClassName)}
+        val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
+        services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+            case None =>
+                try {
+                    Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
+                } catch {case ex:Exception => ex.printStackTrace; None}
+            case some => some
+        }
     }
 
 }

@@ -186,7 +186,7 @@ class YahooTickerServer extends TickerServer {
                         loop(Math.max(newestTime, time))
                     case _ => loop(newestTime)
                 }
-        };
+        }
 
         val newestTime = loop(-Long.MaxValue)
 

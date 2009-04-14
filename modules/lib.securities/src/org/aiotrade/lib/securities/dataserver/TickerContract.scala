@@ -75,8 +75,14 @@ class TickerContract extends SecDataContract[TickerServer] {
     }
     
     def lookupServiceTemplate :Option[TickerServer] = {
-        val servers = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[TickerServer], folderName)
-        servers.find(x => x.getClass.getName.equalsIgnoreCase(serviceClassName))
+        val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[TickerServer], folderName)
+        services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+            case None =>
+                try {
+                    Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
+                } catch {case ex:Exception => ex.printStackTrace; None}
+            case some => some
+        }
     }
         
     /**

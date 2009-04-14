@@ -28,14 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.computable
+package org.aiotrade.lib.math.timeseries.computable
 
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
-import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.math.timeseries.computable.Opt
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.math.timeseries.Ser
 import org.aiotrade.lib.util.serialization.BeansDocument
@@ -140,11 +137,11 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
     }
 
     def lookupServiceTemplate :Option[Indicator] = {
-        val indicators = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[Indicator], folderName)
-        indicators.find{x => x.getClass.getName.equals(serviceClassName)} match {
+        val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[Indicator], folderName)
+        services.find{x => x.getClass.getName.equals(serviceClassName)} match {
             case None =>
                 try {
-                    Some(Class.forName(serviceClassName).asInstanceOf[Indicator])
+                    Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Indicator])
                 } catch {case ex:Exception => ex.printStackTrace; None}
             case some => some
         }

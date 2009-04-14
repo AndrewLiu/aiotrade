@@ -7,15 +7,14 @@
 
 package org.aiotrade.platform.test
 
-import org.aiotrade.lib.indicator.VOLIndicator;
-import org.aiotrade.lib.securities.PersistenceManager;
-import org.aiotrade.lib.securities.dataserver.QuoteServer;
-import org.aiotrade.lib.securities.dataserver.TickerServer;
-import org.aiotrade.lib.securities.Quote;
-import org.aiotrade.lib.math.timeseries.Frequency;
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.platform.modules.dataserver.yahoo._
+import org.aiotrade.lib.indicator.VOLIndicator
+import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.dataserver.QuoteServer
+import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.Quote
+import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.computable.Indicator
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.platform.modules.indicator.basic._
 import scala.collection.mutable.ArrayBuffer
 
@@ -46,12 +45,12 @@ class PlainPersistenceManager extends PersistenceManager {
     def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T] = {
         if (tpe == classOf[QuoteServer]) {
             if (quoteServers.isEmpty) {
-                quoteServers += new YahooQuoteServer
+                //quoteServers += new YahooQuoteServer
             }
             quoteServers.asInstanceOf[Seq[T]]
         } else if (tpe == classOf[TickerServer]) {
             if (tickerServers.isEmpty) {
-                tickerServers += new YahooTickerServer
+                //tickerServers += new YahooTickerServer
             }
             tickerServers.asInstanceOf[Seq[T]]
         } else if (tpe == classOf[Indicator]) {

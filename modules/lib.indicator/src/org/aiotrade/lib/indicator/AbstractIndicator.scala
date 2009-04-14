@@ -62,7 +62,7 @@ import org.aiotrade.lib.indicator.function.TRFunction;
 import org.aiotrade.lib.indicator.function.WMSFunction;
 import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.Opt;
-import org.aiotrade.lib.math.timeseries.computable.Option;
+import org.aiotrade.lib.math.timeseries.computable.DefaultOption;
 import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.lib.math.timeseries.DefaultSer;
 import org.aiotrade.lib.math.timeseries.Ser;
@@ -541,7 +541,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
                      value:Number,
                      step:Number,
                      minValue:Number,
-                     maxValue:Number) extends Option(name, value, step, minValue, maxValue) {
+                     maxValue:Number) extends DefaultOption(name, value, step, minValue, maxValue) {
 
         addOpt(this)
 

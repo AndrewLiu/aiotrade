@@ -33,15 +33,15 @@ package org.aiotrade.lib.math.timeseries.computable
 import org.aiotrade.lib.util.serialization.JavaDocument
 
 /**
- * Class for defining indicator's Option
+ * Class for defining indicator's DefaultOption
  *
  *
  * @author Caoyuan Deng
  * @Notice
- * If you use Option in indicator, please considerate AbstractIndicator.DefaultOpt
- * first, which will be added to Indicator's opts automatically when new it.
+ * If you use Option in indicator, please considerate AbstractIndicator.DefaultOpt first
+ * which will be added to Indicator's opts automatically when new it.
  */
-class Option(namex:String, valuex:Number, stepx:Number, minValuex:Number, maxValuex:Number) extends AbstractOpt(namex) {
+class DefaultOption(namex:String, valuex:Number, stepx:Number, minValuex:Number, maxValuex:Number) extends AbstractOpt(namex) {
     
     private var _value :Float = valuex.floatValue
     private var _step :float = if (stepx == null) 1.0f else stepx.floatValue
