@@ -42,11 +42,11 @@ class TRFunction extends AbstractFunction {
     val _tr = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil)
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer
     }
 

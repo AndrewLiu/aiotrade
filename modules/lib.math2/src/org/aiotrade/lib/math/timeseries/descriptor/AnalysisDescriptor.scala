@@ -63,20 +63,23 @@ abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Freq
         this.freq = freq.clone
     }
             
-    protected def createServiceInstance(args:Seq[_]) :Option[S]
+    protected def createServiceInstance(args:Any*) :Option[S]
 
     /**
      * init and return a server instance
      * @param args args to init server instance
      */
-    def createdServerInstance(args:Seq[_]) :Option[S] =  {
+    def createdServerInstance(args:Any*) :Option[S] =  {
         assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
-        serviceInstance(args)
+        // * @Note to pass a variable args to another function, should use type "_*" to extract it as a plain seq,
+        // other wise, it will be treated as one arg:Seq[_], and the accepting function will compose it as
+        // Seq(Seq(arg1, arg2, ...)) instead of Seq(arg1, arg2, ...)
+        serviceInstance(args:_*)
     }
     
-    def serviceInstance(args:Seq[_]) :Option[S] = {
+    def serviceInstance(args:Any*) :Option[S] = {
         if (_serviceInstance == None) {
-            _serviceInstance = createServiceInstance(args)
+            _serviceInstance = createServiceInstance(args:_*)
         }
         _serviceInstance.asInstanceOf[Option[S]]
     }

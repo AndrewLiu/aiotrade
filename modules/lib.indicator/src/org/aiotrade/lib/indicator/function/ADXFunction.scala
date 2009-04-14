@@ -48,14 +48,14 @@ class ADXFunction extends AbstractFunction {
     val _adx = new DefaultVar[Float]
 
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = args match {
+    def set(baseSer:Ser, args:Any*) :Unit = args match {
         case Seq(a:Opt, b:Opt) =>
             super.set(baseSer, Nil)
             this.periodDi = a
             this.periodAdx = b
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.periodDi == args(0) &&
         this.periodAdx == args(1)

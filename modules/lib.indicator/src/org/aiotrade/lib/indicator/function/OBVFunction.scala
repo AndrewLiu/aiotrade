@@ -42,12 +42,12 @@ class OBVFunction extends AbstractFunction {
     val _obv = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil)
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
-        return this._baseSer == baseSer
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
+        this._baseSer == baseSer
     }
 
     protected def computeSpot(i:Int) :Unit = {

@@ -42,9 +42,9 @@ trait Function {
      * set the function's arguments. 
      * @param baseSer, the ser that this function is based, ie. used to compute
      */
-    def set(baseSer:Ser, args:Seq[_]) :Unit
+    def set(baseSer:Ser, args:Any*) :Unit
 
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean
+    def idEquals(baseSer:Ser, args:Any*) :Boolean
 
     /**
      * This method will compute from computedIdx <b>to</b> idx.

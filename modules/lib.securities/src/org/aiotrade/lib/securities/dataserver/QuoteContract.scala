@@ -62,7 +62,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     beginDate = cal.getTime
 
     def icon :Option[Image] =  {
-        val server = if (isServiceInstanceCreated) createdServerInstance(Nil) else lookupServiceTemplate
+        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
         server match {
             case None => None
@@ -71,7 +71,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
 
     def supportedFreqs :Array[Frequency] = {
-        val server = if (isServiceInstanceCreated) createdServerInstance(Nil) else lookupServiceTemplate
+        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
         server match {
             case None => Array()
@@ -85,7 +85,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
         //            return true;
         //        }
 
-        val server = if (isServiceInstanceCreated) createdServerInstance(Nil) else lookupServiceTemplate
+        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
         server match {
             case None => false
             case Some(x) => x.isFreqSupported(freq)
@@ -99,7 +99,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
      * @param none args are needed.
      */
     override
-    def createServiceInstance(args:Seq[_]) :Option[QuoteServer] = {
+    def createServiceInstance(args:Any*) :Option[QuoteServer] = {
         lookupServiceTemplate match {
             case None => None
             case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]

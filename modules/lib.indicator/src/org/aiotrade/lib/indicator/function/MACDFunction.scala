@@ -50,15 +50,15 @@ class MACDFunction extends AbstractFunction {
     val _macd = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil)
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
         
         this.var1 = args(0).asInstanceOf[Var[Float]]
         this.periodSlow = args(1).asInstanceOf[Opt]
         this.periodFast = args(2).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.var1 == args(0) &&
         this.periodSlow == args(1) &&

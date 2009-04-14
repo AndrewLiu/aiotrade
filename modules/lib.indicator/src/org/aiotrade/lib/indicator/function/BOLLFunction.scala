@@ -48,15 +48,15 @@ class BOLLFunction extends AbstractFunction {
     val _bollLower  = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil);
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
         
         this.var1 = args(0).asInstanceOf[Var[Float]]
         this.period = args(1).asInstanceOf[Opt]
         this.alpha = args(2).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.var1 == args(0) &&
         this.period == args(1) &&

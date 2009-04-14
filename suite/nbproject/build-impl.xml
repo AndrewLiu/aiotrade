@@ -4,6 +4,13 @@
 ***         EDIT ../build.xml INSTEAD         ***
 -->
 <project name="suite-impl" basedir=".." xmlns:sproject="http://www.netbeans.org/ns/nb-module-suite-project/1">
+    <fail message="Please build using Ant 1.7.1 or higher.">
+        <condition>
+            <not>
+                <antversion atleast="1.7.1"/>
+            </not>
+        </condition>
+    </fail>
     <property file="nbproject/private/platform-private.properties"/>
     <property file="nbproject/platform.properties"/>
     <macrodef name="property" uri="http://www.netbeans.org/ns/nb-module-suite-project/1">

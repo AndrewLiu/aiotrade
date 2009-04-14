@@ -45,13 +45,13 @@ class WMSFunction extends AbstractFunction {
     val _wms = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil)
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
         
         this.period = args(0).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.period == args(0)
     }

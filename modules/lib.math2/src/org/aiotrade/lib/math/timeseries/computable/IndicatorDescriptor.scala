@@ -102,13 +102,13 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
      * @param baseSer for indicator
      */
     override
-    protected def createServiceInstance(args:Seq[_]) :Option[Indicator] = args match {
+    protected def createServiceInstance(args:Any*) :Option[Indicator] = args match {
         case Seq(baseSer:Ser) => lookupServiceTemplate match {
                 case None => None
                 case Some(x) =>
                     val instance = x.createNewInstance(baseSer)
                 
-                    if (opts.size == 0) {
+                    if (opts.isEmpty) {
                         /** this means this indicatorDescritor's opts may not be set yet, so set a default one now */
                         opts = instance.opts
                     } else {

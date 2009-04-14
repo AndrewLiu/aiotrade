@@ -69,8 +69,8 @@ case class PROBMASSFunction extends AbstractFunction {
     var _probMass:Array[Array[Float]] = _
     
     override
-    def set(baseSer:Ser, args:Seq[_]) :Unit = {
-        super.set(baseSer, Nil)
+    def set(baseSer:Ser, args:Any*) :Unit = {
+        super.set(baseSer)
         args match {
             case Seq(varX:Var[Float], weightX:Var[Float], periodX:Opt, nIntervalX:Opt) =>
                 var1 = varX
@@ -80,7 +80,7 @@ case class PROBMASSFunction extends AbstractFunction {
         }
     }
     
-    def idEquals(baseSer:Ser, args:Seq[_]) :Boolean = {
+    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         if (this._baseSer == baseSer) {
             args match {
                 case Seq(varX:Var[Float], weightX:Var[Float], periodX:Opt, nIntervalX:Opt) =>

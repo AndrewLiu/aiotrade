@@ -92,7 +92,7 @@ object AbstractIndicator {
      * puzzled by the name, it actully will return funcion instance
      */
     protected def getInstance[T <: Function](clazz:Class[T], baseSer:Ser, args:Any*) :T = {
-        AbstractFunction.getInstance(clazz, baseSer, args)
+        AbstractFunction.getInstance(clazz, baseSer, args:_*)
     }
 
     // ----- Functions for test
