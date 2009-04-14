@@ -64,9 +64,7 @@ class YahooTest extends TestHelper {
         sec.subscribeTickerServer
 
         // wait for some seconds
-        val t0 = System.currentTimeMillis
-        var t1 = t0
-        while (t1 - t0 < 10000) {t1 = System.currentTimeMillis}
+        waitFor(10000)
 
         sec.serOf(dailyFreq).foreach{x => println("size of daily quote: " + x.size)}
         computeIndicators(dailyContents, sec.serOf(dailyFreq).get)

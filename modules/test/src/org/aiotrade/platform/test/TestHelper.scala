@@ -122,6 +122,8 @@ trait TestHelper {
                          */
                         indicator.computeFrom(0)
 
+                        println
+                        println(masterSer.freq)
                         println(indicator.shortDescription + ":" + indicator.size)
                         for (var1 <- indicator.varSet) {
                             print(var1.name + ": ")
@@ -131,6 +133,13 @@ trait TestHelper {
                 }
             }
         }
+    }
+
+    // wait for some ms
+    def waitFor(ms:Long) :Unit = {
+        val t0 = System.currentTimeMillis
+        var t1 = t0
+        while (t1 - t0 < ms) {t1 = System.currentTimeMillis}
     }
 
 }
