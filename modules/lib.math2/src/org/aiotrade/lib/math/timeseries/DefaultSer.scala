@@ -219,6 +219,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                     /** re-get one from calculator */
                     item = x.computeItem(time)
                 }
+            case _ =>
         }
 
         item
@@ -271,9 +272,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             val end = timestamps(size - 1)
             val cal = Calendar.getInstance
             cal.setTimeInMillis(start)
-            sb.append(", from ").append(cal.getTime)
+            sb.append(", ").append(cal.getTime)
             cal.setTimeInMillis(end)
-            sb.append(" to ").append(cal.getTime).append(")")
+            sb.append(" - ").append(cal.getTime).append(")")
         }
         sb.toString
     }
