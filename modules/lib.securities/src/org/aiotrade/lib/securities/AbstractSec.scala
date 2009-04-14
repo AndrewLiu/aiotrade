@@ -255,17 +255,11 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
 
         if (!tickerServer.isContractSubsrcribed(tickerContract)) {
             // Only dailySer and minuteSre needs to chainly follow ticker change.
-            val chainSers = (serOf(Frequency.DAILY), serOf(Frequency.ONE_MIN)) match {
-                case (None, None) => Nil
-                case (Some(dailySer), Some(minuteSer)) => dailySer :: minuteSer :: Nil
-                case (Some(dailySer), None) => dailySer :: Nil
-                case (None, Some(minuteSer)) => minuteSer :: Nil
-            }
+            var chainSers :List[Ser] = Nil
+            serOf(Frequency.DAILY).foreach{x => chainSers = x :: chainSers}
+            serOf(Frequency.ONE_MIN).foreach{x => chainSers = x :: chainSers}
 
-            chainSers match {
-                case Nil => tickerServer.subscribe(tickerContract, tickerSer)
-                case _   => tickerServer.subscribe(tickerContract, tickerSer, chainSers)
-            }
+            tickerServer.subscribe(tickerContract, tickerSer, chainSers)
         }
 
         tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
