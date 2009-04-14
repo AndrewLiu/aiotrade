@@ -157,17 +157,15 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     
     def createDescriptor[T <: AnalysisDescriptor[Any]](tpe:Class[T], serviceClassName:String, freq:Frequency) :Option[T] = {
         try {
-            val descriptor = tpe.newInstance;
+            val descriptor = tpe.newInstance
             descriptor.set(serviceClassName, freq)
             addDescriptor(descriptor)
             
-            return Some(descriptor.asInstanceOf[T])
+            Some(descriptor.asInstanceOf[T])
         } catch {
-            case ex:IllegalAccessException => ex.printStackTrace
-            case ex:InstantiationException => ex.printStackTrace
-        }
-        
-        None
+            case ex:IllegalAccessException => ex.printStackTrace; None
+            case ex:InstantiationException => ex.printStackTrace; None
+        }        
     }
             
     def addAction(action:Action) :Action = {

@@ -115,7 +115,7 @@ trait TestHelper {
              if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
 
 
-            descriptor.serviceInstance(Seq(masterSer)) match {
+            descriptor.serviceInstance(masterSer) match {
                 case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
                 case Some(indicator) =>
                     /**
@@ -145,7 +145,7 @@ trait TestHelper {
         println
         println(indicator.freq)
         println(indicator.shortDescription + ":" + indicator.size)
-        for (var1 <- indicator.varSet) {
+        for (var1 <- indicator.varSet if var1.size > 0) {
             println(var1.name + ": " + var1.values.last)
         }
     }

@@ -84,7 +84,7 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
 
     override
     def displayName :String = {
-        val indicator = if (isServiceInstanceCreated) createdServerInstance(Nil) else lookupServiceTemplate
+        val indicator = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
         val displayStr = indicator match {
             case None => serviceClassName
             case Some(x) => x.shortDescription

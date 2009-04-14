@@ -39,7 +39,19 @@
                         <compile-dependency/>
                     </test-dependency>
                     <test-dependency>
+                        <code-name-base>org.aiotrade.lib.math</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
+                    <test-dependency>
+                        <code-name-base>org.aiotrade.lib.securities</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
+                    <test-dependency>
                         <code-name-base>org.aiotrade.platform.modules.indicator.basic</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
+                    <test-dependency>
+                        <code-name-base>org.aiotrade.platform.test</code-name-base>
                         <compile-dependency/>
                     </test-dependency>
                 </test-type>
