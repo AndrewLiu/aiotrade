@@ -136,7 +136,7 @@ class YahooTickerServer extends TickerServer {
         def loop(newestTime:Long) :Long = reader.readLine match {
             case null => newestTime // break right now
             case line => line.split(",") match {
-                    case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX) =>
+                    case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*) =>
                         val symbol = symbolX.toUpperCase.replace('"', ' ').trim
 
                         val dateStr = dateX.replace('"', ' ').trim
