@@ -67,7 +67,8 @@ class YahooTest extends TestHelper {
         waitFor(10000)
 
         sec.serOf(dailyFreq).foreach{x => println("size of daily quote: " + x.size)}
-        computeIndicators(dailyContents, sec.serOf(dailyFreq).get)
+        val inds = computeIndicators(dailyContents, sec.serOf(dailyFreq).get)
+        inds.foreach(printValuesOf(_))
     }
 
 }

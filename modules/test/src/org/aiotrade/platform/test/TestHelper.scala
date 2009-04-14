@@ -109,29 +109,44 @@ trait TestHelper {
         }
     }
 
-    def computeIndicators(contents:AnalysisContents, masterSer:MasterSer) :Unit = {
-        for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])) {
-            if (descriptor.active && descriptor.freq.equals(masterSer.freq)) {
-                descriptor.serviceInstance(Seq(masterSer)) match {
-                    case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
-                    case Some(indicator) =>
-                        /**
-                         * @NOTICE
-                         * As the quoteSer may has been loaded, there may be no more UpdatedEvent
-                         * etc. fired, so, computeFrom(0) first.
-                         */
-                        indicator.computeFrom(0)
+    def computeIndicators(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
+        var indicators: List[Indicator] = Nil
+        for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
+             if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
 
-                        println
-                        println(masterSer.freq)
-                        println(indicator.shortDescription + ":" + indicator.size)
-                        for (var1 <- indicator.varSet) {
-                            print(var1.name + ": ")
-                            var1.values.foreach(x => print(x + ","))
-                            println
-                        }
-                }
+
+            descriptor.serviceInstance(Seq(masterSer)) match {
+                case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
+                case Some(indicator) =>
+                    /**
+                     * @NOTICE
+                     * As the quoteSer may has been loaded, there may be no more UpdatedEvent
+                     * etc. fired, so, computeFrom(0) first.
+                     */
+                    indicator.computeFrom(0)
+                    indicators = indicator :: indicators
             }
+        }
+        indicators
+    }
+
+    def printValuesOf(indicator:Indicator) :Unit = {
+        println
+        println(indicator.freq)
+        println(indicator.shortDescription + ":" + indicator.size)
+        for (var1 <- indicator.varSet) {
+            print(var1.name + ": ")
+            var1.values.reverse.foreach(x => print(x + ","))
+            println
+        }
+    }
+
+    def printLastValueOf(indicator:Indicator) :Unit = {
+        println
+        println(indicator.freq)
+        println(indicator.shortDescription + ":" + indicator.size)
+        for (var1 <- indicator.varSet) {
+            println(var1.name + ": " + var1.values.last)
         }
     }
 
