@@ -30,9 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-
-import java.util.List
 import scala.collection.Set
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Time Series
@@ -54,7 +53,7 @@ trait Ser {
     
     def lastOccurredTime :Long
     
-    def itemList :List[SerItem]
+    def itemList :ArrayBuffer[SerItem]
     
     def size :Int
     

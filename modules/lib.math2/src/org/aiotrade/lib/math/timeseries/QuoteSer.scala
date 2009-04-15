@@ -58,9 +58,9 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
      */
     def adjust(b:Boolean) :Unit = {
         val itemList1 = itemList
-        
-        for (i <- 0 until itemList1.size) {
-            val item = itemList1.get(i).asInstanceOf[QuoteItem]
+        var i = 0
+        while (i < itemList1.size) {
+            val item = itemList1(i).asInstanceOf[QuoteItem]
             
             var prevNorm = item.close
             var postNorm = if (b) {
@@ -75,6 +75,8 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
             item.low   = linearAdjust(item.low,   prevNorm, postNorm)
             item.open  = linearAdjust(item.open,  prevNorm, postNorm)
             item.close = linearAdjust(item.close, prevNorm, postNorm)
+
+            i += 1
         }
         
         adjusted = b

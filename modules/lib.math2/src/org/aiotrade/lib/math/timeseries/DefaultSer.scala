@@ -33,9 +33,7 @@ package org.aiotrade.lib.math.timeseries
 import java.awt.Color;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Map;
 import org.aiotrade.lib.math.timeseries.computable.SpotComputable
 import org.aiotrade.lib.math.timeseries.plottable.Plot
@@ -76,7 +74,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * position <-> time <-> item
      */
     val timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
-    private val items = new ArrayList[SerItem](INIT_CAPACITY)
+    private val items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
     /**
      * Map contains vars. Each var element of array is a Var that contains a
      * sequence of values for one field of SerItem.
@@ -107,7 +105,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          */
         val idx = timestamps.indexOfOccurredTime(time)
         if (idx >= 0 && idx < timestamps.size) {
-            items.get(idx)
+            items(idx)
         } else null
     }
 
@@ -146,7 +144,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             v(idx) = null
         }
 
-        items.set(idx, itemTobeClear)
+        items(idx) = itemTobeClear
         itemTobeClear.clear
     }
 
@@ -159,7 +157,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         /** as timestamps includes this time, we just always put in a none-null item  */
-        items.add(idx, clearItem)
+        items.insert(idx, clearItem)
     }
 
     private def internal_addTime_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
@@ -171,7 +169,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         /** as timestamps includes this time, we just always put in a none-null item  */
-        items.add(clearItem)
+        items += clearItem
     }
 
     protected def createItem(time:Long) :SerItem = {
@@ -209,7 +207,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                               Long.MaxValue))
     }
 
-    def itemList :List[SerItem] = items
+    def itemList :ArrayBuffer[SerItem] = items
 
     def getItem(time:Long) :SerItem = {
         var item = internal_getItem(time)

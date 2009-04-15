@@ -77,7 +77,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         def loop(i:Int) :Unit = {
             if (i >= size) return
             
-            val item_i = sourceItemList.get(i).asInstanceOf[QuoteItem]
+            val item_i = sourceItemList(i).asInstanceOf[QuoteItem]
             
             val time_i = item_i.time;
             
@@ -106,7 +106,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
             var j = 0
             var break = false
             while (i + j < size && !break) {
-                val item_j = sourceItemList.get(i + j).asInstanceOf[QuoteItem]
+                val item_j = sourceItemList(i + j).asInstanceOf[QuoteItem]
                 val time_j = item_j.time
                 
                 cal.setTimeInMillis(time_j);
