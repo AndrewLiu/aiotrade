@@ -126,7 +126,7 @@ trait TestHelper {
         }
     }
 
-    def computeIndicators(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
+    def indicatorsOf(contents:AnalysisContents, masterSer:MasterSer, computeRightNow:Boolean) :Seq[Indicator] = {
         var indicators: List[Indicator] = Nil
         for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
              if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
@@ -140,12 +140,14 @@ trait TestHelper {
                      * As the quoteSer may has been loaded, there may be no more UpdatedEvent
                      * etc. fired, so, computeFrom(0) first.
                      */
-                    indicator match {
-                        case _:SpotComputable => // don't compute it right now
-                        case _ =>
-                            val t0 = System.currentTimeMillis
-                            indicator.computeFrom(0)
-                            println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
+                    if (computeRightNow) {
+                        indicator match {
+                            case _:SpotComputable => // don't compute it right now
+                            case _ =>
+                                val t0 = System.currentTimeMillis
+                                indicator.computeFrom(0)
+                                println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
+                        }
                     }
                     
                     indicators = indicator :: indicators

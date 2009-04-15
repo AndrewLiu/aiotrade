@@ -69,8 +69,8 @@ class YahooTest extends TestHelper {
         val dailySer  = sec.serOf(dailyFreq).get
         val oneMinSer = sec.serOf(oneMinFreq).get
         val tickerSer = sec.tickerSer
-        val dailyInds = computeIndicators(dailyContents, dailySer)
-        val oneMinInds = computeIndicators(rtContents, oneMinSer)
+        val dailyInds = indicatorsOf(dailyContents, dailySer, true)
+        val oneMinInds = indicatorsOf(rtContents, oneMinSer, true)
 
         println("size of daily quote: " + dailySer.size)
         println("size of 1 min quote: " + oneMinSer.size)
