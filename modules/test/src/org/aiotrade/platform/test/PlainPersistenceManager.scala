@@ -55,9 +55,27 @@ class PlainPersistenceManager extends PersistenceManager {
             tickerServers.asInstanceOf[Seq[T]]
         } else if (tpe == classOf[Indicator]) {
             if (indicators.isEmpty) {
-                indicators += new MAIndicator
-                indicators += new RSIIndicator
-                indicators += new VOLIndicator
+                indicators ++= List(new ARBRIndicator,
+                                    new BIASIndicator,
+                                    new BOLLIndicator,
+                                    new CCIIndicator,
+                                    new DMIIndicator,
+                                    new EMAIndicator,
+                                    new GMMAIndicator,
+                                    new HVDIndicator,
+                                    new KDIndicator,
+                                    new MACDIndicator,
+                                    new MAIndicator,
+                                    new MFIIndicator,
+                                    new MTMIndicator,
+                                    new OBVIndicator,
+                                    new ROCIndicator,
+                                    new RSIIndicator,
+                                    new SARIndicator,
+                                    new WMSIndicator,
+                                    new ZIGZAGFAIndicator,
+                                    new ZIGZAGIndicator
+                )
             }
             indicators.asInstanceOf[Seq[T]]
         } else {

@@ -15,7 +15,7 @@ import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.securities.dataserver._
 import org.aiotrade.platform.modules.dataserver.yahoo._
-import org.aiotrade.platform.modules.indicator.basic.{MAIndicator,RSIIndicator}
+import org.aiotrade.platform.modules.indicator.basic._
 
 trait TestHelper {
     def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {
@@ -65,9 +65,26 @@ trait TestHelper {
     def createAnalysisContents(symbol:String, freq:Frequency) :AnalysisContents = {
         val contents = new AnalysisContents(symbol)
 
-        contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[BIASIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[BOLLIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[CCIIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[DMIIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[EMAIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[GMMAIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[HVDIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[KDIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[MACDIndicator], freq))
         contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[MFIIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[MTMIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[OBVIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[ROCIndicator], freq))
         contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[SARIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[WMSIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGFAIndicator], freq))
+        contents.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGIndicator], freq))
 
         contents
     }
