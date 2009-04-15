@@ -494,9 +494,9 @@ made subject to such option by the copyright holder.
                 <path refid="test.@{test.type}.cp"/>
             </path>
             <!-- scalac -->
-            <scalac srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
+            <fsc srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" encoding="UTF-8" target="jvm-${javac.target}">
                 <classpath refid="test.@{test.type}.scalac.cp"/>
-            </scalac>
+            </fsc>
             <!-- javac -->
             <nb-javac srcdir="${test.@{test.type}.src.dir}" destdir="${build.test.@{test.type}.classes.dir}" excludes="${test.excludes}"
                    debug="true" deprecation="${build.compiler.deprecation}" encoding="UTF-8"
