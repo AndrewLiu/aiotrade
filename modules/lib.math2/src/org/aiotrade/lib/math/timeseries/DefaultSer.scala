@@ -243,16 +243,16 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * you'd better never think to open these methods to protected or public.
      */
     def createItemOrClearIt(time:Long) :SerItem = {
-        var item = internal_getItem(time)
-        if (item == null) {
-            /** item == null means timestamps.indexOfOccurredTime(time) is not in valid range */
-            item = createItem(time)
-            internal_addClearItemAndNullVarValuesToList_And_Filltimestamps__InTimeOrder(time, item)
-        } else {
-            item.clear
+        internal_getItem(time) match {
+            case null =>
+                /** item == null means timestamps.indexOfOccurredTime(time) is not in valid range */
+                val item = createItem(time)
+                internal_addClearItemAndNullVarValuesToList_And_Filltimestamps__InTimeOrder(time, item)
+                item
+            case item =>
+                item.clear
+                item
         }
-
-        item
     }
 
     def size :Int = timestamps.size
@@ -406,11 +406,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         override
         def apply(idx:Int) :E = {
             if (idx >= 0 && idx < values.size) {
-                val value = values(idx)
-                if (value != null) {
-                    value
-                } else {
-                    nullValue
+                values(idx) match {
+                    case null => nullValue
+                    case value => value
                 }
             } else {
                 nullValue
@@ -432,7 +430,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          */
         def clear(fromIdx:Int) :Unit = {
             if (fromIdx < 0) {
-                return;
+                return
             }
             for (i <- values.size - 1 to fromIdx) {
                 values.remove(i)

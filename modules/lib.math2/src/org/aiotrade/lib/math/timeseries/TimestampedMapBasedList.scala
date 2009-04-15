@@ -147,9 +147,11 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     def copyToArray[B >: A](xs:Array[B], start:Int) :Unit = {
         val length = timestamps.size
         val array = if (xs.length == length) xs else new Array[B](size)
-        for (i <- 0 until length) {
+        var i = 0; while (i < length) {
             val time = timestamps.apply(i)
-            array(i) = if (time != null) timeMapElementData.get(time).asInstanceOf[B] else null.asInstanceOf[B]
+            timeMapElementData.get(time).asInstanceOf[B]
+            array(i) = timeMapElementData.get(time).asInstanceOf[B]
+            i += 1
         }
         
         array
@@ -158,13 +160,13 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     def add(time:Long, elem:A) :Boolean = {
         if (elem == null) {
             /** null value needs not to be put in map, this will spare the memory usage */
-            return true;
+            return true
         }
         
         val idx = timestamps.indexOfOccurredTime(time)
         if (idx >= 0) {
             timeMapElementData.put(time, elem)
-            true;
+            true
         } else {
             assert(false, "Add timestamps first before add an element!")
             false
@@ -219,19 +221,17 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     
     override
     def update(n:Int, newelem:A) : Unit = {
-        val time = timestamps(n)
-        if (time != null) {
+        if (n >= 0 && n < timestamps.size) {
+            val time = timestamps(n)
             timeMapElementData.put(time, newelem)
-        } else {
-            assert(false, "Index out of bounds! index = " + n)
-        }
+        } else assert(false, "Index out of bounds! index = " + n)
     }
     
     override
-    def remove(index:Int) :A = {
-        val time = timestamps(index)
-        if (time != null) {
-            val e = timeMapElementData.get(index).get
+    def remove(n:Int) :A = {
+        if (n >= 0 && n < timestamps.size) {
+            val time = timestamps(n)
+            val e = timeMapElementData.get(n).get
             timeMapElementData.removeKey(time)
             e
         } else {
