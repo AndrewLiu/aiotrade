@@ -126,34 +126,31 @@ trait TestHelper {
         }
     }
 
-    def indicatorsOf(contents:AnalysisContents, masterSer:MasterSer, computeRightNow:Boolean) :Seq[Indicator] = {
+    def indicatorsOf(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
         var indicators: List[Indicator] = Nil
         for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
              if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
 
-
             descriptor.serviceInstance(masterSer) match {
                 case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
-                case Some(indicator) =>
-                    /**
-                     * @NOTICE
-                     * As the quoteSer may has been loaded, there may be no more UpdatedEvent
-                     * etc. fired, so, computeFrom(0) first.
-                     */
-                    if (computeRightNow) {
-                        indicator match {
-                            case _:SpotComputable => // don't compute it right now
-                            case _ =>
-                                val t0 = System.currentTimeMillis
-                                indicator.computeFrom(0)
-                                println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
-                        }
-                    }
-                    
-                    indicators = indicator :: indicators
+                case Some(indicator) => indicators = indicator :: indicators
             }
         }
         indicators
+    }
+
+    def computeSync(indicator:Indicator) :Unit = {
+        indicator match {
+            case _:SpotComputable => // don't compute it right now
+            case _ =>
+                val t0 = System.currentTimeMillis
+                indicator.computeFrom(0)
+                println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
+        }
+    }
+
+    def computeAsync(indicator:Indicator) :Unit = {
+        indicator ! ('computerFrom, 0)
     }
 
     def printValuesOf(indicator:Indicator) :Unit = {
@@ -178,9 +175,7 @@ trait TestHelper {
 
     // wait for some ms
     def waitFor(ms:Long) :Unit = {
-        val t0 = System.currentTimeMillis
-        var t1 = t0
-        while (t1 - t0 < ms) {t1 = System.currentTimeMillis}
+        Thread.sleep(ms)
     }
 
 }
