@@ -92,7 +92,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
         serToBeFilled.fireSerChangeEvent(new SerChangeEvent(serToBeFilled,
                                                             SerChangeEvent.Type.RefreshInLoading,
                                                             contract.symbol,
-                                                            0, loadedTime))
+                                                            0, loadedTime1))
 
         /**
          * 3. clear quotes for following loading usage, as these quotes is borrowed

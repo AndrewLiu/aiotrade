@@ -216,6 +216,9 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
             this.computableHelper.init(baseSer, this)
         
             initPredefinedVarsOfBaseSer
+
+            // actor should explicitly start
+            start
         }
     }
     

@@ -94,7 +94,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                              * such as loaded from a data server etc.
                              */
                             /** call back */
-                            resultSer.computeFrom(fromTime);
+                            resultSer ! (Compute, fromTime)
                             
                         case _ =>
                     }
@@ -119,9 +119,9 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                              * FinishedComputing event to diff from Updated(caused by outside)
                              */
                             /** call back */
-                            resultSer.computeFrom(begTime);
+                            resultSer ! (Compute, begTime)
                         case Clear =>
-                            resultSer.clear(begTime)
+                            resultSer clear begTime
                         case _ =>
                     }
                     
@@ -132,7 +132,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
             
         }
         
-        baseSer.addSerChangeListener(baseSerChangeListener);
+        baseSer.addSerChangeListener(baseSerChangeListener)
     }
     
     /**

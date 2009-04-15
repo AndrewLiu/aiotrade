@@ -125,7 +125,7 @@ trait TestHelper {
         }
     }
 
-    def indicatorsOf(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
+    def initIndicators(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
         var indicators: List[Indicator] = Nil
         for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
              if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
@@ -149,7 +149,7 @@ trait TestHelper {
     }
 
     def computeAsync(indicator:Indicator) :Unit = {
-        indicator ! ('computerFrom, 0)
+        indicator ! ("computeFrom", 0)
     }
 
     def printValuesOf(indicator:Indicator) :Unit = {

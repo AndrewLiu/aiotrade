@@ -54,11 +54,16 @@ class YahooTest extends TestHelper {
         val dailyContents = createAnalysisContents(symbol, dailyFreq)
         dailyContents.addDescriptor(dailyQuoteContract)
         dailyContents.serProvider = sec
-        loadSer(dailyContents)
-
+ 
         val rtContents = createAnalysisContents(symbol, oneMinFreq)
         rtContents.addDescriptor(oneMinQuoteContract)
         rtContents.serProvider = sec
+ 
+        val dailySer  = sec.serOf(dailyFreq).get
+        val oneMinSer = sec.serOf(oneMinFreq).get
+        val tickerSer = sec.tickerSer
+        
+        loadSer(dailyContents)
         loadSer(rtContents)
 
         sec.subscribeTickerServer
@@ -66,18 +71,14 @@ class YahooTest extends TestHelper {
         // wait for some seconds
         waitFor(10000)
 
-        val dailySer  = sec.serOf(dailyFreq).get
-        val oneMinSer = sec.serOf(oneMinFreq).get
-        val tickerSer = sec.tickerSer
-        val dailyInds = indicatorsOf(dailyContents, dailySer)
-        val oneMinInds = indicatorsOf(rtContents, oneMinSer)
-
-        dailyInds.foreach{x => computeSync(x)}
-        oneMinInds.foreach{x => computeSync(x)}
+        val dailyInds  = initIndicators(dailyContents, dailySer)
+        val oneMinInds = initIndicators(rtContents, oneMinSer)
+        dailyInds. foreach{x => computeAsync(x)}
+        oneMinInds.foreach{x => computeAsync(x)}
 
         println("size of daily quote: " + dailySer.size)
         println("size of 1 min quote: " + oneMinSer.size)
-        println("size of ticker ser: " + tickerSer.size)
+        println("size of ticker ser: "  + tickerSer.size)
 
         dailyInds.foreach(printValuesOf(_))
         oneMinInds.foreach(printValuesOf(_))
@@ -87,7 +88,7 @@ class YahooTest extends TestHelper {
 
             println("size of daily quote: " + dailySer.size)
             println("size of 1 min quote: " + oneMinSer.size)
-            println("size of ticker ser: " + tickerSer.size)
+            println("size of ticker ser: "  + tickerSer.size)
 
             dailyInds.foreach(printLastValueOf(_))
             oneMinInds.foreach(printLastValueOf(_))

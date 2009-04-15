@@ -36,18 +36,15 @@ import scala.actors.Actor
  *
  * @author Caoyuan Deng
  */
+case object Compute
 trait Computable extends Actor {
 
     // ----- actors implementation
     def act = Actor.loop {
         react {
-            case ('computeFrom, fromTime:Long) => computeFrom(fromTime)
-            case _ =>
+            case (Compute, fromTime:Long) => computeFrom(fromTime)
+            case x =>
         }
-    }
-
-    def computeFrom_!(time:Long) :Unit = {
-        this ! ('computerFrom, time)
     }
     // ----- end of actors implementation
 
