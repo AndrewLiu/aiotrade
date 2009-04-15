@@ -140,7 +140,14 @@ trait TestHelper {
                      * As the quoteSer may has been loaded, there may be no more UpdatedEvent
                      * etc. fired, so, computeFrom(0) first.
                      */
-                    indicator.computeFrom(0)
+                    indicator match {
+                        case _:SpotComputable => // don't compute it right now
+                        case _ =>
+                            val t0 = System.currentTimeMillis
+                            indicator.computeFrom(0)
+                            println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
+                    }
+                    
                     indicators = indicator :: indicators
             }
         }

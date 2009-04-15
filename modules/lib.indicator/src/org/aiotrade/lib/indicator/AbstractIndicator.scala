@@ -326,7 +326,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     protected def computeCont(begIdx:Int) :Unit
     
     protected def longDescription :String = {
-        _lname;
+        _lname
     }
     
     override
@@ -377,143 +377,143 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
      */
     
     protected def sum(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[SUMFunction], _baseSer, var1, period).sum(sessionId, idx);
+        getInstance(classOf[SUMFunction], _baseSer, var1, period).sum(sessionId, idx)
     }
     
     protected def max(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[MAXFunction], _baseSer, var1, period).max(sessionId, idx);
+        getInstance(classOf[MAXFunction], _baseSer, var1, period).max(sessionId, idx)
     }
     
     protected def min(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[MINFunction], _baseSer, var1, period).min(sessionId, idx);
+        getInstance(classOf[MINFunction], _baseSer, var1, period).min(sessionId, idx)
     }
     
     protected def ma(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[MAFunction], _baseSer, var1, period).ma(sessionId, idx);
+        getInstance(classOf[MAFunction], _baseSer, var1, period).ma(sessionId, idx)
     }
     
     protected def ema(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[EMAFunction], _baseSer, var1, period).ema(sessionId, idx);
+        getInstance(classOf[EMAFunction], _baseSer, var1, period).ema(sessionId, idx)
     }
     
     protected def stdDev(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[STDDEVFunction], _baseSer, var1, period).stdDev(sessionId, idx);
+        getInstance(classOf[STDDEVFunction], _baseSer, var1, period).stdDev(sessionId, idx)
     }
     
     protected def probMass(idx:Int, var1:Var[Float], period:Opt, nInterval:Opt) :Array[Array[Float]] = {
-        return getInstance(classOf[PROBMASSFunction], _baseSer, var1, null, period, nInterval).probMass(sessionId, idx)
+        getInstance(classOf[PROBMASSFunction], _baseSer, var1, null, period, nInterval).probMass(sessionId, idx)
     }
     
     protected def probMass(idx:Int, var1:Var[Float], weight:Var[Float], period:Opt, nInterval:Opt) :Array[Array[Float]] = {
-        return getInstance(classOf[PROBMASSFunction], _baseSer, var1, weight, period, nInterval).probMass(sessionId, idx)
+        getInstance(classOf[PROBMASSFunction], _baseSer, var1, weight, period, nInterval).probMass(sessionId, idx)
     }
     
     protected def tr(idx:Int) :Float = {
-        return getInstance(classOf[TRFunction], _baseSer).tr(sessionId, idx);
+        getInstance(classOf[TRFunction], _baseSer).tr(sessionId, idx)
     }
     
     protected def dmPlus(idx:Int) :Float = {
-        return getInstance(classOf[DMFunction], _baseSer).dmPlus(sessionId, idx);
+        getInstance(classOf[DMFunction], _baseSer).dmPlus(sessionId, idx)
     }
     
     protected def dmMinus(idx:Int) :Float = {
-        return getInstance(classOf[DMFunction], _baseSer).dmMinus(sessionId, idx);
+        getInstance(classOf[DMFunction], _baseSer).dmMinus(sessionId, idx)
     }
     
     protected def diPlus(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[DIFunction], _baseSer, period).diPlus(sessionId, idx);
+        getInstance(classOf[DIFunction], _baseSer, period).diPlus(sessionId, idx)
     }
     
     protected def diMinus(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[DIFunction], _baseSer, period).diMinus(sessionId, idx);
+        getInstance(classOf[DIFunction], _baseSer, period).diMinus(sessionId, idx)
     }
     
     protected def dx(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[DXFunction], _baseSer, period).dx(sessionId, idx);
+        getInstance(classOf[DXFunction], _baseSer, period).dx(sessionId, idx)
     }
     
     protected def adx(idx:Int, periodDi:Opt, periodAdx:Opt) :Float = {
-        return getInstance(classOf[ADXFunction], _baseSer, periodDi, periodAdx).adx(sessionId, idx);
+        getInstance(classOf[ADXFunction], _baseSer, periodDi, periodAdx).adx(sessionId, idx)
     }
     
     protected def adxr(idx:Int, periodDi:Opt, periodAdx:Opt) :Float = {
-        return getInstance(classOf[ADXRFunction], _baseSer, periodDi, periodAdx).adxr(sessionId, idx);
+        getInstance(classOf[ADXRFunction], _baseSer, periodDi, periodAdx).adxr(sessionId, idx)
     }
     
     protected def bollMiddle(idx:Int, var1:Var[_], period:Opt, alpha:Opt) :Float = {
-        return getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollMiddle(sessionId, idx);
+        getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollMiddle(sessionId, idx)
     }
     
     protected def bollUpper(idx:Int, var1:Var[_], period:Opt, alpha:Opt) :Float = {
-        return getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollUpper(sessionId, idx);
+        getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollUpper(sessionId, idx)
     }
     
     protected def bollLower(idx:Int, var1:Var[_], period:Opt, alpha:Opt) :Float = {
-        return getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollLower(sessionId, idx);
+        getInstance(classOf[BOLLFunction], _baseSer, var1, period, alpha).bollLower(sessionId, idx)
     }
     
     protected def cci(idx:Int, period:Opt, alpha:Opt) :Float = {
-        return getInstance(classOf[CCIFunction], _baseSer, period, alpha).cci(sessionId, idx);
+        getInstance(classOf[CCIFunction], _baseSer, period, alpha).cci(sessionId, idx)
     }
     
     protected def macd(idx:Int, var1:Var[_], periodSlow:Opt, periodFast:Opt) :Float = {
-        return getInstance(classOf[MACDFunction], _baseSer, var1, periodSlow, periodFast).macd(sessionId, idx);
+        getInstance(classOf[MACDFunction], _baseSer, var1, periodSlow, periodFast).macd(sessionId, idx)
     }
     
     protected def mfi(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[MFIFunction], _baseSer, period).mfi(sessionId, idx);
+        getInstance(classOf[MFIFunction], _baseSer, period).mfi(sessionId, idx)
     }
     
     protected def mtm(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[MTMFunction], _baseSer, var1, period).mtm(sessionId, idx);
+        getInstance(classOf[MTMFunction], _baseSer, var1, period).mtm(sessionId, idx)
     }
     
     protected def obv(idx:Int) :Float = {
-        return getInstance(classOf[OBVFunction], _baseSer).obv(sessionId, idx);
+        getInstance(classOf[OBVFunction], _baseSer).obv(sessionId, idx)
     }
     
     protected def roc(idx:Int, var1:Var[_], period:Opt) :Float = {
-        return getInstance(classOf[ROCFunction], _baseSer, var1, period).roc(sessionId, idx);
+        getInstance(classOf[ROCFunction], _baseSer, var1, period).roc(sessionId, idx)
     }
     
     protected def rsi(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[RSIFunction], _baseSer, period).rsi(sessionId, idx);
+        getInstance(classOf[RSIFunction], _baseSer, period).rsi(sessionId, idx)
     }
     
     protected def sar(idx:Int, initial:Opt, step:Opt, maximum:Opt) :Float = {
-        return getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sar(sessionId, idx);
+        getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sar(sessionId, idx)
     }
     
     protected def sarDirection(idx:Int, initial:Opt, step:Opt, maximum:Opt) :Direction = {
-        return getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sarDirection(sessionId, idx);
+        getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sarDirection(sessionId, idx)
     }
     
     protected def stochK(idx:Int, period:Opt, periodK:Opt) :Float = {
-        return getInstance(classOf[STOCHKFunction], _baseSer, period, periodK).stochK(sessionId, idx);
+        getInstance(classOf[STOCHKFunction], _baseSer, period, periodK).stochK(sessionId, idx)
     }
     
     protected def stochD(idx:Int, period:Opt, periodK:Opt, periodD:Opt) :Float = {
-        return getInstance(classOf[STOCHDFunction], _baseSer, period, periodK, periodD).stochD(sessionId, idx);
+        getInstance(classOf[STOCHDFunction], _baseSer, period, periodK, periodD).stochD(sessionId, idx)
     }
     
     protected def stochJ(idx:Int, period:Opt, periodK:Opt, periodD:Opt) :Float = {
-        return getInstance(classOf[STOCHJFunction], _baseSer, period, periodK, periodD).stochJ(sessionId, idx);
+        getInstance(classOf[STOCHJFunction], _baseSer, period, periodK, periodD).stochJ(sessionId, idx)
     }
     
     protected def wms(idx:Int, period:Opt) :Float = {
-        return getInstance(classOf[WMSFunction], _baseSer, period).wms(sessionId, idx);
+        getInstance(classOf[WMSFunction], _baseSer, period).wms(sessionId, idx)
     }
     
     protected def zigzag(idx:Int, percent:Opt) :Float = {
-        return getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzag(sessionId, idx);
+        getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzag(sessionId, idx)
     }
     
     protected def pseudoZigzag(idx:Int, percent:Opt) :Float = {
-        return getInstance(classOf[ZIGZAGFunction], _baseSer, percent).pseudoZigzag(sessionId, idx);
+        getInstance(classOf[ZIGZAGFunction], _baseSer, percent).pseudoZigzag(sessionId, idx)
     }
     
     protected def zigzagDirection(idx:Int, percent:Opt) :Direction = {
-        return getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzagDirection(sessionId, idx);
+        getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzagDirection(sessionId, idx)
     }
     
     def dispose :Unit = {

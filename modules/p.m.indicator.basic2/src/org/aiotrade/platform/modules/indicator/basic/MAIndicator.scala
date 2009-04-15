@@ -39,7 +39,7 @@ import org.aiotrade.lib.indicator.AbstractContIndicator;
  *
  * @author Caoyuan Deng
  */
-class MAIndicator() extends AbstractContIndicator() {
+class MAIndicator extends AbstractContIndicator {
     _sname = "MA"
     _lname = "Moving Average"
     _overlapping = true

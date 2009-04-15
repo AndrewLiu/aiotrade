@@ -38,8 +38,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("VOL")
-class VOLIndicator() extends AbstractContIndicator(null) {
+class VOLIndicator extends AbstractContIndicator {
     _sname = "VOL"
     _lname = "Volume"
     

@@ -28,19 +28,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import java.lang.ref.WeakReference;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
-import org.aiotrade.lib.math.timeseries.QuoteSer;
-import org.aiotrade.lib.math.timeseries.DefaultSer;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import java.lang.ref.WeakReference
+import java.util.HashSet
+import java.util.Map
+import java.util.Set
+import java.util.WeakHashMap
+import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.{DefaultSer,QuoteSer,Ser,Var}
 
 /**
  *
@@ -163,10 +159,10 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
          * redundance computation
          */
         if (this.sessionId == sessionId && idx <= computedIdx) {
-            return;
+            return
         }
         
-        this.sessionId = sessionId;
+        this.sessionId = sessionId
         
         /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
         var begIdx = Math.min(computedIdx + 1, idx)
