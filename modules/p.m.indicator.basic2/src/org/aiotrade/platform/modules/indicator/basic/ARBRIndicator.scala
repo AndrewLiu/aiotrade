@@ -43,7 +43,7 @@ class ARBRIndicator extends AbstractContIndicator {
     _sname = "AR/BR";
     _grids = Array(50f, 200f)
     
-    val period = new DefaultOpt("Period", 10.0);
+    val period = new DefaultOpt("Period", 10.0)
     
     val up = new DefaultVar[Float]("up");
     val dn = new DefaultVar[Float]("dn");
@@ -55,7 +55,8 @@ class ARBRIndicator extends AbstractContIndicator {
     
     
     protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx; while (i < _itemSize) {
+        var i = begIdx
+        while (i < _itemSize) {
             up(i) = H(i) - O(i)
             val up_sum_i = sum(i, up, period)
             
@@ -64,13 +65,13 @@ class ARBRIndicator extends AbstractContIndicator {
             
             ar(i) = up_sum_i / dn_sum_i * 100
             
-            val bs_tmp = H(i) - C(i);
+            val bs_tmp = H(i) - C(i)
             bs(i) = Math.max(0, bs_tmp)
-            val bs_sum_i = sum(i, bs, period);
+            val bs_sum_i = sum(i, bs, period)
             
-            val ss_tmp = C(i) - L(i);
+            val ss_tmp = C(i) - L(i)
             ss(i) = Math.max(0, ss_tmp)
-            val ss_sum_i = sum(i, ss, period);
+            val ss_sum_i = sum(i, ss, period)
             
             br(i) = bs_sum_i / ss_sum_i * 100
 

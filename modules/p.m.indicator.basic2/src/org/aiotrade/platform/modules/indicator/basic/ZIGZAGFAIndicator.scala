@@ -52,7 +52,7 @@ class ZIGZAGFAIndicator extends AbstractContIndicator {
     
     protected def computeCont(begIdx:Int) :Unit = {
         /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
-        var i = begIdx;
+        var i = begIdx
         while (i < _itemSize) {
             i += 1
         }

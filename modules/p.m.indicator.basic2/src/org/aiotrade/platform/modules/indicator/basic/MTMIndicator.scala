@@ -50,7 +50,7 @@ class MTMIndicator extends AbstractContIndicator {
     val mtm_ma = new DefaultVar[Float]("MTM_MA", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
+        var i = begIdx
         while (i < _itemSize) {
             mtm(i) = mtm(i, C, period)
             mtm_ma(i) = ma(i, mtm, periodSmooth)

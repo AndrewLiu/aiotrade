@@ -40,24 +40,24 @@ import org.aiotrade.lib.indicator.AbstractContIndicator;
  * @author Caoyuan Deng
  */
 class BIASIndicator extends AbstractContIndicator {
-    _sname = "BIAS";
+    _sname = "BIAS"
     _lname = "Bias to Moving Average"
     
-    val period1 = new DefaultOpt("Period Short",   6.0);
-    val period2 = new DefaultOpt("Period Mediaum", 12.0);
-    val period3 = new DefaultOpt("Period Long",    24.0);
+    val period1 = new DefaultOpt("Period Short",   6.0)
+    val period2 = new DefaultOpt("Period Mediaum", 12.0)
+    val period3 = new DefaultOpt("Period Long",    24.0)
     
-    val bias1 = new DefaultVar[Float]("BIAS1", Plot.Line);
-    val bias2 = new DefaultVar[Float]("BIAS2", Plot.Line);
-    val bias3 = new DefaultVar[Float]("BIAS3", Plot.Line);
+    val bias1 = new DefaultVar[Float]("BIAS1", Plot.Line)
+    val bias2 = new DefaultVar[Float]("BIAS2", Plot.Line)
+    val bias3 = new DefaultVar[Float]("BIAS3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
+        var i = begIdx
         while (i < _itemSize) {
             
-            val ma1 = ma(i, C, period1);
-            val ma2 = ma(i, C, period2);
-            val ma3 = ma(i, C, period3);
+            val ma1 = ma(i, C, period1)
+            val ma2 = ma(i, C, period2)
+            val ma3 = ma(i, C, period3)
             
             bias1(i) = (C(i) - ma1) / ma1 * 100f
             bias2(i) = (C(i) - ma2) / ma2 * 100f

@@ -53,7 +53,7 @@ class RSIIndicator extends AbstractContIndicator {
     val rsi3 = new DefaultVar[Float]("RSI3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
+        var i = begIdx
         while (i < _itemSize) {
             rsi1(i) = rsi(i, periodS)
             rsi2(i) = rsi(i, periodM)

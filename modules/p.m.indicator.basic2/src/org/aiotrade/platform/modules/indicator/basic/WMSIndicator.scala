@@ -51,7 +51,7 @@ class WMSIndicator extends AbstractContIndicator {
     val wms2 = new DefaultVar[Float]("WMS2", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
+        var i = begIdx
         while (i < _itemSize) {
             wms1(i) = wms(i, period1)
             wms2(i) = wms(i, period2)

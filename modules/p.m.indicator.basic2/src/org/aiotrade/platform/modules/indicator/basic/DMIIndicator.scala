@@ -47,10 +47,10 @@ class DMIIndicator extends AbstractContIndicator {
     val periodDi  = new DefaultOpt("Period DI",  6.0)
     val periodAdx = new DefaultOpt("Period ADX", 14.0)
     
-    val diPlus  = new DefaultVar[Float]("+DI",  Plot.Line);
-    val diMinus = new DefaultVar[Float]("-DI",  Plot.Line);
-    val adx     = new DefaultVar[Float]("ADX",  Plot.Line);
-    val adxr    = new DefaultVar[Float]("ADXR", Plot.Line);
+    val diPlus  = new DefaultVar[Float]("+DI",  Plot.Line)
+    val diMinus = new DefaultVar[Float]("-DI",  Plot.Line)
+    val adx     = new DefaultVar[Float]("ADX",  Plot.Line)
+    val adxr    = new DefaultVar[Float]("ADXR", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;
