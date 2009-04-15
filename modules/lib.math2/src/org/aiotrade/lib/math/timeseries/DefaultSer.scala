@@ -432,8 +432,10 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             if (fromIdx < 0) {
                 return
             }
-            for (i <- values.size - 1 to fromIdx) {
+            var i = values.size - 1
+            while (i >= fromIdx) {
                 values.remove(i)
+                i += 1
             }
         }
 

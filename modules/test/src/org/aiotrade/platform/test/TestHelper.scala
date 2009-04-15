@@ -14,7 +14,6 @@ import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.securities.dataserver._
-import org.aiotrade.platform.modules.dataserver.yahoo._
 import org.aiotrade.platform.modules.indicator.basic._
 
 trait TestHelper {
