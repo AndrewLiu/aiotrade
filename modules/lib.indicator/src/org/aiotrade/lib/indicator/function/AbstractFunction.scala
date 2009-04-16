@@ -35,6 +35,7 @@ import java.util.HashSet
 import java.util.Map
 import java.util.Set
 import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
 import org.aiotrade.lib.math.timeseries.computable.Opt
 import org.aiotrade.lib.math.timeseries.{DefaultSer,QuoteSer,Ser,Var}
 
@@ -47,45 +48,41 @@ object AbstractFunction {
      * @TODO
      * Concurrent issues: use function as key instead of ser?
      */
-    protected val serMapFunctions = new WeakHashMap[Ser, Set[WeakReference[Function]]]
+    //protected val serToFunctions = new WeakHashMap[Ser, Set[WeakReference[Function]]]
+    protected val serToFunctions = new ConcurrentHashMap[Ser, WeakReference[ConcurrentHashMap[Function, Boolean]]]
 
-    def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
+    final def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
 
         /** get this baseSer's functionSet first, if none, create new one */
-        val functionRefSet = serMapFunctions.synchronized {
-            serMapFunctions.get(baseSer) match {
-                case null =>
-                    val x = new HashSet[WeakReference[Function]]
-                    serMapFunctions.put(baseSer, x)
-                    x
-                case x => x
+        val functions = serToFunctions.get(baseSer) match {
+            case null =>
+                val x = new ConcurrentHashMap[Function, Boolean]
+                serToFunctions.putIfAbsent(baseSer, new WeakReference(x))
+                x
+            case x => x.get
+        }
+
+        /** lookup in functionSet, if found, return it */
+        val itr = functions.keySet.iterator
+        while (itr.hasNext) {
+            val function = itr.next
+            if (tpe.isInstance(function) && function.idEquals(baseSer, args:_*)) {
+                return function.asInstanceOf[T]
             }
         }
 
-        functionRefSet.synchronized {
-            /** lookup in functionSet, if found, return it */
-            val itr = functionRefSet.iterator
-            while (itr.hasNext) {
-                val functionRef = itr.next
-                val function = functionRef.get
-                if (tpe.isInstance(function) && function.idEquals(baseSer, args:_*)) {
-                    return function.asInstanceOf[T]
-                }
-            }
-
-            /** if none got from functionSet, try to create new one */
-            try {
-                val function = tpe.newInstance.asInstanceOf[T]
-                /** don't forget to call set(baseSer, args) immediatley */
-                function.set(baseSer, args:_*)
-                functionRefSet.add(new WeakReference(function))
-                function
-            } catch {
-                case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-                case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
-            }
+        /** if none got from functionSet, try to create new one */
+        try {
+            val function = tpe.newInstance
+            /** don't forget to call set(baseSer, args) immediatley */
+            function.set(baseSer, args:_*)
+            functions.putIfAbsent(function, true)
+            function
+        } catch {
+            case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+            case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
         }
-
+        
     }
 
 }
