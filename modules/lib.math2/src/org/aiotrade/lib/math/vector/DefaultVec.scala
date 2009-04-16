@@ -104,13 +104,15 @@ class DefaultVec(source:Array[Double]) extends Vec {
     
     def equals(other:Vec) :Boolean = {
         if (dimension != other.dimension) {
-            return false;
+            return false
         }
-        
-        for (i <- 0 until dimension) {
+
+        var i = 0
+        while (i < dimension) {
             if (apply(i) != other(i)) {
                 return false
             }
+            i += 1
         }
         
         true

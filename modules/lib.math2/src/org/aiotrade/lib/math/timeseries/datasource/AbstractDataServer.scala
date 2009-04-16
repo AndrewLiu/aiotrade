@@ -176,12 +176,14 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
         if (size <= 1) {
             return true
         } else {
-            for (i <- 0 until size - 1) {
+            var i = 0
+            while (i < size - 1) {
                 if (storage(i).time < storage(i + 1).time) {
                     return true
                 } else if (storage(i).time > storage(i + 1).time) {
                     return false
                 }
+                i += 1
             }
         }
 

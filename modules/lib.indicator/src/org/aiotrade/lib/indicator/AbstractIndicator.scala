@@ -247,8 +247,8 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         computableHelper.opts = opts
     }
     
-    def opts_=(values:Array[Number]) :Unit = {
-        computableHelper.opts = values
+    def opts_=(optValues:Array[Number]) :Unit = {
+        computableHelper.opts = optValues
     }
     
     def grids :Array[Float] = _grids

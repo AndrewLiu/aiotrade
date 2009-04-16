@@ -58,8 +58,10 @@ abstract class AbstractVar[E](var name:String, var plot:Plot) extends Var[E] {
         val result = new Array[double](length)
         
         if (length > 0 && apply(0).isInstanceOf[Number]) {
-            for (i <- 0 until length) {
-                result(i) = apply(i).asInstanceOf[Number].doubleValue()
+            var i = 0
+            while (i < length) {
+                result(i) = apply(i).asInstanceOf[Number].doubleValue
+                i += 1
             }
         }
         

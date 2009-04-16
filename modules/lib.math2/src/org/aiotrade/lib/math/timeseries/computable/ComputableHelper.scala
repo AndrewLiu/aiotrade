@@ -157,7 +157,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
             /** indexOfTime always return physical index, so don't worry about isOncalendarTime() */
             Math.max(this.baseSer.indexOfOccurredTime(this.begTime), 0) // should not less then 0
         }
-        println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
+        //println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
         /**
          * should re-compute series except it's also the baseSer:
          * @TODO
@@ -227,13 +227,13 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
      *
      * @return if any value of opts changed, return true, else return false
      */
-    def opts_=(values:Array[Number]) :Unit = {
+    def opts_=(optValues:Array[Number]) :Unit = {
         var valueChanged = false
-        if (values != null) {
-            if (opts.size == values.length) {
-                for (i <- 0 until values.length) {
+        if (optValues != null) {
+            if (opts.size == optValues.length) {
+                for (i <- 0 until optValues.length) {
                     val myOpt = _opts(i)
-                    val inValue = values(i)
+                    val inValue = optValues(i)
                     /** check if changed happens before set myOpt */
                     if ((myOpt.value != inValue.floatValue)) {
                         valueChanged = true

@@ -146,7 +146,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             if (evt != null) {
                 evt.tpe = SerChangeEvent.Type.Updated
                 evt.getSource.fireSerChangeEvent(evt)
-                println(evt.symbol + ": update event:")
+                //println(evt.symbol + ": update event:")
             }
 
             storage.synchronized {
