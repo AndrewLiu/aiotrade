@@ -290,7 +290,8 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         
         val begIdx = computableHelper.preComputeFrom(begTime)
         /** fill with clear items from begIdx: */
-        var i = begIdx; while (i < _itemSize) {
+        var i = begIdx
+        while (i < _itemSize) {
             val time = _baseSer.timestamps(i)
             
             /**

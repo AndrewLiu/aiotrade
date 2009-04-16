@@ -11,6 +11,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert._
+
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
@@ -63,19 +64,26 @@ class YahooTest extends TestHelper {
         val oneMinSer = sec.serOf(oneMinFreq).get
         val tickerSer = sec.tickerSer
         
+        // * init indicators before loadSer, so, they can receive the FinishedLoading evt
+        val dailyInds  = initIndicators(dailyContents, dailySer)
+        val oneMinInds = initIndicators(rtContents, oneMinSer)
+
         loadSer(dailyContents)
         loadSer(rtContents)
 
         sec.subscribeTickerServer
 
-        // wait for some seconds
-        waitFor(10000)
+        // wait for some secs for data loading
+        //waitFor(10000)
 
-        val dailyInds  = initIndicators(dailyContents, dailySer)
-        val oneMinInds = initIndicators(rtContents, oneMinSer)
+        // * Here, we test two possible condiction:
+        // * 1. inds may have been computed by FinishedLoading evt, 
+        // * 2. data loading may not finish yet
+        // * For what ever condiction, we force to compute it again to test concurrent
         dailyInds. foreach{x => computeAsync(x)}
         oneMinInds.foreach{x => computeAsync(x)}
 
+        println("==================")
         println("size of daily quote: " + dailySer.size)
         println("size of 1 min quote: " + oneMinSer.size)
         println("size of ticker ser: "  + tickerSer.size)
@@ -86,6 +94,7 @@ class YahooTest extends TestHelper {
         while (true) {
             waitFor(6000)
 
+            println("==================")
             println("size of daily quote: " + dailySer.size)
             println("size of 1 min quote: " + oneMinSer.size)
             println("size of ticker ser: "  + tickerSer.size)

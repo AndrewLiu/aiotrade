@@ -83,7 +83,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
          */
         if (resultSer == baseSer) {
             
-            baseSerChangeListener = new SerChangeListener() {
+            baseSerChangeListener = new SerChangeListener {
                 def serChanged(evt:SerChangeEvent) :Unit = {
                     import SerChangeEvent.Type._
                     val fromTime = evt.beginTime
@@ -95,7 +95,6 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                              */
                             /** call back */
                             resultSer ! (Compute, fromTime)
-                            
                         case _ =>
                     }
                     
@@ -146,20 +145,19 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     def preComputeFrom(begTime:Long) :Int = {
         assert(this.baseSer != null, "base series not set!")
         
-        this.begTime = begTime;
+        this.begTime = begTime
         val computedTime = resultSer.computedTime
         
         val begIdx = if (begTime < computedTime || begTime == 0) {
             0
         } else {
             /** if computedTime < begTime, re-compute from the minimal one */
-            this.begTime = Math.min(computedTime, begTime);
+            this.begTime = Math.min(computedTime, begTime)
             
             /** indexOfTime always return physical index, so don't worry about isOncalendarTime() */
-            val begIdx1 = this.baseSer.indexOfOccurredTime(begTime);
-            if (begIdx1 < 0) 0 else begIdx1
+            Math.max(this.baseSer.indexOfOccurredTime(this.begTime), 0) // should not less then 0
         }
-        
+        println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
         /**
          * should re-compute series except it's also the baseSer:
          * @TODO
@@ -230,7 +228,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
      * @return if any value of opts changed, return true, else return false
      */
     def opts_=(values:Array[Number]) :Unit = {
-        var valueChanged = false;
+        var valueChanged = false
         if (values != null) {
             if (opts.size == values.length) {
                 for (i <- 0 until values.length) {
