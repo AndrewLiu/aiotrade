@@ -149,7 +149,10 @@ trait TestHelper {
     }
 
     def computeAsync(indicator:Indicator) :Unit = {
-        indicator ! ("computeFrom", 0)
+        indicator match {
+            case _:SpotComputable => // don't compute it right now
+            case _ => indicator ! (Compute, 0)
+        }
     }
 
     def printValuesOf(indicator:Indicator) :Unit = {
@@ -158,15 +161,14 @@ trait TestHelper {
         println(indicator.shortDescription + ":" + indicator.size)
         for (var1 <- indicator.varSet) {
             print(var1.name + ": ")
-            var1.values.reverse.foreach(x => print(x + ","))
+            var1.values.reverse.foreach{x => print(x + ",")}
             println
         }
     }
 
     def printLastValueOf(indicator:Indicator) :Unit = {
         println
-        println(indicator.freq)
-        println(indicator.shortDescription + ":" + indicator.size)
+        println(indicator.freq + "-" +indicator.shortDescription + ":" + indicator.size)
         for (var1 <- indicator.varSet if var1.size > 0) {
             println(var1.name + ": " + var1.values.last)
         }
