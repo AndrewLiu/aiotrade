@@ -52,9 +52,7 @@ object StatisticFunction {
         var i = begIdx
         while (i <= endIdx) {
             val v = values(i)
-            if (v != null) {  // @todo why this happens?
-                sum += v
-            }
+            sum += v
             i += 1
         }
 
@@ -101,8 +99,8 @@ object StatisticFunction {
         if (lookbackIdx < 0 || idx >= values.size) {
             Float.NaN
         } else if (lookbackIdx == 0) {
-            /** compute first availabe ma (in case of enough period first time) */
-            ma(values, 0, idx);
+            /** compute first available ma (in case of enough period first time) */
+            ma(values, 0, idx)
         } else {
             if (prev.equals(Float.NaN)) {
                 /**
@@ -110,7 +108,7 @@ object StatisticFunction {
                  * element, thus cause the prevSum to be a NaN, we should
                  * precess this case by:
                  */
-                ma(values, lookbackIdx, idx);
+                ma(values, lookbackIdx, idx)
             } else {
                 prev + (values(idx) - values(lookbackIdx - 1)) / (period * 1f)
             }

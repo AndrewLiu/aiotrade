@@ -82,7 +82,7 @@ class MAFunction extends AbstractFunction {
     
     
     def ma(sessionId:Long, idx:Int) :Float = {
-        computeTo(sessionId, idx);
+        computeTo(sessionId, idx)
         
         _ma(idx)
     }

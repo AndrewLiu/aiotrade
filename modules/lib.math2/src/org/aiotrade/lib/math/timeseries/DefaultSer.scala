@@ -62,6 +62,7 @@ import scala.collection.mutable.{ArrayBuffer,LinkedHashMap}
  * @author Caoyuan Deng
  */
 class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
+    private val _hashCode = System.identityHashCode(this)
 
     private val INIT_CAPACITY = 200
     /**
@@ -275,6 +276,18 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             sb.append(" - ").append(cal.getTime).append(")")
         }
         sb.toString
+    }
+
+    /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
+    override
+    def equals(o:Any) = o match {
+        case x:Ser => this.getClass == x.getClass && this.hashCode == x.hashCode
+        case _ => false
+    }
+
+    override
+    def hashCode :Int = {
+        _hashCode
     }
 
     class DefaultVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
