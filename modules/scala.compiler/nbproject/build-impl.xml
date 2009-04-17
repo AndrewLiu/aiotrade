@@ -4,6 +4,13 @@
 ***         EDIT ../build.xml INSTEAD         ***
 -->
 <project name="scala.comipler-impl" basedir="..">
+    <fail message="Please build using Ant 1.7.1 or higher.">
+        <condition>
+            <not>
+                <antversion atleast="1.7.1"/>
+            </not>
+        </condition>
+    </fail>
     <property file="nbproject/private/suite-private.properties"/>
     <property file="nbproject/suite.properties"/>
     <fail unless="suite.dir">You must set 'suite.dir' to point to your containing module suite</fail>

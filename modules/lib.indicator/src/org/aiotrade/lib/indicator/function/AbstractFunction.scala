@@ -49,7 +49,7 @@ object AbstractFunction {
      * Concurrent issues: use function as key instead of ser?
      */
     //protected val serToFunctions = new WeakHashMap[Ser, Set[WeakReference[Function]]]
-    protected val serToFunctions = new ConcurrentHashMap[Ser, WeakReference[ConcurrentHashMap[Function, Boolean]]]
+    protected val serToFunctions = new ConcurrentHashMap[Ser, ConcurrentHashMap[Function, Boolean]]
 
     final def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
 
@@ -57,9 +57,9 @@ object AbstractFunction {
         val functions = serToFunctions.get(baseSer) match {
             case null =>
                 val x = new ConcurrentHashMap[Function, Boolean]
-                serToFunctions.putIfAbsent(baseSer, new WeakReference(x))
+                serToFunctions.putIfAbsent(baseSer, x)
                 x
-            case x => x.get
+            case x => x
         }
 
         /** lookup in functionSet, if found, return it */
