@@ -74,9 +74,9 @@ case class PROBMASSFunction extends AbstractFunction {
         args match {
             case Seq(varX:Var[Float], weightX:Var[Float], periodX:Opt, nIntervalX:Opt) =>
                 var1 = varX
-                weight = weightX
-                period = periodX
-                nInterval = nIntervalX
+                weight.equals(weightX)
+                period.equals(periodX)
+                nInterval.equals(nIntervalX)
         }
     }
     

@@ -59,9 +59,9 @@ class SARFunction extends AbstractFunction {
     
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
-        this.initial == args(0) &&
-        this.step == args(1) &&
-        this.maximum == args(2)
+        this.initial.equals(args(0)) &&
+        this.step.equals(args(1)) &&
+        this.maximum.equals(args(2))
     }
 
     protected def computeSpot(i:Int) :Unit = {

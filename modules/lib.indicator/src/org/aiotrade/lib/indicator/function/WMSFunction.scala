@@ -53,7 +53,7 @@ class WMSFunction extends AbstractFunction {
     
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
-        this.period == args(0)
+        this.period.equals(args(0))
     }
 
     protected def computeSpot(i:Int) :Unit = {

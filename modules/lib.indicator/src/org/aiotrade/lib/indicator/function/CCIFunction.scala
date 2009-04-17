@@ -57,8 +57,8 @@ class CCIFunction extends AbstractFunction {
     
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
-        this.period == args(0) &&
-        this.alpha == args(1)
+        this.period.equals(args(0)) &&
+        this.alpha.equals(args(1))
     }
     
     protected def computeSpot(i:Int) :Unit = {

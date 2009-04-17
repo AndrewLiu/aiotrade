@@ -59,8 +59,8 @@ class BOLLFunction extends AbstractFunction {
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.var1 == args(0) &&
-        this.period == args(1) &&
-        this.alpha == args(2)
+        this.period.equals(args(1)) &&
+        this.alpha.equals(args(2))
     }
     
     protected def computeSpot(i:Int) :Unit = {

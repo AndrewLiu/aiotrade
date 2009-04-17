@@ -61,8 +61,8 @@ class MACDFunction extends AbstractFunction {
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
         this.var1 == args(0) &&
-        this.periodSlow == args(1) &&
-        this.periodFast == args(2)
+        this.periodSlow.equals(args(1)) &&
+        this.periodFast.equals(args(2))
     }
 
     protected def computeSpot(i:Int) :Unit = {

@@ -133,6 +133,15 @@ abstract class AbstractOpt(var name:String) extends Opt {
     }
 
     override
+    def equals(o:Any) :Boolean = o match {
+        case x:Opt => this.value == x.value
+        case _ => false
+    }
+
+    override
+    def hashCode = this.value.hashCode
+
+    override
     def clone :Opt = {
         try {
             val newOpt = super.clone.asInstanceOf[Opt]

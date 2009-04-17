@@ -60,7 +60,7 @@ class ZIGZAGFunction extends AbstractFunction {
     
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
-        this.percent == args(0)
+        this.percent.equals(args(0))
     }
 
     /** 

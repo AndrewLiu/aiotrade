@@ -58,9 +58,9 @@ class STOCHJFunction extends AbstractFunction {
     
     def idEquals(baseSer:Ser, args:Any*) :Boolean = {
         this._baseSer == baseSer &&
-        this.period == args(0) &&
-        this.periodK == args(1) &&
-        this.periodD == args(2)
+        this.period.equals(args(0)) &&
+        this.periodK.equals(args(1)) &&
+        this.periodD.equals(args(2))
     }
 
     protected def computeSpot(i:Int) :Unit = {
