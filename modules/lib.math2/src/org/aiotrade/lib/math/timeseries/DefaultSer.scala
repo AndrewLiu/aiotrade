@@ -330,14 +330,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          * @See AbstractIndicator.injectVarsToSer()
          */
         override
-        def equals(o:Any) :Boolean = {
-            o match {
-                case x:DefaultVar[_] =>
-                    if (this.values == x.values) {
-                        return true
-                    } else false
-                case _ => false
-            }
+        def equals(o:Any) :Boolean = o match {
+            case x:DefaultVar[_] => this.values == x.values
+            case _ => false
         }
     }
 
@@ -354,7 +349,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         def add(time:Long, value:E) :Boolean = {
-            val idx = timestamps.indexOfOccurredTime(time);
+            val idx = timestamps.indexOfOccurredTime(time)
             if (idx >= 0) {
                 values.add(time, value)
                 true
@@ -374,15 +369,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          * @See AbstractIndicator.injectVarsToSer()
          */
         override
-        def equals(o:Any) :Boolean = {
-            o match {
-                case x:SparseVar[_] =>
-                    if (this.values == x.values) {
-                        true
-                    } else false
-                case _ => false
-
-            }
+        def equals(o:Any) :Boolean = o match {
+            case x:SparseVar[_] => this.values == x.values
+            case _ => false
         }
     }
 

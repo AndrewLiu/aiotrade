@@ -46,8 +46,8 @@ object FunctionID {
 class FunctionID[T <: Function](val functionClass:Class[T], val baseSer:Ser, val args:Any*) {
     override
     def equals(o:Any) :Boolean = o match {
-        case x:FunctionID[_] if functionClass == x.functionClass && baseSer.equals(x.baseSer) && args.size == x.args.size =>
-            val itr1 = args.elements
+        case x:FunctionID[_] if this.functionClass == x.functionClass && this.baseSer.equals(x.baseSer) && this.args.size == x.args.size =>
+            val itr1 = this.args.elements
             val itr2 = x.args.elements
             while (itr1.hasNext) {
                 if (!itr1.next.equals(itr2.next)) {

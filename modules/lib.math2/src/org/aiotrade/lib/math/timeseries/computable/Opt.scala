@@ -134,7 +134,7 @@ abstract class AbstractOpt(var name:String) extends Opt {
 
     override
     def equals(o:Any) :Boolean = o match {
-        case x:Opt => this.value == x.value
+        case x:Opt => this.value.equals(x.value)
         case _ => false
     }
 
