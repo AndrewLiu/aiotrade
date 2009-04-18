@@ -160,7 +160,8 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
         
         val endIdx = Math.min(idx, _itemSize - 1)
         /** fill with clear items from begIdx, then call computeSpot(i): */
-        var i = begIdx; while (i <= endIdx) {
+        var i = begIdx
+        while (i <= endIdx) {
             val time = _baseSer.timestamps(i)
             createItemOrClearIt(time)
             

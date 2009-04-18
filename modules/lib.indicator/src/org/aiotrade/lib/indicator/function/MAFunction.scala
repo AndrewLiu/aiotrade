@@ -53,7 +53,7 @@ class MAFunction extends AbstractFunction {
     val _ma = new DefaultVar[Float]
     
     override
-    def set(baseSer:Ser, args:Any*):Unit = {
+    def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         args match {
             case Seq(a0:Var[Float], a1:Opt) =>
@@ -73,7 +73,6 @@ class MAFunction extends AbstractFunction {
             
         }
     }
-    
     
     def ma(sessionId:Long, idx:Int) :Float = {
         computeTo(sessionId, idx)

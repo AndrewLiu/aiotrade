@@ -43,8 +43,6 @@ object MAXFunction {
     protected def imax(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
         StatisticFunction.imax(idx, var1.values, period.toInt, prev)
     }
-
-
 }
 class MAXFunction extends AbstractFunction {
     
