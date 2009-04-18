@@ -36,7 +36,7 @@ import java.util.Map
 import java.util.Set
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.{Opt}
 import org.aiotrade.lib.math.timeseries.{DefaultSer,QuoteSer,Ser,Var}
 
 /**
@@ -49,42 +49,63 @@ object AbstractFunction {
      * Concurrent issues: use function as key instead of ser?
      */
     //protected val serToFunctions = new WeakHashMap[Ser, Set[WeakReference[Function]]]
-    protected val serToFunctions = new ConcurrentHashMap[Ser, ConcurrentHashMap[Function, Boolean]]
+    //    private val serToFunctions = new ConcurrentHashMap[Ser, ConcurrentHashMap[Function, Boolean]]
+    //
+    //    final def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
+    //
+    //        /** get this baseSer's functionSet first, if none, create new one */
+    //        val functions = serToFunctions.get(baseSer) match {
+    //            case null =>
+    //                val x = new ConcurrentHashMap[Function, Boolean]
+    //                serToFunctions.putIfAbsent(baseSer, x)
+    //                x
+    //            case x => x
+    //        }
+    //
+    //        /** lookup in functionSet, if found, return it */
+    //        val itr = functions.keySet.iterator
+    //        while (itr.hasNext) {
+    //            val function = itr.next
+    //            if (tpe.isInstance(function) && function.idEquals(baseSer, args:_*)) {
+    //                return function.asInstanceOf[T]
+    //            }
+    //        }
+    //
+    //        /** if none got from functionSet, try to create new one */
+    //        try {
+    //            val function = tpe.newInstance
+    //            /** don't forget to call set(baseSer, args) immediatley */
+    //            function.set(baseSer, args:_*)
+    //            functions.putIfAbsent(function, true)
+    //            function
+    //        } catch {
+    //            case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+    //            case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+    //        }
+    //
+    //    }
+    //
 
-    final def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
+    private val idToFunctions = new ConcurrentHashMap[FunctionID[_], Function]
 
-        /** get this baseSer's functionSet first, if none, create new one */
-        val functions = serToFunctions.get(baseSer) match {
+    def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
+        val id = FunctionID(tpe, baseSer, args:_*)
+        idToFunctions.get(id) match {
             case null =>
-                val x = new ConcurrentHashMap[Function, Boolean]
-                serToFunctions.putIfAbsent(baseSer, x)
-                x
-            case x => x
+                /** if none got from functionSet, try to create new one */
+                try {
+                    val function = tpe.newInstance
+                    /** don't forget to call set(baseSer, args) immediatley */
+                    function.set(baseSer, args:_*)
+                    idToFunctions.putIfAbsent(id, function)
+                    function
+                } catch {
+                    case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+                    case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+                }
+            case x => x.asInstanceOf[T]
         }
-
-        /** lookup in functionSet, if found, return it */
-        val itr = functions.keySet.iterator
-        while (itr.hasNext) {
-            val function = itr.next
-            if (tpe.isInstance(function) && function.idEquals(baseSer, args:_*)) {
-                return function.asInstanceOf[T]
-            }
-        }
-
-        /** if none got from functionSet, try to create new one */
-        try {
-            val function = tpe.newInstance
-            /** don't forget to call set(baseSer, args) immediatley */
-            function.set(baseSer, args:_*)
-            functions.putIfAbsent(function, true)
-            function
-        } catch {
-            case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-            case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
-        }
-        
     }
-
 }
 
 abstract class AbstractFunction extends DefaultSer with FunctionSer {
@@ -101,7 +122,7 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
      */
     private var sessionId = -Long.MaxValue
     protected var computedIdx = -Integer.MAX_VALUE
-    
+
     /** base series to compute this. */
     protected var _baseSer :Ser = _
     /** base series' item size */
@@ -113,9 +134,12 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
     protected var L: Var[Float] = _
     protected var C: Var[Float] = _
     protected var V: Var[Float] = _
+
+    var id :FunctionID[_] = _
         
     def set(baseSer:Ser, args:Any*) :Unit = {
         init(baseSer)
+        id = FunctionID(this.getClass.asInstanceOf[Class[Function]], _baseSer, args)
     }
     
     protected def init(baseSer:Ser) :Unit = {
@@ -206,6 +230,15 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
      * @param i, idx of spot
      */
     protected def computeSpot(i:Int) :Unit
+
+    override
+    def equals(o:Any) = o match {
+        case x:Function => this.id.equals(x.id)
+        case _ => false
+    }
+
+    override
+    def hashCode = id.hashCode
     
     /**
      * Define functions

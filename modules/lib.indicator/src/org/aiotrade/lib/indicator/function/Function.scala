@@ -36,6 +36,49 @@ import org.aiotrade.lib.math.timeseries.Ser
  *
  * @author Caoyuan Deng
  */
+object FunctionID {
+    def apply[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) = new FunctionID(tpe, baseSer, args:_*)
+}
+
+class FunctionID[T <: Function](val tpe:Class[T], val baseSer:Ser, val args:Any*) {
+    override
+    def equals(o:Any) :Boolean = o match {
+        case x:FunctionID[_] if this.tpe.getName.equals(x.tpe.getName) && this.baseSer.equals(x.baseSer) && this.args.size == x.args.size =>
+            val itr1 = this.args.elements
+            val itr2 = x.args.elements
+            while (itr1.hasNext) {
+                if (!itr1.next.equals(itr2.next)) {
+                    return false
+                }
+            }
+            true
+        case _ => false
+    }
+
+    override
+    def hashCode :int = {
+        var h = 17
+        h = 37 * h + this.getClass.getName.hashCode
+        h = 37 * h + baseSer.hashCode
+        val itr = args.elements
+        while (itr.hasNext) {
+            val more :Int = itr.next match {
+                case x:Short   => x
+                case x:Char    => x
+                case x:Byte    => x
+                case x:Boolean => if (x) 0 else 1
+                case x:Long    => (x ^ (x >>> 32)).toInt
+                case x:Float   => java.lang.Float.floatToIntBits(x)
+                case x:Double  => val x1 = java.lang.Double.doubleToLongBits(x); (x1 ^ (x1 >>> 32)).toInt
+                case x:AnyRef  => x.hashCode
+            }
+            h = 37 * h + more
+        }
+        h
+
+    }
+}
+    
 trait Function {
     
     /**
@@ -43,6 +86,8 @@ trait Function {
      * @param baseSer, the ser that this function is based, ie. used to compute
      */
     def set(baseSer:Ser, args:Any*) :Unit
+
+    def id :FunctionID[_]
 
     def idEquals(baseSer:Ser, args:Any*) :Boolean
 

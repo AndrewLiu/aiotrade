@@ -374,8 +374,8 @@ made subject to such option by the copyright holder.
 
     <target name="test-preinit" depends="init"/>
     <target name="test-init" depends="init,test-preinit,test-lib-init">
-        <property name="test.timeout" value="600000"/> <!-- 10min per test -->
-        <property name="test.run.args" value="-ea"/>
+        <property name="test.timeout" value="6000000"/> <!-- 100min per test -->
+        <property name="test.run.args" value="-ea -Xmx2048m"/>
         <property name="test.filter.trace" value="true"/>
         <macrodef name="test-init">
             <attribute name="test.type"/>
