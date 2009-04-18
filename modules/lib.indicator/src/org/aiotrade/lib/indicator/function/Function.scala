@@ -40,11 +40,14 @@ object FunctionID {
     def apply[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) = new FunctionID(tpe, baseSer, args:_*)
 }
 
-class FunctionID[T <: Function](val tpe:Class[T], val baseSer:Ser, val args:Any*) {
+/** 
+ * @Note baseSer should implement proper hashCode and equals method
+ */
+class FunctionID[T <: Function](val functionClass:Class[T], val baseSer:Ser, val args:Any*) {
     override
     def equals(o:Any) :Boolean = o match {
-        case x:FunctionID[_] if this.tpe.getName.equals(x.tpe.getName) && this.baseSer.equals(x.baseSer) && this.args.size == x.args.size =>
-            val itr1 = this.args.elements
+        case x:FunctionID[_] if functionClass == x.functionClass && baseSer.equals(x.baseSer) && args.size == x.args.size =>
+            val itr1 = args.elements
             val itr2 = x.args.elements
             while (itr1.hasNext) {
                 if (!itr1.next.equals(itr2.next)) {
@@ -58,7 +61,7 @@ class FunctionID[T <: Function](val tpe:Class[T], val baseSer:Ser, val args:Any*
     override
     def hashCode :int = {
         var h = 17
-        h = 37 * h + this.getClass.getName.hashCode
+        h = 37 * h + this.getClass.hashCode
         h = 37 * h + baseSer.hashCode
         val itr = args.elements
         while (itr.hasNext) {
@@ -68,8 +71,8 @@ class FunctionID[T <: Function](val tpe:Class[T], val baseSer:Ser, val args:Any*
                 case x:Byte    => x
                 case x:Boolean => if (x) 0 else 1
                 case x:Long    => (x ^ (x >>> 32)).toInt
-                case x:Float   => java.lang.Float.floatToIntBits(x)
-                case x:Double  => val x1 = java.lang.Double.doubleToLongBits(x); (x1 ^ (x1 >>> 32)).toInt
+                case x:Float   => _root_.java.lang.Float.floatToIntBits(x)
+                case x:Double  => val x1 = _root_.java.lang.Double.doubleToLongBits(x); (x1 ^ (x1 >>> 32)).toInt
                 case x:AnyRef  => x.hashCode
             }
             h = 37 * h + more
@@ -78,7 +81,7 @@ class FunctionID[T <: Function](val tpe:Class[T], val baseSer:Ser, val args:Any*
 
     }
 }
-    
+
 trait Function {
     
     /**
