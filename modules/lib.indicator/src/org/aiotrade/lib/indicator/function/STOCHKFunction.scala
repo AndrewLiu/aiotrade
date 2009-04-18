@@ -56,12 +56,6 @@ class STOCHKFunction extends AbstractFunction {
         this.periodK = args(1).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.period.equals(args(0)) &&
-        this.periodK.equals(args(1))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (i < period.value - 1) {
             

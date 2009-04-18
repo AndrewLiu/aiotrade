@@ -55,12 +55,6 @@ class CCIFunction extends AbstractFunction {
         this.alpha = args(1).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.period.equals(args(0)) &&
-        this.alpha.equals(args(1))
-    }
-    
     protected def computeSpot(i:Int) :Unit = {
         _tp(i) = (H(i) + 2 * C(i) + L(i)) / 4f
         

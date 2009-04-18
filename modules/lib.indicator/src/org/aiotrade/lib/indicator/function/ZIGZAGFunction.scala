@@ -58,11 +58,6 @@ class ZIGZAGFunction extends AbstractFunction {
         this.percent = args(0).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.percent.equals(args(0))
-    }
-
     /** 
      * @TODO
      * Re-think how to effictively get this pseudoZigzag

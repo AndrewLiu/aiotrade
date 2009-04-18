@@ -72,24 +72,14 @@ case class PROBMASSFunction extends AbstractFunction {
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         args match {
-            case Seq(varX:Var[Float], weightX:Var[Float], periodX:Opt, nIntervalX:Opt) =>
-                var1 = varX
-                weight.equals(weightX)
-                period.equals(periodX)
-                nInterval.equals(nIntervalX)
+            case Seq(a0:Var[Float], a1:Var[Float], a2:Opt, a3:Opt) =>
+                var1 = a0
+                weight.equals(a1)
+                period.equals(a2)
+                nInterval.equals(a3)
         }
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        if (this._baseSer == baseSer) {
-            args match {
-                case Seq(varX:Var[Float], weightX:Var[Float], periodX:Opt, nIntervalX:Opt) =>
-                    var1 == varX && weight == weightX && period == periodX && nInterval == nIntervalX
-                case _ => false
-            }
-        } else false
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (weight == null) {
             

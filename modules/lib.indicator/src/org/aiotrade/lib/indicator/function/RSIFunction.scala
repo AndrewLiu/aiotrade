@@ -54,11 +54,6 @@ class RSIFunction extends AbstractFunction {
         this.period = args(0).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.period.equals(args(0))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (i == 0) {
             

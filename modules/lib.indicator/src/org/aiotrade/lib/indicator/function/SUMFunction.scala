@@ -60,12 +60,6 @@ class SUMFunction extends AbstractFunction {
         this.period = args(1).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.var1 == args(0) &&
-        this.period.equals(args(1))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (i < period.value - 1) {
             

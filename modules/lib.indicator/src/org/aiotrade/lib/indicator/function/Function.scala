@@ -92,8 +92,6 @@ trait Function {
 
     def id :FunctionID[_]
 
-    def idEquals(baseSer:Ser, args:Any*) :Boolean
-
     /**
      * This method will compute from computedIdx <b>to</b> idx.
      *

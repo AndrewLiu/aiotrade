@@ -46,10 +46,6 @@ class OBVFunction extends AbstractFunction {
         super.set(baseSer)
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (i == 0) {
             

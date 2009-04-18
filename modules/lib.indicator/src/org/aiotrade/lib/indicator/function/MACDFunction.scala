@@ -58,13 +58,6 @@ class MACDFunction extends AbstractFunction {
         this.periodFast = args(2).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.var1 == args(0) &&
-        this.periodSlow.equals(args(1)) &&
-        this.periodFast.equals(args(2))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         _emaFast(i) = ema(i, var1, periodFast)
         _emaSlow(i) = ema(i, var1, periodSlow)

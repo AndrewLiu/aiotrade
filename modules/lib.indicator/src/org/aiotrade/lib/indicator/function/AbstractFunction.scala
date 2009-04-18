@@ -44,47 +44,6 @@ import org.aiotrade.lib.math.timeseries.{DefaultSer,QuoteSer,Ser,Var}
  * @author Caoyuan Deng
  */
 object AbstractFunction {
-    /**
-     * @TODO
-     * Concurrent issues: use function as key instead of ser?
-     */
-    //protected val serToFunctions = new WeakHashMap[Ser, Set[WeakReference[Function]]]
-    //    private val serToFunctions = new ConcurrentHashMap[Ser, ConcurrentHashMap[Function, Boolean]]
-    //
-    //    final def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
-    //
-    //        /** get this baseSer's functionSet first, if none, create new one */
-    //        val functions = serToFunctions.get(baseSer) match {
-    //            case null =>
-    //                val x = new ConcurrentHashMap[Function, Boolean]
-    //                serToFunctions.putIfAbsent(baseSer, x)
-    //                x
-    //            case x => x
-    //        }
-    //
-    //        /** lookup in functionSet, if found, return it */
-    //        val itr = functions.keySet.iterator
-    //        while (itr.hasNext) {
-    //            val function = itr.next
-    //            if (tpe.isInstance(function) && function.idEquals(baseSer, args:_*)) {
-    //                return function.asInstanceOf[T]
-    //            }
-    //        }
-    //
-    //        /** if none got from functionSet, try to create new one */
-    //        try {
-    //            val function = tpe.newInstance
-    //            /** don't forget to call set(baseSer, args) immediatley */
-    //            function.set(baseSer, args:_*)
-    //            functions.putIfAbsent(function, true)
-    //            function
-    //        } catch {
-    //            case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-    //            case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
-    //        }
-    //
-    //    }
-    //
 
     private val idToFunctions = new ConcurrentHashMap[FunctionID[_], Function]
 

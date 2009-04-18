@@ -56,18 +56,12 @@ class MAFunction extends AbstractFunction {
     def set(baseSer:Ser, args:Any*):Unit = {
         super.set(baseSer)
         args match {
-            case Seq(varX:Var[Float], periodX:Opt) =>
-                this.var1 = varX
-                this.period = periodX
+            case Seq(a0:Var[Float], a1:Opt) =>
+                this.var1 = a0
+                this.period = a1
         }
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.var1 == args(0) &&
-        this.period.equals(args(1))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         if (i < period.value - 1) {
             

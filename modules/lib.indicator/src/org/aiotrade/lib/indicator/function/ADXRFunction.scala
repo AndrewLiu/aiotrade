@@ -54,12 +54,6 @@ class ADXRFunction extends AbstractFunction {
         this.periodAdx = args(1).asInstanceOf[Opt]
     }
     
-    def idEquals(baseSer:Ser, args:Any*) :Boolean = {
-        this._baseSer == baseSer &&
-        this.periodDi.equals(args(0)) &&
-        this.periodAdx.equals(args(1))
-    }
-
     protected def computeSpot(i:Int) :Unit = {
         _adx(i) = adx(i, periodDi, periodAdx)
         
