@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.Var
  * @author Caoyuan Deng
  */
 //@IndicatorName("ProbMass")
-class ProbMassIndicator(baseSer:Ser) extends AbstractSpotIndicator(baseSer) {
+class ProbMassIndicator(baseSer:Ser) extends SpotIndicator(baseSer) {
     _sname = "Probability Mass"
     _lname = "Probability Mass"
     _overlapping = true

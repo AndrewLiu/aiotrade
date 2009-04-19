@@ -32,13 +32,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class OBVIndicator extends AbstractContIndicator {
+class OBVIndicator extends ContIndicator {
     _sname = "OBV"
     _lname = "On Balance Volume"
 

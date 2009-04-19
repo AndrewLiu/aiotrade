@@ -37,12 +37,12 @@ import org.aiotrade.lib.math.timeseries.Var;
  *
  * @author Caoyuan Deng
  */
-class VOLIndicator extends AbstractContIndicator {
+class VOLIndicator extends ContIndicator {
     _sname = "VOL"
     _lname = "Volume"
     
-    val period1 = Factor("Period Short",    5.0)
-    val period2 = Factor("Period Mediaum", 10.0)
+    val period1 = Factor("Period Short",    5)
+    val period2 = Factor("Period Mediaum", 10)
     
     val vol = TimeVar[Float]("VOL", Plot.Volume)
     val ma1 = TimeVar[Float]("MA1", Plot.Line)

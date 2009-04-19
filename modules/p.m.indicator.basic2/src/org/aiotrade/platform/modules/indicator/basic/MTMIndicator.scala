@@ -33,13 +33,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MTMIndicator extends AbstractContIndicator {
+class MTMIndicator extends ContIndicator {
     _sname = "MTM"
     _lname = "Momentum"
     

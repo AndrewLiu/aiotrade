@@ -33,13 +33,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class WMSIndicator extends AbstractContIndicator {
+class WMSIndicator extends ContIndicator {
     _sname = "WMS"
     _lname = "Williams' %R"
     _grids = Array(10f, 90f)

@@ -33,13 +33,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class CCIIndicator extends AbstractContIndicator {
+class CCIIndicator extends ContIndicator {
     _sname = "CCI"
     _lname = "Commodity Channel Index"
     _grids = Array(100f, -100f)

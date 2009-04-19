@@ -44,7 +44,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 //@IndicatorName("QUOTECOMPARE")
-class QuoteCompareIndicator(baseSer:Ser) extends AbstractContIndicator(baseSer) {
+class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
     
     private var _serToBeCompared :QuoteSer = _
         

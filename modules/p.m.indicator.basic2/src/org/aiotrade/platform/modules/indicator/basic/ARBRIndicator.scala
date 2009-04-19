@@ -33,13 +33,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.{Ser,Var}
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class ARBRIndicator extends AbstractContIndicator {
+class ARBRIndicator extends ContIndicator {
     _sname = "AR/BR"
     _grids = Array(50f, 200f)
     

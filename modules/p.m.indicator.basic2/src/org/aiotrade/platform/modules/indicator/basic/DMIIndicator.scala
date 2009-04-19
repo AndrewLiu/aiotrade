@@ -33,13 +33,13 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class DMIIndicator extends AbstractContIndicator {
+class DMIIndicator extends ContIndicator {
     _sname = "DMI"
     _lname = "Directional Movement Index"
     _grids = Array(20f, 80f)

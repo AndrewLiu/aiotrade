@@ -30,56 +30,39 @@
  */
 package org.aiotrade.lib.indicator;
 
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable;
-import org.aiotrade.lib.math.timeseries.SerItem;
-import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.computable.Indicator;
 
 /**
- * Abstract Profile Indicator
- * The indicator's factor is time - mulitiple values (time, and values in z plane),
- * The series usually contains only one SerItem instance of requried time.
+ * Usually, indicator instances are created by call createNewInstance(),
+ * But in this class, createNewInstance() don't really create a new singletonInstance,
+ * it just return the singletonInstance.
  * 
- * 
- * 
- * 
+ * Here is not the traditional singleton pattern, which implement singleton by 
+ * using <em>private</em> constructor and a static getInstance() method. This is
+ * because that, in many cases (such as NetBeans FileSystem, or serializtion etc.), 
+ * a <em>public</em> constructor with empty args is required.
  * 
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Spot Indicator")
-abstract class AbstractSpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with SpotComputable {
+object SingletonIndicator {
+    protected var singletonInstance :SingletonIndicator = _
+}
+abstract class SingletonIndicator extends ContIndicator(null) {
+    import SingletonIndicator._
     
-    var spotTime = -Long.MaxValue
+    singletonInstance = this
     
-    def this() {
-        this(null)
-    }
-    
-    def computeItem(time:Long) :SerItem = {
-        
-        /** get masterIndex before preCalc(), which may clear this data */
-        val baseIdx = _baseSer.indexOfOccurredTime(time)
-        
-        preComputeFrom(time)
-        
-        val newItem = computeSpot(time, baseIdx)
-        
-        spotTime = (time);
-        
-        postComputeFrom
-        
-        newItem;
-    }
-    
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx; while (i < _itemSize) {
-            val time = _baseSer.timestamps(i)
-            if (time == spotTime) {
-                computeSpot(time, i)
+    def createInstance :Indicator = {
+        if (singletonInstance == null) {
+            val clazz = this.getClass
+            try {
+                singletonInstance = this.getClass.newInstance.asInstanceOf[SingletonIndicator]
+            } catch {
+                case ex:Exception => ex.printStackTrace
             }
-            i += 1
         }
+        singletonInstance
     }
     
-    protected def computeSpot(time:Long, baseIdx:Int) :SerItem
 }
 

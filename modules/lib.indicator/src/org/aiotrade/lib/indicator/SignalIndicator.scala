@@ -30,18 +30,52 @@
  */
 package org.aiotrade.lib.indicator;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.math.util.Sign;
+import org.aiotrade.lib.math.util.Signal;
 
 /**
- * Abstract Continumm Indicator
+ * Abstract Signal Indicator
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Continumm Indicator")
-abstract class AbstractContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+abstract class SignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+    
+    _overlapping = true
 
-    def this() = {
+    val signalVar = new SparseVar[Signal]("Signal", Plot.Signal)
+    
+    def this() {
         this(null)
     }
+        
+    protected def signal(idx:Int, sign:Sign) :Unit = {
+        signal(idx, sign, "");
+    }
+    
+    protected def signal(idx:Int, sign:Sign, name:String) :Unit = {
+        val time = _baseSer.timestamps(idx)
+        
+        /** appoint a value for this sign as the drawing position */
+        val value = sign match {
+            case Sign.EnterLong  => L(idx)
+            case Sign.ExitLong   => H(idx)
+            case Sign.EnterShort => H(idx)
+            case Sign.ExitShort  => L(idx)
+            case _ => Float.NaN
+        }
+        
+        signalVar(idx) = new Signal(idx, time, value, sign, name)
+    }
+    
+    protected def removeSignal(idx:Int) :Unit = {
+        val time = _baseSer.timestamps(idx)
+        time
+        /** @TODO */
+    }
+    
 }
+

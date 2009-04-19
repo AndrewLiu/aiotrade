@@ -30,53 +30,55 @@
  */
 package org.aiotrade.lib.indicator;
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.computable.SpotComputable;
+import org.aiotrade.lib.math.timeseries.SerItem;
 import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.math.util.Sign;
-import org.aiotrade.lib.math.util.Signal;
 
 /**
- * Abstract Signal Indicator
- *
+ * Abstract Profile Indicator
+ * The indicator's factor is time - mulitiple values (time, and values in z plane),
+ * The series usually contains only one SerItem instance of requried time.
+ * 
+ * 
+ * 
+ * 
+ * 
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Signal Indicator")
-abstract class AbstractSignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with SpotComputable {
     
-    _overlapping = true
-
-    val signalVar = new SparseVar[Signal]("Signal", Plot.Signal)
+    var spotTime = -Long.MaxValue
     
     def this() {
         this(null)
     }
+    
+    def computeItem(time:Long) :SerItem = {
         
-    protected def signal(idx:Int, sign:Sign) :Unit = {
-        signal(idx, sign, "");
+        /** get masterIndex before preCalc(), which may clear this data */
+        val baseIdx = _baseSer.indexOfOccurredTime(time)
+        
+        preComputeFrom(time)
+        
+        val newItem = computeSpot(time, baseIdx)
+        
+        spotTime = (time);
+        
+        postComputeFrom
+        
+        newItem;
     }
     
-    protected def signal(idx:Int, sign:Sign, name:String) :Unit = {
-        val time = _baseSer.timestamps(idx)
-        
-        /** appoint a value for this sign as the drawing position */
-        val value = sign match {
-            case Sign.EnterLong  => L(idx)
-            case Sign.ExitLong   => H(idx)
-            case Sign.EnterShort => H(idx)
-            case Sign.ExitShort  => L(idx)
-            case _ => Float.NaN
+    protected def computeCont(begIdx:Int) :Unit = {
+        var i = begIdx; while (i < _itemSize) {
+            val time = _baseSer.timestamps(i)
+            if (time == spotTime) {
+                computeSpot(time, i)
+            }
+            i += 1
         }
-        
-        signalVar(idx) = new Signal(idx, time, value, sign, name)
     }
     
-    protected def removeSignal(idx:Int) :Unit = {
-        val time = _baseSer.timestamps(idx)
-        time
-        /** @TODO */
-    }
-    
+    protected def computeSpot(time:Long, baseIdx:Int) :SerItem
 }
 

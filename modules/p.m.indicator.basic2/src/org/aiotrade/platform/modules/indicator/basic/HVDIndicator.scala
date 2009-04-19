@@ -34,13 +34,13 @@ import org.aiotrade.lib.math.timeseries.SerItem
 import org.aiotrade.lib.math.timeseries.Var
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
-import org.aiotrade.lib.indicator.AbstractSpotIndicator
+import org.aiotrade.lib.indicator.SpotIndicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class HVDIndicator extends AbstractSpotIndicator {
+class HVDIndicator extends SpotIndicator {
     _sname = "HVD"
     _lname = "Historical Volume Distribution"
     _overlapping = true
@@ -68,10 +68,3 @@ class HVDIndicator extends AbstractSpotIndicator {
         item
     }
 }
-
-
-
-
-
-
-

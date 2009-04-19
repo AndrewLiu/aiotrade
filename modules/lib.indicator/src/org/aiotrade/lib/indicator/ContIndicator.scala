@@ -30,40 +30,17 @@
  */
 package org.aiotrade.lib.indicator;
 
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.computable.ContComputable
+import org.aiotrade.lib.math.timeseries.Ser
 
 /**
- * Usually, indicator instances are created by call createNewInstance(),
- * But in this class, createNewInstance() don't really create a new singletonInstance,
- * it just return the singletonInstance.
- * 
- * Here is not the traditional singleton pattern, which implement singleton by 
- * using <em>private</em> constructor and a static getInstance() method. This is
- * because that, in many cases (such as NetBeans FileSystem, or serializtion etc.), 
- * a <em>public</em> constructor with empty args is required.
- * 
+ * Abstract Continumm Indicator
+ *
  * @author Caoyuan Deng
  */
-object AbstractSingletonIndicator {
-    protected var singletonInstance :AbstractSingletonIndicator = _
-}
-//@IndicatorName("Abstract Singleton Indicator")
-abstract class AbstractSingletonIndicator extends AbstractContIndicator(null) {
-    import AbstractSingletonIndicator._
-    
-    singletonInstance = this
-    
-    def createInstance :Indicator = {
-        if (singletonInstance == null) {
-            val clazz = this.getClass
-            try {
-                singletonInstance = this.getClass.newInstance.asInstanceOf[AbstractSingletonIndicator]
-            } catch {
-                case ex:Exception => ex.printStackTrace
-            }
-        }
-        singletonInstance
-    }
-    
-}
+abstract class ContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
 
+    def this() = {
+        this(null)
+    }
+}

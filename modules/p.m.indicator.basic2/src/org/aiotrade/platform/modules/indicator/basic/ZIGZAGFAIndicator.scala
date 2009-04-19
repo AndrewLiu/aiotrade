@@ -31,13 +31,13 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  *
  * @author Caoyuan Deng
  */
-class ZIGZAGFAIndicator extends AbstractContIndicator {
+class ZIGZAGFAIndicator extends ContIndicator {
     _sname = "ZIGZAGFA"
     _lname = "Zigzag with Fibonacci Arcs"
     _overlapping = true

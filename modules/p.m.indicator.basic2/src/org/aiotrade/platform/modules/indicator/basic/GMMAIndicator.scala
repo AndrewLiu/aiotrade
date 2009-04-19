@@ -33,14 +33,14 @@ package org.aiotrade.platform.modules.indicator.basic;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.AbstractContIndicator;
+import org.aiotrade.lib.indicator.ContIndicator;
 
 /**
  * Guppy multiple Moving Average
  *
  * @author Caoyuan Deng
  */
-class GMMAIndicator extends AbstractContIndicator {
+class GMMAIndicator extends ContIndicator {
     _sname = "GMMA"
     _lname = "Guppy Multiple Moving Average"
     
