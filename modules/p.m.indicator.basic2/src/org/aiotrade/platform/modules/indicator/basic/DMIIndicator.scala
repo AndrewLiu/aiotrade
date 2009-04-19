@@ -44,8 +44,8 @@ class DMIIndicator extends AbstractContIndicator {
     _lname = "Directional Movement Index"
     _grids = Array(20f, 80f)
 
-    val periodDi  = Factor("Period DI",  6.0)
-    val periodAdx = Factor("Period ADX", 14.0)
+    val periodDi  = Factor("Period DI",  6)
+    val periodAdx = Factor("Period ADX", 14)
     
     val diPlus  = TimeVar[Float]("+DI",  Plot.Line)
     val diMinus = TimeVar[Float]("-DI",  Plot.Line)

@@ -44,9 +44,9 @@ class KDIndicator extends AbstractContIndicator {
     _lname = "Stochastics"
     _grids = Array(20f, 80f)
     
-    val period  = Factor("Period K",           9.0)
-    val periodK = Factor("Period K Smoothing", 3.0)
-    val periodD = Factor("Period D Smoothing", 3.0)
+    val period  = Factor("Period K",           9)
+    val periodK = Factor("Period K Smoothing", 3)
+    val periodD = Factor("Period D Smoothing", 3)
     
     val k = TimeVar[Float]("K", Plot.Line)
     val d = TimeVar[Float]("D", Plot.Line)

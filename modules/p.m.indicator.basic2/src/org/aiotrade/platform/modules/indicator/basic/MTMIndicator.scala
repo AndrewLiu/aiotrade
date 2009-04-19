@@ -43,8 +43,8 @@ class MTMIndicator extends AbstractContIndicator {
     _sname = "MTM"
     _lname = "Momentum"
     
-    val period       = Factor("Period",           12.0)
-    val periodSmooth = Factor("Period Smoothing",  6.0)
+    val period       = Factor("Period",           12)
+    val periodSmooth = Factor("Period Smoothing",  6)
     
     val mtm    = TimeVar[Float]("MTM",    Plot.Line)
     val mtm_ma = TimeVar[Float]("MTM_MA", Plot.Line)

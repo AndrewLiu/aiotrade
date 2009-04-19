@@ -45,8 +45,8 @@ class CCIIndicator extends AbstractContIndicator {
     _grids = Array(100f, -100f)
 
     val alpha    = Factor("Alpha",     0.015)
-    val period   = Factor("Period",    20.0)
-    val periodMa = Factor("Period MA", 3.0)
+    val period   = Factor("Period",    20)
+    val periodMa = Factor("Period MA", 3)
     
     val cci    = TimeVar[Float]("CCI",   Plot.Line)
     val cci_ma = TimeVar[Float]("MACCI", Plot.Line)

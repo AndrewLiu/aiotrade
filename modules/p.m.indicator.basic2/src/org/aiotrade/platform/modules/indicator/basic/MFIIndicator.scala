@@ -44,7 +44,7 @@ class MFIIndicator extends AbstractContIndicator {
     _lname = "Money Flow Index"
     _grids = Array(30f, 70f)
     
-    val period = Factor("Period", 10.0)
+    val period = Factor("Period", 10)
     
     val mfi = TimeVar[Float]("MFI", Plot.Line)
     

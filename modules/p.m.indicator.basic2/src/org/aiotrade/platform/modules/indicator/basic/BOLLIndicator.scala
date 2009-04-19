@@ -45,7 +45,7 @@ class BOLLIndicator extends AbstractContIndicator {
     _overlapping = true
 
     
-    val period = Factor("Period", 20.0)
+    val period = Factor("Period", 20)
     val alpha1 = Factor("Alpha1", 2.0, 0.1)
     val alpha2 = Factor("Alpha2", 2.0, 0.1)
     

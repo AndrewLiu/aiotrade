@@ -45,10 +45,10 @@ class HVDIndicator extends AbstractSpotIndicator {
     _lname = "Historical Volume Distribution"
     _overlapping = true
     
-    val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
-    val period1    = Factor("Period1",  50.0)
-    val period2    = Factor("Period2",  100.0)
-    val period3    = Factor("Period3",  200.0)
+    val nIntervals = Factor("Number of Intervals", 30, 1, 1, 100)
+    val period1    = Factor("Period1",  50)
+    val period2    = Factor("Period2",  100)
+    val period3    = Factor("Period3",  200)
     
     val HVD1 = TimeVar[Array[Array[Float]]]("HVD1", Plot.Profile)
     val HVD2 = TimeVar[Array[Array[Float]]]("HVD2", Plot.Profile)

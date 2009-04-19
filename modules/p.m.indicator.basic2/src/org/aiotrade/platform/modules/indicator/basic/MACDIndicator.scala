@@ -43,9 +43,9 @@ class MACDIndicator extends AbstractContIndicator {
     _sname = "MACD"
     _lname = "Moving Average Convergence/Divergence"
     
-    val periodFast   = Factor("Period EMA Fast", 12.0)
-    val periodSlow   = Factor("Period EMA Slow", 26.0)
-    val periodSignal = Factor("Period Signal",    9.0 )
+    val periodFast   = Factor("Period EMA Fast", 12)
+    val periodSlow   = Factor("Period EMA Slow", 26)
+    val periodSignal = Factor("Period Signal",    9)
     
     val macd   = TimeVar[Float]("MACD",   Plot.Line)
     val signal = TimeVar[Float]("SIGNAL", Plot.Line)

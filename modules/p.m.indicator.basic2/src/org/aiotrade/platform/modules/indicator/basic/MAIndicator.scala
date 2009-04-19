@@ -44,9 +44,9 @@ class MAIndicator extends AbstractContIndicator {
     _lname = "Moving Average"
     _overlapping = true
     
-    val period1 = Factor("Period 1", 5.0 )
-    val period2 = Factor("Period 2", 10.0)
-    val period3 = Factor("Period 3", 20.0)
+    val period1 = Factor("Period 1", 5)
+    val period2 = Factor("Period 2", 10)
+    val period3 = Factor("Period 3", 20)
     
     val ma1 = TimeVar[Float]("MA1", Plot.Line)
     val ma2 = TimeVar[Float]("MA2", Plot.Line)

@@ -40,10 +40,10 @@ import org.aiotrade.lib.indicator.AbstractContIndicator;
  * @author Caoyuan Deng
  */
 class ARBRIndicator extends AbstractContIndicator {
-    _sname = "AR/BR";
+    _sname = "AR/BR"
     _grids = Array(50f, 200f)
     
-    val period = Factor("Period", 10.0)
+    val period = Factor("Period", 10)
     
     val up = TimeVar[Float]("up")
     val dn = TimeVar[Float]("dn")

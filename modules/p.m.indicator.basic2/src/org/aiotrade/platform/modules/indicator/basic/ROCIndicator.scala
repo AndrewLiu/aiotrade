@@ -43,8 +43,8 @@ class ROCIndicator extends AbstractContIndicator {
     _sname = "ROC"
     _lname = "Rate of Change"
     
-    val period1 = Factor("Period Short", 12.0)
-    val period2 = Factor("Period Long",  25.0)
+    val period1 = Factor("Period Short", 12)
+    val period2 = Factor("Period Long",  25)
     
     val roc1 = TimeVar[Float]("ROC1", Plot.Line)
     val roc2 = TimeVar[Float]("ROC2", Plot.Line)

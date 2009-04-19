@@ -44,9 +44,9 @@ class EMAIndicator extends AbstractContIndicator {
     _lname = "Exponential Moving Average"
     _overlapping = true;
     
-    val period1 = Factor("Period Short",   5.0)
-    val period2 = Factor("Period Mediaum", 10.0)
-    val period3 = Factor("Period Long",    20.0)
+    val period1 = Factor("Period Short",   5)
+    val period2 = Factor("Period Mediaum", 10)
+    val period3 = Factor("Period Long",    20)
     
     val ema1 = TimeVar[Float]("EMA1", Plot.Line)
     val ema2 = TimeVar[Float]("EMA2", Plot.Line)

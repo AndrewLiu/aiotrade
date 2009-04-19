@@ -44,9 +44,9 @@ class RSIIndicator extends AbstractContIndicator {
     _lname = "Relative Strength Index"
     _grids = Array(20f, 80f)
 
-    val periodS = Factor("Period Short",   6.0 )
-    val periodM = Factor("Period Mediaum", 12.0)
-    val periodL = Factor("Period Long",    24.0)
+    val periodS = Factor("Period Short",   6.)
+    val periodM = Factor("Period Mediaum", 12)
+    val periodL = Factor("Period Long",    24)
     
     val rsi1 = TimeVar[Float]("RSI1", Plot.Line)
     val rsi2 = TimeVar[Float]("RSI2", Plot.Line)

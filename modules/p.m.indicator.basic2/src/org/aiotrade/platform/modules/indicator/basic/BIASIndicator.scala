@@ -43,9 +43,9 @@ class BIASIndicator extends AbstractContIndicator {
     _sname = "BIAS"
     _lname = "Bias to Moving Average"
     
-    val period1 = Factor("Period Short",   6.0)
-    val period2 = Factor("Period Mediaum", 12.0)
-    val period3 = Factor("Period Long",    24.0)
+    val period1 = Factor("Period Short",   6)
+    val period2 = Factor("Period Mediaum", 12)
+    val period3 = Factor("Period Long",    24)
     
     val bias1 = TimeVar[Float]("BIAS1", Plot.Line)
     val bias2 = TimeVar[Float]("BIAS2", Plot.Line)
