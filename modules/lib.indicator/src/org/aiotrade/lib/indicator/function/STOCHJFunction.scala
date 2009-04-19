@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,20 +40,20 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class STOCHJFunction extends AbstractFunction {
     
-    var period, periodK, periodD :Opt = _
+    var period, periodK, periodD :Factor = _
     
-    val _stochK = new DefaultVar[Float]
-    val _stochD = new DefaultVar[Float]
+    val _stochK = TimeVar[Float]()
+    val _stochD = TimeVar[Float]()
     
-    val _stochJ = new DefaultVar[Float]
+    val _stochJ = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Opt]
-        this.periodK = args(1).asInstanceOf[Opt]
-        this.periodD = args(2).asInstanceOf[Opt]
+        this.period = args(0).asInstanceOf[Factor]
+        this.periodK = args(1).asInstanceOf[Factor]
+        this.periodD = args(2).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

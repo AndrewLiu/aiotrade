@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,13 +44,13 @@ class EMAIndicator extends AbstractContIndicator {
     _lname = "Exponential Moving Average"
     _overlapping = true;
     
-    val period1 = new DefaultOpt("Period Short",   5.0)
-    val period2 = new DefaultOpt("Period Mediaum", 10.0)
-    val period3 = new DefaultOpt("Period Long",    20.0)
+    val period1 = Factor("Period Short",   5.0)
+    val period2 = Factor("Period Mediaum", 10.0)
+    val period3 = Factor("Period Long",    20.0)
     
-    val ema1 = new DefaultVar[Float]("EMA1", Plot.Line)
-    val ema2 = new DefaultVar[Float]("EMA2", Plot.Line)
-    val ema3 = new DefaultVar[Float]("EMA3", Plot.Line)
+    val ema1 = TimeVar[Float]("EMA1", Plot.Line)
+    val ema2 = TimeVar[Float]("EMA2", Plot.Line)
+    val ema3 = TimeVar[Float]("EMA3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

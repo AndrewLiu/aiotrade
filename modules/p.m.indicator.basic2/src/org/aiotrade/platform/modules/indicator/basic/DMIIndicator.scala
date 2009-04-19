@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,13 +44,13 @@ class DMIIndicator extends AbstractContIndicator {
     _lname = "Directional Movement Index"
     _grids = Array(20f, 80f)
 
-    val periodDi  = new DefaultOpt("Period DI",  6.0)
-    val periodAdx = new DefaultOpt("Period ADX", 14.0)
+    val periodDi  = Factor("Period DI",  6.0)
+    val periodAdx = Factor("Period ADX", 14.0)
     
-    val diPlus  = new DefaultVar[Float]("+DI",  Plot.Line)
-    val diMinus = new DefaultVar[Float]("-DI",  Plot.Line)
-    val adx     = new DefaultVar[Float]("ADX",  Plot.Line)
-    val adxr    = new DefaultVar[Float]("ADXR", Plot.Line)
+    val diPlus  = TimeVar[Float]("+DI",  Plot.Line)
+    val diMinus = TimeVar[Float]("-DI",  Plot.Line)
+    val adx     = TimeVar[Float]("ADX",  Plot.Line)
+    val adxr    = TimeVar[Float]("ADXR", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

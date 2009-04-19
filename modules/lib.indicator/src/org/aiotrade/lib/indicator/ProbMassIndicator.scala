@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.SerItem
 import org.aiotrade.lib.math.timeseries.Ser
 import org.aiotrade.lib.math.timeseries.Var
@@ -46,25 +46,25 @@ class ProbMassIndicator(baseSer:Ser) extends AbstractSpotIndicator(baseSer) {
     _lname = "Probability Mass"
     _overlapping = true
     
-    var appledVar :Var[Float] = _
+    var baseVar :Var[Float] = _
 
-    val nIntervals = new DefaultOpt("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
-    val period1    = new DefaultOpt("Period1", 50.0)
-    val period2    = new DefaultOpt("Period2", 100.0)
-    val period3    = new DefaultOpt("Period3", 200.0)
+    val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
+    val period1    = Factor("Period1", 50.0)
+    val period2    = Factor("Period2", 100.0)
+    val period3    = Factor("Period3", 200.0)
     
     
-    val MASS1 = new DefaultVar[Array[Array[Float]]]("MASS1", Plot.Profile)
-    val MASS2 = new DefaultVar[Array[Array[Float]]]("MASS2", Plot.Profile)
-    val MASS3 = new DefaultVar[Array[Array[Float]]]("MASS3", Plot.Profile)
+    val MASS1 = TimeVar[Array[Array[Float]]]("MASS1", Plot.Profile)
+    val MASS2 = TimeVar[Array[Array[Float]]]("MASS2", Plot.Profile)
+    val MASS3 = TimeVar[Array[Array[Float]]]("MASS3", Plot.Profile)
 
 
     def computeSpot(time:Long, masterIdx:Int) :SerItem =  {
         val item = createItemOrClearIt(time)
         
-        val probability_mass1 = probMass(masterIdx, appledVar, period1, nIntervals)
-        val probability_mass2 = probMass(masterIdx, appledVar, period2, nIntervals)
-        val probability_mass3 = probMass(masterIdx, appledVar, period3, nIntervals)
+        val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)
+        val probability_mass2 = probMass(masterIdx, baseVar, period2, nIntervals)
+        val probability_mass3 = probMass(masterIdx, baseVar, period3, nIntervals)
         
         item.set(MASS1, probability_mass1)
         item.set(MASS2, probability_mass2)
@@ -75,8 +75,8 @@ class ProbMassIndicator(baseSer:Ser) extends AbstractSpotIndicator(baseSer) {
 
     override
     def shortDescription :String =  {
-        if (appledVar != null) {
-            "PM: " + appledVar.name
+        if (baseVar != null) {
+            "PM: " + baseVar.name
         } else "PM"
     }
 }

@@ -47,10 +47,10 @@ import scala.collection.mutable.ArrayBuffer
 class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     
     /**
-     * opts of this instance, such as period long, period short etc,
+     * factors of this instance, such as period long, period short etc,
      * it's 'final' to avoid being replaced somewhere.
      */
-    var _opts = new ArrayBuffer[Opt]
+    var _factors = new ArrayBuffer[Factor]
         
     private var baseSerChangeListener :SerChangeListener = _
     
@@ -61,7 +61,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     }
 
     def this() {
-        /** do nothing: opts should has been initialized in instance initialization procedure */
+        /** do nothing: factors should has been initialized in instance initialization procedure */
         this(null, null)
     }
     
@@ -181,23 +181,23 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                                                         baseSerChangeEventCallBack))
     }
     
-    def addOpt(opt:Opt) :Unit = {
-        /** add opt change listener to this opt */
-        addOptChangeListener(opt)
+    def addFactor(factor:Factor) :Unit = {
+        /** add factor change listener to this factor */
+        addFactorChangeListener(factor)
         
-        _opts += opt
+        _factors += factor
     }
     
-    private def addOptChangeListener(opt:Opt) :Unit = {
-        opt.addOptChangeListener(new OptChangeListener() {
-                def optChanged(evt:OptChangeEvent) :Unit = {
+    private def addFactorChangeListener(factor:Factor) :Unit = {
+        factor.addFactorChangeListener(new FactorChangeListener() {
+                def factorChanged(evt:FactorChangeEvent) :Unit = {
                     /**
-                     * As any one of opt in opt changed will fire change events
-                     * for each opt in opt, we only need respond to the first
+                     * As any one of factor in factor changed will fire change events
+                     * for each factor in factor, we only need respond to the first
                      * one.
-                     * @see fireOptChangeEvents();
+                     * @see fireFacChangeEvents();
                      */
-                    if (evt.getSource.equals(_opts(0))) {
+                    if (evt.getSource.equals(_factors(0))) {
                         /** call back */
                         resultSer.computeFrom(0)
                     }
@@ -205,71 +205,71 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
             })
     }
 
-    def opts :ArrayBuffer[Opt] = _opts
+    def factors :ArrayBuffer[Factor] = _factors
 
     /**
      *
      *
-     * @return if any value of opts changed, return true, else return false
+     * @return if any value of factors changed, return true, else return false
      */
-    def opts_=(opts:ArrayBuffer[Opt]) :Unit = {
-        if (opts != null) {
-            val values = new Array[Number](opts.size)
-            for (i <- 0 until opts.size) {
-                values(i) = _opts(i).value
+    def factors_=(factors:ArrayBuffer[Factor]) :Unit = {
+        if (factors != null) {
+            val values = new Array[Number](factors.size)
+            for (i <- 0 until factors.size) {
+                values(i) = _factors(i).value
             }
-            opts_=(values)
+            factors_=(values)
         }
     }
     
     /**
      *
      *
-     * @return if any value of opts changed, return true, else return false
+     * @return if any value of factors changed, return true, else return false
      */
-    def opts_=(optValues:Array[Number]) :Unit = {
+    def factors_=(facValues:Array[Number]) :Unit = {
         var valueChanged = false
-        if (optValues != null) {
-            if (opts.size == optValues.length) {
-                for (i <- 0 until optValues.length) {
-                    val myOpt = _opts(i)
-                    val inValue = optValues(i)
-                    /** check if changed happens before set myOpt */
-                    if ((myOpt.value != inValue.floatValue)) {
+        if (facValues != null) {
+            if (factors.size == facValues.length) {
+                for (i <- 0 until facValues.length) {
+                    val myFactor = _factors(i)
+                    val inValue = facValues(i)
+                    /** check if changed happens before set myFactor */
+                    if ((myFactor.value != inValue.floatValue)) {
                         valueChanged = true
                     }
-                    myOpt.value = inValue
+                    myFactor.value = inValue
                 }
             }
         }
         
         if (valueChanged) {
-            fireOptsChangeEvents
+            fireFactorsChangeEvents
         }
     }
     
-    private def fireOptsChangeEvents :Unit = {
-        for (opt <- opts) {
-            opt.fireOptChangeEvent(new OptChangeEvent(opt))
+    private def fireFactorsChangeEvents :Unit = {
+        for (factor <- factors) {
+            factor.fireFactorChangeEvent(new FactorChangeEvent(factor))
         }
     }
     
-    def replaceOpt(oldOpt:Opt, newOpt:Opt) :Unit = {
+    def replaceFac(oldFactor:Factor, newFactor:Factor) :Unit = {
         var idxOld = -1
         var i = 0
         var break = false
-        while (i < opts.size && !break) {
-            val opt = opts(i);
-            if (opt.equals(oldOpt)) {
+        while (i < factors.size && !break) {
+            val factor = factors(i);
+            if (factor.equals(oldFactor)) {
                 idxOld = i
                 break = true
             }
         }
         
         if (idxOld != -1) {
-            addOptChangeListener(newOpt)
+            addFactorChangeListener(newFactor)
             
-            opts(idxOld) = newOpt
+            factors(idxOld) = newFactor
         }
     }
 
@@ -282,22 +282,22 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
 }
 
 object ComputableHelper {
-    private val OPT_DECIMAL_FORMAT = new DecimalFormat("0.###")
+    private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
     def displayName(ser:Ser) :String = ser match {
-        case x:Computable => displayName(ser.shortDescription, x.opts)
+        case x:Computable => displayName(ser.shortDescription, x.factors)
         case _ => ser.shortDescription
     }
 
-    def displayName(name:String, opts:ArrayBuffer[Opt]) :String = {
+    def displayName(name:String, factors:ArrayBuffer[Factor]) :String = {
         val buffer = new StringBuffer(name)
 
-        val size = opts.size
+        val size = factors.size
         for (i <- 0 until size) {
             if (i == 0) {
                 buffer.append(" (")
             }
-            buffer.append(OPT_DECIMAL_FORMAT.format(opts(i).value))
+            buffer.append(FAC_DECIMAL_FORMAT.format(factors(i).value))
             if (i < size - 1) {
                 buffer.append(", ")
             } else {

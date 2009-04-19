@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,20 +40,20 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class BOLLFunction extends AbstractFunction {
     
-    var period, alpha :Opt = _
-    var var1 :Var[Float] = _
+    var period, alpha :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _bollMiddle = new DefaultVar[Float]
-    val _bollUpper  = new DefaultVar[Float]
-    val _bollLower  = new DefaultVar[Float]
+    val _bollMiddle = TimeVar[Float]()
+    val _bollUpper  = TimeVar[Float]()
+    val _bollLower  = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
-        this.alpha = args(2).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
+        this.alpha = args(2).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -65,8 +65,8 @@ class BOLLFunction extends AbstractFunction {
             
         } else {
             
-            val ma_i = ma(i, var1, period)
-            val standard_deviation_i = stdDev(i, var1, period);
+            val ma_i = ma(i, baseVar, period)
+            val standard_deviation_i = stdDev(i, baseVar, period);
             
             _bollMiddle(i) = ma_i
             _bollUpper(i)  = ma_i + alpha.value * standard_deviation_i

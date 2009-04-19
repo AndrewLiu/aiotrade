@@ -40,14 +40,14 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     private var _shortDescription:String = ""
     var adjusted :Boolean = false
     
-    val open   = new DefaultVar[Float]("O", Plot.Quote)
-    val high   = new DefaultVar[Float]("H", Plot.Quote)
-    val low    = new DefaultVar[Float]("L", Plot.Quote)
-    val close  = new DefaultVar[Float]("C", Plot.Quote)
-    val volume = new DefaultVar[Float]("V", Plot.Volume)
+    val open   = TimeVar[Float]("O", Plot.Quote)
+    val high   = TimeVar[Float]("H", Plot.Quote)
+    val low    = TimeVar[Float]("L", Plot.Quote)
+    val close  = TimeVar[Float]("C", Plot.Quote)
+    val volume = TimeVar[Float]("V", Plot.Volume)
     
-    val close_ori = new DefaultVar[Float]
-    val close_adj = new DefaultVar[Float]
+    val close_ori = TimeVar[Float]()
+    val close_adj = TimeVar[Float]()
     
     
     override

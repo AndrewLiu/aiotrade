@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,19 +40,19 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class CCIFunction extends AbstractFunction {
     
-    var alpha, period :Opt = _
+    var alpha, period :Factor = _
     
-    val _tp        = new DefaultVar[Float]
-    val _deviation = new DefaultVar[Float]
+    val _tp        = TimeVar[Float]()
+    val _deviation = TimeVar[Float]()
     
-    val _cci = new DefaultVar[Float]
+    val _cci = TimeVar[Float]
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Opt]
-        this.alpha = args(1).asInstanceOf[Opt]
+        this.period = args(0).asInstanceOf[Factor]
+        this.alpha = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,11 +44,11 @@ class WMSIndicator extends AbstractContIndicator {
     _lname = "Williams' %R"
     _grids = Array(10f, 90f)
     
-    val period1 = new DefaultOpt("Period Short",  6.0)
-    val period2 = new DefaultOpt("Period Long",  10.0)
+    val period1 = Factor("Period Short",  6.0)
+    val period2 = Factor("Period Long",  10.0)
     
-    val wms1 = new DefaultVar[Float]("WMS1", Plot.Line)
-    val wms2 = new DefaultVar[Float]("WMS2", Plot.Line)
+    val wms1 = TimeVar[Float]("WMS1", Plot.Line)
+    val wms2 = TimeVar[Float]("WMS2", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,18 +40,18 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DXFunction extends AbstractFunction {
     
-    var period :Opt = _
+    var period :Factor = _
     
-    val _diPlus  = new DefaultVar[Float]
-    val _diMinus = new DefaultVar[Float]
+    val _diPlus  = TimeVar[Float]()
+    val _diMinus = TimeVar[Float]()
     
-    val _dx = new DefaultVar[Float]
+    val _dx = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Opt]
+        this.period = args(0).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

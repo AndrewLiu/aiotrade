@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,24 +40,24 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object MAFunction {
-    protected def ima(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
-        return StatisticFunction.ima(idx, var1.values, period.toInt, prev)
+    protected def ima(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+        return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
     }
 }
 
 class MAFunction extends AbstractFunction {
     
-    var period: Opt = _
-    var var1: Var[Float] = _
+    var period: Factor = _
+    var baseVar: Var[Float] = _
     
-    val _ma = new DefaultVar[Float]
+    val _ma = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         args match {
-            case Seq(a0:Var[Float], a1:Opt) =>
-                this.var1 = a0
+            case Seq(a0:Var[Float], a1:Factor) =>
+                this.baseVar = a0
                 this.period = a1
         }
     }
@@ -69,7 +69,7 @@ class MAFunction extends AbstractFunction {
             
         } else {
             
-            _ma(i) = MAFunction.ima(i, var1, period.value, _ma(i - 1))
+            _ma(i) = MAFunction.ima(i, baseVar, period.value, _ma(i - 1))
             
         }
     }

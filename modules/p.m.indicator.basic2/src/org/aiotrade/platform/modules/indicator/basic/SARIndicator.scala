@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,11 +44,11 @@ class SARIndicator extends AbstractContIndicator {
     _lname = "Parabolic SAR"
     _overlapping = true
 
-    val initial = new DefaultOpt("Primary AF", 0.02, 0.01)
-    val step    = new DefaultOpt("AF step",    0.02, 0.01)
-    val maximum = new DefaultOpt("Maximum AF",  0.20, 0.10)
+    val initial = Factor("Primary AF", 0.02, 0.01)
+    val step    = Factor("AF step",    0.02, 0.01)
+    val maximum = Factor("Maximum AF",  0.20, 0.10)
     
-    val sar = new DefaultVar[Float]("SAR", Plot.Dot)
+    val sar = TimeVar[Float]("SAR", Plot.Dot)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

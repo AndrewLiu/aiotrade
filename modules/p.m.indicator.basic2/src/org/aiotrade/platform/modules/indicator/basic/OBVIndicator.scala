@@ -42,7 +42,7 @@ class OBVIndicator extends AbstractContIndicator {
     _sname = "OBV"
     _lname = "On Balance Volume"
 
-    val obv1 = new DefaultVar[Float]("OBV", Plot.Line)
+    val obv1 = TimeVar[Float]("OBV", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

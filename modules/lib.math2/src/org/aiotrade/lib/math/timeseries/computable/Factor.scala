@@ -35,12 +35,12 @@ import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
 
 /**
- * Class for defining indicator's option
+ * Class for defining indicator's factor
  *
  * @author Caoyuan Deng
  */
 @cloneable
-trait Opt {
+trait Factor {
     
     def name :String
     def name_=(name:String): Unit
@@ -48,7 +48,7 @@ trait Opt {
     def value :Float
     def value_=(value:Number) :Unit
     
-    def step : Float;
+    def step :Float
     def step_=(step:Number)
     
     def maxValue :Float
@@ -59,11 +59,11 @@ trait Opt {
 
     /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
     override
-    def clone:Opt = {super.clone; this}
+    def clone:Factor = {super.clone; this}
     
-    def addOptChangeListener(listener:OptChangeListener) :Unit
-    def removeOptChangeListener(listener:OptChangeListener) :Unit
-    def fireOptChangeEvent(evt:OptChangeEvent) :Unit
+    def addFactorChangeListener(listener:FactorChangeListener) :Unit
+    def removeFactorChangeListener(listener:FactorChangeListener) :Unit
+    def fireFactorChangeEvent(evt:FactorChangeEvent) :Unit
     
     def writeToBean(doc:BeansDocument) :Element
     
@@ -109,32 +109,32 @@ trait Opt {
     //    }
 }
 
-abstract class AbstractOpt(var name:String) extends Opt {
-    val optChangeEventListenerList = new EventListenerList
+abstract class AbstractFactor(var name:String) extends Factor {
+    val factorChangeEventListenerList = new EventListenerList
 
-    def addOptChangeListener(listener: OptChangeListener) = {
-        optChangeEventListenerList.add(classOf[OptChangeListener], listener)
+    def addFactorChangeListener(listener: FactorChangeListener) = {
+        factorChangeEventListenerList.add(classOf[FactorChangeListener], listener)
     }
 
-    def removeOptChangeListener(listener:OptChangeListener) {
-        optChangeEventListenerList.remove(classOf[OptChangeListener], listener)
+    def removeFactorChangeListener(listener:FactorChangeListener) {
+        factorChangeEventListenerList.remove(classOf[FactorChangeListener], listener)
     }
 
-    def fireOptChangeEvent(evt:OptChangeEvent) {
-        val listeners = optChangeEventListenerList.getListenerList
+    def fireFactorChangeEvent(evt:FactorChangeEvent) {
+        val listeners = factorChangeEventListenerList.getListenerList
         /** Each listener occupies two elements - the first is the listener class */
         var i = 0
         while (i < listeners.length) {
-            if (listeners(i) == classOf[OptChangeListener]) {
-                listeners(i + 1).asInstanceOf[OptChangeListener].optChanged(evt)
+            if (listeners(i) == classOf[FactorChangeListener]) {
+                listeners(i + 1).asInstanceOf[FactorChangeListener].factorChanged(evt)
             }
             i += 2
         }
     }
 
     override
-    def equals(o:Any) :Boolean = o match {
-        case x:Opt => this.value.equals(x.value)
+    def equals(a:Any) :Boolean = a match {
+        case x:Factor => this.value.equals(x.value)
         case _ => false
     }
 
@@ -142,17 +142,17 @@ abstract class AbstractOpt(var name:String) extends Opt {
     def hashCode = this.value.hashCode
 
     override
-    def clone :Opt = {
+    def clone :Factor = {
         try {
-            val newOpt = super.clone.asInstanceOf[Opt]
+            val newOne = super.clone.asInstanceOf[Factor]
 
-            newOpt.name = name
-            newOpt.value = value
-            newOpt.step = step
-            newOpt.minValue = minValue
-            newOpt.maxValue = maxValue
+            newOne.name = name
+            newOne.value = value
+            newOne.step = step
+            newOne.minValue = minValue
+            newOne.maxValue = maxValue
 
-            return newOpt
+            return newOne
         } catch {
             case ex:CloneNotSupportedException => throw new InternalError(ex.toString)
         }

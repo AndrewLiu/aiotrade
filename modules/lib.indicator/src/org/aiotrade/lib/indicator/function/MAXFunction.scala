@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,23 +40,23 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object MAXFunction {
-    protected def imax(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
-        StatisticFunction.imax(idx, var1.values, period.toInt, prev)
+    protected def imax(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+        StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
     }
 }
 class MAXFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _max = new DefaultVar[Float]
+    val _max = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -66,7 +66,7 @@ class MAXFunction extends AbstractFunction {
             
         } else {
             
-            _max(i) = MAXFunction.imax(i, var1, period.value, _max(i - 1))
+            _max(i) = MAXFunction.imax(i, baseVar, period.value, _max(i - 1))
             
         }
     }

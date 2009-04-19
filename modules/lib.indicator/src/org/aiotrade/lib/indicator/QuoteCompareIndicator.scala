@@ -32,7 +32,7 @@ package org.aiotrade.lib.indicator;
 
 import org.aiotrade.lib.math.timeseries.QuoteItem;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.MasterSer;
 import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.lib.math.timeseries.SerItem;
@@ -52,16 +52,16 @@ class QuoteCompareIndicator(baseSer:Ser) extends AbstractContIndicator(baseSer) 
         this._serToBeCompared = serToBeCompared
     }
     
-    val begPosition = new DefaultOpt("Begin of Time Frame", 0L)
-    val endPosition = new DefaultOpt("End of Time Frame",   0L)
-    val maxValue    = new DefaultOpt("Max Value", -Float.MaxValue)
-    val minValue    = new DefaultOpt("Min Value", +Float.MaxValue)
+    val begPosition = Factor("Begin of Time Frame", 0L)
+    val endPosition = Factor("End of Time Frame",   0L)
+    val maxValue    = Factor("Max Value", -Float.MaxValue)
+    val minValue    = Factor("Min Value", +Float.MaxValue)
     
-    var open   = new DefaultVar[Float]("O", Plot.Quote)
-    var high   = new DefaultVar[Float]("H", Plot.Quote)
-    var low    = new DefaultVar[Float]("L", Plot.Quote)
-    var close  = new DefaultVar[Float]("C", Plot.Quote)
-    var volume = new DefaultVar[Float]("V", Plot.Quote)
+    var open   = TimeVar[Float]("O", Plot.Quote)
+    var high   = TimeVar[Float]("H", Plot.Quote)
+    var low    = TimeVar[Float]("L", Plot.Quote)
+    var close  = TimeVar[Float]("C", Plot.Quote)
+    var volume = TimeVar[Float]("V", Plot.Quote)
     
     protected def computeCont(begIdx:Int) :Unit = {
         /** camparing base point is the value of begin time (the most left on screen */

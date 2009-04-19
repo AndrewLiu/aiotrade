@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,12 +44,12 @@ class CCIIndicator extends AbstractContIndicator {
     _lname = "Commodity Channel Index"
     _grids = Array(100f, -100f)
 
-    val alpha    = new DefaultOpt("Alpha",     0.015)
-    val period   = new DefaultOpt("Period",    20.0)
-    val periodMa = new DefaultOpt("Period MA", 3.0)
+    val alpha    = Factor("Alpha",     0.015)
+    val period   = Factor("Period",    20.0)
+    val periodMa = Factor("Period MA", 3.0)
     
-    val cci    = new DefaultVar[Float]("CCI",   Plot.Line)
-    val cci_ma = new DefaultVar[Float]("MACCI", Plot.Line)
+    val cci    = TimeVar[Float]("CCI",   Plot.Line)
+    val cci_ma = TimeVar[Float]("MACCI", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

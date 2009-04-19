@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic
 
 import org.aiotrade.lib.math.timeseries.Var
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.AbstractContIndicator
 
@@ -44,10 +44,10 @@ class ZIGZAGIndicator extends AbstractContIndicator {
     _lname = "Zigzag"
     _overlapping = true
     
-    val percent = new DefaultOpt("Turn Persent", 0.03, 0.01)
+    val percent = Factor("Turn Persent", 0.03, 0.01)
     
-    val zigzag       = new DefaultVar[Float]("ZIGZAG", Plot.Zigzag)
-    val pseudoZigzag = new DefaultVar[Float]("PSEUDO", Plot.Zigzag)
+    val zigzag       = TimeVar[Float]("ZIGZAG", Plot.Zigzag)
+    val pseudoZigzag = TimeVar[Float]("PSEUDO", Plot.Zigzag)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

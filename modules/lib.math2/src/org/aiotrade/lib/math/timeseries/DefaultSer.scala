@@ -290,7 +290,12 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         _hashCode
     }
 
-    class DefaultVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
+    object TimeVar {
+        def apply[E]() = new InnerVar[E]
+        def apply[E](name:String) = new InnerVar[E](name)
+        def apply[E](name:String, plot:Plot) = new InnerVar[E](name, plot)
+    }
+    protected class InnerVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
 
         val values = new ArrayBuffer[E]
 
@@ -331,12 +336,12 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          */
         override
         def equals(o:Any) :Boolean = o match {
-            case x:DefaultVar[_] => this.values == x.values
+            case x:InnerVar[_] => this.values == x.values
             case _ => false
         }
     }
 
-    class SparseVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
+    protected class SparseVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
 
         val values = new TimestampedMapBasedList[E](timestamps)
 

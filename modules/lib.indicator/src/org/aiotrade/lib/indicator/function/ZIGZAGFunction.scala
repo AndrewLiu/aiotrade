@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,22 +40,22 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ZIGZAGFunction extends AbstractFunction {
     
-    var percent :Opt = _
+    var percent :Factor = _
     
-    val _peakHi    = new DefaultVar[Float]
-    val _peakLo    = new DefaultVar[Float]
-    val _peakHiIdx = new DefaultVar[Int]
-    val _peakLoIdx = new DefaultVar[Int]
-    val _direction = new DefaultVar[Direction]
+    val _peakHi    = TimeVar[Float]()
+    val _peakLo    = TimeVar[Float]()
+    val _peakHiIdx = TimeVar[Int]()
+    val _peakLoIdx = TimeVar[Int]()
+    val _direction = TimeVar[Direction]()
     
-    val _zigzag       = new DefaultVar[Float]
-    val _pseudoZigzag = new DefaultVar[Float]
+    val _zigzag       = TimeVar[Float]()
+    val _pseudoZigzag = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.percent = args(0).asInstanceOf[Opt]
+        this.percent = args(0).asInstanceOf[Factor]
     }
     
     /** 

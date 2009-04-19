@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.{Ser,Var}
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -43,15 +43,15 @@ class ARBRIndicator extends AbstractContIndicator {
     _sname = "AR/BR";
     _grids = Array(50f, 200f)
     
-    val period = new DefaultOpt("Period", 10.0)
+    val period = Factor("Period", 10.0)
     
-    val up = new DefaultVar[Float]("up");
-    val dn = new DefaultVar[Float]("dn");
-    val bs = new DefaultVar[Float]("bs");
-    val ss = new DefaultVar[Float]("ss");
+    val up = TimeVar[Float]("up")
+    val dn = TimeVar[Float]("dn")
+    val bs = TimeVar[Float]("bs")
+    val ss = TimeVar[Float]("ss")
     
-    val ar = new DefaultVar[Float]("AR", Plot.Line)
-    val br = new DefaultVar[Float]("BR", Plot.Line)
+    val ar = TimeVar[Float]("AR", Plot.Line)
+    val br = TimeVar[Float]("BR", Plot.Line)
     
     
     protected def computeCont(begIdx:Int) :Unit = {

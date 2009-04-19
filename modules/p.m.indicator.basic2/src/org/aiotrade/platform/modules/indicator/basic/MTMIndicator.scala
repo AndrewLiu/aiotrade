@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -43,11 +43,11 @@ class MTMIndicator extends AbstractContIndicator {
     _sname = "MTM"
     _lname = "Momentum"
     
-    val period       = new DefaultOpt("Period",           12.0)
-    val periodSmooth = new DefaultOpt("Period Smoothing",  6.0)
+    val period       = Factor("Period",           12.0)
+    val periodSmooth = Factor("Period Smoothing",  6.0)
     
-    val mtm    = new DefaultVar[Float]("MTM",    Plot.Line)
-    val mtm_ma = new DefaultVar[Float]("MTM_MA", Plot.Line)
+    val mtm    = TimeVar[Float]("MTM",    Plot.Line)
+    val mtm_ma = TimeVar[Float]("MTM_MA", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

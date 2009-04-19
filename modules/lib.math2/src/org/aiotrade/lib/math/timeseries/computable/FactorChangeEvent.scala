@@ -30,15 +30,24 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import java.util.EventListener
+import javax.swing.event.ChangeEvent
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait OptChangeListener extends EventListener {
-    def optChanged(evt:OptChangeEvent) :Unit
-}
+class FactorChangeEvent(private var _source:AnyRef) extends ChangeEvent(_source) {
 
+    override
+    def getSource :Factor = {
+        assert(source.isInstanceOf[Factor], "Source should be Factor")
+        
+        _source.asInstanceOf[Factor]
+    }
+    
+    def source_=(factor:Factor) {
+        _source = factor
+    }
+}
 
 

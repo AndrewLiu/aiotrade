@@ -43,12 +43,12 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:ArrayBuffer[Opt], activeX:Boolean) extends AnalysisDescriptor[Indicator](serviceClassNameX, freqX, activeX) {
+class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:ArrayBuffer[Factor], activeX:Boolean) extends AnalysisDescriptor[Indicator](serviceClassNameX, freqX, activeX) {
 
-    private var _opts:ArrayBuffer[Opt] = optsX
+    private var _factors:ArrayBuffer[Factor] = factorsX
 
     def this() {
-        this(null, Frequency.DAILY, new ArrayBuffer[Opt], false)
+        this(null, Frequency.DAILY, new ArrayBuffer[Factor], false)
 
     }
 
@@ -56,29 +56,29 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
     def set(serviceClassName:String, freq:Frequency) :Unit = {
         super.set(serviceClassName, freq)
 
-        setOptsToDefault
+        setFacsToDefault
     }
 
-    def opts :ArrayBuffer[Opt]= _opts
-    def opts_=(opts:ArrayBuffer[Opt]) :Unit = {
+    def factors :ArrayBuffer[Factor]= _factors
+    def factors_=(factors:ArrayBuffer[Factor]) :Unit = {
         /**
          * @NOTICE:
-         * always create a new copy of in opts to seperate the opts of this
+         * always create a new copy of in factors to seperate the factors of this
          * and that transfered in (we don't know who transfer it in, so, be more
          * carefule is always good)
          */
-        val mySize = this._opts.size
-        if (opts != null) {
-            for (i <- 0 until opts.size) {
-                val newOpt = opts(i).clone
+        val mySize = this._factors.size
+        if (factors != null) {
+            for (i <- 0 until factors.size) {
+                val newFac = factors(i).clone
                 if (i < mySize) {
-                    this._opts(i) = newOpt
+                    this._factors(i) = newFac
                 } else {
-                    this._opts += newOpt
+                    this._factors += newFac
                 }
             }
         } else {
-            this._opts.clear
+            this._factors.clear
         }
     }
 
@@ -90,7 +90,7 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
             case Some(x) => x.shortDescription
         }
         
-        ComputableHelper.displayName(displayStr, opts)
+        ComputableHelper.displayName(displayStr, factors)
     }
 
     /**
@@ -108,30 +108,30 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
                 case Some(x) =>
                     val instance = x.createNewInstance(baseSer)
                 
-                    if (opts.isEmpty) {
-                        /** this means this indicatorDescritor's opts may not be set yet, so set a default one now */
-                        opts = instance.opts
+                    if (factors.isEmpty) {
+                        /** this means this indicatorDescritor's factors may not be set yet, so set a default one now */
+                        factors = instance.factors
                     } else {
-                        /** should set opts here, because it's from those stored in xml */
-                        instance.opts = opts
+                        /** should set facs here, because it's from those stored in xml */
+                        instance.factors = factors
                     }
                     Some(instance)
             }
         case _ => None
     }
     
-    def setOptsToDefault :Unit = {
-        val defaultOpts = PersistenceManager.getDefault.defaultContents.lookupDescriptor(
+    def setFacsToDefault :Unit = {
+        val defaultFacs = PersistenceManager.getDefault.defaultContents.lookupDescriptor(
             classOf[IndicatorDescriptor], serviceClassName, freq) match {
             case None => lookupServiceTemplate match {
                     case None => None
-                    case Some(template) => Some(template.opts)
+                    case Some(template) => Some(template.factors)
                 }
-            case Some(defaultDescriptor) => Some(defaultDescriptor.opts)
+            case Some(defaultDescriptor) => Some(defaultDescriptor.factors)
         }
 
-        defaultOpts match {
-            case Some(x) => opts = x
+        defaultFacs match {
+            case Some(x) => factors = x
             case None =>
         }
     }
@@ -158,9 +158,9 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, optsX:Array
     def writeToBean(doc:BeansDocument) :Element = {
         val bean = super.writeToBean(doc)
 
-        val list = doc.listPropertyOfBean(bean, "opts")
-        for (opt <- opts) {
-            doc.innerElementOfList(list, opt.writeToBean(doc))
+        val list = doc.listPropertyOfBean(bean, "facs")
+        for (factor <- factors) {
+            doc.innerElementOfList(list, factor.writeToBean(doc))
         }
 
         bean

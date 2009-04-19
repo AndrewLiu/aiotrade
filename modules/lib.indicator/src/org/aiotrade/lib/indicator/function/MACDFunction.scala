@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,27 +40,27 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MACDFunction extends AbstractFunction {
     
-    var periodSlow :Opt = _
-    var periodFast :Opt = _
-    var var1 :Var[Float] = _
+    var periodSlow :Factor = _
+    var periodFast :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _emaFast = new DefaultVar[Float]
-    val _emaSlow = new DefaultVar[Float]
+    val _emaFast = TimeVar[Float]()
+    val _emaSlow = TimeVar[Float]()
     
-    val _macd = new DefaultVar[Float]
+    val _macd = TimeVar[Float]
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.periodSlow = args(1).asInstanceOf[Opt]
-        this.periodFast = args(2).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.periodSlow = args(1).asInstanceOf[Factor]
+        this.periodFast = args(2).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
-        _emaFast(i) = ema(i, var1, periodFast)
-        _emaSlow(i) = ema(i, var1, periodSlow)
+        _emaFast(i) = ema(i, baseVar, periodFast)
+        _emaSlow(i) = ema(i, baseVar, periodSlow)
             
         _macd(i) = _emaFast(i) - _emaSlow(i)
     }

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,13 +44,13 @@ class KDIndicator extends AbstractContIndicator {
     _lname = "Stochastics"
     _grids = Array(20f, 80f)
     
-    val period  = new DefaultOpt("Period K",           9.0)
-    val periodK = new DefaultOpt("Period K Smoothing", 3.0)
-    val periodD = new DefaultOpt("Period D Smoothing", 3.0)
+    val period  = Factor("Period K",           9.0)
+    val periodK = Factor("Period K Smoothing", 3.0)
+    val periodD = Factor("Period D Smoothing", 3.0)
     
-    val k = new DefaultVar[Float]("K", Plot.Line)
-    val d = new DefaultVar[Float]("D", Plot.Line)
-    val j = new DefaultVar[Float]("J", Plot.Line)
+    val k = TimeVar[Float]("K", Plot.Line)
+    val d = TimeVar[Float]("D", Plot.Line)
+    val j = TimeVar[Float]("J", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -43,13 +43,13 @@ class MACDIndicator extends AbstractContIndicator {
     _sname = "MACD"
     _lname = "Moving Average Convergence/Divergence"
     
-    val periodFast   = new DefaultOpt("Period EMA Fast", 12.0)
-    val periodSlow   = new DefaultOpt("Period EMA Slow", 26.0)
-    val periodSignal = new DefaultOpt("Period Signal",    9.0 )
+    val periodFast   = Factor("Period EMA Fast", 12.0)
+    val periodSlow   = Factor("Period EMA Slow", 26.0)
+    val periodSignal = Factor("Period Signal",    9.0 )
     
-    val macd   = new DefaultVar[Float]("MACD",   Plot.Line)
-    val signal = new DefaultVar[Float]("SIGNAL", Plot.Line)
-    val osc    = new DefaultVar[Float]("OSC",    Plot.Stick)
+    val macd   = TimeVar[Float]("MACD",   Plot.Line)
+    val signal = TimeVar[Float]("SIGNAL", Plot.Line)
+    val osc    = TimeVar[Float]("OSC",    Plot.Stick)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

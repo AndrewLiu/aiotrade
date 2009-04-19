@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -45,15 +45,15 @@ class BOLLIndicator extends AbstractContIndicator {
     _overlapping = true
 
     
-    val period = new DefaultOpt("Period", 20.0)
-    val alpha1 = new DefaultOpt("Alpha1", 2.0, 0.1)
-    val alpha2 = new DefaultOpt("Alpha2", 2.0, 0.1)
+    val period = Factor("Period", 20.0)
+    val alpha1 = Factor("Alpha1", 2.0, 0.1)
+    val alpha2 = Factor("Alpha2", 2.0, 0.1)
     
-    val boll_m  = new DefaultVar[Float]("MA",    Plot.Line)
-    val boll_u1 = new DefaultVar[Float]("UPPER", Plot.Line)
-    val boll_l1 = new DefaultVar[Float]("LOWER", Plot.Line)
-    val boll_u2 = new DefaultVar[Float]("UPPER", Plot.Line)
-    val boll_l2 = new DefaultVar[Float]("LOWER", Plot.Line)
+    val boll_m  = TimeVar[Float]("MA",    Plot.Line)
+    val boll_u1 = TimeVar[Float]("UPPER", Plot.Line)
+    val boll_l1 = TimeVar[Float]("LOWER", Plot.Line)
+    val boll_u2 = TimeVar[Float]("UPPER", Plot.Line)
+    val boll_l2 = TimeVar[Float]("LOWER", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

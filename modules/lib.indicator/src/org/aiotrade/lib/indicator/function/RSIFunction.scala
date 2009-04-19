@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,18 +40,18 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class RSIFunction extends AbstractFunction {
     
-    var period :Opt = _
+    var period :Factor = _
     
-    val _up = new DefaultVar[Float]
-    val _dn = new DefaultVar[Float]
+    val _up = TimeVar[Float]()
+    val _dn = TimeVar[Float]()
     
-    val _rsi = new DefaultVar[Float]
+    val _rsi = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Opt]
+        this.period = args(0).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

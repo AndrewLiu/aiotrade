@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,18 +40,18 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ADXRFunction extends AbstractFunction {
     
-    var periodDi :Opt = _
-    var periodAdx :Opt = _
+    var periodDi :Factor = _
+    var periodAdx :Factor = _
     
-    val _adx  = new DefaultVar[Float]
-    val _adxr = new DefaultVar[Float]
+    val _adx  = TimeVar[Float]()
+    val _adxr = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.periodDi = args(0).asInstanceOf[Opt]
-        this.periodAdx = args(1).asInstanceOf[Opt]
+        this.periodDi = args(0).asInstanceOf[Factor]
+        this.periodAdx = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -63,7 +63,7 @@ class ADXRFunction extends AbstractFunction {
             
         } else {
             
-            val adx_i = _adx(i);
+            val adx_i = _adx(i)
             val adx_j = _adx(i - periodAdx.value.toInt)
             
             _adxr(i) = (adx_i + adx_j) / 2f

@@ -32,7 +32,7 @@ package org.aiotrade.platform.modules.indicator.basic
 
 import org.aiotrade.lib.math.timeseries.SerItem
 import org.aiotrade.lib.math.timeseries.Var
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.AbstractSpotIndicator
 
@@ -45,14 +45,14 @@ class HVDIndicator extends AbstractSpotIndicator {
     _lname = "Historical Volume Distribution"
     _overlapping = true
     
-    val nIntervals = new DefaultOpt("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
-    val period1    = new DefaultOpt("Period1",  50.0)
-    val period2    = new DefaultOpt("Period2",  100.0)
-    val period3    = new DefaultOpt("Period3",  200.0)
+    val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
+    val period1    = Factor("Period1",  50.0)
+    val period2    = Factor("Period2",  100.0)
+    val period3    = Factor("Period3",  200.0)
     
-    val HVD1 = new DefaultVar[Array[Array[Float]]]("HVD1", Plot.Profile)
-    val HVD2 = new DefaultVar[Array[Array[Float]]]("HVD2", Plot.Profile)
-    val HVD3 = new DefaultVar[Array[Array[Float]]]("HVD3", Plot.Profile)
+    val HVD1 = TimeVar[Array[Array[Float]]]("HVD1", Plot.Profile)
+    val HVD2 = TimeVar[Array[Array[Float]]]("HVD2", Plot.Profile)
+    val HVD3 = TimeVar[Array[Array[Float]]]("HVD3", Plot.Profile)
     
     def computeSpot(time:Long, baseIdx:Int) :SerItem = {
         val item = createItemOrClearIt(time)

@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -43,13 +43,13 @@ class BIASIndicator extends AbstractContIndicator {
     _sname = "BIAS"
     _lname = "Bias to Moving Average"
     
-    val period1 = new DefaultOpt("Period Short",   6.0)
-    val period2 = new DefaultOpt("Period Mediaum", 12.0)
-    val period3 = new DefaultOpt("Period Long",    24.0)
+    val period1 = Factor("Period Short",   6.0)
+    val period2 = Factor("Period Mediaum", 12.0)
+    val period3 = Factor("Period Long",    24.0)
     
-    val bias1 = new DefaultVar[Float]("BIAS1", Plot.Line)
-    val bias2 = new DefaultVar[Float]("BIAS2", Plot.Line)
-    val bias3 = new DefaultVar[Float]("BIAS3", Plot.Line)
+    val bias1 = TimeVar[Float]("BIAS1", Plot.Line)
+    val bias2 = TimeVar[Float]("BIAS2", Plot.Line)
+    val bias3 = TimeVar[Float]("BIAS3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

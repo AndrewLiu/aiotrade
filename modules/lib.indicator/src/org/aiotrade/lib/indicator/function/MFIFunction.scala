@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,19 +40,19 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MFIFunction extends AbstractFunction {
     
-    var period :Opt = _
+    var period :Factor = _
     
-    val _tp    = new DefaultVar[Float]
-    val _mfPos = new DefaultVar[Float]
-    val _mfNeg = new DefaultVar[Float]
+    val _tp    = TimeVar[Float]()
+    val _mfPos = TimeVar[Float]()
+    val _mfNeg = TimeVar[Float]()
 
-    val _mfi = new DefaultVar[Float]
+    val _mfi = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Opt]
+        this.period = args(0).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

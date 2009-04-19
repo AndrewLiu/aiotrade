@@ -39,8 +39,8 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DMFunction extends AbstractFunction {
     
-    val _dmPlus  = new DefaultVar[Float]
-    val _dmMinus = new DefaultVar[Float]
+    val _dmPlus  = TimeVar[Float]()
+    val _dmMinus = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

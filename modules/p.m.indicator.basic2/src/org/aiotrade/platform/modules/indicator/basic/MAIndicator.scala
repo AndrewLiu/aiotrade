@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,13 +44,13 @@ class MAIndicator extends AbstractContIndicator {
     _lname = "Moving Average"
     _overlapping = true
     
-    val period1 = new DefaultOpt("Period 1", 5.0 )
-    val period2 = new DefaultOpt("Period 2", 10.0)
-    val period3 = new DefaultOpt("Period 3", 20.0)
+    val period1 = Factor("Period 1", 5.0 )
+    val period2 = Factor("Period 2", 10.0)
+    val period3 = Factor("Period 3", 20.0)
     
-    val ma1 = new DefaultVar[Float]("MA1", Plot.Line)
-    val ma2 = new DefaultVar[Float]("MA2", Plot.Line)
-    val ma3 = new DefaultVar[Float]("MA3", Plot.Line)
+    val ma1 = TimeVar[Float]("MA1", Plot.Line)
+    val ma2 = TimeVar[Float]("MA2", Plot.Line)
+    val ma3 = TimeVar[Float]("MA3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

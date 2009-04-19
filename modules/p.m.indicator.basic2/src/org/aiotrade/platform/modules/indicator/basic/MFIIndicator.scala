@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,9 +44,9 @@ class MFIIndicator extends AbstractContIndicator {
     _lname = "Money Flow Index"
     _grids = Array(30f, 70f)
     
-    val period = new DefaultOpt("Period", 10.0)
+    val period = Factor("Period", 10.0)
     
-    val mfi = new DefaultVar[Float]("MFI", Plot.Line)
+    val mfi = TimeVar[Float]("MFI", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

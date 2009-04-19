@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
 /**
@@ -42,7 +42,7 @@ class ZIGZAGFAIndicator extends AbstractContIndicator {
     _lname = "Zigzag with Fibonacci Arcs"
     _overlapping = true
     
-    val percent = new DefaultOpt("Turn Percent", 3.0)  // Percent for judge if trend turns over
+    val percent = Factor("Turn Percent", 3.0)  // Percent for judge if trend turns over
     
     //    TimeVar zigzag        = function("zigzag")
     //    TimeVar pseudoZigzag  = function("pseudoZigzag")

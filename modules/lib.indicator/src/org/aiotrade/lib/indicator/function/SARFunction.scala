@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,21 +40,21 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class SARFunction extends AbstractFunction {
     
-    var initial, step, maximum :Opt = _
+    var initial, step, maximum :Factor = _
     
-    val _direction = new DefaultVar[Direction]
-    val _ep        = new DefaultVar[Float]
-    val _af        = new DefaultVar[Float]
+    val _direction = TimeVar[Direction]()
+    val _ep        = TimeVar[Float]()
+    val _af        = TimeVar[Float]()
     
-    val _sar = new DefaultVar[Float]
+    val _sar = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.initial = args(0).asInstanceOf[Opt]
-        this.step = args(1).asInstanceOf[Opt]
-        this.maximum = args(2).asInstanceOf[Opt]
+        this.initial = args(0).asInstanceOf[Factor]
+        this.step = args(1).asInstanceOf[Factor]
+        this.maximum = args(2).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {

@@ -51,9 +51,9 @@ trait Computable extends Actor {
     def computeFrom(time:Long) :Unit
     def computedTime :Long
     
-    def opts :ArrayBuffer[Opt]
-    def opts_=(opts:ArrayBuffer[Opt]) :Unit
-    def opts_=(values: Array[Number]) :Unit
+    def factors :ArrayBuffer[Factor]
+    def factors_=(factors:ArrayBuffer[Factor]) :Unit
+    def factors_=(values:Array[Number]) :Unit
     
     def dispose :Unit
 }

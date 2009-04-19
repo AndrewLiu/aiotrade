@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,31 +44,31 @@ class GMMAIndicator extends AbstractContIndicator {
     _sname = "GMMA"
     _lname = "Guppy Multiple Moving Average"
     
-    val period01 = new DefaultOpt("Period Short 1", 3.0)
-    val period02 = new DefaultOpt("Period Short 2", 5.0)
-    val period03 = new DefaultOpt("Period Short 3", 8.0)
-    val period04 = new DefaultOpt("Period Short 4", 10.0)
-    val period05 = new DefaultOpt("Period Short 5", 12.0)
-    val period06 = new DefaultOpt("Period Short 6", 15.0)
-    val period07 = new DefaultOpt("Period Long 1",  30.0)
-    val period08 = new DefaultOpt("Period Long 2",  35.0)
-    val period09 = new DefaultOpt("Period Long 3",  40.0)
-    val period10 = new DefaultOpt("Period Long 4",  45.0)
-    val period11 = new DefaultOpt("Period Long 5",  50.0)
-    val period12 = new DefaultOpt("Period Long 6",  60.0)
+    val period01 = Factor("Period Short 1", 3.0)
+    val period02 = Factor("Period Short 2", 5.0)
+    val period03 = Factor("Period Short 3", 8.0)
+    val period04 = Factor("Period Short 4", 10.0)
+    val period05 = Factor("Period Short 5", 12.0)
+    val period06 = Factor("Period Short 6", 15.0)
+    val period07 = Factor("Period Long 1",  30.0)
+    val period08 = Factor("Period Long 2",  35.0)
+    val period09 = Factor("Period Long 3",  40.0)
+    val period10 = Factor("Period Long 4",  45.0)
+    val period11 = Factor("Period Long 5",  50.0)
+    val period12 = Factor("Period Long 6",  60.0)
     
-    val  ma01 = new DefaultVar[Float]("MA01", Plot.Line)
-    val  ma02 = new DefaultVar[Float]("MA02", Plot.Line)
-    val  ma03 = new DefaultVar[Float]("MA03", Plot.Line)
-    val  ma04 = new DefaultVar[Float]("MA04", Plot.Line)
-    val  ma05 = new DefaultVar[Float]("MA05", Plot.Line)
-    val  ma06 = new DefaultVar[Float]("MA06", Plot.Line)
-    val  ma07 = new DefaultVar[Float]("MA07", Plot.Line)
-    val  ma08 = new DefaultVar[Float]("MA08", Plot.Line)
-    val  ma09 = new DefaultVar[Float]("MA09", Plot.Line)
-    val  ma10 = new DefaultVar[Float]("MA10", Plot.Line)
-    val  ma11 = new DefaultVar[Float]("MA11", Plot.Line)
-    val  ma12 = new DefaultVar[Float]("MA12", Plot.Line)
+    val  ma01 = TimeVar[Float]("MA01", Plot.Line)
+    val  ma02 = TimeVar[Float]("MA02", Plot.Line)
+    val  ma03 = TimeVar[Float]("MA03", Plot.Line)
+    val  ma04 = TimeVar[Float]("MA04", Plot.Line)
+    val  ma05 = TimeVar[Float]("MA05", Plot.Line)
+    val  ma06 = TimeVar[Float]("MA06", Plot.Line)
+    val  ma07 = TimeVar[Float]("MA07", Plot.Line)
+    val  ma08 = TimeVar[Float]("MA08", Plot.Line)
+    val  ma09 = TimeVar[Float]("MA09", Plot.Line)
+    val  ma10 = TimeVar[Float]("MA10", Plot.Line)
+    val  ma11 = TimeVar[Float]("MA11", Plot.Line)
+    val  ma12 = TimeVar[Float]("MA12", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;

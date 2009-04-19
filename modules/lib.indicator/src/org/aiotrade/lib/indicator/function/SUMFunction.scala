@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,24 +40,24 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object SUMFunction {
-    protected def isum(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
-        StatisticFunction.isum(idx, var1.values, period.toInt, prev)
+    protected def isum(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+        StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
     }
 }
 
 class SUMFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _sum = new DefaultVar[Float]
+    val _sum = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -67,7 +67,7 @@ class SUMFunction extends AbstractFunction {
             
         } else {
             
-            _sum(i) = SUMFunction.isum(i, var1, period.value, _sum(i - 1))
+            _sum(i) = SUMFunction.isum(i, baseVar, period.value, _sum(i - 1))
             
         }
     }

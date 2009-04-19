@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -48,27 +48,27 @@ object EMAFunction {
 }
 class EMAFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _ema = new DefaultVar[Float]
+    val _ema = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
         if (i == 0) {
             
-            _ema(i) = var1(i)
+            _ema(i) = baseVar(i)
             
         } else {
             
-            _ema(i) = EMAFunction.iema(i, var1, period.value, _ema(i - 1))
+            _ema(i) = EMAFunction.iema(i, baseVar, period.value, _ema(i - 1))
             
         }
     }

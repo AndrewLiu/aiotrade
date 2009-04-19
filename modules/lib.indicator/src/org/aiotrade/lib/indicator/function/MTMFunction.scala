@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,17 +40,17 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MTMFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _mtm = new DefaultVar[Float]
+    val _mtm = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -60,7 +60,7 @@ class MTMFunction extends AbstractFunction {
             
         } else {
             
-            _mtm(i) = (var1(i) / var1(i - period.value.toInt)) * 100f
+            _mtm(i) = (baseVar(i) / baseVar(i - period.value.toInt)) * 100f
             
         }
     }

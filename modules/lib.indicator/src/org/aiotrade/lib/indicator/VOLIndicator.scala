@@ -31,7 +31,6 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
 import org.aiotrade.lib.math.timeseries.Var;
 
 /**
@@ -42,12 +41,12 @@ class VOLIndicator extends AbstractContIndicator {
     _sname = "VOL"
     _lname = "Volume"
     
-    val period1 = new DefaultOpt("Period Short",    5.0)
-    val period2 = new DefaultOpt("Period Mediaum", 10.0)
+    val period1 = Factor("Period Short",    5.0)
+    val period2 = Factor("Period Mediaum", 10.0)
     
-    val vol = new DefaultVar[Float]("VOL", Plot.Volume)
-    val ma1 = new DefaultVar[Float]("MA1", Plot.Line)
-    val ma2 = new DefaultVar[Float]("MA2", Plot.Line)
+    val vol = TimeVar[Float]("VOL", Plot.Volume)
+    val ma1 = TimeVar[Float]("MA1", Plot.Line)
+    val ma2 = TimeVar[Float]("MA2", Plot.Line)
     
     
     protected def computeCont(begIdx:Int) :Unit = {

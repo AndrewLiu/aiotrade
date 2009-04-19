@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,28 +40,28 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object STDDEVFunction {
-    protected def stdDev(idx:Int, var1:Var[Float], period:Float) :Float = {
+    protected def stdDev(idx:Int, baseVar:Var[Float], period:Float) :Float = {
         val begIdx = idx - period.intValue + 1
         val endIdx = idx
 
-        return StatisticFunction.stdDev(var1.values, begIdx, endIdx)
+        return StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
     }
 
 
 }
 class STDDEVFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _stdDev = new DefaultVar[Float]
+    val _stdDev = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -71,7 +71,7 @@ class STDDEVFunction extends AbstractFunction {
             
         } else {
             
-            _stdDev(i) = STDDEVFunction.stdDev(i, var1, period.value)
+            _stdDev(i) = STDDEVFunction.stdDev(i, baseVar, period.value)
             
         }
     }

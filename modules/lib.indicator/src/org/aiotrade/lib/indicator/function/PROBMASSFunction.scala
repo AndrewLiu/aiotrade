@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.StatisticFunction
-import org.aiotrade.lib.math.timeseries.computable.Opt
+import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.Ser
 import org.aiotrade.lib.math.timeseries.Var
 
@@ -40,27 +40,28 @@ import org.aiotrade.lib.math.timeseries.Var
  * @author Caoyuan Deng
  */
 object PROBMASSFunction {
-    protected def probMass(idx:Int, var1:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
+    protected def probMass(idx:Int, baseVar:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
         val begIdx = idx - period.intValue + 1
         val endIdx = idx
 
-        StatisticFunction.probMass(var1.values, begIdx, endIdx, nInterval.intValue);
+        StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue);
     }
 
-    protected def probMass(idx:Int, var1:Var[Float], weight:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
+    protected def probMass(idx:Int, baseVar:Var[Float], weight:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
         val begIdx = idx - period.intValue + 1
         val endIdx = idx;
 
-        StatisticFunction.probMass(var1.values, weight.values, begIdx, endIdx, nInterval.intValue)
+        StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
     }
 }
 
 case class PROBMASSFunction extends AbstractFunction {
     import PROBMASSFunction._
     
-    var period :Opt = _
-    var nInterval :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var nInterval :Factor = _
+
+    var baseVar :Var[Float] = _
     var weight :Var[Float] = _
     
     /**
@@ -72,8 +73,8 @@ case class PROBMASSFunction extends AbstractFunction {
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         args match {
-            case Seq(a0:Var[Float], a1:Var[Float], a2:Opt, a3:Opt) =>
-                var1 = a0
+            case Seq(a0:Var[Float], a1:Var[Float], a2:Factor, a3:Factor) =>
+                baseVar = a0
                 weight.equals(a1)
                 period.equals(a2)
                 nInterval.equals(a3)
@@ -83,11 +84,11 @@ case class PROBMASSFunction extends AbstractFunction {
     protected def computeSpot(i:Int) :Unit = {
         if (weight == null) {
             
-            _probMass = PROBMASSFunction.probMass(i, var1, period.value, nInterval.value);
+            _probMass = PROBMASSFunction.probMass(i, baseVar, period.value, nInterval.value);
             
         } else {
             
-            _probMass = PROBMASSFunction.probMass(i, var1, weight, period.value, nInterval.value);
+            _probMass = PROBMASSFunction.probMass(i, baseVar, weight, period.value, nInterval.value);
             
         }
     }

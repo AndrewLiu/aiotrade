@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 
@@ -40,17 +40,17 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ROCFunction extends AbstractFunction {
     
-    var period :Opt = _
-    var var1 :Var[Float] = _
+    var period :Factor = _
+    var baseVar :Var[Float] = _
     
-    val _roc = new DefaultVar[Float]
+    val _roc = TimeVar[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {
         super.set(baseSer)
         
-        this.var1 = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Opt]
+        this.baseVar = args(0).asInstanceOf[Var[Float]]
+        this.period = args(1).asInstanceOf[Factor]
     }
     
     protected def computeSpot(i:Int) :Unit = {
@@ -60,9 +60,9 @@ class ROCFunction extends AbstractFunction {
             
         } else {
             
-            val var_j = var1(i - period.value.toInt)
+            val var_j = baseVar(i - period.value.toInt)
             
-            val roc_i = if (var_j == 0) 0f else ((var1(i) - var_j) / var_j) * 100
+            val roc_i = if (var_j == 0) 0f else ((baseVar(i) - var_j) / var_j) * 100
             
             _roc(i) = roc_i
             

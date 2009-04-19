@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -44,13 +44,13 @@ class RSIIndicator extends AbstractContIndicator {
     _lname = "Relative Strength Index"
     _grids = Array(20f, 80f)
 
-    val periodS = new DefaultOpt("Period Short",   6.0 )
-    val periodM = new DefaultOpt("Period Mediaum", 12.0)
-    val periodL = new DefaultOpt("Period Long",    24.0)
+    val periodS = Factor("Period Short",   6.0 )
+    val periodM = Factor("Period Mediaum", 12.0)
+    val periodL = Factor("Period Long",    24.0)
     
-    val rsi1 = new DefaultVar[Float]("RSI1", Plot.Line)
-    val rsi2 = new DefaultVar[Float]("RSI2", Plot.Line)
-    val rsi3 = new DefaultVar[Float]("RSI3", Plot.Line)
+    val rsi1 = TimeVar[Float]("RSI1", Plot.Line)
+    val rsi2 = TimeVar[Float]("RSI2", Plot.Line)
+    val rsi3 = TimeVar[Float]("RSI3", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx

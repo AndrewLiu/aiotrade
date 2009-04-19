@@ -31,7 +31,7 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.AbstractContIndicator;
 
@@ -43,11 +43,11 @@ class ROCIndicator extends AbstractContIndicator {
     _sname = "ROC"
     _lname = "Rate of Change"
     
-    val period1 = new DefaultOpt("Period Short", 12.0)
-    val period2 = new DefaultOpt("Period Long",  25.0)
+    val period1 = Factor("Period Short", 12.0)
+    val period2 = Factor("Period Long",  25.0)
     
-    val roc1 = new DefaultVar[Float]("ROC1", Plot.Line)
-    val roc2 = new DefaultVar[Float]("ROC2", Plot.Line)
+    val roc1 = TimeVar[Float]("ROC1", Plot.Line)
+    val roc2 = TimeVar[Float]("ROC2", Plot.Line)
     
     protected def computeCont(begIdx:Int) :Unit = {
         var i = begIdx;
