@@ -427,7 +427,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             if (idx >= 0 && idx < values.size) {
                 values(idx) = value
             } else {
-                assert(false, "DefaultVar.set(index, value): this index's value of Var not init yet! " +
+                assert(false, "AbstractInnerVar.set(index, value): this index's value of Var not init yet! " +
                        idx + " size:" + values.size)
             }
         }
