@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>org.aiotrade.lib.charting</code-name-base>
+            <suite-component/>
+            <module-dependencies>
+                <dependency>
+                    <code-name-base>org.aiotrade.lib.math</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.aiotrade.lib.util</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+            </module-dependencies>
+            <public-packages>
+                <package>org.aiotrade.lib.charting.chart</package>
+                <package>org.aiotrade.lib.charting.chart.handledchart</package>
+                <package>org.aiotrade.lib.charting.chart.util</package>
+                <package>org.aiotrade.lib.charting.descriptor</package>
+                <package>org.aiotrade.lib.charting.laf</package>
+                <package>org.aiotrade.lib.charting.util</package>
+                <package>org.aiotrade.lib.charting.view</package>
+                <package>org.aiotrade.lib.charting.view.pane</package>
+                <package>org.aiotrade.lib.charting.view.scalar</package>
+                <package>org.aiotrade.lib.charting.widget</package>
+            </public-packages>
+        </data>
+    </configuration>
+</project>
