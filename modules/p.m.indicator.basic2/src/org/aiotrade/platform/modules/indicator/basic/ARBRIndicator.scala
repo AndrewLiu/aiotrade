@@ -54,9 +54,9 @@ class ARBRIndicator extends ContIndicator {
     val br = TimeVar[Float]("BR", Plot.Line)
     
     
-    protected def computeCont(begIdx:Int) :Unit = {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx
-        while (i < _itemSize) {
+        while (i < size) {
             up(i) = H(i) - O(i)
             val up_sum_i = sum(i, up, period)
             

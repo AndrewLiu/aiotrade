@@ -51,9 +51,9 @@ class MACDIndicator extends ContIndicator {
     val signal = TimeVar[Float]("SIGNAL", Plot.Line)
     val osc    = TimeVar[Float]("OSC",    Plot.Stick)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             macd(i) = macd(i, C, periodSlow, periodFast)
             
             signal(i) = ema(i, macd, periodSignal)

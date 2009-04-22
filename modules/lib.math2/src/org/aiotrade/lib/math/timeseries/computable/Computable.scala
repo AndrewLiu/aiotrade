@@ -48,6 +48,9 @@ trait Computable extends Actor {
     }
     // ----- end of actor's implementation
 
+    /**
+     * @param time to be computed from
+     */
     def computeFrom(time:Long) :Unit
     def computedTime :Long
     

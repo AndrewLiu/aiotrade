@@ -40,7 +40,8 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
     
     private val serChangeListenerList = new EventListenerList
         
-    var loaded:Boolean = false
+    var inLoading :Boolean = false
+    private var _loaded :Boolean = false
 
     def this() = {
         this(Frequency.DAILY)
@@ -59,7 +60,7 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
     }
     
     def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-        val listeners = serChangeListenerList.getListenerList;
+        val listeners = serChangeListenerList.getListenerList
         /** Each listener occupies two elements - the first is the listener class */
         var i = 0
         while (i < listeners.length) {
@@ -70,6 +71,12 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
         }
     }
     
+    def loaded :Boolean = _loaded
+    def loaded_=(b:Boolean) :Unit = {
+        inLoading = false
+        _loaded = false
+    }
+
     override
     def toString :String = {
         this.getClass.getSimpleName + "(" + freq + ")"

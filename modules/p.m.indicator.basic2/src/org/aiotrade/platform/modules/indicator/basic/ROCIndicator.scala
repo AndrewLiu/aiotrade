@@ -49,9 +49,9 @@ class ROCIndicator extends ContIndicator {
     val roc1 = TimeVar[Float]("ROC1", Plot.Line)
     val roc2 = TimeVar[Float]("ROC2", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             roc1(i) = roc(i, C, period1)
             roc2(i) = roc(i, C, period2)
             i += 1

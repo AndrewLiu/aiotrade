@@ -292,7 +292,14 @@ object TimestampsFactory {
         }
         
         def  iterator(freq:Frequency, fromTime:Long, toTime:Long) :TimestampsIterator = {
-            return new ItrOnOccurred(freq, fromTime, toTime);
+            new ItrOnOccurred(freq, fromTime, toTime);
+        }
+
+        override
+        def clone :Timestamps = {
+            val res = new TimestampsOnOccurred(this.size)
+            res ++= this
+            res
         }
 
         class ItrOnOccurred(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
@@ -527,7 +534,13 @@ object TimestampsFactory {
 
         @transient @volatile
         protected var modCount:Long = 0
-        
+
+
+        override
+        def clone :TimestampsOnCalendar = {
+            new TimestampsOnCalendar(delegateTimestamps.clone)
+        }
+
         class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
             val fromTime = freq.round(_fromTime, timeZone)
             val timeZone = TimeZone.getDefault

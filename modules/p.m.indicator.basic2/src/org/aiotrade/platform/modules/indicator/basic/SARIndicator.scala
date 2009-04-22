@@ -50,9 +50,9 @@ class SARIndicator extends ContIndicator {
     
     val sar = TimeVar[Float]("SAR", Plot.Dot)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             sar(i) = sar(i, initial, step, maximum)
             i += 1
         }

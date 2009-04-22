@@ -60,7 +60,7 @@ import org.aiotrade.lib.indicator.function.STOCHKFunction;
 import org.aiotrade.lib.indicator.function.SUMFunction;
 import org.aiotrade.lib.indicator.function.TRFunction;
 import org.aiotrade.lib.indicator.function.WMSFunction;
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor;
 import org.aiotrade.lib.math.timeseries.QuoteSer;
@@ -74,7 +74,6 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("Abstract Indicator")
 object AbstractIndicator {
     val NaN = Float.NaN
 
@@ -168,6 +167,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
      * by computableHelper.addFac(..)
      */
     private val computableHelper = new ComputableHelper
+    private var _computedTime :Long = -Long.MaxValue
     
     /** some instance scope variables that can be set directly */
     protected var _overlapping = false
@@ -181,8 +181,6 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     
     /** base series to compute this */
     protected var _baseSer:Ser = _
-    /** base series' item size */
-    protected var _itemSize :Int = _
     
     /** To store values of open, high, low, close, volume: */
     protected var O :Var[Float] = _
@@ -212,12 +210,15 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         if (baseSer != null) {
             super.init(baseSer.freq)
             this._baseSer = baseSer
-        
+
+            // * share same timestamps with baseSer, should be care of ReadWriteLock
+            this.timestamps = baseSer.timestamps
+            
             this.computableHelper.init(baseSer, this)
         
             initPredefinedVarsOfBaseSer
 
-            // actor should explicitly start
+            // * actor should explicitly start
             start
         }
     }
@@ -258,12 +259,10 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         _overlapping = b
     }
     
-    def computedTime :Long = {
-        lastOccurredTime
-    }
+    def computedTime :Long = _computedTime
     
     /**
-     * !NOTICE
+     * @NOTE
      * It's better to fire ser change events or fac change event instead of
      * call me directly. But, in case of baseSer has been loaded, there may
      * be no more ser change events fired, so when first create, call computeFrom(0)
@@ -275,48 +274,64 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
      * usually called by chartview, that means, they are called usually in same
      * thread: awt.event.thread.
      *
+     *
      * @param begin time to be computed
      */
     def computeFrom(begTime:Long) :Unit = {
         setSessionId
-        
+
+        var lastTime = _computedTime
         /**
          * get baseSer's itemList size via protected _itemSize here instead of by
          * indicator's subclass when begin computeCont, because we could not
          * sure if the baseSer's _itemSize size has been change by others
          * (DataServer etc.)
+         *
+         * @Note
+         * It's better to pass itemSize as param to computeCont instead of keep it as instance field,
+         * so, we do not need to worry about if field _itemSize will be changed concurrent by another
+         * thread
          */
-        _itemSize = _baseSer.itemList.size
+        try {
+            timestamps.readLock.lock
+
+            val size = timestamps.size
+            val begIdx = computableHelper.preComputeFrom(begTime)
+            /** fill with clear items from begIdx: */
+            var i = begIdx
+            while (i < size) {
+                val time = timestamps(i)
+            
+                /**
+                 * if baseSer is MasterSer, we'll use timeOfRow(idx) to get the time,
+                 * this enable returning a good time even idx < 0 or exceed itemList.size()
+                 * because it will trace back in *calendar* time.
+                 * @TODO
+                 */
+                /*-
+                 long time = _baseSer instanceof MasterSer ?
+                 ((MasterSer)_baseSer).timeOfRow(i) :
+                 _baseSer.timeOfIndex(i);
+                 */
+            
+                /**
+                 * we've fetch time from _baseSer, but not sure if this time has been
+                 * added to my timestamps, so, do any way:
+                 */
+                createItemOrClearIt(time)
+                lastTime = time
+                
+                i += 1
+            }
+
+            computeCont(begIdx, size)
         
-        val begIdx = computableHelper.preComputeFrom(begTime)
-        /** fill with clear items from begIdx: */
-        var i = begIdx
-        while (i < _itemSize) {
-            val time = _baseSer.timestamps(i)
-            
-            /**
-             * if baseSer is MasterSer, we'll use timeOfRow(idx) to get the time,
-             * this enable returning a good time even idx < 0 or exceed itemList.size()
-             * because it will trace back in *calendar* time.
-             * @TODO
-             */
-            /*-
-             long time = _baseSer instanceof MasterSer ?
-             ((MasterSer)_baseSer).timeOfRow(i) :
-             _baseSer.timeOfIndex(i);
-             */
-            
-            /** 
-             * we've fetch time from _baseSer, but not sure if this time has been 
-             * added to my timestamps, so, do any way:
-             */
-            createItemOrClearIt(time)
-            i += 1
+            computableHelper.postComputeFrom
+        } finally {
+            timestamps.readLock.unlock
         }
         
-        computeCont(begIdx)
-        
-        computableHelper.postComputeFrom
+        _computedTime = lastTime
     }
     
     protected def preComputeFrom(begTime:Long) :Int = {
@@ -327,7 +342,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         computableHelper.postComputeFrom
     }
     
-    protected def computeCont(begIdx:Int) :Unit
+    protected def computeCont(begIdx:Int, size:Int) :Unit
     
     protected def longDescription :String = {
         _lname

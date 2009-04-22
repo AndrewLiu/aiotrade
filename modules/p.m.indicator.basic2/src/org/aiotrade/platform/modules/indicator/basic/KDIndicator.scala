@@ -52,9 +52,9 @@ class KDIndicator extends ContIndicator {
     val d = TimeVar[Float]("D", Plot.Line)
     val j = TimeVar[Float]("J", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             k(i) = stochK(i, period, periodK)
             d(i) = stochD(i, period, periodK, periodD)
             j(i) = stochJ(i, period, periodK, periodD)

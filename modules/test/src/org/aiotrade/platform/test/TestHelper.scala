@@ -7,6 +7,7 @@
 
 package org.aiotrade.platform.test
 
+import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
@@ -120,7 +121,7 @@ trait TestHelper {
             sec.clearSer(freq)
         }
 
-        if (!sec.isSerLoaded(freq)) {
+        if (!sec.isSerLoaded(freq) && !sec.isSerInLoading(freq)) {
             sec.loadSer(freq)
         }
     }
@@ -176,7 +177,7 @@ trait TestHelper {
 
     // wait for some ms
     def waitFor(ms:Long) :Unit = {
-        Thread.sleep(ms)
+        TimeUnit.MILLISECONDS.sleep(ms)
     }
 
 }

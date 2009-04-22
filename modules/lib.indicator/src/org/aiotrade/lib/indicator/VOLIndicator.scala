@@ -49,8 +49,9 @@ class VOLIndicator extends ContIndicator {
     val ma2 = TimeVar[Float]("MA2", Plot.Line)
     
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx; while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+        var i = begIdx
+        while (i < itemSize) {
             vol(i) = V(i)
             ma1(i) = ma(i, V, period1)
             ma2(i) = ma(i, V, period2)

@@ -74,7 +74,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * Should only get index from timestamps which has the proper mapping of :
      * position <-> time <-> item
      */
-    val timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
+    var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
+
     private val items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
     /**
      * Map contains vars. Each var element of array is a Var that contains a
@@ -86,6 +87,11 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def this() = {
         /** do nothing */
         this(Frequency.DAILY)
+    }
+
+    def timestamps :Timestamps = _timestamps
+    protected def timestamps_=(timestamps:Timestamps) :Unit = {
+        this._timestamps = timestamps
     }
 
     /**
@@ -100,12 +106,12 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      */
     private def internal_getItem(time:Long) :SerItem = synchronized {
         /**
-         * @NOTICE:
+         * @NOTE:
          * Should only get index from timestamps which has the proper
          * position <-> time <-> item mapping
          */
         val idx = timestamps.indexOfOccurredTime(time)
-        if (idx >= 0 && idx < timestamps.size) {
+        if (idx >= 0 && idx < items.size) {
             items(idx)
         } else null
     }
@@ -121,38 +127,45 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     private def internal_addClearItemAndNullVarValuesToList_And_Filltimestamps__InTimeOrder(itemTime:Long, clearItem:SerItem) :Unit = synchronized {
         val lastOccurredTime = timestamps.lastOccurredTime
         if (itemTime < lastOccurredTime) {
-            val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime);
-            assert(idx >= 0,  "Since the itemTime < lastOccurredTime, the idx should be >= 0")
-            /** time at idx > itemTime, insert it before this idx */
-            internal_addTime_addClearItem_addNullVarValues(idx, itemTime, clearItem)
+            val existIdx = timestamps.indexOfOccurredTime(itemTime)
+            if (existIdx >= 0) {
+                internal_InsertClearItem_addNullVarValues(existIdx, itemTime, clearItem)
+            } else {
+                val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime)
+
+                assert(idx >= 0,  "Since the itemTime < lastOccurredTime, the idx should be >= 0")
+                /** time at idx > itemTime, insert it before this idx */
+                internal_insertTime_insertClearItem_addNullVarValues(idx, itemTime, clearItem)
+            }
         } else if (itemTime > lastOccurredTime) {
-            /** time > lastTime, just append it behind the last: */
-            internal_addTime_addClearItem_addNullVarValues(itemTime, clearItem);
+            /** time > lastOccurredTime, just append it behind the last: */
+            internal_addTime_addClearItem_addNullVarValues(itemTime, clearItem)
         } else {
-            /** time == lastTime, keep same time and update item to clear. */
-            assert(false,
-                   "As it's an adding action, we should not reach here! " +
-                   "Check your code, you are probably from createItemOrClearIt(long), " +
-                   "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
-                   " return -1 ?")
-            /** to avoid concurrent conflict, just do nothing here. */
+            /** time == lastOccurredTime, keep same time and update item to clear. */
+            val existIdx = timestamps.indexOfOccurredTime(itemTime)
+            if (existIdx >= 0) {
+                internal_addClearItem_addNullVarValues(itemTime, clearItem)
+            } else {
+                assert(false,
+                       "As it's an adding action, we should not reach here! " +
+                       "Check your code, you are probably from createItemOrClearIt(long), " +
+                       "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
+                       " return -1 ?")
+                /** to avoid concurrent conflict, just do nothing here. */
+            }
         }
     }
 
-    private def internal_clearItemAndVarValues(idx:Int, itemTobeClear:SerItem) :Unit = {
-
+    private def internal_clearItemAndVarValues(idx:Int, itemToBeClear:SerItem) :Unit = {
         for (v <- varToName.keySet) {
             v(idx) = null
         }
 
-        items(idx) = itemTobeClear
-        itemTobeClear.clear
+        items(idx) = itemToBeClear
+        itemToBeClear.clear
     }
 
-    private def internal_addTime_addClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
-        /** should add timestamps first */
-        timestamps.insert(idx, time)
-
+    private def internal_InsertClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
         for (v <- varToName.keySet) {
             v.add(time, null)
         }
@@ -161,16 +174,48 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         items.insert(idx, clearItem)
     }
 
-    private def internal_addTime_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
-        /** should add timestamps first */
-        timestamps + time
-
+    private def internal_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
         for (v <- varToName.keySet) {
             v.add(time, null)
         }
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         items += clearItem
+    }
+
+    private def internal_insertTime_insertClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
+        try {
+            _timestamps.writeLock.lock
+
+            /** should add timestamps first */
+            _timestamps.insert(idx, time)
+
+            for (v <- varToName.keySet) {
+                v.add(time, null)
+            }
+
+            /** as timestamps includes this time, we just always put in a none-null item  */
+            items.insert(idx, clearItem)
+        } finally {
+            _timestamps.writeLock.unlock
+        }
+    }
+
+    private def internal_addTime_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
+        try {
+            _timestamps.writeLock.lock
+            /** should add timestamps first */
+            _timestamps + time
+
+            for (v <- varToName.keySet) {
+                v.add(time, null)
+            }
+
+            /** as timestamps includes this time, we just always put in a none-null item  */
+            items += clearItem
+        } finally {
+            _timestamps.writeLock.unlock
+        }
     }
 
     protected def createItem(time:Long) :SerItem = {
@@ -186,19 +231,27 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def varSet :Set[Var[Any]] = varToName.keySet
 
     def clear(fromTime:Long) :Unit = synchronized {
-        val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-        if (fromIdx < 0) {
-            return
-        }
+        try {
+            _timestamps.writeLock.lock
+            val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+            if (fromIdx < 0) {
+                return
+            }
 
-        for (v <- varToName.keySet) {
-            v.clear(fromIdx)
-        }
-        for (i <- timestamps.size - 1 to fromIdx) {
-            timestamps.remove(i)
-        }
-        for (i <- items.size - 1 to fromIdx) {
-            items.remove(i)
+            for (v <- varToName.keySet) {
+                v.clear(fromIdx)
+            }
+
+            for (i <- timestamps.size - 1 to fromIdx) {
+                _timestamps.remove(i)
+            }
+
+            for (i <- items.size - 1 to fromIdx) {
+                items.remove(i)
+            }
+
+        } finally {
+            _timestamps.writeLock.unlock
         }
 
         fireSerChangeEvent(new SerChangeEvent(this,
@@ -310,7 +363,11 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         def add(time:Long, value:E) :Boolean = {
             val idx = timestamps.indexOfOccurredTime(time)
             if (idx >= 0) {
-                values.insert(idx, value)
+                if (idx == timestamps.size - 1) {
+                    values += (value)
+                } else {
+                    values.insert(idx, value)
+                }
                 true
             } else {
                 assert(false, "Add timestamps first before add an element!")
@@ -427,8 +484,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             if (idx >= 0 && idx < values.size) {
                 values(idx) = value
             } else {
-                assert(false, "AbstractInnerVar.set(index, value): this index's value of Var not init yet! " +
-                       idx + " size:" + values.size)
+                assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not init yet: " +
+                       "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
             }
         }
 

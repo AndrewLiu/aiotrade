@@ -69,13 +69,12 @@ trait Ser {
     def shortDescription :String
     
     def addSerChangeListener(listener:SerChangeListener) :Unit
-    
     def removeSerChangeListener(listener:SerChangeListener) :Unit
-    
     def fireSerChangeEvent(evt:SerChangeEvent) :Unit
     
-    def loaded :Boolean
-    
+    def inLoading :Boolean
+    def inLoading_=(b:Boolean)
+    def loaded :Boolean 
     def loaded_=(b:Boolean)
 }
 

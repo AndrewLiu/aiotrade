@@ -143,11 +143,11 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
         if (quoteServer.inLoading) {
             System.out.println("A loading procedure is already running and not finished yet!");
             loadBeginning = false
-            serToBeLoaded.loaded = true
+            serToBeLoaded.inLoading = true
         } else {
             quoteServer.startLoadServer
             loadBeginning = true
-            serToBeLoaded.loaded = true
+            serToBeLoaded.inLoading = true
         }
 
         if (loadBeginning) {
@@ -162,6 +162,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
                     val quoteServer = freqToQuoteServer.get(freq).get
                     evt.tpe match {
                         case FinishedLoading =>
+                            sourceSer.loaded = true
                             for (quoteServer <- freqToQuoteServer.get(freq)) {
                                 if (contract.refreshable) {
                                     quoteServer.startUpdateServer(contract.refreshInterval * 1000)
@@ -185,6 +186,13 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
         freqToSer.get(freq) match {
             case None => false
             case Some(x) => x.loaded
+        }
+    }
+
+    def isSerInLoading(freq:Frequency) :Boolean = {
+        freqToSer.get(freq) match {
+            case None => false
+            case Some(x) => x.inLoading
         }
     }
 
@@ -250,16 +258,26 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
          * @TODO, if tickerServer switched, should check here.
          */
         if (tickerServer == null) {
-            tickerServer = tickerContract.serviceInstance(Nil).get
+            tickerServer = tickerContract.serviceInstance().get
         }
 
         if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-            // Only dailySer and minuteSre needs to chainly follow ticker change.
             var chainSers :List[Ser] = Nil
+            // Only dailySer and minuteSre needs to chainly follow ticker change.
             serOf(Frequency.DAILY).foreach{x => chainSers = x :: chainSers}
             serOf(Frequency.ONE_MIN).foreach{x => chainSers = x :: chainSers}
-
             tickerServer.subscribe(tickerContract, tickerSer, chainSers)
+            //
+            //            var break = false
+            //            while (!break) {
+            //                val allChainSersLoaded = (true /: chainSers) {_ && _.loaded}
+            //                if (allChainSersLoaded) {
+            //                    tickerServer.subscribe(tickerContract, tickerSer, chainSers)
+            //                    break = true
+            //                }
+            //                Thread.sleep(1000)
+            //            }
+            
         }
 
         tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)

@@ -44,9 +44,9 @@ class OBVIndicator extends ContIndicator {
 
     val obv1 = TimeVar[Float]("OBV", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             obv1(i) = obv(i)
             i += 1
         }

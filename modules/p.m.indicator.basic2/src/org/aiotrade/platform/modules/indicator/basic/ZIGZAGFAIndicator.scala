@@ -50,10 +50,10 @@ class ZIGZAGFAIndicator extends ContIndicator {
     //    TimeVar zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
     //    TimeVar pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
     
-    protected def computeCont(begIdx:Int) :Unit = {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
         /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
         var i = begIdx
-        while (i < _itemSize) {
+        while (i < size) {
             i += 1
         }
     }

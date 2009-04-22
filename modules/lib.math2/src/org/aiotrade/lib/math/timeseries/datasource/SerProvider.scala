@@ -53,6 +53,7 @@ trait SerProvider[T <: Ser] {
     
     def stopAllDataServer :Unit
     
+    def isSerInLoading(freq:Frequency) :Boolean
     def isSerLoaded(freq:Frequency) :Boolean
     
     def serOf(freq:Frequency) :Option[T]

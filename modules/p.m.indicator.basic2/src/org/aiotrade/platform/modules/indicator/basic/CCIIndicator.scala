@@ -51,9 +51,9 @@ class CCIIndicator extends ContIndicator {
     val cci    = TimeVar[Float]("CCI",   Plot.Line)
     val cci_ma = TimeVar[Float]("MACCI", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             cci(i)    = cci(i, period, alpha)
             cci_ma(i) = ma (i, cci, periodMa)
             i += 1

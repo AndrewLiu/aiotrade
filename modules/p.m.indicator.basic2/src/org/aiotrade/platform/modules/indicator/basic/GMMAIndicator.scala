@@ -70,9 +70,9 @@ class GMMAIndicator extends ContIndicator {
     val  ma11 = TimeVar[Float]("MA11", Plot.Line)
     val  ma12 = TimeVar[Float]("MA12", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             ma01(i) = ma(i, C, period01)
             ma02(i) = ma(i, C, period02)
             ma03(i) = ma(i, C, period03)

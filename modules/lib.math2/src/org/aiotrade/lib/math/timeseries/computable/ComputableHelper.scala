@@ -42,9 +42,10 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @param baseSer:Ser base series to compute resultSer
  * @param resultSer:Indicatoe result series to be computed
+ *
  * @author Caoyuan Deng
  */
-class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
+class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     
     /**
      * factors of this instance, such as period long, period short etc,
@@ -56,18 +57,18 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     
     private var baseSerChangeEventCallBack :CallBack = _
 
-    if (baseSer != null && resultSer != null) {
-        init(baseSer, resultSer)
+    if (baseSer != null && self != null) {
+        init(baseSer, self)
     }
 
     def this() {
-        /** do nothing: factors should has been initialized in instance initialization procedure */
+        // * do nothing: factors should has been initialized in instance initialization procedure
         this(null, null)
     }
     
-    def init(baseSer:Ser, resultSer:Indicator) :Unit = {
+    def init(baseSer:Ser, self:Indicator) :Unit = {
         this.baseSer = baseSer
-        this.resultSer = resultSer
+        this.self = self
         
         addBaseSerChangeListener
     }
@@ -81,7 +82,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
          * 2. In case of series is not the same as baseSeries, should repond
          *    to FinishedLoading, RefreshInLoading and Updated event of baseSeries.
          */
-        if (resultSer == baseSer) {
+        if (self == baseSer) {
             
             baseSerChangeListener = new SerChangeListener {
                 def serChanged(evt:SerChangeEvent) :Unit = {
@@ -93,19 +94,19 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                              * only responds to those events fired by outside for baseSer,
                              * such as loaded from a data server etc.
                              */
-                            /** call back */
-                            resultSer ! (Compute, fromTime)
+                            // * call back
+                            self ! (Compute, fromTime)
                         case _ =>
                     }
                     
                     /** process event's callback, remember it to forwarded it in postCompute() late */
                     baseSerChangeEventCallBack = evt.callBack
                 }
-            };
+            }
             
         } else {
             
-            baseSerChangeListener = new SerChangeListener() {
+            baseSerChangeListener = new SerChangeListener {
                 def serChanged(evt:SerChangeEvent) {
                     import SerChangeEvent.Type._
                     val begTime = evt.beginTime
@@ -118,16 +119,16 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                              * FinishedComputing event to diff from Updated(caused by outside)
                              */
                             /** call back */
-                            resultSer ! (Compute, begTime)
+                            self ! (Compute, begTime)
                         case Clear =>
-                            resultSer clear begTime
+                            self clear begTime
                         case _ =>
                     }
                     
                     /** remember event's callback to be forwarded in postCompute() */
                     baseSerChangeEventCallBack = evt.callBack
                 }
-            };
+            }
             
         }
         
@@ -135,33 +136,40 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     }
     
     /**
-     * preComputeFrom() will set and backup the context before computeFrom(long begTime):
+     * preComputeFrom) will set and backup the context before computeFrom(long begTime):
      * begTime, begIdx etc.
      *
      *
      * @return begIdx
      */
-    private var begTime:Long = _
+    private var begTime:Long = _ // used for postComputeFrom
     def preComputeFrom(begTime:Long) :Int = {
         assert(this.baseSer != null, "base series not set!")
         
         this.begTime = begTime
-        val computedTime = resultSer.computedTime
         
-        val begIdx = if (begTime < computedTime || begTime == 0) {
-            0
+        val begTime1 = if (begTime <= 0) {
+            begTime
         } else {
-            /** if computedTime < begTime, re-compute from the minimal one */
-            this.begTime = Math.min(computedTime, begTime)
-            
-            /** indexOfTime always return physical index, so don't worry about isOncalendarTime() */
-            Math.max(this.baseSer.indexOfOccurredTime(this.begTime), 0) // should not less then 0
+            if (begTime < self.computedTime) {
+                //println("Recompute all: begTime=" + begTime + ", computedTime=" + computedTime)
+                begTime
+            } else {
+                // * if begTime >= computedTime, re-compute from computedTime
+                self.computedTime
+            }
         }
+        
+        this.begTime = begTime1
+        
+        // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
+        val begIdx = Math.max(this.baseSer.indexOfOccurredTime(begTime1), 0) // should not less then 0
+        
         //println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
         /**
          * should re-compute series except it's also the baseSer:
          * @TODO
-         * Do we really need clear it from begTime, or just from computed time after computing?
+         * Do we really need clear it from begTime, or just from computed time after computing ?
          */
         //        if (resultSer != baseSer) {
         //            /** in case of resultSer == baseSer, do this will also clear baseSer */
@@ -173,12 +181,12 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     
     def postComputeFrom :Unit = {
         /** construct resultSer's change event, forward baseSerChangeEventCallBack */
-        resultSer.fireSerChangeEvent(new SerChangeEvent(resultSer,
-                                                        SerChangeEvent.Type.FinishedComputing,
-                                                        null,
-                                                        begTime,
-                                                        resultSer.computedTime,
-                                                        baseSerChangeEventCallBack))
+        self.fireSerChangeEvent(new SerChangeEvent(self,
+                                                   SerChangeEvent.Type.FinishedComputing,
+                                                   null,
+                                                   begTime,
+                                                   self.computedTime,
+                                                   baseSerChangeEventCallBack))
     }
     
     def addFactor(factor:Factor) :Unit = {
@@ -198,8 +206,8 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
                      * @see fireFacChangeEvents();
                      */
                     if (evt.getSource.equals(_factors(0))) {
-                        /** call back */
-                        resultSer.computeFrom(0)
+                        // * call back
+                        self ! (Compute, 0)
                     }
                 }
             })
@@ -249,9 +257,7 @@ class ComputableHelper(var baseSer:Ser, var resultSer:Indicator) {
     }
     
     private def fireFactorsChangeEvents :Unit = {
-        for (factor <- factors) {
-            factor.fireFactorChangeEvent(new FactorChangeEvent(factor))
-        }
+        factors.foreach{x => x.fireFactorChangeEvent(new FactorChangeEvent(x))}
     }
     
     def replaceFac(oldFactor:Factor, newFactor:Factor) :Unit = {

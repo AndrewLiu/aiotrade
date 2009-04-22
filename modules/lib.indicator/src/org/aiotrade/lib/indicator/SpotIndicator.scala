@@ -62,15 +62,16 @@ abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) wit
         
         val newItem = computeSpot(time, baseIdx)
         
-        spotTime = (time);
+        spotTime = time
         
         postComputeFrom
         
         newItem;
     }
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx; while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+        var i = begIdx
+        while (i < itemSize) {
             val time = _baseSer.timestamps(i)
             if (time == spotTime) {
                 computeSpot(time, i)

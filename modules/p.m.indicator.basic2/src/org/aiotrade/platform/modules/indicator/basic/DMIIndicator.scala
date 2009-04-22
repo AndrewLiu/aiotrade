@@ -52,9 +52,9 @@ class DMIIndicator extends ContIndicator {
     val adx     = TimeVar[Float]("ADX",  Plot.Line)
     val adxr    = TimeVar[Float]("ADXR", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
-        var i = begIdx;
-        while (i < _itemSize) {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
+        var i = begIdx
+        while (i < size) {
             
             diPlus (i) = diPlus( i, periodDi)
             diMinus(i) = diMinus(i, periodDi)

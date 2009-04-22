@@ -52,9 +52,9 @@ class EMAIndicator extends ContIndicator {
     val ema2 = TimeVar[Float]("EMA2", Plot.Line)
     val ema3 = TimeVar[Float]("EMA3", Plot.Line)
     
-    protected def computeCont(begIdx:Int) :Unit = {
+    protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx
-        while (i < _itemSize) {
+        while (i < size) {
             ema1(i) = ema(i, C, period1)
             ema2(i) = ema(i, C, period2)
             ema3(i) = ema(i, C, period3)
