@@ -60,5 +60,7 @@ trait Var[E] extends Plottable {
     def values :ArrayBuffer[E]
     
     def nullValue :E
+
+    def validate :Unit
     
 }

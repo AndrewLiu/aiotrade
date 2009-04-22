@@ -76,7 +76,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      */
     var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
-    private val items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
+    private var items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
     /**
      * Map contains vars. Each var element of array is a Var that contains a
      * sequence of values for one field of SerItem.
@@ -230,6 +230,25 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     def varSet :Set[Var[Any]] = varToName.keySet
 
+    def validate :Unit = {
+        if (items.size != timestamps.size) {
+            try {
+                timestamps.readLock.lock
+                varSet.foreach{x => x.validate}
+                val newItems = new ArrayBuffer[SerItem]
+                var i = 0
+                while (i < timestamps.size) {
+                    val time = timestamps(i)
+                    newItems += createItem(time)
+                    i += 1
+                }
+                items = newItems
+            } finally {
+                timestamps.readLock.unlock
+            }
+        }
+    }
+
     def clear(fromTime:Long) :Unit = synchronized {
         try {
             _timestamps.writeLock.lock
@@ -350,7 +369,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     }
     protected class InnerVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
 
-        val values = new ArrayBuffer[E]
+        var values = new ArrayBuffer[E]
 
         def this() = {
             this("", Plot.None)
@@ -385,6 +404,39 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             values(idx) = value
             value
         }
+        
+        def validate :Unit = {
+            if (items.size != timestamps.size) {
+                val newValues = new ArrayBuffer[E] // @todo set init capacity size
+
+                var i = 0
+                var j = 0
+                while (i < timestamps.size) {
+                    val time = timestamps(i)
+                    var break = false
+                    var v = null.asInstanceOf[E]
+                    while (j < items.size && !break) {
+                        val vTime = items(j).time
+                        if (vTime == time) {
+                            // found existed value
+                            v = values(j)
+                            j += 1
+                            break = true
+                        } else if (vTime > time) {
+                            // not existed value
+                            v = null.asInstanceOf[E]
+                            break = true
+                        } else {
+                            j += 1
+                        }
+                    }
+                    newValues += v
+                    i += 1
+                }
+                values = newValues
+            }
+        }
+
 
         /**
          * All those instances of DefaultVar or extended class will be equals if
@@ -424,6 +476,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         def getByTime(time:Long) :E = values.getByTime(time)
 
         def setByTime(time:Long, value:E) :E = values.setByTime(time, value)
+
+        def validate :Unit = {
+        }
 
         /**
          * All those instances of SparseVar or extended class will be equals if
@@ -484,7 +539,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             if (idx >= 0 && idx < values.size) {
                 values(idx) = value
             } else {
-                assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not init yet: " +
+                assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
                        "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
             }
         }

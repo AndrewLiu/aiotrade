@@ -280,7 +280,6 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     def computeFrom(begTime:Long) :Unit = {
         setSessionId
 
-        var lastTime = _computedTime
         /**
          * get baseSer's itemList size via protected _itemSize here instead of by
          * indicator's subclass when begin computeCont, because we could not
@@ -297,32 +296,11 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
 
             val size = timestamps.size
             val begIdx = computableHelper.preComputeFrom(begTime)
-            /** fill with clear items from begIdx: */
-            var i = begIdx
-            while (i < size) {
-                val time = timestamps(i)
             
-                /**
-                 * if baseSer is MasterSer, we'll use timeOfRow(idx) to get the time,
-                 * this enable returning a good time even idx < 0 or exceed itemList.size()
-                 * because it will trace back in *calendar* time.
-                 * @TODO
-                 */
-                /*-
-                 long time = _baseSer instanceof MasterSer ?
-                 ((MasterSer)_baseSer).timeOfRow(i) :
-                 _baseSer.timeOfIndex(i);
-                 */
-            
-                /**
-                 * we've fetch time from _baseSer, but not sure if this time has been
-                 * added to my timestamps, so, do any way:
-                 */
-                createItemOrClearIt(time)
-                lastTime = time
-                
-                i += 1
-            }
+            assert(timestamps.size == itemList.size,
+                   "Should validate " + shortDescription + "first! : " +
+                   "timestamps size=" + timestamps.size +
+                   ", items size=" + itemList.size)
 
             computeCont(begIdx, size)
         
@@ -331,7 +309,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
             timestamps.readLock.unlock
         }
         
-        _computedTime = lastTime
+        _computedTime = timestamps.lastOccurredTime
     }
     
     protected def preComputeFrom(begTime:Long) :Int = {

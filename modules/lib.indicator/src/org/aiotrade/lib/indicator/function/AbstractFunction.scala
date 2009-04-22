@@ -104,7 +104,9 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
     protected def init(baseSer:Ser) :Unit = {
         super.init(baseSer.freq)
         this._baseSer = baseSer
-        
+
+        this.timestamps = baseSer.timestamps
+
         initPredefinedVarsOfBaseSer
     }
     
@@ -132,46 +134,52 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
      * @param idx, the idx to be computed to
      */
     def computeTo(sessionId:Long, idx:Int) :Unit = {
-        preComputeTo(sessionId, idx)
-        
-        /**
-         * if in same session and idx has just been computed, do not do
-         * redundance computation
-         */
-        if (this.sessionId == sessionId && idx <= computedIdx) {
-            return
-        }
-        
-        this.sessionId = sessionId
-        
-        /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
-        var begIdx = Math.min(computedIdx + 1, idx)
-        if (begIdx < 0) {
-            begIdx = 0
-        }
-        
-        /**
-         * get baseSer's itemList size via protected _itemSize here instead of by
-         * indicator's subclass when begin computeCont, because we could not
-         * sure if the baseSer's _itemSize size has been change by others
-         * (DataServer etc.)
-         */
-        _itemSize = _baseSer.itemList.size
-        
-        val endIdx = Math.min(idx, _itemSize - 1)
-        /** fill with clear items from begIdx, then call computeSpot(i): */
-        var i = begIdx
-        while (i <= endIdx) {
-            val time = _baseSer.timestamps(i)
-            createItemOrClearIt(time)
+        try {
+            timestamps.readLock.lock
             
-            computeSpot(i)
-            i += 1
+            preComputeTo(sessionId, idx)
+        
+            /**
+             * if in same session and idx has just been computed, do not do
+             * redundance computation
+             */
+            if (this.sessionId == sessionId && idx <= computedIdx) {
+                return
+            }
+        
+            this.sessionId = sessionId
+        
+            /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
+            var begIdx = Math.min(computedIdx + 1, idx)
+            if (begIdx < 0) {
+                begIdx = 0
+            }
+        
+            /**
+             * get baseSer's itemList size via protected _itemSize here instead of by
+             * indicator's subclass when begin computeCont, because we could not
+             * sure if the baseSer's _itemSize size has been change by others
+             * (DataServer etc.)
+             */
+            val size = timestamps.size
+        
+            val endIdx = Math.min(idx, size - 1)
+            /** fill with clear items from begIdx, then call computeSpot(i): */
+            var i = begIdx
+            while (i <= endIdx) {
+                val time = timestamps(i)
+                createItemOrClearIt(time)
+            
+                computeSpot(i)
+                i += 1
+            }
+        
+            computedIdx = idx
+        
+            postComputeTo(sessionId, idx)
+        } finally {
+            timestamps.readLock.unlock
         }
-        
-        computedIdx = idx
-        
-        postComputeTo(sessionId, idx)
     }
     
     /**

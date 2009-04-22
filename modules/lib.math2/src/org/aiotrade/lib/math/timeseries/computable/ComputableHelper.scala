@@ -142,29 +142,38 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
      *
      * @return begIdx
      */
-    private var begTime:Long = _ // used for postComputeFrom
+    private var begTime:Long = _ // used by postComputeFrom only
     def preComputeFrom(begTime:Long) :Int = {
         assert(this.baseSer != null, "base series not set!")
+
+        val timestamps = self.timestamps
         
-        this.begTime = begTime
-        
-        val begTime1 = if (begTime <= 0) {
-            begTime
+        val (begTime1, begIdx, mayNeedToAppendItems) = if (begTime <= 0) {
+            (begTime, 0, true)
         } else {
             if (begTime < self.computedTime) {
-                //println("Recompute all: begTime=" + begTime + ", computedTime=" + computedTime)
-                begTime
+                // * the timestamps <-> items map may not be validate now, should validate it first
+                self.validate
+                val begTimeX = begTime
+                // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
+                val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+                // don't need to append items anymore, since validate has done this
+                (begTimeX, begIdxX, false)
             } else {
                 // * if begTime >= computedTime, re-compute from computedTime
-                self.computedTime
+                val begTimeX = self.computedTime
+                // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
+                val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+                (begTimeX, begIdxX, true)
             }
         }
-        
+
+        if (mayNeedToAppendItems) {
+            appendItemsIfNecessary(begIdx)
+        }
+
         this.begTime = begTime1
-        
-        // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdx = Math.max(this.baseSer.indexOfOccurredTime(begTime1), 0) // should not less then 0
-        
+                
         //println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
         /**
          * should re-compute series except it's also the baseSer:
@@ -177,6 +186,37 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
         //        }
         
         begIdx
+    }
+
+    // * append with clear items from begIdx
+    protected def appendItemsIfNecessary(begIdx:Int) {
+        val timestamps = self.timestamps
+        val size = timestamps.size
+        var i = begIdx
+        while (i < size) {
+            val time = timestamps(i)
+
+            /**
+             * if baseSer is MasterSer, we'll use timeOfRow(idx) to get the time,
+             * this enable returning a good time even idx < 0 or exceed itemList.size()
+             * because it will trace back in *calendar* time.
+             * @TODO
+             */
+            /*-
+             long time = _baseSer instanceof MasterSer ?
+             ((MasterSer)_baseSer).timeOfRow(i) :
+             _baseSer.timeOfIndex(i);
+             */
+
+            /**
+             * we've fetch time from _baseSer, but not sure if this time has been
+             * added to my timestamps, so, do any way:
+             */
+            self.createItemOrClearIt(time)
+
+            i += 1
+        }
+
     }
     
     def postComputeFrom :Unit = {

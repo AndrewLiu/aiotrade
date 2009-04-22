@@ -59,10 +59,10 @@ class BOLLIndicator extends ContIndicator {
         var i = begIdx
         while (i < size) {
             boll_m (i) = bollMiddle(i, C, period, alpha1)
-            boll_u1(i) = bollUpper( i, C, period, alpha1)
-            boll_l1(i) = bollLower( i, C, period, alpha1)
-            boll_u2(i) = bollUpper( i, C, period, alpha2)
-            boll_l2(i) = bollLower( i, C, period, alpha2)
+            boll_u1(i) = bollUpper (i, C, period, alpha1)
+            boll_l1(i) = bollLower (i, C, period, alpha1)
+            boll_u2(i) = bollUpper (i, C, period, alpha2)
+            boll_l2(i) = bollLower (i, C, period, alpha2)
             i += 1
         }
     }
