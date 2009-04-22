@@ -147,29 +147,34 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
         assert(this.baseSer != null, "base series not set!")
 
         val timestamps = self.timestamps
-        
-        val (begTime1, begIdx, mayNeedToAppendItems) = if (begTime <= 0) {
+
+        val (begTime1, begIdx, mayNeedToValidate) = if (begTime <= 0) {
             (begTime, 0, true)
         } else {
             if (begTime < self.computedTime) {
                 // * the timestamps <-> items map may not be validate now, should validate it first
-                self.validate
                 val begTimeX = begTime
                 // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
                 val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-                // don't need to append items anymore, since validate has done this
-                (begTimeX, begIdxX, false)
-            } else {
-                // * if begTime >= computedTime, re-compute from computedTime
+                (begTimeX, begIdxX, true)
+            } else if (begTime > self.computedTime){
+                // * if begTime > computedTime, re-compute from computedTime
                 val begTimeX = self.computedTime
                 // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
                 val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-                (begTimeX, begIdxX, true)
+                (begTimeX, begIdxX, timestamps.size > self.itemList.size)
+            } else {
+                // * begTime == computedTime
+                // * if begTime > computedTime, re-compute from computedTime
+                val begTimeX = self.computedTime
+                // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
+                val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+                (begTimeX, begIdxX, false)
             }
         }
 
-        if (mayNeedToAppendItems) {
-            appendItemsIfNecessary(begIdx)
+        if (mayNeedToValidate) {
+            self.validate
         }
 
         this.begTime = begTime1
@@ -189,7 +194,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     }
 
     // * append with clear items from begIdx
-    protected def appendItemsIfNecessary(begIdx:Int) {
+    protected def appendItems(begIdx:Int) {
         val timestamps = self.timestamps
         val size = timestamps.size
         var i = begIdx
