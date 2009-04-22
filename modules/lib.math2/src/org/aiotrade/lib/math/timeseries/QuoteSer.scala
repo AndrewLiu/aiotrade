@@ -57,10 +57,10 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
      * @param boolean b: if true, do adjust, else, de adjust
      */
     def adjust(b:Boolean) :Unit = {
-        val itemList1 = itemList
+        val items1 = items
         var i = 0
-        while (i < itemList1.size) {
-            val item = itemList1(i).asInstanceOf[QuoteItem]
+        while (i < items1.size) {
+            val item = items1(i).asInstanceOf[QuoteItem]
             
             var prevNorm = item.close
             var postNorm = if (b) {

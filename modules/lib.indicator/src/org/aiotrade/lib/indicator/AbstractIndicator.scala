@@ -212,7 +212,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
             this._baseSer = baseSer
 
             // * share same timestamps with baseSer, should be care of ReadWriteLock
-            this.timestamps = baseSer.timestamps
+            this.attach(baseSer.timestamps)
             
             this.computableHelper.init(baseSer, this)
         
@@ -297,10 +297,10 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
             val size = timestamps.size
             val begIdx = computableHelper.preComputeFrom(begTime)
             
-            assert(timestamps.size == itemList.size,
+            assert(timestamps.size == items.size,
                    "Should validate " + shortDescription + "first! : " +
                    "timestamps size=" + timestamps.size +
-                   ", items size=" + itemList.size)
+                   ", items size=" + items.size)
 
             computeCont(begIdx, size)
         

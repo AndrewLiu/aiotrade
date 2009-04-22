@@ -74,9 +74,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * Should only get index from timestamps which has the proper mapping of :
      * position <-> time <-> item
      */
-    var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
+    private var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
-    private var items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
+    private var _items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
     /**
      * Map contains vars. Each var element of array is a Var that contains a
      * sequence of values for one field of SerItem.
@@ -90,7 +90,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     }
 
     def timestamps :Timestamps = _timestamps
-    protected def timestamps_=(timestamps:Timestamps) :Unit = {
+    protected def attach(timestamps:Timestamps) :Unit = {
         this._timestamps = timestamps
     }
 
@@ -111,8 +111,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          * position <-> time <-> item mapping
          */
         val idx = timestamps.indexOfOccurredTime(time)
-        if (idx >= 0 && idx < items.size) {
-            items(idx)
+        if (idx >= 0 && idx < _items.size) {
+            _items(idx)
         } else null
     }
 
@@ -161,7 +161,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             v(idx) = null
         }
 
-        items(idx) = itemToBeClear
+        _items(idx) = itemToBeClear
         itemToBeClear.clear
     }
 
@@ -171,7 +171,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         /** as timestamps includes this time, we just always put in a none-null item  */
-        items.insert(idx, clearItem)
+        _items.insert(idx, clearItem)
     }
 
     private def internal_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
@@ -180,7 +180,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         /** as timestamps includes this time, we just always put in a none-null item  */
-        items += clearItem
+        _items += clearItem
     }
 
     private def internal_insertTime_insertClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
@@ -195,7 +195,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             }
 
             /** as timestamps includes this time, we just always put in a none-null item  */
-            items.insert(idx, clearItem)
+            _items.insert(idx, clearItem)
         } finally {
             _timestamps.writeLock.unlock
         }
@@ -212,7 +212,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             }
 
             /** as timestamps includes this time, we just always put in a none-null item  */
-            items += clearItem
+            _items += clearItem
         } finally {
             _timestamps.writeLock.unlock
         }
@@ -231,7 +231,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def varSet :Set[Var[Any]] = varToName.keySet
 
     def validate :Unit = {
-        if (items.size != timestamps.size) {
+        if (_items.size != timestamps.size) {
             try {
                 timestamps.readLock.lock
                 varSet.foreach{x => x.validate}
@@ -242,7 +242,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                     newItems += createItem(time)
                     i += 1
                 }
-                items = newItems
+                _items = newItems
             } finally {
                 timestamps.readLock.unlock
             }
@@ -265,8 +265,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                 _timestamps.remove(i)
             }
 
-            for (i <- items.size - 1 to fromIdx) {
-                items.remove(i)
+            for (i <- _items.size - 1 to fromIdx) {
+                _items.remove(i)
             }
 
         } finally {
@@ -280,7 +280,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                               Long.MaxValue))
     }
 
-    def itemList :ArrayBuffer[SerItem] = items
+    def items :ArrayBuffer[SerItem] = _items
 
     def getItem(time:Long) :SerItem = {
         var item = internal_getItem(time)
@@ -406,7 +406,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
         
         def validate :Unit = {
-            if (items.size != timestamps.size) {
+            if (_items.size != timestamps.size) {
                 val newValues = new ArrayBuffer[E] // @todo set init capacity size
 
                 var i = 0
@@ -415,8 +415,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                     val time = timestamps(i)
                     var break = false
                     var v = null.asInstanceOf[E]
-                    while (j < items.size && !break) {
-                        val vTime = items(j).time
+                    while (j < _items.size && !break) {
+                        val vTime = _items(j).time
                         if (vTime == time) {
                             // found existed value
                             v = values(j)

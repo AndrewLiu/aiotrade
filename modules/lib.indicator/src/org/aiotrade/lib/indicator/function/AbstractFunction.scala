@@ -105,7 +105,7 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
         super.init(baseSer.freq)
         this._baseSer = baseSer
 
-        this.timestamps = baseSer.timestamps
+        this.attach(baseSer.timestamps)
 
         initPredefinedVarsOfBaseSer
     }

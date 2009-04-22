@@ -100,8 +100,9 @@ trait Timestamps extends ArrayBuffer[Long] {
     /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
     override
     def clone:Timestamps = {super.clone; this}
-
 }
+
+
 
 
 

@@ -70,16 +70,16 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         
         val cal = Calendar.getInstance
         
-        val sourceItemList = sourceQuoteSer.itemList
+        val sourceItems = sourceQuoteSer.items
         
-        val size = sourceItemList.size
+        val size = sourceItems.size
         //for (i <- masterFromIdx until size) {
         def loop(i:Int) :Unit = {
             if (i >= size) return
             
-            val item_i = sourceItemList(i).asInstanceOf[QuoteItem]
+            val item_i = sourceItems(i).asInstanceOf[QuoteItem]
             
-            val time_i = item_i.time;
+            val time_i = item_i.time
             
             if (time_i < masterFromTime) {
                 loop(i + 1)
@@ -106,7 +106,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
             var j = 0
             var break = false
             while (i + j < size && !break) {
-                val item_j = sourceItemList(i + j).asInstanceOf[QuoteItem]
+                val item_j = sourceItems(i + j).asInstanceOf[QuoteItem]
                 val time_j = item_j.time
                 
                 cal.setTimeInMillis(time_j);

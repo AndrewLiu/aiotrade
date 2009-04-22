@@ -192,7 +192,7 @@ class ZIGZAGFunction extends AbstractFunction {
          * as zigzag's value is decided by future (+n step) idx, we should 
          * go on computing untill a turn over happened.
          */
-        val size = _baseSer.itemList.size
+        val size = _baseSer.items.size
         var i = idx
         var break = false
         while (i < size && !break) {
@@ -213,7 +213,7 @@ class ZIGZAGFunction extends AbstractFunction {
          * as pseudo zigzag's value is decided by future (+n step) idx, we should 
          * go on computing untill a turn over happened.
          */
-        val size = _baseSer.itemList.size
+        val size = _baseSer.items.size
         var i = idx
         var break = false
         while (i < size && !break) {
@@ -234,7 +234,7 @@ class ZIGZAGFunction extends AbstractFunction {
          * as zigzag direction 's value is decided by future (+n step) idx, we should 
          * go on computing untill a turn over happened.
          */
-        val size = _baseSer.itemList.size
+        val size = _baseSer.items.size
         var i = idx
         var break = false
         while (i < size && !break) {

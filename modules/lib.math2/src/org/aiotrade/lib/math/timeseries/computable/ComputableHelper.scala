@@ -162,7 +162,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
                 val begTimeX = self.computedTime
                 // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
                 val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-                (begTimeX, begIdxX, timestamps.size > self.itemList.size)
+                (begTimeX, begIdxX, timestamps.size > self.items.size)
             } else {
                 // * begTime == computedTime
                 // * if begTime > computedTime, re-compute from computedTime

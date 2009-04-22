@@ -172,5 +172,23 @@ abstract class AbstractFactor(var name:String) extends Factor {
 }
 
 
+import javax.swing.event.ChangeEvent
+class FactorChangeEvent(private var _source:AnyRef) extends ChangeEvent(_source) {
 
+    override
+    def getSource :Factor = {
+        assert(source.isInstanceOf[Factor], "Source should be Factor")
+
+        _source.asInstanceOf[Factor]
+    }
+
+    def source_=(factor:Factor) {
+        _source = factor
+    }
+}
+
+import java.util.EventListener
+trait FactorChangeListener extends EventListener {
+    def factorChanged(evt:FactorChangeEvent) :Unit
+}
 
