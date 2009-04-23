@@ -256,9 +256,12 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             var continue = log.logCursor > -1
             while (continue && timestampsLogCheckedCursor <= logCursor) {
                 if (timestampsLogCheckedCursor < 0) timestampsLogCheckedCursor = 0
+                // * Is checking a new log? if true, reset timestampsLogCheckedSize
+                if (timestampsLogCheckedCursor != logCursor) timestampsLogCheckedSize = 0
                 val logFlag = log(timestampsLogCheckedCursor)
 
                 if (timestampsLogCheckedCursor == logCursor && log.checkSize(logFlag) == timestampsLogCheckedSize) {
+                    // * same log with same size, actually nothing changed, so break now
                     continue = false
                 } else {
                     log.checkAppend(logFlag) match {
@@ -266,9 +269,16 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                 case -1 => assert(false, "Unknown log type:" + logFlag)
                                 case insertSize =>
                                     var begIdx = log.insertIndexOfLog(timestampsLogCheckedCursor)
-                                    val (begIdx1, insertSize1) = if (timestampsLogCheckedCursor == logCursor) {
-                                        (begIdx + timestampsLogCheckedSize, insertSize - timestampsLogCheckedSize)
-                                    } else (begIdx, insertSize)
+
+                                    val begIdx1 = if (timestampsLogCheckedCursor == logCursor) {
+                                        // * if insert log is a merged one, means the inserts were continually happening one behind one
+                                        begIdx + timestampsLogCheckedSize
+                                    } else begIdx
+                                    
+                                    val insertSize1 = if (timestampsLogCheckedCursor == logCursor) {
+                                        insertSize - timestampsLogCheckedSize
+                                    } else insertSize
+
                                     println("Log check: cursor=" + timestampsLogCheckedCursor + ", insertSize=" + insertSize1 + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
                                     val newItems = for (i <- 0 until insertSize1) yield {
                                         val time = timestamps(begIdx1 + i)
@@ -281,12 +291,14 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                             }
                         case appendSize =>
                             val begIdx = items.size
-                            val (begIdx1, appendSize1) = if (timestampsLogCheckedCursor == logCursor) {
-                                (begIdx + timestampsLogCheckedSize, appendSize - timestampsLogCheckedSize)
-                            } else (begIdx, appendSize)
-                            println("Log check: cursor=" + timestampsLogCheckedCursor + ", appendSize=" + appendSize1 + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+
+                            val appendSize1 = if (timestampsLogCheckedCursor == logCursor) {
+                                appendSize - timestampsLogCheckedSize
+                            } else appendSize
+
+                            println("Log check: cursor=" + timestampsLogCheckedCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
                             val newItems = for (i <- 0 until appendSize1) yield {
-                                val time = timestamps(begIdx1)
+                                val time = timestamps(begIdx)
                                 varSet.foreach{x => x.add(time, null)}
                                 createItem(time)
                             }
@@ -296,6 +308,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                     }
                 }
             }
+            // * always re-point checkedCursor to log's last one
+            timestampsLogCheckedCursor = logCursor
 
         } finally {
             timestamps.readLock.unlock
