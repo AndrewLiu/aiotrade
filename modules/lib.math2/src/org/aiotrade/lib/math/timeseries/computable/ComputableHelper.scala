@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries.computable
 
 import java.text.DecimalFormat
-import org.aiotrade.lib.math.timeseries.{Ser,SerChangeEvent,SerChangeListener}
+import org.aiotrade.lib.math.timeseries.Ser
 import org.aiotrade.lib.util.CallBack
 import scala.collection.mutable.ArrayBuffer
 
@@ -173,9 +173,10 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
             }
         }
 
-        if (mayNeedToValidate) {
-            self.validate
-        }
+        self.validate
+//        if (mayNeedToValidate) {
+//            self.validate
+//        }
 
         this.begTime = begTime1
                 
@@ -193,37 +194,6 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
         begIdx
     }
 
-    // * append with clear items from begIdx
-    protected def appendItems(begIdx:Int) {
-        val timestamps = self.timestamps
-        val size = timestamps.size
-        var i = begIdx
-        while (i < size) {
-            val time = timestamps(i)
-
-            /**
-             * if baseSer is MasterSer, we'll use timeOfRow(idx) to get the time,
-             * this enable returning a good time even idx < 0 or exceed itemList.size()
-             * because it will trace back in *calendar* time.
-             * @TODO
-             */
-            /*-
-             long time = _baseSer instanceof MasterSer ?
-             ((MasterSer)_baseSer).timeOfRow(i) :
-             _baseSer.timeOfIndex(i);
-             */
-
-            /**
-             * we've fetch time from _baseSer, but not sure if this time has been
-             * added to my timestamps, so, do any way:
-             */
-            self.createItemOrClearIt(time)
-
-            i += 1
-        }
-
-    }
-    
     def postComputeFrom :Unit = {
         /** construct resultSer's change event, forward baseSerChangeEventCallBack */
         self.fireSerChangeEvent(new SerChangeEvent(self,

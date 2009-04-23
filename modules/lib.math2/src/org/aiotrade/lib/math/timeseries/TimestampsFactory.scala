@@ -47,9 +47,9 @@ object TimestampsFactory {
         new TimestampsOnOccurred(initialCapacity)
     }
     
-    private class TimestampsOnOccurred(initialCapacity:Int) extends ArrayBuffer[Long] with Timestamps {
+    private class TimestampsOnOccurred(initialCapacity:Int) extends Timestamps {
         private val onCalendarShadow = new TimestampsOnCalendar(this)
-        
+
         def isOnCalendar :Boolean = false
         
         def asOnCalendar :Timestamps = onCalendarShadow

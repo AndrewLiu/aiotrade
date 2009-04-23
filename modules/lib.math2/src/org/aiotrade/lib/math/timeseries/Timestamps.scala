@@ -51,6 +51,118 @@ import scala.collection.mutable.ArrayBuffer
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
+object TimestampsLog {
+    private val FLAG   = 0xC000 // 1100 0000 0000 0000
+    private val SIZE   = 0x3FFF // 0011 1111 1111 1111
+
+    private val APPEND = 0x0000 // 0000 0000 0000 0000
+    private val INSERT = 0x4000 // 0100 0000 0000 0000
+    private val REMOVE = 0x8000 // 1000 0000 0000 0000
+    private val NUMBER = 0xC000 // 1100 0000 0000 0000
+}
+class TimestampsLog extends ArrayBuffer[Short] {
+    import TimestampsLog._
+
+    private var _logCursor = -1
+    private var _logTime = System.currentTimeMillis
+
+    def logCursor = _logCursor
+    def logTime = _logTime
+
+    def checkSize(logFlag:Short) :Int = {
+        logFlag & SIZE
+    }
+
+    def checkAppend(logFlag:Short) :Int = {
+        if ((logFlag & FLAG) == APPEND) {
+            logFlag & SIZE
+        } else -1
+    }
+
+    def checkInsert(logFlag:Short) :Int = {
+        if ((logFlag & FLAG) == INSERT) {
+            logFlag & SIZE
+        } else -1
+    }
+
+    def logAppend(size:Int) :Unit = {
+        def appendLog(size:Int) :Unit = {
+            if (size > SIZE) {
+                this += (APPEND | SIZE).toShort
+                _logCursor += 1
+                appendLog(size - SIZE)
+            } else {
+                this += (APPEND | size).toShort
+                _logCursor += 1
+            }
+        }
+        
+        if (_logCursor >= 0) {
+            val prev = apply(_logCursor)
+            val prevSize = checkAppend(prev)
+            println("Append log: prevFlag=" + prev + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize)
+            if (prevSize > -1) {
+                val newSize = prevSize + size
+                if (newSize <= SIZE) {
+                    // merge with previous one
+                    println("Append log (merged with prev): newSize=" + newSize)
+                    update(_logCursor, (APPEND | newSize).toShort)
+                } else appendLog(size)
+            } else appendLog(size)
+        } else appendLog(size)
+
+        _logTime = System.currentTimeMillis
+    }
+
+    def logInsert(size:Int, idx:Int) :Unit = {
+        /** cursorIncr: if (prev == append) 1 else 3 */
+        def appendLog(size:Int, idx:Int, cursorIncr:Int) :Unit = {
+            if (size > SIZE) {
+                this += (INSERT | SIZE).toShort
+                this ++= intToShorts(idx)
+                _logCursor += cursorIncr
+                appendLog(size - SIZE, idx + SIZE, 3)
+            } else {
+                this += (INSERT | size).toShort
+                this ++= intToShorts(idx)
+                _logCursor += cursorIncr
+            }
+        }
+
+        if (_logCursor >= 0) {
+            val prev = apply(_logCursor)
+            val prevSize = checkInsert(prev)
+            println("Insert log: prevFlag=" + prev + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize + ", idx=" + idx)
+            if (prevSize > -1) {
+                val prevIdx = shortsToInt(apply(_logCursor + 1), apply(_logCursor + 2))
+                if (prevIdx + prevSize == idx) {
+                    val newSize = prevSize + size
+                    if (newSize <= SIZE) {
+                        // merge with previous one
+                        println("Insert log (merged with prev): idx=" + prevIdx + ", newSize=" + newSize)
+                        update(_logCursor, (INSERT | newSize).toShort)
+                    } else appendLog(size:Int, idx:Int, 3)
+                } else appendLog(size:Int, idx:Int, 3)
+            } else appendLog(size:Int, idx:Int, 1)
+        } else appendLog(size:Int, idx:Int, 1)
+
+        _logTime = System.currentTimeMillis
+    }
+
+    def insertIndexOfLog(cursor:Int) :Int = {
+        shortsToInt(apply(cursor + 1), apply(cursor + 2))
+    }
+
+    /* [0] = lowest order 16 bits; [1] = highest order 16 bits. */
+    private def intToShorts(i:Int) :Array[Short] = {
+        Array((i >> 16).toShort, i.toShort)
+    }
+
+    private def shortsToInt(hi:Short, lo:Short) = {
+        (hi << 16) + lo
+    }
+}
+
 @cloneable
 trait Timestamps extends ArrayBuffer[Long] {
     val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
@@ -58,7 +170,9 @@ trait Timestamps extends ArrayBuffer[Long] {
     private val readWriteLock = new ReentrantReadWriteLock
     val readLock  :Lock = readWriteLock.readLock
     val writeLock :Lock = readWriteLock.writeLock
-    
+
+    val log = new TimestampsLog
+
     def isOnCalendar :Boolean
     
     def asOnCalendar :Timestamps

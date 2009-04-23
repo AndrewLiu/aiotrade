@@ -180,7 +180,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     protected var _grids :Array[Float] = _
     
     /** base series to compute this */
-    protected var _baseSer:Ser = _
+    protected var _baseSer :Ser = _
     
     /** To store values of open, high, low, close, volume: */
     protected var O :Var[Float] = _
@@ -296,20 +296,22 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
 
             val size = timestamps.size
             val begIdx = computableHelper.preComputeFrom(begTime)
-            
-            assert(timestamps.size == items.size,
-                   "Should validate " + shortDescription + "first! : " +
-                   "timestamps size=" + timestamps.size +
-                   ", items size=" + items.size)
+
+//            assert(timestamps.size == items.size,
+//                   "Should validate " + shortDescription + " first! " +
+//                   ": timestamps size=" + timestamps.size +
+//                   ", items size=" + items.size +
+//                   ", begIdx=" + begIdx)
 
             computeCont(begIdx, size)
         
             computableHelper.postComputeFrom
+            
+            _computedTime = timestamps.lastOccurredTime
         } finally {
             timestamps.readLock.unlock
         }
         
-        _computedTime = timestamps.lastOccurredTime
     }
     
     protected def preComputeFrom(begTime:Long) :Int = {

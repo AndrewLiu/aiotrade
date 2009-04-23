@@ -77,6 +77,11 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     private var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
     private var _items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
+
+    private var timestampsLog = timestamps.log
+    private var timestampsLogCheckedCursor = -1
+    private var timestampsLogCheckedSize = 0
+
     /**
      * Map contains vars. Each var element of array is a Var that contains a
      * sequence of values for one field of SerItem.
@@ -92,6 +97,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def timestamps :Timestamps = _timestamps
     protected def attach(timestamps:Timestamps) :Unit = {
         this._timestamps = timestamps
+        this.timestampsLog = timestamps.log
     }
 
     /**
@@ -129,70 +135,62 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         if (itemTime < lastOccurredTime) {
             val existIdx = timestamps.indexOfOccurredTime(itemTime)
             if (existIdx >= 0) {
-                internal_InsertClearItem_addNullVarValues(existIdx, itemTime, clearItem)
+                internal_InsertClearItem(existIdx, itemTime, clearItem)
             } else {
                 val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime)
+                assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
 
-                assert(idx >= 0,  "Since the itemTime < lastOccurredTime, the idx should be >= 0")
-                /** time at idx > itemTime, insert it before this idx */
-                internal_insertTime_insertClearItem_addNullVarValues(idx, itemTime, clearItem)
+                // * (time at idx) > itemTime, insert this new item at the same idx, so the followed elems will be pushed behind
+                internal_insertTime_insertClearItem(idx, itemTime, clearItem)
             }
         } else if (itemTime > lastOccurredTime) {
-            /** time > lastOccurredTime, just append it behind the last: */
-            internal_addTime_addClearItem_addNullVarValues(itemTime, clearItem)
+            // * time > lastOccurredTime, just append it behind the last:
+            internal_addTime_addClearItem(itemTime, clearItem)
         } else {
-            /** time == lastOccurredTime, keep same time and update item to clear. */
+            // * time == lastOccurredTime, keep same time and update item to clear.
             val existIdx = timestamps.indexOfOccurredTime(itemTime)
             if (existIdx >= 0) {
-                internal_addClearItem_addNullVarValues(itemTime, clearItem)
+                internal_addClearItem(itemTime, clearItem)
             } else {
                 assert(false,
                        "As it's an adding action, we should not reach here! " +
                        "Check your code, you are probably from createItemOrClearIt(long), " +
                        "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
                        " return -1 ?")
-                /** to avoid concurrent conflict, just do nothing here. */
+                // * to avoid concurrent conflict, just do nothing here.
             }
         }
     }
 
-    private def internal_clearItemAndVarValues(idx:Int, itemToBeClear:SerItem) :Unit = {
-        for (v <- varToName.keySet) {
-            v(idx) = null
-        }
-
+    private def internal_clearItem(idx:Int, itemToBeClear:SerItem) :Unit = {
+        varSet.foreach{x => x(idx) = null}
         _items(idx) = itemToBeClear
         itemToBeClear.clear
     }
 
-    private def internal_InsertClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
-        for (v <- varToName.keySet) {
-            v.add(time, null)
-        }
+    private def internal_InsertClearItem(idx:Int, time:Long, clearItem:SerItem) :Unit = {
+        varSet.foreach{x => x.add(time, null)}
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         _items.insert(idx, clearItem)
     }
 
-    private def internal_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
-        for (v <- varToName.keySet) {
-            v.add(time, null)
-        }
+    private def internal_addClearItem(time:Long, clearItem:SerItem) :Unit = {
+        varSet.foreach{x => x.add(time, null)}
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         _items += clearItem
     }
 
-    private def internal_insertTime_insertClearItem_addNullVarValues(idx:Int, time:Long, clearItem:SerItem) :Unit = {
+    private def internal_insertTime_insertClearItem(idx:Int, time:Long, clearItem:SerItem) :Unit = {
         try {
             _timestamps.writeLock.lock
 
             /** should add timestamps first */
             _timestamps.insert(idx, time)
+            timestampsLog.logInsert(1, idx)
 
-            for (v <- varToName.keySet) {
-                v.add(time, null)
-            }
+            varSet.foreach{x => x.add(time, null)}
 
             /** as timestamps includes this time, we just always put in a none-null item  */
             _items.insert(idx, clearItem)
@@ -201,15 +199,14 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
     }
 
-    private def internal_addTime_addClearItem_addNullVarValues(time:Long, clearItem:SerItem) :Unit = {
+    private def internal_addTime_addClearItem(time:Long, clearItem:SerItem) :Unit = {
         try {
             _timestamps.writeLock.lock
             /** should add timestamps first */
             _timestamps + time
+            timestampsLog.logAppend(1)
 
-            for (v <- varToName.keySet) {
-                v.add(time, null)
-            }
+            varSet.foreach{x => x.add(time, null)}
 
             /** as timestamps includes this time, we just always put in a none-null item  */
             _items += clearItem
@@ -222,18 +219,18 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         new DefaultItem(this, time)
     }
 
+    def shortDescription :String = description
     def shortDescription_=(description:String) :Unit = {
         this.description = description
     }
 
-    def shortDescription :String = description
-
     def varSet :Set[Var[Any]] = varToName.keySet
 
-    def validate :Unit = {
+    def validate_old :Unit = {
         if (_items.size != timestamps.size) {
             try {
                 timestamps.readLock.lock
+                
                 varSet.foreach{x => x.validate}
                 val newItems = new ArrayBuffer[SerItem]
                 var i = 0
@@ -249,17 +246,73 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
     }
 
+    def validate :Unit = {
+        try {
+            timestamps.readLock.lock
+
+            val log = timestamps.log
+            val logTime = log.logTime
+            val logCursor = log.logCursor
+            var continue = log.logCursor > -1
+            while (continue && timestampsLogCheckedCursor <= logCursor) {
+                if (timestampsLogCheckedCursor < 0) timestampsLogCheckedCursor = 0
+                val logFlag = log(timestampsLogCheckedCursor)
+
+                if (timestampsLogCheckedCursor == logCursor && log.checkSize(logFlag) == timestampsLogCheckedSize) {
+                    continue = false
+                } else {
+                    log.checkAppend(logFlag) match {
+                        case -1 => log.checkInsert(logFlag) match {
+                                case -1 => assert(false, "Unknown log type:" + logFlag)
+                                case insertSize =>
+                                    var begIdx = log.insertIndexOfLog(timestampsLogCheckedCursor)
+                                    val (begIdx1, insertSize1) = if (timestampsLogCheckedCursor == logCursor) {
+                                        (begIdx + timestampsLogCheckedSize, insertSize - timestampsLogCheckedSize)
+                                    } else (begIdx, insertSize)
+                                    println("Log check: cursor=" + timestampsLogCheckedCursor + ", insertSize=" + insertSize1 + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+                                    val newItems = for (i <- 0 until insertSize1) yield {
+                                        val time = timestamps(begIdx1 + i)
+                                        varSet.foreach{x => x.add(time, null)}
+                                        createItem(time)
+                                    }
+                                    items.insertAll(begIdx1, newItems)
+                                    timestampsLogCheckedCursor += 3
+                                    timestampsLogCheckedSize = insertSize
+                            }
+                        case appendSize =>
+                            val begIdx = items.size
+                            val (begIdx1, appendSize1) = if (timestampsLogCheckedCursor == logCursor) {
+                                (begIdx + timestampsLogCheckedSize, appendSize - timestampsLogCheckedSize)
+                            } else (begIdx, appendSize)
+                            println("Log check: cursor=" + timestampsLogCheckedCursor + ", appendSize=" + appendSize1 + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+                            val newItems = for (i <- 0 until appendSize1) yield {
+                                val time = timestamps(begIdx1)
+                                varSet.foreach{x => x.add(time, null)}
+                                createItem(time)
+                            }
+                            items ++= newItems
+                            timestampsLogCheckedCursor += 1
+                            timestampsLogCheckedSize = appendSize
+                    }
+                }
+            }
+
+        } finally {
+            timestamps.readLock.unlock
+        }
+
+    }
+
     def clear(fromTime:Long) :Unit = synchronized {
         try {
             _timestamps.writeLock.lock
+            
             val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
             if (fromIdx < 0) {
                 return
             }
 
-            for (v <- varToName.keySet) {
-                v.clear(fromIdx)
-            }
+            varSet.foreach{x => x.clear(fromIdx)}
 
             for (i <- timestamps.size - 1 to fromIdx) {
                 _timestamps.remove(i)
@@ -268,7 +321,6 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             for (i <- _items.size - 1 to fromIdx) {
                 _items.remove(i)
             }
-
         } finally {
             _timestamps.writeLock.unlock
         }
@@ -328,7 +380,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
     }
 
-    def size :Int = timestamps.size
+    def size :Int = items.size
 
     def indexOfOccurredTime(time:Long) :Int = timestamps.indexOfOccurredTime(time)
 
@@ -352,7 +404,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
     override
-    def equals(o:Any) = o match {
+    def equals(a:Any) = a match {
         case x:Ser => this.getClass == x.getClass && this.hashCode == x.hashCode
         case _ => false
     }
@@ -382,14 +434,14 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         def add(time:Long, value:E) :Boolean = {
             val idx = timestamps.indexOfOccurredTime(time)
             if (idx >= 0) {
-                if (idx == timestamps.size - 1) {
-                    values += (value)
+                if (idx == values.size) {
+                    values += value
                 } else {
                     values.insert(idx, value)
                 }
                 true
             } else {
-                assert(false, "Add timestamps first before add an element!")
+                assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
                 false
             }
         }
@@ -404,39 +456,36 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             values(idx) = value
             value
         }
-        
+
         def validate :Unit = {
-            if (_items.size != timestamps.size) {
-                val newValues = new ArrayBuffer[E] // @todo set init capacity size
+            val newValues = new ArrayBuffer[E] // @todo set init capacity size
 
-                var i = 0
-                var j = 0
-                while (i < timestamps.size) {
-                    val time = timestamps(i)
-                    var break = false
-                    var v = null.asInstanceOf[E]
-                    while (j < _items.size && !break) {
-                        val vTime = _items(j).time
-                        if (vTime == time) {
-                            // found existed value
-                            v = values(j)
-                            j += 1
-                            break = true
-                        } else if (vTime > time) {
-                            // not existed value
-                            v = null.asInstanceOf[E]
-                            break = true
-                        } else {
-                            j += 1
-                        }
+            var i = 0
+            var j = 0
+            while (i < timestamps.size) {
+                val time = timestamps(i)
+                var break = false
+                var v = null.asInstanceOf[E]
+                while (j < _items.size && !break) {
+                    val vtime = _items(j).time
+                    if (vtime == time) {
+                        // found existed value
+                        v = values(j)
+                        j += 1
+                        break = true
+                    } else if (vtime > time) {
+                        // not existed value
+                        v = null.asInstanceOf[E]
+                        break = true
+                    } else {
+                        j += 1
                     }
-                    newValues += v
-                    i += 1
                 }
-                values = newValues
+                newValues += v
+                i += 1
             }
+            values = newValues
         }
-
 
         /**
          * All those instances of DefaultVar or extended class will be equals if
@@ -444,7 +493,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
          * @See AbstractIndicator.injectVarsToSer()
          */
         override
-        def equals(o:Any) :Boolean = o match {
+        def equals(a:Any) :Boolean = a match {
             case x:InnerVar[_] => this.values == x.values
             case _ => false
         }
@@ -468,7 +517,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                 values.add(time, value)
                 true
             } else {
-                assert(false, "Add timestamps first before add an element!")
+                assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
                 false
             }
         }
@@ -541,6 +590,27 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             } else {
                 assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
                        "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
+            }
+        }
+        
+        private def checkValidationAt(idx:Int) :Int = {
+            assert(idx >= 0, "Out of bounds: idx=" + idx)
+
+            val time = timestamps(idx)
+            if (idx < items.size) {
+                val itime = items(idx).time
+                if (itime != time) {
+                    val idx1 = idx - 1
+                    if (idx1 >= 0) {
+                        checkValidationAt(idx1)
+                    } else {
+                        idx
+                    }
+                } else {
+                    -1 // it's good
+                }
+            } else {
+                idx
             }
         }
 
