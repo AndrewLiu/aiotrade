@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-OpenIDE-Module: org.h2database
-OpenIDE-Module-Localizing-Bundle: org/h2database/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.0
-

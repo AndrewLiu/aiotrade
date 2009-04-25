@@ -1,4 +1,0 @@
-46c46
-<     <import file="${harness.dir}/jdk.xml"/>
----
->     <import file="jdk.xml"/>
