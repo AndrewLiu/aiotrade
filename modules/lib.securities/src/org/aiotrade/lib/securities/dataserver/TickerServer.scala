@@ -186,7 +186,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     def composeSer(symbol:String, tickerSer:Ser, storage:ArrayBuffer[Ticker]) :SerChangeEvent = {
         var evt:SerChangeEvent = null
 
-        val timeZone = marketOf(symbol).timeZone
+        val cal = Calendar.getInstance(marketOf(symbol).timeZone)
         var begTime = +Long.MaxValue
         var endTime = -Long.MaxValue
 
@@ -199,7 +199,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             var i = if (shouldReverseOrder) size - 1 else 0
             while (i >= 0 && i <= size - 1) {
                 ticker = storage(i)
-                ticker.time = (freq.round(ticker.time, timeZone))
+                ticker.time = (freq.round(ticker.time, cal))
                 val prevTicker = symbolToPreviousTicker.get(symbol) match {
                     case None =>
                         val x = new Ticker
@@ -238,8 +238,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
                         /** normal process */
                         
                         /** check if in new interval */
-                        freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, timeZone)
-                        val item1 = if (freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, timeZone)) {
+                        freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)
+                        val item1 = if (freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)) {
                             intervalLastTickerPair.currIntervalOne.copy(ticker)
 
                             /** still in same interval, just pick out the old data of this interval */
@@ -304,9 +304,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
                  */
                 for (chainSer <- chainSersOf(tickerSer)) {
                     if (chainSer.freq.equals(Frequency.DAILY)) {
-                        updateDailyQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, timeZone)
+                        updateDailyQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, cal)
                     } else if (chainSer.freq.equals(Frequency.ONE_MIN)) {
-                        updateMinuteQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer.asInstanceOf[QuoteSer], timeZone)
+                        updateMinuteQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer.asInstanceOf[QuoteSer], cal)
                     }
                 }
 
@@ -325,11 +325,11 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             symbolToPreviousTicker.get(symbol) match {
                 case None =>
                 case Some(ticker) =>
-                    val today = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, timeZone)
+                    val today = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
                     for (ser <- chainSersOf(tickerSer)) {
                         if (ser.freq.equals(Frequency.DAILY)) {
                             if (ser.getItem(today) != null) {
-                                updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, timeZone)
+                                updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, cal)
                             }
                         }
                     }
@@ -344,8 +344,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
      * Try to update today's quote item according to ticker, if it does not
      * exist, create a new one.
      */
-    private def updateDailyQuoteItem(dailySer:QuoteSer, ticker:Ticker, timeZone:TimeZone) :Unit = {
-        val now = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, timeZone)
+    private def updateDailyQuoteItem(dailySer:QuoteSer, ticker:Ticker, cal:Calendar) :Unit = {
+        val now = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
         val itemNow =  dailySer.getItem(now) match {
             case null =>  dailySer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
             case x => x.asInstanceOf[QuoteItem]
@@ -371,8 +371,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
      * Try to update today's quote item according to ticker, if it does not
      * exist, create a new one.
      */
-    private def updateMinuteQuoteItem(minuteSer:QuoteSer, ticker:Ticker, tickerSer:QuoteSer, timeZone:TimeZone) :Unit = {
-        val now = Unit.Minute.beginTimeOfUnitThatInclude(ticker.time, timeZone)
+    private def updateMinuteQuoteItem(minuteSer:QuoteSer, ticker:Ticker, tickerSer:QuoteSer, cal:Calendar) :Unit = {
+        val now = Unit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
         val tickerItem = tickerSer.getItem(now).asInstanceOf[QuoteItem]
         val itemNow = minuteSer.getItem(now) match {
             case null =>  minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]

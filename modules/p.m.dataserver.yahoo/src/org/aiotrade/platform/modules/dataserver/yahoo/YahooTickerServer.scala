@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.dataserver.yahoo;
+package org.aiotrade.platform.modules.dataserver.yahoo
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -133,6 +133,7 @@ class YahooTickerServer extends TickerServer {
 
         resetCount
         sourceCalendar.clear
+        val dateFormat = dateFormatOf(sourceTimeZone)
         def loop(newestTime:Long) :Long = reader.readLine match {
             case null => newestTime // break right now
             case line => line.split(",") match {

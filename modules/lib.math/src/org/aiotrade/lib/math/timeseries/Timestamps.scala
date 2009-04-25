@@ -30,9 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import java.util.Calendar
-import java.util.GregorianCalendar
-import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -163,6 +160,9 @@ class TimestampsLog extends ArrayBuffer[Short] {
     }
 }
 
+import java.util.{Calendar,GregorianCalendar,TimeZone}
+import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
+
 @cloneable
 trait Timestamps extends ArrayBuffer[Long] {
     val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
@@ -209,7 +209,7 @@ trait Timestamps extends ArrayBuffer[Long] {
     
     def iterator(freq:Frequency) :TimestampsIterator
     
-    def iterator(freq:Frequency, fromTime:Long, toTime:Long) :TimestampsIterator
+    def iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator
 
     /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
     override

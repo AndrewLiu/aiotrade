@@ -223,8 +223,7 @@ object Unit extends Enumeration {
             cal.getTimeInMillis
         }
 
-        def beginTimeOfUnitThatInclude(time:Long, timeZone:TimeZone):Long = {
-            cal.setTimeZone(timeZone)
+        def beginTimeOfUnitThatInclude(time:Long, cal:Calendar):Long = {
             cal.setTimeInMillis(time)
 
             this match {

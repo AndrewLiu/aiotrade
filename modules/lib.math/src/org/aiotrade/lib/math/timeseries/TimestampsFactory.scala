@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.ConcurrentModificationException
-import java.util.TimeZone
+import java.util.{Calendar,TimeZone}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -291,8 +291,8 @@ object TimestampsFactory {
             new ItrOnOccurred(freq)
         }
         
-        def  iterator(freq:Frequency, fromTime:Long, toTime:Long) :TimestampsIterator = {
-            new ItrOnOccurred(freq, fromTime, toTime);
+        def  iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator = {
+            new ItrOnOccurred(freq, fromTime, toTime, timeZone)
         }
 
         override
@@ -302,13 +302,13 @@ object TimestampsFactory {
             res
         }
 
-        class ItrOnOccurred(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
-            val timeZone = TimeZone.getDefault
+        class ItrOnOccurred(freq:Frequency, _fromTime:Long, toTime:Long, timeZone:TimeZone) extends TimestampsIterator {
+            private val cal = Calendar.getInstance(timeZone)
 
-            val fromTime = freq.round(_fromTime, timeZone)
+            val fromTime = freq.round(_fromTime, cal)
 
             def this(freq:Frequency) {
-                this(freq, firstOccurredTime, lastOccurredTime)
+                this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
             }
                         
             var cursorTime = fromTime
@@ -528,8 +528,8 @@ object TimestampsFactory {
             new ItrOnCalendar(freq)
         }
         
-        def iterator(freq:Frequency, fromTime:Long, toTime:Long) :TimestampsIterator = {
-            new ItrOnCalendar(freq, fromTime, toTime)
+        def iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator = {
+            new ItrOnCalendar(freq, fromTime, toTime, timeZone)
         }
 
         @transient @volatile
@@ -541,12 +541,13 @@ object TimestampsFactory {
             new TimestampsOnCalendar(delegateTimestamps.clone)
         }
 
-        class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long) extends TimestampsIterator {
-            val fromTime = freq.round(_fromTime, timeZone)
-            val timeZone = TimeZone.getDefault
+        class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long, timeZone:TimeZone) extends TimestampsIterator {
+            private val cal = Calendar.getInstance(timeZone)
+
+            val fromTime = freq.round(_fromTime, cal)
             
             def this(freq:Frequency) {
-                this(freq, firstOccurredTime, lastOccurredTime)
+                this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
             }
             
             var cursorTime = fromTime

@@ -264,7 +264,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
         if (!tickerServer.isContractSubsrcribed(tickerContract)) {
             var chainSers :List[Ser] = Nil
             // Only dailySer and minuteSre needs to chainly follow ticker change.
-            serOf(Frequency.DAILY).foreach{x => chainSers = x :: chainSers}
+            serOf(Frequency.DAILY)  .foreach{x => chainSers = x :: chainSers}
             serOf(Frequency.ONE_MIN).foreach{x => chainSers = x :: chainSers}
             tickerServer.subscribe(tickerContract, tickerSer, chainSers)
             //

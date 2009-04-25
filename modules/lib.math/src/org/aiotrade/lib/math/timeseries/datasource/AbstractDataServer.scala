@@ -103,7 +103,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     protected def init :Unit = {
     }
 
-    protected def dateFormat :DateFormat = {
+    protected def dateFormatOf(timeZone:TimeZone) :DateFormat = {
         if (_dateFormat == null) {
             var dateFormatStr = if (_dateFormat == null) {
                 defaultDateFormatString
@@ -113,7 +113,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
             _dateFormat = new SimpleDateFormat(dateFormatStr, Locale.US)
         }
 
-        _dateFormat.setTimeZone(sourceTimeZone)
+        _dateFormat.setTimeZone(timeZone)
         return _dateFormat
     }
 

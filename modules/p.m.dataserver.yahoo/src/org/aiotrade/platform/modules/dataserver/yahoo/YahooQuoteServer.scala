@@ -66,8 +66,8 @@ object YahooQuoteServer {
     protected val dateFormat_old :DateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US)
 
     def marketOf(symbol:String) :Market = {
-        symbol.split("\\.").reverse match {
-            case Array(head, _*) => head.toUpperCase match {
+        symbol.split("\\.") match {
+            case Array(head, market) => market.toUpperCase match {
                     case "L" =>  Market.LDSE
                     case "SS" => Market.SHSE
                     case "SZ" => Market.SZSE
@@ -170,7 +170,13 @@ class YahooQuoteServer extends QuoteServer {
         val s = reader.readLine
 
         resetCount
-        sourceCalendar.clear
+        val storage = storageOf(contract)
+        val symbol = contract.symbol
+        val market = marketOf(contract.symbol)
+        val timeZone = market.timeZone
+        // * for daily quote, yahoo returns market's local date, so use market time zone
+        val cal = Calendar.getInstance(timeZone)
+        val dateFormat = dateFormatOf(timeZone)
         def loop(newestTime:Long) :Long = reader.readLine match {
             case null => newestTime // break now
             case line => line.split(",") match {
@@ -183,23 +189,18 @@ class YahooQuoteServer extends QuoteServer {
                         val date = try {
                             dateFormat.parse(dateTimeX.trim)
                         } catch {
-                            case _:ParseException => try {
-                                    dateFormat_old.parse(dateTimeX.trim)
-                                } catch {
-                                    case _:ParseException => loop(newestTime)
-                                }
+                            case _:ParseException =>  loop(newestTime)
                         }
                     
-                        sourceCalendar.clear
-                        sourceCalendar.setTime(date.asInstanceOf[Date])
-                        var time = sourceCalendar.getTimeInMillis
+                        cal.clear
+                        cal.setTime(date.asInstanceOf[Date])
+                        var time = cal.getTimeInMillis
                         if (time < fromTime) {
                             loop(newestTime)
                         }
 
                         // quote time is rounded to 00:00, we should adjust it to open time
-                        val symbol = contract.symbol
-                        time += marketOf(symbol).openTimeOfDay
+                        time += market.openTimeOfDay
 
                         val quote = borrowQuote
 
@@ -216,7 +217,7 @@ class YahooQuoteServer extends QuoteServer {
                             returnQuote(quote)
                             newestTime
                         } else {
-                            storageOf(contract) += quote
+                            storage += quote
                             countOne
                             Math.max(newestTime, time)
                         }
@@ -248,7 +249,7 @@ class YahooQuoteServer extends QuoteServer {
     override
     def displayName :String = "Yahoo! Finance Internet"
 
-    def defaultDateFormatString :String = "yyyy-mm-dd"
+    def defaultDateFormatString :String = "yyyy-MM-dd"
 
     def sourceSerialNumber :Byte = 1
 

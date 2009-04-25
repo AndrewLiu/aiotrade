@@ -31,8 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 
-import java.util.HashSet
-import java.util.TimeZone
+import java.util.{Calendar,TimeZone}
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.aiotrade.lib.util.serialization.DeserializationConstructor
 import org.aiotrade.lib.util.serialization.JavaDocument
@@ -76,14 +75,22 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     /**
      * round time to freq's begin 0
      * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+     * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
      */
-    def round(time:long, timeZone:TimeZone) :Long = {
-        val rawOffset = timeZone.getRawOffset
-        ((time + rawOffset) / interval) * interval - rawOffset
+    def round(time:long, cal:Calendar) :Long = {
+        cal.setTimeInMillis(time)
+        val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset - cal.get(Calendar.DST_OFFSET)
+        ((time + offsetToLocalZeroOfDay) / interval) * interval - offsetToLocalZeroOfDay
     }
 
-    def sameInterval(timeA:Long, timeB:Long, timeZone:TimeZone) :Boolean = {
-        round(timeA, timeZone) == round(timeB, timeZone)
+    /**
+     * round time to freq's begin 0
+     * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+     * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+     * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
+     */
+    def sameInterval(timeA:Long, timeB:Long, cal:Calendar) :Boolean = {
+        round(timeA, cal) == round(timeB, cal)
     }
 
     def getName :String = {

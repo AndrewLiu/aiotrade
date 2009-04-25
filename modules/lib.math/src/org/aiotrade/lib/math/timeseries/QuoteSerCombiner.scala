@@ -38,7 +38,9 @@ import java.util.TimeZone
  * @author Caoyuan Deng
  */
 class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZone:TimeZone) {
-    
+
+    private val cal = Calendar.getInstance(timeZone)
+
     private val sourceSerChangelistener = new SerChangeListener() {
         def serChanged(evt:SerChangeEvent) :Unit = {
             if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
@@ -59,7 +61,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
     protected def computeCont(fromTime:Long) :Unit = {
         val targetUnit = targetQuoteSer.freq.unit
         
-        val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, timeZone)
+        val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, cal)
         val masterFromIdx1 = sourceQuoteSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
         val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
         
@@ -67,9 +69,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         //targetQuoteSer.clear(myFromTime);
         
         /** begin combining: */
-        
-        val cal = Calendar.getInstance
-        
+                
         val sourceItems = sourceQuoteSer.items
         
         val size = sourceItems.size
@@ -85,7 +85,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
                 loop(i + 1)
             }
             
-            val intervalBegin = targetUnit.beginTimeOfUnitThatInclude(time_i, timeZone)
+            val intervalBegin = targetUnit.beginTimeOfUnitThatInclude(time_i, cal)
             
             cal.setTimeInMillis(intervalBegin)
             val currWeekOfYear  = cal.get(Calendar.WEEK_OF_YEAR)
@@ -114,12 +114,12 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
                 var inSameInterval = true
                 targetUnit match {
                     case Unit.Week =>
-                        val weekOfYear = cal.get(Calendar.WEEK_OF_YEAR);
-                        inSameInterval = (weekOfYear == currWeekOfYear);
+                        val weekOfYear = cal.get(Calendar.WEEK_OF_YEAR)
+                        inSameInterval = (weekOfYear == currWeekOfYear)
                     case Unit.Month =>
-                        val monthOfYear = cal.get(Calendar.MONTH);
-                        val year = cal.get(Calendar.YEAR);
-                        inSameInterval = (year == currYear && monthOfYear == currMonthOfYear);
+                        val monthOfYear = cal.get(Calendar.MONTH)
+                        val year = cal.get(Calendar.YEAR)
+                        inSameInterval = (year == currYear && monthOfYear == currMonthOfYear)
                     case _ =>
                 }
                 

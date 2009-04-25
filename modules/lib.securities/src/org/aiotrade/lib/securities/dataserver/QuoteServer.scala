@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.TimeZone
+import java.util.{Calendar,TimeZone}
 import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.math.timeseries.QuoteItem
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
@@ -156,27 +156,31 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     def composeSer(symbol:String, quoteSer:Ser, storage:ArrayBuffer[Quote]) :SerChangeEvent =  {
         var evt:SerChangeEvent = null
 
-        val timeZone = marketOf(symbol).timeZone
-        var begTime = +Long.MaxValue
-        var endTime = -Long.MaxValue
 
         val size = storage.size
         if (size > 0) {
+            val cal = Calendar.getInstance(marketOf(symbol).timeZone)
+            val freq = quoteSer.freq
+
+            var begTime = +Long.MaxValue
+            var endTime = -Long.MaxValue
+
+            //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
+            storage.map{x => x.time = freq.round(x.time, cal); x}
+            //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
+
             val shouldReverseOrder = !isAscending(storage)
 
-            val freq = quoteSer.freq
             var i = if (shouldReverseOrder) size - 1 else 0
             while (i >= 0 && i <= size - 1) {
-                val quote = storage(i);
-                quote.time = freq.round(quote.time, timeZone)
-
+                val quote = storage(i)
                 val item =  quoteSer.createItemOrClearIt(quote.time).asInstanceOf[QuoteItem]
 
-                item.open    = quote.open
-                item.high    = quote.high
-                item.low     = quote.low
-                item.close   = quote.close
-                item.volume  = quote.volume
+                item.open   = quote.open
+                item.high   = quote.high
+                item.low    = quote.low
+                item.close  = quote.close
+                item.volume = quote.volume
 
                 item.close_ori = quote.close
 

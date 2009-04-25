@@ -20,7 +20,7 @@ object Market {
 class Market(val timeZone:TimeZone, openHour:Int, openMin:int, closeHour:Int, closeMin:int) {
 
     private val cal = Calendar.getInstance(timeZone)
-    val openTimeOfDay :Long = (closeHour * 60 + closeMin) * 60 * 1000
+    val openTimeOfDay :Long = (openHour * 60 + openMin) * 60 * 1000
 
     def this(openHour:Int, openMin:int, closeHour:Int, closeMin:int) {
         this(TimeZone.getTimeZone("UTC"), openHour, openMin, closeHour, closeMin)
