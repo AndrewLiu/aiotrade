@@ -75,7 +75,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
     private var _items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
 
-    private var timestampsLog = timestamps.log
+    private var tsLog = timestamps.log
     private var tsLogCheckedCursor = 0
     private var tsLogCheckedSize = 0
 
@@ -94,7 +94,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def timestamps :Timestamps = _timestamps
     protected def attach(timestamps:Timestamps) :Unit = {
         this._timestamps = timestamps
-        this.timestampsLog = timestamps.log
+        this.tsLog = timestamps.log
     }
 
     /**
@@ -107,22 +107,16 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     /**
      * This should be the only interface to fetch item, what ever by time or by row.
      */
-    private def internal_getItem(time:Long) :SerItem = {
-        try {
-            readLock.lock
-            
-            /**
-             * @NOTE:
-             * Should only get index from timestamps which has the proper
-             * position <-> time <-> item mapping
-             */
-            val idx = timestamps.indexOfOccurredTime(time)
-            if (idx >= 0 && idx < _items.size) {
-                _items(idx)
-            } else null
-        } finally {
-            readLock.unlock
-        }
+    private def internal_getItem(time:Long) :SerItem = synchronized {            
+        /**
+         * @NOTE:
+         * Should only get index from timestamps which has the proper
+         * position <-> time <-> item mapping
+         */
+        val idx = timestamps.indexOfOccurredTime(time)
+        if (idx >= 0 && idx < _items.size) {
+            _items(idx)
+        } else null
     }
 
     /**
@@ -133,70 +127,65 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * @param time
      * @param clearItem
      */
-    private def internal_addClearItem_And_FillTimestamps__InTimeOrder(itemTime:Long, clearItem:SerItem) :Unit = {
-        try {
-            writeLock.lock
+    private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime:Long, clearItem:SerItem) :Unit = synchronized {
+        val lastOccurredTime = timestamps.lastOccurredTime
+        if (itemTime < lastOccurredTime) {
+            val existIdx = timestamps.indexOfOccurredTime(itemTime)
+            if (existIdx >= 0) {
+                varSet.foreach{x => x.add(itemTime, null)}
+                // * as timestamps includes this time, we just always put in a none-null item
+                _items.insert(existIdx, clearItem)
+            } else {
+                val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime)
+                assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
 
-            val lastOccurredTime = timestamps.lastOccurredTime
-            if (itemTime < lastOccurredTime) {
-                val existIdx = timestamps.indexOfOccurredTime(itemTime)
-                if (existIdx >= 0) {
-                    varSet.foreach{x => x.add(itemTime, null)}
-                    // * as timestamps includes this time, we just always put in a none-null item
-                    _items.insert(existIdx, clearItem)
-                } else {
-                    val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime)
-                    assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
-
-                    // * (time at idx) > itemTime, insert this new item at the same idx, so the followed elems will be pushed behind
-                    try {
-                        _timestamps.writeLock.lock
-
-                        // * should add timestamps first 
-                        _timestamps.insert(idx, itemTime)
-                        timestampsLog.logInsert(1, idx)
-
-                        varSet.foreach{x => x.add(itemTime, null)}
-
-                        // * as timestamps includes this time, we just always put in a none-null item
-                        _items.insert(idx, clearItem)
-                    } finally {
-                        _timestamps.writeLock.unlock
-                    }
-                }
-            } else if (itemTime > lastOccurredTime) {
-                // * time > lastOccurredTime, just append it behind the last:
+                // * (time at idx) > itemTime, insert this new item at the same idx, so the followed elems will be pushed behind
                 try {
                     _timestamps.writeLock.lock
-                    /** should add timestamps first */
-                    _timestamps += itemTime
-                    timestampsLog.logAppend(1)
+
+                    // * should add timestamps first
+                    _timestamps.insert(idx, itemTime)
+                    tsLog.logInsert(1, idx)
 
                     varSet.foreach{x => x.add(itemTime, null)}
 
-                    /** as timestamps includes this time, we just always put in a none-null item  */
-                    _items += clearItem
+                    // * as timestamps includes this time, we just always put in a none-null item
+                    _items.insert(idx, clearItem)
                 } finally {
                     _timestamps.writeLock.unlock
                 }
-            } else {
-                // * time == lastOccurredTime, keep same time and update item to clear.
-                val existIdx = timestamps.indexOfOccurredTime(itemTime)
-                if (existIdx >= 0) {
-                    varSet.foreach{x => x.add(itemTime, null)}
-                    // * as timestamps includes this time, we just always put in a none-null item
-                    _items += clearItem
-                } else {
-                    assert(false,
-                           "As it's an adding action, we should not reach here! " +
-                           "Check your code, you are probably from createItemOrClearIt(long), " +
-                           "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
-                           " return -1 ?")
-                    // * to avoid concurrent conflict, just do nothing here.
-                }
             }
-        } finally {
-            writeLock.unlock
+        } else if (itemTime > lastOccurredTime) {
+            // * time > lastOccurredTime, just append it behind the last:
+            try {
+                _timestamps.writeLock.lock
+
+                /** should add timestamps first */
+                _timestamps += itemTime
+                tsLog.logAppend(1)
+
+                varSet.foreach{x => x.add(itemTime, null)}
+
+                /** as timestamps includes this time, we just always put in a none-null item  */
+                _items += clearItem
+            } finally {
+                _timestamps.writeLock.unlock
+            }
+        } else {
+            // * time == lastOccurredTime, keep same time and update item to clear.
+            val existIdx = timestamps.indexOfOccurredTime(itemTime)
+            if (existIdx >= 0) {
+                varSet.foreach{x => x.add(itemTime, null)}
+                // * as timestamps includes this time, we just always put in a none-null item
+                _items += clearItem
+            } else {
+                assert(false,
+                       "As it's an adding action, we should not reach here! " +
+                       "Check your code, you are probably from createItemOrClearIt(long), " +
+                       "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
+                       " return -1 ?")
+                // * to avoid concurrent conflict, just do nothing here.
+            }
         }
     }
 
@@ -377,9 +366,9 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def createItemOrClearIt(time:Long) :SerItem = {
         internal_getItem(time) match {
             case null =>
-                /** item == null means timestamps.indexOfOccurredTime(time) is not in valid range */
+                // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
                 val item = createItem(time)
-                internal_addClearItem_And_FillTimestamps__InTimeOrder(time, item)
+                internal_addClearItem_fillTimestamps_InTimeOrder(time, item)
                 item
             case item =>
                 item.clear

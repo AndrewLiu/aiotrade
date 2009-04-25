@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 import scala.collection.Set
 import scala.collection.mutable.ArrayBuffer
 
@@ -44,9 +43,6 @@ trait Ser {
     
     def init(freq:Frequency) :Unit
     
-    def readLock  :Lock
-    def writeLock :Lock
-
     def timestamps :Timestamps
 
     def freq :Frequency

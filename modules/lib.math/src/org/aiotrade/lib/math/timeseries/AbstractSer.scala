@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 import javax.swing.event.EventListenerList
 
 /**
@@ -38,9 +37,6 @@ import javax.swing.event.EventListenerList
  * @author Caoyuan Deng
  */
 abstract class AbstractSer(var freq:Frequency) extends Ser {
-    private val readWriteLock = new ReentrantReadWriteLock
-    val readLock  :Lock = readWriteLock.readLock
-    val writeLock :Lock = readWriteLock.writeLock
     
     private val serChangeListenerList = new EventListenerList
         
