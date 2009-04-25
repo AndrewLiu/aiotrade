@@ -250,76 +250,84 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
     }
 
+    /**
+     * @Note:
+     * This function is not thread safe, since tsLogCheckedCursor and tsLogCheckedSize
+     * should be atomic accessed/modified during function's running scope so.
+     * Should avoid to enter here by multiple actors concurrently
+     */
     def validate :Unit = {
         try {
             timestamps.readLock.lock
 
             val log = timestamps.log
             val logCursor = log.logCursor
-            var continue = log.logCursor > -1
-            while (continue && tsLogCheckedCursor <= logCursor) {
-                val isSameLog = tsLogCheckedCursor == logCursor
-                // * Is checking a new log now? if true, reset tsLogCheckedSize
-                if (!isSameLog) tsLogCheckedSize = 0
+            var checkingCursor = tsLogCheckedCursor
+            var continue = logCursor > -1
+            while (continue && checkingCursor <= logCursor) {
+                val cursorMoved = if (checkingCursor != tsLogCheckedCursor) {
+                    // * Is checking a new log, should reset tsLogCheckedSize
+                    tsLogCheckedSize = 0
+                    true
+                } else false
 
-                val logFlag = log(tsLogCheckedCursor)
+                val logFlag = log(checkingCursor)
                 val logCurrSize = log.checkSize(logFlag)
-                if (isSameLog && logCurrSize == tsLogCheckedSize) {
+                if (!cursorMoved && logCurrSize == tsLogCheckedSize) {
                     // * same log with same size, actually nothing changed, so break now
                     continue = false
                 } else {
                     log.checkKind(logFlag) match {
                         case TimestampsLog.INSERT =>                             
-                            var begIdx = log.insertIndexOfLog(tsLogCheckedCursor)
+                            var begIdx = log.insertIndexOfLog(checkingCursor)
 
-                            val begIdx1 = if (isSameLog) {
+                            val begIdx1 = if (!cursorMoved) {
                                 // * if insert log is a merged one, means the inserts were continually happening one behind one
                                 begIdx + tsLogCheckedSize
                             } else begIdx
                                     
-                            val insertSize = if (isSameLog) {
+                            val insertSize = if (!cursorMoved) {
                                 logCurrSize - tsLogCheckedSize
                             } else logCurrSize
 
-                            println("Log check: cursor=" + tsLogCheckedCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+                            println("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
                             val newItems = for (i <- 0 until insertSize) yield {
                                 val time = timestamps(begIdx1 + i)
                                 varSet.foreach{x => x.add(time, null)}
                                 createItem(time)
                             }
                             items.insertAll(begIdx1, newItems)
-                            tsLogCheckedCursor += 3
+                            tsLogCheckedCursor = checkingCursor
                             tsLogCheckedSize = logCurrSize
+                            checkingCursor += 3
                             
                         case TimestampsLog.APPEND =>                  
                             val begIdx = items.size
 
-                            val appendSize = if (isSameLog) {
+                            val appendSize = if (!cursorMoved) {
                                 logCurrSize - tsLogCheckedSize
                             } else logCurrSize
 
-                            println("Log check: cursor=" + tsLogCheckedCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+                            println("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
                             val newItems = for (i <- 0 until appendSize) yield {
                                 val time = timestamps(begIdx)
                                 varSet.foreach{x => x.add(time, null)}
                                 createItem(time)
                             }
                             items ++= newItems
-                            tsLogCheckedCursor += 1
+                            tsLogCheckedCursor = checkingCursor
                             tsLogCheckedSize = logCurrSize
+                            checkingCursor += 1
+
                         case x => assert(false, "Unknown log type:" + x)
                     }
                 }
             }
-            // * always re-point checkedCursor to log's last one
-            tsLogCheckedCursor = if (logCursor > -1) logCursor else 0
 
-            if (timestamps.size != items.size) {
-                println("Timestamps size=" + timestamps.size + " vs items size=" + items.size +
-                        ", checkedCursor=" + tsLogCheckedCursor +
-                        ", log=" + log
-                )
-            }
+            assert(timestamps.size == items.size,
+                   "Timestamps size=" + timestamps.size + " vs items size=" + items.size +
+                   ", checkedCursor=" + tsLogCheckedCursor +
+                   ", log=" + log)        
         } finally {
             timestamps.readLock.unlock
         }
