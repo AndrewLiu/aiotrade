@@ -73,7 +73,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      */
     private var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
-    private var _items = new ArrayBuffer[SerItem]{override val initialSize = INIT_CAPACITY}
+    private var _items = new ArrayBuffer[SerItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
 
     private var tsLog = timestamps.log
     private var tsLogCheckedCursor = 0

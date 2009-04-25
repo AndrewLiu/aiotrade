@@ -44,11 +44,10 @@ import scala.collection.mutable.ArrayBuffer
 object TimestampsFactory {
     
     def createInstance(initialCapacity:Int) :Timestamps = {
-        new TimestampsOnOccurred(initialCapacity)
+        new TimestampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
     }
     
     private class TimestampsOnOccurred(initialCapacity:Int) extends Timestamps {
-        override val initialSize = initialCapacity
 
         private val onCalendarShadow = new TimestampsOnCalendar(this)
 
