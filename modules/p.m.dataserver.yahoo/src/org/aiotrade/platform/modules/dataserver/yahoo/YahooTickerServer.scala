@@ -244,7 +244,7 @@ class YahooTickerServer extends TickerServer {
     override
     def displayName :String = "Yahoo! Finance Internet"
 
-    def defaultDateFormatString :String = "MM/dd/yyyy h:mma"
+    def defaultDateFormatPattern :String = "MM/dd/yyyy h:mma"
 
     def sourceSerialNumber :Byte = 1
 

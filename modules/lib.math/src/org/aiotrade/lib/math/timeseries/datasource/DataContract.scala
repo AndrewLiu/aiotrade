@@ -56,7 +56,7 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
     var category :String = _
     var shortName :String = _
     var longName :String = _
-    var dateFormatString :String = _
+    var dateFormatPattern :String = _
     var urlString :String = ""
     var refreshable :Boolean = false
     var refreshInterval :Int = 5 // seconds
@@ -75,7 +75,7 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
         val bean = super.writeToBean(doc)
 
         doc.valuePropertyOfBean(bean, "symbol", symbol)
-        doc.valuePropertyOfBean(bean, "dateFormatString", dateFormatString)
+        doc.valuePropertyOfBean(bean, "dateFormatPattern", dateFormatPattern)
 
         val begDateBean = doc.createBean(beginDate)
         doc.innerPropertyOfBean(bean, "begDate", begDateBean)
@@ -96,7 +96,7 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
     def writeToJava(id:String) :String = {
         super.writeToJava(id) +
         JavaDocument.set(id, "setSymbol", "" + symbol) +
-        JavaDocument.set(id, "setDateFormatString", "" + dateFormatString) +
+        JavaDocument.set(id, "setDateFormatPattern", "" + dateFormatPattern) +
         JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
         JavaDocument.set(id, "setBegDate", "begDate") +
         JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +

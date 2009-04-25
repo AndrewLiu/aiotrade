@@ -63,7 +63,6 @@ object YahooQuoteServer {
     protected val BaseUrl = "http://aiotrade.com/"
     protected val UrlPath = "aiodata/yq"
     protected val dateFormat :DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    protected val dateFormat_old :DateFormat = new SimpleDateFormat("dd-MMM-yy", Locale.US)
 
     def marketOf(symbol:String) :Market = {
         symbol.split("\\.") match {
@@ -249,7 +248,7 @@ class YahooQuoteServer extends QuoteServer {
     override
     def displayName :String = "Yahoo! Finance Internet"
 
-    def defaultDateFormatString :String = "yyyy-MM-dd"
+    def defaultDateFormatPattern :String = "yyyy-MM-dd"
 
     def sourceSerialNumber :Byte = 1
 

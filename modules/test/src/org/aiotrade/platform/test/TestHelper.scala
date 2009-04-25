@@ -32,7 +32,7 @@ trait TestHelper {
         dataContract.primaryExchange = "SSH"
         dataContract.currency = "USD"
 
-        dataContract.dateFormatString = "yyyy-MM-dd-HH-mm"
+        dataContract.dateFormatPattern = "yyyy-MM-dd-HH-mm"
         dataContract.freq = freq
         dataContract.refreshable = refreshable
         dataContract.refreshInterval = 5
@@ -54,7 +54,7 @@ trait TestHelper {
         dataContract.primaryExchange = "SSH"
         dataContract.currency = "USD"
 
-        dataContract.dateFormatString = "yyyy-MM-dd-HH-mm-ss"
+        dataContract.dateFormatPattern = "yyyy-MM-dd-HH-mm-ss"
         dataContract.freq = freq
         dataContract.refreshable = true
         dataContract.refreshInterval = 5

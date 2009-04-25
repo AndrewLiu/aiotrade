@@ -47,7 +47,7 @@ class TickerContract extends SecDataContract[TickerServer] {
     import TickerContract._
     
     serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
-    dateFormatString = "MM/dd/yyyy h:mma"
+    dateFormatPattern = "MM/dd/yyyy h:mma"
     freq = Frequency.ONE_MIN
     urlString = ""
     refreshable = true

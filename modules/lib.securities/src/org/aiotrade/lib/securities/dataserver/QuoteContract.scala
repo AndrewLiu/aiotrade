@@ -50,7 +50,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     active = true
     /** default freq */
     freq = Frequency.DAILY
-    dateFormatString = "dd-MMM-yy"
+    dateFormatPattern = "yyyy-MM-dd"
     urlString = ""
     refreshable = false
     refreshInterval = 60 // seconds

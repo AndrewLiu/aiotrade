@@ -6,6 +6,7 @@
 /nbproject/findbugs.settings$
 /test/(coverage|lib|results|work)$
 derby\.log
+\.log$
 \.class$
 \.DS_Store$
 \.orig$

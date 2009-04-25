@@ -44,7 +44,7 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
     
     def displayName:String
     
-    def defaultDateFormatString :String
+    def defaultDateFormatPattern :String
     
     /**
      * 

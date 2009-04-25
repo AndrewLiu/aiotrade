@@ -90,7 +90,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     private var loadServer :LoadServer = _
     private var updateServer :UpdateServer = _
     private var updateTimer :Timer = _
-    private var _dateFormat :DateFormat = _
     protected var count :Int = 0
     protected var loadedTime :Long = _
     protected var fromTime :Long = _
@@ -103,18 +102,15 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     protected def init :Unit = {
     }
 
+    /** @Note DateFormat is not thread safe, so we always return a new instance */
     protected def dateFormatOf(timeZone:TimeZone) :DateFormat = {
-        if (_dateFormat == null) {
-            var dateFormatStr = if (_dateFormat == null) {
-                defaultDateFormatString
-            } else {
-                currentContract.get.dateFormatString
-            }
-            _dateFormat = new SimpleDateFormat(dateFormatStr, Locale.US)
+        val dateFormatStr = currentContract.get.dateFormatPattern match {
+            case null => defaultDateFormatPattern
+            case x => x
         }
-
-        _dateFormat.setTimeZone(timeZone)
-        return _dateFormat
+        val dateFormat = new SimpleDateFormat(dateFormatStr)
+        dateFormat.setTimeZone(timeZone)
+        dateFormat
     }
 
     protected def resetCount :Unit = {
