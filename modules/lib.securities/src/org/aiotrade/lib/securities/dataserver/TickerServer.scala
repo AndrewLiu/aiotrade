@@ -346,11 +346,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
      */
     private def updateDailyQuoteItem(dailySer:QuoteSer, ticker:Ticker, cal:Calendar) :Unit = {
         val now = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
-        val itemNow =  dailySer.getItem(now) match {
-            case null =>  dailySer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
-            case x => x.asInstanceOf[QuoteItem]
-        }
-
+        val itemNow = dailySer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
+        
         if (ticker(Ticker.DAY_HIGH) != 0 && ticker(Ticker.DAY_LOW) != 0) {
             itemNow.open   = ticker(Ticker.DAY_OPEN)
             itemNow.high   = ticker(Ticker.DAY_HIGH)
@@ -373,11 +370,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
      */
     private def updateMinuteQuoteItem(minuteSer:QuoteSer, ticker:Ticker, tickerSer:QuoteSer, cal:Calendar) :Unit = {
         val now = Unit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
-        val tickerItem = tickerSer.getItem(now).asInstanceOf[QuoteItem]
-        val itemNow = minuteSer.getItem(now) match {
-            case null =>  minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
-            case x => x.asInstanceOf[QuoteItem]
-        }
+        val itemNow = minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
 
         itemNow.open   = ticker(Ticker.DAY_OPEN)
         itemNow.high   = ticker(Ticker.DAY_HIGH)

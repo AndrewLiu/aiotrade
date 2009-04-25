@@ -49,13 +49,13 @@ import scala.collection.mutable.ArrayBuffer
  * @since   1.0.4
  */
 object TimestampsLog {
-    private val FLAG   = 0xC000 // 1100 0000 0000 0000
+    private val KIND   = 0xC000 // 1100 0000 0000 0000
     private val SIZE   = 0x3FFF // 0011 1111 1111 1111
 
-    private val APPEND = 0x0000 // 0000 0000 0000 0000
-    private val INSERT = 0x4000 // 0100 0000 0000 0000
-    private val REMOVE = 0x8000 // 1000 0000 0000 0000
-    private val NUMBER = 0xC000 // 1100 0000 0000 0000
+    val APPEND = 0x0000 // 0000 0000 0000 0000
+    val INSERT = 0x4000 // 0100 0000 0000 0000
+    val REMOVE = 0x8000 // 1000 0000 0000 0000
+    val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
 class TimestampsLog extends ArrayBuffer[Short] {
     import TimestampsLog._
@@ -66,20 +66,12 @@ class TimestampsLog extends ArrayBuffer[Short] {
     def logCursor = _logCursor
     def logTime = _logTime
 
+    def checkKind(logFlag:Short) :Int = {
+        logFlag & KIND
+    }
+
     def checkSize(logFlag:Short) :Int = {
         logFlag & SIZE
-    }
-
-    def checkAppend(logFlag:Short) :Int = {
-        if ((logFlag & FLAG) == APPEND) {
-            logFlag & SIZE
-        } else -1
-    }
-
-    def checkInsert(logFlag:Short) :Int = {
-        if ((logFlag & FLAG) == INSERT) {
-            logFlag & SIZE
-        } else -1
     }
 
     def logAppend(size:Int) :Unit = {
@@ -96,9 +88,10 @@ class TimestampsLog extends ArrayBuffer[Short] {
         
         if (_logCursor >= 0) {
             val prev = apply(_logCursor)
-            val prevSize = checkAppend(prev)
-            println("Append log: prevFlag=" + prev + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize)
-            if (prevSize > -1) {
+            val prevKind = checkKind(prev)
+            val prevSize = checkSize(prev)
+            println("Append log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize)
+            if (prevKind == APPEND) {
                 val newSize = prevSize + size
                 if (newSize <= SIZE) {
                     // merge with previous one
@@ -128,9 +121,10 @@ class TimestampsLog extends ArrayBuffer[Short] {
 
         if (_logCursor >= 0) {
             val prev = apply(_logCursor)
-            val prevSize = checkInsert(prev)
-            println("Insert log: prevFlag=" + prev + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize + ", idx=" + idx)
-            if (prevSize > -1) {
+            val prevKind = checkKind(prev)
+            val prevSize = checkSize(prev)
+            println("Insert log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize + ", idx=" + idx)
+            if (prevKind == INSERT) {
                 val prevIdx = shortsToInt(apply(_logCursor + 1), apply(_logCursor + 2))
                 if (prevIdx + prevSize == idx) {
                     val newSize = prevSize + size
@@ -157,6 +151,25 @@ class TimestampsLog extends ArrayBuffer[Short] {
 
     private def shortsToInt(hi:Short, lo:Short) = {
         (hi << 16) + lo
+    }
+
+    override
+    def toString :String = {
+        val sb = new StringBuilder
+        sb.append("TimestampsLog: cursor=").append(_logCursor).append(", size=").append(size).append(", content=")
+        var i = 0
+        while (i < size) {
+            val flag = apply(i)
+            checkKind(flag) match {
+                case APPEND =>
+                    sb.append("A").append(checkSize(flag)).append(",")
+                    i += 1
+                case INSERT => sb.append("I").append(checkSize(flag)).append("@").append(shortsToInt(apply(i + 1), apply(i + 2))).append(",")
+                    i += 3
+                case x => sb.append("\nflag").append(x).append("X").append(i).append(",")
+            }
+        }
+        sb.toString
     }
 }
 
