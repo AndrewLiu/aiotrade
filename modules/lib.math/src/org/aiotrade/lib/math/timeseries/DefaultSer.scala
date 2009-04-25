@@ -263,8 +263,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
             val log = timestamps.log
             val logCursor = log.logCursor
             var checkingCursor = tsLogCheckedCursor
-            var continue = logCursor > -1
-            while (continue && checkingCursor <= logCursor) {
+            while (logCursor > -1 && checkingCursor <= logCursor) {
                 val cursorMoved = if (checkingCursor != tsLogCheckedCursor) {
                     // * Is checking a new log, should reset tsLogCheckedSize
                     tsLogCheckedSize = 0
@@ -274,11 +273,10 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                 val logFlag = log(checkingCursor)
                 val logCurrSize = log.checkSize(logFlag)
                 if (!cursorMoved && logCurrSize == tsLogCheckedSize) {
-                    // * same log with same size, actually nothing changed, so break now
-                    continue = false
+                    // * same log with same size, actually nothing changed
                 } else {
                     log.checkKind(logFlag) match {
-                        case TimestampsLog.INSERT =>                             
+                        case TimestampsLog.INSERT =>
                             var begIdx = log.insertIndexOfLog(checkingCursor)
 
                             val begIdx1 = if (!cursorMoved) {
@@ -297,11 +295,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                 createItem(time)
                             }
                             items.insertAll(begIdx1, newItems)
-                            tsLogCheckedCursor = checkingCursor
-                            tsLogCheckedSize = logCurrSize
-                            checkingCursor += 3
                             
-                        case TimestampsLog.APPEND =>                  
+                        case TimestampsLog.APPEND =>
                             val begIdx = items.size
 
                             val appendSize = if (!cursorMoved) {
@@ -315,19 +310,20 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                 createItem(time)
                             }
                             items ++= newItems
-                            tsLogCheckedCursor = checkingCursor
-                            tsLogCheckedSize = logCurrSize
-                            checkingCursor += 1
 
                         case x => assert(false, "Unknown log type:" + x)
                     }
                 }
+                
+                tsLogCheckedCursor = checkingCursor
+                tsLogCheckedSize = logCurrSize
+                checkingCursor = log.nextCursor(checkingCursor)
             }
 
             assert(timestamps.size == items.size,
                    "Timestamps size=" + timestamps.size + " vs items size=" + items.size +
                    ", checkedCursor=" + tsLogCheckedCursor +
-                   ", log=" + log)        
+                   ", log=" + log)
         } finally {
             timestamps.readLock.unlock
         }

@@ -120,7 +120,7 @@ class YahooQuoteServerTest extends TestHelper {
         sec.uniSymbol
         println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
         sec.serOf(Frequency.DAILY).  foreach{x => println("daily: "  + x.size)}
-        sec.serOf(Frequency.ONE_MIN).foreach{x => println("1 Min: "  + x.size)}
+        sec.serOf(Frequency.ONE_MIN).foreach{x => println("1 min: "  + x.size)}
         println("ticker: "  + sec.tickerSer.size)
     }
 

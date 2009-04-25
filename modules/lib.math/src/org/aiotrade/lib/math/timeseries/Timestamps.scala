@@ -144,6 +144,11 @@ class TimestampsLog extends ArrayBuffer[Short] {
         shortsToInt(apply(cursor + 1), apply(cursor + 2))
     }
 
+    def nextCursor(cursor:Int) :Int = checkKind(apply(cursor)) match {
+        case APPEND => cursor + 1
+        case INSERT => cursor + 3
+    }
+
     /* [0] = lowest order 16 bits; [1] = highest order 16 bits. */
     private def intToShorts(i:Int) :Array[Short] = {
         Array((i >> 16).toShort, i.toShort)
