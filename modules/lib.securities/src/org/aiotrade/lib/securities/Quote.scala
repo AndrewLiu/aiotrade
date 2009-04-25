@@ -31,7 +31,7 @@
 package org.aiotrade.lib.securities
 
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.datasource.TimeValue
+import org.aiotrade.lib.math.timeseries.TimeValue
 
 /**
  * Quote value object
@@ -51,7 +51,6 @@ class Quote extends TimeValue {
     
     private val values = new Array[Float](8)
     
-    var time :Long = _
     var sourceId :Long = _
     
     var hasGaps :Boolean = false

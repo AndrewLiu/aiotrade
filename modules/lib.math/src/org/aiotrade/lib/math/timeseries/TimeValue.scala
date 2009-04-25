@@ -29,44 +29,23 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries
-
-
-
 /**
- * QuoteItem class
- * 
+ * a value object with time field
+ *  
  * @author Caoyuan Deng
  */
-class QuoteItem(_ser:QuoteSer, time:Long) extends DefaultItem(_ser, time) {
+trait TimeValue extends Ordered[TimeValue] {
+    var time :Long = _
 
-    override
-    def ser :QuoteSer = super.ser.asInstanceOf[QuoteSer]
-    
-    def volume :Float = getFloat(ser.volume)
-    
-    def open :Float = getFloat(ser.open)
-    
-    def high :Float = getFloat(ser.high)
-    
-    def low :Float = getFloat(ser.low)
-    
-    def close : Float = getFloat(ser.close)
-    
-    def close_adj :Float = getFloat(ser.close_adj)
-    
-    def close_ori :Float = getFloat(ser.close_ori)
-    
-    def open_=(open:Float) :Unit = setFloat(ser.open, open)
-
-    def high_=(high:Float) :Unit = setFloat(ser.high, high)
-    
-    def low_=(low:Float) :Unit = setFloat(ser.low, low)
-    
-    def close_=(close:Float) :Unit = setFloat(ser.close, close)
-    
-    def volume_=(volume:Float) = setFloat(ser.volume, volume)
-    
-    def close_ori_=(close_ori:Float) = setFloat(ser.close_ori, close_ori)
-    
-    def close_adj_=(close_adj:Float) =setFloat(ser.close_adj, close_adj)
+    def compare(that:TimeValue): Int = {
+        if (time > that.time) {
+            1
+        } else if (time < that.time) {
+            -1
+        } else {
+            0
+        }
+    }
 }
+
+

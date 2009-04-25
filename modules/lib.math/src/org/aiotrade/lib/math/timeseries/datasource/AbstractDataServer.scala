@@ -167,23 +167,22 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
 
     protected def returnBorrowedTimeValues(datas:ArrayBuffer[V]) :Unit
 
-    protected def isAscending(storage:ArrayBuffer[V]) :boolean = {
-        val size = storage.size
+    protected def isAscending(values:Array[V]) :boolean = {
+        val size = values.size
         if (size <= 1) {
-            return true
+            true
         } else {
             var i = 0
             while (i < size - 1) {
-                if (storage(i).time < storage(i + 1).time) {
+                if (values(i).time < values(i + 1).time) {
                     return true
-                } else if (storage(i).time > storage(i + 1).time) {
+                } else if (values(i).time > values(i + 1).time) {
                     return false
                 }
                 i += 1
             }
+            false
         }
-
-        return false
     }
 
 
@@ -332,9 +331,12 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     protected def loadFromSource(afterThisTime:Long) :Long
 
     /**
-     * compose ser using data from storage
+     * compose ser using data from timeValues
+     * @param symbol
+     * @param serToBeFilled Ser
+     * @param time values
      */
-    def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
+    protected def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
 
     protected class LoadServer extends Runnable {
 

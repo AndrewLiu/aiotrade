@@ -28,8 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.securities
 
+import org.aiotrade.lib.math.timeseries.{DefaultMasterSer,Frequency,SerChangeEvent}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
@@ -37,6 +38,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  * @author Caoyuan Deng
  */
 class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
+    
     private var _shortDescription:String = ""
     var adjusted :Boolean = false
     
@@ -49,10 +51,9 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     val close_ori = TimeVar[Float]()
     val close_adj = TimeVar[Float]()
     
-    
     override
     protected def createItem(time:Long) :QuoteItem = new QuoteItem(this, time)
-    
+
     /**
      * @param boolean b: if true, do adjust, else, de adjust
      */

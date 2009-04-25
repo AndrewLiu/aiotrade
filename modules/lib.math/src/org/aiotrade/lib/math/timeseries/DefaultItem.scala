@@ -103,5 +103,8 @@ class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerIte
         v.setByTime(time, value)
         this._clear = false
     }
-    
+
+    def assignValue[V <: TimeValue](value:V) :Unit = {
+        /** @todo */
+    }
 }

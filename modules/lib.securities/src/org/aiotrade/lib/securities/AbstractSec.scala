@@ -28,12 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities;
+package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.math.timeseries.Ser
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.QuoteSer
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import org.aiotrade.lib.securities.dataserver.{QuoteContract,QuoteServer,TickerServer,TickerContract}

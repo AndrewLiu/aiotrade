@@ -53,5 +53,7 @@ trait SerItem {
     def setFloat[T >: Number](v:Var[T], number:T) :Unit
     
     def set[T](v:Var[T], o:T) :Unit
+
+    def assignValue[V <: TimeValue](value:V) :Unit
 }
 

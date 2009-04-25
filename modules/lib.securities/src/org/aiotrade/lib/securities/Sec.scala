@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.QuoteSer
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
 /**

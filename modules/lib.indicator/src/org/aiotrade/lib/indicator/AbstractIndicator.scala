@@ -60,14 +60,12 @@ import org.aiotrade.lib.indicator.function.STOCHKFunction;
 import org.aiotrade.lib.indicator.function.SUMFunction;
 import org.aiotrade.lib.indicator.function.TRFunction;
 import org.aiotrade.lib.indicator.function.WMSFunction;
-import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.math.timeseries.computable.Factor
-import org.aiotrade.lib.math.timeseries.computable.DefaultFactor;
-import org.aiotrade.lib.math.timeseries.QuoteSer;
-import org.aiotrade.lib.math.timeseries.DefaultSer;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
+import org.aiotrade.lib.math.timeseries.computable.DefaultFactor;
+import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.timeseries.computable.Indicator
+import org.aiotrade.lib.math.timeseries.{DefaultSer,Ser,Var}
+import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 
 /**

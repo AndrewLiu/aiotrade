@@ -22,6 +22,14 @@
                 <id>jar</id>
             </reference>
             <reference>
+                <foreign-project>lib_securities</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
                 <foreign-project>lib_util</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>

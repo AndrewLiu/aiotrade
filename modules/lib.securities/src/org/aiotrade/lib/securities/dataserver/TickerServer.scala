@@ -31,9 +31,9 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.{Calendar,TimeZone}
-import org.aiotrade.lib.math.timeseries.{Frequency,QuoteItem,QuoteSer,Ser,SerChangeEvent,Unit}
+import org.aiotrade.lib.math.timeseries.{Frequency,Ser,SerChangeEvent,Unit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Market,Ticker,TickerObserver,TickerPool,TickerSnapshot}
+import org.aiotrade.lib.securities.{Market,QuoteItem,QuoteSer,Ticker,TickerObserver,TickerPool,TickerSnapshot}
 import scala.collection.mutable.{ArrayBuffer,HashMap}
 
 /** This class will load the quote datas from data source to its data storage: quotes.
@@ -192,7 +192,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
         val size = storage.size
         if (size > 0) {
-            val shouldReverseOrder = !isAscending(storage)
+            val values = new Array[Ticker](size)
+            storage.copyToArray(values, 0)
+            
+            val shouldReverseOrder = !isAscending(values)
 
             var ticker :Ticker = null; // lastTicker will be stored in it
             val freq = tickerSer.freq

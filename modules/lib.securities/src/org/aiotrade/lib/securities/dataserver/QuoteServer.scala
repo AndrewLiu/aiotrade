@@ -32,7 +32,6 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.{Calendar,TimeZone}
 import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.math.timeseries.QuoteItem
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.Ser;
@@ -116,16 +115,16 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
             PersistenceManager.getDefault.saveQuotes(contract.symbol, freq, storage, sourceId)
 
             var evt = composeSer(contract.symbol, serToBeFilled, storage)
-            if (evt != null) {
-                evt.tpe = SerChangeEvent.Type.FinishedLoading
-                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": " + getCount() + " quote data loaded, load server finished");
-            } else {
-                /** even though, we may have loaded data in preLoad(), so, still need fire a FinishedLoading event */
-                val loadedTime1 = serToBeFilled.lastOccurredTime
-                evt = new SerChangeEvent(serToBeFilled, SerChangeEvent.Type.FinishedLoading, contract.symbol, loadedTime1, loadedTime1)
-            }
-
-            serToBeFilled.fireSerChangeEvent(evt)
+//            if (evt != null) {
+//                evt.tpe = SerChangeEvent.Type.FinishedLoading
+//                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": " + getCount() + " quote data loaded, load server finished");
+//            } else {
+//                /** even though, we may have loaded data in preLoad(), so, still need fire a FinishedLoading event */
+//                val loadedTime1 = serToBeFilled.lastOccurredTime
+//                evt = new SerChangeEvent(serToBeFilled, SerChangeEvent.Type.FinishedLoading, contract.symbol, loadedTime1, loadedTime1)
+//            }
+//
+//            serToBeFilled.fireSerChangeEvent(evt)
 
             storage.synchronized {
                 returnBorrowedTimeValues(storage)
@@ -140,67 +139,71 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
             val storage = storageOf(contract)
 
             val evt = composeSer(contract.symbol, serOf(contract).get, storage)
-            if (evt != null) {
-                evt.tpe = SerChangeEvent.Type.Updated
-                evt.getSource.fireSerChangeEvent(evt)
-                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
-            }
+//            if (evt != null) {
+//                evt.tpe = SerChangeEvent.Type.Updated
+//                evt.getSource.fireSerChangeEvent(evt)
+//                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
+//            }
 
-            storage.synchronized  {
+            storage.synchronized {
                 returnBorrowedTimeValues(storage)
                 storage.clear
             }
         }
     }
 
-    def composeSer(symbol:String, quoteSer:Ser, storage:ArrayBuffer[Quote]) :SerChangeEvent =  {
+    protected def composeSer(symbol:String, quoteSer:Ser, storage:ArrayBuffer[Quote]) :SerChangeEvent =  {
         var evt:SerChangeEvent = null
-
 
         val size = storage.size
         if (size > 0) {
             val cal = Calendar.getInstance(marketOf(symbol).timeZone)
             val freq = quoteSer.freq
 
-            var begTime = +Long.MaxValue
-            var endTime = -Long.MaxValue
-
             //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
             storage.map{x => x.time = freq.round(x.time, cal); x}
             //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
 
-            val shouldReverseOrder = !isAscending(storage)
+            // * copy to a new array and don't change it anymore, so we can ! it as message
+            val values = new Array[Quote](size)
+            storage.copyToArray(values, 0)
 
-            var i = if (shouldReverseOrder) size - 1 else 0
-            while (i >= 0 && i <= size - 1) {
-                val quote = storage(i)
-                val item =  quoteSer.createItemOrClearIt(quote.time).asInstanceOf[QuoteItem]
-
-                item.open   = quote.open
-                item.high   = quote.high
-                item.low    = quote.low
-                item.close  = quote.close
-                item.volume = quote.volume
-
-                item.close_ori = quote.close
-
-                val adjuestedClose = if (quote.close_adj != 0 ) quote.close_adj else quote.close
-                item.close_adj = adjuestedClose
-
-                if (shouldReverseOrder) {
-                    /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
-                    i -= 1
-                } else {
-                    /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
-                    i += 1
-                }
-
-                val itemTime = item.time
-                begTime = Math.min(begTime, itemTime)
-                endTime = Math.max(endTime, itemTime)
-            }
-
-            evt = new SerChangeEvent(quoteSer, SerChangeEvent.Type.None, symbol, begTime, endTime)
+            quoteSer ++ values
+//            var begTime = +Long.MaxValue
+//            var endTime = -Long.MaxValue
+//
+//            val shouldReverse = !isAscending(values)
+//
+//            var i = if (shouldReverse) size - 1 else 0
+//            while (i >= 0 && i <= size - 1) {
+//                val quote = values(i)
+//                val item =  quoteSer.createItemOrClearIt(quote.time).asInstanceOf[QuoteItem]
+//
+//                item.open   = quote.open
+//                item.high   = quote.high
+//                item.low    = quote.low
+//                item.close  = quote.close
+//                item.volume = quote.volume
+//
+//                item.close_ori = quote.close
+//
+//                val adjuestedClose = if (quote.close_adj != 0 ) quote.close_adj else quote.close
+//                item.close_adj = adjuestedClose
+//
+//                if (shouldReverse) {
+//                    /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
+//                    i -= 1
+//                } else {
+//                    /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
+//                    i += 1
+//                }
+//
+//                val itemTime = item.time
+//                begTime = Math.min(begTime, itemTime)
+//                endTime = Math.max(endTime, itemTime)
+//            }
+//
+//            evt = new SerChangeEvent(quoteSer, SerChangeEvent.Type.None, symbol, begTime, endTime)
         }
 
         evt

@@ -107,7 +107,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     /**
      * This should be the only interface to fetch item, what ever by time or by row.
      */
-    private def internal_getItem(time:Long) :SerItem = synchronized {            
+    private def internal_getItem(time:Long) :SerItem = synchronized {
         /**
          * @NOTE:
          * Should only get index from timestamps which has the proper
@@ -189,6 +189,36 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
     }
 
+    def ++[V <: TimeValue](values:Array[V]) :Unit = {
+        var begTime = +Long.MaxValue
+        var endTime = -Long.MaxValue
+
+        val shouldReverse = !isAscending(values)
+
+        val size = values.size
+        var i = if (shouldReverse) size - 1 else 0
+        while (i >= 0 && i <= size - 1) {
+            val value = values(i)
+            val item = createItemOrClearIt(value.time)
+            item.assignValue(value)
+
+            if (shouldReverse) {
+                /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
+                i -= 1
+            } else {
+                /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
+                i += 1
+            }
+
+            val itemTime = item.time
+            begTime = Math.min(begTime, itemTime)
+            endTime = Math.max(endTime, itemTime)
+        }
+
+        val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, shortDescription, begTime, endTime)
+        fireSerChangeEvent(evt)
+    }
+
     protected def createItem(time:Long) :SerItem = {
         new DefaultItem(this, time)
     }
@@ -233,14 +263,13 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                 if (!isSameLog) tsLogCheckedSize = 0
 
                 val logFlag = log(tsLogCheckedCursor)
-                if (isSameLog && log.checkSize(logFlag) == tsLogCheckedSize) {
+                val logCurrSize = log.checkSize(logFlag)
+                if (isSameLog && logCurrSize == tsLogCheckedSize) {
                     // * same log with same size, actually nothing changed, so break now
                     continue = false
                 } else {
                     log.checkKind(logFlag) match {
-                        case TimestampsLog.INSERT => 
-                            val insertSize = log.checkSize(logFlag)
-                            
+                        case TimestampsLog.INSERT =>                             
                             var begIdx = log.insertIndexOfLog(tsLogCheckedCursor)
 
                             val begIdx1 = if (isSameLog) {
@@ -248,38 +277,36 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                 begIdx + tsLogCheckedSize
                             } else begIdx
                                     
-                            val insertSize1 = if (isSameLog) {
-                                insertSize - tsLogCheckedSize
-                            } else insertSize
+                            val insertSize = if (isSameLog) {
+                                logCurrSize - tsLogCheckedSize
+                            } else logCurrSize
 
-                            println("Log check: cursor=" + tsLogCheckedCursor + ", insertSize=" + insertSize1 + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-                            val newItems = for (i <- 0 until insertSize1) yield {
+                            println("Log check: cursor=" + tsLogCheckedCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+                            val newItems = for (i <- 0 until insertSize) yield {
                                 val time = timestamps(begIdx1 + i)
                                 varSet.foreach{x => x.add(time, null)}
                                 createItem(time)
                             }
                             items.insertAll(begIdx1, newItems)
                             tsLogCheckedCursor += 3
-                            tsLogCheckedSize = insertSize
+                            tsLogCheckedSize = logCurrSize
                             
-                        case TimestampsLog.APPEND =>
-                            val appendSize = log.checkSize(logFlag)
-                            
+                        case TimestampsLog.APPEND =>                  
                             val begIdx = items.size
 
-                            val appendSize1 = if (isSameLog) {
-                                appendSize - tsLogCheckedSize
-                            } else appendSize
+                            val appendSize = if (isSameLog) {
+                                logCurrSize - tsLogCheckedSize
+                            } else logCurrSize
 
                             println("Log check: cursor=" + tsLogCheckedCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-                            val newItems = for (i <- 0 until appendSize1) yield {
+                            val newItems = for (i <- 0 until appendSize) yield {
                                 val time = timestamps(begIdx)
                                 varSet.foreach{x => x.add(time, null)}
                                 createItem(time)
                             }
                             items ++= newItems
                             tsLogCheckedCursor += 1
-                            tsLogCheckedSize = appendSize
+                            tsLogCheckedSize = logCurrSize
                         case x => assert(false, "Unknown log type:" + x)
                     }
                 }

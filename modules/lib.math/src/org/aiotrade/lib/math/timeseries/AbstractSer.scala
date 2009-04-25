@@ -77,6 +77,24 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
         _loaded = false
     }
 
+    protected def isAscending[V <: TimeValue](values:Array[V]) :boolean = {
+        val size = values.size
+        if (size <= 1) {
+            true
+        } else {
+            var i = 0
+            while (i < size - 1) {
+                if (values(i).time < values(i + 1).time) {
+                    return true
+                } else if (values(i).time > values(i + 1).time) {
+                    return false
+                }
+                i += 1
+            }
+            false
+        }
+    }
+
     override
     def toString :String = {
         this.getClass.getSimpleName + "(" + freq + ")"

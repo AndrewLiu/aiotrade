@@ -30,14 +30,14 @@
  */
 package org.aiotrade.lib.indicator;
 
-import org.aiotrade.lib.math.timeseries.QuoteItem;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.MasterSer;
-import org.aiotrade.lib.math.timeseries.QuoteSer;
 import org.aiotrade.lib.math.timeseries.SerItem;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
+
 
 /**
  *

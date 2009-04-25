@@ -37,7 +37,8 @@ import java.util.Set
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import org.aiotrade.lib.math.timeseries.computable.{Factor}
-import org.aiotrade.lib.math.timeseries.{DefaultSer,QuoteSer,Ser,Var}
+import org.aiotrade.lib.math.timeseries.{DefaultSer,Ser,Var}
+import org.aiotrade.lib.securities.{QuoteSer}
 
 /**
  *
