@@ -175,6 +175,19 @@ trait TestHelper {
         }
     }
 
+    def reportQuote(sec:Stock) {
+        sec.uniSymbol
+        println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
+        sec.serOf(Frequency.DAILY).  foreach{x => println("daily: "  + x.size)}
+        sec.serOf(Frequency.ONE_MIN).foreach{x => println("1 min: "  + x.size)}
+        println("ticker: "  + sec.tickerSer.size)
+    }
+
+    def reportInds(inds:Seq[Indicator]) {
+        inds.foreach{printLastValueOf(_)}
+    }
+
+
     // wait for some ms
     def waitFor(ms:Long) :Unit = {
         TimeUnit.MILLISECONDS.sleep(ms)
