@@ -61,7 +61,7 @@ import scala.collection.mutable.{ArrayBuffer,LinkedHashMap}
 class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     private val _hashCode = System.identityHashCode(this)
 
-    private val INIT_CAPACITY = 200
+    private val INIT_CAPACITY = 400
     /**
      * we implement occurred timestamps and items in density mode instead of spare
      * mode, to avoid getItem(time) return null even in case of timestamps has been
@@ -73,7 +73,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      */
     private var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
-    private var _items = new ArrayBuffer[SerItem]//(INIT_CAPACITY)
+    private var _items = new ArrayBuffer[SerItem]{override val initialSize = INIT_CAPACITY}
 
     private var tsLog = timestamps.log
     private var tsLogCheckedCursor = 0
@@ -489,7 +489,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         }
 
         def validate :Unit = {
-            val newValues = new ArrayBuffer[E] // @todo set init capacity size
+            val newValues = new ArrayBuffer[E]{override val initialSize = INIT_CAPACITY}
 
             var i = 0
             var j = 0

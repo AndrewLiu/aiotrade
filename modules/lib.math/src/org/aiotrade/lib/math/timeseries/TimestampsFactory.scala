@@ -48,6 +48,8 @@ object TimestampsFactory {
     }
     
     private class TimestampsOnOccurred(initialCapacity:Int) extends Timestamps {
+        override val initialSize = initialCapacity
+
         private val onCalendarShadow = new TimestampsOnCalendar(this)
 
         def isOnCalendar :Boolean = false
