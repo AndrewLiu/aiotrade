@@ -44,13 +44,13 @@ case class AddAll[V <: TimeValue](values:Array[V])
 trait Ser {
 
     // ----- actor's implementation
-    val serActor = actor {
-        loop {
-            react {
-                case AddAll(values) => this ++ values
-            }
-        }
-    }
+//    val serActor = actor {
+//        loop {
+//            receive { // this actor will possess timestampslog's lock, which should be attached to same thread, so use receive here
+//                case AddAll(values) => this ++ values
+//            }
+//        }
+//    }
     // ----- end of actor's implementation
 
     def init(freq:Frequency) :Unit

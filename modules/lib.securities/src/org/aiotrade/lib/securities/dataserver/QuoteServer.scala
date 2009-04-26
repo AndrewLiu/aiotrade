@@ -170,7 +170,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
             val values = new Array[Quote](size)
             storage.copyToArray(values, 0)
 
-            quoteSer.serActor ! AddAll(values)
+            quoteSer ++ values
 //            var begTime = +Long.MaxValue
 //            var endTime = -Long.MaxValue
 //
