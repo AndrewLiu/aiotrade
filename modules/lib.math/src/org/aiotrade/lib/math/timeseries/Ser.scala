@@ -47,7 +47,7 @@ trait Ser {
     val serActor = actor {
         loop {
             react {
-                case AddAll(values) => ++(values)
+                case AddAll(values) => this ++ values
             }
         }
     }

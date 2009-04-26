@@ -56,7 +56,7 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
     var category :String = _
     var shortName :String = _
     var longName :String = _
-    var dateFormatPattern :String = _
+    var dateFormatPattern :String = null
     var urlString :String = ""
     var refreshable :Boolean = false
     var refreshInterval :Int = 5 // seconds

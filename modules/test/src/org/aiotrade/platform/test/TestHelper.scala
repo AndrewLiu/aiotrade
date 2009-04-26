@@ -18,6 +18,7 @@ import org.aiotrade.lib.securities.dataserver._
 import org.aiotrade.platform.modules.indicator.basic._
 
 trait TestHelper {
+    
     def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {
         val dataContract = new QuoteContract
 
@@ -32,7 +33,6 @@ trait TestHelper {
         dataContract.primaryExchange = "SSH"
         dataContract.currency = "USD"
 
-        dataContract.dateFormatPattern = "yyyy-MM-dd-HH-mm"
         dataContract.freq = freq
         dataContract.refreshable = refreshable
         dataContract.refreshInterval = 5
@@ -54,7 +54,6 @@ trait TestHelper {
         dataContract.primaryExchange = "SSH"
         dataContract.currency = "USD"
 
-        dataContract.dateFormatPattern = "yyyy-MM-dd-HH-mm-ss"
         dataContract.freq = freq
         dataContract.refreshable = true
         dataContract.refreshInterval = 5

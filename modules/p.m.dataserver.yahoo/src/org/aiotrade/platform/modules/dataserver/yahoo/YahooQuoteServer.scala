@@ -188,7 +188,7 @@ class YahooQuoteServer extends QuoteServer {
                         val date = try {
                             dateFormat.parse(dateTimeX.trim)
                         } catch {
-                            case _:ParseException =>  loop(newestTime)
+                            case _:ParseException => loop(newestTime)
                         }
                     
                         cal.clear

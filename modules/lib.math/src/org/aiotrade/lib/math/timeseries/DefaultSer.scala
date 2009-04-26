@@ -192,29 +192,34 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     def ++[V <: TimeValue](values:Array[V]) :Unit = {
         var begTime = +Long.MaxValue
         var endTime = -Long.MaxValue
+        try {
+            _timestamps.writeLock.lock
 
-        val shouldReverse = !isAscending(values)
+            val shouldReverse = !isAscending(values)
 
-        val size = values.size
-        var i = if (shouldReverse) size - 1 else 0
-        while (i >= 0 && i <= size - 1) {
-            val value = values(i)
-            val item = createItemOrClearIt(value.time)
-            item.assignValue(value)
+            val size = values.size
+            var i = if (shouldReverse) size - 1 else 0
+            while (i >= 0 && i <= size - 1) {
+                val value = values(i)
+                val item = createItemOrClearIt(value.time)
+                item.assignValue(value)
 
-            if (shouldReverse) {
-                /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
-                i -= 1
-            } else {
-                /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
-                i += 1
+                if (shouldReverse) {
+                    /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
+                    i -= 1
+                } else {
+                    /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
+                    i += 1
+                }
+
+                val itemTime = item.time
+                begTime = Math.min(begTime, itemTime)
+                endTime = Math.max(endTime, itemTime)
             }
-
-            val itemTime = item.time
-            begTime = Math.min(begTime, itemTime)
-            endTime = Math.max(endTime, itemTime)
+        } finally {
+            _timestamps.writeLock.unlock
         }
-
+        println("TimestampsLog: " + tsLog)
         val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, shortDescription, begTime, endTime)
         fireSerChangeEvent(evt)
     }

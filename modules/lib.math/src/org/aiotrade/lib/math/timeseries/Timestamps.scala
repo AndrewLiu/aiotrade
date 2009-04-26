@@ -75,14 +75,14 @@ class TimestampsLog extends ArrayBuffer[Short] {
     }
 
     def logAppend(size:Int) :Unit = {
-        def appendLog(size:Int) :Unit = {
+        def addLog(size:Int) :Unit = {
             if (size > SIZE) {
                 this += (APPEND | SIZE).toShort
-                _logCursor += 1
-                appendLog(size - SIZE)
+                _logCursor = nextCursor(_logCursor)
+                addLog(size - SIZE)
             } else {
                 this += (APPEND | size).toShort
-                _logCursor += 1
+                _logCursor = nextCursor(_logCursor)
             }
         }
         
@@ -97,25 +97,25 @@ class TimestampsLog extends ArrayBuffer[Short] {
                     // merge with previous one
                     println("Append log (merged with prev): newSize=" + newSize)
                     update(_logCursor, (APPEND | newSize).toShort)
-                } else appendLog(size)
-            } else appendLog(size)
-        } else appendLog(size)
+                } else addLog(size)
+            } else addLog(size)
+        } else addLog(size)
 
         _logTime = System.currentTimeMillis
     }
 
     def logInsert(size:Int, idx:Int) :Unit = {
         /** cursorIncr: if (prev == append) 1 else 3 */
-        def appendLog(size:Int, idx:Int, cursorIncr:Int) :Unit = {
+        def addLog(size:Int, idx:Int, cursorIncr:Int) :Unit = {
             if (size > SIZE) {
                 this += (INSERT | SIZE).toShort
                 this ++= intToShorts(idx)
-                _logCursor += cursorIncr
-                appendLog(size - SIZE, idx + SIZE, 3)
+                _logCursor = nextCursor(_logCursor)
+                addLog(size - SIZE, idx + SIZE, 3)
             } else {
                 this += (INSERT | size).toShort
                 this ++= intToShorts(idx)
-                _logCursor += cursorIncr
+                _logCursor = nextCursor(_logCursor)
             }
         }
 
@@ -132,10 +132,10 @@ class TimestampsLog extends ArrayBuffer[Short] {
                         // merge with previous one
                         println("Insert log (merged with prev): idx=" + prevIdx + ", newSize=" + newSize)
                         update(_logCursor, (INSERT | newSize).toShort)
-                    } else appendLog(size:Int, idx:Int, 3)
-                } else appendLog(size:Int, idx:Int, 3)
-            } else appendLog(size:Int, idx:Int, 1)
-        } else appendLog(size:Int, idx:Int, 1)
+                    } else addLog(size:Int, idx:Int, 3)
+                } else addLog(size:Int, idx:Int, 3)
+            } else addLog(size:Int, idx:Int, 1)
+        } else addLog(size:Int, idx:Int, 1)
 
         _logTime = System.currentTimeMillis
     }
@@ -144,11 +144,16 @@ class TimestampsLog extends ArrayBuffer[Short] {
         shortsToInt(apply(cursor + 1), apply(cursor + 2))
     }
 
-    def nextCursor(cursor:Int) :Int = checkKind(apply(cursor)) match {
-        case APPEND => cursor + 1
-        case INSERT => cursor + 3
+    def nextCursor(cursor:Int) :Int = {
+        if (cursor == -1) {
+            0
+        } else {
+            checkKind(apply(cursor)) match {
+                case APPEND => cursor + 1
+                case INSERT => cursor + 3
+            }
+        }
     }
-
     /* [0] = lowest order 16 bits; [1] = highest order 16 bits. */
     private def intToShorts(i:Int) :Array[Short] = {
         Array((i >> 16).toShort, i.toShort)

@@ -160,7 +160,9 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
             val cal = Calendar.getInstance(marketOf(symbol).timeZone)
             val freq = quoteSer.freq
 
+            //println("==== " + symbol + " ====")
             //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
+            //println("==== after rounded ====")
             storage.map{x => x.time = freq.round(x.time, cal); x}
             //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
 
