@@ -31,19 +31,21 @@
 package org.aiotrade.lib.math.timeseries.computable
 
 import scala.collection.mutable.ArrayBuffer
-import scala.actors.Actor
+import scala.actors.Actor._
+
 /**
  *
  * @author Caoyuan Deng
  */
-case object Compute
-trait Computable extends Actor {
+case class ComputeFrom(time:Long)
+trait Computable {
 
     // ----- actor's implementation
-    def act = Actor.loop {
-        react {
-            case (Compute, fromTime:Long) => computeFrom(fromTime)
-            case x =>
+    val computableActor = actor {
+        loop {
+            react {
+                case ComputeFrom(time) => computeFrom(time)
+            }
         }
     }
     // ----- end of actor's implementation

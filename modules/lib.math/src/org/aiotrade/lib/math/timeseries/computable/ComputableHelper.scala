@@ -95,7 +95,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
                              * such as loaded from a data server etc.
                              */
                             // * call back
-                            self ! (Compute, fromTime)
+                            self.computableActor ! ComputeFrom(fromTime)
                         case _ =>
                     }
                     
@@ -119,7 +119,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
                              * FinishedComputing event to diff from Updated(caused by outside)
                              */
                             /** call back */
-                            self ! (Compute, begTime)
+                            self.computableActor ! ComputeFrom(begTime)
                         case Clear =>
                             self clear begTime
                         case _ =>
@@ -174,9 +174,9 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
         }
 
         self.validate
-//        if (mayNeedToValidate) {
-//            self.validate
-//        }
+        //        if (mayNeedToValidate) {
+        //            self.validate
+        //        }
 
         this.begTime = begTime1
                 
@@ -222,7 +222,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
                      */
                     if (evt.getSource.equals(_factors(0))) {
                         // * call back
-                        self ! (Compute, 0)
+                        self.computableActor ! ComputeFrom(0)
                     }
                 }
             })

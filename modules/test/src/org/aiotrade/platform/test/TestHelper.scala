@@ -152,7 +152,7 @@ trait TestHelper {
     def computeAsync(indicator:Indicator) :Unit = {
         indicator match {
             case _:SpotComputable => // don't compute it right now
-            case _ => indicator ! (Compute, 0)
+            case _ => indicator.computableActor ! ComputeFrom(0)
         }
     }
 

@@ -217,7 +217,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
             initPredefinedVarsOfBaseSer
 
             // * actor should explicitly start
-            start
+            //start
         }
     }
     
