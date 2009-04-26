@@ -34,7 +34,7 @@ import java.util.{Calendar,TimeZone}
 import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.{Ser,AddAll}
 import org.aiotrade.lib.securities.{Market,Quote,QuotePool}
 import scala.collection.mutable.ArrayBuffer
 
@@ -168,7 +168,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
             val values = new Array[Quote](size)
             storage.copyToArray(values, 0)
 
-            quoteSer ++ values
+            quoteSer.serActor ! AddAll(values)
 //            var begTime = +Long.MaxValue
 //            var endTime = -Long.MaxValue
 //

@@ -32,6 +32,7 @@ package org.aiotrade.lib.math.timeseries
 
 import scala.collection.Set
 import scala.collection.mutable.ArrayBuffer
+import scala.actors.Actor._
 
 /**
  * Time Series
@@ -39,8 +40,19 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
+case class AddAll[V <: TimeValue](values:Array[V])
 trait Ser {
-    
+
+    // ----- actor's implementation
+    val serActor = actor {
+        loop {
+            react {
+                case AddAll(values) => ++(values)
+            }
+        }
+    }
+    // ----- end of actor's implementation
+
     def init(freq:Frequency) :Unit
     
     def timestamps :Timestamps
