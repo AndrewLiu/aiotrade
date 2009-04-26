@@ -91,7 +91,7 @@ class YahooQuoteServer extends QuoteServer {
      */
     @throws(classOf[Exception])
     protected def request :Unit = {
-        sourceCalendar.clear
+        val cal = Calendar.getInstance
 
         contract = currentContract match {
             case Some(x:QuoteContract) => x
@@ -101,19 +101,19 @@ class YahooQuoteServer extends QuoteServer {
         val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
             (contract.beginDate, contract.endDate)
         } else {
-            sourceCalendar.setTimeInMillis(fromTime)
-            (sourceCalendar.getTime, new Date)
+            cal.setTimeInMillis(fromTime)
+            (cal.getTime, new Date)
         }
 
-        sourceCalendar.setTime(begDate)
-        val a = sourceCalendar.get(Calendar.MONTH)
-        val b = sourceCalendar.get(Calendar.DAY_OF_MONTH)
-        val c = sourceCalendar.get(Calendar.YEAR)
+        cal.setTime(begDate)
+        val a = cal.get(Calendar.MONTH)
+        val b = cal.get(Calendar.DAY_OF_MONTH)
+        val c = cal.get(Calendar.YEAR)
 
-        sourceCalendar.setTime(endDate)
-        val d = sourceCalendar.get(Calendar.MONTH)
-        val e = sourceCalendar.get(Calendar.DAY_OF_MONTH)
-        val f = sourceCalendar.get(Calendar.YEAR)
+        cal.setTime(endDate)
+        val d = cal.get(Calendar.MONTH)
+        val e = cal.get(Calendar.DAY_OF_MONTH)
+        val f = cal.get(Calendar.YEAR)
 
         val urlStr = new StringBuilder(50)
         urlStr.append(BaseUrl).append(UrlPath)

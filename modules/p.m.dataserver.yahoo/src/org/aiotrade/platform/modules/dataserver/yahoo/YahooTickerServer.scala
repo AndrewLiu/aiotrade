@@ -36,8 +36,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.{Calendar,Date,TimeZone}
 import java.util.zip.GZIPInputStream;
 import org.aiotrade.lib.securities.dataserver.{TickerContract,TickerServer}
 import org.aiotrade.lib.securities.{Market,Ticker,TickerSnapshot}
@@ -74,7 +73,7 @@ class YahooTickerServer extends TickerServer {
      */
     @throws(classOf[Exception])
     protected def request :Unit = {
-        sourceCalendar.clear
+        val cal = Calendar.getInstance(sourceTimeZone)
 
         val urlStr = new StringBuilder(90)
         urlStr.append(BaseUrl).append(UrlPath)
@@ -132,7 +131,7 @@ class YahooTickerServer extends TickerServer {
         }
 
         resetCount
-        sourceCalendar.clear
+        val cal = Calendar.getInstance(sourceTimeZone)
         val dateFormat = dateFormatOf(sourceTimeZone)
         def loop(newestTime:Long) :Long = reader.readLine match {
             case null => newestTime // break right now
@@ -153,15 +152,15 @@ class YahooTickerServer extends TickerServer {
                          */
                         try {
                             val date = dateFormat.parse(dateStr + " " + timeStr)
-                            sourceCalendar.clear
-                            sourceCalendar.setTime(date)
+                            cal.clear
+                            cal.setTime(date)
                         } catch {
                             case ex:ParseException =>
                                 ex.printStackTrace
                                 loop(newestTime)
                         }
 
-                        val time = sourceCalendar.getTimeInMillis
+                        val time = cal.getTimeInMillis
                         if (time == 0) {
                             /** for test and finding issues */
                             println("time of ticker: " + symbol + " is 0!")

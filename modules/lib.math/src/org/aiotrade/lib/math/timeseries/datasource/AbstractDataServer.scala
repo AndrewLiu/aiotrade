@@ -93,7 +93,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     protected var count :Int = 0
     protected var loadedTime :Long = _
     protected var fromTime :Long = _
-    protected val sourceCalendar = Calendar.getInstance(sourceTimeZone)
     protected var inputStream :Option[InputStream] = None
 
     var inLoading :Boolean = _
