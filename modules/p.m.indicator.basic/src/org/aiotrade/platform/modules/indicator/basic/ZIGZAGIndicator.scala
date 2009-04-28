@@ -46,8 +46,8 @@ class ZIGZAGIndicator extends ContIndicator {
     
     val percent = Factor("Turn Persent", 0.03, 0.01)
     
-    val zigzag       = TimeVar[Float]("ZIGZAG", Plot.Zigzag)
-    val pseudoZigzag = TimeVar[Float]("PSEUDO", Plot.Zigzag)
+    val zigzag       = Var[Float]("ZIGZAG", Plot.Zigzag)
+    val pseudoZigzag = Var[Float]("PSEUDO", Plot.Zigzag)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

@@ -48,9 +48,9 @@ class KDIndicator extends ContIndicator {
     val periodK = Factor("Period K Smoothing", 3)
     val periodD = Factor("Period D Smoothing", 3)
     
-    val k = TimeVar[Float]("K", Plot.Line)
-    val d = TimeVar[Float]("D", Plot.Line)
-    val j = TimeVar[Float]("J", Plot.Line)
+    val k = Var[Float]("K", Plot.Line)
+    val d = Var[Float]("D", Plot.Line)
+    val j = Var[Float]("J", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

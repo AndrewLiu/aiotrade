@@ -42,9 +42,9 @@ class STOCHDFunction extends AbstractFunction {
     
     var period, periodK, periodD :Factor = _
     
-    val _stochK = TimeVar[Float]()
+    val _stochK = Var[Float]()
     
-    val _stochD = TimeVar[Float]()
+    val _stochD = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

@@ -47,10 +47,10 @@ class DMIIndicator extends ContIndicator {
     val periodDi  = Factor("Period DI",  6)
     val periodAdx = Factor("Period ADX", 14)
     
-    val diPlus  = TimeVar[Float]("+DI",  Plot.Line)
-    val diMinus = TimeVar[Float]("-DI",  Plot.Line)
-    val adx     = TimeVar[Float]("ADX",  Plot.Line)
-    val adxr    = TimeVar[Float]("ADXR", Plot.Line)
+    val diPlus  = Var[Float]("+DI",  Plot.Line)
+    val diMinus = Var[Float]("-DI",  Plot.Line)
+    val adx     = Var[Float]("ADX",  Plot.Line)
+    val adxr    = Var[Float]("ADXR", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

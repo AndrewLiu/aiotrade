@@ -44,11 +44,11 @@ class ZIGZAGFAIndicator extends ContIndicator {
     
     val percent = Factor("Turn Percent", 3.0)  // Percent for judge if trend turns over
     
-    //    TimeVar zigzag        = function("zigzag")
-    //    TimeVar pseudoZigzag  = function("pseudoZigzag")
+    //    Var zigzag        = function("zigzag")
+    //    Var pseudoZigzag  = function("pseudoZigzag")
     
-    //    TimeVar zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
-    //    TimeVar pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
+    //    Var zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
+    //    Var pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */

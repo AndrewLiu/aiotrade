@@ -42,10 +42,10 @@ class CCIFunction extends AbstractFunction {
     
     var alpha, period :Factor = _
     
-    val _tp        = TimeVar[Float]()
-    val _deviation = TimeVar[Float]()
+    val _tp        = Var[Float]()
+    val _deviation = Var[Float]()
     
-    val _cci = TimeVar[Float]
+    val _cci = Var[Float]
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

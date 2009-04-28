@@ -42,10 +42,10 @@ class RSIFunction extends AbstractFunction {
     
     var period :Factor = _
     
-    val _up = TimeVar[Float]()
-    val _dn = TimeVar[Float]()
+    val _up = Var[Float]()
+    val _dn = Var[Float]()
     
-    val _rsi = TimeVar[Float]()
+    val _rsi = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

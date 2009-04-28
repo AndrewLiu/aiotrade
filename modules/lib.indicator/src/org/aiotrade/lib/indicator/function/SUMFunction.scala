@@ -50,7 +50,7 @@ class SUMFunction extends AbstractFunction {
     var period :Factor = _
     var baseVar :Var[Float] = _
     
-    val _sum = TimeVar[Float]()
+    val _sum = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

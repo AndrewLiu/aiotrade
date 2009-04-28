@@ -42,14 +42,14 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     private var _shortDescription:String = ""
     var adjusted :Boolean = false
     
-    val open   = TimeVar[Float]("O", Plot.Quote)
-    val high   = TimeVar[Float]("H", Plot.Quote)
-    val low    = TimeVar[Float]("L", Plot.Quote)
-    val close  = TimeVar[Float]("C", Plot.Quote)
-    val volume = TimeVar[Float]("V", Plot.Volume)
+    val open   = Var[Float]("O", Plot.Quote)
+    val high   = Var[Float]("H", Plot.Quote)
+    val low    = Var[Float]("L", Plot.Quote)
+    val close  = Var[Float]("C", Plot.Quote)
+    val volume = Var[Float]("V", Plot.Volume)
     
-    val close_ori = TimeVar[Float]()
-    val close_adj = TimeVar[Float]()
+    val close_ori = Var[Float]()
+    val close_adj = Var[Float]()
     
     override
     protected def createItem(time:Long) :QuoteItem = new QuoteItem(this, time)
@@ -90,7 +90,7 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
      * This function adjusts linear according to a norm
      */
     private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
-        ((value - prevNorm) / prevNorm) * postNorm + postNorm;
+        ((value - prevNorm) / prevNorm) * postNorm + postNorm
     }
 
     override

@@ -44,9 +44,9 @@ class VOLIndicator extends ContIndicator {
     val period1 = Factor("Period Short",    5)
     val period2 = Factor("Period Mediaum", 10)
     
-    val vol = TimeVar[Float]("VOL", Plot.Volume)
-    val ma1 = TimeVar[Float]("MA1", Plot.Line)
-    val ma2 = TimeVar[Float]("MA2", Plot.Line)
+    val vol = Var[Float]("VOL", Plot.Volume)
+    val ma1 = Var[Float]("MA1", Plot.Line)
+    val ma2 = Var[Float]("MA2", Plot.Line)
     
     
     protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {

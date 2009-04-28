@@ -51,7 +51,7 @@ class EMAFunction extends AbstractFunction {
     var period :Factor = _
     var baseVar :Var[Float] = _
     
-    val _ema = TimeVar[Float]()
+    val _ema = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

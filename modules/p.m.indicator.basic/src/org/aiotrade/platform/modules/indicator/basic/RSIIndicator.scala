@@ -48,9 +48,9 @@ class RSIIndicator extends ContIndicator {
     val periodM = Factor("Period Mediaum", 12)
     val periodL = Factor("Period Long",    24)
     
-    val rsi1 = TimeVar[Float]("RSI1", Plot.Line)
-    val rsi2 = TimeVar[Float]("RSI2", Plot.Line)
-    val rsi3 = TimeVar[Float]("RSI3", Plot.Line)
+    val rsi1 = Var[Float]("RSI1", Plot.Line)
+    val rsi2 = Var[Float]("RSI2", Plot.Line)
+    val rsi3 = Var[Float]("RSI3", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

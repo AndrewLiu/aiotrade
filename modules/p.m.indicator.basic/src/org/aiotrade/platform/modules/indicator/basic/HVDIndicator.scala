@@ -50,9 +50,9 @@ class HVDIndicator extends SpotIndicator {
     val period2    = Factor("Period2",  100)
     val period3    = Factor("Period3",  200)
     
-    val HVD1 = TimeVar[Array[Array[Float]]]("HVD1", Plot.Profile)
-    val HVD2 = TimeVar[Array[Array[Float]]]("HVD2", Plot.Profile)
-    val HVD3 = TimeVar[Array[Array[Float]]]("HVD3", Plot.Profile)
+    val HVD1 = Var[Array[Array[Float]]]("HVD1", Plot.Profile)
+    val HVD2 = Var[Array[Array[Float]]]("HVD2", Plot.Profile)
+    val HVD3 = Var[Array[Array[Float]]]("HVD3", Plot.Profile)
     
     def computeSpot(time:Long, baseIdx:Int) :SerItem = {
         val item = createItemOrClearIt(time)

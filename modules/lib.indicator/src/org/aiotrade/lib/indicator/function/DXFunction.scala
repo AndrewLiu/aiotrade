@@ -42,10 +42,10 @@ class DXFunction extends AbstractFunction {
     
     var period :Factor = _
     
-    val _diPlus  = TimeVar[Float]()
-    val _diMinus = TimeVar[Float]()
+    val _diPlus  = Var[Float]()
+    val _diMinus = Var[Float]()
     
-    val _dx = TimeVar[Float]()
+    val _dx = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

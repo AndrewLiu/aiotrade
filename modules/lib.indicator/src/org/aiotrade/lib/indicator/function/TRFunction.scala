@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class TRFunction extends AbstractFunction {
     
-    val _tr = TimeVar[Float]()
+    val _tr = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

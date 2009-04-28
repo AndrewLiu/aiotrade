@@ -42,12 +42,12 @@ class DIFunction extends AbstractFunction {
     
     var period :Factor = _
     
-    val _dmPlus  = TimeVar[Float]()
-    val _dmMinus = TimeVar[Float]()
-    val _tr      = TimeVar[Float]()
+    val _dmPlus  = Var[Float]()
+    val _dmMinus = Var[Float]()
+    val _tr      = Var[Float]()
     
-    val _diPlus  = TimeVar[Float]()
-    val _diMinus = TimeVar[Float]()
+    val _diPlus  = Var[Float]()
+    val _diMinus = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

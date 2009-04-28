@@ -446,7 +446,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         _hashCode
     }
 
-    object TimeVar {
+    object Var {
         def apply[E]() = new InnerVar[E]
         def apply[E](name:String) = new InnerVar[E](name)
         def apply[E](name:String, plot:Plot) = new InnerVar[E](name, plot)

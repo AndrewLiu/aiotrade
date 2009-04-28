@@ -51,7 +51,7 @@ class MINFunction extends AbstractFunction {
     var period :Factor = _
     var baseVar :Var[Float] = _
     
-    val _min = TimeVar[Float]()
+    val _min = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

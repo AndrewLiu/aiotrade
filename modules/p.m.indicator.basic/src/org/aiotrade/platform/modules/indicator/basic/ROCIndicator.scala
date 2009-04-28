@@ -46,8 +46,8 @@ class ROCIndicator extends ContIndicator {
     val period1 = Factor("Period Short", 12)
     val period2 = Factor("Period Long",  25)
     
-    val roc1 = TimeVar[Float]("ROC1", Plot.Line)
-    val roc2 = TimeVar[Float]("ROC2", Plot.Line)
+    val roc1 = Var[Float]("ROC1", Plot.Line)
+    val roc2 = Var[Float]("ROC2", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

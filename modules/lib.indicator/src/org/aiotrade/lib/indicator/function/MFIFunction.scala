@@ -42,11 +42,11 @@ class MFIFunction extends AbstractFunction {
     
     var period :Factor = _
     
-    val _tp    = TimeVar[Float]()
-    val _mfPos = TimeVar[Float]()
-    val _mfNeg = TimeVar[Float]()
+    val _tp    = Var[Float]()
+    val _mfPos = Var[Float]()
+    val _mfNeg = Var[Float]()
 
-    val _mfi = TimeVar[Float]()
+    val _mfi = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

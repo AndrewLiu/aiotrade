@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class OBVFunction extends AbstractFunction {
     
-    val _obv = TimeVar[Float]()
+    val _obv = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

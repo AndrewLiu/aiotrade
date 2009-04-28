@@ -54,7 +54,7 @@ class STDDEVFunction extends AbstractFunction {
     var period :Factor = _
     var baseVar :Var[Float] = _
     
-    val _stdDev = TimeVar[Float]()
+    val _stdDev = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

@@ -50,7 +50,7 @@ class MAFunction extends AbstractFunction {
     var period: Factor = _
     var baseVar: Var[Float] = _
     
-    val _ma = TimeVar[Float]()
+    val _ma = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

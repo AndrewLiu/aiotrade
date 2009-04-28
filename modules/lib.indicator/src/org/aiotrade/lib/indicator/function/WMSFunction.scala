@@ -42,7 +42,7 @@ class WMSFunction extends AbstractFunction {
     
     var period :Factor = _
     
-    val _wms = TimeVar[Float]()
+    val _wms = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

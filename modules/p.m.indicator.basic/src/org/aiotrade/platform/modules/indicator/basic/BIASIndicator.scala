@@ -47,9 +47,9 @@ class BIASIndicator extends ContIndicator {
     val period2 = Factor("Period Mediaum", 12)
     val period3 = Factor("Period Long",    24)
     
-    val bias1 = TimeVar[Float]("BIAS1", Plot.Line)
-    val bias2 = TimeVar[Float]("BIAS2", Plot.Line)
-    val bias3 = TimeVar[Float]("BIAS3", Plot.Line)
+    val bias1 = Var[Float]("BIAS1", Plot.Line)
+    val bias2 = Var[Float]("BIAS2", Plot.Line)
+    val bias3 = Var[Float]("BIAS3", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

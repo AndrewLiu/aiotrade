@@ -44,10 +44,10 @@ class MACDFunction extends AbstractFunction {
     var periodFast :Factor = _
     var baseVar :Var[Float] = _
     
-    val _emaFast = TimeVar[Float]()
-    val _emaSlow = TimeVar[Float]()
+    val _emaFast = Var[Float]()
+    val _emaSlow = Var[Float]()
     
-    val _macd = TimeVar[Float]
+    val _macd = Var[Float]
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

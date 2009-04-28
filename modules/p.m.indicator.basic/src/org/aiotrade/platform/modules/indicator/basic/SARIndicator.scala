@@ -48,7 +48,7 @@ class SARIndicator extends ContIndicator {
     val step    = Factor("AF step",    0.02, 0.01)
     val maximum = Factor("Maximum AF",  0.20, 0.10)
     
-    val sar = TimeVar[Float]("SAR", Plot.Dot)
+    val sar = Var[Float]("SAR", Plot.Dot)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

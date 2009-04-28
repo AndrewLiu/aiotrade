@@ -48,8 +48,8 @@ class CCIIndicator extends ContIndicator {
     val period   = Factor("Period",    20)
     val periodMa = Factor("Period MA", 3)
     
-    val cci    = TimeVar[Float]("CCI",   Plot.Line)
-    val cci_ma = TimeVar[Float]("MACCI", Plot.Line)
+    val cci    = Var[Float]("CCI",   Plot.Line)
+    val cci_ma = Var[Float]("MACCI", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

@@ -45,13 +45,13 @@ class ARBRIndicator extends ContIndicator {
     
     val period = Factor("Period", 10)
     
-    val up = TimeVar[Float]("up")
-    val dn = TimeVar[Float]("dn")
-    val bs = TimeVar[Float]("bs")
-    val ss = TimeVar[Float]("ss")
+    val up = Var[Float]("up")
+    val dn = Var[Float]("dn")
+    val bs = Var[Float]("bs")
+    val ss = Var[Float]("ss")
     
-    val ar = TimeVar[Float]("AR", Plot.Line)
-    val br = TimeVar[Float]("BR", Plot.Line)
+    val ar = Var[Float]("AR", Plot.Line)
+    val br = Var[Float]("BR", Plot.Line)
     
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {

@@ -57,11 +57,11 @@ class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
     val maxValue    = Factor("Max Value", -Float.MaxValue)
     val minValue    = Factor("Min Value", +Float.MaxValue)
     
-    var open   = TimeVar[Float]("O", Plot.Quote)
-    var high   = TimeVar[Float]("H", Plot.Quote)
-    var low    = TimeVar[Float]("L", Plot.Quote)
-    var close  = TimeVar[Float]("C", Plot.Quote)
-    var volume = TimeVar[Float]("V", Plot.Quote)
+    var open   = Var[Float]("O", Plot.Quote)
+    var high   = Var[Float]("H", Plot.Quote)
+    var low    = Var[Float]("L", Plot.Quote)
+    var close  = Var[Float]("C", Plot.Quote)
+    var volume = Var[Float]("V", Plot.Quote)
     
     protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
         /** camparing base point is the value of begin time (the most left on screen */

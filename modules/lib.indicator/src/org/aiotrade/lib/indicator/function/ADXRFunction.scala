@@ -43,8 +43,8 @@ class ADXRFunction extends AbstractFunction {
     var periodDi :Factor = _
     var periodAdx :Factor = _
     
-    val _adx  = TimeVar[Float]()
-    val _adxr = TimeVar[Float]()
+    val _adx  = Var[Float]()
+    val _adxr = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

@@ -43,9 +43,9 @@ class BOLLFunction extends AbstractFunction {
     var period, alpha :Factor = _
     var baseVar :Var[Float] = _
     
-    val _bollMiddle = TimeVar[Float]()
-    val _bollUpper  = TimeVar[Float]()
-    val _bollLower  = TimeVar[Float]()
+    val _bollMiddle = Var[Float]()
+    val _bollUpper  = Var[Float]()
+    val _bollLower  = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

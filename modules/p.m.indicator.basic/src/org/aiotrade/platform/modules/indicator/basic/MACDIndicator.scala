@@ -47,9 +47,9 @@ class MACDIndicator extends ContIndicator {
     val periodSlow   = Factor("Period EMA Slow", 26)
     val periodSignal = Factor("Period Signal",    9)
     
-    val macd   = TimeVar[Float]("MACD",   Plot.Line)
-    val signal = TimeVar[Float]("SIGNAL", Plot.Line)
-    val osc    = TimeVar[Float]("OSC",    Plot.Stick)
+    val macd   = Var[Float]("MACD",   Plot.Line)
+    val signal = Var[Float]("SIGNAL", Plot.Line)
+    val osc    = Var[Float]("OSC",    Plot.Stick)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

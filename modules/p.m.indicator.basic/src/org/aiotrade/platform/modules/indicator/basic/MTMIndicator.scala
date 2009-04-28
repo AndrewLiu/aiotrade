@@ -46,8 +46,8 @@ class MTMIndicator extends ContIndicator {
     val period       = Factor("Period",           12)
     val periodSmooth = Factor("Period Smoothing",  6)
     
-    val mtm    = TimeVar[Float]("MTM",    Plot.Line)
-    val mtm_ma = TimeVar[Float]("MTM_MA", Plot.Line)
+    val mtm    = Var[Float]("MTM",    Plot.Line)
+    val mtm_ma = Var[Float]("MTM_MA", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx

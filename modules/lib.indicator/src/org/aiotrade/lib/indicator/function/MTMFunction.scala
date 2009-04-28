@@ -43,7 +43,7 @@ class MTMFunction extends AbstractFunction {
     var period :Factor = _
     var baseVar :Var[Float] = _
     
-    val _mtm = TimeVar[Float]()
+    val _mtm = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

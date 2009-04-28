@@ -42,11 +42,11 @@ class SARFunction extends AbstractFunction {
     
     var initial, step, maximum :Factor = _
     
-    val _direction = TimeVar[Direction]()
-    val _ep        = TimeVar[Float]()
-    val _af        = TimeVar[Float]()
+    val _direction = Var[Direction]()
+    val _ep        = Var[Float]()
+    val _af        = Var[Float]()
     
-    val _sar = TimeVar[Float]()
+    val _sar = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

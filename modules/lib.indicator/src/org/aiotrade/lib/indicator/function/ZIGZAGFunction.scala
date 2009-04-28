@@ -42,14 +42,14 @@ class ZIGZAGFunction extends AbstractFunction {
     
     var percent :Factor = _
     
-    val _peakHi    = TimeVar[Float]()
-    val _peakLo    = TimeVar[Float]()
-    val _peakHiIdx = TimeVar[Int]()
-    val _peakLoIdx = TimeVar[Int]()
-    val _direction = TimeVar[Direction]()
+    val _peakHi    = Var[Float]()
+    val _peakLo    = Var[Float]()
+    val _peakHiIdx = Var[Int]()
+    val _peakLoIdx = Var[Int]()
+    val _direction = Var[Direction]()
     
-    val _zigzag       = TimeVar[Float]()
-    val _pseudoZigzag = TimeVar[Float]()
+    val _zigzag       = Var[Float]()
+    val _pseudoZigzag = Var[Float]()
     
     override
     def set(baseSer:Ser, args:Any*) :Unit = {

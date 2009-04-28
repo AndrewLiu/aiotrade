@@ -46,7 +46,7 @@ class MFIIndicator extends ContIndicator {
     
     val period = Factor("Period", 10)
     
-    val mfi = TimeVar[Float]("MFI", Plot.Line)
+    val mfi = Var[Float]("MFI", Plot.Line)
     
     protected def computeCont(begIdx:Int, size:Int) :Unit = {
         var i = begIdx
