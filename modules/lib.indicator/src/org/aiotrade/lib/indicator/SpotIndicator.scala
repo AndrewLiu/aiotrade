@@ -47,39 +47,39 @@ import org.aiotrade.lib.math.timeseries.Ser;
  */
 abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with SpotComputable {
     
-    var spotTime = -Long.MaxValue
+   var spotTime = -Long.MaxValue
     
-    def this() {
-        this(null)
-    }
+   def this() {
+      this(null)
+   }
     
-    def computeItem(time:Long) :SerItem = {
+   def computeItem(time:Long) :SerItem = {
         
-        /** get masterIndex before preCalc(), which may clear this data */
-        val baseIdx = _baseSer.indexOfOccurredTime(time)
+      /** get masterIndex before preCalc(), which may clear this data */
+      val baseIdx = _baseSer.indexOfOccurredTime(time)
         
-        preComputeFrom(time)
+      preComputeFrom(time)
         
-        val newItem = computeSpot(time, baseIdx)
+      val newItem = computeSpot(time, baseIdx)
         
-        spotTime = time
+      spotTime = time
         
-        postComputeFrom
+      postComputeFrom
         
-        newItem;
-    }
+      newItem;
+   }
     
-    protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
-        var i = begIdx
-        while (i < itemSize) {
-            val time = _baseSer.timestamps(i)
-            if (time == spotTime) {
-                computeSpot(time, i)
-            }
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+      var i = begIdx
+      while (i < itemSize) {
+         val time = _baseSer.timestamps(i)
+         if (time == spotTime) {
+            computeSpot(time, i)
+         }
+         i += 1
+      }
+   }
     
-    protected def computeSpot(time:Long, baseIdx:Int) :SerItem
+   protected def computeSpot(time:Long, baseIdx:Int) :SerItem
 }
 

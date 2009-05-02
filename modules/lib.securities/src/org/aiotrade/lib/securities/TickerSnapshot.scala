@@ -40,62 +40,62 @@ import org.aiotrade.lib.util.ObservableHelper
  */
 class TickerSnapshot extends ObservableHelper {
 
-    val ticker = new Ticker
-    var symbol :String = _
-    var fullName :String = _
+   val ticker = new Ticker
+   var symbol :String = _
+   var fullName :String = _
 
-    def time :Long = {
-        ticker.time
-    }
+   def time :Long = {
+      ticker.time
+   }
 
-    def time_=(time:Long) :Unit = {
-        ticker.time = time
-    }
+   def time_=(time:Long) :Unit = {
+      ticker.time = time
+   }
 
-    def apply(field:Int) :Float = {
-        ticker(field)
-    }
+   def apply(field:Int) :Float = {
+      ticker(field)
+   }
 
-    def update(field:Int, value:Float) :Unit = {
-        if (ticker(field) != value) {
-            setChanged
-        }
-        ticker(field) = value
-    }
+   def update(field:Int, value:Float) :Unit = {
+      if (ticker(field) != value) {
+         setChanged
+      }
+      ticker(field) = value
+   }
 
-    def setAskPrice(idx:Int, value:Float) :Unit = {
-        if (ticker.askPrice(idx) != value) {
-            setChanged
-        }
-        ticker.setAskPrice(idx, value);
-    }
+   def setAskPrice(idx:Int, value:Float) :Unit = {
+      if (ticker.askPrice(idx) != value) {
+         setChanged
+      }
+      ticker.setAskPrice(idx, value);
+   }
 
-    def setAskSize(idx:Int, value:Float) :Unit = {
-        if (ticker.askSize(idx) != value) {
-            setChanged
-        }
-        ticker.setAskSize(idx, value)
-    }
+   def setAskSize(idx:Int, value:Float) :Unit = {
+      if (ticker.askSize(idx) != value) {
+         setChanged
+      }
+      ticker.setAskSize(idx, value)
+   }
 
-    def setBidPrice(idx:Int, value:Float) :Unit = {
-        if (ticker.bidPrice(idx) != value) {
-            setChanged
-        }
-        ticker.setBidPrice(idx, value);
-    }
+   def setBidPrice(idx:Int, value:Float) :Unit = {
+      if (ticker.bidPrice(idx) != value) {
+         setChanged
+      }
+      ticker.setBidPrice(idx, value);
+   }
 
-    def setBidSize(idx:Int, value:Float) :Unit = {
-        if (ticker.bidSize(idx) != value) {
-            setChanged
-        }
-        ticker.setBidSize(idx, value)
-    }
+   def setBidSize(idx:Int, value:Float) :Unit = {
+      if (ticker.bidSize(idx) != value) {
+         setChanged
+      }
+      ticker.setBidSize(idx, value)
+   }
 
-    def copy(another:Ticker) :Unit = {
-        if (ticker.isValueChanged(another)) {
-            ticker.copy(another)
-            setChanged
-        }
-    }
+   def copy(another:Ticker) :Unit = {
+      if (ticker.isValueChanged(another)) {
+         ticker.copy(another)
+         setChanged
+      }
+   }
 }
 

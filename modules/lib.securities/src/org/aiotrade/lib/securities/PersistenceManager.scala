@@ -39,22 +39,22 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 object PersistenceManager {
-    protected var manager:PersistenceManager = null
+   protected var manager:PersistenceManager = null
 
-    def getDefault :PersistenceManager = {
-        if (manager == null) {
-            manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
-        }
-        manager
-    }
+   def getDefault :PersistenceManager = {
+      if (manager == null) {
+         manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
+      }
+      manager
+   }
 }
 
 trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
 
-    def saveQuotes(symbol:String, freq:Frequency, quotes:ArrayBuffer[Quote], sourceId:Long) :Unit
-    def restoreQuotes(symbol:String, freq:Frequency) :ArrayBuffer[Quote]
-    def deleteQuotes(symbol:String, freq:Frequency, fromTime:Long, toTime:Long) :Unit
-    def dropAllQuoteTables(symbol:String) :Unit
+   def saveQuotes(symbol:String, freq:Frequency, quotes:ArrayBuffer[Quote], sourceId:Long) :Unit
+   def restoreQuotes(symbol:String, freq:Frequency) :ArrayBuffer[Quote]
+   def deleteQuotes(symbol:String, freq:Frequency, fromTime:Long, toTime:Long) :Unit
+   def dropAllQuoteTables(symbol:String) :Unit
 
-    def shutdown :Unit
+   def shutdown :Unit
 }

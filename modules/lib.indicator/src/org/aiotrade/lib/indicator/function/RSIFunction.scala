@@ -40,58 +40,58 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class RSIFunction extends AbstractFunction {
     
-    var period :Factor = _
+   var period :Factor = _
     
-    val _up = Var[Float]()
-    val _dn = Var[Float]()
+   val _up = Var[Float]()
+   val _dn = Var[Float]()
     
-    val _rsi = Var[Float]()
+   val _rsi = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Factor]
-    }
+      this.period = args(0).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (i == 0) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (i == 0) {
             
-            _up(i) = Float.NaN
-            _dn(i) = Float.NaN
+         _up(i) = Float.NaN
+         _dn(i) = Float.NaN
             
+         _rsi(i) = Float.NaN
+            
+      } else {
+            
+         val change = C(i) - C(i - 1)
+         if (change > 0) {
+            _up(i) = change
+            _dn(i) = 0f
+         } else {
+            _up(i) = 0f
+            _dn(i) = -change
+         }
+            
+         if (i < period.value - 1) {
+                
             _rsi(i) = Float.NaN
             
-        } else {
+         } else {
             
-            val change = C(i) - C(i - 1)
-            if (change > 0) {
-                _up(i) = change
-                _dn(i) = 0f
-            } else {
-                _up(i) = 0f
-                _dn(i) = -change
-            }
-            
-            if (i < period.value - 1) {
+            val up_sum_i = sum(i, _up, period)
+            val dn_sum_i = sum(i, _dn, period)
                 
-                _rsi(i) = Float.NaN
-            
-            } else {
-            
-                val up_sum_i = sum(i, _up, period)
-                val dn_sum_i = sum(i, _dn, period)
-                
-                _rsi(i) = if (up_sum_i + dn_sum_i == 0) 0f else up_sum_i / (up_sum_i + dn_sum_i) * 100f
-            }
-        }
-    }
+            _rsi(i) = if (up_sum_i + dn_sum_i == 0) 0f else up_sum_i / (up_sum_i + dn_sum_i) * 100f
+         }
+      }
+   }
     
-    def rsi(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def rsi(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _rsi(idx)
-    }
+      _rsi(idx)
+   }
     
 }
 

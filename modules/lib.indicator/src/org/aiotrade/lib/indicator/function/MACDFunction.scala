@@ -40,36 +40,36 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MACDFunction extends AbstractFunction {
     
-    var periodSlow :Factor = _
-    var periodFast :Factor = _
-    var baseVar :Var[Float] = _
+   var periodSlow :Factor = _
+   var periodFast :Factor = _
+   var baseVar :Var[Float] = _
     
-    val _emaFast = Var[Float]()
-    val _emaSlow = Var[Float]()
+   val _emaFast = Var[Float]()
+   val _emaSlow = Var[Float]()
     
-    val _macd = Var[Float]
+   val _macd = Var[Float]
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.baseVar = args(0).asInstanceOf[Var[Float]]
-        this.periodSlow = args(1).asInstanceOf[Factor]
-        this.periodFast = args(2).asInstanceOf[Factor]
-    }
+      this.baseVar = args(0).asInstanceOf[Var[Float]]
+      this.periodSlow = args(1).asInstanceOf[Factor]
+      this.periodFast = args(2).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        _emaFast(i) = ema(i, baseVar, periodFast)
-        _emaSlow(i) = ema(i, baseVar, periodSlow)
+   protected def computeSpot(i:Int) :Unit = {
+      _emaFast(i) = ema(i, baseVar, periodFast)
+      _emaSlow(i) = ema(i, baseVar, periodSlow)
             
-        _macd(i) = _emaFast(i) - _emaSlow(i)
-    }
+      _macd(i) = _emaFast(i) - _emaSlow(i)
+   }
     
-    def macd(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def macd(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _macd(idx)
-    }
+      _macd(idx)
+   }
     
 }
 

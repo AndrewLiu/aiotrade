@@ -37,72 +37,72 @@ import org.aiotrade.lib.math.timeseries.Ser
  * @author Caoyuan Deng
  */
 object FunctionID {
-    def apply[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) = new FunctionID(tpe, baseSer, args:_*)
+   def apply[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) = new FunctionID(tpe, baseSer, args:_*)
 }
 
 /** 
  * @Note baseSer should implement proper hashCode and equals method
  */
 class FunctionID[T <: Function](val functionClass:Class[T], val baseSer:Ser, val args:Any*) {
-    override
-    def equals(o:Any) :Boolean = o match {
-        case x:FunctionID[_] if this.functionClass == x.functionClass && this.baseSer.equals(x.baseSer) && this.args.size == x.args.size =>
-            val itr1 = this.args.elements
-            val itr2 = x.args.elements
-            while (itr1.hasNext) {
-                if (!itr1.next.equals(itr2.next)) {
-                    return false
-                }
+   override
+   def equals(o:Any) :Boolean = o match {
+      case x:FunctionID[_] if this.functionClass == x.functionClass && this.baseSer.equals(x.baseSer) && this.args.size == x.args.size =>
+         val itr1 = this.args.elements
+         val itr2 = x.args.elements
+         while (itr1.hasNext) {
+            if (!itr1.next.equals(itr2.next)) {
+               return false
             }
-            true
-        case _ => false
-    }
+         }
+         true
+      case _ => false
+   }
 
-    override
-    def hashCode :int = {
-        var h = 17
-        h = 37 * h + this.getClass.hashCode
-        h = 37 * h + baseSer.hashCode
-        val itr = args.elements
-        while (itr.hasNext) {
-            val more :Int = itr.next match {
-                case x:Short   => x
-                case x:Char    => x
-                case x:Byte    => x
-                case x:Boolean => if (x) 0 else 1
-                case x:Long    => (x ^ (x >>> 32)).toInt
-                case x:Float   => _root_.java.lang.Float.floatToIntBits(x)
-                case x:Double  => val x1 = _root_.java.lang.Double.doubleToLongBits(x); (x1 ^ (x1 >>> 32)).toInt
-                case x:AnyRef  => x.hashCode
-            }
-            h = 37 * h + more
-        }
-        h
+   override
+   def hashCode :int = {
+      var h = 17
+      h = 37 * h + this.getClass.hashCode
+      h = 37 * h + baseSer.hashCode
+      val itr = args.elements
+      while (itr.hasNext) {
+         val more :Int = itr.next match {
+            case x:Short   => x
+            case x:Char    => x
+            case x:Byte    => x
+            case x:Boolean => if (x) 0 else 1
+            case x:Long    => (x ^ (x >>> 32)).toInt
+            case x:Float   => _root_.java.lang.Float.floatToIntBits(x)
+            case x:Double  => val x1 = _root_.java.lang.Double.doubleToLongBits(x); (x1 ^ (x1 >>> 32)).toInt
+            case x:AnyRef  => x.hashCode
+         }
+         h = 37 * h + more
+      }
+      h
 
-    }
+   }
 }
 
 trait Function {
     
-    /**
-     * set the function's arguments. 
-     * @param baseSer, the ser that this function is based, ie. used to compute
-     */
-    def set(baseSer:Ser, args:Any*) :Unit
+   /**
+    * set the function's arguments.
+    * @param baseSer, the ser that this function is based, ie. used to compute
+    */
+   def set(baseSer:Ser, args:Any*) :Unit
 
-    def id :FunctionID[_]
+   def id :FunctionID[_]
 
-    /**
-     * This method will compute from computedIdx <b>to</b> idx.
-     *
-     * and AbstractIndicator.compute(final long begTime) will compute <b>from</b>
-     * begTime to last item
-     * 
-     * @param sessionId, the sessionId usally is controlled by outside caller, 
-     *        such as an indicator
-     * @param idx, the idx to be computed to
-     */
-    def computeTo(sessionId:Long, idx:Int) :Unit
+   /**
+    * This method will compute from computedIdx <b>to</b> idx.
+    *
+    * and AbstractIndicator.compute(final long begTime) will compute <b>from</b>
+    * begTime to last item
+    *
+    * @param sessionId, the sessionId usally is controlled by outside caller,
+    *        such as an indicator
+    * @param idx, the idx to be computed to
+    */
+   def computeTo(sessionId:Long, idx:Int) :Unit
 }
 
 

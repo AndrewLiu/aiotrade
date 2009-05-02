@@ -40,61 +40,61 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MFIFunction extends AbstractFunction {
     
-    var period :Factor = _
+   var period :Factor = _
     
-    val _tp    = Var[Float]()
-    val _mfPos = Var[Float]()
-    val _mfNeg = Var[Float]()
+   val _tp    = Var[Float]()
+   val _mfPos = Var[Float]()
+   val _mfNeg = Var[Float]()
 
-    val _mfi = Var[Float]()
+   val _mfi = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Factor]
-    }
+      this.period = args(0).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        _tp(i) = (H(i) + C(i) + L(i)) / 3f
+   protected def computeSpot(i:Int) :Unit = {
+      _tp(i) = (H(i) + C(i) + L(i)) / 3f
         
-        if (i == 0) {
+      if (i == 0) {
             
+         _mfPos(i) = 0f
+         _mfNeg(i) = 0f
+            
+         _mfi(i) = 0f
+            
+      } else {
+            
+            
+         if (_tp(i) > _tp(i - 1)) {
+            _mfPos(i) = _tp(i) * V(i)
+            _mfNeg(i) = 0f
+         } else if (_tp(i) < _tp(i - 1)) {
+            _mfPos(i) = 0f
+            _mfNeg(i) = _tp(i) * V(i)
+         } else {
             _mfPos(i) = 0f
             _mfNeg(i) = 0f
+         }
             
-            _mfi(i) = 0f
+         val mfPos_sum_i = sum(i, _mfPos, period)
             
-        } else {
+         val mfNeg_sum_i = sum(i, _mfNeg, period)
             
+         val mr_i = mfPos_sum_i / mfNeg_sum_i
             
-            if (_tp(i) > _tp(i - 1)) {
-                _mfPos(i) = _tp(i) * V(i)
-                _mfNeg(i) = 0f
-            } else if (_tp(i) < _tp(i - 1)) {
-                _mfPos(i) = 0f
-                _mfNeg(i) = _tp(i) * V(i)
-            } else {
-                _mfPos(i) = 0f
-                _mfNeg(i) = 0f
-            }
+         _mfi(i) = 100 / (1 + mr_i)
             
-            val mfPos_sum_i = sum(i, _mfPos, period)
-            
-            val mfNeg_sum_i = sum(i, _mfNeg, period)
-            
-            val mr_i = mfPos_sum_i / mfNeg_sum_i
-            
-            _mfi(i) = 100 / (1 + mr_i)
-            
-        }
-    }
+      }
+   }
     
-    def mfi(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def mfi(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _mfi(idx)
-    }
+      _mfi(idx)
+   }
     
 }
 

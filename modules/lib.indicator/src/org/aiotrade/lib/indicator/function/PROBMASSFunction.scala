@@ -40,71 +40,71 @@ import org.aiotrade.lib.math.timeseries.Var
  * @author Caoyuan Deng
  */
 object PROBMASSFunction {
-    protected def probMass(idx:Int, baseVar:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
-        val begIdx = idx - period.intValue + 1
-        val endIdx = idx
+   protected def probMass(idx:Int, baseVar:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
+      val begIdx = idx - period.intValue + 1
+      val endIdx = idx
 
-        StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue);
-    }
+      StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue);
+   }
 
-    protected def probMass(idx:Int, baseVar:Var[Float], weight:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
-        val begIdx = idx - period.intValue + 1
-        val endIdx = idx;
+   protected def probMass(idx:Int, baseVar:Var[Float], weight:Var[Float], period:Float, nInterval:Float) :Array[Array[Float]] = {
+      val begIdx = idx - period.intValue + 1
+      val endIdx = idx;
 
-        StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
-    }
+      StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
+   }
 }
 
 case class PROBMASSFunction extends AbstractFunction {
-    import PROBMASSFunction._
+   import PROBMASSFunction._
     
-    var period :Factor = _
-    var nInterval :Factor = _
+   var period :Factor = _
+   var nInterval :Factor = _
 
-    var baseVar :Var[Float] = _
-    var weight :Var[Float] = _
+   var baseVar :Var[Float] = _
+   var weight :Var[Float] = _
     
-    /**
-     * as this function do not remember previous valus, do not need a Var as probMass
-     */
-    var _probMass:Array[Array[Float]] = _
+   /**
+    * as this function do not remember previous valus, do not need a Var as probMass
+    */
+   var _probMass:Array[Array[Float]] = _
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
-        args match {
-            case Seq(a0:Var[Float], a1:Var[Float], a2:Factor, a3:Factor) =>
-                baseVar = a0
-                weight.equals(a1)
-                period.equals(a2)
-                nInterval.equals(a3)
-        }
-    }
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
+      args match {
+         case Seq(a0:Var[Float], a1:Var[Float], a2:Factor, a3:Factor) =>
+            baseVar = a0
+            weight.equals(a1)
+            period.equals(a2)
+            nInterval.equals(a3)
+      }
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (weight == null) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (weight == null) {
             
-            _probMass = PROBMASSFunction.probMass(i, baseVar, period.value, nInterval.value);
+         _probMass = PROBMASSFunction.probMass(i, baseVar, period.value, nInterval.value);
             
-        } else {
+      } else {
             
-            _probMass = PROBMASSFunction.probMass(i, baseVar, weight, period.value, nInterval.value);
+         _probMass = PROBMASSFunction.probMass(i, baseVar, weight, period.value, nInterval.value);
             
-        }
-    }
+      }
+   }
     
-    /**
-     * override compute(int), this function is not dependent on previous values
-     */
-    def compute(idx:Int) :Unit = {
-        computeSpot(idx)
-    }
+   /**
+    * override compute(int), this function is not dependent on previous values
+    */
+   def compute(idx:Int) :Unit = {
+      computeSpot(idx)
+   }
     
-    def probMass(sessionId:Long, idx:Int) :Array[Array[Float]] = {
-        compute(idx)
+   def probMass(sessionId:Long, idx:Int) :Array[Array[Float]] = {
+      compute(idx)
         
-        _probMass
-    }
+      _probMass
+   }
     
 }
 

@@ -40,27 +40,27 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class MAIndicator extends ContIndicator {
-    _sname = "MA"
-    _lname = "Moving Average"
-    _overlapping = true
+   _sname = "MA"
+   _lname = "Moving Average"
+   _overlapping = true
     
-    val period1 = Factor("Period 1", 5)
-    val period2 = Factor("Period 2", 10)
-    val period3 = Factor("Period 3", 20)
+   val period1 = Factor("Period 1", 5)
+   val period2 = Factor("Period 2", 10)
+   val period3 = Factor("Period 3", 20)
     
-    val ma1 = Var[Float]("MA1", Plot.Line)
-    val ma2 = Var[Float]("MA2", Plot.Line)
-    val ma3 = Var[Float]("MA3", Plot.Line)
+   val ma1 = Var[Float]("MA1", Plot.Line)
+   val ma2 = Var[Float]("MA2", Plot.Line)
+   val ma3 = Var[Float]("MA3", Plot.Line)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            ma1(i) = ma(i, C, period1)
-            ma2(i) = ma(i, C, period2)
-            ma3(i) = ma(i, C, period3)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         ma1(i) = ma(i, C, period1)
+         ma2(i) = ma(i, C, period2)
+         ma3(i) = ma(i, C, period3)
+         i += 1
+      }
+   }
     
 }
 

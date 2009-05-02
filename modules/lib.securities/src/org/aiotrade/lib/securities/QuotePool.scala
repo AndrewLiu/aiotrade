@@ -38,28 +38,28 @@ import org.aiotrade.lib.util.pool.{PoolableObjectFactory,StackObjectPool}
 
 class QuotePool extends StackObjectPool[Quote](500, 200) with PoolableObjectFactory[Quote] {
 
-    setFactory(this)
+   setFactory(this)
 
-    @throws(classOf[RuntimeException])
-    def activateObject(obj:Quote) :Unit = {
-        obj.reset
-    }
+   @throws(classOf[RuntimeException])
+   def activateObject(obj:Quote) :Unit = {
+      obj.reset
+   }
 
-    @throws(classOf[RuntimeException])
-    def destroyObject(obj:Quote) :Unit = {
-        //obj = null
-    }
+   @throws(classOf[RuntimeException])
+   def destroyObject(obj:Quote) :Unit = {
+      //obj = null
+   }
     
-    @throws(classOf[RuntimeException])
-    def makeObject :Quote = {
-        new Quote
-    }
+   @throws(classOf[RuntimeException])
+   def makeObject :Quote = {
+      new Quote
+   }
 
-    @throws(classOf[RuntimeException])
-    def passivateObject(obj:Quote) :Unit = {
-    }
+   @throws(classOf[RuntimeException])
+   def passivateObject(obj:Quote) :Unit = {
+   }
     
-    def validateObject(obj:Quote) :Boolean = true
+   def validateObject(obj:Quote) :Boolean = true
 }
 
 

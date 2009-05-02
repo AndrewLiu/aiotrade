@@ -40,43 +40,43 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object SUMFunction {
-    protected def isum(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
-        StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
-    }
+   protected def isum(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+      StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
+   }
 }
 
 class SUMFunction extends AbstractFunction {
     
-    var period :Factor = _
-    var baseVar :Var[Float] = _
+   var period :Factor = _
+   var baseVar :Var[Float] = _
     
-    val _sum = Var[Float]()
+   val _sum = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.baseVar = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Factor]
-    }
+      this.baseVar = args(0).asInstanceOf[Var[Float]]
+      this.period = args(1).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (i < period.value - 1) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (i < period.value - 1) {
             
-            _sum(i) = Float.NaN
+         _sum(i) = Float.NaN
             
-        } else {
+      } else {
             
-            _sum(i) = SUMFunction.isum(i, baseVar, period.value, _sum(i - 1))
+         _sum(i) = SUMFunction.isum(i, baseVar, period.value, _sum(i - 1))
             
-        }
-    }
+      }
+   }
     
-    def sum(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def sum(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _sum(idx)
-    }
+      _sum(idx)
+   }
     
 }
 

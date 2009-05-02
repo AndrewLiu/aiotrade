@@ -42,61 +42,61 @@ import org.aiotrade.lib.math.timeseries.Ser
  */
 trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
     
-    def displayName:String
+   def displayName:String
     
-    def defaultDateFormatPattern :String
+   def defaultDateFormatPattern :String
     
-    /**
-     * 
-     * 
-     * 
-     * @param contract DataContract which contains all the type, market info for this source
-     * @param ser the Ser that will be filled by this server
-     */
-    def subscribe(contract:C, ser:Ser) :Unit
+   /**
+    *
+    *
+    * 
+    * @param contract DataContract which contains all the type, market info for this source
+    * @param ser the Ser that will be filled by this server
+    */
+   def subscribe(contract:C, ser:Ser) :Unit
     
-    /**
-     * first ser is the master one,
-     * second one (if available) is that who concerns first one, etc.
-     * Example: tickering ser also will compose today's quoteSer
-     * 
-     * 
-     * 
-     * @param contract DataContract which contains all the type, market info for this source
-     * @param ser the Ser that will be filled by this server
-     * @param chairSers
-     */
-    def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser])
+   /**
+    * first ser is the master one,
+    * second one (if available) is that who concerns first one, etc.
+    * Example: tickering ser also will compose today's quoteSer
+    *
+    *
+    *
+    * @param contract DataContract which contains all the type, market info for this source
+    * @param ser the Ser that will be filled by this server
+    * @param chairSers
+    */
+   def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser])
     
-    def unSubscribe(contract:C)
+   def unSubscribe(contract:C)
     
-    def isContractSubsrcribed(contract:C) :Boolean
+   def isContractSubsrcribed(contract:C) :Boolean
     
-    def startLoadServer :Unit
+   def startLoadServer :Unit
     
-    def startUpdateServer(updateInterval:Int) :Unit
+   def startUpdateServer(updateInterval:Int) :Unit
     
-    def stopUpdateServer :Unit
+   def stopUpdateServer :Unit
     
-    def inLoading: Boolean
-    def inUpdating :boolean
+   def inLoading: Boolean
+   def inUpdating :boolean
     
-    def createNewInstance :Option[DataServer[_]]
+   def createNewInstance :Option[DataServer[_]]
     
-    /**
-     * @return a long type source id, the format will be only 1 none-zero bit, 
-     *         the position of this bit is the source serial number 
-     */
-    def sourceId :Long
+   /**
+    * @return a long type source id, the format will be only 1 none-zero bit,
+    *         the position of this bit is the source serial number
+    */
+   def sourceId :Long
     
-    /**
-     * @return a byte(from -128 to 127) type serial number, only 0 to 63 is valid.
-     */
-    def sourceSerialNumber :Byte
+   /**
+    * @return a byte(from -128 to 127) type serial number, only 0 to 63 is valid.
+    */
+   def sourceSerialNumber :Byte
     
-    def icon :Option[Image]
+   def icon :Option[Image]
 
-    def sourceTimeZone :TimeZone
+   def sourceTimeZone :TimeZone
 }
 
 

@@ -62,49 +62,49 @@ package org.aiotrade.lib.math.timeseries
  */
 class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerItem {
     
-    private var _clear :Boolean = true
+   private var _clear :Boolean = true
 
-    def ser:Ser = _ser
+   def ser:Ser = _ser
 
-    def index :Int = ser.timestamps.indexOfOccurredTime(time)
+   def index :Int = ser.timestamps.indexOfOccurredTime(time)
     
-    def isClear :Boolean = _clear
+   def isClear :Boolean = _clear
     
-    def clear :Unit = {
-        this._clear = true
-    }
+   def clear :Unit = {
+      this._clear = true
+   }
     
-    def get[T](v:Var[T]) :T =  v.getByTime(time)
+   def get[T](v:Var[T]) :T =  v.getByTime(time)
     
-    def set[T](v:Var[T], value:T) :Unit = {
-        v.setByTime(time, value)
-        _clear = false
-    }
+   def set[T](v:Var[T], value:T) :Unit = {
+      v.setByTime(time, value)
+      _clear = false
+   }
     
     
-    /**
-     * @Note:
-     * This is the best try implement. If Object is Number, this may works,
-     * Otherwise, should sub class it.
-     */
-    def getFloat(v:Var[_]) :Float = {
-        v.getByTime(time) match {
-            case null => Float.NaN
-            case n:Number => n.floatValue
-            case o:AnyRef =>
-                assert(false, "Why you get here(DefaultItem.getFloat(Var<?> var)) ? " +
-                       time + " Check your code and give me Float instead of float: " +
-                       o.asInstanceOf[AnyRef].getClass.getCanonicalName)
-                Float.NaN
-        }
-    }
+   /**
+    * @Note:
+    * This is the best try implement. If Object is Number, this may works,
+    * Otherwise, should sub class it.
+    */
+   def getFloat(v:Var[_]) :Float = {
+      v.getByTime(time) match {
+         case null => Float.NaN
+         case n:Number => n.floatValue
+         case o:AnyRef =>
+            assert(false, "Why you get here(DefaultItem.getFloat(Var<?> var)) ? " +
+                   time + " Check your code and give me Float instead of float: " +
+                   o.asInstanceOf[AnyRef].getClass.getCanonicalName)
+            Float.NaN
+      }
+   }
     
-    def setFloat[Number](v:Var[Number], value:Number) :Unit = {
-        v.setByTime(time, value)
-        this._clear = false
-    }
+   def setFloat[Number](v:Var[Number], value:Number) :Unit = {
+      v.setByTime(time, value)
+      this._clear = false
+   }
 
-    def assignValue[V <: TimeValue](value:V) :Unit = {
-        /** @todo */
-    }
+   def assignValue[V <: TimeValue](value:V) :Unit = {
+      /** @todo */
+   }
 }

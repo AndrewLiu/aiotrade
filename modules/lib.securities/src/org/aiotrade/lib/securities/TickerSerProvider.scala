@@ -38,21 +38,21 @@ import org.aiotrade.lib.securities.dataserver.{TickerServer,TickerContract}
  */
 trait TickerSerProvider {
     
-    def uniSymbol :String
+   def uniSymbol :String
     
-    def name :String
+   def name :String
     
-    def tickerSer :QuoteSer
+   def tickerSer :QuoteSer
     
-    def tickerServer :TickerServer
+   def tickerServer :TickerServer
     
-    def tickerContract :TickerContract
+   def tickerContract :TickerContract
     
-    def subscribeTickerServer :Unit
+   def subscribeTickerServer :Unit
     
-    def unSubscribeTickerServer :Unit
+   def unSubscribeTickerServer :Unit
     
-    def isTickerServerSubscribed :Boolean
+   def isTickerServerSubscribed :Boolean
     
 }
 

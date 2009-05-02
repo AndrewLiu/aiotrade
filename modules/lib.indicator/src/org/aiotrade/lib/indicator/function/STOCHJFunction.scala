@@ -40,34 +40,34 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class STOCHJFunction extends AbstractFunction {
     
-    var period, periodK, periodD :Factor = _
+   var period, periodK, periodD :Factor = _
     
-    val _stochK = Var[Float]()
-    val _stochD = Var[Float]()
+   val _stochK = Var[Float]()
+   val _stochD = Var[Float]()
     
-    val _stochJ = Var[Float]()
+   val _stochJ = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Factor]
-        this.periodK = args(1).asInstanceOf[Factor]
-        this.periodD = args(2).asInstanceOf[Factor]
-    }
+      this.period = args(0).asInstanceOf[Factor]
+      this.periodK = args(1).asInstanceOf[Factor]
+      this.periodD = args(2).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        _stochK(i) = stochK(i, period, periodK)
-        _stochD(i) = stochD(i, period, periodK, periodD)
+   protected def computeSpot(i:Int) :Unit = {
+      _stochK(i) = stochK(i, period, periodK)
+      _stochD(i) = stochD(i, period, periodK, periodD)
         
-        _stochJ(i) = _stochD(i) + 2 * (_stochD(i) - _stochK(i))
-    }
+      _stochJ(i) = _stochD(i) + 2 * (_stochD(i) - _stochK(i))
+   }
         
-    def stochJ(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def stochJ(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _stochJ(idx)
-    }
+      _stochJ(idx)
+   }
     
 }
 

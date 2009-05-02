@@ -40,29 +40,29 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class WMSFunction extends AbstractFunction {
     
-    var period :Factor = _
+   var period :Factor = _
     
-    val _wms = Var[Float]()
+   val _wms = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Factor]
-    }
+      this.period = args(0).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        val h_max_i = max(i, H, period)
-        val l_min_i = min(i, L, period)
+   protected def computeSpot(i:Int) :Unit = {
+      val h_max_i = max(i, H, period)
+      val l_min_i = min(i, L, period)
         
-        _wms(i) = 100 - (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
-    }
+      _wms(i) = 100 - (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
+   }
     
-    def wms(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def wms(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _wms(idx)
-    }
+      _wms(idx)
+   }
     
 }
 

@@ -40,27 +40,27 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class RSIIndicator extends ContIndicator {
-    _sname = "RSI"
-    _lname = "Relative Strength Index"
-    _grids = Array(20f, 80f)
+   _sname = "RSI"
+   _lname = "Relative Strength Index"
+   _grids = Array(20f, 80f)
 
-    val periodS = Factor("Period Short",   6.)
-    val periodM = Factor("Period Mediaum", 12)
-    val periodL = Factor("Period Long",    24)
+   val periodS = Factor("Period Short",   6.)
+   val periodM = Factor("Period Mediaum", 12)
+   val periodL = Factor("Period Long",    24)
     
-    val rsi1 = Var[Float]("RSI1", Plot.Line)
-    val rsi2 = Var[Float]("RSI2", Plot.Line)
-    val rsi3 = Var[Float]("RSI3", Plot.Line)
+   val rsi1 = Var[Float]("RSI1", Plot.Line)
+   val rsi2 = Var[Float]("RSI2", Plot.Line)
+   val rsi3 = Var[Float]("RSI3", Plot.Line)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            rsi1(i) = rsi(i, periodS)
-            rsi2(i) = rsi(i, periodM)
-            rsi3(i) = rsi(i, periodL)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         rsi1(i) = rsi(i, periodS)
+         rsi2(i) = rsi(i, periodM)
+         rsi3(i) = rsi(i, periodL)
+         i += 1
+      }
+   }
     
 }
 

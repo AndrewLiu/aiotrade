@@ -35,17 +35,17 @@ package org.aiotrade.lib.math.timeseries
  * @author Caoyuan Deng
  */
 trait TimeValue extends Ordered[TimeValue] {
-    var time :Long = _
+   var time :Long = _
 
-    def compare(that:TimeValue): Int = {
-        if (time > that.time) {
-            1
-        } else if (time < that.time) {
-            -1
-        } else {
-            0
-        }
-    }
+   def compare(that:TimeValue): Int = {
+      if (time > that.time) {
+         1
+      } else if (time < that.time) {
+         -1
+      } else {
+         0
+      }
+   }
 }
 
 

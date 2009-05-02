@@ -46,113 +46,113 @@ import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
 //@IndicatorName("QUOTECOMPARE")
 class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
     
-    private var _serToBeCompared :QuoteSer = _
+   private var _serToBeCompared :QuoteSer = _
         
-    def serToBeCompared_=(serToBeCompared:QuoteSer) :Unit = {
-        this._serToBeCompared = serToBeCompared
-    }
+   def serToBeCompared_=(serToBeCompared:QuoteSer) :Unit = {
+      this._serToBeCompared = serToBeCompared
+   }
     
-    val begPosition = Factor("Begin of Time Frame", 0L)
-    val endPosition = Factor("End of Time Frame",   0L)
-    val maxValue    = Factor("Max Value", -Float.MaxValue)
-    val minValue    = Factor("Min Value", +Float.MaxValue)
+   val begPosition = Factor("Begin of Time Frame", 0L)
+   val endPosition = Factor("End of Time Frame",   0L)
+   val maxValue    = Factor("Max Value", -Float.MaxValue)
+   val minValue    = Factor("Min Value", +Float.MaxValue)
     
-    var open   = Var[Float]("O", Plot.Quote)
-    var high   = Var[Float]("H", Plot.Quote)
-    var low    = Var[Float]("L", Plot.Quote)
-    var close  = Var[Float]("C", Plot.Quote)
-    var volume = Var[Float]("V", Plot.Quote)
+   var open   = Var[Float]("O", Plot.Quote)
+   var high   = Var[Float]("H", Plot.Quote)
+   var low    = Var[Float]("L", Plot.Quote)
+   var close  = Var[Float]("C", Plot.Quote)
+   var volume = Var[Float]("V", Plot.Quote)
     
-    protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
-        /** camparing base point is the value of begin time (the most left on screen */
+   protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+      /** camparing base point is the value of begin time (the most left on screen */
         
-        /** always compute from most left position on screen */
-        val begPos = begPosition.value.toInt//Math.min((int)begPosition.value(), begIdx);
-        val endPos = endPosition.value.toInt//Math.min((int)endPosition.value(),   _dataSize - 1);
+      /** always compute from most left position on screen */
+      val begPos = begPosition.value.toInt//Math.min((int)begPosition.value(), begIdx);
+      val endPos = endPosition.value.toInt//Math.min((int)endPosition.value(),   _dataSize - 1);
         
-        /** get first value of baseSer in time frame, it will be the comparing base point */
-        var baseNorm = Float.NaN
-        var position = begPosition.value.toInt
-        var end = endPosition.value.toInt
-        var break = false
-        while (position <= end & !break) {
-            val baseItem = _baseSer.asInstanceOf[QuoteSer].getItemByRow(position).asInstanceOf[QuoteItem]
+      /** get first value of baseSer in time frame, it will be the comparing base point */
+      var baseNorm = Float.NaN
+      var position = begPosition.value.toInt
+      var end = endPosition.value.toInt
+      var break = false
+      while (position <= end & !break) {
+         val baseItem = _baseSer.asInstanceOf[QuoteSer].getItemByRow(position).asInstanceOf[QuoteItem]
             
-            if (baseItem != null) {
-                baseNorm = baseItem.close
-                break = true
-            }
+         if (baseItem != null) {
+            baseNorm = baseItem.close
+            break = true
+         }
             
-            position += 1
-        }
+         position += 1
+      }
         
-        if (baseNorm.equals(Float.NaN)) {
-            return
-        }
+      if (baseNorm.equals(Float.NaN)) {
+         return
+      }
         
-        if (_baseSer.asInstanceOf[QuoteSer].adjusted) {
-            if (!_serToBeCompared.adjusted) {
-                _serToBeCompared.adjust(true)
-            }
-        } else {
-            if (_serToBeCompared.adjusted) {
-                _serToBeCompared.adjust(false)
-            }
-        }
+      if (_baseSer.asInstanceOf[QuoteSer].adjusted) {
+         if (!_serToBeCompared.adjusted) {
+            _serToBeCompared.adjust(true)
+         }
+      } else {
+         if (_serToBeCompared.adjusted) {
+            _serToBeCompared.adjust(false)
+         }
+      }
         
-        var compareNorm = Float.NaN
-        /**
-         * !NOTICE
-         * we only calculate this indicator's value for a timeSet showing in screen,
-         * instead of all over the time frame of baseSer, thus, we use
-         * this time set for loop instead of the usaully usage in other indicators:
-         *        for (int i = fromIndex; i < baseItemList.size(); i++) {
-         *            ....
-         *        }
-         *
-         * Think about it, when the baseSer updated, we should re-calculate
-         * all Ser instead from fromIndex.
-         */
-        var i = begPos
-        while (i <= endPos) {
-            if (i < begPosition.value) {
-                /** don't calulate those is less than beginPosition to got a proper compareBeginValue */
-            } else {
+      var compareNorm = Float.NaN
+      /**
+       * !NOTICE
+       * we only calculate this indicator's value for a timeSet showing in screen,
+       * instead of all over the time frame of baseSer, thus, we use
+       * this time set for loop instead of the usaully usage in other indicators:
+       *        for (int i = fromIndex; i < baseItemList.size(); i++) {
+       *            ....
+       *        }
+       *
+       * Think about it, when the baseSer updated, we should re-calculate
+       * all Ser instead from fromIndex.
+       */
+      var i = begPos
+      while (i <= endPos) {
+         if (i < begPosition.value) {
+            /** don't calulate those is less than beginPosition to got a proper compareBeginValue */
+         } else {
             
-                val time = _baseSer.asInstanceOf[MasterSer].timeOfRow(i)
+            val time = _baseSer.asInstanceOf[MasterSer].timeOfRow(i)
             
-                /**
-                 * !NOTICE:
-                 * we should fetch itemToBeCompared by time instead by position which may
-                 * not sync with baseSer.
-                 */
-                _serToBeCompared.getItem(time) match {
-                    case null =>
-                    case itemToBeCompared:QuoteItem =>
-                        /** get first value of serToBeCompared in time frame */
-                        if (compareNorm.equals(Float.NaN)) {
-                            compareNorm = itemToBeCompared.close
-                        }
+            /**
+             * !NOTICE:
+             * we should fetch itemToBeCompared by time instead by position which may
+             * not sync with baseSer.
+             */
+            _serToBeCompared.getItem(time) match {
+               case null =>
+               case itemToBeCompared:QuoteItem =>
+                  /** get first value of serToBeCompared in time frame */
+                  if (compareNorm.equals(Float.NaN)) {
+                     compareNorm = itemToBeCompared.close
+                  }
                         
-                        val item = getItem(time).asInstanceOf[QuoteItem]
-                        if (item != null) {
-                            item.open  = linearAdjust(itemToBeCompared.open,  compareNorm, baseNorm)
-                            item.high  = linearAdjust(itemToBeCompared.high,  compareNorm, baseNorm)
-                            item.low   = linearAdjust(itemToBeCompared.low,   compareNorm, baseNorm)
-                            item.close = linearAdjust(itemToBeCompared.close, compareNorm, baseNorm)
-                        }
-                }
+                  val item = getItem(time).asInstanceOf[QuoteItem]
+                  if (item != null) {
+                     item.open  = linearAdjust(itemToBeCompared.open,  compareNorm, baseNorm)
+                     item.high  = linearAdjust(itemToBeCompared.high,  compareNorm, baseNorm)
+                     item.low   = linearAdjust(itemToBeCompared.low,   compareNorm, baseNorm)
+                     item.close = linearAdjust(itemToBeCompared.close, compareNorm, baseNorm)
+                  }
             }
+         }
             
-            i += 1
-        }
-    }
+         i += 1
+      }
+   }
     
-    /**
-     * This function keeps the adjusting linear according to a norm
-     */
-    private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
-        ((value - prevNorm) / prevNorm) * postNorm + postNorm
-    }
+   /**
+    * This function keeps the adjusting linear according to a norm
+    */
+   private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
+      ((value - prevNorm) / prevNorm) * postNorm + postNorm
+   }
 
 }

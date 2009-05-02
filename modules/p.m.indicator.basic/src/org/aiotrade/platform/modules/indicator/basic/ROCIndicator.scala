@@ -40,23 +40,23 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class ROCIndicator extends ContIndicator {
-    _sname = "ROC"
-    _lname = "Rate of Change"
+   _sname = "ROC"
+   _lname = "Rate of Change"
     
-    val period1 = Factor("Period Short", 12)
-    val period2 = Factor("Period Long",  25)
+   val period1 = Factor("Period Short", 12)
+   val period2 = Factor("Period Long",  25)
     
-    val roc1 = Var[Float]("ROC1", Plot.Line)
-    val roc2 = Var[Float]("ROC2", Plot.Line)
+   val roc1 = Var[Float]("ROC1", Plot.Line)
+   val roc2 = Var[Float]("ROC2", Plot.Line)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            roc1(i) = roc(i, C, period1)
-            roc2(i) = roc(i, C, period2)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         roc1(i) = roc(i, C, period1)
+         roc2(i) = roc(i, C, period2)
+         i += 1
+      }
+   }
     
 }
 

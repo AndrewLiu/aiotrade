@@ -40,88 +40,88 @@ import org.aiotrade.lib.math.timeseries.TimeValue
  */
 class Quote extends TimeValue {
     
-    private val OPEN      = 0
-    private val HIGH      = 1
-    private val LOW       = 2
-    private val CLOSE     = 3
-    private val VOLUME    = 4
-    private val AMOUNT    = 5
-    private val CLOSE_ADJ = 6
-    private val WAP       = 7
+   private val OPEN      = 0
+   private val HIGH      = 1
+   private val LOW       = 2
+   private val CLOSE     = 3
+   private val VOLUME    = 4
+   private val AMOUNT    = 5
+   private val CLOSE_ADJ = 6
+   private val WAP       = 7
     
-    private val values = new Array[Float](8)
+   private val values = new Array[Float](8)
     
-    var sourceId :Long = _
+   var sourceId :Long = _
     
-    var hasGaps :Boolean = false
+   var hasGaps :Boolean = false
         
-    def amount :Float = {
-        return values(AMOUNT)
-    }
+   def amount :Float = {
+      return values(AMOUNT)
+   }
     
-    def close :Float = values(CLOSE)
+   def close :Float = values(CLOSE)
     
-    def close_adj :Float = values(CLOSE_ADJ)
+   def close_adj :Float = values(CLOSE_ADJ)
     
-    def high :Float = values(HIGH)
+   def high :Float = values(HIGH)
     
-    def low :Float = values(LOW)
+   def low :Float = values(LOW)
     
-    def open :Float = values(OPEN)
+   def open :Float = values(OPEN)
     
-    def volume :Float = values(VOLUME)
+   def volume :Float = values(VOLUME)
     
-    def wap :Float = values(WAP)
+   def wap :Float = values(WAP)
     
-    def amount_=(amount:Float) :Unit = {
-        this.values(AMOUNT) = amount
-    }
+   def amount_=(amount:Float) :Unit = {
+      this.values(AMOUNT) = amount
+   }
     
-    def close_=(close:Float) :Unit = {
-        this.values(CLOSE) = close
-    }
+   def close_=(close:Float) :Unit = {
+      this.values(CLOSE) = close
+   }
     
-    def close_adj_=(close_adj:Float) :Unit = {
-        this.values(CLOSE_ADJ) = close_adj
-    }
+   def close_adj_=(close_adj:Float) :Unit = {
+      this.values(CLOSE_ADJ) = close_adj
+   }
     
     
-    def high_=(high:Float) :Unit = {
-        this.values(HIGH) = high
-    }
+   def high_=(high:Float) :Unit = {
+      this.values(HIGH) = high
+   }
     
-    def low_=(low:Float) :Unit = {
-        this.values(LOW) = low
-    }
+   def low_=(low:Float) :Unit = {
+      this.values(LOW) = low
+   }
     
-    def open_=(open:Float) :Unit = {
-        this.values(OPEN) = open
-    }
+   def open_=(open:Float) :Unit = {
+      this.values(OPEN) = open
+   }
     
-    def volume_=(volume:Float) :Unit = {
-        this.values(VOLUME) = volume
-    }
+   def volume_=(volume:Float) :Unit = {
+      this.values(VOLUME) = volume
+   }
     
-    def wap_=(wap:Float) :Unit = {
-        this.values(WAP) = wap
-    }
+   def wap_=(wap:Float) :Unit = {
+      this.values(WAP) = wap
+   }
     
-    def reset {
-        time = 0
-        sourceId = 0
-        values.map(x => 0)
-        hasGaps = false
-    }
+   def reset {
+      time = 0
+      sourceId = 0
+      values.map(x => 0)
+      hasGaps = false
+   }
 
-    override
-    def toString :String = {
-        val cal = Calendar.getInstance
-        cal.setTimeInMillis(time)
-        this.getClass.getSimpleName + ": " + cal.getTime + 
-        " O: " + values(OPEN) +
-        " H: " + values(HIGH) +
-        " L: " + values(LOW) +
-        " C: " + values(CLOSE) +
-        " V: " + values(VOLUME)
-    }
+   override
+   def toString :String = {
+      val cal = Calendar.getInstance
+      cal.setTimeInMillis(time)
+      this.getClass.getSimpleName + ": " + cal.getTime +
+      " O: " + values(OPEN) +
+      " H: " + values(HIGH) +
+      " L: " + values(LOW) +
+      " C: " + values(CLOSE) +
+      " V: " + values(VOLUME)
+   }
 }

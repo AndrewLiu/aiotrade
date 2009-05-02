@@ -38,22 +38,22 @@ import org.aiotrade.lib.math.timeseries.datasource.SerProvider
  * @author Caoyuan Deng
  */
 object Sec {
-    abstract class Type
-    object Type {
-        case object Stock extends Type
-        case object Option extends Type
-        case object Future extends Type
-        case object Index extends Type
-        case object FutureOption extends Type
-        case object Currency extends Type
-        case object Bag extends Type
-    }
+   abstract class Type
+   object Type {
+      case object Stock extends Type
+      case object Option extends Type
+      case object Future extends Type
+      case object Index extends Type
+      case object FutureOption extends Type
+      case object Currency extends Type
+      case object Bag extends Type
+   }
 
 }
 
 trait Sec extends SerProvider[QuoteSer] with TickerSerProvider {
 
-    def market_=(market:Market) :Unit
-    def market :Market
+   def market_=(market:Market) :Unit
+   def market :Market
 }
 

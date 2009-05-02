@@ -40,44 +40,44 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class ARBRIndicator extends ContIndicator {
-    _sname = "AR/BR"
-    _grids = Array(50f, 200f)
+   _sname = "AR/BR"
+   _grids = Array(50f, 200f)
     
-    val period = Factor("Period", 10)
+   val period = Factor("Period", 10)
     
-    val up = Var[Float]("up")
-    val dn = Var[Float]("dn")
-    val bs = Var[Float]("bs")
-    val ss = Var[Float]("ss")
+   val up = Var[Float]("up")
+   val dn = Var[Float]("dn")
+   val bs = Var[Float]("bs")
+   val ss = Var[Float]("ss")
     
-    val ar = Var[Float]("AR", Plot.Line)
-    val br = Var[Float]("BR", Plot.Line)
+   val ar = Var[Float]("AR", Plot.Line)
+   val br = Var[Float]("BR", Plot.Line)
     
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            up(i) = H(i) - O(i)
-            val up_sum_i = sum(i, up, period)
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         up(i) = H(i) - O(i)
+         val up_sum_i = sum(i, up, period)
             
-            dn(i) = O(i) - L(i)
-            val dn_sum_i = sum(i, dn, period)
+         dn(i) = O(i) - L(i)
+         val dn_sum_i = sum(i, dn, period)
             
-            ar(i) = up_sum_i / dn_sum_i * 100
+         ar(i) = up_sum_i / dn_sum_i * 100
             
-            val bs_tmp = H(i) - C(i)
-            bs(i) = Math.max(0, bs_tmp)
-            val bs_sum_i = sum(i, bs, period)
+         val bs_tmp = H(i) - C(i)
+         bs(i) = Math.max(0, bs_tmp)
+         val bs_sum_i = sum(i, bs, period)
             
-            val ss_tmp = C(i) - L(i)
-            ss(i) = Math.max(0, ss_tmp)
-            val ss_sum_i = sum(i, ss, period)
+         val ss_tmp = C(i) - L(i)
+         ss(i) = Math.max(0, ss_tmp)
+         val ss_sum_i = sum(i, ss, period)
             
-            br(i) = bs_sum_i / ss_sum_i * 100
+         br(i) = bs_sum_i / ss_sum_i * 100
 
-            i += 1
-        }
-    }
+         i += 1
+      }
+   }
     
 }
 

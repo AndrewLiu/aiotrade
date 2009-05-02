@@ -58,373 +58,373 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @author Caoyuan Deng
  */
 object AbstractDataServer {
-    var DEFAULT_ICON :Option[Image] = None
+   var DEFAULT_ICON :Option[Image] = None
 
-    private var _executorService:ExecutorService = _
-    protected def executorService :ExecutorService = {
-        if (_executorService == null) {
-            _executorService = Executors.newFixedThreadPool(5)
-        }
+   private var _executorService:ExecutorService = _
+   protected def executorService :ExecutorService = {
+      if (_executorService == null) {
+         _executorService = Executors.newFixedThreadPool(5)
+      }
 
-        _executorService
-    }
+      _executorService
+   }
 }
 
 abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends DataServer[C] {
-    import AbstractDataServer._
+   import AbstractDataServer._
 
-    val ANCIENT_TIME: Long = -1
-    // --- Following maps should be created once here, since server may be singleton:
-    private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
-    private val subscribedContractToSer = new HashMap[C, Ser]
-    /** a quick seaching map */
-    private val subscribedSymbolToContract = new HashMap[String, C]
-    // --- Above maps should be created once here, since server may be singleton
+   val ANCIENT_TIME: Long = -1
+   // --- Following maps should be created once here, since server may be singleton:
+   private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
+   private val subscribedContractToSer = new HashMap[C, Ser]
+   /** a quick seaching map */
+   private val subscribedSymbolToContract = new HashMap[String, C]
+   // --- Above maps should be created once here, since server may be singleton
     
-    /**
-     * first ser is the master one,
-     * second one (if available) is that who concerns first one.
-     * Example: ticker ser also will compose today's quoteSer
-     */
-    private val serToChainSers = new HashMap[Ser, ArrayBuffer[Ser]]
-    private var loadServer :LoadServer = _
-    private var updateServer :UpdateServer = _
-    private var updateTimer :Timer = _
-    protected var count :Int = 0
-    protected var loadedTime :Long = _
-    protected var fromTime :Long = _
-    protected var inputStream :Option[InputStream] = None
+   /**
+    * first ser is the master one,
+    * second one (if available) is that who concerns first one.
+    * Example: ticker ser also will compose today's quoteSer
+    */
+   private val serToChainSers = new HashMap[Ser, ArrayBuffer[Ser]]
+   private var loadServer :LoadServer = _
+   private var updateServer :UpdateServer = _
+   private var updateTimer :Timer = _
+   protected var count :Int = 0
+   protected var loadedTime :Long = _
+   protected var fromTime :Long = _
+   protected var inputStream :Option[InputStream] = None
 
-    var inLoading :Boolean = _
-    var inUpdating :boolean = _
+   var inLoading :Boolean = _
+   var inUpdating :boolean = _
 
-    protected def init :Unit = {
-    }
+   protected def init :Unit = {
+   }
 
-    /** @Note DateFormat is not thread safe, so we always return a new instance */
-    protected def dateFormatOf(timeZone:TimeZone) :DateFormat = {
-        val dateFormatStr = currentContract.get.dateFormatPattern match {
-            case null => defaultDateFormatPattern
-            case x => x
-        }
-        val dateFormat = new SimpleDateFormat(dateFormatStr)
-        dateFormat.setTimeZone(timeZone)
-        dateFormat
-    }
+   /** @Note DateFormat is not thread safe, so we always return a new instance */
+   protected def dateFormatOf(timeZone:TimeZone) :DateFormat = {
+      val dateFormatStr = currentContract.get.dateFormatPattern match {
+         case null => defaultDateFormatPattern
+         case x => x
+      }
+      val dateFormat = new SimpleDateFormat(dateFormatStr)
+      dateFormat.setTimeZone(timeZone)
+      dateFormat
+   }
 
-    protected def resetCount :Unit = {
-        this.count = 0
-    }
+   protected def resetCount :Unit = {
+      this.count = 0
+   }
 
-    protected def countOne :Unit = {
-        this.count += 1
+   protected def countOne :Unit = {
+      this.count += 1
 
-        /*- @Reserve
-         * Don't do refresh in loading any more, it may cause potential conflict
-         * between connected refresh events (i.e. when processing one refresh event,
-         * another event occured concurrent.)
-         * if (count % 500 == 0 && System.currentTimeMillis() - startTime > 2000) {
-         *     startTime = System.currentTimeMillis();
-         *     preRefresh();
-         *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.RefreshInLoading, newestTime));
-         *     System.out.println("refreshed: count " + count);
-         * }
-         */
-    }
+      /*- @Reserve
+       * Don't do refresh in loading any more, it may cause potential conflict
+       * between connected refresh events (i.e. when processing one refresh event,
+       * another event occured concurrent.)
+       * if (count % 500 == 0 && System.currentTimeMillis() - startTime > 2000) {
+       *     startTime = System.currentTimeMillis();
+       *     preRefresh();
+       *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.RefreshInLoading, newestTime));
+       *     System.out.println("refreshed: count " + count);
+       * }
+       */
+   }
 
-    protected def storageOf(contract:C) :ArrayBuffer[V] = {
-        contractToStorage.get(contract) match {
-            case None => 
-                val storage1 = new ArrayBuffer[V]
-              	contractToStorage.put(contract, storage1)
-		storage1
+   protected def storageOf(contract:C) :ArrayBuffer[V] = {
+      contractToStorage.get(contract) match {
+         case None =>
+            val storage1 = new ArrayBuffer[V]
+            contractToStorage.put(contract, storage1)
+            storage1
+         case Some(x) => x
+      }
+   }
+
+   /**
+    * @TODO
+    * temporary method? As in some data feed, the symbol is not unique,
+    * it may be same in different markets with different secType.
+    */
+   protected def lookupContract(symbol:String) :Option[C] = {
+      subscribedSymbolToContract.get(symbol)
+   }
+
+   private def releaseStorage(contract:C) :Unit = {
+      /** don't get storage via getStorage(contract), which will create a new one if none */
+      for (storage <- contractToStorage.get(contract)) {
+         returnBorrowedTimeValues(storage)
+         storage.synchronized {
+            storage.clear
+         }
+      }
+      contractToStorage.synchronized {
+         contractToStorage.removeKey(contract)
+      }
+   }
+
+   protected def returnBorrowedTimeValues(datas:ArrayBuffer[V]) :Unit
+
+   protected def isAscending(values:Array[V]) :boolean = {
+      val size = values.size
+      if (size <= 1) {
+         true
+      } else {
+         var i = 0
+         while (i < size - 1) {
+            if (values(i).time < values(i + 1).time) {
+               return true
+            } else if (values(i).time > values(i + 1).time) {
+               return false
+            }
+            i += 1
+         }
+         false
+      }
+   }
+
+
+   protected def currentContract :Option[C] = {
+      /**
+       * simplely return the contract currently in the front
+       * @Todo, do we need to implement a scheduler in case of multiple contract?
+       * Till now, only QuoteDataServer call this method, and they all use the
+       * per server per contract approach.
+       */
+      for (contract <- subscribedContracts) {
+         return Some(contract)
+      }
+
+      None
+   }
+
+   def subscribedContracts :Set[C]= subscribedContractToSer.keySet
+
+   protected def serOf(contract:C): Option[Ser] = {
+      subscribedContractToSer.get(contract)
+   }
+
+   protected def chainSersOf(ser:Ser) :Seq[Ser] = {
+      serToChainSers.get(ser) match {
+         case None => Nil
+         case Some(x) => x
+      }
+   }
+
+   /**
+    * @param symbol symbol in source
+    * @param set the Ser that will be filled by this server
+    */
+   def subscribe(contract:C, ser:Ser) :Unit = {
+      subscribe(contract, ser, Nil)
+   }
+
+   def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser]) :Unit = {
+      subscribedContractToSer.synchronized {
+         subscribedContractToSer.put(contract, ser)
+      }
+      subscribedSymbolToContract.synchronized {
+         subscribedSymbolToContract.put(contract.symbol, contract)
+      }
+      serToChainSers.synchronized {
+         val chainSersX = serToChainSers.get(ser) match {
+            case None => new ArrayBuffer[Ser]
             case Some(x) => x
-        }
-    }
+         }
+         chainSersX ++= chainSers
+         serToChainSers.put(ser, chainSersX)
+      }
+   }
 
-    /**
-     * @TODO
-     * temporary method? As in some data feed, the symbol is not unique,
-     * it may be same in different markets with different secType.
-     */
-    protected def lookupContract(symbol:String) :Option[C] = {
-        subscribedSymbolToContract.get(symbol)
-    }
+   def unSubscribe(contract:C) :Unit = {
+      cancelRequest(contract)
+      serToChainSers.synchronized {
+         serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
+      }
+      subscribedContractToSer.synchronized {
+         subscribedContractToSer.removeKey(contract)
+      }
+      subscribedSymbolToContract.synchronized {
+         subscribedSymbolToContract.removeKey(contract.symbol)
+      }
+      releaseStorage(contract)
+   }
 
-    private def releaseStorage(contract:C) :Unit = {
-        /** don't get storage via getStorage(contract), which will create a new one if none */
-        for (storage <- contractToStorage.get(contract)) {
-            returnBorrowedTimeValues(storage)
-            storage.synchronized {
-                storage.clear
-            }
-        }
-        contractToStorage.synchronized {
-            contractToStorage.removeKey(contract)
-        }
-    }
+   protected def cancelRequest(contract:C) :Unit = {
+   }
 
-    protected def returnBorrowedTimeValues(datas:ArrayBuffer[V]) :Unit
+   def isContractSubsrcribed(contract:C) :Boolean = {
+      for (contract1 <- subscribedContractToSer.keySet) {
+         if (contract1.symbol.equals(contract.symbol)) {
+            return true
+         }
+      }
+      false
+   }
 
-    protected def isAscending(values:Array[V]) :boolean = {
-        val size = values.size
-        if (size <= 1) {
-            true
-        } else {
-            var i = 0
-            while (i < size - 1) {
-                if (values(i).time < values(i + 1).time) {
-                    return true
-                } else if (values(i).time > values(i + 1).time) {
-                    return false
-                }
-                i += 1
-            }
-            false
-        }
-    }
+   def startLoadServer :Unit = {
+      if (currentContract == None) {
+         assert(false, "dataContract not set!")
+      }
 
+      if (subscribedContractToSer.size == 0) {
+         assert(false, "none ser subscribed!")
+      }
 
-    protected def currentContract :Option[C] = {
-        /**
-         * simplely return the contract currently in the front
-         * @Todo, do we need to implement a scheduler in case of multiple contract?
-         * Till now, only QuoteDataServer call this method, and they all use the
-         * per server per contract approach.
-         */
-        for (contract <- subscribedContracts) {
-            return Some(contract)
-        }
+      if (loadServer == null) {
+         loadServer = new LoadServer
+      }
 
-        None
-    }
+      if (!inLoading) {
+         inLoading = true
+         new Thread(loadServer).start
+         // @Note: ExecutorSrevice will cause access denied of modifyThreadGroup in Applet !!
+         //getExecutorService().submit(loadServer);
+      }
+   }
 
-    def subscribedContracts :Set[C]= subscribedContractToSer.keySet
+   def startUpdateServer(updateInterval:Int) :Unit = {
+      if (inLoading) {
+         System.out.println("should start update server after loaded")
+         inUpdating = false
+         return
+      }
 
-    protected def serOf(contract:C): Option[Ser] = {
-        subscribedContractToSer.get(contract)
-    }
+      inUpdating = true
 
-    protected def chainSersOf(ser:Ser) :Seq[Ser] = {
-        serToChainSers.get(ser) match {
-            case None => Nil
-            case Some(x) => x
-        }
-    }
+      // in context of applet, a page refresh may cause timer into a unpredict status,
+      // so it's always better to restart this timer, so, cancel it first.
+      if (updateTimer != null) {
+         updateTimer.cancel
+      }
+      updateTimer = new Timer
 
-    /**
-     * @param symbol symbol in source
-     * @param set the Ser that will be filled by this server
-     */
-    def subscribe(contract:C, ser:Ser) :Unit = {
-        subscribe(contract, ser, Nil)
-    }
+      if (updateServer != null) {
+         updateServer.cancel
+      }
+      updateServer = new UpdateServer
 
-    def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser]) :Unit = {
-        subscribedContractToSer.synchronized { 
-            subscribedContractToSer.put(contract, ser)
-        }
-        subscribedSymbolToContract.synchronized {
-            subscribedSymbolToContract.put(contract.symbol, contract)
-        }
-        serToChainSers.synchronized {
-            val chainSersX = serToChainSers.get(ser) match {
-                case None => new ArrayBuffer[Ser]
-                case Some(x) => x
-            }
-            chainSersX ++= chainSers
-            serToChainSers.put(ser, chainSersX)
-        }
-    }
+      updateTimer.schedule(updateServer, 1000, updateInterval)
+   }
 
-    def unSubscribe(contract:C) :Unit = {
-        cancelRequest(contract)
-        serToChainSers.synchronized {
-            serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
-        }
-        subscribedContractToSer.synchronized {
-            subscribedContractToSer.removeKey(contract)
-        }
-        subscribedSymbolToContract.synchronized {
-            subscribedSymbolToContract.removeKey(contract.symbol)
-        }
-        releaseStorage(contract)
-    }
+   def stopUpdateServer :Unit = {
+      inUpdating = false
+      updateServer = null
+      updateTimer.cancel
+      updateTimer = null
 
-    protected def cancelRequest(contract:C) :Unit = {
-    }
+      postStopUpdateServer
+   }
 
-    def isContractSubsrcribed(contract:C) :Boolean = {
-        for (contract1 <- subscribedContractToSer.keySet) {
-            if (contract1.symbol.equals(contract.symbol)) {
-                return true
-            }
-        }
-        false
-    }
+   protected def postStopUpdateServer :Unit = {
+   }
 
-    def startLoadServer :Unit = {
-        if (currentContract == None) {
-            assert(false, "dataContract not set!")
-        }
+   protected def loadFromPersistence :Long
 
-        if (subscribedContractToSer.size == 0) {
-            assert(false, "none ser subscribed!")
-        }
+   /**
+    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
+    *        process this condition.
+    * @return loadedTime
+    */
+   protected def loadFromSource(afterThisTime:Long) :Long
 
-        if (loadServer == null) {
-            loadServer = new LoadServer
-        }
+   /**
+    * compose ser using data from timeValues
+    * @param symbol
+    * @param serToBeFilled Ser
+    * @param time values
+    */
+   protected def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
 
-        if (!inLoading) {
-            inLoading = true
-            new Thread(loadServer).start
-            // @Note: ExecutorSrevice will cause access denied of modifyThreadGroup in Applet !!
-            //getExecutorService().submit(loadServer);
-        }
-    }
+   protected class LoadServer extends Runnable {
 
-    def startUpdateServer(updateInterval:Int) :Unit = {
-        if (inLoading) {
-            System.out.println("should start update server after loaded")
-            inUpdating = false
-            return
-        }
+      override
+      def run :Unit = {
+         loadFromPersistence
 
-        inUpdating = true
+         loadedTime = loadFromSource(loadedTime)
 
-        // in context of applet, a page refresh may cause timer into a unpredict status,
-        // so it's always better to restart this timer, so, cancel it first.
-        if (updateTimer != null) {
-            updateTimer.cancel
-        }
-        updateTimer = new Timer
+         inLoading = false
 
-        if (updateServer != null) {
-            updateServer.cancel
-        }
-        updateServer = new UpdateServer
+         postLoad
+      }
+   }
 
-        updateTimer.schedule(updateServer, 1000, updateInterval)
-    }
+   protected def postLoad :Unit = {
+   }
 
-    def stopUpdateServer :Unit = {
-        inUpdating = false
-        updateServer = null
-        updateTimer.cancel
-        updateTimer = null
+   private class UpdateServer extends TimerTask {
+      override
+      def run :Unit = {
+         loadedTime = loadFromSource(loadedTime);
 
-        postStopUpdateServer
-    }
+         postUpdate
+      }
+   }
 
-    protected def postStopUpdateServer :Unit = {
-    }
+   protected def postUpdate :Unit = {
+   }
 
-    protected def loadFromPersistence :Long
+   override
+   def createNewInstance:Option[DataServer[C]] = {
+      try {
+         val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
+         instance.init
 
-    /**
-     * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
-     *        process this condition.
-     * @return loadedTime
-     */
-    protected def loadFromSource(afterThisTime:Long) :Long
+         Some(instance)
+      } catch {
+         case ex:InstantiationException => ex.printStackTrace; None
+         case ex:IllegalAccessException => ex.printStackTrace; None
+      }
+   }
 
-    /**
-     * compose ser using data from timeValues
-     * @param symbol
-     * @param serToBeFilled Ser
-     * @param time values
-     */
-    protected def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
+   /**
+    * Override it to return your icon
+    * @return a predifined image as the default icon
+    */
+   def icon :Option[Image] = {
+      if (DEFAULT_ICON == None) {
+         val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
+         DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit().createImage(url)) else None
+      }
+      DEFAULT_ICON
+   }
 
-    protected class LoadServer extends Runnable {
+   /**
+    * Convert source sn to source id in format of :
+    * sn (0-63)       id (64 bits)
+    * 0               ..,0000,0000
+    * 1               ..,0000,0001
+    * 2               ..,0000,0010
+    * 3               ..,0000,0100
+    * 4               ..,0000,1000
+    * ...
+    * @return source id
+    */
+   def sourceId :Long = {
+      val sn = sourceSerialNumber
+      assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
-        override
-        def run :Unit = {
-            loadFromPersistence
+      if (sn == 0) 0 else 1 << (sn - 1)
+   }
 
-            loadedTime = loadFromSource(loadedTime)
+   override
+   def compare(another:DataServer[C]) :Int = {
+      if (this.displayName.equalsIgnoreCase(another.displayName)) {
+         if (this.hashCode < another.hashCode) -1
+         else {
+            if (this.hashCode == another.hashCode) 0 else 1
+         }
+      } else {
+         this.displayName.compareTo(another.displayName)
+      }
+   }
 
-            inLoading = false
+   def sourceTimeZone :TimeZone
 
-            postLoad
-        }
-    }
-
-    protected def postLoad :Unit = {
-    }
-
-    private class UpdateServer extends TimerTask {
-        override
-        def run :Unit = {
-            loadedTime = loadFromSource(loadedTime);
-
-            postUpdate
-        }
-    }
-
-    protected def postUpdate :Unit = {
-    }
-
-    override
-    def createNewInstance:Option[DataServer[C]] = {
-        try {
-            val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
-            instance.init
-
-            Some(instance)
-        } catch {
-            case ex:InstantiationException => ex.printStackTrace; None
-            case ex:IllegalAccessException => ex.printStackTrace; None
-        }
-    }
-
-    /**
-     * Override it to return your icon
-     * @return a predifined image as the default icon
-     */
-    def icon :Option[Image] = {
-        if (DEFAULT_ICON == None) {
-            val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
-            DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit().createImage(url)) else None
-        }
-        DEFAULT_ICON
-    }
-
-    /**
-     * Convert source sn to source id in format of :
-     * sn (0-63)       id (64 bits)
-     * 0               ..,0000,0000
-     * 1               ..,0000,0001
-     * 2               ..,0000,0010
-     * 3               ..,0000,0100
-     * 4               ..,0000,1000
-     * ...
-     * @return source id
-     */
-    def sourceId :Long = {
-        val sn = sourceSerialNumber
-        assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
-
-        if (sn == 0) 0 else 1 << (sn - 1)
-    }
-
-    override
-    def compare(another:DataServer[C]) :Int = {
-        if (this.displayName.equalsIgnoreCase(another.displayName)) {
-            if (this.hashCode < another.hashCode) -1
-            else {
-                if (this.hashCode == another.hashCode) 0 else 1
-            }
-        } else {
-            this.displayName.compareTo(another.displayName)
-        }
-    }
-
-    def sourceTimeZone :TimeZone
-
-    override
-    def toString :String = displayName
+   override
+   def toString :String = displayName
 }
 
 

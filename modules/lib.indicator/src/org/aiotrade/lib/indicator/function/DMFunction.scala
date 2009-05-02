@@ -39,66 +39,66 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DMFunction extends AbstractFunction {
     
-    val _dmPlus  = Var[Float]()
-    val _dmMinus = Var[Float]()
+   val _dmPlus  = Var[Float]()
+   val _dmMinus = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
-    }
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (i == 0) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (i == 0) {
             
-            _dmPlus (i) = Float.NaN
-            _dmMinus(i) = Float.NaN
+         _dmPlus (i) = Float.NaN
+         _dmMinus(i) = Float.NaN
             
-        } else {
+      } else {
             
-            if (H(i) > H(i - 1) && L(i) > L(i - 1)) {
-                _dmPlus (i) = H(i) - H(i - 1)
-                _dmMinus(i) = 0f
-            } else if (H(i) < H(i - 1) && L(i) < L(i - 1)) {
-                _dmPlus (i) = 0f
-                _dmMinus(i) = L(i - 1) - L(i)
-            } else if (H(i) > H(i - 1) && L(i) < L(i - 1)) {
-                if (H(i) - H(i - 1) > L(i - 1) - L(i)) {
-                    _dmPlus (i) = H(i) - H(i - 1)
-                    _dmMinus(i) = 0f
-                } else {
-                    _dmPlus (i) = 0f
-                    _dmMinus(i) = L(i - 1) - L(i)
-                }
-            } else if (H(i) < H(i - 1) && L(i) > L(i - 1)) {
-                _dmPlus (i) = 0f
-                _dmMinus(i) = 0f
-            } else if (H(i) == H(i - 1) && L(i) == L(i - 1)) {
-                _dmPlus (i) = 0f
-                _dmMinus(i) = 0f
-            } else if (L(i) > H(i - 1)) {
-                _dmPlus (i) = H(i) - H(i)
-                _dmMinus(i) = 0f
-            } else if (H(i) < L(i - 1)) {
-                _dmPlus (i) = 0f
-                _dmMinus(i) = L(i - 1) - L(i)
+         if (H(i) > H(i - 1) && L(i) > L(i - 1)) {
+            _dmPlus (i) = H(i) - H(i - 1)
+            _dmMinus(i) = 0f
+         } else if (H(i) < H(i - 1) && L(i) < L(i - 1)) {
+            _dmPlus (i) = 0f
+            _dmMinus(i) = L(i - 1) - L(i)
+         } else if (H(i) > H(i - 1) && L(i) < L(i - 1)) {
+            if (H(i) - H(i - 1) > L(i - 1) - L(i)) {
+               _dmPlus (i) = H(i) - H(i - 1)
+               _dmMinus(i) = 0f
             } else {
-                _dmPlus (i) = 0f
-                _dmMinus(i) = 0f
+               _dmPlus (i) = 0f
+               _dmMinus(i) = L(i - 1) - L(i)
             }
+         } else if (H(i) < H(i - 1) && L(i) > L(i - 1)) {
+            _dmPlus (i) = 0f
+            _dmMinus(i) = 0f
+         } else if (H(i) == H(i - 1) && L(i) == L(i - 1)) {
+            _dmPlus (i) = 0f
+            _dmMinus(i) = 0f
+         } else if (L(i) > H(i - 1)) {
+            _dmPlus (i) = H(i) - H(i)
+            _dmMinus(i) = 0f
+         } else if (H(i) < L(i - 1)) {
+            _dmPlus (i) = 0f
+            _dmMinus(i) = L(i - 1) - L(i)
+         } else {
+            _dmPlus (i) = 0f
+            _dmMinus(i) = 0f
+         }
             
-        }
-    }
+      }
+   }
     
-    def dmPlus(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def dmPlus(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _dmPlus(idx)
-    }
+      _dmPlus(idx)
+   }
     
-    def dmMinus(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def dmMinus(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _dmMinus(idx)
-    }
+      _dmMinus(idx)
+   }
 }
 

@@ -40,26 +40,26 @@ import scala.actors.Actor._
 case class ComputeFrom(time:Long)
 trait Computable {
 
-    // ----- actor's implementation
-    val computableActor = actor {
-        loop {
-            react {
-                case ComputeFrom(time) => computeFrom(time)
-            }
-        }
-    }
-    // ----- end of actor's implementation
+   // ----- actor's implementation
+   val computableActor = actor {
+      loop {
+         react {
+            case ComputeFrom(time) => computeFrom(time)
+         }
+      }
+   }
+   // ----- end of actor's implementation
 
-    /**
-     * @param time to be computed from
-     */
-    def computeFrom(time:Long) :Unit
-    def computedTime :Long
+   /**
+    * @param time to be computed from
+    */
+   def computeFrom(time:Long) :Unit
+   def computedTime :Long
     
-    def factors :ArrayBuffer[Factor]
-    def factors_=(factors:ArrayBuffer[Factor]) :Unit
-    def factors_=(values:Array[Number]) :Unit
+   def factors :ArrayBuffer[Factor]
+   def factors_=(factors:ArrayBuffer[Factor]) :Unit
+   def factors_=(values:Array[Number]) :Unit
     
-    def dispose :Unit
+   def dispose :Unit
 }
 

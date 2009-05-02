@@ -40,23 +40,23 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class ZIGZAGIndicator extends ContIndicator {
-    _sname = "ZIGZAG"
-    _lname = "Zigzag"
-    _overlapping = true
+   _sname = "ZIGZAG"
+   _lname = "Zigzag"
+   _overlapping = true
     
-    val percent = Factor("Turn Persent", 0.03, 0.01)
+   val percent = Factor("Turn Persent", 0.03, 0.01)
     
-    val zigzag       = Var[Float]("ZIGZAG", Plot.Zigzag)
-    val pseudoZigzag = Var[Float]("PSEUDO", Plot.Zigzag)
+   val zigzag       = Var[Float]("ZIGZAG", Plot.Zigzag)
+   val pseudoZigzag = Var[Float]("PSEUDO", Plot.Zigzag)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            zigzag(i) = zigzag(i, percent)
-            pseudoZigzag(i) = pseudoZigzag(i, percent)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         zigzag(i) = zigzag(i, percent)
+         pseudoZigzag(i) = pseudoZigzag(i, percent)
+         i += 1
+      }
+   }
     
 }
 

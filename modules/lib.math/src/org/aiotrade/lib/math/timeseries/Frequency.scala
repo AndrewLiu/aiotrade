@@ -53,168 +53,168 @@ import org.aiotrade.lib.math.timeseries.Unit._
  */
 class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable[Frequency] {
 
-    val interval = unit.getInterval * nUnits
+   val interval = unit.getInterval * nUnits
 
-    def getUnit :Unit = unit
+   def getUnit :Unit = unit
 
-    def getNUnits :Int = nUnits
+   def getNUnits :Int = nUnits
 
-    /**
-     * return interval in milliseconds
-     */
-    def getInterval :Long = interval
+   /**
+    * return interval in milliseconds
+    */
+   def getInterval :Long = interval
 
-    def nextTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, nUnits)
+   def nextTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, nUnits)
     
-    def previousTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, -nUnits)
+   def previousTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, -nUnits)
 
-    def timeAfterNFreqs(fromTime:Long, nFreqs:Int) :Long = unit.timeAfterNUnits(fromTime, nUnits * nFreqs)
+   def timeAfterNFreqs(fromTime:Long, nFreqs:Int) :Long = unit.timeAfterNUnits(fromTime, nUnits * nFreqs)
 
-    def nFreqsBetween(fromTime:Long, toTime:Long) :Int = unit.nUnitsBetween(fromTime, toTime) / nUnits
+   def nFreqsBetween(fromTime:Long, toTime:Long) :Int = unit.nUnitsBetween(fromTime, toTime) / nUnits
 
-    /**
-     * round time to freq's begin 0
-     * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-     * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
-     */
-    def round(time:long, cal:Calendar) :Long = {
-        cal.setTimeInMillis(time)
-        val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset - cal.get(Calendar.DST_OFFSET)
-        ((time + offsetToLocalZeroOfDay) / interval) * interval - offsetToLocalZeroOfDay
-    }
+   /**
+    * round time to freq's begin 0
+    * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
+    */
+   def round(time:long, cal:Calendar) :Long = {
+      cal.setTimeInMillis(time)
+      val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset - cal.get(Calendar.DST_OFFSET)
+      ((time + offsetToLocalZeroOfDay) / interval) * interval - offsetToLocalZeroOfDay
+   }
 
-    /**
-     * round time to freq's begin 0
-     * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-     * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-     * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
-     */
-    def sameInterval(timeA:Long, timeB:Long, cal:Calendar) :Boolean = {
-        round(timeA, cal) == round(timeB, cal)
-    }
+   /**
+    * round time to freq's begin 0
+    * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+    * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
+    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
+    */
+   def sameInterval(timeA:Long, timeB:Long, cal:Calendar) :Boolean = {
+      round(timeA, cal) == round(timeB, cal)
+   }
 
-    def getName :String = {
-        if (nUnits == 1) {
-            unit match {
-                case Hour =>
-                    return "Hourly"
-                case Day =>
-                    return "Daily"
-                case Week =>
-                    return "Weekly"
-                case Month =>
-                    return "Monthly"
-                case Year =>
-                    return "Yearly"
-                case _ =>
-            }
-        }
+   def getName :String = {
+      if (nUnits == 1) {
+         unit match {
+            case Hour =>
+               return "Hourly"
+            case Day =>
+               return "Daily"
+            case Week =>
+               return "Weekly"
+            case Month =>
+               return "Monthly"
+            case Year =>
+               return "Yearly"
+            case _ =>
+         }
+      }
 
-        val sb = new StringBuilder(10).append(nUnits).append(unit.getCompactDescription)
-        if (nUnits > 1) {
-            sb.append("s")
-        }
+      val sb = new StringBuilder(10).append(nUnits).append(unit.getCompactDescription)
+      if (nUnits > 1) {
+         sb.append("s")
+      }
 
-        sb.toString
-    }
+      sb.toString
+   }
 
-    override
-    def equals(o:Any) :Boolean = {
-        o match {
-            case x:Frequency =>
-                if (x.unit == this.unit && x.nUnits == this.nUnits) {
-                    true
-                } else false
-            case _ => false
-        }
-    }
+   override
+   def equals(o:Any) :Boolean = {
+      o match {
+         case x:Frequency =>
+            if (x.unit == this.unit && x.nUnits == this.nUnits) {
+               true
+            } else false
+         case _ => false
+      }
+   }
 
-    override
-    def clone :Frequency = {
-        try {
-            return super.clone.asInstanceOf[Frequency]
-        } catch {
-            case ex:CloneNotSupportedException => ex.printStackTrace()
-        }
+   override
+   def clone :Frequency = {
+      try {
+         return super.clone.asInstanceOf[Frequency]
+      } catch {
+         case ex:CloneNotSupportedException => ex.printStackTrace()
+      }
 
-        null
-    }
+      null
+   }
 
-    def compareTo(another:Frequency) :Int = {
-        if (this.unit.ordinal < another.unit.ordinal) {
-            -1
-        } else if (this.unit.ordinal > another.unit.ordinal) {
-            1
-        } else {
-            if (this.nUnits < another.nUnits) -1 else {if (this.nUnits == another.nUnits) 0 else 1}
-        }
-    }
+   def compareTo(another:Frequency) :Int = {
+      if (this.unit.ordinal < another.unit.ordinal) {
+         -1
+      } else if (this.unit.ordinal > another.unit.ordinal) {
+         1
+      } else {
+         if (this.nUnits < another.nUnits) -1 else {if (this.nUnits == another.nUnits) 0 else 1}
+      }
+   }
 
-    override
-    def hashCode :Int = {
-        /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
-        interval.asInstanceOf[Int]
-        /*- Reserve
-         return unit.hashCode() * nUnits
-         */
-    }
+   override
+   def hashCode :Int = {
+      /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
+      interval.asInstanceOf[Int]
+      /*- Reserve
+       return unit.hashCode() * nUnits
+       */
+   }
 
-    override
-    def toString :String = getName
+   override
+   def toString :String = getName
 
-    def writeToBean(doc:BeansDocument) :Element = {
-        val bean = doc.createBean(this)
+   def writeToBean(doc:BeansDocument) :Element = {
+      val bean = doc.createBean(this)
     
-        doc.valueConstructorArgOfBean(bean, 0, getUnit)
-        doc.valueConstructorArgOfBean(bean, 1, getNUnits)
+      doc.valueConstructorArgOfBean(bean, 0, getUnit)
+      doc.valueConstructorArgOfBean(bean, 1, getNUnits)
     
-        bean
-    }
+      bean
+   }
     
-    def writeToJava(id:String) :String = {
-        "todo"//JavaDocument.create(id, classOf[Frequency], getUnit, getNUnits)
-    }
+   def writeToJava(id:String) :String = {
+      "todo"//JavaDocument.create(id, classOf[Frequency], getUnit, getNUnits)
+   }
 }
 
 object Frequency {
-    val PREDEFINED = Set(ONE_MIN,
-                         TWO_MINS,
-                         THREE_MINS,
-                         FOUR_MINS,
-                         FIVE_MINS,
-                         FIFTEEN_MINS,
-                         THIRTY_MINS,
-                         DAILY,
-                         TWO_DAYS,
-                         THREE_DAYS,
-                         FOUR_DAYS,
-                         FIVE_DAYS,
-                         WEEKLY,
-                         MONTHLY)
+   val PREDEFINED = Set(ONE_MIN,
+                        TWO_MINS,
+                        THREE_MINS,
+                        FOUR_MINS,
+                        FIVE_MINS,
+                        FIFTEEN_MINS,
+                        THIRTY_MINS,
+                        DAILY,
+                        TWO_DAYS,
+                        THREE_DAYS,
+                        FOUR_DAYS,
+                        FIVE_DAYS,
+                        WEEKLY,
+                        MONTHLY)
 
-    val SELF_DEFINED = new Frequency(Unit.Second, 0)
-    val ONE_SEC = new Frequency(Unit.Second, 1)
-    val TWO_SECS = new Frequency(Unit.Second, 2)
-    val THREE_SECS = new Frequency(Unit.Second, 3)
-    val FOUR_SECS = new Frequency(Unit.Second, 3)
-    val FIVE_SECS = new Frequency(Unit.Second, 5)
-    val FIFTEEN_SECS = new Frequency(Unit.Second, 15)
-    val THIRTY_SECS = new Frequency(Unit.Second, 30)
-    val ONE_MIN = new Frequency(Unit.Minute, 1)
-    val TWO_MINS = new Frequency(Unit.Minute, 2)
-    val THREE_MINS = new Frequency(Unit.Minute, 3)
-    val FOUR_MINS = new Frequency(Unit.Minute, 3)
-    val FIVE_MINS = new Frequency(Unit.Minute, 5)
-    val FIFTEEN_MINS = new Frequency(Unit.Minute, 15)
-    val THIRTY_MINS = new Frequency(Unit.Minute, 30)
-    val ONE_HOUR = new Frequency(Unit.Hour, 1)
-    val DAILY = new Frequency(Unit.Day, 1)
-    val TWO_DAYS = new Frequency(Unit.Day, 2)
-    val THREE_DAYS = new Frequency(Unit.Day, 3)
-    val FOUR_DAYS = new Frequency(Unit.Day, 4)
-    val FIVE_DAYS = new Frequency(Unit.Day, 5)
-    val WEEKLY = new Frequency(Unit.Week, 1)
-    val MONTHLY = new Frequency(Unit.Month, 1)
-    val THREE_MONTHS = new Frequency(Unit.Month, 3)
-    val ONE_YEAR = new Frequency(Unit.Year, 1)
+   val SELF_DEFINED = new Frequency(Unit.Second, 0)
+   val ONE_SEC = new Frequency(Unit.Second, 1)
+   val TWO_SECS = new Frequency(Unit.Second, 2)
+   val THREE_SECS = new Frequency(Unit.Second, 3)
+   val FOUR_SECS = new Frequency(Unit.Second, 3)
+   val FIVE_SECS = new Frequency(Unit.Second, 5)
+   val FIFTEEN_SECS = new Frequency(Unit.Second, 15)
+   val THIRTY_SECS = new Frequency(Unit.Second, 30)
+   val ONE_MIN = new Frequency(Unit.Minute, 1)
+   val TWO_MINS = new Frequency(Unit.Minute, 2)
+   val THREE_MINS = new Frequency(Unit.Minute, 3)
+   val FOUR_MINS = new Frequency(Unit.Minute, 3)
+   val FIVE_MINS = new Frequency(Unit.Minute, 5)
+   val FIFTEEN_MINS = new Frequency(Unit.Minute, 15)
+   val THIRTY_MINS = new Frequency(Unit.Minute, 30)
+   val ONE_HOUR = new Frequency(Unit.Hour, 1)
+   val DAILY = new Frequency(Unit.Day, 1)
+   val TWO_DAYS = new Frequency(Unit.Day, 2)
+   val THREE_DAYS = new Frequency(Unit.Day, 3)
+   val FOUR_DAYS = new Frequency(Unit.Day, 4)
+   val FIVE_DAYS = new Frequency(Unit.Day, 5)
+   val WEEKLY = new Frequency(Unit.Week, 1)
+   val MONTHLY = new Frequency(Unit.Month, 1)
+   val THREE_MONTHS = new Frequency(Unit.Month, 3)
+   val ONE_YEAR = new Frequency(Unit.Year, 1)
 }

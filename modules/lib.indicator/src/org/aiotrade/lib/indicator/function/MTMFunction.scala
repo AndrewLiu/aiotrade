@@ -40,36 +40,36 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MTMFunction extends AbstractFunction {
     
-    var period :Factor = _
-    var baseVar :Var[Float] = _
+   var period :Factor = _
+   var baseVar :Var[Float] = _
     
-    val _mtm = Var[Float]()
+   val _mtm = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.baseVar = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Factor]
-    }
+      this.baseVar = args(0).asInstanceOf[Var[Float]]
+      this.period = args(1).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (i < period.value - 1) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (i < period.value - 1) {
             
-            _mtm(i) = Float.NaN
+         _mtm(i) = Float.NaN
             
-        } else {
+      } else {
             
-            _mtm(i) = (baseVar(i) / baseVar(i - period.value.toInt)) * 100f
+         _mtm(i) = (baseVar(i) / baseVar(i - period.value.toInt)) * 100f
             
-        }
-    }
+      }
+   }
     
-    def mtm(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def mtm(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _mtm(idx)
-    }
+      _mtm(idx)
+   }
     
 }
 

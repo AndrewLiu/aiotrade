@@ -40,43 +40,43 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ADXRFunction extends AbstractFunction {
     
-    var periodDi :Factor = _
-    var periodAdx :Factor = _
+   var periodDi :Factor = _
+   var periodAdx :Factor = _
     
-    val _adx  = Var[Float]()
-    val _adxr = Var[Float]()
+   val _adx  = Var[Float]()
+   val _adxr = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.periodDi = args(0).asInstanceOf[Factor]
-        this.periodAdx = args(1).asInstanceOf[Factor]
-    }
+      this.periodDi = args(0).asInstanceOf[Factor]
+      this.periodAdx = args(1).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        _adx(i) = adx(i, periodDi, periodAdx)
+   protected def computeSpot(i:Int) :Unit = {
+      _adx(i) = adx(i, periodDi, periodAdx)
         
-        if (i < periodDi.value - 1 || i < periodAdx.value - 1) {
+      if (i < periodDi.value - 1 || i < periodAdx.value - 1) {
             
-            _adxr(i) = Float.NaN
+         _adxr(i) = Float.NaN
             
-        } else {
+      } else {
             
-            val adx_i = _adx(i)
-            val adx_j = _adx(i - periodAdx.value.toInt)
+         val adx_i = _adx(i)
+         val adx_j = _adx(i - periodAdx.value.toInt)
             
-            _adxr(i) = (adx_i + adx_j) / 2f
+         _adxr(i) = (adx_i + adx_j) / 2f
             
-        }
-    }
+      }
+   }
     
     
-    def adxr(sessionId:Long, idx:Int) :Float = {
-        computeTo(sessionId, idx)
+   def adxr(sessionId:Long, idx:Int) :Float = {
+      computeTo(sessionId, idx)
         
-        _adxr(idx)
-    }
+      _adxr(idx)
+   }
     
 }
 

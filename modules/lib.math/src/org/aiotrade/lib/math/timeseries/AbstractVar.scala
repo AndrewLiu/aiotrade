@@ -41,35 +41,35 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  */
 abstract class AbstractVar[E](var name:String, var plot:Plot) extends Var[E] {
     
-    val LAYER_NOT_SET = -1
+   val LAYER_NOT_SET = -1
         
-    var layer = LAYER_NOT_SET
+   var layer = LAYER_NOT_SET
     
-    def this() = {
-        this("", Plot.None)
-    }
+   def this() = {
+      this("", Plot.None)
+   }
     
-    def this(name:String) = {
-        this(name, Plot.None)
-    }
+   def this(name:String) = {
+      this(name, Plot.None)
+   }
         
-    def toDoubleArray :Array[Double] = {
-        val length = size
-        val result = new Array[double](length)
+   def toDoubleArray :Array[Double] = {
+      val length = size
+      val result = new Array[double](length)
         
-        if (length > 0 && apply(0).isInstanceOf[Number]) {
-            var i = 0
-            while (i < length) {
-                result(i) = apply(i).asInstanceOf[Number].doubleValue
-                i += 1
-            }
-        }
+      if (length > 0 && apply(0).isInstanceOf[Number]) {
+         var i = 0
+         while (i < length) {
+            result(i) = apply(i).asInstanceOf[Number].doubleValue
+            i += 1
+         }
+      }
         
-        result
-    }
+      result
+   }
     
-    override
-    def toString :String = name
+   override
+   def toString :String = name
     
 }
 

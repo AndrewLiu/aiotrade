@@ -40,25 +40,25 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class CCIIndicator extends ContIndicator {
-    _sname = "CCI"
-    _lname = "Commodity Channel Index"
-    _grids = Array(100f, -100f)
+   _sname = "CCI"
+   _lname = "Commodity Channel Index"
+   _grids = Array(100f, -100f)
 
-    val alpha    = Factor("Alpha",     0.015)
-    val period   = Factor("Period",    20)
-    val periodMa = Factor("Period MA", 3)
+   val alpha    = Factor("Alpha",     0.015)
+   val period   = Factor("Period",    20)
+   val periodMa = Factor("Period MA", 3)
     
-    val cci    = Var[Float]("CCI",   Plot.Line)
-    val cci_ma = Var[Float]("MACCI", Plot.Line)
+   val cci    = Var[Float]("CCI",   Plot.Line)
+   val cci_ma = Var[Float]("MACCI", Plot.Line)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            cci(i)    = cci(i, period, alpha)
-            cci_ma(i) = ma (i, cci, periodMa)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         cci(i)    = cci(i, period, alpha)
+         cci_ma(i) = ma (i, cci, periodMa)
+         i += 1
+      }
+   }
 }
 
 

@@ -40,44 +40,44 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object EMAFunction {
-    protected def iema(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
-        StatisticFunction.iema(idx, var1.values, period.toInt, prev)
-    }
+   protected def iema(idx:Int, var1:Var[Float], period:Float, prev:Float) :Float = {
+      StatisticFunction.iema(idx, var1.values, period.toInt, prev)
+   }
 
 
 }
 class EMAFunction extends AbstractFunction {
     
-    var period :Factor = _
-    var baseVar :Var[Float] = _
+   var period :Factor = _
+   var baseVar :Var[Float] = _
     
-    val _ema = Var[Float]()
+   val _ema = Var[Float]()
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.baseVar = args(0).asInstanceOf[Var[Float]]
-        this.period = args(1).asInstanceOf[Factor]
-    }
+      this.baseVar = args(0).asInstanceOf[Var[Float]]
+      this.period = args(1).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        if (i == 0) {
+   protected def computeSpot(i:Int) :Unit = {
+      if (i == 0) {
             
-            _ema(i) = baseVar(i)
+         _ema(i) = baseVar(i)
             
-        } else {
+      } else {
             
-            _ema(i) = EMAFunction.iema(i, baseVar, period.value, _ema(i - 1))
+         _ema(i) = EMAFunction.iema(i, baseVar, period.value, _ema(i - 1))
             
-        }
-    }
+      }
+   }
     
-    def ema(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def ema(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _ema(idx)
-    }
+      _ema(idx)
+   }
     
 }
 

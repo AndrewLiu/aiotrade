@@ -40,81 +40,81 @@ import org.aiotrade.lib.math.timeseries.Frequency
  * @author Caoyuan Deng
  */
 object QuoteContract {
-    val folderName :String = "QuoteServers"
+   val folderName :String = "QuoteServers"
 }
 
 class QuoteContract extends SecDataContract[QuoteServer] {
-    import QuoteContract._
+   import QuoteContract._
 
-    serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"
-    active = true
-    /** default freq */
-    freq = Frequency.DAILY
-    dateFormatPattern = null
-    urlString = ""
-    refreshable = false
-    refreshInterval = 60 // seconds
-    inputStream = None
+   serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"
+   active = true
+   /** default freq */
+   freq = Frequency.DAILY
+   dateFormatPattern = null
+   urlString = ""
+   refreshable = false
+   refreshInterval = 60 // seconds
+   inputStream = None
 
-    private val cal = Calendar.getInstance
-    endDate = cal.getTime
-    cal.set(1970, Calendar.JANUARY, 1)
-    beginDate = cal.getTime
+   private val cal = Calendar.getInstance
+   endDate = cal.getTime
+   cal.set(1970, Calendar.JANUARY, 1)
+   beginDate = cal.getTime
 
-    def icon :Option[Image] =  {
-        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
+   def icon :Option[Image] =  {
+      val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
-        server match {
-            case None => None
-            case Some(x) => x.icon
-        }
-    }
+      server match {
+         case None => None
+         case Some(x) => x.icon
+      }
+   }
 
-    def supportedFreqs :Array[Frequency] = {
-        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
+   def supportedFreqs :Array[Frequency] = {
+      val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
-        server match {
-            case None => Array()
-            case Some(x) => x.supportedFreqs
-        }
-    }
+      server match {
+         case None => Array()
+         case Some(x) => x.supportedFreqs
+      }
+   }
 
-    def isFreqSupported(freq:Frequency) :Boolean = {
-        //        /** check if is my default freq, if true at least support default freq */
-        //        if (freq.equals(getFreq())) {
-        //            return true;
-        //        }
+   def isFreqSupported(freq:Frequency) :Boolean = {
+      //        /** check if is my default freq, if true at least support default freq */
+      //        if (freq.equals(getFreq())) {
+      //            return true;
+      //        }
 
-        val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
-        server match {
-            case None => false
-            case Some(x) => x.isFreqSupported(freq)
-        }
-    }
+      val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
+      server match {
+         case None => false
+         case Some(x) => x.isFreqSupported(freq)
+      }
+   }
 
-    override
-    def displayName = "Quote Data Contract"
+   override
+   def displayName = "Quote Data Contract"
 
-    /**
-     * @param none args are needed.
-     */
-    override
-    def createServiceInstance(args:Any*) :Option[QuoteServer] = {
-        lookupServiceTemplate match {
-            case None => None
-            case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
-        }
-    }
+   /**
+    * @param none args are needed.
+    */
+   override
+   def createServiceInstance(args:Any*) :Option[QuoteServer] = {
+      lookupServiceTemplate match {
+         case None => None
+         case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
+      }
+   }
 
-    def lookupServiceTemplate :Option[QuoteServer] =  {
-        val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-        services.find{x => x.getClass.getName.equals(serviceClassName)} match {
-            case None =>
-                try {
-                    Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
-                } catch {case ex:Exception => ex.printStackTrace; None}
-            case some => some
-        }
-    }
+   def lookupServiceTemplate :Option[QuoteServer] =  {
+      val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
+      services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+         case None =>
+            try {
+               Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
+            } catch {case ex:Exception => ex.printStackTrace; None}
+         case some => some
+      }
+   }
 
 }

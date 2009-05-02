@@ -40,47 +40,47 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class CCIFunction extends AbstractFunction {
     
-    var alpha, period :Factor = _
+   var alpha, period :Factor = _
     
-    val _tp        = Var[Float]()
-    val _deviation = Var[Float]()
+   val _tp        = Var[Float]()
+   val _deviation = Var[Float]()
     
-    val _cci = Var[Float]
+   val _cci = Var[Float]
     
-    override
-    def set(baseSer:Ser, args:Any*) :Unit = {
-        super.set(baseSer)
+   override
+   def set(baseSer:Ser, args:Any*) :Unit = {
+      super.set(baseSer)
         
-        this.period = args(0).asInstanceOf[Factor]
-        this.alpha = args(1).asInstanceOf[Factor]
-    }
+      this.period = args(0).asInstanceOf[Factor]
+      this.alpha = args(1).asInstanceOf[Factor]
+   }
     
-    protected def computeSpot(i:Int) :Unit = {
-        _tp(i) = (H(i) + 2 * C(i) + L(i)) / 4f
+   protected def computeSpot(i:Int) :Unit = {
+      _tp(i) = (H(i) + 2 * C(i) + L(i)) / 4f
         
-        if (i < period.value - 1) {
+      if (i < period.value - 1) {
             
-            _deviation(i) = Float.NaN
+         _deviation(i) = Float.NaN
             
-            _cci(i) = Float.NaN
+         _cci(i) = Float.NaN
             
-        } else {
+      } else {
             
-            val tp_ma_i = ma(i, _tp, period)
+         val tp_ma_i = ma(i, _tp, period)
             
-            _deviation(i) = Math.abs(_tp(i) - tp_ma_i)
-            val deviation_ma_i = ma(i, _deviation, period)
+         _deviation(i) = Math.abs(_tp(i) - tp_ma_i)
+         val deviation_ma_i = ma(i, _deviation, period)
             
-            _cci(i) = (_tp(i) - tp_ma_i) / (alpha.value * deviation_ma_i)
+         _cci(i) = (_tp(i) - tp_ma_i) / (alpha.value * deviation_ma_i)
             
-        }
-    }
+      }
+   }
     
-    def cci(sessionId:Long, idx:int) :Float = {
-        computeTo(sessionId, idx)
+   def cci(sessionId:Long, idx:int) :Float = {
+      computeTo(sessionId, idx)
         
-        _cci(idx)
-    }
+      _cci(idx)
+   }
     
 }
 

@@ -40,23 +40,23 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class SARIndicator extends ContIndicator {
-    _sname = "SAR"
-    _lname = "Parabolic SAR"
-    _overlapping = true
+   _sname = "SAR"
+   _lname = "Parabolic SAR"
+   _overlapping = true
 
-    val initial = Factor("Primary AF", 0.02, 0.01)
-    val step    = Factor("AF step",    0.02, 0.01)
-    val maximum = Factor("Maximum AF",  0.20, 0.10)
+   val initial = Factor("Primary AF", 0.02, 0.01)
+   val step    = Factor("AF step",    0.02, 0.01)
+   val maximum = Factor("Maximum AF",  0.20, 0.10)
     
-    val sar = Var[Float]("SAR", Plot.Dot)
+   val sar = Var[Float]("SAR", Plot.Dot)
     
-    protected def computeCont(begIdx:Int, size:Int) :Unit = {
-        var i = begIdx
-        while (i < size) {
-            sar(i) = sar(i, initial, step, maximum)
-            i += 1
-        }
-    }
+   protected def computeCont(begIdx:Int, size:Int) :Unit = {
+      var i = begIdx
+      while (i < size) {
+         sar(i) = sar(i, initial, step, maximum)
+         i += 1
+      }
+   }
     
 }
 

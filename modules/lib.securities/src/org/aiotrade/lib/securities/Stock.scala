@@ -40,7 +40,7 @@ class Stock(uniSymbol:String,
             quoteContracts:Seq[QuoteContract],
             tickerContract:TickerContract) extends AbstractSec(uniSymbol, quoteContracts, tickerContract) {
     
-    def this(uniSymbol:String, quoteContracts:Seq[QuoteContract]) {
-        this(uniSymbol, quoteContracts, null)
-    }
+   def this(uniSymbol:String, quoteContracts:Seq[QuoteContract]) {
+      this(uniSymbol, quoteContracts, null)
+   }
 }
