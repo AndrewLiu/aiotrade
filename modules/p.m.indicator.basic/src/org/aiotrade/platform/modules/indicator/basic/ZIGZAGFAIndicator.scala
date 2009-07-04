@@ -38,25 +38,25 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class ZIGZAGFAIndicator extends ContIndicator {
-   _sname = "ZIGZAGFA"
-   _lname = "Zigzag with Fibonacci Arcs"
-   _overlapping = true
+  _sname = "ZIGZAGFA"
+  _lname = "Zigzag with Fibonacci Arcs"
+  _overlapping = true
     
-   val percent = Factor("Turn Percent", 3.0)  // Percent for judge if trend turns over
+  val percent = Factor("Turn Percent", 3.0)  // Percent for judge if trend turns over
     
-   //    Var zigzag        = function("zigzag")
-   //    Var pseudoZigzag  = function("pseudoZigzag")
+  //    Var zigzag        = function("zigzag")
+  //    Var pseudoZigzag  = function("pseudoZigzag")
     
-   //    Var zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
-   //    Var pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
+  //    Var zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
+  //    Var pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
-      var i = begIdx
-      while (i < size) {
-         i += 1
-      }
-   }
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
+    var i = begIdx
+    while (i < size) {
+      i += 1
+    }
+  }
 }
 
 

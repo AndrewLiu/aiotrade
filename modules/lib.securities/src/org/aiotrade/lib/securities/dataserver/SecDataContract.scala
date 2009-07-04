@@ -43,43 +43,41 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
-   var reqId :int = _
-   var secType = Sec.Type.Stock
-   var primaryExchange = "SUPERSOES"
-   var exchange = "SMART"
-   var currency = "USD"
+  var reqId :int = _
+  var secType = Sec.Type.Stock
+  var primaryExchange = "SUPERSOES"
+  var exchange = "SMART"
+  var currency = "USD"
     
-   active = true
-   urlString = ""
-   refreshable = false
-   refreshInterval = 60 // seconds
-   inputStream = None
+  active = true
+  urlString = ""
+  refreshable = false
+  refreshInterval = 60 // seconds
+  inputStream = None
     
-   private val cal = Calendar.getInstance
-   endDate = cal.getTime
-   cal.set(1970, Calendar.JANUARY, 1)
-   beginDate = cal.getTime
+  private val cal = Calendar.getInstance
+  endDate = cal.getTime
+  cal.set(1970, Calendar.JANUARY, 1)
+  beginDate = cal.getTime
 
-   override
-   def writeToBean(doc:BeansDocument) :Element = {
-      val bean = super.writeToBean(doc)
+  override def writeToBean(doc:BeansDocument) :Element = {
+    val bean = super.writeToBean(doc)
         
-      doc.valuePropertyOfBean(bean, "secType", secType)
-      doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
-      doc.valuePropertyOfBean(bean, "exchange", exchange)
-      doc.valuePropertyOfBean(bean, "currency", currency)
+    doc.valuePropertyOfBean(bean, "secType", secType)
+    doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
+    doc.valuePropertyOfBean(bean, "exchange", exchange)
+    doc.valuePropertyOfBean(bean, "currency", currency)
         
-      bean
-   }
+    bean
+  }
     
-   override
-   def writeToJava(id:String) :String = {
-      super.writeToJava(id) +
-      JavaDocument.set(id, "setSecType", classOf[Sec.Type].getName + "." + secType) +
-      JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
-      JavaDocument.set(id, "setExchange", "" + exchange) +
-      JavaDocument.set(id, "setCurrency", "" + currency)
-   }
+  override def writeToJava(id:String) :String = {
+    super.writeToJava(id) +
+    JavaDocument.set(id, "setSecType", classOf[Sec.Type].getName + "." + secType) +
+    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
+    JavaDocument.set(id, "setExchange", "" + exchange) +
+    JavaDocument.set(id, "setCurrency", "" + currency)
+  }
     
 }
 

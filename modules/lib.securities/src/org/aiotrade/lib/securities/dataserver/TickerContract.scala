@@ -40,58 +40,55 @@ import org.aiotrade.lib.math.timeseries.Frequency
  * @author Caoyuan Deng
  */
 object TickerContract {
-   val folderName = "TickerServers"
+  val folderName = "TickerServers"
 }
 
 class TickerContract extends SecDataContract[TickerServer] {
-   import TickerContract._
+  import TickerContract._
     
-   serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
-   freq = Frequency.ONE_MIN
-   urlString = ""
-   refreshable = true
-   refreshInterval = 5 // seconds
+  serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
+  freq = Frequency.ONE_MIN
+  urlString = ""
+  refreshable = true
+  refreshInterval = 5 // seconds
 
-   private val cal = Calendar.getInstance
-   endDate = cal.getTime
-   cal.set(1990, Calendar.JANUARY, 1)
-   beginDate = cal.getTime
+  private val cal = Calendar.getInstance
+  endDate = cal.getTime
+  cal.set(1990, Calendar.JANUARY, 1)
+  beginDate = cal.getTime
 
-   override
-   def displayName = {
-      "Ticker Data Contract[" + symbol + "]"
-   }
+  override def displayName = {
+    "Ticker Data Contract[" + symbol + "]"
+  }
     
-   /**
-    * @param none args are needed
-    */
-   override
-   def createServiceInstance(args:Any*) :Option[TickerServer] = {
-      lookupServiceTemplate match {
-         case None => None
-         case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
-      }
-   }
+  /**
+   * @param none args are needed
+   */
+  override def createServiceInstance(args:Any*) :Option[TickerServer] = {
+    lookupServiceTemplate match {
+      case None => None
+      case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
+    }
+  }
     
-   def lookupServiceTemplate :Option[TickerServer] = {
-      val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[TickerServer], folderName)
-      services.find{x => x.getClass.getName.equals(serviceClassName)} match {
-         case None =>
-            try {
-               Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
-            } catch {case ex:Exception => ex.printStackTrace; None}
-         case some => some
-      }
-   }
+  def lookupServiceTemplate :Option[TickerServer] = {
+    val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[TickerServer], folderName)
+    services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+      case None =>
+        try {
+          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
+        } catch {case ex:Exception => ex.printStackTrace; None}
+      case some => some
+    }
+  }
         
-   /**
-    * Ticker contract don't care about freq, so override super
-    */
-   override
-   def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
-      if (this.serviceClassName.equals(serviceClassName)) true
-      else false
-   }
+  /**
+   * Ticker contract don't care about freq, so override super
+   */
+  override def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
+    if (this.serviceClassName.equals(serviceClassName)) true
+    else false
+  }
     
 }
 

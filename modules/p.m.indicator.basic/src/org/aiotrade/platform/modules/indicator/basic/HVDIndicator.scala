@@ -41,30 +41,30 @@ import org.aiotrade.lib.indicator.SpotIndicator
  * @author Caoyuan Deng
  */
 class HVDIndicator extends SpotIndicator {
-   _sname = "HVD"
-   _lname = "Historical Volume Distribution"
-   _overlapping = true
+  _sname = "HVD"
+  _lname = "Historical Volume Distribution"
+  _overlapping = true
     
-   val nIntervals = Factor("Number of Intervals", 30, 1, 1, 100)
-   val period1    = Factor("Period1",  50)
-   val period2    = Factor("Period2",  100)
-   val period3    = Factor("Period3",  200)
+  val nIntervals = Factor("Number of Intervals", 30, 1, 1, 100)
+  val period1    = Factor("Period1",  50)
+  val period2    = Factor("Period2",  100)
+  val period3    = Factor("Period3",  200)
     
-   val HVD1 = Var[Array[Array[Float]]]("HVD1", Plot.Profile)
-   val HVD2 = Var[Array[Array[Float]]]("HVD2", Plot.Profile)
-   val HVD3 = Var[Array[Array[Float]]]("HVD3", Plot.Profile)
+  val HVD1 = Var[Array[Array[Float]]]("HVD1", Plot.Profile)
+  val HVD2 = Var[Array[Array[Float]]]("HVD2", Plot.Profile)
+  val HVD3 = Var[Array[Array[Float]]]("HVD3", Plot.Profile)
     
-   def computeSpot(time:Long, baseIdx:Int) :SerItem = {
-      val item = createItemOrClearIt(time)
+  def computeSpot(time:Long, baseIdx:Int) :SerItem = {
+    val item = createItemOrClearIt(time)
         
-      val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
-      val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
-      val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)
+    val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
+    val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
+    val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)
         
-      item.set(HVD1, probability_mass1)
-      item.set(HVD2, probability_mass2)
-      item.set(HVD3, probability_mass3)
+    item.set(HVD1, probability_mass1)
+    item.set(HVD2, probability_mass2)
+    item.set(HVD3, probability_mass3)
         
-      item
-   }
+    item
+  }
 }

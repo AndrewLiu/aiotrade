@@ -40,26 +40,26 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object PersistenceManager {
-   private var manager:PersistenceManager = null
+  private var manager:PersistenceManager = null
 
-   def getDefault :PersistenceManager = {
-      if (manager == null) {
-         manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
-      }
-      manager
-   }
+  def getDefault :PersistenceManager = {
+    if (manager == null) {
+      manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
+    }
+    manager
+  }
     
 }
 /** Interface of PersistenceManager */
 trait PersistenceManager {
-   def restoreProperties :Unit
-   def saveProperties :Unit
+  def restoreProperties :Unit
+  def saveProperties :Unit
 
-   def saveContents(contents:AnalysisContents) :Unit
-   def restoreContents(symbol:String) :AnalysisContents
-   def defaultContents :AnalysisContents
+  def saveContents(contents:AnalysisContents) :Unit
+  def restoreContents(symbol:String) :AnalysisContents
+  def defaultContents :AnalysisContents
 
-   def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T]
-   //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
+  def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T]
+  //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
 }
 

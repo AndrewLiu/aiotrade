@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.Ser
  */
 abstract class ContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
 
-   def this() = {
-      this(null)
-   }
+  def this() = {
+    this(null)
+  }
 }

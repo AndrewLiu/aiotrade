@@ -45,24 +45,24 @@ import org.aiotrade.lib.math.timeseries.computable.Indicator;
  * @author Caoyuan Deng
  */
 object SingletonIndicator {
-   protected var singletonInstance :SingletonIndicator = _
+  protected var singletonInstance :SingletonIndicator = _
 }
 abstract class SingletonIndicator extends ContIndicator(null) {
-   import SingletonIndicator._
+  import SingletonIndicator._
     
-   singletonInstance = this
+  singletonInstance = this
     
-   def createInstance :Indicator = {
-      if (singletonInstance == null) {
-         val clazz = this.getClass
-         try {
-            singletonInstance = this.getClass.newInstance.asInstanceOf[SingletonIndicator]
-         } catch {
-            case ex:Exception => ex.printStackTrace
-         }
+  def createInstance :Indicator = {
+    if (singletonInstance == null) {
+      val clazz = this.getClass
+      try {
+        singletonInstance = this.getClass.newInstance.asInstanceOf[SingletonIndicator]
+      } catch {
+        case ex:Exception => ex.printStackTrace
       }
-      singletonInstance
-   }
+    }
+    singletonInstance
+  }
     
 }
 

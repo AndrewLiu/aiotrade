@@ -40,27 +40,27 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class MACDIndicator extends ContIndicator {
-   _sname = "MACD"
-   _lname = "Moving Average Convergence/Divergence"
+  _sname = "MACD"
+  _lname = "Moving Average Convergence/Divergence"
     
-   val periodFast   = Factor("Period EMA Fast", 12)
-   val periodSlow   = Factor("Period EMA Slow", 26)
-   val periodSignal = Factor("Period Signal",    9)
+  val periodFast   = Factor("Period EMA Fast", 12)
+  val periodSlow   = Factor("Period EMA Slow", 26)
+  val periodSignal = Factor("Period Signal",    9)
     
-   val macd   = Var[Float]("MACD",   Plot.Line)
-   val signal = Var[Float]("SIGNAL", Plot.Line)
-   val osc    = Var[Float]("OSC",    Plot.Stick)
+  val macd   = Var[Float]("MACD",   Plot.Line)
+  val signal = Var[Float]("SIGNAL", Plot.Line)
+  val osc    = Var[Float]("OSC",    Plot.Stick)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
-         macd(i) = macd(i, C, periodSlow, periodFast)
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
+      macd(i) = macd(i, C, periodSlow, periodFast)
             
-         signal(i) = ema(i, macd, periodSignal)
+      signal(i) = ema(i, macd, periodSignal)
             
-         osc(i) = macd(i) - signal(i)
-         i += 1
-      }
-   }
+      osc(i) = macd(i) - signal(i)
+      i += 1
+    }
+  }
     
 }

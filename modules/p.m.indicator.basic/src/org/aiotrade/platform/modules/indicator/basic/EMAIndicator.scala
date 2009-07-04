@@ -40,27 +40,27 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class EMAIndicator extends ContIndicator {
-   _sname = "EMA"
-   _lname = "Exponential Moving Average"
-   _overlapping = true;
+  _sname = "EMA"
+  _lname = "Exponential Moving Average"
+  _overlapping = true;
     
-   val period1 = Factor("Period Short",   5)
-   val period2 = Factor("Period Mediaum", 10)
-   val period3 = Factor("Period Long",    20)
+  val period1 = Factor("Period Short",   5)
+  val period2 = Factor("Period Mediaum", 10)
+  val period3 = Factor("Period Long",    20)
     
-   val ema1 = Var[Float]("EMA1", Plot.Line)
-   val ema2 = Var[Float]("EMA2", Plot.Line)
-   val ema3 = Var[Float]("EMA3", Plot.Line)
+  val ema1 = Var[Float]("EMA1", Plot.Line)
+  val ema2 = Var[Float]("EMA2", Plot.Line)
+  val ema3 = Var[Float]("EMA3", Plot.Line)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
-         ema1(i) = ema(i, C, period1)
-         ema2(i) = ema(i, C, period2)
-         ema3(i) = ema(i, C, period3)
-         i += 1
-      }
-   }
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
+      ema1(i) = ema(i, C, period1)
+      ema2(i) = ema(i, C, period2)
+      ema3(i) = ema(i, C, period3)
+      i += 1
+    }
+  }
     
 }
 

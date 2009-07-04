@@ -39,37 +39,36 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class OBVFunction extends AbstractFunction {
     
-   val _obv = Var[Float]()
+  val _obv = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
-   }
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i == 0) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i == 0) {
             
-         _obv(i) = 0f
+      _obv(i) = 0f
             
+    } else {
+            
+      if (C(i) > C(i - 1)) {
+        _obv(i) = _obv(i - 1) + V(i)
+      } else if (C(i) < C(i - 1)) {
+        _obv(i) = _obv(i - 1) - V(i)
       } else {
-            
-         if (C(i) > C(i - 1)) {
-            _obv(i) = _obv(i - 1) + V(i)
-         } else if (C(i) < C(i - 1)) {
-            _obv(i) = _obv(i - 1) - V(i)
-         } else {
-            /** C(i) == C(i - 1) */
-            _obv(i) = _obv(i - 1)
-         }
-            
+        /** C(i) == C(i - 1) */
+        _obv(i) = _obv(i - 1)
       }
-   }
+            
+    }
+  }
     
-   def obv(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def obv(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _obv(idx)
-   }
+    _obv(idx)
+  }
     
 }
 

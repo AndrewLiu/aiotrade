@@ -55,18 +55,18 @@ Scala installation directory.
         </taskdef>
         <chmod dir="${scala.home}/bin" includes="**/*" perm="u+rx"/>
     </target>
-    <target depends="-pre-init,-init-private&#10;                    " name="-init-user">
+    <target depends="-pre-init,-init-private" name="-init-user">
         <property file="${user.properties.file}"/>
         <!-- The two properties below are usually overridden -->
         <!-- by the active platform. Just a fallback. -->
         <property name="default.javac.source" value="1.4"/>
         <property name="default.javac.target" value="1.4"/>
     </target>
-    <target depends="-pre-init,-init-private&#10;                    ,-init-user&#10;                " name="-init-project">
+    <target depends="-pre-init,-init-private,-init-user" name="-init-project">
         <property file="nbproject/configs/${config}.properties"/>
         <property file="nbproject/project.properties"/>
     </target>
-    <target depends="-pre-init,-init-private&#10;                    ,-init-user,-init-project,-init-macrodef-property&#10;                " name="-do-init">
+    <target depends="-pre-init,-init-private,-init-user,-init-project,-init-macrodef-property" name="-do-init">
         <available file="${manifest.file}" property="manifest.available"/>
         <condition property="manifest.available+main.class">
             <and>
@@ -143,7 +143,7 @@ Scala installation directory.
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="-pre-init,-init-private&#10;                    ,-init-user,-init-project,-do-init&#10;                " name="-init-check">
+    <target depends="-pre-init,-init-private,-init-user,-init-project,-do-init" name="-init-check">
         <fail unless="src.dir">Must set src.dir</fail>
         <fail unless="test.src.dir">Must set test.src.dir</fail>
         <fail unless="build.dir">Must set build.dir</fail>
@@ -222,7 +222,6 @@ Scala installation directory.
             <attribute default="${javac.classpath}" name="classpath"/>
             <attribute default="${includes}" name="includes"/>
             <attribute default="${excludes}" name="excludes"/>
-            <attribute default="jvm-${javac.debug}" name="debug"/>
             <attribute default="${javac.compilerargs}" name="addparams"/>
             <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
@@ -385,7 +384,7 @@ Scala installation directory.
             </jar>
         </presetdef>
     </target>
-    <target depends="-pre-init,-init-private&#10;                    ,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar&#10;                " name="init"/>
+    <target depends="-pre-init,-init-private ,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar" name="init"/>
     <!--
                 ===================
                 COMPILATION SECTION
@@ -395,7 +394,7 @@ Scala installation directory.
         <ant antfile="${project.lib_math}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.lib_util}/build.xml" inheritall="false" target="jar"/>
     </target>
-    <target depends="init,deps-jar&#10;                    " name="-pre-pre-compile">
+    <target depends="init,deps-jar" name="-pre-pre-compile">
         <mkdir dir="${build.classes.dir}"/>
     </target>
     <target name="-pre-compile">
@@ -405,7 +404,7 @@ Scala installation directory.
     <target if="do.depend.true" name="-compile-depend">
         <scalaProject1:depend/>
     </target>
-    <target depends="init,deps-jar,-pre-pre-compile,-pre-compile&#10;                    ,-compile-depend&#10;                " if="have.sources" name="-do-compile">
+    <target depends="init,deps-jar,-pre-pre-compile,-pre-compile,-compile-depend" if="have.sources" name="-do-compile">
         <scalaProject1:scalac/>
         <scalaProject1:javac/>
         <copy todir="${build.classes.dir}">
@@ -421,7 +420,7 @@ Scala installation directory.
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
     </target>
-    <target depends="init,deps-jar,-pre-pre-compile&#10;                    " name="-do-compile-single">
+    <target depends="init,deps-jar,-pre-pre-compile" name="-do-compile-single">
         <fail unless="javac.includes">Must select some files in the IDE or set javac.includes</fail>
         <scalaProject1:force-recompile/>
         <scalaProject1:scalac excludes="" includes="${javac.includes}" sourcepath="${src.dir}"/>
@@ -585,7 +584,7 @@ Scala installation directory.
         <scalaProject1:depend classpath="${javac.test.classpath}" destdir="${build.test.classes.dir}" srcdir="${test.src.dir}"/>
     </target>
     <target depends="init,compile,-pre-pre-compile-test,-pre-compile-test,-compile-test-depend" if="have.tests" name="-do-compile-test">
-        <scalaProject1:scalac classpath="${javac.test.classpath}" debug="true" destdir="${build.test.classes.dir}" srcdir="${test.src.dir}"/>
+        <scalaProject1:scalac classpath="${javac.test.classpath}" destdir="${build.test.classes.dir}" srcdir="${test.src.dir}"/>
         <copy todir="${build.test.classes.dir}">
             <fileset dir="${test.src.dir}" excludes="${build.classes.excludes},${excludes}&#10;                        " includes="${includes}"/>
         </copy>
@@ -602,7 +601,7 @@ Scala installation directory.
     <target depends="init,compile,-pre-pre-compile-test,-pre-compile-test-single" if="have.tests" name="-do-compile-test-single">
         <fail unless="javac.includes">Must select some files in the IDE or set javac.includes</fail>
         <scalaProject1:force-recompile destdir="${build.test.classes.dir}"/>
-        <scalaProject1:scalac classpath="${javac.test.classpath}" debug="true" destdir="${build.test.classes.dir}" excludes="" includes="${javac.includes}" sourcepath="${test.src.dir}" srcdir="${test.src.dir}"/>
+        <scalaProject1:scalac classpath="${javac.test.classpath}" destdir="${build.test.classes.dir}" excludes="" includes="${javac.includes}" sourcepath="${test.src.dir}" srcdir="${test.src.dir}"/>
         <copy todir="${build.test.classes.dir}">
             <fileset dir="${test.src.dir}" excludes="${build.classes.excludes},${excludes}&#10;                        " includes="${includes}"/>
         </copy>

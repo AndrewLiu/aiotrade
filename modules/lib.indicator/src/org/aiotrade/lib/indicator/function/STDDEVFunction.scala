@@ -40,47 +40,46 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object STDDEVFunction {
-   protected def stdDev(idx:Int, baseVar:Var[Float], period:Float) :Float = {
-      val begIdx = idx - period.intValue + 1
-      val endIdx = idx
+  protected def stdDev(idx:Int, baseVar:Var[Float], period:Float) :Float = {
+    val begIdx = idx - period.intValue + 1
+    val endIdx = idx
 
-      return StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
-   }
+    return StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
+  }
 
 
 }
 class STDDEVFunction extends AbstractFunction {
     
-   var period :Factor = _
-   var baseVar :Var[Float] = _
+  var period :Factor = _
+  var baseVar :Var[Float] = _
     
-   val _stdDev = Var[Float]()
+  val _stdDev = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.baseVar = args(0).asInstanceOf[Var[Float]]
-      this.period = args(1).asInstanceOf[Factor]
-   }
+    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.period = args(1).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _stdDev(i) = Float.NaN
+      _stdDev(i) = Float.NaN
             
-      } else {
+    } else {
             
-         _stdDev(i) = STDDEVFunction.stdDev(i, baseVar, period.value)
+      _stdDev(i) = STDDEVFunction.stdDev(i, baseVar, period.value)
             
-      }
-   }
+    }
+  }
     
-   def stdDev(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def stdDev(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _stdDev(idx)
-   }
+    _stdDev(idx)
+  }
     
 }
 

@@ -40,117 +40,116 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class SARFunction extends AbstractFunction {
     
-   var initial, step, maximum :Factor = _
+  var initial, step, maximum :Factor = _
     
-   val _direction = Var[Direction]()
-   val _ep        = Var[Float]()
-   val _af        = Var[Float]()
+  val _direction = Var[Direction]()
+  val _ep        = Var[Float]()
+  val _af        = Var[Float]()
     
-   val _sar = Var[Float]()
+  val _sar = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.initial = args(0).asInstanceOf[Factor]
-      this.step = args(1).asInstanceOf[Factor]
-      this.maximum = args(2).asInstanceOf[Factor]
-   }
+    this.initial = args(0).asInstanceOf[Factor]
+    this.step = args(1).asInstanceOf[Factor]
+    this.maximum = args(2).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i == 0) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i == 0) {
             
-         _direction(i) = Direction.Long
+      _direction(i) = Direction.Long
             
-         val currLow = L(i)
-         _sar(i) = currLow
+      val currLow = L(i)
+      _sar(i) = currLow
             
-         _af(i) = initial.value
+      _af(i) = initial.value
             
-         val currHigh = H(i)
-         _ep(i) = currHigh
+      val currHigh = H(i)
+      _ep(i) = currHigh
             
+    } else {
+            
+      if (_direction(i - 1) == Direction.Long) {
+        /** in long-term */
+                
+        val currHigh = H(i)
+        val prevHigh = H(i - 1)
+                
+        if (currHigh > _ep(i - 1)) {
+          /** new high, acceleration adds 'step' each day, till 'maximum' */
+          _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
+          _ep(i) = currHigh
+        } else {
+          /** keep same acceleration */
+          _af(i) = _af(i - 1)
+          _ep(i) = _ep(i - 1)
+        }
+        _sar(i) = _sar(i - 1) + _af(i) * (prevHigh - _sar(i - 1))
+                
+        if (_sar(i) >= currHigh) {
+          /** turn to short-term */
+                    
+          _direction(i) = Direction.Short
+                    
+          _sar(i) = currHigh
+                    
+          _af(i) = initial.value
+          _ep(i) = L(i)
+                    
+        } else {
+          /** still in long-term */
+                    
+          _direction(i) = Direction.Long
+        }
+                
       } else {
-            
-         if (_direction(i - 1) == Direction.Long) {
-            /** in long-term */
+        /** in short-term */
                 
-            val currHigh = H(i)
-            val prevHigh = H(i - 1)
+        val currLow = L(i)
+        val prevLow = L(i - 1)
                 
-            if (currHigh > _ep(i - 1)) {
-               /** new high, acceleration adds 'step' each day, till 'maximum' */
-               _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
-               _ep(i) = currHigh
-            } else {
-               /** keep same acceleration */
-               _af(i) = _af(i - 1)
-               _ep(i) = _ep(i - 1)
-            }
-            _sar(i) = _sar(i - 1) + _af(i) * (prevHigh - _sar(i - 1))
+        if (currLow < _ep(i - 1)) {
+          _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
+          _ep(i) = currLow
+        } else {
+          _af(i) = _af(i - 1)
+          _ep(i) = _ep(i - 1)
+        }
+        _sar(i) = _sar(i - 1) + _af(i) * (prevLow - _sar(i - 1))
                 
-            if (_sar(i) >= currHigh) {
-               /** turn to short-term */
+        if (_sar(i) <= currLow) {
+          /** turn to long-term */
                     
-               _direction(i) = Direction.Short
+          _direction(i) = Direction.Long
                     
-               _sar(i) = currHigh
+          _sar(i) = currLow
                     
-               _af(i) = initial.value
-               _ep(i) = L(i)
+          _af(i) = initial.value
+          _ep(i) = H(i)
                     
-            } else {
-               /** still in long-term */
+        } else {
+          /** still in short-term */
                     
-               _direction(i) = Direction.Long
-            }
-                
-         } else {
-            /** in short-term */
-                
-            val currLow = L(i)
-            val prevLow = L(i - 1)
-                
-            if (currLow < _ep(i - 1)) {
-               _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
-               _ep(i) = currLow
-            } else {
-               _af(i) = _af(i - 1)
-               _ep(i) = _ep(i - 1)
-            }
-            _sar(i) = _sar(i - 1) + _af(i) * (prevLow - _sar(i - 1))
-                
-            if (_sar(i) <= currLow) {
-               /** turn to long-term */
-                    
-               _direction(i) = Direction.Long
-                    
-               _sar(i) = currLow
-                    
-               _af(i) = initial.value
-               _ep(i) = H(i)
-                    
-            } else {
-               /** still in short-term */
-                    
-               _direction(i) = Direction.Short
-            }
-         }
-            
+          _direction(i) = Direction.Short
+        }
       }
-   }
+            
+    }
+  }
     
-   def sar(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx);
+  def sar(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx);
         
-      _sar(idx)
-   }
+    _sar(idx)
+  }
     
-   def sarDirection(sessionId:Long, idx:int) :Direction = {
-      computeTo(sessionId, idx);
+  def sarDirection(sessionId:Long, idx:int) :Direction = {
+    computeTo(sessionId, idx);
         
-      _direction(idx)
-   }
+    _direction(idx)
+  }
 }
 
 

@@ -43,73 +43,73 @@ import scala.actors.Actor._
 case class AddAll[V <: TimeValue](values:Array[V])
 trait Ser {
 
-   // ----- actor's implementation
-   //    val serActor = actor {
-   //        loop {
-   //            receive { // this actor will possess timestampslog's lock, which should be attached to same thread, so use receive here
-   //                case AddAll(values) => this ++ values
-   //            }
-   //        }
-   //    }
-   // ----- end of actor's implementation
+  // ----- actor's implementation
+  //    val serActor = actor {
+  //        loop {
+  //            receive { // this actor will possess timestampslog's lock, which should be attached to same thread, so use receive here
+  //                case AddAll(values) => this ++ values
+  //            }
+  //        }
+  //    }
+  // ----- end of actor's implementation
 
-   def init(freq:Frequency) :Unit
+  def init(freq:Frequency) :Unit
     
-   def timestamps :Timestamps
+  def timestamps :Timestamps
 
-   def freq :Frequency
+  def freq :Frequency
 
-   def varSet :Set[Var[Any]]
-   def items :ArrayBuffer[SerItem]
+  def varSet :Set[Var[Any]]
+  def items :ArrayBuffer[SerItem]
 
-   def getItem(time:Long) :SerItem
+  def getItem(time:Long) :SerItem
     
-   def lastOccurredTime :Long
+  def lastOccurredTime :Long
     
-   def size :Int
+  def size :Int
     
-   def indexOfOccurredTime(time:Long) :Int
+  def indexOfOccurredTime(time:Long) :Int
     
-   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
-   def clear(fromTime:Long) :Unit
+  /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
+  def clear(fromTime:Long) :Unit
 
-   def ++[V <: TimeValue](values:Array[V]) :Unit
+  def ++[V <: TimeValue](values:Array[V]) :Unit
     
-   def createItemOrClearIt(time:Long): SerItem
+  def createItemOrClearIt(time:Long): SerItem
     
-   def shortDescription :String
-   def shortDescription_=(description:String) :Unit
+  def shortDescription :String
+  def shortDescription_=(description:String) :Unit
     
-   def addSerChangeListener(listener:SerChangeListener) :Unit
-   def removeSerChangeListener(listener:SerChangeListener) :Unit
-   def fireSerChangeEvent(evt:SerChangeEvent) :Unit
+  def addSerChangeListener(listener:SerChangeListener) :Unit
+  def removeSerChangeListener(listener:SerChangeListener) :Unit
+  def fireSerChangeEvent(evt:SerChangeEvent) :Unit
     
-   def inLoading :Boolean
-   def inLoading_=(b:Boolean) :Unit
-   def loaded :Boolean
-   def loaded_=(b:Boolean) :Unit
+  def inLoading :Boolean
+  def inLoading_=(b:Boolean) :Unit
+  def loaded :Boolean
+  def loaded_=(b:Boolean) :Unit
 
-   def validate :Unit
+  def validate :Unit
 }
 
 import java.util.EventListener
 trait SerChangeListener extends EventListener {
-   def serChanged(evt:SerChangeEvent) :Unit
+  def serChanged(evt:SerChangeEvent) :Unit
 }
 
 
 import javax.swing.event.ChangeEvent
 import org.aiotrade.lib.util.CallBack
 object SerChangeEvent {
-   abstract class Type
-   object Type {
-      case object RefreshInLoading extends Type
-      case object FinishedLoading  extends Type
-      case object Updated  extends Type
-      case object FinishedComputing  extends Type
-      case object Clear extends Type
-      case object None extends Type
-   }
+  abstract class Type
+  object Type {
+    case object RefreshInLoading extends Type
+    case object FinishedLoading  extends Type
+    case object Updated  extends Type
+    case object FinishedComputing  extends Type
+    case object Clear extends Type
+    case object None extends Type
+  }
 }
 
 import org.aiotrade.lib.math.timeseries.SerChangeEvent._
@@ -121,30 +121,29 @@ class SerChangeEvent(var _source:Ser,
                      val lastObject:AnyRef, // object the event carries (It can be any thing other than a SerItem)
                      var callBack:CallBack) extends ChangeEvent(_source) {
 
-   def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long) = {
-      this(source, tpe, symbol, beginTime, endTime, null, null)
-   }
+  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long) = {
+    this(source, tpe, symbol, beginTime, endTime, null, null)
+  }
 
-   def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, lastObject:AnyRef) = {
-      this(source, tpe, symbol, beginTime, endTime, lastObject, null)
-   }
+  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, lastObject:AnyRef) = {
+    this(source, tpe, symbol, beginTime, endTime, lastObject, null)
+  }
 
-   def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, callBack:CallBack) = {
-      this(source, tpe, symbol, beginTime, endTime, null, callBack)
-   }
+  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, callBack:CallBack) = {
+    this(source, tpe, symbol, beginTime, endTime, null, callBack)
+  }
 
-   override
-   def getSource :Ser = {
-      assert(source.isInstanceOf[Ser], "Source should be Series")
+  override def getSource :Ser = {
+    assert(source.isInstanceOf[Ser], "Source should be Series")
 
-      source.asInstanceOf[Ser]
-   }
+    source.asInstanceOf[Ser]
+  }
 
-   def doCallBack :Unit = {
-      if (callBack != null) {
-         callBack.callBack
-      }
-   }
+  def doCallBack :Unit = {
+    if (callBack != null) {
+      callBack.callBack
+    }
+  }
 
 }
 

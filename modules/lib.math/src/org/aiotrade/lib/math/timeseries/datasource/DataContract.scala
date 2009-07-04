@@ -52,58 +52,55 @@ import org.w3c.dom.Element;
  */
 abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
 
-   var symbol :String = _ // symbol in source
-   var category :String = _
-   var shortName :String = _
-   var longName :String = _
-   var dateFormatPattern :String = null
-   var urlString :String = ""
-   var refreshable :Boolean = false
-   var refreshInterval :Int = 5 // seconds
-   var inputStream :Option[InputStream] = None
+  var symbol :String = _ // symbol in source
+  var category :String = _
+  var shortName :String = _
+  var longName :String = _
+  var dateFormatPattern :String = null
+  var urlString :String = ""
+  var refreshable :Boolean = false
+  var refreshInterval :Int = 5 // seconds
+  var inputStream :Option[InputStream] = None
 
-   private val cal = Calendar.getInstance
-   cal.set(1990, Calendar.JANUARY, 1)
-   var beginDate :Date = cal.getTime
-   var endDate :Date = cal.getTime
+  private val cal = Calendar.getInstance
+  cal.set(1990, Calendar.JANUARY, 1)
+  var beginDate :Date = cal.getTime
+  var endDate :Date = cal.getTime
     
-   override
-   def toString :String = displayName
+  override def toString :String = displayName
 
-   override
-   def writeToBean(doc:BeansDocument) :Element = {
-      val bean = super.writeToBean(doc)
+  override def writeToBean(doc:BeansDocument) :Element = {
+    val bean = super.writeToBean(doc)
 
-      doc.valuePropertyOfBean(bean, "symbol", symbol)
-      doc.valuePropertyOfBean(bean, "dateFormatPattern", dateFormatPattern)
+    doc.valuePropertyOfBean(bean, "symbol", symbol)
+    doc.valuePropertyOfBean(bean, "dateFormatPattern", dateFormatPattern)
 
-      val begDateBean = doc.createBean(beginDate)
-      doc.innerPropertyOfBean(bean, "begDate", begDateBean)
-      doc.valueConstructorArgOfBean(begDateBean, 0, beginDate.getTime)
+    val begDateBean = doc.createBean(beginDate)
+    doc.innerPropertyOfBean(bean, "begDate", begDateBean)
+    doc.valueConstructorArgOfBean(begDateBean, 0, beginDate.getTime)
 
-      val endDateBean = doc.createBean(endDate)
-      doc.innerPropertyOfBean(bean, "endDate", endDateBean)
-      doc.valueConstructorArgOfBean(endDateBean, 0, endDate.getTime)
+    val endDateBean = doc.createBean(endDate)
+    doc.innerPropertyOfBean(bean, "endDate", endDateBean)
+    doc.valueConstructorArgOfBean(endDateBean, 0, endDate.getTime)
 
-      doc.valuePropertyOfBean(bean, "urlString", urlString)
-      doc.valuePropertyOfBean(bean, "refreshable", refreshable)
-      doc.valuePropertyOfBean(bean, "refreshInterval", refreshInterval)
+    doc.valuePropertyOfBean(bean, "urlString", urlString)
+    doc.valuePropertyOfBean(bean, "refreshable", refreshable)
+    doc.valuePropertyOfBean(bean, "refreshInterval", refreshInterval)
 
-      bean
-   }
+    bean
+  }
 
-   override
-   def writeToJava(id:String) :String = {
-      super.writeToJava(id) +
-      JavaDocument.set(id, "setSymbol", "" + symbol) +
-      JavaDocument.set(id, "setDateFormatPattern", "" + dateFormatPattern) +
-      JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
-      JavaDocument.set(id, "setBegDate", "begDate") +
-      JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +
-      JavaDocument.set(id, "setEndDate", "endDate") +
-      JavaDocument.set(id, "setUrlString", urlString) +
-      JavaDocument.set(id, "setRefreshable", refreshable) +
-      JavaDocument.set(id, "setRefreshInterval", refreshInterval)
-   }
+  override def writeToJava(id:String) :String = {
+    super.writeToJava(id) +
+    JavaDocument.set(id, "setSymbol", "" + symbol) +
+    JavaDocument.set(id, "setDateFormatPattern", "" + dateFormatPattern) +
+    JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
+    JavaDocument.set(id, "setBegDate", "begDate") +
+    JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +
+    JavaDocument.set(id, "setEndDate", "endDate") +
+    JavaDocument.set(id, "setUrlString", urlString) +
+    JavaDocument.set(id, "setRefreshable", refreshable) +
+    JavaDocument.set(id, "setRefreshInterval", refreshInterval)
+  }
 }
 

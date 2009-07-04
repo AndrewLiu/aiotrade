@@ -44,38 +44,38 @@ import org.aiotrade.lib.math.util.Signal;
  */
 abstract class SignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
     
-   _overlapping = true
+  _overlapping = true
 
-   val signalVar = new SparseVar[Signal]("Signal", Plot.Signal)
+  val signalVar = new SparseVar[Signal]("Signal", Plot.Signal)
     
-   def this() {
-      this(null)
-   }
+  def this() {
+    this(null)
+  }
         
-   protected def signal(idx:Int, sign:Sign) :Unit = {
-      signal(idx, sign, "");
-   }
+  protected def signal(idx:Int, sign:Sign) :Unit = {
+    signal(idx, sign, "");
+  }
     
-   protected def signal(idx:Int, sign:Sign, name:String) :Unit = {
-      val time = _baseSer.timestamps(idx)
+  protected def signal(idx:Int, sign:Sign, name:String) :Unit = {
+    val time = _baseSer.timestamps(idx)
         
-      /** appoint a value for this sign as the drawing position */
-      val value = sign match {
-         case Sign.EnterLong  => L(idx)
-         case Sign.ExitLong   => H(idx)
-         case Sign.EnterShort => H(idx)
-         case Sign.ExitShort  => L(idx)
-         case _ => Float.NaN
-      }
+    /** appoint a value for this sign as the drawing position */
+    val value = sign match {
+      case Sign.EnterLong  => L(idx)
+      case Sign.ExitLong   => H(idx)
+      case Sign.EnterShort => H(idx)
+      case Sign.ExitShort  => L(idx)
+      case _ => Float.NaN
+    }
         
-      signalVar(idx) = new Signal(idx, time, value, sign, name)
-   }
+    signalVar(idx) = new Signal(idx, time, value, sign, name)
+  }
     
-   protected def removeSignal(idx:Int) :Unit = {
-      val time = _baseSer.timestamps(idx)
-      time
-      /** @TODO */
-   }
+  protected def removeSignal(idx:Int) :Unit = {
+    val time = _baseSer.timestamps(idx)
+    time
+    /** @TODO */
+  }
     
 }
 

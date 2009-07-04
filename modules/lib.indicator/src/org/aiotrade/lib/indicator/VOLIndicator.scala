@@ -38,25 +38,25 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 class VOLIndicator extends ContIndicator {
-   _sname = "VOL"
-   _lname = "Volume"
+  _sname = "VOL"
+  _lname = "Volume"
     
-   val period1 = Factor("Period Short",    5)
-   val period2 = Factor("Period Mediaum", 10)
+  val period1 = Factor("Period Short",    5)
+  val period2 = Factor("Period Mediaum", 10)
     
-   val vol = Var[Float]("VOL", Plot.Volume)
-   val ma1 = Var[Float]("MA1", Plot.Line)
-   val ma2 = Var[Float]("MA2", Plot.Line)
+  val vol = Var[Float]("VOL", Plot.Volume)
+  val ma1 = Var[Float]("MA1", Plot.Line)
+  val ma2 = Var[Float]("MA2", Plot.Line)
     
     
-   protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
-      var i = begIdx
-      while (i < itemSize) {
-         vol(i) = V(i)
-         ma1(i) = ma(i, V, period1)
-         ma2(i) = ma(i, V, period2)
-         i +=1
-      }
-   }
+  protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+    var i = begIdx
+    while (i < itemSize) {
+      vol(i) = V(i)
+      ma1(i) = ma(i, V, period1)
+      ma2(i) = ma(i, V, period2)
+      i +=1
+    }
+  }
     
 }

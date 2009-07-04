@@ -41,26 +41,26 @@ import scala.collection.mutable.ArrayBuffer
  */
 trait Var[E] extends Plottable {
     
-   def name :String
-   def name_=(name:String) :Unit
+  def name :String
+  def name_=(name:String) :Unit
     
-   def add(time:Long, value:E) :Boolean
-   def getByTime(time:Long) :E
-   def setByTime(time:Long, value:E) :E
+  def add(time:Long, value:E) :Boolean
+  def getByTime(time:Long) :E
+  def setByTime(time:Long, value:E) :E
     
-   def apply(idx:Int) :E
-   def update(idx:Int, value:E) :Unit
+  def apply(idx:Int) :E
+  def update(idx:Int, value:E) :Unit
     
-   def clear(fromIdx:Int) :Unit
+  def clear(fromIdx:Int) :Unit
     
-   def size :Int
+  def size :Int
     
-   def toDoubleArray :Array[Double]
+  def toDoubleArray :Array[Double]
     
-   def values :ArrayBuffer[E]
+  def values :ArrayBuffer[E]
     
-   def nullValue :E
+  def nullValue :E
 
-   def validate :Unit
+  def validate :Unit
     
 }

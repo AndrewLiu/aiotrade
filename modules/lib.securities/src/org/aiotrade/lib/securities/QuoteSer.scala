@@ -39,73 +39,70 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  */
 class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     
-   private var _shortDescription:String = ""
-   var adjusted :Boolean = false
+  private var _shortDescription:String = ""
+  var adjusted :Boolean = false
     
-   val open   = Var[Float]("O", Plot.Quote)
-   val high   = Var[Float]("H", Plot.Quote)
-   val low    = Var[Float]("L", Plot.Quote)
-   val close  = Var[Float]("C", Plot.Quote)
-   val volume = Var[Float]("V", Plot.Volume)
+  val open   = Var[Float]("O", Plot.Quote)
+  val high   = Var[Float]("H", Plot.Quote)
+  val low    = Var[Float]("L", Plot.Quote)
+  val close  = Var[Float]("C", Plot.Quote)
+  val volume = Var[Float]("V", Plot.Volume)
     
-   val close_ori = Var[Float]()
-   val close_adj = Var[Float]()
+  val close_ori = Var[Float]()
+  val close_adj = Var[Float]()
     
-   override
-   protected def createItem(time:Long) :QuoteItem = new QuoteItem(this, time)
+  override protected def createItem(time:Long) :QuoteItem = new QuoteItem(this, time)
 
-   /**
-    * @param boolean b: if true, do adjust, else, de adjust
-    */
-   def adjust(b:Boolean) :Unit = {
-      val items1 = items
-      var i = 0
-      while (i < items1.size) {
-         val item = items1(i).asInstanceOf[QuoteItem]
+  /**
+   * @param boolean b: if true, do adjust, else, de adjust
+   */
+  def adjust(b:Boolean) :Unit = {
+    val items1 = items
+    var i = 0
+    while (i < items1.size) {
+      val item = items1(i).asInstanceOf[QuoteItem]
             
-         var prevNorm = item.close
-         var postNorm = if (b) {
-            /** do adjust */
-            item.close_adj
-         } else {
-            /** de adjust */
-            item.close_ori
-         }
-                        
-         item.high  = linearAdjust(item.high,  prevNorm, postNorm)
-         item.low   = linearAdjust(item.low,   prevNorm, postNorm)
-         item.open  = linearAdjust(item.open,  prevNorm, postNorm)
-         item.close = linearAdjust(item.close, prevNorm, postNorm)
-
-         i += 1
-      }
-        
-      adjusted = b
-        
-      val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, null, 0, lastOccurredTime)
-      fireSerChangeEvent(evt)
-   }
-    
-   /**
-    * This function adjusts linear according to a norm
-    */
-   private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
-      ((value - prevNorm) / prevNorm) * postNorm + postNorm
-   }
-
-   override
-   def shortDescription_=(symbol:String) :Unit = {
-      this._shortDescription = symbol
-   }
-    
-   override
-   def shortDescription :String = {
-      if (adjusted) {
-         _shortDescription + "(*)"
+      var prevNorm = item.close
+      var postNorm = if (b) {
+        /** do adjust */
+        item.close_adj
       } else {
-         _shortDescription
+        /** de adjust */
+        item.close_ori
       }
-   }
+                        
+      item.high  = linearAdjust(item.high,  prevNorm, postNorm)
+      item.low   = linearAdjust(item.low,   prevNorm, postNorm)
+      item.open  = linearAdjust(item.open,  prevNorm, postNorm)
+      item.close = linearAdjust(item.close, prevNorm, postNorm)
+
+      i += 1
+    }
+        
+    adjusted = b
+        
+    val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, null, 0, lastOccurredTime)
+    fireSerChangeEvent(evt)
+  }
+    
+  /**
+   * This function adjusts linear according to a norm
+   */
+  private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
+    ((value - prevNorm) / prevNorm) * postNorm + postNorm
+  }
+
+  override def shortDescription_=(symbol:String) :Unit = {
+    this._shortDescription = symbol
+  }
+    
+  override def shortDescription :String = {
+    if (adjusted) {
+      _shortDescription + "(*)"
+    } else {
+      _shortDescription
+    }
+  }
     
 }
 

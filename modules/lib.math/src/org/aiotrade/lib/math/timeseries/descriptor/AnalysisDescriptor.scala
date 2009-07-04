@@ -47,81 +47,81 @@ import org.w3c.dom.Element;
  * @author Caoyuan Deng
  */
 abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Frequency, var active:Boolean) extends WithActions {
-   private val withActionsHelper = new WithActionsHelper(this)
+  private val withActionsHelper = new WithActionsHelper(this)
     
-   var containerContents :AnalysisContents = _
+  var containerContents :AnalysisContents = _
 
-   /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
-   private var _serviceInstance :Option[_] = None
+  /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
+  private var _serviceInstance :Option[_] = None
     
-   def this() {
-      this(null, Frequency.DAILY, false)
-   }
+  def this() {
+    this(null, Frequency.DAILY, false)
+  }
             
-   def set(serviceClassName:String, freq:Frequency) :Unit = {
-      this.serviceClassName = serviceClassName
-      this.freq = freq.clone
-   }
+  def set(serviceClassName:String, freq:Frequency) :Unit = {
+    this.serviceClassName = serviceClassName
+    this.freq = freq.clone
+  }
             
-   protected def createServiceInstance(args:Any*) :Option[S]
+  protected def createServiceInstance(args:Any*) :Option[S]
 
-   /**
-    * init and return a server instance
-    * @param args args to init server instance
-    */
-   def createdServerInstance(args:Any*) :Option[S] =  {
-      assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
-      // * @Note to pass a variable args to another function, should use type "_*" to extract it as a plain seq,
-      // other wise, it will be treated as one arg:Seq[_], and the accepting function will compose it as
-      // Seq(Seq(arg1, arg2, ...)) instead of Seq(arg1, arg2, ...)
-      serviceInstance(args:_*)
-   }
+  /**
+   * init and return a server instance
+   * @param args args to init server instance
+   */
+  def createdServerInstance(args:Any*) :Option[S] =  {
+    assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
+    // * @Note to pass a variable args to another function, should use type "_*" to extract it as a plain seq,
+    // other wise, it will be treated as one arg:Seq[_], and the accepting function will compose it as
+    // Seq(Seq(arg1, arg2, ...)) instead of Seq(arg1, arg2, ...)
+    serviceInstance(args:_*)
+  }
     
-   def serviceInstance(args:Any*) :Option[S] = {
-      if (_serviceInstance == None) {
-         _serviceInstance = createServiceInstance(args:_*)
-      }
-      _serviceInstance.asInstanceOf[Option[S]]
-   }
+  def serviceInstance(args:Any*) :Option[S] = {
+    if (_serviceInstance == None) {
+      _serviceInstance = createServiceInstance(args:_*)
+    }
+    _serviceInstance.asInstanceOf[Option[S]]
+  }
     
-   protected def isServiceInstanceCreated :Boolean = {
-      _serviceInstance != None
-   }
+  protected def isServiceInstanceCreated :Boolean = {
+    _serviceInstance != None
+  }
     
-   def displayName:String
+  def displayName:String
     
-   def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
-      this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
-   }
+  def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
+    this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
+  }
     
-   def addAction(action:Action) :Action = {
-      withActionsHelper.addAction(action);
-   }
+  def addAction(action:Action) :Action = {
+    withActionsHelper.addAction(action);
+  }
     
-   def lookupAction[T <: Action](tpe:Class[T]) :T = {
-      withActionsHelper.lookupAction(tpe)
-   }
+  def lookupAction[T <: Action](tpe:Class[T]) :T = {
+    withActionsHelper.lookupAction(tpe)
+  }
     
-   def createDefaultActions :Array[Action] = {
-      Array[Action]()
-   }
+  def createDefaultActions :Array[Action] = {
+    Array[Action]()
+  }
     
-   def writeToBean(doc:BeansDocument) :Element = {
-      val bean = doc.createBean(this)
+  def writeToBean(doc:BeansDocument) :Element = {
+    val bean = doc.createBean(this)
         
-      doc.valuePropertyOfBean(bean, "active", active)
-      doc.valuePropertyOfBean(bean, "serviceClassName", serviceClassName)
-      doc.innerPropertyOfBean(bean, "freq", freq.writeToBean(doc))
+    doc.valuePropertyOfBean(bean, "active", active)
+    doc.valuePropertyOfBean(bean, "serviceClassName", serviceClassName)
+    doc.innerPropertyOfBean(bean, "freq", freq.writeToBean(doc))
         
-      bean
-   }
+    bean
+  }
     
-   def writeToJava(id:String) :String = {
-      freq.writeToJava("freq") +
-      JavaDocument.create(id, this.getClass,
-                          "" + serviceClassName +
-                          "freq" +
-                          active)
-   }
+  def writeToJava(id:String) :String = {
+    freq.writeToJava("freq") +
+    JavaDocument.create(id, this.getClass,
+                        "" + serviceClassName +
+                        "freq" +
+                        active)
+  }
     
 }

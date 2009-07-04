@@ -38,146 +38,145 @@ package org.aiotrade.lib.math.vector
 @cloneable
 trait Vec extends Cloneable {
     
-    /**
-     * Element-wise addition.
-     *
-     * @param vec   the <code>Vec</code> to plus
-     * @return the result of the operation
-     */
-    def plus(operand:Vec) :Vec
+  /**
+   * Element-wise addition.
+   *
+   * @param vec   the <code>Vec</code> to plus
+   * @return the result of the operation
+   */
+  def plus(operand:Vec) :Vec
     
-    /**
-     * Scalar addition.
-     *
-     * @param operand   the amount to plus
-     * @return the result of the sum
-     */
-    def plus(operand:Double) :Vec
+  /**
+   * Scalar addition.
+   *
+   * @param operand   the amount to plus
+   * @return the result of the sum
+   */
+  def plus(operand:Double) :Vec
     
-    def minus(operand:Vec) :Vec
+  def minus(operand:Vec) :Vec
     
-    /**
-     * Appends an element to the <code>Vec</code>.
-     * @Notice
-     * that is an inefficient operation and should be rarely used.
-     *
-     *
-     * @param value   the value of the element to add
-     */
-    def add(value:Double) :Unit
+  /**
+   * Appends an element to the <code>Vec</code>.
+   * @Notice
+   * that is an inefficient operation and should be rarely used.
+   *
+   *
+   * @param value   the value of the element to add
+   */
+  def add(value:Double) :Unit
     
-    /**
-     * The elements of this <code>Vec</code> as a <code>double[]</code>.
-     *
-     * @return the <code>double[]</code>
-     */
-    def toDoubleArray :Array[Double]
+  /**
+   * The elements of this <code>Vec</code> as a <code>double[]</code>.
+   *
+   * @return the <code>double[]</code>
+   */
+  def toDoubleArray :Array[Double]
     
-    /**
-     * Compute an Euclidean metric (or distance) from this <code>Vec</code> to
-     * another.
-     *
-     * @param other   the <code>Vec</code> to measure the metric (or distance) with
-     * @return the metric
-     */
-    def metric(other:Vec) :Double
+  /**
+   * Compute an Euclidean metric (or distance) from this <code>Vec</code> to
+   * another.
+   *
+   * @param other   the <code>Vec</code> to measure the metric (or distance) with
+   * @return the metric
+   */
+  def metric(other:Vec) :Double
     
-    /**
-     * Compute the inner product of two <code>Vec</code>s.
-     *
-     * @param operand   the other <code>Vec</code>
-     * @return the inner product
-     */
-    def innerProduct(operand:Vec) :Double
+  /**
+   * Compute the inner product of two <code>Vec</code>s.
+   *
+   * @param operand   the other <code>Vec</code>
+   * @return the inner product
+   */
+  def innerProduct(operand:Vec) :Double
     
-    /**
-     * <Xi dot Xi> the inner product of this vec itself
-     */
-    def square :Double
+  /**
+   * <Xi dot Xi> the inner product of this vec itself
+   */
+  def square :Double
     
-    /**
-     * Scalar multipication.
-     *
-     * @param operand   the amount to times
-     * @return the resulting <code>Vec</code>
-     */
-    def times(operand:Double) :Vec
+  /**
+   * Scalar multipication.
+   *
+   * @param operand   the amount to times
+   * @return the resulting <code>Vec</code>
+   */
+  def times(operand:Double) :Vec
     
-    /**
-     * Compute a 1-norm (sum of absolute values) of the <code>Vec</code>.
-     * norm (or length)
-     *
-     * @return the norm
-     */
-    def normOne :Double
+  /**
+   * Compute a 1-norm (sum of absolute values) of the <code>Vec</code>.
+   * norm (or length)
+   *
+   * @return the norm
+   */
+  def normOne :Double
     
-    /**
-     * Compute a 2-norm (square root of the sum of the squared values) of the
-     * <code>Vec</code>.
-     *
-     *
-     * @return the norm
-     */
-    def normTwo :Double
+  /**
+   * Compute a 2-norm (square root of the sum of the squared values) of the
+   * <code>Vec</code>.
+   *
+   *
+   * @return the norm
+   */
+  def normTwo :Double
     
-    /**
-     * Returns the <i>idx </i>-nary element of the <code>Vec</code>.
-     *
-     * @param dimensionIdx   the index of the desired element
-     * @return the value of the element
-     */
-    def apply(dimensionIdx:Int) :Double
+  /**
+   * Returns the <i>idx </i>-nary element of the <code>Vec</code>.
+   *
+   * @param dimensionIdx   the index of the desired element
+   * @return the value of the element
+   */
+  def apply(dimensionIdx:Int) :Double
     
-    /**
-     * Sets element of index <code>i</code> to <code>value</code>.
-     *
-     * @param dimensionIdx   index of the element to set
-     * @param value    the value to set
-     */
-    def update(dimensionIdx:Int, value:Double) :Unit
+  /**
+   * Sets element of index <code>i</code> to <code>value</code>.
+   *
+   * @param dimensionIdx   index of the element to set
+   * @param value    the value to set
+   */
+  def update(dimensionIdx:Int, value:Double) :Unit
     
-    /**
-     * Sets all <code>Vec</code> elements to <code>value</code>.
-     *
-     * @param value   the value to set
-     */
-    def setAll(value:Double) :Unit
+  /**
+   * Sets all <code>Vec</code> elements to <code>value</code>.
+   *
+   * @param value   the value to set
+   */
+  def setAll(value:Double) :Unit
     
-    /**
-     * Sets elements to the ones of <code>orig</code>.
-     *
-     * @param orig   the <code>Vec</code> with the elements to set
-     */
-    def copy(orig:Vec) :Unit
+  /**
+   * Sets elements to the ones of <code>orig</code>.
+   *
+   * @param orig   the <code>Vec</code> with the elements to set
+   */
+  def copy(orig:Vec) :Unit
     
-    def copy(src:Vec, srcPos:Int, destPos:Int, length:Int) :Unit
+  def copy(src:Vec, srcPos:Int, destPos:Int, length:Int) :Unit
     
-    def setValues(values:Array[Double]) :Unit
+  def setValues(values:Array[Double]) :Unit
     
-    /**
-     * @return the dimension of this <code>Vec</code>
-     */
-    def dimension :Int
+  /**
+   * @return the dimension of this <code>Vec</code>
+   */
+  def dimension :Int
     
     
-    /**
-     * Randomizes this <code>Vec</code> with values bounded by
-     * <code>min</code> and <code>max</code>.
-     *
-     * @param min   lower bound
-     * @param max   upper bound
-     */
-    def randomize(min:Double, max:Double) :Unit
+  /**
+   * Randomizes this <code>Vec</code> with values bounded by
+   * <code>min</code> and <code>max</code>.
+   *
+   * @param min   lower bound
+   * @param max   upper bound
+   */
+  def randomize(min:Double, max:Double) :Unit
     
-    /**
-     * Checks if a <code>Vec</code> has equal dimension of this <code>Vec</code>.
-     *
-     * @param comp   <code>Vec</code> to test with
-     */
-    def checkDimensionEquality(comp:Vec) :Unit
+  /**
+   * Checks if a <code>Vec</code> has equal dimension of this <code>Vec</code>.
+   *
+   * @param comp   <code>Vec</code> to test with
+   */
+  def checkDimensionEquality(comp:Vec) :Unit
     
-    def checkValidation :Boolean
+  def checkValidation :Boolean
 
-    override
-    def clone :Vec = {super.clone; this}
+  override def clone :Vec = {super.clone; this}
 }

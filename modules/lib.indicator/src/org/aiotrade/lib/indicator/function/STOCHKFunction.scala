@@ -42,45 +42,44 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class STOCHKFunction extends AbstractFunction {
     
-   var period, periodK :Factor = _
+  var period, periodK :Factor = _
     
-   val _elementK = Var[Float]()
+  val _elementK = Var[Float]()
     
-   val _stochK = Var[Float]()
+  val _stochK = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.period = args(0).asInstanceOf[Factor]
-      this.periodK = args(1).asInstanceOf[Factor]
-   }
+    this.period = args(0).asInstanceOf[Factor]
+    this.periodK = args(1).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _elementK(i) = Float.NaN
+      _elementK(i) = Float.NaN
 
-         _stochK(i) = Float.NaN
+      _stochK(i) = Float.NaN
             
-      } else {
+    } else {
             
-         val h_max_i = max(i, H, period)
-         val l_min_i = min(i, L, period)
+      val h_max_i = max(i, H, period)
+      val l_min_i = min(i, L, period)
             
-         _elementK(i) = (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
+      _elementK(i) = (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
             
-         /** smooth elementK, periodK */
-         _stochK(i) = ma(i, _elementK, periodK)
+      /** smooth elementK, periodK */
+      _stochK(i) = ma(i, _elementK, periodK)
             
-      }
-   }
+    }
+  }
     
-   def stochK(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def stochK(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _stochK(idx)
-   }
+    _stochK(idx)
+  }
     
 }
 

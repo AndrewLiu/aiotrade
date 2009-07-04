@@ -36,8 +36,8 @@ package org.aiotrade.lib.indicator.function
  */
 abstract class Direction
 object Direction {
-   case object Long extends Direction
-   case object Short extends Direction
+  case object Long extends Direction
+  case object Short extends Direction
 }
 
 

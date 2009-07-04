@@ -42,43 +42,42 @@ import org.aiotrade.lib.math.timeseries.Var
  */
 //@IndicatorName("ProbMass")
 class ProbMassIndicator(baseSer:Ser) extends SpotIndicator(baseSer) {
-   _sname = "Probability Mass"
-   _lname = "Probability Mass"
-   _overlapping = true
+  _sname = "Probability Mass"
+  _lname = "Probability Mass"
+  _overlapping = true
     
-   var baseVar :Var[Float] = _
+  var baseVar :Var[Float] = _
 
-   val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
-   val period1    = Factor("Period1", 50.0)
-   val period2    = Factor("Period2", 100.0)
-   val period3    = Factor("Period3", 200.0)
+  val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
+  val period1    = Factor("Period1", 50.0)
+  val period2    = Factor("Period2", 100.0)
+  val period3    = Factor("Period3", 200.0)
     
     
-   val MASS1 = Var[Array[Array[Float]]]("MASS1", Plot.Profile)
-   val MASS2 = Var[Array[Array[Float]]]("MASS2", Plot.Profile)
-   val MASS3 = Var[Array[Array[Float]]]("MASS3", Plot.Profile)
+  val MASS1 = Var[Array[Array[Float]]]("MASS1", Plot.Profile)
+  val MASS2 = Var[Array[Array[Float]]]("MASS2", Plot.Profile)
+  val MASS3 = Var[Array[Array[Float]]]("MASS3", Plot.Profile)
 
 
-   def computeSpot(time:Long, masterIdx:Int) :SerItem =  {
-      val item = createItemOrClearIt(time)
+  def computeSpot(time:Long, masterIdx:Int) :SerItem =  {
+    val item = createItemOrClearIt(time)
         
-      val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)
-      val probability_mass2 = probMass(masterIdx, baseVar, period2, nIntervals)
-      val probability_mass3 = probMass(masterIdx, baseVar, period3, nIntervals)
+    val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)
+    val probability_mass2 = probMass(masterIdx, baseVar, period2, nIntervals)
+    val probability_mass3 = probMass(masterIdx, baseVar, period3, nIntervals)
         
-      item.set(MASS1, probability_mass1)
-      item.set(MASS2, probability_mass2)
-      item.set(MASS3, probability_mass3)
+    item.set(MASS1, probability_mass1)
+    item.set(MASS2, probability_mass2)
+    item.set(MASS3, probability_mass3)
         
-      item
-   }
+    item
+  }
 
-   override
-   def shortDescription :String =  {
-      if (baseVar != null) {
-         "PM: " + baseVar.name
-      } else "PM"
-   }
+  override def shortDescription :String =  {
+    if (baseVar != null) {
+      "PM: " + baseVar.name
+    } else "PM"
+  }
 }
 
 

@@ -38,8 +38,8 @@ import org.aiotrade.lib.math.timeseries.SerItem
  */
 trait SpotComputable extends ContComputable {
     
-   def spotTime_=(time:Long) :Unit
+  def spotTime_=(time:Long) :Unit
     
-   def computeItem(time:Long) :SerItem
+  def computeItem(time:Long) :SerItem
 }
 

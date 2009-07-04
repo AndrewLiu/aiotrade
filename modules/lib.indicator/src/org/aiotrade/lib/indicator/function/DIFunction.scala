@@ -40,58 +40,57 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DIFunction extends AbstractFunction {
     
-   var period :Factor = _
+  var period :Factor = _
     
-   val _dmPlus  = Var[Float]()
-   val _dmMinus = Var[Float]()
-   val _tr      = Var[Float]()
+  val _dmPlus  = Var[Float]()
+  val _dmMinus = Var[Float]()
+  val _tr      = Var[Float]()
     
-   val _diPlus  = Var[Float]()
-   val _diMinus = Var[Float]()
+  val _diPlus  = Var[Float]()
+  val _diMinus = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.period = args(0).asInstanceOf[Factor]
-   }
+    this.period = args(0).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      _dmPlus(i)  = dmPlus(i)
-      _dmMinus(i) = dmMinus(i)
-      _tr(i)      = tr(i)
+  protected def computeSpot(i:Int) :Unit = {
+    _dmPlus(i)  = dmPlus(i)
+    _dmMinus(i) = dmMinus(i)
+    _tr(i)      = tr(i)
         
-      if (i < period.value - 1) {
+    if (i < period.value - 1) {
             
-         _diPlus(i)  = Float.NaN
-         _diMinus(i) = Float.NaN
+      _diPlus(i)  = Float.NaN
+      _diMinus(i) = Float.NaN
             
-      } else {
+    } else {
             
-         val dmPlus_ma  = ma(i, _dmPlus,  period)
-         val dmMinus_ma = ma(i, _dmMinus, period)
-         val tr_ma      = ma(i, _tr,      period)
+      val dmPlus_ma  = ma(i, _dmPlus,  period)
+      val dmMinus_ma = ma(i, _dmMinus, period)
+      val tr_ma      = ma(i, _tr,      period)
             
-         val diPlus_i  = if (tr_ma == 0) 0f else dmPlus_ma  / tr_ma * 100f
-         val diMinus_i = if (tr_ma == 0) 0f else dmMinus_ma / tr_ma * 100f
+      val diPlus_i  = if (tr_ma == 0) 0f else dmPlus_ma  / tr_ma * 100f
+      val diMinus_i = if (tr_ma == 0) 0f else dmMinus_ma / tr_ma * 100f
             
-         _diPlus(i)  = diPlus_i
-         _diMinus(i) = diMinus_i
+      _diPlus(i)  = diPlus_i
+      _diMinus(i) = diMinus_i
             
-      }
-   }
+    }
+  }
     
-   def diPlus(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def diPlus(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _diPlus(idx)
-   }
+    _diPlus(idx)
+  }
     
-   def diMinus(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def diMinus(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _diMinus(idx)
-   }
+    _diMinus(idx)
+  }
 }
 
 

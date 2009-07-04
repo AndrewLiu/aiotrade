@@ -40,41 +40,40 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class STOCHDFunction extends AbstractFunction {
     
-   var period, periodK, periodD :Factor = _
+  var period, periodK, periodD :Factor = _
     
-   val _stochK = Var[Float]()
+  val _stochK = Var[Float]()
     
-   val _stochD = Var[Float]()
+  val _stochD = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.period = args(0).asInstanceOf[Factor]
-      this.periodK = args(1).asInstanceOf[Factor]
-      this.periodD = args(2).asInstanceOf[Factor]
-   }
+    this.period = args(0).asInstanceOf[Factor]
+    this.periodK = args(1).asInstanceOf[Factor]
+    this.periodD = args(2).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      _stochK(i) = stochK(i, period, periodK)
+  protected def computeSpot(i:Int) :Unit = {
+    _stochK(i) = stochK(i, period, periodK)
         
-      if (i < periodD.value - 1) {
+    if (i < periodD.value - 1) {
             
-         _stochD(i) = Float.NaN
+      _stochD(i) = Float.NaN
             
-      } else {
+    } else {
             
-         /** smooth stochK, periodD */
-         _stochD(i) = ma(i, _stochK, periodD)
+      /** smooth stochK, periodD */
+      _stochD(i) = ma(i, _stochK, periodD)
             
-      }
-   }
+    }
+  }
     
-   def stochD(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def stochD(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _stochD(idx)
-   }
+    _stochD(idx)
+  }
     
     
 }

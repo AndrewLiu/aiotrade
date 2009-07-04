@@ -40,44 +40,43 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object MINFunction {
-   protected def imin(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
-      StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
-   }
+  protected def imin(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+    StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
+  }
 
 
 }
 class MINFunction extends AbstractFunction {
     
-   var period :Factor = _
-   var baseVar :Var[Float] = _
+  var period :Factor = _
+  var baseVar :Var[Float] = _
     
-   val _min = Var[Float]()
+  val _min = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.baseVar = args(0).asInstanceOf[Var[Float]]
-      this.period = args(1).asInstanceOf[Factor]
-   }
+    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.period = args(1).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _min(i) = Float.NaN
+      _min(i) = Float.NaN
             
-      } else {
+    } else {
             
-         _min(i) = MINFunction.imin(i, baseVar, period.value, _min(i - 1))
+      _min(i) = MINFunction.imin(i, baseVar, period.value, _min(i - 1))
             
-      }
-   }
+    }
+  }
     
-   def min(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def min(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _min(idx)
-   }
+    _min(idx)
+  }
     
 }
 

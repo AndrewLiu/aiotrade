@@ -39,17 +39,17 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class OBVIndicator extends ContIndicator {
-   _sname = "OBV"
-   _lname = "On Balance Volume"
+  _sname = "OBV"
+  _lname = "On Balance Volume"
 
-   val obv1 = Var[Float]("OBV", Plot.Line)
+  val obv1 = Var[Float]("OBV", Plot.Line)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
-         obv1(i) = obv(i)
-         i += 1
-      }
-   }
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
+      obv1(i) = obv(i)
+      i += 1
+    }
+  }
     
 }

@@ -37,24 +37,24 @@ package org.aiotrade.lib.math.vector
  */
 trait Mat {
     
-    /**
-     * 
-     * get one column from the Matrix
-     * 
-     * As we treat this method as a function, We name it column() instead 
-     * of column()
-     */
-    def column(column:Int, length:Int) :Array[Float]
+  /**
+   *
+   * get one column from the Matrix
+   *
+   * As we treat this method as a function, We name it column() instead
+   * of column()
+   */
+  def column(column:Int, length:Int) :Array[Float]
 
-    /**
-     * 
-     * get dense diagonal elements of the Matrix
-     * 
-     * As we treat this method as a function (in Matrix Maths, diag() is a 
-     * operation symbol), We name it diag() instead of diag()
-     */
-    def diag :Array[Float]
+  /**
+   *
+   * get dense diagonal elements of the Matrix
+   *
+   * As we treat this method as a function (in Matrix Maths, diag() is a
+   * operation symbol), We name it diag() instead of diag()
+   */
+  def diag :Array[Float]
     
-    def swapColumn(i:Int, j:Int) :Unit
+  def swapColumn(i:Int, j:Int) :Unit
 }
 

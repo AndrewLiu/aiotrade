@@ -38,197 +38,197 @@ import scala.collection.mutable.ArrayBuffer
  */
 object IndicatorFunction {
     
-   def dmPlus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
-      if (idx == 0) {
+  def dmPlus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
+    if (idx == 0) {
             
-         Float.NaN
+      Float.NaN
             
+    } else {
+            
+      if (highs(idx) > highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+        highs(idx) - highs(idx - 1)
+      } else if (highs(idx) < highs(idx - 1) && lows(idx) < lows(idx - 1)) {
+        0f
+      } else if (highs(idx) > highs(idx - 1) && lows(idx) < lows(idx - 1)) {
+        if (highs(idx) - highs(idx - 1) > lows(idx - 1) - lows(idx)) {
+          highs(idx) - highs(idx - 1)
+        } else {
+          0f
+        }
+      } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+        0f
+      } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
+        0f
+      } else if (lows(idx) > highs(idx - 1)) {
+        highs(idx) - highs(idx)
+      } else if (highs(idx) < lows(idx - 1)) {
+        0f
       } else {
-            
-         if (highs(idx) > highs(idx - 1) && lows(idx) > lows(idx - 1)) {
-            highs(idx) - highs(idx - 1)
-         } else if (highs(idx) < highs(idx - 1) && lows(idx) < lows(idx - 1)) {
-            0f
-         } else if (highs(idx) > highs(idx - 1) && lows(idx) < lows(idx - 1)) {
-            if (highs(idx) - highs(idx - 1) > lows(idx - 1) - lows(idx)) {
-               highs(idx) - highs(idx - 1)
-            } else {
-               0f
-            }
-         } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
-            0f
-         } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
-            0f
-         } else if (lows(idx) > highs(idx - 1)) {
-            highs(idx) - highs(idx)
-         } else if (highs(idx) < lows(idx - 1)) {
-            0f
-         } else {
-            0f
-         }
-            
+        0f
       }
-   }
+            
+    }
+  }
     
-   def dmMinus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
-      if (idx == 0) {
+  def dmMinus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
+    if (idx == 0) {
             
-         Float.NaN
+      Float.NaN
             
+    } else {
+            
+      if (highs(idx) > highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+        0f
+      } else if (highs(idx) < highs(idx - 1) && lows(idx) < lows(idx - 1)) {
+        lows(idx - 1) - lows(idx)
+      } else if (highs(idx) > highs(idx - 1) && lows(idx) < lows(idx - 1)) {
+        if (highs(idx) - highs(idx - 1) > lows(idx - 1) - lows(idx)) {
+          0f
+        } else {
+          lows(idx - 1) - lows(idx)
+        }
+      } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+        0f
+      } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
+        0f
+      } else if (lows(idx) > highs(idx - 1)) {
+        0f
+      } else if (highs(idx) < lows(idx - 1)) {
+        lows(idx - 1) - lows(idx)
       } else {
-            
-         if (highs(idx) > highs(idx - 1) && lows(idx) > lows(idx - 1)) {
-            0f
-         } else if (highs(idx) < highs(idx - 1) && lows(idx) < lows(idx - 1)) {
-            lows(idx - 1) - lows(idx)
-         } else if (highs(idx) > highs(idx - 1) && lows(idx) < lows(idx - 1)) {
-            if (highs(idx) - highs(idx - 1) > lows(idx - 1) - lows(idx)) {
-               0f
-            } else {
-               lows(idx - 1) - lows(idx)
-            }
-         } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
-            0f
-         } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
-            0f
-         } else if (lows(idx) > highs(idx - 1)) {
-            0f
-         } else if (highs(idx) < lows(idx - 1)) {
-            lows(idx - 1) - lows(idx)
-         } else {
-            0f
-         }
-            
+        0f
       }
-   }
+            
+    }
+  }
     
-   def tr(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx == 0) {
+  def tr(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx == 0) {
             
-         Float.NaN
+      Float.NaN
             
-      } else {
+    } else {
             
-         val tr_tmp = Math.max(highs(idx) - lows(idx), Math.abs(highs(idx) - closes(idx - 1)))
-         Math.max(tr_tmp, Math.abs(lows(idx) - closes(idx - 1)))
+      val tr_tmp = Math.max(highs(idx) - lows(idx), Math.abs(highs(idx) - closes(idx - 1)))
+      Math.max(tr_tmp, Math.abs(lows(idx) - closes(idx - 1)))
             
-      }
-   }
+    }
+  }
     
-   def diPlus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx < period - 1) {
+  def diPlus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx < period - 1) {
             
-         Float.NaN
+      Float.NaN
             
-      } else {
+    } else {
             
-         val dms = new ArrayBuffer[Float]
-         val trs = new ArrayBuffer[Float]
+      val dms = new ArrayBuffer[Float]
+      val trs = new ArrayBuffer[Float]
             
-         val fromIdx = idx - (period - 1)
-         val toIdx   = idx
+      val fromIdx = idx - (period - 1)
+      val toIdx   = idx
 
-         var i = fromIdx
-         while (i <= toIdx) {
+      var i = fromIdx
+      while (i <= toIdx) {
                 
-            dms += dmPlus(i, highs, lows)
-            trs += tr(i, highs, lows, closes)
+        dms += dmPlus(i, highs, lows)
+        trs += tr(i, highs, lows, closes)
 
-            i += 1
-         }
-            
-         val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
-         val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
-            
-         if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
-            
+        i += 1
       }
-   }
+            
+      val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
+      val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
+            
+      if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
+            
+    }
+  }
     
-   def diMinus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx < period - 1) {
+  def diMinus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx < period - 1) {
             
-         Float.NaN
+      Float.NaN
             
-      } else {
+    } else {
             
-         val dms = new ArrayBuffer[Float]
-         val trs = new ArrayBuffer[Float]
+      val dms = new ArrayBuffer[Float]
+      val trs = new ArrayBuffer[Float]
             
-         val fromIdx = idx - (period - 1)
-         val toIdx   = idx;
+      val fromIdx = idx - (period - 1)
+      val toIdx   = idx;
             
-         var i = fromIdx
-         while (i <= toIdx) {
+      var i = fromIdx
+      while (i <= toIdx) {
                 
-            dms += dmMinus(i, highs, lows)
-            trs += tr(i, highs, lows, closes)
+        dms += dmMinus(i, highs, lows)
+        trs += tr(i, highs, lows, closes)
 
-            i += 1
-         }
-            
-         val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
-         val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
-            
-         if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
-            
+        i += 1
       }
-   }
+            
+      val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
+      val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
+            
+      if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
+            
+    }
+  }
     
-   def dx(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx < period - 1) {
+  def dx(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx < period - 1) {
             
-         Float.NaN
+      Float.NaN
             
-      } else {
+    } else {
             
-         val diPlus1  = diPlus( idx, period, highs, lows, closes)
-         val diMinus1 = diMinus(idx, period, highs, lows, closes)
+      val diPlus1  = diPlus( idx, period, highs, lows, closes)
+      val diMinus1 = diMinus(idx, period, highs, lows, closes)
             
-         if (diPlus1 + diMinus1 == 0) 0 else Math.abs(diPlus1 - diMinus1) / (diPlus1 + diMinus1) * 100f
+      if (diPlus1 + diMinus1 == 0) 0 else Math.abs(diPlus1 - diMinus1) / (diPlus1 + diMinus1) * 100f
             
-      }
-   }
+    }
+  }
     
-   def adx(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx < periodDI - 1 || idx < periodADX - 1) {
+  def adx(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-         Float.NaN;
+      Float.NaN;
             
-      } else {
+    } else {
             
-         val dxes = new ArrayBuffer[Float]
+      val dxes = new ArrayBuffer[Float]
             
-         val fromIdx = idx - (periodADX - 1)
-         val toIdx   = idx
+      val fromIdx = idx - (periodADX - 1)
+      val toIdx   = idx
             
-         var i = fromIdx
-         while (i <= toIdx) {
+      var i = fromIdx
+      while (i <= toIdx) {
                 
-            dxes += dx(i, periodDI, highs, lows, closes)
+        dxes += dx(i, periodDI, highs, lows, closes)
 
-            i += 1
-         }
-            
-         StatisticFunction.ma(dxes, 0, periodADX - 1)
-            
+        i += 1
       }
-   }
+            
+      StatisticFunction.ma(dxes, 0, periodADX - 1)
+            
+    }
+  }
     
-   def adxr(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
-      if (idx < periodDI - 1 || idx < periodADX - 1) {
+  def adxr(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+    if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-         Float.NaN;
+      Float.NaN;
             
-      } else {
+    } else {
             
-         val adx1 = adx(idx,             periodDI, periodADX, highs, lows, closes)
-         val adx2 = adx(idx - periodADX, periodDI, periodADX, highs, lows, closes)
+      val adx1 = adx(idx,             periodDI, periodADX, highs, lows, closes)
+      val adx2 = adx(idx - periodADX, periodDI, periodADX, highs, lows, closes)
             
-         (adx1 + adx2) / 2f
+      (adx1 + adx2) / 2f
             
-      }
-   }
+    }
+  }
     
 }
 

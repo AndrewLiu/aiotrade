@@ -38,66 +38,65 @@ import javax.swing.event.EventListenerList
  */
 abstract class AbstractSer(var freq:Frequency) extends Ser {
     
-   private val serChangeListenerList = new EventListenerList
+  private val serChangeListenerList = new EventListenerList
         
-   var inLoading :Boolean = false
-   private var _loaded :Boolean = false
+  var inLoading :Boolean = false
+  private var _loaded :Boolean = false
 
-   def this() = {
-      this(Frequency.DAILY)
-   }
+  def this() = {
+    this(Frequency.DAILY)
+  }
     
-   def init(freq:Frequency) :Unit = {
-      this.freq = freq.clone
-   }
+  def init(freq:Frequency) :Unit = {
+    this.freq = freq.clone
+  }
         
-   def addSerChangeListener(listener:SerChangeListener) :Unit = {
-      serChangeListenerList.add(classOf[SerChangeListener], listener)
-   }
+  def addSerChangeListener(listener:SerChangeListener) :Unit = {
+    serChangeListenerList.add(classOf[SerChangeListener], listener)
+  }
     
-   def removeSerChangeListener(listener:SerChangeListener) :Unit = {
-      serChangeListenerList.remove(classOf[SerChangeListener], listener)
-   }
+  def removeSerChangeListener(listener:SerChangeListener) :Unit = {
+    serChangeListenerList.remove(classOf[SerChangeListener], listener)
+  }
     
-   def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
-      val listeners = serChangeListenerList.getListenerList
-      /** Each listener occupies two elements - the first is the listener class */
+  def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
+    val listeners = serChangeListenerList.getListenerList
+    /** Each listener occupies two elements - the first is the listener class */
+    var i = 0
+    while (i < listeners.length) {
+      if (listeners(i) == classOf[SerChangeListener]) {
+        listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
+      }
+      i += 2
+    }
+  }
+    
+  def loaded :Boolean = _loaded
+  def loaded_=(b:Boolean) :Unit = {
+    inLoading = false
+    _loaded = false
+  }
+
+  protected def isAscending[V <: TimeValue](values:Array[V]) :boolean = {
+    val size = values.size
+    if (size <= 1) {
+      true
+    } else {
       var i = 0
-      while (i < listeners.length) {
-         if (listeners(i) == classOf[SerChangeListener]) {
-            listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-         }
-         i += 2
+      while (i < size - 1) {
+        if (values(i).time < values(i + 1).time) {
+          return true
+        } else if (values(i).time > values(i + 1).time) {
+          return false
+        }
+        i += 1
       }
-   }
-    
-   def loaded :Boolean = _loaded
-   def loaded_=(b:Boolean) :Unit = {
-      inLoading = false
-      _loaded = false
-   }
+      false
+    }
+  }
 
-   protected def isAscending[V <: TimeValue](values:Array[V]) :boolean = {
-      val size = values.size
-      if (size <= 1) {
-         true
-      } else {
-         var i = 0
-         while (i < size - 1) {
-            if (values(i).time < values(i + 1).time) {
-               return true
-            } else if (values(i).time > values(i + 1).time) {
-               return false
-            }
-            i += 1
-         }
-         false
-      }
-   }
-
-   override
-   def toString :String = {
-      this.getClass.getSimpleName + "(" + freq + ")"
-   }
+  override def toString :String = {
+    this.getClass.getSimpleName + "(" + freq + ")"
+  }
 }
 

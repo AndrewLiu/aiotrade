@@ -38,12 +38,12 @@ import org.aiotrade.lib.math.timeseries.Ser
  */
 trait Indicator extends Ser with Computable with Ordered[Indicator] {
     
-   def init(baseSer:Ser) :Unit
+  def init(baseSer:Ser) :Unit
     
-   def isOverlapping :Boolean
-   def overlapping_=(b:Boolean) :Unit
+  def isOverlapping :Boolean
+  def overlapping_=(b:Boolean) :Unit
     
-   def grids :Array[Float]
+  def grids :Array[Float]
     
-   def createNewInstance(baseSer:Ser) :Indicator
+  def createNewInstance(baseSer:Ser) :Indicator
 }

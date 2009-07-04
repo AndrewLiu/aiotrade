@@ -40,30 +40,30 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class DMIIndicator extends ContIndicator {
-   _sname = "DMI"
-   _lname = "Directional Movement Index"
-   _grids = Array(20f, 80f)
+  _sname = "DMI"
+  _lname = "Directional Movement Index"
+  _grids = Array(20f, 80f)
 
-   val periodDi  = Factor("Period DI",  6)
-   val periodAdx = Factor("Period ADX", 14)
+  val periodDi  = Factor("Period DI",  6)
+  val periodAdx = Factor("Period ADX", 14)
     
-   val diPlus  = Var[Float]("+DI",  Plot.Line)
-   val diMinus = Var[Float]("-DI",  Plot.Line)
-   val adx     = Var[Float]("ADX",  Plot.Line)
-   val adxr    = Var[Float]("ADXR", Plot.Line)
+  val diPlus  = Var[Float]("+DI",  Plot.Line)
+  val diMinus = Var[Float]("-DI",  Plot.Line)
+  val adx     = Var[Float]("ADX",  Plot.Line)
+  val adxr    = Var[Float]("ADXR", Plot.Line)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
             
-         diPlus (i) = diPlus( i, periodDi)
-         diMinus(i) = diMinus(i, periodDi)
-         adx    (i) = adx(    i, periodDi, periodAdx)
-         adxr   (i) = adxr(   i, periodDi, periodAdx)
+      diPlus (i) = diPlus( i, periodDi)
+      diMinus(i) = diMinus(i, periodDi)
+      adx    (i) = adx(    i, periodDi, periodAdx)
+      adxr   (i) = adxr(   i, periodDi, periodAdx)
 
-         i += 1
-      }
-   }
+      i += 1
+    }
+  }
     
 }
 

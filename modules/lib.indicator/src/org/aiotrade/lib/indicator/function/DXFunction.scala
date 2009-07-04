@@ -40,47 +40,46 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DXFunction extends AbstractFunction {
     
-   var period :Factor = _
+  var period :Factor = _
     
-   val _diPlus  = Var[Float]()
-   val _diMinus = Var[Float]()
+  val _diPlus  = Var[Float]()
+  val _diMinus = Var[Float]()
     
-   val _dx = Var[Float]()
+  val _dx = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.period = args(0).asInstanceOf[Factor]
-   }
+    this.period = args(0).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _diPlus (i) = diPlus( i, period)
-         _diMinus(i) = diMinus(i, period)
+      _diPlus (i) = diPlus( i, period)
+      _diMinus(i) = diMinus(i, period)
             
-         _dx(i) = Float.NaN
+      _dx(i) = Float.NaN
             
-      } else {
+    } else {
             
-         _diPlus (i) = diPlus( i, period)
-         _diMinus(i) = diMinus(i, period)
+      _diPlus (i) = diPlus( i, period)
+      _diMinus(i) = diMinus(i, period)
             
-         val diPlus_i  = _diPlus (i)
-         val diMinus_i = _diMinus(i)
+      val diPlus_i  = _diPlus (i)
+      val diMinus_i = _diMinus(i)
             
-         val dx_i = if (diPlus_i + diMinus_i == 0) 0f else Math.abs(diPlus_i - diMinus_i) / (diPlus_i + diMinus_i) * 100f
+      val dx_i = if (diPlus_i + diMinus_i == 0) 0f else Math.abs(diPlus_i - diMinus_i) / (diPlus_i + diMinus_i) * 100f
             
-         _dx(i) = dx_i
-      }
-   }
+      _dx(i) = dx_i
+    }
+  }
     
-   def dx(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def dx(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _dx(idx)
-   }
+    _dx(idx)
+  }
     
 }
 

@@ -40,59 +40,58 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class BOLLFunction extends AbstractFunction {
     
-   var period, alpha :Factor = _
-   var baseVar :Var[Float] = _
+  var period, alpha :Factor = _
+  var baseVar :Var[Float] = _
     
-   val _bollMiddle = Var[Float]()
-   val _bollUpper  = Var[Float]()
-   val _bollLower  = Var[Float]()
+  val _bollMiddle = Var[Float]()
+  val _bollUpper  = Var[Float]()
+  val _bollLower  = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.baseVar = args(0).asInstanceOf[Var[Float]]
-      this.period = args(1).asInstanceOf[Factor]
-      this.alpha = args(2).asInstanceOf[Factor]
-   }
+    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.period = args(1).asInstanceOf[Factor]
+    this.alpha = args(2).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _bollMiddle(i) = Float.NaN
-         _bollUpper(i)  = Float.NaN
-         _bollLower(i)  = Float.NaN
+      _bollMiddle(i) = Float.NaN
+      _bollUpper(i)  = Float.NaN
+      _bollLower(i)  = Float.NaN
             
-      } else {
+    } else {
             
-         val ma_i = ma(i, baseVar, period)
-         val standard_deviation_i = stdDev(i, baseVar, period);
+      val ma_i = ma(i, baseVar, period)
+      val standard_deviation_i = stdDev(i, baseVar, period);
             
-         _bollMiddle(i) = ma_i
-         _bollUpper(i)  = ma_i + alpha.value * standard_deviation_i
-         _bollLower(i)  = ma_i - alpha.value * standard_deviation_i
+      _bollMiddle(i) = ma_i
+      _bollUpper(i)  = ma_i + alpha.value * standard_deviation_i
+      _bollLower(i)  = ma_i - alpha.value * standard_deviation_i
             
-      }
-   }
+    }
+  }
     
     
-   def bollMiddle(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def bollMiddle(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _bollMiddle(idx)
-   }
+    _bollMiddle(idx)
+  }
     
-   def bollUpper(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def bollUpper(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _bollUpper(idx)
-   }
+    _bollUpper(idx)
+  }
     
-   def bollLower(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def bollLower(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _bollLower(idx)
-   }
+    _bollLower(idx)
+  }
     
 }
 

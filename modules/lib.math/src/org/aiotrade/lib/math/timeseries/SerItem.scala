@@ -36,24 +36,24 @@ package org.aiotrade.lib.math.timeseries
  */
 trait SerItem {
     
-   def ser :Ser
+  def ser :Ser
     
-   def index :int
+  def index :int
     
-   def isClear : Boolean
+  def isClear : Boolean
     
-   def clear :Unit
+  def clear :Unit
     
-   def time :Long
+  def time :Long
     
-   def get[T](v:Var[T]):T
+  def get[T](v:Var[T]):T
     
-   def getFloat(v:Var[_]) :Float
+  def getFloat(v:Var[_]) :Float
     
-   def setFloat[T >: Number](v:Var[T], number:T) :Unit
+  def setFloat[T >: Number](v:Var[T], number:T) :Unit
     
-   def set[T](v:Var[T], o:T) :Unit
+  def set[T](v:Var[T], o:T) :Unit
 
-   def assignValue[V <: TimeValue](value:V) :Unit
+  def assignValue[V <: TimeValue](value:V) :Unit
 }
 

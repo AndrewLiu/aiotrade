@@ -40,23 +40,23 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class MTMIndicator extends ContIndicator {
-   _sname = "MTM"
-   _lname = "Momentum"
+  _sname = "MTM"
+  _lname = "Momentum"
     
-   val period       = Factor("Period",           12)
-   val periodSmooth = Factor("Period Smoothing",  6)
+  val period       = Factor("Period",           12)
+  val periodSmooth = Factor("Period Smoothing",  6)
     
-   val mtm    = Var[Float]("MTM",    Plot.Line)
-   val mtm_ma = Var[Float]("MTM_MA", Plot.Line)
+  val mtm    = Var[Float]("MTM",    Plot.Line)
+  val mtm_ma = Var[Float]("MTM_MA", Plot.Line)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
-         mtm(i) = mtm(i, C, period)
-         mtm_ma(i) = ma(i, mtm, periodSmooth)
-         i += 1
-      }
-   }
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
+      mtm(i) = mtm(i, C, period)
+      mtm_ma(i) = ma(i, mtm, periodSmooth)
+      i += 1
+    }
+  }
     
 }
 

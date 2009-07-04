@@ -40,27 +40,27 @@ import org.aiotrade.lib.indicator.ContIndicator;
  * @author Caoyuan Deng
  */
 class KDIndicator extends ContIndicator {
-   _sname = "KD"
-   _lname = "Stochastics"
-   _grids = Array(20f, 80f)
+  _sname = "KD"
+  _lname = "Stochastics"
+  _grids = Array(20f, 80f)
     
-   val period  = Factor("Period K",           9)
-   val periodK = Factor("Period K Smoothing", 3)
-   val periodD = Factor("Period D Smoothing", 3)
+  val period  = Factor("Period K",           9)
+  val periodK = Factor("Period K Smoothing", 3)
+  val periodD = Factor("Period D Smoothing", 3)
     
-   val k = Var[Float]("K", Plot.Line)
-   val d = Var[Float]("D", Plot.Line)
-   val j = Var[Float]("J", Plot.Line)
+  val k = Var[Float]("K", Plot.Line)
+  val d = Var[Float]("D", Plot.Line)
+  val j = Var[Float]("J", Plot.Line)
     
-   protected def computeCont(begIdx:Int, size:Int) :Unit = {
-      var i = begIdx
-      while (i < size) {
-         k(i) = stochK(i, period, periodK)
-         d(i) = stochD(i, period, periodK, periodD)
-         j(i) = stochJ(i, period, periodK, periodD)
-         i += 1
-      }
-   }
+  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+    var i = begIdx
+    while (i < size) {
+      k(i) = stochK(i, period, periodK)
+      d(i) = stochD(i, period, periodK, periodD)
+      j(i) = stochJ(i, period, periodK, periodD)
+      i += 1
+    }
+  }
     
 }
 

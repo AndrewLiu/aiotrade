@@ -39,25 +39,25 @@ import java.util.Random
  */
 class InputOutputPoint(inputDimension:Int, outputDimension:Int) {
     
-    val input  :Vec = new DefaultVec(inputDimension)
-    val output :Vec = new DefaultVec(outputDimension)
+  val input  :Vec = new DefaultVec(inputDimension)
+  val output :Vec = new DefaultVec(outputDimension)
     
 }
 
 object InputOutputPoint {
-    def randomizeOrder_createNew(iops:Array[InputOutputPoint]) :Array[InputOutputPoint] = {
-        val size = iops.length
-        val result = new Array[InputOutputPoint](size)
+  def randomizeOrder_createNew(iops:Array[InputOutputPoint]) :Array[InputOutputPoint] = {
+    val size = iops.length
+    val result = new Array[InputOutputPoint](size)
 
-        System.arraycopy(iops, 0, result, 0, size)
-        val random = new Random(System.currentTimeMillis)
-        for (i <- 0 until size) {
-            val next = random.nextInt(size - i)
-            val iop = result(next)
-            result(next) = result(i)
-            result(i) = iop
-        }
-
-        result
+    System.arraycopy(iops, 0, result, 0, size)
+    val random = new Random(System.currentTimeMillis)
+    for (i <- 0 until size) {
+      val next = random.nextInt(size - i)
+      val iop = result(next)
+      result(next) = result(i)
+      result(i) = iop
     }
+
+    result
+  }
 }

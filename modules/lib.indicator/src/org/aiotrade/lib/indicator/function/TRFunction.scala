@@ -39,31 +39,30 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class TRFunction extends AbstractFunction {
     
-   val _tr = Var[Float]()
+  val _tr = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
-   }
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i == 0) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i == 0) {
             
-         _tr(i) = Float.NaN
+      _tr(i) = Float.NaN
             
-      } else {
+    } else {
             
-         val tr_tmp = Math.max(H(i) - L(i), Math.abs(H(i) - C(i - 1)))
-         _tr(i) = Math.max(tr_tmp, Math.abs(L(i) - C(i - 1)))
+      val tr_tmp = Math.max(H(i) - L(i), Math.abs(H(i) - C(i - 1)))
+      _tr(i) = Math.max(tr_tmp, Math.abs(L(i) - C(i - 1)))
             
-      }
-   }
+    }
+  }
     
-   def tr(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def tr(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _tr(idx)
-   }
+    _tr(idx)
+  }
 
 }
 

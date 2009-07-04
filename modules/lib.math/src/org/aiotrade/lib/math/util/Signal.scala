@@ -36,13 +36,13 @@ package org.aiotrade.lib.math.util
  */
 class Signal(idx:Int, time:Long, value:Float, sign:Sign, name:String) extends Number {
 
-   def doubleValue :Double = value.asInstanceOf[Double]
+  def doubleValue :Double = value.asInstanceOf[Double]
 
-   def floatValue = value
+  def floatValue = value
 
-   def intValue :Int = value.asInstanceOf[Int]
+  def intValue :Int = value.asInstanceOf[Int]
 
-   def longValue :Long = value.asInstanceOf[Long]
+  def longValue :Long = value.asInstanceOf[Long]
 }
 
 

@@ -124,160 +124,146 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  */
 class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     
-   private val timeToElementData = new HashMap[Long, A]()
+  private val timeToElementData = new HashMap[Long, A]()
 
-   override
-   def size :Int = timestamps.size
+  override def size :Int = timestamps.size
 
-   override
-   def isEmpty :Boolean = timestamps.isEmpty
+  override def isEmpty :Boolean = timestamps.isEmpty
     
-   override
-   def contains(o:Any) :Boolean = timeToElementData.values.contains(o)
+  override def contains(o:Any) :Boolean = timeToElementData.values.contains(o)
     
-   override
-   def toArray[B >: A] :Array[B]  = {
-      val length = timestamps.size
-      val array = new Array[B](length)
-      copyToArray(array, 0)
-      array
-   }
+  override def toArray[B >: A] :Array[B]  = {
+    val length = timestamps.size
+    val array = new Array[B](length)
+    copyToArray(array, 0)
+    array
+  }
     
-   override
-   def copyToArray[B >: A](xs:Array[B], start:Int) :Unit = {
-      val length = timestamps.size
-      val array = if (xs.length == length) xs else new Array[B](size)
-      var i = 0; while (i < length) {
-         val time = timestamps.apply(i)
-         timeToElementData.get(time).asInstanceOf[B]
-         array(i) = timeToElementData.get(time).asInstanceOf[B]
-         i += 1
-      }
+  override def copyToArray[B >: A](xs:Array[B], start:Int) :Unit = {
+    val length = timestamps.size
+    val array = if (xs.length == length) xs else new Array[B](size)
+    var i = 0; while (i < length) {
+      val time = timestamps.apply(i)
+      timeToElementData.get(time).asInstanceOf[B]
+      array(i) = timeToElementData.get(time).asInstanceOf[B]
+      i += 1
+    }
         
-      array
-   }
+    array
+  }
     
-   def add(time:Long, elem:A) :Boolean = {
-      if (elem == null) {
-         /** null value needs not to be put in map, this will spare the memory usage */
-         return true
-      }
+  def add(time:Long, elem:A) :Boolean = {
+    if (elem == null) {
+      /** null value needs not to be put in map, this will spare the memory usage */
+      return true
+    }
         
-      val idx = timestamps.indexOfOccurredTime(time)
-      if (idx >= 0) {
-         timeToElementData.put(time, elem)
-         true
-      } else {
-         assert(false, "Add timestamps first before add an element!")
-         false
-      }
-   }
+    val idx = timestamps.indexOfOccurredTime(time)
+    if (idx >= 0) {
+      timeToElementData.put(time, elem)
+      true
+    } else {
+      assert(false, "Add timestamps first before add an element!")
+      false
+    }
+  }
     
-   def getByTime(time:Long) :A = timeToElementData.get(time).get
+  def getByTime(time:Long) :A = timeToElementData.get(time).get
     
-   def setByTime(time:Long, elem:A) :A = {
-      if (timestamps.contains(time)) {
-         timeToElementData.put(time, elem)
-         elem
-      } else {
-         assert(false, "Time out of bounds = " + time)
-         null.asInstanceOf[A]
-      }
-   }
+  def setByTime(time:Long, elem:A) :A = {
+    if (timestamps.contains(time)) {
+      timeToElementData.put(time, elem)
+      elem
+    } else {
+      assert(false, "Time out of bounds = " + time)
+      null.asInstanceOf[A]
+    }
+  }
     
-   /**
-    *
-    */
-   @deprecated override
-   def +(elem:A) :ArrayBuffer[A] = {
-      assert(false, "+(elem:A) is not supported by this collection! " +
-             ", please use add(long time, E o)")
-      this
-   }
+  /**
+   *
+   */
+  @deprecated
+  override def +(elem:A) :ArrayBuffer[A] = {
+    assert(false, "+(elem:A) is not supported by this collection! " +
+           ", please use add(long time, E o)")
+    this
+  }
     
-   /**
-    * @deprecated
-    */
-   override
-   def insert(n:Int, elems:A*) :Unit = {
-      assert(false, "insert(n:Int, elems:A*) is not supported by this collection! " +
-             ", please use add(long time, E o)")
-   }
+  /**
+   * @deprecated
+   */
+  override def insert(n:Int, elems:A*) :Unit = {
+    assert(false, "insert(n:Int, elems:A*) is not supported by this collection! " +
+           ", please use add(long time, E o)")
+  }
                     
-   override
-   def clear :Unit = timeToElementData.clear
+  override def clear :Unit = timeToElementData.clear
     
-   override
-   def equals(o:Any) :Boolean = timeToElementData.equals(o)
+  override def equals(o:Any) :Boolean = timeToElementData.equals(o)
     
-   override
-   def hashCode :Int = timeToElementData.hashCode
+  override def hashCode :Int = timeToElementData.hashCode
 
-   override
-   def apply(n:Int) :A = {
-      val time = timestamps.apply(n)
-      if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
-   }
+  override def apply(n:Int) :A = {
+    val time = timestamps.apply(n)
+    if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
+  }
     
-   override
-   def update(n:Int, newelem:A) : Unit = {
-      if (n >= 0 && n < timestamps.size) {
-         val time = timestamps(n)
-         timeToElementData.put(time, newelem)
-      } else assert(false, "Index out of bounds! index = " + n)
-   }
+  override def update(n:Int, newelem:A) : Unit = {
+    if (n >= 0 && n < timestamps.size) {
+      val time = timestamps(n)
+      timeToElementData.put(time, newelem)
+    } else assert(false, "Index out of bounds! index = " + n)
+  }
     
-   override
-   def remove(n:Int) :A = {
-      if (n >= 0 && n < timestamps.size) {
-         val time = timestamps(n)
-         val e = timeToElementData.get(n).get
-         timeToElementData.removeKey(time)
-         e
-      } else {
-         null.asInstanceOf[A]
+  override def remove(n:Int) :A = {
+    if (n >= 0 && n < timestamps.size) {
+      val time = timestamps(n)
+      val e = timeToElementData.get(n).get
+      timeToElementData.removeKey(time)
+      e
+    } else {
+      null.asInstanceOf[A]
+    }
+  }
+    
+  override def indexOf[B >: A](elem:B) : Int = {
+    val itr = timeToElementData.keys
+    while (itr.hasNext) {
+      val time = itr.next
+      if (timeToElementData.get(time).get == elem) {
+        return binarySearch(time, 0, timestamps.size - 1)
       }
-   }
-    
-   override
-   def indexOf[B >: A](elem:B) : Int = {
-      val itr = timeToElementData.keys
-      while (itr.hasNext) {
-         val time = itr.next
-         if (timeToElementData.get(time).get == elem) {
-            return binarySearch(time, 0, timestamps.size - 1)
-         }
-      }
+    }
         
-      return -1
-   }
+    return -1
+  }
     
-   override
-   def lastIndexOf[B >: A](elem:B) : Int = {
-      var found = -1
-      val itr = timeToElementData.keys
-      while (itr.hasNext) {
-         val time = itr.next
-         if (timeToElementData.get(time).get == elem) {
-            found = binarySearch(time, 0, timestamps.size - 1)
-         }
+  override def lastIndexOf[B >: A](elem:B) : Int = {
+    var found = -1
+    val itr = timeToElementData.keys
+    while (itr.hasNext) {
+      val time = itr.next
+      if (timeToElementData.get(time).get == elem) {
+        found = binarySearch(time, 0, timestamps.size - 1)
       }
+    }
         
-      found
-   }
+    found
+  }
     
-   private def binarySearch(time:Long, left:Int, right:Int) :Int = {
-      if (left == right) {
-         if (timestamps.apply(left) == time) left else -1
+  private def binarySearch(time:Long, left:Int, right:Int) :Int = {
+    if (left == right) {
+      if (timestamps.apply(left) == time) left else -1
+    } else {
+      val middle = ((left + right) * 0.5).toInt
+      if (time < timestamps.apply(middle)) {
+        if (middle == 0) -1 else binarySearch(time, left, middle - 1)
       } else {
-         val middle = ((left + right) * 0.5).toInt
-         if (time < timestamps.apply(middle)) {
-            if (middle == 0) -1 else binarySearch(time, left, middle - 1)
-         } else {
-            binarySearch(time, middle, right)
-         }
+        binarySearch(time, middle, right)
       }
-   }
+    }
+  }
     
     
 }

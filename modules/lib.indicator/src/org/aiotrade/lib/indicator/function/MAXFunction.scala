@@ -40,42 +40,41 @@ import org.aiotrade.lib.math.timeseries.Var;
  * @author Caoyuan Deng
  */
 object MAXFunction {
-   protected def imax(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
-      StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
-   }
+  protected def imax(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+    StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
+  }
 }
 class MAXFunction extends AbstractFunction {
     
-   var period :Factor = _
-   var baseVar :Var[Float] = _
+  var period :Factor = _
+  var baseVar :Var[Float] = _
     
-   val _max = Var[Float]()
+  val _max = Var[Float]()
     
-   override
-   def set(baseSer:Ser, args:Any*) :Unit = {
-      super.set(baseSer)
+  override def set(baseSer:Ser, args:Any*) :Unit = {
+    super.set(baseSer)
         
-      this.baseVar = args(0).asInstanceOf[Var[Float]]
-      this.period = args(1).asInstanceOf[Factor]
-   }
+    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.period = args(1).asInstanceOf[Factor]
+  }
     
-   protected def computeSpot(i:Int) :Unit = {
-      if (i < period.value - 1) {
+  protected def computeSpot(i:Int) :Unit = {
+    if (i < period.value - 1) {
             
-         _max(i) = Float.NaN
+      _max(i) = Float.NaN
             
-      } else {
+    } else {
             
-         _max(i) = MAXFunction.imax(i, baseVar, period.value, _max(i - 1))
+      _max(i) = MAXFunction.imax(i, baseVar, period.value, _max(i - 1))
             
-      }
-   }
+    }
+  }
     
-   def max(sessionId:Long, idx:int) :Float = {
-      computeTo(sessionId, idx)
+  def max(sessionId:Long, idx:int) :Float = {
+    computeTo(sessionId, idx)
         
-      _max(idx)
-   }
+    _max(idx)
+  }
     
 }
 
