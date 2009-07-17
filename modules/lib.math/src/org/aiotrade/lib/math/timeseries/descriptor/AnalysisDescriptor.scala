@@ -28,16 +28,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.descriptor;
+package org.aiotrade.lib.math.timeseries.descriptor
 
-import javax.swing.Action;
+import javax.swing.Action
 import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.util.serialization.BeansDocument;
-import org.aiotrade.lib.util.serialization.DeserializationConstructor;
-import org.aiotrade.lib.util.serialization.JavaDocument;
-import org.aiotrade.lib.util.swing.action.WithActions;
-import org.aiotrade.lib.util.swing.action.WithActionsHelper;
-import org.w3c.dom.Element;
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.aiotrade.lib.util.serialization.DeserializationConstructor
+import org.aiotrade.lib.util.serialization.JavaDocument
+import org.aiotrade.lib.util.swing.action.WithActions
+import org.aiotrade.lib.util.swing.action.WithActionsHelper
+import org.w3c.dom.Element
 
 /**
  * Descriptor is something like NetBeans' DataObject
@@ -95,10 +95,10 @@ abstract class AnalysisDescriptor[+S](var serviceClassName:String, var freq:Freq
   }
     
   def addAction(action:Action) :Action = {
-    withActionsHelper.addAction(action);
+    withActionsHelper.addAction(action)
   }
     
-  def lookupAction[T <: Action](tpe:Class[T]) :T = {
+  def lookupAction[T <: Action](tpe:Class[T]) :Option[T] = {
     withActionsHelper.lookupAction(tpe)
   }
     

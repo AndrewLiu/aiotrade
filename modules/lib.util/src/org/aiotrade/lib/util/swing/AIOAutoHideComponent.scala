@@ -28,41 +28,39 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.util.swing
+
+import javax.swing.JComponent
 
 /**
- *
+ * 
  * @author Caoyuan Deng
  */
-class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
-  private var onCalendarMode = false
+abstract class AIOAutoHideComponent extends JComponent {
+  protected var autoHidden = true
+  protected var hidden= true
     
-  def this() = {
-    this(Frequency.DAILY)
-  }
-        
-  def isOnCalendarMode = onCalendarMode
-
-  def setOnCalendarMode :Unit = {
-    this.onCalendarMode = true
+  def setAutoHidden(b:Boolean) :Unit = {
+    if (b != this.autoHidden) {
+      this.autoHidden = b
+            
+      repaint()
+    }
   }
     
-  def setOnOccurredMode :Unit = {
-    this.onCalendarMode = false
+  def setHidden(b:Boolean) :Unit = {
+    if (b != this.hidden) {
+      this.hidden= b
+            
+      if (autoHidden) {
+        repaint()
+      }
+    }
   }
-        
-  def rowOfTime(time:Long) :Int = activeTimestamps.rowOfTime(time, freq)
-  def timeOfRow(row:Int) :Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row:Int) :SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
-  def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
     
-  override def size :Int = activeTimestamps.sizeOf(freq)
-
-  private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  def isHidden :Boolean = {
+    autoHidden && hidden
+  }
+    
 }
-
-
-
-
-
 

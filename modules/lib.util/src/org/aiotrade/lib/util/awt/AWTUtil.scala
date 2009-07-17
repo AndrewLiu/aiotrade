@@ -28,41 +28,32 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.util.awt
+
+import java.awt.Component
+import java.awt.event.ComponentListener
+import java.awt.event.FocusListener
+import java.awt.event.InputMethodListener
+import java.awt.event.KeyListener
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
+import java.awt.event.MouseWheelListener
 
 /**
  *
  * @author Caoyuan Deng
  */
-class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
-  private var onCalendarMode = false
-    
-  def this() = {
-    this(Frequency.DAILY)
+object AWTUtil {
+  final def removeAllAWTListenersOf(c:Component) :Unit = {
+    c.getMouseListeners.foreach{c.removeMouseListener(_)}
+    c.getMouseMotionListeners.foreach{c.removeMouseMotionListener(_)}
+    c.getMouseWheelListeners.foreach{c.removeMouseWheelListener(_)}
+    c.getKeyListeners.foreach{c.removeKeyListener(_)}
+    c.getComponentListeners.foreach{c.removeComponentListener(_)}
+    c.getInputMethodListeners.foreach {c.removeInputMethodListener(_)}
+    c.getFocusListeners.foreach{c.removeFocusListener(_)}
   }
-        
-  def isOnCalendarMode = onCalendarMode
-
-  def setOnCalendarMode :Unit = {
-    this.onCalendarMode = true
-  }
-    
-  def setOnOccurredMode :Unit = {
-    this.onCalendarMode = false
-  }
-        
-  def rowOfTime(time:Long) :Int = activeTimestamps.rowOfTime(time, freq)
-  def timeOfRow(row:Int) :Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row:Int) :SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
-  def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
-    
-  override def size :Int = activeTimestamps.sizeOf(freq)
-
-  private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
 }
-
-
-
 
 
 

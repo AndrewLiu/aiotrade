@@ -28,41 +28,25 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.util;
+
 
 /**
- *
+ * 
  * @author Caoyuan Deng
- */
-class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
-  private var onCalendarMode = false
+ */ 
+trait Observable {
     
-  def this() = {
-    this(Frequency.DAILY)
-  }
-        
-  def isOnCalendarMode = onCalendarMode
+  def addObserver(observer:Observer) :Unit
 
-  def setOnCalendarMode :Unit = {
-    this.onCalendarMode = true
-  }
-    
-  def setOnOccurredMode :Unit = {
-    this.onCalendarMode = false
-  }
-        
-  def rowOfTime(time:Long) :Int = activeTimestamps.rowOfTime(time, freq)
-  def timeOfRow(row:Int) :Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row:Int) :SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
-  def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
-    
-  override def size :Int = activeTimestamps.sizeOf(freq)
+  def deleteObserver(observer:Observer) :Unit
 
-  private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  def deleteObservers :Unit
+
+  def notifyObservers :Unit
+
+  def hasChanged :Boolean
+
+  def countObservers :Int
 }
-
-
-
-
-
 

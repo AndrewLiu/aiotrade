@@ -28,41 +28,56 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.util
+
 
 /**
+ * Error thrown when something goes wrong while loading a service provider.
  *
- * @author Caoyuan Deng
+ * <p> This error will be thrown in the following situations:
+ *
+ * <ul>
+ *
+ *   <li> The format of a provider-configuration file violates the <a
+ *   href="ServiceLoader.html#format">specification</a>; </li>
+ *
+ *   <li> An {@link java.io.IOException IOException} occurs while reading a
+ *   provider-configuration file; </li>
+ *
+ *   <li> A concrete provider class named in a provider-configuration file
+ *   cannot be found; </li>
+ *
+ *   <li> A concrete provider class is not a subclass of the service class;
+ *   </li>
+ *
+ *   <li> A concrete provider class cannot be instantiated; or
+ *
+ *   <li> Some other kind of error occurs. </li>
+ *
+ * </ul>
+ *
+ *
+ * @author Mark Reinhold
+ * @version 1.5, 06/04/10
+ * @since 1.6
  */
-class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
-  private var onCalendarMode = false
-    
-  def this() = {
-    this(Frequency.DAILY)
-  }
-        
-  def isOnCalendarMode = onCalendarMode
 
-  def setOnCalendarMode :Unit = {
-    this.onCalendarMode = true
-  }
-    
-  def setOnOccurredMode :Unit = {
-    this.onCalendarMode = false
-  }
-        
-  def rowOfTime(time:Long) :Int = activeTimestamps.rowOfTime(time, freq)
-  def timeOfRow(row:Int) :Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row:Int) :SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
-  def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
-    
-  override def size :Int = activeTimestamps.sizeOf(freq)
+/**
+ * Constructs a new instance with the specified message and cause.
+ *
+ * @param  msg  The message, or <tt>null</tt> if there is no message
+ *
+ * @param  cause  The cause, or <tt>null</tt> if the cause is nonexistent
+ *                or unknown
+ */
+@SerialVersionUID(74132770414881L)
+class ServiceConfigurationError(msg:String, cause:Throwable) extends Error(msg, cause) {
 
-  private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  /**
+   * Constructs a new instance with the specified message.
+   *
+   * @param  msg  The message, or <tt>null</tt> if there is no message
+   *
+   */
+  def this(msg:String) = this(msg, null)
 }
-
-
-
-
-
-

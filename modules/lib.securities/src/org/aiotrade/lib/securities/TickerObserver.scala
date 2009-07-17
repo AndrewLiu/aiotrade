@@ -36,7 +36,7 @@ import org.aiotrade.lib.util.Observer
  * Just for clearly name.
  * @author Caoyuan Deng
  */
-trait TickerObserver[S <: TickerSnapshot] extends Observer[S] {
+trait TickerObserver[S <: TickerSnapshot] extends Observer {
 }
 
 

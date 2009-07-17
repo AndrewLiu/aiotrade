@@ -172,7 +172,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     withActionsHelper.addAction(action)
   }
     
-  def lookupAction[T <: Action](tpe:Class[T]) :T = {
+  def lookupAction[T <: Action](tpe:Class[T]) :Option[T] = {
     withActionsHelper.lookupAction(tpe)
   }
     
@@ -183,7 +183,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
   def writeToBean(doc:BeansDocument) :Element = {
     val bean = doc.createBean(this)
         
-    val list = doc.listPropertyOfBean(bean, "descriptors");
+    val list = doc.listPropertyOfBean(bean, "descriptors")
     for (descriptor <- descriptorBuf) {
       doc.innerElementOfList(list, descriptor.writeToBean(doc))
     }

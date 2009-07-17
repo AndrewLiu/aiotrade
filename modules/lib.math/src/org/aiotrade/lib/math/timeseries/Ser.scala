@@ -105,8 +105,8 @@ object SerChangeEvent {
   object Type {
     case object RefreshInLoading extends Type
     case object FinishedLoading  extends Type
-    case object Updated  extends Type
-    case object FinishedComputing  extends Type
+    case object Updated extends Type
+    case object FinishedComputing extends Type
     case object Clear extends Type
     case object None extends Type
   }

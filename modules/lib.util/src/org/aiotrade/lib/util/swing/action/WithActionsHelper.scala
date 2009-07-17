@@ -28,41 +28,54 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
+package org.aiotrade.lib.util.swing.action
+
+import javax.swing.Action
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
-class DefaultMasterSer(freq:Frequency) extends DefaultSer(freq) with MasterSer {
-  private var onCalendarMode = false
+class WithActionsHelper(awrapper:WithActions) {  
+  private val wrapper = awrapper
+  private var actions:Seq[Action] = Nil
+  private var defaultActionsAdded :Boolean = _
     
-  def this() = {
-    this(Frequency.DAILY)
+  def addAction(action:Action) :Action = {
+    if (actions == Nil) {
+      actions = new ArrayBuffer[Action]
+    }
+    
+    actions.asInstanceOf[ArrayBuffer[Action]] += action
+    action
   }
+    
+  def lookupAction[T <: Action](tpe:Class[T]) :Option[T] = {
+    if (! defaultActionsAdded) {
+      addDefaultActions
+      defaultActionsAdded = true
+    }
         
-  def isOnCalendarMode = onCalendarMode
+    for (action <- actions) {
+      if (tpe.isInstance(action)) {
+        return Some(action.asInstanceOf[T])
+      }
+    }
 
-  def setOnCalendarMode :Unit = {
-    this.onCalendarMode = true
+    None
   }
     
-  def setOnOccurredMode :Unit = {
-    this.onCalendarMode = false
+  private def addDefaultActions :Unit = {
+    for (action <- wrapper.createDefaultActions) {
+      addAction(action)
+    }
   }
-        
-  def rowOfTime(time:Long) :Int = activeTimestamps.rowOfTime(time, freq)
-  def timeOfRow(row:Int) :Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row:Int) :SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
-  def lastOccurredRow :Int = activeTimestamps.lastRow(freq)
     
-  override def size :Int = activeTimestamps.sizeOf(freq)
-
-  private def activeTimestamps :Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  def getActions :Seq[Action] = {
+    actions
+  }
+    
 }
-
-
-
-
-
 
