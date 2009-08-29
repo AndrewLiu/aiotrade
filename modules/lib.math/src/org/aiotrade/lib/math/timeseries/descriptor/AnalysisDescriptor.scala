@@ -33,7 +33,7 @@ package org.aiotrade.lib.math.timeseries.descriptor
 import javax.swing.Action
 import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.util.serialization.BeansDocument
-import org.aiotrade.lib.util.serialization.DeserializationConstructor
+//import org.aiotrade.lib.util.serialization.DeserializationConstructor
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper

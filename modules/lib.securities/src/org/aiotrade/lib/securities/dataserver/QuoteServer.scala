@@ -35,7 +35,8 @@ import org.aiotrade.lib.math.timeseries.Frequency
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{Ser,AddAll}
-import org.aiotrade.lib.securities.{Market,Quote,QuotePool}
+import org.aiotrade.lib.securities.{Market, Quote, QuotePool, PersistenceManager}
+
 import scala.collection.mutable.ArrayBuffer
 
 /**

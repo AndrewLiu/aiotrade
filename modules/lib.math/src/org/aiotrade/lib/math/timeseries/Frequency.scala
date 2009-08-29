@@ -33,7 +33,7 @@ package org.aiotrade.lib.math.timeseries
 
 import java.util.{Calendar,TimeZone}
 import org.aiotrade.lib.util.serialization.BeansDocument
-import org.aiotrade.lib.util.serialization.DeserializationConstructor
+//import org.aiotrade.lib.util.serialization.DeserializationConstructor
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.w3c.dom.Element
 import org.aiotrade.lib.math.timeseries.Unit._

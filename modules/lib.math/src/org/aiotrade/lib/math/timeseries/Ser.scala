@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import scala.collection.Set
 import scala.collection.mutable.ArrayBuffer
 import scala.actors.Actor._
 
@@ -59,7 +58,7 @@ trait Ser {
 
   def freq :Frequency
 
-  def varSet :Set[Var[Any]]
+  def varSet: scala.collection.Set[Var[Any]]
   def items :ArrayBuffer[SerItem]
 
   def getItem(time:Long) :SerItem

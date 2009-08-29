@@ -60,11 +60,11 @@ object Ticker {
 class Ticker(val depth:Int) extends TimeValue {
   import Ticker._
     
-  private val values = new Array[float](8)
-  private val bidPrices = new Array[float](depth)
-  private val bidSizes  = new Array[float](depth)
-  private val askPrices = new Array[float](depth)
-  private val askSizes  = new Array[float](depth)
+  private val values = new Array[Float](8)
+  private val bidPrices = new Array[Float](depth)
+  private val bidSizes  = new Array[Float](depth)
+  private val askPrices = new Array[Float](depth)
+  private val askSizes  = new Array[Float](depth)
   private val cal = Calendar.getInstance
 
   def this() {
@@ -113,11 +113,13 @@ class Ticker(val depth:Int) extends TimeValue {
 
   def reset :Unit =  {
     time = 0
-    values.map{x => 0}
-    bidPrices.map{x => 0}
-    bidSizes.map{x => 0}
-    askPrices.map{x => 0}
-    askSizes.map{x => 0}
+    for (i <- 0 until depth) {
+      values(i) = 0
+      bidPrices(i) = 0
+      bidSizes(i) = 0
+      askPrices(i) = 0
+      askSizes(i) = 0
+    }
   }
 
   def copy(another:Ticker) :Unit = {

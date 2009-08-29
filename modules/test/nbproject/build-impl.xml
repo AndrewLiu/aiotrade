@@ -715,6 +715,7 @@ Scala installation directory.
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>
         <delete dir="${dist.dir}"/>
+        <fsc reset="yes" srcdir="${src.dir}"/>
     </target>
     <target name="-post-clean">
         <!-- Empty placeholder for easier customization. -->

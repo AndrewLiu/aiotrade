@@ -32,6 +32,8 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.securities.PersistenceManager
+
 
 /**
  *

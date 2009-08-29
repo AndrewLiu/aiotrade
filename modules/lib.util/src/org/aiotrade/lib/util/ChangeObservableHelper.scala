@@ -89,7 +89,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def notifyObserversChanged[T <: ChangeObserver[Any]](subject:ChangeObservable, observerType:Class[T]) :Unit = {
+  def notifyObserversChanged[T <: ChangeObserver[_]](subject:ChangeObservable, observerType:Class[T]) :Unit = {
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
       val observer = itr.next
@@ -99,7 +99,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def getObservers[T <: ChangeObserver[Any]](observerType:Class[T]) :List[T] = {
+  def getObservers[T <: ChangeObserver[_]](observerType:Class[T]) :List[T] = {
     val result = new ArrayList[T]
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
@@ -132,7 +132,7 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be added
    */
-  protected def add[T <: ChangeObserver[Any]](owner:Object, observer:T) :Unit = synchronized {
+  protected def add[T <: ChangeObserver[_]](owner:Object, observer:T) :Unit = synchronized {
     assert(observer != null, "Do not add a null observer!")
     observerMapOwner.put(observer, owner)
   }
@@ -140,7 +140,7 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be removed
    */
-  protected def  remove[T <: ChangeObserver[Any]](observer:T) :Unit = synchronized {
+  protected def  remove[T <: ChangeObserver[_]](observer:T) :Unit = synchronized {
     if (observer == null) {
       return
     }

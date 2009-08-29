@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.ConcurrentModificationException
-import java.util.{Calendar,TimeZone}
+import java.util.{Calendar, TimeZone}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -487,11 +487,11 @@ object TimestampsFactory {
         
     override def contains(elem:Any) = delegateTimestamps.contains(elem)
         
-    override def ++[B >: Long](that:Iterable[B]) = delegateTimestamps ++ that
+    //override def ++[B >: Long](that:Iterable[B]) = delegateTimestamps ++ that
 
     def insert(n:Int, elems:Long) = delegateTimestamps.insert(n, elems)
 
-    override def insertAll(n:Int, iter:Iterable[Long]) = delegateTimestamps.insertAll(n, iter)
+    //override def insertAll(n:Int, iter:Iterable[Long]) = delegateTimestamps.insertAll(n, iter)
         
     override def clear = delegateTimestamps.clear
         

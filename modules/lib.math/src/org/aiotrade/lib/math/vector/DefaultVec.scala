@@ -41,7 +41,7 @@ import java.util.StringTokenizer
 class DefaultVec(source:Array[Double]) extends Vec {
   import DefaultVec._
     
-  private var values:Array[Double] = source
+  private var values: Array[Double] = source
     
   /**
    * Create a zero values <code>DefaultVec</code>.
@@ -126,7 +126,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
   }
     
   def setAll(value:Double) :Unit = {
-    values.map{x => value}
+    for (i <- 0 until values.size) values(i) = value
   }
     
   def copy(src:Vec) :Unit = {

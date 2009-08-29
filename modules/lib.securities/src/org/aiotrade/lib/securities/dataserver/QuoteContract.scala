@@ -28,11 +28,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities.dataserver;
+package org.aiotrade.lib.securities.dataserver
 
 import java.awt.Image
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.securities.PersistenceManager
 
 /**
  * most fields' default value should be OK.
