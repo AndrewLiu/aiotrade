@@ -41,11 +41,11 @@ class TRFunction extends AbstractFunction {
     
   val _tr = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
       _tr(i) = Float.NaN
@@ -58,7 +58,7 @@ class TRFunction extends AbstractFunction {
     }
   }
     
-  def tr(sessionId:Long, idx:int) :Float = {
+  def tr(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _tr(idx)

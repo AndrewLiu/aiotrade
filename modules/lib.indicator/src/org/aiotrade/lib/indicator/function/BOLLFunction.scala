@@ -28,11 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -40,14 +40,14 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class BOLLFunction extends AbstractFunction {
     
-  var period, alpha :Factor = _
-  var baseVar :Var[Float] = _
+  var period, alpha: Factor = _
+  var baseVar: Var[Float] = _
     
   val _bollMiddle = Var[Float]()
   val _bollUpper  = Var[Float]()
   val _bollLower  = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.baseVar = args(0).asInstanceOf[Var[Float]]
@@ -55,7 +55,7 @@ class BOLLFunction extends AbstractFunction {
     this.alpha = args(2).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
       _bollMiddle(i) = Float.NaN
@@ -75,19 +75,19 @@ class BOLLFunction extends AbstractFunction {
   }
     
     
-  def bollMiddle(sessionId:Long, idx:int) :Float = {
+  def bollMiddle(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _bollMiddle(idx)
   }
     
-  def bollUpper(sessionId:Long, idx:int) :Float = {
+  def bollUpper(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _bollUpper(idx)
   }
     
-  def bollLower(sessionId:Long, idx:int) :Float = {
+  def bollLower(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _bollLower(idx)

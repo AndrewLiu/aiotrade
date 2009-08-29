@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.computable.ContComputable
 import org.aiotrade.lib.math.timeseries.Ser
@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.Ser
  *
  * @author Caoyuan Deng
  */
-abstract class ContIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+abstract class ContIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) with ContComputable {
 
   def this() = {
     this(null)

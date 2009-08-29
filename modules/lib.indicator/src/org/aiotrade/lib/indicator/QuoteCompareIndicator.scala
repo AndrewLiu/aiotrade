@@ -28,14 +28,14 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.MasterSer;
 import org.aiotrade.lib.math.timeseries.SerItem;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var
 import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
 
 
@@ -44,11 +44,11 @@ import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
  * @author Caoyuan Deng
  */
 //@IndicatorName("QUOTECOMPARE")
-class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
+class QuoteCompareIndicator(baseSer: Ser) extends ContIndicator(baseSer) {
     
-  private var _serToBeCompared :QuoteSer = _
+  private var _serToBeCompared: QuoteSer = _
         
-  def serToBeCompared_=(serToBeCompared:QuoteSer) :Unit = {
+  def serToBeCompared_=(serToBeCompared: QuoteSer): Unit = {
     this._serToBeCompared = serToBeCompared
   }
     
@@ -63,7 +63,7 @@ class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
   var close  = Var[Float]("C", Plot.Quote)
   var volume = Var[Float]("V", Plot.Quote)
     
-  protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+  protected def computeCont(begIdx: Int, itemSize: Int): Unit = {
     /** camparing base point is the value of begin time (the most left on screen */
         
     /** always compute from most left position on screen */
@@ -151,7 +151,7 @@ class QuoteCompareIndicator(baseSer:Ser) extends ContIndicator(baseSer) {
   /**
    * This function keeps the adjusting linear according to a norm
    */
-  private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
+  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 

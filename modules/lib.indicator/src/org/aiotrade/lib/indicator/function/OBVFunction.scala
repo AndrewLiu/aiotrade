@@ -41,11 +41,11 @@ class OBVFunction extends AbstractFunction {
     
   val _obv = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
       _obv(i) = 0f
@@ -64,7 +64,7 @@ class OBVFunction extends AbstractFunction {
     }
   }
     
-  def obv(sessionId:Long, idx:int) :Float = {
+  def obv(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _obv(idx)

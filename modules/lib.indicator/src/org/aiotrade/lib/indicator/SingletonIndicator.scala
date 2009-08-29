@@ -28,9 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.math.timeseries.computable.Indicator
 
 /**
  * Usually, indicator instances are created by call createNewInstance(),
@@ -45,21 +45,19 @@ import org.aiotrade.lib.math.timeseries.computable.Indicator;
  * @author Caoyuan Deng
  */
 object SingletonIndicator {
-  protected var singletonInstance :SingletonIndicator = _
+  protected var singletonInstance: SingletonIndicator = _
 }
 abstract class SingletonIndicator extends ContIndicator(null) {
   import SingletonIndicator._
     
   singletonInstance = this
     
-  def createInstance :Indicator = {
+  def createInstance: Indicator = {
     if (singletonInstance == null) {
       val clazz = this.getClass
       try {
         singletonInstance = this.getClass.newInstance.asInstanceOf[SingletonIndicator]
-      } catch {
-        case ex:Exception => ex.printStackTrace
-      }
+      } catch {case ex: Exception => ex.printStackTrace}
     }
     singletonInstance
   }

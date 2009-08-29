@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
  *
@@ -49,9 +49,9 @@ class VOLIndicator extends ContIndicator {
   val ma2 = Var[Float]("MA2", Plot.Line)
     
     
-  protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
-    var i = begIdx
-    while (i < itemSize) {
+  protected def computeCont(begin: Int, size: Int): Unit = {
+    var i = begin
+    while (i < size) {
       vol(i) = V(i)
       ma1(i) = ma(i, V, period1)
       ma2(i) = ma(i, V, period2)

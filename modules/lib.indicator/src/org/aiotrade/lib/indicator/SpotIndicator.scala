@@ -28,11 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable;
-import org.aiotrade.lib.math.timeseries.SerItem;
-import org.aiotrade.lib.math.timeseries.Ser;
+import org.aiotrade.lib.math.timeseries.SerItem
+import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.computable.SpotComputable
 
 /**
  * Abstract Profile Indicator
@@ -45,7 +45,7 @@ import org.aiotrade.lib.math.timeseries.Ser;
  * 
  * @author Caoyuan Deng
  */
-abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with SpotComputable {
+abstract class SpotIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) with SpotComputable {
     
   var spotTime = -Long.MaxValue
     
@@ -53,7 +53,7 @@ abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) wit
     this(null)
   }
     
-  def computeItem(time:Long) :SerItem = {
+  def computeItem(time: Long): SerItem = {
         
     /** get masterIndex before preCalc(), which may clear this data */
     val baseIdx = _baseSer.indexOfOccurredTime(time)
@@ -69,7 +69,7 @@ abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) wit
     newItem;
   }
     
-  protected def computeCont(begIdx:Int, itemSize:Int) :Unit = {
+  protected def computeCont(begIdx: Int, itemSize: Int): Unit = {
     var i = begIdx
     while (i < itemSize) {
       val time = _baseSer.timestamps(i)
@@ -80,6 +80,6 @@ abstract class SpotIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) wit
     }
   }
     
-  protected def computeSpot(time:Long, baseIdx:Int) :SerItem
+  protected def computeSpot(time: Long, baseIdx: Int): SerItem
 }
 

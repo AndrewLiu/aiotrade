@@ -28,21 +28,21 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.computable.ContComputable;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.math.util.Sign;
-import org.aiotrade.lib.math.util.Signal;
+import org.aiotrade.lib.math.util.Sign
+import org.aiotrade.lib.math.util.Signal
 
 /**
  * Abstract Signal Indicator
  *
  * @author Caoyuan Deng
  */
-abstract class SignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) with ContComputable {
+abstract class SignalIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) with ContComputable {
     
   _overlapping = true
 
@@ -52,11 +52,11 @@ abstract class SignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) w
     this(null)
   }
         
-  protected def signal(idx:Int, sign:Sign) :Unit = {
+  protected def signal(idx: Int, sign: Sign): Unit = {
     signal(idx, sign, "");
   }
     
-  protected def signal(idx:Int, sign:Sign, name:String) :Unit = {
+  protected def signal(idx: Int, sign: Sign, name: String): Unit = {
     val time = _baseSer.timestamps(idx)
         
     /** appoint a value for this sign as the drawing position */
@@ -71,7 +71,7 @@ abstract class SignalIndicator(baseSer:Ser) extends AbstractIndicator(baseSer) w
     signalVar(idx) = new Signal(idx, time, value, sign, name)
   }
     
-  protected def removeSignal(idx:Int) :Unit = {
+  protected def removeSignal(idx: Int): Unit = {
     val time = _baseSer.timestamps(idx)
     time
     /** @TODO */

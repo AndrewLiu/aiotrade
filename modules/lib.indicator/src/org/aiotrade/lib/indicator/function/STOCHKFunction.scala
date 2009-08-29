@@ -32,9 +32,9 @@ package org.aiotrade.lib.indicator.function;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -42,20 +42,20 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class STOCHKFunction extends AbstractFunction {
     
-  var period, periodK :Factor = _
+  var period, periodK: Factor = _
     
   val _elementK = Var[Float]()
     
   val _stochK = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
     this.periodK = args(1).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
       _elementK(i) = Float.NaN
@@ -75,7 +75,7 @@ class STOCHKFunction extends AbstractFunction {
     }
   }
     
-  def stochK(sessionId:Long, idx:int) :Float = {
+  def stochK(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _stochK(idx)

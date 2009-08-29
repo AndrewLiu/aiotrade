@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,16 +40,16 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MACDFunction extends AbstractFunction {
     
-  var periodSlow :Factor = _
-  var periodFast :Factor = _
-  var baseVar :Var[Float] = _
+  var periodSlow: Factor = _
+  var periodFast: Factor = _
+  var baseVar: Var[Float] = _
     
   val _emaFast = Var[Float]()
   val _emaSlow = Var[Float]()
     
   val _macd = Var[Float]
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.baseVar = args(0).asInstanceOf[Var[Float]]
@@ -57,14 +57,14 @@ class MACDFunction extends AbstractFunction {
     this.periodFast = args(2).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     _emaFast(i) = ema(i, baseVar, periodFast)
     _emaSlow(i) = ema(i, baseVar, periodSlow)
             
     _macd(i) = _emaFast(i) - _emaSlow(i)
   }
     
-  def macd(sessionId:Long, idx:int) :Float = {
+  def macd(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _macd(idx)

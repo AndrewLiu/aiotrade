@@ -42,11 +42,11 @@ class DMFunction extends AbstractFunction {
   val _dmPlus  = Var[Float]()
   val _dmMinus = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
       _dmPlus (i) = Float.NaN
@@ -88,13 +88,13 @@ class DMFunction extends AbstractFunction {
     }
   }
     
-  def dmPlus(sessionId:Long, idx:int) :Float = {
+  def dmPlus(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _dmPlus(idx)
   }
     
-  def dmMinus(sessionId:Long, idx:int) :Float = {
+  def dmMinus(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _dmMinus(idx)

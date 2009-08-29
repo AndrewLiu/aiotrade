@@ -31,16 +31,16 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
  * @author Caoyuan Deng
  */
 object MINFunction {
-  protected def imin(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+  protected def imin(idx: Int, baseVar: Var[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
   }
 
@@ -48,19 +48,19 @@ object MINFunction {
 }
 class MINFunction extends AbstractFunction {
     
-  var period :Factor = _
-  var baseVar :Var[Float] = _
+  var period: Factor = _
+  var baseVar: Var[Float] = _
     
   val _min = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.baseVar = args(0).asInstanceOf[Var[Float]]
-    this.period = args(1).asInstanceOf[Factor]
+    this.period  = args(1).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
       _min(i) = Float.NaN
@@ -72,7 +72,7 @@ class MINFunction extends AbstractFunction {
     }
   }
     
-  def min(sessionId:Long, idx:int) :Float = {
+  def min(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _min(idx)

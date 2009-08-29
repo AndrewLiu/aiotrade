@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -44,20 +44,20 @@ class WMSFunction extends AbstractFunction {
     
   val _wms = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     val h_max_i = max(i, H, period)
     val l_min_i = min(i, L, period)
         
     _wms(i) = 100 - (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
   }
     
-  def wms(sessionId:Long, idx:int) :Float = {
+  def wms(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _wms(idx)

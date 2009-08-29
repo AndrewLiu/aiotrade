@@ -31,16 +31,16 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
  * @author Caoyuan Deng
  */
 object MAFunction {
-  protected def ima(idx:Int, baseVar:Var[Float], period:Float, prev:Float) :Float = {
+  protected def ima(idx: Int, baseVar: Var[Float], period: Float, prev: Float): Float = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }
 }
@@ -52,16 +52,16 @@ class MAFunction extends AbstractFunction {
     
   val _ma = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
     args match {
-      case Seq(a0:Var[Float], a1:Factor) =>
+      case Seq(a0: Var[Float], a1: Factor) =>
         this.baseVar = a0
         this.period = a1
     }
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int) :Unit = {
     if (i < period.value - 1) {
             
       _ma(i) = Float.NaN
@@ -73,7 +73,7 @@ class MAFunction extends AbstractFunction {
     }
   }
     
-  def ma(sessionId:Long, idx:Int) :Float = {
+  def ma(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _ma(idx)

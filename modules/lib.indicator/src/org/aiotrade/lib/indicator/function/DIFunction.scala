@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DIFunction extends AbstractFunction {
     
-  var period :Factor = _
+  var period: Factor = _
     
   val _dmPlus  = Var[Float]()
   val _dmMinus = Var[Float]()
@@ -49,13 +49,13 @@ class DIFunction extends AbstractFunction {
   val _diPlus  = Var[Float]()
   val _diMinus = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     _dmPlus(i)  = dmPlus(i)
     _dmMinus(i) = dmMinus(i)
     _tr(i)      = tr(i)
@@ -80,13 +80,13 @@ class DIFunction extends AbstractFunction {
     }
   }
     
-  def diPlus(sessionId:Long, idx:int) :Float = {
+  def diPlus(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _diPlus(idx)
   }
     
-  def diMinus(sessionId:Long, idx:int) :Float = {
+  def diMinus(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _diMinus(idx)

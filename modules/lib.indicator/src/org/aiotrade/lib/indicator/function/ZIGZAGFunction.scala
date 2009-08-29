@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ZIGZAGFunction extends AbstractFunction {
     
-  var percent :Factor = _
+  var percent: Factor = _
     
   val _peakHi    = Var[Float]()
   val _peakLo    = Var[Float]()
@@ -51,7 +51,7 @@ class ZIGZAGFunction extends AbstractFunction {
   val _zigzag       = Var[Float]()
   val _pseudoZigzag = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.percent = args(0).asInstanceOf[Factor]
@@ -61,7 +61,7 @@ class ZIGZAGFunction extends AbstractFunction {
    * @TODO
    * Re-think how to effictively get this pseudoZigzag
    */
-  override protected def preComputeTo(sessionId:Long, idx:Int) :Unit = {
+  override protected def preComputeTo(sessionId: Long, idx: Int): Unit = {
     /**
      * the last zigzag is not a real turn over point, it's just a peakLo/Hi
      * in last trend, so should clear it. and if necessary, re compute
@@ -75,7 +75,7 @@ class ZIGZAGFunction extends AbstractFunction {
     //        }
   }
     
-  override protected def postComputeTo(sessionId:Long, idx:Int) :Unit = {
+  override protected def postComputeTo(sessionId: Long, idx: Int): Unit = {
 
     val lastIdx = _itemSize - 1
 
@@ -106,7 +106,7 @@ class ZIGZAGFunction extends AbstractFunction {
         
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
         
     if (i == 0) {
             
@@ -183,7 +183,7 @@ class ZIGZAGFunction extends AbstractFunction {
         
   }
     
-  def zigzag(sessionId:Long, idx:int) :Float = {
+  def zigzag(sessionId: Long, idx: Int): Float = {
     /**
      * @NOTICE
      * as zigzag's value is decided by future (+n step) idx, we should
@@ -204,7 +204,7 @@ class ZIGZAGFunction extends AbstractFunction {
     _zigzag(idx)
   }
     
-  def pseudoZigzag(sessionId:Long, idx:int) :Float = {
+  def pseudoZigzag(sessionId: Long, idx:Int): Float = {
     /**
      * @NOTICE
      * as pseudo zigzag's value is decided by future (+n step) idx, we should
@@ -225,7 +225,7 @@ class ZIGZAGFunction extends AbstractFunction {
     _pseudoZigzag(idx)
   }
 
-  def zigzagDirection(sessionId:Long, idx:int) :Direction = {
+  def zigzagDirection(sessionId: Long, idx: Int): Direction = {
     /**
      * @NOTICE
      * as zigzag direction 's value is decided by future (+n step) idx, we should

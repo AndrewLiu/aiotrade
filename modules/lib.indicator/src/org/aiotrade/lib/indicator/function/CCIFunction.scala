@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,21 +40,21 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class CCIFunction extends AbstractFunction {
     
-  var alpha, period :Factor = _
+  var alpha, period: Factor = _
     
   val _tp        = Var[Float]()
   val _deviation = Var[Float]()
     
   val _cci = Var[Float]
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
     this.alpha = args(1).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     _tp(i) = (H(i) + 2 * C(i) + L(i)) / 4f
         
     if (i < period.value - 1) {
@@ -75,7 +75,7 @@ class CCIFunction extends AbstractFunction {
     }
   }
     
-  def cci(sessionId:Long, idx:int) :Float = {
+  def cci(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _cci(idx)

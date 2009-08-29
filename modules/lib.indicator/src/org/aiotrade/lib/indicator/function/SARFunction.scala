@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class SARFunction extends AbstractFunction {
     
-  var initial, step, maximum :Factor = _
+  var initial, step, maximum: Factor = _
     
   val _direction = Var[Direction]()
   val _ep        = Var[Float]()
@@ -48,7 +48,7 @@ class SARFunction extends AbstractFunction {
     
   val _sar = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.initial = args(0).asInstanceOf[Factor]
@@ -56,7 +56,7 @@ class SARFunction extends AbstractFunction {
     this.maximum = args(2).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
       _direction(i) = Direction.Long
@@ -139,14 +139,14 @@ class SARFunction extends AbstractFunction {
     }
   }
     
-  def sar(sessionId:Long, idx:int) :Float = {
-    computeTo(sessionId, idx);
+  def sar(sessionId: Long, idx: Int): Float = {
+    computeTo(sessionId, idx)
         
     _sar(idx)
   }
     
-  def sarDirection(sessionId:Long, idx:int) :Direction = {
-    computeTo(sessionId, idx);
+  def sarDirection(sessionId: Long, idx: Int): Direction = {
+    computeTo(sessionId, idx)
         
     _direction(idx)
   }

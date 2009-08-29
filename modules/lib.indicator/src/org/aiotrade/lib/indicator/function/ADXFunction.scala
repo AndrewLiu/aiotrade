@@ -28,11 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var
 import org.aiotrade.lib.math.timeseries.computable.Factor
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
 
 /**
  *
@@ -40,23 +40,23 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class ADXFunction extends AbstractFunction {
     
-  var periodDi :Factor = _
+  var periodDi  :Factor = _
   var periodAdx :Factor = _
     
   val _dx  = Var[Float]()
     
   val _adx = Var[Float]()
 
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer, Nil)
     args match {
-      case Seq(a0:Factor, a1:Factor) =>
+      case Seq(a0: Factor, a1: Factor) =>
         this.periodDi = a0
         this.periodAdx = a1
     }
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     _dx(i) = dx(i, periodDi)
         
     if (i < periodDi.value - 1 || i < periodAdx.value - 1) {
@@ -70,7 +70,7 @@ class ADXFunction extends AbstractFunction {
     }
   }
     
-  def adx(sessionId:Long, idx:Int) :Float = {
+  def adx(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _adx(idx)

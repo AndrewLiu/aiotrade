@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class MFIFunction extends AbstractFunction {
     
-  var period :Factor = _
+  var period: Factor = _
     
   val _tp    = Var[Float]()
   val _mfPos = Var[Float]()
@@ -48,13 +48,13 @@ class MFIFunction extends AbstractFunction {
 
   val _mfi = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     _tp(i) = (H(i) + C(i) + L(i)) / 3f
         
     if (i == 0) {
@@ -89,7 +89,7 @@ class MFIFunction extends AbstractFunction {
     }
   }
     
-  def mfi(sessionId:Long, idx:int) :Float = {
+  def mfi(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _mfi(idx)

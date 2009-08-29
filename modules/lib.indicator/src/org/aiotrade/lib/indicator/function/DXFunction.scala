@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.Ser;
 import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
  *
@@ -40,20 +40,20 @@ import org.aiotrade.lib.math.timeseries.Var;
  */
 class DXFunction extends AbstractFunction {
     
-  var period :Factor = _
+  var period: Factor = _
     
   val _diPlus  = Var[Float]()
   val _diMinus = Var[Float]()
     
   val _dx = Var[Float]()
     
-  override def set(baseSer:Ser, args:Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
       _diPlus (i) = diPlus( i, period)
@@ -75,7 +75,7 @@ class DXFunction extends AbstractFunction {
     }
   }
     
-  def dx(sessionId:Long, idx:int) :Float = {
+  def dx(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _dx(idx)

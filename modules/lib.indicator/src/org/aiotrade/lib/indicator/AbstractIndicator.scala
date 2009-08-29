@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator;
+package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.indicator.function.Direction
 import org.aiotrade.lib.indicator.function.AbstractFunction;
@@ -61,7 +61,7 @@ import org.aiotrade.lib.indicator.function.SUMFunction;
 import org.aiotrade.lib.indicator.function.TRFunction;
 import org.aiotrade.lib.indicator.function.WMSFunction;
 import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
-import org.aiotrade.lib.math.timeseries.computable.DefaultFactor;
+import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.{DefaultSer,Ser,Var}
@@ -76,9 +76,9 @@ object AbstractIndicator {
   val NaN = Float.NaN
 
   /** a static global session id */
-  protected var sessionId:Long = _
+  protected var sessionId: Long = _
 
-  protected def setSessionId :Unit = {
+  protected def setSessionId: Unit = {
     sessionId += 1
   }
 
@@ -86,12 +86,12 @@ object AbstractIndicator {
    * a helper function for keeping the same functin form as Function, don't be
    * puzzled by the name, it actully will return funcion instance
    */
-  protected def getInstance[T <: Function](clazz:Class[T], baseSer:Ser, args:Any*) :T = {
-    AbstractFunction.getInstance(clazz, baseSer, args:_*)
+  protected def getInstance[T <: Function](clazz: Class[T], baseSer: Ser, args: Any*): T = {
+    AbstractFunction.getInstance(clazz, baseSer, args: _*)
   }
 
   // ----- Functions for test
-  protected def crossOver(idx:Int, var1:Var[Float], var2:Var[Float]) :Boolean = {
+  protected def crossOver(idx: Int, var1: Var[Float], var2: Var[Float]): Boolean = {
     if (idx > 0) {
       if (var1(idx) >= var2(idx) &&
           var1(idx - 1) < var2(idx - 1)) {
@@ -101,7 +101,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossOver(idx:int, var1:Var[Float], value:Float) :Boolean = {
+  protected def crossOver(idx: Int, var1: Var[Float], value:Float): Boolean = {
     if (idx > 0) {
       if (var1(idx) >= value &&
           var1(idx - 1) < value) {
@@ -111,7 +111,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossUnder(idx:Int, var1:Var[Float], var2:Var[Float]) :Boolean = {
+  protected def crossUnder(idx: Int, var1: Var[Float], var2: Var[Float]): Boolean = {
     if (idx > 0) {
       if (var1(idx) < var2(idx) &&
           var1(idx - 1) >= var2(idx - 1)) {
@@ -121,7 +121,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossUnder(idx:int, var1:Var[Float], value:Float) :Boolean = {
+  protected def crossUnder(idx: Int, var1: Var[Float], value: Float): Boolean = {
     if (idx > 0) {
       if (var1(idx) < value &&
           var1(idx - 1) >= value) {
@@ -131,7 +131,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def turnUp(idx:Int, var1:Var[Float]) :Boolean = {
+  protected def turnUp(idx: Int, var1: Var[Float]): Boolean = {
     if (idx > 1) {
       if (var1(idx) > var1(idx - 1) &&
           var1(idx - 1) <= var1(idx - 2)) {
@@ -141,7 +141,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def turnDown(idx:Int, var1:Var[Float]) :Boolean = {
+  protected def turnDown(idx: Int, var1: Var[Float]): Boolean = {
     if (idx > 1) {
       if (var1(idx) < var1(idx - 1) &&
           var1(idx - 1) >= var1(idx - 2)) {
@@ -155,7 +155,7 @@ object AbstractIndicator {
 
 }
 
-abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator {
+abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator {
   import AbstractIndicator._
     
   /**
@@ -165,7 +165,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
    * by computableHelper.addFac(..)
    */
   private val computableHelper = new ComputableHelper
-  private var _computedTime :Long = -Long.MaxValue
+  private var _computedTime: Long = -Long.MaxValue
     
   /** some instance scope variables that can be set directly */
   protected var _overlapping = false
@@ -175,13 +175,13 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
   /**
    * horizonal _grids of this indicator used to draw grid
    */
-  protected var _grids :Array[Float] = _
+  protected var _grids: Array[Float] = _
     
   /** base series to compute this */
-  protected var _baseSer :Ser = _
+  protected var _baseSer: Ser = _
     
   /** To store values of open, high, low, close, volume: */
-  protected var O :Var[Float] = _
+  protected var O: Var[Float] = _
   protected var H: Var[Float] = _
   protected var L: Var[Float] = _
   protected var C: Var[Float] = _
@@ -204,7 +204,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
    * 1. via constructor (except the no-arg constructor)
    * 2. via createInstance
    */
-  def init(baseSer:Ser) :Unit = {
+  def init(baseSer: Ser): Unit = {
     if (baseSer != null) {
       super.init(baseSer.freq)
       this._baseSer = baseSer
@@ -222,7 +222,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
   }
     
   /** override this method to define your predefined vars */
-  protected def initPredefinedVarsOfBaseSer :Unit = {
+  protected def initPredefinedVarsOfBaseSer: Unit = {
     _baseSer match {
       case x:QuoteSer =>
         O = x.open
@@ -234,30 +234,30 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     }
   }
     
-  protected def addFactor(factor:Factor) : Unit = {
+  protected def addFactor(factor: Factor): Unit = {
     computableHelper.addFactor(factor)
   }
     
-  def factors :ArrayBuffer[Factor] = {
+  def factors: ArrayBuffer[Factor] = {
     computableHelper.factors
   }
     
-  def factors_=(factors:ArrayBuffer[Factor]) :Unit = {
+  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
     computableHelper.factors = factors
   }
     
-  def factors_=(facValues:Array[Number]) :Unit = {
+  def factors_=(facValues: Array[Number]): Unit = {
     computableHelper.factors = facValues
   }
     
-  def grids :Array[Float] = _grids
+  def grids: Array[Float] = _grids
     
-  def isOverlapping :Boolean = _overlapping
-  def overlapping_=(b:Boolean) = {
+  def isOverlapping: Boolean = _overlapping
+  def overlapping_=(b: Boolean) = {
     _overlapping = b
   }
     
-  def computedTime :Long = _computedTime
+  def computedTime: Long = _computedTime
     
   /**
    * @NOTE
@@ -275,7 +275,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
    *
    * @param begin time to be computed
    */
-  def computeFrom(begTime:Long) :Unit = {
+  def computeFrom(begTime: Long): Unit = {
     setSessionId
 
     /**
@@ -312,7 +312,7 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
         
   }
     
-  protected def preComputeFrom(begTime:Long) :Int = {
+  protected def preComputeFrom(begTime: Long) :Int = {
     computableHelper.preComputeFrom(begTime)
   }
     
@@ -320,27 +320,27 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     computableHelper.postComputeFrom
   }
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit
+  protected def computeCont(begIdx: Int, size: Int): Unit
     
-  protected def longDescription :String = {
+  protected def longDescription: String = {
     _lname
   }
     
-  override def shortDescription :String = {
+  override def shortDescription: String = {
     _sname
   }
     
-  override def shortDescription_=(description:String) :Unit = {
+  override def shortDescription_=(description: String): Unit = {
     this._sname = description
   }
     
-  override def toString :String = {
+  override def toString: String = {
     if (longDescription != null) {
       shortDescription + " - " + longDescription
     } else shortDescription
   }
     
-  def compare(another:Indicator) :Int = {
+  def compare(another: Indicator): Int = {
     if (this.toString.equalsIgnoreCase(another.toString)) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
     } else {
@@ -348,15 +348,15 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
     }
   }
     
-  def createNewInstance(baseSer:Ser) :Indicator = {
+  def createNewInstance(baseSer: Ser) :Indicator = {
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
       instance.init(baseSer)
             
       instance
     } catch {
-      case ex:IllegalAccessException => ex.printStackTrace; null
-      case ex:InstantiationException => ex.printStackTrace; null
+      case ex: IllegalAccessException => ex.printStackTrace; null
+      case ex: InstantiationException => ex.printStackTrace; null
     }
   }
     
@@ -370,143 +370,143 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
    * ----------------------------------------------------------------------
    */
     
-  protected def sum(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def sum(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[SUMFunction], _baseSer, baseVar, period).sum(sessionId, idx)
   }
     
-  protected def max(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def max(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[MAXFunction], _baseSer, baseVar, period).max(sessionId, idx)
   }
     
-  protected def min(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def min(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[MINFunction], _baseSer, baseVar, period).min(sessionId, idx)
   }
     
-  protected def ma(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def ma(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[MAFunction], _baseSer, baseVar, period).ma(sessionId, idx)
   }
     
-  protected def ema(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def ema(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[EMAFunction], _baseSer, baseVar, period).ema(sessionId, idx)
   }
     
-  protected def stdDev(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def stdDev(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[STDDEVFunction], _baseSer, baseVar, period).stdDev(sessionId, idx)
   }
     
-  protected def probMass(idx:Int, baseVar:Var[Float], period:Factor, nInterval:Factor) :Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: Var[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
     getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, null, period, nInterval).probMass(sessionId, idx)
   }
     
-  protected def probMass(idx:Int, baseVar:Var[Float], weight:Var[Float], period:Factor, nInterval:Factor) :Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: Var[Float], weight: Var[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
     getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, weight, period, nInterval).probMass(sessionId, idx)
   }
     
-  protected def tr(idx:Int) :Float = {
+  protected def tr(idx: Int): Float = {
     getInstance(classOf[TRFunction], _baseSer).tr(sessionId, idx)
   }
     
-  protected def dmPlus(idx:Int) :Float = {
+  protected def dmPlus(idx: Int): Float = {
     getInstance(classOf[DMFunction], _baseSer).dmPlus(sessionId, idx)
   }
     
-  protected def dmMinus(idx:Int) :Float = {
+  protected def dmMinus(idx: Int): Float = {
     getInstance(classOf[DMFunction], _baseSer).dmMinus(sessionId, idx)
   }
     
-  protected def diPlus(idx:Int, period:Factor) :Float = {
+  protected def diPlus(idx: Int, period: Factor): Float = {
     getInstance(classOf[DIFunction], _baseSer, period).diPlus(sessionId, idx)
   }
     
-  protected def diMinus(idx:Int, period:Factor) :Float = {
+  protected def diMinus(idx: Int, period: Factor): Float = {
     getInstance(classOf[DIFunction], _baseSer, period).diMinus(sessionId, idx)
   }
     
-  protected def dx(idx:Int, period:Factor) :Float = {
+  protected def dx(idx: Int, period: Factor): Float = {
     getInstance(classOf[DXFunction], _baseSer, period).dx(sessionId, idx)
   }
     
-  protected def adx(idx:Int, periodDi:Factor, periodAdx:Factor) :Float = {
+  protected def adx(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
     getInstance(classOf[ADXFunction], _baseSer, periodDi, periodAdx).adx(sessionId, idx)
   }
     
-  protected def adxr(idx:Int, periodDi:Factor, periodAdx:Factor) :Float = {
+  protected def adxr(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
     getInstance(classOf[ADXRFunction], _baseSer, periodDi, periodAdx).adxr(sessionId, idx)
   }
     
-  protected def bollMiddle(idx:Int, baseVar:Var[_], period:Factor, alpha:Factor) :Float = {
+  protected def bollMiddle(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollMiddle(sessionId, idx)
   }
     
-  protected def bollUpper(idx:Int, baseVar:Var[_], period:Factor, alpha:Factor) :Float = {
+  protected def bollUpper(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollUpper(sessionId, idx)
   }
     
-  protected def bollLower(idx:Int, baseVar:Var[_], period:Factor, alpha:Factor) :Float = {
+  protected def bollLower(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollLower(sessionId, idx)
   }
     
-  protected def cci(idx:Int, period:Factor, alpha:Factor) :Float = {
+  protected def cci(idx: Int, period: Factor, alpha: Factor): Float = {
     getInstance(classOf[CCIFunction], _baseSer, period, alpha).cci(sessionId, idx)
   }
     
-  protected def macd(idx:Int, baseVar:Var[_], periodSlow:Factor, periodFast:Factor) :Float = {
+  protected def macd(idx: Int, baseVar: Var[_], periodSlow: Factor, periodFast: Factor): Float = {
     getInstance(classOf[MACDFunction], _baseSer, baseVar, periodSlow, periodFast).macd(sessionId, idx)
   }
     
-  protected def mfi(idx:Int, period:Factor) :Float = {
+  protected def mfi(idx: Int, period: Factor): Float = {
     getInstance(classOf[MFIFunction], _baseSer, period).mfi(sessionId, idx)
   }
     
-  protected def mtm(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def mtm(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[MTMFunction], _baseSer, baseVar, period).mtm(sessionId, idx)
   }
     
-  protected def obv(idx:Int) :Float = {
+  protected def obv(idx: Int): Float = {
     getInstance(classOf[OBVFunction], _baseSer).obv(sessionId, idx)
   }
     
-  protected def roc(idx:Int, baseVar:Var[_], period:Factor) :Float = {
+  protected def roc(idx: Int, baseVar: Var[_], period: Factor): Float = {
     getInstance(classOf[ROCFunction], _baseSer, baseVar, period).roc(sessionId, idx)
   }
     
-  protected def rsi(idx:Int, period:Factor) :Float = {
+  protected def rsi(idx: Int, period: Factor): Float = {
     getInstance(classOf[RSIFunction], _baseSer, period).rsi(sessionId, idx)
   }
     
-  protected def sar(idx:Int, initial:Factor, step:Factor, maximum:Factor) :Float = {
+  protected def sar(idx: Int, initial: Factor, step: Factor, maximum: Factor): Float = {
     getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sar(sessionId, idx)
   }
     
-  protected def sarDirection(idx:Int, initial:Factor, step:Factor, maximum:Factor) :Direction = {
+  protected def sarDirection(idx: Int, initial: Factor, step: Factor, maximum: Factor): Direction = {
     getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sarDirection(sessionId, idx)
   }
     
-  protected def stochK(idx:Int, period:Factor, periodK:Factor) :Float = {
+  protected def stochK(idx: Int, period: Factor, periodK: Factor): Float = {
     getInstance(classOf[STOCHKFunction], _baseSer, period, periodK).stochK(sessionId, idx)
   }
     
-  protected def stochD(idx:Int, period:Factor, periodK:Factor, periodD:Factor) :Float = {
+  protected def stochD(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
     getInstance(classOf[STOCHDFunction], _baseSer, period, periodK, periodD).stochD(sessionId, idx)
   }
     
-  protected def stochJ(idx:Int, period:Factor, periodK:Factor, periodD:Factor) :Float = {
+  protected def stochJ(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
     getInstance(classOf[STOCHJFunction], _baseSer, period, periodK, periodD).stochJ(sessionId, idx)
   }
     
-  protected def wms(idx:Int, period:Factor) :Float = {
+  protected def wms(idx: Int, period: Factor): Float = {
     getInstance(classOf[WMSFunction], _baseSer, period).wms(sessionId, idx)
   }
     
-  protected def zigzag(idx:Int, percent:Factor) :Float = {
+  protected def zigzag(idx: Int, percent: Factor): Float = {
     getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzag(sessionId, idx)
   }
     
-  protected def pseudoZigzag(idx:Int, percent:Factor) :Float = {
+  protected def pseudoZigzag(idx: Int, percent: Factor): Float = {
     getInstance(classOf[ZIGZAGFunction], _baseSer, percent).pseudoZigzag(sessionId, idx)
   }
     
-  protected def zigzagDirection(idx:Int, percent:Factor) :Direction = {
+  protected def zigzagDirection(idx: Int, percent: Factor): Direction = {
     getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzagDirection(sessionId, idx)
   }
     
@@ -530,24 +530,24 @@ abstract class AbstractIndicator(baseSer:Ser) extends DefaultSer with Indicator 
    * --------------------------------------------------------------------
    */
   object Factor {
-    def apply(name:String, value:Number) = new InnerFactor(name, value)
-    def apply(name:String, value:Number, step:Number) = new InnerFactor(name, value, step)
-    def apply(name:String, value:Number, step:Number, minValue:Number, maxValue:Number) = new InnerFactor(name, value, step, minValue, maxValue)
+    def apply(name: String, value: Number) = new InnerFactor(name, value)
+    def apply(name: String, value: Number, step: Number) = new InnerFactor(name, value, step)
+    def apply(name: String, value: Number, step: Number, minValue: Number, maxValue: Number) = new InnerFactor(name, value, step, minValue, maxValue)
   }
     
-  protected class InnerFactor(name:String,
-                              value:Number,
-                              step:Number,
-                              minValue:Number,
-                              maxValue:Number) extends DefaultFactor(name, value, step, minValue, maxValue) {
+  protected class InnerFactor(name: String,
+                              value: Number,
+                              step: Number,
+                              minValue: Number,
+                              maxValue: Number) extends DefaultFactor(name, value, step, minValue, maxValue) {
 
     addFactor(this)
 
-    def this(name:String, value:Number) = {
+    def this(name: String, value: Number) = {
       this(name, value, null, null, null)
     }
         
-    def this(name:String, value:Number, step:Number) = {
+    def this(name: String, value: Number, step: Number) = {
       this(name, value, step, null, null)
     }
   }
