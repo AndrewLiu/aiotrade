@@ -86,7 +86,7 @@ trait PoolableObjectFactory[T] {
    * @param obj the instance to be destroyed
    */
   @throws(classOf[RuntimeException])
-  def destroyObject(obj:T) :Unit
+  def destroyObject(obj: T): Unit
 
   /**
    * Ensures that the instance is safe to be returned by the pool.
@@ -95,20 +95,20 @@ trait PoolableObjectFactory[T] {
    * @return <tt>false</tt> if this <i>obj</i> is not valid and should
    *         be dropped from the pool, <tt>true</tt> otherwise.
    */
-  def validateObject(obj:T) :Boolean
+  def validateObject(obj: T): Boolean
 
   /**
    * Reinitialize an instance to be returned by the pool.
    * @param obj the instance to be activated
    */
   @throws(classOf[RuntimeException])
-  def activateObject(obj:T) :Unit
+  def activateObject(obj: T): Unit
 
   /**
    * Uninitialize an instance to be returned to the pool.
    * @param obj the instance to be passivated
    */
   @throws(classOf[RuntimeException])
-  def passivateObject(obj:T) :Unit
+  def passivateObject(obj: T): Unit
 }
 

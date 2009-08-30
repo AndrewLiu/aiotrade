@@ -41,10 +41,10 @@ import scala.collection.mutable.ArrayBuffer
  */
 class ObservableHelper extends Observable {
 
-  private var changed :Boolean = _
-  private var observerRefs :ArrayBuffer[WeakReference[Observer]] = new ArrayBuffer[WeakReference[Observer]]
+  private var changed: Boolean = _
+  private var observerRefs = new ArrayBuffer[WeakReference[Observer]]
 
-  def addObserver(observer:Observer) :Unit = synchronized {
+  def addObserver(observer: Observer): Unit = synchronized {
     assert(observer != null, "Can't add a null observer!")
     val contained = observerRefs.find{ref => ref.get == observer} match {
       case None => false
@@ -56,7 +56,7 @@ class ObservableHelper extends Observable {
     }
   }
 
-  def deleteObserver(observer:Observer) :Unit = synchronized {
+  def deleteObserver(observer: Observer): Unit = synchronized {
     observerRefs.find{ref => ref.get == observer} match {
       case Some(x) => observerRefs remove observerRefs.indexOf(x)
       case None =>
@@ -66,14 +66,14 @@ class ObservableHelper extends Observable {
   /**
    * for use of sub-class
    */
-  def notifyObservers :Unit = {
+  def notifyObservers: Unit = {
     notifyObservers(this)
   }
 
   /**
    * for use of wrap class
    */
-  def notifyObservers(source:Observable) :Unit = synchronized {
+  def notifyObservers(source: Observable): Unit = synchronized {
     if (changed) {
       /** must clone the observers in case deleteObserver is called */
       val clone = new Array[WeakReference[Observer]](observerRefs.size)
@@ -83,28 +83,28 @@ class ObservableHelper extends Observable {
     }
   }
 
-  def deleteObservers :Unit = synchronized {
+  def deleteObservers: Unit = synchronized {
     observerRefs.clear
   }
 
-  protected def setChanged :Unit = synchronized {
+  protected def setChanged: Unit = synchronized {
     changed = true
   }
 
-  protected def clearChanged :Unit = synchronized {
+  protected def clearChanged: Unit = synchronized {
     changed = false
   }
 
-  def hasChanged :Boolean = synchronized {
+  def hasChanged: Boolean = synchronized {
     changed
   }
 
-  def countObservers :Int = synchronized {
+  def countObservers: Int = synchronized {
     observerRefs.size
   }
 
   // helper:
-  def printObservers :Unit = synchronized {
+  def printObservers: Unit = synchronized {
     println("Observer of " + this + " :");
     for (observerRef <- observerRefs) {
       System.out.println(observerRef.get)

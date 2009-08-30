@@ -188,17 +188,17 @@ object ServiceLoader {
   private val PREFIX = "META-INF/services/"
 
   @throws(classOf[ServiceConfigurationError])
-  private def fail(service:Class[_], msg:String, cause:Throwable) :Unit = {
+  private def fail(service: Class[_], msg: String, cause: Throwable): Unit = {
     throw new ServiceConfigurationError(service.getName + ": " + msg, cause)
   }
 
   @throws(classOf[ServiceConfigurationError])
-  private def fail(service:Class[_], msg:String) :Unit = {
+  private def fail(service: Class[_], msg: String): Unit = {
     throw new ServiceConfigurationError(service.getName + ": " + msg);
   }
 
   @throws(classOf[ServiceConfigurationError])
-  private def fail(service:Class[_], u:URL, line:Int, msg:String) :Unit = {
+  private def fail(service: Class[_], u: URL, line: Int, msg: String): Unit = {
     fail(service, u + ":" + line + ": " + msg)
   }
 
@@ -217,7 +217,7 @@ object ServiceLoader {
    *
    * @return A new service loader
    */
-  def load[S](service:Class[S], loader:ClassLoader) :ServiceLoader[S] = {
+  def load[S](service: Class[S], loader: ClassLoader): ServiceLoader[S] = {
     new ServiceLoader[S](service, loader)
   }
 
@@ -242,8 +242,8 @@ object ServiceLoader {
    *
    * @return A new service loader
    */
-  def load[S](service:Class[S]) :ServiceLoader[S] = {
-    val cl = Thread.currentThread().getContextClassLoader
+  def load[S](service: Class[S]): ServiceLoader[S] = {
+    val cl = Thread.currentThread.getContextClassLoader
     ServiceLoader.load(service, cl)
   }
 
@@ -271,7 +271,7 @@ object ServiceLoader {
    *
    * @return A new service loader
    */
-  def loadInstalled[S](service:Class[S]) :ServiceLoader[S] = {
+  def loadInstalled[S](service: Class[S]): ServiceLoader[S] = {
     var cl = ClassLoader.getSystemClassLoader
     var prev:ClassLoader = null
     while (cl != null) {
@@ -283,17 +283,17 @@ object ServiceLoader {
   }
 }
 
-final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Iterable[S] {
+final class ServiceLoader[S](svc: Class[S], cl: ClassLoader) extends java.lang.Iterable[S] {
   import ServiceLoader._
 
   // The class or interface representing the service being loaded
-  private val service:Class[S] = svc
+  private val service: Class[S] = svc
   // The class loader used to locate, load, and instantiate providers
-  private val loader:ClassLoader = cl
+  private val loader: ClassLoader = cl
   // Cached providers, in instantiation order
-  private val providers :LinkedHashMap[String, S] = new LinkedHashMap[String, S]
+  private val providers = new LinkedHashMap[String, S]
   // The current lazy-lookup iterator
-  private var lookupIterator:LazyIterator = _
+  private var lookupIterator: LazyIterator = _
 
   reload
 
@@ -309,7 +309,7 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
    * <p> This method is intended for use in situations in which new providers
    * can be installed into a running Java virtual machine.
    */
-  def reload :Unit = {
+  def reload: Unit = {
     providers.clear
     lookupIterator = new LazyIterator(service, loader)
   }
@@ -319,7 +319,7 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
   //
   @throws(classOf[IOException])
   @throws(classOf[ServiceConfigurationError])
-  private def parseLine(service:Class[_], u:URL, r:BufferedReader, lc:Int, names:List[String]) :Int = {
+  private def parseLine(service: Class[_], u: URL, r: BufferedReader, lc: Int, names: List[String]): Int = {
     var ln = r.readLine
     if (ln == null) {
       return -1
@@ -373,9 +373,9 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
    * if a configuration-file format error is detected
    */
   @throws(classOf[ServiceConfigurationError])
-  private def parse(service:Class[_], u:URL) :Iterator[String] = {
-    var in:InputStream = null
-    var r:BufferedReader = null
+  private def parse(service: Class[_], u: URL): Iterator[String] = {
+    var in: InputStream = null
+    var r: BufferedReader = null
     val names = new ArrayList[String]
     try {
       in = u.openStream
@@ -390,13 +390,13 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
     } finally {
       try {
         if (r != null) {
-          r.close();
+          r.close
         }
         if (in != null) {
-          in.close();
+          in.close
         }
       } catch {
-        case y:IOException =>
+        case y: IOException =>
           fail(service, "Error closing configuration file", y)
       }
     }
@@ -405,13 +405,13 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
 
   // Private inner class implementing fully-lazy provider lookup
   //
-  private class LazyIterator(service:Class[S], loader:ClassLoader) extends Iterator[S] {
+  private class LazyIterator(service: Class[S], loader: ClassLoader) extends Iterator[S] {
 
-    var configs:Enumeration[URL] = null
-    var pending:Iterator[String] = null
-    var nextName:String = null
+    var configs: Enumeration[URL] = null
+    var pending: Iterator[String] = null
+    var nextName: String = null
 
-    override def hasNext:Boolean = {
+    override def hasNext: Boolean = {
       if (nextName != null) {
         return true
       }
@@ -424,7 +424,7 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
             configs = loader.getResources(fullName)
           }
         } catch {
-          case x:IOException =>
+          case x: IOException =>
             fail(service, "Error locating configuration files", x)
         }
       }
@@ -438,7 +438,7 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
       return true
     }
 
-    override def next :S = {
+    override def next: S = {
       if (!hasNext) {
         throw new NoSuchElementException
       }
@@ -449,17 +449,17 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
         providers.put(cn, p)
         return p
       } catch {
-        case x:ClassNotFoundException =>
+        case x: ClassNotFoundException =>
           fail(service, "Provider " + cn + " not found")
-        case x:Throwable =>
+        case x: Throwable =>
           fail(service,
                "Provider " + cn + " could not be instantiated: " + x,
-               x);
+               x)
       }
       throw new Error		// This cannot happen
     }
 
-    override def remove:Unit = {
+    override def remove: Unit = {
       throw new UnsupportedOperationException
     }
   }
@@ -504,25 +504,25 @@ final class ServiceLoader[S](svc:Class[S], cl:ClassLoader) extends java.lang.Ite
    * @return  An iterator that lazily loads providers for this loader's
    *          service
    */
-  def iterator :Iterator[S] = new Iterator[S] {
+  def iterator: Iterator[S] = new Iterator[S] {
 
     val knownProviders = providers.entrySet.iterator
 
-    def hasNext :Boolean = {
+    def hasNext: Boolean = {
       if (knownProviders.hasNext) {
         return true
       }
       lookupIterator.hasNext
     }
 
-    def next :S = {
+    def next: S = {
       if (knownProviders.hasNext) {
         return knownProviders.next.getValue
       }
       lookupIterator.next
     }
 
-    def remove :Unit = {
+    def remove: Unit = {
       throw new UnsupportedOperationException()
     }
   }

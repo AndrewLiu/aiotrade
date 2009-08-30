@@ -39,33 +39,33 @@ import scala.collection.mutable.{Map, HashMap}
  *
  * @author Caoyuan Deng
  */
-class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) extends JComponent {
+class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) extends JComponent {
   private val W_INTERSPACE = 10
   private val H_INTERSPACE = 10
   private val MAX_H_PER_PICTURE = 180
     
-  private var viewPort:JComponent = aviewPort
-  private var pictures:List[_ <: JComponent] = apictures
+  private var viewPort: JComponent = aviewPort
+  private var pictures: List[_ <: JComponent] = apictures
     
-  private var dModelBegByRewind:Int = _
+  private var dModelBegByRewind: Int = _
     
-  private var hViewPort:Int = _
-  private var wViewPort:Int = _
-  private var nPictures:Int = _
-  private var wPicture:Int = _
-  private var hPicture:Int = _
-  private var nRows:Int = _
-  private var wRow:Int = _
-  private var hRow:Int = _
+  private var hViewPort: Int = _
+  private var wViewPort: Int = _
+  private var nPictures: Int = _
+  private var wPicture: Int = _
+  private var hPicture: Int = _
+  private var nRows: Int = _
+  private var wRow: Int = _
+  private var hRow: Int = _
     
-  private var shouldAlign:Boolean = _
+  private var shouldAlign: Boolean = _
     
-  private var shownRange:Int = _
-  private var modelBeg:Int = _
-  private var modelRange:Int = _
-  private var modelBegBeforeRewind :Int = _
+  private var shownRange: Int = _
+  private var modelBeg: Int = _
+  private var modelRange: Int = _
+  private var modelBegBeforeRewind: Int = _
     
-  private var frozen:Boolean = false
+  private var frozen: Boolean = false
     
   /** <idx, x> pair */
   private var idxMapX = new HashMap[Int, Int]
@@ -78,7 +78,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
    * and shown keeps the same. the axis origin is the scrollView's origin.
    * so, the shownBeg is always 0, and shownEnd is always shownRange
    */
-  def scrollByPixel(nPixels:Int) :Unit = {
+  def scrollByPixel(nPixels: Int): Unit = {
     if (frozen) {
       return
     }
@@ -88,7 +88,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     repaint()
   }
     
-  def scrollByPicture(nPictures:int) :Unit = {
+  def scrollByPicture(nPictures: Int): Unit = {
     if (frozen) {
       return
     }
@@ -98,19 +98,19 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     scrollByPixel(wRow * nPictures)
   }
     
-  def freeze :Unit = {
+  def freeze: Unit = {
     this.frozen = true
   }
     
-  def unFreeze :Unit = {
+  def unFreeze: Unit = {
     this.frozen = false
   }
     
-  def isFrozen :Boolean = {
+  def isFrozen: Boolean = {
     frozen
   }
     
-  override def paint(g:Graphics) :Unit = {
+  override def paint(g: Graphics): Unit = {
     hViewPort = viewPort.getHeight
     wViewPort = viewPort.getWidth
         
@@ -157,7 +157,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     super.paint(g)
   }
     
-  private def rewindIfNecessary:Unit = {
+  private def rewindIfNecessary: Unit = {
     /** check if need rewind scrolling */
     val modelEnd = modelBeg + modelRange
     val diff = modelEnd - shownRange
@@ -170,7 +170,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     }
   }
     
-  private def computePicturesPosition :Unit = {
+  private def computePicturesPosition: Unit = {
     idxMapX.clear
     for (i <- 0 until pictures.size) {
       var x0 = modelBeg + i * wRow
@@ -186,7 +186,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     }
   }
     
-  private def alignIfNecessary :Unit = {
+  private def alignIfNecessary: Unit = {
     var pixelsScrollBack = 0;
         
     var noneInFront = true;
@@ -221,7 +221,7 @@ class AIOScrollView(aviewPort:JComponent, apictures:List[_ <: JComponent]) exten
     }
   }
     
-  private def placePictures :Unit = {
+  private def placePictures: Unit = {
     for ((idx, x0) <- idxMapX) {
       val picture = pictures(idx)
             

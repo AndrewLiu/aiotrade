@@ -11,9 +11,9 @@ import java.awt.Font;
  */
 trait CellFont {
 
-  def getFont(row:Int, column:Int) :Font
+  def getFont(row: Int, column: Int): Font
 
-  def setFont(font:Font, row:Int, column:Int) :Unit
+  def setFont(font: Font, row: Int, column: Int): Unit
 
-  def setFont(font:Font, rows:Array[Int], columns:Array[Int]) :Unit
+  def setFont(font: Font, rows: Array[Int], columns: Array[Int]): Unit
 }

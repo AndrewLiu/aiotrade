@@ -71,7 +71,7 @@ package org.aiotrade.lib.util
  *                or unknown
  */
 @SerialVersionUID(74132770414881L)
-class ServiceConfigurationError(msg:String, cause:Throwable) extends Error(msg, cause) {
+class ServiceConfigurationError(msg: String, cause: Throwable) extends Error(msg, cause) {
 
   /**
    * Constructs a new instance with the specified message.
@@ -79,5 +79,5 @@ class ServiceConfigurationError(msg:String, cause:Throwable) extends Error(msg, 
    * @param  msg  The message, or <tt>null</tt> if there is no message
    *
    */
-  def this(msg:String) = this(msg, null)
+  def this(msg: String) = this(msg, null)
 }

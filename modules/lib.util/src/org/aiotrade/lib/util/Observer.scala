@@ -36,6 +36,6 @@ package org.aiotrade.lib.util
  * @author Caoyuan Deng
  */
 trait Observer {
-  def update(source:Observable)
+  def update(source: Observable)
 }
 

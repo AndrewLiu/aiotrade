@@ -15,13 +15,13 @@ import javax.swing.border.LineBorder;
  * @author Caoyuan Deng
  */
 object TopLineBorder {
-  private var blackLine :Border = _
-  private var grayLine :Border = _
+  private var blackLine: Border = _
+  private var grayLine: Border = _
 
   /**
    * Convenience method for getting the Color.black LineBorder of thickness 1.
    */
-  def createBlackLineBorder :Border = {
+  def createBlackLineBorder: Border = {
     if (blackLine == null) {
       blackLine = new LineBorder(Color.black, 1)
     }
@@ -31,7 +31,7 @@ object TopLineBorder {
   /**
    * Convenience method for getting the Color.gray LineBorder of thickness 1.
    */
-  def createGrayLineBorder :Border = {
+  def createGrayLineBorder: Border = {
     if (grayLine == null) {
       grayLine = new LineBorder(Color.gray, 1)
     }
@@ -44,12 +44,12 @@ object TopLineBorder {
  * @param thickness the thickness of the border
  * @param roundedCorners whether or not border corners should be round
  */
-class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) extends AbstractBorder {
+class TopLineBorder(lineColor: Color, thickness: Int, roundedCorners: Boolean) extends AbstractBorder {
   /**
    * Creates a line border with the specified color and a thickness = 1.
    * @param color the color for the border
    */
-  def this(lineColor:Color) = {
+  def this(lineColor: Color) = {
     this(lineColor, 1, false)
   }
 
@@ -58,7 +58,7 @@ class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) exte
    * @param color the color of the border
    * @param thickness the thickness of the border
    */
-  def this(lineColor:Color, thickness:Int) = {
+  def this(lineColor: Color, thickness: Int) = {
     this(lineColor, thickness, false)
   }
 
@@ -72,7 +72,7 @@ class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) exte
    * @param width the width of the painted border
    * @param height the height of the painted border
    */
-  override def paintBorder(c:Component, g:Graphics , x:Int, y:Int, width:Int, height:Int) :Unit = {
+  override def paintBorder(c: Component, g: Graphics , x: Int, y: Int, width: Int, height: Int) :Unit = {
     val oldColor = g.getColor
     g.setColor(lineColor)
 
@@ -90,7 +90,7 @@ class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) exte
    * Returns the insets of the border.
    * @param c the component for which this border insets value applies
    */
-  override def getBorderInsets(c:Component) :Insets = {
+  override def getBorderInsets(c: Component): Insets = {
     new Insets(thickness, thickness, thickness, thickness)
   }
 
@@ -99,7 +99,7 @@ class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) exte
    * @param c the component for which this border insets value applies
    * @param insets the object to be reinitialized
    */
-  override def getBorderInsets(c:Component, insets:Insets) :Insets = {
+  override def getBorderInsets(c: Component, insets: Insets): Insets = {
     insets.left = thickness
     insets.top = thickness
     insets.right = thickness
@@ -110,28 +110,28 @@ class TopLineBorder(lineColor:Color, thickness:Int, roundedCorners:Boolean) exte
   /**
    * Returns the color of the border.
    */
-  def getLineColor :Color = {
+  def getLineColor: Color = {
     lineColor
   }
 
   /**
    * Returns the thickness of the border.
    */
-  def getThickness :Int = {
+  def getThickness: Int = {
     thickness
   }
 
   /**
    * Returns whether this border will be drawn with rounded corners.
    */
-  def getRoundedCorners :Boolean = {
+  def getRoundedCorners: Boolean = {
     roundedCorners
   }
 
   /**
    * Returns whether or not the border is opaque.
    */
-  override def isBorderOpaque :Boolean = {
+  override def isBorderOpaque: Boolean = {
     !roundedCorners
   }
 }

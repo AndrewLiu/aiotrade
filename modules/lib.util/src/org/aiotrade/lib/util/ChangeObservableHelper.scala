@@ -54,17 +54,17 @@ class ChangeObservableHelper {
   @transient
   val observerMapOwner = new HashMap[ChangeObserver[_], Object]
     
-  def ChangeObservableHelper :Unit = {}
+  def ChangeObservableHelper: Unit = {}
     
-  def getObservers :Collection[ChangeObserver[_]] = {
+  def getObservers: Collection[ChangeObserver[_]] = {
     observerMapOwner.keySet
   }
     
-  def addObserver(owner:Object, observer:ChangeObserver[_]) :Unit = synchronized {
+  def addObserver(owner: Object, observer: ChangeObserver[_]): Unit = synchronized {
     observerMapOwner.put(observer, owner)
   }
     
-  def  removeObserver(observer:ChangeObserver[_]) :Unit = synchronized {
+  def  removeObserver(observer: ChangeObserver[_]): Unit = synchronized {
     if (observer == null) {
       return
     }
@@ -74,7 +74,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def removeObserversOf(owner:Object) :Unit = {
+  def removeObserversOf(owner: Object): Unit = {
     val toBeRemoved = new ArrayList[ChangeObserver[_]]
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
@@ -89,7 +89,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def notifyObserversChanged[T <: ChangeObserver[_]](subject:ChangeObservable, observerType:Class[T]) :Unit = {
+  def notifyObserversChanged[T <: ChangeObserver[_]](subject: ChangeObservable, observerType: Class[T]): Unit = {
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
       val observer = itr.next
@@ -99,7 +99,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def getObservers[T <: ChangeObserver[_]](observerType:Class[T]) :List[T] = {
+  def getObservers[T <: ChangeObserver[_]](observerType: Class[T]): List[T] = {
     val result = new ArrayList[T]
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
@@ -113,11 +113,11 @@ class ChangeObservableHelper {
   /**
    * Returns the total number of obervers.
    */
-  def getObserverCount :Int = {
+  def getObserverCount: Int = {
     observerMapOwner.size
   }
     
-  private def getObserverCount(observerType:Class[_]) :Int = {
+  private def getObserverCount(observerType: Class[_]): Int = {
     var count = 0
     val itr = observerMapOwner.keySet.iterator
     while (itr.hasNext) {
@@ -132,7 +132,7 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be added
    */
-  protected def add[T <: ChangeObserver[_]](owner:Object, observer:T) :Unit = synchronized {
+  protected def add[T <: ChangeObserver[_]](owner: Object, observer: T): Unit = synchronized {
     assert(observer != null, "Do not add a null observer!")
     observerMapOwner.put(observer, owner)
   }
@@ -140,17 +140,17 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be removed
    */
-  protected def  remove[T <: ChangeObserver[_]](observer:T) :Unit = synchronized {
+  protected def  remove[T <: ChangeObserver[_]](observer: T): Unit = synchronized {
     if (observer == null) {
       return
     }
         
-    if (observerMapOwner.keySet().contains(observer)) {
+    if (observerMapOwner.keySet.contains(observer)) {
       observerMapOwner.remove(observer)
     }
   }
     
-  override def toString :String = {
+  override def toString: String = {
     val s = new StringBuilder("ChangeObserverList: ")
     s.append(observerMapOwner.size).append(" observers: ")
     val itr = observerMapOwner.keySet.iterator

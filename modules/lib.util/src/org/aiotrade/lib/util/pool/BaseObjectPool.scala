@@ -41,19 +41,19 @@ package org.aiotrade.lib.util.pool
 abstract class BaseObjectPool[T] extends ObjectPool[T] {
   
   @throws(classOf[RuntimeException])
-  def borrowObject :T
+  def borrowObject: T
 
   @throws(classOf[RuntimeException])
-  def returnObject(obj:T) :Unit
+  def returnObject(obj: T): Unit
   
   @throws(classOf[RuntimeException])
-  def invalidateObject(obj:T) :Unit
+  def invalidateObject(obj: T): Unit
 
   /**
    * Not supported in this base implementation.
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumIdle :Int = {
+  def getNumIdle: Int = {
     throw new UnsupportedOperationException
   }
 
@@ -61,7 +61,7 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    * Not supported in this base implementation.
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumActive :Int = {
+  def getNumActive: Int = {
     throw new UnsupportedOperationException
   }
 
@@ -70,7 +70,7 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[Exception])
-  def clear() :Unit = {
+  def clear: Unit = {
     throw new UnsupportedOperationException
   }
 
@@ -79,12 +79,12 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[RuntimeException])
-  def addObject() :Unit = {
+  def addObject: Unit = {
     throw new UnsupportedOperationException
   }
 
   @throws(classOf[Exception])
-  def close :Unit = {
+  def close: Unit = {
     assertOpen
     closed = true
   }
@@ -94,16 +94,16 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[IllegalStateException])
-  def setFactory(factory:PoolableObjectFactory[T]) :Unit = {
+  def setFactory(factory: PoolableObjectFactory[T]): Unit = {
     throw new UnsupportedOperationException();
   }
     
-  protected final def isClosed :Boolean = {
+  protected final def isClosed: Boolean = {
     closed
   }
     
   @throws(classOf[IllegalStateException])
-  protected final def assertOpen :Unit = {
+  protected final def assertOpen: Unit = {
     if(isClosed) {
       throw new IllegalStateException("Pool not open")
     }

@@ -37,7 +37,7 @@ import java.awt.Container
  */
 abstract class EditAction extends CallableAction {
     
-  def anchorEditor(container:Container) :Unit = {
+  def anchorEditor(container: Container): Unit = {
   }
     
 }

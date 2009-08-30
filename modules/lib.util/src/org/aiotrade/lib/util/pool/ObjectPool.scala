@@ -84,7 +84,7 @@ trait ObjectPool[T] {
    * @param obj a {@link #borrowObject borrowed} instance to be returned.
    */
   @throws(classOf[RuntimeException])
-  def returnObject(obj:T) :Unit
+  def returnObject(obj: T): Unit
 
   /**
    * Invalidates an object from the pool
@@ -102,7 +102,7 @@ trait ObjectPool[T] {
    * @param obj a {@link #borrowObject borrowed} instance to be returned.
    */
   @throws(classOf[RuntimeException])
-  def invalidateObject(obj:T) :Unit
+  def invalidateObject(obj: T): Unit
 
   /**
    * Create an object using my {@link #setFactory factory} or other
@@ -111,7 +111,7 @@ trait ObjectPool[T] {
    * (Optional operation).
    */
   @throws(classOf[RuntimeException])
-  def addObject :Unit
+  def addObject: Unit
 
   /**
    * Return the number of instances
@@ -124,7 +124,7 @@ trait ObjectPool[T] {
    * @throws UnsupportedOperationException if this implementation does not support the operation
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumIdle :Int
+  def getNumIdle: Int
 
   /**
    * Return the number of instances
@@ -135,7 +135,7 @@ trait ObjectPool[T] {
    * @throws UnsupportedOperationException if this implementation does not support the operation
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumActive :Int
+  def getNumActive: Int
 
   /**
    * Clears any objects sitting idle in the pool, releasing any
@@ -145,12 +145,12 @@ trait ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[Exception])
-  def clear :Unit
+  def clear: Unit
 
   /**
    * Close this pool, and free any resources associated with it.
    */
-  def close :Unit
+  def close: Unit
 
   /**
    * Sets the {@link PoolableObjectFactory factory} I use
@@ -162,5 +162,5 @@ trait ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[IllegalStateException])
-  def setFactory(factory:PoolableObjectFactory[T]) :Unit
+  def setFactory(factory: PoolableObjectFactory[T]): Unit
 }

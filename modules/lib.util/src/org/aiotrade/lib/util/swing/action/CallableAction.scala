@@ -40,13 +40,13 @@ import javax.swing.AbstractAction
  */
 abstract class CallableAction extends AbstractAction {
     
-  def execute :Unit
+  def execute: Unit
     
-  def actionPerformed(e:ActionEvent) :Unit = {
+  def actionPerformed(e: ActionEvent): Unit = {
     execute
   }
     
-  def isEmptyAction :Boolean = {
+  def isEmptyAction: Boolean = {
     false
   }
 }

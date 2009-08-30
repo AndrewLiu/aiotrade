@@ -40,7 +40,7 @@ import java.beans.PropertyChangeListener;
  * @author Caoyuan Deng
  */
 object FocusOwnerChecker {
-  private var focusManager:KeyboardFocusManager = _
+  private var focusManager: KeyboardFocusManager = _
 }
 class FocusOwnerChecker {
   import FocusOwnerChecker._
@@ -48,8 +48,8 @@ class FocusOwnerChecker {
   focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager
   focusManager.addPropertyChangeListener(new PropertyChangeListener {
             
-      def propertyChange(e:PropertyChangeEvent) :Unit = {
-        val prop = e.getPropertyName()
+      def propertyChange(e: PropertyChangeEvent): Unit = {
+        val prop = e.getPropertyName
         if ("focusOwner".equals(prop) && e.getNewValue != null) {
           val c = e.getNewValue.asInstanceOf[Component]
           val name = c.getName

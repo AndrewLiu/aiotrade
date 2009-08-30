@@ -35,7 +35,7 @@ package org.aiotrade.lib.util
  * @author Caoyuan Deng
  */
 trait CallBack {
-  def callBack :Unit
+  def callBack: Unit
 }
 
 

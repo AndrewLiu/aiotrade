@@ -16,17 +16,17 @@ import javax.swing.plaf.metal.MetalLookAndFeel
  *
  * @author dcaoyuan
  */
-class AIOScrollPaneStyleBorder(color:Color, needShadow:Boolean) extends AbstractBorder {
+class AIOScrollPaneStyleBorder(color: Color, needShadow: Boolean) extends AbstractBorder {
 
   def this() = {
     this(null, false)
   }
 
-  def this(color:Color) = {
+  def this(color: Color) = {
     this(color, false)
   }
 
-  override def paintBorder(c:Component, g:Graphics, x:Int, y:Int, w:Int, h:Int) :Unit = {
+  override def paintBorder(c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int): Unit = {
     g.translate(x, y)
 
     if (color != null) {
@@ -58,7 +58,7 @@ class AIOScrollPaneStyleBorder(color:Color, needShadow:Boolean) extends Abstract
     }
   }
 
-  override def getBorderInsets(c:Component, insets:Insets) :Insets = {
+  override def getBorderInsets(c: Component, insets: Insets): Insets = {
     insets.set(1, 1, 2, 2)
     insets
   }

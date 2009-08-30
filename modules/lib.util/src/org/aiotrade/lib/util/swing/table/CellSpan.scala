@@ -14,13 +14,13 @@ object CellSpan {
 
 trait CellSpan {
 
-  def getSpan(row:Int, column:Int) :Array[Int]
+  def getSpan(row: Int, column: Int): Array[Int]
 
-  def setSpan(span:Array[int], row:Int, column:Int) :Unit
+  def setSpan(span: Array[int], row: Int, column: Int): Unit
 
-  def isVisible(row:Int, column:Int) :Boolean
+  def isVisible(row: Int, column: Int) :Boolean
 
-  def combine(rows:Array[Int], columns:Array[Int]) :Unit
+  def combine(rows: Array[Int], columns: Array[Int]): Unit
 
-  def split(row:Int, column:Int) :Unit
+  def split(row: Int, column: Int): Unit
 }

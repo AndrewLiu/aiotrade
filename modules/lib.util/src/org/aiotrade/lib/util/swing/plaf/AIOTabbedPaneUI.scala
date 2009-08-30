@@ -30,17 +30,17 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   protected val minTabWidth = 40
   // Background color for unselected tabs that don't have an explicitly
   // set color.
-  private var unselectedBackground :Color = _
-  protected var tabAreaBackground :Color = _
-  protected var selectColor :Color = _
-  protected var selectHighlight :Color = _
-  protected var selectedBorderColor :Color = _
-  private var tabsOpaque :Boolean = true
+  private var unselectedBackground: Color = _
+  protected var tabAreaBackground: Color = _
+  protected var selectColor: Color = _
+  protected var selectHighlight: Color = _
+  protected var selectedBorderColor: Color = _
+  private var tabsOpaque: Boolean = true
   // Whether or not we're using ocean. This is cached as it is used
   // extensively during painting.
-  private var ocean :Boolean = _
+  private var ocean: Boolean = _
   // Selected border color for ocean.
-  private var oceanSelectedBorderColor :Color = _
+  private var oceanSelectedBorderColor: Color = _
 
   override protected def createLayoutManager :LayoutManager = {
     if (tabPane.getTabLayoutPolicy == JTabbedPane.SCROLL_TAB_LAYOUT) {
@@ -51,7 +51,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   }
 
   override
-  protected def installDefaults :Unit = {
+  protected def installDefaults: Unit = {
     super.installDefaults
 
     tabAreaBackground = UIManager.getColor("TabbedPane.tabAreaBackground")
@@ -68,9 +68,9 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   }
 
   override
-  protected def paintTabBorder(g:Graphics, tabPlacement:Int,
-                               tabIndex:Int, x:Int, y:Int, w:Int, h:Int,
-                               isSelected:Boolean) :Unit = {
+  protected def paintTabBorder(g: Graphics, tabPlacement: Int,
+                               tabIndex: Int, x: Int, y: Int, w: Int, h: Int,
+                               isSelected: Boolean): Unit = {
     val bottom = y + (h - 1)
     val right  = x + (w - 1)
 
@@ -86,10 +86,10 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  protected def paintTopTabBorder(tabIndex:Int, g:Graphics,
-                                  x:Int, y:Int, w:Int, h:Int,
-                                  btm:Int, rght:Int,
-                                  isSelected:Boolean) :Unit = {
+  protected def paintTopTabBorder(tabIndex: Int, g: Graphics,
+                                  x: Int, y: Int, w: Int, h: Int,
+                                  btm: Int, rght: Int,
+                                  isSelected: Boolean): Unit = {
 
     val currentRun = getRunForTab(tabPane.getTabCount(), tabIndex)
     val lastIndex = lastTabInRun(tabPane.getTabCount(), currentRun)
@@ -251,7 +251,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     g.translate(-x, -y)
   }
 
-  protected def shouldFillGap(currentRun:Int, tabIndex:Int, x:Int, y:Int) :Boolean = {
+  protected def shouldFillGap(currentRun: Int, tabIndex: Int, x: Int, y: Int): Boolean = {
     var result = false
 
     if (!tabsOpaque) {
@@ -287,7 +287,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     return result
   }
 
-  protected def getColorForGap(currentRun:Int, x:Int, y:Int) :Color = {
+  protected def getColorForGap(currentRun: Int, x: Int, y: Int): Color = {
     val shadowWidth = 4
     val selectedIndex = tabPane.getSelectedIndex
     val startIndex = tabRuns(currentRun + 1)
@@ -313,10 +313,10 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     tabPane.getBackground
   }
 
-  protected def paintLeftTabBorder(tabIndex:Int, g:Graphics,
-                                   x:Int, y:Int, w:Int, h:Int,
-                                   btm:Int, rght:Int,
-                                   isSelected:Boolean) :Unit = {
+  protected def paintLeftTabBorder(tabIndex: Int, g: Graphics,
+                                   x: Int, y: Int, w: Int, h: Int,
+                                   btm: Int, rght: Int,
+                                   isSelected: Boolean): Unit = {
     val tabCount = tabPane.getTabCount
     val currentRun = getRunForTab(tabCount, tabIndex)
     val lastIndex = lastTabInRun(tabCount, currentRun)
@@ -420,10 +420,10 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     g.translate(-x, -y)
   }
 
-  protected def paintBottomTabBorder(tabIndex:Int, g:Graphics,
-                                     x:Int, y:Int, w:Int, h:Int,
-                                     btm:Int, rght:Int,
-                                     isSelected:Boolean) :Unit = {
+  protected def paintBottomTabBorder(tabIndex: Int, g: Graphics,
+                                     x: Int, y: Int, w: Int, h: Int,
+                                     btm: Int, rght: Int,
+                                     isSelected: Boolean): Unit = {
     val tabCount = tabPane.getTabCount
     val currentRun = getRunForTab(tabCount, tabIndex)
     val lastIndex = lastTabInRun(tabCount, currentRun)
@@ -572,10 +572,10 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     g.translate(-x, -y)
   }
 
-  protected def paintRightTabBorder(tabIndex:Int, g:Graphics,
-                                    x:Int, y:Int, w:Int, h:Int,
-                                    btm:Int, rght:Int,
-                                    isSelected:Boolean) :Unit = {
+  protected def paintRightTabBorder(tabIndex: Int, g: Graphics,
+                                    x: Int, y: Int, w: Int, h: Int,
+                                    btm: Int, rght: Int,
+                                    isSelected: Boolean): Unit = {
     val tabCount = tabPane.getTabCount
     val currentRun = getRunForTab(tabCount, tabIndex)
     val lastIndex = lastTabInRun(tabCount, currentRun)
@@ -660,7 +660,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     g.translate(-x, -y)
   }
 
-  override def update(g:Graphics, c:JComponent) :Unit = {
+  override def update(g: Graphics, c: JComponent): Unit = {
     if (c.isOpaque) {
       g.setColor(tabAreaBackground)
       g.fillRect(0, 0, c.getWidth, c.getHeight)
@@ -668,8 +668,8 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     paint(g, c)
   }
 
-  override protected def paintTabBackground(g:Graphics, tabPlacement:Int,
-                                            tabIndex:Int, x:Int, y:Int, w:Int, h:Int, isSelected:Boolean) :Unit = {
+  override protected def paintTabBackground(g: Graphics, tabPlacement: Int,
+                                            tabIndex: Int, x: Int, y: Int, w: Int, h: Int, isSelected: Boolean): Unit = {
     val slantWidth = h / 2
     if (isSelected) {
       g.setColor(selectColor)
@@ -714,14 +714,14 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   /**
    * Overridden to do nothing for the Java L&F.
    */
-  override protected def getTabLabelShiftX(tabPlacement:Int, tabIndex:Int, isSelected:Boolean) :Int = {
+  override protected def getTabLabelShiftX(tabPlacement: Int, tabIndex: Int, isSelected: Boolean): Int = {
     0
   }
 
   /**
    * Overridden to do nothing for the Java L&F.
    */
-  override protected def getTabLabelShiftY(tabPlacement:Int, tabIndex:Int, isSelected:Boolean) :Int = {
+  override protected def getTabLabelShiftY(tabPlacement: Int, tabIndex: Int, isSelected: Boolean): Int = {
     0
   }
 
@@ -730,11 +730,11 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
    *
    * @since 1.6
    */
-  override protected def getBaselineOffset :Int = {
+  override protected def getBaselineOffset: Int = {
     0
   }
 
-  override def paint(g:Graphics, c:JComponent) :Unit = {
+  override def paint(g: Graphics, c: JComponent): Unit = {
     val tabPlacement = tabPane.getTabPlacement
 
     val insets = c.getInsets
@@ -774,14 +774,14 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     super.paint(g, c)
   }
 
-  protected def paintHighlightBelowTab :Unit = {
+  protected def paintHighlightBelowTab: Unit = {
   }
 
   override
-  protected def paintFocusIndicator(g:Graphics, tabPlacement:Int,
-                                    rects:Array[Rectangle], tabIndex:Int,
-                                    iconRect:Rectangle, textRect:Rectangle,
-                                    isSelected:Boolean) :Unit = {
+  protected def paintFocusIndicator(g: Graphics, tabPlacement: Int,
+                                    rects: Array[Rectangle], tabIndex: Int,
+                                    iconRect: Rectangle, textRect: Rectangle,
+                                    isSelected: Boolean): Unit = {
 
     if (tabPane.hasFocus() && isSelected) {
       val tabRect = rects(tabIndex)
@@ -861,9 +861,9 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  override protected def paintContentBorderTopEdge(g:Graphics, tabPlacement:Int,
-                                                   selectedIndex:int,
-                                                   x:Int, y:int, w:int, h:int) :Unit = {
+  override protected def paintContentBorderTopEdge(g: Graphics, tabPlacement: Int,
+                                                   selectedIndex: Int,
+                                                   x: Int, y: Int, w: Int, h: Int): Unit = {
     val leftToRight = isLeftToRight
     val right = x + w - 1
     val selRect = if (selectedIndex < 0) null else getTabBounds(selectedIndex, calcRect)
@@ -933,9 +933,9 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  override protected def paintContentBorderBottomEdge(g:Graphics, tabPlacement:Int,
-                                                      selectedIndex:Int,
-                                                      x:Int, y:Int, w:Int, h:Int) :Unit = {
+  override protected def paintContentBorderBottomEdge(g: Graphics, tabPlacement: Int,
+                                                      selectedIndex: Int,
+                                                      x: Int, y: Int, w: Int, h: Int): Unit = {
     val leftToRight = isLeftToRight
     val bottom = y + h - 1
     val right = x + w - 1
@@ -978,9 +978,9 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  override protected def paintContentBorderLeftEdge(g:Graphics, tabPlacement:Int,
-                                                    selectedIndex:Int,
-                                                    x:Int, y:Int, w:Int, h:Int) :Unit = {
+  override protected def paintContentBorderLeftEdge(g: Graphics, tabPlacement: Int,
+                                                    selectedIndex: Int,
+                                                    x: Int, y: Int, w: Int, h: Int): Unit = {
     val selRect = if (selectedIndex < 0) null else getTabBounds(selectedIndex, calcRect)
     if (ocean) {
       g.setColor(oceanSelectedBorderColor)
@@ -1022,9 +1022,9 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  override protected def paintContentBorderRightEdge(g:Graphics, tabPlacement:Int,
-                                                     selectedIndex:Int,
-                                                     x:Int, y:Int, w:Int, h:Int) :Unit = {
+  override protected def paintContentBorderRightEdge(g: Graphics, tabPlacement: Int,
+                                                     selectedIndex: Int,
+                                                     x: Int, y: Int, w: Int, h: Int): Unit = {
     val selRect = if (selectedIndex < 0) null else getTabBounds(selectedIndex, calcRect)
 
     g.setColor(darkShadow)
@@ -1053,7 +1053,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
   }
 
-  override protected def calculateMaxTabHeight(tabPlacement:Int) :Int = {
+  override protected def calculateMaxTabHeight(tabPlacement: Int): Int = {
     val metrics = getFontMetrics
     val height = metrics.getHeight
     val tallerIcons = (0 until tabPane.getTabCount).find{i =>
@@ -1064,7 +1064,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     super.calculateMaxTabHeight(tabPlacement) - {if (tallerIcons != None) tabInsets.top + tabInsets.bottom else 0}
   }
 
-  override protected def getTabRunOverlay(tabPlacement:Int) :Int = {
+  override protected def getTabRunOverlay(tabPlacement: Int): Int = {
     // Tab runs laid out vertically should overlap
     // at least as much as the largest slant
     if (tabPlacement == SwingConstants.LEFT || tabPlacement == SwingConstants.RIGHT) {
@@ -1074,16 +1074,16 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   }
 
   // Don't rotate runs!
-  protected def shouldRotateTabRuns(tabPlacement:Int, selectedRun:Int) :Boolean = {
+  protected def shouldRotateTabRuns(tabPlacement: Int, selectedRun: Int): Boolean = {
     false
   }
 
   // Don't pad last run
-  override protected def shouldPadTabRun(tabPlacement:Int, run:Int) :Boolean = {
+  override protected def shouldPadTabRun(tabPlacement: Int, run: Int): Boolean = {
     runCount > 1 && run < runCount - 1
   }
 
-  private def isLastInRun(tabIndex:Int) :Boolean = {
+  private def isLastInRun(tabIndex: Int): Boolean = {
     val run = getRunForTab(tabPane.getTabCount, tabIndex)
     val lastIndex = lastTabInRun(tabPane.getTabCount, run)
     tabIndex == lastIndex
@@ -1092,7 +1092,7 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   /**
    * Returns the color to use for the specified tab.
    */
-  private def getUnselectedBackgroundAt(index:Int) :Color = {
+  private def getUnselectedBackgroundAt(index: Int): Color = {
     val color = tabPane.getBackgroundAt(index)
     if (color.isInstanceOf[UIResource]) {
       if (unselectedBackground != null) {
@@ -1105,11 +1105,11 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
   /**
    * Returns the tab index of JTabbedPane the mouse is currently over
    */
-  protected def getRolloverTabIndex :Int = {
+  protected def getRolloverTabIndex: Int = {
     getRolloverTab
   }
 
-  private def isLeftToRight :Boolean = {
+  private def isLeftToRight: Boolean = {
     tabPane.getTabPlacement match {
       case SwingConstants.TOP | SwingConstants.BOTTOM => true
       case _ => false
@@ -1126,8 +1126,8 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
 
     //AIOTabbedPaneUI.this.super()
 
-    override protected def normalizeTabRuns(tabPlacement:Int, tabCount:Int,
-                                            start:Int, max:Int) :Unit = {
+    override protected def normalizeTabRuns(tabPlacement: Int, tabCount: Int,
+                                            start: Int, max: Int): Unit = {
       // Only normalize the runs for top & bottom  normalizing
       // doesn't look right for Metal's vertical tabs
       // because the last run isn't padded and it looks odd to have
@@ -1139,11 +1139,11 @@ class AIOTabbedPaneUI extends BasicTabbedPaneUI {
     }
 
     // Don't rotate runs!
-    override protected def rotateTabRuns(tabPlacement:Int, selectedRun:Int) :Unit = {
+    override protected def rotateTabRuns(tabPlacement: Int, selectedRun: Int): Unit = {
     }
 
     // Don't pad selected tab
-    override protected def padSelectedTab(tabPlacement:Int, selectedIndex:Int) :Unit = {
+    override protected def padSelectedTab(tabPlacement: Int, selectedIndex: Int): Unit = {
     }
   }
 }

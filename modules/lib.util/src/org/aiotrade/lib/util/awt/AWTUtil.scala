@@ -44,7 +44,7 @@ import java.awt.event.MouseWheelListener
  * @author Caoyuan Deng
  */
 object AWTUtil {
-  final def removeAllAWTListenersOf(c:Component) :Unit = {
+  final def removeAllAWTListenersOf(c: Component): Unit = {
     c.getMouseListeners.foreach{c.removeMouseListener(_)}
     c.getMouseMotionListeners.foreach{c.removeMouseMotionListener(_)}
     c.getMouseWheelListeners.foreach{c.removeMouseWheelListener(_)}

@@ -156,7 +156,7 @@ object IndicatorFunction {
       val trs = new ArrayBuffer[Float]
             
       val fromIdx = idx - (period - 1)
-      val toIdx   = idx;
+      val toIdx   = idx
             
       var i = fromIdx
       while (i <= toIdx) {
@@ -193,7 +193,7 @@ object IndicatorFunction {
   def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-      Float.NaN;
+      Float.NaN
             
     } else {
             

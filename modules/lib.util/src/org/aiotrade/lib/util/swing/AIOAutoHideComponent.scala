@@ -40,7 +40,7 @@ abstract class AIOAutoHideComponent extends JComponent {
   protected var autoHidden = true
   protected var hidden= true
     
-  def setAutoHidden(b:Boolean) :Unit = {
+  def setAutoHidden(b: Boolean): Unit = {
     if (b != this.autoHidden) {
       this.autoHidden = b
             
@@ -48,7 +48,7 @@ abstract class AIOAutoHideComponent extends JComponent {
     }
   }
     
-  def setHidden(b:Boolean) :Unit = {
+  def setHidden(b: Boolean): Unit = {
     if (b != this.hidden) {
       this.hidden= b
             
@@ -58,7 +58,7 @@ abstract class AIOAutoHideComponent extends JComponent {
     }
   }
     
-  def isHidden :Boolean = {
+  def isHidden: Boolean = {
     autoHidden && hidden
   }
     

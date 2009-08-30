@@ -37,16 +37,16 @@ package org.aiotrade.lib.util;
  */ 
 trait Observable {
     
-  def addObserver(observer:Observer) :Unit
+  def addObserver(observer: Observer): Unit
 
-  def deleteObserver(observer:Observer) :Unit
+  def deleteObserver(observer: Observer): Unit
 
-  def deleteObservers :Unit
+  def deleteObservers: Unit
 
-  def notifyObservers :Unit
+  def notifyObservers: Unit
 
-  def hasChanged :Boolean
+  def hasChanged: Boolean
 
-  def countObservers :Int
+  def countObservers: Int
 }
 

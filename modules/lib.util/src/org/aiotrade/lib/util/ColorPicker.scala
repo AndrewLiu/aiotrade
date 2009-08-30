@@ -46,17 +46,15 @@ object ColorPicker {
   var robot:Robot = _
 }
 
-class ColorPicker() {
+class ColorPicker {
   import ColorPicker._
     
   try {
     robot = new Robot
-  } catch {
-    case e:AWTException => e.printStackTrace
-  }
+  } catch {case ex: AWTException => ex.printStackTrace}
     
-  def pickColor :Color = {
-    val mousePoint = MouseInfo.getPointerInfo().getLocation
+  def pickColor: Color = {
+    val mousePoint = MouseInfo.getPointerInfo.getLocation
     robot.getPixelColor(mousePoint.x, mousePoint.y)
   }
     

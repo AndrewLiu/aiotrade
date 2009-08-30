@@ -38,12 +38,12 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class WithActionsHelper(awrapper:WithActions) {  
+class WithActionsHelper(awrapper: WithActions) {
   private val wrapper = awrapper
-  private var actions:Seq[Action] = Nil
-  private var defaultActionsAdded :Boolean = _
+  private var actions: Seq[Action] = Nil
+  private var defaultActionsAdded: Boolean = _
     
-  def addAction(action:Action) :Action = {
+  def addAction(action: Action): Action = {
     if (actions == Nil) {
       actions = new ArrayBuffer[Action]
     }
@@ -52,7 +52,7 @@ class WithActionsHelper(awrapper:WithActions) {
     action
   }
     
-  def lookupAction[T <: Action](tpe:Class[T]) :Option[T] = {
+  def lookupAction[T <: Action](tpe: Class[T]): Option[T] = {
     if (! defaultActionsAdded) {
       addDefaultActions
       defaultActionsAdded = true
@@ -67,13 +67,13 @@ class WithActionsHelper(awrapper:WithActions) {
     None
   }
     
-  private def addDefaultActions :Unit = {
+  private def addDefaultActions: Unit = {
     for (action <- wrapper.createDefaultActions) {
       addAction(action)
     }
   }
     
-  def getActions :Seq[Action] = {
+  def getActions: Seq[Action] = {
     actions
   }
     

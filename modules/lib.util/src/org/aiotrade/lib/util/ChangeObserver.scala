@@ -37,5 +37,5 @@ package org.aiotrade.lib.util
  * @since   1.0.4
  */
 trait ChangeObserver[S <: ChangeObservable] {
-  def update(subject:ChangeObservable) :Unit
+  def update(subject: ChangeObservable): Unit
 }

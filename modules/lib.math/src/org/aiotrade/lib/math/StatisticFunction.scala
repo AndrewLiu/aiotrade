@@ -94,7 +94,7 @@ object StatisticFunction {
    * ma(t + 1) = ma(t) + ( x(t) / N - x(t - n) / N )
    */
   def ima(idx: Int, values: ArrayBuffer[Float], period: Int, prev: Float): Float = {
-    val lookbackIdx = lookback(idx, period);
+    val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
       Float.NaN
@@ -263,7 +263,7 @@ object StatisticFunction {
                begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Float]] = {
 
     if (nIntervals <= 0) {
-      return null;
+      return null
     }
 
     val begIdx1 = if (begIdx < 0) 0 else begIdx
@@ -295,7 +295,7 @@ object StatisticFunction {
 
     val begIdx1 = if (begIdx < 0) 0 else begIdx
 
-    val maxmin1 = maxmin(values, begIdx1, endIdx);
+    val maxmin1 = maxmin(values, begIdx1, endIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
     val nIntervals = (((max - min) / interval) + 1).asInstanceOf[Int]
@@ -339,7 +339,7 @@ object StatisticFunction {
       i += 1
     }
 
-    mass(MASS).map{x => x / total}
+    mass(MASS) map (_ / total)
 
     mass
   }
@@ -383,7 +383,7 @@ object StatisticFunction {
       i += 1
     }
 
-    mass(MASS).map{x => x / total}
+    mass(MASS) map (_ / total)
 
     mass
   }

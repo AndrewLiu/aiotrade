@@ -38,8 +38,8 @@ import javax.swing.Action
  */
 trait WithActions {
     
-  def addAction(action:Action) :Action
-  def lookupAction[T <: Action](tpe:Class[T]) :Option[T]
-  def createDefaultActions :Array[Action]
+  def addAction(action: Action): Action
+  def lookupAction[T <: Action](tpe: Class[T]): Option[T]
+  def createDefaultActions: Array[Action]
     
 }

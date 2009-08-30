@@ -13,16 +13,16 @@ import javax.swing.table.TableModel
  * @version 1.0 11/22/98
  */
 object AttributiveCellRenderer {
-  private val noFocusBorder:Border = new EmptyBorder(1, 1, 1, 1)
+  private val noFocusBorder: Border = new EmptyBorder(1, 1, 1, 1)
 }
 class AttributiveCellRenderer extends DefaultTableCellRenderer {
 
-  override def getTableCellRendererComponent(table:JTable, value:Object,
-                                             isSelected:Boolean, hasFocus:Boolean,
-                                             row:Int, column:Int) :Component = {
-    var foreground:Color = null
-    var background:Color = null
-    var font:Font = null
+  override def getTableCellRendererComponent(table: JTable, value: Object,
+                                             isSelected: Boolean, hasFocus: Boolean,
+                                             row: Int, column: Int): Component = {
+    var foreground: Color = null
+    var background: Color = null
+    var font: Font = null
     val model = table.getModel
     if (model.isInstanceOf[AttributiveCellTableModel]) {
       val cellAttr = model.asInstanceOf[AttributiveCellTableModel].getCellAttribute
@@ -47,7 +47,7 @@ class AttributiveCellRenderer extends DefaultTableCellRenderer {
     setFont(if (font != null) font else table.getFont)
 
     if (hasFocus) {
-      var border:Border = if (isSelected) {
+      var border: Border = if (isSelected) {
         UIManager.getBorder("Table.focusSelectedCellHighlightBorder")
       } else {
         null
@@ -70,7 +70,7 @@ class AttributiveCellRenderer extends DefaultTableCellRenderer {
     this
   }
 
-  override protected def setValue(value:Object) :Unit = {
+  override protected def setValue(value: Object): Unit = {
     setText(if (value == null) "" else value.toString)
   }
 }

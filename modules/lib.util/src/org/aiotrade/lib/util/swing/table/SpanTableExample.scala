@@ -23,7 +23,7 @@ import javax.swing.SwingConstants;
  * @author dcaoyuan
  */
 object SpanTableExample {
-  def main(args:Array[String]) :Unit = {
+  def main(args: Array[String]): Unit = {
     val frame = new SpanTableExample
     frame.addWindowListener(new WindowAdapter() {
         override def windowClosing(e:WindowEvent) {
@@ -56,20 +56,20 @@ class SpanTableExample extends JFrame("Multi-Span Cell Example") {
   val table = new MultiSpanCellTable(ml)
 
   cellAtt.combine(Array(0), Array(1, 2, 3))
-  table.revalidate()
+  table.revalidate
   table.repaint()
 
   val scroll = new JScrollPane(table)
 
-  val b_one = new JButton("Combine");
+  val b_one = new JButton("Combine")
   b_one.addActionListener(new ActionListener {
 
-      def actionPerformed(e:ActionEvent) :Unit = {
+      def actionPerformed(e: ActionEvent): Unit = {
         val columns = table.getSelectedColumns
         val rows = table.getSelectedRows
         cellAtt.combine(rows, columns)
-        table.clearSelection()
-        table.revalidate()
+        table.clearSelection
+        table.revalidate
         table.repaint()
       }
     }
@@ -78,12 +78,12 @@ class SpanTableExample extends JFrame("Multi-Span Cell Example") {
   val b_split = new JButton("Split")
   b_split.addActionListener(new ActionListener {
 
-      def actionPerformed(e:ActionEvent) :Unit = {
+      def actionPerformed(e: ActionEvent): Unit = {
         val column = table.getSelectedColumn
         val row = table.getSelectedRow
         cellAtt.split(row, column)
-        table.clearSelection()
-        table.revalidate()
+        table.clearSelection
+        table.revalidate
         table.repaint()
       }
     }

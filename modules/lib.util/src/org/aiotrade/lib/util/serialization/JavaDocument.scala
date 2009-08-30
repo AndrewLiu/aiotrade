@@ -40,11 +40,11 @@ import java.util.Map
  * @author Caoyuan Deng
  */
 object JavaDocument {
-  def set(id:String, method:String, value:Any) :String = {
+  def set(id: String, method: String, value: Any): String = {
     id + "." + method + "(" + value + ");\n"
   }
 
-  def create(id:String, tpe:Class[_], args:Any*) :String =  {
+  def create(id: String, tpe: Class[_], args: Any*): String =  {
     var str = tpe.getName + " " + id + " = new\n " + tpe.getName + "(\n"
 
     for (i <- 0 until args.length) {
@@ -60,7 +60,7 @@ object JavaDocument {
 }
 class JavaDocument {
     
-  def create(o:AnyRef) :Unit = {
+  def create(o: AnyRef): Unit = {
     val constructorArgMapField = new HashMap[ConstructorArg, Field]
     
     o.getClass.getFields.foreach{field =>
@@ -79,13 +79,13 @@ class JavaDocument {
       args(a.index) = constructorArgMapField.get(a).getClass
     }
 
-    val constructor :Constructor[_] = null
+    val constructor: Constructor[_] = null
     try {
-      o.getClass().getConstructor(args:_*)
+      o.getClass.getConstructor(args:_*)
     } catch {
-      case ex:SecurityException =>
+      case ex: SecurityException =>
         ex.printStackTrace
-      case ex:NoSuchMethodException=>
+      case ex: NoSuchMethodException=>
         ex.printStackTrace
     }
         
@@ -108,9 +108,9 @@ class JavaDocument {
             str = str + ")\n"
           }
         } catch {
-          case ex:IllegalArgumentException =>
+          case ex: IllegalArgumentException =>
             ex.printStackTrace
-          case ex:IllegalAccessException =>
+          case ex: IllegalAccessException =>
             ex.printStackTrace
         }
         index += 1

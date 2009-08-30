@@ -11,13 +11,13 @@ import java.awt.Dimension;
  */
 trait CellAttribute {
 
-  def addColumn :Unit
+  def addColumn: Unit
 
-  def addRow :Unit
+  def addRow: Unit
 
-  def insertRow(row:Int) :Unit
+  def insertRow(row: Int): Unit
 
-  def getSize :Dimension
+  def getSize: Dimension
 
-  def setSize(size:Dimension) :Unit
+  def setSize(size: Dimension): Unit
 }

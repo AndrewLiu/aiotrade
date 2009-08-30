@@ -16,11 +16,11 @@ class Bundle {
   private val RESOURCE_NAME = "Bundle"
   private val cache = new HashMap[Class[_], ResourceBundle]
 
-  def getString(clazz:Class[_], name:String) :String = {
+  def getString(clazz: Class[_], name: String): String = {
     getResourceBundle(clazz).getString(name)
   }
 
-  private def getResourceBundle(clazz:Class[_]) :ResourceBundle = {
+  private def getResourceBundle(clazz: Class[_]): ResourceBundle = {
     var rb = cache.get(clazz)
     if (rb == null) {
       var name = clazz.getName

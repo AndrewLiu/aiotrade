@@ -43,12 +43,12 @@ import javax.swing.JButton
  */
 class AIOCloseButton extends JButton {
   private val ICON_SIZE = 12
-  private var chosenIcon :Icon = _
-  private var unchosenIcon :Icon = _
-  private var chosenRolloverIcon :Icon = _
-  private var unchosenRolloverIcon :Icon = _
+  private var chosenIcon: Icon = _
+  private var unchosenIcon: Icon = _
+  private var chosenRolloverIcon: Icon = _
+  private var unchosenRolloverIcon: Icon = _
     
-  private var chosen :Boolean = _
+  private var chosen: Boolean = _
     
   //super();
   setFocusPainted(false)
@@ -58,7 +58,7 @@ class AIOCloseButton extends JButton {
         
   setIcons
     
-  private def setIcons :Unit = {
+  private def setIcons: Unit = {
     if (getForeground == null) {
       return
     }
@@ -74,7 +74,7 @@ class AIOCloseButton extends JButton {
     chosenIcon = new ImageIcon(image)
         
     image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_ARGB)
-    unchosenIcon = new ImageIcon(image);
+    unchosenIcon = new ImageIcon(image)
         
     image = new BufferedImage(ICON_SIZE, ICON_SIZE, BufferedImage.TYPE_INT_ARGB)
     g = image.createGraphics
@@ -97,7 +97,7 @@ class AIOCloseButton extends JButton {
     setRolloverIcon(if (isChosen) chosenRolloverIcon else unchosenRolloverIcon)
   }
     
-  override def setForeground(fg:Color) :Unit = {
+  override def setForeground(fg: Color): Unit = {
     val oldValue = getForeground
     super.setForeground(fg)
     if (oldValue == null || ! oldValue.equals(fg)) {
@@ -105,11 +105,11 @@ class AIOCloseButton extends JButton {
     }
   }
     
-  def isChosen :Boolean = {
+  def isChosen: Boolean = {
     chosen
   }
     
-  def setChosen(b:Boolean) :Unit = {
+  def setChosen(b: Boolean): Unit = {
     val oldValue = isChosen
     this.chosen = b
     if (oldValue != b) {

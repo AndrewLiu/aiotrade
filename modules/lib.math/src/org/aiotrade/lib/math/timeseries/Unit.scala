@@ -81,7 +81,7 @@ object Unit extends Enumeration {
    * synchronized each method that uses this instance or declare the cal
    * instance as volatile to share this instance by threads.
    */
-  private val cal = Calendar.getInstance()
+  private val cal = Calendar.getInstance
     
   class V(name: String) extends Val(name) {
         
@@ -202,7 +202,7 @@ object Unit extends Enumeration {
       cal.setTimeInMillis(fromTime)
 
       /** set the time to first day of this week */
-      val firstDayOfWeek = cal.getFirstDayOfWeek()
+      val firstDayOfWeek = cal.getFirstDayOfWeek
       cal.set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
 
       cal.add(Calendar.WEEK_OF_YEAR, nWeeks)

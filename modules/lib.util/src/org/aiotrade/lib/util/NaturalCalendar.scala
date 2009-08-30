@@ -39,7 +39,7 @@ import java.util.GregorianCalendar
  * @author Caoyuan Deng 
  */
 object NaturalCalendar {
-  private val calendar:Calendar = new GregorianCalendar
+  private val calendar: Calendar = new GregorianCalendar
   /**
    * The largest decimal literal of type int is 2,147,483,648 (2^31),
    * the total seconds of 1 year is about 366 * 24 * 60 * 60 = 31,622,400
@@ -48,17 +48,17 @@ object NaturalCalendar {
    * So, if we choose the timeBaseDate as Jan 1, 1970,
    * plus 68 years to Jan 1, 2038, minus 50 years to Jan 1, 1902
    */
-  private val timeBaseDate:NaturalCalendar = new NaturalCalendar(1970, 1, 1)
+  private val timeBaseDate: NaturalCalendar = new NaturalCalendar(1970, 1, 1)
 
-  private val ONE_SECOND:Int  = 1
-  private val ONE_MINUTE:Int  = 60 * ONE_SECOND
-  private val ONE_HOUR  :Int  = 60 * ONE_MINUTE
-  private val ONE_DAY   :Long = 24 * ONE_HOUR
-  private val ONE_WEEK  :Long =  7 * ONE_DAY
+  private val ONE_SECOND: Int  = 1
+  private val ONE_MINUTE: Int  = 60 * ONE_SECOND
+  private val ONE_HOUR:   Int  = 60 * ONE_MINUTE
+  private val ONE_DAY:    Long = 24 * ONE_HOUR
+  private val ONE_WEEK:   Long =  7 * ONE_DAY
 
-  def getTimeBaseDate :NaturalCalendar = timeBaseDate
+  def getTimeBaseDate: NaturalCalendar = timeBaseDate
 
-  def calcJulianDate(y:Int, m:Int, d:Float) :Float ={
+  def calcJulianDate(y: Int, m: Int, d: Float): Float ={
     var year = y
     var month = m
     val float_day = d
@@ -77,7 +77,7 @@ object NaturalCalendar {
   }
   /** Method to calculate Gann important dates
    */
-  def getGannImportantDate(date:Date) :Int = {
+  def getGannImportantDate(date: Date): Int = {
     calendar.setTime(date)
     val month = calendar.get(Calendar.MONTH) + 1
     val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -148,7 +148,7 @@ object NaturalCalendar {
   }
 
   private var DATE_FORMAT = "YYYY-MM-DD"
-  def setDateFormat(dateFormat:String) :Unit = {
+  def setDateFormat(dateFormat: String): Unit = {
     DATE_FORMAT = dateFormat.toUpperCase.trim
 
     val year_s = DATE_FORMAT.indexOf('Y')
@@ -162,7 +162,7 @@ object NaturalCalendar {
     "Todo"
   }
 
-  def main(args:Array[String]) :Unit = {
+  def main(args: Array[String]): Unit = {
     val date = new NaturalCalendar(1900, 1, 1)
     println("Julian Date: " + date.JULIAN_DATE)
   }
@@ -170,22 +170,22 @@ object NaturalCalendar {
 
 }
 
-class NaturalCalendar(y:Int, m:Int, d:Float) {
+class NaturalCalendar(y: Int, m: Int, d: Float) {
   import NaturalCalendar._
   
-  var YEAR:Int = _
-  var MONTH:Int = _
-  var FLOAT_DAY:Float = _
-  var DAY:Int = _
-  var HOUR:Int = _
-  var MINUTE:Int = _
-  var SECOND:Int = _
+  var YEAR: Int = _
+  var MONTH: Int = _
+  var FLOAT_DAY: Float = _
+  var DAY: Int = _
+  var HOUR: Int = _
+  var MINUTE: Int = _
+  var SECOND: Int = _
   /** Julian Date, the days from epoch: Greenwich mean noon of January 1, 4713 B.C. */
-  var JULIAN_DATE:Double = _
+  var JULIAN_DATE: Double = _
 
   set(y, m, d)
 
-  def this(date:Calendar) = {
+  def this(date: Calendar) = {
     this(date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1, date.get(Calendar.DAY_OF_MONTH))
   }
 
@@ -195,13 +195,13 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     this(Calendar.getInstance)
   }
         
-  def this(julianDate:Double) = {
+  def this(julianDate: Double) = {
     this(0, 0, 0)
     set(julianDate)
   }
     
     
-  def set(y:Int, m:Int, d:Float) :NaturalCalendar ={
+  def set(y: Int, m: Int, d: Float): NaturalCalendar ={
     YEAR = y
     MONTH = m
     FLOAT_DAY = d
@@ -223,7 +223,7 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     this
   }
     
-  def set(y:Int, m:Int, dayOfMonth:Int, hours:Int, minutes:Int, seconds:Int) :NaturalCalendar =  {
+  def set(y: Int, m: Int, dayOfMonth: Int, hours: Int, minutes: Int, seconds: Int): NaturalCalendar =  {
     YEAR = y
     MONTH = m
         
@@ -250,7 +250,7 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     this
   }
 
-  def set(julianDate:Double) :NaturalCalendar = {
+  def set(julianDate: Double): NaturalCalendar = {
     JULIAN_DATE = julianDate
     var julianDate1 = julianDate
         
@@ -278,12 +278,12 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     this
   }
     
-  private def setByTimeInMillins(time:Long) :NaturalCalendar = {
+  private def setByTimeInMillins(time: Long): NaturalCalendar = {
     set(time + getTimeBaseDate.JULIAN_DATE)
     return this;
   }
     
-  def add(i:Float) :NaturalCalendar = {
+  def add(i: Float): NaturalCalendar = {
     JULIAN_DATE += i
     set(JULIAN_DATE)
         
@@ -291,23 +291,23 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
   }
     
   /** Return period since timeBaseDate */
-  private def getTime :Long = {
+  private def getTime: Long = {
     (JULIAN_DATE - getTimeBaseDate.JULIAN_DATE).toLong
   }
     
-  def after(date:NaturalCalendar) :Boolean = {
+  def after(date: NaturalCalendar): Boolean = {
     JULIAN_DATE > date.JULIAN_DATE
   }
     
-  def before(date:NaturalCalendar) :Boolean = {
+  def before(date: NaturalCalendar): Boolean = {
     JULIAN_DATE < date.JULIAN_DATE
   }
     
-  def equals(date:NaturalCalendar) :Boolean = {
+  def equals(date: NaturalCalendar): Boolean = {
     JULIAN_DATE == date.JULIAN_DATE
   }
     
-  def toDateString :String = {
+  def toDateString: String = {
     if (MONTH < 10 & FLOAT_DAY < 10) {
       "0" + MONTH + "-" + "0" + FLOAT_DAY.toInt + "-" + YEAR
     } else if (MONTH < 10 & FLOAT_DAY >= 10) {
@@ -319,7 +319,7 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     }
   }
     
-  def toMonthDayString :String = {
+  def toMonthDayString: String = {
     if (MONTH < 10 & FLOAT_DAY < 10) {
       "0" + MONTH + "-" + "0" + FLOAT_DAY.toInt
     } else if (MONTH < 10 & FLOAT_DAY >= 10) {
@@ -333,7 +333,7 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     
   /** Calculate Chinese Month
    */
-  def getChineseMonth :Int = {
+  def getChineseMonth: Int = {
     if (MONTH == 2 && FLOAT_DAY == 3) {
       1
     } else if (MONTH == 3 && FLOAT_DAY == 6) {
@@ -365,7 +365,7 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     
   /** Methods to calculate four seasons period
    */
-  def getSeasonPeriod :Int = {
+  def getSeasonPeriod: Int = {
     var m = -1
     val today = this
     val startDate = new NaturalCalendar(today.YEAR, 3, 21)
@@ -398,11 +398,11 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
     
     
     
-  def parseDate(dateString:String) :String = {
+  def parseDate(dateString: String): String = {
     var dateStr = dateString.trim();
-    var year:Int = 0
-    var month:Int = 0
-    var day:Int = 0
+    var year: Int = 0
+    var month: Int = 0
+    var day: Int = 0
         
     if (DATE_FORMAT.equalsIgnoreCase("YYYY-MM-DD")) {
             
@@ -438,42 +438,42 @@ class NaturalCalendar(y:Int, m:Int, d:Float) {
   /** Convert JAN, FEB etc to numeric MONTH
    * @param String MONTH
    */
-  private def toNumericMonth(month:String) :Byte = {
-    var m:Byte = 0
-    if (month.toUpperCase().startsWith("JAN")) {
+  private def toNumericMonth(month: String): Byte = {
+    var m: Byte = 0
+    if (month.toUpperCase.startsWith("JAN")) {
       m = 1
     }
-    if (month.toUpperCase().startsWith("FEB")) {
+    if (month.toUpperCase.startsWith("FEB")) {
       m = 2
     }
-    if (month.toUpperCase().startsWith("MAR")) {
+    if (month.toUpperCase.startsWith("MAR")) {
       m = 3
     }
-    if (month.toUpperCase().startsWith("APR")) {
+    if (month.toUpperCase.startsWith("APR")) {
       m = 4
     }
-    if (month.toUpperCase().startsWith("MAY")) {
+    if (month.toUpperCase.startsWith("MAY")) {
       m = 5
     }
-    if (month.toUpperCase().startsWith("JUN")) {
+    if (month.toUpperCase.startsWith("JUN")) {
       m = 6
     }
-    if (month.toUpperCase().startsWith("JUL")) {
+    if (month.toUpperCase.startsWith("JUL")) {
       m = 7
     }
-    if (month.toUpperCase().startsWith("AUG")) {
+    if (month.toUpperCase.startsWith("AUG")) {
       m = 8
     }
-    if (month.toUpperCase().startsWith("SEP")) {
+    if (month.toUpperCase.startsWith("SEP")) {
       m = 9
     }
-    if (month.toUpperCase().startsWith("OCT")) {
+    if (month.toUpperCase.startsWith("OCT")) {
       m = 10
     }
-    if (month.toUpperCase().startsWith("NOV")) {
+    if (month.toUpperCase.startsWith("NOV")) {
       m = 11
     }
-    if (month.toUpperCase().startsWith("DEC")) {
+    if (month.toUpperCase.startsWith("DEC")) {
       m = 12
     }
     m

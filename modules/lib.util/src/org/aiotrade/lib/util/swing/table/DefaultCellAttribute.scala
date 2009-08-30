@@ -21,14 +21,14 @@ object AttrType {
   case object VerticalAlignment extends AttrType
 }
 
-class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute with CellSpan with ColoredCell with CellFont {
+class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute with CellSpan with ColoredCell with CellFont {
 
   private class Attr {
-    var foreground :Color = _
-    var background :Color = _
-    var font :Font = _
-    var horizontalAlignment :Int = _
-    var verticalAlignment :Int = _
+    var foreground: Color = _
+    var background: Color = _
+    var font: Font = _
+    var horizontalAlignment: Int = _
+    var verticalAlignment: Int = _
   }
 
 
@@ -36,10 +36,10 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   // !!!! CAUTION !!!!!
   // these values must be synchronized to Table data
   //
-  protected var rowSize :Int = _
-  protected var columnSize :Int = _
-  protected var spans :Array[Array[Array[Int]]] = _                 // CellSpan
-  private var attrs :Array[Array[Attr]] = _
+  protected var rowSize: Int = _
+  protected var columnSize: Int = _
+  protected var spans: Array[Array[Array[Int]]] = _                 // CellSpan
+  private var attrs: Array[Array[Attr]] = _
 
   setSize(new Dimension(numColumns, numRows));
 
@@ -48,7 +48,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   }
 
 
-  protected def initValue :Unit = {
+  protected def initValue: Unit = {
     for (i <- 0 until spans.length) {
       for (j <- 0 until spans(i).length) {
         spans(i)(j)(CellSpan.COLUMN) = 1
@@ -60,7 +60,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   //
   // CellSpan
   //
-  def getSpan(row:Int, column:Int) :Array[Int] = {
+  def getSpan(row: Int, column: Int): Array[Int] = {
     if (isOutOfBounds(row, column)) {
       Array(1, 1)
     } else {
@@ -68,14 +68,14 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def setSpan(span:Array[Int], row:Int, column:Int) :Unit = {
+  def setSpan(span: Array[Int], row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return
     }
     spans(row)(column) = span
   }
 
-  def isVisible(row:Int, column:Int) :Boolean = {
+  def isVisible(row: Int, column: Int): Boolean = {
     if (isOutOfBounds(row, column)) {
       return false
     }
@@ -86,7 +86,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def combine(rows:Array[Int], columns:Array[Int]) :Unit = {
+  def combine(rows: Array[Int], columns: Array[Int]): Unit = {
     if (isOutOfBounds(rows, columns)) {
       return
     }
@@ -122,7 +122,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
 
   }
 
-  def split(row:Int, column:Int) :Unit = {
+  def split(row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -139,7 +139,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   //
   // ColoredCell
   //
-  def getForeground(row:Int, column:Int) :Color = {
+  def getForeground(row: Int, column: Int): Color = {
     if (isOutOfBounds(row, column)) {
       return null;
     }
@@ -151,7 +151,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def setForeground(color:Color, row:Int, column:Int) :Unit = {
+  def setForeground(color: Color, row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -163,14 +163,14 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     attr.foreground = color;
   }
 
-  def setForeground(color:Color, rows:Array[Int], columns:Array[Int]) :Unit = {
+  def setForeground(color: Color, rows: Array[Int], columns: Array[Int]): Unit = {
     if (isOutOfBounds(rows, columns)) {
       return
     }
     setAttributes(AttrType.Foreground, color, rows, columns)
   }
 
-  def getBackground(row:Int, column:Int) :Color = {
+  def getBackground(row: Int, column: Int): Color = {
     if (isOutOfBounds(row, column)) {
       return null;
     }
@@ -182,7 +182,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def setBackground(color:Color, row:Int, column:Int) :Unit = {
+  def setBackground(color: Color, row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -194,7 +194,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     attr.background = color
   }
 
-  def setBackground(color:Color, rows:Array[Int], columns:Array[Int]) :Unit = {
+  def setBackground(color: Color, rows: Array[Int], columns: Array[Int]): Unit = {
     if (isOutOfBounds(rows, columns)) {
       return;
     }
@@ -205,7 +205,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   //
   // CellFont
   //
-  def getFont(row:Int, column:Int) :Font = {
+  def getFont(row: Int, column: Int): Font = {
     if (isOutOfBounds(row, column)) {
       return null;
     }
@@ -217,7 +217,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def setFont(font:Font, row:Int, column:Int) :Unit = {
+  def setFont(font: Font, row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return
     }
@@ -229,14 +229,14 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     attr.font = font
   }
 
-  def setFont(font:Font, rows:Array[Int], columns:Array[Int]) :Unit = {
+  def setFont(font: Font, rows: Array[Int], columns: Array[Int]): Unit = {
     if (isOutOfBounds(rows, columns)) {
       return;
     }
     setAttributes(AttrType.Font, font, rows, columns)
   }
 
-  def getHorizontalAlignment(row:Int, column:Int) :Int = {
+  def getHorizontalAlignment(row: Int, column: Int): Int = {
     if (isOutOfBounds(row, column)) {
       return SwingConstants.LEADING
     }
@@ -248,7 +248,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def setHorizontalAlignment(horizontalAlignment:Int, row:Int, column:Int) :Unit = {
+  def setHorizontalAlignment(horizontalAlignment: Int, row: Int, column: Int): Unit = {
     if (isOutOfBounds(row, column)) {
       return
     }
@@ -264,7 +264,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
   //
   // CellAttribute
   //
-  def addColumn :Unit = {
+  def addColumn: Unit = {
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
@@ -280,7 +280,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     System.arraycopy(oldAttr, 0, attrs, 0, numRows);
   }
 
-  def addRow :Unit = {
+  def addRow: Unit = {
     val oldSpan = spans
     val numRows = oldSpan.length;
     val numColumns = oldSpan(0).length;
@@ -297,7 +297,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     System.arraycopy(oldAttr, 0, attrs, 0, numRows)
   }
 
-  def insertRow(row:int) :Unit = {
+  def insertRow(row: Int): Unit = {
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
@@ -312,11 +312,11 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  def getSize :Dimension = {
+  def getSize: Dimension = {
     return new Dimension(rowSize, columnSize);
   }
 
-  def setSize(size:Dimension) :Unit = {
+  def setSize(size: Dimension): Unit = {
     columnSize = size.width
     rowSize = size.height
     spans = new Array[Array[Array[Int]]](rowSize, columnSize, 2)   // 2: COLUMN,ROW
@@ -331,7 +331,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
    public void changeAttribute(int[] rows, int[] columns, Object command) {
    }
    */
-  protected def isOutOfBounds(row:Int, column:int) :Boolean = {
+  protected def isOutOfBounds(row: Int, column: Int): Boolean = {
     if ((row < 0) || (rowSize <= row) || (column < 0) || (columnSize <= column)) {
       true
     } else {
@@ -339,7 +339,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     }
   }
 
-  protected def isOutOfBounds(rows:Array[int], columns:Array[Int]) :Boolean = {
+  protected def isOutOfBounds(rows: Array[int], columns: Array[Int]): Boolean = {
     for (i <- 0 until rows.length) {
       if ((rows(i) < 0) || (rowSize <= rows(i))) {
         return true
@@ -354,7 +354,7 @@ class DefaultCellAttribute(numRows:Int, numColumns:Int) extends CellAttribute wi
     false
   }
 
-  private def setAttributes(tpe:AttrType, value:Object, rows:Array[Int], columns:Array[Int]) :Unit = {
+  private def setAttributes(tpe:AttrType, value: Object, rows: Array[Int], columns: Array[Int]): Unit = {
     for (i <- 0 until rows.length) {
       val row = rows(i)
       for (j <- 0 until columns.length) {

@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableModel
  * @version 1.0 11/22/98
  */
 object AttributiveCellTableModel {
-  private def nonNullVector[T](v:Vector[T]) :Vector[T] = {
+  private def nonNullVector[T](v: Vector[T]): Vector[T] = {
     if (v != null) v else new Vector[T]
   }
 
@@ -20,7 +20,7 @@ object AttributiveCellTableModel {
    * @return  the new vector; if <code>anArray</code> is <code>null</code>,
    *                          returns <code>null</code>
    */
-  def convertToVector(anArray:Array[_]) :Vector[_] = {
+  def convertToVector(anArray: Array[_]): Vector[_] = {
     if (anArray == null) {
       return null
     }
@@ -35,7 +35,7 @@ object AttributiveCellTableModel {
    * @return the new vector of vectors; if <code>anArray</code> is
    *                          <code>null</code>, returns <code>null</code>
    */
-//  def convertToVector(anArray:Array[Array[_]]) :Vector[Vector[_]] = {
+//  def convertToVector(anArray:Array[Array[_]]): Vector[Vector[_]] = {
 //    if (anArray == null) {
 //      return null
 //    }
@@ -45,7 +45,7 @@ object AttributiveCellTableModel {
 //  }
 
 }
-class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:Int) extends DefaultTableModel {
+class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns: Int) extends DefaultTableModel {
   import AttributiveCellTableModel._
 
   if (columnNames != null) {
@@ -58,35 +58,35 @@ class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:I
   dataVector = new Vector
   setNumRows(numRows)
   
-  protected var cellAtt :CellAttribute = new DefaultCellAttribute(numRows, numColumns)
+  protected var cellAtt: CellAttribute = new DefaultCellAttribute(numRows, numColumns)
 
   def this() = {
     this(null, 0, 0)
   }
 
-  def this(numRows:Int, numColumns:Int) = {
+  def this(numRows: Int, numColumns: Int) = {
     this(null, numRows, numColumns)
   }
 
-  def this(columnNames:Vector[_], numRows:Int) {
+  def this(columnNames: Vector[_], numRows: Int) {
     this(columnNames, 0, numRows)
   }
 
-  def this(columnNames:Array[_], numRows:Int) = {
+  def this(columnNames: Array[_], numRows: Int) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), numRows)
   }
 
-  def this(data:Vector[_], columnNames:Vector[_]) = {
+  def this(data: Vector[_], columnNames: Vector[_]) = {
     this(columnNames, columnNames.size, data.size)
     setDataVector(data, columnNames)
   }
 
-  def this(data:Array[Array[_]], columnNames:Array[_]) = {
+  def this(data: Array[Array[_]], columnNames: Array[_]) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), columnNames.size, 0)
     setDataVector(AttributiveCellTableModel.convertToVector(data), AttributiveCellTableModel.convertToVector(columnNames))
   }
 
-  override def setDataVector(newData:Vector[_], columnNames:Vector[_]) :Unit = {
+  override def setDataVector(newData: Vector[_], columnNames: Vector[_]) :Unit = {
     if (newData == null) {
       throw new IllegalArgumentException("setDataVector() - Null parameter");
     }
@@ -100,7 +100,7 @@ class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:I
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
-  override def addColumn(columnName:AnyRef, columnData:Vector[_]) :Unit = {
+  override def addColumn(columnName:AnyRef, columnData: Vector[_]) :Unit = {
     if (columnName == null) {
       throw new IllegalArgumentException("addColumn() - null parameter")
     }
@@ -124,8 +124,8 @@ class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:I
     fireTableStructureChanged
   }
 
-  override def addRow(rowData:Vector[_]) :Unit = {
-    var newData :Vector[_] = null
+  override def addRow(rowData: Vector[_]) :Unit = {
+    var newData: Vector[_] = null
     if (rowData == null) {
       newData = new Vector(getColumnCount)
     } else {
@@ -140,7 +140,7 @@ class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:I
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
   }
 
-  override def insertRow(row:Int, arowData:Vector[_]) :Unit = {
+  override def insertRow(row: Int, arowData: Vector[_]): Unit = {
     var rowData = arowData
     if (arowData == null) {
       rowData = new Vector(getColumnCount)
@@ -156,11 +156,11 @@ class AttributiveCellTableModel(columnNames:Vector[_], numRows:Int, numColumns:I
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
-  def getCellAttribute :CellAttribute = {
+  def getCellAttribute: CellAttribute = {
     cellAtt
   }
 
-  def setCellAttribute(newCellAtt:CellAttribute) :Unit = {
+  def setCellAttribute(newCellAtt: CellAttribute): Unit = {
     val numColumns = getColumnCount
     val numRows = getRowCount
     if ((newCellAtt.getSize.width != numColumns) ||

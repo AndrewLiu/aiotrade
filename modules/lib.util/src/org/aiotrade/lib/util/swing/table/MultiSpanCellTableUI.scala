@@ -18,7 +18,7 @@ import javax.swing.table.TableCellRenderer;
  */
 class MultiSpanCellTableUI extends BasicTableUI {
 
-  override def paint(g:Graphics, c:JComponent) :Unit = {
+  override def paint(g: Graphics, c: JComponent): Unit = {
     val oldClipBounds = g.getClipBounds
     val clipBounds = new Rectangle(oldClipBounds)
     val tableWidth = table.getColumnModel.getTotalColumnWidth
@@ -43,7 +43,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     g.setClip(oldClipBounds)
   }
 
-  private def paintRow(g:Graphics, row:Int) :Unit = {
+  private def paintRow(g: Graphics, row: Int): Unit = {
     val rect = g.getClipBounds
     var drawn = false
 
@@ -79,7 +79,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     loop(0)
   }
 
-  private def paintCell(g:Graphics, cellRect:Rectangle, row:int, column:Int) :Unit = {
+  private def paintCell(g: Graphics, cellRect: Rectangle, row: Int, column: Int): Unit = {
     val spacingHeight = table.getRowMargin
     val spacingWidth = table.getColumnModel.getColumnMargin
 
