@@ -139,7 +139,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     array
   }
     
-  override def copyToArray[B >: A](xs:Array[B], start:Int) :Unit = {
+  override def copyToArray[B >: A](xs:Array[B], start:Int): Unit = {
     val length = timestamps.size
     val array = if (xs.length == length) xs else new Array[B](size)
     var i = 0; while (i < length) {
@@ -193,12 +193,12 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
   /**
    * @deprecated
    */
-  override def insert(n:Int, elems:A*) :Unit = {
+  override def insert(n:Int, elems:A*): Unit = {
     assert(false, "insert(n:Int, elems:A*) is not supported by this collection! " +
            ", please use add(long time, E o)")
   }
                     
-  override def clear :Unit = timeToElementData.clear
+  override def clear: Unit = timeToElementData.clear
     
   override def equals(o:Any) :Boolean = timeToElementData.equals(o)
     

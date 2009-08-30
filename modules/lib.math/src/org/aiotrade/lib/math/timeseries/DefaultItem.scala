@@ -99,12 +99,12 @@ class DefaultItem protected[timeseries] (_ser: Ser, val time: Long) extends SerI
     }
   }
     
-  def setFloat[@specialized Number](v: Var[Number], value: Number) :Unit = {
+  def setFloat[@specialized Number](v: Var[Number], value: Number): Unit = {
     v.setByTime(time, value)
     this._clear = false
   }
 
-  def assignValue[@specialized V <: TimeValue](value: V) :Unit = {
+  def assignValue[@specialized V <: TimeValue](value: V): Unit = {
     /** @todo */
   }
 }

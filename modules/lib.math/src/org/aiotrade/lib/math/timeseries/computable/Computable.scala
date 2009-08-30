@@ -53,13 +53,13 @@ trait Computable {
   /**
    * @param time to be computed from
    */
-  def computeFrom(time:Long) :Unit
+  def computeFrom(time: Long): Unit
   def computedTime :Long
     
-  def factors :ArrayBuffer[Factor]
-  def factors_=(factors:ArrayBuffer[Factor]) :Unit
-  def factors_=(values:Array[Number]) :Unit
+  def factors: ArrayBuffer[Factor]
+  def factors_=(factors: ArrayBuffer[Factor]): Unit
+  def factors_=(values: Array[Number]): Unit
     
-  def dispose :Unit
+  def dispose: Unit
 }
 

@@ -38,7 +38,7 @@ import java.util.StringTokenizer
  *
  * @author Caoyuan Deng
  */
-class DefaultVec(source:Array[Double]) extends Vec {
+class DefaultVec(source: Array[Double]) extends Vec {
   import DefaultVec._
     
   private var values: Array[Double] = source
@@ -55,7 +55,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
    *
    * @param dimension   the dimension of the new <code>DefaultVec</code>
    */
-  def this(dimension:Int) {
+  def this(dimension: Int) {
     this(new Array[Double](dimension))
   }
     
@@ -65,11 +65,11 @@ class DefaultVec(source:Array[Double]) extends Vec {
    *
    * @param source   the <code>DefaultVec</code> to be used as source
    */
-  def this(source:Vec) {
+  def this(source: Vec) {
     this(source.toDoubleArray)
   }
     
-  def add(value:Double) :Unit = {
+  def add(value: Double): Unit = {
     val size = if (values == null) 0 else values.length
         
     val newValues = new Array[Double](size + 1)
@@ -82,26 +82,26 @@ class DefaultVec(source:Array[Double]) extends Vec {
     values = newValues
   }
     
-  def toDoubleArray :Array[Double] = {
+  def toDoubleArray: Array[Double] = {
     values
   }
     
-  def checkDimensionEquality(comp:Vec) :Unit = {
+  def checkDimensionEquality(comp: Vec): Unit = {
     if (comp.dimension != this.dimension) {
       throw new ArrayIndexOutOfBoundsException(
         "Doing operations with DefaultVec instances of different sizes.");
     }
   }
 
-  override def clone :DefaultVec = {
+  override def clone: DefaultVec = {
     new DefaultVec(this)
   }
     
-  def metric(other:Vec) :Double = {
+  def metric(other: Vec): Double = {
     this.minus(other).normTwo
   }
     
-  def equals(other:Vec) :Boolean = {
+  def equals(other: Vec): Boolean = {
     if (dimension != other.dimension) {
       return false
     }
@@ -117,37 +117,37 @@ class DefaultVec(source:Array[Double]) extends Vec {
     true
   }
     
-  def apply(dimensionIdx:Int) :Double = {
+  def apply(dimensionIdx: Int): Double = {
     values(dimensionIdx)
   }
     
-  def update(dimensionIdx:Int, value:Double) :Unit = {
+  def update(dimensionIdx: Int, value: Double): Unit = {
     values(dimensionIdx) = value
   }
     
-  def setAll(value:Double) :Unit = {
+  def setAll(value: Double): Unit = {
     for (i <- 0 until values.size) values(i) = value
   }
     
-  def copy(src:Vec) :Unit = {
+  def copy(src: Vec): Unit = {
     checkDimensionEquality(src)
     System.arraycopy(src.toDoubleArray, 0, values, 0, values.length)
   }
     
-  def copy(src:Vec, srcPos:Int, destPos:Int, length:Int) :Unit = {
+  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int): Unit = {
     System.arraycopy(src.toDoubleArray, srcPos, values, destPos, length)
   }
     
     
-  def setValues(values:Array[Double]) :Unit = {
+  def setValues(values: Array[Double]): Unit = {
     this.values = values
   }
     
-  def dimension :Int = {
+  def dimension: Int = {
     values.length
   }
     
-  def plus(operand:Vec) :Vec = {
+  def plus(operand: Vec): Vec = {
     checkDimensionEquality(operand)
 
     val result = new DefaultVec(dimension)
@@ -159,7 +159,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def plus(operand:Double) :Vec = {
+  def plus(operand: Double): Vec = {
     val result = new DefaultVec(dimension)
         
     for (i <- 0 until dimension) {
@@ -169,7 +169,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def minus(operand:Vec) :Vec = {
+  def minus(operand: Vec): Vec = {
     checkDimensionEquality(operand)
         
     val result = new DefaultVec(dimension)
@@ -181,7 +181,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def innerProduct(operand:Vec) :Double = {
+  def innerProduct(operand: Vec): Double = {
     checkDimensionEquality(operand)
         
     var result = 0d
@@ -193,7 +193,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def square :Double = {
+  def square: Double = {
     var result = 0d
         
     for (i <- 0 until dimension) {
@@ -205,7 +205,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
   }
     
     
-  def times(operand:Double) :Vec = {
+  def times(operand: Double): Vec = {
     val result = new DefaultVec(dimension)
         
     for (i <- 0 until dimension) {
@@ -215,7 +215,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def normOne :Double = {
+  def normOne: Double = {
     var result = 0d
         
     for (i <- 0 until dimension) {
@@ -225,7 +225,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def normTwo :Double = {
+  def normTwo: Double = {
     var result = 0d
         
     for (i <- 0 until dimension) {
@@ -236,7 +236,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     result
   }
     
-  def checkValidation :Boolean = {
+  def checkValidation: Boolean = {
     for (i <- 0 until dimension) {
       if (values(i) == Double.NaN) {
         return false
@@ -246,7 +246,7 @@ class DefaultVec(source:Array[Double]) extends Vec {
     true
   }
 
-  def randomize(min:Double, max:Double) :Unit = {
+  def randomize(min: Double, max: Double): Unit = {
     val source = new Random(System.currentTimeMillis + Runtime.getRuntime.freeMemory)
 
     for (i <- 0 until dimension) {
@@ -282,7 +282,7 @@ object DefaultVec {
    * @return the resulting <code>DefaultVec</code>
    * @see DefaultVec#ITEM_SEPARATOR
    */
-  def parseVec(str:String) :Vec = {
+  def parseVec(str: String): Vec = {
     val st = new StringTokenizer(str, ITEM_SEPARATOR)
 
     val dimension = st.countTokens

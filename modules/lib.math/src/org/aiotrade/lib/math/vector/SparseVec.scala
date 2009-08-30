@@ -46,11 +46,11 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class SparseVec(src:Array[VecItem]) extends Vec {
+class SparseVec(src: Array[VecItem]) extends Vec {
   import SparseVec._
 
-  private var items :Array[VecItem] = src
-  private var _dimension :Int = _
+  private var items: Array[VecItem] = src
+  private var _dimension: Int = _
     
   /**
    * Create a zero items <code>SparseVec</code>.
@@ -64,7 +64,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
    *
    * @param dimension   the dimension of the new <code>SparseVec</code>
    */
-  def this(dimension:Int) {
+  def this(dimension: Int) {
     this(new Array[VecItem](0))
     this.dimension = dimension
   }
@@ -80,20 +80,20 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     copy(src)
   }
     
-  def dimension :Int = _dimension
-  def dimension_=(dimension:Int) :Unit = {
+  def dimension: Int = _dimension
+  def dimension_=(dimension: Int): Unit = {
     this._dimension = dimension
   }
 
-  def setTo(src:Array[VecItem]) :Unit = {
+  def setTo(src: Array[VecItem]): Unit = {
     this.items = src;
   }
     
-  def add(value:Double) :Unit = {
+  def add(value: Double): Unit = {
     assert(false, "SparseVec do not support this method, because we should make sure the elements is index sorted")
   }
     
-  def toDoubleArray :Array[Double] = {
+  def toDoubleArray: Array[Double] = {
     val values = new Array[double](dimension)
         
     /** as all values has been initialed to 0 , we only need to: */
@@ -104,27 +104,27 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     values
   }
     
-  def checkDimensionEquality(comp:Vec) :Unit = {
+  def checkDimensionEquality(comp: Vec): Unit = {
     if (comp.dimension != this.dimension) {
       throw new ArrayIndexOutOfBoundsException("Doing operations with SparseVec instances of different sizes.");
     }
   }
 
-  override def clone :SparseVec = {
+  override def clone: SparseVec = {
     new SparseVec(this)
   }
     
-  def metric(other:Vec) :Double = {
+  def metric(other: Vec): Double = {
     this.minus(other).normTwo
   }
     
-  def equals(another:Vec) :Boolean = {
+  def equals(another: Vec): Boolean = {
     if (dimension != another.dimension) {
       return false
     }
 
     another match {
-      case x:SparseVec =>
+      case x: SparseVec =>
         val itemsA = this.items
         val itemsB = x.items
         val lenA = itemsA.length
@@ -161,11 +161,11 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     true
   }
     
-  def getItemByPosition(position:Int) :VecItem = {
+  def getItemByPosition(position: Int): VecItem = {
     items(position)
   }
     
-  def apply(dimensionIdx:Int) :Double = {
+  def apply(dimensionIdx: Int): Double = {
     for (item <- items) {
       if (item.index == dimensionIdx) {
         return item.value
@@ -175,7 +175,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     return 0d
   }
     
-  def update(dimensionIdx:Int, value:Double) :Unit = {
+  def update(dimensionIdx: Int, value: Double): Unit = {
     val item = getItem(dimensionIdx)
         
     if (item != null) {
@@ -204,7 +204,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     }
   }
     
-  def getItem(dimensionIdx:Int) :VecItem = {
+  def getItem(dimensionIdx: Int): VecItem = {
         
     for (i <- 0 until items.length) {
       if (items(i).index == dimensionIdx) {
@@ -215,7 +215,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     return null
   }
     
-  def setAll(value:Double) :Unit = {
+  def setAll(value: Double): Unit = {
     if (value == 0) {
             
       items = null
@@ -231,7 +231,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     }
   }
     
-  def copy(src:Vec) :Unit = {
+  def copy(src:Vec): Unit = {
     checkDimensionEquality(src)
 
     items = src match {
@@ -257,13 +257,13 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     }
   }
     
-  def copy(src:Vec, srcPos:Int, destPos:Int, length:Int) :Unit = {
+  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int): Unit = {
     /** todo */
     //System.arraycopy(src.toDoubleArray(), srcPos, items, destPos, length);
   }
     
     
-  def setValues(values:Array[Double]) :Unit ={
+  def setValues(values: Array[Double]): Unit ={
     if (dimension != values.length) {
       throw new ArrayIndexOutOfBoundsException("Doing operations with source of different sizes.");
     }
@@ -282,7 +282,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     
 
     
-  def plus(operand:Vec ) :Vec = {
+  def plus(operand: Vec): Vec = {
     checkDimensionEquality(operand)
         
     val result = new SparseVec(dimension)
@@ -297,7 +297,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def minus(operand:Vec) :Vec = {
+  def minus(operand: Vec): Vec = {
     checkDimensionEquality(operand)
         
     val result = new SparseVec(dimension)
@@ -312,13 +312,13 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def innerProduct(operand:Vec) :Double = {
+  def innerProduct(operand:Vec): Double = {
     checkDimensionEquality(operand)
         
     var result = 0d
 
     operand match {
-      case x:SparseVec =>
+      case x: SparseVec =>
         /** A quick algorithm in case of both are SparseVec */
         val itemsA = this.items
         val itemsB = x.items
@@ -354,7 +354,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def square :Double = {
+  def square: Double = {
     var result = 0d
         
     for (i <- 0 until items.length) {
@@ -365,7 +365,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def plus(operand:Double) :Vec = {
+  def plus(operand: Double): Vec = {
     val result = new SparseVec(this)
         
     for (i <- 0 until items.length) {
@@ -376,7 +376,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
   }
     
     
-  def times(operand:Double) :Vec = {
+  def times(operand: Double): Vec = {
     val result = new SparseVec(this)
         
     for (i <- 0 until items.length) {
@@ -386,7 +386,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def compactSize :Int = {
+  def compactSize: Int = {
     items.length
   }
     
@@ -394,7 +394,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     items
   }
     
-  def normOne :Double = {
+  def normOne: Double = {
     var result = 0d
         
     /** for norm1 operation, we only need compute with those data.value != 0 */
@@ -405,7 +405,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     return result;
   }
     
-  def normTwo :Double = {
+  def normTwo: Double = {
     var result = 0d
         
     /** for norm2 operation, we only need compute with those data.value != 0 */
@@ -417,7 +417,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     result
   }
     
-  def checkValidation :Boolean = {
+  def checkValidation: Boolean = {
     for (i <- 0 until items.length) {
       if (Double.NaN == items(i).value) {
         return false
@@ -427,7 +427,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
     true
   }
 
-  def randomize(min:Double, max:Double) :Unit = {
+  def randomize(min: Double, max: Double): Unit = {
     val source = new Random(System.currentTimeMillis + Runtime.getRuntime.freeMemory)
 
     for (i <- 0 until dimension) {
@@ -440,7 +440,7 @@ class SparseVec(src:Array[VecItem]) extends Vec {
   }
 
 
-  override def toString :String = {
+  override def toString: String = {
     val result = new StringBuffer()
         
     result.append("[")
@@ -466,10 +466,10 @@ object SparseVec {
    * @return the resulting <code>DefaultVec</code>
    * @see DefaultVec#ITEM_SEPARATOR
    */
-  def parseVec(str:String) :Vec = {
+  def parseVec(str: String): Vec = {
     val st = new StringTokenizer(str, ITEM_SEPARATOR)
 
-    val dimension = st.countTokens();
+    val dimension = st.countTokens
 
     val result = new DefaultVec(dimension)
 

@@ -59,10 +59,10 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @author Caoyuan Deng
  */
 object AbstractDataServer {
-  var DEFAULT_ICON :Option[Image] = None
+  var DEFAULT_ICON: Option[Image] = None
 
-  private var _executorService:ExecutorService = _
-  protected def executorService :ExecutorService = {
+  private var _executorService: ExecutorService = _
+  protected def executorService : ExecutorService = {
     if (_executorService == null) {
       _executorService = Executors.newFixedThreadPool(5)
     }
@@ -88,22 +88,22 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * Example: ticker ser also will compose today's quoteSer
    */
   private val serToChainSers = new HashMap[Ser, ArrayBuffer[Ser]]
-  private var loadServer :LoadServer = _
-  private var updateServer :UpdateServer = _
-  private var updateTimer :Timer = _
-  protected var count :Int = 0
-  protected var loadedTime :Long = _
-  protected var fromTime :Long = _
-  protected var inputStream :Option[InputStream] = None
+  private var loadServer: LoadServer = _
+  private var updateServer: UpdateServer = _
+  private var updateTimer: Timer = _
+  protected var count: Int = 0
+  protected var loadedTime: Long = _
+  protected var fromTime: Long = _
+  protected var inputStream: Option[InputStream] = None
 
-  var inLoading :Boolean = _
-  var inUpdating :boolean = _
+  var inLoading: Boolean = _
+  var inUpdating: Boolean = _
 
-  protected def init :Unit = {
+  protected def init: Unit = {
   }
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
-  protected def dateFormatOf(timeZone:TimeZone) :DateFormat = {
+  protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
     val dateFormatStr = currentContract.get.dateFormatPattern match {
       case null => defaultDateFormatPattern
       case x => x
@@ -113,11 +113,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     dateFormat
   }
 
-  protected def resetCount :Unit = {
+  protected def resetCount: Unit = {
     this.count = 0
   }
 
-  protected def countOne :Unit = {
+  protected def countOne: Unit = {
     this.count += 1
 
     /*- @Reserve
@@ -133,7 +133,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
      */
   }
 
-  protected def storageOf(contract:C) :ArrayBuffer[V] = {
+  protected def storageOf(contract: C): ArrayBuffer[V] = {
     contractToStorage.get(contract) match {
       case None =>
         val storage1 = new ArrayBuffer[V]
@@ -148,11 +148,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * temporary method? As in some data feed, the symbol is not unique,
    * it may be same in different markets with different secType.
    */
-  protected def lookupContract(symbol:String) :Option[C] = {
+  protected def lookupContract(symbol: String): Option[C] = {
     subscribedSymbolToContract.get(symbol)
   }
 
-  private def releaseStorage(contract:C) :Unit = {
+  private def releaseStorage(contract: C): Unit = {
     /** don't get storage via getStorage(contract), which will create a new one if none */
     for (storage <- contractToStorage.get(contract)) {
       returnBorrowedTimeValues(storage)
@@ -165,9 +165,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
   }
 
-  protected def returnBorrowedTimeValues(datas:ArrayBuffer[V]) :Unit
+  protected def returnBorrowedTimeValues(datas: ArrayBuffer[V]): Unit
 
-  protected def isAscending(values:Array[V]) :boolean = {
+  protected def isAscending(values: Array[V]) :boolean = {
     val size = values.size
     if (size <= 1) {
       true
@@ -186,7 +186,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
   }
 
 
-  protected def currentContract :Option[C] = {
+  protected def currentContract: Option[C] = {
     /**
      * simplely return the contract currently in the front
      * @Todo, do we need to implement a scheduler in case of multiple contract?
@@ -200,13 +200,13 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     None
   }
 
-  def subscribedContracts :Set[C]= subscribedContractToSer.keySet
+  def subscribedContracts: Set[C]= subscribedContractToSer.keySet
 
-  protected def serOf(contract:C): Option[Ser] = {
+  protected def serOf(contract: C): Option[Ser] = {
     subscribedContractToSer.get(contract)
   }
 
-  protected def chainSersOf(ser:Ser) :Seq[Ser] = {
+  protected def chainSersOf(ser: Ser): Seq[Ser] = {
     serToChainSers.get(ser) match {
       case None => Nil
       case Some(x) => x
@@ -217,11 +217,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * @param symbol symbol in source
    * @param set the Ser that will be filled by this server
    */
-  def subscribe(contract:C, ser:Ser) :Unit = {
+  def subscribe(contract: C, ser: Ser): Unit = {
     subscribe(contract, ser, Nil)
   }
 
-  def subscribe(contract:C, ser:Ser, chainSers:Seq[Ser]) :Unit = {
+  def subscribe(contract: C, ser: Ser, chainSers: Seq[Ser]): Unit = {
     subscribedContractToSer.synchronized {
       subscribedContractToSer.put(contract, ser)
     }
@@ -238,7 +238,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
   }
 
-  def unSubscribe(contract:C) :Unit = {
+  def unSubscribe(contract: C): Unit = {
     cancelRequest(contract)
     serToChainSers.synchronized {
       serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
@@ -252,10 +252,10 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     releaseStorage(contract)
   }
 
-  protected def cancelRequest(contract:C) :Unit = {
+  protected def cancelRequest(contract: C): Unit = {
   }
 
-  def isContractSubsrcribed(contract:C) :Boolean = {
+  def isContractSubsrcribed(contract: C): Boolean = {
     for (contract1 <- subscribedContractToSer.keySet) {
       if (contract1.symbol.equals(contract.symbol)) {
         return true
@@ -264,7 +264,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     false
   }
 
-  def startLoadServer :Unit = {
+  def startLoadServer: Unit = {
     if (currentContract == None) {
       assert(false, "dataContract not set!")
     }
@@ -285,9 +285,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
   }
 
-  def startUpdateServer(updateInterval:Int) :Unit = {
+  def startUpdateServer(updateInterval: Int): Unit = {
     if (inLoading) {
-      System.out.println("should start update server after loaded")
+      println("should start update server after loaded")
       inUpdating = false
       return
     }
@@ -309,7 +309,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     updateTimer.schedule(updateServer, 1000, updateInterval)
   }
 
-  def stopUpdateServer :Unit = {
+  def stopUpdateServer: Unit = {
     inUpdating = false
     updateServer = null
     updateTimer.cancel
@@ -318,17 +318,17 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     postStopUpdateServer
   }
 
-  protected def postStopUpdateServer :Unit = {
+  protected def postStopUpdateServer: Unit = {
   }
 
-  protected def loadFromPersistence :Long
+  protected def loadFromPersistence: Long
 
   /**
    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
    *        process this condition.
    * @return loadedTime
    */
-  protected def loadFromSource(afterThisTime:Long) :Long
+  protected def loadFromSource(afterThisTime: Long): Long
 
   /**
    * compose ser using data from timeValues
@@ -336,10 +336,10 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol:String, serToBeFilled:Ser, storage:ArrayBuffer[V]) :SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: Ser, storage: ArrayBuffer[V]): SerChangeEvent
 
   protected class LoadServer extends Runnable {
-    override def run :Unit = {
+    override def run: Unit = {
       loadFromPersistence
 
       loadedTime = loadFromSource(loadedTime)
@@ -350,29 +350,29 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
   }
 
-  protected def postLoad :Unit = {
+  protected def postLoad: Unit = {
   }
 
   private class UpdateServer extends TimerTask {
-    override def run :Unit = {
+    override def run: Unit = {
       loadedTime = loadFromSource(loadedTime);
 
       postUpdate
     }
   }
 
-  protected def postUpdate :Unit = {
+  protected def postUpdate: Unit = {
   }
 
-  override def createNewInstance:Option[DataServer[C]] = {
+  override def createNewInstance: Option[DataServer[C]] = {
     try {
       val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
       instance.init
 
       Some(instance)
     } catch {
-      case ex:InstantiationException => ex.printStackTrace; None
-      case ex:IllegalAccessException => ex.printStackTrace; None
+      case ex: InstantiationException => ex.printStackTrace; None
+      case ex: IllegalAccessException => ex.printStackTrace; None
     }
   }
 
@@ -380,7 +380,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * Override it to return your icon
    * @return a predifined image as the default icon
    */
-  def icon :Option[Image] = {
+  def icon: Option[Image] = {
     if (DEFAULT_ICON == None) {
       val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
       DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit().createImage(url)) else None
@@ -399,14 +399,14 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * ...
    * @return source id
    */
-  def sourceId :Long = {
+  def sourceId: Long = {
     val sn = sourceSerialNumber
     assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
     if (sn == 0) 0 else 1 << (sn - 1)
   }
 
-  override def compare(another:DataServer[C]) :Int = {
+  override def compare(another: DataServer[C]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {
       if (this.hashCode < another.hashCode) -1
       else {
@@ -417,9 +417,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
   }
 
-  def sourceTimeZone :TimeZone
+  def sourceTimeZone: TimeZone
 
-  override def toString :String = displayName
+  override def toString: String = displayName
 }
 
 

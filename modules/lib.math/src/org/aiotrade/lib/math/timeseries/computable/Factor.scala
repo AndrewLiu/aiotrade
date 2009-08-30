@@ -45,26 +45,26 @@ trait Factor {
   def name :String
   def name_=(name:String): Unit
     
-  def value :Float
-  def value_=(value:Number) :Unit
+  def value: Float
+  def value_=(value: Number): Unit
     
-  def step :Float
-  def step_=(step:Number)
+  def step: Float
+  def step_=(step: Number)
     
-  def maxValue :Float
-  def maxValue_=(maxValue:Number) :Unit
+  def maxValue: Float
+  def maxValue_=(maxValue: Number): Unit
     
-  def minValue :Float
-  def minValue_=(minValue:Number) : Unit
+  def minValue: Float
+  def minValue_=(minValue: Number): Unit
 
   /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
-  override def clone:Factor = {super.clone; this}
+  override def clone: Factor = {super.clone; this}
     
-  def addFactorChangeListener(listener:FactorChangeListener) :Unit
-  def removeFactorChangeListener(listener:FactorChangeListener) :Unit
-  def fireFactorChangeEvent(evt:FactorChangeEvent) :Unit
+  def addFactorChangeListener(listener: FactorChangeListener): Unit
+  def removeFactorChangeListener(listener: FactorChangeListener): Unit
+  def fireFactorChangeEvent(evt: FactorChangeEvent): Unit
     
-  def writeToBean(doc:BeansDocument) :Element
+  def writeToBean(doc: BeansDocument): Element
     
     
   //    public static class Float extends AbstractOpt implements Opt {
@@ -108,18 +108,18 @@ trait Factor {
   //    }
 }
 
-abstract class AbstractFactor(var name:String) extends Factor {
+abstract class AbstractFactor(var name: String) extends Factor {
   val factorChangeEventListenerList = new EventListenerList
 
   def addFactorChangeListener(listener: FactorChangeListener) = {
     factorChangeEventListenerList.add(classOf[FactorChangeListener], listener)
   }
 
-  def removeFactorChangeListener(listener:FactorChangeListener) {
+  def removeFactorChangeListener(listener: FactorChangeListener) {
     factorChangeEventListenerList.remove(classOf[FactorChangeListener], listener)
   }
 
-  def fireFactorChangeEvent(evt:FactorChangeEvent) {
+  def fireFactorChangeEvent(evt: FactorChangeEvent) {
     val listeners = factorChangeEventListenerList.getListenerList
     /** Each listener occupies two elements - the first is the listener class */
     var i = 0
@@ -131,14 +131,14 @@ abstract class AbstractFactor(var name:String) extends Factor {
     }
   }
 
-  override def equals(a:Any) :Boolean = a match {
-    case x:Factor => this.value.equals(x.value)
+  override def equals(a: Any): Boolean = a match {
+    case x: Factor => this.value.equals(x.value)
     case _ => false
   }
 
   override def hashCode = this.value.hashCode
 
-  override def clone :Factor = {
+  override def clone: Factor = {
     try {
       val newOne = super.clone.asInstanceOf[Factor]
 
@@ -150,11 +150,11 @@ abstract class AbstractFactor(var name:String) extends Factor {
 
       return newOne
     } catch {
-      case ex:CloneNotSupportedException => throw new InternalError(ex.toString)
+      case ex: CloneNotSupportedException => throw new InternalError(ex.toString)
     }
   }
 
-  def writeToBean(doc:BeansDocument) :Element = {
+  def writeToBean(doc: BeansDocument) :Element = {
     val bean = doc.createBean(this)
 
     doc.valuePropertyOfBean(bean, "name", name);
@@ -171,19 +171,19 @@ abstract class AbstractFactor(var name:String) extends Factor {
 import javax.swing.event.ChangeEvent
 class FactorChangeEvent(private var _source:AnyRef) extends ChangeEvent(_source) {
 
-  override def getSource :Factor = {
+  override def getSource: Factor = {
     assert(source.isInstanceOf[Factor], "Source should be Factor")
 
     _source.asInstanceOf[Factor]
   }
 
-  def source_=(factor:Factor) {
+  def source_=(factor: Factor) {
     _source = factor
   }
 }
 
 import java.util.EventListener
 trait FactorChangeListener extends EventListener {
-  def factorChanged(evt:FactorChangeEvent) :Unit
+  def factorChanged(evt:FactorChangeEvent): Unit
 }
 

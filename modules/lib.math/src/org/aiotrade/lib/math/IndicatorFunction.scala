@@ -38,7 +38,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 object IndicatorFunction {
     
-  def dmPlus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
+  def dmPlus(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -70,7 +70,7 @@ object IndicatorFunction {
     }
   }
     
-  def dmMinus(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float]) :Float = {
+  def dmMinus(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -102,7 +102,7 @@ object IndicatorFunction {
     }
   }
     
-  def tr(idx:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def tr(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -115,7 +115,7 @@ object IndicatorFunction {
     }
   }
     
-  def diPlus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def diPlus(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
@@ -145,7 +145,7 @@ object IndicatorFunction {
     }
   }
     
-  def diMinus(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def diMinus(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
@@ -175,7 +175,7 @@ object IndicatorFunction {
     }
   }
     
-  def dx(idx:Int, period:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def dx(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
@@ -190,7 +190,7 @@ object IndicatorFunction {
     }
   }
     
-  def adx(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Float.NaN;
@@ -215,10 +215,10 @@ object IndicatorFunction {
     }
   }
     
-  def adxr(idx:Int, periodDI:Int, periodADX:Int, highs:ArrayBuffer[Float], lows:ArrayBuffer[Float], closes:ArrayBuffer[Float]) :Float = {
+  def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-      Float.NaN;
+      Float.NaN
             
     } else {
             

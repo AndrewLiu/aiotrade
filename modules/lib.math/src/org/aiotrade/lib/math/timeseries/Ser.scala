@@ -93,7 +93,7 @@ trait Ser {
 
 import java.util.EventListener
 trait SerChangeListener extends EventListener {
-  def serChanged(evt:SerChangeEvent) :Unit
+  def serChanged(evt:SerChangeEvent): Unit
 }
 
 
@@ -138,7 +138,7 @@ class SerChangeEvent(var _source:Ser,
     source.asInstanceOf[Ser]
   }
 
-  def doCallBack :Unit = {
+  def doCallBack: Unit = {
     if (callBack != null) {
       callBack.callBack
     }

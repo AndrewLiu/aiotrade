@@ -126,7 +126,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * @param time
    * @param clearItem
    */
-  private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime:Long, clearItem:SerItem) :Unit = synchronized {
+  private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime:Long, clearItem:SerItem): Unit = synchronized {
     val lastOccurredTime = timestamps.lastOccurredTime
     if (itemTime < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
@@ -673,7 +673,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     */
    @ReferenceOnly
    @Deprecated
-   protected def injectVarsIntoSer :Unit = {
+   protected def injectVarsIntoSer: Unit = {
    val fields = this.getClass.getDeclaredFields
 
    AccessibleObject.setAccessible(fields, true)

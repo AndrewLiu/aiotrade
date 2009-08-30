@@ -41,43 +41,43 @@ import org.aiotrade.lib.util.serialization.JavaDocument
  * If you use Factor in indicator, please considerate AbstractIndicator#InnerFactor first
  * which will be added to Indicator's factors automatically when new it.
  */
-class DefaultFactor(namex:String, valuex:Number, stepx:Number, minValuex:Number, maxValuex:Number) extends AbstractFactor(namex) {
+class DefaultFactor(namex: String, valuex: Number, stepx: Number, minValuex: Number, maxValuex: Number) extends AbstractFactor(namex) {
     
-  private var _value :Float = valuex.floatValue
+  private var _value: Float = valuex.floatValue
   private var _step :float = if (stepx == null) 1.0f else stepx.floatValue
-  private var _minValue :Float = if (minValuex == null) -Float.MaxValue else minValuex.floatValue
-  private var _maxValue :Float = if (maxValuex == null)  Float.MaxValue else maxValuex.floatValue
+  private var _minValue: Float = if (minValuex == null) -Float.MaxValue else minValuex.floatValue
+  private var _maxValue: Float = if (maxValuex == null)  Float.MaxValue else maxValuex.floatValue
     
     
-  def this(name:String, value:Number) = {
+  def this(name: String, value: Number) = {
     this(name, value, null, null, null)
   }
     
-  def this(name:String, value:Number, step:Number) = {
+  def this(name: String, value: Number, step: Number) = {
     this(name, value, step, null, null)
   }
     
-  def value :Float = _value
-  def value_=(value:Number) = {
+  def value: Float = _value
+  def value_=(value: Number) = {
     this._value = value.floatValue
   }
 
-  def step :Float = _step
-  def step_=(step:Number) = {
+  def step: Float = _step
+  def step_=(step: Number) = {
     this._step = step.floatValue
   }
     
-  def maxValue :Float = _maxValue
-  def maxValue_=(maxValue:Number) :Unit = {
+  def maxValue: Float = _maxValue
+  def maxValue_=(maxValue: Number): Unit = {
     this._maxValue = maxValue.floatValue
   }
     
-  def minValue :Float = _minValue
-  def minValue_=(minValue:Number) = {
+  def minValue: Float = _minValue
+  def minValue_=(minValue: Number) = {
     this._minValue = minValue.floatValue
   }
     
-  def writeToJava(id:String) :String = {
+  def writeToJava(id: String): String = {
     JavaDocument.set(id, "setName", name) +
     JavaDocument.set(id, "setValue", value) +
     JavaDocument.set(id, "setStep", step) +

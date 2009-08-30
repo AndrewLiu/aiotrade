@@ -46,7 +46,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class ComputableHelper(var baseSer:Ser, var self:Indicator) {
+class ComputableHelper(var baseSer: Ser, var self: Indicator) {
     
   /**
    * factors of this instance, such as period long, period short etc,
@@ -54,9 +54,9 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
    */
   var _factors = new ArrayBuffer[Factor]
         
-  private var baseSerChangeListener :SerChangeListener = _
+  private var baseSerChangeListener: SerChangeListener = _
     
-  private var baseSerChangeEventCallBack :CallBack = _
+  private var baseSerChangeEventCallBack: CallBack = _
 
   if (baseSer != null && self != null) {
     init(baseSer, self)
@@ -67,14 +67,14 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     this(null, null)
   }
     
-  def init(baseSer:Ser, self:Indicator) :Unit = {
+  def init(baseSer: Ser, self: Indicator): Unit = {
     this.baseSer = baseSer
     this.self = self
         
     addBaseSerChangeListener
   }
     
-  private def addBaseSerChangeListener :Unit = {
+  private def addBaseSerChangeListener: Unit = {
     /**
      * The series is a result computed from baseSeries, so
      * should follow the baseSeries' data changing:
@@ -86,7 +86,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     if (self == baseSer) {
             
       baseSerChangeListener = new SerChangeListener {
-        def serChanged(evt:SerChangeEvent) :Unit = {
+        def serChanged(evt: SerChangeEvent): Unit = {
           import SerChangeEvent.Type._
           val fromTime = evt.beginTime
           evt.tpe match {
@@ -108,7 +108,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     } else {
             
       baseSerChangeListener = new SerChangeListener {
-        def serChanged(evt:SerChangeEvent) {
+        def serChanged(evt: SerChangeEvent) {
           import SerChangeEvent.Type._
           val begTime = evt.beginTime
           evt.tpe match {
@@ -143,8 +143,8 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
    *
    * @return begIdx
    */
-  private var begTime:Long = _ // used by postComputeFrom only
-  def preComputeFrom(begTime:Long) :Int = {
+  private var begTime: Long = _ // used by postComputeFrom only
+  def preComputeFrom(begTime: Long): Int = {
     assert(this.baseSer != null, "base series not set!")
 
     val timestamps = self.timestamps
@@ -195,7 +195,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     begIdx
   }
 
-  def postComputeFrom :Unit = {
+  def postComputeFrom: Unit = {
     /** construct resultSer's change event, forward baseSerChangeEventCallBack */
     self.fireSerChangeEvent(new SerChangeEvent(self,
                                                SerChangeEvent.Type.FinishedComputing,
@@ -205,16 +205,16 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
                                                baseSerChangeEventCallBack))
   }
     
-  def addFactor(factor:Factor) :Unit = {
+  def addFactor(factor: Factor): Unit = {
     /** add factor change listener to this factor */
     addFactorChangeListener(factor)
         
     _factors += factor
   }
     
-  private def addFactorChangeListener(factor:Factor) :Unit = {
-    factor.addFactorChangeListener(new FactorChangeListener() {
-        def factorChanged(evt:FactorChangeEvent) :Unit = {
+  private def addFactorChangeListener(factor: Factor): Unit = {
+    factor.addFactorChangeListener(new FactorChangeListener {
+        def factorChanged(evt: FactorChangeEvent): Unit = {
           /**
            * As any one of factor in factor changed will fire change events
            * for each factor in factor, we only need respond to the first
@@ -229,14 +229,14 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
       })
   }
 
-  def factors :ArrayBuffer[Factor] = _factors
+  def factors: ArrayBuffer[Factor] = _factors
 
   /**
    *
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factors_=(factors:ArrayBuffer[Factor]) :Unit = {
+  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
     if (factors != null) {
       val values = new Array[Number](factors.size)
       for (i <- 0 until factors.size) {
@@ -251,7 +251,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factors_=(facValues:Array[Number]) :Unit = {
+  def factors_=(facValues: Array[Number]): Unit = {
     var valueChanged = false
     if (facValues != null) {
       if (factors.size == facValues.length) {
@@ -272,11 +272,11 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     }
   }
     
-  private def fireFactorsChangeEvents :Unit = {
+  private def fireFactorsChangeEvents: Unit = {
     factors.foreach{x => x.fireFactorChangeEvent(new FactorChangeEvent(x))}
   }
     
-  def replaceFac(oldFactor:Factor, newFactor:Factor) :Unit = {
+  def replaceFac(oldFactor: Factor, newFactor: Factor): Unit = {
     var idxOld = -1
     var i = 0
     var break = false
@@ -295,7 +295,7 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
     }
   }
 
-  def dispose :Unit = {
+  def dispose: Unit = {
     if (baseSerChangeListener != null) {
       baseSer.removeSerChangeListener(baseSerChangeListener)
     }
@@ -306,12 +306,12 @@ class ComputableHelper(var baseSer:Ser, var self:Indicator) {
 object ComputableHelper {
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  def displayName(ser:Ser) :String = ser match {
+  def displayName(ser: Ser): String = ser match {
     case x:Computable => displayName(ser.shortDescription, x.factors)
     case _ => ser.shortDescription
   }
 
-  def displayName(name:String, factors:ArrayBuffer[Factor]) :String = {
+  def displayName(name: String, factors: ArrayBuffer[Factor]): String = {
     val buffer = new StringBuffer(name)
 
     val size = factors.size

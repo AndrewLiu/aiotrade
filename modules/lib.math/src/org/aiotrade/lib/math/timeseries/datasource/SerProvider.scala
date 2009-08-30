@@ -44,27 +44,27 @@ trait SerProvider[T <: Ser] {
    * If there is already a dataServer is running and not finished, don't load again.
    * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
    */
-  def loadSer(freq:Frequency) :Boolean
+  def loadSer(freq: Frequency): Boolean
     
-  def uniSymbol:String
-  def uniSymbol_=(symbol:String) :Unit
+  def uniSymbol: String
+  def uniSymbol_=(symbol: String): Unit
     
-  def name:String
+  def name: String
     
-  def stopAllDataServer :Unit
+  def stopAllDataServer: Unit
     
-  def isSerInLoading(freq:Frequency) :Boolean
-  def isSerLoaded(freq:Frequency) :Boolean
+  def isSerInLoading(freq: Frequency): Boolean
+  def isSerLoaded(freq: Frequency): Boolean
     
-  def serOf(freq:Frequency) :Option[T]
+  def serOf(freq: Frequency): Option[T]
     
-  def clearSer(freq:Frequency) :Unit
+  def clearSer(freq: Frequency): Unit
     
-  def putSer(ser:T) :Unit
+  def putSer(ser:T): Unit
     
-  def description:String
-  def description_=(description:String) :Unit
+  def description: String
+  def description_=(description: String): Unit
     
-  def dataContract :DataContract[_]
+  def dataContract: DataContract[_]
 }
 

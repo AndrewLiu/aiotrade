@@ -40,9 +40,9 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object IndicatorDescriptorActionFactory {
-  private var i :IndicatorDescriptorActionFactory = _
+  private var i: IndicatorDescriptorActionFactory = _
 
-  def getDefault :IndicatorDescriptorActionFactory = {
+  def getDefault: IndicatorDescriptorActionFactory = {
     if (i == null) {
       i = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
     }
@@ -51,6 +51,6 @@ object IndicatorDescriptorActionFactory {
 }
 
 trait IndicatorDescriptorActionFactory {
-  def createActions(descriptor:IndicatorDescriptor) :Array[Action]
+  def createActions(descriptor: IndicatorDescriptor): Array[Action]
 }
 

@@ -44,7 +44,7 @@ trait Vec extends Cloneable {
    * @param vec   the <code>Vec</code> to plus
    * @return the result of the operation
    */
-  def plus(operand:Vec) :Vec
+  def plus(operand: Vec): Vec
     
   /**
    * Scalar addition.
@@ -52,9 +52,9 @@ trait Vec extends Cloneable {
    * @param operand   the amount to plus
    * @return the result of the sum
    */
-  def plus(operand:Double) :Vec
+  def plus(operand: Double): Vec
     
-  def minus(operand:Vec) :Vec
+  def minus(operand: Vec): Vec
     
   /**
    * Appends an element to the <code>Vec</code>.
@@ -64,14 +64,14 @@ trait Vec extends Cloneable {
    *
    * @param value   the value of the element to add
    */
-  def add(value:Double) :Unit
+  def add(value: Double): Unit
     
   /**
    * The elements of this <code>Vec</code> as a <code>double[]</code>.
    *
    * @return the <code>double[]</code>
    */
-  def toDoubleArray :Array[Double]
+  def toDoubleArray: Array[Double]
     
   /**
    * Compute an Euclidean metric (or distance) from this <code>Vec</code> to
@@ -80,7 +80,7 @@ trait Vec extends Cloneable {
    * @param other   the <code>Vec</code> to measure the metric (or distance) with
    * @return the metric
    */
-  def metric(other:Vec) :Double
+  def metric(other: Vec): Double
     
   /**
    * Compute the inner product of two <code>Vec</code>s.
@@ -88,12 +88,12 @@ trait Vec extends Cloneable {
    * @param operand   the other <code>Vec</code>
    * @return the inner product
    */
-  def innerProduct(operand:Vec) :Double
+  def innerProduct(operand: Vec): Double
     
   /**
    * <Xi dot Xi> the inner product of this vec itself
    */
-  def square :Double
+  def square: Double
     
   /**
    * Scalar multipication.
@@ -101,7 +101,7 @@ trait Vec extends Cloneable {
    * @param operand   the amount to times
    * @return the resulting <code>Vec</code>
    */
-  def times(operand:Double) :Vec
+  def times(operand: Double): Vec
     
   /**
    * Compute a 1-norm (sum of absolute values) of the <code>Vec</code>.
@@ -109,7 +109,7 @@ trait Vec extends Cloneable {
    *
    * @return the norm
    */
-  def normOne :Double
+  def normOne: Double
     
   /**
    * Compute a 2-norm (square root of the sum of the squared values) of the
@@ -118,7 +118,7 @@ trait Vec extends Cloneable {
    *
    * @return the norm
    */
-  def normTwo :Double
+  def normTwo: Double
     
   /**
    * Returns the <i>idx </i>-nary element of the <code>Vec</code>.
@@ -126,7 +126,7 @@ trait Vec extends Cloneable {
    * @param dimensionIdx   the index of the desired element
    * @return the value of the element
    */
-  def apply(dimensionIdx:Int) :Double
+  def apply(dimensionIdx: Int): Double
     
   /**
    * Sets element of index <code>i</code> to <code>value</code>.
@@ -134,25 +134,25 @@ trait Vec extends Cloneable {
    * @param dimensionIdx   index of the element to set
    * @param value    the value to set
    */
-  def update(dimensionIdx:Int, value:Double) :Unit
+  def update(dimensionIdx: Int, value: Double): Unit
     
   /**
    * Sets all <code>Vec</code> elements to <code>value</code>.
    *
    * @param value   the value to set
    */
-  def setAll(value:Double) :Unit
+  def setAll(value: Double): Unit
     
   /**
    * Sets elements to the ones of <code>orig</code>.
    *
    * @param orig   the <code>Vec</code> with the elements to set
    */
-  def copy(orig:Vec) :Unit
+  def copy(orig: Vec): Unit
     
-  def copy(src:Vec, srcPos:Int, destPos:Int, length:Int) :Unit
+  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int): Unit
     
-  def setValues(values:Array[Double]) :Unit
+  def setValues(values: Array[Double]): Unit
     
   /**
    * @return the dimension of this <code>Vec</code>
@@ -167,16 +167,16 @@ trait Vec extends Cloneable {
    * @param min   lower bound
    * @param max   upper bound
    */
-  def randomize(min:Double, max:Double) :Unit
+  def randomize(min: Double, max: Double): Unit
     
   /**
    * Checks if a <code>Vec</code> has equal dimension of this <code>Vec</code>.
    *
    * @param comp   <code>Vec</code> to test with
    */
-  def checkDimensionEquality(comp:Vec) :Unit
+  def checkDimensionEquality(comp: Vec): Unit
     
-  def checkValidation :Boolean
+  def checkValidation: Boolean
 
-  override def clone :Vec = {super.clone; this}
+  override def clone: Vec = {super.clone; this}
 }

@@ -37,15 +37,15 @@ import java.util.Random
  *
  * @author Caoyuan Deng
  */
-class InputOutputPoint(inputDimension:Int, outputDimension:Int) {
+class InputOutputPoint(inputDimension: Int, outputDimension: Int) {
     
-  val input  :Vec = new DefaultVec(inputDimension)
-  val output :Vec = new DefaultVec(outputDimension)
+  val input:  Vec = new DefaultVec(inputDimension)
+  val output: Vec = new DefaultVec(outputDimension)
     
 }
 
 object InputOutputPoint {
-  def randomizeOrder_createNew(iops:Array[InputOutputPoint]) :Array[InputOutputPoint] = {
+  def randomizeOrder_createNew(iops: Array[InputOutputPoint]): Array[InputOutputPoint] = {
     val size = iops.length
     val result = new Array[InputOutputPoint](size)
 

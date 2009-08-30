@@ -43,23 +43,23 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:ArrayBuffer[Factor], activeX:Boolean) extends AnalysisDescriptor[Indicator](serviceClassNameX, freqX, activeX) {
+class IndicatorDescriptor(aserviceClassName: String, afreq: Frequency, afactors: ArrayBuffer[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
 
-  private var _factors:ArrayBuffer[Factor] = factorsX
+  private var _factors: ArrayBuffer[Factor] = afactors
 
   def this() {
     this(null, Frequency.DAILY, new ArrayBuffer[Factor], false)
 
   }
 
-  override def set(serviceClassName:String, freq:Frequency) :Unit = {
+  override def set(serviceClassName: String, freq: Frequency): Unit = {
     super.set(serviceClassName, freq)
 
     setFacsToDefault
   }
 
-  def factors :ArrayBuffer[Factor]= _factors
-  def factors_=(factors:ArrayBuffer[Factor]) :Unit = {
+  def factors: ArrayBuffer[Factor]= _factors
+  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
     /**
      * @NOTICE:
      * always create a new copy of in factors to seperate the factors of this
@@ -81,7 +81,7 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:Ar
     }
   }
 
-  override def displayName :String = {
+  override def displayName: String = {
     val indicator = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
     val displayStr = indicator match {
       case None => serviceClassName
@@ -99,8 +99,8 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:Ar
    * those added-on modules.
    * @param baseSer for indicator
    */
-  override protected def createServiceInstance(args:Any*) :Option[Indicator] = args match {
-    case Seq(baseSer:Ser) => lookupServiceTemplate match {
+  override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
+    case Seq(baseSer: Ser) => lookupServiceTemplate match {
         case None => None
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)
@@ -117,7 +117,7 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:Ar
     case _ => None
   }
     
-  def setFacsToDefault :Unit = {
+  def setFacsToDefault: Unit = {
     val defaultFacs = PersistenceManager.getDefault.defaultContents.lookupDescriptor(
       classOf[IndicatorDescriptor], serviceClassName, freq) match {
       case None => lookupServiceTemplate match {
@@ -133,24 +133,24 @@ class IndicatorDescriptor(serviceClassNameX:String, freqX:Frequency, factorsX:Ar
     }
   }
 
-  def lookupServiceTemplate :Option[Indicator] = {
+  def lookupServiceTemplate: Option[Indicator] = {
     val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[Indicator], folderName)
     services.find{x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Indicator])
-        } catch {case ex:Exception => ex.printStackTrace; None}
+        } catch {case ex: Exception => ex.printStackTrace; None}
       case some => some
     }
   }
 
   val folderName = "Indicators"
 
-  override def createDefaultActions :Array[Action] = {
+  override def createDefaultActions: Array[Action] = {
     IndicatorDescriptorActionFactory.getDefault.createActions(this)
   }
 
-  override def writeToBean(doc:BeansDocument) :Element = {
+  override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)
 
     val list = doc.listPropertyOfBean(bean, "facs")

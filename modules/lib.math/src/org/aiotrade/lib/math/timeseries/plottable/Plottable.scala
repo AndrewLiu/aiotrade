@@ -38,14 +38,14 @@ import java.awt.Color
  */
 trait Plottable {
     
-  def plot :Plot
-  def plot_=(plot:Plot) :unit
+  def plot: Plot
+  def plot_=(plot: Plot) :unit
     
-  def getColor(idx:Int):Color
-  def setColor(idx:Int, color:Color) :Unit
+  def getColor(idx: Int): Color
+  def setColor(idx: Int, color: Color): Unit
     
-  def layer :Int
-  def layer_=(order:Int) :Unit
+  def layer: Int
+  def layer_=(order: Int): Unit
 }
 
 

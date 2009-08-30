@@ -356,7 +356,7 @@ object TimestampsFactory {
         }
       }
             
-      def checkForComodification :Unit = {
+      def checkForComodification: Unit = {
         if (modCount != expectedModCount)
         throw new ConcurrentModificationException
       }
@@ -574,7 +574,7 @@ object TimestampsFactory {
         }
       }
             
-      def checkForComodification :Unit = {
+      def checkForComodification: Unit = {
         if (modCount != expectedModCount) {
           throw new ConcurrentModificationException
         }

@@ -35,6 +35,6 @@ package org.aiotrade.lib.math.timeseries.computable
  * 
  * @author Caoyuan Deng
  */
-class BaseSerNotSetException(message:String) extends RuntimeException(message) {
+class BaseSerNotSetException(message: String) extends RuntimeException(message) {
     
 }

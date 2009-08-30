@@ -44,37 +44,37 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class AnalysisContents(var uniSymbol:String) extends WithActions {
+class AnalysisContents(var uniSymbol: String) extends WithActions {
   private val withActionsHelper = new WithActionsHelper(this)
 
   /** Ser could be loaded lazily */
-  var serProvider :SerProvider[_] = _
+  var serProvider: SerProvider[_] = _
     
   /** use List to store descriptor, so they can be ordered by index */
   private val descriptorBuf = new ArrayBuffer[AnalysisDescriptor[_]]
     
-  def descriptors :List[AnalysisDescriptor[_]] = descriptorBuf.toList
+  def descriptors: List[AnalysisDescriptor[_]] = descriptorBuf.toList
     
-  def addDescriptor(descriptor:AnalysisDescriptor[_]) :Unit = {
+  def addDescriptor(descriptor: AnalysisDescriptor[_]): Unit = {
     if (!descriptorBuf.contains(descriptor)) {
       descriptorBuf += descriptor
       descriptor.containerContents = this
     }
   }
     
-  def removeDescriptor(descriptor:AnalysisDescriptor[_]) :Unit =  {
+  def removeDescriptor(descriptor: AnalysisDescriptor[_]): Unit =  {
     descriptorBuf.remove(descriptorBuf.indexOf(descriptor))
   }
     
-  def removeDescriptor(idx:Int) :Unit = {
+  def removeDescriptor(idx: Int): Unit = {
     descriptorBuf.remove(idx)
   }
     
-  def indexOf(descriptor:AnalysisDescriptor[_]) :Int = {
+  def indexOf(descriptor: AnalysisDescriptor[_]): Int = {
     descriptorBuf.indexOf(descriptor)
   }
     
-  def lastIndexOf[T <: AnalysisDescriptor[Any]](tpe:Class[T]) :Int = {
+  def lastIndexOf[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Int = {
     var lastOne:T = null.asInstanceOf[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor)) {
@@ -85,7 +85,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     if (lastOne != null) descriptorBuf.indexOf(lastOne) else -1
   }
     
-  def clearDescriptors[T <: AnalysisDescriptor[Any]](tpe:Class[T]) :Unit = {
+  def clearDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Unit = {
     /**
      * try to avoid java.util.ConcurrentModificationException by add those to
      * toBeRemoved, then call descriptorList.removeAll(toBeRemoved)
@@ -110,7 +110,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
    * @return found collection of AnalysisDescriptor instances.
    *         If found none, return an empty collection other than null
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe:Class[T]) :Seq[T] = {
+  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Seq[T] = {
     val result = new ArrayBuffer[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor)) {
@@ -124,7 +124,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
   /**
    * Lookup the descriptorList of clazz (Indicator/Drawing/Source etc) with the same time frequency
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe:Class[T], freq:Frequency) :Seq[T] = {
+  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T], freq: Frequency): Seq[T] = {
     val result = new ArrayBuffer[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor) && descriptor.freq.equals(freq)) {
@@ -135,7 +135,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     result
   }
     
-  def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe:Class[T], serviceClassName:String, freq:Frequency) :Option[T] = {
+  def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: Frequency): Option[T] = {
     for (descriptor <- lookupDescriptors(tpe)) {
       if (descriptor.idEquals(serviceClassName, freq)) {
         return Some(descriptor)
@@ -145,7 +145,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     None
   }
     
-  def lookupActiveDescriptor[T <: AnalysisDescriptor[Any]](tpe:Class[T]) :Option[T] = {
+  def lookupActiveDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Option[T] = {
     for (descriptor <- lookupDescriptors(tpe)) {
       if (descriptor.active) {
         return Some(descriptor)
@@ -155,7 +155,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     None
   }
     
-  def createDescriptor[T <: AnalysisDescriptor[Any]](tpe:Class[T], serviceClassName:String, freq:Frequency) :Option[T] = {
+  def createDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: Frequency): Option[T] = {
     try {
       val descriptor = tpe.newInstance
       descriptor.set(serviceClassName, freq)
@@ -163,24 +163,24 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
             
       Some(descriptor.asInstanceOf[T])
     } catch {
-      case ex:IllegalAccessException => ex.printStackTrace; None
-      case ex:InstantiationException => ex.printStackTrace; None
+      case ex: IllegalAccessException => ex.printStackTrace; None
+      case ex: InstantiationException => ex.printStackTrace; None
     }
   }
             
-  def addAction(action:Action) :Action = {
+  def addAction(action: Action): Action = {
     withActionsHelper.addAction(action)
   }
     
-  def lookupAction[T <: Action](tpe:Class[T]) :Option[T] = {
+  def lookupAction[T <: Action](tpe: Class[T]): Option[T] = {
     withActionsHelper.lookupAction(tpe)
   }
     
-  def createDefaultActions :Array[Action] = {
+  def createDefaultActions: Array[Action] = {
     Array(new ContentsSaveAction)
   }
     
-  def writeToBean(doc:BeansDocument) :Element = {
+  def writeToBean(doc:BeansDocument): Element = {
     val bean = doc.createBean(this)
         
     val list = doc.listPropertyOfBean(bean, "descriptors")
@@ -193,7 +193,7 @@ class AnalysisContents(var uniSymbol:String) extends WithActions {
     
   private class ContentsSaveAction extends SaveAction {
         
-    def execute :Unit = {
+    def execute: Unit = {
       PersistenceManager.getDefault.saveContents(AnalysisContents.this)
     }
         
