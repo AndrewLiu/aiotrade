@@ -38,19 +38,19 @@ package org.aiotrade.lib.math.timeseries
  */
 trait TimestampsIterator {
     
-  def hasNext :Boolean
+  def hasNext: Boolean
     
-  def next :Long
+  def next: Long
     
-  def hasPrevious :Boolean
+  def hasPrevious: Boolean
     
-  def previous :Long
+  def previous: Long
     
-  def nextOccurredIndex :Int
+  def nextOccurredIndex: Int
     
-  def previousOccurredIndex :Int
+  def previousOccurredIndex: Int
     
-  def nextRow :Int
+  def nextRow: Int
     
-  def previousRow :Int
+  def previousRow: Int
 }

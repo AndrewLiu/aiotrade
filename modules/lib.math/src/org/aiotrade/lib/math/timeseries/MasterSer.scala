@@ -40,14 +40,14 @@ trait MasterSer extends Ser {
   /**
    * @NOTICE we can only trust MasterSer to translate row <-> time properly.
    */
-  def timeOfRow(row:Int) :Long
-  def rowOfTime(time:Long) :Int
-  def lastOccurredRow :Int
-  def getItemByRow(row:Int) :SerItem
+  def timeOfRow(row: Int): Long
+  def rowOfTime(time: Long): Int
+  def lastOccurredRow: Int
+  def getItemByRow(row: Int): SerItem
 
-  def setOnCalendarMode :Unit
-  def setOnOccurredMode :Unit
-  def isOnCalendarMode :Boolean
+  def setOnCalendarMode: Unit
+  def setOnOccurredMode: Unit
+  def isOnCalendarMode: Boolean
 }
 
 

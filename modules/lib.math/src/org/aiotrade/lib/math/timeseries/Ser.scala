@@ -39,7 +39,7 @@ import scala.actors.Actor._
  *
  * @author Caoyuan Deng
  */
-case class AddAll[V <: TimeValue](values:Array[V])
+case class AddAll[@specialized V <: TimeValue](values: Array[V])
 trait Ser {
 
   // ----- actor's implementation
@@ -52,43 +52,43 @@ trait Ser {
   //    }
   // ----- end of actor's implementation
 
-  def init(freq:Frequency) :Unit
+  def init(freq: Frequency): Unit
     
-  def timestamps :Timestamps
+  def timestamps: Timestamps
 
-  def freq :Frequency
+  def freq: Frequency
 
   def varSet: scala.collection.Set[Var[Any]]
-  def items :ArrayBuffer[SerItem]
+  def items: ArrayBuffer[SerItem]
 
-  def getItem(time:Long) :SerItem
+  def getItem(time: Long): SerItem
     
-  def lastOccurredTime :Long
+  def lastOccurredTime: Long
     
-  def size :Int
+  def size: Int
     
-  def indexOfOccurredTime(time:Long) :Int
+  def indexOfOccurredTime(time: Long): Int
     
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
-  def clear(fromTime:Long) :Unit
+  def clear(fromTime: Long): Unit
 
-  def ++[V <: TimeValue](values:Array[V]) :Unit
+  def ++[@specialized V <: TimeValue](values: Array[V]): Unit
     
-  def createItemOrClearIt(time:Long): SerItem
+  def createItemOrClearIt(time: Long): SerItem
     
-  def shortDescription :String
-  def shortDescription_=(description:String) :Unit
+  def shortDescription: String
+  def shortDescription_=(description:String): Unit
     
-  def addSerChangeListener(listener:SerChangeListener) :Unit
-  def removeSerChangeListener(listener:SerChangeListener) :Unit
-  def fireSerChangeEvent(evt:SerChangeEvent) :Unit
+  def addSerChangeListener(listener:SerChangeListener): Unit
+  def removeSerChangeListener(listener:SerChangeListener): Unit
+  def fireSerChangeEvent(evt:SerChangeEvent): Unit
     
-  def inLoading :Boolean
-  def inLoading_=(b:Boolean) :Unit
-  def loaded :Boolean
-  def loaded_=(b:Boolean) :Unit
+  def inLoading: Boolean
+  def inLoading_=(b: Boolean): Unit
+  def loaded: Boolean
+  def loaded_=(b: Boolean): Unit
 
-  def validate :Unit
+  def validate: Unit
 }
 
 import java.util.EventListener

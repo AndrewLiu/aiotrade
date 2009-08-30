@@ -66,16 +66,16 @@ class TimestampsLog extends ArrayBuffer[Short] {
   def logCursor = _logCursor
   def logTime = _logTime
 
-  def checkKind(logFlag:Short) :Int = {
+  def checkKind(logFlag: Short): Int = {
     logFlag & KIND
   }
 
-  def checkSize(logFlag:Short) :Int = {
+  def checkSize(logFlag: Short): Int = {
     logFlag & SIZE
   }
 
-  def logAppend(size:Int) :Unit = {
-    def addLog(size:Int) :Unit = {
+  def logAppend(size: Int): Unit = {
+    def addLog(size: Int): Unit = {
       if (size > SIZE) {
         this += (APPEND | SIZE).toShort
         _logCursor = nextCursor(_logCursor)
@@ -104,8 +104,8 @@ class TimestampsLog extends ArrayBuffer[Short] {
     _logTime = System.currentTimeMillis
   }
 
-  def logInsert(size:Int, idx:Int) :Unit = {
-    def addLog(size:Int, idx:Int) :Unit = {
+  def logInsert(size: Int, idx: Int): Unit = {
+    def addLog(size: Int, idx: Int): Unit = {
       if (size > SIZE) {
         this += (INSERT | SIZE).toShort
         this ++= intToShorts(idx)
@@ -131,20 +131,20 @@ class TimestampsLog extends ArrayBuffer[Short] {
             // merge with previous one
             println("Insert log (merged with prev): idx=" + prevIdx + ", newSize=" + newSize)
             update(_logCursor, (INSERT | newSize).toShort)
-          } else addLog(size:Int, idx:Int)
-        } else addLog(size:Int, idx:Int)
-      } else addLog(size:Int, idx:Int)
-    } else addLog(size:Int, idx:Int)
+          } else addLog(size, idx)
+        } else addLog(size, idx)
+      } else addLog(size, idx)
+    } else addLog(size, idx)
 
     _logTime = System.currentTimeMillis
   }
 
-  def insertIndexOfLog(cursor:Int) :Int = {
+  def insertIndexOfLog(cursor: Int): Int = {
     shortsToInt(apply(cursor + 1), apply(cursor + 2))
   }
 
   /** cursorIncr: if (prev == append) 1 else 3 */
-  def nextCursor(cursor:Int) :Int = {
+  def nextCursor(cursor: Int): Int = {
     if (cursor == -1) {
       0
     } else {
@@ -155,15 +155,15 @@ class TimestampsLog extends ArrayBuffer[Short] {
     }
   }
   /* [0] = lowest order 16 bits; [1] = highest order 16 bits. */
-  private def intToShorts(i:Int) :Array[Short] = {
+  private def intToShorts(i: Int): Array[Short] = {
     Array((i >> 16).toShort, i.toShort)
   }
 
-  private def shortsToInt(hi:Short, lo:Short) = {
+  private def shortsToInt(hi: Short, lo: Short) = {
     (hi << 16) + lo
   }
 
-  override def toString :String = {
+  override def toString: String = {
     val sb = new StringBuilder
     sb.append("TimestampsLog: cursor=").append(_logCursor).append(", size=").append(size).append(", content=")
     var i = 0
@@ -190,51 +190,51 @@ trait Timestamps extends ArrayBuffer[Long] {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new ReentrantReadWriteLock
-  val readLock  :Lock = readWriteLock.readLock
-  val writeLock :Lock = readWriteLock.writeLock
+  val readLock:  Lock = readWriteLock.readLock
+  val writeLock: Lock = readWriteLock.writeLock
 
   val log = new TimestampsLog
 
-  def isOnCalendar :Boolean
+  def isOnCalendar: Boolean
     
-  def asOnCalendar :Timestamps
+  def asOnCalendar: Timestamps
     
   /**
    * Get nearest row that can also properly extends before firstOccurredTime
    * or after lastOccurredTime
    */
-  def rowOfTime(time:Long, freq:Frequency) :Int
+  def rowOfTime(time: Long, freq: Frequency): Int
     
-  def timeOfRow(row:Int, freq:Frequency):Long
+  def timeOfRow(row: Int, freq: Frequency): Long
     
-  def lastRow(freq:Frequency) :Int
+  def lastRow(freq: Frequency): Int
     
-  def sizeOf(freq:Frequency) :Int
+  def sizeOf(freq: Frequency): Int
     
-  def indexOfOccurredTime(time:Long) :Int
+  def indexOfOccurredTime(time: Long): Int
     
   /**
    * Search the nearest index between '1' to 'lastIndex - 1'
    * We only need to use this computing in case of onOccurred.
    */
-  def nearestIndexOfOccurredTime(time:Long) :Int
+  def nearestIndexOfOccurredTime(time: Long): Int
     
   /** return index of nearest behind or equal(if exist) time */
-  def indexOfNearestOccurredTimeBehind(time:Long) :Int
+  def indexOfNearestOccurredTimeBehind(time: Long): Int
     
   /** return index of nearest before or equal(if exist) time */
-  def indexOfNearestOccurredTimeBefore(time:Long) :Int
+  def indexOfNearestOccurredTimeBefore(time: Long): Int
     
-  def firstOccurredTime :Long
+  def firstOccurredTime: Long
     
-  def lastOccurredTime :Long
+  def lastOccurredTime: Long
     
-  def iterator(freq:Frequency) :TimestampsIterator
+  def iterator(freq: Frequency): TimestampsIterator
     
-  def iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator
+  def iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone): TimestampsIterator
 
   /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
-  override def clone:Timestamps = {super.clone; this}
+  override def clone: Timestamps = {super.clone; this}
 }
 
 

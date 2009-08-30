@@ -51,33 +51,33 @@ import org.aiotrade.lib.math.timeseries.Unit._
  *
  * @author Caoyuan Deng
  */
-class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable[Frequency] {
+class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparable[Frequency] {
 
   val interval = unit.getInterval * nUnits
 
-  def getUnit :Unit = unit
+  def getUnit: Unit = unit
 
-  def getNUnits :Int = nUnits
+  def getNUnits: Int = nUnits
 
   /**
    * return interval in milliseconds
    */
-  def getInterval :Long = interval
+  def getInterval: Long = interval
 
-  def nextTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, nUnits)
+  def nextTime(fromTime: Long): Long = unit.timeAfterNUnits(fromTime, nUnits)
     
-  def previousTime(fromTime:Long) :Long = unit.timeAfterNUnits(fromTime, -nUnits)
+  def previousTime(fromTime: Long): Long = unit.timeAfterNUnits(fromTime, -nUnits)
 
-  def timeAfterNFreqs(fromTime:Long, nFreqs:Int) :Long = unit.timeAfterNUnits(fromTime, nUnits * nFreqs)
+  def timeAfterNFreqs(fromTime: Long, nFreqs: Int): Long = unit.timeAfterNUnits(fromTime, nUnits * nFreqs)
 
-  def nFreqsBetween(fromTime:Long, toTime:Long) :Int = unit.nUnitsBetween(fromTime, toTime) / nUnits
+  def nFreqsBetween(fromTime: Long, toTime: Long): Int = unit.nUnitsBetween(fromTime, toTime) / nUnits
 
   /**
    * round time to freq's begin 0
    * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
    */
-  def round(time:long, cal:Calendar) :Long = {
+  def round(time: Long, cal: Calendar): Long = {
     cal.setTimeInMillis(time)
     val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset - cal.get(Calendar.DST_OFFSET)
     ((time + offsetToLocalZeroOfDay) / interval) * interval - offsetToLocalZeroOfDay
@@ -89,11 +89,11 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
    * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
    */
-  def sameInterval(timeA:Long, timeB:Long, cal:Calendar) :Boolean = {
+  def sameInterval(timeA: Long, timeB: Long, cal: Calendar): Boolean = {
     round(timeA, cal) == round(timeB, cal)
   }
 
-  def getName :String = {
+  def getName: String = {
     if (nUnits == 1) {
       unit match {
         case Hour =>
@@ -118,9 +118,9 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     sb.toString
   }
 
-  override def equals(o:Any) :Boolean = {
+  override def equals(o: Any): Boolean = {
     o match {
-      case x:Frequency =>
+      case x: Frequency =>
         if (x.unit == this.unit && x.nUnits == this.nUnits) {
           true
         } else false
@@ -128,7 +128,7 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     }
   }
 
-  override def clone :Frequency = {
+  override def clone: Frequency = {
     try {
       return super.clone.asInstanceOf[Frequency]
     } catch {
@@ -138,7 +138,7 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     null
   }
 
-  def compareTo(another:Frequency) :Int = {
+  def compareTo(another: Frequency): Int = {
     if (this.unit.ordinal < another.unit.ordinal) {
       -1
     } else if (this.unit.ordinal > another.unit.ordinal) {
@@ -148,7 +148,7 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     }
   }
 
-  override def hashCode :Int = {
+  override def hashCode: Int = {
     /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
     interval.asInstanceOf[Int]
     /*- Reserve
@@ -156,9 +156,9 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
      */
   }
 
-  override def toString :String = getName
+  override def toString: String = getName
 
-  def writeToBean(doc:BeansDocument) :Element = {
+  def writeToBean(doc: BeansDocument): Element = {
     val bean = doc.createBean(this)
     
     doc.valueConstructorArgOfBean(bean, 0, getUnit)
@@ -167,7 +167,7 @@ class Frequency(val unit:Unit, val nUnits:Int) extends Cloneable with Comparable
     bean
   }
     
-  def writeToJava(id:String) :String = {
+  def writeToJava(id: String): String = {
     "todo"//JavaDocument.create(id, classOf[Frequency], getUnit, getNUnits)
   }
 }

@@ -60,13 +60,13 @@ object Unit extends Enumeration {
   /**
    * the unit(interval) of each Unit
    */
-  private val ONE_SECOND :Int  = 1000
-  private val ONE_MINUTE :Int  = 60 * ONE_SECOND
-  private val ONE_HOUR   :Int  = 60 * ONE_MINUTE
-  private val ONE_DAY    :Long = 24 * ONE_HOUR
-  private val ONE_WEEK   :Long =  7 * ONE_DAY
-  private val ONE_MONTH  :Long = 30 * ONE_DAY
-  private val ONE_Year   :Long = (365.24 * ONE_DAY).asInstanceOf[Long]
+  private val ONE_SECOND: Int  = 1000
+  private val ONE_MINUTE: Int  = 60 * ONE_SECOND
+  private val ONE_HOUR:   Int  = 60 * ONE_MINUTE
+  private val ONE_DAY:    Long = 24 * ONE_HOUR
+  private val ONE_WEEK:   Long =  7 * ONE_DAY
+  private val ONE_MONTH:  Long = 30 * ONE_DAY
+  private val ONE_Year:   Long = (365.24 * ONE_DAY).asInstanceOf[Long]
 
   /**
    *
@@ -83,11 +83,11 @@ object Unit extends Enumeration {
    */
   private val cal = Calendar.getInstance()
     
-  class V(name:String) extends Val(name) {
+  class V(name: String) extends Val(name) {
         
     def ordinal = id
 
-    def getInterval :Long = {
+    def getInterval: Long = {
       this match {
         case Second => ONE_SECOND
         case Minute => ONE_MINUTE
@@ -104,7 +104,7 @@ object Unit extends Enumeration {
      * round time to unit's begin 0
      * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
      */
-    def round(time:Long) :Long = {
+    def round(time: Long): Long = {
       //return (time + offsetToUTC / getInterval()) * getInterval() - offsetToUTC
       (time / getInterval) * getInterval
     }
@@ -121,7 +121,7 @@ object Unit extends Enumeration {
       }
     }
 
-    def getCompactDescription :String = {
+    def getCompactDescription: String = {
       this match {
         case Second => "Sec"
         case Minute => "Min"
@@ -133,7 +133,7 @@ object Unit extends Enumeration {
       }
     }
 
-    def getLongDescription :String = {
+    def getLongDescription: String = {
       this match {
         case Second => "Second"
         case Minute => "Minute"
@@ -145,7 +145,7 @@ object Unit extends Enumeration {
       }
     }
 
-    def nUnitsBetween(fromTime:Long, toTime:Long) :Int = {
+    def nUnitsBetween(fromTime: Long, toTime: Long): Int = {
       this match {
         case Week  => nWeeksBetween(fromTime, toTime)
         case Month => nMonthsBetween(fromTime, toTime)
@@ -154,7 +154,7 @@ object Unit extends Enumeration {
 
     }
 
-    private def nWeeksBetween(fromTime:Long, toTime:Long) :Int = {
+    private def nWeeksBetween(fromTime: Long, toTime: Long): Int = {
       val between = ((toTime - fromTime) / ONE_WEEK).asInstanceOf[Int]
 
       /**
@@ -176,7 +176,7 @@ object Unit extends Enumeration {
       }
     }
 
-    private def nMonthsBetween(fromTime:Long, toTime:Long):Int = {
+    private def nMonthsBetween(fromTime: Long, toTime: Long):Int = {
       cal.setTimeInMillis(fromTime)
       val monthOfYearA = cal.get(Calendar.MONTH)
       val yearA = cal.get(Calendar.YEAR)
@@ -198,7 +198,7 @@ object Unit extends Enumeration {
     }
 
     /** snapped to first day of the week */
-    private def timeAfterNWeeks(fromTime:Long, nWeeks:Int) :Long = {
+    private def timeAfterNWeeks(fromTime: Long, nWeeks: Int) :Long = {
       cal.setTimeInMillis(fromTime)
 
       /** set the time to first day of this week */
@@ -211,7 +211,7 @@ object Unit extends Enumeration {
     }
 
     /** snapped to 1st day of the month */
-    private def timeAfterNMonths(fromTime:Long, nMonths:Int) :Long = {
+    private def timeAfterNMonths(fromTime: Long, nMonths: Int) :Long = {
       cal.setTimeInMillis(fromTime)
 
       /** set the time to this month's 1st day */
@@ -223,7 +223,7 @@ object Unit extends Enumeration {
       cal.getTimeInMillis
     }
 
-    def beginTimeOfUnitThatInclude(time:Long, cal:Calendar):Long = {
+    def beginTimeOfUnitThatInclude(time: Long, cal: Calendar):Long = {
       cal.setTimeInMillis(time)
 
       this match {
@@ -259,7 +259,7 @@ object Unit extends Enumeration {
       cal.getTimeInMillis
     }
 
-    def formatNormalDate(date:Date, timeZone:TimeZone) :String = {
+    def formatNormalDate(date: Date, timeZone: TimeZone): String = {
       val df = this match {
         case Second => DateFormat.getTimeInstance(DateFormat.MEDIUM)
         case Minute => DateFormat.getTimeInstance(DateFormat.SHORT)
@@ -273,7 +273,7 @@ object Unit extends Enumeration {
       df.format(date)
     }
 
-    def formatStrideDate(date:Date, timeZone:TimeZone) :String = {
+    def formatStrideDate(date: Date, timeZone: TimeZone): String = {
       val df = this match {
         case Second => DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
         case Minute => DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)

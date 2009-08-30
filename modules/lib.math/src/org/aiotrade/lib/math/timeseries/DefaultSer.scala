@@ -57,7 +57,7 @@ import scala.collection.mutable.{ArrayBuffer, LinkedHashMap}
  *
  * @author Caoyuan Deng
  */
-class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
+class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
   private val _hashCode = System.identityHashCode(this)
 
   private val INIT_CAPACITY = 400
@@ -70,7 +70,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
    * Should only get index from timestamps which has the proper mapping of :
    * position <-> time <-> item
    */
-  private var _timestamps :Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
+  private var _timestamps: Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
 
   private var _items = new ArrayBuffer[SerItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
 
@@ -131,7 +131,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     if (itemTime < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
       if (existIdx >= 0) {
-        varSet foreach {_.add(itemTime, null)}
+        varSet foreach (_.add(itemTime, null))
         // * as timestamps includes this time, we just always put in a none-null item
         _items.insert(existIdx, clearItem)
       } else {
@@ -146,7 +146,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
           _timestamps.insert(idx, itemTime)
           tsLog.logInsert(1, idx)
 
-          varSet foreach {_.add(itemTime, null)}
+          varSet foreach (_.add(itemTime, null))
 
           // * as timestamps includes this time, we just always put in a none-null item
           _items.insert(idx, clearItem)
@@ -163,7 +163,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
         _timestamps += itemTime
         tsLog.logAppend(1)
 
-        varSet foreach {_.add(itemTime, null)}
+        varSet foreach (_.add(itemTime, null))
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         _items += clearItem
@@ -188,7 +188,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     }
   }
 
-  def ++[V <: TimeValue](values:Array[V]) :Unit = {
+  def ++[@specialized V <: TimeValue](values: Array[V]): Unit = {
     var begTime = +Long.MaxValue
     var endTime = -Long.MaxValue
     try {
@@ -223,23 +223,23 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     fireSerChangeEvent(evt)
   }
 
-  protected def createItem(time:Long) :SerItem = {
+  protected def createItem(time: Long): SerItem = {
     new DefaultItem(this, time)
   }
 
   def shortDescription :String = description
-  def shortDescription_=(description:String) :Unit = {
+  def shortDescription_=(description: String): Unit = {
     this.description = description
   }
 
   def varSet: scala.collection.Set[Var[Any]] = varToName.keySet
 
-  def validate_old :Unit = {
+  def validate_old: Unit = {
     if (_items.size != timestamps.size) {
       try {
         timestamps.readLock.lock
                 
-        varSet.foreach{x => x.validate}
+        varSet foreach (x => x.validate)
         val newItems = new ArrayBuffer[SerItem]
         var i = 0
         while (i < timestamps.size) {
@@ -260,7 +260,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
    * should be atomic accessed/modified during function's running scope so.
    * Should avoid to enter here by multiple actors concurrently
    */
-  def validate :Unit = {
+  def validate: Unit = {
     try {
       timestamps.readLock.lock
 
@@ -334,7 +334,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
 
   }
 
-  def clear(fromTime:Long) :Unit = synchronized {
+  def clear(fromTime: Long): Unit = synchronized {
     try {
       _timestamps.writeLock.lock
             
@@ -363,12 +363,12 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
                                           Long.MaxValue))
   }
 
-  def items :ArrayBuffer[SerItem] = _items
+  def items: ArrayBuffer[SerItem] = _items
 
-  def getItem(time:Long) :SerItem = {
+  def getItem(time: Long): SerItem = {
     var item = internal_getItem(time)
     this match {
-      case x:SpotComputable =>
+      case x: SpotComputable =>
         if (item == null || (item != null && item.isClear)) {
           /** re-get one from calculator */
           item = x.computeItem(time)
@@ -398,7 +398,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
    * And that why define some motheds signature begin with internal_, becuase
    * you'd better never think to open these methods to protected or public.
    */
-  def createItemOrClearIt(time:Long) :SerItem = {
+  def createItemOrClearIt(time: Long): SerItem = {
     internal_getItem(time) match {
       case null =>
         // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
@@ -411,13 +411,13 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     }
   }
 
-  def size :Int = items.size
+  def size: Int = items.size
 
-  def indexOfOccurredTime(time:Long) :Int = timestamps.indexOfOccurredTime(time)
+  def indexOfOccurredTime(time: Long): Int = timestamps.indexOfOccurredTime(time)
 
-  def lastOccurredTime :Long = timestamps.lastOccurredTime
+  def lastOccurredTime: Long = timestamps.lastOccurredTime
 
-  override def toString :String = {
+  override def toString: String = {
     val sb = new StringBuilder(20)
     sb.append(this.getClass.getSimpleName).append("(").append(freq)
     if (timestamps.size > 0) {
@@ -433,8 +433,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
   }
 
   /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
-  override def equals(a:Any) = a match {
-    case x:Ser => this.getClass == x.getClass && this.hashCode == x.hashCode
+  override def equals(a: Any) = a match {
+    case x: Ser => this.getClass == x.getClass && this.hashCode == x.hashCode
     case _ => false
   }
 
@@ -443,11 +443,11 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
   }
 
   object Var {
-    def apply[E]() = new InnerVar[E]
-    def apply[E](name: String) = new InnerVar[E](name)
-    def apply[E](name: String, plot: Plot) = new InnerVar[E](name, plot)
+    def apply[@specialized E]() = new InnerVar[E]
+    def apply[@specialized E](name: String) = new InnerVar[E](name)
+    def apply[@specialized E](name: String, plot: Plot) = new InnerVar[E](name, plot)
   }
-  protected class InnerVar[E](name: String, plot: Plot) extends AbstractInnerVar[E](name, plot) {
+  protected class InnerVar[@specialized E](name: String, plot: Plot) extends AbstractInnerVar[E](name, plot) {
 
     var values = new ArrayBuffer[E]
 
@@ -455,7 +455,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       this("", Plot.None)
     }
 
-    def this(name:String) = {
+    def this(name: String) = {
       this(name, Plot.None)
     }
 
@@ -485,7 +485,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       value
     }
 
-    def validate :Unit = {
+    def validate: Unit = {
       val newValues = new ArrayBuffer[E]{override val initialSize = INIT_CAPACITY}
 
       var i = 0
@@ -520,25 +520,25 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * they have the same values, this prevent the duplicated manage of values.
      * @See AbstractIndicator.injectVarsToSer()
      */
-    override def equals(a:Any) :Boolean = a match {
-      case x:InnerVar[_] => this.values == x.values
+    override def equals(a: Any): Boolean = a match {
+      case x: InnerVar[_] => this.values == x.values
       case _ => false
     }
   }
 
-  protected class SparseVar[E](name:String, plot:Plot) extends AbstractInnerVar[E](name, plot) {
+  protected class SparseVar[@specialized E](name: String, plot: Plot) extends AbstractInnerVar[E](name, plot) {
 
     val values = new TimestampedMapBasedList[E](timestamps)
 
     def this() = {
-      this("", Plot.None);
+      this("", Plot.None)
     }
 
-    def this(name:String) = {
+    def this(name: String) = {
       this(name, Plot.None)
     }
 
-    def add(time:Long, value:E) :Boolean = {
+    def add(time: Long, value: E): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         values.add(time, value)
@@ -549,11 +549,11 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       }
     }
 
-    def getByTime(time:Long): E = values.getByTime(time)
+    def getByTime(time: Long): E = values.getByTime(time)
 
-    def setByTime(time:Long, value:E): E = values.setByTime(time, value)
+    def setByTime(time: Long, value: E): E = values.setByTime(time, value)
 
-    def validate :Unit = {
+    def validate: Unit = {
     }
 
     /**
@@ -561,8 +561,8 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
      * they have the same values, this prevent the duplicated manage of values.
      * @See AbstractIndicator.injectVarsToSer()
      */
-    override def equals(o:Any) :Boolean = o match {
-      case x:SparseVar[_] => this.values == x.values
+    override def equals(o: Any): Boolean = o match {
+      case x: SparseVar[_] => this.values == x.values
       case _ => false
     }
   }
@@ -579,7 +579,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerVar[E](name:String, plot:Plot) extends AbstractVar[E](name, plot) {
+  abstract class AbstractInnerVar[@specialized E](name: String, plot: Plot) extends AbstractVar[E](name, plot) {
 
     private val colors = new TimestampedMapBasedList[Color](timestamps)
     val nullValue = Float.NaN.asInstanceOf[E]
@@ -590,14 +590,14 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       this("", Plot.None)
     }
 
-    def this(name:String) = {
+    def this(name: String) = {
       this(name, Plot.None)
     }
 
     /**
      * This method will never return null, return a nullValue at least.
      */
-    override def apply(idx:Int): E = {
+    override def apply(idx: Int): E = {
       if (idx >= 0 && idx < values.size) {
         values(idx) match {
           case null => nullValue
@@ -608,7 +608,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       }
     }
 
-    override def update(idx:Int, value:E) :Unit = {
+    override def update(idx: Int, value: E): Unit = {
       if (idx >= 0 && idx < values.size) {
         values(idx) = value
       } else {
@@ -617,7 +617,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       }
     }
         
-    private def checkValidationAt(idx:Int) :Int = {
+    private def checkValidationAt(idx: Int): Int = {
       assert(idx >= 0, "Out of bounds: idx=" + idx)
 
       val time = timestamps(idx)
@@ -641,7 +641,7 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
     /**
      * Clear values that >= fromIdx
      */
-    def clear(fromIdx:Int) :Unit = {
+    def clear(fromIdx: Int): Unit = {
       if (fromIdx < 0) {
         return
       }
@@ -652,13 +652,13 @@ class DefaultSer(freq:Frequency) extends AbstractSer(freq) {
       }
     }
 
-    def setColor(idx:Int, color:Color) :Unit = {
+    def setColor(idx: Int, color: Color): Unit = {
       colors(idx) = color
     }
 
-    def getColor(idx:Int) :Color = colors.apply(idx)
+    def getColor(idx: Int): Color = colors.apply(idx)
 
-    def size :Int = values.size
+    def size: Int = values.size
   }
 
   /*-

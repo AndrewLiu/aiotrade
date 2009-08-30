@@ -60,23 +60,23 @@ package org.aiotrade.lib.math.timeseries
  *
  * @see DefaultSer#createItem(long time)
  */
-class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerItem {
+class DefaultItem protected[timeseries] (_ser: Ser, val time: Long) extends SerItem {
     
-  private var _clear :Boolean = true
+  private var _clear: Boolean = true
 
-  def ser:Ser = _ser
+  def ser: Ser = _ser
 
-  def index :Int = ser.timestamps.indexOfOccurredTime(time)
+  def index: Int = ser.timestamps.indexOfOccurredTime(time)
     
-  def isClear :Boolean = _clear
+  def isClear: Boolean = _clear
     
-  def clear :Unit = {
+  def clear: Unit = {
     this._clear = true
   }
     
-  def get[T](v:Var[T]) :T =  v.getByTime(time)
+  def get[@specialized T](v: Var[T]): T =  v.getByTime(time)
     
-  def set[T](v:Var[T], value:T) :Unit = {
+  def set[@specialized T](v: Var[T], value: T): Unit = {
     v.setByTime(time, value)
     _clear = false
   }
@@ -87,11 +87,11 @@ class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerIte
    * This is the best try implement. If Object is Number, this may works,
    * Otherwise, should sub class it.
    */
-  def getFloat(v:Var[_]) :Float = {
+  def getFloat(v: Var[_]): Float = {
     v.getByTime(time) match {
       case null => Float.NaN
-      case n:Number => n.floatValue
-      case o:AnyRef =>
+      case n: Number => n.floatValue
+      case o: AnyRef =>
         assert(false, "Why you get here(DefaultItem.getFloat(Var<?> var)) ? " +
                time + " Check your code and give me Float instead of float: " +
                o.asInstanceOf[AnyRef].getClass.getCanonicalName)
@@ -99,12 +99,12 @@ class DefaultItem protected[timeseries] (_ser:Ser, val time:Long) extends SerIte
     }
   }
     
-  def setFloat[Number](v:Var[Number], value:Number) :Unit = {
+  def setFloat[@specialized Number](v: Var[Number], value: Number) :Unit = {
     v.setByTime(time, value)
     this._clear = false
   }
 
-  def assignValue[V <: TimeValue](value:V) :Unit = {
+  def assignValue[@specialized V <: TimeValue](value: V) :Unit = {
     /** @todo */
   }
 }

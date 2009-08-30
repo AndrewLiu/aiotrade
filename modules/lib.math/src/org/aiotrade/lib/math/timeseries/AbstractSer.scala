@@ -36,30 +36,30 @@ import javax.swing.event.EventListenerList
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq:Frequency) extends Ser {
+abstract class AbstractSer(var freq: Frequency) extends Ser {
     
   private val serChangeListenerList = new EventListenerList
         
-  var inLoading :Boolean = false
-  private var _loaded :Boolean = false
+  var inLoading: Boolean = false
+  private var _loaded: Boolean = false
 
   def this() = {
     this(Frequency.DAILY)
   }
     
-  def init(freq:Frequency) :Unit = {
+  def init(freq: Frequency): Unit = {
     this.freq = freq.clone
   }
         
-  def addSerChangeListener(listener:SerChangeListener) :Unit = {
+  def addSerChangeListener(listener: SerChangeListener): Unit = {
     serChangeListenerList.add(classOf[SerChangeListener], listener)
   }
     
-  def removeSerChangeListener(listener:SerChangeListener) :Unit = {
+  def removeSerChangeListener(listener: SerChangeListener): Unit = {
     serChangeListenerList.remove(classOf[SerChangeListener], listener)
   }
     
-  def fireSerChangeEvent(evt:SerChangeEvent) :Unit = {
+  def fireSerChangeEvent(evt: SerChangeEvent): Unit = {
     val listeners = serChangeListenerList.getListenerList
     /** Each listener occupies two elements - the first is the listener class */
     var i = 0
@@ -71,13 +71,13 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
     }
   }
     
-  def loaded :Boolean = _loaded
-  def loaded_=(b:Boolean) :Unit = {
+  def loaded: Boolean = _loaded
+  def loaded_=(b: Boolean): Unit = {
     inLoading = false
     _loaded = false
   }
 
-  protected def isAscending[V <: TimeValue](values:Array[V]) :boolean = {
+  protected def isAscending[@specialized V <: TimeValue](values: Array[V]): Boolean = {
     val size = values.size
     if (size <= 1) {
       true
@@ -95,7 +95,7 @@ abstract class AbstractSer(var freq:Frequency) extends Ser {
     }
   }
 
-  override def toString :String = {
+  override def toString: String = {
     this.getClass.getSimpleName + "(" + freq + ")"
   }
 }
