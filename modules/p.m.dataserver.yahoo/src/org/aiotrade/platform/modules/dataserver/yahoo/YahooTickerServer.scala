@@ -30,16 +30,13 @@
  */
 package org.aiotrade.platform.modules.dataserver.yahoo
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.ParseException;
-import java.util.{Calendar,Date,TimeZone}
-import java.util.zip.GZIPInputStream;
-import org.aiotrade.lib.securities.dataserver.{TickerContract,TickerServer}
-import org.aiotrade.lib.securities.{Market,Ticker,TickerSnapshot}
+import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.net.{HttpURLConnection, URL}
+import java.text.ParseException
+import java.util.{Calendar, Date, TimeZone}
+import java.util.zip.GZIPInputStream
+import org.aiotrade.lib.securities.{Market, Ticker, TickerSnapshot}
+import org.aiotrade.lib.securities.dataserver.{TickerContract, TickerServer}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -54,7 +51,7 @@ object YahooTickerServer {
    * symbols, one singleton instance is enough. If each symbol need a separate
    * session, you may create new data server instance for each symbol.
    */
-  protected var singletonInstance :Option[YahooTickerServer] = None
+  protected var singletonInstance: Option[YahooTickerServer] = None
   // * "http://download.finance.yahoo.com/d/quotes.csv"
   protected val BaseUrl = "http://aiotrade.com/"
   protected val UrlPath = "aiodata/yt"
@@ -65,14 +62,14 @@ class YahooTickerServer extends TickerServer {
 
   private var gzipped = false
 
-  protected def connect :Boolean = true
+  protected def connect: Boolean = true
 
   /**
    * Template:
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
   @throws(classOf[Exception])
-  protected def request :Unit = {
+  protected def request: Unit = {
     val cal = Calendar.getInstance(sourceTimeZone)
 
     val urlStr = new StringBuilder(90)
@@ -118,7 +115,7 @@ class YahooTickerServer extends TickerServer {
   }
 
   @throws(classOf[Exception])
-  protected def read :Long = {
+  protected def read: Long = {
     val is = inputStream match {
       case None => return loadedTime
       case Some(x) => x
@@ -133,7 +130,7 @@ class YahooTickerServer extends TickerServer {
     resetCount
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
-    def loop(newestTime:Long) :Long = reader.readLine match {
+    def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
       case line => line.split(",") match {
           case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*) =>
@@ -155,7 +152,7 @@ class YahooTickerServer extends TickerServer {
               cal.clear
               cal.setTime(date)
             } catch {
-              case ex:ParseException =>
+              case ex: ParseException =>
                 ex.printStackTrace
                 loop(newestTime)
             }
@@ -211,7 +208,7 @@ class YahooTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime:Long) :Long = {
+  protected def loadFromSource(afterThisTime: Long): Long = {
     fromTime = afterThisTime + 1
 
     var loadedTime1 = loadedTime
@@ -222,30 +219,30 @@ class YahooTickerServer extends TickerServer {
     try {
       request
       loadedTime1 = read
-    } catch {case ex:Exception => ex.printStackTrace}
+    } catch {case ex: Exception => ex.printStackTrace}
 
     loadedTime1
   }
 
-  override def createNewInstance :Option[YahooTickerServer] = {
+  override def createNewInstance: Option[YahooTickerServer] = {
     if (singletonInstance == None) {
       super.createNewInstance match {
         case None =>
-        case Some(x:YahooTickerServer) => x.init; singletonInstance = Some(x)
+        case Some(x: YahooTickerServer) => x.init; singletonInstance = Some(x)
       }
     }
     singletonInstance
   }
 
-  override def displayName :String = "Yahoo! Finance Internet"
+  override def displayName: String = "Yahoo! Finance Internet"
 
-  def defaultDateFormatPattern :String = "MM/dd/yyyy h:mma"
+  def defaultDateFormatPattern: String = "MM/dd/yyyy h:mma"
 
-  def sourceSerialNumber :Byte = 1
+  def sourceSerialNumber: Byte = 1
 
   def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 
-  override def marketOf(symbol:String) :Market = {
+  override def marketOf(symbol: String): Market = {
     return YahooQuoteServer.marketOf(symbol)
   }
 }

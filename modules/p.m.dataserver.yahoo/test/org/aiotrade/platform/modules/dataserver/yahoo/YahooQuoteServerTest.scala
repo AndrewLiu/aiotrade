@@ -31,14 +31,14 @@ class YahooQuoteServerTest extends TestHelper {
   def tearDown: Unit = {
   }
 
-  @Test{val timeout=1800000}
+  @Test(timeout=1800000)
   def example = {
     testBatch
   }
 
 
   def testBatch : Unit = {
-    val size = 1
+    val size = 5
     val syms = StockCode.SHSE.keySet
     val actors = new Array[TestOne](size)
 

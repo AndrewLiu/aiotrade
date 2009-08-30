@@ -30,27 +30,17 @@
  */
 package org.aiotrade.platform.modules.dataserver.yahoo
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.zip.GZIPInputStream;
-import javax.imageio.ImageIO;
+import java.awt.Image
+import java.awt.image.BufferedImage
+import java.io.{BufferedReader, File, IOException, InputStream, InputStreamReader}
+import java.net.{HttpURLConnection, URL}
+import java.text.{DateFormat, ParseException, SimpleDateFormat}
+import java.util.{Calendar, Date, Locale, TimeZone}
+import java.util.zip.GZIPInputStream
+import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.securities.{Market,Quote}
-import org.aiotrade.lib.securities.dataserver.{QuoteContract,QuoteServer}
+import org.aiotrade.lib.securities.{Market, Quote}
+import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -62,9 +52,9 @@ object YahooQuoteServer {
   // * "http://table.finance.yahoo.com/table.csv"
   protected val BaseUrl = "http://aiotrade.com/"
   protected val UrlPath = "aiodata/yq"
-  protected val dateFormat :DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
+  protected val dateFormat: DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-  def marketOf(symbol:String) :Market = {
+  def marketOf(symbol:String): Market = {
     symbol.split("\\.") match {
       case Array(head, market) => market.toUpperCase match {
           case "L" =>  Market.LDSE
@@ -80,21 +70,21 @@ object YahooQuoteServer {
 class YahooQuoteServer extends QuoteServer {
   import YahooQuoteServer._
 
-  private var contract :QuoteContract = _
+  private var contract: QuoteContract = _
   private var gzipped = false
 
-  protected def connect :Boolean = true
+  protected def connect: Boolean = true
 
   /**
    * Template:
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request :Unit = {
+  protected def request: Unit = {
     val cal = Calendar.getInstance
 
     contract = currentContract match {
-      case Some(x:QuoteContract) => x
+      case Some(x: QuoteContract) => x
       case _ => return
     }
 
@@ -153,7 +143,7 @@ class YahooQuoteServer extends QuoteServer {
    * @return readed time
    */
   @throws(classOf[Exception])
-  protected def read :Long =  {
+  protected def read: Long =  {
     val is = inputStream match {
       case None => return 0
       case Some(x) => x
@@ -176,7 +166,7 @@ class YahooQuoteServer extends QuoteServer {
     // * for daily quote, yahoo returns market's local date, so use market time zone
     val cal = Calendar.getInstance(timeZone)
     val dateFormat = dateFormatOf(timeZone)
-    def loop(newestTime:Long) :Long = reader.readLine match {
+    def loop(newestTime:Long): Long = reader.readLine match {
       case null => newestTime // break now
       case line => line.split(",") match {
           case Array(dateTimeX, openX, highX, lowX, closeX, volumeX, adjCloseX, _*) =>
@@ -188,7 +178,7 @@ class YahooQuoteServer extends QuoteServer {
             val date = try {
               dateFormat.parse(dateTimeX.trim)
             } catch {
-              case _:ParseException => loop(newestTime)
+              case _: ParseException => loop(newestTime)
             }
                     
             cal.clear
@@ -227,7 +217,7 @@ class YahooQuoteServer extends QuoteServer {
     }; loop(-Long.MaxValue)
   }
 
-  protected def loadFromSource(afterThisTime:Long) :Long = {
+  protected def loadFromSource(afterThisTime: Long): Long = {
     fromTime = afterThisTime + 1
 
     var loadedTime1 = loadedTime
@@ -239,37 +229,36 @@ class YahooQuoteServer extends QuoteServer {
       request
       loadedTime1 = read
     } catch {
-      case ex:Exception => ex.printStackTrace
+      case ex: Exception => ex.printStackTrace
     }
 
     loadedTime1
   }
 
-  override def displayName :String = "Yahoo! Finance Internet"
+  override def displayName: String = "Yahoo! Finance Internet"
 
-  def defaultDateFormatPattern :String = "yyyy-MM-dd"
+  def defaultDateFormatPattern: String = "yyyy-MM-dd"
 
-  def sourceSerialNumber :Byte = 1
+  def sourceSerialNumber: Byte = 1
 
   override def supportedFreqs: Array[Frequency] = {
     Array(Frequency.DAILY)
   }
 
-  override def icon :Option[Image] = {
+  override def icon: Option[Image] = {
     val img = try {
       ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/yahoo/resources/favicon_yahoo.png"))
-    } catch {
-      case _ => null
-    }
+    } catch {case _ => null}
+
     img match {
       case null => None
       case _ => Some(img)
     }
   }
 
-  override def sourceTimeZone : TimeZone = TimeZone.getTimeZone("America/New_York")
+  override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
 
-  def marketOf(symbol:String) :Market  = {
+  def marketOf(symbol:String): Market  = {
     YahooQuoteServer.marketOf(symbol)
   }
 
