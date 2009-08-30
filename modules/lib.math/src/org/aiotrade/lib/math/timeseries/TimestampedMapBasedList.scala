@@ -132,7 +132,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     
   override def contains(o:Any) :Boolean = timeToElementData.values.contains(o)
     
-  override def toArray[B >: A] :Array[B]  = {
+ override def toArray[B >: A : ClassManifest]: Array[B] = {
     val length = timestamps.size
     val array = new Array[B](length)
     copyToArray(array, 0)
