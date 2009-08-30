@@ -316,7 +316,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     computableHelper.preComputeFrom(begTime)
   }
     
-  def postComputeFrom :Unit = {
+  def postComputeFrom: Unit = {
     computableHelper.postComputeFrom
   }
     

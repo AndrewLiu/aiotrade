@@ -53,7 +53,7 @@ abstract class SignalIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) 
   }
         
   protected def signal(idx: Int, sign: Sign): Unit = {
-    signal(idx, sign, "");
+    signal(idx, sign, "")
   }
     
   protected def signal(idx: Int, sign: Sign, name: String): Unit = {

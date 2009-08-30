@@ -53,7 +53,7 @@ class RSIFunction extends AbstractFunction {
     this.period = args(0).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i:Int): Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
       _up(i) = Float.NaN

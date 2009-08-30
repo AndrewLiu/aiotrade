@@ -30,12 +30,12 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.{Calendar,TimeZone}
-import org.aiotrade.lib.math.timeseries.{Frequency,Ser,SerChangeEvent,Unit}
+import java.util.{Calendar, TimeZone}
+import org.aiotrade.lib.math.timeseries.{Frequency, Ser, SerChangeEvent, Unit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Market,QuoteItem,QuoteSer,Ticker,TickerObserver,TickerPool,TickerSnapshot}
+import org.aiotrade.lib.securities.{Market, QuoteItem, QuoteSer, Ticker, TickerObserver, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.Observable
-import scala.collection.mutable.{ArrayBuffer,HashMap}
+import scala.collection.mutable.{ArrayBuffer, HashMap}
 
 /** This class will load the quote datas from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
@@ -67,16 +67,16 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   }
 
   override protected def returnBorrowedTimeValues(tickers: ArrayBuffer[Ticker]): Unit = {
-    tickers.foreach{tickerPool.returnObject(_)}
+    tickers foreach (tickerPool.returnObject(_))
   }
 
   def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
     symbolToTickerSnapshot.get(symbol)
   }
     
-  override def subscribe(contract: TickerContract, ser: Ser, chainSers:Seq[Ser] ): Unit = {
+  override def subscribe(contract: TickerContract, ser: Ser, chainSers: Seq[Ser] ): Unit = {
     super.subscribe(contract, ser, chainSers)
-    symbolToTickerSnapshot.synchronized {
+    symbolToTickerSnapshot synchronized {
       /**
        * !NOTICE
        * the symbol-tickerSnapshot pair must be immutable, other wise, if
@@ -98,13 +98,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     super.unSubscribe(contract)
     val symbol = contract.symbol
     tickerSnapshotOf(symbol).foreach{x => x.deleteObserver(this)}
-    symbolToTickerSnapshot.synchronized {
+    symbolToTickerSnapshot synchronized {
       symbolToTickerSnapshot.removeKey(symbol)
     }
-    symbolToIntervalLastTickerPair.synchronized {
+    symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair.removeKey(symbol)
     }
-    symbolToPreviousTicker.synchronized {
+    symbolToPreviousTicker synchronized {
       symbolToPreviousTicker.removeKey(symbol)
     }
   }
@@ -121,10 +121,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       if (evt != null) {
         evt.tpe = SerChangeEvent.Type.FinishedLoading
         evt.getSource.fireSerChangeEvent(evt)
-        System.out.println(contract.symbol + ": " + count + ", items loaded, load server finished")
+        println(contract.symbol + ": " + count + ", items loaded, load server finished")
       }
 
-      storage.synchronized {
+      storage synchronized {
         returnBorrowedTimeValues(storage)
         storage.clear
       }
@@ -142,7 +142,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
         //println(evt.symbol + ": update event:")
       }
 
-      storage.synchronized {
+      storage synchronized {
         returnBorrowedTimeValues(storage)
         storage.clear
       }
@@ -153,13 +153,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     for (tickerSnapshot <- symbolToTickerSnapshot.values) {
       tickerSnapshot.deleteObserver(this)
     }
-    symbolToTickerSnapshot.synchronized {
+    symbolToTickerSnapshot synchronized {
       symbolToTickerSnapshot.clear
     }
-    symbolToIntervalLastTickerPair.synchronized {
+    symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair.clear
     }
-    symbolToPreviousTicker.synchronized {
+    symbolToPreviousTicker synchronized {
       symbolToPreviousTicker.clear
     }
   }
@@ -268,7 +268,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             if (prevTicker(Ticker.DAY_LOW) != 0) {
               if (ticker(Ticker.DAY_LOW) < prevTicker(Ticker.DAY_LOW)) {
                 /** this is a new low happened in this ticker */
-                item1.low = (ticker(Ticker.DAY_LOW));
+                item1.low = ticker(Ticker.DAY_LOW)
               }
             }
             if (ticker(Ticker.LAST_PRICE) != 0) {

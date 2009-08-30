@@ -49,9 +49,7 @@ abstract class SpotIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) wi
     
   var spotTime = -Long.MaxValue
     
-  def this() {
-    this(null)
-  }
+  def this() = this(null)
     
   def computeItem(time: Long): SerItem = {
         

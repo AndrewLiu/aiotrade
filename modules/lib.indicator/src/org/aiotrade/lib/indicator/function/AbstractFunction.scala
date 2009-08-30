@@ -48,7 +48,7 @@ object AbstractFunction {
 
   private val idToFunctions = new ConcurrentHashMap[FunctionID[_], Function]
 
-  def getInstance[T <: Function](tpe:Class[T], baseSer:Ser, args:Any*) :T = {
+  def getInstance[T <: Function](tpe: Class[T], baseSer: Ser, args: Any*): T = {
     val id = FunctionID(tpe, baseSer, args:_*)
     idToFunctions.get(id) match {
       case null =>
@@ -60,8 +60,8 @@ object AbstractFunction {
           idToFunctions.putIfAbsent(id, function)
           function
         } catch {
-          case ex:IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-          case ex:InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+          case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+          case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
         }
       case x => x.asInstanceOf[T]
     }
@@ -95,7 +95,7 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
   protected var C: Var[Float] = _
   protected var V: Var[Float] = _
 
-  var id :FunctionID[_] = _
+  var id: FunctionID[_] = _
         
   def set(baseSer: Ser, args: Any*): Unit = {
     init(baseSer)

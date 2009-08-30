@@ -40,8 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
  */
 class MACDFunction extends AbstractFunction {
     
-  var periodSlow: Factor = _
-  var periodFast: Factor = _
+  var periodSlow, periodFast: Factor = _
   var baseVar: Var[Float] = _
     
   val _emaFast = Var[Float]()

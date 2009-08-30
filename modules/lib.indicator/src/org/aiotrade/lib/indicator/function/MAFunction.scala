@@ -30,10 +30,10 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.StatisticFunction
+import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -61,7 +61,7 @@ class MAFunction extends AbstractFunction {
     }
   }
     
-  protected def computeSpot(i: Int) :Unit = {
+  protected def computeSpot(i: Int) : Unit = {
     if (i < period.value - 1) {
             
       _ma(i) = Float.NaN

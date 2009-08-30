@@ -40,8 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  */
 class ADXFunction extends AbstractFunction {
     
-  var periodDi  :Factor = _
-  var periodAdx :Factor = _
+  var periodDi, periodAdx: Factor = _
     
   val _dx  = Var[Float]()
     

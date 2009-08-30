@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
  */
 class WMSFunction extends AbstractFunction {
     
-  var period :Factor = _
+  var period: Factor = _
     
   val _wms = Var[Float]()
     
