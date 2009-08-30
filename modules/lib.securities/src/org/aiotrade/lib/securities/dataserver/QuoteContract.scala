@@ -62,7 +62,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   cal.set(1970, Calendar.JANUARY, 1)
   beginDate = cal.getTime
 
-  def icon :Option[Image] =  {
+  def icon: Option[Image] =  {
     val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
     server match {
@@ -71,7 +71,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
   }
 
-  def supportedFreqs :Array[Frequency] = {
+  def supportedFreqs: Array[Frequency] = {
     val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
     server match {
@@ -80,7 +80,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
   }
 
-  def isFreqSupported(freq:Frequency) :Boolean = {
+  def isFreqSupported(freq: Frequency): Boolean = {
     //        /** check if is my default freq, if true at least support default freq */
     //        if (freq.equals(getFreq())) {
     //            return true;
@@ -98,20 +98,20 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   /**
    * @param none args are needed.
    */
-  override def createServiceInstance(args:Any*) :Option[QuoteServer] = {
+  override def createServiceInstance(args: Any*) :Option[QuoteServer] = {
     lookupServiceTemplate match {
       case None => None
       case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
     }
   }
 
-  def lookupServiceTemplate :Option[QuoteServer] =  {
+  def lookupServiceTemplate: Option[QuoteServer] =  {
     val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
     services.find{x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
-        } catch {case ex:Exception => ex.printStackTrace; None}
+        } catch {case ex: Exception => ex.printStackTrace; None}
       case some => some
     }
   }

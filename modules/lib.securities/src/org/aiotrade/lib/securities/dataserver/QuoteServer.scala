@@ -52,19 +52,19 @@ object QuoteServer {
 abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
   import QuoteServer._
 
-  protected def borrowQuote :Quote = {
+  protected def borrowQuote: Quote = {
     quotePool.borrowObject
   }
 
-  protected def returnQuote(quote:Quote) :Unit = {
+  protected def returnQuote(quote: Quote): Unit = {
     quotePool.returnObject(quote)
   }
 
-  protected def returnBorrowedTimeValues(quotes:ArrayBuffer[Quote]) :Unit = {
+  protected def returnBorrowedTimeValues(quotes: ArrayBuffer[Quote]): Unit = {
     quotes.foreach{quotePool.returnObject(_)}
   }
 
-  protected def loadFromPersistence :Long = {
+  protected def loadFromPersistence: Long = {
     var loadedTime1 = loadedTime
     for (contract <- subscribedContracts) {
       loadedTime1 = loadFromPersistence(contract)
@@ -72,7 +72,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     loadedTime1
   }
 
-  private def loadFromPersistence(contract:QuoteContract) :Long = {
+  private def loadFromPersistence(contract: QuoteContract): Long = {
     val serToBeFilled = serOf(contract).get
 
     /**
@@ -106,7 +106,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     loadedTime1
   }
 
-  override protected def postLoad :Unit = {
+  override protected def postLoad: Unit = {
     for (contract <- subscribedContracts) {
       val serToBeFilled = serOf(contract).get
 
@@ -133,7 +133,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  override protected def postUpdate :Unit =  {
+  override protected def postUpdate: Unit =  {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract)
 
@@ -151,8 +151,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  protected def composeSer(symbol:String, quoteSer:Ser, storage:ArrayBuffer[Quote]) :SerChangeEvent =  {
-    var evt:SerChangeEvent = null
+  protected def composeSer(symbol: String, quoteSer: Ser, storage: ArrayBuffer[Quote]): SerChangeEvent =  {
+    var evt: SerChangeEvent = null
 
     val size = storage.size
     if (size > 0) {
@@ -214,11 +214,11 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
    * Override to provide your options
    * @return supported frequency array.
    */
-  def supportedFreqs :Array[Frequency] = {
+  def supportedFreqs: Array[Frequency] = {
     Array()
   }
 
-  def isFreqSupported(freq:Frequency) :Boolean = {
+  def isFreqSupported(freq: Frequency): Boolean = {
     for (afreq <- supportedFreqs) {
       if (afreq.equals(freq)) {
         return true
@@ -230,12 +230,12 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      * contract if it has been set, so what ever:
      */
     currentContract match {
-      case None => false;
+      case None => false
       case Some(x) => x.freq.equals(freq)
     }
   }
 
-  def marketOf(symbol:String) :Market
+  def marketOf(symbol: String): Market
 }
 
 

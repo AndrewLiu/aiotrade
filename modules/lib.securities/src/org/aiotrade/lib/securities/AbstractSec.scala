@@ -58,10 +58,10 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
   private val freqToSer = new HashMap[Frequency, QuoteSer]
 
   var market = Market.NYSE
-  var description:String = ""
-  var name :String = _uniSymbol.replace('.', '_')
-  var defaultFreq :Frequency = _
-  var tickerServer :TickerServer = _
+  var description: String = ""
+  var name: String = _uniSymbol.replace('.', '_')
+  var defaultFreq: Frequency = _
+  var tickerServer: TickerServer = _
 
   /** create freq ser */
   for (contract <- quoteContracts) {
@@ -93,15 +93,15 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
    *
    * The default contract holds most of the information to be used.
    */
-  def this(uniSymbol:String, quoteContract:Seq[QuoteContract]) {
+  def this(uniSymbol: String, quoteContract: Seq[QuoteContract]) {
     this(uniSymbol, quoteContract, null)
   }
 
-  def serOf(freq:Frequency) :Option[QuoteSer] = {
+  def serOf(freq: Frequency): Option[QuoteSer] = {
     freqToSer.get(freq)
   }
 
-  def putSer(ser:QuoteSer) :Unit = {
+  def putSer(ser: QuoteSer): Unit = {
     freqToSer.put(ser.freq, ser)
   }
 
@@ -109,7 +109,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to those maps.
    */
-  def loadSer(freq:Frequency) :Boolean= synchronized {
+  def loadSer(freq: Frequency): Boolean= synchronized {
 
     /** ask contract instead of server */
     val contract = freqToQuoteContract.get(freq) match {
@@ -152,7 +152,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     if (loadBeginning) {
       val listener = new SerChangeListener {
 
-        override def serChanged(evt:SerChangeEvent) :Unit = {
+        override def serChanged(evt: SerChangeEvent): Unit = {
           import org.aiotrade.lib.math.timeseries.SerChangeEvent.Type._
           val sourceSer = evt.getSource
           val freq = sourceSer.freq
@@ -180,27 +180,27 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     loadBeginning
   }
 
-  def isSerLoaded(freq:Frequency) :Boolean = {
+  def isSerLoaded(freq:Frequency): Boolean = {
     freqToSer.get(freq) match {
       case None => false
       case Some(x) => x.loaded
     }
   }
 
-  def isSerInLoading(freq:Frequency) :Boolean = {
+  def isSerInLoading(freq: Frequency): Boolean = {
     freqToSer.get(freq) match {
       case None => false
       case Some(x) => x.inLoading
     }
   }
 
-  def uniSymbol :String = _uniSymbol
-  def uniSymbol_=(symbol:String) :Unit = {
+  def uniSymbol: String = _uniSymbol
+  def uniSymbol_=(symbol: String): Unit = {
     this.uniSymbol = symbol
     name = symbol.replace('.', '_')
   }
 
-  def stopAllDataServer :Unit = {
+  def stopAllDataServer: Unit = {
     for (server <- freqToQuoteServer.values) {
       if (server.inUpdating) {
         server.stopUpdateServer
@@ -209,30 +209,30 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     freqToQuoteServer.clear
   }
 
-  def clearSer(freq:Frequency) :Unit = {
+  def clearSer(freq: Frequency): Unit = {
     for (ser <- serOf(freq)) {
       ser.clear(0)
       ser.loaded = false
     }
   }
 
-  override def toString :String = {
+  override def toString: String = {
     uniSymbol
   }
 
-  def setDataContract(quoteContract:DataContract[_]) :Unit = {
+  def setDataContract(quoteContract: DataContract[_]): Unit = {
     val freq = quoteContract.freq
     freqToQuoteContract.put(freq, quoteContract.asInstanceOf[QuoteContract])
     /** may need a new dataServer now: */
     freqToQuoteServer.removeKey(freq)
   }
 
-  def dataContract :DataContract[_] = {
+  def dataContract: DataContract[_] = {
     freqToQuoteContract.get(defaultFreq).get
   }
 
 
-  def subscribeTickerServer :Unit = {
+  def subscribeTickerServer: Unit = {
     assert(tickerContract != null, "ticker contract not set yet !")
 
     /**
@@ -250,7 +250,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     startTickerServerIfNecessary
   }
 
-  private def startTickerServerIfNecessary :Unit = {
+  private def startTickerServerIfNecessary: Unit = {
     /**
      * @TODO, if tickerServer switched, should check here.
      */
@@ -259,7 +259,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     }
 
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-      var chainSers :List[Ser] = Nil
+      var chainSers: List[Ser] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
       serOf(Frequency.DAILY)  .foreach{x => chainSers = x :: chainSers}
       serOf(Frequency.ONE_MIN).foreach{x => chainSers = x :: chainSers}
@@ -280,13 +280,13 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
   }
 
-  def unSubscribeTickerServer :Unit = {
+  def unSubscribeTickerServer: Unit = {
     if (tickerServer != null && tickerContract != null) {
       tickerServer.unSubscribe(tickerContract)
     }
   }
 
-  def isTickerServerSubscribed :Boolean = {
+  def isTickerServerSubscribed: Boolean = {
     if (tickerServer != null) tickerServer.isContractSubsrcribed(tickerContract) else false
   }
 }

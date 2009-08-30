@@ -54,27 +54,27 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   private val symbolToPreviousTicker = new HashMap[String, Ticker]
   private val cal = Calendar.getInstance
 
-  override protected def init :Unit = {
+  override protected def init: Unit = {
     super.init
   }
 
-  private def borrowTicker :Ticker = {
+  private def borrowTicker: Ticker = {
     tickerPool.borrowObject
   }
 
-  private def returnTicker(ticker:Ticker) :Unit = {
+  private def returnTicker(ticker:Ticker): Unit = {
     tickerPool.returnObject(ticker)
   }
 
-  override protected def returnBorrowedTimeValues(tickers:ArrayBuffer[Ticker]) :Unit = {
+  override protected def returnBorrowedTimeValues(tickers: ArrayBuffer[Ticker]): Unit = {
     tickers.foreach{tickerPool.returnObject(_)}
   }
 
-  def tickerSnapshotOf(symbol:String) :Option[TickerSnapshot] = {
+  def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
     symbolToTickerSnapshot.get(symbol)
   }
     
-  override def subscribe(contract:TickerContract, ser:Ser, chainSers:Seq[Ser] ) :Unit = {
+  override def subscribe(contract: TickerContract, ser: Ser, chainSers:Seq[Ser] ): Unit = {
     super.subscribe(contract, ser, chainSers)
     symbolToTickerSnapshot.synchronized {
       /**
@@ -94,7 +94,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override def unSubscribe(contract:TickerContract) :Unit = {
+  override def unSubscribe(contract: TickerContract): Unit = {
     super.unSubscribe(contract)
     val symbol = contract.symbol
     tickerSnapshotOf(symbol).foreach{x => x.deleteObserver(this)}
@@ -111,7 +111,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
   private val bufLoadEvents = new ArrayBuffer[SerChangeEvent]
 
-  override protected def postLoad :Unit = {
+  override protected def postLoad: Unit = {
     bufLoadEvents.clear
 
     for (contract <- subscribedContracts) {
@@ -131,7 +131,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postUpdate :Unit = {
+  override protected def postUpdate: Unit = {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract)
       val evt = composeSer(contract.symbol, serOf(contract).get, storage)
@@ -149,7 +149,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postStopUpdateServer :Unit = {
+  override protected def postStopUpdateServer: Unit = {
     for (tickerSnapshot <- symbolToTickerSnapshot.values) {
       tickerSnapshot.deleteObserver(this)
     }
@@ -164,20 +164,20 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  protected def loadFromPersistence :Long = {
+  protected def loadFromPersistence: Long = {
     /** do nothing (tickers can be load from persistence? ) */
     loadedTime
   }
 
-  def update(tickerSnapshot:Observable) :Unit = {
+  def update(tickerSnapshot: Observable): Unit = {
     val ticker = borrowTicker
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
     ticker.copy(ts.ticker)
     storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
-  def composeSer(symbol:String, tickerSer:Ser, storage:ArrayBuffer[Ticker]) :SerChangeEvent = {
-    var evt:SerChangeEvent = null
+  def composeSer(symbol: String, tickerSer: Ser, storage: ArrayBuffer[Ticker]): SerChangeEvent = {
+    var evt: SerChangeEvent = null
 
     val cal = Calendar.getInstance(marketOf(symbol).timeZone)
     var begTime = +Long.MaxValue
@@ -190,7 +190,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             
       val shouldReverseOrder = !isAscending(values)
 
-      var ticker :Ticker = null; // lastTicker will be stored in it
+      var ticker: Ticker = null // lastTicker will be stored in it
       val freq = tickerSer.freq
       var i = if (shouldReverseOrder) size - 1 else 0
       while (i >= 0 && i <= size - 1) {
@@ -340,7 +340,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    * Try to update today's quote item according to ticker, if it does not
    * exist, create a new one.
    */
-  private def updateDailyQuoteItem(dailySer:QuoteSer, ticker:Ticker, cal:Calendar) :Unit = {
+  private def updateDailyQuoteItem(dailySer: QuoteSer, ticker: Ticker, cal: Calendar): Unit = {
     val now = Unit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
     val itemNow = dailySer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
         
@@ -364,7 +364,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    * Try to update today's quote item according to ticker, if it does not
    * exist, create a new one.
    */
-  private def updateMinuteQuoteItem(minuteSer:QuoteSer, ticker:Ticker, tickerSer:QuoteSer, cal:Calendar) :Unit = {
+  private def updateMinuteQuoteItem(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar): Unit = {
     val now = Unit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
     val itemNow = minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
 
@@ -379,7 +379,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     minuteSer.fireSerChangeEvent(evt)
   }
 
-  def marketOf(symbol:String) :Market
+  def marketOf(symbol: String): Market
 
   private class IntervalLastTickerPair {
     val currIntervalOne = new Ticker

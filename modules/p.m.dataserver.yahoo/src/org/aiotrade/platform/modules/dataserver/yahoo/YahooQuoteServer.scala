@@ -54,7 +54,7 @@ object YahooQuoteServer {
   protected val UrlPath = "aiodata/yq"
   protected val dateFormat: DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-  def marketOf(symbol:String): Market = {
+  def marketOf(symbol: String): Market = {
     symbol.split("\\.") match {
       case Array(head, market) => market.toUpperCase match {
           case "L" =>  Market.LDSE
@@ -166,7 +166,7 @@ class YahooQuoteServer extends QuoteServer {
     // * for daily quote, yahoo returns market's local date, so use market time zone
     val cal = Calendar.getInstance(timeZone)
     val dateFormat = dateFormatOf(timeZone)
-    def loop(newestTime:Long): Long = reader.readLine match {
+    def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break now
       case line => line.split(",") match {
           case Array(dateTimeX, openX, highX, lowX, closeX, volumeX, adjCloseX, _*) =>
@@ -258,7 +258,7 @@ class YahooQuoteServer extends QuoteServer {
 
   override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
 
-  def marketOf(symbol:String): Market  = {
+  def marketOf(symbol: String): Market  = {
     YahooQuoteServer.marketOf(symbol)
   }
 

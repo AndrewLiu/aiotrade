@@ -41,25 +41,25 @@ class QuotePool extends StackObjectPool[Quote](500, 200) with PoolableObjectFact
   setFactory(this)
 
   @throws(classOf[RuntimeException])
-  def activateObject(obj:Quote) :Unit = {
+  def activateObject(obj: Quote): Unit = {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj:Quote) :Unit = {
+  def destroyObject(obj: Quote): Unit = {
     //obj = null
   }
     
   @throws(classOf[RuntimeException])
-  def makeObject :Quote = {
+  def makeObject: Quote = {
     new Quote
   }
 
   @throws(classOf[RuntimeException])
-  def passivateObject(obj:Quote) :Unit = {
+  def passivateObject(obj: Quote): Unit = {
   }
     
-  def validateObject(obj:Quote) :Boolean = true
+  def validateObject(obj: Quote): Boolean = true
 }
 
 

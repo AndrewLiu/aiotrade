@@ -41,25 +41,25 @@ class TickerPool extends StackObjectPool[Ticker](500, 200) with PoolableObjectFa
   setFactory(this)
     
   @throws(classOf[RuntimeException])
-  def activateObject(obj:Ticker) :Unit = {
+  def activateObject(obj:Ticker): Unit = {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj:Ticker) :Unit = {
+  def destroyObject(obj: Ticker): Unit = {
     //obj = null
   }
 
   @throws(classOf[RuntimeException])
-  def makeObject :Ticker = {
+  def makeObject: Ticker = {
     new Ticker
   }
 
   @throws(classOf[RuntimeException])
-  def passivateObject(obj:Ticker) :Unit = {
+  def passivateObject(obj: Ticker): Unit = {
   }
 
-  def validateObject(obj:Ticker) :Boolean = true
+  def validateObject(obj: Ticker): Boolean = true
 }
 
 

@@ -38,12 +38,12 @@ import org.aiotrade.lib.math.timeseries.{SerChangeEvent,SerChangeListener,Unit}
  *
  * @author Caoyuan Deng
  */
-class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZone:TimeZone) {
+class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZone: TimeZone) {
 
   private val cal = Calendar.getInstance(timeZone)
 
-  private val sourceSerChangelistener = new SerChangeListener() {
-    def serChanged(evt:SerChangeEvent) :Unit = {
+  private val sourceSerChangelistener = new SerChangeListener {
+    def serChanged(evt: SerChangeEvent): Unit = {
       if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
         computeCont(evt.beginTime)
       }
@@ -52,14 +52,14 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         
   sourceQuoteSer.addSerChangeListener(sourceSerChangelistener)
     
-  def computeFrom(fromTime:Long) :Unit = {
+  def computeFrom(fromTime: Long): Unit = {
     computeCont(fromTime)
   }
     
   /**
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
-  protected def computeCont(fromTime:Long) :Unit = {
+  protected def computeCont(fromTime: Long): Unit = {
     val targetUnit = targetQuoteSer.freq.unit
         
     val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, cal)
@@ -75,7 +75,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         
     val size = sourceItems.size
     //for (i <- masterFromIdx until size) {
-    def loop(i:Int) :Unit = {
+    def loop(i: Int): Unit = {
       if (i >= size) return
             
       val item_i = sourceItems(i).asInstanceOf[QuoteItem]
@@ -110,7 +110,7 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
         val item_j = sourceItems(i + j).asInstanceOf[QuoteItem]
         val time_j = item_j.time
                 
-        cal.setTimeInMillis(time_j);
+        cal.setTimeInMillis(time_j)
                 
         var inSameInterval = true
         targetUnit match {
@@ -185,11 +185,11 @@ class QuoteSerCombiner(sourceQuoteSer:QuoteSer, targetQuoteSer:QuoteSer, timeZon
   /**
    * This function keeps the adjusting linear according to a norm
    */
-  private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
+  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
     
-  def dispose :Unit = {
+  def dispose: Unit = {
     if (sourceSerChangelistener != null) {
       sourceQuoteSer.removeSerChangeListener(sourceSerChangelistener)
     }

@@ -60,7 +60,7 @@ abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
   cal.set(1970, Calendar.JANUARY, 1)
   beginDate = cal.getTime
 
-  override def writeToBean(doc:BeansDocument) :Element = {
+  override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)
         
     doc.valuePropertyOfBean(bean, "secType", secType)
@@ -71,7 +71,7 @@ abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
     bean
   }
     
-  override def writeToJava(id:String) :String = {
+  override def writeToJava(id: String): String = {
     super.writeToJava(id) +
     JavaDocument.set(id, "setSecType", classOf[Sec.Type].getName + "." + secType) +
     JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +

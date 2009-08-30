@@ -53,7 +53,7 @@ object Sec {
 
 trait Sec extends SerProvider[QuoteSer] with TickerSerProvider {
 
-  def market_=(market:Market) :Unit
-  def market :Market
+  def market_=(market: Market): Unit
+  def market: Market
 }
 

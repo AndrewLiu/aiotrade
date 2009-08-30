@@ -66,7 +66,7 @@ class TickerContract extends SecDataContract[TickerServer] {
   /**
    * @param none args are needed
    */
-  override def createServiceInstance(args:Any*) :Option[TickerServer] = {
+  override def createServiceInstance(args: Any*): Option[TickerServer] = {
     lookupServiceTemplate match {
       case None => None
       case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
@@ -79,7 +79,7 @@ class TickerContract extends SecDataContract[TickerServer] {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
-        } catch {case ex:Exception => ex.printStackTrace; None}
+        } catch {case ex :Exception => ex.printStackTrace; None}
       case some => some
     }
   }
@@ -87,7 +87,7 @@ class TickerContract extends SecDataContract[TickerServer] {
   /**
    * Ticker contract don't care about freq, so override super
    */
-  override def idEquals(serviceClassName:String, freq:Frequency) :Boolean = {
+  override def idEquals(serviceClassName: String, freq: Frequency): Boolean = {
     if (this.serviceClassName.equals(serviceClassName)) true
     else false
   }

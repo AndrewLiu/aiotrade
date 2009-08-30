@@ -51,58 +51,58 @@ class Quote extends TimeValue {
     
   private val values = new Array[Float](8)
     
-  var sourceId :Long = _
+  var sourceId: Long = _
     
-  var hasGaps :Boolean = false
+  var hasGaps: Boolean = false
         
-  def amount :Float = {
+  def amount: Float = {
     return values(AMOUNT)
   }
     
-  def close :Float = values(CLOSE)
+  def close: Float = values(CLOSE)
     
-  def close_adj :Float = values(CLOSE_ADJ)
+  def close_adj: Float = values(CLOSE_ADJ)
     
-  def high :Float = values(HIGH)
+  def high: Float = values(HIGH)
     
-  def low :Float = values(LOW)
+  def low: Float = values(LOW)
     
-  def open :Float = values(OPEN)
+  def open: Float = values(OPEN)
     
-  def volume :Float = values(VOLUME)
+  def volume: Float = values(VOLUME)
     
-  def wap :Float = values(WAP)
+  def wap: Float = values(WAP)
     
-  def amount_=(amount:Float) :Unit = {
+  def amount_=(amount: Float): Unit = {
     this.values(AMOUNT) = amount
   }
     
-  def close_=(close:Float) :Unit = {
+  def close_=(close: Float): Unit = {
     this.values(CLOSE) = close
   }
     
-  def close_adj_=(close_adj:Float) :Unit = {
+  def close_adj_=(close_adj: Float): Unit = {
     this.values(CLOSE_ADJ) = close_adj
   }
     
     
-  def high_=(high:Float) :Unit = {
+  def high_=(high: Float): Unit = {
     this.values(HIGH) = high
   }
     
-  def low_=(low:Float) :Unit = {
+  def low_=(low: Float): Unit = {
     this.values(LOW) = low
   }
     
-  def open_=(open:Float) :Unit = {
+  def open_=(open: Float): Unit = {
     this.values(OPEN) = open
   }
     
-  def volume_=(volume:Float) :Unit = {
+  def volume_=(volume: Float): Unit = {
     this.values(VOLUME) = volume
   }
     
-  def wap_=(wap:Float) :Unit = {
+  def wap_=(wap: Float): Unit = {
     this.values(WAP) = wap
   }
     
@@ -113,7 +113,7 @@ class Quote extends TimeValue {
     hasGaps = false
   }
 
-  override def toString :String = {
+  override def toString = {
     val cal = Calendar.getInstance
     cal.setTimeInMillis(time)
     this.getClass.getSimpleName + ": " + cal.getTime +

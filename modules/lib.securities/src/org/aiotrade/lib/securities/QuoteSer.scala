@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
 class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
     
   private var _shortDescription:String = ""
-  var adjusted :Boolean = false
+  var adjusted: Boolean = false
     
   val open   = Var[Float]("O", Plot.Quote)
   val high   = Var[Float]("H", Plot.Quote)
@@ -51,12 +51,12 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
   val close_ori = Var[Float]()
   val close_adj = Var[Float]()
     
-  override protected def createItem(time:Long) :QuoteItem = new QuoteItem(this, time)
+  override protected def createItem(time: Long) :QuoteItem = new QuoteItem(this, time)
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust
    */
-  def adjust(b:Boolean) :Unit = {
+  def adjust(b:Boolean): Unit = {
     val items1 = items
     var i = 0
     while (i < items1.size) {
@@ -88,15 +88,15 @@ class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
   /**
    * This function adjusts linear according to a norm
    */
-  private def linearAdjust(value:Float, prevNorm:Float, postNorm:Float) :Float = {
+  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 
-  override def shortDescription_=(symbol:String) :Unit = {
+  override def shortDescription_=(symbol: String): Unit = {
     this._shortDescription = symbol
   }
     
-  override def shortDescription :String = {
+  override def shortDescription: String = {
     if (adjusted) {
       _shortDescription + "(*)"
     } else {

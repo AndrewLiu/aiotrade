@@ -57,7 +57,7 @@ object Ticker {
 }
 
 @cloneable
-class Ticker(val depth:Int) extends TimeValue {
+class Ticker(val depth: Int) extends TimeValue {
   import Ticker._
     
   private val values = new Array[Float](8)
@@ -71,47 +71,47 @@ class Ticker(val depth:Int) extends TimeValue {
     this(5)
   }
 
-  def bidPrice(idx:Int) :Float = {
+  def bidPrice(idx: Int): Float = {
     bidPrices(idx)
   }
 
-  def bidSize(idx:Int) :Float = {
+  def bidSize(idx: Int): Float = {
     bidSizes(idx)
   }
 
-  def askPrice(idx:Int) :Float = {
+  def askPrice(idx: Int): Float = {
     askPrices(idx)
   }
 
-  def askSize(idx:Int) :Float = {
+  def askSize(idx: Int): Float = {
     askSizes(idx)
   }
 
-  def setBidPrice(idx:Int, value:Float) {
+  def setBidPrice(idx: Int, value:Float) {
     bidPrices(idx) = value
   }
 
-  def setBidSize(idx:Int, value:Float) {
+  def setBidSize(idx: Int, value:Float) {
     bidSizes(idx) = value
   }
 
-  def setAskPrice(idx:Int, value:Float) {
+  def setAskPrice(idx: Int, value:Float) {
     askPrices(idx) = value
   }
 
-  def setAskSize(idx:Int, value:Float) {
+  def setAskSize(idx: Int, value:Float) {
     askSizes(idx) = value
   }
 
-  def apply(field:Int) :Float = {
+  def apply(field: Int): Float = {
     values(field)
   }
 
-  def update(field:Int, value:Float) :Unit = {
+  def update(field: Int, value: Float): Unit = {
     this.values(field) = value
   }
 
-  def reset :Unit =  {
+  def reset: Unit =  {
     time = 0
     for (i <- 0 until depth) {
       values(i) = 0
@@ -122,7 +122,7 @@ class Ticker(val depth:Int) extends TimeValue {
     }
   }
 
-  def copy(another:Ticker) :Unit = {
+  def copy(another: Ticker): Unit = {
     this.time = another.time
     System.arraycopy(another.values, 0, this.values, 0, this.values.length)
     System.arraycopy(another.bidPrices, 0, this.bidPrices, 0, depth)
@@ -131,7 +131,7 @@ class Ticker(val depth:Int) extends TimeValue {
     System.arraycopy(another.askSizes, 0, this.askSizes, 0, depth)
   }
 
-  def isValueChanged(another:Ticker) :Boolean = {
+  def isValueChanged(another: Ticker): Boolean = {
     for (i <- 0 until values.length) {
       if (this.values(i) != another.values(i)) {
         return true
@@ -161,15 +161,15 @@ class Ticker(val depth:Int) extends TimeValue {
     return false
   }
 
-  def isDayVolumeGrown(prevTicker:Ticker) :Boolean = {
+  def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
     this.values(DAY_VOLUME) > prevTicker.values(DAY_VOLUME) && isSameDay(prevTicker)
   }
 
-  def isDayVolumeChanged(prevTicker:Ticker) :Boolean = {
+  def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
     this.values(DAY_VOLUME) != prevTicker.values(DAY_VOLUME) && isSameDay(prevTicker)
   }
 
-  def isSameDay(prevTicker:Ticker) :Boolean = {
+  def isSameDay(prevTicker: Ticker): Boolean = {
     cal.setTimeInMillis(time)
     val month0 = cal.get(Calendar.MONTH)
     val day0 = cal.get(Calendar.DAY_OF_MONTH)
@@ -180,22 +180,22 @@ class Ticker(val depth:Int) extends TimeValue {
     month1 == month1 && day0 == day1
   }
 
-  def changeInPercent :Float = {
+  def changeInPercent: Float = {
     if (values(PREV_CLOSE) == 0) 0f  else (values(LAST_PRICE) - values(PREV_CLOSE)) / values(PREV_CLOSE) * 100f
   }
 
-  def compareLastCloseTo(prevTicker:Ticker ) :Int = {
+  def compareLastCloseTo(prevTicker: Ticker ) : Int = {
     if (values(LAST_PRICE) > prevTicker.values(LAST_PRICE)) 1
     else {
       if (values(LAST_PRICE) == prevTicker.values(LAST_PRICE)) 0 else 1
     }
   }
 
-  override def clone :Ticker = {
+  override def clone: Ticker = {
     try {
       return super.clone.asInstanceOf[Ticker]
     } catch {
-      case ex:CloneNotSupportedException => ex.printStackTrace
+      case ex: CloneNotSupportedException => ex.printStackTrace
     }
         
     return null

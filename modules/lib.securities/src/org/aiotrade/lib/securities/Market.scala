@@ -17,16 +17,16 @@ object Market {
   val LDSE = new Market(TimeZone.getTimeZone("UTC"), 9, 30, 15, 0) // London
 }
 
-class Market(val timeZone:TimeZone, openHour:Int, openMin:int, closeHour:Int, closeMin:int) {
+class Market(val timeZone: TimeZone, openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
 
   private val cal = Calendar.getInstance(timeZone)
-  val openTimeOfDay :Long = (openHour * 60 + openMin) * 60 * 1000
+  val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
-  def this(openHour:Int, openMin:int, closeHour:Int, closeMin:int) {
+  def this(openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
     this(TimeZone.getTimeZone("UTC"), openHour, openMin, closeHour, closeMin)
   }
 
-  def openTime(time:Long) :Long = {
+  def openTime(time: Long): Long = {
     cal.clear
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, openHour)
@@ -34,7 +34,7 @@ class Market(val timeZone:TimeZone, openHour:Int, openMin:int, closeHour:Int, cl
     cal.getTimeInMillis
   }
 
-  def closeTime(time:Long) :Long = {
+  def closeTime(time: Long): Long = {
     cal.clear
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
@@ -42,7 +42,7 @@ class Market(val timeZone:TimeZone, openHour:Int, openMin:int, closeHour:Int, cl
     cal.getTimeInMillis
   }
 
-  override def toString :String = {
+  override def toString: String = {
     timeZone.getDisplayName
   }
 }
