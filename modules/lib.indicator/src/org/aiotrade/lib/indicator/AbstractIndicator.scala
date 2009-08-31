@@ -510,7 +510,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzagDirection(sessionId, idx)
   }
     
-  def dispose :Unit = {
+  def dispose: Unit = {
     computableHelper.dispose
   }
     

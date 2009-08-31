@@ -31,9 +31,9 @@
 package org.aiotrade.platform.modules.indicator.basic;
 
 import org.aiotrade.lib.math.timeseries.{Ser,Var}
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *
@@ -54,7 +54,7 @@ class ARBRIndicator extends ContIndicator {
   val br = Var[Float]("BR", Plot.Line)
     
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       up(i) = H(i) - O(i)

@@ -52,7 +52,7 @@ class MAIndicator extends ContIndicator {
   val ma2 = Var[Float]("MA2", Plot.Line)
   val ma3 = Var[Float]("MA3", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       ma1(i) = ma(i, C, period1)

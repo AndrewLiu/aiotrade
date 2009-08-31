@@ -58,7 +58,7 @@ class MAXFunction extends AbstractFunction {
     this.period  = args(1).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i: Int) :Unit = {
+  protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
       _max(i) = Float.NaN

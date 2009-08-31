@@ -51,7 +51,7 @@ class BIASIndicator extends ContIndicator {
   val bias2 = Var[Float]("BIAS2", Plot.Line)
   val bias3 = Var[Float]("BIAS3", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
             

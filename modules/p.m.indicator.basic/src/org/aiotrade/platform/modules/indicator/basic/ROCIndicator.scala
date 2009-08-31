@@ -49,7 +49,7 @@ class ROCIndicator extends ContIndicator {
   val roc1 = Var[Float]("ROC1", Plot.Line)
   val roc2 = Var[Float]("ROC2", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       roc1(i) = roc(i, C, period1)

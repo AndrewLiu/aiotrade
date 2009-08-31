@@ -52,7 +52,7 @@ class RSIIndicator extends ContIndicator {
   val rsi2 = Var[Float]("RSI2", Plot.Line)
   val rsi3 = Var[Float]("RSI3", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       rsi1(i) = rsi(i, periodS)

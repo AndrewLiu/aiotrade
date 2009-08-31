@@ -43,12 +43,12 @@ class MFIIndicator extends ContIndicator {
   _sname = "MFI"
   _lname = "Money Flow Index"
   _grids = Array(30f, 70f)
-    
+
   val period = Factor("Period", 10)
     
   val mfi = Var[Float]("MFI", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       mfi(i) = mfi(i, period)

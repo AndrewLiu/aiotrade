@@ -53,7 +53,7 @@ case class PROBMASSFunction extends AbstractFunction {
    */
   var _probMass: Array[Array[Float]] = _
     
-  override def set(baseSer: Ser, args: Any*) :Unit = {
+  override def set(baseSer: Ser, args: Any*) : Unit = {
     super.set(baseSer)
     args match {
       case Seq(a0: Var[Float], a1: Var[Float], a2: Factor, a3: Factor) =>
@@ -64,7 +64,7 @@ case class PROBMASSFunction extends AbstractFunction {
     }
   }
     
-  protected def computeSpot(i: Int) :Unit = {
+  protected def computeSpot(i: Int) : Unit = {
     if (weight == null) {
             
       _probMass = PROBMASSFunction.probMass(i, baseVar, period.value, nInterval.value);

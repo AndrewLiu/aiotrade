@@ -50,7 +50,7 @@ class WMSIndicator extends ContIndicator {
   val wms1 = Var[Float]("WMS1", Plot.Line)
   val wms2 = Var[Float]("WMS2", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       wms1(i) = wms(i, period1)

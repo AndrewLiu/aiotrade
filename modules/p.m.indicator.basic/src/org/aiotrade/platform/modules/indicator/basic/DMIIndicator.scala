@@ -52,7 +52,7 @@ class DMIIndicator extends ContIndicator {
   val adx     = Var[Float]("ADX",  Plot.Line)
   val adxr    = Var[Float]("ADXR", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
             

@@ -52,7 +52,7 @@ class KDIndicator extends ContIndicator {
   val d = Var[Float]("D", Plot.Line)
   val j = Var[Float]("J", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       k(i) = stochK(i, period, periodK)

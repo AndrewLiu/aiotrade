@@ -49,7 +49,7 @@ class ZIGZAGIndicator extends ContIndicator {
   val zigzag       = Var[Float]("ZIGZAG", Plot.Zigzag)
   val pseudoZigzag = Var[Float]("PSEUDO", Plot.Zigzag)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       zigzag(i) = zigzag(i, percent)

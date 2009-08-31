@@ -55,7 +55,7 @@ class BOLLIndicator extends ContIndicator {
   val boll_u2 = Var[Float]("UPPER", Plot.Line)
   val boll_l2 = Var[Float]("LOWER", Plot.Line)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
       boll_m (i) = bollMiddle(i, C, period, alpha1)

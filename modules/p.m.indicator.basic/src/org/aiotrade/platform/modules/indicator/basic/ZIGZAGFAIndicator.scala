@@ -28,10 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.indicator.basic;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *
@@ -50,7 +50,7 @@ class ZIGZAGFAIndicator extends ContIndicator {
   //    Var zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
   //    Var pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
     
-  protected def computeCont(begIdx:Int, size:Int) :Unit = {
+  protected def computeCont(begIdx: Int, size: Int): Unit = {
     /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
     var i = begIdx
     while (i < size) {
