@@ -57,9 +57,5 @@ class ZIGZAGIndicator extends ContIndicator {
       i += 1
     }
   }
-    
+  
 }
-
-
-
-

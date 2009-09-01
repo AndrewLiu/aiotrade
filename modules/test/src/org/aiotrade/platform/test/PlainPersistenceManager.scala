@@ -24,25 +24,25 @@ import scala.collection.mutable.ArrayBuffer
  */
 class PlainPersistenceManager extends PersistenceManager {
 
-  private val quoteServers = new ArrayBuffer[QuoteServer]
+  private val quoteServers  = new ArrayBuffer[QuoteServer]
   private val tickerServers = new ArrayBuffer[TickerServer]
   private val indicators = new ArrayBuffer[Indicator]
 
-  def saveQuotes(symbol:String, freq:Frequency, quotes:ArrayBuffer[Quote], sourceId:Long) :Unit = {}
-  def restoreQuotes(symbol:String, freq:Frequency) :ArrayBuffer[Quote] = new ArrayBuffer[Quote]
-  def deleteQuotes(symbol:String, freq:Frequency, fromTime:Long, toTime:Long) :Unit = {}
-  def dropAllQuoteTables(symbol:String) :Unit = {}
+  def saveQuotes(symbol: String, freq: Frequency, quotes: ArrayBuffer[Quote], sourceId: Long): Unit = {}
+  def restoreQuotes(symbol: String, freq: Frequency): ArrayBuffer[Quote] = new ArrayBuffer[Quote]
+  def deleteQuotes(symbol: String, freq: Frequency, fromTime: Long, toTime: Long): Unit = {}
+  def dropAllQuoteTables(symbol: String): Unit = {}
 
-  def shutdown :Unit = {}
+  def shutdown: Unit = {}
 
-  def restoreProperties :Unit = {}
-  def saveProperties :Unit = {}
+  def restoreProperties: Unit = {}
+  def saveProperties: Unit = {}
 
-  def saveContents(contents:AnalysisContents) :Unit = {}
-  def restoreContents(symbol:String) :AnalysisContents = new AnalysisContents(symbol)
-  def defaultContents :AnalysisContents = new AnalysisContents("<Default>")
+  def saveContents(contents: AnalysisContents): Unit = {}
+  def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
+  def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T](tpe:Class[T], folderName:String) :Seq[T] = {
+  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String) :Seq[T] = {
     if (tpe == classOf[QuoteServer]) {
       if (quoteServers.isEmpty) {
         //quoteServers += new YahooQuoteServer

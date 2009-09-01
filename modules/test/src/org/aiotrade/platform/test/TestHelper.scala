@@ -19,7 +19,7 @@ import org.aiotrade.platform.modules.indicator.basic._
 
 trait TestHelper {
     
-  def createQuoteContract(symbol:String, category:String , sname:String, freq:Frequency , refreshable:boolean, server:Class[_]) :QuoteContract = {
+  def createQuoteContract(symbol: String, category: String , sname: String, freq: Frequency, refreshable: Boolean, server: Class[_]): QuoteContract = {
     val dataContract = new QuoteContract
 
     dataContract.active = true
@@ -40,7 +40,7 @@ trait TestHelper {
     dataContract
   }
 
-  def createTickerContract(symbol:String, category:String, sname:String, freq:Frequency, server:Class[_]) :TickerContract = {
+  def createTickerContract(symbol: String, category: String, sname: String, freq: Frequency, server: Class[_]): TickerContract = {
     val dataContract = new TickerContract
 
     dataContract.active = true
@@ -61,7 +61,7 @@ trait TestHelper {
     dataContract
   }
 
-  def createAnalysisContents(symbol:String, freq:Frequency) :AnalysisContents = {
+  def createAnalysisContents(symbol: String, freq: Frequency): AnalysisContents = {
     val contents = new AnalysisContents(symbol)
 
     contents.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
@@ -88,7 +88,7 @@ trait TestHelper {
     contents
   }
 
-  def createIndicatorDescriptor[T <: Indicator](clazz:Class[T], freq:Frequency) :IndicatorDescriptor = {
+  def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: Frequency): IndicatorDescriptor = {
     val descriptor = new IndicatorDescriptor
     descriptor.active = true
     descriptor.serviceClassName = clazz.getName
@@ -97,11 +97,8 @@ trait TestHelper {
   }
 
 
-  def loadSer(contents:AnalysisContents) :Unit = {
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) match {
-      case None => return
-      case Some(x) => x
-    }
+  def loadSer(contents: AnalysisContents): Unit = {
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse (return)
 
     val freq = quoteContract.freq
     if (!quoteContract.isFreqSupported(freq)) {
@@ -125,7 +122,7 @@ trait TestHelper {
     }
   }
 
-  def initIndicators(contents:AnalysisContents, masterSer:MasterSer) :Seq[Indicator] = {
+  def initIndicators(contents: AnalysisContents, masterSer: MasterSer): Seq[Indicator] = {
     var indicators: List[Indicator] = Nil
     for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
@@ -138,9 +135,9 @@ trait TestHelper {
     indicators
   }
 
-  def computeSync(indicator:Indicator) :Unit = {
+  def computeSync(indicator: Indicator): Unit = {
     indicator match {
-      case _:SpotComputable => // don't compute it right now
+      case _: SpotComputable => // don't compute it right now
       case _ =>
         val t0 = System.currentTimeMillis
         indicator.computeFrom(0)
@@ -148,14 +145,14 @@ trait TestHelper {
     }
   }
 
-  def computeAsync(indicator:Indicator) :Unit = {
+  def computeAsync(indicator: Indicator): Unit = {
     indicator match {
-      case _:SpotComputable => // don't compute it right now
+      case _: SpotComputable => // don't compute it right now
       case _ => indicator.computableActor ! ComputeFrom(0)
     }
   }
 
-  def printValuesOf(indicator:Indicator) :Unit = {
+  def printValuesOf(indicator: Indicator): Unit = {
     println
     println(indicator.freq)
     println(indicator.shortDescription + ":" + indicator.size)
@@ -166,7 +163,7 @@ trait TestHelper {
     }
   }
 
-  def printLastValueOf(indicator:Indicator) :Unit = {
+  def printLastValueOf(indicator: Indicator): Unit = {
     println
     println(indicator.freq + "-" +indicator.shortDescription + ":" + indicator.size)
     for (var1 <- indicator.varSet if var1.size > 0) {
@@ -174,7 +171,7 @@ trait TestHelper {
     }
   }
 
-  def reportQuote(sec:Stock) {
+  def reportQuote(sec: Stock) {
     sec.uniSymbol
     println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
     sec.serOf(Frequency.DAILY).  foreach{x => println("daily: "  + x.size)}
@@ -188,7 +185,7 @@ trait TestHelper {
 
 
   // wait for some ms
-  def waitFor(ms:Long) :Unit = {
+  def waitFor(ms: Long): Unit = {
     TimeUnit.MILLISECONDS.sleep(ms)
   }
 
