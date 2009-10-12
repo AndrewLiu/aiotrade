@@ -98,7 +98,6 @@ trait SerChangeListener extends EventListener {
 
 
 import javax.swing.event.ChangeEvent
-import org.aiotrade.lib.util.CallBack
 object SerChangeEvent {
   abstract class Type
   object Type {
@@ -109,26 +108,28 @@ object SerChangeEvent {
     case object Clear extends Type
     case object None extends Type
   }
+  type CallBack = () => Unit
 }
 
 import org.aiotrade.lib.math.timeseries.SerChangeEvent._
-class SerChangeEvent(var _source:Ser,
-                     var tpe:Type,
-                     val symbol:String,
-                     val beginTime:Long,
-                     val endTime:Long,
-                     val lastObject:AnyRef, // object the event carries (It can be any thing other than a SerItem)
-                     var callBack:CallBack) extends ChangeEvent(_source) {
+class SerChangeEvent(var _source: Ser,
+                     var tpe: Type,
+                     val symbol: String,
+                     val beginTime: Long,
+                     val endTime: Long,
+                     val lastObject: AnyRef, // object the event carries (It can be any thing other than a SerItem)
+                     var callBack: CallBack) extends ChangeEvent(_source) {
 
-  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long) = {
+
+  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long) = {
     this(source, tpe, symbol, beginTime, endTime, null, null)
   }
 
-  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, lastObject:AnyRef) = {
+  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long, lastObject: AnyRef) = {
     this(source, tpe, symbol, beginTime, endTime, lastObject, null)
   }
 
-  def this(source:Ser, tpe:Type, symbol:String, beginTime:Long, endTime:Long, callBack:CallBack) = {
+  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long, callBack: CallBack) = {
     this(source, tpe, symbol, beginTime, endTime, null, callBack)
   }
 
@@ -140,7 +141,7 @@ class SerChangeEvent(var _source:Ser,
 
   def doCallBack: Unit = {
     if (callBack != null) {
-      callBack.callBack
+      callBack()
     }
   }
 

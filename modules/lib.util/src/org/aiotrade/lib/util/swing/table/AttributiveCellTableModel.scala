@@ -1,7 +1,6 @@
 package org.aiotrade.lib.util.swing.table
 
 import java.awt.Dimension
-import java.util.Enumeration
 import java.util.Vector
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableModel
@@ -20,7 +19,7 @@ object AttributiveCellTableModel {
    * @return  the new vector; if <code>anArray</code> is <code>null</code>,
    *                          returns <code>null</code>
    */
-  def convertToVector(anArray: Array[_]): Vector[_] = {
+  def convertToVector(anArray: Array[Any]): Vector[_] = {
     if (anArray == null) {
       return null
     }
@@ -72,7 +71,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     this(columnNames, 0, numRows)
   }
 
-  def this(columnNames: Array[_], numRows: Int) = {
+  def this(columnNames: Array[Any], numRows: Int) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), numRows)
   }
 
@@ -81,12 +80,12 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     setDataVector(data, columnNames)
   }
 
-  def this(data: Array[Array[_]], columnNames: Array[_]) = {
+  def this(data: Array[Array[Any]], columnNames: Array[Any]) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), columnNames.size, 0)
-    setDataVector(AttributiveCellTableModel.convertToVector(data), AttributiveCellTableModel.convertToVector(columnNames))
+    setDataVector(AttributiveCellTableModel.convertToVector(data.asInstanceOf[Array[Any]]), AttributiveCellTableModel.convertToVector(columnNames))
   }
 
-  override def setDataVector(newData: Vector[_], columnNames: Vector[_]) :Unit = {
+  override def setDataVector(newData: Vector[_], columnNames: Vector[_]): Unit = {
     if (newData == null) {
       throw new IllegalArgumentException("setDataVector() - Null parameter");
     }
@@ -100,7 +99,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
-  override def addColumn(columnName:AnyRef, columnData: Vector[_]) :Unit = {
+  override def addColumn(columnName: AnyRef, columnData: Vector[_]): Unit = {
     if (columnName == null) {
       throw new IllegalArgumentException("addColumn() - null parameter")
     }
@@ -108,7 +107,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     var index = 0
     val enumeration = dataVector.elements
     while (enumeration.hasMoreElements) {
-      var value :AnyRef = null
+      var value: AnyRef = null
       if ((columnData != null) && (index < columnData.size)) {
         value = columnData.asInstanceOf[Vector[AnyRef]].elementAt(index)
       } else {
@@ -124,7 +123,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     fireTableStructureChanged
   }
 
-  override def addRow(rowData: Vector[_]) :Unit = {
+  override def addRow(rowData: Vector[_]): Unit = {
     var newData: Vector[_] = null
     if (rowData == null) {
       newData = new Vector(getColumnCount)
@@ -137,7 +136,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     cellAtt.addRow
 
     newRowsAdded(new TableModelEvent(this, getRowCount() - 1, getRowCount() - 1,
-                                     TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
+                                     TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
   override def insertRow(row: Int, arowData: Vector[_]): Unit = {

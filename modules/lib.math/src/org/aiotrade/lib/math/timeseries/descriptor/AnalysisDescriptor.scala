@@ -79,7 +79,7 @@ abstract class AnalysisDescriptor[+S](var serviceClassName: String, var freq: Fr
     
   def serviceInstance(args: Any*): Option[S] = {
     if (_serviceInstance == None) {
-      _serviceInstance = createServiceInstance(args:_*)
+      _serviceInstance = createServiceInstance(args: _*)
     }
     _serviceInstance.asInstanceOf[Option[S]]
   }

@@ -33,7 +33,6 @@ package computable
 
 import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.util.CallBack
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -56,7 +55,7 @@ class ComputableHelper(var baseSer: Ser, var self: Indicator) {
         
   private var baseSerChangeListener: SerChangeListener = _
     
-  private var baseSerChangeEventCallBack: CallBack = _
+  private var baseSerChangeEventCallBack: () => Unit = _
 
   if (baseSer != null && self != null) {
     init(baseSer, self)

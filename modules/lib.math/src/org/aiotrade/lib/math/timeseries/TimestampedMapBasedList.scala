@@ -139,17 +139,16 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     array
   }
     
-  override def copyToArray[B >: A](xs:Array[B], start:Int): Unit = {
+  override def copyToArray[B >: A](xs: Array[B], start:Int): Unit = {
     val length = timestamps.size
-    val array = if (xs.length == length) xs else new Array[B](size)
-    var i = 0; while (i < length) {
-      val time = timestamps.apply(i)
-      timeToElementData.get(time).asInstanceOf[B]
-      array(i) = timeToElementData.get(time).asInstanceOf[B]
+    var i = 0
+    while (i < length) {
+      val time = timestamps(i)
+      xs(i) = timeToElementData.get(time).asInstanceOf[B]
       i += 1
     }
         
-    array
+    xs
   }
     
   def add(time:Long, elem:A) :Boolean = {
@@ -205,7 +204,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
   override def hashCode :Int = timeToElementData.hashCode
 
   override def apply(n:Int) :A = {
-    val time = timestamps.apply(n)
+    val time = timestamps(n)
     if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
   }
     
