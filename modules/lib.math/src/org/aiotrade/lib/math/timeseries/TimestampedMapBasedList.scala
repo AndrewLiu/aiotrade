@@ -122,7 +122,7 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
+class TimestampedMapBasedList[A](timestamps: Timestamps) extends ArrayBuffer[A] {
     
   private val timeToElementData = new HashMap[Long, A]()
 
@@ -192,8 +192,8 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
   /**
    * @deprecated
    */
-  override def insert(n:Int, elems:A*): Unit = {
-    assert(false, "insert(n:Int, elems:A*) is not supported by this collection! " +
+  override def insert(n: Int, elems:A*): Unit = {
+    assert(false, "insert(n: Int, elems:A*) is not supported by this collection! " +
            ", please use add(long time, E o)")
   }
                     
@@ -203,19 +203,19 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     
   override def hashCode :Int = timeToElementData.hashCode
 
-  override def apply(n:Int) :A = {
+  override def apply(n: Int) :A = {
     val time = timestamps(n)
     if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
   }
     
-  override def update(n:Int, newelem:A) : Unit = {
+  override def update(n: Int, newelem: A) : Unit = {
     if (n >= 0 && n < timestamps.size) {
       val time = timestamps(n)
       timeToElementData.put(time, newelem)
     } else assert(false, "Index out of bounds! index = " + n)
   }
     
-  override def remove(n:Int) :A = {
+  override def remove(n: Int) :A = {
     if (n >= 0 && n < timestamps.size) {
       val time = timestamps(n)
       val e = timeToElementData.get(n).get
@@ -226,7 +226,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     }
   }
     
-  override def indexOf[B >: A](elem:B) : Int = {
+  override def indexOf[B >: A](elem: B) : Int = {
     val itr = timeToElementData.keys
     while (itr.hasNext) {
       val time = itr.next
@@ -238,7 +238,7 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     return -1
   }
     
-  override def lastIndexOf[B >: A](elem:B) : Int = {
+  override def lastIndexOf[B >: A](elem: B) : Int = {
     var found = -1
     val itr = timeToElementData.keys
     while (itr.hasNext) {
@@ -251,12 +251,12 @@ class TimestampedMapBasedList[A](timestamps:Timestamps) extends ArrayBuffer[A] {
     found
   }
     
-  private def binarySearch(time:Long, left:Int, right:Int) :Int = {
+  private def binarySearch(time: Long, left: Int, right: Int) :Int = {
     if (left == right) {
-      if (timestamps.apply(left) == time) left else -1
+      if (timestamps(left) == time) left else -1
     } else {
       val middle = ((left + right) * 0.5).toInt
-      if (time < timestamps.apply(middle)) {
+      if (time < timestamps(middle)) {
         if (middle == 0) -1 else binarySearch(time, left, middle - 1)
       } else {
         binarySearch(time, middle, right)

@@ -43,23 +43,23 @@ import scala.collection.mutable.ArrayBuffer
  */
 object TimestampsFactory {
     
-  def createInstance(initialCapacity:Int) :Timestamps = {
+  def createInstance(initialCapacity: Int) :Timestamps = {
     new TimestampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
   }
     
-  private class TimestampsOnOccurred(initialCapacity:Int) extends Timestamps {
+  private class TimestampsOnOccurred(initialCapacity: Int) extends Timestamps {
 
     private val onCalendarShadow = new TimestampsOnCalendar(this)
 
-    def isOnCalendar :Boolean = false
+    def isOnCalendar: Boolean = false
         
-    def asOnCalendar :Timestamps = onCalendarShadow
+    def asOnCalendar: Timestamps = onCalendarShadow
         
     /**
      * Get nearest row that can also properly extends before firstOccurredTime
      * or after lastOccurredTime
      */
-    def rowOfTime(time:Long, freq:Frequency) :Int = {
+    def rowOfTime(time: Long, freq: Frequency): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx == -1) {
         return -1
@@ -87,7 +87,7 @@ object TimestampsFactory {
     /**
      * This is an efficent method
      */
-    def timeOfRow(row:Int, freq:Frequency) :Long = {
+    def timeOfRow(row: Int, freq: Frequency): Long = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -104,14 +104,14 @@ object TimestampsFactory {
       }
     }
         
-    def lastRow(freq:Frequency) :Int = {
+    def lastRow(freq: Frequency): Int = {
       val lastOccurredIdx = size - 1
       lastOccurredIdx
     }
         
-    def sizeOf(freq:Frequency) :Int = size
+    def sizeOf(freq: Frequency): Int = size
         
-    def indexOfOccurredTime(time:Long) :Int = {
+    def indexOfOccurredTime(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {
         return -1
@@ -158,7 +158,7 @@ object TimestampsFactory {
      * Search the nearest index between '1' to 'lastIndex - 1'
      * We only need to use this computing in case of onOccurred.
      */
-    def nearestIndexOfOccurredTime(time:Long) :Int = {
+    def nearestIndexOfOccurredTime(time: Long): Int = {
       var from = 0
       var to = size - 1
       var length = to - from
@@ -191,7 +191,7 @@ object TimestampsFactory {
     }
         
     /** return index of nearest behind or equal(if exist) time */
-    def indexOfNearestOccurredTimeBehind(time:Long) :Int = {
+    def indexOfNearestOccurredTimeBehind(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {
         return -1
@@ -235,7 +235,7 @@ object TimestampsFactory {
     }
         
     /** return index of nearest before or equal(if exist) time */
-    def indexOfNearestOccurredTimeBefore(time:Long) :Int = {
+    def indexOfNearestOccurredTimeBefore(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {
         return -1
@@ -278,21 +278,21 @@ object TimestampsFactory {
       }
     }
         
-    def firstOccurredTime :Long = {
+    def firstOccurredTime: Long = {
       val size1 = size
       if (size1 > 0) apply(0) else 0
     }
         
-    def lastOccurredTime :Long = {
+    def lastOccurredTime: Long = {
       val size1 = size
       if (size1 > 0) apply(size1 - 1) else 0
     }
         
-    def iterator(freq:Frequency) :TimestampsIterator = {
+    def iterator(freq: Frequency): TimestampsIterator = {
       new ItrOnOccurred(freq)
     }
         
-    def  iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator = {
+    def  iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone): TimestampsIterator = {
       new ItrOnOccurred(freq, fromTime, toTime, timeZone)
     }
 
@@ -302,12 +302,12 @@ object TimestampsFactory {
       res
     }
 
-    class ItrOnOccurred(freq:Frequency, _fromTime:Long, toTime:Long, timeZone:TimeZone) extends TimestampsIterator {
+    class ItrOnOccurred(freq: Frequency, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TimestampsIterator {
       private val cal = Calendar.getInstance(timeZone)
 
       val fromTime = freq.round(_fromTime, cal)
 
-      def this(freq:Frequency) {
+      def this(freq: Frequency) {
         this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
       }
                         
@@ -337,11 +337,11 @@ object TimestampsFactory {
 
       var expectedModCount = modCount
             
-      def hasNext :Boolean = {
+      def hasNext: Boolean = {
         cursorTime <= toTime
       }
             
-      def next :Long = {
+      def next: Long = {
         checkForComodification
         try {
           cursorRow += 1
@@ -361,11 +361,11 @@ object TimestampsFactory {
         throw new ConcurrentModificationException
       }
             
-      def hasPrevious :Boolean = {
+      def hasPrevious: Boolean = {
         cursorTime >= fromTime
       }
             
-      def previous :Long = {
+      def previous: Long = {
         checkForComodification
         try {
           cursorRow -= 1
@@ -380,19 +380,19 @@ object TimestampsFactory {
         }
       }
             
-      def nextOccurredIndex :Int = {
+      def nextOccurredIndex: Int = {
         indexOfNearestOccurredTimeBehind(cursorTime)
       }
             
-      def previousOccurredIndex :Int = {
+      def previousOccurredIndex: Int = {
         indexOfNearestOccurredTimeBefore(cursorTime)
       }
             
-      def nextRow :Int = {
+      def nextRow: Int = {
         cursorRow
       }
             
-      def previousRow :Int = {
+      def previousRow: Int = {
         cursorRow - 1
       }
     }
@@ -405,20 +405,20 @@ object TimestampsFactory {
    * isOnCalendar() always return true.
    * Why not to use Proxy.class ? for performance reason.
    */
-  private class TimestampsOnCalendar(delegateTimestamps:Timestamps) extends Timestamps {
+  private class TimestampsOnCalendar(delegateTimestamps: Timestamps) extends Timestamps {
     /**
      * the timestamps to be wrapped, it not necessary to be a TimestampsOnOccurred,
      * any class implemented Timestamps is ok.
      */
-    def isOnCalendar :Boolean = true
+    def isOnCalendar: Boolean = true
         
-    def asOnCalendar :Timestamps = delegateTimestamps.asOnCalendar
+    def asOnCalendar: Timestamps = delegateTimestamps.asOnCalendar
         
     /**
      * Get nearest row that can also properly extends before firstOccurredTime
      * or after lastOccurredTime
      */
-    def rowOfTime(time:Long, freq:Frequency) :Int = {
+    def rowOfTime(time: Long, freq: Frequency): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx == -1) {
         return -1
@@ -431,7 +431,7 @@ object TimestampsFactory {
     /**
      * This is an efficent method
      */
-    def timeOfRow(row:Int, freq:Frequency) :Long = {
+    def timeOfRow(row: Int, freq: Frequency): Long = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -441,7 +441,7 @@ object TimestampsFactory {
       freq.timeAfterNFreqs(firstOccurredTime, row)
     }
         
-    def lastRow(freq:Frequency) :Int = {
+    def lastRow(freq: Frequency): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -452,20 +452,20 @@ object TimestampsFactory {
       freq.nFreqsBetween(firstOccurredTime, lastOccurredTime)
     }
         
-    def sizeOf(freq:Frequency) :Int = {
+    def sizeOf(freq: Frequency): Int = {
       lastRow(freq) + 1
     }
         
     /** -------------------------------------------- */
         
-    def indexOfOccurredTime(time:Long) = delegateTimestamps.indexOfOccurredTime(time)
+    def indexOfOccurredTime(time: Long) = delegateTimestamps.indexOfOccurredTime(time)
         
-    def nearestIndexOfOccurredTime(time:Long) = delegateTimestamps.nearestIndexOfOccurredTime(time)
+    def nearestIndexOfOccurredTime(time: Long) = delegateTimestamps.nearestIndexOfOccurredTime(time)
         
-    def indexOfNearestOccurredTimeBehind(time:Long) = delegateTimestamps.indexOfNearestOccurredTimeBehind(time)
+    def indexOfNearestOccurredTimeBehind(time: Long) = delegateTimestamps.indexOfNearestOccurredTimeBehind(time)
         
     /** return index of nearest before or equal (if exist) time */
-    def indexOfNearestOccurredTimeBefore(time:Long) = delegateTimestamps.indexOfNearestOccurredTimeBefore(time)
+    def indexOfNearestOccurredTimeBefore(time: Long) = delegateTimestamps.indexOfNearestOccurredTimeBefore(time)
         
     def firstOccurredTime = delegateTimestamps.firstOccurredTime
         
@@ -476,6 +476,8 @@ object TimestampsFactory {
     override def isEmpty = delegateTimestamps.isEmpty
         
     override def elements = delegateTimestamps.elements
+
+    override def iterator = delegateTimestamps.iterator
 
     override def toArray[B >: Long : ClassManifest]: Array[B] = delegateTimestamps.toArray
         
@@ -499,19 +501,19 @@ object TimestampsFactory {
         
     override def hashCode = delegateTimestamps.hashCode
         
-    override def apply(index:Int) = delegateTimestamps.apply(index)
+    override def apply(index: Int) = delegateTimestamps.apply(index)
         
-    override def update(index:Int, element:Long) = delegateTimestamps.update(index, element)
+    override def update(index: Int, element: Long) = delegateTimestamps.update(index, element)
                 
-    override def indexOf[B >: Long](o:B) = delegateTimestamps.indexOf(o)
+    override def indexOf[B >: Long](o: B) = delegateTimestamps.indexOf(o)
         
-    override def lastIndexOf[B >: Long](o:B) = delegateTimestamps.lastIndexOf(o)
+    override def lastIndexOf[B >: Long](o: B) = delegateTimestamps.lastIndexOf(o)
                         
-    def iterator(freq:Frequency) :TimestampsIterator = {
+    def iterator(freq: Frequency) :TimestampsIterator = {
       new ItrOnCalendar(freq)
     }
         
-    def iterator(freq:Frequency, fromTime:Long, toTime:Long, timeZone:TimeZone) :TimestampsIterator = {
+    def iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone) :TimestampsIterator = {
       new ItrOnCalendar(freq, fromTime, toTime, timeZone)
     }
 
@@ -523,12 +525,12 @@ object TimestampsFactory {
       new TimestampsOnCalendar(delegateTimestamps.clone)
     }
 
-    class ItrOnCalendar(freq:Frequency, _fromTime:Long, toTime:Long, timeZone:TimeZone) extends TimestampsIterator {
+    class ItrOnCalendar(freq: Frequency, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TimestampsIterator {
       private val cal = Calendar.getInstance(timeZone)
 
       val fromTime = freq.round(_fromTime, cal)
             
-      def this(freq:Frequency) {
+      def this(freq: Frequency) {
         this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
       }
             
@@ -555,11 +557,11 @@ object TimestampsFactory {
        */
       var expectedModCount = modCount
             
-      def hasNext :Boolean = {
+      def hasNext: Boolean = {
         cursorTime <= toTime
       }
             
-      def next :Long = {
+      def next: Long = {
         checkForComodification
         try {
           cursorRow += 1
@@ -580,11 +582,11 @@ object TimestampsFactory {
         }
       }
             
-      def hasPrevious :Boolean = {
+      def hasPrevious: Boolean = {
         cursorTime >= fromTime
       }
             
-      def previous :Long = {
+      def previous: Long = {
         checkForComodification
         try {
           cursorRow -= 1
@@ -599,19 +601,19 @@ object TimestampsFactory {
         }
       }
             
-      def nextOccurredIndex :Int = {
+      def nextOccurredIndex: Int = {
         indexOfNearestOccurredTimeBehind(cursorTime)
       }
             
-      def previousOccurredIndex :Int = {
+      def previousOccurredIndex: Int = {
         indexOfNearestOccurredTimeBefore(cursorTime)
       }
             
-      def nextRow :Int = {
+      def nextRow: Int = {
         cursorRow
       }
             
-      def previousRow :Int = {
+      def previousRow: Int = {
         cursorRow - 1
       }
     }
