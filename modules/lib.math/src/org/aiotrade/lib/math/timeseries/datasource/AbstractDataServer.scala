@@ -200,7 +200,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     None
   }
 
-  def subscribedContracts: Set[C]= subscribedContractToSer.keySet
+  def subscribedContracts: Set[C] = subscribedContractToSer.keySet
 
   protected def serOf(contract: C): Option[Ser] = {
     subscribedContractToSer.get(contract)

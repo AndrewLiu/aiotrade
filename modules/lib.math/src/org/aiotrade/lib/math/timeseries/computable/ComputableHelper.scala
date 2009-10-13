@@ -306,7 +306,7 @@ object ComputableHelper {
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
   def displayName(ser: Ser): String = ser match {
-    case x:Computable => displayName(ser.shortDescription, x.factors)
+    case x: Computable => displayName(ser.shortDescription, x.factors)
     case _ => ser.shortDescription
   }
 

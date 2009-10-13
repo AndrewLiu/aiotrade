@@ -201,7 +201,7 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
   protected def computeSpot(i: Int): Unit
 
   override def equals(o:Any) = o match {
-    case x:Function => this.id.equals(x.id)
+    case x: Function => this.id.equals(x.id)
     case _ => false
   }
 

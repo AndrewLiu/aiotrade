@@ -438,7 +438,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     case _ => false
   }
 
-  override def hashCode :Int = {
+  override def hashCode: Int = {
     _hashCode
   }
 

@@ -42,7 +42,7 @@ import scala.collection.mutable.ArrayBuffer
  * @since   1.0.4
  */
 object TimestampsFactory {
-    
+  
   def createInstance(initialCapacity: Int) :Timestamps = {
     new TimestampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
   }
@@ -350,7 +350,7 @@ object TimestampsFactory {
           lastReturnTime = cursorTime
           return next
         } catch {
-          case e:IndexOutOfBoundsException =>
+          case e: IndexOutOfBoundsException =>
             checkForComodification
             throw new NoSuchElementException
         }
@@ -372,9 +372,9 @@ object TimestampsFactory {
           val previous = if (cursorRow < 0) freq.previousTime(cursorTime) else apply(cursorRow)
           cursorTime = previous
           lastReturnTime = cursorTime
-          return previous;
+          return previous
         } catch {
-          case e:IndexOutOfBoundsException =>
+          case e: IndexOutOfBoundsException =>
             checkForComodification
             throw new NoSuchElementException
         }
@@ -521,7 +521,7 @@ object TimestampsFactory {
     protected var modCount:Long = 0
 
 
-    override def clone :TimestampsOnCalendar = {
+    override def clone: TimestampsOnCalendar = {
       new TimestampsOnCalendar(delegateTimestamps.clone)
     }
 
@@ -570,7 +570,7 @@ object TimestampsFactory {
           lastReturnTime = cursorTime
           return next
         } catch {
-          case e:IndexOutOfBoundsException =>
+          case e: IndexOutOfBoundsException =>
             checkForComodification
             throw new NoSuchElementException
         }
