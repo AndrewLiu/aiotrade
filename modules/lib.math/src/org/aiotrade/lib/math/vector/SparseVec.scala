@@ -419,7 +419,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until items.length) {
-      if (Double.NaN == items(i).value) {
+      if (items(i).value.isNaN) {
         return false
       }
     }

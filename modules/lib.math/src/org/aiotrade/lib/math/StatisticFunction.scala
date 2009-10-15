@@ -68,7 +68,7 @@ object StatisticFunction {
       /** compute first availabe sum (in case of enough period first time) */
       sum(values, 0, idx)
     } else {
-      if (prev.equals(Float.NaN)) {
+      if (prev.isNaN) {
         /**
          * although the 'values' size is enough, it may contains NaN
          * element, thus cause the prevSum to be a NaN, we should
@@ -102,7 +102,7 @@ object StatisticFunction {
       /** compute first available ma (in case of enough period first time) */
       ma(values, 0, idx)
     } else {
-      if (prev.equals(Float.NaN)) {
+      if (prev.isNaN) {
         /**
          * although the 'values' size is enough, it may contains NaN
          * element, thus cause the prevSum to be a NaN, we should
@@ -138,7 +138,7 @@ object StatisticFunction {
    */
   def iema(idx: Int, values: ArrayBuffer[Float], period: Int, prev: Float): Float = {
     val value = values(idx) match {
-      case x if x.equals(Float.NaN) => 0f
+      case x if x.isNaN => 0f
       case x => x
     }
 
@@ -159,7 +159,7 @@ object StatisticFunction {
     } else if (lookbackIdx == 0) {
       max(values, 0, idx);
     } else {
-      if (prev.equals(Float.NaN) || values(lookbackIdx - 1) == prev) {
+      if (prev.isNaN || values(lookbackIdx - 1) == prev) {
         max(values, lookbackIdx, idx)
       } else {
         val value = values(idx)
@@ -180,7 +180,7 @@ object StatisticFunction {
     } else if (lookbackIdx == 0) {
       min(values, 0, idx);
     } else {
-      if (prev.equals(Float.NaN) || values(lookbackIdx - 1) == prev) {
+      if (prev.isNaN || values(lookbackIdx - 1) == prev) {
         min(values, lookbackIdx, idx)
       } else {
         val value = values(idx)

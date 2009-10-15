@@ -86,7 +86,7 @@ class QuoteCompareIndicator(baseSer: Ser) extends ContIndicator(baseSer) {
       position += 1
     }
         
-    if (baseNorm.equals(Float.NaN)) {
+    if (baseNorm.isNaN) {
       return
     }
         
@@ -130,7 +130,7 @@ class QuoteCompareIndicator(baseSer: Ser) extends ContIndicator(baseSer) {
           case null =>
           case itemToBeCompared:QuoteItem =>
             /** get first value of serToBeCompared in time frame */
-            if (compareNorm.equals(Float.NaN)) {
+            if (compareNorm.isNaN) {
               compareNorm = itemToBeCompared.close
             }
                         

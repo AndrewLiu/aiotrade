@@ -221,7 +221,7 @@ abstract class AbstractFunction extends DefaultSer with FunctionSer {
     val values = var1.values
     var i = values.size - 1; while (i > 0) {
       val value = values(i)
-      if (value != null && !value.equals(Float.NaN)) {
+      if (value != null && !(value.isInstanceOf[Float] && value.asInstanceOf[Float].isNaN)) {
         return _baseSer.indexOfOccurredTime(timestamps(i))
       }
 

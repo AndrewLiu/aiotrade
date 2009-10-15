@@ -238,7 +238,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until dimension) {
-      if (values(i) == Double.NaN) {
+      if (values(i).isNaN) {
         return false
       }
     }
