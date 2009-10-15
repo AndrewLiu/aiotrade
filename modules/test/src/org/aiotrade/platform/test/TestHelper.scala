@@ -129,7 +129,7 @@ trait TestHelper {
 
       descriptor.serviceInstance(masterSer) match {
         case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
-        case Some(indicator) => indicators = indicator :: indicators
+        case Some(indicator) => indicators ::= indicator
       }
     }
     indicators
@@ -158,7 +158,7 @@ trait TestHelper {
     println(indicator.shortDescription + ":" + indicator.size)
     for (var1 <- indicator.varSet) {
       print(var1.name + ": ")
-      var1.values.reverse.foreach{x => print(x + ",")}
+      var1.values.reverse foreach {x => print(x + ",")}
       println
     }
   }
@@ -174,13 +174,13 @@ trait TestHelper {
   def reportQuote(sec: Stock) {
     sec.uniSymbol
     println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
-    sec.serOf(Frequency.DAILY).  foreach{x => println("daily: "  + x.size)}
-    sec.serOf(Frequency.ONE_MIN).foreach{x => println("1 min: "  + x.size)}
+    sec.serOf(Frequency.DAILY)   foreach {x => println("daily: "  + x.size)}
+    sec.serOf(Frequency.ONE_MIN) foreach {x => println("1 min: "  + x.size)}
     println("ticker: "  + sec.tickerSer.size)
   }
 
   def reportInds(inds:Seq[Indicator]) {
-    inds.foreach{printLastValueOf(_)}
+    inds foreach {printLastValueOf(_)}
   }
 
 

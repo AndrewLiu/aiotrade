@@ -43,7 +43,7 @@ class YahooQuoteServerTest extends TestHelper {
     val actors = new Array[TestOne](size)
 
     var i = 0
-    val itr = syms.elements
+    val itr = syms.iterator
     while (i < size && itr.hasNext) {
       val sym = itr.next
       val actor = new TestOne(sym + ".SS")
@@ -53,7 +53,7 @@ class YahooQuoteServerTest extends TestHelper {
 
     while (true) {
       waitFor(5000)
-      actors.foreach{x =>
+      actors foreach {x =>
         reportQuote(x.sec)
         reportInds(x.oneMinInds)
         reportInds(x.dailyInds)
@@ -110,8 +110,8 @@ class YahooQuoteServerTest extends TestHelper {
     // * 1. inds may have been computed by FinishedLoading evt,
     // * 2. data loading may not finish yet
     // * For what ever condiction, we force to compute it again to test concurrent
-    dailyInds. foreach{x => computeAsync(x)}
-    oneMinInds.foreach{x => computeAsync(x)}
+    dailyInds  foreach {x => computeAsync(x)}
+    oneMinInds foreach {x => computeAsync(x)}
 
     sec.subscribeTickerServer
   }
