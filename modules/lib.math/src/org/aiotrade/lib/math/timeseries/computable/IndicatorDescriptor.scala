@@ -88,7 +88,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: Frequency, afactors:
       case Some(x) => x.shortDescription
     }
         
-    ComputableHelper.displayName(displayStr, factors)
+    Computable.displayName(displayStr, factors)
   }
 
   /**

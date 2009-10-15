@@ -31,13 +31,15 @@
 package org.aiotrade.lib.math.timeseries.computable
 
 import scala.collection.mutable.ArrayBuffer
+import java.text.DecimalFormat
+import org.aiotrade.lib.math.timeseries.Ser
 import scala.actors.Actor._
 
 /**
  *
  * @author Caoyuan Deng
  */
-case class ComputeFrom(time:Long)
+case class ComputeFrom(time: Long)
 trait Computable {
 
   // ----- actor's implementation
@@ -54,7 +56,7 @@ trait Computable {
    * @param time to be computed from
    */
   def computeFrom(time: Long): Unit
-  def computedTime :Long
+  def computedTime: Long
     
   def factors: ArrayBuffer[Factor]
   def factors_=(factors: ArrayBuffer[Factor]): Unit
@@ -62,4 +64,34 @@ trait Computable {
     
   def dispose: Unit
 }
+
+object Computable {
+  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
+
+  def displayName(ser: Ser): String = ser match {
+    case x: Computable => displayName(ser.shortDescription, x.factors)
+    case _ => ser.shortDescription
+  }
+
+  def displayName(name: String, factors: ArrayBuffer[Factor]): String = {
+    val buffer = new StringBuffer(name)
+
+    val size = factors.size
+    for (i <- 0 until size) {
+      if (i == 0) {
+        buffer.append(" (")
+      }
+      buffer.append(FAC_DECIMAL_FORMAT.format(factors(i).value))
+      if (i < size - 1) {
+        buffer.append(", ")
+      } else {
+        buffer.append(")")
+      }
+    }
+
+    buffer.toString
+  }
+
+}
+
 

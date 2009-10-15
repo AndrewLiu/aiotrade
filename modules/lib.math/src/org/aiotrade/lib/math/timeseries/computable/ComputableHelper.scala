@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries
 package computable
 
-import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.Ser
 import scala.collection.mutable.ArrayBuffer
 
@@ -300,33 +299,4 @@ class ComputableHelper(var baseSer: Ser, var self: Indicator) {
     }
   }
     
-}
-
-object ComputableHelper {
-  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
-
-  def displayName(ser: Ser): String = ser match {
-    case x: Computable => displayName(ser.shortDescription, x.factors)
-    case _ => ser.shortDescription
-  }
-
-  def displayName(name: String, factors: ArrayBuffer[Factor]): String = {
-    val buffer = new StringBuffer(name)
-
-    val size = factors.size
-    for (i <- 0 until size) {
-      if (i == 0) {
-        buffer.append(" (")
-      }
-      buffer.append(FAC_DECIMAL_FORMAT.format(factors(i).value))
-      if (i < size - 1) {
-        buffer.append(", ")
-      } else {
-        buffer.append(")")
-      }
-    }
-
-    buffer.toString
-  }
-
 }
