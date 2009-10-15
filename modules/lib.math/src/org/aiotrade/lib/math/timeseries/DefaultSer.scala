@@ -188,7 +188,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
   }
 
-  def ++[@specialized V <: TimeValue](values: Array[V]): Unit = {
+  def ++=[@specialized V <: TimeValue](values: Array[V]): Ser = {
     var begTime = +Long.MaxValue
     var endTime = -Long.MaxValue
     try {
@@ -196,7 +196,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
 
       val shouldReverse = !isAscending(values)
 
-      val size = values.size
+      val size = values.length
       var i = if (shouldReverse) size - 1 else 0
       while (i >= 0 && i <= size - 1) {
         val value = values(i)
@@ -221,6 +221,8 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     println("TimestampsLog: " + tsLog)
     val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, shortDescription, begTime, endTime)
     fireSerChangeEvent(evt)
+    
+    this
   }
 
   protected def createItem(time: Long): SerItem = {

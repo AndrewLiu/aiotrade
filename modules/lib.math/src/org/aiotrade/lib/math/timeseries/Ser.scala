@@ -72,7 +72,7 @@ trait Ser {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long): Unit
 
-  def ++[@specialized V <: TimeValue](values: Array[V]): Unit
+  def ++=[@specialized V <: TimeValue](values: Array[V]): Ser
     
   def createItemOrClearIt(time: Long): SerItem
     

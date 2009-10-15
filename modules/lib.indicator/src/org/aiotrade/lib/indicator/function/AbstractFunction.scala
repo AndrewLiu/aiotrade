@@ -49,14 +49,14 @@ object AbstractFunction {
   private val idToFunctions = new ConcurrentHashMap[FunctionID[_], Function]
 
   def getInstance[T <: Function](tpe: Class[T], baseSer: Ser, args: Any*): T = {
-    val id = FunctionID(tpe, baseSer, args:_*)
+    val id = FunctionID(tpe, baseSer, args: _*)
     idToFunctions.get(id) match {
       case null =>
         /** if none got from functionSet, try to create new one */
         try {
           val function = tpe.newInstance
           /** don't forget to call set(baseSer, args) immediatley */
-          function.set(baseSer, args:_*)
+          function.set(baseSer, args: _*)
           idToFunctions.putIfAbsent(id, function)
           function
         } catch {
