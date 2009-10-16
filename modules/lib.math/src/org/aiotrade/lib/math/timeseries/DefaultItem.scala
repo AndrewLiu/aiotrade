@@ -60,11 +60,9 @@ package org.aiotrade.lib.math.timeseries
  *
  * @see DefaultSer#createItem(long time)
  */
-class DefaultItem protected[timeseries] (_ser: Ser, val time: Long) extends SerItem {
-    
+class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends SerItem {
+  
   private var _clear: Boolean = true
-
-  def ser: Ser = _ser
 
   def index: Int = ser.timestamps.indexOfOccurredTime(time)
     

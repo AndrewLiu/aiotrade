@@ -37,10 +37,8 @@ import org.aiotrade.lib.math.timeseries.{DefaultItem,TimeValue}
  * 
  * @author Caoyuan Deng
  */
-class QuoteItem(_ser: QuoteSer, time: Long) extends DefaultItem(_ser, time) {
+class QuoteItem(override val ser: QuoteSer, time: Long) extends DefaultItem(ser, time) {
 
-  override def ser: QuoteSer = super.ser.asInstanceOf[QuoteSer]
-    
   def volume: Float = getFloat(ser.volume)
     
   def open: Float = getFloat(ser.open)

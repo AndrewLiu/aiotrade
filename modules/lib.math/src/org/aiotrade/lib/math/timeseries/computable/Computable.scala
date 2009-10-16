@@ -74,24 +74,8 @@ object Computable {
   }
 
   def displayName(name: String, factors: ArrayBuffer[Factor]): String = {
-    val buffer = new StringBuffer(name)
-
-    val size = factors.size
-    for (i <- 0 until size) {
-      if (i == 0) {
-        buffer.append(" (")
-      }
-      buffer.append(FAC_DECIMAL_FORMAT.format(factors(i).value))
-      if (i < size - 1) {
-        buffer.append(", ")
-      } else {
-        buffer.append(")")
-      }
-    }
-
-    buffer.toString
+    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
   }
-
 }
 
 

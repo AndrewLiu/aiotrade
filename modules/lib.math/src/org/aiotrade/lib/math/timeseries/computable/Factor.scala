@@ -43,7 +43,7 @@ import org.w3c.dom.Element
 trait Factor {
     
   def name :String
-  def name_=(name:String): Unit
+  def name_=(name: String): Unit
     
   def value: Float
   def value_=(value: Number): Unit

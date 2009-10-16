@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
-class QuoteSer(freq:Frequency) extends DefaultMasterSer(freq) {
+class QuoteSer(freq: Frequency) extends DefaultMasterSer(freq) {
     
   private var _shortDescription:String = ""
   var adjusted: Boolean = false

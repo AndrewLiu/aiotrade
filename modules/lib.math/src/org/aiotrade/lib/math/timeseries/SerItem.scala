@@ -35,7 +35,7 @@ package org.aiotrade.lib.math.timeseries
  * @author Caoyuan Deng
  */
 trait SerItem {
-    
+
   def ser: Ser
     
   def index: Int
