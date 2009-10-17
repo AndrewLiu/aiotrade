@@ -39,10 +39,12 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractVar[@specialized V](var name: String, var plot: Plot) extends Var[V] {
-    
+abstract class AbstractVar[@specialized V: Manifest](var name: String, var plot: Plot) extends Var[V] {
+
+  val nullValue = getNullValue[V]
+
   val LAYER_NOT_SET = -1
-        
+
   var layer = LAYER_NOT_SET
     
   def this() = {
@@ -54,7 +56,7 @@ abstract class AbstractVar[@specialized V](var name: String, var plot: Plot) ext
   }
 
   def addNullValue(time: Long): Boolean = {
-    add(time, null.asInstanceOf[V])
+    add(time, nullValue)
   }
 
   def toDoubleArray: Array[Double] = {
@@ -72,9 +74,21 @@ abstract class AbstractVar[@specialized V](var name: String, var plot: Plot) ext
     result
   }
     
-  override def toString: String = name
-    
+  override def toString = name
+
+  private def getNullValue[T](implicit m: Manifest[T]): T = {
+    val value = m.toString match {
+      case "Byte"    => Byte   MinValue   // -128 ~ 127
+      case "Short"   => Short  MinValue   // -32768 ~ 32767
+      case "Char"    => Char   MinValue   // 0(\u0000) ~ 65535(\uffff)
+      case "Int"     => Int    MinValue   // -2,147,483,648 ~ 2,147,483,647
+      case "Long"    => Long   MinValue   // -9,223,372,036,854,775,808 ~ 9,223,372,036,854,775,807
+      case "Float"   => Float  NaN
+      case "Double"  => Double NaN
+      case "Boolean" => false
+      case _ => null
+    }
+    value.asInstanceOf[T]
+  }
+
 }
-
-
-

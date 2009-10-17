@@ -445,11 +445,12 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
   }
 
   object Var {
-    def apply[@specialized V]() = new InnerVar[V]
-    def apply[@specialized V](name: String) = new InnerVar[V](name)
-    def apply[@specialized V](name: String, plot: Plot) = new InnerVar[V](name, plot)
+    def apply[@specialized V: Manifest]() = new InnerVar[V]
+    def apply[@specialized V: Manifest](name: String) = new InnerVar[V](name)
+    def apply[@specialized V: Manifest](name: String, plot: Plot) = new InnerVar[V](name, plot)
   }
-  protected class InnerVar[@specialized V](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
+  
+  protected class InnerVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
 
     var values = new ArrayBuffer[V]
 
@@ -528,7 +529,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
   }
 
-  protected class SparseVar[@specialized V](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
+  protected class SparseVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
 
     val values = new TimestampedMapBasedList[V](timestamps)
 
@@ -581,11 +582,10 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerVar[@specialized V](name: String, plot: Plot) extends AbstractVar[V](name, plot) {
+  abstract class AbstractInnerVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractVar[V](name, plot) {
 
     private val colors = new TimestampedMapBasedList[Color](timestamps)
-    val nullValue = Float.NaN.asInstanceOf[V]
-
+    //val nullValue = Float.NaN.asInstanceOf[V]
     addVar(this)
 
     def this() = {
