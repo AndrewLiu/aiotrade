@@ -64,7 +64,7 @@ import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.math.timeseries.{DefaultSer,Ser,Var}
+import org.aiotrade.lib.math.timeseries.{DefaultSer, Ser, Var}
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 
@@ -224,7 +224,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
   /** override this method to define your predefined vars */
   protected def initPredefinedVarsOfBaseSer: Unit = {
     _baseSer match {
-      case x:QuoteSer =>
+      case x: QuoteSer =>
         O = x.open
         H = x.high
         L = x.low
@@ -348,7 +348,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     }
   }
     
-  def createNewInstance(baseSer: Ser) :Indicator = {
+  def createNewInstance(baseSer: Ser): Indicator = {
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
       instance.init(baseSer)
@@ -530,8 +530,8 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
    * --------------------------------------------------------------------
    */
   object Factor {
-    def apply(name: String, value: Number) = new InnerFactor(name, value)
-    def apply(name: String, value: Number, step: Number) = new InnerFactor(name, value, step)
+    def apply(name: String, value: Number) = new InnerFactor(name, value, null, null, null)
+    def apply(name: String, value: Number, step: Number) = new InnerFactor(name, value, step, null, null)
     def apply(name: String, value: Number, step: Number, minValue: Number, maxValue: Number) = new InnerFactor(name, value, step, minValue, maxValue)
   }
     
@@ -539,16 +539,10 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
                               value: Number,
                               step: Number,
                               minValue: Number,
-                              maxValue: Number) extends DefaultFactor(name, value, step, minValue, maxValue) {
+                              maxValue: Number
+  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
 
     addFactor(this)
 
-    def this(name: String, value: Number) = {
-      this(name, value, null, null, null)
-    }
-        
-    def this(name: String, value: Number, step: Number) = {
-      this(name, value, step, null, null)
-    }
   }
 }

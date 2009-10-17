@@ -147,7 +147,7 @@ object StatisticFunction {
     //return ((period - 1.0f) / (period + 1.0f)) * prevEma + (2.0f / (period + 1.0f)) * value;
   }
 
-  def max(values: ArrayBuffer[Float], begIdx: Int, endIdx: Int) :float = {
+  def max(values: ArrayBuffer[Float], begIdx: Int, endIdx: Int): Float = {
     maxmin(values, begIdx, endIdx)(MAX)
   }
 
@@ -194,8 +194,8 @@ object StatisticFunction {
       return Array(Float.NaN, Float.NaN)
     }
 
-    var max = -Float.MaxValue
-    var min = +Float.MaxValue
+    var max = Float.MinValue
+    var min = Float.MaxValue
     val lastIdx = Math.min(endIdx, values.size - 1)
     var i = begIdx
     while (i <= lastIdx) {
@@ -213,8 +213,8 @@ object StatisticFunction {
       return Array(Float.NaN, Float.NaN)
     }
 
-    var max = -Float.MaxValue
-    var min = +Float.MaxValue
+    var max = Float.MinValue
+    var min = Float.MaxValue
     val lastIdx = Math.min(endIdx, values.length - 1)
     var i = begIdx
     while (i <= lastIdx) {
@@ -260,7 +260,8 @@ object StatisticFunction {
    * Probability Mass Function
    */
   def probMass(values: ArrayBuffer[Float], weights: ArrayBuffer[Float],
-               begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Float]] = {
+               begIdx: Int, endIdx: Int, nIntervals: Int
+  ): Array[Array[Float]] = {
 
     if (nIntervals <= 0) {
       return null
@@ -278,7 +279,8 @@ object StatisticFunction {
    * Probability Density Function
    */
   def probMass(values: ArrayBuffer[Float],
-               begIdx: Int, endIdx: Int, interval: Double): Array[Array[Float]] = {
+               begIdx: Int, endIdx: Int, interval: Double
+  ): Array[Array[Float]] = {
 
     probMass(values, null, begIdx, endIdx, interval)
   }
@@ -287,7 +289,8 @@ object StatisticFunction {
    * Probability Mass Function
    */
   def probMass(values: ArrayBuffer[Float], weights: ArrayBuffer[Float],
-               begIdx: Int, endIdx: Int, interval: Double): Array[Array[Float]] = {
+               begIdx: Int, endIdx: Int, interval: Double
+  ): Array[Array[Float]] = {
 
     if (interval <= 0) {
       return null
@@ -339,7 +342,7 @@ object StatisticFunction {
       i += 1
     }
 
-    mass(MASS) map (_ / total)
+    mass(MASS) map {_ / total}
 
     mass
   }
@@ -383,7 +386,7 @@ object StatisticFunction {
       i += 1
     }
 
-    mass(MASS) map (_ / total)
+    mass(MASS) map {_ / total}
 
     mass
   }

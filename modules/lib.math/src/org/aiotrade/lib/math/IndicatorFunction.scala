@@ -55,7 +55,7 @@ object IndicatorFunction {
         } else {
           0f
         }
-      } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+      } else if (highs(idx) <  highs(idx - 1) && lows(idx) >  lows(idx - 1)) {
         0f
       } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
         0f
@@ -87,7 +87,7 @@ object IndicatorFunction {
         } else {
           lows(idx - 1) - lows(idx)
         }
-      } else if (highs(idx) < highs(idx - 1) && lows(idx) > lows(idx - 1)) {
+      } else if (highs(idx) <  highs(idx - 1) && lows(idx) >  lows(idx - 1)) {
         0f
       } else if (highs(idx) == highs(idx - 1) && lows(idx) == lows(idx - 1)) {
         0f
