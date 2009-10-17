@@ -72,9 +72,9 @@ class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends 
     this._clear = true
   }
     
-  def get[@specialized T](v: Var[T]): T =  v.getByTime(time)
+  def get[@specialized V](v: Var[V]): V = v.getByTime(time)
     
-  def set[@specialized T](v: Var[T], value: T): Unit = {
+  def set[@specialized V](v: Var[V], value: V): Unit = {
     v.setByTime(time, value)
     _clear = false
   }
@@ -102,7 +102,7 @@ class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends 
     this._clear = false
   }
 
-  def assignValue[@specialized V <: TimeValue](value: V): Unit = {
+  def assignValue[@specialized T <: TimeValue](value: T): Unit = {
     /** @todo */
   }
 }

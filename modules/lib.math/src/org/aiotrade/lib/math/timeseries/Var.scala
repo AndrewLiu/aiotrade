@@ -36,20 +36,22 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
  * A horizontal view of Ser. Is' a reference of one of the field vars.
+ * V is the type of value
  *
  * @author Caoyuan Deng
  */
-trait Var[@specialized E] extends Plottable {
+trait Var[@specialized V] extends Plottable {
 
   def name: String
   def name_=(name: String): Unit
+
+  def add(time: Long, value: V): Boolean
+  def addNullValue(time: Long): Boolean
+  def getByTime(time: Long): V
+  def setByTime(time: Long, value: V): V
     
-  def add(time: Long, value: E): Boolean
-  def getByTime(time: Long): E
-  def setByTime(time: Long, value: E): E
-    
-  def apply(idx: Int): E
-  def update(idx: Int, value: E): Unit
+  def apply(idx: Int): V
+  def update(idx: Int, value: V): Unit
     
   def clear(fromIdx: Int): Unit
     
@@ -57,9 +59,9 @@ trait Var[@specialized E] extends Plottable {
     
   def toDoubleArray: Array[Double]
     
-  def values: ArrayBuffer[E]
+  def values: ArrayBuffer[V]
     
-  def nullValue: E
+  def nullValue: V
 
   def validate: Unit
     

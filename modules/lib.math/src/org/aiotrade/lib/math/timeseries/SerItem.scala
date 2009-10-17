@@ -46,14 +46,14 @@ trait SerItem {
     
   def time: Long
     
-  def get[@specialized T](v: Var[T]): T
+  def get[@specialized V](v: Var[V]): V
     
   def getFloat(v: Var[_]): Float
     
-  def setFloat[@specialized T >: Number](v: Var[T], number:T): Unit
+  def setFloat[@specialized V >: Number](v: Var[V], number: V): Unit
     
-  def set[@specialized T](v: Var[T], o: T): Unit
+  def set[@specialized V](v: Var[V], o: V): Unit
 
-  def assignValue[@specialized V <: TimeValue](value: V): Unit
+  def assignValue[@specialized T <: TimeValue](value: T): Unit
 }
 

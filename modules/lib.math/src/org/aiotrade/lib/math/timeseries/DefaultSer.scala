@@ -82,7 +82,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * Map contains vars. Each var element of array is a Var that contains a
    * sequence of values for one field of SerItem.
    */
-  private val varToName = new LinkedHashMap[Var[Any], String]
+  private val varToName = new LinkedHashMap[Var[_], String]
   private var description = ""
 
   def this() = {
@@ -99,7 +99,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
   /**
    * used only by InnerVar's constructor and AbstractIndicator's functions
    */
-  protected def addVar(v: Var[Any]): Unit = {
+  protected def addVar(v: Var[_]): Unit = {
     varToName.put(v, v.name)
   }
 
@@ -131,7 +131,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     if (itemTime < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
       if (existIdx >= 0) {
-        varSet foreach (_.add(itemTime, null))
+        varSet foreach {_.addNullValue(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
         _items.insert(existIdx, clearItem)
       } else {
@@ -146,7 +146,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
           _timestamps.insert(idx, itemTime)
           tsLog.logInsert(1, idx)
 
-          varSet foreach (_.add(itemTime, null))
+          varSet foreach {_.addNullValue(itemTime)}
 
           // * as timestamps includes this time, we just always put in a none-null item
           _items.insert(idx, clearItem)
@@ -163,7 +163,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
         _timestamps += itemTime
         tsLog.logAppend(1)
 
-        varSet foreach (_.add(itemTime, null))
+        varSet foreach {_.addNullValue(itemTime)}
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         _items += clearItem
@@ -174,7 +174,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       // * time == lastOccurredTime, keep same time and update item to clear.
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
       if (existIdx >= 0) {
-        varSet foreach {_.add(itemTime, null)}
+        varSet foreach {_.addNullValue(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
         _items += clearItem
       } else {
@@ -234,7 +234,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     this.description = description
   }
 
-  def varSet: scala.collection.Set[Var[Any]] = varToName.keySet
+  def varSet: scala.collection.Set[Var[_]] = varToName.keySet
 
   def validate_old: Unit = {
     if (_items.size != timestamps.size) {
@@ -297,7 +297,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               println("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
               val newItems = for (i <- 0 until insertSize) yield {
                 val time = timestamps(begIdx1 + i)
-                varSet.foreach{x => x.add(time, null)}
+                varSet foreach {_.addNullValue(time)}
                 createItem(time)
               }
               items.insertAll(begIdx1, newItems)
@@ -312,7 +312,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               println("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
               val newItems = for (i <- 0 until appendSize) yield {
                 val time = timestamps(begIdx)
-                varSet.foreach{x => x.add(time, null)}
+                varSet foreach {_.addNullValue(time)}
                 createItem(time)
               }
               items ++= newItems
@@ -345,7 +345,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
         return
       }
 
-      varSet.foreach{x => x.clear(fromIdx)}
+      varSet foreach {_.clear(fromIdx)}
 
       for (i <- timestamps.size - 1 to fromIdx) {
         _timestamps.remove(i)
@@ -445,13 +445,13 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
   }
 
   object Var {
-    def apply[@specialized E]() = new InnerVar[E]
-    def apply[@specialized E](name: String) = new InnerVar[E](name)
-    def apply[@specialized E](name: String, plot: Plot) = new InnerVar[E](name, plot)
+    def apply[@specialized V]() = new InnerVar[V]
+    def apply[@specialized V](name: String) = new InnerVar[V](name)
+    def apply[@specialized V](name: String, plot: Plot) = new InnerVar[V](name, plot)
   }
-  protected class InnerVar[@specialized E](name: String, plot: Plot) extends AbstractInnerVar[E](name, plot) {
+  protected class InnerVar[@specialized V](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
 
-    var values = new ArrayBuffer[E]
+    var values = new ArrayBuffer[V]
 
     def this() = {
       this("", Plot.None)
@@ -461,7 +461,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       this(name, Plot.None)
     }
 
-    def add(time: Long, value: E): Boolean = {
+    def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         if (idx == values.size) {
@@ -476,26 +476,26 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       }
     }
 
-    def getByTime(time: Long): E = {
+    def getByTime(time: Long): V = {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx)
     }
 
-    def setByTime(time: Long, value: E): E = {
+    def setByTime(time: Long, value: V): V = {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx) = value
       value
     }
 
     def validate: Unit = {
-      val newValues = new ArrayBuffer[E]{override val initialSize = INIT_CAPACITY}
+      val newValues = new ArrayBuffer[V]{override val initialSize = INIT_CAPACITY}
 
       var i = 0
       var j = 0
       while (i < timestamps.size) {
         val time = timestamps(i)
         var break = false
-        var v = null.asInstanceOf[E]
+        var v = null.asInstanceOf[V]
         while (j < _items.size && !break) {
           val vtime = _items(j).time
           if (vtime == time) {
@@ -505,7 +505,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
             break = true
           } else if (vtime > time) {
             // not existed value
-            v = null.asInstanceOf[E]
+            v = null.asInstanceOf[V]
             break = true
           } else {
             j += 1
@@ -528,9 +528,9 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
   }
 
-  protected class SparseVar[@specialized E](name: String, plot: Plot) extends AbstractInnerVar[E](name, plot) {
+  protected class SparseVar[@specialized V](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
 
-    val values = new TimestampedMapBasedList[E](timestamps)
+    val values = new TimestampedMapBasedList[V](timestamps)
 
     def this() = {
       this("", Plot.None)
@@ -540,7 +540,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       this(name, Plot.None)
     }
 
-    def add(time: Long, value: E): Boolean = {
+    def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         values.add(time, value)
@@ -551,9 +551,9 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       }
     }
 
-    def getByTime(time: Long): E = values.getByTime(time)
+    def getByTime(time: Long): V = values.getByTime(time)
 
-    def setByTime(time: Long, value: E): E = values.setByTime(time, value)
+    def setByTime(time: Long, value: V): V = values.setByTime(time, value)
 
     def validate: Unit = {
     }
@@ -581,12 +581,12 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerVar[@specialized E](name: String, plot: Plot) extends AbstractVar[E](name, plot) {
+  abstract class AbstractInnerVar[@specialized V](name: String, plot: Plot) extends AbstractVar[V](name, plot) {
 
     private val colors = new TimestampedMapBasedList[Color](timestamps)
-    val nullValue = Float.NaN.asInstanceOf[E]
+    val nullValue = Float.NaN.asInstanceOf[V]
 
-    addVar(this.asInstanceOf[Var[Any]])
+    addVar(this)
 
     def this() = {
       this("", Plot.None)
@@ -599,7 +599,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     /**
      * This method will never return null, return a nullValue at least.
      */
-    override def apply(idx: Int): E = {
+    override def apply(idx: Int): V = {
       if (idx >= 0 && idx < values.size) {
         values(idx) match {
           case null => nullValue
@@ -610,7 +610,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       }
     }
 
-    override def update(idx: Int, value: E): Unit = {
+    override def update(idx: Int, value: V): Unit = {
       if (idx >= 0 && idx < values.size) {
         values(idx) = value
       } else {

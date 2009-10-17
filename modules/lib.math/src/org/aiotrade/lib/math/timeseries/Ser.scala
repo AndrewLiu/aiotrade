@@ -58,7 +58,7 @@ trait Ser {
 
   def freq: Frequency
 
-  def varSet: scala.collection.Set[Var[Any]]
+  def varSet: scala.collection.Set[Var[_]]
   def items: ArrayBuffer[SerItem]
 
   def getItem(time: Long): SerItem
@@ -72,7 +72,7 @@ trait Ser {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long): Unit
 
-  def ++=[@specialized V <: TimeValue](values: Array[V]): Ser
+  def ++=[@specialized T <: TimeValue](values: Array[T]): Ser
     
   def createItemOrClearIt(time: Long): SerItem
     

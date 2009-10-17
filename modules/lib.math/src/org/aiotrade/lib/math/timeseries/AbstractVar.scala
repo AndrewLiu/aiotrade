@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractVar[@specialized E](var name: String, var plot: Plot) extends Var[E] {
+abstract class AbstractVar[@specialized V](var name: String, var plot: Plot) extends Var[V] {
     
   val LAYER_NOT_SET = -1
         
@@ -52,7 +52,11 @@ abstract class AbstractVar[@specialized E](var name: String, var plot: Plot) ext
   def this(name: String) = {
     this(name, Plot.None)
   }
-        
+
+  def addNullValue(time: Long): Boolean = {
+    add(time, null.asInstanceOf[V])
+  }
+
   def toDoubleArray: Array[Double] = {
     val length = size
     val result = new Array[double](length)
