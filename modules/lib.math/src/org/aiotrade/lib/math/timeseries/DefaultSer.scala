@@ -295,10 +295,13 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               } else logCurrSize
 
               println("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-              val newItems = for (i <- 0 until insertSize) yield {
+              val newItems = new Array[SerItem](insertSize)
+              var i = 0
+              while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
                 varSet foreach {_.addNullValue(time)}
-                createItem(time)
+                newItems(i) = createItem(time)
+                i += 1
               }
               items.insertAll(begIdx1, newItems)
                             
@@ -310,10 +313,13 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               } else logCurrSize
 
               println("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-              val newItems = for (i <- 0 until appendSize) yield {
+              val newItems = new Array[SerItem](appendSize)
+              var i = 0
+              while (i < appendSize) {
                 val time = timestamps(begIdx)
                 varSet foreach {_.addNullValue(time)}
-                createItem(time)
+                newItems(i) = createItem(time)
+                i += 1
               }
               items ++= newItems
 
