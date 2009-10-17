@@ -58,7 +58,7 @@ trait Ser {
 
   def freq: Frequency
 
-  def varSet: scala.collection.Set[Var[_]]
+  def vars: Seq[Var[_]]
   def items: ArrayBuffer[SerItem]
 
   def getItem(time: Long): SerItem

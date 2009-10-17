@@ -47,14 +47,6 @@ abstract class AbstractVar[@specialized V: Manifest](var name: String, var plot:
 
   var layer = LAYER_NOT_SET
     
-  def this() = {
-    this("", Plot.None)
-  }
-    
-  def this(name: String) = {
-    this(name, Plot.None)
-  }
-
   def addNullValue(time: Long): Boolean = {
     add(time, nullValue)
   }

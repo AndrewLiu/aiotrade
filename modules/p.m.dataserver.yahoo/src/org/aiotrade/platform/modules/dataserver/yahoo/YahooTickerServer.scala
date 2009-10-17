@@ -151,7 +151,6 @@ class YahooTickerServer extends TickerServer {
               cal.setTime(date)
             } catch {
               case ex: ParseException =>
-                println("dateStr: " + dateStr + " timeStr:" + timeStr)
                 ex.printStackTrace
                 loop(newestTime)
             }

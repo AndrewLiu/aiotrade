@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  */
 class QuoteSer(freq: Frequency) extends DefaultMasterSer(freq) {
     
-  private var _shortDescription:String = ""
+  private var _shortDescription: String = ""
   var adjusted: Boolean = false
     
   val open   = Var[Float]("O", Plot.Quote)
@@ -51,7 +51,9 @@ class QuoteSer(freq: Frequency) extends DefaultMasterSer(freq) {
   val close_ori = Var[Float]()
   val close_adj = Var[Float]()
     
-  override protected def createItem(time: Long) :QuoteItem = new QuoteItem(this, time)
+  override protected def createItem(time: Long) :QuoteItem = {
+    new QuoteItem(this, time)
+  }
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust

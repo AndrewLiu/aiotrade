@@ -41,7 +41,6 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 trait Var[@specialized V] extends Plottable {
-
   def name: String
   def name_=(name: String): Unit
 
@@ -64,5 +63,7 @@ trait Var[@specialized V] extends Plottable {
   def nullValue: V
 
   def validate: Unit
-    
+
+  private val _hashCode = System.identityHashCode(this)
+  override def hashCode: Int = _hashCode
 }

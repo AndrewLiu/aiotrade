@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.util.pool
 
-import java.util.Iterator
 import java.util.NoSuchElementException
 import java.util.Stack
 
@@ -177,19 +176,17 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
   }
 
   @throws(classOf[RuntimeException])
-  override def returnObject(obj:T): Unit = synchronized {
+  override def returnObject(obj: T): Unit = synchronized {
     assertOpen
     var obj1 = obj
     var success = true
-    if(null != _factory) {
-      if(!(_factory.validateObject(obj))) {
+    if (null != _factory) {
+      if (!(_factory.validateObject(obj))) {
         success = false
       } else {
         try {
           _factory.passivateObject(obj)
-        } catch {
-          case e: Exception => success = false
-        }
+        } catch {case e: Exception => success = false}
       }
     }
 
@@ -197,22 +194,20 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
 
     _numActive -= 1
     if (success) {
-      var toBeDestroyed: Option[T] = None
+      var toBeDestroyed = null.asInstanceOf[T]
       if(_pool.size >= _maxSleeping) {
         shouldDestroy = true
-        toBeDestroyed = Some(_pool.remove(0)) // remove the stalest object
+        toBeDestroyed = _pool.remove(0) // remove the stalest object
       }
       _pool.push(obj)
-      obj1 = toBeDestroyed.get // swap returned obj with the stalest one so it can be destroyed
+      obj1 = toBeDestroyed // swap returned obj with the stalest one so it can be destroyed
     }
     notifyAll // _numActive has changed
 
     if(shouldDestroy) { // by constructor, shouldDestroy is false when _factory is null
       try {
         _factory.destroyObject(obj1)
-      } catch {
-        case e: Exception => // ignored
-      }
+      } catch {case e: Exception =>}
     }
   }
 
@@ -220,10 +215,10 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
   override def invalidateObject(obj: T): Unit = synchronized {
     assertOpen
     _numActive -= 1
-    if(null != _factory ) {
+    if (null != _factory ) {
       _factory.destroyObject(obj)
     }
-    notifyAll(); // _numActive has changed
+    notifyAll // _numActive has changed
   }
 
   override def getNumIdle: Int = synchronized {
@@ -238,7 +233,7 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
 
   override def clear: Unit = synchronized {
     assertOpen
-    if(null != _factory) {
+    if (null != _factory) {
       val it = _pool.iterator
       while(it.hasNext) {
         try {

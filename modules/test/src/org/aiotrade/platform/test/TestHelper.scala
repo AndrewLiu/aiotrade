@@ -156,9 +156,9 @@ trait TestHelper {
     println
     println(indicator.freq)
     println(indicator.shortDescription + ":" + indicator.size)
-    for (var1 <- indicator.varSet) {
-      print(var1.name + ": ")
-      var1.values.reverse foreach {x => print(x + ",")}
+    for (v <- indicator.vars) {
+      print(v.name + ": ")
+      v.values.reverse foreach {x => print(x + ",")}
       println
     }
   }
@@ -166,8 +166,8 @@ trait TestHelper {
   def printLastValueOf(indicator: Indicator): Unit = {
     println
     println(indicator.freq + "-" +indicator.shortDescription + ":" + indicator.size)
-    for (var1 <- indicator.varSet if var1.size > 0) {
-      println(var1.name + ": " + var1.values.last)
+    for (v <- indicator.vars if v.size > 0) {
+      println(v.name + ": " + v.values.last)
     }
   }
 
@@ -179,8 +179,8 @@ trait TestHelper {
     println("ticker: "  + sec.tickerSer.size)
   }
 
-  def reportInds(inds:Seq[Indicator]) {
-    inds foreach {printLastValueOf(_)}
+  def reportInds(inds: Seq[Indicator]) {
+    inds foreach printLastValueOf
   }
 
 
