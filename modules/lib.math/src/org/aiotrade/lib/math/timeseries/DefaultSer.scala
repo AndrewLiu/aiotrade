@@ -123,6 +123,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * @param clearItem
    */
   private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime: Long, clearItem: SerItem): Unit = synchronized {
+    // @Note: writeLock timestamps only when insert/append it
     val lastOccurredTime = timestamps.lastOccurredTime
     if (itemTime < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
@@ -197,8 +198,6 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
       while (i >= 0 && i < size) {
         val value = values(i)
         val item = createItemOrClearIt(value.time)
-        println("ts length=" + timestamps.size)
-        vars foreach {x => println(x + " size=" + x.size)}
         item.assignValue(value)
 
         if (shouldReverse) {
