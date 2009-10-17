@@ -133,14 +133,12 @@ class YahooTickerServer extends TickerServer {
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
       case line => line.split(",") match {
-          case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*) =>
-            val symbol = symbolX.toUpperCase.replace('"', ' ').trim
+          case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*)
+            if !dateX.toUpperCase.contains("N/A") && !timeX.toUpperCase.contains("N/A") =>
 
+            val symbol = symbolX.toUpperCase.replace('"', ' ').trim
             val dateStr = dateX.replace('"', ' ').trim
             val timeStr = timeX.replace('"', ' ').trim
-            if (dateStr.equalsIgnoreCase("N/A") || timeStr.equalsIgnoreCase("N/A")) {
-              loop(newestTime)
-            }
 
             /**
              * !NOTICE
@@ -153,6 +151,7 @@ class YahooTickerServer extends TickerServer {
               cal.setTime(date)
             } catch {
               case ex: ParseException =>
+                println("dateStr: " + dateStr + " timeStr:" + timeStr)
                 ex.printStackTrace
                 loop(newestTime)
             }
