@@ -530,9 +530,12 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
    * --------------------------------------------------------------------
    */
   object Factor {
-    def apply(name: String, value: Number) = new InnerFactor(name, value, null, null, null)
-    def apply(name: String, value: Number, step: Number) = new InnerFactor(name, value, step, null, null)
-    def apply(name: String, value: Number, step: Number, minValue: Number, maxValue: Number) = new InnerFactor(name, value, step, minValue, maxValue)
+    def apply(name: String, value: Number) =
+      new InnerFactor(name, value, null, null, null)
+    def apply(name: String, value: Number, step: Number) =
+      new InnerFactor(name, value, step, null, null)
+    def apply(name: String, value: Number, step: Number, minValue: Number, maxValue: Number) =
+      new InnerFactor(name, value, step, minValue, maxValue)
   }
     
   protected class InnerFactor(name: String,

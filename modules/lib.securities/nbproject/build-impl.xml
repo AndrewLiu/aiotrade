@@ -222,11 +222,11 @@ Scala installation directory.
             <attribute default="${javac.classpath}" name="classpath"/>
             <attribute default="${includes}" name="includes"/>
             <attribute default="${excludes}" name="excludes"/>
-            <attribute default="${javac.compilerargs}" name="addparams"/>
+            <attribute default="${scalac.compilerargs}" name="addparams"/>
             <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <fsc addparams="@{addparams}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}">
+                <fsc addparams="@{addparams}" deprecation="${scalac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}" unchecked="${scalac.unchecked}">
                     <classpath>
                         <path path="@{classpath}"/>
                         <fileset dir="${scala.lib}">
@@ -555,14 +555,14 @@ Scala installation directory.
             -->
     <target depends="init" name="-javadoc-build">
         <mkdir dir="${dist.javadoc.dir}"/>
-        <javadoc additionalparam="${javadoc.additionalparam}" author="${javadoc.author}" charset="UTF-8" destdir="${dist.javadoc.dir}" docencoding="UTF-8" encoding="${javadoc.encoding.used}" failonerror="true" noindex="${javadoc.noindex}" nonavbar="${javadoc.nonavbar}" notree="${javadoc.notree}" private="${javadoc.private}" source="${javac.source}" splitindex="${javadoc.splitindex}" use="${javadoc.use}" useexternalfile="true" version="${javadoc.version}" windowtitle="${javadoc.windowtitle}">
+        <scaladoc addparams="${javadoc.additionalparam}" deprecation="yes" destdir="${dist.javadoc.dir}" doctitle="${javadoc.windowtitle}" encoding="${javadoc.encoding.used}" srcdir="${src.dir}" unchecked="yes" windowtitle="${javadoc.windowtitle}">
             <classpath>
                 <path path="${javac.classpath}"/>
+                <fileset dir="${scala.lib}">
+                    <include name="**/*.jar"/>
+                </fileset>
             </classpath>
-            <fileset dir="${src.dir}" excludes="${excludes}" includes="${includes}">
-                <filename name="**/*.java"/>
-            </fileset>
-        </javadoc>
+        </scaladoc>
     </target>
     <target depends="init,-javadoc-build" if="netbeans.home" name="-javadoc-browse" unless="no.javadoc.preview">
         <nbbrowse file="${dist.javadoc.dir}/index.html"/>

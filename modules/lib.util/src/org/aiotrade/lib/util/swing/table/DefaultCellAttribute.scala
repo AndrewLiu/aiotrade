@@ -268,7 +268,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
-    spans = new Array[Array[Array[Int]]](numRows, numColumns + 1, 2)
+    spans = Array.ofDim(numRows, numColumns + 1, 2)
     System.arraycopy(oldSpan, 0, spans, 0, numRows)
     for (i <- 0 until numRows) {
       spans(i)(numColumns)(CellSpan.COLUMN) = 1
@@ -276,7 +276,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
 
     val oldAttr = attrs;
-    attrs = new Array[Array[Attr]](numRows, numColumns + 1)
+    attrs = Array.ofDim(numRows, numColumns + 1)
     System.arraycopy(oldAttr, 0, attrs, 0, numRows);
   }
 
@@ -285,7 +285,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     val numRows = oldSpan.length;
     val numColumns = oldSpan(0).length;
 
-    spans = new Array[Array[Array[Int]]](numRows + 1, numColumns, 2)
+    spans = Array.ofDim(numRows + 1, numColumns, 2)
     System.arraycopy(oldSpan, 0, spans, 0, numRows)
     for (i <- 0 until numColumns) {
       spans(numRows)(i)(CellSpan.COLUMN) = 1
@@ -293,7 +293,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
 
     val oldAttr = attrs
-    attrs = new Array[Array[Attr]](numRows, numColumns + 1)
+    attrs = Array.ofDim(numRows, numColumns + 1)
     System.arraycopy(oldAttr, 0, attrs, 0, numRows)
   }
 
@@ -301,7 +301,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
-    spans = new Array[Array[Array[Int]]](numRows + 1, numColumns, 2)
+    spans = Array.ofDim(numRows + 1, numColumns, 2)
     if (0 < row) {
       System.arraycopy(oldSpan, 0, spans, 0, row - 1)
     }
@@ -319,8 +319,8 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
   def setSize(size: Dimension): Unit = {
     columnSize = size.width
     rowSize = size.height
-    spans = new Array[Array[Array[Int]]](rowSize, columnSize, 2)   // 2: COLUMN,ROW
-    attrs = new Array[Array[Attr]](rowSize, columnSize)
+    spans = Array.ofDim(rowSize, columnSize, 2)   // 2: COLUMN,ROW
+    attrs = Array.ofDim(rowSize, columnSize)
     initValue
   }
 
@@ -339,7 +339,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  protected def isOutOfBounds(rows: Array[int], columns: Array[Int]): Boolean = {
+  protected def isOutOfBounds(rows: Array[Int], columns: Array[Int]): Boolean = {
     for (i <- 0 until rows.length) {
       if ((rows(i) < 0) || (rowSize <= rows(i))) {
         return true

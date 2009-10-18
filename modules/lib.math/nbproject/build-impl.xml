@@ -182,7 +182,7 @@ Scala installation directory.
                             <include name="**/*.jar"/>
                         </fileset>
                     </classpath>
-                    <compilerarg line="${javac.compilerargs} ${javac.compilerargs.jaxws}"/>
+                    <compilerarg line="${javac.compilerargs.jaxws}"/>
                     <customize/>
                 </javac>
             </sequential>

@@ -16,7 +16,7 @@ trait CellSpan {
 
   def getSpan(row: Int, column: Int): Array[Int]
 
-  def setSpan(span: Array[int], row: Int, column: Int): Unit
+  def setSpan(span: Array[Int], row: Int, column: Int): Unit
 
   def isVisible(row: Int, column: Int) :Boolean
 
