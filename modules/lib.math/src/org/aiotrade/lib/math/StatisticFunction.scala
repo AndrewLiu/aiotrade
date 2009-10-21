@@ -157,7 +157,7 @@ object StatisticFunction {
     if (lookbackIdx < 0 || idx >= values.size) {
       Float.NaN
     } else if (lookbackIdx == 0) {
-      max(values, 0, idx);
+      max(values, 0, idx)
     } else {
       if (prev.isNaN || values(lookbackIdx - 1) == prev) {
         max(values, lookbackIdx, idx)
@@ -178,7 +178,7 @@ object StatisticFunction {
     if (lookbackIdx < 0 || idx >= values.size) {
       Float.NaN
     } else if (lookbackIdx == 0) {
-      min(values, 0, idx);
+      min(values, 0, idx)
     } else {
       if (prev.isNaN || values(lookbackIdx - 1) == prev) {
         min(values, lookbackIdx, idx)
@@ -269,7 +269,7 @@ object StatisticFunction {
 
     val begIdx1 = if (begIdx < 0) 0 else begIdx
 
-    val maxmin1 = maxmin(values, begIdx1, endIdx);
+    val maxmin1 = maxmin(values, begIdx1, endIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
     probMass(values, weights, begIdx1, endIdx, max, min, nIntervals)
@@ -309,7 +309,8 @@ object StatisticFunction {
    * Probability Mass Function
    */
   private def probMass(values: ArrayBuffer[Float], weights: ArrayBuffer[Float],
-                       begIdx: Int, endIdx: Int, max: Float, min: Float, nIntervals: Int): Array[Array[Float]] = {
+                       begIdx: Int, endIdx: Int, max: Float, min: Float, nIntervals: Int
+  ): Array[Array[Float]] = {
 
     if (nIntervals <= 0) {
       return null
@@ -351,7 +352,8 @@ object StatisticFunction {
    * Probability Density Function
    */
   def probMassWithTimeInfo(values: ArrayBuffer[Float], weights: ArrayBuffer[Float],
-                           begIdx: Int, endIdx: Int, interval: Float): Array[Array[Float]] = {
+                           begIdx: Int, endIdx: Int, interval: Float
+  ): Array[Array[Float]] = {
 
     if (begIdx < 0 || interval <= 0) {
       return null
