@@ -34,7 +34,7 @@ package org.aiotrade.lib.math.util
  *
  * @author Caoyuan Deng
  */
-class Signal(idx: Int, time: Long, value: Float, sign: Sign, name: String) extends Number {
+class Signal(idx: Int, time: Long, val value: Float, val sign: Sign, val name: String) extends Number {
 
   def doubleValue: Double = value.asInstanceOf[Double]
 

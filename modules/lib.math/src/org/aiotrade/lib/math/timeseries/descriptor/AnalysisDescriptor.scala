@@ -46,9 +46,12 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[+S](var serviceClassName: String, var freq: Frequency, var active: Boolean) extends WithActions {
+abstract class AnalysisDescriptor[+S](private var aserviceClassName: String, 
+                                      private var afreq: Frequency,
+                                      private var aactive: Boolean) extends WithActions {
+
   private val withActionsHelper = new WithActionsHelper(this)
-    
+
   var containerContents: AnalysisContents = _
 
   /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
@@ -62,7 +65,7 @@ abstract class AnalysisDescriptor[+S](var serviceClassName: String, var freq: Fr
     this.serviceClassName = serviceClassName
     this.freq = freq.clone
   }
-            
+
   protected def createServiceInstance(args: Any*): Option[S]
 
   /**
@@ -87,7 +90,16 @@ abstract class AnalysisDescriptor[+S](var serviceClassName: String, var freq: Fr
   protected def isServiceInstanceCreated: Boolean = {
     _serviceInstance != None
   }
-    
+
+  def serviceClassName_=(serviceClassName: String) = this.aserviceClassName = serviceClassName
+  def serviceClassName = aserviceClassName
+
+  def freq_=(freq: Frequency) = this.afreq = freq
+  def freq = afreq
+
+  def active_=(active: Boolean) = this.aactive = active
+  def active = aactive
+
   def displayName: String
     
   def idEquals(serviceClassName: String, freq: Frequency): Boolean = {

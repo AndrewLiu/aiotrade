@@ -30,11 +30,6 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import java.lang.ref.WeakReference
-import java.util.HashSet
-import java.util.Map
-import java.util.Set
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import org.aiotrade.lib.math.timeseries.{DefaultSer,Ser,Var}
 import org.aiotrade.lib.math.timeseries.computable.{Factor}

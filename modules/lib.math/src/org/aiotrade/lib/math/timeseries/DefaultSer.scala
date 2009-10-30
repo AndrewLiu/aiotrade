@@ -450,7 +450,8 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     def apply[@specialized V: Manifest](name: String, plot: Plot) = new InnerVar[V](name, plot)
   }
   
-  protected class InnerVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
+  protected class InnerVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractInnerVar[V](name, plot) {
 
     var values = new ArrayBuffer[V]
 
@@ -481,7 +482,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
 
     def validate: Unit = {
-      val newValues = new ArrayBuffer[V]{override val initialSize = INIT_CAPACITY}
+      val newValues = new ArrayBuffer[V] {override val initialSize = INIT_CAPACITY}
 
       var i = 0
       var j = 0
@@ -521,7 +522,8 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
   }
 
-  protected class SparseVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractInnerVar[V](name, plot) {
+  protected class SparseVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractInnerVar[V](name, plot) {
 
     val values = new TimestampedMapBasedList[V](timestamps)
 
@@ -565,7 +567,8 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerVar[@specialized V: Manifest](name: String, plot: Plot) extends AbstractVar[V](name, plot) {
+  abstract class AbstractInnerVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractVar[V](name, plot) {
     addVar(this)
 
     private val colors = new TimestampedMapBasedList[Color](timestamps)

@@ -39,7 +39,7 @@ import java.awt.Color
 trait Plottable {
     
   def plot: Plot
-  def plot_=(plot: Plot) :unit
+  def plot_=(plot: Plot) :Unit
     
   def getColor(idx: Int): Color
   def setColor(idx: Int, color: Color): Unit
