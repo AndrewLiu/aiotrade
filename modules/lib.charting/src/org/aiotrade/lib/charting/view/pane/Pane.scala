@@ -209,7 +209,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     if (LookFeel.getCurrent.isAntiAlias) {
       g.setRenderingHint(
         RenderingHints.KEY_ANTIALIASING,
-        RenderingHints.VALUE_ANTIALIAS_ON);
+        RenderingHints.VALUE_ANTIALIAS_ON)
     }
 
     if (isOpaque) {
@@ -278,7 +278,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
   }
 
   final private def createBackRenderBuffer: BufferedImage = {
-    new BufferedImage(wBackRenderBuffer, hBackRenderBuffer, BufferedImage.TYPE_INT_ARGB);
+    new BufferedImage(wBackRenderBuffer, hBackRenderBuffer, BufferedImage.TYPE_INT_ARGB)
   }
 
   final private def paintToBackRenderBuffer {
@@ -318,19 +318,19 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
   }
 
   def setReferCursorValue(referCursorValue: Float) {
-    this.referCursorValue = referCursorValue;
+    this.referCursorValue = referCursorValue
   }
 
   def getReferCursorValue: Float = {
-    referCursorValue;
+    referCursorValue
   }
 
   def setAutoReferCursorValue(b: Boolean) {
-    this.autoReferCursorValue = b;
+    this.autoReferCursorValue = b
   }
 
   def isAutoReferCursorValue: Boolean = {
-    autoReferCursorValue;
+    autoReferCursorValue
   }
 
   def getChartAt(x: Int, y: Int): Chart = {
