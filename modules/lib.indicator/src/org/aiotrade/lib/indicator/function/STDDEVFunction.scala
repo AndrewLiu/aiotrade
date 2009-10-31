@@ -1,4 +1,4 @@
-/*
+TVarTSerTSer/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -32,7 +32,7 @@ package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
 import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
  * @author Caoyuan Deng
  */
 object STDDEVFunction {
-  protected def stdDev(idx: Int, baseVar: Var[Float], period: Float): Float = {
+  protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
@@ -52,14 +52,14 @@ object STDDEVFunction {
 class STDDEVFunction extends AbstractFunction {
     
   var period: Factor = _
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
     
   val _stdDev = Var[Float]()
     
   override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Float]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     

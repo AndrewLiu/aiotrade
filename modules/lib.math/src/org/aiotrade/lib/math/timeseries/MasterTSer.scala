@@ -35,7 +35,7 @@ package org.aiotrade.lib.math.timeseries
  * 
  * @author Caoyuan Deng
  */
-trait MasterSer extends Ser {
+trait MasterTSer extends TSer {
     
   /**
    * @NOTICE we can only trust MasterSer to translate row <-> time properly.
@@ -43,7 +43,7 @@ trait MasterSer extends Ser {
   def timeOfRow(row: Int): Long
   def rowOfTime(time: Long): Int
   def lastOccurredRow: Int
-  def getItemByRow(row: Int): SerItem
+  def getItemByRow(row: Int): TItem
 
   def setOnCalendarMode: Unit
   def setOnOccurredMode: Unit

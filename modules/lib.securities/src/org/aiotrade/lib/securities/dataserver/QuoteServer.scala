@@ -31,10 +31,10 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.{Calendar,TimeZone}
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.math.timeseries.{Ser,AddAll}
+import org.aiotrade.lib.math.timeseries.{TSer,AddAll}
 import org.aiotrade.lib.securities.{Market, Quote, QuotePool, PersistenceManager}
 
 import scala.collection.mutable.ArrayBuffer
@@ -151,7 +151,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  protected def composeSer(symbol: String, quoteSer: Ser, storage: ArrayBuffer[Quote]): SerChangeEvent =  {
+  protected def composeSer(symbol: String, quoteSer: TSer, storage: ArrayBuffer[Quote]): SerChangeEvent =  {
     var evt: SerChangeEvent = null
 
     val size = storage.size
@@ -214,11 +214,11 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
    * Override to provide your options
    * @return supported frequency array.
    */
-  def supportedFreqs: Array[Frequency] = {
+  def supportedFreqs: Array[TFreq] = {
     Array()
   }
 
-  def isFreqSupported(freq: Frequency): Boolean = {
+  def isFreqSupported(freq: TFreq): Boolean = {
     for (afreq <- supportedFreqs) {
       if (afreq.equals(freq)) {
         return true

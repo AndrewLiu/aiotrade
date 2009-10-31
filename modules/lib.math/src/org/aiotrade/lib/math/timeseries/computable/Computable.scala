@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries.computable
 
 import scala.collection.mutable.ArrayBuffer
 import java.text.DecimalFormat
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import scala.actors.Actor._
 
 /**
@@ -68,7 +68,7 @@ trait Computable {
 object Computable {
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  def displayName(ser: Ser): String = ser match {
+  def displayName(ser: TSer): String = ser match {
     case x: Computable => displayName(ser.shortDescription, x.factors)
     case _ => ser.shortDescription
   }

@@ -34,9 +34,9 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
-trait SerItem {
+trait TItem {
 
-  def ser: Ser
+  def ser: TSer
     
   def index: Int
     
@@ -46,14 +46,14 @@ trait SerItem {
     
   def time: Long
     
-  def get[@specialized V](v: Var[V]): V
+  def get[@specialized V](v: TVar[V]): V
     
-  def getFloat(v: Var[_]): Float
+  def getFloat(v: TVar[_]): Float
     
-  def setFloat[@specialized V >: Number](v: Var[V], number: V): Unit
+  def setFloat[@specialized V >: Number](v: TVar[V], number: V): Unit
     
-  def set[@specialized V](v: Var[V], o: V): Unit
+  def set[@specialized V](v: TVar[V], o: V): Unit
 
-  def assignValue[@specialized T <: TimeValue](value: T): Unit
+  def assignValue[@specialized T <: TVal](value: T): Unit
 }
 

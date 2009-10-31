@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -42,16 +42,16 @@ class ZIGZAGFunction extends AbstractFunction {
     
   var percent: Factor = _
     
-  val _peakHi    = Var[Float]()
-  val _peakLo    = Var[Float]()
-  val _peakHiIdx = Var[Int]()
-  val _peakLoIdx = Var[Int]()
-  val _direction = Var[Direction]()
+  val _peakHi    = TVar[Float]()
+  val _peakLo    = TVar[Float]()
+  val _peakHiIdx = TVar[Int]()
+  val _peakLoIdx = TVar[Int]()
+  val _direction = TVar[Direction]()
     
-  val _zigzag       = Var[Float]()
-  val _pseudoZigzag = Var[Float]()
+  val _zigzag       = TVar[Float]()
+  val _pseudoZigzag = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.percent = args(0).asInstanceOf[Factor]

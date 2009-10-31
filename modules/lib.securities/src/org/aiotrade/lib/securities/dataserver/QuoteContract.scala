@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.awt.Image
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
 
 /**
@@ -50,7 +50,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"
   active = true
   /** default freq */
-  freq = Frequency.DAILY
+  freq = TFreq.DAILY
   dateFormatPattern = null
   urlString = ""
   refreshable = false
@@ -71,7 +71,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
   }
 
-  def supportedFreqs: Array[Frequency] = {
+  def supportedFreqs: Array[TFreq] = {
     val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
 
     server match {
@@ -80,7 +80,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
     }
   }
 
-  def isFreqSupported(freq: Frequency): Boolean = {
+  def isFreqSupported(freq: TFreq): Boolean = {
     //        /** check if is my default freq, if true at least support default freq */
     //        if (freq.equals(getFreq())) {
     //            return true;

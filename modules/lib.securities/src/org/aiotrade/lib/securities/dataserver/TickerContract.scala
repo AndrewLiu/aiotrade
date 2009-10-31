@@ -31,7 +31,7 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
 
 
@@ -49,7 +49,7 @@ class TickerContract extends SecDataContract[TickerServer] {
   import TickerContract._
     
   serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
-  freq = Frequency.ONE_MIN
+  freq = TFreq.ONE_MIN
   urlString = ""
   refreshable = true
   refreshInterval = 5 // seconds
@@ -87,7 +87,7 @@ class TickerContract extends SecDataContract[TickerServer] {
   /**
    * Ticker contract don't care about freq, so override super
    */
-  override def idEquals(serviceClassName: String, freq: Frequency): Boolean = {
+  override def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
     if (this.serviceClassName.equals(serviceClassName)) true
     else false
   }

@@ -1,4 +1,4 @@
-/*
+TItem/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -32,10 +32,10 @@ package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.MasterSer;
+import org.aiotrade.lib.math.timeseries.MasterTSer;
 import org.aiotrade.lib.math.timeseries.SerItem;
-import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
 
 
@@ -44,7 +44,7 @@ import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
  * @author Caoyuan Deng
  */
 //@IndicatorName("QUOTECOMPARE")
-class QuoteCompareIndicator(baseSer: Ser) extends ContIndicator(baseSer) {
+class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     
   private var _serToBeCompared: QuoteSer = _
         
@@ -57,11 +57,11 @@ class QuoteCompareIndicator(baseSer: Ser) extends ContIndicator(baseSer) {
   val maxValue    = Factor("Max Value", -Float.MaxValue)
   val minValue    = Factor("Min Value", +Float.MaxValue)
     
-  var open   = Var[Float]("O", Plot.Quote)
-  var high   = Var[Float]("H", Plot.Quote)
-  var low    = Var[Float]("L", Plot.Quote)
-  var close  = Var[Float]("C", Plot.Quote)
-  var volume = Var[Float]("V", Plot.Quote)
+  var open   = TVar[Float]("O", Plot.Quote)
+  var high   = TVar[Float]("H", Plot.Quote)
+  var low    = TVar[Float]("L", Plot.Quote)
+  var close  = TVar[Float]("C", Plot.Quote)
+  var volume = TVar[Float]("V", Plot.Quote)
     
   protected def computeCont(begIdx: Int, itemSize: Int): Unit = {
     /** camparing base point is the value of begin time (the most left on screen */

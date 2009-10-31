@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.widget.Arrow
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
 
@@ -45,9 +45,9 @@ import org.aiotrade.lib.math.util.Signal
  */
 class SignalChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: Var[Signal] = _
+    var v: TVar[Signal] = _
         
-    def set(v: Var[Signal]) {
+    def set(v: TVar[Signal]) {
       this.v = v
     }
   }

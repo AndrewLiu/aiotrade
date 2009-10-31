@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.SerItem
+import org.aiotrade.lib.math.timeseries.TItem
 import org.aiotrade.lib.math.timeseries.Var
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
@@ -50,11 +50,11 @@ class HVDIndicator extends SpotIndicator {
   val period2    = Factor("Period2",  100)
   val period3    = Factor("Period3",  200)
     
-  val HVD1 = Var[Array[Array[Float]]]("HVD1", Plot.Profile)
-  val HVD2 = Var[Array[Array[Float]]]("HVD2", Plot.Profile)
-  val HVD3 = Var[Array[Array[Float]]]("HVD3", Plot.Profile)
+  val HVD1 = TVar[Array[Array[Float]]]("HVD1", Plot.Profile)
+  val HVD2 = TVar[Array[Array[Float]]]("HVD2", Plot.Profile)
+  val HVD3 = TVar[Array[Array[Float]]]("HVD3", Plot.Profile)
     
-  def computeSpot(time: Long, baseIdx: Int): SerItem = {
+  def computeSpot(time: Long, baseIdx: Int): TItem = {
     val item = createItemOrClearIt(time)
         
     val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)

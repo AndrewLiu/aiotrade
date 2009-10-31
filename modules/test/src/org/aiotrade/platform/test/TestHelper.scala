@@ -19,7 +19,7 @@ import org.aiotrade.platform.modules.indicator.basic._
 
 trait TestHelper {
     
-  def createQuoteContract(symbol: String, category: String , sname: String, freq: Frequency, refreshable: Boolean, server: Class[_]): QuoteContract = {
+  def createQuoteContract(symbol: String, category: String , sname: String, freq: TFreq, refreshable: Boolean, server: Class[_]): QuoteContract = {
     val dataContract = new QuoteContract
 
     dataContract.active = true
@@ -40,7 +40,7 @@ trait TestHelper {
     dataContract
   }
 
-  def createTickerContract(symbol: String, category: String, sname: String, freq: Frequency, server: Class[_]): TickerContract = {
+  def createTickerContract(symbol: String, category: String, sname: String, freq: TFreq, server: Class[_]): TickerContract = {
     val dataContract = new TickerContract
 
     dataContract.active = true
@@ -61,7 +61,7 @@ trait TestHelper {
     dataContract
   }
 
-  def createAnalysisContents(symbol: String, freq: Frequency): AnalysisContents = {
+  def createAnalysisContents(symbol: String, freq: TFreq): AnalysisContents = {
     val contents = new AnalysisContents(symbol)
 
     contents.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
@@ -88,7 +88,7 @@ trait TestHelper {
     contents
   }
 
-  def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: Frequency): IndicatorDescriptor = {
+  def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: TFreq): IndicatorDescriptor = {
     val descriptor = new IndicatorDescriptor
     descriptor.active = true
     descriptor.serviceClassName = clazz.getName
@@ -174,8 +174,8 @@ trait TestHelper {
   def reportQuote(sec: Stock) {
     sec.uniSymbol
     println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
-    sec.serOf(Frequency.DAILY)   foreach {x => println("daily: "  + x.size)}
-    sec.serOf(Frequency.ONE_MIN) foreach {x => println("1 min: "  + x.size)}
+    sec.serOf(TFreq.DAILY)   foreach {x => println("daily: "  + x.size)}
+    sec.serOf(TFreq.ONE_MIN) foreach {x => println("1 min: "  + x.size)}
     println("ticker: "  + sec.tickerSer.size)
   }
 

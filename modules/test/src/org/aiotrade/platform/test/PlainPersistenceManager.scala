@@ -12,7 +12,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.platform.modules.indicator.basic._
@@ -28,9 +28,9 @@ class PlainPersistenceManager extends PersistenceManager {
   private val tickerServers = new ArrayBuffer[TickerServer]
   private val indicators = new ArrayBuffer[Indicator]
 
-  def saveQuotes(symbol: String, freq: Frequency, quotes: ArrayBuffer[Quote], sourceId: Long): Unit = {}
-  def restoreQuotes(symbol: String, freq: Frequency): ArrayBuffer[Quote] = new ArrayBuffer[Quote]
-  def deleteQuotes(symbol: String, freq: Frequency, fromTime: Long, toTime: Long): Unit = {}
+  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayBuffer[Quote], sourceId: Long): Unit = {}
+  def restoreQuotes(symbol: String, freq: TFreq): ArrayBuffer[Quote] = new ArrayBuffer[Quote]
+  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long): Unit = {}
   def dropAllQuoteTables(symbol: String): Unit = {}
 
   def shutdown: Unit = {}

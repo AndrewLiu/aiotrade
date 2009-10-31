@@ -64,7 +64,7 @@ import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.math.timeseries.{DefaultSer, Ser, Var}
+import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 
@@ -86,12 +86,12 @@ object AbstractIndicator {
    * a helper function for keeping the same functin form as Function, don't be
    * puzzled by the name, it actully will return funcion instance
    */
-  protected def getInstance[T <: Function](clazz: Class[T], baseSer: Ser, args: Any*): T = {
+  protected def getInstance[T <: Function](clazz: Class[T], baseSer: TSer, args: Any*): T = {
     AbstractFunction.getInstance(clazz, baseSer, args: _*)
   }
 
   // ----- Functions for test
-  protected def crossOver(idx: Int, var1: Var[Float], var2: Var[Float]): Boolean = {
+  protected def crossOver(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
     if (idx > 0) {
       if (var1(idx) >= var2(idx) &&
           var1(idx - 1) < var2(idx - 1)) {
@@ -101,7 +101,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossOver(idx: Int, var1: Var[Float], value:Float): Boolean = {
+  protected def crossOver(idx: Int, var1: TVar[Float], value:Float): Boolean = {
     if (idx > 0) {
       if (var1(idx) >= value &&
           var1(idx - 1) < value) {
@@ -111,7 +111,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossUnder(idx: Int, var1: Var[Float], var2: Var[Float]): Boolean = {
+  protected def crossUnder(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
     if (idx > 0) {
       if (var1(idx) < var2(idx) &&
           var1(idx - 1) >= var2(idx - 1)) {
@@ -121,7 +121,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def crossUnder(idx: Int, var1: Var[Float], value: Float): Boolean = {
+  protected def crossUnder(idx: Int, var1: TVar[Float], value: Float): Boolean = {
     if (idx > 0) {
       if (var1(idx) < value &&
           var1(idx - 1) >= value) {
@@ -131,7 +131,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def turnUp(idx: Int, var1: Var[Float]): Boolean = {
+  protected def turnUp(idx: Int, var1: TVar[Float]): Boolean = {
     if (idx > 1) {
       if (var1(idx) > var1(idx - 1) &&
           var1(idx - 1) <= var1(idx - 2)) {
@@ -141,7 +141,7 @@ object AbstractIndicator {
     false
   }
 
-  protected def turnDown(idx: Int, var1: Var[Float]): Boolean = {
+  protected def turnDown(idx: Int, var1: TVar[Float]): Boolean = {
     if (idx > 1) {
       if (var1(idx) < var1(idx - 1) &&
           var1(idx - 1) >= var1(idx - 2)) {
@@ -155,7 +155,7 @@ object AbstractIndicator {
 
 }
 
-abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator {
+abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicator {
   import AbstractIndicator._
     
   /**
@@ -178,14 +178,14 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
   protected var _grids: Array[Float] = _
     
   /** base series to compute this */
-  protected var _baseSer: Ser = _
+  protected var _baseSer: TSer = _
     
   /** To store values of open, high, low, close, volume: */
-  protected var O: Var[Float] = _
-  protected var H: Var[Float] = _
-  protected var L: Var[Float] = _
-  protected var C: Var[Float] = _
-  protected var V: Var[Float] = _
+  protected var O: TVar[Float] = _
+  protected var H: TVar[Float] = _
+  protected var L: TVar[Float] = _
+  protected var C: TVar[Float] = _
+  protected var V: TVar[Float] = _
     
   init(baseSer)
     
@@ -204,7 +204,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
    * 1. via constructor (except the no-arg constructor)
    * 2. via createInstance
    */
-  def init(baseSer: Ser): Unit = {
+  def init(baseSer: TSer): Unit = {
     if (baseSer != null) {
       super.init(baseSer.freq)
       this._baseSer = baseSer
@@ -348,7 +348,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     }
   }
     
-  def createNewInstance(baseSer: Ser): Indicator = {
+  def createNewInstance(baseSer: TSer): Indicator = {
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
       instance.init(baseSer)
@@ -370,35 +370,35 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
    * ----------------------------------------------------------------------
    */
     
-  protected def sum(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def sum(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[SUMFunction], _baseSer, baseVar, period).sum(sessionId, idx)
   }
     
-  protected def max(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def max(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[MAXFunction], _baseSer, baseVar, period).max(sessionId, idx)
   }
     
-  protected def min(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def min(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[MINFunction], _baseSer, baseVar, period).min(sessionId, idx)
   }
     
-  protected def ma(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def ma(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[MAFunction], _baseSer, baseVar, period).ma(sessionId, idx)
   }
     
-  protected def ema(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def ema(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[EMAFunction], _baseSer, baseVar, period).ema(sessionId, idx)
   }
     
-  protected def stdDev(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def stdDev(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[STDDEVFunction], _baseSer, baseVar, period).stdDev(sessionId, idx)
   }
     
-  protected def probMass(idx: Int, baseVar: Var[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: TVar[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
     getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, null, period, nInterval).probMass(sessionId, idx)
   }
     
-  protected def probMass(idx: Int, baseVar: Var[Float], weight: Var[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
     getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, weight, period, nInterval).probMass(sessionId, idx)
   }
     
@@ -434,15 +434,15 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     getInstance(classOf[ADXRFunction], _baseSer, periodDi, periodAdx).adxr(sessionId, idx)
   }
     
-  protected def bollMiddle(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
+  protected def bollMiddle(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollMiddle(sessionId, idx)
   }
     
-  protected def bollUpper(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
+  protected def bollUpper(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollUpper(sessionId, idx)
   }
     
-  protected def bollLower(idx: Int, baseVar: Var[_], period: Factor, alpha: Factor): Float = {
+  protected def bollLower(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
     getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollLower(sessionId, idx)
   }
     
@@ -450,7 +450,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     getInstance(classOf[CCIFunction], _baseSer, period, alpha).cci(sessionId, idx)
   }
     
-  protected def macd(idx: Int, baseVar: Var[_], periodSlow: Factor, periodFast: Factor): Float = {
+  protected def macd(idx: Int, baseVar: TVar[_], periodSlow: Factor, periodFast: Factor): Float = {
     getInstance(classOf[MACDFunction], _baseSer, baseVar, periodSlow, periodFast).macd(sessionId, idx)
   }
     
@@ -458,7 +458,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     getInstance(classOf[MFIFunction], _baseSer, period).mfi(sessionId, idx)
   }
     
-  protected def mtm(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def mtm(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[MTMFunction], _baseSer, baseVar, period).mtm(sessionId, idx)
   }
     
@@ -466,7 +466,7 @@ abstract class AbstractIndicator(baseSer: Ser) extends DefaultSer with Indicator
     getInstance(classOf[OBVFunction], _baseSer).obv(sessionId, idx)
   }
     
-  protected def roc(idx: Int, baseVar: Var[_], period: Factor): Float = {
+  protected def roc(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[ROCFunction], _baseSer, baseVar, period).roc(sessionId, idx)
   }
     

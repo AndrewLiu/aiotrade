@@ -37,7 +37,7 @@ import java.util.Calendar
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.StatisticFunction
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
 
 /**
@@ -46,9 +46,9 @@ import org.aiotrade.lib.charting.laf.LookFeel
  */
 class ProfileChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: Var[_] = _
+    var v: TVar[_] = _
         
-    def set(v: Var[_]) {
+    def set(v: TVar[_]) {
       this.v = v
     }
   }

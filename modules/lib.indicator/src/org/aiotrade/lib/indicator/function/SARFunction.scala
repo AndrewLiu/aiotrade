@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -42,13 +42,13 @@ class SARFunction extends AbstractFunction {
     
   var initial, step, maximum: Factor = _
     
-  val _direction = Var[Direction]()
-  val _ep        = Var[Float]()
-  val _af        = Var[Float]()
+  val _direction = TVar[Direction]()
+  val _ep        = TVar[Float]()
+  val _af        = TVar[Float]()
     
-  val _sar = Var[Float]()
+  val _sar = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.initial = args(0).asInstanceOf[Factor]

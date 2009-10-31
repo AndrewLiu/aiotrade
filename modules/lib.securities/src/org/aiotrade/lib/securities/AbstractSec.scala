@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
@@ -52,15 +52,15 @@ import scala.collection.mutable.HashMap
  */
 abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract], _tickerContract:TickerContract) extends Sec {
 
-  private val freqToQuoteContract = new HashMap[Frequency, QuoteContract]
+  private val freqToQuoteContract = new HashMap[TFreq, QuoteContract]
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
-  private val freqToQuoteServer = new HashMap[Frequency, QuoteServer]
-  private val freqToSer = new HashMap[Frequency, QuoteSer]
+  private val freqToQuoteServer = new HashMap[TFreq, QuoteServer]
+  private val freqToSer = new HashMap[TFreq, QuoteSer]
 
   var market = Market.NYSE
   var description: String = ""
   var name: String = _uniSymbol.replace('.', '_')
-  var defaultFreq: Frequency = _
+  var defaultFreq: TFreq = _
   var tickerServer: TickerServer = _
 
   /** create freq ser */
@@ -97,7 +97,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     this(uniSymbol, quoteContract, null)
   }
 
-  def serOf(freq: Frequency): Option[QuoteSer] = {
+  def serOf(freq: TFreq): Option[QuoteSer] = {
     freqToSer.get(freq)
   }
 
@@ -109,7 +109,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to those maps.
    */
-  def loadSer(freq: Frequency): Boolean= synchronized {
+  def loadSer(freq: TFreq): Boolean= synchronized {
 
     /** ask contract instead of server */
     val contract = freqToQuoteContract.get(freq) match {
@@ -180,14 +180,14 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     loadBeginning
   }
 
-  def isSerLoaded(freq:Frequency): Boolean = {
+  def isSerLoaded(freq:TFreq): Boolean = {
     freqToSer.get(freq) match {
       case None => false
       case Some(x) => x.loaded
     }
   }
 
-  def isSerInLoading(freq: Frequency): Boolean = {
+  def isSerInLoading(freq: TFreq): Boolean = {
     freqToSer.get(freq) match {
       case None => false
       case Some(x) => x.inLoading
@@ -209,7 +209,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     freqToQuoteServer.clear
   }
 
-  def clearSer(freq: Frequency): Unit = {
+  def clearSer(freq: TFreq): Unit = {
     for (ser <- serOf(freq)) {
       ser.clear(0)
       ser.loaded = false
@@ -259,10 +259,10 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     }
 
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-      var chainSers: List[Ser] = Nil
+      var chainSers: List[TSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
-      serOf(Frequency.DAILY)  .foreach{x => chainSers = x :: chainSers}
-      serOf(Frequency.ONE_MIN).foreach{x => chainSers = x :: chainSers}
+      serOf(TFreq.DAILY)  .foreach{x => chainSers = x :: chainSers}
+      serOf(TFreq.ONE_MIN).foreach{x => chainSers = x :: chainSers}
       tickerServer.subscribe(tickerContract, tickerSer, chainSers)
       //
       //            var break = false

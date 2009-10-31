@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -42,9 +42,9 @@ class WMSFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _wms = Var[Float]()
+  val _wms = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.period = args(0).asInstanceOf[Factor]

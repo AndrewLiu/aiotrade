@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities
 
 import java.util.Calendar
 import java.util.TimeZone
-import org.aiotrade.lib.math.timeseries.{SerChangeEvent,SerChangeListener,Unit}
+import org.aiotrade.lib.math.timeseries.{SerChangeEvent,SerChangeListener,TUnit}
 
 /**
  *
@@ -114,10 +114,10 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
                 
         var inSameInterval = true
         targetUnit match {
-          case Unit.Week =>
+          case TUnit.Week =>
             val weekOfYear = cal.get(Calendar.WEEK_OF_YEAR)
             inSameInterval = (weekOfYear == currWeekOfYear)
-          case Unit.Month =>
+          case TUnit.Month =>
             val monthOfYear = cal.get(Calendar.MONTH)
             val year = cal.get(Calendar.YEAR)
             inSameInterval = (year == currYear && monthOfYear == currMonthOfYear)

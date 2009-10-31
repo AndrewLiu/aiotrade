@@ -29,14 +29,14 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries.datasource
-import org.aiotrade.lib.math.timeseries.Frequency
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait SerProvider[T <: Ser] {
+trait SerProvider[T <: TSer] {
     
     
   /**
@@ -44,7 +44,7 @@ trait SerProvider[T <: Ser] {
    * If there is already a dataServer is running and not finished, don't load again.
    * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
    */
-  def loadSer(freq: Frequency): Boolean
+  def loadSer(freq: TFreq): Boolean
     
   def uniSymbol: String
   def uniSymbol_=(symbol: String): Unit
@@ -53,12 +53,12 @@ trait SerProvider[T <: Ser] {
     
   def stopAllDataServer: Unit
     
-  def isSerInLoading(freq: Frequency): Boolean
-  def isSerLoaded(freq: Frequency): Boolean
+  def isSerInLoading(freq: TFreq): Boolean
+  def isSerLoaded(freq: TFreq): Boolean
     
-  def serOf(freq: Frequency): Option[T]
+  def serOf(freq: TFreq): Option[T]
     
-  def clearSer(freq: Frequency): Unit
+  def clearSer(freq: TFreq): Unit
     
   def putSer(ser:T): Unit
     

@@ -1,4 +1,4 @@
-/*
+TVarTSerTSer/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 
 /**
  *

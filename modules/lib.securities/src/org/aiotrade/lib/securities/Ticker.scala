@@ -31,7 +31,7 @@
 package org.aiotrade.lib.securities
 
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.TimeValue
+import org.aiotrade.lib.math.timeseries.TVal
 
 /**
  *
@@ -57,7 +57,7 @@ object Ticker {
 }
 
 @cloneable
-class Ticker(val depth: Int) extends TimeValue {
+class Ticker(val depth: Int) extends TVal {
   import Ticker._
     
   private val values = new Array[Float](8)
@@ -194,10 +194,8 @@ class Ticker(val depth: Int) extends TimeValue {
   override def clone: Ticker = {
     try {
       return super.clone.asInstanceOf[Ticker]
-    } catch {
-      case ex: CloneNotSupportedException => ex.printStackTrace
-    }
+    } catch {case ex: CloneNotSupportedException => ex.printStackTrace}
         
-    return null
+    null
   }
 }

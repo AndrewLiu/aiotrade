@@ -1,4 +1,4 @@
-/*
+TVarTSerTSer/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -32,7 +32,7 @@ package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
 import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
  * @author Caoyuan Deng
  */
 object EMAFunction {
-  protected def iema(idx: Int, var1: Var[Float], period: Float, prev: Float): Float = {
+  protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.iema(idx, var1.values, period.toInt, prev)
   }
 
@@ -49,14 +49,14 @@ object EMAFunction {
 class EMAFunction extends AbstractFunction {
     
   var period: Factor = _
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
     
   val _ema = Var[Float]()
     
   override def set(baseSer: Ser, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Float]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     

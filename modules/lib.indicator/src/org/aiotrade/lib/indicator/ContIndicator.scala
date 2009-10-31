@@ -31,14 +31,14 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  * Abstract Continumm Indicator
  *
  * @author Caoyuan Deng
  */
-abstract class ContIndicator(baseSer: Ser) extends AbstractIndicator(baseSer) with ContComputable {
+abstract class ContIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) with ContComputable {
 
   def this() = this(null)
 }

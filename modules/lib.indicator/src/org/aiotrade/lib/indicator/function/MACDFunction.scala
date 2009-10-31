@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -41,17 +41,17 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
 class MACDFunction extends AbstractFunction {
     
   var periodSlow, periodFast: Factor = _
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
     
-  val _emaFast = Var[Float]()
-  val _emaSlow = Var[Float]()
+  val _emaFast = TVar[Float]()
+  val _emaSlow = TVar[Float]()
     
-  val _macd = Var[Float]
+  val _macd = TVar[Float]
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Float]]
     this.periodSlow = args(1).asInstanceOf[Factor]
     this.periodFast = args(2).asInstanceOf[Factor]
   }

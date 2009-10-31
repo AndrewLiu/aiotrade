@@ -60,7 +60,7 @@ package org.aiotrade.lib.math.timeseries
  *
  * @see DefaultSer#createItem(long time)
  */
-class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends SerItem {
+class DefaultTItem protected[timeseries]  (val ser: TSer, val time: Long) extends TItem {
   
   private var _clear: Boolean = true
 
@@ -72,9 +72,9 @@ class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends 
     this._clear = true
   }
     
-  def get[@specialized V](v: Var[V]): V = v.getByTime(time)
+  def get[@specialized V](v: TVar[V]): V = v.getByTime(time)
     
-  def set[@specialized V](v: Var[V], value: V): Unit = {
+  def set[@specialized V](v: TVar[V], value: V): Unit = {
     v.setByTime(time, value)
     _clear = false
   }
@@ -85,7 +85,7 @@ class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends 
    * This is the best try implement. If Object is Number, this may works,
    * Otherwise, should sub class it.
    */
-  def getFloat(v: Var[_]): Float = {
+  def getFloat(v: TVar[_]): Float = {
     v.getByTime(time) match {
       case null => Float.NaN
       case n: Number => n.floatValue
@@ -97,12 +97,12 @@ class DefaultItem protected[timeseries]  (val ser: Ser, val time: Long) extends 
     }
   }
     
-  def setFloat[@specialized Number](v: Var[Number], value: Number): Unit = {
+  def setFloat[@specialized Number](v: TVar[Number], value: Number): Unit = {
     v.setByTime(time, value)
     this._clear = false
   }
 
-  def assignValue[@specialized T <: TimeValue](value: T): Unit = {
+  def assignValue[@specialized T <: TVal](value: T): Unit = {
     /** @todo */
   }
 }

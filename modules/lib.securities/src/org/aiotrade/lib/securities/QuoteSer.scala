@@ -30,26 +30,26 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.{DefaultMasterSer,Frequency,SerChangeEvent}
+import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, SerChangeEvent}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
  *
  * @author Caoyuan Deng
  */
-class QuoteSer(freq: Frequency) extends DefaultMasterSer(freq) {
+class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
     
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
     
-  val open   = Var[Float]("O", Plot.Quote)
-  val high   = Var[Float]("H", Plot.Quote)
-  val low    = Var[Float]("L", Plot.Quote)
-  val close  = Var[Float]("C", Plot.Quote)
-  val volume = Var[Float]("V", Plot.Volume)
+  val open   = TVar[Float]("O", Plot.Quote)
+  val high   = TVar[Float]("H", Plot.Quote)
+  val low    = TVar[Float]("L", Plot.Quote)
+  val close  = TVar[Float]("C", Plot.Quote)
+  val volume = TVar[Float]("V", Plot.Volume)
     
-  val close_ori = Var[Float]()
-  val close_adj = Var[Float]()
+  val close_ori = TVar[Float]()
+  val close_adj = TVar[Float]()
     
   override protected def createItem(time: Long) :QuoteItem = {
     new QuoteItem(this, time)

@@ -32,9 +32,9 @@ package org.aiotrade.lib.math.timeseries.computable
 
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
 import scala.collection.mutable.ArrayBuffer
@@ -43,16 +43,16 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(aserviceClassName: String, afreq: Frequency, afactors: ArrayBuffer[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: ArrayBuffer[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
 
   private var _factors: ArrayBuffer[Factor] = afactors
 
   def this() {
-    this(null, Frequency.DAILY, new ArrayBuffer[Factor], false)
+    this(null, TFreq.DAILY, new ArrayBuffer[Factor], false)
 
   }
 
-  override def set(serviceClassName: String, freq: Frequency): Unit = {
+  override def set(serviceClassName: String, freq: TFreq): Unit = {
     super.set(serviceClassName, freq)
 
     setFacsToDefault
@@ -100,7 +100,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: Frequency, afactors:
    * @param baseSer for indicator
    */
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
-    case Seq(baseSer: Ser) => lookupServiceTemplate match {
+    case Seq(baseSer: TSer) => lookupServiceTemplate match {
         case None => None
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)

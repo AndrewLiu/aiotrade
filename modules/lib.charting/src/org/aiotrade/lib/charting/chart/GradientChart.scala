@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.chart
 import java.awt.Color
 import java.awt.Graphics
 import org.aiotrade.lib.charting.widget.WidgetModel
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.util.Shading
 import org.aiotrade.lib.charting.laf.LookFeel
 
@@ -44,10 +44,10 @@ import org.aiotrade.lib.charting.laf.LookFeel
  */
 class GradientChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: Var[_] = _
+    var v: TVar[_] = _
     var shading: Shading = _
 
-    def set(v: Var[_], shading: Shading) {
+    def set(v: TVar[_], shading: Shading) {
       this.v = v
       this.shading = shading
     }

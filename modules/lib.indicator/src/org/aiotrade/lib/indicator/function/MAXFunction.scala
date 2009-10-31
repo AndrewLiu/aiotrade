@@ -31,8 +31,8 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction;
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 
 /**
@@ -40,21 +40,21 @@ import org.aiotrade.lib.math.timeseries.computable.Factor;
  * @author Caoyuan Deng
  */
 object MAXFunction {
-  protected def imax(idx: Int, baseVar: Var[Float], period: Float, prev: Float): Float = {
+  protected def imax(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
   }
 }
 class MAXFunction extends AbstractFunction {
     
   var period: Factor = _
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
     
-  val _max = Var[Float]()
+  val _max = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[Var[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Float]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     

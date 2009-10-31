@@ -1,4 +1,4 @@
-/*
+TVarTVarTVarTSerTSer/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -32,9 +32,9 @@ package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.timeseries.computable.Factor
-import org.aiotrade.lib.math.timeseries.SerItem
+import org.aiotrade.lib.math.timeseries.TItem
 import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 
 /**
  *
@@ -46,7 +46,7 @@ class ProbMassIndicator(baseSer: Ser) extends SpotIndicator(baseSer) {
   _lname = "Probability Mass"
   _overlapping = true
     
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
 
   val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
   val period1    = Factor("Period1", 50.0)
@@ -59,7 +59,7 @@ class ProbMassIndicator(baseSer: Ser) extends SpotIndicator(baseSer) {
   val MASS3 = Var[Array[Array[Float]]]("MASS3", Plot.Profile)
 
 
-  def computeSpot(time: Long, masterIdx: Int) :SerItem =  {
+  def computeSpot(time: Long, masterIdx: Int) :TItem =  {
     val item = createItemOrClearIt(time)
         
     val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)

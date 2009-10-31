@@ -32,7 +32,6 @@ package org.aiotrade.lib.math.timeseries
 
 import java.util.ConcurrentModificationException
 import java.util.{Calendar, TimeZone}
-import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -41,25 +40,25 @@ import scala.collection.mutable.ArrayBuffer
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-object TimestampsFactory {
+object TStampsFactory {
   
-  def createInstance(initialCapacity: Int) :Timestamps = {
-    new TimestampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
+  def createInstance(initialCapacity: Int) :TStamps = {
+    new TStampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
   }
     
-  private class TimestampsOnOccurred(initialCapacity: Int) extends Timestamps {
+  private class TStampsOnOccurred(initialCapacity: Int) extends TStamps {
 
-    private val onCalendarShadow = new TimestampsOnCalendar(this)
+    private val onCalendarShadow = new TStampsOnCalendar(this)
 
     def isOnCalendar: Boolean = false
         
-    def asOnCalendar: Timestamps = onCalendarShadow
+    def asOnCalendar: TStamps = onCalendarShadow
         
     /**
      * Get nearest row that can also properly extends before firstOccurredTime
      * or after lastOccurredTime
      */
-    def rowOfTime(time: Long, freq: Frequency): Int = {
+    def rowOfTime(time: Long, freq: TFreq): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx == -1) {
         return -1
@@ -87,7 +86,7 @@ object TimestampsFactory {
     /**
      * This is an efficent method
      */
-    def timeOfRow(row: Int, freq: Frequency): Long = {
+    def timeOfRow(row: Int, freq: TFreq): Long = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -104,12 +103,12 @@ object TimestampsFactory {
       }
     }
         
-    def lastRow(freq: Frequency): Int = {
+    def lastRow(freq: TFreq): Int = {
       val lastOccurredIdx = size - 1
       lastOccurredIdx
     }
         
-    def sizeOf(freq: Frequency): Int = size
+    def sizeOf(freq: TFreq): Int = size
         
     def indexOfOccurredTime(time: Long): Int = {
       val size1 = size
@@ -288,26 +287,26 @@ object TimestampsFactory {
       if (size1 > 0) apply(size1 - 1) else 0
     }
         
-    def iterator(freq: Frequency): TimestampsIterator = {
+    def iterator(freq: TFreq): TStampsIterator = {
       new ItrOnOccurred(freq)
     }
         
-    def  iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone): TimestampsIterator = {
+    def  iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator = {
       new ItrOnOccurred(freq, fromTime, toTime, timeZone)
     }
 
-    override def clone :Timestamps = {
-      val res = new TimestampsOnOccurred(this.size)
+    override def clone :TStamps = {
+      val res = new TStampsOnOccurred(this.size)
       res ++= this
       res
     }
 
-    class ItrOnOccurred(freq: Frequency, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TimestampsIterator {
+    class ItrOnOccurred(freq: TFreq, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TStampsIterator {
       private val cal = Calendar.getInstance(timeZone)
 
       val fromTime = freq.round(_fromTime, cal)
 
-      def this(freq: Frequency) {
+      def this(freq: TFreq) {
         this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
       }
                         
@@ -405,20 +404,20 @@ object TimestampsFactory {
    * isOnCalendar() always return true.
    * Why not to use Proxy.class ? for performance reason.
    */
-  private class TimestampsOnCalendar(delegateTimestamps: Timestamps) extends Timestamps {
+  private class TStampsOnCalendar(delegateTimestamps: TStamps) extends TStamps {
     /**
      * the timestamps to be wrapped, it not necessary to be a TimestampsOnOccurred,
      * any class implemented Timestamps is ok.
      */
     def isOnCalendar: Boolean = true
         
-    def asOnCalendar: Timestamps = delegateTimestamps.asOnCalendar
+    def asOnCalendar: TStamps = delegateTimestamps.asOnCalendar
         
     /**
      * Get nearest row that can also properly extends before firstOccurredTime
      * or after lastOccurredTime
      */
-    def rowOfTime(time: Long, freq: Frequency): Int = {
+    def rowOfTime(time: Long, freq: TFreq): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx == -1) {
         return -1
@@ -431,7 +430,7 @@ object TimestampsFactory {
     /**
      * This is an efficent method
      */
-    def timeOfRow(row: Int, freq: Frequency): Long = {
+    def timeOfRow(row: Int, freq: TFreq): Long = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -441,7 +440,7 @@ object TimestampsFactory {
       freq.timeAfterNFreqs(firstOccurredTime, row)
     }
         
-    def lastRow(freq: Frequency): Int = {
+    def lastRow(freq: TFreq): Int = {
       val lastOccurredIdx = size - 1
       if (lastOccurredIdx < 0) {
         return 0
@@ -452,7 +451,7 @@ object TimestampsFactory {
       freq.nFreqsBetween(firstOccurredTime, lastOccurredTime)
     }
         
-    def sizeOf(freq: Frequency): Int = {
+    def sizeOf(freq: TFreq): Int = {
       lastRow(freq) + 1
     }
         
@@ -509,11 +508,11 @@ object TimestampsFactory {
         
     override def lastIndexOf[B >: Long](o: B) = delegateTimestamps.lastIndexOf(o)
                         
-    def iterator(freq: Frequency) :TimestampsIterator = {
+    def iterator(freq: TFreq): TStampsIterator = {
       new ItrOnCalendar(freq)
     }
         
-    def iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone) :TimestampsIterator = {
+    def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator = {
       new ItrOnCalendar(freq, fromTime, toTime, timeZone)
     }
 
@@ -521,16 +520,16 @@ object TimestampsFactory {
     protected var modCount:Long = 0
 
 
-    override def clone: TimestampsOnCalendar = {
-      new TimestampsOnCalendar(delegateTimestamps.clone)
+    override def clone: TStampsOnCalendar = {
+      new TStampsOnCalendar(delegateTimestamps.clone)
     }
 
-    class ItrOnCalendar(freq: Frequency, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TimestampsIterator {
+    class ItrOnCalendar(freq: TFreq, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TStampsIterator {
       private val cal = Calendar.getInstance(timeZone)
 
       val fromTime = freq.round(_fromTime, cal)
             
-      def this(freq: Frequency) {
+      def this(freq: TFreq) {
         this(freq, firstOccurredTime, lastOccurredTime, TimeZone.getDefault)
       }
             
@@ -593,9 +592,9 @@ object TimestampsFactory {
           val previous = freq.previousTime(cursorTime)
           cursorTime = previous
           lastReturnTime = cursorTime
-          return previous;
+          return previous
         } catch {
-          case e:IndexOutOfBoundsException =>
+          case e: IndexOutOfBoundsException =>
             checkForComodification
             throw new NoSuchElementException
         }

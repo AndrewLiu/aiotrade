@@ -31,14 +31,14 @@
 package org.aiotrade.lib.securities
 
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.TimeValue
+import org.aiotrade.lib.math.timeseries.TVal
 
 /**
  * Quote value object
  *
  * @author Caoyuan Deng
  */
-class Quote extends TimeValue {
+class Quote extends TVal {
     
   private val OPEN      = 0
   private val HIGH      = 1

@@ -30,14 +30,14 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.{DefaultItem,TimeValue}
+import org.aiotrade.lib.math.timeseries.{DefaultTItem, TVal}
 
 /**
  * QuoteItem class
  * 
  * @author Caoyuan Deng
  */
-class QuoteItem(override val ser: QuoteSer, time: Long) extends DefaultItem(ser, time) {
+class QuoteItem(override val ser: QuoteSer, time: Long) extends DefaultTItem(ser, time) {
 
   def volume: Float = getFloat(ser.volume)
     
@@ -67,7 +67,7 @@ class QuoteItem(override val ser: QuoteSer, time: Long) extends DefaultItem(ser,
     
   def close_adj_=(close_adj: Float) =setFloat(ser.close_adj, close_adj)
 
-  override def assignValue[T <: TimeValue](value: T): Unit = value match {
+  override def assignValue[T <: TVal](value: T): Unit = value match {
     case quote: Quote =>
       open   = quote.open
       high   = quote.high

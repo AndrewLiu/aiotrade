@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -46,8 +46,8 @@ class MTMIndicator extends ContIndicator {
   val period       = Factor("Period",           12)
   val periodSmooth = Factor("Period Smoothing",  6)
     
-  val mtm    = Var[Float]("MTM",    Plot.Line)
-  val mtm_ma = Var[Float]("MTM_MA", Plot.Line)
+  val mtm    = TVar[Float]("MTM",    Plot.Line)
+  val mtm_ma = TVar[Float]("MTM_MA", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

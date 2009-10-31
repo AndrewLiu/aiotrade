@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.ContIndicator;
@@ -48,7 +48,7 @@ class SARIndicator extends ContIndicator {
   val step    = Factor("AF step",    0.02, 0.01)
   val maximum = Factor("Maximum AF", 0.20, 0.10)
     
-  val sar = Var[Float]("SAR", Plot.Dot)
+  val sar = TVar[Float]("SAR", Plot.Dot)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities;
 
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.ServiceLoader
 import scala.collection.mutable.ArrayBuffer
 
@@ -51,9 +51,9 @@ object PersistenceManager {
 
 trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
 
-  def saveQuotes(symbol: String, freq: Frequency, quotes: ArrayBuffer[Quote], sourceId: Long): Unit
-  def restoreQuotes(symbol: String, freq: Frequency): ArrayBuffer[Quote]
-  def deleteQuotes(symbol: String, freq: Frequency, fromTime: Long, toTime: Long): Unit
+  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayBuffer[Quote], sourceId: Long): Unit
+  def restoreQuotes(symbol: String, freq: TFreq): ArrayBuffer[Quote]
+  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long): Unit
   def dropAllQuoteTables(symbol: String): Unit
 
   def shutdown: Unit

@@ -68,8 +68,8 @@ class YahooQuoteServerTest extends TestHelper {
     val quoteServer  = classOf[YahooQuoteServer]
     val tickerServer = classOf[YahooTickerServer]
 
-    val oneMinFreq = Frequency.ONE_MIN
-    val dailyFreq = Frequency.DAILY
+    val oneMinFreq = TFreq.ONE_MIN
+    val dailyFreq = TFreq.DAILY
 
     val dailyQuoteContract = createQuoteContract(symbol, "", "", dailyFreq, false, quoteServer)
 

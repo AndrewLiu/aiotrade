@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.{Ser,Var}
+import org.aiotrade.lib.math.timeseries.{TSer,TVar}
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
@@ -45,13 +45,13 @@ class ARBRIndicator extends ContIndicator {
     
   val period = Factor("Period", 10)
     
-  val up = Var[Float]("up")
-  val dn = Var[Float]("dn")
-  val bs = Var[Float]("bs")
-  val ss = Var[Float]("ss")
+  val up = TVar[Float]("up")
+  val dn = TVar[Float]("dn")
+  val bs = TVar[Float]("bs")
+  val ss = TVar[Float]("ss")
     
-  val ar = Var[Float]("AR", Plot.Line)
-  val br = Var[Float]("BR", Plot.Line)
+  val ar = TVar[Float]("AR", Plot.Line)
+  val br = TVar[Float]("BR", Plot.Line)
     
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {

@@ -34,11 +34,11 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
-class DefaultMasterSer(freq: Frequency) extends DefaultSer(freq) with MasterSer {
+class DefaultMasterTSer(freq: TFreq) extends DefaultTSer(freq) with MasterTSer {
   private var onCalendarMode = false
     
   def this() = {
-    this(Frequency.DAILY)
+    this(TFreq.DAILY)
   }
         
   def isOnCalendarMode = onCalendarMode
@@ -53,12 +53,12 @@ class DefaultMasterSer(freq: Frequency) extends DefaultSer(freq) with MasterSer 
         
   def rowOfTime(time: Long): Int = activeTimestamps.rowOfTime(time, freq)
   def timeOfRow(row: Int): Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row: Int): SerItem = getItem(activeTimestamps.timeOfRow(row, freq))
+  def getItemByRow(row: Int): TItem = getItem(activeTimestamps.timeOfRow(row, freq))
   def lastOccurredRow: Int = activeTimestamps.lastRow(freq)
     
   override def size: Int = activeTimestamps.sizeOf(freq)
 
-  private def activeTimestamps: Timestamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  private def activeTimestamps: TStamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
 }
 
 

@@ -39,9 +39,9 @@ import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.chart.ProfileChart
 import org.aiotrade.lib.charting.chart.GradientChart
 import org.aiotrade.lib.charting.chart.StickChart
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.Pane
 import scala.collection.mutable.HashSet
 
@@ -50,7 +50,7 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView(controller: ChartingController, mainSer: Ser) extends ChartView {
+class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends ChartView {
     
   def this() = this(null, null)
 
@@ -58,7 +58,7 @@ class IndicatorChartView(controller: ChartingController, mainSer: Ser) extends C
     init(controller, mainSer)
   }
     
-  override def init(controller: ChartingController, mainSer: Ser) {
+  override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
   }
     
@@ -138,7 +138,7 @@ class IndicatorChartView(controller: ChartingController, mainSer: Ser) extends C
     for (ser <- getAllSers) {
       /** add charts */
       for (v <- ser.vars) {
-        val chartVars = new HashSet[Var[_]]
+        val chartVars = new HashSet[TVar[_]]
         val chart = ChartFactory.createVarChart(chartVars, v)
         if (chart != null) {
           mainSerChartMapVars.put(chart, chartVars)

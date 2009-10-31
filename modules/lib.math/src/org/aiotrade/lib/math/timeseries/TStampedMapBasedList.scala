@@ -122,7 +122,7 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TimestampedMapBasedList[A](timestamps: Timestamps) extends ArrayBuffer[A] {
+class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
     
   private val timeToElementData = new HashMap[Long, A]()
 

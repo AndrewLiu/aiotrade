@@ -39,7 +39,7 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.view.pane.Pane
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 
 
 /**
@@ -64,12 +64,12 @@ class QuoteChart extends AbstractChart {
   import QuoteChart._
 
   class Model extends WidgetModel {
-    var openVar:  Var[_] = _
-    var highVar:  Var[_] = _
-    var lowVar:   Var[_] = _
-    var closeVar: Var[_] = _
+    var openVar:  TVar[_] = _
+    var highVar:  TVar[_] = _
+    var lowVar:   TVar[_] = _
+    var closeVar: TVar[_] = _
         
-    def set(openVar: Var[_], highVar: Var[_], lowVar: Var[_], closeVar: Var[_]) {
+    def set(openVar: TVar[_], highVar: TVar[_], lowVar: TVar[_], closeVar: TVar[_]) {
       this.openVar = openVar
       this.highVar = highVar
       this.lowVar = lowVar

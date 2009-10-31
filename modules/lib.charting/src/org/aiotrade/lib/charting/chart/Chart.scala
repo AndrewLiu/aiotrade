@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.widget.Widget
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 
 
 /**
@@ -58,8 +58,8 @@ trait Chart extends Widget with Ordered[Chart] {
    * drawn on pane by calling render() initiatively (such as mouse cursor chart).
    * So, do not try to separate a setDatumPane(AbstractDatumPlane) method.
    */
-  def set(datumPlane: DatumPlane, ser: Ser, depth: Int): Unit
-  def set(datumPlane: DatumPlane, ser: Ser): Unit
+  def set(datumPlane: DatumPlane, ser: TSer, depth: Int): Unit
+  def set(datumPlane: DatumPlane, ser: TSer): Unit
     
   def setFirstPlotting(b: Boolean): Unit
   def isFirstPlotting: Boolean
@@ -67,8 +67,8 @@ trait Chart extends Widget with Ordered[Chart] {
   def setDepth(depth: Int): Unit
   def getDepth: Int
     
-  def setSer(ser: Ser): Unit
-  def getSer: Ser
+  def setSer(ser: TSer): Unit
+  def getSer: TSer
     
     
   def setStrock(strockWidth: Int, strockType: StrockType): Unit

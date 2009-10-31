@@ -30,20 +30,20 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait Indicator extends Ser with Computable with Ordered[Indicator] {
+trait Indicator extends TSer with Computable with Ordered[Indicator] {
     
-  def init(baseSer: Ser): Unit
+  def init(baseSer: TSer): Unit
     
   def isOverlapping: Boolean
   def overlapping_=(b: Boolean): Unit
     
   def grids: Array[Float]
     
-  def createNewInstance(baseSer: Ser): Indicator
+  def createNewInstance(baseSer: TSer): Indicator
 }

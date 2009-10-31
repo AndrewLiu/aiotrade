@@ -44,7 +44,7 @@ import java.awt.event.WindowEvent
 import javax.swing.JComponent
 import javax.swing.JFrame
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.math.timeseries.MasterSer
+import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import javax.swing.WindowConstants
@@ -63,10 +63,10 @@ import scala.collection.mutable.HashSet
  */
 object ChartingControllerFactory {
   /** a static map to know how many controllers are bound with each MasterSer */
-  private val sersWithcontrollers = new HashMap[MasterSer, HashSet[ChartingController]]
+  private val sersWithcontrollers = new HashMap[MasterTSer, HashSet[ChartingController]]
   private var cursorAccelerated = false
 
-  def createInstance(masterSer: MasterSer, contents: AnalysisContents): ChartingController = {
+  def createInstance(masterSer: MasterTSer, contents: AnalysisContents): ChartingController = {
     val controllers = sersWithcontrollers.get(masterSer) getOrElse {
       val controllersx = new HashSet[ChartingController]
       sersWithcontrollers += (masterSer -> controllersx)
@@ -104,7 +104,7 @@ object ChartingControllerFactory {
   /**
    * DefaultChartingController that implements ChartingController
    */
-  private class DefaultChartingController(masterSer: MasterSer, contents: AnalysisContents) extends ChartingController {
+  private class DefaultChartingController(masterSer: MasterTSer, contents: AnalysisContents) extends ChartingController {
     import DefaultChartingController._
     private val popupViews = new HashSet[ChartView]
     private var viewContainer: ChartViewContainer = _
@@ -175,7 +175,7 @@ object ChartingControllerFactory {
       }
     }
 
-    def getMasterSer: MasterSer = {
+    def getMasterSer: MasterTSer = {
       masterSer
     }
 

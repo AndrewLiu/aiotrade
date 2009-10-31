@@ -50,8 +50,8 @@ import javax.swing.event.MouseInputAdapter
 import org.aiotrade.lib.math.timeseries.computable.Computable
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
-import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.Chart
 import org.aiotrade.lib.charting.chart.CursorChart
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -94,9 +94,9 @@ object GlassPane {
 class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) with WithCursorChart {
   import GlassPane._
 
-  private val overlappingSersToCloseButton = new HashMap[Ser, AIOCloseButton]
-  private val overlappingSersToNameLabel = new HashMap[Ser, JLabel]
-  private val selectedSerVarsToValueLabel = new HashMap[Var[_], JLabel]
+  private val overlappingSersToCloseButton = new HashMap[TSer, AIOCloseButton]
+  private val overlappingSersToNameLabel = new HashMap[TSer, JLabel]
+  private val selectedSerVarsToValueLabel = new HashMap[TVar[_], JLabel]
   private var selected: Boolean = _
   private var instantValueLabel: JLabel = _
   private var usingInstantTitleValue: Boolean = _
@@ -167,7 +167,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
    */
   
 
-  private def createCloseButton(ser: Ser): AIOCloseButton = {
+  private def createCloseButton(ser: TSer): AIOCloseButton = {
     val button = new AIOCloseButton
     button.setOpaque(false)
     button.setForeground(LookFeel.getCurrent.axisColor)
@@ -204,7 +204,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     return button
   }
 
-  private def createNameLabel(ser: Ser): JLabel = {
+  private def createNameLabel(ser: TSer): JLabel = {
     val label = new JLabel
     label.setOpaque(false)
     label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
@@ -218,7 +218,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     label
   }
 
-  private final class NameLabelMouseInputListener(ser: Ser, label: JLabel) extends MouseInputAdapter {
+  private final class NameLabelMouseInputListener(ser: TSer, label: JLabel) extends MouseInputAdapter {
 
     private var rolloverEffectSet: Boolean = _
 
@@ -446,7 +446,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
   }
 
-  final private def setSelectedSer(selectedSer: Ser) {
+  final private def setSelectedSer(selectedSer: TSer) {
     val oldValue = getSelectedSer
     this.selectedSer = selectedSer
     if (getSelectedSer != oldValue) {
@@ -458,7 +458,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
   }
 
-  final private def getSelectedSer: Ser = {
+  final private def getSelectedSer: TSer = {
     selectedSer
   }
 

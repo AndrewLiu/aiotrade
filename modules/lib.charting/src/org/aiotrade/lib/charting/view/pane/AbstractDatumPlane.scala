@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.view.WithVolumePane
 import org.aiotrade.lib.charting.view.scalar.LinearScalar
 import org.aiotrade.lib.charting.view.scalar.Scalar
 import org.aiotrade.lib.charting.util.GeomUtil
-import org.aiotrade.lib.math.timeseries.MasterSer
+import org.aiotrade.lib.math.timeseries.MasterTSer
 
 /**
  *
@@ -184,7 +184,7 @@ import org.aiotrade.lib.math.timeseries.MasterSer
       repaint()
     }
     
-    def getMasterSer: MasterSer = {
+    def getMasterSer: MasterTSer = {
       view.getController.getMasterSer
     }
     

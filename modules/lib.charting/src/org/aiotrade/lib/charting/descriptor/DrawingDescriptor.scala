@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.descriptor
 import javax.swing.Action
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.util.ValuePoint
@@ -52,7 +52,9 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
   serviceClassName = layerName
   setDisplayName(layerName)
 
-  override def set(layerName: String, freq: Frequency) {
+  def this() = this("Layout One")
+
+  override def set(layerName: String, freq: TFreq) {
     this.displayName = layerName
     this.freq = freq
   }

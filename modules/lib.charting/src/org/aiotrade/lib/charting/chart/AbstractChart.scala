@@ -38,8 +38,8 @@ import java.awt.Point
 import java.awt.Stroke
 import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.util.GeomUtil
-import org.aiotrade.lib.math.timeseries.MasterSer
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.AbstractWidget
@@ -91,9 +91,9 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   protected var datumPlane: DatumPlane = _
     
   /** masterSer that will be got from: datumPlane.getMasterSer() */
-  protected var masterSer: MasterSer = _
+  protected var masterSer: MasterTSer = _
     
-  protected var ser: Ser = _
+  protected var ser: TSer = _
     
   /**
    * the depth of this chart in pane,
@@ -134,13 +134,13 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * initiatively (such as mouse cursor chart).
    * So, do not try to separate a setPane(Pane) method.
    */
-  def set(datumPane: DatumPlane, ser: Ser, depth: Int) {
+  def set(datumPane: DatumPlane, ser: TSer, depth: Int) {
     this.datumPlane = datumPane
     this.ser = ser
     this.depth = depth
   }
     
-  def set(datumPane: DatumPlane, ser: Ser) {
+  def set(datumPane: DatumPlane, ser: TSer) {
     set(datumPane, ser, this.depth)
   }
     
@@ -253,11 +253,11 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     strockType
   }
     
-  def setSer(ser: Ser) {
+  def setSer(ser: TSer) {
     this.ser = ser
   }
     
-  def getSer: Ser = {
+  def getSer: TSer = {
     ser
   }
     

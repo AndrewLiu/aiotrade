@@ -48,7 +48,7 @@ import scala.collection.mutable.ArrayBuffer
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-object TimestampsLog {
+object TStampsLog {
   private val KIND   = 0xC000 // 1100 0000 0000 0000
   private val SIZE   = 0x3FFF // 0011 1111 1111 1111
 
@@ -57,8 +57,8 @@ object TimestampsLog {
   val REMOVE = 0x8000 // 1000 0000 0000 0000
   val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
-class TimestampsLog extends ArrayBuffer[Short] {
-  import TimestampsLog._
+class TStampsLog extends ArrayBuffer[Short] {
+  import TStampsLog._
 
   private var _logCursor = -1
   private var _logTime = System.currentTimeMillis
@@ -186,30 +186,30 @@ import java.util.{Calendar,GregorianCalendar,TimeZone}
 import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 
 @cloneable
-trait Timestamps extends ArrayBuffer[Long] {
+trait TStamps extends ArrayBuffer[Long] {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new ReentrantReadWriteLock
   val readLock:  Lock = readWriteLock.readLock
   val writeLock: Lock = readWriteLock.writeLock
 
-  val log = new TimestampsLog
+  val log = new TStampsLog
 
   def isOnCalendar: Boolean
     
-  def asOnCalendar: Timestamps
+  def asOnCalendar: TStamps
     
   /**
    * Get nearest row that can also properly extends before firstOccurredTime
    * or after lastOccurredTime
    */
-  def rowOfTime(time: Long, freq: Frequency): Int
+  def rowOfTime(time: Long, freq: TFreq): Int
     
-  def timeOfRow(row: Int, freq: Frequency): Long
+  def timeOfRow(row: Int, freq: TFreq): Long
     
-  def lastRow(freq: Frequency): Int
+  def lastRow(freq: TFreq): Int
     
-  def sizeOf(freq: Frequency): Int
+  def sizeOf(freq: TFreq): Int
     
   def indexOfOccurredTime(time: Long): Int
     
@@ -229,12 +229,12 @@ trait Timestamps extends ArrayBuffer[Long] {
     
   def lastOccurredTime: Long
     
-  def iterator(freq: Frequency): TimestampsIterator
+  def iterator(freq: TFreq): TStampsIterator
     
-  def iterator(freq: Frequency, fromTime: Long, toTime: Long, timeZone: TimeZone): TimestampsIterator
+  def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator
 
   /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
-  override def clone: Timestamps = {super.clone; this}
+  override def clone: TStamps = {super.clone; this}
 }
 
 

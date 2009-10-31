@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries.descriptor;
 
 import javax.swing.Action;
 import org.aiotrade.lib.math.PersistenceManager;
-import org.aiotrade.lib.math.timeseries.Frequency;
+import org.aiotrade.lib.math.timeseries.TFreq;
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.util.serialization.BeansDocument;
 import org.aiotrade.lib.util.swing.action.WithActions;
@@ -124,7 +124,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   /**
    * Lookup the descriptorList of clazz (Indicator/Drawing/Source etc) with the same time frequency
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T], freq: Frequency): Seq[T] = {
+  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T], freq: TFreq): Seq[T] = {
     val result = new ArrayBuffer[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor) && descriptor.freq.equals(freq)) {
@@ -135,7 +135,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     result
   }
     
-  def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: Frequency): Option[T] = {
+  def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
     for (descriptor <- lookupDescriptors(tpe)) {
       if (descriptor.idEquals(serviceClassName, freq)) {
         return Some(descriptor)
@@ -155,7 +155,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     None
   }
     
-  def createDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: Frequency): Option[T] = {
+  def createDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
     try {
       val descriptor = tpe.newInstance
       descriptor.set(serviceClassName, freq)

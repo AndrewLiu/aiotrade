@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 package computable
 
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -44,7 +44,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class ComputableHelper(var baseSer: Ser, var self: Indicator) {
+class ComputableHelper(var baseSer: TSer, var self: Indicator) {
     
   /**
    * factors of this instance, such as period long, period short etc,
@@ -65,7 +65,7 @@ class ComputableHelper(var baseSer: Ser, var self: Indicator) {
     this(null, null)
   }
     
-  def init(baseSer: Ser, self: Indicator): Unit = {
+  def init(baseSer: TSer, self: Indicator): Unit = {
     this.baseSer = baseSer
     this.self = self
         

@@ -39,8 +39,8 @@ import scala.actors.Actor._
  *
  * @author Caoyuan Deng
  */
-case class AddAll[@specialized V <: TimeValue](values: Array[V])
-trait Ser {
+case class AddAll[@specialized V <: TVal](values: Array[V])
+trait TSer {
 
   // ----- actor's implementation
   //    val serActor = actor {
@@ -52,16 +52,16 @@ trait Ser {
   //    }
   // ----- end of actor's implementation
 
-  def init(freq: Frequency): Unit
+  def init(freq: TFreq): Unit
     
-  def timestamps: Timestamps
+  def timestamps: TStamps
 
-  def freq: Frequency
+  def freq: TFreq
 
-  def vars: Seq[Var[_]]
-  def items: ArrayBuffer[SerItem]
+  def vars: Seq[TVar[_]]
+  def items: ArrayBuffer[TItem]
 
-  def getItem(time: Long): SerItem
+  def getItem(time: Long): TItem
     
   def lastOccurredTime: Long
     
@@ -72,9 +72,9 @@ trait Ser {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long): Unit
 
-  def ++=[@specialized T <: TimeValue](values: Array[T]): Ser
+  def ++=[@specialized T <: TVal](values: Array[T]): TSer
     
-  def createItemOrClearIt(time: Long): SerItem
+  def createItemOrClearIt(time: Long): TItem
     
   def shortDescription: String
   def shortDescription_=(description:String): Unit
@@ -112,7 +112,7 @@ object SerChangeEvent {
 }
 
 import org.aiotrade.lib.math.timeseries.SerChangeEvent._
-class SerChangeEvent(var _source: Ser,
+class SerChangeEvent(var _source: TSer,
                      var tpe: Type,
                      val symbol: String,
                      val beginTime: Long,
@@ -121,22 +121,22 @@ class SerChangeEvent(var _source: Ser,
                      var callBack: CallBack) extends ChangeEvent(_source) {
 
 
-  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long) = {
+  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long) = {
     this(source, tpe, symbol, beginTime, endTime, null, null)
   }
 
-  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long, lastObject: AnyRef) = {
+  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long, lastObject: AnyRef) = {
     this(source, tpe, symbol, beginTime, endTime, lastObject, null)
   }
 
-  def this(source: Ser, tpe: Type, symbol: String, beginTime: Long, endTime: Long, callBack: CallBack) = {
+  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long, callBack: CallBack) = {
     this(source, tpe, symbol, beginTime, endTime, null, callBack)
   }
 
-  override def getSource :Ser = {
-    assert(source.isInstanceOf[Ser], "Source should be Series")
+  override def getSource :TSer = {
+    assert(source.isInstanceOf[TSer], "Source should be Series")
 
-    source.asInstanceOf[Ser]
+    source.asInstanceOf[TSer]
   }
 
   def doCallBack: Unit = {

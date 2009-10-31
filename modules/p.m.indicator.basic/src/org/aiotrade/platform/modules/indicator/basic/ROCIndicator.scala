@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -46,8 +46,8 @@ class ROCIndicator extends ContIndicator {
   val period1 = Factor("Period Short", 12)
   val period2 = Factor("Period Long",  25)
     
-  val roc1 = Var[Float]("ROC1", Plot.Line)
-  val roc2 = Var[Float]("ROC2", Plot.Line)
+  val roc1 = TVar[Float]("ROC1", Plot.Line)
+  val roc2 = TVar[Float]("ROC2", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

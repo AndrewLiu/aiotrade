@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -31,8 +31,8 @@
 package org.aiotrade.lib.indicator.function;
 
 import org.aiotrade.lib.math.StatisticFunction
-import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  * @author Caoyuan Deng
  */
 object MAFunction {
-  protected def ima(idx: Int, baseVar: Var[Float], period: Float, prev: Float): Float = {
+  protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }
 }
@@ -48,14 +48,14 @@ object MAFunction {
 class MAFunction extends AbstractFunction {
     
   var period: Factor = _
-  var baseVar: Var[Float] = _
+  var baseVar: TVar[Float] = _
     
   val _ma = Var[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
     args match {
-      case Seq(a0: Var[Float], a1: Factor) =>
+      case Seq(a0: TVar[Float], a1: Factor) =>
         this.baseVar = a0
         this.period = a1
     }

@@ -38,7 +38,7 @@ import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.{Market, Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 
@@ -241,8 +241,8 @@ class YahooQuoteServer extends QuoteServer {
 
   def sourceSerialNumber: Byte = 1
 
-  override def supportedFreqs: Array[Frequency] = {
-    Array(Frequency.DAILY)
+  override def supportedFreqs: Array[TFreq] = {
+    Array(TFreq.DAILY)
   }
 
   override def icon: Option[Image] = {

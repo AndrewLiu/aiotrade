@@ -31,12 +31,10 @@
 package org.aiotrade.lib.math.timeseries
 
 
-import java.util.{Calendar,TimeZone}
+import java.util.{Calendar}
 import org.aiotrade.lib.util.serialization.BeansDocument
-//import org.aiotrade.lib.util.serialization.DeserializationConstructor
-import org.aiotrade.lib.util.serialization.JavaDocument
 import org.w3c.dom.Element
-import org.aiotrade.lib.math.timeseries.Unit._
+import org.aiotrade.lib.math.timeseries.TUnit._
 
 /**
  * Class combining Unit and nUnits.
@@ -51,11 +49,11 @@ import org.aiotrade.lib.math.timeseries.Unit._
  *
  * @author Caoyuan Deng
  */
-class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparable[Frequency] {
+class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Comparable[TFreq] {
 
   val interval = unit.getInterval * nUnits
 
-  def getUnit: Unit = unit
+  def getUnit: TUnit = unit
 
   def getNUnits: Int = nUnits
 
@@ -120,7 +118,7 @@ class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparab
 
   override def equals(o: Any): Boolean = {
     o match {
-      case x: Frequency =>
+      case x: TFreq =>
         if (x.unit == this.unit && x.nUnits == this.nUnits) {
           true
         } else false
@@ -128,9 +126,9 @@ class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparab
     }
   }
 
-  override def clone: Frequency = {
+  override def clone: TFreq = {
     try {
-      return super.clone.asInstanceOf[Frequency]
+      return super.clone.asInstanceOf[TFreq]
     } catch {
       case ex:CloneNotSupportedException => ex.printStackTrace()
     }
@@ -138,7 +136,7 @@ class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparab
     null
   }
 
-  def compareTo(another: Frequency): Int = {
+  def compareTo(another: TFreq): Int = {
     if (this.unit.ordinal < another.unit.ordinal) {
       -1
     } else if (this.unit.ordinal > another.unit.ordinal) {
@@ -172,7 +170,7 @@ class Frequency(val unit: Unit, val nUnits: Int) extends Cloneable with Comparab
   }
 }
 
-object Frequency {
+object TFreq {
   val PREDEFINED = Set(ONE_MIN,
                        TWO_MINS,
                        THREE_MINS,
@@ -188,29 +186,29 @@ object Frequency {
                        WEEKLY,
                        MONTHLY)
 
-  val SELF_DEFINED = new Frequency(Unit.Second, 0)
-  val ONE_SEC = new Frequency(Unit.Second, 1)
-  val TWO_SECS = new Frequency(Unit.Second, 2)
-  val THREE_SECS = new Frequency(Unit.Second, 3)
-  val FOUR_SECS = new Frequency(Unit.Second, 3)
-  val FIVE_SECS = new Frequency(Unit.Second, 5)
-  val FIFTEEN_SECS = new Frequency(Unit.Second, 15)
-  val THIRTY_SECS = new Frequency(Unit.Second, 30)
-  val ONE_MIN = new Frequency(Unit.Minute, 1)
-  val TWO_MINS = new Frequency(Unit.Minute, 2)
-  val THREE_MINS = new Frequency(Unit.Minute, 3)
-  val FOUR_MINS = new Frequency(Unit.Minute, 3)
-  val FIVE_MINS = new Frequency(Unit.Minute, 5)
-  val FIFTEEN_MINS = new Frequency(Unit.Minute, 15)
-  val THIRTY_MINS = new Frequency(Unit.Minute, 30)
-  val ONE_HOUR = new Frequency(Unit.Hour, 1)
-  val DAILY = new Frequency(Unit.Day, 1)
-  val TWO_DAYS = new Frequency(Unit.Day, 2)
-  val THREE_DAYS = new Frequency(Unit.Day, 3)
-  val FOUR_DAYS = new Frequency(Unit.Day, 4)
-  val FIVE_DAYS = new Frequency(Unit.Day, 5)
-  val WEEKLY = new Frequency(Unit.Week, 1)
-  val MONTHLY = new Frequency(Unit.Month, 1)
-  val THREE_MONTHS = new Frequency(Unit.Month, 3)
-  val ONE_YEAR = new Frequency(Unit.Year, 1)
+  val SELF_DEFINED = new TFreq(TUnit.Second, 0)
+  val ONE_SEC = new TFreq(TUnit.Second, 1)
+  val TWO_SECS = new TFreq(TUnit.Second, 2)
+  val THREE_SECS = new TFreq(TUnit.Second, 3)
+  val FOUR_SECS = new TFreq(TUnit.Second, 3)
+  val FIVE_SECS = new TFreq(TUnit.Second, 5)
+  val FIFTEEN_SECS = new TFreq(TUnit.Second, 15)
+  val THIRTY_SECS = new TFreq(TUnit.Second, 30)
+  val ONE_MIN = new TFreq(TUnit.Minute, 1)
+  val TWO_MINS = new TFreq(TUnit.Minute, 2)
+  val THREE_MINS = new TFreq(TUnit.Minute, 3)
+  val FOUR_MINS = new TFreq(TUnit.Minute, 3)
+  val FIVE_MINS = new TFreq(TUnit.Minute, 5)
+  val FIFTEEN_MINS = new TFreq(TUnit.Minute, 15)
+  val THIRTY_MINS = new TFreq(TUnit.Minute, 30)
+  val ONE_HOUR = new TFreq(TUnit.Hour, 1)
+  val DAILY = new TFreq(TUnit.Day, 1)
+  val TWO_DAYS = new TFreq(TUnit.Day, 2)
+  val THREE_DAYS = new TFreq(TUnit.Day, 3)
+  val FOUR_DAYS = new TFreq(TUnit.Day, 4)
+  val FIVE_DAYS = new TFreq(TUnit.Day, 5)
+  val WEEKLY = new TFreq(TUnit.Week, 1)
+  val MONTHLY = new TFreq(TUnit.Month, 1)
+  val THREE_MONTHS = new TFreq(TUnit.Month, 3)
+  val ONE_YEAR = new TFreq(TUnit.Year, 1)
 }

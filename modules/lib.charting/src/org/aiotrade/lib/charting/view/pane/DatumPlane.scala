@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.view.pane
 
 import org.aiotrade.lib.charting.view.ChartView
 import org.aiotrade.lib.charting.view.scalar.Scalar
-import org.aiotrade.lib.math.timeseries.MasterSer
+import org.aiotrade.lib.math.timeseries.MasterTSer
 
 
 /**
@@ -54,7 +54,7 @@ trait DatumPlane {
     
   def getView: ChartView
     
-  def getMasterSer: MasterSer
+  def getMasterSer: MasterTSer
     
   /**
    * in DatumPlane, we define this public interface for its users to call in case

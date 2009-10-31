@@ -33,14 +33,14 @@ package org.aiotrade.lib.charting.view
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.XControlPane
 
 /**
  *
  * @author Caoyuan Deng
  */
-class PopupIndicatorChartView(controller: ChartingController, mainSer: Ser) extends IndicatorChartView {
+class PopupIndicatorChartView(controller: ChartingController, mainSer: TSer) extends IndicatorChartView {
     
   def this() = this(null, null)
     
@@ -48,7 +48,7 @@ class PopupIndicatorChartView(controller: ChartingController, mainSer: Ser) exte
     init(controller, mainSer)
   }
     
-  override def init(controller: ChartingController, mainSer: Ser) {
+  override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
   }
     

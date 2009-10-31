@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries.descriptor
 
 import javax.swing.Action
-import org.aiotrade.lib.math.timeseries.Frequency
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.serialization.BeansDocument
 //import org.aiotrade.lib.util.serialization.DeserializationConstructor
 import org.aiotrade.lib.util.serialization.JavaDocument
@@ -47,7 +47,7 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class AnalysisDescriptor[+S](private var aserviceClassName: String, 
-                                      private var afreq: Frequency,
+                                      private var afreq: TFreq,
                                       private var aactive: Boolean) extends WithActions {
 
   private val withActionsHelper = new WithActionsHelper(this)
@@ -58,10 +58,10 @@ abstract class AnalysisDescriptor[+S](private var aserviceClassName: String,
   private var _serviceInstance: Option[_] = None
     
   def this() {
-    this(null, Frequency.DAILY, false)
+    this(null, TFreq.DAILY, false)
   }
             
-  def set(serviceClassName: String, freq: Frequency): Unit = {
+  def set(serviceClassName: String, freq: TFreq): Unit = {
     this.serviceClassName = serviceClassName
     this.freq = freq.clone
   }
@@ -94,7 +94,7 @@ abstract class AnalysisDescriptor[+S](private var aserviceClassName: String,
   def serviceClassName_=(serviceClassName: String) = this.aserviceClassName = serviceClassName
   def serviceClassName = aserviceClassName
 
-  def freq_=(freq: Frequency) = this.afreq = freq
+  def freq_=(freq: TFreq) = this.afreq = freq
   def freq = afreq
 
   def active_=(active: Boolean) = this.aactive = active
@@ -102,7 +102,7 @@ abstract class AnalysisDescriptor[+S](private var aserviceClassName: String,
 
   def displayName: String
     
-  def idEquals(serviceClassName: String, freq: Frequency): Boolean = {
+  def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
     this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
   }
     

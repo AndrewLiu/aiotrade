@@ -57,7 +57,7 @@ import scala.collection.mutable.{ArrayBuffer}
  *
  * @author Caoyuan Deng
  */
-class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
+class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   private val INIT_CAPACITY = 400
   /**
    * we implement occurred timestamps and items in density mode instead of spare
@@ -68,9 +68,9 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * Should only get index from timestamps which has the proper mapping of :
    * position <-> time <-> item
    */
-  private var _timestamps: Timestamps = TimestampsFactory.createInstance(INIT_CAPACITY)
+  private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
-  private var _items = new ArrayBuffer[SerItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
+  private var _items = new ArrayBuffer[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
 
   private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
@@ -82,12 +82,12 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayBuffer[Var[_]]
+  val vars = new ArrayBuffer[TVar[_]]
 
-  def this() = this(Frequency.DAILY)
+  def this() = this(TFreq.DAILY)
 
-  def timestamps: Timestamps = _timestamps
-  protected def attach(timestamps: Timestamps): Unit = {
+  def timestamps: TStamps = _timestamps
+  protected def attach(timestamps: TStamps): Unit = {
     this._timestamps = timestamps
     this.tsLog = timestamps.log
   }
@@ -95,14 +95,14 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
   /**
    * used only by InnerVar's constructor and AbstractIndicator's functions
    */
-  protected def addVar(v: Var[_]): Unit = {
+  protected def addVar(v: TVar[_]): Unit = {
     vars += v
   }
 
   /**
    * This should be the only interface to fetch item, what ever by time or by row.
    */
-  private def internal_getItem(time: Long): SerItem = synchronized {
+  private def internal_getItem(time: Long): TItem = synchronized {
     /**
      * @NOTE:
      * Should only get index from timestamps which has the proper
@@ -122,7 +122,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * @param time
    * @param clearItem
    */
-  private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime: Long, clearItem: SerItem): Unit = synchronized {
+  private def internal_addClearItem_fillTimestamps_InTimeOrder(itemTime: Long, clearItem: TItem): Unit = synchronized {
     // @Note: writeLock timestamps only when insert/append it
     val lastOccurredTime = timestamps.lastOccurredTime
     if (itemTime < lastOccurredTime) {
@@ -185,7 +185,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     }
   }
 
-  def ++=[@specialized V <: TimeValue](values: Array[V]): Ser = {
+  def ++=[@specialized V <: TVal](values: Array[V]): TSer = {
     var begTime = +Long.MaxValue
     var endTime = -Long.MaxValue
     try {
@@ -222,8 +222,8 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
     this
   }
 
-  protected def createItem(time: Long): SerItem = {
-    new DefaultItem(this, time)
+  protected def createItem(time: Long): TItem = {
+    new DefaultTItem(this, time)
   }
 
   def shortDescription :String = description
@@ -237,7 +237,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
         timestamps.readLock.lock
                 
         vars foreach (x => x.validate)
-        val newItems = new ArrayBuffer[SerItem]
+        val newItems = new ArrayBuffer[TItem]
         var i = 0
         while (i < timestamps.size) {
           val time = timestamps(i)
@@ -277,7 +277,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
           // * same log with same size, actually nothing changed
         } else {
           log.checkKind(logFlag) match {
-            case TimestampsLog.INSERT =>
+            case TStampsLog.INSERT =>
               var begIdx = log.insertIndexOfLog(checkingCursor)
 
               val begIdx1 = if (!cursorMoved) {
@@ -290,7 +290,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               } else logCurrSize
 
               println("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-              val newItems = new Array[SerItem](insertSize)
+              val newItems = new Array[TItem](insertSize)
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
@@ -300,7 +300,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               }
               items.insertAll(begIdx1, newItems)
                             
-            case TimestampsLog.APPEND =>
+            case TStampsLog.APPEND =>
               val begIdx = items.size
 
               val appendSize = if (!cursorMoved) {
@@ -308,7 +308,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
               } else logCurrSize
 
               println("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
-              val newItems = new Array[SerItem](appendSize)
+              val newItems = new Array[TItem](appendSize)
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx)
@@ -366,9 +366,9 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
                                           Long.MaxValue))
   }
 
-  def items: ArrayBuffer[SerItem] = _items
+  def items: ArrayBuffer[TItem] = _items
 
-  def getItem(time: Long): SerItem = {
+  def getItem(time: Long): TItem = {
     var item = internal_getItem(time)
     this match {
       case x: SpotComputable =>
@@ -401,7 +401,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * And that why define some motheds signature begin with internal_, becuase
    * you'd better never think to open these methods to protected or public.
    */
-  def createItemOrClearIt(time: Long): SerItem = {
+  def createItemOrClearIt(time: Long): TItem = {
     internal_getItem(time) match {
       case null =>
         // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
@@ -437,21 +437,21 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
 
   /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
   override def equals(a: Any) = a match {
-    case x: Ser => this.getClass == x.getClass && this.hashCode == x.hashCode
+    case x: TSer => this.getClass == x.getClass && this.hashCode == x.hashCode
     case _ => false
   }
 
   private val _hashCode = System.identityHashCode(this)
   override def hashCode: Int = _hashCode
 
-  object Var {
-    def apply[@specialized V: Manifest]() = new InnerVar[V]("", Plot.None)
-    def apply[@specialized V: Manifest](name: String) = new InnerVar[V](name, Plot.None)
-    def apply[@specialized V: Manifest](name: String, plot: Plot) = new InnerVar[V](name, plot)
+  object TVar {
+    def apply[@specialized V: Manifest]() = new InnerTVar[V]("", Plot.None)
+    def apply[@specialized V: Manifest](name: String) = new InnerTVar[V](name, Plot.None)
+    def apply[@specialized V: Manifest](name: String, plot: Plot) = new InnerTVar[V](name, plot)
   }
   
-  protected class InnerVar[@specialized V: Manifest](name: String, plot: Plot
-  ) extends AbstractInnerVar[V](name, plot) {
+  protected class InnerTVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractInnerTVar[V](name, plot) {
 
     var values = new ArrayBuffer[V]
 
@@ -517,15 +517,15 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
      * @See AbstractIndicator.injectVarsToSer()
      */
     override def equals(a: Any): Boolean = a match {
-      case x: InnerVar[_] => this.values == x.values
+      case x: InnerTVar[_] => this.values == x.values
       case _ => false
     }
   }
 
-  protected class SparseVar[@specialized V: Manifest](name: String, plot: Plot
-  ) extends AbstractInnerVar[V](name, plot) {
+  protected class SparseTVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractInnerTVar[V](name, plot) {
 
-    val values = new TimestampedMapBasedList[V](timestamps)
+    val values = new TStampedMapBasedList[V](timestamps)
 
     def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
@@ -550,7 +550,7 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
      * @See AbstractIndicator.injectVarsToSer()
      */
     override def equals(o: Any): Boolean = o match {
-      case x: SparseVar[_] => this.values == x.values
+      case x: SparseTVar[_] => this.values == x.values
       case _ => false
     }
   }
@@ -567,11 +567,11 @@ class DefaultSer(freq: Frequency) extends AbstractSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerVar[@specialized V: Manifest](name: String, plot: Plot
-  ) extends AbstractVar[V](name, plot) {
+  abstract class AbstractInnerTVar[@specialized V: Manifest](name: String, plot: Plot
+  ) extends AbstractTVar[V](name, plot) {
     addVar(this)
 
-    private val colors = new TimestampedMapBasedList[Color](timestamps)
+    private val colors = new TStampedMapBasedList[Color](timestamps)
     
     /**
      * This method will never return null, return a nullValue at least.

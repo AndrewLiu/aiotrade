@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart
 
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.util.Signal
 import scala.collection.mutable.HashSet
@@ -44,7 +44,7 @@ import scala.collection.mutable.HashSet
  */
 object ChartFactory {
     
-  def createVarChart(chartVarContainer: HashSet[Var[_]], v: Var[_]): Chart = {
+  def createVarChart(chartVarContainer: HashSet[TVar[_]], v: TVar[_]): Chart = {
     var chart: Chart = null
     v.plot match  {
       case Plot.Volume =>
@@ -77,7 +77,7 @@ object ChartFactory {
         chartVarContainer += v
       case Plot.Signal =>
         chart = new SignalChart
-        chart.asInstanceOf[SignalChart].model.set((v.asInstanceOf[Var[Signal]]))
+        chart.asInstanceOf[SignalChart].model.set((v.asInstanceOf[TVar[Signal]]))
         chartVarContainer += v
       case _ =>
     }

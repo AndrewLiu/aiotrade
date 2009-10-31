@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.view
 
 import java.awt.Component
 import java.awt.Dimension
-import org.aiotrade.lib.math.timeseries.MasterSer
+import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ChangeObservable
 
@@ -54,7 +54,7 @@ import org.aiotrade.lib.util.ChangeObservable
  */
 trait ChartingController extends ChangeObservable {
 
-    def getMasterSer: MasterSer
+    def getMasterSer: MasterTSer
 
     def getContents: AnalysisContents
 

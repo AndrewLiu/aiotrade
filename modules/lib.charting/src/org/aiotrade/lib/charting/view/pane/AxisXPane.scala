@@ -35,7 +35,7 @@ import java.util.Date
 import java.util.TimeZone
 import javax.swing.JLabel
 import javax.swing.SwingConstants
-import org.aiotrade.lib.math.timeseries.Unit
+import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartValidityObserver
 import org.aiotrade.lib.charting.view.ChartView
@@ -201,7 +201,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           var stridingDate = false
           val freqUnit = view.getMainSer.freq.unit
           freqUnit match {
-            case Unit.Day =>
+            case TUnit.Day =>
               cal.setTime(currDate)
               val currDateYear = cal.get(Calendar.YEAR)
               cal.setTime(prevDate)
@@ -209,7 +209,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
               if (currDateYear > prevDateYear && i != nBars || i == 1) {
                 stridingDate = true
               }
-            case Unit.Hour | Unit.Minute | Unit.Second =>
+            case TUnit.Hour | TUnit.Minute | TUnit.Second =>
               cal.setTime(currDate)
               val currDateDay = cal.get(Calendar.DAY_OF_MONTH)
               cal.setTime(prevDate)

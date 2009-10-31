@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 
 /**
  *
@@ -41,7 +41,7 @@ class TRFunction extends AbstractFunction {
     
   val _tr = Var[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
   }
     

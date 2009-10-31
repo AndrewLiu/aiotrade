@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import java.awt.Image
 import java.util.TimeZone
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -53,7 +53,7 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
    * @param contract DataContract which contains all the type, market info for this source
    * @param ser the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: Ser): Unit
+  def subscribe(contract: C, ser: TSer): Unit
     
   /**
    * first ser is the master one,
@@ -66,7 +66,7 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: Ser, chainSers: Seq[Ser])
+  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer])
     
   def unSubscribe(contract: C)
     

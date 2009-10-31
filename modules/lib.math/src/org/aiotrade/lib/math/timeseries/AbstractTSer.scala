@@ -36,7 +36,7 @@ import javax.swing.event.EventListenerList
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractSer(var freq: Frequency) extends Ser {
+abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   private val serChangeListenerList = new EventListenerList
         
@@ -44,10 +44,10 @@ abstract class AbstractSer(var freq: Frequency) extends Ser {
   private var _loaded: Boolean = false
 
   def this() = {
-    this(Frequency.DAILY)
+    this(TFreq.DAILY)
   }
     
-  def init(freq: Frequency): Unit = {
+  def init(freq: TFreq): Unit = {
     this.freq = freq.clone
   }
         
@@ -77,7 +77,7 @@ abstract class AbstractSer(var freq: Frequency) extends Ser {
     _loaded = false
   }
 
-  protected def isAscending[@specialized V <: TimeValue](values: Array[V]): Boolean = {
+  protected def isAscending[@specialized V <: TVal](values: Array[V]): Boolean = {
     val size = values.size
     if (size <= 1) {
       true

@@ -30,27 +30,56 @@
  */
 package org.aiotrade.lib.math.timeseries
 
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+
 /**
+ * This is a horizotal view of DefaultSeries. Is' a reference of one of
+ * the field vars.
  *
- * @author  Caoyuan Deng
- * @version 1.0, 11/24/2006
- * @since   1.0.4
+ * @author Caoyuan Deng
  */
-trait TimestampsIterator {
+abstract class AbstractTVar[@specialized V: Manifest](var name: String, var plot: Plot) extends TVar[V] {
+
+  val nullValue = getNullValue[V]
+
+  val LAYER_NOT_SET = -1
+
+  var layer = LAYER_NOT_SET
     
-  def hasNext: Boolean
+  def addNullValue(time: Long): Boolean = {
+    add(time, nullValue)
+  }
+
+  def toDoubleArray: Array[Double] = {
+    val length = size
+    val result = new Array[double](length)
+        
+    if (length > 0 && apply(0).isInstanceOf[Number]) {
+      var i = 0
+      while (i < length) {
+        result(i) = apply(i).asInstanceOf[Number].doubleValue
+        i += 1
+      }
+    }
+        
+    result
+  }
     
-  def next: Long
-    
-  def hasPrevious: Boolean
-    
-  def previous: Long
-    
-  def nextOccurredIndex: Int
-    
-  def previousOccurredIndex: Int
-    
-  def nextRow: Int
-    
-  def previousRow: Int
+  override def toString = name
+
+  private def getNullValue[T](implicit m: Manifest[T]): T = {
+    val value = m.toString match {
+      case "Byte"    => Byte   MinValue   // -128 ~ 127
+      case "Short"   => Short  MinValue   // -32768 ~ 32767
+      case "Char"    => Char   MinValue   // 0(\u0000) ~ 65535(\uffff)
+      case "Int"     => Int    MinValue   // -2,147,483,648 ~ 2,147,483,647
+      case "Long"    => Long   MinValue   // -9,223,372,036,854,775,808 ~ 9,223,372,036,854,775,807
+      case "Float"   => Float  NaN
+      case "Double"  => Double NaN
+      case "Boolean" => false
+      case _ => null
+    }
+    value.asInstanceOf[T]
+  }
+
 }

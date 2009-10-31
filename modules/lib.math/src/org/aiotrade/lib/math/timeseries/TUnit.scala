@@ -43,11 +43,11 @@ import java.util.TimeZone
  * @credits:
  *     stebridev@users.sourceforge.net - fix case of Week : beginTimeOfUnitThatInclude(long)
  */
-object Unit extends Enumeration {
+object TUnit extends Enumeration {
   // Let type of enum's value the same as enum itself
-  type Unit = V
+  type TUnit = V
 
-  def V(name:String) = new V(name)
+  def V(name: String) = new V(name)
 
   val Second = V("Second")
   val Minute = V("Minute")

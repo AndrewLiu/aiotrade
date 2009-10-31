@@ -29,23 +29,28 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries
+
 /**
- * a value object with time field
- *  
- * @author Caoyuan Deng
+ *
+ * @author  Caoyuan Deng
+ * @version 1.0, 11/24/2006
+ * @since   1.0.4
  */
-trait TimeValue extends Ordered[TimeValue] {
-  var time: Long = _
-
-  def compare(that: TimeValue): Int = {
-    if (time > that.time) {
-      1
-    } else if (time < that.time) {
-      -1
-    } else {
-      0
-    }
-  }
+trait TStampsIterator {
+    
+  def hasNext: Boolean
+    
+  def next: Long
+    
+  def hasPrevious: Boolean
+    
+  def previous: Long
+    
+  def nextOccurredIndex: Int
+    
+  def previousOccurredIndex: Int
+    
+  def nextRow: Int
+    
+  def previousRow: Int
 }
-
-

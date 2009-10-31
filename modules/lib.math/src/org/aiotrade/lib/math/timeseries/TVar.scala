@@ -40,7 +40,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-trait Var[@specialized V] extends Plottable {
+trait TVar[@specialized V] extends Plottable {
   def name: String
   def name_=(name: String): Unit
 

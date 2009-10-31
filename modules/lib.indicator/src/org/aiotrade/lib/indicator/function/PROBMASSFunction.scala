@@ -31,8 +31,8 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.StatisticFunction
-import org.aiotrade.lib.math.timeseries.Ser
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
@@ -45,18 +45,18 @@ case class PROBMASSFunction extends AbstractFunction {
   var period: Factor = _
   var nInterval: Factor = _
 
-  var baseVar: Var[Float] = _
-  var weight:  Var[Float] = _
+  var baseVar: TVar[Float] = _
+  var weight:  TVar[Float] = _
     
   /**
    * as this function do not remember previous valus, do not need a Var as probMass
    */
   var _probMass: Array[Array[Float]] = _
     
-  override def set(baseSer: Ser, args: Any*) : Unit = {
+  override def set(baseSer: TSer, args: Any*) : Unit = {
     super.set(baseSer)
     args match {
-      case Seq(a0: Var[Float], a1: Var[Float], a2: Factor, a3: Factor) =>
+      case Seq(a0: TVar[Float], a1: TVar[Float], a2: Factor, a3: Factor) =>
         baseVar = a0
         weight.equals(a1)
         period.equals(a2)
@@ -92,14 +92,14 @@ case class PROBMASSFunction extends AbstractFunction {
 }
 
 object PROBMASSFunction {
-  protected def probMass(idx: Int, baseVar: Var[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
     StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
   }
 
-  protected def probMass(idx: Int, baseVar: Var[Float], weight: Var[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 

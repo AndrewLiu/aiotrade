@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.ContIndicator;
@@ -48,9 +48,9 @@ class RSIIndicator extends ContIndicator {
   val periodM = Factor("Period Mediaum", 12)
   val periodL = Factor("Period Long",    24)
     
-  val rsi1 = Var[Float]("RSI1", Plot.Line)
-  val rsi2 = Var[Float]("RSI2", Plot.Line)
-  val rsi3 = Var[Float]("RSI3", Plot.Line)
+  val rsi1 = TVar[Float]("RSI1", Plot.Line)
+  val rsi2 = TVar[Float]("RSI2", Plot.Line)
+  val rsi3 = TVar[Float]("RSI3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

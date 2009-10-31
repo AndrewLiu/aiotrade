@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TSer;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
@@ -42,10 +42,10 @@ class ADXRFunction extends AbstractFunction {
     
   var periodDi, periodAdx: Factor = _
     
-  val _adx  = Var[Float]()
-  val _adxr = Var[Float]()
+  val _adx  = TVar[Float]()
+  val _adxr = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.periodDi  = args(0).asInstanceOf[Factor]

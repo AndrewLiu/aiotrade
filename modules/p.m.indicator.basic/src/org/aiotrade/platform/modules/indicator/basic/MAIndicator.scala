@@ -1,4 +1,4 @@
-/*
+TVar/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -48,9 +48,9 @@ class MAIndicator extends ContIndicator {
   val period2 = Factor("Period 2", 10)
   val period3 = Factor("Period 3", 20)
     
-  val ma1 = Var[Float]("MA1", Plot.Line)
-  val ma2 = Var[Float]("MA2", Plot.Line)
-  val ma3 = Var[Float]("MA3", Plot.Line)
+  val ma1 = TVar[Float]("MA1", Plot.Line)
+  val ma2 = TVar[Float]("MA2", Plot.Line)
+  val ma3 = TVar[Float]("MA3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

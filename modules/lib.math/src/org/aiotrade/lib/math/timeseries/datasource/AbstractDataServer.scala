@@ -46,7 +46,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.aiotrade.lib.math.timeseries.{Ser,SerChangeEvent}
+import org.aiotrade.lib.math.timeseries.{TSer,SerChangeEvent}
 import scala.collection.Set
 import scala.collection.mutable.{ArrayBuffer,HashMap}
 
@@ -71,13 +71,13 @@ object AbstractDataServer {
   }
 }
 
-abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends DataServer[C] {
+abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataServer[C] {
   import AbstractDataServer._
 
   val ANCIENT_TIME: Long = -1
   // --- Following maps should be created once here, since server may be singleton:
   private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
-  private val subscribedContractToSer = new HashMap[C, Ser]
+  private val subscribedContractToSer = new HashMap[C, TSer]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
@@ -87,7 +87,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * second one (if available) is that who concerns first one.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[Ser, ArrayBuffer[Ser]]
+  private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
   private var loadServer: LoadServer = _
   private var updateServer: UpdateServer = _
   private var updateTimer: Timer = _
@@ -202,11 +202,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
 
   def subscribedContracts: Set[C] = subscribedContractToSer.keySet
 
-  protected def serOf(contract: C): Option[Ser] = {
+  protected def serOf(contract: C): Option[TSer] = {
     subscribedContractToSer.get(contract)
   }
 
-  protected def chainSersOf(ser: Ser): Seq[Ser] = {
+  protected def chainSersOf(ser: TSer): Seq[TSer] = {
     serToChainSers.get(ser) match {
       case None => Nil
       case Some(x) => x
@@ -217,11 +217,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * @param symbol symbol in source
    * @param set the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: Ser): Unit = {
+  def subscribe(contract: C, ser: TSer): Unit = {
     subscribe(contract, ser, Nil)
   }
 
-  def subscribe(contract: C, ser: Ser, chainSers: Seq[Ser]): Unit = {
+  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer]): Unit = {
     subscribedContractToSer.synchronized {
       subscribedContractToSer.put(contract, ser)
     }
@@ -230,7 +230,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
     }
     serToChainSers.synchronized {
       val chainSersX = serToChainSers.get(ser) match {
-        case None => new ArrayBuffer[Ser]
+        case None => new ArrayBuffer[TSer]
         case Some(x) => x
       }
       chainSersX ++= chainSers
@@ -336,7 +336,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TimeValue] extends 
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol: String, serToBeFilled: Ser, storage: ArrayBuffer[V]): SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: ArrayBuffer[V]): SerChangeEvent
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {
