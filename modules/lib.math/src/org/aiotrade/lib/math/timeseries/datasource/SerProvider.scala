@@ -29,6 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries.datasource
+
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 
@@ -60,7 +61,7 @@ trait SerProvider[T <: TSer] {
     
   def clearSer(freq: TFreq): Unit
     
-  def putSer(ser:T): Unit
+  def putSer(ser: T): Unit
     
   def description: String
   def description_=(description: String): Unit
