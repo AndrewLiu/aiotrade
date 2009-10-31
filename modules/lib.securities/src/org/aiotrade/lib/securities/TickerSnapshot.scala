@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.util.ObservableHelper
+import org.aiotrade.lib.util.Observable
 
 /**
  * We use composite pattern here, wrap a ticker instead of inheriting it. So we
@@ -38,7 +38,7 @@ import org.aiotrade.lib.util.ObservableHelper
  *
  * @author Caoyuan Deng
  */
-class TickerSnapshot extends ObservableHelper {
+class TickerSnapshot extends Observable {
 
   val ticker = new Ticker
   var symbol: String = _

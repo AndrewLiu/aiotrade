@@ -36,12 +36,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.charting.chart.util.ValuePoint
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
@@ -61,7 +63,7 @@ class ContentsParseHandler extends DefaultHandler {
   private var contents: AnalysisContents = _
     
   private var indicatorDescriptor: IndicatorDescriptor = _
-  private var opts: ArrayBuffer[Factor] = _
+  private var factors: ArrayBuffer[Factor] = _
     
   private var drawingDescriptor: DrawingDescriptor = _
   private var handledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]] = _
@@ -147,8 +149,8 @@ class ContentsParseHandler extends DefaultHandler {
     }
     try {
       val point = new ValuePoint
-      point.t = NUMBER_FORMAT.parse(meta.getValue("t").trim()).longValue
-      point.v = NUMBER_FORMAT.parse(meta.getValue("v").trim()).floatValue
+      point.t = NUMBER_FORMAT.parse(meta.getValue("t").trim).longValue
+      point.v = NUMBER_FORMAT.parse(meta.getValue("v").trim).floatValue
       points += point;
     } catch {case ex: ParseException => ex.printStackTrace}
   }
@@ -162,11 +164,11 @@ class ContentsParseHandler extends DefaultHandler {
     indicatorDescriptor.active = (meta.getValue("active").trim).toBoolean
     indicatorDescriptor.serviceClassName = meta.getValue("class")
     val freq = new TFreq(
-      Unit.valueOf(meta.getValue("unit")),
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
       meta.getValue("nunits").trim.toInt)
     indicatorDescriptor.freq = freq
         
-    opts = new ArrayBuffer
+    factors = new ArrayBuffer
   }
     
   @throws(classOf[SAXException])
@@ -174,7 +176,7 @@ class ContentsParseHandler extends DefaultHandler {
     if (DEBUG) {
       System.err.println("end_indicator()")
     }
-    indicatorDescriptor.factors = opts
+    indicatorDescriptor.factors = factors
     contents.addDescriptor(indicatorDescriptor)
   }
     
@@ -221,8 +223,8 @@ class ContentsParseHandler extends DefaultHandler {
       val maxValue = if (maxValueStr == null) null else NUMBER_FORMAT.parse(maxValueStr.trim)
       val minValue = if (minValueStr == null) null else NUMBER_FORMAT.parse(minValueStr.trim)
             
-      val opt = new Factor(nameStr, value, step, minValue, maxValue)
-      opts += opt
+      val factor = new DefaultFactor(nameStr, value, step, minValue, maxValue)
+      factors += factor
     } catch {case ex: ParseException => ex.printStackTrace}
   }
     
@@ -282,15 +284,15 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.serviceClassName = meta.getValue("class")
         
     dataContract.symbol = meta.getValue("symbol")
-    dataContract.secType = Sec.Type.valueOf(meta.getValue("sectype"))
+    dataContract.secType = Sec.Type.withName(meta.getValue("sectype"))
     dataContract.exchange = meta.getValue("exchange")
     dataContract.primaryExchange = meta.getValue("primaryexchange")
     dataContract.currency = meta.getValue("currency")
-        
+
     dataContract.dateFormatPattern = meta.getValue("dateformat")
         
     val freq = new TFreq(
-      Unit.withName(meta.getValue("unit")).asInstanceOf[org.aiotrade.lib.math.timeseries.Unit.V],
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
       meta.getValue("nunits").trim.toInt)
     dataContract.freq = freq
         
@@ -335,7 +337,7 @@ class ContentsParseHandler extends DefaultHandler {
     drawingDescriptor = new DrawingDescriptor
     drawingDescriptor.serviceClassName = meta.getValue("name")
     val freq = new TFreq(
-      Unit.withName(meta.getValue("unit")).asInstanceOf[org.aiotrade.lib.math.timeseries.Unit.V],
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
       Integer.parseInt(meta.getValue("nunits").trim))
     drawingDescriptor.freq = freq
         

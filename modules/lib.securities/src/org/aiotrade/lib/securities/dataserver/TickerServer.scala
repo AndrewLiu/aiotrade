@@ -45,7 +45,8 @@ import scala.collection.mutable.{ArrayBuffer, HashMap}
 object TickerServer {
   val tickerPool = new TickerPool
 }
-abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with TickerObserver[TickerSnapshot] {
+
+abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with TickerObserver {
   import TickerServer._
     
   private val symbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
@@ -99,13 +100,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     val symbol = contract.symbol
     tickerSnapshotOf(symbol).foreach{x => x.deleteObserver(this)}
     symbolToTickerSnapshot synchronized {
-      symbolToTickerSnapshot.removeKey(symbol)
+      symbolToTickerSnapshot -= symbol
     }
     symbolToIntervalLastTickerPair synchronized {
-      symbolToIntervalLastTickerPair.removeKey(symbol)
+      symbolToIntervalLastTickerPair -= symbol
     }
     symbolToPreviousTicker synchronized {
-      symbolToPreviousTicker.removeKey(symbol)
+      symbolToPreviousTicker -= symbol
     }
   }
 
@@ -170,8 +171,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   }
 
   def update(tickerSnapshot: Observable): Unit = {
-    val ticker = borrowTicker
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    val ticker = borrowTicker
     ticker.copy(ts.ticker)
     storageOf(lookupContract(ts.symbol).get) += ticker
   }

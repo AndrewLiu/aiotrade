@@ -35,7 +35,7 @@ package org.aiotrade.lib.util
  * 
  * @author Caoyuan Deng
  */
-trait Observer {
-  def update(source: Observable)
+trait Observer[S <: Observable] {
+  def update(subject: Observable)
 }
 

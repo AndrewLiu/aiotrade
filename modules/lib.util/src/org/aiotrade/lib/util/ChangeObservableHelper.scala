@@ -132,7 +132,7 @@ class ChangeObservableHelper {
     }
   }
     
-  override def toString: String = {
+  override def toString = {
     val sb = new StringBuilder("ChangeObserverList: ")
     sb.append(observerToOwner.size).append(" observers: ")
     for (observer <- observerToOwner.keysIterator) {

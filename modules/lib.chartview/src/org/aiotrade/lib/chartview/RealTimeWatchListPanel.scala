@@ -48,6 +48,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerObserver
 import org.aiotrade.lib.securities.TickerSnapshot
+import org.aiotrade.lib.util.Observable
 import scala.collection.mutable.HashMap
 
 
@@ -55,7 +56,7 @@ import scala.collection.mutable.HashMap
  *
  * @author  Caoyuan Deng
  */
-class RealTimeWatchListPanel extends JPanel with TickerObserver[TickerSnapshot] {
+class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   private var scrollPane: JScrollPane = _
   private var table: JTable = _
@@ -131,9 +132,10 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver[TickerSnapshot] 
     idx
   }
 
-  def update(tickerSnapshot: TickerSnapshot) {
-    val symbol = tickerSnapshot.symbol
-    val snapshotTicker = tickerSnapshot.ticker
+  def update(tickerSnapshot: Observable) {
+		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    val symbol = ts.symbol
+    val snapshotTicker = ts.ticker
 
     var previousTicker = smbolToPreviousTicker.get(symbol) match {
       case Some(x) => x
@@ -143,7 +145,6 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver[TickerSnapshot] 
         previousTickerx
     }
     
-
     val inWatching = symbolToInWatching.get(symbol) getOrElse false
     if (!inWatching) {
       return

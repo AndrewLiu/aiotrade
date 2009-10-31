@@ -38,6 +38,7 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithDrawingPaneHelper
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.view.pane.DrawingPane
@@ -221,10 +222,10 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
   private def refreshQuoteCompareSer {
     val optsForCompareIndicator = new ArrayBuffer[Factor]
         
-    optsForCompareIndicator += (Factor("Begin of Time Frame", rb(1)))
-    optsForCompareIndicator += (Factor("End of Time Frame",   rb(getNBars)))
-    optsForCompareIndicator += (Factor("Max Value", getMaxValue))
-    optsForCompareIndicator += (Factor("Min Value", getMinValue))
+    optsForCompareIndicator += (new DefaultFactor("Begin of Time Frame", rb(1)))
+    optsForCompareIndicator += (new DefaultFactor("End of Time Frame",   rb(getNBars)))
+    optsForCompareIndicator += (new DefaultFactor("Max Value", getMaxValue))
+    optsForCompareIndicator += (new DefaultFactor("Min Value", getMinValue))
         
     for (ser <- getCompareIndicators) {
       ser.factors = optsForCompareIndicator

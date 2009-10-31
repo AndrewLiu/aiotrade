@@ -28,25 +28,81 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.util;
-
+package org.aiotrade.lib.util
 
 /**
  * 
  * @author Caoyuan Deng
  */ 
+import java.lang.ref.WeakReference
+import scala.collection.mutable.ArrayBuffer
+
 trait Observable {
-    
-  def addObserver(observer: Observer): Unit
 
-  def deleteObserver(observer: Observer): Unit
+  private var changed: Boolean = _
+  private val observerRefs = new ArrayBuffer[WeakReference[Observer[_]]]
 
-  def deleteObservers: Unit
+  def addObserver(observer: Observer[_]): Unit = synchronized {
+    assert(observer != null, "Can't add a null observer!")
+    val contained = observerRefs exists {ref => ref.get == observer}
+    if (!contained) {
+      observerRefs += new WeakReference[Observer[_]](observer)
+    }
+  }
 
-  def notifyObservers: Unit
+  def deleteObserver(observer: Observer[_]): Unit = synchronized {
+    observerRefs.find{ref => ref.get == observer} match {
+      case Some(x) => observerRefs remove observerRefs.indexOf(x)
+      case None =>
+    }
+  }
 
-  def hasChanged: Boolean
+  /**
+   * for use of sub-class
+   */
+  def notifyObservers: Unit = {
+    notifyObservers(this)
+  }
 
-  def countObservers: Int
+  /**
+   * for use of wrap class
+   */
+  def notifyObservers(subject: Observable): Unit = synchronized {
+    if (changed) {
+      /** must clone the observers in case deleteObserver is called */
+      val clone = new Array[WeakReference[Observer[_]]](observerRefs.size)
+      observerRefs.copyToArray(clone, 0)
+      clearChanged
+      clone foreach {_.get.update(subject)}
+    }
+  }
+
+  def deleteObservers: Unit = synchronized {
+    observerRefs.clear
+  }
+
+  protected def setChanged: Unit = synchronized {
+    changed = true
+  }
+
+  protected def clearChanged: Unit = synchronized {
+    changed = false
+  }
+
+  def hasChanged: Boolean = synchronized {
+    changed
+  }
+
+  def countObservers: Int = synchronized {
+    observerRefs.size
+  }
+
+  // helper:
+  def printObservers: Unit = synchronized {
+    println("Observer of " + this + " :")
+    for (observerRef <- observerRefs) {
+      System.out.println(observerRef.get)
+    }
+  }
 }
 

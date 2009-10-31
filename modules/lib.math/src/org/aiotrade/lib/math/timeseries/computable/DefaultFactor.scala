@@ -44,10 +44,9 @@ import org.aiotrade.lib.util.serialization.JavaDocument
 class DefaultFactor(namex: String, valuex: Number, stepx: Number, minValuex: Number, maxValuex: Number) extends AbstractFactor(namex) {
     
   private var _value: Float = valuex.floatValue
-  private var _step :float = if (stepx == null) 1.0f else stepx.floatValue
-  private var _minValue: Float = if (minValuex == null) -Float.MaxValue else minValuex.floatValue
-  private var _maxValue: Float = if (maxValuex == null)  Float.MaxValue else maxValuex.floatValue
-    
+  private var _step : Float = if (stepx == null) 1.0f else stepx.floatValue
+  private var _minValue: Float = if (minValuex == null) Float.MinValue else minValuex.floatValue
+  private var _maxValue: Float = if (maxValuex == null) Float.MaxValue else maxValuex.floatValue
     
   def this(name: String, value: Number) = {
     this(name, value, null, null, null)

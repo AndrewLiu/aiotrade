@@ -58,6 +58,7 @@ import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerObserver
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.util.Observable
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
 import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
@@ -74,7 +75,7 @@ object RealTimeBoardPanel {
   private val NUMBER_FORMAT = NumberFormat.getInstance
 }
 
-class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with TickerObserver[TickerSnapshot] {
+class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with TickerObserver {
   import RealTimeBoardPanel._
 
   private var tickerContract: TickerContract = _
@@ -300,13 +301,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
   val numbers = Array("①", "②", "③", "④", "⑤")
 
-  def update(tickerSnapshot: TickerSnapshot) {
+  def update(tickerSnapshot: Observable) {
+		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
     val neutralColor = LookFeel.getCurrent.getNeutralColor
     val positiveColor = LookFeel.getCurrent.getPositiveColor
     val negativeColor = LookFeel.getCurrent.getNegativeColor
-    symbol.value = tickerSnapshot.symbol
+    symbol.value = ts.symbol
 
-    val snapshotTicker = tickerSnapshot.ticker
+    val snapshotTicker = ts.ticker
 
     val currentSize =
       if (prevTicker != null) {
@@ -483,7 +485,7 @@ object ValueCell {
 }
 class ValueCell(var row: Int, var column: Int) {
 
-  var value: String
+  var value: String = _
 
   def this() = this(0, 0)
 
