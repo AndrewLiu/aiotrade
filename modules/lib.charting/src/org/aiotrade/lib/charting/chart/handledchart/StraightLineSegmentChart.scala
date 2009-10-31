@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.chart.handledchart
 
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.chart.AbstractChart
-import org.aiotrade.lib.charting.chart.util.ValuePoint
+import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.PathWidget
 import scala.collection.mutable.ArrayBuffer

@@ -28,27 +28,55 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.chart.util
+package org.aiotrade.lib.charting.chart.segment
+
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Rectangle
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait Shading {
-  /** upper bound */
-  def getUpperBound: Float
+class TextSegment(var text: String, var x: Float, var y: Float, color: Color, var bgColor: Color) extends AbstractSegment(color) {
     
-  /** lower bound */
-  def getLowerBound: Float
-
-  /** return number of intervals between upper bound and lower bound */
-  def getNIntervals: Float
+  private var valid: Boolean = _
+  private val bounds = new Rectangle
     
-  /** the time interval between different slice */
-  def getSlice: Int
+  def this() = this(null, 0f, 0f, null, null)
+        
+  def this(text: String, x: Float, y: Float, color: Color) {
+    this(text, x, y, color, null)
+  }
+    
+  def setText(text: String) {
+    this.text = text
+    this.valid = false
+  }
+    
+  private def computeBounds(g: Graphics) {
+    val fm = g.getFontMetrics
+    bounds.setBounds(Math.round(x), Math.round(y) - fm.getHeight + 1,
+                     fm.stringWidth(text) + 1, fm.getHeight)
+  }
+    
+  def getBounds(g: Graphics): Rectangle = {
+    if (!valid) {
+      computeBounds(g)
+    }
+        
+    bounds
+  }
+    
+  def render(g: Graphics) {
+    if (bgColor != null) {
+      val bounds = getBounds(g)
+      g.setColor(bgColor)
+      g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    }
+        
+    g.setColor(color)
+    g.asInstanceOf[Graphics2D].drawString(text, x, y)
+  }
 }
-
-
-
-
-

@@ -38,8 +38,8 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
 import java.awt.geom.GeneralPath
 import java.awt.geom.Point2D
-import org.aiotrade.lib.charting.chart.util.Handle
-import org.aiotrade.lib.charting.chart.util.ValuePoint
+import org.aiotrade.lib.charting.chart.segment.Handle
+import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.DrawingPane

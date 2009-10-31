@@ -29,11 +29,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.charting.descriptor
+
 import javax.swing.Action
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
-import org.aiotrade.lib.charting.chart.util.ValuePoint
+import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.view.ChartView
 import org.aiotrade.lib.charting.view.pane.DrawingPane
 import scala.collection.mutable.ArrayBuffer

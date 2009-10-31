@@ -28,34 +28,43 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.chart.util
+package org.aiotrade.lib.charting.chart.segment
 
+import java.awt.Color
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.geom.GeneralPath
+import java.awt.geom.PathIterator
 
 
 /**
  *
- *
  * @author Caoyuan Deng
  */
-trait Handle {
+
+/** Line segment
+ */
+class PathSegment(acolor: Color) extends AbstractSegment {
+  private val path = new GeneralPath(PathIterator.WIND_EVEN_ODD, 2)
+    
+  this.color = acolor
+
+  def this() = this(null)
     
   /**
-   * @NOTICE
-   * As Handle is just wrapped ValuePoint plus path, we do not define
-   *   setPoint(..)
-   * to avoid too many ValuePoint instances being created. Instead, we define
-   *   copyPoint(..)
+   * Do not define setPath() method to force use the member path that has been created
+   * public void setPath(GeneralPath path) {
+   * this.path = path;
+   * }
    */
-  def copyPoint(src: ValuePoint): Unit
+  
+  def getPath: GeneralPath = {
+    path
+  }
     
-  def getPoint: ValuePoint
+  def render(g: Graphics) {
+    g.setColor(color)
+    g.asInstanceOf[Graphics2D].draw(getPath)
+  }
     
-  def getPath: GeneralPath
-    
-  def contains(x: Int, y: Int): Boolean
-    
-  def render(g: Graphics): Unit
 }
-

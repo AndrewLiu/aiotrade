@@ -34,7 +34,7 @@ import java.awt.Color
 import java.awt.Graphics
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.charting.chart.util.Shading
+import org.aiotrade.lib.charting.chart.segment.Shading
 import org.aiotrade.lib.charting.laf.LookFeel
 
 

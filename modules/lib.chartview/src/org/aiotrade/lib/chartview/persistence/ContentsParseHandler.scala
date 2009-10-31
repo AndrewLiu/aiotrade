@@ -40,8 +40,8 @@ import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.charting.chart.util.ValuePoint
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
+import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract

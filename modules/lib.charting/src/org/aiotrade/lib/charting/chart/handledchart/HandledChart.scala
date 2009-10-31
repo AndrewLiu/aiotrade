@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.chart.handledchart
 import java.awt.Cursor
 import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.chart.Chart
-import org.aiotrade.lib.charting.chart.util.ValuePoint
+import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.view.pane.DrawingPane
 import scala.collection.mutable.ArrayBuffer
 

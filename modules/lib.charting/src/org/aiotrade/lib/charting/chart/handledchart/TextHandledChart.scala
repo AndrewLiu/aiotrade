@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
-import org.aiotrade.lib.charting.chart.util.Handle
+import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 
 

@@ -28,17 +28,33 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.chart.util
-
-import java.awt.Color
-import org.aiotrade.lib.charting.laf.LookFeel
+package org.aiotrade.lib.charting.chart.segment
 
 /**
  *
  * @author Caoyuan Deng
  */
-
-/** Abstract class for shape or string segment
- */
-abstract class AbstractSegment(var color: Color = LookFeel.getCurrent.backgroundColor) extends Segment {
+final class ValuePoint(var t: Long, var v: Float) {
+  def this() = this(0, 0)
+    
+  final def set(time: Long, value: Float) {
+    this.t = time
+    this.v = value
+  }
+    
+  final def copy(src: ValuePoint) {
+    this.t = src.t
+    this.v = src.v
+  }
+    
+  final override def equals(o: Any): Boolean = {
+    if (o.isInstanceOf[ValuePoint]) {
+      val another = o.asInstanceOf[ValuePoint]
+      if (this.t == another.t && this.v == another.v) {
+        return true
+      }
+    }
+        
+    false
+  }
 }

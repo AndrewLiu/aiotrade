@@ -28,33 +28,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.chart.util
+package org.aiotrade.lib.charting.chart.segment
+
+import java.awt.Graphics
+import java.awt.geom.GeneralPath
+
 
 /**
  *
+ *
  * @author Caoyuan Deng
  */
-final class ValuePoint(var t: Long, var v: Float) {
-  def this() = this(0, 0)
+trait Handle {
     
-  final def set(time: Long, value: Float) {
-    this.t = time
-    this.v = value
-  }
+  /**
+   * @NOTICE
+   * As Handle is just wrapped ValuePoint plus path, we do not define
+   *   setPoint(..)
+   * to avoid too many ValuePoint instances being created. Instead, we define
+   *   copyPoint(..)
+   */
+  def copyPoint(src: ValuePoint): Unit
     
-  final def copy(src: ValuePoint) {
-    this.t = src.t
-    this.v = src.v
-  }
+  def getPoint: ValuePoint
     
-  final override def equals(o: Any): Boolean = {
-    if (o.isInstanceOf[ValuePoint]) {
-      val another = o.asInstanceOf[ValuePoint]
-      if (this.t == another.t && this.v == another.v) {
-        return true
-      }
-    }
-        
-    false
-  }
+  def getPath: GeneralPath
+    
+  def contains(x: Int, y: Int): Boolean
+    
+  def render(g: Graphics): Unit
 }
+
