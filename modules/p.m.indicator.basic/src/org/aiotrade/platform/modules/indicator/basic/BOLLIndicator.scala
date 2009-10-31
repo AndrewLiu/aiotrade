@@ -1,4 +1,4 @@
-TVarTVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -49,11 +49,11 @@ class BOLLIndicator extends ContIndicator {
   val alpha1 = Factor("Alpha1", 2.0, 0.1)
   val alpha2 = Factor("Alpha2", 2.0, 0.1)
     
-  val boll_m  = Var[Float]("MA",    Plot.Line)
-  val boll_u1 = Var[Float]("UPPER", Plot.Line)
-  val boll_l1 = Var[Float]("LOWER", Plot.Line)
-  val boll_u2 = Var[Float]("UPPER", Plot.Line)
-  val boll_l2 = Var[Float]("LOWER", Plot.Line)
+  val boll_m  = TVar[Float]("MA",    Plot.Line)
+  val boll_u1 = TVar[Float]("UPPER", Plot.Line)
+  val boll_l1 = TVar[Float]("LOWER", Plot.Line)
+  val boll_u2 = TVar[Float]("UPPER", Plot.Line)
+  val boll_l2 = TVar[Float]("LOWER", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

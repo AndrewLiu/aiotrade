@@ -1,4 +1,4 @@
-TVarTSerTSer/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,9 +30,9 @@ TVarTSerTSer/*
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.Ser;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -43,9 +43,9 @@ class MTMFunction extends AbstractFunction {
   var period: Factor = _
   var baseVar: TVar[Float] = _
     
-  val _mtm = Var[Float]()
+  val _mtm = TVar[Float]()
     
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.baseVar = args(0).asInstanceOf[TVar[Float]]

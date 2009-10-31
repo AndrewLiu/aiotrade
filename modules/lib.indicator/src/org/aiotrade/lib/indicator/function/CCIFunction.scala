@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -42,10 +42,10 @@ class CCIFunction extends AbstractFunction {
     
   var alpha, period: Factor = _
     
-  val _tp        = Var[Float]()
-  val _deviation = Var[Float]()
+  val _tp        = TVar[Float]
+  val _deviation = TVar[Float]
     
-  val _cci = Var[Float]
+  val _cci = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

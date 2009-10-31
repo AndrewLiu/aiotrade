@@ -1,4 +1,4 @@
-TVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,12 +28,12 @@ TVarTVarTVarTVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.indicator.basic;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *
@@ -47,9 +47,9 @@ class MACDIndicator extends ContIndicator {
   val periodSlow   = Factor("Period EMA Slow", 26)
   val periodSignal = Factor("Period Signal",    9)
     
-  val macd   = Var[Float]("MACD",   Plot.Line)
-  val signal = Var[Float]("SIGNAL", Plot.Line)
-  val osc    = Var[Float]("OSC",    Plot.Stick)
+  val macd   = TVar[Float]("MACD",   Plot.Line)
+  val signal = TVar[Float]("SIGNAL", Plot.Line)
+  val osc    = TVar[Float]("OSC",    Plot.Stick)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

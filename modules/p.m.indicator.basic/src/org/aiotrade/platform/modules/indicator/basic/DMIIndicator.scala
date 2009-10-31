@@ -1,4 +1,4 @@
-TVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -47,10 +47,10 @@ class DMIIndicator extends ContIndicator {
   val periodDi  = Factor("Period DI",  6)
   val periodAdx = Factor("Period ADX", 14)
     
-  val diPlus  = Var[Float]("+DI",  Plot.Line)
-  val diMinus = Var[Float]("-DI",  Plot.Line)
-  val adx     = Var[Float]("ADX",  Plot.Line)
-  val adxr    = Var[Float]("ADXR", Plot.Line)
+  val diPlus  = TVar[Float]("+DI",  Plot.Line)
+  val diMinus = TVar[Float]("-DI",  Plot.Line)
+  val adx     = TVar[Float]("ADX",  Plot.Line)
+  val adxr    = TVar[Float]("ADXR", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

@@ -1,4 +1,4 @@
-TSerTSer/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,13 +30,13 @@ TSerTSer/*
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait FunctionSer extends Ser with Function {
+trait FunctionSer extends TSer with Function {
 }
 
 

@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -47,9 +47,9 @@ class BIASIndicator extends ContIndicator {
   val period2 = Factor("Period Mediaum", 12)
   val period3 = Factor("Period Long",    24)
     
-  val bias1 = Var[Float]("BIAS1", Plot.Line)
-  val bias2 = Var[Float]("BIAS2", Plot.Line)
-  val bias3 = Var[Float]("BIAS3", Plot.Line)
+  val bias1 = TVar[Float]("BIAS1", Plot.Line)
+  val bias2 = TVar[Float]("BIAS2", Plot.Line)
+  val bias3 = TVar[Float]("BIAS3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

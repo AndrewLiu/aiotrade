@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,12 +28,11 @@ TVarTVarTVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.indicator.basic;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *
@@ -47,8 +46,8 @@ class WMSIndicator extends ContIndicator {
   val period1 = Factor("Period Short",  6)
   val period2 = Factor("Period Long",  10)
     
-  val wms1 = Var[Float]("WMS1", Plot.Line)
-  val wms2 = Var[Float]("WMS2", Plot.Line)
+  val wms1 = TVar[Float]("WMS1", Plot.Line)
+  val wms2 = TVar[Float]("WMS2", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

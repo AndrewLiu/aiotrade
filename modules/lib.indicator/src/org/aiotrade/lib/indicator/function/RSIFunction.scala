@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -42,10 +42,10 @@ class RSIFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _up = Var[Float]()
-  val _dn = Var[Float]()
+  val _up = TVar[Float]
+  val _dn = TVar[Float]
     
-  val _rsi = Var[Float]()
+  val _rsi = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

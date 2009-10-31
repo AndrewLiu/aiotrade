@@ -1,4 +1,4 @@
-TVarTVarTVarTVarTVarTVarTVarTVarTVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -57,18 +57,18 @@ class GMMAIndicator extends ContIndicator {
   val period11 = Factor("Period Long 5",  50)
   val period12 = Factor("Period Long 6",  60)
     
-  val  ma01 = Var[Float]("MA01", Plot.Line)
-  val  ma02 = Var[Float]("MA02", Plot.Line)
-  val  ma03 = Var[Float]("MA03", Plot.Line)
-  val  ma04 = Var[Float]("MA04", Plot.Line)
-  val  ma05 = Var[Float]("MA05", Plot.Line)
-  val  ma06 = Var[Float]("MA06", Plot.Line)
-  val  ma07 = Var[Float]("MA07", Plot.Line)
-  val  ma08 = Var[Float]("MA08", Plot.Line)
-  val  ma09 = Var[Float]("MA09", Plot.Line)
-  val  ma10 = Var[Float]("MA10", Plot.Line)
-  val  ma11 = Var[Float]("MA11", Plot.Line)
-  val  ma12 = Var[Float]("MA12", Plot.Line)
+  val  ma01 = TVar[Float]("MA01", Plot.Line)
+  val  ma02 = TVar[Float]("MA02", Plot.Line)
+  val  ma03 = TVar[Float]("MA03", Plot.Line)
+  val  ma04 = TVar[Float]("MA04", Plot.Line)
+  val  ma05 = TVar[Float]("MA05", Plot.Line)
+  val  ma06 = TVar[Float]("MA06", Plot.Line)
+  val  ma07 = TVar[Float]("MA07", Plot.Line)
+  val  ma08 = TVar[Float]("MA08", Plot.Line)
+  val  ma09 = TVar[Float]("MA09", Plot.Line)
+  val  ma10 = TVar[Float]("MA10", Plot.Line)
+  val  ma11 = TVar[Float]("MA11", Plot.Line)
+  val  ma12 = TVar[Float]("MA12", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

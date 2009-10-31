@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -48,9 +48,9 @@ class KDIndicator extends ContIndicator {
   val periodK = Factor("Period K Smoothing", 3)
   val periodD = Factor("Period D Smoothing", 3)
     
-  val k = Var[Float]("K", Plot.Line)
-  val d = Var[Float]("D", Plot.Line)
-  val j = Var[Float]("J", Plot.Line)
+  val k = TVar[Float]("K", Plot.Line)
+  val d = TVar[Float]("D", Plot.Line)
+  val j = TVar[Float]("J", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

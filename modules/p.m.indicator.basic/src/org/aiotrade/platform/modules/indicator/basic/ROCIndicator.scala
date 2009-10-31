@@ -1,4 +1,4 @@
-TVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,12 +28,11 @@ TVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.indicator.basic;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *

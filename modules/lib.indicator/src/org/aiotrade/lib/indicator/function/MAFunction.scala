@@ -1,4 +1,4 @@
-TVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -50,7 +50,7 @@ class MAFunction extends AbstractFunction {
   var period: Factor = _
   var baseVar: TVar[Float] = _
     
-  val _ma = Var[Float]()
+  val _ma = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

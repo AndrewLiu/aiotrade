@@ -1,4 +1,4 @@
-TItem/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,13 +30,12 @@ TItem/*
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
-import org.aiotrade.lib.math.timeseries.MasterTSer;
-import org.aiotrade.lib.math.timeseries.SerItem;
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.securities.{QuoteItem,QuoteSer}
+import org.aiotrade.lib.securities.{QuoteItem, QuoteSer}
 
 
 /**
@@ -119,7 +118,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
         /** don't calulate those is less than beginPosition to got a proper compareBeginValue */
       } else {
             
-        val time = _baseSer.asInstanceOf[MasterSer].timeOfRow(i)
+        val time = _baseSer.asInstanceOf[MasterTSer].timeOfRow(i)
             
         /**
          * !NOTICE:

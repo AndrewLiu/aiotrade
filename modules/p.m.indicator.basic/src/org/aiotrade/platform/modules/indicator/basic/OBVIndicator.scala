@@ -1,4 +1,4 @@
-TVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,11 +28,11 @@ TVarTVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.indicator.basic;
+package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.Var;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
-import org.aiotrade.lib.indicator.ContIndicator;
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.indicator.ContIndicator
 
 /**
  *
@@ -42,7 +42,7 @@ class OBVIndicator extends ContIndicator {
   _sname = "OBV"
   _lname = "On Balance Volume"
 
-  val obv1 = Var[Float]("OBV", Plot.Line)
+  val obv1 = TVar[Float]("OBV", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

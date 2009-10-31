@@ -1,4 +1,4 @@
-TVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -42,9 +42,9 @@ class STOCHDFunction extends AbstractFunction {
     
   var period, periodK, periodD: Factor = _
     
-  val _stochK = Var[Float]()
+  val _stochK = TVar[Float]
     
-  val _stochD = Var[Float]()
+  val _stochD = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

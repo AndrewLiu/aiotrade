@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,7 +30,7 @@ TVarTVarTVar/*
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.Var
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
@@ -48,8 +48,8 @@ class CCIIndicator extends ContIndicator {
   val period   = Factor("Period",    20)
   val periodMa = Factor("Period MA", 3)
     
-  val cci    = Var[Float]("CCI",   Plot.Line)
-  val cci_ma = Var[Float]("MACCI", Plot.Line)
+  val cci    = TVar[Float]("CCI",   Plot.Line)
+  val cci_ma = TVar[Float]("MACCI", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

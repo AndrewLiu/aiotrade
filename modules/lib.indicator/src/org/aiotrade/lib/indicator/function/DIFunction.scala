@@ -1,4 +1,4 @@
-TVarTVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -42,12 +42,12 @@ class DIFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _dmPlus  = Var[Float]()
-  val _dmMinus = Var[Float]()
-  val _tr      = Var[Float]()
+  val _dmPlus  = TVar[Float]
+  val _dmMinus = TVar[Float]
+  val _tr      = TVar[Float]
     
-  val _diPlus  = Var[Float]()
-  val _diMinus = Var[Float]()
+  val _diPlus  = TVar[Float]
+  val _diMinus = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

@@ -1,4 +1,4 @@
-TVarTVarTVarTSerTSer/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -33,7 +33,7 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.TItem
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 
 /**
@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.TVar
  * @author Caoyuan Deng
  */
 //@IndicatorName("ProbMass")
-class ProbMassIndicator(baseSer: Ser) extends SpotIndicator(baseSer) {
+class ProbMassIndicator(baseSer: TSer) extends SpotIndicator(baseSer) {
   _sname = "Probability Mass"
   _lname = "Probability Mass"
   _overlapping = true
@@ -54,9 +54,9 @@ class ProbMassIndicator(baseSer: Ser) extends SpotIndicator(baseSer) {
   val period3    = Factor("Period3", 200.0)
     
     
-  val MASS1 = Var[Array[Array[Float]]]("MASS1", Plot.Profile)
-  val MASS2 = Var[Array[Array[Float]]]("MASS2", Plot.Profile)
-  val MASS3 = Var[Array[Array[Float]]]("MASS3", Plot.Profile)
+  val MASS1 = TVar[Array[Array[Float]]]("MASS1", Plot.Profile)
+  val MASS2 = TVar[Array[Array[Float]]]("MASS2", Plot.Profile)
+  val MASS3 = TVar[Array[Array[Float]]]("MASS3", Plot.Profile)
 
 
   def computeSpot(time: Long, masterIdx: Int) :TItem =  {

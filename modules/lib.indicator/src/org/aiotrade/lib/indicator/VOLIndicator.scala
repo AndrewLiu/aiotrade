@@ -1,4 +1,4 @@
-TVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,7 +30,7 @@ TVarTVarTVarTVar/*
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
@@ -44,9 +44,9 @@ class VOLIndicator extends ContIndicator {
   val period1 = Factor("Period Short",    5)
   val period2 = Factor("Period Mediaum", 10)
     
-  val vol = Var[Float]("VOL", Plot.Volume)
-  val ma1 = Var[Float]("MA1", Plot.Line)
-  val ma2 = Var[Float]("MA2", Plot.Line)
+  val vol = TVar[Float]("VOL", Plot.Volume)
+  val ma1 = TVar[Float]("MA1", Plot.Line)
+  val ma2 = TVar[Float]("MA2", Plot.Line)
     
     
   protected def computeCont(begin: Int, size: Int): Unit = {

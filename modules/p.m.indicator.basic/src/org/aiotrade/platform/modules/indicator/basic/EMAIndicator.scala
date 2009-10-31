@@ -1,4 +1,4 @@
-TVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,7 +30,7 @@ TVarTVarTVarTVar/*
  */
 package org.aiotrade.platform.modules.indicator.basic;
 
-import org.aiotrade.lib.math.timeseries.Var;
+import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.computable.Factor;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.indicator.ContIndicator;
@@ -48,9 +48,9 @@ class EMAIndicator extends ContIndicator {
   val period2 = Factor("Period Mediaum", 10)
   val period3 = Factor("Period Long",    20)
     
-  val ema1 = Var[Float]("EMA1", Plot.Line)
-  val ema2 = Var[Float]("EMA2", Plot.Line)
-  val ema3 = Var[Float]("EMA3", Plot.Line)
+  val ema1 = TVar[Float]("EMA1", Plot.Line)
+  val ema2 = TVar[Float]("EMA2", Plot.Line)
+  val ema3 = TVar[Float]("EMA3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

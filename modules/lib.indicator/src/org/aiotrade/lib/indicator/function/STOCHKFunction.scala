@@ -1,4 +1,4 @@
-TVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,13 +28,11 @@ TVarTVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import java.util.HashSet;
-import java.util.Set;
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -44,9 +42,9 @@ class STOCHKFunction extends AbstractFunction {
     
   var period, periodK: Factor = _
     
-  val _elementK = Var[Float]()
+  val _elementK = TVar[Float]
     
-  val _stochK = Var[Float]()
+  val _stochK = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

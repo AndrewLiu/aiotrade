@@ -1,4 +1,4 @@
-TVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -46,7 +46,7 @@ class MFIIndicator extends ContIndicator {
 
   val period = Factor("Period", 10)
     
-  val mfi = Var[Float]("MFI", Plot.Line)
+  val mfi = TVar[Float]("MFI", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

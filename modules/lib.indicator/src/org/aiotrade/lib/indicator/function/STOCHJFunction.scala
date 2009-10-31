@@ -1,4 +1,4 @@
-TVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -28,11 +28,11 @@ TVarTVarTVar/*
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -42,10 +42,10 @@ class STOCHJFunction extends AbstractFunction {
     
   var period, periodK, periodD: Factor = _
     
-  val _stochK = Var[Float]()
-  val _stochD = Var[Float]()
+  val _stochK = TVar[Float]
+  val _stochD = TVar[Float]
     
-  val _stochJ = Var[Float]()
+  val _stochJ = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -62,7 +62,7 @@ class STOCHJFunction extends AbstractFunction {
     _stochJ(i) = _stochD(i) + 2 * (_stochD(i) - _stochK(i))
   }
         
-  def stochJ(sessionId: Long, idx: Int) :Float = {
+  def stochJ(sessionId: Long, idx: Int): Float = {
     computeTo(sessionId, idx)
         
     _stochJ(idx)

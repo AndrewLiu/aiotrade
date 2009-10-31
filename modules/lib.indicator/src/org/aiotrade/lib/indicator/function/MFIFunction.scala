@@ -1,4 +1,4 @@
-TVarTVarTVarTVar/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -42,11 +42,11 @@ class MFIFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _tp    = Var[Float]()
-  val _mfPos = Var[Float]()
-  val _mfNeg = Var[Float]()
+  val _tp    = TVar[Float]
+  val _mfPos = TVar[Float]
+  val _mfNeg = TVar[Float]
 
-  val _mfi = Var[Float]()
+  val _mfi = TVar[Float]
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

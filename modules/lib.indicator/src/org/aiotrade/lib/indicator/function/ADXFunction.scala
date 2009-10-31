@@ -1,4 +1,4 @@
-TVarTVarTSerTSer/*
+/*
  * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
@@ -30,7 +30,7 @@ TVarTVarTSerTSer/*
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.Ser
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -42,11 +42,11 @@ class ADXFunction extends AbstractFunction {
     
   var periodDi, periodAdx: Factor = _
     
-  val _dx  = Var[Float]()
+  val _dx  = TVar[Float]()
     
-  val _adx = Var[Float]()
+  val _adx = TVar[Float]()
 
-  override def set(baseSer: Ser, args: Any*): Unit = {
+  override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer, Nil)
     args match {
       case Seq(a0: Factor, a1: Factor) =>
