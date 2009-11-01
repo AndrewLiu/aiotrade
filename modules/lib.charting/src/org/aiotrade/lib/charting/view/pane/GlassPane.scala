@@ -727,12 +727,12 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
               i += 1
             }
 
-            new StringBuilder(20).append("P: ").append(period).append("  ").append(String.format("%+3.2f", Array(percent))).append("%").append("  V: ").append(String.format("%5.0f", Array(volumeSum))).toString
+            new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
           } else { /** else, usually RealtimeQuoteChartView */
             val vRefer = GlassPane.this.getReferCursorValue
-            val percent = if (vRefer == 0) 0 else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
+            val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
-            new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vDisplay)).append("  ").append(String.format("%+3.2f", Array(percent))).append("%").toString
+            new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vDisplay)).append("  ").append("%+3.2f".format(percent)).append("%").toString
           }
 
         val label = addChild(new Label)
