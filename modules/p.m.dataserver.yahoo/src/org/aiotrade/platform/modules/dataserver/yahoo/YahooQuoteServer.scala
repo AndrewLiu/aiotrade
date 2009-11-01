@@ -175,14 +175,14 @@ class YahooQuoteServer extends QuoteServer {
              * must catch the date parse exception, other wise, it's dangerous
              * for build a calendarTimes in MasterSer
              */
-            val date = try {
-              dateFormat.parse(dateTimeX.trim)
+            try {
+              val date = dateFormat.parse(dateTimeX.trim)
+							cal.clear
+							cal.setTime(date)
             } catch {
               case _: ParseException => loop(newestTime)
             }
                     
-            cal.clear
-            cal.setTime(date.asInstanceOf[Date])
             var time = cal.getTimeInMillis
             if (time < fromTime) {
               loop(newestTime)
@@ -214,7 +214,9 @@ class YahooQuoteServer extends QuoteServer {
             loop(newestTime1)
           case _ => loop(newestTime)
         }
-    }; loop(-Long.MaxValue)
+    }
+
+		loop(-Long.MaxValue)
   }
 
   protected def loadFromSource(afterThisTime: Long): Long = {

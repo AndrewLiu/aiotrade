@@ -82,7 +82,7 @@ class YahooTickerServer extends TickerServer {
       return
     }
 
-    val itr = contracts.elements
+    val itr = contracts.iterator
     while (itr.hasNext) {
       urlStr.append(itr.next.symbol)
       if (itr.hasNext) urlStr.append("+")
@@ -150,9 +150,7 @@ class YahooTickerServer extends TickerServer {
               cal.clear
               cal.setTime(date)
             } catch {
-              case ex: ParseException =>
-                ex.printStackTrace
-                loop(newestTime)
+              case ex: ParseException => loop(newestTime)
             }
 
             val time = cal.getTimeInMillis

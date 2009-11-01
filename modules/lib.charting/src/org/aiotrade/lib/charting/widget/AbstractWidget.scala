@@ -239,10 +239,10 @@ abstract class AbstractWidget extends Widget {
       _model = createModel
     }
         
-    model
+    _model
   }
     
-  protected def createModel :M
+  protected def createModel: M
     
   def plot: Unit = {
     reset

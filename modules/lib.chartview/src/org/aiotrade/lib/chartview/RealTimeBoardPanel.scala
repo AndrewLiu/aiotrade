@@ -71,7 +71,7 @@ import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
  * @author Caoyuan Deng
  */
 object RealTimeBoardPanel {
-  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.chartview.chartview.Bundle")
+  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.chartview.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
 }
 

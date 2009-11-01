@@ -122,7 +122,7 @@ trait TestHelper {
     }
   }
 
-  def initIndicators(contents: AnalysisContents, masterSer: MasterSer): Seq[Indicator] = {
+  def initIndicators(contents: AnalysisContents, masterSer: MasterTSer): Seq[Indicator] = {
     var indicators: List[Indicator] = Nil
     for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {

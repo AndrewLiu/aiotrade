@@ -302,7 +302,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     var begIdx = 2
     val overlappingSers = view.getOverlappingSers
     for (ser <- overlappingSers) {
-      var label = overlappingSersToNameLabel.get(ser).get
+      var label = overlappingSersToNameLabel.get(ser).getOrElse(null)
       var button = overlappingSersToCloseButton.get(ser) match {
         case Some(x) => 
           begIdx += 2

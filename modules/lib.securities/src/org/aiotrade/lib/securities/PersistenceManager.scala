@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities;
+package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.ServiceLoader
