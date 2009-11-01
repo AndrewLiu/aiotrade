@@ -246,14 +246,14 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
     rowData(getColumnIndex(SYMBOL)) = symbol
     rowData(getColumnIndex(TIME)) = df.format(cal.getTime)
-    rowData(getColumnIndex(LAST_PRICE)) = "%5.2f"  format ticker(Ticker.LAST_PRICE)
-    rowData(getColumnIndex(DAY_VOLUME)) = "%5.2f"  format ticker(Ticker.DAY_VOLUME)
-    rowData(getColumnIndex(PREV_CLOSE)) = "%5.2f"  format ticker(Ticker.PREV_CLOSE)
-    rowData(getColumnIndex(DAY_CHANGE)) = "%5.2f"  format ticker(Ticker.DAY_CHANGE)
-    rowData(getColumnIndex(PERCENT))    = "%+3.2f" format ticker.changeInPercent + "%"
-    rowData(getColumnIndex(DAY_HIGH))   = "%5.2f"  format ticker(Ticker.DAY_HIGH)
-    rowData(getColumnIndex(DAY_LOW))    = "%5.2f"  format ticker(Ticker.DAY_LOW)
-    rowData(getColumnIndex(DAY_OPON))   = "%5.2f"  format ticker(Ticker.DAY_OPEN)
+    rowData(getColumnIndex(LAST_PRICE)) = "%5.2f"    format ticker(Ticker.LAST_PRICE)
+    rowData(getColumnIndex(DAY_VOLUME)) = "%5.2f"    format ticker(Ticker.DAY_VOLUME)
+    rowData(getColumnIndex(PREV_CLOSE)) = "%5.2f"    format ticker(Ticker.PREV_CLOSE)
+    rowData(getColumnIndex(DAY_CHANGE)) = "%5.2f"    format ticker(Ticker.DAY_CHANGE)
+    rowData(getColumnIndex(PERCENT))    = "%+3.2f%%" format ticker.changeInPercent
+    rowData(getColumnIndex(DAY_HIGH))   = "%5.2f"    format ticker(Ticker.DAY_HIGH)
+    rowData(getColumnIndex(DAY_LOW))    = "%5.2f"    format ticker(Ticker.DAY_LOW)
+    rowData(getColumnIndex(DAY_OPON))   = "%5.2f"    format ticker(Ticker.DAY_OPEN)
 
     rowData
   }

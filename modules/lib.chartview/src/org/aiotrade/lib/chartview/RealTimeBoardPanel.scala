@@ -334,13 +334,13 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     marketCal.setTimeInMillis(snapshotTicker.time)
     val lastTradeTime = marketCal.getTime
     currentTime.value = sdf.format(lastTradeTime)
-    lastPrice.value   = "%8.2f"  format snapshotTicker(Ticker.LAST_PRICE)
-    prevClose.value   = "%8.2f"  format snapshotTicker(Ticker.PREV_CLOSE)
-    dayOpen.value     = "%8.2f"  format snapshotTicker(Ticker.DAY_OPEN)
-    dayHigh.value     = "%8.2f"  format snapshotTicker(Ticker.DAY_HIGH)
-    dayLow.value      = "%8.2f"  format snapshotTicker(Ticker.DAY_LOW)
-    dayChange.value   = "%+8.2f" format snapshotTicker(Ticker.DAY_CHANGE)
-    dayPercent.value  = "%+3.2f" format snapshotTicker.changeInPercent + "%"
+    lastPrice.value   = "%8.2f"    format snapshotTicker(Ticker.LAST_PRICE)
+    prevClose.value   = "%8.2f"    format snapshotTicker(Ticker.PREV_CLOSE)
+    dayOpen.value     = "%8.2f"    format snapshotTicker(Ticker.DAY_OPEN)
+    dayHigh.value     = "%8.2f"    format snapshotTicker(Ticker.DAY_HIGH)
+    dayLow.value      = "%8.2f"    format snapshotTicker(Ticker.DAY_LOW)
+    dayChange.value   = "%+8.2f"   format snapshotTicker(Ticker.DAY_CHANGE)
+    dayPercent.value  = "%+3.2f%%" format snapshotTicker.changeInPercent
     dayVolume.value   = snapshotTicker(Ticker.DAY_VOLUME).toString
 
     var fgColor = Color.BLACK

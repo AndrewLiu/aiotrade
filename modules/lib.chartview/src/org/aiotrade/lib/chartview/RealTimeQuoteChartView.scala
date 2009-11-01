@@ -209,9 +209,10 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
     var lastOccurredTime = masterSer.lastOccurredTime
 
     evt.lastObject match {
+			case null =>
       case ticker: Ticker =>
         val percentValue = ticker.changeInPercent
-        val strValue = "%+3.2f" format percentValue + "%  " + ticker(Ticker.LAST_PRICE)
+        val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
         val color = if (percentValue >= 0) LookFeel.getCurrent.getPositiveColor else LookFeel.getCurrent.getNegativeColor
 
         getGlassPane.updateInstantValue(strValue, color)
