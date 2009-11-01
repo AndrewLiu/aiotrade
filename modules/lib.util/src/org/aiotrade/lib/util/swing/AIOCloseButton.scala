@@ -31,7 +31,6 @@
 package org.aiotrade.lib.util.swing
 
 import java.awt.Color
-import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon
@@ -41,16 +40,19 @@ import javax.swing.JButton
  *
  * @author Caoyuan Deng
  */
-class AIOCloseButton extends JButton {
-  private val ICON_SIZE = 12
+/**
+ *  ICON_SIZE etc should be early def, since it may be used in super() call via setForeground
+ */
+class AIOCloseButton extends {
+	val ICON_SIZE = 12
   private var chosenIcon: Icon = _
   private var unchosenIcon: Icon = _
   private var chosenRolloverIcon: Icon = _
   private var unchosenRolloverIcon: Icon = _
+} with JButton {
     
   private var chosen: Boolean = _
     
-  //super();
   setFocusPainted(false)
   setRolloverEnabled(true)
   setBorderPainted(false)
