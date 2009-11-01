@@ -142,10 +142,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     //chartPane = new JPanel();
 
     val infoModelData = Array(
-      Array(BUNDLE.getString("lastPrice"), lastPrice, BUNDLE.getString("dayVolume"), dayVolume),
-      Array(BUNDLE.getString("dayChange"), dayChange, BUNDLE.getString("dayHigh"), dayHigh),
-      Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"), dayLow),
-      Array(BUNDLE.getString("prevClose"), prevClose, BUNDLE.getString("dayOpen"), dayOpen)
+      Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
+      Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
+      Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
+      Array(BUNDLE.getString("prevClose"),  prevClose,  BUNDLE.getString("dayOpen"),   dayOpen)
     )
     infoModel = new AttributiveCellTableModel(
       infoModelData.asInstanceOf[Array[Array[Any]]],
@@ -478,6 +478,7 @@ object ValueCell {
           case cell: ValueCell =>
             cell.row = i
             cell.column = j
+					case _ =>
         }
       }
     }

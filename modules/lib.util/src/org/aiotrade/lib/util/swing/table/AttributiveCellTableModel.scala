@@ -24,7 +24,7 @@ object AttributiveCellTableModel {
       return null
     }
     val v = new Vector[Any](anArray.length)
-    anArray.foreach{x => v.addElement(x)}
+    anArray foreach {x => v.addElement(x)}
     v
   }
 
@@ -34,14 +34,14 @@ object AttributiveCellTableModel {
    * @return the new vector of vectors; if <code>anArray</code> is
    *                          <code>null</code>, returns <code>null</code>
    */
-//  def convertToVector(anArray:Array[Array[_]]): Vector[Vector[_]] = {
-//    if (anArray == null) {
-//      return null
-//    }
-//    val v = new Vector[Vector[_]](anArray.length)
-//    anArray.foreach{x => v.addElement(convertToVector(x))}
-//    v
-//  }
+  def convertToVector(anArray: Array[Array[Any]]): Vector[Vector[_]] = {
+    if (anArray == null) {
+      return null
+    }
+    val v = new Vector[Vector[_]](anArray.length)
+    anArray foreach {x => v.addElement(convertToVector(x))}
+    v
+  }
 
 }
 class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns: Int) extends DefaultTableModel {
@@ -71,31 +71,31 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     this(columnNames, 0, numRows)
   }
 
-  def this(columnNames: Array[Any], numRows: Int) = {
-    this(AttributiveCellTableModel.convertToVector(columnNames), numRows)
-  }
-
   def this(data: Vector[_], columnNames: Vector[_]) = {
     this(columnNames, columnNames.size, data.size)
     setDataVector(data, columnNames)
   }
 
+  def this(columnNames: Array[Any], numRows: Int) = {
+    this(AttributiveCellTableModel.convertToVector(columnNames), numRows)
+  }
+
   def this(data: Array[Array[Any]], columnNames: Array[Any]) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), columnNames.size, 0)
-    setDataVector(AttributiveCellTableModel.convertToVector(data.asInstanceOf[Array[Any]]), AttributiveCellTableModel.convertToVector(columnNames))
+    setDataVector(AttributiveCellTableModel.convertToVector(data), AttributiveCellTableModel.convertToVector(columnNames))
   }
 
   override def setDataVector(newData: Vector[_], columnNames: Vector[_]): Unit = {
     if (newData == null) {
-      throw new IllegalArgumentException("setDataVector() - Null parameter");
+      throw new IllegalArgumentException("setDataVector) - Null parameter")
     }
     dataVector = new Vector(0)
     columnIdentifiers = nonNullVector(columnNames)
-    dataVector = newData;
+    dataVector = newData
 
     cellAtt = new DefaultCellAttribute(dataVector.size, columnIdentifiers.size)
 
-    newRowsAdded(new TableModelEvent(this, 0, getRowCount() - 1,
+    newRowsAdded(new TableModelEvent(this, 0, getRowCount - 1,
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
