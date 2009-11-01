@@ -89,7 +89,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   private val rowToColColors = new HashMap[Int, HashMap[String, Color]]
   private val tableModel: WatchListTableModel = new WatchListTableModel(columeNames, 0)
   private val df = new SimpleDateFormat("hh:mm", Locale.US)
-  private val calendar = Calendar.getInstance
+  private val cal = Calendar.getInstance
   private val bgColorSelected = new Color(169, 178, 202)
 
   initComponents
@@ -242,18 +242,18 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   private val rowData = new Array[Object](COLUME_COUNT)
 
   private def composeRowData(symbol: String, ticker: Ticker): Array[Object] = {
-    calendar.setTimeInMillis(ticker.time)
+    cal.setTimeInMillis(ticker.time)
 
     rowData(getColumnIndex(SYMBOL)) = symbol
-    rowData(getColumnIndex(TIME)) = df.format(calendar.getTime)
-    rowData(getColumnIndex(LAST_PRICE)) = String.format("%5.2f",  Array(ticker(Ticker.LAST_PRICE)))
-    rowData(getColumnIndex(DAY_VOLUME)) = String.format("%5.2f",  Array(ticker(Ticker.DAY_VOLUME)))
-    rowData(getColumnIndex(PREV_CLOSE)) = String.format("%5.2f",  Array(ticker(Ticker.PREV_CLOSE)))
-    rowData(getColumnIndex(DAY_CHANGE)) = String.format("%5.2f",  Array(ticker(Ticker.DAY_CHANGE)))
-    rowData(getColumnIndex(PERCENT))    = String.format("%+3.2f", Array(ticker.changeInPercent)) + "%"
-    rowData(getColumnIndex(DAY_HIGH))   = String.format("%5.2f",  Array(ticker(Ticker.DAY_HIGH)))
-    rowData(getColumnIndex(DAY_LOW))    = String.format("%5.2f",  Array(ticker(Ticker.DAY_LOW)))
-    rowData(getColumnIndex(DAY_OPON))   = String.format("%5.2f",  Array(ticker(Ticker.DAY_OPEN)))
+    rowData(getColumnIndex(TIME)) = df.format(cal.getTime)
+    rowData(getColumnIndex(LAST_PRICE)) = "%5.2f"  format ticker(Ticker.LAST_PRICE)
+    rowData(getColumnIndex(DAY_VOLUME)) = "%5.2f"  format ticker(Ticker.DAY_VOLUME)
+    rowData(getColumnIndex(PREV_CLOSE)) = "%5.2f"  format ticker(Ticker.PREV_CLOSE)
+    rowData(getColumnIndex(DAY_CHANGE)) = "%5.2f"  format ticker(Ticker.DAY_CHANGE)
+    rowData(getColumnIndex(PERCENT))    = "%+3.2f" format ticker.changeInPercent + "%"
+    rowData(getColumnIndex(DAY_HIGH))   = "%5.2f"  format ticker(Ticker.DAY_HIGH)
+    rowData(getColumnIndex(DAY_LOW))    = "%5.2f"  format ticker(Ticker.DAY_LOW)
+    rowData(getColumnIndex(DAY_OPON))   = "%5.2f"  format ticker(Ticker.DAY_OPEN)
 
     rowData
   }

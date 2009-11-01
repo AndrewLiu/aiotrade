@@ -318,30 +318,30 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     val depth = snapshotTicker.depth
     val dealRow = 5
-    depthModel.setValueAt(String.format("%8.2f", Array(snapshotTicker(Ticker.LAST_PRICE))), dealRow, 1)
+    depthModel.setValueAt("%8.2f" format snapshotTicker(Ticker.LAST_PRICE), dealRow, 1)
     depthModel.setValueAt(if (prevTicker == null) "-" else currentSize, dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
-      depthModel.setValueAt(String.format("%8.2f", Array(snapshotTicker.askPrice(askIdx))), askRow, 1)
-      depthModel.setValueAt(String.valueOf(snapshotTicker.askSize(askIdx).intValue), askRow, 2)
+      depthModel.setValueAt("%8.2f" format snapshotTicker.askPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(snapshotTicker.askSize(askIdx).intValue.toString, askRow, 2)
       val bidIdx = i
       val bidRow = depth + 1 + i
-      depthModel.setValueAt(String.format("%8.2f", Array(snapshotTicker.bidPrice(bidIdx))), bidRow, 1)
-      depthModel.setValueAt(String.valueOf(snapshotTicker.bidSize(bidIdx).intValue), bidRow, 2)
+      depthModel.setValueAt("%8.2f" format snapshotTicker.bidPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(snapshotTicker.bidSize(bidIdx).intValue.toString, bidRow, 2)
     }
 
     marketCal.setTimeInMillis(snapshotTicker.time)
     val lastTradeTime = marketCal.getTime
     currentTime.value = sdf.format(lastTradeTime)
-    lastPrice.value   = String.format("%8.2f",  Array(snapshotTicker(Ticker.LAST_PRICE)))
-    prevClose.value   = String.format("%8.2f",  Array(snapshotTicker(Ticker.PREV_CLOSE)))
-    dayOpen.value     = String.format("%8.2f",  Array(snapshotTicker(Ticker.DAY_OPEN)))
-    dayHigh.value     = String.format("%8.2f",  Array(snapshotTicker(Ticker.DAY_HIGH)))
-    dayLow.value      = String.format("%8.2f",  Array(snapshotTicker(Ticker.DAY_LOW)))
-    dayChange.value   = String.format("%+8.2f", Array(snapshotTicker(Ticker.DAY_CHANGE)))
-    dayPercent.value  = String.format("%+3.2f", Array(snapshotTicker.changeInPercent)) + "%"
-    dayVolume.value   = String.valueOf(snapshotTicker(Ticker.DAY_VOLUME))
+    lastPrice.value   = "%8.2f"  format snapshotTicker(Ticker.LAST_PRICE)
+    prevClose.value   = "%8.2f"  format snapshotTicker(Ticker.PREV_CLOSE)
+    dayOpen.value     = "%8.2f"  format snapshotTicker(Ticker.DAY_OPEN)
+    dayHigh.value     = "%8.2f"  format snapshotTicker(Ticker.DAY_HIGH)
+    dayLow.value      = "%8.2f"  format snapshotTicker(Ticker.DAY_LOW)
+    dayChange.value   = "%+8.2f" format snapshotTicker(Ticker.DAY_CHANGE)
+    dayPercent.value  = "%+3.2f" format snapshotTicker.changeInPercent + "%"
+    dayVolume.value   = snapshotTicker(Ticker.DAY_VOLUME).toString
 
     var fgColor = Color.BLACK
     var bgColor = neutralColor
@@ -383,7 +383,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     val tickerRow = Array(
       sdf.format(lastTradeTime),
-      String.format("%5.2f", Array(snapshotTicker(Ticker.LAST_PRICE))),
+      "%5.2f" format snapshotTicker(Ticker.LAST_PRICE),
       if (prevTicker == null) "-" else currentSize
     )
     tickerModel.insertRow(0, tickerRow.asInstanceOf[Array[Object]])
