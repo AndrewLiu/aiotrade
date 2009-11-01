@@ -104,6 +104,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val dayPercent = new ValueCell
   private val prevClose = new ValueCell
 
+	private val numbers = Array("①", "②", "③", "④", "⑤")
+
   /**
    * Creates new form RealtimeBoardPanel
    */
@@ -281,7 +283,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         val rect = getBounds()
         g.fillRect(rect.x, rect.y, rect.width, rect.height)
       }
-    };
+    }
     infoBox.setBackground(LookFeel.getCurrent.heavyBackgroundColor)
     infoBox.add(Box.createVerticalStrut(5))
     infoBox.add(infoTable)
@@ -299,7 +301,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     add(tickerPane, new GBC(0, 1).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
     //add(chartPane, new GBC(0,2).setFill(GBC.BOTH).setWeight(100, 100));
   }
-  val numbers = Array("①", "②", "③", "④", "⑤")
 
   def update(tickerSnapshot: Observable) {
 		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
@@ -484,8 +485,8 @@ object ValueCell {
     }
   }
 }
-class ValueCell(var row: Int, var column: Int) {
 
+class ValueCell(var row: Int, var column: Int) {
   var value: String = _
 
   def this() = this(0, 0)
@@ -493,5 +494,4 @@ class ValueCell(var row: Int, var column: Int) {
   override def toString = {
     value
   }
-
 }
