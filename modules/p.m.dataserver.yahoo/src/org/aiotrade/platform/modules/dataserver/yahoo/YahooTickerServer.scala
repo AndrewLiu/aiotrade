@@ -30,13 +30,13 @@
  */
 package org.aiotrade.platform.modules.dataserver.yahoo
 
-import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.io.{BufferedReader, InputStreamReader}
 import java.net.{HttpURLConnection, URL}
 import java.text.ParseException
-import java.util.{Calendar, Date, TimeZone}
+import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
-import org.aiotrade.lib.securities.{Market, Ticker, TickerSnapshot}
-import org.aiotrade.lib.securities.dataserver.{TickerContract, TickerServer}
+import org.aiotrade.lib.securities.{Market, Ticker}
+import org.aiotrade.lib.securities.dataserver.{TickerServer}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.

@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.widget;
+package org.aiotrade.lib.charting.widget
 
 
 /**
@@ -40,12 +40,12 @@ package org.aiotrade.lib.charting.widget;
 class CandleBar extends PathWidget {
   final class Model extends WidgetModel {
     var xCenter: Float = _
-    var yOpen: Float = _
-    var yHigh: Float = _
-    var yLow: Float = _
-    var yClose: Float = _
-    var width: Float = _
-    var filled: Boolean = _
+    var yOpen:   Float = _
+    var yHigh:   Float = _
+    var yLow:    Float = _
+    var yClose:  Float = _
+    var width:   Float = _
+    var filled:  Boolean = _
         
     def set(xCenter: Float, yOpen: Float, yHigh: Float, yLow: Float, yClose: Float, width: Float, filled: Boolean) {
       this.xCenter = xCenter
@@ -80,9 +80,9 @@ class CandleBar extends PathWidget {
     val m = model
     val path = getPath
     path.reset
-        
+
     /** why - 2 ? 1 for centre, 1 for space */
-    val xRadius: Float = if (m.width < 2) 0 else (m.width - 2) / 2
+    val xRadius = (if (m.width < 2) 0F else (m.width - 2) / 2)
     /** upper and lower of candle's rectangle */
     val yUpper = Math.min(m.yOpen, m.yClose)
     val yLower = Math.max(m.yOpen, m.yClose)
@@ -103,7 +103,7 @@ class CandleBar extends PathWidget {
       path.moveTo(m.xCenter, yLower)
       path.lineTo(m.xCenter, m.yLow)
             
-      if (model.filled) {
+      if (m.filled) {
         var i = 1
         while (i < m.width) {
           path.moveTo(m.xCenter - xRadius + i, yUpper)

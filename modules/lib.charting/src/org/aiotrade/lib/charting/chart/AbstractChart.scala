@@ -324,8 +324,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     val yBeg = GeomUtil.yOfLine(xBeg, xBase, yBase, k)
     val xEnd = datumPlane.getWidth
     val yEnd = GeomUtil.yOfLine(xEnd, xBase, yBase, k)
-    path.moveTo(xBeg, yBeg);
-    path.lineTo(xEnd, yEnd);
+    path.moveTo(xBeg, yBeg)
+    path.lineTo(xEnd, yEnd)
   }
 
   protected def plotVerticalLine(bar: Int, path: GeneralPath) {
@@ -422,7 +422,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     var bar = 1
     while (bar <= nBars) {
             
-      var x1 = xlast;
+      var x1 = xlast
       var x2 = xb(bar)
             
       var y1 = GeomUtil.yOfLine(x1, xBeg, yBeg, k)

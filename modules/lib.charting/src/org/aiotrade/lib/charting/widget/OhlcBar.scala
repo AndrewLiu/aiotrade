@@ -40,19 +40,19 @@ package org.aiotrade.lib.charting.widget
 class OhlcBar extends PathWidget {
   final class Model extends WidgetModel {
     var xCenter: Float = _
-    var yOpen: Float = _
-    var yHigh: Float = _
-    var yLow: Float = _
-    var yClose: Float = _
-    var width: Float = _
+    var yOpen:   Float = _
+    var yHigh:   Float = _
+    var yLow:    Float = _
+    var yClose:  Float = _
+    var width:   Float = _
         
     def set(xCenter: Float, yOpen: Float, yHigh: Float, yLow: Float, yClose: Float, width: Float) {
-      this.xCenter = xCenter;
-      this.yOpen = yOpen;
-      this.yHigh = yHigh;
-      this.yLow = yLow;
-      this.yClose = yClose;
-      this.width = width;
+      this.xCenter = xCenter
+      this.yOpen = yOpen
+      this.yHigh = yHigh
+      this.yLow = yLow
+      this.yClose = yClose
+      this.width = width
     }
   }
 
@@ -71,13 +71,13 @@ class OhlcBar extends PathWidget {
    *          ^   ^
    *          |___|___ barCenter
    */
-  override protected def plotWidget() {
+  override protected def plotWidget {
     val m = model
     val path = getPath
     path.reset
         
     /** why - 2 ? 1 for centre, 1 for space */
-    val xRadius: Float = if (m.width < 2) 0 else (m.width - 2) / 2
+    val xRadius: Float = if (m.width < 2) 0F else (m.width - 2) / 2
         
     if (m.width <= 2) {
       path.moveTo(m.xCenter, m.yHigh)
