@@ -48,7 +48,7 @@ import org.aiotrade.lib.charting.view.MouseCursorObserver
 import org.aiotrade.lib.charting.widget.Widget
 import scala.collection.immutable.SortedSet
 import scala.collection.immutable.TreeSet
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 protected abstract class RenderStrategy
 protected object RenderStrategy {
@@ -74,7 +74,7 @@ object Pane {
 abstract class Pane(protected val view: ChartView, protected var datumPlane: DatumPlane) extends JComponent {
   import Pane._
 
-  private val widgets = new ArrayBuffer[Widget]
+  private val widgets = new ArrayList[Widget]
   private var charts = new TreeSet[Chart]
   private var referCursorChart: CursorChart = _
   private var mouseCursorChart: CursorChart = _

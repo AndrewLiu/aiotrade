@@ -45,7 +45,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.DrawingPane
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.util.swing.action.EditAction
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -61,7 +61,7 @@ object AbstractHandledChart {
   val VARIABLE_NUMBER_OF_HANDLES = Integer.MAX_VALUE
 }
 
-abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[ValuePoint]) extends HandledChart {
+abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[ValuePoint]) extends HandledChart {
   import AbstractHandledChart._
     
   private var drawingPane: DrawingPane = _
@@ -75,11 +75,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
    * another object, even in case of being got by others via public or
    * protected method
    */
-  private val currentHandles  = new ArrayBuffer[Handle]
-  private val previousHandles = new ArrayBuffer[Handle]
+  private val currentHandles  = new ArrayList[Handle]
+  private val previousHandles = new ArrayList[Handle]
     
   /** For moving chart: the valuePoint and handls when mouse is pressed before drag */
-  private val currentHandlesWhenMousePressed = new ArrayBuffer[Handle]
+  private val currentHandlesWhenMousePressed = new ArrayList[Handle]
   /**
    * define mousePressedPoint as final to force using copy(..) to set its value
    */
@@ -101,7 +101,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   private var cursor: Cursor = _
     
   private val pointBuf = new ValuePoint
-  private val handlePointsBuf = new ArrayBuffer[ValuePoint]
+  private val handlePointsBuf = new ArrayList[ValuePoint]
     
 
   def this(drawing: DrawingPane) = this(drawing, null)
@@ -129,7 +129,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   /**
    * init with known points
    */
-  def init(drawing: DrawingPane, points: ArrayBuffer[ValuePoint]) {
+  def init(drawing: DrawingPane, points: ArrayList[ValuePoint]) {
     assert(points != null, "this is for points known HandledChart!")
         
     attachDrawingPane(drawing)
@@ -385,7 +385,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     }
   }
     
-  private def renderHandles(g: Graphics , handles: ArrayBuffer[Handle]) {
+  private def renderHandles(g: Graphics , handles: ArrayList[Handle]) {
     for (handle <- handles) {
       handle.render(g)
     }
@@ -411,11 +411,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     readyToDrag
   }
     
-  def getCurrentHandlesPoints: ArrayBuffer[ValuePoint] = {
+  def getCurrentHandlesPoints: ArrayList[ValuePoint] = {
     handlesPoints(currentHandles)
   }
     
-  protected def handlesPoints(handles: ArrayBuffer[Handle]): ArrayBuffer[ValuePoint] = {
+  protected def handlesPoints(handles: ArrayList[Handle]): ArrayList[ValuePoint] = {
     handlePointsBuf.clear
     var i = 0
     val n = handles.size
@@ -478,7 +478,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     setChartModelAndRenderChart(g, currentHandles)
   }
     
-  private def setChartModelAndRenderChart(g: Graphics, handles: ArrayBuffer[Handle]) {
+  private def setChartModelAndRenderChart(g: Graphics, handles: ArrayList[Handle]) {
     /** 1. set chart's model according to the handles */
     setChartModel(handles)
         
@@ -494,7 +494,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
    *
    * @param handles the list of handles to be used to set the model
    */
-  protected def setChartModel(handles: ArrayBuffer[Handle]): Unit
+  protected def setChartModel(handles: ArrayList[Handle]): Unit
     
   final def compareTo(another: HandledChart): Int = {
     if (this.toString.equalsIgnoreCase(another.toString)) {

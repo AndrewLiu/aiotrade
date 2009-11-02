@@ -40,7 +40,7 @@ import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -67,8 +67,8 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */
-    val indicatorDescriptorsToBeShowing = new ArrayBuffer[IndicatorDescriptor]
-    val  indicatorsToBeShowing = new ArrayBuffer[Indicator]
+    val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
+    val  indicatorsToBeShowing = new ArrayList[Indicator]
     for (descriptor <- getController.getContents.lookupDescriptors(classOf[IndicatorDescriptor])) {
       if (descriptor.active && descriptor.freq.equals(getController.getMasterSer.freq)) {
         descriptor.serviceInstance(getController.getMasterSer) foreach {indicator =>

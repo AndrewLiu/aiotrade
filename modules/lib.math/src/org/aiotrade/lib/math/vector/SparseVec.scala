@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.vector;
 
 import java.util.Random
 import java.util.StringTokenizer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  * Sparse implement of Vec. It do not store 0 valued elements.
@@ -245,7 +245,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
         newItems
       case _ =>
 
-        val itemBuf = new ArrayBuffer[VecItem]
+        val itemBuf = new ArrayList[VecItem]
         for (i <- 0 until src.dimension) {
           val value = src.apply(i)
           if (value != 0) {

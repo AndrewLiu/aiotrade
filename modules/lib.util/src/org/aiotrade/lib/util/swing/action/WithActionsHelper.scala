@@ -32,7 +32,7 @@ package org.aiotrade.lib.util.swing.action
 
 import javax.swing.Action
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
@@ -45,10 +45,10 @@ class WithActionsHelper(awrapper: WithActions) {
     
   def addAction(action: Action): Action = {
     if (actions == Nil) {
-      actions = new ArrayBuffer[Action]
+      actions = new ArrayList[Action]
     }
     
-    actions.asInstanceOf[ArrayBuffer[Action]] += action
+    actions.asInstanceOf[ArrayList[Action]] += action
     action
   }
     

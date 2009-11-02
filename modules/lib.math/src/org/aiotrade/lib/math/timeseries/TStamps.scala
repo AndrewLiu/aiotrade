@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
@@ -57,7 +57,7 @@ object TStampsLog {
   val REMOVE = 0x8000 // 1000 0000 0000 0000
   val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
-class TStampsLog extends ArrayBuffer[Short] {
+class TStampsLog extends ArrayList[Short] {
   import TStampsLog._
 
   private var _logCursor = -1
@@ -186,7 +186,7 @@ import java.util.{Calendar,GregorianCalendar,TimeZone}
 import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 
 @cloneable
-trait TStamps extends ArrayBuffer[Long] {
+trait TStamps extends ArrayList[Long] {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new ReentrantReadWriteLock

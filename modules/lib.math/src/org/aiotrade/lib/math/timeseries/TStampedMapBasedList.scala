@@ -30,7 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import scala.collection.mutable.{ArrayBuffer,HashMap}
+import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.{HashMap}
 
 /**
  * A package class that implements timestamped Map based List, used to store
@@ -122,7 +123,7 @@ import scala.collection.mutable.{ArrayBuffer,HashMap}
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
+class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayList[A] {
     
   private val timeToElementData = new HashMap[Long, A]()
 
@@ -130,7 +131,7 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
 
   override def isEmpty :Boolean = timestamps.isEmpty
     
-  override def contains(o:Any) :Boolean = timeToElementData.values.contains(o)
+  override def contains(o: Any) :Boolean = timeToElementData.valuesIterator.contains(o)
     
  override def toArray[B >: A : ClassManifest]: Array[B] = {
     val length = timestamps.size
@@ -151,7 +152,7 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
     xs
   }
     
-  def add(time:Long, elem:A) :Boolean = {
+  def add(time: Long, elem:A) :Boolean = {
     if (elem == null) {
       /** null value needs not to be put in map, this will spare the memory usage */
       return true
@@ -167,9 +168,9 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
     }
   }
     
-  def getByTime(time:Long) :A = timeToElementData.get(time).get
+  def getByTime(time: Long): A = timeToElementData.get(time).get
     
-  def setByTime(time:Long, elem:A) :A = {
+  def setByTime(time: Long, elem: A): A = {
     if (timestamps.contains(time)) {
       timeToElementData.put(time, elem)
       elem
@@ -183,7 +184,7 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
    *
    */
   @deprecated
-  override def +(elem:A) :ArrayBuffer[A] = {
+  override def +(elem: A) :ArrayList[A] = {
     assert(false, "+(elem:A) is not supported by this collection! " +
            ", please use add(long time, E o)")
     this
@@ -192,18 +193,18 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
   /**
    * @deprecated
    */
-  override def insert(n: Int, elems:A*): Unit = {
+  override def insert(n: Int, elems: A*): Unit = {
     assert(false, "insert(n: Int, elems:A*) is not supported by this collection! " +
            ", please use add(long time, E o)")
   }
                     
   override def clear: Unit = timeToElementData.clear
     
-  override def equals(o:Any) :Boolean = timeToElementData.equals(o)
+  override def equals(o: Any) :Boolean = timeToElementData.equals(o)
     
-  override def hashCode :Int = timeToElementData.hashCode
+  override def hashCode: Int = timeToElementData.hashCode
 
-  override def apply(n: Int) :A = {
+  override def apply(n: Int): A = {
     val time = timestamps(n)
     if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
   }
@@ -215,11 +216,11 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
     } else assert(false, "Index out of bounds! index = " + n)
   }
     
-  override def remove(n: Int) :A = {
+  override def remove(n: Int): A = {
     if (n >= 0 && n < timestamps.size) {
       val time = timestamps(n)
       val e = timeToElementData.get(n).get
-      timeToElementData.removeKey(time)
+      timeToElementData.remove(time)
       e
     } else {
       null.asInstanceOf[A]
@@ -227,7 +228,7 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
   }
     
   override def indexOf[B >: A](elem: B) : Int = {
-    val itr = timeToElementData.keys
+    val itr = timeToElementData.keysIterator
     while (itr.hasNext) {
       val time = itr.next
       if (timeToElementData.get(time).get == elem) {
@@ -240,7 +241,7 @@ class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayBuffer[A] {
     
   override def lastIndexOf[B >: A](elem: B) : Int = {
     var found = -1
-    val itr = timeToElementData.keys
+    val itr = timeToElementData.keysIterator
     while (itr.hasNext) {
       val time = itr.next
       if (timeToElementData.get(time).get == elem) {

@@ -30,12 +30,13 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.{Calendar, TimeZone}
+import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, SerChangeEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.securities.{Market, QuoteItem, QuoteSer, Ticker, TickerObserver, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.Observable
-import scala.collection.mutable.{ArrayBuffer, HashMap}
+import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.{HashMap}
 
 /** This class will load the quote datas from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
@@ -67,7 +68,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     tickerPool.returnObject(ticker)
   }
 
-  override protected def returnBorrowedTimeValues(tickers: ArrayBuffer[Ticker]): Unit = {
+  override protected def returnBorrowedTimeValues(tickers: ArrayList[Ticker]): Unit = {
     tickers foreach (tickerPool.returnObject(_))
   }
 
@@ -110,7 +111,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  private val bufLoadEvents = new ArrayBuffer[SerChangeEvent]
+  private val bufLoadEvents = new ArrayList[SerChangeEvent]
 
   override protected def postLoad: Unit = {
     bufLoadEvents.clear
@@ -177,7 +178,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
-  def composeSer(symbol: String, tickerSer: TSer, storage: ArrayBuffer[Ticker]): SerChangeEvent = {
+  def composeSer(symbol: String, tickerSer: TSer, storage: ArrayList[Ticker]): SerChangeEvent = {
     var evt: SerChangeEvent = null
 
     val cal = Calendar.getInstance(marketOf(symbol).timeZone)

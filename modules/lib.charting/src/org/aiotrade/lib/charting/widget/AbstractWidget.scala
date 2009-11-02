@@ -41,8 +41,9 @@ import java.awt.geom.AffineTransform
 import java.awt.geom.GeneralPath
 import java.util.Collection
 import javax.swing.Action
+import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.charting.util.PathPool
-import scala.collection.mutable.{ArrayBuffer, HashMap}
+import scala.collection.mutable.{HashMap}
 
 /**
  *
@@ -83,9 +84,9 @@ abstract class AbstractWidget extends Widget {
   private var _model: M = _
     
   private var renderColorsWithPathBuf: HashMap[Color, GeneralPath] = _
-  private var actions: ArrayBuffer[Action] = _
+  private var actions: ArrayList[Action] = _
     
-  var children: ArrayBuffer[Widget] = _
+  var children: ArrayList[Widget] = _
 
   def isOpaque: Boolean = {
     opaque
@@ -342,7 +343,7 @@ abstract class AbstractWidget extends Widget {
     
   def addChild[T <: Widget](child: T) :T = {
     if (children == null) {
-      children = new ArrayBuffer[Widget]
+      children = new ArrayList[Widget]
     }
         
     children += child
@@ -355,10 +356,10 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def getChildren: ArrayBuffer[Widget] = {
+  def getChildren: ArrayList[Widget] = {
     if (children != null) {
       children
-    } else new ArrayBuffer[Widget]
+    } else new ArrayList[Widget]
   }
     
   def resetChildren: Unit = {
@@ -375,8 +376,8 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): ArrayBuffer[T] = {
-    val result = new ArrayBuffer[T]
+  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): ArrayList[T] = {
+    val result = new ArrayList[T]
     if (children != null) {
       for (child <- children) {
         if (widgetType.isInstance(child) && child.getForeground.equals(foreground)) {
@@ -400,7 +401,7 @@ abstract class AbstractWidget extends Widget {
     
   def addAction(action: Action): Action = {
     if (actions == null) {
-      actions = new ArrayBuffer[Action]
+      actions = new ArrayList[Action]
     }
         
     actions += action

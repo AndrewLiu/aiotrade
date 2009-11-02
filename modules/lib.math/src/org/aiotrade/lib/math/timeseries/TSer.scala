@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor._
 
 /**
@@ -59,7 +59,7 @@ trait TSer {
   def freq: TFreq
 
   def vars: Seq[TVar[_]]
-  def items: ArrayBuffer[TItem]
+  def items: ArrayList[TItem]
 
   def getItem(time: Long): TItem
     

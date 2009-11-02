@@ -35,12 +35,12 @@ package org.aiotrade.lib.util
  * @author Caoyuan Deng
  */ 
 import java.lang.ref.WeakReference
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 trait Observable {
 
   private var changed: Boolean = _
-  private val observerRefs = new ArrayBuffer[WeakReference[Observer[_]]]
+  private val observerRefs = new ArrayList[WeakReference[Observer[_]]]
 
   def addObserver(observer: Observer[_]): Unit = synchronized {
     assert(observer != null, "Can't add a null observer!")

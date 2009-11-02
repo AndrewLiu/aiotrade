@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.TSer
 import scala.actors.Actor._
@@ -58,8 +58,8 @@ trait Computable {
   def computeFrom(time: Long): Unit
   def computedTime: Long
     
-  def factors: ArrayBuffer[Factor]
-  def factors_=(factors: ArrayBuffer[Factor]): Unit
+  def factors: ArrayList[Factor]
+  def factors_=(factors: ArrayList[Factor]): Unit
   def factors_=(values: Array[Number]): Unit
     
   def dispose: Unit
@@ -73,7 +73,7 @@ object Computable {
     case _ => ser.shortDescription
   }
 
-  def displayName(name: String, factors: ArrayBuffer[Factor]): String = {
+  def displayName(name: String, factors: ArrayList[Factor]): String = {
     factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
   }
 }

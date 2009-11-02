@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{TSer,AddAll}
 import org.aiotrade.lib.securities.{Market, Quote, QuotePool, PersistenceManager}
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -60,7 +60,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     quotePool.returnObject(quote)
   }
 
-  protected def returnBorrowedTimeValues(quotes: ArrayBuffer[Quote]): Unit = {
+  protected def returnBorrowedTimeValues(quotes: ArrayList[Quote]): Unit = {
     quotes.foreach{quotePool.returnObject(_)}
   }
 
@@ -151,7 +151,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  protected def composeSer(symbol: String, quoteSer: TSer, storage: ArrayBuffer[Quote]): SerChangeEvent =  {
+  protected def composeSer(symbol: String, quoteSer: TSer, storage: ArrayList[Quote]): SerChangeEvent =  {
     var evt: SerChangeEvent = null
 
     val size = storage.size

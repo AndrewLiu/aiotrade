@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.math.timeseries.plottable.Plottable
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -58,7 +58,7 @@ trait TVar[@specialized V] extends Plottable {
     
   def toDoubleArray: Array[Double]
     
-  def values: ArrayBuffer[V]
+  def values: ArrayList[V]
     
   def nullValue: V
 

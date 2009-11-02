@@ -43,7 +43,7 @@ package org.aiotrade.lib.util
  * @version 1.0, November 24, 2006, 5:09 PM
  * @since 1.0.4
  */
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 
 class ChangeObservableHelper {
@@ -72,7 +72,7 @@ class ChangeObservableHelper {
   }
     
   def removeObserversOf(owner: Object): Unit = {
-    val toBeRemoved = new ArrayBuffer[ChangeObserver[_]]
+    val toBeRemoved = new ArrayList[ChangeObserver[_]]
     for (observer <- observerToOwner.keysIterator if observerToOwner.get(observer) == owner) {
       toBeRemoved += observer
     }
@@ -88,8 +88,8 @@ class ChangeObservableHelper {
     }
   }
     
-  def getObservers[T <: ChangeObserver[_]](observerType: Class[T]): ArrayBuffer[T] = {
-    val result = new ArrayBuffer[T]
+  def getObservers[T <: ChangeObserver[_]](observerType: Class[T]): ArrayList[T] = {
+    val result = new ArrayList[T]
     for (observer <- observerToOwner.keysIterator) {
       result += (observer.asInstanceOf[T])
     }

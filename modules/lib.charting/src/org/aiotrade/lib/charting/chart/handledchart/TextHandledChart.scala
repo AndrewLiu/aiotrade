@@ -31,7 +31,7 @@
 package org.aiotrade.lib.charting.chart.handledchart
 
 import org.aiotrade.lib.charting.chart.segment.Handle
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -48,7 +48,7 @@ class TextHandledChart extends AbstractHandledChart {
     new TextChart
   }
     
-  protected def setChartModel(handles: ArrayBuffer[Handle]) {
+  protected def setChartModel(handles: ArrayList[Handle]) {
     getChart.model.set(handles(0).getPoint.t,
                        handles(0).getPoint.v)
   }

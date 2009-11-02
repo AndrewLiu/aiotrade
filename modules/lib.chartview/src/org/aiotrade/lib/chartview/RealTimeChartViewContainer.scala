@@ -38,7 +38,7 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -46,7 +46,7 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 object RealTimeChartViewContainer {
-  private val INSTANCES = new ArrayBuffer[RealTimeChartViewContainer]
+  private val INSTANCES = new ArrayList[RealTimeChartViewContainer]
 }
 
 class RealTimeChartViewContainer extends ChartViewContainer {

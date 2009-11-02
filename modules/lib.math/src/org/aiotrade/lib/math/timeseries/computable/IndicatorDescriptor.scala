@@ -37,18 +37,18 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: ArrayBuffer[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: ArrayList[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
 
-  private var _factors: ArrayBuffer[Factor] = afactors
+  private var _factors: ArrayList[Factor] = afactors
 
   def this() {
-    this(null, TFreq.DAILY, new ArrayBuffer[Factor], false)
+    this(null, TFreq.DAILY, new ArrayList[Factor], false)
 
   }
 
@@ -58,8 +58,8 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
     setFacsToDefault
   }
 
-  def factors: ArrayBuffer[Factor]= _factors
-  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
+  def factors: ArrayList[Factor]= _factors
+  def factors_=(factors: ArrayList[Factor]): Unit = {
     /**
      * @NOTICE:
      * always create a new copy of in factors to seperate the factors of this

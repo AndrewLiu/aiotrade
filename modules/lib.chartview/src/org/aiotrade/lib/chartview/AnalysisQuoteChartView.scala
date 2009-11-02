@@ -49,7 +49,7 @@ import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 
 
@@ -220,7 +220,7 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
   }
     
   private def refreshQuoteCompareSer {
-    val optsForCompareIndicator = new ArrayBuffer[Factor]
+    val optsForCompareIndicator = new ArrayList[Factor]
         
     optsForCompareIndicator += (new DefaultFactor("Begin of Time Frame", rb(1)))
     optsForCompareIndicator += (new DefaultFactor("End of Time Frame",   rb(getNBars)))

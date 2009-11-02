@@ -51,7 +51,7 @@ import javax.swing.WindowConstants
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.ChangeObservable
 import org.aiotrade.lib.util.ChangeObservableHelper
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
@@ -155,7 +155,7 @@ object ChartingControllerFactory {
 
     private def removeKeyMouseListenersFrom(component: JComponent) {
       /** use a list to avoid concurrent issue */
-      val toBeRemoved = new ArrayBuffer[AnyRef]
+      val toBeRemoved = new ArrayList[AnyRef]
 
       val ls = component.getKeyListeners.iterator
       while (ls.hasNext) {

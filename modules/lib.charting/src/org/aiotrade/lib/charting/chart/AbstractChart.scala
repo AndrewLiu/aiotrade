@@ -43,7 +43,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.AbstractWidget
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -85,7 +85,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   import AbstractChart._
   import Chart._
 
-  private val markPoints = new ArrayBuffer[Point] // used to draw selected mark
+  private val markPoints = new ArrayList[Point] // used to draw selected mark
     
   /** Component that charts x-y based on */
   protected var datumPlane: DatumPlane = _

@@ -31,24 +31,20 @@
 package org.aiotrade.lib.math.timeseries
 package datasource
 
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.io.InputStream;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.aiotrade.lib.math.timeseries.{TSer,SerChangeEvent}
+import java.awt.Image
+import java.awt.Toolkit
+import java.io.InputStream
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.TimeZone
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.{TSer, SerChangeEvent}
 import scala.collection.Set
-import scala.collection.mutable.{ArrayBuffer,HashMap}
+import scala.collection.mutable.{HashMap}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -76,7 +72,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
 
   val ANCIENT_TIME: Long = -1
   // --- Following maps should be created once here, since server may be singleton:
-  private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
+  private val contractToStorage = new HashMap[C, ArrayList[V]]
   private val subscribedContractToSer = new HashMap[C, TSer]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
@@ -87,7 +83,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
    * second one (if available) is that who concerns first one.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
+  private val serToChainSers = new HashMap[TSer, ArrayList[TSer]]
   private var loadServer: LoadServer = _
   private var updateServer: UpdateServer = _
   private var updateTimer: Timer = _
@@ -133,10 +129,10 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
      */
   }
 
-  protected def storageOf(contract: C): ArrayBuffer[V] = {
+  protected def storageOf(contract: C): ArrayList[V] = {
     contractToStorage.get(contract) match {
       case None =>
-        val storage1 = new ArrayBuffer[V]
+        val storage1 = new ArrayList[V]
         contractToStorage.put(contract, storage1)
         storage1
       case Some(x) => x
@@ -161,14 +157,14 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
       }
     }
     contractToStorage.synchronized {
-      contractToStorage.removeKey(contract)
+      contractToStorage.remove(contract)
     }
   }
 
-  protected def returnBorrowedTimeValues(datas: ArrayBuffer[V]): Unit
+  protected def returnBorrowedTimeValues(datas: ArrayList[V]): Unit
 
-  protected def isAscending(values: Array[V]) :boolean = {
-    val size = values.size
+  protected def isAscending(values: Array[V]): Boolean = {
+    val size = values.length
     if (size <= 1) {
       true
     } else {
@@ -229,10 +225,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
       subscribedSymbolToContract.put(contract.symbol, contract)
     }
     serToChainSers.synchronized {
-      val chainSersX = serToChainSers.get(ser) match {
-        case None => new ArrayBuffer[TSer]
-        case Some(x) => x
-      }
+      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer]
       chainSersX ++= chainSers
       serToChainSers.put(ser, chainSersX)
     }
@@ -241,13 +234,13 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
   def unSubscribe(contract: C): Unit = {
     cancelRequest(contract)
     serToChainSers.synchronized {
-      serToChainSers.removeKey(subscribedContractToSer.get(contract).get)
+      serToChainSers.remove(subscribedContractToSer.get(contract).get)
     }
     subscribedContractToSer.synchronized {
-      subscribedContractToSer.removeKey(contract)
+      subscribedContractToSer.remove(contract)
     }
     subscribedSymbolToContract.synchronized {
-      subscribedSymbolToContract.removeKey(contract.symbol)
+      subscribedSymbolToContract.remove(contract.symbol)
     }
     releaseStorage(contract)
   }
@@ -336,7 +329,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataS
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: ArrayBuffer[V]): SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: ArrayList[V]): SerChangeEvent
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {

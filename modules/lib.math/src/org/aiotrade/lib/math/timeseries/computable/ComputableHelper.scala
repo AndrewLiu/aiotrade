@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries
 package computable
 
 import org.aiotrade.lib.math.timeseries.TSer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -50,7 +50,7 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
    * factors of this instance, such as period long, period short etc,
    * it's 'final' to avoid being replaced somewhere.
    */
-  var _factors = new ArrayBuffer[Factor]
+  var _factors = new ArrayList[Factor]
         
   private var baseSerChangeListener: SerChangeListener = _
     
@@ -227,14 +227,14 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
       })
   }
 
-  def factors: ArrayBuffer[Factor] = _factors
+  def factors: ArrayList[Factor] = _factors
 
   /**
    *
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
+  def factors_=(factors: ArrayList[Factor]): Unit = {
     if (factors != null) {
       val values = new Array[Number](factors.size)
       for (i <- 0 until factors.size) {

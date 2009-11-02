@@ -39,7 +39,7 @@ import org.aiotrade.lib.util.swing.action.WithActions;
 import org.aiotrade.lib.util.swing.action.WithActionsHelper;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.w3c.dom.Element
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 /**
  *
  * @author Caoyuan Deng
@@ -51,7 +51,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   var serProvider: SerProvider[_] = _
     
   /** use List to store descriptor, so they can be ordered by index */
-  private val descriptorBuf = new ArrayBuffer[AnalysisDescriptor[_]]
+  private val descriptorBuf = new ArrayList[AnalysisDescriptor[_]]
     
   def descriptors: List[AnalysisDescriptor[_]] = descriptorBuf.toList
     
@@ -90,7 +90,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
      * try to avoid java.util.ConcurrentModificationException by add those to
      * toBeRemoved, then call descriptorList.removeAll(toBeRemoved)
      */
-    val toBeRemoved = new ArrayBuffer[Int]
+    val toBeRemoved = new ArrayList[Int]
     var i = 0
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor)) {
@@ -111,7 +111,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
    *         If found none, return an empty collection other than null
    */
   def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Seq[T] = {
-    val result = new ArrayBuffer[T]
+    val result = new ArrayList[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor)) {
         result += descriptor.asInstanceOf[T]
@@ -125,7 +125,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
    * Lookup the descriptorList of clazz (Indicator/Drawing/Source etc) with the same time frequency
    */
   def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T], freq: TFreq): Seq[T] = {
-    val result = new ArrayBuffer[T]
+    val result = new ArrayList[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor) && descriptor.freq.equals(freq)) {
         result += descriptor.asInstanceOf[T]

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math
 
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
@@ -38,7 +38,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 object IndicatorFunction {
     
-  def dmPlus(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float]): Float = {
+  def dmPlus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -70,7 +70,7 @@ object IndicatorFunction {
     }
   }
     
-  def dmMinus(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float]): Float = {
+  def dmMinus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -102,7 +102,7 @@ object IndicatorFunction {
     }
   }
     
-  def tr(idx: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def tr(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Float.NaN
@@ -115,15 +115,15 @@ object IndicatorFunction {
     }
   }
     
-  def diPlus(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def diPlus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
             
     } else {
             
-      val dms = new ArrayBuffer[Float]
-      val trs = new ArrayBuffer[Float]
+      val dms = new ArrayList[Float]
+      val trs = new ArrayList[Float]
             
       val fromIdx = idx - (period - 1)
       val toIdx   = idx
@@ -145,15 +145,15 @@ object IndicatorFunction {
     }
   }
     
-  def diMinus(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def diMinus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
             
     } else {
             
-      val dms = new ArrayBuffer[Float]
-      val trs = new ArrayBuffer[Float]
+      val dms = new ArrayList[Float]
+      val trs = new ArrayList[Float]
             
       val fromIdx = idx - (period - 1)
       val toIdx   = idx
@@ -175,7 +175,7 @@ object IndicatorFunction {
     }
   }
     
-  def dx(idx: Int, period: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def dx(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Float.NaN
@@ -190,14 +190,14 @@ object IndicatorFunction {
     }
   }
     
-  def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Float.NaN
             
     } else {
             
-      val dxes = new ArrayBuffer[Float]
+      val dxes = new ArrayList[Float]
             
       val fromIdx = idx - (periodADX - 1)
       val toIdx   = idx
@@ -215,7 +215,7 @@ object IndicatorFunction {
     }
   }
     
-  def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayBuffer[Float], lows: ArrayBuffer[Float], closes: ArrayBuffer[Float]): Float = {
+  def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Float.NaN

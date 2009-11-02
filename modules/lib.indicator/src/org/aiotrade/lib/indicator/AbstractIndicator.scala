@@ -66,7 +66,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
 import org.aiotrade.lib.securities.QuoteSer
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
@@ -238,11 +238,11 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
     computableHelper.addFactor(factor)
   }
     
-  def factors: ArrayBuffer[Factor] = {
+  def factors: ArrayList[Factor] = {
     computableHelper.factors
   }
     
-  def factors_=(factors: ArrayBuffer[Factor]): Unit = {
+  def factors_=(factors: ArrayList[Factor]): Unit = {
     computableHelper.factors = factors
   }
     

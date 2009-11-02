@@ -49,7 +49,7 @@ import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
 import org.xml.sax.helpers.DefaultHandler
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Stack
 
@@ -63,12 +63,12 @@ class ContentsParseHandler extends DefaultHandler {
   private var contents: AnalysisContents = _
     
   private var indicatorDescriptor: IndicatorDescriptor = _
-  private var factors: ArrayBuffer[Factor] = _
+  private var factors: ArrayList[Factor] = _
     
   private var drawingDescriptor: DrawingDescriptor = _
-  private var handledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]] = _
+  private var handledChartMapPoints: HashMap[HandledChart, ArrayList[ValuePoint]] = _
   private var handledChartClassName: String = _
-  private var points: ArrayBuffer[ValuePoint] = _
+  private var points: ArrayList[ValuePoint] = _
     
   val DEBUG = false
     
@@ -168,7 +168,7 @@ class ContentsParseHandler extends DefaultHandler {
       meta.getValue("nunits").trim.toInt)
     indicatorDescriptor.freq = freq
         
-    factors = new ArrayBuffer
+    factors = new ArrayList
   }
     
   @throws(classOf[SAXException])
@@ -186,7 +186,7 @@ class ContentsParseHandler extends DefaultHandler {
       System.err.println("start_chart: " + meta)
     }
     handledChartClassName = meta.getValue("class")
-    points = new ArrayBuffer[ValuePoint]
+    points = new ArrayList[ValuePoint]
   }
     
   @throws(classOf[SAXException])

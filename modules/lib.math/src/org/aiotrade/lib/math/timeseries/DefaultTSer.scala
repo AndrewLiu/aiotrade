@@ -32,9 +32,9 @@ package org.aiotrade.lib.math.timeseries
 
 import java.awt.Color
 import java.util.Calendar
+import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.computable.SpotComputable
 import org.aiotrade.lib.math.timeseries.plottable.Plot
-import scala.collection.mutable.{ArrayBuffer}
 
 
 /**
@@ -70,7 +70,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    */
   private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
-  private var _items = new ArrayBuffer[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
+  private var _items = new ArrayList[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
 
   private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
@@ -82,7 +82,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayBuffer[TVar[_]]
+  val vars = new ArrayList[TVar[_]]
 
   def this() = this(TFreq.DAILY)
 
@@ -237,7 +237,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
         timestamps.readLock.lock
                 
         vars foreach (x => x.validate)
-        val newItems = new ArrayBuffer[TItem]
+        val newItems = new ArrayList[TItem]
         var i = 0
         while (i < timestamps.size) {
           val time = timestamps(i)
@@ -366,7 +366,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                                           Long.MaxValue))
   }
 
-  def items: ArrayBuffer[TItem] = _items
+  def items: ArrayList[TItem] = _items
 
   def getItem(time: Long): TItem = {
     var item = internal_getItem(time)
@@ -453,7 +453,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   protected class InnerTVar[@specialized V: Manifest](name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
-    var values = new ArrayBuffer[V]
+    var values = new ArrayList[V]
 
     def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
@@ -482,7 +482,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
 
     def validate: Unit = {
-      val newValues = new ArrayBuffer[V] {override val initialSize = INIT_CAPACITY}
+      val newValues = new ArrayList[V] {override val initialSize = INIT_CAPACITY}
 
       var i = 0
       var j = 0
