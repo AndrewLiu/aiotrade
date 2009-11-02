@@ -98,8 +98,8 @@ class QuoteChart extends AbstractChart {
       negativeColor = positiveColor
     }
         
-    val color = positiveColor;
-    setForeground(color);
+    val color = positiveColor
+    setForeground(color)
         
     val tpe = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteChartType
     tpe match {
