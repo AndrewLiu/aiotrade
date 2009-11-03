@@ -67,7 +67,7 @@ object AbstractDataServer {
   }
 }
 
-abstract class AbstractDataServer[C <: DataContract[_], V <: TVal] extends DataServer[C] {
+abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] {
   import AbstractDataServer._
 
   val ANCIENT_TIME: Long = -1

@@ -49,19 +49,19 @@ import scala.collection.mutable.HashMap
 class ChangeObservableHelper {
   
   @transient
-  val observerToOwner = new HashMap[ChangeObserver[_], AnyRef]
+  val observerToOwner = new HashMap[ChangeObserver[Any], AnyRef]
     
   def ChangeObservableHelper: Unit = {}
     
-  def getObservers: Collection[ChangeObserver[_]] = {
+  def getObservers: Collection[ChangeObserver[Any]] = {
     observerToOwner.keySet
   }
     
-  def addObserver(owner: Object, observer: ChangeObserver[_]): Unit = synchronized {
+  def addObserver(owner: Object, observer: ChangeObserver[Any]): Unit = synchronized {
     observerToOwner += (observer -> owner)
   }
     
-  def  removeObserver(observer: ChangeObserver[_]): Unit = synchronized {
+  def  removeObserver(observer: ChangeObserver[Any]): Unit = synchronized {
     if (observer == null) {
       return
     }
@@ -72,7 +72,7 @@ class ChangeObservableHelper {
   }
     
   def removeObserversOf(owner: Object): Unit = {
-    val toBeRemoved = new ArrayList[ChangeObserver[_]]
+    val toBeRemoved = new ArrayList[ChangeObserver[Any]]
     for (observer <- observerToOwner.keysIterator if observerToOwner.get(observer) == owner) {
       toBeRemoved += observer
     }
@@ -88,7 +88,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def getObservers[T <: ChangeObserver[_]](observerType: Class[T]): ArrayList[T] = {
+  def getObservers[T <: ChangeObserver[Any]: Manifest](observerType: Class[T]): ArrayList[T] = {
     val result = new ArrayList[T]
     for (observer <- observerToOwner.keysIterator) {
       result += (observer.asInstanceOf[T])
@@ -114,7 +114,7 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be added
    */
-  protected def add[T <: ChangeObserver[_]](owner: AnyRef, observer: T): Unit = synchronized {
+  protected def add[T <: ChangeObserver[Any]](owner: AnyRef, observer: T): Unit = synchronized {
     assert(observer != null, "Do not add a null observer!")
     observerToOwner.put(observer, owner)
   }
@@ -122,7 +122,7 @@ class ChangeObservableHelper {
   /**
    * @param observer the observer to be removed
    */
-  protected def remove[T <: ChangeObserver[_]](observer: T): Unit = synchronized {
+  protected def remove[T <: ChangeObserver[Any]](observer: T): Unit = synchronized {
     if (observer == null) {
       return
     }

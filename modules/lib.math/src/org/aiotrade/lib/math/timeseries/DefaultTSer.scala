@@ -70,7 +70,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    */
   private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
-  private var _items = new ArrayList[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
+  private val _items = new ArrayList[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
 
   private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
@@ -82,7 +82,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayList[TVar[_]]
+  val vars = new ArrayList[TVar[Any]]
 
   def this() = this(TFreq.DAILY)
 
@@ -95,7 +95,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   /**
    * used only by InnerVar's constructor and AbstractIndicator's functions
    */
-  protected def addVar(v: TVar[_]): Unit = {
+  protected def addVar(v: TVar[Any]): Unit = {
     vars += v
   }
 
@@ -185,7 +185,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
   }
 
-  def ++=[@specialized V <: TVal](values: Array[V]): TSer = {
+  def ++=[V <: TVal](values: Array[V]): TSer = {
     var begTime = +Long.MaxValue
     var endTime = -Long.MaxValue
     try {
@@ -231,26 +231,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     this.description = description
   }
 
-  def validate_old: Unit = {
-    if (_items.size != timestamps.size) {
-      try {
-        timestamps.readLock.lock
-                
-        vars foreach (x => x.validate)
-        val newItems = new ArrayList[TItem]
-        var i = 0
-        while (i < timestamps.size) {
-          val time = timestamps(i)
-          newItems += createItem(time)
-          i += 1
-        }
-        _items = newItems
-      } finally {
-        timestamps.readLock.unlock
-      }
-    }
-  }
-
   /**
    * @Note:
    * This function is not thread safe, since tsLogCheckedCursor and tsLogCheckedSize
@@ -289,16 +269,17 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 logCurrSize - tsLogCheckedSize
               } else logCurrSize
 
-              println("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+              print("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
               val newItems = new Array[TItem](insertSize)
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
                 vars foreach {_.addNullValue(time)}
-                newItems(i) = createItem(time)
+                newItems(0) = createItem(time)
                 i += 1
               }
               items.insertAll(begIdx1, newItems)
+              println(" => newSize=" + items.size)
                             
             case TStampsLog.APPEND =>
               val begIdx = items.size
@@ -307,7 +288,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 logCurrSize - tsLogCheckedSize
               } else logCurrSize
 
-              println("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+              print("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
               val newItems = new Array[TItem](appendSize)
               var i = 0
               while (i < appendSize) {
@@ -317,8 +298,9 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 i += 1
               }
               items ++= newItems
+              println(" => newSize=" + items.size)
 
-            case x => assert(false, "Unknown log type:" + x)
+            case x => assert(false, "Unknown log type: " + x)
           }
         }
                 
@@ -445,12 +427,12 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   override def hashCode: Int = _hashCode
 
   object TVar {
-    def apply[@specialized V: Manifest]() = new InnerTVar[V]("", Plot.None)
-    def apply[@specialized V: Manifest](name: String) = new InnerTVar[V](name, Plot.None)
-    def apply[@specialized V: Manifest](name: String, plot: Plot) = new InnerTVar[V](name, plot)
+    def apply[V: Manifest]() = new InnerTVar[V]("", Plot.None)
+    def apply[V: Manifest](name: String) = new InnerTVar[V](name, Plot.None)
+    def apply[V: Manifest](name: String, plot: Plot) = new InnerTVar[V](name, plot)
   }
   
-  protected class InnerTVar[@specialized V: Manifest](name: String, plot: Plot
+  protected class InnerTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
     var values = new ArrayList[V]
@@ -567,9 +549,9 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerTVar[@specialized V: Manifest](name: String, plot: Plot
+  abstract class AbstractInnerTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractTVar[V](name, plot) {
-    addVar(this)
+    addVar(this.asInstanceOf[TVar[Any]])
 
     private val colors = new TStampedMapBasedList[Color](timestamps)
     

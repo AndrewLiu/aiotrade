@@ -7,7 +7,6 @@
 
 package org.aiotrade.platform.test
 
-import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerServer
@@ -28,21 +27,21 @@ class PlainPersistenceManager extends PersistenceManager {
   private val tickerServers = new ArrayList[TickerServer]
   private val indicators = new ArrayList[Indicator]
 
-  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayList[Quote], sourceId: Long): Unit = {}
+  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayList[Quote], sourceId: Long) {}
   def restoreQuotes(symbol: String, freq: TFreq): ArrayList[Quote] = new ArrayList[Quote]
-  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long): Unit = {}
-  def dropAllQuoteTables(symbol: String): Unit = {}
+  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {}
+  def dropAllQuoteTables(symbol: String) {}
 
-  def shutdown: Unit = {}
+  def shutdown {}
 
-  def restoreProperties: Unit = {}
-  def saveProperties: Unit = {}
+  def restoreProperties {}
+  def saveProperties {}
 
-  def saveContents(contents: AnalysisContents): Unit = {}
+  def saveContents(contents: AnalysisContents) {}
   def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
   def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String) :Seq[T] = {
+  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T] = {
     if (tpe == classOf[QuoteServer]) {
       if (quoteServers.isEmpty) {
         //quoteServers += new YahooQuoteServer

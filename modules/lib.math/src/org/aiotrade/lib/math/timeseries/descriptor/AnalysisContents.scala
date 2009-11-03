@@ -110,7 +110,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
    * @return found collection of AnalysisDescriptor instances.
    *         If found none, return an empty collection other than null
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Seq[T] = {
+  def lookupDescriptors[T <: AnalysisDescriptor[Any]: Manifest](tpe: Class[T]): Seq[T] = {
     val result = new ArrayList[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor)) {
@@ -124,7 +124,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   /**
    * Lookup the descriptorList of clazz (Indicator/Drawing/Source etc) with the same time frequency
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[Any]](tpe: Class[T], freq: TFreq): Seq[T] = {
+  def lookupDescriptors[T <: AnalysisDescriptor[Any]: Manifest](tpe: Class[T], freq: TFreq): Seq[T] = {
     val result = new ArrayList[T]
     for (descriptor <- descriptorBuf) {
       if (tpe.isInstance(descriptor) && descriptor.freq.equals(freq)) {
@@ -135,7 +135,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     result
   }
     
-  def lookupDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
+  def lookupDescriptor[T <: AnalysisDescriptor[Any]: Manifest](tpe: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
     for (descriptor <- lookupDescriptors(tpe)) {
       if (descriptor.idEquals(serviceClassName, freq)) {
         return Some(descriptor)
@@ -145,7 +145,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     None
   }
     
-  def lookupActiveDescriptor[T <: AnalysisDescriptor[Any]](tpe: Class[T]): Option[T] = {
+  def lookupActiveDescriptor[T <: AnalysisDescriptor[Any]: Manifest](tpe: Class[T]): Option[T] = {
     for (descriptor <- lookupDescriptors(tpe)) {
       if (descriptor.active) {
         return Some(descriptor)

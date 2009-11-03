@@ -123,7 +123,7 @@ import scala.collection.mutable.{HashMap}
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TStampedMapBasedList[A](timestamps: TStamps) extends ArrayList[A] {
+class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A] {
     
   private val timeToElementData = new HashMap[Long, A]()
 

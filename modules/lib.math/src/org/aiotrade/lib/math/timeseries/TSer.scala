@@ -72,7 +72,7 @@ trait TSer {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long): Unit
 
-  def ++=[@specialized T <: TVal](values: Array[T]): TSer
+  def ++=[T <: TVal](values: Array[T]): TSer
     
   def createItemOrClearIt(time: Long): TItem
     

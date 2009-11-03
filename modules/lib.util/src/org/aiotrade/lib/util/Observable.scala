@@ -38,15 +38,16 @@ import java.lang.ref.WeakReference
 import org.aiotrade.lib.util.collection.ArrayList
 
 trait Observable {
+  type ObserverRef = WeakReference[Observer[Observable]]
 
   private var changed: Boolean = _
-  private val observerRefs = new ArrayList[WeakReference[Observer[_]]]
+  private val observerRefs = new ArrayList[ObserverRef]
 
   def addObserver(observer: Observer[_]): Unit = synchronized {
     assert(observer != null, "Can't add a null observer!")
-    val contained = observerRefs exists {ref => ref.get == observer}
+    val contained = observerRefs exists {_.get == observer}
     if (!contained) {
-      observerRefs += new WeakReference[Observer[_]](observer)
+      observerRefs += new WeakReference[Observer[_]](observer).asInstanceOf[ObserverRef]
     }
   }
 
@@ -70,7 +71,7 @@ trait Observable {
   def notifyObservers(subject: Observable): Unit = synchronized {
     if (changed) {
       /** must clone the observers in case deleteObserver is called */
-      val clone = new Array[WeakReference[Observer[_]]](observerRefs.size)
+      val clone = new Array[ObserverRef](observerRefs.size)
       observerRefs.copyToArray(clone, 0)
       clearChanged
       clone foreach {_.get.update(subject)}
