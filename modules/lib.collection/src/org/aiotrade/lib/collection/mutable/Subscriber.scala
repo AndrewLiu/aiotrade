@@ -1,0 +1,27 @@
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2009, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
+
+// $Id: Subscriber.scala 18801 2009-09-26 16:33:54Z stepancheg $
+
+
+package org.aiotrade.lib.collection
+package mutable
+
+
+/** <code>Subscriber[A, B]</code> objects may subscribe to events of
+ *  type <code>A</code> published by an object of type <code>B</code>.
+ *  <code>B</code> is typically a subtype of <a href="Publisher.html"
+ *  target="contentFrame"><code>Publisher</code></a>.
+ *
+ *  @author  Matthias Zenger
+ *  @version 1.0, 08/07/2003
+ *  @since   1
+ */
+trait Subscriber[-A, -B] {
+  def notify(pub: B, event: A): Unit
+}

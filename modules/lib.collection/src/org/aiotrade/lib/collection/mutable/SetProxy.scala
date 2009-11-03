@@ -1,0 +1,32 @@
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2009, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
+
+// $Id: SetProxy.scala 18801 2009-09-26 16:33:54Z stepancheg $
+
+package org.aiotrade.lib.collection
+package mutable
+
+/** This is a simple wrapper class for <a href="Set.html"
+ *  target="contentFrame"><code>scala.collection.mutable.Set</code></a>.
+ *  It is most useful for assembling customized set abstractions
+ *  dynamically using object composition and forwarding.
+ *
+ *  @author  Matthias Zenger
+ *  @version 1.1, 09/05/2004
+ *  @since   1
+ */
+trait SetProxy[A] extends Set[A] with SetProxyLike[A, Set[A]]
+{  
+  override def repr = this
+  override def empty = new SetProxy[A] { val self = SetProxy.this.self.empty }
+  override def + (elem: A) = { self += elem ; this }
+  override def - (elem: A) = { self -= elem ; this }  
+
+  def +=(elem: A) = { self += elem; this }
+  def -=(elem: A) = { self -= elem; this }
+}
