@@ -62,6 +62,14 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   val logger = Logger.getLogger(this.getClass.getName)
 
   private val INIT_CAPACITY = 400
+
+  val items = new ArrayList[TItem](INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  /**
+   * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
+   * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
+   */
+  val vars = new ArrayList[TVar[Any]]
+
   /**
    * we implement occurred timestamps and items in density mode instead of spare
    * mode, to avoid getItem(time) return null even in case of timestamps has been
@@ -71,9 +79,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    * Should only get index from timestamps which has the proper mapping of :
    * position <-> time <-> item
    */
-  private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
-
-  private val _items = new ArrayList[TItem](INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  private var _timestamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
   private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
@@ -81,15 +87,10 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   private var description = ""
 
-  /**
-   * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
-   * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
-   */
-  val vars = new ArrayList[TVar[Any]]
-
   def this() = this(TFreq.DAILY)
 
   def timestamps: TStamps = _timestamps
+  
   protected def attach(timestamps: TStamps): Unit = {
     this._timestamps = timestamps
     this.tsLog = timestamps.log
@@ -112,8 +113,8 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
      * position <-> time <-> item mapping
      */
     val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < _items.size) {
-      _items(idx)
+    if (idx >= 0 && idx < items.size) {
+      items(idx)
     } else null
   }
 
@@ -133,7 +134,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       if (existIdx >= 0) {
         vars foreach {_.addNullValue(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
-        _items.insert(existIdx, clearItem)
+        items.insert(existIdx, clearItem)
       } else {
         val idx = timestamps.indexOfNearestOccurredTimeBehind(itemTime)
         assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
@@ -149,7 +150,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
           vars foreach {_.addNullValue(itemTime)}
 
           // * as timestamps includes this time, we just always put in a none-null item
-          _items.insert(idx, clearItem)
+          items.insert(idx, clearItem)
         } finally {
           _timestamps.writeLock.unlock
         }
@@ -166,7 +167,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
         vars foreach {_.addNullValue(itemTime)}
 
         /** as timestamps includes this time, we just always put in a none-null item  */
-        _items += clearItem
+        items += clearItem
       } finally {
         _timestamps.writeLock.unlock
       }
@@ -176,7 +177,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       if (existIdx >= 0) {
         vars foreach {_.addNullValue(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
-        _items += clearItem
+        items += clearItem
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
@@ -335,8 +336,8 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
         _timestamps.remove(i)
       }
 
-      for (i <- _items.size - 1 to fromIdx) {
-        _items.remove(i)
+      for (i <- items.size - 1 to fromIdx) {
+        items.remove(i)
       }
     } finally {
       _timestamps.writeLock.unlock
@@ -348,8 +349,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                                           fromTime,
                                           Long.MaxValue))
   }
-
-  def items: ArrayList[TItem] = _items
 
   def getItem(time: Long): TItem = {
     var item = internal_getItem(time)
@@ -473,8 +472,8 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
         val time = timestamps(i)
         var break = false
         var v = null.asInstanceOf[V]
-        while (j < _items.size && !break) {
-          val vtime = _items(j).time
+        while (j < items.size && !break) {
+          val vtime = items(j).time
           if (vtime == time) {
             // found existed value
             v = values(j)

@@ -41,12 +41,15 @@ import java.util.{Calendar, TimeZone}
  * @since   1.0.4
  */
 object TStampsFactory {
-  
-  def createInstance(initialCapacity: Int) :TStamps = {
-    new TStampsOnOccurred(initialCapacity){override val initialSize = initialCapacity}
+
+  private var initialCapacity: Int = 16
+
+  def createInstance(initialCapacity: Int): TStamps = {
+    this.initialCapacity = initialCapacity
+    new TStampsOnOccurred(initialCapacity)
   }
     
-  private class TStampsOnOccurred(initialCapacity: Int) extends TStamps {
+  private class TStampsOnOccurred(initialCapacity: Int) extends TStamps(initialCapacity) {
 
     private val onCalendarShadow = new TStampsOnCalendar(this)
 
@@ -404,7 +407,7 @@ object TStampsFactory {
    * isOnCalendar() always return true.
    * Why not to use Proxy.class ? for performance reason.
    */
-  private class TStampsOnCalendar(delegateTimestamps: TStamps) extends TStamps {
+  private class TStampsOnCalendar(delegateTimestamps: TStamps) extends TStamps(initialCapacity) {
     /**
      * the timestamps to be wrapped, it not necessary to be a TimestampsOnOccurred,
      * any class implemented Timestamps is ok.

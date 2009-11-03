@@ -57,7 +57,7 @@ object TStampsLog {
   val REMOVE = 0x8000 // 1000 0000 0000 0000
   val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
-class TStampsLog extends ArrayList[Short] {
+class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
   import TStampsLog._
 
   private var _logCursor = -1
@@ -186,14 +186,14 @@ import java.util.{Calendar,GregorianCalendar,TimeZone}
 import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
 
 @cloneable
-trait TStamps extends ArrayList[Long] {
+abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new ReentrantReadWriteLock
   val readLock:  Lock = readWriteLock.readLock
   val writeLock: Lock = readWriteLock.writeLock
 
-  val log = new TStampsLog
+  val log = new TStampsLog(initialSize)
 
   def isOnCalendar: Boolean
     
