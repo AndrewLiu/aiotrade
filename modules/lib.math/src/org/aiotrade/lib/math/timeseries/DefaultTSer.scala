@@ -33,6 +33,7 @@ package org.aiotrade.lib.math.timeseries
 import java.awt.Color
 import java.util.Calendar
 import org.aiotrade.lib.util.collection.ArrayList
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.computable.SpotComputable
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
@@ -57,7 +58,13 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
+object DefaultTSer {
+  val logger = Logger.getLogger(classOf[DefaultTSer].getName)
+}
+
 class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
+  import DefaultTSer._
+
   private val INIT_CAPACITY = 400
   /**
    * we implement occurred timestamps and items in density mode instead of spare
@@ -269,7 +276,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 logCurrSize - tsLogCheckedSize
               } else logCurrSize
 
-              print("Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+              logger.info(shortDescription + "(" + freq + ")" + " Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size)
               val newItems = new Array[TItem](insertSize)
               var i = 0
               while (i < insertSize) {
@@ -279,7 +286,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 i += 1
               }
               items.insertAll(begIdx1, newItems)
-              println(" => newSize=" + items.size)
+              logger.info(shortDescription + "(" + freq + ") => newSize=" + items.size)
                             
             case TStampsLog.APPEND =>
               val begIdx = items.size
@@ -288,7 +295,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 logCurrSize - tsLogCheckedSize
               } else logCurrSize
 
-              print("Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size + " - " + shortDescription + "(" + freq + ")")
+              logger.info(shortDescription + "(" + freq + ")" + " Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size)
               val newItems = new Array[TItem](appendSize)
               var i = 0
               while (i < appendSize) {
@@ -298,7 +305,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 i += 1
               }
               items ++= newItems
-              println(" => newSize=" + items.size)
+              logger.info(shortDescription + "(" + freq + ") => newSize=" + items.size)
 
             case x => assert(false, "Unknown log type: " + x)
           }
@@ -619,52 +626,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
     def size: Int = values.size
   }
-
-  /*-
-   /**
-    * @deprecated
-    * This method inject declared Var(s) of current instance into vars, sub-
-    * class should also call it in the constructor (except no-arg constructor)
-    * after all Var(s) have got the proper value(s) to return a useful
-    * instance.
-    *
-    * We define it as a final to keep this contract.
-    */
-   @ReferenceOnly
-   @Deprecated
-   protected def injectVarsIntoSer: Unit = {
-   val fields = this.getClass.getDeclaredFields
-
-   AccessibleObject.setAccessible(fields, true)
-
-   for (field <- fields) {
-   var value:Any = null
-
-   try {
-   value = field.get(this)
-   } catch  {
-   case ex:IllegalArgumentException => ex.printStackTrace
-   case ex:IllegalAccessException => ex.printStackTrace
-   }
-
-   if (value != null && value.isInstanceOf[Var[_]]) {
-   addVar(value.asInstanceOf[Var[_]])
-   }
-   }
-   }
-   */
-  /*-
-   abstract public class BaseHibernateEntityDao<T> extends HibernateDaoSupport {
-   private Class<T> entityClass;
-   public BaseHibernateEntityDao() {
-   entityClass =(Class<T>) ((ParameterizedType) getClass()
-   .getGenericSuperclass()).getActualTypeArguments()[0];
-   }
-   public T get(Serializable id) {
-   T o = (T) getHibernateTemplate().get(entityClass, id);
-   }
-   }
-   */
 }
 
 
