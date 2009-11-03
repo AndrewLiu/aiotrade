@@ -376,7 +376,7 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): ArrayList[T] = {
+  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): ArrayList[T] = {
     val result = new ArrayList[T]
     if (children != null) {
       for (child <- children) {

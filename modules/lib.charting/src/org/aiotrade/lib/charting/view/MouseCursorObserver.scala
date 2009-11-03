@@ -37,7 +37,7 @@ import org.aiotrade.lib.util.ChangeObserver
  * 
  * @author Caoyuan Deng
  */ 
-trait MouseCursorObserver[S <: ChangeObservable] extends ChangeObserver[S] {
+trait MouseCursorObserver[S] extends ChangeObserver[S] {
 }
 
 

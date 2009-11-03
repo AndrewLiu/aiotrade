@@ -89,14 +89,14 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
         chartValid = false
         setGeometryValid(false)
       }
-    })
+    }.asInstanceOf[ChartValidityObserver[Any]])
         
   getView.addObserver(this, new ChartValidityObserver[ChartView] {
       def update(subject: ChartView) {
         chartValid = false
         setGeometryValid(false)
       }
-    })
+    }.asInstanceOf[ChartValidityObserver[Any]])
 
     
   protected def isChartValid: Boolean = {

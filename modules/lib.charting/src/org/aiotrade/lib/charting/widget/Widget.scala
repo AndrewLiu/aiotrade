@@ -111,7 +111,7 @@ trait Widget {
   def removeChild(child: Widget): Unit
   def children: ArrayList[Widget]
   def clearChildren: Unit
-  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): Seq[T]
+  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): Seq[T]
   def lookupFirstChild[T <: Widget](widgetType: Class[T], foreground: Color): Option[T]
     
   def addAction(action: Action): Action

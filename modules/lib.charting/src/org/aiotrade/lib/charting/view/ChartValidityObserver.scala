@@ -37,7 +37,7 @@ import org.aiotrade.lib.util.ChangeObserver
  * 
  * @author Caoyuan Deng
  */ 
-trait ChartValidityObserver[S <: ChangeObservable] extends ChangeObserver[S] {
+trait ChartValidityObserver[S] extends ChangeObserver[S] {
 }
 
 

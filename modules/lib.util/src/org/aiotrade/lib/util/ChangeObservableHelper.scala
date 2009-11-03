@@ -51,8 +51,6 @@ class ChangeObservableHelper {
   @transient
   val observerToOwner = new HashMap[ChangeObserver[Any], AnyRef]
     
-  def ChangeObservableHelper: Unit = {}
-    
   def getObservers: Collection[ChangeObserver[Any]] = {
     observerToOwner.keySet
   }
@@ -82,7 +80,7 @@ class ChangeObservableHelper {
     }
   }
     
-  def notifyObserversChanged[T <: ChangeObserver[_]](subject: Any, observerType: Class[T]): Unit = {
+  def notifyObserversChanged[T <: ChangeObserver[Any]](subject: Any, observerType: Class[T]): Unit = {
     for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
       observer.asInstanceOf[ChangeObserver[Any]].update(subject)
     }

@@ -97,7 +97,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
         def update(controller: ChartingController) {
           paintChartOnXORMode(mouseCursorChart)
         }
-      })
+      }.asInstanceOf[MouseCursorObserver[Any]])
   }
 
   setDoubleBuffered(true)

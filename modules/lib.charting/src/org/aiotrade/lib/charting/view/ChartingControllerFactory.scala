@@ -202,7 +202,7 @@ object ChartingControllerFactory {
       if (!mouseEnteredAnyChartPane) {
         /** this cleanups mouse cursor */
         if (this.mouseEnteredAnyChartPane != oldValue) {
-          notifyObserversChanged(classOf[MouseCursorObserver[_]])
+          notifyObserversChanged(classOf[MouseCursorObserver[Any]])
           updateViews
         }
       }
@@ -235,7 +235,7 @@ object ChartingControllerFactory {
       }
 
       /** decide wBar according to wViewPort. Do not use integer divide here */
-      var newWBar = wViewPort.floatValue / nBars.floatValue
+      var newWBar = wViewPort.toFloat / nBars.toFloat
 
       /** adjust xfactorIdx to nearest */
       if (newWBar < BAR_WIDTHS_ARRAY(0)) {
@@ -281,7 +281,7 @@ object ChartingControllerFactory {
         internal_setReferCursorByTime(referCursorTime)
         internal_setRightCursorByTime(rightCursorTime)
 
-        notifyObserversChanged(classOf[ChartValidityObserver[_]])
+        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
         updateViews
       }
     }
@@ -361,11 +361,11 @@ object ChartingControllerFactory {
       }
     }
 
-    def addObserver(owner: AnyRef, observer: ChangeObserver[_]) {
+    def addObserver(owner: AnyRef, observer: ChangeObserver[Any]) {
       observableHelper.addObserver(owner, observer)
     }
 
-    def removeObserver(observer: ChangeObserver[_]) {
+    def removeObserver(observer: ChangeObserver[Any]) {
       observableHelper.removeObserver(observer)
     }
 
@@ -383,7 +383,7 @@ object ChartingControllerFactory {
      *   mosueCursor
      *   mouseEnteredAnyChartPane
      */
-    def notifyObserversChanged(observerType: Class[_ <: ChangeObserver[_]]) {
+    def notifyObserversChanged(observerType: Class[_ <: ChangeObserver[Any]]) {
       observableHelper.notifyObserversChanged(this, observerType)
     }
 
@@ -432,7 +432,7 @@ object ChartingControllerFactory {
       val oldValue = this.wBar
       this.wBar = wBar
       if (this.wBar != oldValue) {
-        notifyObserversChanged(classOf[ChartValidityObserver[_]])
+        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
       }
     }
 
@@ -442,8 +442,8 @@ object ChartingControllerFactory {
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
       this.lastOccurredRowOfMasterSer = masterSer.lastOccurredRow
       if (this.referCursorRow != oldValue) {
-        notifyObserversChanged(classOf[ReferCursorObserver[_]])
-        notifyObserversChanged(classOf[ChartValidityObserver[_]])
+        notifyObserversChanged(classOf[ReferCursorObserver[Any]])
+        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
       }
     }
 
@@ -451,7 +451,7 @@ object ChartingControllerFactory {
       val oldValue = this.rightSideRow
       this.rightSideRow = row
       if (this.rightSideRow != oldValue) {
-        notifyObserversChanged(classOf[ChartValidityObserver[_]])
+        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
       }
     }
 
@@ -471,7 +471,7 @@ object ChartingControllerFactory {
        * even mouseCursor row not changed, the mouse's y may has been changed,
        * so, notify observers without comparing the oldValue and newValue.
        */
-      notifyObserversChanged(classOf[MouseCursorObserver[_]])
+      notifyObserversChanged(classOf[MouseCursorObserver[Any]])
     }
 
     def isCursorAccelerated: Boolean = {
@@ -576,7 +576,7 @@ object ChartingControllerFactory {
               setCursorByRow(referRow, rightRow, true)
             }
 
-            notifyObserversChanged(classOf[ChartValidityObserver[_]])
+            notifyObserversChanged(classOf[ChartValidityObserver[Any]])
             
           case _ =>
         }

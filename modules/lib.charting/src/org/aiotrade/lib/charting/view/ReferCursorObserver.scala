@@ -37,7 +37,7 @@ import org.aiotrade.lib.util.ChangeObserver
  * 
  * @author Caoyuan Deng
  */ 
-trait ReferCursorObserver[S <: ChangeObservable] extends ChangeObserver[S] {
+trait ReferCursorObserver[S] extends ChangeObserver[S] {
 }
 
 

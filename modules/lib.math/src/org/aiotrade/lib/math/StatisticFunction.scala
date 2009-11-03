@@ -244,7 +244,7 @@ object StatisticFunction {
     }
 
     val period1 = period(begIdx, endIdx) * 1d
-    Math.sqrt(deviation_square_sum / period1).asInstanceOf[Float]
+    Math.sqrt(deviation_square_sum / period1).toFloat
   }
 
   /**
@@ -299,7 +299,7 @@ object StatisticFunction {
     val maxmin1 = maxmin(values, begIdx1, endIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
-    val nIntervals = (((max - min) / interval) + 1).asInstanceOf[Int]
+    val nIntervals = (((max - min) / interval) + 1).toInt
     probMass(values, weights, begIdx1, endIdx, max, min, nIntervals)
   }
 
@@ -330,10 +330,10 @@ object StatisticFunction {
     i = begIdx1
     while (i <= lastIdx) {
       val value = values(i)
-      val weight = if (weights == null) 1f else weights(i).floatValue
+      val weight = if (weights == null) 1F else weights(i).toFloat
       if (value >= min && value <= max) {
         /** only calculate those between max and min */
-        val densityIdx = ((value - min) / interval).asInstanceOf[Int]
+        val densityIdx = ((value - min) / interval).toInt
         mass(MASS)(densityIdx) += weight
       }
 
@@ -360,7 +360,7 @@ object StatisticFunction {
     val maxmin1 = maxmin(values, begIdx, endIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
-    val nIntervals = (((max - min) / interval) + 1).asInstanceOf[Int]
+    val nIntervals = (((max - min) / interval) + 1).toInt
     val period1 = period(begIdx, endIdx)
     val mass = new Array[Array[Float]](2, nIntervals)
     var i = 0
@@ -378,7 +378,7 @@ object StatisticFunction {
       val weight = if (weights == null) 1f else weights(i)
       if (value >= min && value <= max) {
         /** only calculate those between max and min */
-        val densityIdx = ((value - min) / interval).asInstanceOf[Int]
+        val densityIdx = ((value - min) / interval).toInt
         mass(MASS)(densityIdx) += weight
       }
 

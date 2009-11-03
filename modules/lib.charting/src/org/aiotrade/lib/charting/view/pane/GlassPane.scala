@@ -137,7 +137,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           updateSelectedSerVarValues
         }
       }
-    });
+    }.asInstanceOf[ReferCursorObserver[Any]])
 
   view.getController.addObserver(this, new ChartValidityObserver[ChartingController] {
 
@@ -148,7 +148,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           updateSelectedSerVarValues
         }
       }
-    })
+    }.asInstanceOf[ChartValidityObserver[Any]])
 
   view.addObserver(this, new ChartValidityObserver[ChartView] {
 
@@ -159,7 +159,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           updateSelectedSerVarValues
         }
       }
-    })
+    }.asInstanceOf[ChartValidityObserver[Any]])
 
   /**
    * @todo updateTitle() when

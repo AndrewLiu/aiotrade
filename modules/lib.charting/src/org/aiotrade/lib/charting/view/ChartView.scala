@@ -134,11 +134,11 @@ abstract class ChartView(protected var controller: ChartingController, protected
     /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
   }
 
-  def addObserver(owner: Object, observer: ChangeObserver[_]) {
+  def addObserver(owner: Object, observer: ChangeObserver[Any]) {
     observableHelper.addObserver(owner, observer)
   }
 
-  def removeObserver(observer: ChangeObserver[_]) {
+  def removeObserver(observer: ChangeObserver[Any]) {
     observableHelper.removeObserver(observer)
   }
 
@@ -153,7 +153,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
    *   wBar
    *   onCalendarMode
    */
-  def notifyObserversChanged(oberverType: Class[_ <: ChangeObserver[_]]) {
+  def notifyObserversChanged(oberverType: Class[_ <: ChangeObserver[Any]]) {
     observableHelper.notifyObserversChanged(this, oberverType)
   }
 
@@ -272,7 +272,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
     if (maxValue != oldMaxValue || minValue != oldMinValue) {
       oldMaxValue = maxValue;
       oldMinValue = minValue;
-      notifyObserversChanged(classOf[ChartValidityObserver[_]])
+      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
   }
 
@@ -308,7 +308,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
     val oldValue = this.nBars
     this.nBars = nBars
     if (this.nBars != oldValue) {
-      notifyObserversChanged(classOf[ChartValidityObserver[_]])
+      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
   }
 
@@ -513,7 +513,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
       }
     }
 
-    notifyObserversChanged(classOf[ChartValidityObserver[_]])
+    notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
     repaint();
   }
@@ -536,7 +536,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
       overlappingSerChartMapVars.remove(ser)
     }
 
-    notifyObserversChanged(classOf[ChartValidityObserver[_]])
+    notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
     repaint();
   }
@@ -559,7 +559,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
         }
       }
 
-      notifyObserversChanged(classOf[ChartValidityObserver[_]])
+      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
       /** repaint this chart view */
       repaint()
