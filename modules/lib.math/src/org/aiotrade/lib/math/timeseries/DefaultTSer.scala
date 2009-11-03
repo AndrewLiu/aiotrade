@@ -63,7 +63,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   private val INIT_CAPACITY = 400
 
-  val items = new ArrayList[TItem](INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  val items = new ArrayList[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
