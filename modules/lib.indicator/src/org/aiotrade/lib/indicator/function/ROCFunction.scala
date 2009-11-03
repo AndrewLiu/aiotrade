@@ -43,7 +43,7 @@ class ROCFunction extends AbstractFunction {
   var period: Factor = _
   var baseVar: TVar[Float] = _
     
-  val _roc = TVar[Float]
+  val _roc = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

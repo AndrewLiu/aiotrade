@@ -30,9 +30,8 @@
  */
 package org.aiotrade.lib.indicator.function;
 
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -42,10 +41,10 @@ class DXFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _diPlus  = TVar[Float]
-  val _diMinus = TVar[Float]
+  val _diPlus  = TVar[Float]()
+  val _diMinus = TVar[Float]()
     
-  val _dx = TVar[Float]
+  val _dx = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

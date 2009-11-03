@@ -28,11 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -42,10 +41,10 @@ class CCIFunction extends AbstractFunction {
     
   var alpha, period: Factor = _
     
-  val _tp        = TVar[Float]
-  val _deviation = TVar[Float]
+  val _tp        = TVar[Float]()
+  val _deviation = TVar[Float]()
     
-  val _cci = TVar[Float]
+  val _cci = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

@@ -28,11 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
  *
@@ -42,10 +41,10 @@ class RSIFunction extends AbstractFunction {
     
   var period: Factor = _
     
-  val _up = TVar[Float]
-  val _dn = TVar[Float]
+  val _up = TVar[Float]()
+  val _dn = TVar[Float]()
     
-  val _rsi = TVar[Float]
+  val _rsi = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

@@ -31,7 +31,6 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
 /**
@@ -42,9 +41,9 @@ class STOCHKFunction extends AbstractFunction {
     
   var period, periodK: Factor = _
     
-  val _elementK = TVar[Float]
+  val _elementK = TVar[Float]()
     
-  val _stochK = TVar[Float]
+  val _stochK = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

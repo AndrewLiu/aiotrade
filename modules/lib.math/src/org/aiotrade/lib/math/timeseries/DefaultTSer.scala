@@ -58,12 +58,8 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
-object DefaultTSer {
-  val logger = Logger.getLogger(classOf[DefaultTSer].getName)
-}
-
 class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
-  import DefaultTSer._
+  val logger = Logger.getLogger(this.getClass.getName)
 
   private val INIT_CAPACITY = 400
   /**
@@ -77,7 +73,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    */
   private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
-  private val _items = new ArrayList[TItem]//{override val initialSize = INIT_CAPACITY}// this will cause timestamps' lock deadlock?
+  private val _items = new ArrayList[TItem](INIT_CAPACITY)// this will cause timestamps' lock deadlock?
 
   private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
@@ -248,24 +244,24 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     try {
       timestamps.readLock.lock
 
-      val log = timestamps.log
-      val logCursor = log.logCursor
+      val tlog = timestamps.log
+      val tlogCursor = tlog.logCursor
       var checkingCursor = tsLogCheckedCursor
-      while (logCursor > -1 && checkingCursor <= logCursor) {
+      while (tlogCursor > -1 && checkingCursor <= tlogCursor) {
         val cursorMoved = if (checkingCursor != tsLogCheckedCursor) {
           // * Is checking a new log, should reset tsLogCheckedSize
           tsLogCheckedSize = 0
           true
         } else false
 
-        val logFlag = log(checkingCursor)
-        val logCurrSize = log.checkSize(logFlag)
-        if (!cursorMoved && logCurrSize == tsLogCheckedSize) {
+        val tlogFlag = tlog(checkingCursor)
+        val tlogCurrSize = tlog.checkSize(tlogFlag)
+        if (!cursorMoved && tlogCurrSize == tsLogCheckedSize) {
           // * same log with same size, actually nothing changed
         } else {
-          log.checkKind(logFlag) match {
+          tlog.checkKind(tlogFlag) match {
             case TStampsLog.INSERT =>
-              var begIdx = log.insertIndexOfLog(checkingCursor)
+              val begIdx = tlog.insertIndexOfLog(checkingCursor)
 
               val begIdx1 = if (!cursorMoved) {
                 // * if insert log is a merged one, means the inserts were continually happening one behind one
@@ -273,10 +269,9 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
               } else begIdx
                                     
               val insertSize = if (!cursorMoved) {
-                logCurrSize - tsLogCheckedSize
-              } else logCurrSize
+                tlogCurrSize - tsLogCheckedSize
+              } else tlogCurrSize
 
-              logger.info(shortDescription + "(" + freq + ")" + " Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + ", currentSize=" + items.size)
               val newItems = new Array[TItem](insertSize)
               var i = 0
               while (i < insertSize) {
@@ -286,16 +281,15 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 i += 1
               }
               items.insertAll(begIdx1, newItems)
-              logger.info(shortDescription + "(" + freq + ") => newSize=" + items.size)
+              logger.info(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + items.size)
                             
             case TStampsLog.APPEND =>
               val begIdx = items.size
 
               val appendSize = if (!cursorMoved) {
-                logCurrSize - tsLogCheckedSize
-              } else logCurrSize
+                tlogCurrSize - tsLogCheckedSize
+              } else tlogCurrSize
 
-              logger.info(shortDescription + "(" + freq + ")" + " Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + ", currentSize=" + items.size)
               val newItems = new Array[TItem](appendSize)
               var i = 0
               while (i < appendSize) {
@@ -305,21 +299,21 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                 i += 1
               }
               items ++= newItems
-              logger.info(shortDescription + "(" + freq + ") => newSize=" + items.size)
+              logger.info(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + items.size)
 
             case x => assert(false, "Unknown log type: " + x)
           }
         }
                 
         tsLogCheckedCursor = checkingCursor
-        tsLogCheckedSize = logCurrSize
-        checkingCursor = log.nextCursor(checkingCursor)
+        tsLogCheckedSize = tlogCurrSize
+        checkingCursor = tlog.nextCursor(checkingCursor)
       }
 
       assert(timestamps.size == items.size,
              "Timestamps size=" + timestamps.size + " vs items size=" + items.size +
              ", checkedCursor=" + tsLogCheckedCursor +
-             ", log=" + log)
+             ", log=" + tlog)
     } finally {
       timestamps.readLock.unlock
     }
@@ -442,7 +436,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   protected class InnerTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
-    var values = new ArrayList[V]
+    var values = new ArrayList[V](INIT_CAPACITY)
 
     def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
@@ -471,7 +465,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
 
     def validate: Unit = {
-      val newValues = new ArrayList[V] {override val initialSize = INIT_CAPACITY}
+      val newValues = new ArrayList[V](INIT_CAPACITY)
 
       var i = 0
       var j = 0
@@ -531,16 +525,18 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
     def setByTime(time: Long, value: V): V = values.setByTime(time, value)
 
-    def validate: Unit = {}
+    def validate {}
 
     /**
      * All those instances of SparseVar or extended class will be equals if
      * they have the same values, this prevent the duplicated manage of values.
      * @See AbstractIndicator.injectVarsToSer()
      */
-    override def equals(o: Any): Boolean = o match {
-      case x: SparseTVar[_] => this.values == x.values
-      case _ => false
+    override def equals(o: Any): Boolean = {
+      o match {
+        case x: SparseTVar[_] => this.values == x.values
+        case _ => false
+      }
     }
   }
 

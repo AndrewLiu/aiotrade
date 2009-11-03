@@ -31,8 +31,6 @@
 package org.aiotrade.platform.modules.indicator.basic
 
 import org.aiotrade.lib.math.timeseries.TItem
-import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.SpotIndicator
 

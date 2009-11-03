@@ -137,13 +137,11 @@ object StatisticFunction {
    *            = (1 - a) * ema(t) + a * x(t)  // let a = 1/N
    */
   def iema(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
-    val value = values(idx) match {
-      case x if x.isNaN => 0f
-      case x => x
-    }
+    var value = values(idx)
+    value = if (value.isNaN) 0F else value
 
-    val a = 1f / (period * 1f)
-    (1f - a) * prev + a * value
+    val a = 1F / (period * 1F)
+    (1F - a) * prev + a * value
     //return ((period - 1.0f) / (period + 1.0f)) * prevEma + (2.0f / (period + 1.0f)) * value;
   }
 

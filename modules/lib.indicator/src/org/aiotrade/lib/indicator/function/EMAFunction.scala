@@ -43,15 +43,13 @@ object EMAFunction {
   protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.iema(idx, var1.values, period.toInt, prev)
   }
-
-
 }
 class EMAFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
     
-  val _ema = TVar[Float]
+  val _ema = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)

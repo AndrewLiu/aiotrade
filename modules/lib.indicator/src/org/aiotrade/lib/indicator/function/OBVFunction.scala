@@ -31,7 +31,6 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.TVar
 
 /**
  *
@@ -39,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.TVar
  */
 class OBVFunction extends AbstractFunction {
     
-  val _obv = TVar[Float]
+  val _obv = TVar[Float]()
     
   override def set(baseSer: TSer, args: Any*): Unit = {
     super.set(baseSer)
