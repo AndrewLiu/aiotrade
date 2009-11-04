@@ -47,7 +47,7 @@ class MTMIndicator extends ContIndicator {
   val mtm    = TVar[Float]("MTM",    Plot.Line)
   val mtm_ma = TVar[Float]("MTM_MA", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
       mtm(i) = mtm(i, C, period)

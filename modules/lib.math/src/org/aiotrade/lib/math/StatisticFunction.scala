@@ -193,8 +193,8 @@ object StatisticFunction {
       return Array(Null.Float, Null.Float)
     }
 
-    var max = Float.MinValue
-    var min = Float.MaxValue
+    var max = -Float.MaxValue
+    var min = +Float.MaxValue
     val lastIdx = Math.min(endIdx, values.size - 1)
     var i = begIdx
     while (i <= lastIdx) {
@@ -212,8 +212,8 @@ object StatisticFunction {
       return Array(Null.Float, Null.Float)
     }
 
-    var max = Float.MinValue
-    var min = Float.MaxValue
+    var max = -Float.MaxValue
+    var min = +Float.MaxValue
     val lastIdx = Math.min(endIdx, values.length - 1)
     var i = begIdx
     while (i <= lastIdx) {

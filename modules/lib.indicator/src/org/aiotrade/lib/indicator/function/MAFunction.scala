@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  * @author Caoyuan Deng
  */
 object MAFunction {
-  protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }
 }
