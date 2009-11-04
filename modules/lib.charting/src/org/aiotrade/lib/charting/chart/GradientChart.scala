@@ -33,6 +33,7 @@ package org.aiotrade.lib.charting.chart
 import java.awt.Color
 import java.awt.Graphics
 import org.aiotrade.lib.charting.widget.WidgetModel
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.segment.Shading
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -80,7 +81,7 @@ class GradientChart extends AbstractChart {
       val item = ser.getItem(time)
             
       if (item != null) {
-        val shades = item.get(model.v).asInstanceOf[Array[Float]]
+        val shades = item.get(m.v).asInstanceOf[Array[Float]]
         if (shades != null) {
           val centre = xb(bar)
           var prevRange = 0f
@@ -89,11 +90,11 @@ class GradientChart extends AbstractChart {
             val range = j * step + lower
                         
             var shade = shades(j)
-            if (!shade.isNaN) {
-              shade = (Math.pow(shade, 1d / 3d)).floatValue
+            if (shade != Null.Float) {
+              shade = (Math.pow(shade, 1d / 3d)).toFloat
               color = new Color(shade, shade, shade)
-              g.setColor(color);
-              g.fillRect((centre - radius - 1).intValue, yv(range).intValue, (2 * (radius + 1)).intValue, yv(prevRange).intValue - yv(range).intValue)
+              g.setColor(color)
+              g.fillRect((centre - radius - 1).toInt, yv(range).toInt, (2 * (radius + 1)).toInt, yv(prevRange).toInt - yv(range).toInt)
               //g.drawLine((int)barCentre, (int)yv(prevRange), (int)barCentre, (int)yv(range));
             }
             prevRange = range

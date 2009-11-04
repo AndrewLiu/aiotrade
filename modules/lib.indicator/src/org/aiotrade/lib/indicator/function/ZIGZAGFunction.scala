@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -68,7 +69,7 @@ class ZIGZAGFunction extends AbstractFunction {
      */
     //        int lastPeakIdx = indexOfLastValidValue(pseudoZigzag);
     //        if (lastPeakIdx >= 0) {
-    //            pseudoZigzag.set(lastPeakIdx, Float.NaN);
+    //            pseudoZigzag.set(lastPeakIdx, Null.Float);
     //
     //            setComputedIdx(Math.min(getComputedIdx(), lastPeakIdx));
     //        }
@@ -110,8 +111,8 @@ class ZIGZAGFunction extends AbstractFunction {
     if (i == 0) {
             
       _direction(i) = Direction.Long
-      _zigzag(i) = Float.NaN
-      _pseudoZigzag(i) = Float.NaN
+      _zigzag(i) = Null.Float
+      _pseudoZigzag(i) = Null.Float
       _peakHi(i) = H(i)
       _peakLo(i) = L(i)
       _peakHiIdx(i) = i

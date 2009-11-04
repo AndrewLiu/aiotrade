@@ -38,10 +38,12 @@ import java.util.Date
 import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.Market
 import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
@@ -64,7 +66,7 @@ object RealTimeQuoteChartView {
 class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean) extends AbstractQuoteChartView {
   import RealTimeQuoteChartView._
 
-  private var prevClose = Float.NaN
+  private var prevClose = Null.Float
   private var gridValues: Array[Float] = _
   private var tickerSer: QuoteSer = _
   private val cal = Calendar.getInstance
@@ -165,9 +167,9 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
   override def computeMaxMin {
     super.computeMaxMin
 
-    var minValue1 = Math.MAX_FLOAT
-    var maxValue1 = Math.MIN_FLOAT
-    if (!prevClose.isNaN) {
+    var minValue1 = +Math.MAX_FLOAT
+    var maxValue1 = -Math.MAX_FLOAT
+    if (prevClose != Null.Float) {
       minValue1 = getMinValue
       maxValue1 = getMaxValue
       val maxDelta = Math.max(Math.abs(maxValue1 - prevClose), Math.abs(minValue1 - prevClose))
@@ -240,7 +242,7 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
     val nBars = getNBars
     val endRow = begRow + nBars - 1
 
-    if (prevClose.isNaN) {
+    if (prevClose == Null.Float) {
       // @todo get precise prev *day* close
       val prevRow = masterSer.getItemByRow(begRow - 1).asInstanceOf[QuoteItem]
       if (prevRow != null) {

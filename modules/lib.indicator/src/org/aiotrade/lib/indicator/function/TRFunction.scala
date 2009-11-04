@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 
 /**
@@ -47,7 +48,7 @@ class TRFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _tr(i) = Float.NaN
+      _tr(i) = Null.Float
             
     } else {
             

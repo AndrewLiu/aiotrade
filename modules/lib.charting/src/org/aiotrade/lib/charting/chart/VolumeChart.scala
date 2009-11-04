@@ -34,6 +34,8 @@ import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.StickBar
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.math.timeseries.Null
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 
@@ -70,17 +72,17 @@ class VolumeChart extends AbstractChart {
     var bar = 1;
     while (bar <= nBars) {
 
-      var open   = Float.NaN
-      var close  = Float.NaN
-      var high   = Math.MIN_FLOAT
-      var low    = Math.MAX_FLOAT
-      var volume = Math.MIN_FLOAT
+      var open   = Null.Float
+      var close  = Null.Float
+      var high   = -Math.MAX_FLOAT
+      var low    = +Math.MAX_FLOAT
+      var volume = -Math.MAX_FLOAT
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         val item = masterSer.getItem(time).asInstanceOf[QuoteItem]
         if (item != null && item.close != 0) {
-          if (open.isNaN) {
+          if (open == Null.Float) {
             /** only get the first open as compressing period's open */
             open = item.open
           }

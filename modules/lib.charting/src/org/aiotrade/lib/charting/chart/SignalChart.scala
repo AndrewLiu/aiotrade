@@ -35,6 +35,7 @@ import org.aiotrade.lib.charting.widget.Arrow
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
@@ -77,7 +78,7 @@ class SignalChart extends AbstractChart {
         val signal = m.v.getByTime(time)
         if (signal != null) {
           val value = signal.value
-          if (!value.isNaN) {
+          if (value != Null.Float) {
             val x = xb(bar)
             val y = yv(value)
                         

@@ -37,7 +37,9 @@ import org.aiotrade.lib.charting.view.ChartView
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithDrawingPaneHelper
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.charting.chart.QuoteChart
@@ -243,8 +245,8 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
         val item = ser.getItem(time)
         if (item != null) {
           val compareHi = item.getFloat(ser.high)
-          val compareLo  = item.getFloat(ser.low)
-          if (!compareHi.isNaN && !compareLo.isNaN && !(compareHi * compareLo == 0) ) {
+          val compareLo = item.getFloat(ser.low)
+          if (compareHi != Null.Float && compareLo != Null.Float && compareHi * compareLo != 0 ) {
             maxValue1 = Math.max(maxValue1, compareHi)
             minValue1 = Math.min(minValue1, compareLo)
           }
@@ -274,7 +276,7 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
     ser.addSerChangeListener(serChangeListener)
         
     val chart = new QuoteChart
-    compareIndicatorToChart.put(ser, chart);
+    compareIndicatorToChart.put(ser, chart)
         
     val depth = Pane.DEPTH_CHART_BEGIN + compareIndicatorToChart.size
         

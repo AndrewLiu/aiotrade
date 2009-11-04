@@ -37,6 +37,7 @@ import java.util.Calendar
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.StatisticFunction
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
 
@@ -110,12 +111,12 @@ class ProfileChart extends AbstractChart {
         
     var firstValueGot = false
         
-    var y = Float.NaN
+    var y = Null.Float
     var i = 0
     while (i <= nIntervals) {
             
       val mass = profile(StatisticFunction.MASS)(i)
-      if (!mass.isNaN) {
+      if (mass != Null.Float) {
         val x = xorigin + mass * width
         y = yv(profile(StatisticFunction.VALUE)(i) + halfInterval)
         if (!firstValueGot) {

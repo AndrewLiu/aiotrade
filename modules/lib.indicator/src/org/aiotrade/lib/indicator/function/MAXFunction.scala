@@ -31,6 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.StatisticFunction
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
@@ -61,7 +62,7 @@ class MAXFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _max(i) = Float.NaN
+      _max(i) = Null.Float
             
     } else {
             

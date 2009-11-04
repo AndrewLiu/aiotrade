@@ -39,10 +39,12 @@ import java.awt.Stroke
 import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.util.GeomUtil
 import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.AbstractWidget
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.util.collection.ArrayList
 
 
@@ -366,8 +368,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @deprecated
    */
   @deprecated private def plotLine_seg(xCenter: Float, yCenter: Float, k: Float, path: GeneralPath) {
-    var xlast = xb(0); // bar 0
-    var ylast = Float.NaN
+    var xlast = xb(0) // bar 0
+    var ylast = Null.Float
     var bar = 1
     while (bar <= nBars) {
             
@@ -418,7 +420,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     val ymax = Math.max(yBeg, yEnd)
         
     var xlast = xb(0) // bar 0
-    var ylast = Float.NaN
+    var ylast = Null.Float
     var bar = 1
     while (bar <= nBars) {
             
@@ -505,7 +507,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    */
   @deprecated private def plotHalfArc_seg(xCenter: Float, yCenter: Float, radius: Double, positiveSide: Boolean, path: GeneralPath) {
     var xlast = xb(0) // bar 0
-    var ylast = Float.NaN
+    var ylast = Null.Float
     var bar = 1
     while (bar <= nBars) {
             
@@ -531,14 +533,14 @@ abstract class AbstractChart extends AbstractWidget with Chart {
        */
             
             
-      if (!y1.isNaN) {
+      if (y1 != Null.Float) {
         path.moveTo(x1, y1)
 
         var x = x1 + 1
         while (x <= x2) {
           val y =  GeomUtil.yOfCircle(x, xCenter, yCenter, radius, positiveSide)
                     
-          if (!y.isNaN) {
+          if (y != Null.Float) {
             path.lineTo(x, y)
                         
             ylast = y

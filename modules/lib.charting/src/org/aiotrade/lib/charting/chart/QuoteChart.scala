@@ -39,6 +39,7 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.view.pane.Pane
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 
 
@@ -128,19 +129,19 @@ class QuoteChart extends AbstractChart {
             
       /**
        * @TIPS:
-       * use NaN to test if value has been set at least one time
+       * use Null.Float to test if value has been set at least one time
        */
-      var open  = Float.NaN
-      var close = Float.NaN
-      var high  = Math.MIN_FLOAT
-      var low   = Math.MAX_FLOAT
+      var open  = Null.Float
+      var close = Null.Float
+      var high  = -Math.MAX_FLOAT
+      var low   = +Math.MAX_FLOAT
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         val item = ser.getItem(time)
                 
         if (item != null && item.getFloat(m.closeVar) != 0) {
-          if (open.isNaN) {
+          if (open == Null.Float) {
             /** only get the first open as compressing period's open */
             open = item.getFloat(m.openVar)
           }
@@ -152,7 +153,7 @@ class QuoteChart extends AbstractChart {
         i += 1
       }
             
-      if (!close.isNaN && close != 0) {
+      if (close != Null.Float && close != 0) {
         val color = if (close >= open) positiveColor else negativeColor
                 
         val yOpen  = yv(open)
@@ -183,17 +184,17 @@ class QuoteChart extends AbstractChart {
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
     val template = new LineSegment
-    var y1 = Float.NaN   // for prev
-    var y2 = Float.NaN   // for curr
+    var y1 = Null.Float   // for prev
+    var y2 = Null.Float   // for curr
     var bar = 1
     while (bar <= nBars) {
             
       /**
        * @TIPS:
-       * use NaN to test if value has been set at least one time
+       * use Null.Float to test if value has been set at least one time
        */
-      var open  = Float.NaN
-      var close = Float.NaN
+      var open  = Null.Float
+      var close = Null.Float
       var max   = Math.MIN_FLOAT
       var min   = Math.MAX_FLOAT
       var i = 0
@@ -201,7 +202,7 @@ class QuoteChart extends AbstractChart {
         val time = tb(bar + i)
         val item = ser.getItem(time)
         if (item != null && item.getFloat(m.closeVar) != 0) {
-          if (open.isNaN) {
+          if (open == Null.Float) {
             /** only get the first open as compressing period's open */
             open = item.getFloat(m.openVar)
           }
@@ -213,7 +214,7 @@ class QuoteChart extends AbstractChart {
         i += 1
       }
             
-      if (!close.isNaN && close != 0) {
+      if (close != Null.Float && close != 0) {
         val color = if (close >= open) positiveColor else negativeColor
                 
         y2 = yv(close)
@@ -222,7 +223,7 @@ class QuoteChart extends AbstractChart {
           val x = xb(bar)
           template.model.set(x, yv(min), x, yv(max))
         } else {
-          if (! y1.isNaN) {
+          if (y1 != Null.Float) {
             /**
              * x1 shoud be decided here, it may not equal prev x2:
              * think about the case of on calendar day mode

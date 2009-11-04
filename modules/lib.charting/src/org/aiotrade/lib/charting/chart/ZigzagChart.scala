@@ -32,6 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import org.aiotrade.lib.charting.widget.LineSegment
 import org.aiotrade.lib.charting.widget.WidgetModel
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
@@ -123,7 +124,7 @@ class ZigzagChart extends AbstractChart {
     var break = false
     while (i < n && !break) {
       val value = values(i).asInstanceOf[Float]
-      if (value != null && !value.isNaN) {
+      if (value != Null.Float) {
         index = i
         break = true
       }

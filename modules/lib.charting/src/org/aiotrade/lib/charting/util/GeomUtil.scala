@@ -60,7 +60,7 @@ object GeomUtil {
    * @param x
    * @param xCenter center point x of arc
    * @param yCenter center point y of arc
-   * @return y or NaN
+   * @return y or Null.Float
    */
   def yOfCircle(x: Double, xCenter: Double, yCenter: Double, radius: Double, positiveSide: Boolean): Float = {
     val dx = x - xCenter

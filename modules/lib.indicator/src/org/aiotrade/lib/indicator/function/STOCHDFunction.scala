@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -58,7 +59,7 @@ class STOCHDFunction extends AbstractFunction {
         
     if (i < periodD.value - 1) {
             
-      _stochD(i) = Float.NaN
+      _stochD(i) = Null.Float
             
     } else {
             

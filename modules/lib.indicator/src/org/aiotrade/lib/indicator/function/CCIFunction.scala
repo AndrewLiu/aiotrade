@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -58,9 +59,9 @@ class CCIFunction extends AbstractFunction {
         
     if (i < period.value - 1) {
             
-      _deviation(i) = Float.NaN
+      _deviation(i) = Null.Float
             
-      _cci(i) = Float.NaN
+      _cci(i) = Null.Float
             
     } else {
             

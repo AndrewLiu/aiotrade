@@ -31,6 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.StatisticFunction
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
@@ -41,7 +42,7 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  */
 object STDDEVFunction {
   protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
-    val begIdx = idx - period.intValue + 1
+    val begIdx = idx - period.toInt + 1
     val endIdx = idx
 
     return StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
@@ -66,7 +67,7 @@ class STDDEVFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _stdDev(i) = Float.NaN
+      _stdDev(i) = Null.Float
             
     } else {
             

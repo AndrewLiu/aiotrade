@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 
 /**
@@ -48,8 +49,8 @@ class DMFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _dmPlus (i) = Float.NaN
-      _dmMinus(i) = Float.NaN
+      _dmPlus (i) = Null.Float
+      _dmMinus(i) = Null.Float
             
     } else {
             

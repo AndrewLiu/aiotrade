@@ -132,7 +132,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     if (itemTime < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
       if (existIdx >= 0) {
-        vars foreach {_.addNullValue(itemTime)}
+        vars foreach {_.addNullVal(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
         items.insert(existIdx, clearItem)
       } else {
@@ -147,7 +147,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
           _timestamps.insert(idx, itemTime)
           tsLog.logInsert(1, idx)
 
-          vars foreach {_.addNullValue(itemTime)}
+          vars foreach {_.addNullVal(itemTime)}
 
           // * as timestamps includes this time, we just always put in a none-null item
           items.insert(idx, clearItem)
@@ -164,7 +164,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
         _timestamps += itemTime
         tsLog.logAppend(1)
 
-        vars foreach {_.addNullValue(itemTime)}
+        vars foreach {_.addNullVal(itemTime)}
 
         /** as timestamps includes this time, we just always put in a none-null item  */
         items += clearItem
@@ -175,7 +175,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       // * time == lastOccurredTime, keep same time and update item to clear.
       val existIdx = timestamps.indexOfOccurredTime(itemTime)
       if (existIdx >= 0) {
-        vars foreach {_.addNullValue(itemTime)}
+        vars foreach {_.addNullVal(itemTime)}
         // * as timestamps includes this time, we just always put in a none-null item
         items += clearItem
       } else {
@@ -277,7 +277,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
-                vars foreach {_.addNullValue(time)}
+                vars foreach {_.addNullVal(time)}
                 newItems(0) = createItem(time)
                 i += 1
               }
@@ -295,7 +295,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx)
-                vars foreach {_.addNullValue(time)}
+                vars foreach {_.addNullVal(time)}
                 newItems(i) = createItem(time)
                 i += 1
               }
@@ -563,10 +563,10 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     override def apply(idx: Int): V = {
       if (idx >= 0 && idx < values.size) {
         values(idx) match {
-          case null => nullValue
+          case null => NullVal
           case value => value
         }
-      } else nullValue
+      } else NullVal
     }
 
     override def update(idx: Int, value: V): Unit = {

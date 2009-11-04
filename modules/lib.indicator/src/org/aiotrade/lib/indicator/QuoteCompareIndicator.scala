@@ -33,6 +33,7 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.{QuoteItem, QuoteSer}
@@ -70,13 +71,13 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     val endPos = endPosition.value.toInt//Math.min((int)endPosition.value(),   _dataSize - 1);
         
     /** get first value of baseSer in time frame, it will be the comparing base point */
-    var baseNorm = Float.NaN
+    var baseNorm = Null.Float
     var position = begPosition.value.toInt
     var end = endPosition.value.toInt
     var break = false
     while (position <= end & !break) {
       val baseItem = _baseSer.asInstanceOf[QuoteSer].getItemByRow(position).asInstanceOf[QuoteItem]
-            
+
       if (baseItem != null) {
         baseNorm = baseItem.close
         break = true
@@ -85,7 +86,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
       position += 1
     }
         
-    if (baseNorm.isNaN) {
+    if (baseNorm == Null.Float) {
       return
     }
         
@@ -99,7 +100,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
       }
     }
         
-    var compareNorm = Float.NaN
+    var compareNorm = Null.Float
     /**
      * !NOTICE
      * we only calculate this indicator's value for a timeSet showing in screen,
@@ -129,7 +130,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
           case null =>
           case itemToBeCompared:QuoteItem =>
             /** get first value of serToBeCompared in time frame */
-            if (compareNorm.isNaN) {
+            if (compareNorm == Null.Float) {
               compareNorm = itemToBeCompared.close
             }
                         

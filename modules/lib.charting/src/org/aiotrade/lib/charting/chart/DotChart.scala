@@ -32,6 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import org.aiotrade.lib.charting.widget.DiamondDot
 import org.aiotrade.lib.charting.widget.WidgetModel
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
@@ -71,7 +72,7 @@ class DotChart extends AbstractChart {
         if (item != null) {
           val value = item.getFloat(model.v)
                     
-          if (! value.isNaN) {
+          if (value != Null.Float) {
             template.model.set(xb(bar), yv(value), wBar, false)
             template.setForeground(color)
             template.plot;

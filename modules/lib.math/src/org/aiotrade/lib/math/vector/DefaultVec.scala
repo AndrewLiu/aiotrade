@@ -32,6 +32,7 @@ package org.aiotrade.lib.math.vector
 
 import java.util.Random
 import java.util.StringTokenizer
+import org.aiotrade.lib.math.timeseries.Null
 
 /**
  * Default implement of Vec.
@@ -238,7 +239,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until dimension) {
-      if (values(i).isNaN) {
+      if (values(i) == Null.Float) {
         return false
       }
     }

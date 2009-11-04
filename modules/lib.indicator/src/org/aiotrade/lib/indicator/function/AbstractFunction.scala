@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import java.util.concurrent.ConcurrentHashMap
-import org.aiotrade.lib.math.timeseries.{DefaultTSer,TSer,TVar}
+import org.aiotrade.lib.math.timeseries.{DefaultTSer,TSer,TVar, Null}
 import org.aiotrade.lib.math.timeseries.computable.{Factor}
 import org.aiotrade.lib.securities.{QuoteSer}
 
@@ -216,7 +216,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
     val values = var1.values
     var i = values.size - 1; while (i > 0) {
       val value = values(i)
-      if (value != null && !(value.isInstanceOf[Float] && value.asInstanceOf[Float].isNaN)) {
+      if (value != null && !(value.isInstanceOf[Float] && value.asInstanceOf[Float] == Null.Float)) {
         return _baseSer.indexOfOccurredTime(timestamps(i))
       }
 

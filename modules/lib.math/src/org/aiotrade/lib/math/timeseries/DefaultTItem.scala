@@ -87,13 +87,13 @@ class DefaultTItem protected[timeseries]  (val ser: TSer, val time: Long) extend
    */
   def getFloat(v: TVar[_]): Float = {
     v.getByTime(time) match {
-      case null => Float.NaN
+      case null => Null.Float
       case n: Number => n.floatValue
       case o: AnyRef =>
         assert(false, "Why you get here(DefaultItem.getFloat(Var<?> var)) ? " +
                time + " Check your code and give me Float instead of float: " +
                o.asInstanceOf[AnyRef].getClass.getCanonicalName)
-        Float.NaN
+        Null.Float
     }
   }
     

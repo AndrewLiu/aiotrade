@@ -40,12 +40,12 @@ import org.aiotrade.lib.util.collection.ArrayList
  *
  * @author Caoyuan Deng
  */
-trait TVar[@specialized V] extends Plottable {
+trait TVar[V] extends Plottable {
   def name: String
   def name_=(name: String): Unit
 
   def add(time: Long, value: V): Boolean
-  def addNullValue(time: Long): Boolean
+  def addNullVal(time: Long): Boolean
   def getByTime(time: Long): V
   def setByTime(time: Long, value: V): V
     
@@ -59,10 +59,9 @@ trait TVar[@specialized V] extends Plottable {
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]
-    
-  def nullValue: V
-
   def validate: Unit
+
+  val NullVal: V
 
   private val _hashCode = System.identityHashCode(this)
   override def hashCode: Int = _hashCode

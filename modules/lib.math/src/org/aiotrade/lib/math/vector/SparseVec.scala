@@ -32,6 +32,7 @@ package org.aiotrade.lib.math.vector;
 
 import java.util.Random
 import java.util.StringTokenizer
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.util.collection.ArrayList
 
 /**
@@ -419,7 +420,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until items.length) {
-      if (items(i).value.isNaN) {
+      if (items(i).value == Null.Float) {
         return false
       }
     }

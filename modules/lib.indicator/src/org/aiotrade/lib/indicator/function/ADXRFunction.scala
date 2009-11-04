@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -56,7 +57,7 @@ class ADXRFunction extends AbstractFunction {
         
     if (i < periodDi.value - 1 || i < periodAdx.value - 1) {
             
-      _adxr(i) = Float.NaN
+      _adxr(i) = Null.Float
             
     } else {
             

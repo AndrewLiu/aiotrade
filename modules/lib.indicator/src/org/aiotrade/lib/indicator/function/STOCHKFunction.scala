@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -55,9 +56,9 @@ class STOCHKFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _elementK(i) = Float.NaN
+      _elementK(i) = Null.Float
 
-      _stochK(i) = Float.NaN
+      _stochK(i) = Null.Float
             
     } else {
             

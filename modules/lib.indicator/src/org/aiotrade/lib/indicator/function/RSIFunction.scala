@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -55,10 +56,10 @@ class RSIFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _up(i) = Float.NaN
-      _dn(i) = Float.NaN
+      _up(i) = Null.Float
+      _dn(i) = Null.Float
             
-      _rsi(i) = Float.NaN
+      _rsi(i) = Null.Float
             
     } else {
             
@@ -73,7 +74,7 @@ class RSIFunction extends AbstractFunction {
             
       if (i < period.value - 1) {
                 
-        _rsi(i) = Float.NaN
+        _rsi(i) = Null.Float
             
       } else {
             

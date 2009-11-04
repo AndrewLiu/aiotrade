@@ -40,8 +40,9 @@ import org.aiotrade.lib.charting.chart.ProfileChart
 import org.aiotrade.lib.charting.chart.GradientChart
 import org.aiotrade.lib.charting.chart.StickChart
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.computable.Indicator
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.charting.view.pane.Pane
 import scala.collection.mutable.HashSet
 
@@ -170,8 +171,8 @@ class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends 
   }
     
   override def computeMaxMin {
-    var minValue1 = Math.MAX_FLOAT
-    var maxValue1 = Math.MIN_FLOAT
+    var minValue1 = +Math.MAX_FLOAT
+    var maxValue1 = -Math.MAX_FLOAT
         
     var i = 1
     while (i <= getNBars) {
@@ -181,7 +182,7 @@ class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends 
         for (v <- mainSer.vars) {
           if (v.plot != Plot.None) {
             val value = item.getFloat(v)
-            if (!value.isNaN) {
+            if (value != Null.Float) {
               maxValue1 = Math.max(maxValue1, value)
               minValue1 = Math.min(minValue1, value)
             }

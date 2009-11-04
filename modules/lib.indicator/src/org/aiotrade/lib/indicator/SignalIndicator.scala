@@ -31,8 +31,8 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.TVar;
 import org.aiotrade.lib.math.timeseries.plottable.Plot;
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
@@ -65,7 +65,7 @@ abstract class SignalIndicator(baseSer: TSer) extends AbstractIndicator(baseSer)
       case Sign.ExitLong   => H(idx)
       case Sign.EnterShort => H(idx)
       case Sign.ExitShort  => L(idx)
-      case _ => Float.NaN
+      case _ => Null.Float
     }
         
     signalVar(idx) = new Signal(idx, time, value, sign, name)

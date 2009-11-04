@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -61,8 +62,8 @@ class DIFunction extends AbstractFunction {
         
     if (i < period.value - 1) {
             
-      _diPlus(i)  = Float.NaN
-      _diMinus(i) = Float.NaN
+      _diPlus(i)  = Null.Float
+      _diMinus(i) = Null.Float
             
     } else {
             

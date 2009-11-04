@@ -33,6 +33,7 @@ package org.aiotrade.lib.charting.chart
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.LineSegment
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
 
@@ -60,13 +61,13 @@ class PolyLineChart extends AbstractChart {
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
     val template = new LineSegment
-    var y1 = Float.NaN   // for prev
-    var y2 = Float.NaN   // for curr
+    var y1 = Null.Float   // for prev
+    var y2 = Null.Float   // for curr
     var bar = 1
     while (bar <= nBars) {
-      var value = Float.NaN
-      var max = Math.MIN_FLOAT
-      var min = Math.MAX_FLOAT
+      var value = Null.Float
+      var max = -Math.MAX_FLOAT
+      var min = +Math.MAX_FLOAT
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)
@@ -80,7 +81,7 @@ class PolyLineChart extends AbstractChart {
         i += 1
       }
             
-      if (! value.isNaN) {
+      if (value != Null.Float) {
         template.setForeground(color)
                 
         y2 = yv(value)
@@ -89,7 +90,7 @@ class PolyLineChart extends AbstractChart {
           val x = xb(bar)
           template.model.set(x, yv(min), x, yv(max))
         } else {
-          if (! y1.isNaN) {
+          if (y1 != Null.Float) {
             /**
              * x1 shoud be decided here, it may not equal prev x2:
              * think about the case of on calendar day mode
@@ -99,7 +100,7 @@ class PolyLineChart extends AbstractChart {
             template.model.set(x1, y1, x2, y2)
                         
             if (x2 % AbstractChart.MARK_INTERVAL == 0) {
-              addMarkPoint(x2.intValue, y2.intValue)
+              addMarkPoint(x2.toInt, y2.toInt)
             }
                         
           }

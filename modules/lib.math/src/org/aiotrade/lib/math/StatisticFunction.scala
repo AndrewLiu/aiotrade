@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.util.collection.ArrayList
 
 /**
@@ -45,7 +46,7 @@ object StatisticFunction {
 
   def sum(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
-      return Float.NaN
+      return Null.Float
     }
 
     var sum = 0f
@@ -63,15 +64,15 @@ object StatisticFunction {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
-      Float.NaN
+      Null.Float
     } else if (lookbackIdx == 0) {
       /** compute first availabe sum (in case of enough period first time) */
       sum(values, 0, idx)
     } else {
-      if (prev.isNaN) {
+      if (prev == Null.Float) {
         /**
-         * although the 'values' size is enough, it may contains NaN
-         * element, thus cause the prevSum to be a NaN, we should
+         * although the 'values' size is enough, it may contains NullFloat
+         * element, thus cause the prevSum to be a NullFloat, we should
          * precess this case by:
          */
         sum(values, lookbackIdx, idx)
@@ -83,7 +84,7 @@ object StatisticFunction {
 
   def ma(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
-      return Float.NaN
+      return Null.Float
     }
 
     val period1 = period(begIdx, endIdx)
@@ -97,15 +98,15 @@ object StatisticFunction {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
-      Float.NaN
+      Null.Float
     } else if (lookbackIdx == 0) {
       /** compute first available ma (in case of enough period first time) */
       ma(values, 0, idx)
     } else {
-      if (prev.isNaN) {
+      if (prev == Null.Float) {
         /**
-         * although the 'values' size is enough, it may contains NaN
-         * element, thus cause the prevSum to be a NaN, we should
+         * although the 'values' size is enough, it may contains NullFloat
+         * element, thus cause the prevSum to be a NullFloat, we should
          * precess this case by:
          */
         ma(values, lookbackIdx, idx)
@@ -117,7 +118,7 @@ object StatisticFunction {
 
   def ema(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
-      return Float.NaN
+      return Null.Float
     }
 
     val period1 = period(begIdx, endIdx) * 1f
@@ -138,7 +139,7 @@ object StatisticFunction {
    */
   def iema(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     var value = values(idx)
-    value = if (value.isNaN) 0F else value
+    value = if (value == Null.Float) 0F else value
 
     val a = 1F / (period * 1F)
     (1F - a) * prev + a * value
@@ -153,11 +154,11 @@ object StatisticFunction {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
-      Float.NaN
+      Null.Float
     } else if (lookbackIdx == 0) {
       max(values, 0, idx)
     } else {
-      if (prev.isNaN || values(lookbackIdx - 1) == prev) {
+      if (prev == Null.Float || values(lookbackIdx - 1) == prev) {
         max(values, lookbackIdx, idx)
       } else {
         val value = values(idx)
@@ -174,11 +175,11 @@ object StatisticFunction {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
-      Float.NaN
+      Null.Float
     } else if (lookbackIdx == 0) {
       min(values, 0, idx)
     } else {
-      if (prev.isNaN || values(lookbackIdx - 1) == prev) {
+      if (prev == Null.Float || values(lookbackIdx - 1) == prev) {
         min(values, lookbackIdx, idx)
       } else {
         val value = values(idx)
@@ -189,7 +190,7 @@ object StatisticFunction {
 
   def maxmin(values: ArrayList[Float], begIdx: Int, endIdx: Int): Array[Float] = {
     if (begIdx < 0) {
-      return Array(Float.NaN, Float.NaN)
+      return Array(Null.Float, Null.Float)
     }
 
     var max = Float.MinValue
@@ -208,7 +209,7 @@ object StatisticFunction {
 
   def maxmin(values: Array[Float], begIdx: Int, endIdx: Int): Array[Float] = {
     if (begIdx < 0) {
-      return Array(Float.NaN, Float.NaN)
+      return Array(Null.Float, Null.Float)
     }
 
     var max = Float.MinValue
@@ -230,7 +231,7 @@ object StatisticFunction {
    */
   def stdDev(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
-      return Float.NaN
+      return Null.Float
     }
 
     val ma1 = ma(values, begIdx, endIdx)

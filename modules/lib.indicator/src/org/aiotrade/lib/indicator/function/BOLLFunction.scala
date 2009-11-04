@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.computable.Factor
@@ -58,14 +59,14 @@ class BOLLFunction extends AbstractFunction {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _bollMiddle(i) = Float.NaN
-      _bollUpper(i)  = Float.NaN
-      _bollLower(i)  = Float.NaN
+      _bollMiddle(i) = Null.Float
+      _bollUpper(i)  = Null.Float
+      _bollLower(i)  = Null.Float
             
     } else {
             
       val ma_i = ma(i, baseVar, period)
-      val standard_deviation_i = stdDev(i, baseVar, period);
+      val standard_deviation_i = stdDev(i, baseVar, period)
             
       _bollMiddle(i) = ma_i
       _bollUpper(i)  = ma_i + alpha.value * standard_deviation_i

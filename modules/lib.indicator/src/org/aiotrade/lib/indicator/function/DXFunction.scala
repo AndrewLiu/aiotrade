@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function;
 
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.computable.Factor
 
@@ -58,7 +59,7 @@ class DXFunction extends AbstractFunction {
       _diPlus (i) = diPlus( i, period)
       _diMinus(i) = diMinus(i, period)
             
-      _dx(i) = Float.NaN
+      _dx(i) = Null.Float
             
     } else {
             
