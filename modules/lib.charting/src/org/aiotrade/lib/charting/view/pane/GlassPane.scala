@@ -382,17 +382,15 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         }
         val color = if (chartOfVar == null) LookFeel.getCurrent.nameColor else chartOfVar.getForeground
 
-        val valueLabel = selectedSerVarsToValueLabel.get(v) match {
-          case None =>
-            val valueLabelx = new JLabel
-            valueLabelx.setOpaque(false)
-            valueLabelx.setHorizontalAlignment(SwingConstants.LEADING)
-            valueLabelx.setPreferredSize(null) // null, let the UI delegate to decide the size
+        val valueLabel = selectedSerVarsToValueLabel.get(v) getOrElse {
+          val valueLabelx = new JLabel
+          valueLabelx.setOpaque(false)
+          valueLabelx.setHorizontalAlignment(SwingConstants.LEADING)
+          valueLabelx.setPreferredSize(null) // null, let the UI delegate to decide the size
 
-            titlePanel.add(valueLabelx)
-            selectedSerVarsToValueLabel.put(v, valueLabelx)
-            valueLabelx
-          case Some(x) => x
+          titlePanel.add(valueLabelx)
+          selectedSerVarsToValueLabel.put(v, valueLabelx)
+          valueLabelx
         }
 
         valueLabel.setForeground(color)
