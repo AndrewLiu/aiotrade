@@ -40,14 +40,10 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object MINFunction {
-  protected def imin(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+class MINFunction extends AbstractFunction {
+  final protected def imin(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
   }
-
-
-}
-class MINFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -68,7 +64,7 @@ class MINFunction extends AbstractFunction {
             
     } else {
             
-      _min(i) = MINFunction.imin(i, baseVar, period.value, _min(i - 1))
+      _min(i) = imin(i, baseVar, period.value, _min(i - 1))
             
     }
   }

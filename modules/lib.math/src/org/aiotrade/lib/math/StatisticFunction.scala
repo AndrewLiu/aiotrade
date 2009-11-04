@@ -44,23 +44,25 @@ object StatisticFunction {
   val VALUE = 0
   val MASS = 1
 
-  def sum(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
+  final def sum(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
       return Null.Float
     }
 
-    var sum = 0f
+    var sum = 0F
     var i = begIdx
     while (i <= endIdx) {
       val v = values(i)
-      sum += v
+      if (v != Null.Float) {
+        sum += v
+      }
       i += 1
     }
 
     sum
   }
 
-  def isum(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
+  final def isum(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
@@ -82,7 +84,7 @@ object StatisticFunction {
     }
   }
 
-  def ma(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
+  final def ma(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
       return Null.Float
     }
@@ -94,7 +96,7 @@ object StatisticFunction {
   /**
    * ma(t + 1) = ma(t) + ( x(t) / N - x(t - n) / N )
    */
-  def ima(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
+  final def ima(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
@@ -116,7 +118,7 @@ object StatisticFunction {
     }
   }
 
-  def ema(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
+  final def ema(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
       return Null.Float
     }
@@ -137,7 +139,7 @@ object StatisticFunction {
    *            = (1 - 1/N) * ema(t) + (1/N) * x(t)
    *            = (1 - a) * ema(t) + a * x(t)  // let a = 1/N
    */
-  def iema(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
+  final def iema(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     var value = values(idx)
     value = if (value == Null.Float) 0F else value
 
@@ -146,11 +148,11 @@ object StatisticFunction {
     //return ((period - 1.0f) / (period + 1.0f)) * prevEma + (2.0f / (period + 1.0f)) * value;
   }
 
-  def max(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
+  final def max(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     maxmin(values, begIdx, endIdx)(MAX)
   }
 
-  def imax(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
+  final def imax(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
@@ -167,11 +169,11 @@ object StatisticFunction {
     }
   }
 
-  def min(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float =  {
+  final def min(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float =  {
     maxmin(values, begIdx, endIdx)(MIN)
   }
 
-  def imin(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
+  final def imin(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     val lookbackIdx = lookback(idx, period)
 
     if (lookbackIdx < 0 || idx >= values.size) {
@@ -188,7 +190,7 @@ object StatisticFunction {
     }
   }
 
-  def maxmin(values: ArrayList[Float], begIdx: Int, endIdx: Int): Array[Float] = {
+  final def maxmin(values: ArrayList[Float], begIdx: Int, endIdx: Int): Array[Float] = {
     if (begIdx < 0) {
       return Array(Null.Float, Null.Float)
     }
@@ -199,15 +201,17 @@ object StatisticFunction {
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
-      max = if (max >= value) max else value
-      min = if (min <= value) min else value
+      if (value != Null.Float) {
+        max = if (max >= value) max else value
+        min = if (min <= value) min else value
+      }
       i += 1
     }
 
     Array(max, min)
   }
 
-  def maxmin(values: Array[Float], begIdx: Int, endIdx: Int): Array[Float] = {
+  final def maxmin(values: Array[Float], begIdx: Int, endIdx: Int): Array[Float] = {
     if (begIdx < 0) {
       return Array(Null.Float, Null.Float)
     }
@@ -218,8 +222,10 @@ object StatisticFunction {
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
-      max = Math.max(max, value)
-      min = Math.min(min, value)
+      if (value != Null.Float) {
+        max = Math.max(max, value)
+        min = Math.min(min, value)
+      }
       i += 1
     }
 
@@ -229,7 +235,7 @@ object StatisticFunction {
   /**
    * Standard Deviation
    */
-  def stdDev(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
+  final def stdDev(values: ArrayList[Float], begIdx: Int, endIdx: Int): Float = {
     if (begIdx < 0 || endIdx >= values.size) {
       return Null.Float
     }
@@ -251,15 +257,15 @@ object StatisticFunction {
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Float], begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Float]] = {
+  final def probMass(values: ArrayList[Float], begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Float]] = {
     probMass(values, null, begIdx, endIdx, nIntervals)
   }
 
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Float], weights: ArrayList[Float],
-               begIdx: Int, endIdx: Int, nIntervals: Int
+  final def probMass(values: ArrayList[Float], weights: ArrayList[Float],
+                     begIdx: Int, endIdx: Int, nIntervals: Int
   ): Array[Array[Float]] = {
 
     if (nIntervals <= 0) {
@@ -277,8 +283,8 @@ object StatisticFunction {
   /**
    * Probability Density Function
    */
-  def probMass(values: ArrayList[Float],
-               begIdx: Int, endIdx: Int, interval: Double
+  final def probMass(values: ArrayList[Float],
+                     begIdx: Int, endIdx: Int, interval: Double
   ): Array[Array[Float]] = {
 
     probMass(values, null, begIdx, endIdx, interval)
@@ -287,8 +293,8 @@ object StatisticFunction {
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Float], weights: ArrayList[Float],
-               begIdx: Int, endIdx: Int, interval: Double
+  final def probMass(values: ArrayList[Float], weights: ArrayList[Float],
+                     begIdx: Int, endIdx: Int, interval: Double
   ): Array[Array[Float]] = {
 
     if (interval <= 0) {
@@ -350,8 +356,8 @@ object StatisticFunction {
   /**
    * Probability Density Function
    */
-  def probMassWithTimeInfo(values: ArrayList[Float], weights: ArrayList[Float],
-                           begIdx: Int, endIdx: Int, interval: Float
+  final def probMassWithTimeInfo(values: ArrayList[Float], weights: ArrayList[Float],
+                                 begIdx: Int, endIdx: Int, interval: Float
   ): Array[Array[Float]] = {
 
     if (begIdx < 0 || interval <= 0) {

@@ -40,17 +40,14 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object STDDEVFunction {
-  protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
+class STDDEVFunction extends AbstractFunction {
+  final protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
     val begIdx = idx - period.toInt + 1
     val endIdx = idx
 
-    return StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
+    StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
   }
 
-
-}
-class STDDEVFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -71,7 +68,7 @@ class STDDEVFunction extends AbstractFunction {
             
     } else {
             
-      _stdDev(i) = STDDEVFunction.stdDev(i, baseVar, period.value)
+      _stdDev(i) = stdDev(i, baseVar, period.value)
             
     }
   }

@@ -40,7 +40,19 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  * @author Caoyuan Deng
  */
 case class PROBMASSFunction extends AbstractFunction {
-  import PROBMASSFunction._
+  final protected def probMass(idx: Int, baseVar: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+    val begIdx = idx - period.intValue + 1
+    val endIdx = idx
+
+    StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
+  }
+
+  protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+    val begIdx = idx - period.intValue + 1
+    val endIdx = idx
+
+    StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
+  }
     
   var period: Factor = _
   var nInterval: Factor = _
@@ -67,11 +79,11 @@ case class PROBMASSFunction extends AbstractFunction {
   protected def computeSpot(i: Int) : Unit = {
     if (weight == null) {
             
-      _probMass = PROBMASSFunction.probMass(i, baseVar, period.value, nInterval.value);
+      _probMass = probMass(i, baseVar, period.value, nInterval.value);
             
     } else {
             
-      _probMass = PROBMASSFunction.probMass(i, baseVar, weight, period.value, nInterval.value);
+      _probMass = probMass(i, baseVar, weight, period.value, nInterval.value);
             
     }
   }
@@ -90,22 +102,4 @@ case class PROBMASSFunction extends AbstractFunction {
   }
     
 }
-
-object PROBMASSFunction {
-  protected def probMass(idx: Int, baseVar: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
-    val begIdx = idx - period.intValue + 1
-    val endIdx = idx
-
-    StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
-  }
-
-  protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
-    val begIdx = idx - period.intValue + 1
-    val endIdx = idx
-
-    StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
-  }
-}
-
-
 

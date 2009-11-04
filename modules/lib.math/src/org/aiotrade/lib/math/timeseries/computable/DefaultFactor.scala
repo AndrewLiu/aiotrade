@@ -41,12 +41,17 @@ import org.aiotrade.lib.util.serialization.JavaDocument
  * If you use Factor in indicator, please considerate AbstractIndicator#InnerFactor first
  * which will be added to Indicator's factors automatically when new it.
  */
-class DefaultFactor(namex: String, valuex: Number, stepx: Number, minValuex: Number, maxValuex: Number) extends AbstractFactor(namex) {
+class DefaultFactor(aname: String, 
+                    avalue: Number,
+                    astep: Number,
+                    aminValue: Number,
+                    amaxValue: Number
+) extends AbstractFactor(aname) {
     
-  private var _value: Float = valuex.floatValue
-  private var _step : Float = if (stepx == null) 1.0f else stepx.floatValue
-  private var _minValue: Float = if (minValuex == null) -Float.MaxValue else minValuex.toFloat
-  private var _maxValue: Float = if (maxValuex == null) +Float.MaxValue else maxValuex.toFloat
+  private var _value: Float = avalue.floatValue
+  private var _step : Float = if (astep == null) 1.0f else astep.floatValue
+  private var _minValue: Float = if (aminValue == null) -Float.MaxValue else aminValue.floatValue
+  private var _maxValue: Float = if (amaxValue == null) +Float.MaxValue else amaxValue.floatValue
     
   def this(name: String, value: Number) = {
     this(name, value, null, null, null)

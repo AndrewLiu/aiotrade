@@ -40,12 +40,10 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object MAXFunction {
-  protected def imax(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+class MAXFunction extends AbstractFunction {
+  final protected def imax(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
   }
-}
-class MAXFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -66,7 +64,7 @@ class MAXFunction extends AbstractFunction {
             
     } else {
             
-      _max(i) = MAXFunction.imax(i, baseVar, period.value, _max(i - 1))
+      _max(i) = imax(i, baseVar, period.value, _max(i - 1))
             
     }
   }

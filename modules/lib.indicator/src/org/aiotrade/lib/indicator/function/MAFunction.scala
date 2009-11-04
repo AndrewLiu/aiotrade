@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.function;
+package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.StatisticFunction
 import org.aiotrade.lib.math.timeseries.Null
@@ -40,13 +40,10 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object MAFunction {
+class MAFunction extends AbstractFunction {
   final protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }
-}
-
-class MAFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -69,7 +66,7 @@ class MAFunction extends AbstractFunction {
             
     } else {
             
-      _ma(i) = MAFunction.ima(i, baseVar, period.value, _ma(i - 1))
+      _ma(i) = ima(i, baseVar, period.value, _ma(i - 1))
             
     }
   }

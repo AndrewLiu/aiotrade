@@ -39,12 +39,10 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object EMAFunction {
-  protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
+class EMAFunction extends AbstractFunction {
+  final protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.iema(idx, var1.values, period.toInt, prev)
   }
-}
-class EMAFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -65,7 +63,7 @@ class EMAFunction extends AbstractFunction {
             
     } else {
             
-      _ema(i) = EMAFunction.iema(i, baseVar, period.value, _ema(i - 1))
+      _ema(i) = iema(i, baseVar, period.value, _ema(i - 1))
             
     }
   }

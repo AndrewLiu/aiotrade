@@ -39,7 +39,7 @@ import org.aiotrade.lib.util.collection.ArrayList
  */
 object IndicatorFunction {
     
-  def dmPlus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
+  final def dmPlus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Null.Float
@@ -71,7 +71,7 @@ object IndicatorFunction {
     }
   }
     
-  def dmMinus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
+  final def dmMinus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Null.Float
@@ -103,7 +103,7 @@ object IndicatorFunction {
     }
   }
     
-  def tr(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def tr(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx == 0) {
             
       Null.Float
@@ -116,7 +116,7 @@ object IndicatorFunction {
     }
   }
     
-  def diPlus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def diPlus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Null.Float
@@ -146,7 +146,7 @@ object IndicatorFunction {
     }
   }
     
-  def diMinus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def diMinus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Null.Float
@@ -176,7 +176,7 @@ object IndicatorFunction {
     }
   }
     
-  def dx(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def dx(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < period - 1) {
             
       Null.Float
@@ -191,7 +191,7 @@ object IndicatorFunction {
     }
   }
     
-  def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Null.Float
@@ -216,7 +216,7 @@ object IndicatorFunction {
     }
   }
     
-  def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Null.Float

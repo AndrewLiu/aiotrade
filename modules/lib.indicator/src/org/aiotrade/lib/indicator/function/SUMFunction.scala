@@ -40,13 +40,10 @@ import org.aiotrade.lib.math.timeseries.computable.Factor
  *
  * @author Caoyuan Deng
  */
-object SUMFunction {
-  protected def isum(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+class SUMFunction extends AbstractFunction {
+  final protected def isum(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
   }
-}
-
-class SUMFunction extends AbstractFunction {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _
@@ -67,7 +64,7 @@ class SUMFunction extends AbstractFunction {
             
     } else {
             
-      _sum(i) = SUMFunction.isum(i, baseVar, period.value, _sum(i - 1))
+      _sum(i) = isum(i, baseVar, period.value, _sum(i - 1))
             
     }
   }
