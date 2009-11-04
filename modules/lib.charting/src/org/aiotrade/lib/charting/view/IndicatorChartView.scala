@@ -182,7 +182,7 @@ class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends 
         for (v <- mainSer.vars) {
           if (v.plot != Plot.None) {
             val value = item.getFloat(v)
-            if (value != Null.Float) {
+            if (Null.not(value)) {
               maxValue1 = Math.max(maxValue1, value)
               minValue1 = Math.min(minValue1, value)
             }

@@ -533,14 +533,14 @@ abstract class AbstractChart extends AbstractWidget with Chart {
        */
             
             
-      if (y1 != Null.Float) {
+      if (Null.not(y1)) {
         path.moveTo(x1, y1)
 
         var x = x1 + 1
         while (x <= x2) {
           val y =  GeomUtil.yOfCircle(x, xCenter, yCenter, radius, positiveSide)
                     
-          if (y != Null.Float) {
+          if (Null.not(y)) {
             path.lineTo(x, y)
                         
             ylast = y

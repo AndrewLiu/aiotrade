@@ -52,9 +52,9 @@ object StatisticFunction {
     var sum = 0F
     var i = begIdx
     while (i <= endIdx) {
-      val v = values(i)
-      if (v != Null.Float) {
-        sum += v
+      val value = values(i)
+      if (Null.not(value)) {
+        sum += value
       }
       i += 1
     }
@@ -71,7 +71,7 @@ object StatisticFunction {
       /** compute first availabe sum (in case of enough period first time) */
       sum(values, 0, idx)
     } else {
-      if (prev == Null.Float) {
+      if (Null.is(prev)) {
         /**
          * although the 'values' size is enough, it may contains NullFloat
          * element, thus cause the prevSum to be a NullFloat, we should
@@ -105,7 +105,7 @@ object StatisticFunction {
       /** compute first available ma (in case of enough period first time) */
       ma(values, 0, idx)
     } else {
-      if (prev == Null.Float) {
+      if (Null.is(prev)) {
         /**
          * although the 'values' size is enough, it may contains NullFloat
          * element, thus cause the prevSum to be a NullFloat, we should
@@ -141,10 +141,16 @@ object StatisticFunction {
    */
   final def iema(idx: Int, values: ArrayList[Float], period: Int, prev: Float): Float = {
     var value = values(idx)
-    value = if (value == Null.Float) 0F else value
+    if (Null.is(value)) value = 0F
 
-    val a = 1F / (period * 1F)
-    (1F - a) * prev + a * value
+
+    /** @todo */
+    if (Null.is(prev)) {
+      0F
+    } else {
+      val a = 1F / (period * 1F)
+      (1F - a) * prev + a * value
+    }
     //return ((period - 1.0f) / (period + 1.0f)) * prevEma + (2.0f / (period + 1.0f)) * value;
   }
 
@@ -160,7 +166,7 @@ object StatisticFunction {
     } else if (lookbackIdx == 0) {
       max(values, 0, idx)
     } else {
-      if (prev == Null.Float || values(lookbackIdx - 1) == prev) {
+      if (Null.is(prev) || values(lookbackIdx - 1) == prev) {
         max(values, lookbackIdx, idx)
       } else {
         val value = values(idx)
@@ -181,7 +187,7 @@ object StatisticFunction {
     } else if (lookbackIdx == 0) {
       min(values, 0, idx)
     } else {
-      if (prev == Null.Float || values(lookbackIdx - 1) == prev) {
+      if (Null.is(prev) || values(lookbackIdx - 1) == prev) {
         min(values, lookbackIdx, idx)
       } else {
         val value = values(idx)
@@ -201,7 +207,7 @@ object StatisticFunction {
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
-      if (value != Null.Float) {
+      if (Null.not(value)) {
         max = if (max >= value) max else value
         min = if (min <= value) min else value
       }
@@ -222,7 +228,7 @@ object StatisticFunction {
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
-      if (value != Null.Float) {
+      if (Null.not(value)) {
         max = Math.max(max, value)
         min = Math.min(min, value)
       }

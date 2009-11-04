@@ -141,7 +141,7 @@ class QuoteChart extends AbstractChart {
         val item = ser.getItem(time)
                 
         if (item != null && item.getFloat(m.closeVar) != 0) {
-          if (open == Null.Float) {
+          if (Null.is(open)) {
             /** only get the first open as compressing period's open */
             open = item.getFloat(m.openVar)
           }
@@ -153,7 +153,7 @@ class QuoteChart extends AbstractChart {
         i += 1
       }
             
-      if (close != Null.Float && close != 0) {
+      if (Null.not(close) && close != 0) {
         val color = if (close >= open) positiveColor else negativeColor
                 
         val yOpen  = yv(open)
@@ -202,7 +202,7 @@ class QuoteChart extends AbstractChart {
         val time = tb(bar + i)
         val item = ser.getItem(time)
         if (item != null && item.getFloat(m.closeVar) != 0) {
-          if (open == Null.Float) {
+          if (Null.is(open)) {
             /** only get the first open as compressing period's open */
             open = item.getFloat(m.openVar)
           }
@@ -214,7 +214,7 @@ class QuoteChart extends AbstractChart {
         i += 1
       }
             
-      if (close != Null.Float && close != 0) {
+      if (Null.not(close) && close != 0) {
         val color = if (close >= open) positiveColor else negativeColor
                 
         y2 = yv(close)
@@ -223,7 +223,7 @@ class QuoteChart extends AbstractChart {
           val x = xb(bar)
           template.model.set(x, yv(min), x, yv(max))
         } else {
-          if (y1 != Null.Float) {
+          if (Null.not(y1)) {
             /**
              * x1 shoud be decided here, it may not equal prev x2:
              * think about the case of on calendar day mode

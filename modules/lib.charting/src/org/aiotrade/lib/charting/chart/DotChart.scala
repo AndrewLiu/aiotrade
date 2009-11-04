@@ -72,7 +72,7 @@ class DotChart extends AbstractChart {
         if (item != null) {
           val value = item.getFloat(model.v)
                     
-          if (value != Null.Float) {
+          if (Null.not(value)) {
             template.model.set(xb(bar), yv(value), wBar, false)
             template.setForeground(color)
             template.plot;

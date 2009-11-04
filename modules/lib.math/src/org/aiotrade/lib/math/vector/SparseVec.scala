@@ -420,7 +420,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until items.length) {
-      if (items(i).value == Null.Float) {
+      if (Null.is(items(i).value)) {
         return false
       }
     }

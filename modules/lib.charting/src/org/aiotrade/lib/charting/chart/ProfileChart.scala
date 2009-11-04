@@ -116,7 +116,7 @@ class ProfileChart extends AbstractChart {
     while (i <= nIntervals) {
             
       val mass = profile(StatisticFunction.MASS)(i)
-      if (mass != Null.Float) {
+      if (Null.not(mass)) {
         val x = xorigin + mass * width
         y = yv(profile(StatisticFunction.VALUE)(i) + halfInterval)
         if (!firstValueGot) {

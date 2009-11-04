@@ -82,7 +82,7 @@ class VolumeChart extends AbstractChart {
         val time = tb(bar + i)
         val item = masterSer.getItem(time).asInstanceOf[QuoteItem]
         if (item != null && item.close != 0) {
-          if (open == Null.Float) {
+          if (Null.is(open)) {
             /** only get the first open as compressing period's open */
             open = item.open
           }

@@ -239,7 +239,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
     
   def checkValidation: Boolean = {
     for (i <- 0 until dimension) {
-      if (values(i) == Null.Float) {
+      if (Null.is(values(i))) {
         return false
       }
     }

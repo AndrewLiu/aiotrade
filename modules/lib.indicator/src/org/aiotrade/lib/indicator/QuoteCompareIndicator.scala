@@ -86,7 +86,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
       position += 1
     }
         
-    if (baseNorm == Null.Float) {
+    if (Null.is(baseNorm)) {
       return
     }
         
@@ -130,7 +130,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
           case null =>
           case itemToBeCompared:QuoteItem =>
             /** get first value of serToBeCompared in time frame */
-            if (compareNorm == Null.Float) {
+            if (Null.is(compareNorm)) {
               compareNorm = itemToBeCompared.close
             }
                         

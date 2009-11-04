@@ -81,7 +81,7 @@ class PolyLineChart extends AbstractChart {
         i += 1
       }
             
-      if (value != Null.Float) {
+      if (Null.not(value)) {
         template.setForeground(color)
                 
         y2 = yv(value)
@@ -90,7 +90,7 @@ class PolyLineChart extends AbstractChart {
           val x = xb(bar)
           template.model.set(x, yv(min), x, yv(max))
         } else {
-          if (y1 != Null.Float) {
+          if (Null.not(y1)) {
             /**
              * x1 shoud be decided here, it may not equal prev x2:
              * think about the case of on calendar day mode

@@ -124,7 +124,7 @@ class ZigzagChart extends AbstractChart {
     var break = false
     while (i < n && !break) {
       val value = values(i).asInstanceOf[Float]
-      if (value != Null.Float) {
+      if (Null.not(value)) {
         index = i
         break = true
       }

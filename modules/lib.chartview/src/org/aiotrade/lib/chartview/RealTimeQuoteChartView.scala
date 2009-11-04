@@ -169,7 +169,7 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
 
     var minValue1 = +Math.MAX_FLOAT
     var maxValue1 = -Math.MAX_FLOAT
-    if (prevClose != Null.Float) {
+    if (Null.not(prevClose)) {
       minValue1 = getMinValue
       maxValue1 = getMaxValue
       val maxDelta = Math.max(Math.abs(maxValue1 - prevClose), Math.abs(minValue1 - prevClose))
@@ -242,7 +242,7 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
     val nBars = getNBars
     val endRow = begRow + nBars - 1
 
-    if (prevClose == Null.Float) {
+    if (Null.is(prevClose)) {
       // @todo get precise prev *day* close
       val prevRow = masterSer.getItemByRow(begRow - 1).asInstanceOf[QuoteItem]
       if (prevRow != null) {

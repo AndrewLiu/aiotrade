@@ -84,7 +84,7 @@ class GridChart extends AbstractChart {
     val w = datumPlane.getWidth - 1
     val h = datumPlane.getHeight - 1
 
-    for (value <- m.values if value != Null.Float) {
+    for (value <- m.values if Null.not(value)) {
       m.direction match {
         case Direction.Horizontal =>
           val y = yv(value)

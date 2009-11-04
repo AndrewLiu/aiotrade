@@ -90,7 +90,7 @@ class GradientChart extends AbstractChart {
             val range = j * step + lower
                         
             var shade = shades(j)
-            if (shade != Null.Float) {
+            if (Null.not(shade)) {
               shade = (Math.pow(shade, 1d / 3d)).toFloat
               color = new Color(shade, shade, shade)
               g.setColor(color)

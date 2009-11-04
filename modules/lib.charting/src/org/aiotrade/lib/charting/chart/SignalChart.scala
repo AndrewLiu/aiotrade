@@ -78,7 +78,7 @@ class SignalChart extends AbstractChart {
         val signal = m.v.getByTime(time)
         if (signal != null) {
           val value = signal.value
-          if (value != Null.Float) {
+          if (Null.not(value)) {
             val x = xb(bar)
             val y = yv(value)
                         
