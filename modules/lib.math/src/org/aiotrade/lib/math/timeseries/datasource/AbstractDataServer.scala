@@ -43,7 +43,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.{TSer, SerChangeEvent}
-import scala.collection.Set
 import scala.collection.mutable.{HashMap}
 
 /**
@@ -71,6 +70,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   import AbstractDataServer._
 
   val ANCIENT_TIME: Long = -1
+
   // --- Following maps should be created once here, since server may be singleton:
   private val contractToStorage = new HashMap[C, ArrayList[V]]
   private val subscribedContractToSer = new HashMap[C, TSer]
@@ -130,12 +130,12 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   }
 
   protected def storageOf(contract: C): ArrayList[V] = {
-    contractToStorage.get(contract) match {
-      case None =>
-        val storage1 = new ArrayList[V]
+    contractToStorage.get(contract) getOrElse {
+      val storage1 = new ArrayList[V]
+      contractToStorage.synchronized {
         contractToStorage.put(contract, storage1)
-        storage1
-      case Some(x) => x
+      }
+      storage1
     }
   }
 
@@ -196,7 +196,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     None
   }
 
-  def subscribedContracts: Set[C] = subscribedContractToSer.keySet
+  def subscribedContracts: Iterator[C] = subscribedContractToSer.keysIterator
 
   protected def serOf(contract: C): Option[TSer] = {
     subscribedContractToSer.get(contract)
@@ -249,12 +249,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   }
 
   def isContractSubsrcribed(contract: C): Boolean = {
-    for (contract1 <- subscribedContractToSer.keySet) {
-      if (contract1.symbol.equals(contract.symbol)) {
-        return true
-      }
-    }
-    false
+    subscribedContractToSer.keysIterator exists {_.symbol == (contract.symbol)}
   }
 
   def startLoadServer: Unit = {
@@ -272,7 +267,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
     if (!inLoading) {
       inLoading = true
-      new Thread(loadServer).start
+      new Thread(loadServer, "LoadServer").start
       // @Note: ExecutorSrevice will cause access denied of modifyThreadGroup in Applet !!
       //getExecutorService().submit(loadServer);
     }
@@ -287,8 +282,8 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
     inUpdating = true
 
-    // in context of applet, a page refresh may cause timer into a unpredict status,
-    // so it's always better to restart this timer, so, cancel it first.
+    // * in context of applet, a page refresh may cause timer into a unpredict status,
+    // * so it's always better to restart this timer, so, cancel it first.
     if (updateTimer != null) {
       updateTimer.cancel
     }
@@ -348,7 +343,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   private class UpdateServer extends TimerTask {
     override def run: Unit = {
-      loadedTime = loadFromSource(loadedTime);
+      loadedTime = loadFromSource(loadedTime)
 
       postUpdate
     }

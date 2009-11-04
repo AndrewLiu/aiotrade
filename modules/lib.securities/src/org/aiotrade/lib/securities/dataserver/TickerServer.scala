@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
+import java.util.logging.Logger
 import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, SerChangeEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
@@ -49,6 +50,7 @@ object TickerServer {
 
 abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with TickerObserver {
   import TickerServer._
+  private val logger = Logger.getLogger(this.getClass.getName)
     
   private val symbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
 
@@ -69,7 +71,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   }
 
   override protected def returnBorrowedTimeValues(tickers: ArrayList[Ticker]): Unit = {
-    tickers foreach (tickerPool.returnObject(_))
+    tickers foreach {tickerPool.returnObject(_)}
   }
 
   def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
@@ -99,7 +101,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   override def unSubscribe(contract: TickerContract): Unit = {
     super.unSubscribe(contract)
     val symbol = contract.symbol
-    tickerSnapshotOf(symbol).foreach{x => x.deleteObserver(this)}
+    tickerSnapshotOf(symbol) foreach {_.deleteObserver(this)}
     symbolToTickerSnapshot synchronized {
       symbolToTickerSnapshot -= symbol
     }
@@ -123,7 +125,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       if (evt != null) {
         evt.tpe = SerChangeEvent.Type.FinishedLoading
         evt.getSource.fireSerChangeEvent(evt)
-        println(contract.symbol + ": " + count + ", items loaded, load server finished")
+        logger.info(contract.symbol + ": " + count + ", items loaded, load server finished")
       }
 
       storage synchronized {

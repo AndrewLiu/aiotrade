@@ -59,7 +59,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  * @author Caoyuan Deng
  */
 class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
-  val logger = Logger.getLogger(this.getClass.getName)
+  private val logger = Logger.getLogger(this.getClass.getName)
 
   private val INIT_CAPACITY = 400
 
@@ -189,7 +189,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
   }
 
-  def ++=[V <: TVal](values: Array[V]): TSer = {
+  def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
     var begTime = +Long.MaxValue
     var endTime = -Long.MaxValue
     try {
@@ -219,7 +219,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     } finally {
       _timestamps.writeLock.unlock
     }
-    println("TimestampsLog: " + tsLog)
+    logger.info("TimestampsLog: " + tsLog)
     val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, shortDescription, begTime, endTime)
     fireSerChangeEvent(evt)
     
@@ -504,7 +504,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
   }
 
-  protected class SparseTVar[@specialized V: Manifest](name: String, plot: Plot
+  protected class SparseTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
     val values = new TStampedMapBasedList[V](timestamps)

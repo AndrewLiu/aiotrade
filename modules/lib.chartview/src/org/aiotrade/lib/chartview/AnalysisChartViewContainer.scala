@@ -37,6 +37,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
+import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
@@ -77,7 +78,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
            * As the quoteSer may has been loaded, there may be no more UpdatedEvent
            * etc. fired, so, computeFrom(0) first.
            */
-          indicator.computeFrom(0) // don't remove me
+          indicator.computableActor ! ComputeFrom(0) // don't remove me
                     
           if (indicator.isOverlapping) {
             addSlaveView(descriptor, indicator, null)

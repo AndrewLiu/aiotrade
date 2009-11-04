@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.{Calendar,TimeZone}
+import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer

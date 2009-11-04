@@ -77,15 +77,14 @@ class YahooTickerServer extends TickerServer {
     urlStr.append("?s=")
 
     val contracts = subscribedContracts
-    if (contracts.size == 0) {
+    if (!contracts.hasNext) {
       inputStream = None
       return
     }
 
-    val itr = contracts.iterator
-    while (itr.hasNext) {
-      urlStr.append(itr.next.symbol)
-      if (itr.hasNext) urlStr.append("+")
+    while (contracts.hasNext) {
+      urlStr.append(contracts.next.symbol)
+      if (contracts.hasNext) urlStr.append("+")
     }
 
     urlStr.append("&d=t&f=sl1d1t1c1ohgvbap")
