@@ -50,12 +50,14 @@ class RSIIndicator extends ContIndicator {
   val rsi2 = TVar[Float]("RSI2", Plot.Line)
   val rsi3 = TVar[Float]("RSI3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       rsi1(i) = rsi(i, periodS)
       rsi2(i) = rsi(i, periodM)
       rsi3(i) = rsi(i, periodL)
+
       i += 1
     }
   }

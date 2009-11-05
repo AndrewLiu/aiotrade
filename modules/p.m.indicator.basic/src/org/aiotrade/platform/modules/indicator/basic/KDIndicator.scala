@@ -50,12 +50,14 @@ class KDIndicator extends ContIndicator {
   val d = TVar[Float]("D", Plot.Line)
   val j = TVar[Float]("J", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       k(i) = stochK(i, period, periodK)
       d(i) = stochD(i, period, periodK, periodD)
       j(i) = stochJ(i, period, periodK, periodD)
+
       i += 1
     }
   }

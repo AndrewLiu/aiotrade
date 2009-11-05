@@ -49,7 +49,7 @@ class ZIGZAGFAIndicator extends ContIndicator {
   //    Var zigzag1       = new DefaultTimeVar("ZIGZAG", Chart.ZIGZAG, 0)
   //    Var pseudoZigzag1 = new DefaultTimeVar("PSEUDO", Chart.ZIGZAG, 1)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     /** the follwing loop must be applied, even if nothing except setCurrent(i) to be done */
     var i = begIdx
     while (i < size) {

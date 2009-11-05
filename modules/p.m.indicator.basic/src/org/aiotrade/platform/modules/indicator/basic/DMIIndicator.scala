@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -50,7 +49,7 @@ class DMIIndicator extends ContIndicator {
   val adx     = TVar[Float]("ADX",  Plot.Line)
   val adxr    = TVar[Float]("ADXR", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
             

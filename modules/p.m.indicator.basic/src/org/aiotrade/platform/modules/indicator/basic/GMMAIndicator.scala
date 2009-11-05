@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -68,9 +67,10 @@ class GMMAIndicator extends ContIndicator {
   val  ma11 = TVar[Float]("MA11", Plot.Line)
   val  ma12 = TVar[Float]("MA12", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       ma01(i) = ma(i, C, period01)
       ma02(i) = ma(i, C, period02)
       ma03(i) = ma(i, C, period03)
@@ -83,6 +83,7 @@ class GMMAIndicator extends ContIndicator {
       ma10(i) = ma(i, C, period10)
       ma11(i) = ma(i, C, period11)
       ma12(i) = ma(i, C, period12)
+
       i += 1
     }
   }

@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import org.aiotrade.lib.util.collection.ArrayList
 import java.text.DecimalFormat
+import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TSer
 import scala.actors.Actor._
 
@@ -40,7 +40,10 @@ import scala.actors.Actor._
  * @author Caoyuan Deng
  */
 case class ComputeFrom(time: Long)
+
 trait Computable {
+
+  val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
 
   // ----- actor's implementation
   val computableActor = actor {

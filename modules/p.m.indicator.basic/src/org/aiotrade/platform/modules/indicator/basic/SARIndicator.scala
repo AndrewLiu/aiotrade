@@ -48,10 +48,12 @@ class SARIndicator extends ContIndicator {
     
   val sar = TVar[Float]("SAR", Plot.Dot)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       sar(i) = sar(i, initial, step, maximum)
+
       i += 1
     }
   }

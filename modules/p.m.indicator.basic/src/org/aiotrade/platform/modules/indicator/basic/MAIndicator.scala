@@ -53,9 +53,11 @@ class MAIndicator extends ContIndicator {
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
+
       ma1(i) = ma(i, C, period1)
       ma2(i) = ma(i, C, period2)
       ma3(i) = ma(i, C, period3)
+
       i += 1
     }
   }

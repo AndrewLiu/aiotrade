@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -49,11 +48,13 @@ class CCIIndicator extends ContIndicator {
   val cci    = TVar[Float]("CCI",   Plot.Line)
   val cci_ma = TVar[Float]("MACCI", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       cci(i)    = cci(i, period, alpha)
       cci_ma(i) = ma (i, cci, periodMa)
+
       i += 1
     }
   }

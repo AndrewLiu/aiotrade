@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -53,14 +52,16 @@ class BOLLIndicator extends ContIndicator {
   val boll_u2 = TVar[Float]("UPPER", Plot.Line)
   val boll_l2 = TVar[Float]("LOWER", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       boll_m (i) = bollMiddle(i, C, period, alpha1)
       boll_u1(i) = bollUpper (i, C, period, alpha1)
       boll_l1(i) = bollLower (i, C, period, alpha1)
       boll_u2(i) = bollUpper (i, C, period, alpha2)
       boll_l2(i) = bollLower (i, C, period, alpha2)
+
       i += 1
     }
   }

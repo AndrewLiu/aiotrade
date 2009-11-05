@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -47,11 +46,13 @@ class ZIGZAGIndicator extends ContIndicator {
   val zigzag       = TVar[Float]("ZIGZAG", Plot.Zigzag)
   val pseudoZigzag = TVar[Float]("PSEUDO", Plot.Zigzag)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       zigzag(i) = zigzag(i, percent)
       pseudoZigzag(i) = pseudoZigzag(i, percent)
+
       i += 1
     }
   }

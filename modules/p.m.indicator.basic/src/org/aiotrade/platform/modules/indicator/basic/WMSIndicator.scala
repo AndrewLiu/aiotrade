@@ -48,11 +48,13 @@ class WMSIndicator extends ContIndicator {
   val wms1 = TVar[Float]("WMS1", Plot.Line)
   val wms2 = TVar[Float]("WMS2", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       wms1(i) = wms(i, period1)
       wms2(i) = wms(i, period2)
+
       i += 1
     }
   }

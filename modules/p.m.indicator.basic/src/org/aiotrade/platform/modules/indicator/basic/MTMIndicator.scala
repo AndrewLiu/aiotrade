@@ -50,8 +50,10 @@ class MTMIndicator extends ContIndicator {
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       mtm(i) = mtm(i, C, period)
       mtm_ma(i) = ma(i, mtm, periodSmooth)
+
       i += 1
     }
   }

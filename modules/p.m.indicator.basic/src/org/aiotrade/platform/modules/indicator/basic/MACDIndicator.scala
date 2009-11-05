@@ -52,11 +52,11 @@ class MACDIndicator extends ContIndicator {
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
-      macd(i) = macd(i, C, periodSlow, periodFast)
-            
+
+      macd(i) = macd(i, C, periodSlow, periodFast)      
       signal(i) = ema(i, macd, periodSignal)
-            
       osc(i) = macd(i) - signal(i)
+      
       i += 1
     }
   }

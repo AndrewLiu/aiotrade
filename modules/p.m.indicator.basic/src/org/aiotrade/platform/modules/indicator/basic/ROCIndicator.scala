@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -47,11 +46,13 @@ class ROCIndicator extends ContIndicator {
   val roc1 = TVar[Float]("ROC1", Plot.Line)
   val roc2 = TVar[Float]("ROC2", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       roc1(i) = roc(i, C, period1)
       roc2(i) = roc(i, C, period2)
+
       i += 1
     }
   }

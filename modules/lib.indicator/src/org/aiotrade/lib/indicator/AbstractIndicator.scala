@@ -155,7 +155,7 @@ object AbstractIndicator {
 
 abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicator {
   import AbstractIndicator._
-    
+
   /**
    * !NOTICE
    * computableHelper should be created here, because it will be used to

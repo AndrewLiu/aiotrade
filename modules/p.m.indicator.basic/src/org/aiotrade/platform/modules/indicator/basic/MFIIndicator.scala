@@ -49,7 +49,9 @@ class MFIIndicator extends ContIndicator {
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx
     while (i < size) {
+
       mfi(i) = mfi(i, period)
+
       i += 1
     }
   }

@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -50,12 +49,14 @@ class EMAIndicator extends ContIndicator {
   val ema2 = TVar[Float]("EMA2", Plot.Line)
   val ema3 = TVar[Float]("EMA3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
     while (i < size) {
+
       ema1(i) = ema(i, C, period1)
       ema2(i) = ema(i, C, period2)
       ema3(i) = ema(i, C, period3)
+
       i += 1
     }
   }
