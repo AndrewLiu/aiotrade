@@ -154,7 +154,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   }
 
   override protected def postStopUpdateServer: Unit = {
-    for (tickerSnapshot <- symbolToTickerSnapshot.values) {
+    for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
       tickerSnapshot.deleteObserver(this)
     }
     symbolToTickerSnapshot synchronized {
@@ -200,15 +200,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       while (i >= 0 && i <= size - 1) {
         ticker = storage(i)
         ticker.time = (freq.round(ticker.time, cal))
-        val prevTicker = symbolToPreviousTicker.get(symbol) match {
-          case None =>
-            val x = new Ticker
-            symbolToPreviousTicker.put(symbol, x)
-            x
-          case Some(x) => x
+        val prevTicker = symbolToPreviousTicker.get(symbol) getOrElse {
+          val x = new Ticker
+          symbolToPreviousTicker.put(symbol, x)
+          x
         }
 
-        val item = symbolToIntervalLastTickerPair.get(symbol) match {
+        symbolToIntervalLastTickerPair.get(symbol) match {
           case None =>
             /**
              * this is today's first ticker we got when begin update data server,
@@ -218,7 +216,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             symbolToIntervalLastTickerPair.put(symbol, intervalLastTickerPair)
             intervalLastTickerPair.currIntervalOne.copy(ticker)
 
-            val item1 = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
+            val itemx = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
 
             /**
              * As this is the first data of today:
@@ -227,19 +225,18 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
              * so give it a small 0.0001 (if give it a 0, it will won't be calculated
              * in calcMaxMin() of ChartView)
              */
-            item1.open   = ticker(Ticker.LAST_PRICE)
-            item1.high   = ticker(Ticker.LAST_PRICE)
-            item1.low    = ticker(Ticker.LAST_PRICE)
-            item1.close  = ticker(Ticker.LAST_PRICE)
-            item1.volume = 0.00001f
-            item1
+            itemx.open   = ticker(Ticker.LAST_PRICE)
+            itemx.high   = ticker(Ticker.LAST_PRICE)
+            itemx.low    = ticker(Ticker.LAST_PRICE)
+            itemx.close  = ticker(Ticker.LAST_PRICE)
+            itemx.volume = 0.00001F
+            itemx
 
           case Some(intervalLastTickerPair) =>
             /** normal process */
                         
             /** check if in new interval */
-            freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)
-            val item1 = if (freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)) {
+            val itemx = if (freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)) {
               intervalLastTickerPair.currIntervalOne.copy(ticker)
 
               /** still in same interval, just pick out the old data of this interval */
@@ -255,36 +252,36 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               intervalLastTickerPair.currIntervalOne.copy(ticker)
 
               /** a new interval starts, we'll need a new data */
-              val item2 = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
+              val itemxx = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
 
-              item2.high = -Float.MaxValue
-              item2.low  = +Float.MaxValue
-              item2.open = ticker(Ticker.LAST_PRICE)
-              item2
+              itemxx.high = -Float.MaxValue
+              itemxx.low  = +Float.MaxValue
+              itemxx.open = ticker(Ticker.LAST_PRICE)
+              itemxx
             }
 
             if (ticker(Ticker.DAY_HIGH) > prevTicker(Ticker.DAY_HIGH)) {
               /** this is a new high happened in this ticker */
-              item1.high = ticker(Ticker.DAY_HIGH)
+              itemx.high = ticker(Ticker.DAY_HIGH)
             }
-            item1.high = Math.max(item1.high, ticker(Ticker.LAST_PRICE))
+            itemx.high = Math.max(itemx.high, ticker(Ticker.LAST_PRICE))
 
             if (prevTicker(Ticker.DAY_LOW) != 0) {
               if (ticker(Ticker.DAY_LOW) < prevTicker(Ticker.DAY_LOW)) {
-                /** this is a new low happened in this ticker */
-                item1.low = ticker(Ticker.DAY_LOW)
+                /** this is a new low that happened in this ticker */
+                itemx.low = ticker(Ticker.DAY_LOW)
               }
             }
             if (ticker(Ticker.LAST_PRICE) != 0) {
-              item1.low = Math.min(item1.low, ticker(Ticker.LAST_PRICE))
+              itemx.low = Math.min(itemx.low, ticker(Ticker.LAST_PRICE))
             }
 
-            item1.close = ticker(Ticker.LAST_PRICE)
+            itemx.close = ticker(Ticker.LAST_PRICE)
             val preVolume = intervalLastTickerPair.prevIntervalOne(Ticker.DAY_VOLUME)
             if (preVolume > 1) {
-              item1.volume = ticker(Ticker.DAY_VOLUME) - intervalLastTickerPair.prevIntervalOne(Ticker.DAY_VOLUME)
+              itemx.volume = ticker(Ticker.DAY_VOLUME) - intervalLastTickerPair.prevIntervalOne(Ticker.DAY_VOLUME)
             }
-            item1
+            itemx
         }
 
         prevTicker.copy(ticker)
@@ -295,7 +292,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
           i += 1
         }
 
-        val itemTime = item.time
+        val itemTime = ticker.time
         begTime = Math.min(begTime, itemTime)
         endTime = Math.max(endTime, itemTime)
 
@@ -303,9 +300,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
          * Now, try to update today's quoteSer with current last ticker
          */
         for (chainSer <- chainSersOf(tickerSer)) {
-          if (chainSer.freq.equals(TFreq.DAILY)) {
+          if (chainSer.freq == TFreq.DAILY) {
             updateDailyQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, cal)
-          } else if (chainSer.freq.equals(TFreq.ONE_MIN)) {
+          } else if (chainSer.freq == TFreq.ONE_MIN) {
             updateMinuteQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer.asInstanceOf[QuoteSer], cal)
           }
         }
@@ -322,18 +319,11 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
        * no new ticker got, but should consider if need to update quoteSer
        * as the quote window may be just opened.
        */
-      symbolToPreviousTicker.get(symbol) match {
-        case None =>
-        case Some(ticker) =>
-          val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
-          for (ser <- chainSersOf(tickerSer)) {
-            if (ser.freq.equals(TFreq.DAILY)) {
-              if (ser.itemOf(today) != null) {
-                updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, cal)
-              }
-            }
-          }
-
+      symbolToPreviousTicker.get(symbol) foreach {ticker =>
+        val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
+        for (ser <- chainSersOf(tickerSer) if ser.freq == TFreq.DAILY && ser.exists(today)) {
+          updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, cal)
+        }
       }
     }
 
@@ -370,13 +360,14 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    */
   private def updateMinuteQuoteItem(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar): Unit = {
     val now = TUnit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
+    val tickerItem = tickerSer.itemOf(now).asInstanceOf[QuoteItem]
     val itemNow = minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
 
-    itemNow.open   = ticker(Ticker.DAY_OPEN)
-    itemNow.high   = ticker(Ticker.DAY_HIGH)
-    itemNow.low    = ticker(Ticker.DAY_LOW)
-    itemNow.close  = ticker(Ticker.LAST_PRICE)
-    itemNow.volume = ticker(Ticker.DAY_VOLUME)
+    itemNow.open   = tickerItem.open
+    itemNow.high   = tickerItem.high
+    itemNow.low    = tickerItem.low
+    itemNow.close  = tickerItem.close
+    itemNow.volume = tickerItem.volume
 
     /** be ware of fromTime here may not be same as ticker's event */
     val evt = new SerChangeEvent(minuteSer, SerChangeEvent.Type.Updated, "", now, now)

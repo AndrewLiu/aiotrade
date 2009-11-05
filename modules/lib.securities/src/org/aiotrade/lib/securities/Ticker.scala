@@ -184,11 +184,10 @@ class Ticker(val depth: Int) extends TVal {
     if (values(PREV_CLOSE) == 0) 0f  else (values(LAST_PRICE) - values(PREV_CLOSE)) / values(PREV_CLOSE) * 100f
   }
 
-  def compareLastCloseTo(prevTicker: Ticker) : Int = {
-    if (values(LAST_PRICE) > prevTicker.values(LAST_PRICE)) 1
-    else {
-      if (values(LAST_PRICE) == prevTicker.values(LAST_PRICE)) 0 else 1
-    }
+  def compareLastCloseTo(prevTicker: Ticker): Int = {
+    if (values(LAST_PRICE) > prevTicker.values(LAST_PRICE)) 1 
+    else if (values(LAST_PRICE) == prevTicker.values(LAST_PRICE)) 0
+    else 1
   }
 
   override def clone: Ticker = {
