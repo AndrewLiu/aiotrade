@@ -65,15 +65,15 @@ class QuoteChart extends AbstractChart {
   import QuoteChart._
 
   class Model extends WidgetModel {
-    var openVar:  TVar[_] = _
-    var highVar:  TVar[_] = _
-    var lowVar:   TVar[_] = _
-    var closeVar: TVar[_] = _
+    var openVar:  TVar[Float] = _
+    var highVar:  TVar[Float] = _
+    var lowVar:   TVar[Float] = _
+    var closeVar: TVar[Float] = _
         
-    def set(openVar: TVar[_], highVar: TVar[_], lowVar: TVar[_], closeVar: TVar[_]) {
-      this.openVar = openVar
-      this.highVar = highVar
-      this.lowVar = lowVar
+    def set(openVar: TVar[Float], highVar: TVar[Float], lowVar: TVar[Float], closeVar: TVar[Float]) {
+      this.openVar  = openVar
+      this.highVar  = highVar
+      this.lowVar   = lowVar
       this.closeVar = closeVar
     }
   }
@@ -84,18 +84,16 @@ class QuoteChart extends AbstractChart {
   private var negativeColor: Color = _
     
 
-  protected def createModel: Model = {
-    new Model
-  }
+  protected def createModel: Model = new Model
     
   protected def plotChart {
         
     if (getDepth == Pane.DEPTH_DEFAULT) {
-      positiveColor = LookFeel.getCurrent.getPositiveColor
-      negativeColor = LookFeel.getCurrent.getNegativeColor
+      positiveColor = LookFeel().getPositiveColor
+      negativeColor = LookFeel().getNegativeColor
     } else {
       /** for comparing quotes charts */
-      positiveColor = LookFeel.getCurrent.getChartColor(getDepth)
+      positiveColor = LookFeel().getChartColor(getDepth)
       negativeColor = positiveColor
     }
         
@@ -138,16 +136,14 @@ class QuoteChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.getItem(time)
-                
-        if (item != null && item.getFloat(m.closeVar) != 0) {
+        if (ser.exists(time) && m.closeVar.getByTime(time) != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */
-            open = item.getFloat(m.openVar)
+            open = m.openVar.getByTime(time)
           }
-          high  = Math.max(high, item.getFloat(m.highVar))
-          low   = Math.min(low,  item.getFloat(m.lowVar))
-          close = item.getFloat(m.closeVar)
+          high  = Math.max(high, m.highVar.getByTime(time))
+          low   = Math.min(low,  m.lowVar. getByTime(time))
+          close = m.closeVar.getByTime(time)
         }
 
         i += 1
@@ -163,7 +159,7 @@ class QuoteChart extends AbstractChart {
                 
         tpe match {
           case Type.Candle =>
-            val fillBar = LookFeel.getCurrent.isFillBar
+            val fillBar = LookFeel().isFillBar
             template.asInstanceOf[CandleBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar, fillBar || close < open)
           case Type.Ohlc =>
             template.asInstanceOf[OhlcBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar)
@@ -200,7 +196,7 @@ class QuoteChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.getItem(time)
+        val item = ser.itemOf(time)
         if (item != null && item.getFloat(m.closeVar) != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */

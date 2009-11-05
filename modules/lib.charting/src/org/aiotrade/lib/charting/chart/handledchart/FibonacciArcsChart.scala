@@ -64,7 +64,7 @@ class FibonacciArcsChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[float](2)
@@ -113,7 +113,7 @@ class FibonacciArcsChart extends AbstractChart {
     var xText = xs(1) - dx * 0.382f + 2
     var yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(2 * xs(1) - xText, yText, "0.382")
     label1.plot
@@ -121,7 +121,7 @@ class FibonacciArcsChart extends AbstractChart {
     xText = xs(1) - dx * 0.500f + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val  label2 = addChild(new Label)
-    label2.setFont(LookFeel.getCurrent.axisFont)
+    label2.setFont(LookFeel().axisFont)
     label2.setForeground(color)
     label2.model.set(2 * xs(1) - xText, yText, "0.5")
     label2.plot
@@ -129,7 +129,7 @@ class FibonacciArcsChart extends AbstractChart {
     xText = xs(1) - dx * 0.618f + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label3 = addChild(new Label)
-    label3.setFont(LookFeel.getCurrent.axisFont);
+    label3.setFont(LookFeel().axisFont);
     label3.setForeground(color)
     label3.model.set(2 * xs(1) - xText, yText, "0.618")
     label3.plot
@@ -137,7 +137,7 @@ class FibonacciArcsChart extends AbstractChart {
     xText = xs(1) - dx * 0.763f + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label4 = addChild(new Label)
-    label4.setFont(LookFeel.getCurrent.axisFont)
+    label4.setFont(LookFeel().axisFont)
     label4.setForeground(color)
     label4.model.set(2 * xs(1) - xText, yText, "0.763")
     label4.plot

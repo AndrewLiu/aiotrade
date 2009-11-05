@@ -74,7 +74,7 @@ class GridChart extends AbstractChart {
   protected def plotChart {
     val m = model
 
-    val color = LookFeel.getCurrent.borderColor.darker.darker
+    val color = LookFeel().borderColor.darker.darker
     setForeground(color)
 
     val pathWidget = addChild(new PathWidget)

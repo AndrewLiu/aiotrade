@@ -53,7 +53,7 @@ class DefaultMasterTSer(freq: TFreq) extends DefaultTSer(freq) with MasterTSer {
         
   def rowOfTime(time: Long): Int = activeTimestamps.rowOfTime(time, freq)
   def timeOfRow(row: Int): Long = activeTimestamps.timeOfRow(row, freq)
-  def getItemByRow(row: Int): TItem = getItem(activeTimestamps.timeOfRow(row, freq))
+  def itemOfRow(row: Int): TItem = itemOf(activeTimestamps.timeOfRow(row, freq))
   def lastOccurredRow: Int = activeTimestamps.lastRow(freq)
     
   override def size: Int = activeTimestamps.sizeOf(freq)

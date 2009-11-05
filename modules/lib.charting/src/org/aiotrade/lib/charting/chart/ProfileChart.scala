@@ -71,7 +71,7 @@ class ProfileChart extends AbstractChart {
     val w = datumPlane.getWidth
     val h = datumPlane.getHeight
         
-    val color = LookFeel.getCurrent.getGradientColor(getDepth, -10)
+    val color = LookFeel().getGradientColor(getDepth, -10)
     setForeground(color)
         
     val width = (w * 2.386).intValue
@@ -86,7 +86,7 @@ class ProfileChart extends AbstractChart {
         
     val path = heavyPathWidget.getPath(color)
         
-    val item = ser.getItem(time)
+    val item = ser.itemOf(time)
         
     if (item != null) {
       item.get(m.v) match {

@@ -170,7 +170,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   private def createCloseButton(ser: TSer): AIOCloseButton = {
     val button = new AIOCloseButton
     button.setOpaque(false)
-    button.setForeground(LookFeel.getCurrent.axisColor)
+    button.setForeground(LookFeel().axisColor)
     button.setFocusable(false);
     button.setPreferredSize(BUTTON_DIMENSION)
     button.setMaximumSize(BUTTON_DIMENSION)
@@ -241,7 +241,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     override def mouseMoved(e: MouseEvent) {
       if (!rolloverEffectSet) {
         /** @todo */
-        label.setBackground(LookFeel.getCurrent.borderColor)
+        label.setBackground(LookFeel().borderColor)
         rolloverEffectSet = true
         label.repaint()
       }
@@ -249,7 +249,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
     override def mouseExited(e: MouseEvent) {
       /** @todo */
-      label.setBackground(LookFeel.getCurrent.backgroundColor)
+      label.setBackground(LookFeel().backgroundColor)
       rolloverEffectSet = false
       label.repaint()
     }
@@ -267,17 +267,17 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   }
 
   private def updateMainName {
-    closeButton.setForeground(LookFeel.getCurrent.axisColor)
-    closeButton.setBackground(LookFeel.getCurrent.backgroundColor)
+    closeButton.setForeground(LookFeel().axisColor)
+    closeButton.setBackground(LookFeel().backgroundColor)
     if (getSelectedSer == getView.getMainSer) {
       closeButton.setChosen(true)
     } else {
       closeButton.setChosen(false)
     }
 
-    nameLabel.setForeground(LookFeel.getCurrent.nameColor)
-    nameLabel.setBackground(LookFeel.getCurrent.backgroundColor)
-    nameLabel.setFont(LookFeel.getCurrent.axisFont)
+    nameLabel.setForeground(LookFeel().nameColor)
+    nameLabel.setBackground(LookFeel().backgroundColor)
+    nameLabel.setFont(LookFeel().axisFont)
     nameLabel.setText(Computable.displayName(getView.getMainSer))
 
     titlePanel.revalidate
@@ -320,17 +320,17 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           buttonx
       }
 
-      button.setForeground(LookFeel.getCurrent.axisColor)
-      button.setBackground(LookFeel.getCurrent.backgroundColor)
+      button.setForeground(LookFeel().axisColor)
+      button.setBackground(LookFeel().backgroundColor)
       if (getSelectedSer == ser) {
         button.setChosen(true)
       } else {
         button.setChosen(false)
       }
 
-      label.setForeground(LookFeel.getCurrent.nameColor)
-      label.setBackground(LookFeel.getCurrent.backgroundColor)
-      label.setFont(LookFeel.getCurrent.axisFont)
+      label.setForeground(LookFeel().nameColor)
+      label.setBackground(LookFeel().backgroundColor)
+      label.setFont(LookFeel().axisFont)
       label.setText(Computable.displayName(ser))
     }
 
@@ -362,7 +362,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
 
     val referTime = getView.getController.getReferCursorTime
-    val item = ser.getItem(referTime);
+    val item = ser.itemOf(referTime);
     if (item != null) {
       val serVars = ser.vars
       for (v <- serVars if v.plot != Plot.None) {
@@ -380,7 +380,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
             }
           }
         }
-        val color = if (chartOfVar == null) LookFeel.getCurrent.nameColor else chartOfVar.getForeground
+        val color = if (chartOfVar == null) LookFeel().nameColor else chartOfVar.getForeground
 
         val valueLabel = selectedSerVarsToValueLabel.get(v) getOrElse {
           val valueLabelx = new JLabel
@@ -394,8 +394,8 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         }
 
         valueLabel.setForeground(color)
-        valueLabel.setBackground(LookFeel.getCurrent.backgroundColor)
-        valueLabel.setFont(LookFeel.getCurrent.axisFont)
+        valueLabel.setBackground(LookFeel().backgroundColor)
+        valueLabel.setFont(LookFeel().axisFont)
         valueLabel.setText(vStr.toString)
       }
 
@@ -427,8 +427,8 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
 
     instantValueLabel.setForeground(color)
-    instantValueLabel.setBackground(LookFeel.getCurrent.backgroundColor)
-    instantValueLabel.setFont(LookFeel.getCurrent.axisFont)
+    instantValueLabel.setBackground(LookFeel().backgroundColor)
+    instantValueLabel.setFont(LookFeel().axisFont)
     instantValueLabel.setText(valueStr)
   }
 
@@ -616,7 +616,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
       }
 
       val g = g0.asInstanceOf[Graphics2D]
-      g.setColor(LookFeel.getCurrent.axisColor)
+      g.setColor(LookFeel().axisColor)
       val w = getWidth - 3
       val h = getHeight - 3
 
@@ -656,7 +656,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
       if (getView.isInstanceOf[WithQuoteChart]) {
         val quoteSer = GlassPane.this.getView.asInstanceOf[WithQuoteChart].getQuoteSer
-        val item = quoteSer.getItemByRow(referRow).asInstanceOf[QuoteItem]
+        val item = quoteSer.itemOfRow(referRow).asInstanceOf[QuoteItem]
         if (item != null) {
           val y = if (isAutoReferCursorValue) yv(item.close) else yv(getReferCursorValue)
 
@@ -687,7 +687,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         cal.setTimeInMillis(mouseTime)
 
         val quoteSer = GlassPane.this.getView.asInstanceOf[WithQuoteChart].getQuoteSer
-        var item = quoteSer.getItemByRow(mouseRow).asInstanceOf[QuoteItem]
+        var item = quoteSer.itemOfRow(mouseRow).asInstanceOf[QuoteItem]
         val vMouse = if (item == null) 0 else item.close
 
         if (mainChartPane.isMouseEntered) {
@@ -707,7 +707,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
         val str = /** normal QuoteChartView ? */
           if (isAutoReferCursorValue) {
-            item = quoteSer.getItemByRow(referRow).asInstanceOf[QuoteItem]
+            item = quoteSer.itemOfRow(referRow).asInstanceOf[QuoteItem]
             val vRefer = if (item == null) 0f else item.close
 
             val period = br(mouseRow) - br(referRow)
@@ -718,7 +718,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
             val rowEnd = Math.max(referRow, mouseRow)
             var i = rowBeg
             while (i <= rowEnd) {
-              item = quoteSer.getItemByRow(i).asInstanceOf[QuoteItem]
+              item = quoteSer.itemOfRow(i).asInstanceOf[QuoteItem]
               if (item != null) {
                 volumeSum += item.volume
               }

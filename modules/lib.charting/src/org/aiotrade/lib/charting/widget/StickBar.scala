@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.widget;
+package org.aiotrade.lib.charting.widget
 
 
 /**
@@ -66,7 +66,7 @@ class StickBar extends PathWidget {
     val path = getPath
     path.reset
     
-    val xRadius: Float = (if (m.width < 2) 0 else (m.width - 2) / 2)
+    val xRadius = (if (m.width < 2) 0F else (m.width - 2) / 2)
         
     if (m.thin || m.width <= 2) {
       path.moveTo(m.xCenter, m.y1)

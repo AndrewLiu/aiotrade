@@ -215,7 +215,7 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
       case ticker: Ticker =>
         val percentValue = ticker.changeInPercent
         val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
-        val color = if (percentValue >= 0) LookFeel.getCurrent.getPositiveColor else LookFeel.getCurrent.getNegativeColor
+        val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
 
         getGlassPane.updateInstantValue(strValue, color)
         setPrevClose(ticker(Ticker.PREV_CLOSE))
@@ -244,7 +244,7 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
 
     if (Null.is(prevClose)) {
       // @todo get precise prev *day* close
-      val prevRow = masterSer.getItemByRow(begRow - 1).asInstanceOf[QuoteItem]
+      val prevRow = masterSer.itemOfRow(begRow - 1).asInstanceOf[QuoteItem]
       if (prevRow != null) {
         prevClose = prevRow.close
         gridValues(0) = prevClose

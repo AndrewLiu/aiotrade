@@ -124,7 +124,7 @@ abstract class AbstractScrollControl extends JComponent {
     }
 
     val g = g0.asInstanceOf[Graphics2D]
-    setForeground(LookFeel.getCurrent.axisColor)
+    setForeground(LookFeel().axisColor)
     g.setColor(getForeground)
 
     val w = getWidth - 1
@@ -422,7 +422,7 @@ abstract class AbstractScrollControl extends JComponent {
       val backupComposite = g.getComposite
       g.setComposite(arrowComposite)
 
-      setForeground(LookFeel.getCurrent.axisColor)
+      setForeground(LookFeel().axisColor)
       g.setColor(getForeground)
 
       val w = getWidth
@@ -462,7 +462,7 @@ abstract class AbstractScrollControl extends JComponent {
       val backupComposite = g.getComposite
       g.setComposite(arrowComposite)
 
-      setForeground(LookFeel.getCurrent.axisColor)
+      setForeground(LookFeel().axisColor)
       g.setColor(getForeground)
 
       val w = getWidth
@@ -508,7 +508,7 @@ abstract class AbstractScrollControl extends JComponent {
       /** draw track */
       bufRect.setRect(0.0, 1.0, w, h - 1.0)
 
-      setForeground(LookFeel.getCurrent.getTrackColor)
+      setForeground(LookFeel().getTrackColor)
       g.setColor(getForeground)
       g.setComposite(trackComposite)
       g.fill(bufRect)
@@ -731,7 +731,7 @@ abstract class AbstractScrollControl extends JComponent {
 
       val g = g0.asInstanceOf[Graphics2D]
       val backupComposite = g.getComposite();
-      g.setColor(LookFeel.getCurrent.getThumbColor)
+      g.setColor(LookFeel().getThumbColor)
 
       /** draw thumb */
       g.setComposite(thumbComposite)

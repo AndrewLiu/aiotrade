@@ -56,8 +56,8 @@ class StickChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val positiveColor = LookFeel.getCurrent.getPositiveColor
-    val negativeColor = LookFeel.getCurrent.getNegativeColor
+    val positiveColor = LookFeel().getPositiveColor
+    val negativeColor = LookFeel().getNegativeColor
         
     var color = positiveColor
     setForeground(color)
@@ -71,7 +71,7 @@ class StickChart extends AbstractChart {
       var i = 0;
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.getItem(time)
+        val item = ser.itemOf(time)
         if (item != null) {
           val value = item.getFloat(m.v)
           max = Math.max(max, value)

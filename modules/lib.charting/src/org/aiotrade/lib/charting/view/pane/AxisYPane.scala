@@ -110,15 +110,15 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         } else {
           val mousePosition = controller.getMouseCursorRow
           val quoteSer = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteSer
-          val item = quoteSer.getItemByRow(mousePosition).asInstanceOf[QuoteItem]
+          val item = quoteSer.itemOfRow(mousePosition).asInstanceOf[QuoteItem]
           v = if (item == null) 0 else item.close
           y = datumPlane.yv(v)
         }
         val valueStr = COMMON_DECIMAL_FORMAT.format(v)
 
-        mouseCursorLabel.setForeground(LookFeel.getCurrent.mouseCursorTextColor)
-        mouseCursorLabel.setBackground(LookFeel.getCurrent.mouseCursorTextBgColor)
-        mouseCursorLabel.setFont(LookFeel.getCurrent.axisFont)
+        mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
+        mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
+        mouseCursorLabel.setFont(LookFeel().axisFont)
         mouseCursorLabel.setText(valueStr)
         val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
         mouseCursorLabel.setBounds(
@@ -132,9 +132,9 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           v = datumPlane.vy(y)
           val valueStr = COMMON_DECIMAL_FORMAT.format(v)
 
-          mouseCursorLabel.setForeground(LookFeel.getCurrent.mouseCursorTextColor)
-          mouseCursorLabel.setBackground(LookFeel.getCurrent.mouseCursorTextBgColor)
-          mouseCursorLabel.setFont(LookFeel.getCurrent.axisFont)
+          mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
+          mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
+          mouseCursorLabel.setFont(LookFeel().axisFont)
           mouseCursorLabel.setText(valueStr)
           val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
           mouseCursorLabel.setBounds(3, Math.round(y) - fm.getHeight + 1,
@@ -164,14 +164,14 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     if (datumPlane.getView.isInstanceOf[WithQuoteChart]) {
       val referPosition = controller.getReferCursorRow
       val quoteSer = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteSer
-      val item = quoteSer.getItemByRow(referPosition).asInstanceOf[QuoteItem]
+      val item = quoteSer.itemOfRow(referPosition).asInstanceOf[QuoteItem]
       v = if (item == null) 0 else item.close
       y = datumPlane.yv(v)
       val valueStr = COMMON_DECIMAL_FORMAT.format(v)
 
-      referCursorLabel.setForeground(LookFeel.getCurrent.referCursorTextColor)
-      referCursorLabel.setBackground(LookFeel.getCurrent.referCursorTextBgColor)
-      referCursorLabel.setFont(LookFeel.getCurrent.axisFont)
+      referCursorLabel.setForeground(LookFeel().referCursorTextColor)
+      referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
+      referCursorLabel.setFont(LookFeel().axisFont)
       referCursorLabel.setText(valueStr)
       val fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
       referCursorLabel.setBounds(3, Math.round(y) - fm.getHeight + 1,
@@ -218,7 +218,7 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
 
     val pathWidget = addWidget(new PathWidget)
-    pathWidget.setForeground(LookFeel.getCurrent.axisColor)
+    pathWidget.setForeground(LookFeel().axisColor)
     val path = pathWidget.getPath
     path.reset
 
@@ -251,14 +251,14 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           val multiple = "x10000"
 
           val label = addWidget(new Label)
-          label.setForeground(LookFeel.getCurrent.axisColor)
-          label.setFont(LookFeel.getCurrent.axisFont)
+          label.setForeground(LookFeel().axisColor)
+          label.setFont(LookFeel().axisFont)
           label.model.set(4, yTick, multiple)
           label.plot
         } else {
           val label = addWidget(new Label)
-          label.setForeground(if (vTick >= 0) LookFeel.getCurrent.axisColor else LookFeel.getCurrent.getNegativeColor)
-          label.setFont(LookFeel.getCurrent.axisFont)
+          label.setForeground(if (vTick >= 0) LookFeel().axisColor else LookFeel().getNegativeColor)
+          label.setFont(LookFeel().axisFont)
           label.model.set(4, yTick, COMMON_DECIMAL_FORMAT.format(vTick))
           label.plot
         }

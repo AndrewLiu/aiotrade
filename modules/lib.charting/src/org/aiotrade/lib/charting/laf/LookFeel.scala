@@ -41,14 +41,14 @@ import org.aiotrade.lib.charting.chart.QuoteChart
 object LookFeel {
   private var current: LookFeel = _
 
-  def getCurrent: LookFeel = {
+  def apply(): LookFeel = {
     if (current == null) {
       current = new CityLights
     }
     current
   }
 
-  def setCurrent(colorTheme: LookFeel) {
+  def update(colorTheme: LookFeel) {
     current = colorTheme
   }
 
@@ -72,7 +72,6 @@ object LookFeel {
 
     Math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
   }
-
 }
 
 abstract class LookFeel {

@@ -177,7 +177,7 @@ class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends 
     var i = 1
     while (i <= getNBars) {
       val time = tb(i)
-      val item = mainSer.getItem(time)
+      val item = mainSer.itemOf(time)
       if (item != null) {
         for (v <- mainSer.vars) {
           if (v.plot != Plot.None) {

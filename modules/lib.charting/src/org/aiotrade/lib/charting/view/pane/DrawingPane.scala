@@ -187,7 +187,7 @@ class DrawingPane(view: ChartView, datumPlane: DatumPlane, descriptor: DrawingDe
     if (selectedHandledChart != null) {
       if (selectedHandledChart.isActivated && selectedHandledChart.isAccomplished) {
         val pathWidget = addWidget(new PathWidget)
-        pathWidget.setForeground(LookFeel.getCurrent.handleColor)
+        pathWidget.setForeground(LookFeel().handleColor)
         pathWidget.getPath.append(selectedHandledChart.getAllCurrentHandlesPath, false)
       }
     }

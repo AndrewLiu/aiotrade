@@ -72,7 +72,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   /**
    * we implement occurred timestamps and items in density mode instead of spare
-   * mode, to avoid getItem(time) return null even in case of timestamps has been
+   * mode, to avoid itemOf(time) return null even in case of timestamps has been
    * filled. DefaultItem is a lightweight virtual class, don't worry about the
    * memory occupied.
    *
@@ -104,13 +104,13 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   }
 
 
-  /*_ @Todo removed synchronized for internal_getItem and internal_addClearItem_fillTimestamps_InTimeOrder, which cause deadlock:
+  /*_ @Todo removed synchronized for internal_itemOf and internal_addClearItem_fillTimestamps_InTimeOrder, which cause deadlock:
    [java] "AWT-EventQueue-0" prio=6 tid=0x0000000101891800 nid=0x132013000 waiting for monitor entry [0x0000000132011000]
    [java]    java.lang.Thread.State: BLOCKED (on object monitor)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_getItem(DefaultTSer.scala:115)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_itemOf(DefaultTSer.scala:115)
    [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.getItem(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.getItemByRow(DefaultMasterTSer.scala:56)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.itemOf(DefaultTSer.scala:354)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.itemOfRow(DefaultMasterTSer.scala:56)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.syncWithView(AxisYPane.scala:187)
    [java] 	at org.aiotrade.lib.charting.view.ChartView.postPaintComponent(ChartView.scala:294)
@@ -135,10 +135,10 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
    [java] "ForkJoinPool-1-worker-2" daemon prio=5 tid=0x000000010195f800 nid=0x131d0a000 waiting for monitor entry [0x0000000131d08000]
    [java]    java.lang.Thread.State: BLOCKED (on object monitor)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_getItem(DefaultTSer.scala:109)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_itemOf(DefaultTSer.scala:109)
    [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.getItem(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.getItemByRow(DefaultMasterTSer.scala:56)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.itemOf(DefaultTSer.scala:354)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.itemOfRow(DefaultMasterTSer.scala:56)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:96)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:93)
@@ -165,19 +165,27 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    [java] 	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(Unknown Source)
    */
 
-  /**
-   * This should be the only interface to fetch item, what ever by time or by row.
-   */
-  private def internal_getItem(time: Long): TItem = {
+  def exists(time: Long): Boolean = {
     /**
      * @NOTE:
      * Should only get index from timestamps which has the proper
      * position <-> time <-> item mapping
      */
     val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < items.size) {
-      items(idx)
-    } else null
+    idx >= 0 && idx < items.size
+  }
+
+  /**
+   * This should be the only interface to fetch item, what ever by time or by row.
+   */
+  private def internal_itemOf(time: Long): TItem = {
+    /**
+     * @NOTE:
+     * Should only get index from timestamps which has the proper
+     * position <-> time <-> item mapping
+     */
+    val idx = timestamps.indexOfOccurredTime(time)
+    if (idx >= 0 && idx < items.size) items(idx) else null
   }
 
   /**
@@ -412,8 +420,8 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                                           Long.MaxValue))
   }
 
-  def getItem(time: Long): TItem = {
-    var item = internal_getItem(time)
+  def itemOf(time: Long): TItem = {
+    var item = internal_itemOf(time)
     this match {
       case x: SpotComputable =>
         if (item == null || (item != null && item.isClear)) {
@@ -446,7 +454,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    * you'd better never think to open these methods to protected or public.
    */
   def createItemOrClearIt(time: Long): TItem = {
-    internal_getItem(time) match {
+    internal_itemOf(time) match {
       case null =>
         // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
         val item = createItem(time)

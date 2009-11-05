@@ -65,7 +65,7 @@ class FibonacciFanLinesChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[Float](2)
@@ -90,19 +90,19 @@ class FibonacciFanLinesChart extends AbstractChart {
     val xText = xs(1) + 2
         
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(xText, GeomUtil.yOfLine(xText, xs(0), ys(0), k1), "0.618")
     label1.plot
         
     val label2 = addChild(new Label)
-    label2.setFont(LookFeel.getCurrent.axisFont)
+    label2.setFont(LookFeel().axisFont)
     label2.setForeground(color)
     label2.model.set(xText, GeomUtil.yOfLine(xText, xs(0), ys(0), k2), "0.5")
     label2.plot
 
     val label3 = addChild(new Label)
-    label3.setFont(LookFeel.getCurrent.axisFont)
+    label3.setFont(LookFeel().axisFont)
     label3.setForeground(color)
     label3.model.set(xText, GeomUtil.yOfLine(xText, xs(0), ys(0), k3), "0.382")
     label3.plot

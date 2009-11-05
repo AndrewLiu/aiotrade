@@ -61,7 +61,8 @@ trait TSer {
   def vars: Seq[TVar[_]]
   def items: ArrayList[TItem]
 
-  def getItem(time: Long): TItem
+  def exists(time: Long): Boolean
+  def itemOf(time: Long): TItem
     
   def lastOccurredTime: Long
     
@@ -77,11 +78,11 @@ trait TSer {
   def createItemOrClearIt(time: Long): TItem
     
   def shortDescription: String
-  def shortDescription_=(description:String): Unit
+  def shortDescription_=(description: String): Unit
     
-  def addSerChangeListener(listener:SerChangeListener): Unit
-  def removeSerChangeListener(listener:SerChangeListener): Unit
-  def fireSerChangeEvent(evt:SerChangeEvent): Unit
+  def addSerChangeListener(listener: SerChangeListener): Unit
+  def removeSerChangeListener(listener: SerChangeListener): Unit
+  def fireSerChangeEvent(evt: SerChangeEvent): Unit
     
   def inLoading: Boolean
   def inLoading_=(b: Boolean): Unit
@@ -93,7 +94,7 @@ trait TSer {
 
 import java.util.EventListener
 trait SerChangeListener extends EventListener {
-  def serChanged(evt:SerChangeEvent): Unit
+  def serChanged(evt: SerChangeEvent): Unit
 }
 
 
@@ -133,8 +134,8 @@ class SerChangeEvent(var _source: TSer,
     this(source, tpe, symbol, beginTime, endTime, null, callBack)
   }
 
-  override def getSource :TSer = {
-    assert(source.isInstanceOf[TSer], "Source should be Series")
+  override def getSource: TSer = {
+    assert(source.isInstanceOf[TSer], "Source should be TSer")
 
     source.asInstanceOf[TSer]
   }

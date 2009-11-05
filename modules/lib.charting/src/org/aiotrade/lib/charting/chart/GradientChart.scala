@@ -69,7 +69,7 @@ class GradientChart extends AbstractChart {
     val upper = model.shading.getUpperBound
     val step  = model.shading.getNIntervals
         
-    var color = LookFeel.getCurrent.stickChartColor
+    var color = LookFeel().stickChartColor
     setForeground(color)
         
     val radius = if (wBar < 2) 0 else ((wBar - 2) / 2).intValue
@@ -78,7 +78,7 @@ class GradientChart extends AbstractChart {
     while (bar <= nBars) {
             
       val time = tb(bar)
-      val item = ser.getItem(time)
+      val item = ser.itemOf(time)
             
       if (item != null) {
         val shades = item.get(m.v).asInstanceOf[Array[Float]]

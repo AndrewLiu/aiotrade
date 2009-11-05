@@ -60,7 +60,7 @@ class DivisionPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
    */
   protected def plotPane_old = {
     val pathWidget = addWidget(new PathWidget)
-    pathWidget.setForeground(LookFeel.getCurrent.borderColor)
+    pathWidget.setForeground(LookFeel().borderColor)
     val path = pathWidget.getPath
     path.reset
         

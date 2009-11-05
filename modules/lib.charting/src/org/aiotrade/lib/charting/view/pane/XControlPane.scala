@@ -66,7 +66,7 @@ class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
         
     scrollControl.setValues(vModelRange, vShownRange, vModelEnd, vShownEnd, unit, nUnitsBlock)
         
-    val autoHidden = LookFeel.getCurrent.isAutoHideScroll
+    val autoHidden = LookFeel().isAutoHideScroll
     scrollControl.setAutoHidden(autoHidden)
   }
 

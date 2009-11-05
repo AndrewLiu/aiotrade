@@ -57,7 +57,7 @@ class ZigzagChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.getChartColor(getDepth)
+    val color = LookFeel().getChartColor(getDepth)
     setForeground(color)
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
@@ -93,8 +93,8 @@ class ZigzagChart extends AbstractChart {
             
       /** now we've got two good positions, go on to draw a line between them */
             
-      val value1 = ser.getItem(tb(bar1)).getFloat(model.v)
-      val value2 = ser.getItem(tb(bar2)).getFloat(model.v)
+      val value1 = ser.itemOf(tb(bar1)).getFloat(model.v)
+      val value2 = ser.itemOf(tb(bar2)).getFloat(model.v)
             
       /** now try to draw line between these two points */
       val x1 = xb(bar1)

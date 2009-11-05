@@ -60,8 +60,8 @@ class SignalChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val positiveColor = LookFeel.getCurrent.getPositiveColor
-    val negativeColor = LookFeel.getCurrent.getNegativeColor
+    val positiveColor = LookFeel().getPositiveColor
+    val negativeColor = LookFeel().getNegativeColor
         
     val color = Color.YELLOW
     setForeground(color)

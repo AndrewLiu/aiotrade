@@ -43,7 +43,7 @@ trait MasterTSer extends TSer {
   def timeOfRow(row: Int): Long
   def rowOfTime(time: Long): Int
   def lastOccurredRow: Int
-  def getItemByRow(row: Int): TItem
+  def itemOfRow(row: Int): TItem
 
   def setOnCalendarMode: Unit
   def setOnOccurredMode: Unit

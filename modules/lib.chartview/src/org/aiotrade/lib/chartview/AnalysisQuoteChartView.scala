@@ -93,7 +93,7 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
   override def init(controller: ChartingController, quoteSer: TSer) {
     super.init(controller, quoteSer)
         
-    quoteChartType = LookFeel.getCurrent.getQuoteChartType
+    quoteChartType = LookFeel().getQuoteChartType
         
     compareIndicatorToChart = new HashMap
   }
@@ -242,7 +242,7 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
       var i = 1
       while (i <= getNBars) {
         val time = tb(i)
-        val item = ser.getItem(time)
+        val item = ser.itemOf(time)
         if (item != null) {
           val compareHi = item.getFloat(ser.high)
           val compareLo = item.getFloat(ser.low)

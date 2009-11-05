@@ -56,7 +56,7 @@ class PolyLineChart extends AbstractChart {
     
   protected def plotChart {
     val m = model
-    val color = LookFeel.getCurrent.getChartColor(getDepth)
+    val color = LookFeel().getChartColor(getDepth)
     setForeground(color)
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
@@ -71,7 +71,7 @@ class PolyLineChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)
-        val item = ser.getItem(time)
+        val item = ser.itemOf(time)
         if (item != null) {
           value = item.getFloat(m.v)
           max = Math.max(max, value)

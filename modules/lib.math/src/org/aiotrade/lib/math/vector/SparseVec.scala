@@ -162,7 +162,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     true
   }
     
-  def getItemByPosition(position: Int): VecItem = {
+  def itemOfByPosition(position: Int): VecItem = {
     items(position)
   }
     
@@ -177,7 +177,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   }
     
   def update(dimensionIdx: Int, value: Double): Unit = {
-    val item = getItem(dimensionIdx)
+    val item = itemOf(dimensionIdx)
         
     if (item != null) {
             
@@ -205,7 +205,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     }
   }
     
-  def getItem(dimensionIdx: Int): VecItem = {
+  def itemOf(dimensionIdx: Int): VecItem = {
         
     for (i <- 0 until items.length) {
       if (items(i).index == dimensionIdx) {

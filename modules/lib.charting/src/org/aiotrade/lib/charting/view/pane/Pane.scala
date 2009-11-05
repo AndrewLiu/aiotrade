@@ -206,7 +206,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
   private def processUserRenderOptions(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
 
-    if (LookFeel.getCurrent.isAntiAlias) {
+    if (LookFeel().isAntiAlias) {
       g.setRenderingHint(
         RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_ON)
@@ -219,12 +219,12 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
        * @NOTICE
        * don't forget to setBackgroud() to keep this component's properties consistent
        */
-      setBackground(LookFeel.getCurrent.backgroundColor)
+      setBackground(LookFeel().backgroundColor)
       g.setColor(getBackground)
       g.fillRect(0, 0, getWidth, getHeight)
     }
 
-    setFont(LookFeel.getCurrent.axisFont)
+    setFont(LookFeel().axisFont)
     g.setFont(getFont)
   }
 

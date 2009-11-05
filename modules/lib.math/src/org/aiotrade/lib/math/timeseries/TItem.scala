@@ -46,14 +46,14 @@ trait TItem {
     
   def time: Long
     
-  def get[@specialized V](v: TVar[V]): V
+  def get[V](v: TVar[V]): V
     
   def getFloat(v: TVar[_]): Float
     
-  def setFloat[@specialized V >: Number](v: TVar[V], number: V): Unit
+  def setFloat[V >: Number](v: TVar[V], number: V): Unit
     
-  def set[@specialized V](v: TVar[V], o: V): Unit
+  def set[V](v: TVar[V], o: V): Unit
 
-  def assignValue[@specialized T <: TVal](value: T): Unit
+  def assignValue[T <: TVal](value: T): Unit
 }
 

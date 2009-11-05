@@ -194,8 +194,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
       symbolMapColColor.put(columeName, bgColor)
     }
 
-    val positiveColor = LookFeel.getCurrent.getPositiveBgColor
-    val negativeColor = LookFeel.getCurrent.getNegativeBgColor
+    val positiveColor = LookFeel().getPositiveBgColor
+    val negativeColor = LookFeel().getNegativeBgColor
 
     if (inWatching) {
       /** color of volume should be remembered for switching between two colors */

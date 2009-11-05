@@ -58,7 +58,7 @@ class PeriodsChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val numPn = 40;
@@ -69,7 +69,7 @@ class PeriodsChart extends AbstractChart {
     val interval = bs(1) - bs(0)
         
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(xb(bs(1).intValue) + 2, yv(datumPlane.getMinValue), (Math.round(bs(1) - bs(0))).toString)
     label1.plot

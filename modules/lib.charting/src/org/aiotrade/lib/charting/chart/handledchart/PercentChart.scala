@@ -63,7 +63,7 @@ class PercentChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[Float](2)
@@ -86,31 +86,31 @@ class PercentChart extends AbstractChart {
     val y6 = ys(1)
         
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(xs(0), y1 - 2, "25.0%")
     label1.plot
         
     val label2 = addChild(new Label)
-    label2.setFont(LookFeel.getCurrent.axisFont)
+    label2.setFont(LookFeel().axisFont)
     label2.setForeground(color)
     label2.model.set(xs(0), y2 - 2, "33.3%")
     label2.plot
         
     val label3 = addChild(new Label)
-    label3.setFont(LookFeel.getCurrent.axisFont)
+    label3.setFont(LookFeel().axisFont)
     label3.setForeground(color)
     label3.model.set(xs(0), y3 - 2, "50.0%");
     label3.plot
         
     val label4 = addChild(new Label)
-    label4.setFont(LookFeel.getCurrent.axisFont)
+    label4.setFont(LookFeel().axisFont)
     label4.setForeground(color)
     label4.model.set(xs(0), y4 - 2, "66.7%")
     label4.plot
 
     val label5 = addChild(new Label)
-    label5.setFont(LookFeel.getCurrent.axisFont)
+    label5.setFont(LookFeel().axisFont)
     label5.setForeground(color)
     label5.model.set(xs(0), y5 - 2, "75.0%")
     label5.plot

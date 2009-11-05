@@ -243,7 +243,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               intervalLastTickerPair.currIntervalOne.copy(ticker)
 
               /** still in same interval, just pick out the old data of this interval */
-              tickerSer.getItem(ticker.time).asInstanceOf[QuoteItem]
+              tickerSer.itemOf(ticker.time).asInstanceOf[QuoteItem]
             } else {
               /**
                * !NOTICE
@@ -328,7 +328,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
           val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
           for (ser <- chainSersOf(tickerSer)) {
             if (ser.freq.equals(TFreq.DAILY)) {
-              if (ser.getItem(today) != null) {
+              if (ser.itemOf(today) != null) {
                 updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, cal)
               }
             }

@@ -58,7 +58,7 @@ class FibonacciVerticalRetracementsChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val bs = new Array[Float](2)
@@ -93,7 +93,7 @@ class FibonacciVerticalRetracementsChart extends AbstractChart {
                 
         val x = xb(b)
         val label1 = addChild(new Label)
-        label1.setFont(LookFeel.getCurrent.axisFont)
+        label1.setFont(LookFeel().axisFont)
         label1.setForeground(color)
         label1.model.set(x + 1, ymin, Fn(n).toString)
         label1.plot

@@ -93,15 +93,15 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
       val currMonthOfYear = cal.get(Calendar.MONTH)
       val currYear        = cal.get(Calendar.YEAR)
             
-      val targetItem = targetQuoteSer.createItemOrClearIt(intervalBegin).asInstanceOf[QuoteItem]
+      val taritemOf = targetQuoteSer.createItemOrClearIt(intervalBegin).asInstanceOf[QuoteItem]
             
       var prevNorm = item_i.close
       var postNorm = item_i.close_adj
             
-      targetItem.open   = linearAdjust(item_i.open,  prevNorm, postNorm)
-      targetItem.high   = -Float.MaxValue
-      targetItem.low    = +Float.MaxValue
-      targetItem.volume = 0
+      taritemOf.open   = linearAdjust(item_i.open,  prevNorm, postNorm)
+      taritemOf.high   = -Float.MaxValue
+      taritemOf.low    = +Float.MaxValue
+      taritemOf.volume = 0
             
       /** compose followed source data of this interval to targetData */
       var j = 0
@@ -146,14 +146,14 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
           prevNorm = item_j.close
           postNorm = item_j.close_adj
 
-          targetItem.high  = Math.max(targetItem.high, linearAdjust(item_j.high,  prevNorm, postNorm))
-          targetItem.low   = Math.min(targetItem.low,  linearAdjust(item_j.low,   prevNorm, postNorm))
-          targetItem.close = linearAdjust(item_j.close,   prevNorm, postNorm)
+          taritemOf.high  = Math.max(taritemOf.high, linearAdjust(item_j.high,  prevNorm, postNorm))
+          taritemOf.low   = Math.min(taritemOf.low,  linearAdjust(item_j.low,   prevNorm, postNorm))
+          taritemOf.close = linearAdjust(item_j.close,   prevNorm, postNorm)
 
-          targetItem.volume = targetItem.volume + item_j.volume
+          taritemOf.volume = taritemOf.volume + item_j.volume
 
-          targetItem.close_ori = item_j.close_ori
-          targetItem.close_adj = item_j.close_adj
+          taritemOf.close_ori = item_j.close_ori
+          taritemOf.close_adj = item_j.close_adj
 
           j += 1
         } else {
@@ -163,13 +163,13 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
             
       /** de adjust on combined quote data */
             
-      prevNorm = targetItem.close
-      postNorm = targetItem.close_ori
+      prevNorm = taritemOf.close
+      postNorm = taritemOf.close_ori
             
-      targetItem.high  = linearAdjust(targetItem.high,  prevNorm, postNorm)
-      targetItem.low   = linearAdjust(targetItem.low,   prevNorm, postNorm)
-      targetItem.open  = linearAdjust(targetItem.open,  prevNorm, postNorm)
-      targetItem.close = linearAdjust(targetItem.close, prevNorm, postNorm)
+      taritemOf.high  = linearAdjust(taritemOf.high,  prevNorm, postNorm)
+      taritemOf.low   = linearAdjust(taritemOf.low,   prevNorm, postNorm)
+      taritemOf.open  = linearAdjust(taritemOf.open,  prevNorm, postNorm)
+      taritemOf.close = linearAdjust(taritemOf.close, prevNorm, postNorm)
             
       loop(i + j)
     }; loop(masterFromIdx)

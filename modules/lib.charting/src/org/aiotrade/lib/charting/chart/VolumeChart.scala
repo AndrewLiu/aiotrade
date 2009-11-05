@@ -64,12 +64,12 @@ class VolumeChart extends AbstractChart {
 
     val m = model
 
-    val thin = LookFeel.getCurrent.isThinVolumeBar || m.thin
+    val thin = LookFeel().isThinVolumeBar || m.thin
 
     val heavyPathWidget = addChild(new HeavyPathWidget)
     val template = new StickBar
     var y1 = yv(0)
-    var bar = 1;
+    var bar = 1
     while (bar <= nBars) {
 
       var open   = Null.Float
@@ -80,14 +80,14 @@ class VolumeChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = masterSer.getItem(time).asInstanceOf[QuoteItem]
+        val item = masterSer.itemOf(time).asInstanceOf[QuoteItem]
         if (item != null && item.close != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */
             open = item.open
           }
           high   = Math.max(high, item.high)
-          low    = Math.min(low, item.low)
+          low    = Math.min(low,  item.low)
           close  = item.close
           volume = Math.max(volume, item.volume)
         }
@@ -95,16 +95,15 @@ class VolumeChart extends AbstractChart {
         i += 1
       }
 
-      if (volume != Math.MIN_FLOAT /** means we've got volume value */
-      ) {
-        val color = if (close >= open) LookFeel.getCurrent.getPositiveColor else LookFeel.getCurrent.getNegativeColor
+      if (volume != -Math.MAX_FLOAT /* means we've got volume value */) {
+        val color = if (close >= open) LookFeel().getPositiveColor else LookFeel().getNegativeColor
         setForeground(color)
                 
         val xCenter = xb(bar)
         val y2 = yv(volume)
 
         template.setForeground(color)
-        val fillBar = LookFeel.getCurrent.isFillBar
+        val fillBar = LookFeel().isFillBar
         template.model.set(xCenter, y1, y2, wBar, thin, fillBar || close < open)
         template.plot
         heavyPathWidget.appendFrom(template)

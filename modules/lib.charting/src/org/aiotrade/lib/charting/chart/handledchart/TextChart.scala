@@ -67,14 +67,14 @@ class TextChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val x = xb(bt(model.t1))
     val y = yv(model.v1)
         
     addChild(label)
-    label.setFont(LookFeel.getCurrent.axisFont)
+    label.setFont(LookFeel().axisFont)
     label.setForeground(color)
     label.model.set(x, y, model.text)
     label.plot

@@ -61,7 +61,7 @@ class StraightLineChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[Float](2)

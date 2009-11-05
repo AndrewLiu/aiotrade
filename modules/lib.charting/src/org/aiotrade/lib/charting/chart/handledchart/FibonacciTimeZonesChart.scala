@@ -55,7 +55,7 @@ class FibonacciTimeZonesChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val numFn = 40

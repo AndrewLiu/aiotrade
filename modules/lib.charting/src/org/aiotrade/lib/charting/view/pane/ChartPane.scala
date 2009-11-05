@@ -104,7 +104,7 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
   }
     
   override protected def plotPane {
-    colorTheme = LookFeel.getCurrent
+    colorTheme = LookFeel()
   }
     
   def getYMouse: Int = {

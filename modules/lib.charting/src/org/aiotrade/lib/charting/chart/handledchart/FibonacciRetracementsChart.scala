@@ -63,7 +63,7 @@ class FibonacciRetracementsChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[Float](2)
@@ -91,67 +91,67 @@ class FibonacciRetracementsChart extends AbstractChart {
     val y12 = ys(0) + interval * 4.237f
         
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(xs(0), y02 - 2, "23.6%")
     label1.plot
         
     val label2 = addChild(new Label)
-    label2.setFont(LookFeel.getCurrent.axisFont)
+    label2.setFont(LookFeel().axisFont)
     label2.setForeground(color)
     label2.model.set(xs(0), y03 - 2, "38.2%")
     label2.plot
         
     val label3 = addChild(new Label)
-    label3.setFont(LookFeel.getCurrent.axisFont)
+    label3.setFont(LookFeel().axisFont)
     label3.setForeground(color)
     label3.model.set(xs(0), y04 - 2, "50.0%")
     label3.plot
 
     val label4 = addChild(new Label)
-    label4.setFont(LookFeel.getCurrent.axisFont)
+    label4.setFont(LookFeel().axisFont)
     label4.setForeground(color)
     label4.model.set(xs(0), y05 - 2, "61.8%")
     label4.plot
 
     val label5 = addChild(new Label)
-    label5.setFont(LookFeel.getCurrent.axisFont)
+    label5.setFont(LookFeel().axisFont)
     label5.setForeground(color)
     label5.model.set(xs(0), y06 - 2, "76.3%")
     label5.plot
 
     val label6 = addChild(new Label)
-    label6.setFont(LookFeel.getCurrent.axisFont)
+    label6.setFont(LookFeel().axisFont)
     label6.setForeground(color)
     label6.model.set(xs(0), y07 - 2, "100%")
     label6.plot
 
     val label7 = addChild(new Label)
-    label7.setFont(LookFeel.getCurrent.axisFont)
+    label7.setFont(LookFeel().axisFont)
     label7.setForeground(color)
     label7.model.set(xs(0), y08 - 2, "161.8%")
     label7.plot
 
     val label8 = addChild(new Label)
-    label8.setFont(LookFeel.getCurrent.axisFont)
+    label8.setFont(LookFeel().axisFont)
     label8.setForeground(color)
     label8.model.set(xs(0), y09 - 2, "200%")
     label8.plot
 
     val label9 = addChild(new Label)
-    label9.setFont(LookFeel.getCurrent.axisFont)
+    label9.setFont(LookFeel().axisFont)
     label9.setForeground(color)
     label9.model.set(xs(0), y10 - 2, "261.8%")
     label9.plot
 
     val label10 = addChild(new Label)
-    label10.setFont(LookFeel.getCurrent.axisFont)
+    label10.setFont(LookFeel().axisFont)
     label10.setForeground(color)
     label10.model.set(xs(0), y11 - 2, "300%")
     label10.plot
         
     val label11 = addChild(new Label)
-    label11.setFont(LookFeel.getCurrent.axisFont)
+    label11.setFont(LookFeel().axisFont)
     label11.setForeground(color)
     label11.model.set(xs(0), y12 - 2, "423.7%")
     label11.plot

@@ -56,7 +56,7 @@ class DotChart extends AbstractChart {
     
   protected def plotChart {
     val m = model
-    val color = LookFeel.getCurrent.getChartColor(getDepth)
+    val color = LookFeel().getChartColor(getDepth)
     setForeground(color)
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
@@ -67,7 +67,7 @@ class DotChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.getItem(time)
+        val item = ser.itemOf(time)
                 
         if (item != null) {
           val value = item.getFloat(model.v)

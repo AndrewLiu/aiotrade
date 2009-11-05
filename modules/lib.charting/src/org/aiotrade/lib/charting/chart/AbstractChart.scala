@@ -219,7 +219,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   }
     
   private def renderMarkAtPoint(g: Graphics, point: Point) {
-    g.setColor(LookFeel.getCurrent.handleColor)
+    g.setColor(LookFeel().handleColor)
     g.fillRect(point.x - 2, point.y - 2, 5, 5)
   }
     

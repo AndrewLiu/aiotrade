@@ -118,9 +118,9 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
       cal.setTimeInMillis(mouseTime)
       val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
 
-      mouseCursorLabel.setForeground(LookFeel.getCurrent.mouseCursorTextColor)
-      mouseCursorLabel.setBackground(LookFeel.getCurrent.mouseCursorTextBgColor)
-      mouseCursorLabel.setFont(LookFeel.getCurrent.axisFont)
+      mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
+      mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
+      mouseCursorLabel.setFont(LookFeel().axisFont)
       mouseCursorLabel.setText(dateStr)
       val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
       mouseCursorLabel.setBounds(x + 1, 1, fm.stringWidth(mouseCursorLabel.getText) + 2, getHeight - 2)
@@ -143,9 +143,9 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     cal.setTimeInMillis(referTime)
     val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
 
-    referCursorLabel.setForeground(LookFeel.getCurrent.referCursorTextColor)
-    referCursorLabel.setBackground(LookFeel.getCurrent.referCursorTextBgColor)
-    referCursorLabel.setFont(LookFeel.getCurrent.axisFont)
+    referCursorLabel.setForeground(LookFeel().referCursorTextColor)
+    referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
+    referCursorLabel.setFont(LookFeel().axisFont)
     referCursorLabel.setText(dateStr)
     val fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
     referCursorLabel.setBounds(x + 1, 1, fm.stringWidth(referCursorLabel.getText) + 2, getHeight - 2)
@@ -172,7 +172,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     }
 
     val pathWidget = addWidget(new PathWidget)
-    pathWidget.setForeground(LookFeel.getCurrent.axisColor)
+    pathWidget.setForeground(LookFeel().axisColor)
     val path = pathWidget.getPath
     path.reset
 
@@ -224,8 +224,8 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           else freqUnit.formatNormalDate(currDate, cal.getTimeZone)
 
           val label = addWidget(new Label)
-          label.setForeground(LookFeel.getCurrent.axisColor)
-          label.setFont(LookFeel.getCurrent.axisFont)
+          label.setForeground(LookFeel().axisColor)
+          label.setFont(LookFeel().axisFont)
           label.model.set(xCurrTick, getHeight - 2, " " + dateStr)
           label.plot
 

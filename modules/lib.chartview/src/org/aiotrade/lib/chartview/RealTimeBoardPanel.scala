@@ -178,8 +178,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     infoTable.setCellSelectionEnabled(false);
     infoTable.setShowHorizontalLines(false);
     infoTable.setShowVerticalLines(false);
-    infoTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel.getCurrent.heavyBackgroundColor))
-    infoTable.setBackground(LookFeel.getCurrent.heavyBackgroundColor)
+    infoTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().heavyBackgroundColor))
+    infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
     depthModel = new AttributiveCellTableModel(
       Array(
@@ -231,8 +231,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     depthTable.setCellSelectionEnabled(false)
     depthTable.setShowHorizontalLines(false)
     depthTable.setShowVerticalLines(false)
-    depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel.getCurrent.borderColor))
-    depthTable.setBackground(LookFeel.getCurrent.infoBackgroundColor)
+    depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
+    depthTable.setBackground(LookFeel().infoBackgroundColor)
 
     tickerModel = new DefaultTableModel(
       Array(
@@ -270,7 +270,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     /* @Note Border of JScrollPane may cannot be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
-    tickerPane.setBackground(LookFeel.getCurrent.infoBackgroundColor)
+    tickerPane.setBackground(LookFeel().infoBackgroundColor)
     tickerPane.setViewportView(tickerTable)
 
     // put infoTable to a box to simple the insets setting:
@@ -284,7 +284,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         g.fillRect(rect.x, rect.y, rect.width, rect.height)
       }
     }
-    infoBox.setBackground(LookFeel.getCurrent.heavyBackgroundColor)
+    infoBox.setBackground(LookFeel().heavyBackgroundColor)
     infoBox.add(Box.createVerticalStrut(5))
     infoBox.add(infoTable)
     infoBox.add(Box.createVerticalStrut(4))
@@ -304,9 +304,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   def update(tickerSnapshot: Observable) {
 		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
-    val neutralColor = LookFeel.getCurrent.getNeutralColor
-    val positiveColor = LookFeel.getCurrent.getPositiveColor
-    val negativeColor = LookFeel.getCurrent.getNegativeColor
+    val neutralColor = LookFeel().getNeutralColor
+    val positiveColor = LookFeel().getPositiveColor
+    val negativeColor = LookFeel().getNegativeColor
     symbol.value = ts.symbol
 
     val snapshotTicker = ts.ticker
@@ -408,7 +408,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
 
     this.setForeground(Color.BLACK)
-    this.setBackground(LookFeel.getCurrent.backgroundColor)
+    this.setBackground(LookFeel().backgroundColor)
     this.setOpaque(true)
 
 
@@ -417,7 +417,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
       this.setForeground(Color.BLACK)
-      this.setBackground(LookFeel.getCurrent.backgroundColor)
+      this.setBackground(LookFeel().backgroundColor)
       this.setText(null)
 
       if (value != null) {
@@ -434,13 +434,13 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
                   val prevFloatValue = NUMBER_FORMAT.parse(prevValue.toString.trim).floatValue
                   if (floatValue > prevFloatValue) {
                     this.setForeground(Color.WHITE)
-                    this.setBackground(LookFeel.getCurrent.getPositiveBgColor)
+                    this.setBackground(LookFeel().getPositiveBgColor)
                   } else if (floatValue < prevFloatValue) {
                     this.setForeground(Color.WHITE)
-                    this.setBackground(LookFeel.getCurrent.getNegativeBgColor)
+                    this.setBackground(LookFeel().getNegativeBgColor)
                   } else {
                     this.setForeground(Color.BLACK)
-                    this.setBackground(LookFeel.getCurrent.getNeutralBgColor)
+                    this.setBackground(LookFeel().getNeutralBgColor)
                   }
                 }
               } catch {case ex: ParseException => ex.printStackTrace}

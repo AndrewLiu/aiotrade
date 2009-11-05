@@ -64,7 +64,7 @@ class GannAngleChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel.getCurrent.drawingColor
+    val color = LookFeel().drawingColor
     setForeground(color)
         
     val xs = new Array[Float](2)
@@ -84,7 +84,7 @@ class GannAngleChart extends AbstractChart {
     ys(1) = yv(model.v2)
         
     val label1 = addChild(new Label)
-    label1.setFont(LookFeel.getCurrent.axisFont)
+    label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
     label1.model.set(xs(1) + 2, ys(1), rate.toString)
     label1.plot

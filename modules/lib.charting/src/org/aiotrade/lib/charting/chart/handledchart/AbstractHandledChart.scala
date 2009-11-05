@@ -750,7 +750,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     }
         
     def render(g: Graphics) {
-      g.setColor(LookFeel.getCurrent.handleColor)
+      g.setColor(LookFeel().handleColor)
       g.asInstanceOf[Graphics2D].draw(getPath)
     }
         

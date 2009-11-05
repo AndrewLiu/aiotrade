@@ -83,7 +83,7 @@ abstract class CursorChart extends AbstractChart {
   protected def createModel: WidgetModel = null.asInstanceOf[WidgetModel]
     
   protected def plotChart {
-    laf = LookFeel.getCurrent
+    laf = LookFeel()
         
     referRow  = datumPlane.getView.getController.getReferCursorRow
     referTime = datumPlane.getView.getController.getReferCursorTime

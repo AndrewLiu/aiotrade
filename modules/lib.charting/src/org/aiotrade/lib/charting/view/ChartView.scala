@@ -216,7 +216,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
        * @NOTICE
        * don't forget to setBackgroud() to keep this component's properties consistent
        */
-      setBackground(LookFeel.getCurrent.backgroundColor)
+      setBackground(LookFeel().backgroundColor)
       g.setColor(getBackground)
       g.fillRect(0, 0, getWidth, getHeight)
     }

@@ -105,7 +105,7 @@ class CandleBar extends PathWidget {
             
       if (m.filled) {
         var i = 1
-        while (i < m.width) {
+        while (i < m.width - 2) {
           path.moveTo(m.xCenter - xRadius + i, yUpper)
           path.lineTo(m.xCenter - xRadius + i, yLower)
           i += 1
