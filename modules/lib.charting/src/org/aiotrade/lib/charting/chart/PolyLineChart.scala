@@ -43,9 +43,9 @@ import org.aiotrade.lib.charting.laf.LookFeel
  */
 class PolyLineChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: TVar[_] = _
+    var v: TVar[Float] = _
         
-    def set(v: TVar[_]) {
+    def set(v: TVar[Float]) {
       this.v = v
     }
   }
@@ -71,9 +71,8 @@ class PolyLineChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)
-        val item = ser.itemOf(time)
-        if (item != null) {
-          value = item.getFloat(m.v)
+        if (ser.exists(time)) {
+          value = m.v.getByTime(time)
           max = Math.max(max, value)
           min = Math.min(min, value)
         }

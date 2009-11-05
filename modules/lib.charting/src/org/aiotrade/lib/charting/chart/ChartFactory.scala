@@ -53,11 +53,11 @@ object ChartFactory {
         chartVarContainer += v
       case Plot.Line =>
         chart = new PolyLineChart
-        chart.asInstanceOf[PolyLineChart].model.set(v)
+        chart.asInstanceOf[PolyLineChart].model.set(v.asInstanceOf[TVar[Float]])
         chartVarContainer += v
       case Plot.Stick =>
         chart = new StickChart
-        chart.asInstanceOf[StickChart].model.set(v)
+        chart.asInstanceOf[StickChart].model.set(v.asInstanceOf[TVar[Float]])
         chartVarContainer += v
       case Plot.Dot =>
         chart = new DotChart

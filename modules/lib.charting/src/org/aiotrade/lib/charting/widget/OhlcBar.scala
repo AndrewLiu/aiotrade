@@ -77,7 +77,7 @@ class OhlcBar extends PathWidget {
     path.reset
         
     /** why - 2 ? 1 for centre, 1 for space */
-    val xRadius: Float = if (m.width < 2) 0F else (m.width - 2) / 2
+    val xRadius = if (m.width < 2) 0F else (m.width - 2) / 2
         
     if (m.width <= 2) {
       path.moveTo(m.xCenter, m.yHigh)

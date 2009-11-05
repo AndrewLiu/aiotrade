@@ -28,19 +28,19 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.widget;
+package org.aiotrade.lib.charting.widget
 
-import java.awt.Container;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
+import java.awt.Container
+import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Rectangle
+import java.awt.RenderingHints
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.awt.image.BufferedImage
+import javax.swing.JComponent
+import javax.swing.JTextField
 import org.aiotrade.lib.util.swing.action.EditAction
 /**
  *
@@ -52,7 +52,7 @@ class Label extends AbstractWidget {
   final class Model extends WidgetModel {
     var x: Float = _
     var y: Float = _
-    var text = "Click me to edit";
+    var text = "Click me to edit"
         
     def set(x: Float, y: Float, text: String) {
       this.x = x

@@ -41,7 +41,7 @@ class SeasonChart extends AbstractChart {
   protected def createModel = null
     
   protected def plotChart {
-    val barWidthHalf = if (wBar - 2 > 0) ((wBar - 2) / 2).intValue else 0
+    val barWidthHalf = if (wBar - 2 > 0) ((wBar - 2) / 2).toInt else 0
         
     var bar = 1
     while (bar <= nBars) {

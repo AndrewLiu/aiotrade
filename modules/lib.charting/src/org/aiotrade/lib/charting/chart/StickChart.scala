@@ -42,9 +42,9 @@ import org.aiotrade.lib.charting.laf.LookFeel
  */
 class StickChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: TVar[_] = _
+    var v: TVar[Float] = _
         
-    def set(v: TVar[_]) {
+    def set(v: TVar[Float]) {
       this.v = v
     }
   }
@@ -66,14 +66,13 @@ class StickChart extends AbstractChart {
     val template = new StickBar
     var bar = 1
     while (bar <= nBars) {
-      var max = Math.MIN_FLOAT
-      var min = Math.MAX_FLOAT
-      var i = 0;
+      var max = -Math.MAX_FLOAT
+      var min = +Math.MAX_FLOAT
+      var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.itemOf(time)
-        if (item != null) {
-          val value = item.getFloat(m.v)
+        if (ser.exists(time)) {
+          val value = m.v.getByTime(time)
           max = Math.max(max, value)
           min = Math.min(min, value)
         }
@@ -105,7 +104,7 @@ class StickChart extends AbstractChart {
         heavyPathWidget.appendFrom(template)
 
         if (x % AbstractChart.MARK_INTERVAL == 0) {
-          addMarkPoint(x.intValue, yValue.intValue)
+          addMarkPoint(x.toInt, yValue.toInt)
         }
       }
 

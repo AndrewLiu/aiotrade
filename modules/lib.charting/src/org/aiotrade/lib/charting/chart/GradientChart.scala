@@ -72,7 +72,7 @@ class GradientChart extends AbstractChart {
     var color = LookFeel().stickChartColor
     setForeground(color)
         
-    val radius = if (wBar < 2) 0 else ((wBar - 2) / 2).intValue
+    val radius = if (wBar < 2) 0 else ((wBar - 2) / 2).toInt
         
     var bar = 1
     while (bar <= nBars) {

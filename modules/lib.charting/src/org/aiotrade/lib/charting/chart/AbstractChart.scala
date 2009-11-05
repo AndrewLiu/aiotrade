@@ -163,10 +163,10 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     this.nBars     = datumPlane.getNBars
     this.wBar      = datumPlane.getWBar
         
-    this.wSeg = Math.max(wBar, MIN_SEGMENT_WIDTH).intValue
-    this.nSegs = (nBars * wBar / wSeg).intValue + 1
+    this.wSeg = Math.max(wBar, MIN_SEGMENT_WIDTH).toInt
+    this.nSegs = (nBars * wBar / wSeg).toInt + 1
         
-    this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).intValue
+    this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt
         
     reset
         
@@ -182,7 +182,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   }
     
   protected def addMarkPoint(x: Int, y: Int) {
-    markPoints+= new Point(x, y)
+    markPoints += new Point(x, y)
   }
     
   /**
@@ -199,7 +199,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   protected def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
-    val w = getStrockWidth.intValue
+    val w = getStrockWidth.toInt
     var stroke: Stroke = getStrockType match {
       case StrockType.Base =>
         if (w <= BASE_STROKES.length) BASE_STROKES(w - 1)
@@ -303,11 +303,11 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @return segment index corresponding to barIdx
    */
   final protected def sb(barIdx: Int): Int = {
-    (barIdx * wBar / wSeg).intValue + 1
+    (barIdx * wBar / wSeg).toInt + 1
   }
 
   /* final */ protected def bs(segIdx: Int): Int = {
-    (((segIdx - 1) * wSeg) / wBar).intValue
+    (((segIdx - 1) * wSeg) / wBar).toInt
   }
 
   /**
@@ -331,7 +331,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   }
 
   protected def plotVerticalLine(bar: Int, path: GeneralPath) {
-    val x = xb(bar);
+    val x = xb(bar)
     val yBeg = datumPlane.getYCanvasLower
     val yEnd = datumPlane.getYCanvasUpper
     path.moveTo(x, yBeg)

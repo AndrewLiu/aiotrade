@@ -41,8 +41,6 @@ import java.awt.geom.Arc2D
 class Arc extends ShapeWidget {
   class Model(var x: Float, var y: Float, var width: Float, var height: Float, var angSt: Float, var angExt: Float, var closure: Int) extends WidgetModel {
 
-    set(x, y, width, height, angSt, angExt, closure)
-
     def this() = this(0f, 0f, 0f, 0f, 0f, 0f, 0)
         
     def set(x: Float, y: Float, w: Float, h: Float, angSt: Float, angExt: Float, closure: Int) {
@@ -80,9 +78,8 @@ class Arc extends ShapeWidget {
     
   protected def plotWidget {
     val m = model
-    getShape.setArc(
-      m.x, m.y, m.width, m.height,
-      m.angSt, m.angExt, m.closure)
+    getShape.setArc(m.x, m.y, m.width, m.height,
+                    m.angSt, m.angExt, m.closure)
   }
     
 }

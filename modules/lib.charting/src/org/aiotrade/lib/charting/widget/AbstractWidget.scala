@@ -350,7 +350,7 @@ abstract class AbstractWidget extends Widget {
     child
   }
     
-  def removeChild(child:Widget): Unit = {
+  def removeChild(child: Widget): Unit = {
     if (children != null) {
       children.remove(children.indexOf(child))
     }

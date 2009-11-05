@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.chart;
+package org.aiotrade.lib.charting.chart
 
 import org.aiotrade.lib.charting.chart.Chart.StrockType
 import org.aiotrade.lib.charting.widget.WidgetModel
@@ -84,18 +84,25 @@ class GridChart extends AbstractChart {
     val w = datumPlane.getWidth - 1
     val h = datumPlane.getHeight - 1
 
-    for (value <- m.values if Null.not(value)) {
-      m.direction match {
-        case Direction.Horizontal =>
-          val y = yv(value)
-          path.moveTo(0, y)
-          path.lineTo(w, y)
-        case Direction.Vertical =>
-          val x = value
-          path.moveTo(x, 0)
-          path.lineTo(x, h)
-        case _ =>
+    val size = m.values.length
+    var i = 0
+    while (i < size) {
+      val value = m.values(i)
+      if (Null.not(value)) {
+        m.direction match {
+          case Direction.Horizontal =>
+            val y = yv(value)
+            path.moveTo(0, y)
+            path.lineTo(w, y)
+          case Direction.Vertical =>
+            val x = value
+            path.moveTo(x, 0)
+            path.lineTo(x, h)
+          case _ =>
+        }
       }
+
+      i += 1
     }
   }
 }

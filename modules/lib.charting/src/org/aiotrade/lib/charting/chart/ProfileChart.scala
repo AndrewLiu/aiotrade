@@ -74,7 +74,7 @@ class ProfileChart extends AbstractChart {
     val color = LookFeel().getGradientColor(getDepth, -10)
     setForeground(color)
         
-    val width = (w * 2.386).intValue
+    val width = (w * 2.386).toInt
         
     //color = Color.YELLOW;//new Color(1.0f, 1.0f, 1.0f, 0.618f)
         

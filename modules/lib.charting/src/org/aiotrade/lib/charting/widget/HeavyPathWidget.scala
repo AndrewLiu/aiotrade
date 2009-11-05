@@ -28,13 +28,14 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.charting.widget;
+package org.aiotrade.lib.charting.widget
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.geom.GeneralPath;import scala.collection.mutable.HashMap
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Rectangle
+import java.awt.geom.GeneralPath
+import scala.collection.mutable.HashMap
 
 
 /**
@@ -45,7 +46,7 @@ import java.awt.geom.GeneralPath;import scala.collection.mutable.HashMap
  */
 class HeavyPathWidget extends AbstractWidget {
     
-  private val colorsWithPath = new HashMap[Color, GeneralPath]
+  private val colorToPath = new HashMap[Color, GeneralPath]
     
   protected def createModel: M = null
     
@@ -55,7 +56,7 @@ class HeavyPathWidget extends AbstractWidget {
     
   override protected def makePreferredBounds: Rectangle = {
     val pathBounds = new Rectangle
-    for (path <- colorsWithPath.values) {
+    for (path <- colorToPath.valuesIterator) {
       pathBounds.add(path.getBounds)
     }
         
@@ -65,10 +66,10 @@ class HeavyPathWidget extends AbstractWidget {
   }
     
   def getPath(color: Color): GeneralPath = {
-    colorsWithPath.get(color) match {
+    colorToPath.get(color) match {
       case None =>
         val pathx = borrowPath
-        colorsWithPath.put(color, pathx)
+        colorToPath.put(color, pathx)
         pathx
       case Some(x) => x  
     }
@@ -80,7 +81,7 @@ class HeavyPathWidget extends AbstractWidget {
   }
     
   override protected def widgetContains(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    for (path <- colorsWithPath.values) {
+    for (path <- colorToPath.valuesIterator) {
       if (path.contains(x, y, width, height)) {
         return true
       }
@@ -89,26 +90,26 @@ class HeavyPathWidget extends AbstractWidget {
   }
     
   override def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    for (path <- colorsWithPath.values) {
+    for (path <- colorToPath.valuesIterator) {
       if (path.intersects(x, y, width, height)) {
-        return true;
+        return true
       }
     }
-    return false;
+    false
   }
     
   override def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
-    for (color <- colorsWithPath.keySet) {
+    for (color <- colorToPath.keySet) {
       g.setColor(color)
-      g.draw(colorsWithPath.get(color).get)
+      g.draw(colorToPath(color))
     }
   }
     
   override def reset {
     super.reset
-    for (path <- colorsWithPath.values) {
+    for (path <- colorToPath.valuesIterator) {
       path.reset
     }
   }
@@ -118,7 +119,7 @@ class HeavyPathWidget extends AbstractWidget {
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    for (path <- colorsWithPath.values) {
+    for (path <- colorToPath.valuesIterator) {
       returnPath(path)
     }
         
