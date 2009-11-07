@@ -599,7 +599,9 @@ abstract class ChartView(protected var controller: ChartingController,
       }
 
       /** precess event's call back */
-      evt.callBack()
+      if (evt.callBack != null) {
+        evt.callBack()
+      }
     }
   }
 }
