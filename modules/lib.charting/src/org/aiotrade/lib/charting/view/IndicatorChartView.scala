@@ -129,16 +129,16 @@ class IndicatorChartView(controller: ChartingController,
     
     
   protected def putChartsOfMainSer {
-    var depth = Pane.DEPTH_CHART_BEGIN;
+    var depth = Pane.DEPTH_CHART_BEGIN
     var depthGradient = Pane.DEPTH_GRADIENT_BEGIN
         
     for (ser <- getAllSers) {
       /** add charts */
       for (v <- ser.vars) {
-        val chartVars = new HashSet[TVar[_]]
-        val chart = ChartFactory.createVarChart(chartVars, v)
+        val chart = ChartFactory.createVarChart(v)
         if (chart != null) {
-          mainSerChartMapVars.put(chart, chartVars)
+          val chartVars = new HashSet[TVar[_]]
+          mainSerChartToVars.put(chart, chartVars += v)
                     
           chart.set(mainChartPane, ser)
 
@@ -197,9 +197,9 @@ class IndicatorChartView(controller: ChartingController,
   override def popupToDesktop {
     val popupView = new PopupIndicatorChartView(getController, getMainSer)
     val alwaysOnTop = true;
-    val dimension = new Dimension(getWidth, 200)
+    val dim = new Dimension(getWidth, 200)
         
-    getController.popupViewToDesktop(popupView, dimension, alwaysOnTop, false)
+    getController.popupViewToDesktop(popupView, dim, alwaysOnTop, false)
   }
 
   @throws(classOf[Throwable])

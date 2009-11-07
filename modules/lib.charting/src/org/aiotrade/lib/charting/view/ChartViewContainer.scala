@@ -52,7 +52,7 @@ import scala.collection.mutable.HashMap
  */
 abstract class ChartViewContainer extends JPanel {
 
-  private val descriptorsWithSlaveView = new HashMap[IndicatorDescriptor, ChartView]
+  private val descriptorsToSlaveView = new HashMap[IndicatorDescriptor, ChartView]
   private var controller: ChartingController = _
   private var masterView: ChartView = _
   /**
@@ -88,7 +88,7 @@ abstract class ChartViewContainer extends JPanel {
   def setInteractive(b: Boolean) {
     getMasterView.setInteractive(b)
 
-    for (view <- descriptorsWithSlaveView.valuesIterator) {
+    for (view <- descriptorsToSlaveView.valuesIterator) {
       view.setInteractive(b)
     }
 
@@ -134,9 +134,9 @@ abstract class ChartViewContainer extends JPanel {
 
     var numSlaveViews = 0
     var sumSlaveViewsHeight = 0f
-    for (v <- descriptorsWithSlaveView.valuesIterator if v != getMasterView) {
+    for (view <- descriptorsToSlaveView.valuesIterator if view != getMasterView) {
       /** overlapping view is also in masterView, should ignor it */
-      sumSlaveViewsHeight += v.getHeight
+      sumSlaveViewsHeight += view.getHeight
       numSlaveViews += 1
     }
 
@@ -145,9 +145,9 @@ abstract class ChartViewContainer extends JPanel {
       sumSlaveViewsHeight = 0.382f * masterView.getHeight
     }
 
-    setVisible(false);
+    setVisible(false)
 
-    val adjustHeight = increment;
+    val adjustHeight = increment
     gbc.weighty = masterView.getHeight + adjustHeight
 
     /**
@@ -157,24 +157,24 @@ abstract class ChartViewContainer extends JPanel {
      * the size according to weightx and weighty, but for performence issue,
      * we'd better setSize() to the actual size that we want.
      */
-    gbl.setConstraints(masterView, gbc);
-    masterView.setSize(new Dimension(masterView.getWidth, gbc.weighty.intValue))
-    for (v <- descriptorsWithSlaveView.valuesIterator if !v.equals(getMasterView)) {
+    gbl.setConstraints(masterView, gbc)
+    masterView.setSize(new Dimension(masterView.getWidth, gbc.weighty.toInt))
+    for (view <- descriptorsToSlaveView.valuesIterator if view != getMasterView) {
       /** average assigning */
       gbc.weighty = (sumSlaveViewsHeight - adjustHeight) / numSlaveViews
       /*-
        * proportional assigning
        * gbc.weighty = v.getHeight() - adjustHeight * v.getHeight() / iHeight;
        */
-      gbl.setConstraints(v, gbc)
-      v.setSize(new Dimension(v.getWidth, gbc.weighty.intValue))
+      gbl.setConstraints(view, gbc)
+      view.setSize(new Dimension(view.getWidth, gbc.weighty.toInt))
     }
 
     setVisible(true)
   }
 
   def getMasterView: ChartView = {
-    masterView;
+    masterView
   }
 
   protected def setMasterView(masterView: ChartView, gbc: GridBagConstraints) {
@@ -184,11 +184,11 @@ abstract class ChartViewContainer extends JPanel {
 
   def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, agbc: GridBagConstraints) {
     var gbc = agbc
-    if (!descriptorsWithSlaveView.contains(descriptor)) {
+    if (!descriptorsToSlaveView.contains(descriptor)) {
       var view: ChartView = null
       if (indicator.isOverlapping) {
         view = getMasterView
-        view.addOverlappingCharts(indicator);
+        view.addOverlappingCharts(indicator)
       } else {
         view = new IndicatorChartView(getController, indicator)
         if (gbc == null) {
@@ -198,7 +198,7 @@ abstract class ChartViewContainer extends JPanel {
         }
         add(view, gbc)
       }
-      descriptorsWithSlaveView.put(descriptor, view)
+      descriptorsToSlaveView.put(descriptor, view)
       setSelectedView(view)
     }
   }
@@ -214,11 +214,11 @@ abstract class ChartViewContainer extends JPanel {
         repaint()
       case None =>
     }
-    descriptorsWithSlaveView.remove(descriptor)
+    descriptorsToSlaveView.remove(descriptor)
   }
 
   def getSlaveViews = {
-    descriptorsWithSlaveView.valuesIterator
+    descriptorsToSlaveView.valuesIterator
   }
 
   def setSelectedView(view: ChartView) {
@@ -261,8 +261,8 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   def lookupIndicatorDescriptor(view: ChartView): IndicatorDescriptor = {
-    for (descriptor <- descriptorsWithSlaveView.keysIterator) {
-      val theView = descriptorsWithSlaveView.get(descriptor)
+    for (descriptor <- descriptorsToSlaveView.keysIterator) {
+      val theView = descriptorsToSlaveView.get(descriptor)
       if (theView != null && theView == view) {
         return descriptor
       }
@@ -271,11 +271,11 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   def lookupChartView(descriptor: IndicatorDescriptor): Option[ChartView] = {
-    descriptorsWithSlaveView.get(descriptor)
+    descriptorsToSlaveView.get(descriptor)
   }
 
   def getDescriptorsWithSlaveView: HashMap[IndicatorDescriptor, ChartView] = {
-    descriptorsWithSlaveView
+    descriptorsToSlaveView
   }
 
   def getFocusableParent: Component = {
@@ -302,18 +302,18 @@ abstract class ChartViewContainer extends JPanel {
     val begPos = controller.getMasterSer.rowOfTime(begTime)
     val endPos = controller.getMasterSer.rowOfTime(endTime)
     val nBars = endPos - begPos
-    val width = (nBars * controller.getWBar).intValue
+    val width = (nBars * controller.getWBar).toInt
 
     /** backup: */
     val backupRightCursorPos = controller.getRightSideRow
     val backupReferCursorPos = controller.getReferCursorRow
 
-    controller.setCursorByRow(backupReferCursorPos, endPos, true);
+    controller.setCursorByRow(backupReferCursorPos, endPos, true)
 
-    saveToCustomSizeImage(file, fileFormat, width, height);
+    saveToCustomSizeImage(file, fileFormat, width, height)
 
     /** restore: */
-    controller.setCursorByRow(backupReferCursorPos, backupRightCursorPos, true);
+    controller.setCursorByRow(backupReferCursorPos, backupRightCursorPos, true)
   }
 
   @throws(classOf[Exception])
@@ -356,7 +356,7 @@ abstract class ChartViewContainer extends JPanel {
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    descriptorsWithSlaveView.clear
+    descriptorsToSlaveView.clear
     super.finalize
   }
 }

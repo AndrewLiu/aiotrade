@@ -99,7 +99,7 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
     quoteChart = new QuoteChart
 
     val vars = new HashSet[TVar[_]]
-    mainSerChartMapVars.put(quoteChart, vars)
+    mainSerChartToVars.put(quoteChart, vars)
     for (v <- mainSer.vars) {
       if (v.plot == Plot.Quote) {
         vars.add(v)

@@ -33,7 +33,6 @@ package org.aiotrade.lib.charting.chart
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.util.Signal
-import scala.collection.mutable.HashSet
 
 
 /**
@@ -44,41 +43,33 @@ import scala.collection.mutable.HashSet
  */
 object ChartFactory {
     
-  def createVarChart(chartVarContainer: HashSet[TVar[_]], v: TVar[_]): Chart = {
+  def createVarChart(v: TVar[_]): Chart = {
     var chart: Chart = null
     v.plot match  {
       case Plot.Volume =>
         chart = new VolumeChart
         chart.asInstanceOf[VolumeChart].model.set(false)
-        chartVarContainer += v
       case Plot.Line =>
         chart = new PolyLineChart
         chart.asInstanceOf[PolyLineChart].model.set(v.asInstanceOf[TVar[Float]])
-        chartVarContainer += v
       case Plot.Stick =>
         chart = new StickChart
         chart.asInstanceOf[StickChart].model.set(v.asInstanceOf[TVar[Float]])
-        chartVarContainer += v
       case Plot.Dot =>
         chart = new DotChart
         chart.asInstanceOf[DotChart].model.set(v)
-        chartVarContainer += v
       case Plot.Shade =>
         chart = new GradientChart
         chart.asInstanceOf[GradientChart].model.set(v, null)
-        chartVarContainer += v
       case Plot.Profile =>
         chart = new ProfileChart
         chart.asInstanceOf[ProfileChart].model.set(v)
-        chartVarContainer += v
       case Plot.Zigzag =>
         chart = new ZigzagChart
         chart.asInstanceOf[ZigzagChart].model.set(v)
-        chartVarContainer += v
       case Plot.Signal =>
         chart = new SignalChart
         chart.asInstanceOf[SignalChart].model.set((v.asInstanceOf[TVar[Signal]]))
-        chartVarContainer += v
       case _ =>
     }
         
