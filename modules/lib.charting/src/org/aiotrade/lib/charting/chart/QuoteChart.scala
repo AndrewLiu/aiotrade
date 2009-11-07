@@ -87,7 +87,7 @@ class QuoteChart extends AbstractChart {
   protected def createModel: Model = new Model
     
   protected def plotChart {
-        
+
     if (getDepth == Pane.DEPTH_DEFAULT) {
       positiveColor = LookFeel().getPositiveColor
       negativeColor = LookFeel().getNegativeColor

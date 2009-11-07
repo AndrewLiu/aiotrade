@@ -82,7 +82,7 @@ class ChangeObservableHelper {
     
   def notifyObserversChanged[T <: ChangeObserver[Any]](subject: Any, observerType: Class[T]): Unit = {
     for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
-      observer.asInstanceOf[ChangeObserver[Any]].update(subject)
+      observer.update(subject)
     }
   }
     

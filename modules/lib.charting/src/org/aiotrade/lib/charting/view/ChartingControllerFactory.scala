@@ -37,7 +37,6 @@ import java.awt.Toolkit
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
 import java.awt.event.MouseWheelListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -49,9 +48,7 @@ import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.ChangeObserver
-import org.aiotrade.lib.util.ChangeObservable
 import org.aiotrade.lib.util.ChangeObservableHelper
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
@@ -106,6 +103,7 @@ object ChartingControllerFactory {
    */
   private class DefaultChartingController(masterSer: MasterTSer, contents: AnalysisContents) extends ChartingController {
     import DefaultChartingController._
+    
     private val popupViews = new HashSet[ChartView]
     private var viewContainer: ChartViewContainer = _
     private var wBarIdx = 11
@@ -148,31 +146,15 @@ object ChartingControllerFactory {
     }
 
     private def addKeyMouseListenersTo(component: JComponent) {
-      component.setFocusable(true);
-      component.addKeyListener(new ViewKeyAdapter);
+      component.setFocusable(true)
+      component.addKeyListener(new ViewKeyAdapter)
       component.addMouseWheelListener(new ViewMouseWheelListener)
     }
 
     private def removeKeyMouseListenersFrom(component: JComponent) {
-      /** use a list to avoid concurrent issue */
-      val toBeRemoved = new ArrayList[AnyRef]
-
-      val ls = component.getKeyListeners.iterator
-      while (ls.hasNext) {
-        toBeRemoved += ls.next
-      }
-      for (l <- toBeRemoved) {
-        component.removeKeyListener(l.asInstanceOf[KeyListener])
-      }
-
-      toBeRemoved.clear
-      val ls2 = component.getMouseWheelListeners.iterator
-      while (ls2.hasNext) {
-        toBeRemoved += ls.next
-      }
-      for (l <- toBeRemoved) {
-        component.removeMouseWheelListener(l.asInstanceOf[MouseWheelListener])
-      }
+      /** copy to a list to avoid concurrent issue */
+      component.getKeyListeners.toList foreach {x => component.removeKeyListener(x)}
+      component.getMouseWheelListeners.toList foreach {x => component.removeMouseWheelListener(x)}
     }
 
     def getMasterSer: MasterTSer = {
@@ -286,20 +268,20 @@ object ChartingControllerFactory {
       }
     }
 
-    def setCursorByRow(referRow: Int, rightRow: Int, updateViews: Boolean) {
+    def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean) {
       /** set right cursor row first and directly */
       internal_setRightSideRow(rightRow)
 
       val oldValue = getReferCursorRow
-      scrollReferCursor(referRow - oldValue, updateViews)
+      scrollReferCursor(referRow - oldValue, willUpdateViews)
     }
 
-    def setReferCursorByRow(row: Int, updateViews: Boolean) {
+    def setReferCursorByRow(row: Int, willUpdateViews: Boolean) {
       val increment = row - getReferCursorRow
-      scrollReferCursor(increment, updateViews)
+      scrollReferCursor(increment, willUpdateViews)
     }
 
-    def scrollReferCursor(increment: Int, updateViews: Boolean) {
+    def scrollReferCursor(increment: Int, willUpdateViews: Boolean) {
       var referRow = getReferCursorRow
       val rightRow = getRightSideRow
 
@@ -320,7 +302,7 @@ object ChartingControllerFactory {
       }
 
       internal_setReferCursorRow(referRow)
-      if (updateViews) {
+      if (willUpdateViews) {
         updateViews
       }
     }
@@ -354,11 +336,7 @@ object ChartingControllerFactory {
        * as repaint() may be called by awt in instance's initialization, before
        * popupViewSet is created, so, check null.
        */
-      if (popupViews != null) {
-        for (view <- popupViews) {
-          view.repaint()
-        }
-      }
+      popupViews foreach {view => view.repaint()}
     }
 
     def addObserver(owner: AnyRef, observer: ChangeObserver[Any]) {
@@ -499,8 +477,7 @@ object ChartingControllerFactory {
       frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
       frame.addWindowListener(new WindowAdapter {
 
-          override
-          def windowClosed(e: WindowEvent) {
+          override def windowClosed(e: WindowEvent) {
             removeKeyMouseListenersFrom(popupView)
             popupViews.remove(popupView)
           }
@@ -558,12 +535,13 @@ object ChartingControllerFactory {
         /** this method only process loading, update events to check if need to update cursor */
         evt.tpe match {
           case SerChangeEvent.Type.FinishedLoading | SerChangeEvent.Type.RefreshInLoading | SerChangeEvent.Type.Updated =>
-            val masterView = viewContainer.getMasterView
-            if (masterView.isInstanceOf[WithDrawingPane]) {
-              val drawing = masterView.asInstanceOf[WithDrawingPane].getSelectedDrawing
-              if (drawing != null && drawing.isInDrawing) {
-                return
-              }
+            viewContainer.getMasterView match {
+              case masterView: WithDrawingPane =>
+                val drawing = masterView.getSelectedDrawing
+                if (drawing != null && drawing.isInDrawing) {
+                  return
+                }
+              case _ =>
             }
 
             val oldReferRow = getReferCursorRow

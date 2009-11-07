@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.charting.view
 
-import org.aiotrade.lib.util.ChangeObservable
 import org.aiotrade.lib.util.ChangeObserver
 
 /**
