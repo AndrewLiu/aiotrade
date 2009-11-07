@@ -30,7 +30,6 @@
  */
 package org.aiotrade.platform.modules.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.indicator.ContIndicator
 
 /**
@@ -49,13 +48,13 @@ class MACDIndicator extends ContIndicator {
   val signal = TVar[Float]("SIGNAL", Plot.Line)
   val osc    = TVar[Float]("OSC",    Plot.Stick)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) = {
     var i = begIdx
     while (i < size) {
 
-      macd(i) = macd(i, C, periodSlow, periodFast)      
-      signal(i) = ema(i, macd, periodSignal)
-      osc(i) = macd(i) - signal(i)
+      macd(i)   = macd(i, C, periodSlow, periodFast)
+      signal(i) = ema (i, macd, periodSignal)
+      osc(i)    = macd(i) - signal(i)
       
       i += 1
     }
