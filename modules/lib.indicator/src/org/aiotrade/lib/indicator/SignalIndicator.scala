@@ -30,10 +30,9 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable;
+import org.aiotrade.lib.math.timeseries.computable.ContComputable
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TSer;
-import org.aiotrade.lib.math.timeseries.plottable.Plot;
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
 

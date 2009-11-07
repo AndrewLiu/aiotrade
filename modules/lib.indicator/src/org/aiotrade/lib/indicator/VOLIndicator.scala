@@ -30,9 +30,6 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.plottable.Plot
-
 /**
  *
  * @author Caoyuan Deng

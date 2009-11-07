@@ -30,12 +30,9 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
-import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.{QuoteItem, QuoteSer}
 
 
