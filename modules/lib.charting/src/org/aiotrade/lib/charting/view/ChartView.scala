@@ -78,7 +78,7 @@ import scala.collection.mutable.LinkedHashMap
  *
  * @author Caoyuan Deng
  */
-abstract class ChartView(protected var controller: ChartingController, protected var mainSer: TSer) extends {
+abstract class ChartView(protected var controller: ChartingController, protected var mainSer: TSer, empty: Boolean) extends {
   val AXISX_HEIGHT = 12
   val AXISY_WIDTH = 50
   val CONTROL_HEIGHT = 12
@@ -106,15 +106,16 @@ abstract class ChartView(protected var controller: ChartingController, protected
 
   private var componentAdapter: ComponentAdapter = _
   private var interactive = true
-  private var pinned = false;
+  private var pinned = false
   private val observableHelper = new ChangeObservableHelper
   protected val serChangeListener = new MySerChangeListener
 
-  def this() = this(null, null)
-
-  if (controller != null && mainSer != null) {
+  if (!empty) {
     init(controller, mainSer)
   }
+
+  def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
+  def this() = this(null, null, true)
 
   def init(controller: ChartingController, mainSer: TSer) {
     this.controller = controller
@@ -158,7 +159,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
   protected def initComponents: Unit
 
   private def createBasisComponents {
-    setDoubleBuffered(true);
+    setDoubleBuffered(true)
 
     /**
      * !NOTICE
@@ -181,19 +182,15 @@ abstract class ChartView(protected var controller: ChartingController, protected
       override protected def paintComponent(g: Graphics) {
         val width = getWidth
         val height = getHeight
-        var comps = getComponents.iterator
-        while (comps.hasNext) {
-          val c = comps.next
-          if (c.isInstanceOf[Pane]) {
-            c.setBounds(0, 0, width, height)
-          }
+        for (c <- getComponents if c.isInstanceOf[Pane]) {
+          c.setBounds(0, 0, width, height)
         }
       }
-    };
-    mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).intValue))
+    }
+    mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
     mainLayeredPane.add(mainChartPane, JLayeredPane.DEFAULT_LAYER)
 
-    glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).intValue))
+    glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
 
     axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
     axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
@@ -268,8 +265,8 @@ abstract class ChartView(protected var controller: ChartingController, protected
      */
     computeMaxMin
     if (maxValue != oldMaxValue || minValue != oldMinValue) {
-      oldMaxValue = maxValue;
-      oldMinValue = minValue;
+      oldMaxValue = maxValue
+      oldMinValue = minValue
       notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
   }

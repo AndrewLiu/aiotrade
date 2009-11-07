@@ -70,17 +70,14 @@ object AbstractQuoteChartView {
 
 }
 
-abstract class AbstractQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean) extends ChartView with WithQuoteChart {
+abstract class AbstractQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean)
+extends ChartView(controller, quoteSer, empty) with WithQuoteChart {
   import AbstractQuoteChartView._
 
   private var quoteChart:  QuoteChart = _
   protected var maxVolume, minVolume: Float = _
   protected var sec: Sec = _
 
-  if (!empty) {
-    init(controller, quoteSer)
-  }
-  
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
 

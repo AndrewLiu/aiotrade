@@ -63,7 +63,8 @@ object RealTimeQuoteChartView {
 
 }
 
-class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean) extends AbstractQuoteChartView {
+class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean)
+extends AbstractQuoteChartView(controller, quoteSer, empty) {
   import RealTimeQuoteChartView._
 
   private var prevClose = Null.Float
@@ -72,13 +73,8 @@ class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
   private val cal = Calendar.getInstance
   private var market: Market = _
 
-  if (!empty) {
-    init(controller, quoteSer)
-  }
-
-  def this() = this(null, null, true)
-
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
+  def this() = this(null, null, true)
 
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)

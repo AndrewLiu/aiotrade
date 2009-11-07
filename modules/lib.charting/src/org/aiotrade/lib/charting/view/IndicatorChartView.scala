@@ -51,18 +51,12 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView(controller: ChartingController, mainSer: TSer) extends ChartView {
+class IndicatorChartView(controller: ChartingController, mainSer: TSer, empty: Boolean)
+extends ChartView(controller, mainSer, empty) {
     
-  def this() = this(null, null)
+  def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
+  def this() = this(null, null, true)
 
-  if (controller != null && mainSer != null) {
-    init(controller, mainSer)
-  }
-    
-  override def init(controller: ChartingController, mainSer: TSer) {
-    super.init(controller, mainSer)
-  }
-    
   /**
    * Layout of IndicatorView
    *
