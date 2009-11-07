@@ -100,7 +100,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
         
       /** adjust if necessary */
       if (this.equals(view.getMainChartPane)) {
-        hSpaceUpper += ChartView.TITLE_HEIGHT_PER_LINE
+        hSpaceUpper += view.TITLE_HEIGHT_PER_LINE
       } else if (view.isInstanceOf[WithVolumePane] && this.equals(view.asInstanceOf[WithVolumePane].getVolumeChartPane)) {
         maxValue = view.asInstanceOf[WithVolumePane].getMaxVolume
         minValue = view.asInstanceOf[WithVolumePane].getMinVolume
@@ -112,7 +112,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
       this.hCanvas = getHeight - hSpaceLower - hSpaceUpper
         
       val hChartCouldBe = hCanvas
-      this.hChart = (hChartCouldBe * yChartScale).intValue
+      this.hChart = (hChartCouldBe * yChartScale).toInt
         
       /** allocate sparePixelsBroughtByYChartScale to upper and lower averagyly */
       val sparePixelsBroughtByYChartScale = hChartCouldBe - hChart

@@ -78,14 +78,12 @@ import scala.collection.mutable.LinkedHashMap
  *
  * @author Caoyuan Deng
  */
-object ChartView {
+abstract class ChartView(protected var controller: ChartingController, protected var mainSer: TSer) extends {
   val AXISX_HEIGHT = 12
   val AXISY_WIDTH = 50
   val CONTROL_HEIGHT = 12
   val TITLE_HEIGHT_PER_LINE = 12
-}
-abstract class ChartView(protected var controller: ChartingController, protected var mainSer: TSer) extends JComponent with ChangeObservable {
-  import ChartView._
+} with JComponent with ChangeObservable {
 
   protected var masterSer: MasterTSer = _
   protected val mainSerChartMapVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]

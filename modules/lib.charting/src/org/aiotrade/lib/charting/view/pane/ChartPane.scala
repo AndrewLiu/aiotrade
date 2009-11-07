@@ -172,7 +172,7 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
         /** set refer cursor */
         val y = e.getY
         val b = bx(e.getX)
-        if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= (getHeight - ChartView.CONTROL_HEIGHT) &&
+        if (y >= view.TITLE_HEIGHT_PER_LINE && y <= (getHeight - view.CONTROL_HEIGHT) &&
             b >= 1 && b <= getNBars) {
           val position = rb(b)
           view.getController.setReferCursorByRow(position, true)
@@ -184,7 +184,7 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
     override def mouseMoved(e: MouseEvent) {
       val y = e.getY
             
-      if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= getHeight - ChartView.CONTROL_HEIGHT) {
+      if (y >= view.TITLE_HEIGHT_PER_LINE && y <= getHeight - view.CONTROL_HEIGHT) {
         isMouseEntered = true
         view.getController.setMouseEnteredAnyChartPane(true)
       } else {

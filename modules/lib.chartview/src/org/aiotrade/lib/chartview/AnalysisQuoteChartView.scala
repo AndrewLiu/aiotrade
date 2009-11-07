@@ -100,10 +100,10 @@ class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer,
     
   protected def initComponents {
     xControlPane = new XControlPane(this, mainChartPane)
-    xControlPane.setPreferredSize(new Dimension(10, ChartView.CONTROL_HEIGHT))
+    xControlPane.setPreferredSize(new Dimension(10, CONTROL_HEIGHT))
         
     yControlPane = new YControlPane(this, mainChartPane)
-    yControlPane.setPreferredSize(new Dimension(10, ChartView.CONTROL_HEIGHT))
+    yControlPane.setPreferredSize(new Dimension(10, CONTROL_HEIGHT))
         
     /** begin to set the layout: */
         

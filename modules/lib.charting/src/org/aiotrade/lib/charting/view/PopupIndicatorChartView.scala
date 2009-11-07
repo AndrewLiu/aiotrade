@@ -54,7 +54,7 @@ class PopupIndicatorChartView(controller: ChartingController, mainSer: TSer) ext
     
   override protected def initComponents {
     xControlPane = new XControlPane(this, mainChartPane)
-    xControlPane.setPreferredSize(new Dimension(10, ChartView.CONTROL_HEIGHT))
+    xControlPane.setPreferredSize(new Dimension(10, CONTROL_HEIGHT))
         
     /** begin to set the layout: */
         

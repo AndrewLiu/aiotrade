@@ -84,15 +84,12 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-object GlassPane {
+class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
   private val TRANSPARENT_COLOR = new Color(0, 0, 0, 0)
   private val BUTTON_SIZE = 12
   private val BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE)
   private val MONEY_DECIMAL_FORMAT = new DecimalFormat("0.###")
-}
-
-class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) with WithCursorChart {
-  import GlassPane._
+} with Pane(view, datumPlane) with WithCursorChart {
 
   private val overlappingSersToCloseButton = new HashMap[TSer, AIOCloseButton]
   private val overlappingSersToNameLabel = new HashMap[TSer, JLabel]
@@ -107,7 +104,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   private val titlePanel = new JPanel
   titlePanel.setOpaque(false)
-  titlePanel.setPreferredSize(new Dimension(10, ChartView.TITLE_HEIGHT_PER_LINE))
+  titlePanel.setPreferredSize(new Dimension(10, view.TITLE_HEIGHT_PER_LINE))
 
   setLayout(new BorderLayout)
   add(titlePanel, BorderLayout.NORTH)
@@ -738,7 +735,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         label.setFont(laf.axisFont)
 
         val fm = getFontMetrics(label.getFont)
-        label.model.set(w - fm.stringWidth(str) - (BUTTON_SIZE + 1), ChartView.TITLE_HEIGHT_PER_LINE - 2, str)
+        label.model.set(w - fm.stringWidth(str) - (BUTTON_SIZE + 1), view.TITLE_HEIGHT_PER_LINE - 2, str)
         label.plot
       } else { /** indicator view */
         if (mainChartPane.isMouseEntered) {
