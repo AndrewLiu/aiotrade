@@ -78,7 +78,10 @@ import scala.collection.mutable.LinkedHashMap
  *
  * @author Caoyuan Deng
  */
-abstract class ChartView(protected var controller: ChartingController, protected var mainSer: TSer, empty: Boolean) extends {
+abstract class ChartView(protected var controller: ChartingController, 
+                         protected var mainSer: TSer,
+                         empty: Boolean
+) extends {
   val AXISX_HEIGHT = 12
   val AXISY_WIDTH = 50
   val CONTROL_HEIGHT = 12
@@ -339,7 +342,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
   }
 
   def isPinned: Boolean = {
-    pinned;
+    pinned
   }
 
   def setYChartScale(yChartScale: Float) {
@@ -366,7 +369,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
       datumPane.growYChartScale(increment)
     }
 
-    repaint();
+    repaint()
   }
 
   def setYChartScaleByCanvasValueRange(canvasValueRange: Double) {
@@ -384,7 +387,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
       datumPane.scrollChartsVerticallyByPixel(increment)
     }
 
-    repaint();
+    repaint()
   }
 
   /**
@@ -510,7 +513,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
 
     notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
-    repaint();
+    repaint()
   }
 
   def removeOverlappingCharts(ser: TSer) {
@@ -533,7 +536,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
 
     notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
-    repaint();
+    repaint()
   }
 
   def computeMaxMin {
@@ -547,11 +550,13 @@ abstract class ChartView(protected var controller: ChartingController, protected
   /** this method only process FinishedComputing event, if you want more, do it in subclass */
   protected def updateView(evt: SerChangeEvent) {
     if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
-      if (this.isInstanceOf[WithDrawingPane]) {
-        val drawing = ChartView.this.asInstanceOf[WithDrawingPane].getSelectedDrawing
+      ChartView.this match {
+        case drawPane: WithDrawingPane =>
+        val drawing = drawPane.getSelectedDrawing
         if (drawing != null && drawing.isInDrawing) {
-          return;
+          return
         }
+        case _ =>
       }
 
       notifyObserversChanged(classOf[ChartValidityObserver[Any]])
@@ -594,7 +599,7 @@ abstract class ChartView(protected var controller: ChartingController, protected
       }
 
       /** precess event's call back */
-      evt.callBack
+      evt.callBack()
     }
   }
 }

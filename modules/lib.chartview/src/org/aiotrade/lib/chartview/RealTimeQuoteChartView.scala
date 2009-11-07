@@ -63,15 +63,17 @@ object RealTimeQuoteChartView {
 
 }
 
-class RealTimeQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean)
-extends AbstractQuoteChartView(controller, quoteSer, empty) {
-  import RealTimeQuoteChartView._
-
+class RealTimeQuoteChartView(controller: ChartingController,
+                             quoteSer: QuoteSer,
+                             empty: Boolean
+) extends {
   private var prevClose = Null.Float
   private var gridValues: Array[Float] = _
   private var tickerSer: QuoteSer = _
   private val cal = Calendar.getInstance
   private var market: Market = _
+} with AbstractQuoteChartView(controller, quoteSer, empty) {
+  import RealTimeQuoteChartView._
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
@@ -207,7 +209,7 @@ extends AbstractQuoteChartView(controller, quoteSer, empty) {
     var lastOccurredTime = masterSer.lastOccurredTime
 
     evt.lastObject match {
-			case null =>
+      case null =>
       case ticker: Ticker =>
         val percentValue = ticker.changeInPercent
         val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)

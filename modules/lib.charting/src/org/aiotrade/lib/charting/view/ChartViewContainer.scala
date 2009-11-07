@@ -52,9 +52,9 @@ import scala.collection.mutable.HashMap
  */
 abstract class ChartViewContainer extends JPanel {
 
+  private val descriptorsWithSlaveView = new HashMap[IndicatorDescriptor, ChartView]
   private var controller: ChartingController = _
   private var masterView: ChartView = _
-  private val descriptorsWithSlaveView = new HashMap[IndicatorDescriptor, ChartView]
   /**
    * each viewContainer can only contains one selectedChart, so we define it here instead of
    * on ChartView or ChartPane;

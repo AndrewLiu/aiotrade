@@ -70,23 +70,23 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     /** use two list to record the active indicators and their order(index) for later showing */
     val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
     val  indicatorsToBeShowing = new ArrayList[Indicator]
-    for (descriptor <- getController.getContents.lookupDescriptors(classOf[IndicatorDescriptor])) {
-      if (descriptor.active && descriptor.freq.equals(getController.getMasterSer.freq)) {
-        descriptor.serviceInstance(getController.getMasterSer) foreach {indicator =>
-          /**
-           * @NOTICE
-           * As the quoteSer may has been loaded, there may be no more UpdatedEvent
-           * etc. fired, so, computeFrom(0) first.
-           */
-          indicator.computableActor ! ComputeFrom(0) // don't remove me
+    for (descriptor <- getController.getContents.lookupDescriptors(classOf[IndicatorDescriptor])
+         if descriptor.active && descriptor.freq == getController.getMasterSer.freq
+    ) {
+      descriptor.serviceInstance(getController.getMasterSer) foreach {indicator =>
+        /**
+         * @NOTICE
+         * As the quoteSer may has been loaded, there may be no more UpdatedEvent
+         * etc fired, so, computeFrom(0) first.
+         */
+        indicator.computableActor ! ComputeFrom(0) // don't remove me
                     
-          if (indicator.isOverlapping) {
-            addSlaveView(descriptor, indicator, null)
-          } else {
-            /** To get the extract size of slaveViews to be showing, store them first, then add them later */
-            indicatorDescriptorsToBeShowing += descriptor
-            indicatorsToBeShowing += indicator
-          }
+        if (indicator.isOverlapping) {
+          addSlaveView(descriptor, indicator, null)
+        } else {
+          /** To get the extract size of slaveViews to be showing, store them first, then add them later */
+          indicatorDescriptorsToBeShowing += descriptor
+          indicatorsToBeShowing += indicator
         }
       }
     }
@@ -98,11 +98,11 @@ class AnalysisChartViewContainer extends ChartViewContainer {
       addSlaveView(indicatorDescriptorsToBeShowing(i), indicatorsToBeShowing(i), gbc)
     }
         
-    for (descriptor <- getController.getContents.lookupDescriptors(classOf[DrawingDescriptor])) {
-      if (descriptor.freq.equals(getController.getMasterSer.freq)) {
-        descriptor.serviceInstance(getMasterView) foreach {drawing =>
-          getMasterView.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
-        }
+    for (descriptor <- getController.getContents.lookupDescriptors(classOf[DrawingDescriptor])
+         if descriptor.freq == getController.getMasterSer.freq
+    ) {
+      descriptor.serviceInstance(getMasterView) foreach {drawing =>
+        getMasterView.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
       }
     }
   }

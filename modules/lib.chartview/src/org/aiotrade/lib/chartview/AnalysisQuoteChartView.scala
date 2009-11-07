@@ -67,31 +67,34 @@ object AnalysisQuoteChartView {
     quoteChartType = AbstractQuoteChartView.internal_switchAllQuoteChartType(quoteChartType, tpe)
   }
 }
-class AnalysisQuoteChartView(controller: ChartingController, quoteSer: QuoteSer, empty: Boolean)
-extends AbstractQuoteChartView(controller, quoteSer, empty) with WithDrawingPane {
+class AnalysisQuoteChartView(controller: ChartingController,
+                             quoteSer: QuoteSer,
+                             empty: Boolean
+) extends {
+  private var compareIndicatorToChart: HashMap[QuoteCompareIndicator, QuoteChart] = _
+  private var withDrawingPaneHelper: WithDrawingPaneHelper = _
+} with AbstractQuoteChartView(controller, quoteSer, empty) with WithDrawingPane {
   import AnalysisQuoteChartView._
     
-  private var compareIndicatorToChart: HashMap[QuoteCompareIndicator, QuoteChart] = _
-    
-  /**
-   * To avoid null withDrawingPaneHelper when getSelectedDrawing called by other
-   * threads (such as dataLoadServer is running and fire a SerChangeEvent
-   * to force a updateView() calling), we should create withDrawingPaneHelper here
-   * (this will makes it be called before the code:
-   *     this.mainSer.addSerChangeListener(serChangeListener);
-   * in it's super's constructor: @See:ChartView#ChartView(ChartViewContainer, Ser)
-   */
-  private val withDrawingPaneHelper: WithDrawingPaneHelper = new WithDrawingPaneHelper(this)
-
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
     
   override def init(controller: ChartingController, quoteSer: TSer) {
-    super.init(controller, quoteSer)
-        
     quoteChartType = LookFeel().getQuoteChartType
         
     compareIndicatorToChart = new HashMap
+
+    /**
+     * To avoid null withDrawingPaneHelper when getSelectedDrawing called by other
+     * threads (such as dataLoadServer is running and fire a SerChangeEvent
+     * to force a updateView() calling), we should create withDrawingPaneHelper before super.init call
+     * (this will makes it be called before the code:
+     *     this.mainSer.addSerChangeListener(serChangeListener)
+     * in it's super's constructor: @See:ChartView#ChartView(ChartViewContainer, Ser)
+     */
+    withDrawingPaneHelper = new WithDrawingPaneHelper(this)
+
+    super.init(controller, quoteSer)
   }
     
   protected def initComponents {

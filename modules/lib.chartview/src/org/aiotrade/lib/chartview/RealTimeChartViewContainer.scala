@@ -54,7 +54,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
   import RealTimeChartViewContainer._
 
   override def init(focusableParent: Component, controller: ChartingController) {
-    super.init(focusableParent, controller);
+    super.init(focusableParent, controller)
 
     //getController().setOnCalendarMode(false);
     //getController().growWBar(-2);

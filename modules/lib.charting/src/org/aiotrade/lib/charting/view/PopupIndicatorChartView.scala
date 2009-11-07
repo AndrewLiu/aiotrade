@@ -40,8 +40,10 @@ import org.aiotrade.lib.charting.view.pane.XControlPane
  *
  * @author Caoyuan Deng
  */
-class PopupIndicatorChartView(controller: ChartingController, mainSer: TSer, empty: Boolean)
-extends IndicatorChartView(controller, mainSer, empty) {
+class PopupIndicatorChartView(controller: ChartingController, 
+                              mainSer: TSer,
+                              empty: Boolean
+) extends IndicatorChartView(controller, mainSer, empty) {
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)

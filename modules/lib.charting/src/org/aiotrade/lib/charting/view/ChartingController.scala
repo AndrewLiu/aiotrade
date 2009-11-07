@@ -76,11 +76,11 @@ trait ChartingController extends ChangeObservable {
 
     def setOnCalendarMode(b: Boolean): Unit
 
-    def setCursorByRow(referRow: Int, rightRow: Int, updateViews: Boolean): Unit
+    def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean): Unit
 
-    def setReferCursorByRow(Row: Int, updateViews: Boolean): Unit
+    def setReferCursorByRow(Row: Int, willUpdateViews: Boolean): Unit
 
-    def scrollReferCursor(increment: Int, updateViews: Boolean): Unit
+    def scrollReferCursor(increment: Int, willUpdateViews: Boolean): Unit
 
     /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
     def scrollChartsHorizontallyByBar(increment: Int): Unit

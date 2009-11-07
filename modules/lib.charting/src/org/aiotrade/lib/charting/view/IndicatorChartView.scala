@@ -51,8 +51,10 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView(controller: ChartingController, mainSer: TSer, empty: Boolean)
-extends ChartView(controller, mainSer, empty) {
+class IndicatorChartView(controller: ChartingController, 
+                         mainSer: TSer,
+                         empty: Boolean
+) extends ChartView(controller, mainSer, empty) {
     
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)
@@ -172,14 +174,12 @@ extends ChartView(controller, mainSer, empty) {
     while (i <= getNBars) {
       val time = tb(i)
       val item = mainSer.itemOf(time)
-      if (item != null) {
-        for (v <- mainSer.vars) {
-          if (v.plot != Plot.None) {
-            val value = item.getFloat(v)
-            if (Null.not(value)) {
-              maxValue1 = Math.max(maxValue1, value)
-              minValue1 = Math.min(minValue1, value)
-            }
+      if (mainSer.exists(time)) {
+        for (v <- mainSer.vars if v.plot != Plot.None) {
+          val value = item.getFloat(v)
+          if (Null.not(value)) {
+            maxValue1 = Math.max(maxValue1, value)
+            minValue1 = Math.min(minValue1, value)
           }
         }
       }
