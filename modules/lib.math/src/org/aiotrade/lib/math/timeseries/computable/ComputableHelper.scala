@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 package computable
 
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.collection.ArrayList
 
@@ -45,7 +46,8 @@ import org.aiotrade.lib.util.collection.ArrayList
  * @author Caoyuan Deng
  */
 class ComputableHelper(var baseSer: TSer, var self: Indicator) {
-    
+  val logger = Logger.getLogger(this.getClass.getName)
+
   /**
    * factors of this instance, such as period long, period short etc,
    * it's 'final' to avoid being replaced somewhere.
@@ -55,6 +57,15 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
   private var baseSerChangeListener: SerChangeListener = _
     
   private var baseSerChangeEventCallBack: () => Unit = _
+
+  /**
+   * preComputeFrom) will set and backup the context before computeFrom(long begTime):
+   * begTime, begIdx etc.
+   *
+   *
+   * @return begIdx
+   */
+  private var begTime: Long = _ // used by postComputeFrom only
 
   if (baseSer != null && self != null) {
     init(baseSer, self)
@@ -134,14 +145,6 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
     baseSer.addSerChangeListener(baseSerChangeListener)
   }
     
-  /**
-   * preComputeFrom) will set and backup the context before computeFrom(long begTime):
-   * begTime, begIdx etc.
-   *
-   *
-   * @return begIdx
-   */
-  private var begTime: Long = _ // used by postComputeFrom only
   def preComputeFrom(begTime: Long): Int = {
     assert(this.baseSer != null, "base series not set!")
 
@@ -173,6 +176,10 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
     }
 
     self.validate
+
+    logger.info(self.shortDescription + "(" + self.freq + ") items validated: size=" + self.size + ", (" + 
+                (if (self.size > 0) self.items(0).time + " - " + self.items(self.size - 1)))
+    
     //        if (mayNeedToValidate) {
     //            self.validate
     //        }

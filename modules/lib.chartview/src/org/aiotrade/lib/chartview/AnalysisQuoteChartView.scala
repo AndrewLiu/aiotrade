@@ -242,7 +242,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
       while (i <= getNBars) {
         val time = tb(i)
         val item = ser.itemOf(time)
-        if (item != null) {
+        if (ser.exists(time)) {
           val compareHi = item.getFloat(ser.high)
           val compareLo = item.getFloat(ser.low)
           if (Null.not(compareHi) && Null.not(compareLo) && compareHi * compareLo != 0 ) {
@@ -327,7 +327,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
     withDrawingPaneHelper.getDescriptorMapDrawing
   }
 
-  @ throws(classOf[Throwable])
+  @throws(classOf[Throwable])
   override protected def finalize {
     super.finalize
   }

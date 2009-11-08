@@ -348,7 +348,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
                 vars foreach {_.addNullVal(time)}
-                newItems(0) = createItem(time)
+                newItems(i) = createItem(time)
                 i += 1
               }
               items.insertAll(begIdx1, newItems)
@@ -468,9 +468,13 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   def size: Int = items.size
 
-  def indexOfOccurredTime(time: Long): Int = timestamps.indexOfOccurredTime(time)
+  def indexOfOccurredTime(time: Long): Int = {
+    timestamps.indexOfOccurredTime(time)
+  }
 
-  def lastOccurredTime: Long = timestamps.lastOccurredTime
+  def lastOccurredTime: Long = {
+    timestamps.lastOccurredTime
+  }
 
   override def toString: String = {
     val sb = new StringBuilder(20)

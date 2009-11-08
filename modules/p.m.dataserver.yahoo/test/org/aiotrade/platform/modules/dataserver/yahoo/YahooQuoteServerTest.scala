@@ -38,7 +38,7 @@ class YahooQuoteServerTest extends TestHelper {
 
 
   def testBatch : Unit = {
-    val size = 5
+    val size = 1
     val syms = StockCode.SHSE.keySet
     val actors = new Array[TestOne](size)
 

@@ -117,12 +117,12 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
   }
 
   override def computeMaxMin {
-    var minValue1 = Math.MAX_FLOAT
-    var maxValue1 = Math.MIN_FLOAT
+    var minValue1 = +Math.MAX_FLOAT
+    var maxValue1 = -Math.MAX_FLOAT
 
     /** minimum volume should be 0 */
     minVolume = 0
-    maxVolume = Math.MIN_FLOAT
+    maxVolume = -Math.MAX_FLOAT
 
     var i = 1
     while (i <= getNBars) {
