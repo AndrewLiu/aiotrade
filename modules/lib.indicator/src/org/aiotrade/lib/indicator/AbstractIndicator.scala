@@ -153,15 +153,16 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
   protected var L: TVar[Float] = _
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
-    
-  init(abaseSer)
+
+  if (abaseSer != null) {
+    init(abaseSer)
+  }
     
   /**
    * Make sure this null args contructor only be called and return instance to
    * NetBeans layer manager for register usage, so it just do nothing.
    */
   def this() {
-    /** do nothing: computableHelper should has been initialized in instance scope */
     this(null)
   }
     
@@ -174,17 +175,9 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
   def init(baseSer: TSer): Unit = {
     if (baseSer != null) {
       super.init(baseSer.freq)
-      this.baseSer = baseSer
+      super.initBaseSer(baseSer)
 
-      // * share same timestamps with baseSer, should be care of ReadWriteLock
-      super.attach(baseSer.timestamps)
-            
-      super.addBaseSerChangeListener
-        
       initPredefinedVarsOfBaseSer
-
-      // * actor should explicitly start
-      //start
     }
   }
     

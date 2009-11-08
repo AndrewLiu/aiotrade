@@ -55,6 +55,7 @@ trait TSer {
   def init(freq: TFreq): Unit
     
   def timestamps: TStamps
+  def attach(timestamps: TStamps)
 
   def freq: TFreq
 

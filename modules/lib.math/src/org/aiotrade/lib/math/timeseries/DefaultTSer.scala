@@ -61,7 +61,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
 class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   private val logger = Logger.getLogger(this.getClass.getName)
 
-  private val INIT_CAPACITY = 400
+  private val INIT_CAPACITY = 100
 
   val items = new ArrayList[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
@@ -91,7 +91,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   def timestamps: TStamps = _timestamps
   
-  protected def attach(timestamps: TStamps): Unit = {
+  def attach(timestamps: TStamps) {
     this._timestamps = timestamps
     this.tsLog = timestamps.log
   }
@@ -102,7 +102,24 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
   protected def addVar(v: TVar[Any]): Unit = {
     vars += v
   }
+  
+  def exists(time: Long): Boolean = {
+    itemOf(time: Long) != null
+  }
 
+  def itemOf(time: Long): TItem = {
+    var item = internal_itemOf(time)
+    this match {
+      case x: SpotComputable =>
+        if (item == null || (item != null && item.isClear)) {
+          /** re-get one from calculator */
+          item = x.computeItem(time)
+        }
+      case _ =>
+    }
+
+    item
+  }
 
   /*_ @Todo removed synchronized for internal_itemOf and internal_addClearItem_fillTimestamps_InTimeOrder, which cause deadlock:
    [java] "AWT-EventQueue-0" prio=6 tid=0x0000000101891800 nid=0x132013000 waiting for monitor entry [0x0000000132011000]
@@ -130,8 +147,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    [java] 	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:196)
    [java] 	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:188)
    [java] 	at java.awt.EventDispatchThread.run(EventDispatchThread.java:122)
-
-
 
    [java] "ForkJoinPool-1-worker-2" daemon prio=5 tid=0x000000010195f800 nid=0x131d0a000 waiting for monitor entry [0x0000000131d08000]
    [java]    java.lang.Thread.State: BLOCKED (on object monitor)
@@ -164,16 +179,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
    [java] 	at scala.concurrent.forkjoin.ForkJoinWorkerThread.mainLoop(Unknown Source)
    [java] 	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(Unknown Source)
    */
-
-  def exists(time: Long): Boolean = {
-    /**
-     * @NOTE:
-     * Should only get index from timestamps which has the proper
-     * position <-> time <-> item mapping
-     */
-    val idx = timestamps.indexOfOccurredTime(time)
-    idx >= 0 && idx < items.size
-  }
 
   /**
    * This should be the only interface to fetch item, what ever by time or by row.
@@ -420,20 +425,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                                           shortDescription,
                                           fromTime,
                                           Long.MaxValue))
-  }
-
-  def itemOf(time: Long): TItem = {
-    var item = internal_itemOf(time)
-    this match {
-      case x: SpotComputable =>
-        if (item == null || (item != null && item.isClear)) {
-          /** re-get one from calculator */
-          item = x.computeItem(time)
-        }
-      case _ =>
-    }
-
-    item
   }
 
   /*-

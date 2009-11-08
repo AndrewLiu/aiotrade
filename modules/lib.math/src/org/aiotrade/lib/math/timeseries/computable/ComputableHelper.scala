@@ -33,6 +33,7 @@ package org.aiotrade.lib.math.timeseries.computable
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.collection.ArrayList
 
 
@@ -55,18 +56,27 @@ trait ComputableHelper {self: Indicator =>
   var _factors = new ArrayList[Factor]
         
   /**
-   * preComputeFrom) will set and backup the context before computeFrom(long begTime):
+   * preComputeFrom will set and backup the context before computeFrom(long begTime):
    * begTime, begIdx etc.
    *
    *
-   * @return begIdx
+   * @return begTime
    */
   private var begTime: Long = _ // used by postComputeFrom only
 
   private var baseSerChangeListener: SerChangeListener = _
   private var baseSerChangeEventCallBack: () => Unit = _
 
-  protected def addBaseSerChangeListener: Unit = {
+  protected def initBaseSer(baseSer: TSer) {
+    self.baseSer = baseSer
+
+    // * share same timestamps with baseSer, should be care of ReadWriteLock
+    self.attach(baseSer.timestamps)
+
+    addBaseSerChangeListener
+  }
+
+  private def addBaseSerChangeListener {
     /**
      * The series is a result computed from baseSeries, so
      * should follow the baseSeries' data changing:
