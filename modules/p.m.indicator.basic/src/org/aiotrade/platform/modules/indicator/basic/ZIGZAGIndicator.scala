@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class ZIGZAGIndicator extends ContIndicator {
-  _sname = "ZIGZAG"
-  _lname = "Zigzag"
-  _overlapping = true
+  sname = "ZIGZAG"
+  lname = "Zigzag"
+  isOverlapping = true
     
   val percent = Factor("Turn Persent", 0.03, 0.01)
     

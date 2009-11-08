@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class MACDIndicator extends ContIndicator {
-  _sname = "MACD"
-  _lname = "Moving Average Convergence/Divergence"
+  sname = "MACD"
+  lname = "Moving Average Convergence/Divergence"
     
   val periodFast   = Factor("Period EMA Fast", 12)
   val periodSlow   = Factor("Period EMA Slow", 26)

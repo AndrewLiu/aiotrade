@@ -30,43 +30,13 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.indicator.function.Direction
-import org.aiotrade.lib.indicator.function.AbstractFunction;
-import org.aiotrade.lib.indicator.function.Function;
-import org.aiotrade.lib.indicator.function.ZIGZAGFunction;
-import org.aiotrade.lib.indicator.function.ADXFunction;
-import org.aiotrade.lib.indicator.function.ADXRFunction;
-import org.aiotrade.lib.indicator.function.BOLLFunction;
-import org.aiotrade.lib.indicator.function.CCIFunction;
-import org.aiotrade.lib.indicator.function.DIFunction;
-import org.aiotrade.lib.indicator.function.DMFunction;
-import org.aiotrade.lib.indicator.function.DXFunction;
-import org.aiotrade.lib.indicator.function.EMAFunction;
-import org.aiotrade.lib.indicator.function.MACDFunction;
-import org.aiotrade.lib.indicator.function.MAFunction;
-import org.aiotrade.lib.indicator.function.MAXFunction;
-import org.aiotrade.lib.indicator.function.MFIFunction;
-import org.aiotrade.lib.indicator.function.MINFunction;
-import org.aiotrade.lib.indicator.function.MTMFunction;
-import org.aiotrade.lib.indicator.function.OBVFunction;
-import org.aiotrade.lib.indicator.function.PROBMASSFunction;
-import org.aiotrade.lib.indicator.function.ROCFunction;
-import org.aiotrade.lib.indicator.function.RSIFunction;
-import org.aiotrade.lib.indicator.function.SARFunction;
-import org.aiotrade.lib.indicator.function.STDDEVFunction;
-import org.aiotrade.lib.indicator.function.STOCHDFunction;
-import org.aiotrade.lib.indicator.function.STOCHJFunction;
-import org.aiotrade.lib.indicator.function.STOCHKFunction;
-import org.aiotrade.lib.indicator.function.SUMFunction;
-import org.aiotrade.lib.indicator.function.TRFunction;
-import org.aiotrade.lib.indicator.function.WMSFunction;
+import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
@@ -153,7 +123,7 @@ object AbstractIndicator {
 
 }
 
-abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicator {
+abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indicator with ComputableHelper  {
   import AbstractIndicator._
 
   /**
@@ -162,21 +132,20 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
    * inject Factor(s): new Factor() will call addFac which delegated
    * by computableHelper.addFac(..)
    */
-  private val computableHelper = new ComputableHelper
   private var _computedTime: Long = -Long.MaxValue
     
   /** some instance scope variables that can be set directly */
-  protected var _overlapping = false
-  protected var _sname = "unkown"
-  protected var _lname = "unkown"
+  protected var sname = "unkown"
+  protected var lname = "unkown"
+  var isOverlapping = false
     
   /**
    * horizonal _grids of this indicator used to draw grid
    */
-  protected var _grids: Array[Float] = _
+  var grids: Array[Float] = _
     
   /** base series to compute this */
-  protected var _baseSer: TSer = _
+  var baseSer: TSer = _
     
   /** To store values of open, high, low, close, volume: */
   protected var O: TVar[Float] = _
@@ -185,7 +154,7 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
     
-  init(baseSer)
+  init(abaseSer)
     
   /**
    * Make sure this null args contructor only be called and return instance to
@@ -205,12 +174,12 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
   def init(baseSer: TSer): Unit = {
     if (baseSer != null) {
       super.init(baseSer.freq)
-      this._baseSer = baseSer
+      this.baseSer = baseSer
 
       // * share same timestamps with baseSer, should be care of ReadWriteLock
-      this.attach(baseSer.timestamps)
+      super.attach(baseSer.timestamps)
             
-      this.computableHelper.init(baseSer, this)
+      super.addBaseSerChangeListener
         
       initPredefinedVarsOfBaseSer
 
@@ -221,7 +190,7 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
     
   /** override this method to define your predefined vars */
   protected def initPredefinedVarsOfBaseSer: Unit = {
-    _baseSer match {
+    baseSer match {
       case x: QuoteSer =>
         O = x.open
         H = x.high
@@ -231,30 +200,7 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
       case _ =>
     }
   }
-    
-  protected def addFactor(factor: Factor): Unit = {
-    computableHelper.addFactor(factor)
-  }
-    
-  def factors: ArrayList[Factor] = {
-    computableHelper.factors
-  }
-    
-  def factors_=(factors: ArrayList[Factor]): Unit = {
-    computableHelper.factors = factors
-  }
-    
-  def factors_=(facValues: Array[Number]): Unit = {
-    computableHelper.factors = facValues
-  }
-    
-  def grids: Array[Float] = _grids
-    
-  def isOverlapping: Boolean = _overlapping
-  def overlapping_=(b: Boolean) = {
-    _overlapping = b
-  }
-    
+        
   def computedTime: Long = _computedTime
     
   /**
@@ -291,7 +237,7 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
       timestamps.readLock.lock
 
       val size = timestamps.size
-      val begIdx = computableHelper.preComputeFrom(begTime)
+      val begIdx = super.preComputeFrom(begTime)
 
       //            assert(timestamps.size == items.size,
       //                   "Should validate " + shortDescription + " first! " +
@@ -301,7 +247,7 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
 
       computeCont(begIdx, size)
         
-      computableHelper.postComputeFrom
+      super.postComputeFrom
             
       _computedTime = timestamps.lastOccurredTime
     } finally {
@@ -309,40 +255,21 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
     }
         
   }
-    
-  protected def preComputeFrom(begTime: Long) :Int = {
-    computableHelper.preComputeFrom(begTime)
-  }
-    
-  def postComputeFrom: Unit = {
-    computableHelper.postComputeFrom
-  }
-    
+        
   protected def computeCont(begIdx: Int, size: Int): Unit
     
-  protected def longDescription: String = {
-    _lname
-  }
+  protected def longDescription: String = lname
     
-  override def shortDescription: String = {
-    _sname
-  }
-    
-  override def shortDescription_=(description: String): Unit = {
-    this._sname = description
-  }
-    
-  override def toString: String = {
-    if (longDescription != null) {
-      shortDescription + " - " + longDescription
-    } else shortDescription
+  override def shortDescription: String = sname
+  override def shortDescription_=(description: String) {
+    this.sname = description
   }
     
   def compare(another: Indicator): Int = {
-    if (this.toString.equalsIgnoreCase(another.toString)) {
+    if (this.shortDescription.equalsIgnoreCase(another.shortDescription)) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
     } else {
-      this.toString.compareTo(another.toString)
+      this.shortDescription.compareTo(another.shortDescription)
     }
   }
     
@@ -369,147 +296,147 @@ abstract class AbstractIndicator(baseSer: TSer) extends DefaultTSer with Indicat
    */
     
   final protected def sum(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[SUMFunction], _baseSer, baseVar, period).sum(sessionId, idx)
+    getInstance(classOf[SUMFunction], baseSer, baseVar, period).sum(sessionId, idx)
   }
     
   final protected def max(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[MAXFunction], _baseSer, baseVar, period).max(sessionId, idx)
+    getInstance(classOf[MAXFunction], baseSer, baseVar, period).max(sessionId, idx)
   }
     
   final protected def min(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[MINFunction], _baseSer, baseVar, period).min(sessionId, idx)
+    getInstance(classOf[MINFunction], baseSer, baseVar, period).min(sessionId, idx)
   }
     
   final protected def ma(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[MAFunction], _baseSer, baseVar, period).ma(sessionId, idx)
+    getInstance(classOf[MAFunction], baseSer, baseVar, period).ma(sessionId, idx)
   }
     
   final protected def ema(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[EMAFunction], _baseSer, baseVar, period).ema(sessionId, idx)
+    getInstance(classOf[EMAFunction], baseSer, baseVar, period).ema(sessionId, idx)
   }
     
   final protected def stdDev(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[STDDEVFunction], _baseSer, baseVar, period).stdDev(sessionId, idx)
+    getInstance(classOf[STDDEVFunction], baseSer, baseVar, period).stdDev(sessionId, idx)
   }
     
   final protected def probMass(idx: Int, baseVar: TVar[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
-    getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, null, period, nInterval).probMass(sessionId, idx)
+    getInstance(classOf[PROBMASSFunction], baseSer, baseVar, null, period, nInterval).probMass(sessionId, idx)
   }
     
   final protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
-    getInstance(classOf[PROBMASSFunction], _baseSer, baseVar, weight, period, nInterval).probMass(sessionId, idx)
+    getInstance(classOf[PROBMASSFunction], baseSer, baseVar, weight, period, nInterval).probMass(sessionId, idx)
   }
     
   final protected def tr(idx: Int): Float = {
-    getInstance(classOf[TRFunction], _baseSer).tr(sessionId, idx)
+    getInstance(classOf[TRFunction], baseSer).tr(sessionId, idx)
   }
     
   final protected def dmPlus(idx: Int): Float = {
-    getInstance(classOf[DMFunction], _baseSer).dmPlus(sessionId, idx)
+    getInstance(classOf[DMFunction], baseSer).dmPlus(sessionId, idx)
   }
     
   final protected def dmMinus(idx: Int): Float = {
-    getInstance(classOf[DMFunction], _baseSer).dmMinus(sessionId, idx)
+    getInstance(classOf[DMFunction], baseSer).dmMinus(sessionId, idx)
   }
     
   final protected def diPlus(idx: Int, period: Factor): Float = {
-    getInstance(classOf[DIFunction], _baseSer, period).diPlus(sessionId, idx)
+    getInstance(classOf[DIFunction], baseSer, period).diPlus(sessionId, idx)
   }
     
   final protected def diMinus(idx: Int, period: Factor): Float = {
-    getInstance(classOf[DIFunction], _baseSer, period).diMinus(sessionId, idx)
+    getInstance(classOf[DIFunction], baseSer, period).diMinus(sessionId, idx)
   }
     
   final protected def dx(idx: Int, period: Factor): Float = {
-    getInstance(classOf[DXFunction], _baseSer, period).dx(sessionId, idx)
+    getInstance(classOf[DXFunction], baseSer, period).dx(sessionId, idx)
   }
     
   final protected def adx(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
-    getInstance(classOf[ADXFunction], _baseSer, periodDi, periodAdx).adx(sessionId, idx)
+    getInstance(classOf[ADXFunction], baseSer, periodDi, periodAdx).adx(sessionId, idx)
   }
     
   final protected def adxr(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
-    getInstance(classOf[ADXRFunction], _baseSer, periodDi, periodAdx).adxr(sessionId, idx)
+    getInstance(classOf[ADXRFunction], baseSer, periodDi, periodAdx).adxr(sessionId, idx)
   }
     
   final protected def bollMiddle(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
-    getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollMiddle(sessionId, idx)
+    getInstance(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollMiddle(sessionId, idx)
   }
     
   final protected def bollUpper(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
-    getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollUpper(sessionId, idx)
+    getInstance(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollUpper(sessionId, idx)
   }
     
   final protected def bollLower(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
-    getInstance(classOf[BOLLFunction], _baseSer, baseVar, period, alpha).bollLower(sessionId, idx)
+    getInstance(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollLower(sessionId, idx)
   }
     
   final protected def cci(idx: Int, period: Factor, alpha: Factor): Float = {
-    getInstance(classOf[CCIFunction], _baseSer, period, alpha).cci(sessionId, idx)
+    getInstance(classOf[CCIFunction], baseSer, period, alpha).cci(sessionId, idx)
   }
     
   final protected def macd(idx: Int, baseVar: TVar[_], periodSlow: Factor, periodFast: Factor): Float = {
-    getInstance(classOf[MACDFunction], _baseSer, baseVar, periodSlow, periodFast).macd(sessionId, idx)
+    getInstance(classOf[MACDFunction], baseSer, baseVar, periodSlow, periodFast).macd(sessionId, idx)
   }
     
   final protected def mfi(idx: Int, period: Factor): Float = {
-    getInstance(classOf[MFIFunction], _baseSer, period).mfi(sessionId, idx)
+    getInstance(classOf[MFIFunction], baseSer, period).mfi(sessionId, idx)
   }
     
   final protected def mtm(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[MTMFunction], _baseSer, baseVar, period).mtm(sessionId, idx)
+    getInstance(classOf[MTMFunction], baseSer, baseVar, period).mtm(sessionId, idx)
   }
     
   final protected def obv(idx: Int): Float = {
-    getInstance(classOf[OBVFunction], _baseSer).obv(sessionId, idx)
+    getInstance(classOf[OBVFunction], baseSer).obv(sessionId, idx)
   }
     
   final protected def roc(idx: Int, baseVar: TVar[_], period: Factor): Float = {
-    getInstance(classOf[ROCFunction], _baseSer, baseVar, period).roc(sessionId, idx)
+    getInstance(classOf[ROCFunction], baseSer, baseVar, period).roc(sessionId, idx)
   }
     
   final protected def rsi(idx: Int, period: Factor): Float = {
-    getInstance(classOf[RSIFunction], _baseSer, period).rsi(sessionId, idx)
+    getInstance(classOf[RSIFunction], baseSer, period).rsi(sessionId, idx)
   }
     
   final protected def sar(idx: Int, initial: Factor, step: Factor, maximum: Factor): Float = {
-    getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sar(sessionId, idx)
+    getInstance(classOf[SARFunction], baseSer, initial, step, maximum).sar(sessionId, idx)
   }
     
   final protected def sarDirection(idx: Int, initial: Factor, step: Factor, maximum: Factor): Direction = {
-    getInstance(classOf[SARFunction], _baseSer, initial, step, maximum).sarDirection(sessionId, idx)
+    getInstance(classOf[SARFunction], baseSer, initial, step, maximum).sarDirection(sessionId, idx)
   }
     
   final protected def stochK(idx: Int, period: Factor, periodK: Factor): Float = {
-    getInstance(classOf[STOCHKFunction], _baseSer, period, periodK).stochK(sessionId, idx)
+    getInstance(classOf[STOCHKFunction], baseSer, period, periodK).stochK(sessionId, idx)
   }
     
   final protected def stochD(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
-    getInstance(classOf[STOCHDFunction], _baseSer, period, periodK, periodD).stochD(sessionId, idx)
+    getInstance(classOf[STOCHDFunction], baseSer, period, periodK, periodD).stochD(sessionId, idx)
   }
     
   final protected def stochJ(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
-    getInstance(classOf[STOCHJFunction], _baseSer, period, periodK, periodD).stochJ(sessionId, idx)
+    getInstance(classOf[STOCHJFunction], baseSer, period, periodK, periodD).stochJ(sessionId, idx)
   }
     
   final protected def wms(idx: Int, period: Factor): Float = {
-    getInstance(classOf[WMSFunction], _baseSer, period).wms(sessionId, idx)
+    getInstance(classOf[WMSFunction], baseSer, period).wms(sessionId, idx)
   }
     
   final protected def zigzag(idx: Int, percent: Factor): Float = {
-    getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzag(sessionId, idx)
+    getInstance(classOf[ZIGZAGFunction], baseSer, percent).zigzag(sessionId, idx)
   }
     
   final protected def pseudoZigzag(idx: Int, percent: Factor): Float = {
-    getInstance(classOf[ZIGZAGFunction], _baseSer, percent).pseudoZigzag(sessionId, idx)
+    getInstance(classOf[ZIGZAGFunction], baseSer, percent).pseudoZigzag(sessionId, idx)
   }
     
   final protected def zigzagDirection(idx: Int, percent: Factor): Direction = {
-    getInstance(classOf[ZIGZAGFunction], _baseSer, percent).zigzagDirection(sessionId, idx)
+    getInstance(classOf[ZIGZAGFunction], baseSer, percent).zigzagDirection(sessionId, idx)
   }
     
-  def dispose: Unit = {
-    computableHelper.dispose
+  override def dispose: Unit = {
+    super.dispose
   }
     
   /**

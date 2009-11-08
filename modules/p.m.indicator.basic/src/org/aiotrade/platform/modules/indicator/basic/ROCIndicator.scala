@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class ROCIndicator extends ContIndicator {
-  _sname = "ROC"
-  _lname = "Rate of Change"
+  sname = "ROC"
+  lname = "Rate of Change"
     
   val period1 = Factor("Period Short", 12)
   val period2 = Factor("Period Long",  25)

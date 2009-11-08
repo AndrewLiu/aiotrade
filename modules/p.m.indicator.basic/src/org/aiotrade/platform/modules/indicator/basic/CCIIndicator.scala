@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class CCIIndicator extends ContIndicator {
-  _sname = "CCI"
-  _lname = "Commodity Channel Index"
-  _grids = Array(100f, -100f)
+  sname = "CCI"
+  lname = "Commodity Channel Index"
+  grids = Array(100f, -100f)
 
   val alpha    = Factor("Alpha",     0.015)
   val period   = Factor("Period",    20)

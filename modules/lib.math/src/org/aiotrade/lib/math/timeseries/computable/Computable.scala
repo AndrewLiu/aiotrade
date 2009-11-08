@@ -55,6 +55,9 @@ trait Computable {
   }
   // ----- end of actor's implementation
 
+  def baseSer: TSer
+  def baseSer_=(baseSer: TSer)
+
   /**
    * @param time to be computed from
    */

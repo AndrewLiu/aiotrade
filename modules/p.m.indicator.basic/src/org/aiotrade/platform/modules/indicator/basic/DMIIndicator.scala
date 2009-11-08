@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class DMIIndicator extends ContIndicator {
-  _sname = "DMI"
-  _lname = "Directional Movement Index"
-  _grids = Array(20f, 80f)
+  sname = "DMI"
+  lname = "Directional Movement Index"
+  grids = Array(20f, 80f)
 
   val periodDi  = Factor("Period DI",  6)
   val periodAdx = Factor("Period ADX", 14)

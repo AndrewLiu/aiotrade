@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class BIASIndicator extends ContIndicator {
-  _sname = "BIAS"
-  _lname = "Bias to Moving Average"
+  sname = "BIAS"
+  lname = "Bias to Moving Average"
     
   val period1 = Factor("Period Short",   6)
   val period2 = Factor("Period Mediaum", 12)

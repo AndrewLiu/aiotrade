@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class MAIndicator extends ContIndicator {
-  _sname = "MA"
-  _lname = "Moving Average"
-  _overlapping = true
+  sname = "MA"
+  lname = "Moving Average"
+  isOverlapping = true
     
   val period1 = Factor("Period 1", 5)
   val period2 = Factor("Period 2", 10)

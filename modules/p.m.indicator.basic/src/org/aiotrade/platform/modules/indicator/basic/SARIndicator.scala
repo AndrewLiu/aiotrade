@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class SARIndicator extends ContIndicator {
-  _sname = "SAR"
-  _lname = "Parabolic SAR"
-  _overlapping = true
+  sname = "SAR"
+  lname = "Parabolic SAR"
+  isOverlapping = true
 
   val initial = Factor("Primary AF", 0.02, 0.01)
   val step    = Factor("AF step",    0.02, 0.01)

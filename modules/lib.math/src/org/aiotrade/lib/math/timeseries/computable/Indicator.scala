@@ -37,11 +37,11 @@ import org.aiotrade.lib.math.timeseries.TSer
  * @author Caoyuan Deng
  */
 trait Indicator extends TSer with Computable with Ordered[Indicator] {
-    
+
   def init(baseSer: TSer): Unit
     
   def isOverlapping: Boolean
-  def overlapping_=(b: Boolean): Unit
+  def isOverlapping_=(b: Boolean): Unit
     
   def grids: Array[Float]
     

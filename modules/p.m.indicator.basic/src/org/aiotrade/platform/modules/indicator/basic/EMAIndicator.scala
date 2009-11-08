@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class EMAIndicator extends ContIndicator {
-  _sname = "EMA"
-  _lname = "Exponential Moving Average"
-  _overlapping = true
+  sname = "EMA"
+  lname = "Exponential Moving Average"
+  isOverlapping = true
     
   val period1 = Factor("Period Short",   5)
   val period2 = Factor("Period Mediaum", 10)

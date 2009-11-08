@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class MTMIndicator extends ContIndicator {
-  _sname = "MTM"
-  _lname = "Momentum"
+  sname = "MTM"
+  lname = "Momentum"
     
   val period       = Factor("Period",           12)
   val periodSmooth = Factor("Period Smoothing",  6)

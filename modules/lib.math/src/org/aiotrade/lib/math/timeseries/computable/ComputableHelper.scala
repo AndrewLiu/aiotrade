@@ -28,11 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries
-package computable
+package org.aiotrade.lib.math.timeseries.computable
 
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.SerChangeEvent
+import org.aiotrade.lib.math.timeseries.SerChangeListener
 import org.aiotrade.lib.util.collection.ArrayList
 
 
@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.collection.ArrayList
  *
  * @author Caoyuan Deng
  */
-class ComputableHelper(var baseSer: TSer, var self: Indicator) {
+trait ComputableHelper {self: Indicator =>
   val logger = Logger.getLogger(this.getClass.getName)
 
   /**
@@ -54,10 +54,6 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
    */
   var _factors = new ArrayList[Factor]
         
-  private var baseSerChangeListener: SerChangeListener = _
-    
-  private var baseSerChangeEventCallBack: () => Unit = _
-
   /**
    * preComputeFrom) will set and backup the context before computeFrom(long begTime):
    * begTime, begIdx etc.
@@ -67,23 +63,10 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
    */
   private var begTime: Long = _ // used by postComputeFrom only
 
-  if (baseSer != null && self != null) {
-    init(baseSer, self)
-  }
+  private var baseSerChangeListener: SerChangeListener = _
+  private var baseSerChangeEventCallBack: () => Unit = _
 
-  def this() {
-    // * do nothing: factors should has been initialized in instance initialization procedure
-    this(null, null)
-  }
-    
-  def init(baseSer: TSer, self: Indicator): Unit = {
-    this.baseSer = baseSer
-    this.self = self
-        
-    addBaseSerChangeListener
-  }
-    
-  private def addBaseSerChangeListener: Unit = {
+  protected def addBaseSerChangeListener: Unit = {
     /**
      * The series is a result computed from baseSeries, so
      * should follow the baseSeries' data changing:
@@ -177,8 +160,7 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
 
     self.validate
 
-    logger.info(self.shortDescription + "(" + self.freq + ") items validated: size=" + self.size + ", (" + 
-                (if (self.size > 0) self.items(0).time + " - " + self.items(self.size - 1)))
+    logger.info(toString)
     
     //        if (mayNeedToValidate) {
     //            self.validate
@@ -286,7 +268,7 @@ class ComputableHelper(var baseSer: TSer, var self: Indicator) {
     var i = 0
     var break = false
     while (i < factors.size && !break) {
-      val factor = factors(i);
+      val factor = factors(i)
       if (factor.equals(oldFactor)) {
         idxOld = i
         break = true

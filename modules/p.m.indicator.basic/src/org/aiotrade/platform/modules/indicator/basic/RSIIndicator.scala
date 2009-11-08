@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class RSIIndicator extends ContIndicator {
-  _sname = "RSI"
-  _lname = "Relative Strength Index"
-  _grids = Array(20f, 80f)
+  sname = "RSI"
+  lname = "Relative Strength Index"
+  grids = Array(20f, 80f)
 
   val periodS = Factor("Period Short",   6.)
   val periodM = Factor("Period Mediaum", 12)

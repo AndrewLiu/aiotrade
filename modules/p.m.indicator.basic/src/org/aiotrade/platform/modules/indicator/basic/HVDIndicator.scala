@@ -38,9 +38,9 @@ import org.aiotrade.lib.indicator.SpotIndicator
  * @author Caoyuan Deng
  */
 class HVDIndicator extends SpotIndicator {
-  _sname = "HVD"
-  _lname = "Historical Volume Distribution"
-  _overlapping = true
+  sname = "HVD"
+  lname = "Historical Volume Distribution"
+  isOverlapping = true
     
   val nIntervals = Factor("Number of Intervals", 30, 1, 1, 100)
   val period1    = Factor("Period1",  50)

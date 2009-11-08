@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class KDIndicator extends ContIndicator {
-  _sname = "KD"
-  _lname = "Stochastics"
-  _grids = Array(20f, 80f)
+  sname = "KD"
+  lname = "Stochastics"
+  grids = Array(20f, 80f)
     
   val period  = Factor("Period K",           9)
   val periodK = Factor("Period K Smoothing", 3)

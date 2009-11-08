@@ -385,6 +385,8 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
              "Timestamps size=" + timestamps.size + " vs items size=" + items.size +
              ", checkedCursor=" + tsLogCheckedCursor +
              ", log=" + tlog)
+    } catch {
+      case ex => println(ex)
     } finally {
       timestamps.readLock.unlock
     }
@@ -476,17 +478,18 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     timestamps.lastOccurredTime
   }
 
-  override def toString: String = {
+  override def toString = {
     val sb = new StringBuilder(20)
-    sb.append(this.getClass.getSimpleName).append("(").append(freq)
+    sb.append(shortDescription).append("(").append(freq).append("): size=").append(timestamps.size).append(", ")
     if (timestamps.size > 0) {
       val start = timestamps(0)
       val end = timestamps(size - 1)
       val cal = Calendar.getInstance
       cal.setTimeInMillis(start)
-      sb.append(", ").append(cal.getTime)
+      sb.append(cal.getTime)
+      sb.append(" - ")
       cal.setTimeInMillis(end)
-      sb.append(" - ").append(cal.getTime).append(")")
+      sb.append(cal.getTime)
     }
     sb.toString
   }

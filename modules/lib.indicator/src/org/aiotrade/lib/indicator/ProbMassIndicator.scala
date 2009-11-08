@@ -40,9 +40,9 @@ import org.aiotrade.lib.math.timeseries.TVar
  */
 //@IndicatorName("ProbMass")
 class ProbMassIndicator(baseSer: TSer) extends SpotIndicator(baseSer) {
-  _sname = "Probability Mass"
-  _lname = "Probability Mass"
-  _overlapping = true
+  sname = "Probability Mass"
+  lname = "Probability Mass"
+  isOverlapping = true
     
   var baseVar: TVar[Float] = _
 

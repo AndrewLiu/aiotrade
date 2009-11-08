@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class OBVIndicator extends ContIndicator {
-  _sname = "OBV"
-  _lname = "On Balance Volume"
+  sname = "OBV"
+  lname = "On Balance Volume"
 
   val obv1 = TVar[Float]("OBV", Plot.Line)
     

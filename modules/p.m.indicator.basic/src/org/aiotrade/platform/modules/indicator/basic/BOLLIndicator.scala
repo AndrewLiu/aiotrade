@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class BOLLIndicator extends ContIndicator {
-  _sname = "BOLL"
-  _lname = "Bollinger Bands"
-  _overlapping = true
+  sname = "BOLL"
+  lname = "Bollinger Bands"
+  isOverlapping = true
 
     
   val period = Factor("Period", 20)

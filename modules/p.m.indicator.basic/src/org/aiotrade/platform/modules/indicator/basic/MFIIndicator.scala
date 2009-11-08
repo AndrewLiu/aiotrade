@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class MFIIndicator extends ContIndicator {
-  _sname = "MFI"
-  _lname = "Money Flow Index"
-  _grids = Array(30f, 70f)
+  sname = "MFI"
+  lname = "Money Flow Index"
+  grids = Array(30f, 70f)
 
   val period = Factor("Period", 10)
     

@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class WMSIndicator extends ContIndicator {
-  _sname = "WMS"
-  _lname = "Williams' %R"
-  _grids = Array(10f, 90f)
+  sname = "WMS"
+  lname = "Williams' %R"
+  grids = Array(10f, 90f)
     
   val period1 = Factor("Period Short",  6)
   val period2 = Factor("Period Long",  10)

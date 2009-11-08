@@ -37,9 +37,9 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class ZIGZAGFAIndicator extends ContIndicator {
-  _sname = "ZIGZAGFA"
-  _lname = "Zigzag with Fibonacci Arcs"
-  _overlapping = true
+  sname = "ZIGZAGFA"
+  lname = "Zigzag with Fibonacci Arcs"
+  isOverlapping = true
     
   val percent = Factor("Turn Percent", 3.0)  // Percent for judge if trend turns over
     

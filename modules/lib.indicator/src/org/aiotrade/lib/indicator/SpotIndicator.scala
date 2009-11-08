@@ -54,7 +54,7 @@ abstract class SpotIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) w
   def computeItem(time: Long): TItem = {
         
     /** get masterIndex before preCalc(), which may clear this data */
-    val baseIdx = _baseSer.indexOfOccurredTime(time)
+    val baseIdx = baseSer.indexOfOccurredTime(time)
         
     preComputeFrom(time)
         
@@ -70,7 +70,7 @@ abstract class SpotIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) w
   protected def computeCont(begIdx: Int, itemSize: Int): Unit = {
     var i = begIdx
     while (i < itemSize) {
-      val time = _baseSer.timestamps(i)
+      val time = baseSer.timestamps(i)
       if (time == spotTime) {
         computeSpot(time, i)
       }

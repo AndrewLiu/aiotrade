@@ -37,8 +37,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class ARBRIndicator extends ContIndicator {
-  _sname = "AR/BR"
-  _grids = Array(50f, 200f)
+  sname = "AR/BR"
+  grids = Array(50f, 200f)
     
   val period = Factor("Period", 10)
     

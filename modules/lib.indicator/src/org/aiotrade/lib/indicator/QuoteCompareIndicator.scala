@@ -73,7 +73,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     var end = endPosition.value.toInt
     var break = false
     while (position <= end & !break) {
-      val baseItem = _baseSer.asInstanceOf[QuoteSer].itemOfRow(position).asInstanceOf[QuoteItem]
+      val baseItem = baseSer.asInstanceOf[QuoteSer].itemOfRow(position).asInstanceOf[QuoteItem]
 
       if (baseItem != null) {
         baseNorm = baseItem.close
@@ -87,7 +87,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
       return
     }
         
-    if (_baseSer.asInstanceOf[QuoteSer].adjusted) {
+    if (baseSer.asInstanceOf[QuoteSer].adjusted) {
       if (!_serToBeCompared.adjusted) {
         _serToBeCompared.adjust(true)
       }
@@ -116,7 +116,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
         /** don't calulate those is less than beginPosition to got a proper compareBeginValue */
       } else {
             
-        val time = _baseSer.asInstanceOf[MasterTSer].timeOfRow(i)
+        val time = baseSer.asInstanceOf[MasterTSer].timeOfRow(i)
             
         /**
          * !NOTICE:

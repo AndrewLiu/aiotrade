@@ -43,7 +43,7 @@ import org.aiotrade.lib.math.util.Signal
  */
 abstract class SignalIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) with ContComputable {
     
-  _overlapping = true
+  isOverlapping = true
 
   val signalVar = new SparseTVar[Signal]("Signal", Plot.Signal)
     
@@ -56,7 +56,7 @@ abstract class SignalIndicator(baseSer: TSer) extends AbstractIndicator(baseSer)
   }
     
   protected def signal(idx: Int, sign: Sign, name: String): Unit = {
-    val time = _baseSer.timestamps(idx)
+    val time = baseSer.timestamps(idx)
         
     /** appoint a value for this sign as the drawing position */
     val value = sign match {
@@ -71,7 +71,7 @@ abstract class SignalIndicator(baseSer: TSer) extends AbstractIndicator(baseSer)
   }
     
   protected def removeSignal(idx: Int): Unit = {
-    val time = _baseSer.timestamps(idx)
+    val time = baseSer.timestamps(idx)
     time
     /** @TODO */
   }

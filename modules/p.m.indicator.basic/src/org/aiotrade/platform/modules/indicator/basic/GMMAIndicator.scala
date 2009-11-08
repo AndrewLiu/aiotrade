@@ -38,8 +38,8 @@ import org.aiotrade.lib.indicator.ContIndicator
  * @author Caoyuan Deng
  */
 class GMMAIndicator extends ContIndicator {
-  _sname = "GMMA"
-  _lname = "Guppy Multiple Moving Average"
+  sname = "GMMA"
+  lname = "Guppy Multiple Moving Average"
     
   val period01 = Factor("Period Short 1", 3)
   val period02 = Factor("Period Short 2", 5)
