@@ -72,7 +72,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
     /**
      * the percent of hCanvas to be used to render charty, is can be used to scale the chart
      */
-    private var yChartScale = 1.0f
+    private var yChartScale = 1.0F
     
     /** the pixels used to record the chart vertically moving */
     private var hChartScrolled: Int = _
@@ -130,7 +130,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
       hOne = hChart.toFloat / (maxScaledValue - minScaledValue)
         
       /** avoid hOne == 0 */
-      this.hOne = Math.max(hOne, 0.0000000001f)
+      this.hOne = Math.max(hOne, 0.0000000001F)
         
       setGeometryValid(true)
     }
