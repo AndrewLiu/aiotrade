@@ -278,7 +278,7 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
     this
   }
     
-  private def setByTimeInMillins(time: Long): NaturalCalendar = {
+  private def byTimeInMillins(time: Long): NaturalCalendar = {
     set(time + getTimeBaseDate.JULIAN_DATE)
     return this;
   }

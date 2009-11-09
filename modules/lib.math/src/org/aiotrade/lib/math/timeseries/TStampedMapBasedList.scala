@@ -152,7 +152,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     xs
   }
     
-  def add(time: Long, elem:A) :Boolean = {
+  def add(time: Long, elem:A): Boolean = {
     if (elem == null) {
       /** null value needs not to be put in map, this will spare the memory usage */
       return true
@@ -168,15 +168,13 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     }
   }
     
-  def getByTime(time: Long): A = timeToElementData.get(time).get
+  def apply(time: Long): A = timeToElementData.get(time).get
     
-  def setByTime(time: Long, elem: A): A = {
+  def update(time: Long, elem: A) {
     if (timestamps.contains(time)) {
       timeToElementData.put(time, elem)
-      elem
     } else {
       assert(false, "Time out of bounds = " + time)
-      null.asInstanceOf[A]
     }
   }
     

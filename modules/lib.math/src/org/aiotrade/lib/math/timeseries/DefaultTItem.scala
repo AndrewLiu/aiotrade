@@ -72,10 +72,10 @@ class DefaultTItem protected[timeseries]  (val ser: TSer, val time: Long) extend
     this._clear = true
   }
     
-  def get[@specialized V](v: TVar[V]): V = v.getByTime(time)
+  def get[@specialized V](v: TVar[V]): V = v(time)
     
   def set[@specialized V](v: TVar[V], value: V): Unit = {
-    v.setByTime(time, value)
+    v(time) = value
     _clear = false
   }
     
@@ -86,7 +86,7 @@ class DefaultTItem protected[timeseries]  (val ser: TSer, val time: Long) extend
    * Otherwise, should sub class it.
    */
   def getFloat(v: TVar[_]): Float = {
-    v.getByTime(time) match {
+    v(time) match {
       case null => Null.Float
       case n: Number => n.floatValue
       case o: AnyRef =>
@@ -98,7 +98,7 @@ class DefaultTItem protected[timeseries]  (val ser: TSer, val time: Long) extend
   }
     
   def setFloat[@specialized Number](v: TVar[Number], value: Number): Unit = {
-    v.setByTime(time, value)
+    v(time) = value
     this._clear = false
   }
 

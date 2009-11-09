@@ -75,7 +75,7 @@ class SignalChart extends AbstractChart {
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
                 
-        val signal = m.v.getByTime(time)
+        val signal = m.v(time)
         if (signal != null) {
           val value = signal.value
           if (Null.not(value)) {

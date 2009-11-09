@@ -72,7 +72,7 @@ class StickChart extends AbstractChart {
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
-          val value = m.v.getByTime(time)
+          val value = m.v(time)
           max = Math.max(max, value)
           min = Math.min(min, value)
         }

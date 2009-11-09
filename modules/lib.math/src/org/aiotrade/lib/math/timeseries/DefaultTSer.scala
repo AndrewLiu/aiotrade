@@ -520,18 +520,38 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       }
     }
 
-    def getByTime(time: Long): V = {
+    def apply(time: Long): V = {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx)
     }
 
-    def setByTime(time: Long, value: V): V = {
+    def update(time: Long, value: V) {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx) = value
       value
     }
 
-    def validate: Unit = {
+    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    override def apply(idx: Int): V = {
+      if (idx >= 0 && idx < values.size) {
+        values(idx) match {
+          case null => NullVal
+          case value => value
+        }
+      } else NullVal
+    }
+
+    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    override def update(idx: Int, value: V) {
+      if (idx >= 0 && idx < values.size) {
+        values(idx) = value
+      } else {
+        assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
+               "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
+      }
+    }
+
+    def validate {
       val newValues = new ArrayList[V](INIT_CAPACITY)
 
       var i = 0
@@ -588,9 +608,31 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       }
     }
 
-    def getByTime(time: Long): V = values.getByTime(time)
+    def apply(time: Long): V = values(time)
 
-    def setByTime(time: Long, value: V): V = values.setByTime(time, value)
+    def update(time: Long, value: V) {
+      values(time) = value
+    }
+
+    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    override def apply(idx: Int): V = {
+      if (idx >= 0 && idx < values.size) {
+        values(idx) match {
+          case null => NullVal
+          case value => value
+        }
+      } else NullVal
+    }
+
+    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    override def update(idx: Int, value: V) {
+      if (idx >= 0 && idx < values.size) {
+        values(idx) = value
+      } else {
+        assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
+               "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
+      }
+    }
 
     def validate {}
 
@@ -624,11 +666,11 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     addVar(this.asInstanceOf[TVar[Any]])
 
     private val colors = new TStampedMapBasedList[Color](timestamps)
-    
+
     /**
      * This method will never return null, return a nullValue at least.
      */
-    override def apply(idx: Int): V = {
+    def apply(idx: Int): V = {
       if (idx >= 0 && idx < values.size) {
         values(idx) match {
           case null => NullVal
@@ -637,7 +679,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       } else NullVal
     }
 
-    override def update(idx: Int, value: V): Unit = {
+    def update(idx: Int, value: V) {
       if (idx >= 0 && idx < values.size) {
         values(idx) = value
       } else {
@@ -645,7 +687,7 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
                "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
       }
     }
-        
+    
     private def checkValidationAt(idx: Int): Int = {
       assert(idx >= 0, "Out of bounds: idx=" + idx)
 
