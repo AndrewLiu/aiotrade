@@ -86,7 +86,7 @@ class ProfileChart extends AbstractChart {
         
     val path = heavyPathWidget.getPath(color)
         
-    val item = ser.itemOf(time)
+    val item = ser(time)
         
     if (item != null) {
       item.get(m.v) match {

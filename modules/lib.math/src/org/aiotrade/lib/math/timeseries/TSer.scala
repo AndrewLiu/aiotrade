@@ -63,7 +63,7 @@ trait TSer {
   def items: ArrayList[TItem]
 
   def exists(time: Long): Boolean
-  def itemOf(time: Long): TItem
+  def apply(time: Long): TItem
     
   def lastOccurredTime: Long
     

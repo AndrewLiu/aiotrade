@@ -237,7 +237,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
       var i = 1
       while (i <= getNBars) {
         val time = tb(i)
-        val item = ser.itemOf(time)
+        val item = ser(time)
         if (ser.exists(time)) {
           val compareHi = item.getFloat(ser.high)
           val compareLo = item.getFloat(ser.low)

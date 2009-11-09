@@ -240,7 +240,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               intervalLastTickerPair.currIntervalOne.copy(ticker)
 
               /** still in same interval, just pick out the old data of this interval */
-              tickerSer.itemOf(ticker.time).asInstanceOf[QuoteItem]
+              tickerSer(ticker.time).asInstanceOf[QuoteItem]
             } else {
               /**
                * !NOTICE
@@ -360,7 +360,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    */
   private def updateMinuteQuoteItem(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar): Unit = {
     val now = TUnit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
-    val tickerItem = tickerSer.itemOf(now).asInstanceOf[QuoteItem]
+    val tickerItem = tickerSer(now).asInstanceOf[QuoteItem]
     val itemNow = minuteSer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
 
     itemNow.open   = tickerItem.open

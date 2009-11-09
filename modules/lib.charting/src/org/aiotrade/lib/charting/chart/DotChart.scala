@@ -67,7 +67,7 @@ class DotChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser.itemOf(time)
+        val item = ser(time)
                 
         if (item != null) {
           val value = item.getFloat(model.v)

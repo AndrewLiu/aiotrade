@@ -359,7 +359,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     }
 
     val referTime = getView.getController.getReferCursorTime
-    val item = ser.itemOf(referTime);
+    val item = ser(referTime);
     if (item != null) {
       val serVars = ser.vars
       for (v <- serVars if v.plot != Plot.None) {

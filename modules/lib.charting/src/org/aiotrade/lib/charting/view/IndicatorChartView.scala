@@ -171,7 +171,7 @@ class IndicatorChartView(controller: ChartingController,
     var i = 1
     while (i <= getNBars) {
       val time = tb(i)
-      val item = mainSer.itemOf(time)
+      val item = mainSer(time)
       if (item != null) {
         for (v <- mainSer.vars if v.plot != Plot.None;
              value = item.getFloat(v) if Null.not(value)

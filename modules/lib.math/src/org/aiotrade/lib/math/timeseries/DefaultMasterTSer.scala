@@ -43,17 +43,17 @@ class DefaultMasterTSer(freq: TFreq) extends DefaultTSer(freq) with MasterTSer {
         
   def isOnCalendarMode = onCalendarMode
 
-  def setOnCalendarMode: Unit = {
+  def setOnCalendarMode {
     this.onCalendarMode = true
   }
     
-  def setOnOccurredMode: Unit = {
+  def setOnOccurredMode {
     this.onCalendarMode = false
   }
         
   def rowOfTime(time: Long): Int = activeTimestamps.rowOfTime(time, freq)
   def timeOfRow(row: Int): Long = activeTimestamps.timeOfRow(row, freq)
-  def itemOfRow(row: Int): TItem = itemOf(activeTimestamps.timeOfRow(row, freq))
+  def itemOfRow(row: Int): TItem = apply(activeTimestamps.timeOfRow(row, freq))
   def lastOccurredRow: Int = activeTimestamps.lastRow(freq)
     
   override def size: Int = activeTimestamps.sizeOf(freq)

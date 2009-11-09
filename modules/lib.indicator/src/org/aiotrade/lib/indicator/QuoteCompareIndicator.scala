@@ -123,7 +123,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
          * we should fetch itemToBeCompared by time instead by position which may
          * not sync with baseSer.
          */
-        _serToBeCompared.itemOf(time) match {
+        _serToBeCompared(time) match {
           case null =>
           case itemToBeCompared:QuoteItem =>
             /** get first value of serToBeCompared in time frame */
@@ -131,7 +131,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
               compareNorm = itemToBeCompared.close
             }
                         
-            val item = itemOf(time).asInstanceOf[QuoteItem]
+            val item = apply(time).asInstanceOf[QuoteItem]
             if (item != null) {
               item.open  = linearAdjust(itemToBeCompared.open,  compareNorm, baseNorm)
               item.high  = linearAdjust(itemToBeCompared.high,  compareNorm, baseNorm)

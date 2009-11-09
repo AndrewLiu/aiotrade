@@ -80,7 +80,7 @@ class VolumeChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = masterSer.itemOf(time).asInstanceOf[QuoteItem]
+        val item = masterSer(time).asInstanceOf[QuoteItem]
         if (item != null && item.close != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */

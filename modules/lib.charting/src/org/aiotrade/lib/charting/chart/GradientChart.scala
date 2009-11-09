@@ -78,7 +78,7 @@ class GradientChart extends AbstractChart {
     while (bar <= nBars) {
             
       val time = tb(bar)
-      val item = ser.itemOf(time)
+      val item = ser(time)
             
       if (item != null) {
         val shades = item.get(m.v).asInstanceOf[Array[Float]]
