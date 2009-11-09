@@ -134,23 +134,21 @@ class IndicatorChartView(controller: ChartingController,
         
     for (ser <- getAllSers) {
       /** add charts */
-      for (v <- ser.vars) {
-        val chart = ChartFactory.createVarChart(v)
-        if (chart != null) {
-          val chartVars = new HashSet[TVar[_]]
-          mainSerChartToVars.put(chart, chartVars += v)
+      for (v <- ser.vars;
+           chart = ChartFactory.createVarChart(v) if chart != null
+      ) {
+        val chartVars = new HashSet[TVar[_]]
+        mainSerChartToVars.put(chart, chartVars += v)
                     
-          chart.set(mainChartPane, ser)
-
-          chart match {
-            case _: GradientChart => chart.setDepth(depthGradient); depthGradient -= 1
-            case _: ProfileChart => chart.setDepth(depthGradient); depthGradient -= 1
-            case _: StickChart => chart.setDepth(-8)
-            case _ => chart.setDepth(depth); depth += 1
-          }
-                    
-          mainChartPane.putChart(chart)
+        chart match {
+          case _: GradientChart => chart.setDepth(depthGradient); depthGradient -= 1
+          case _: ProfileChart => chart.setDepth(depthGradient); depthGradient -= 1
+          case _: StickChart => chart.setDepth(-8)
+          case _ => chart.setDepth(depth); depth += 1
         }
+
+        chart.set(mainChartPane, ser)
+        mainChartPane.putChart(chart)
       }
             
       /** plot grid */
@@ -174,13 +172,12 @@ class IndicatorChartView(controller: ChartingController,
     while (i <= getNBars) {
       val time = tb(i)
       val item = mainSer.itemOf(time)
-      if (mainSer.exists(time)) {
-        for (v <- mainSer.vars if v.plot != Plot.None) {
-          val value = item.getFloat(v)
-          if (Null.not(value)) {
-            maxValue1 = Math.max(maxValue1, value)
-            minValue1 = Math.min(minValue1, value)
-          }
+      if (item != null) {
+        for (v <- mainSer.vars if v.plot != Plot.None;
+             value = item.getFloat(v) if Null.not(value)
+        ) {
+          maxValue1 = Math.max(maxValue1, value)
+          minValue1 = Math.min(minValue1, value)
         }
       }
 
@@ -196,7 +193,7 @@ class IndicatorChartView(controller: ChartingController,
     
   override def popupToDesktop {
     val popupView = new PopupIndicatorChartView(getController, getMainSer)
-    val alwaysOnTop = true;
+    val alwaysOnTop = true
     val dim = new Dimension(getWidth, 200)
         
     getController.popupViewToDesktop(popupView, dim, alwaysOnTop, false)

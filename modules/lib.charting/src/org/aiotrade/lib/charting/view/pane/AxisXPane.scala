@@ -100,7 +100,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   
 
   def setTimeZone(timeZone: TimeZone) {
-    this.timeZone = timeZone;
+    this.timeZone = timeZone
     this.cal = Calendar.getInstance(timeZone)
     this.currDate = cal.getTime
     this.prevDate = cal.getTime

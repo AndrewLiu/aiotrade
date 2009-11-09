@@ -180,7 +180,6 @@ abstract class ChartView(protected var controller: ChartingController,
     divisionPane = new DivisionPane(this, mainChartPane)
 
     mainLayeredPane = new JLayeredPane {
-
       /** this will let the pane components getting the proper size when init */
       override protected def paintComponent(g: Graphics) {
         val width = getWidth
@@ -553,10 +552,10 @@ abstract class ChartView(protected var controller: ChartingController,
     if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
       ChartView.this match {
         case drawPane: WithDrawingPane =>
-        val drawing = drawPane.getSelectedDrawing
-        if (drawing != null && drawing.isInDrawing) {
-          return
-        }
+          val drawing = drawPane.getSelectedDrawing
+          if (drawing != null && drawing.isInDrawing) {
+            return
+          }
         case _ =>
       }
 

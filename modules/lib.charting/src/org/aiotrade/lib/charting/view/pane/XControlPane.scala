@@ -62,7 +62,7 @@ class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
     val vModelEnd = masterSer.lastOccurredRow
     val vShownEnd = view.getController.getRightSideRow
     val unit = 1.0
-    val nUnitsBlock = (vShownRange * 0.168).intValue
+    val nUnitsBlock = (vShownRange * 0.168).toInt
         
     scrollControl.setValues(vModelRange, vShownRange, vModelEnd, vShownEnd, unit, nUnitsBlock)
         
@@ -78,11 +78,11 @@ class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
   class MyScrollControl extends AbstractScrollControl {
         
     protected def viewScrolledByUnit(nUnitsWithDirection: Double) {
-      view.getController.scrollChartsHorizontallyByBar(nUnitsWithDirection.intValue)
+      view.getController.scrollChartsHorizontallyByBar(nUnitsWithDirection.toInt)
     }
         
     protected def viewScaledToRange(valueShownRange: Double) {
-      view.getController.setWBarByNBars(getWidth, valueShownRange.intValue)
+      view.getController.setWBarByNBars(getWidth, valueShownRange.toInt)
     }
   }
     

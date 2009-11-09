@@ -100,10 +100,8 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
 
     val vars = new HashSet[TVar[_]]
     mainSerChartToVars.put(quoteChart, vars)
-    for (v <- mainSer.vars) {
-      if (v.plot == Plot.Quote) {
-        vars.add(v)
-      }
+    for (v <- mainSer.vars if v.plot == Plot.Quote) {
+      vars.add(v)
     }
 
     quoteChart.model.set(
@@ -154,11 +152,11 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
   }
 
   def getMaxVolume: Float = {
-    maxVolume;
+    maxVolume
   }
 
   def getMinVolume: Float = {
-    minVolume;
+    minVolume
   }
 
   def getQuoteChart: QuoteChart = {

@@ -127,7 +127,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
        * the chart height corresponds to value range.
        * (not canvas height, which may contain values exceed max/min)
        */
-      hOne = hChart.floatValue / (maxScaledValue - minScaledValue)
+      hOne = hChart.toFloat / (maxScaledValue - minScaledValue)
         
       /** avoid hOne == 0 */
       this.hOne = Math.max(hOne, 0.0000000001f)

@@ -591,7 +591,7 @@ object ChartingControllerFactory {
           return
         }
 
-        val fastSteps = (view.getNBars * 0.168f).intValue
+        val fastSteps = (view.getNBars * 0.168f).toInt
 
         e.getKeyCode match {
           case KeyEvent.VK_LEFT =>

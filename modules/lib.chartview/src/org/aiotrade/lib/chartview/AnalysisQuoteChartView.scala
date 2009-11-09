@@ -33,7 +33,6 @@ package org.aiotrade.lib.chartview
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import org.aiotrade.lib.charting.view.ChartView
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithDrawingPaneHelper
@@ -61,7 +60,7 @@ import scala.collection.mutable.HashMap
  */
 object AnalysisQuoteChartView {
   /** all AnalysisQuoteChartView instances share the same type */
-  private var quoteChartType: QuoteChart.Type = null
+  private var quoteChartType: QuoteChart.Type = LookFeel().getQuoteChartType
 
   def switchAllQuoteChartType(tpe: QuoteChart.Type) {
     quoteChartType = AbstractQuoteChartView.internal_switchAllQuoteChartType(quoteChartType, tpe)
@@ -71,7 +70,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
                              quoteSer: QuoteSer,
                              empty: Boolean
 ) extends {
-  private var compareIndicatorToChart: HashMap[QuoteCompareIndicator, QuoteChart] = _
+  private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
 } with AbstractQuoteChartView(controller, quoteSer, empty) with WithDrawingPane {
   import AnalysisQuoteChartView._
@@ -80,10 +79,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
   def this() = this(null, null, true)
     
   override def init(controller: ChartingController, quoteSer: TSer) {
-    quoteChartType = LookFeel().getQuoteChartType
         
-    compareIndicatorToChart = new HashMap
-
     /**
      * To avoid null withDrawingPaneHelper when getSelectedDrawing called by other
      * threads (such as dataLoadServer is running and fire a SerChangeEvent
