@@ -170,8 +170,6 @@ trait ComputableHelper {self: Indicator =>
 
     self.validate
 
-    logger.info(toString)
-    
     //        if (mayNeedToValidate) {
     //            self.validate
     //        }
@@ -193,6 +191,7 @@ trait ComputableHelper {self: Indicator =>
   }
 
   def postComputeFrom: Unit = {
+    logger.info(toString)
     /** construct resultSer's change event, forward baseSerChangeEventCallBack */
     self.fireSerChangeEvent(new SerChangeEvent(self,
                                                SerChangeEvent.Type.FinishedComputing,

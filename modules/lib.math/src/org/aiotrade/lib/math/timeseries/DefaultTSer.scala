@@ -58,7 +58,7 @@ import org.aiotrade.lib.math.timeseries.plottable.Plot
  *
  * @author Caoyuan Deng
  */
-class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
+class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   private val logger = Logger.getLogger(this.getClass.getName)
 
   private val INIT_CAPACITY = 100
@@ -471,10 +471,11 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
 
   override def toString = {
     val sb = new StringBuilder(20)
-    sb.append(shortDescription).append("(").append(freq).append("): size=").append(timestamps.size).append(", ")
-    if (timestamps.size > 0) {
+    val len = size
+    sb.append(shortDescription).append("(").append(freq).append("): size=").append(len).append(", ")
+    if (len > 0) {
       val start = timestamps(0)
-      val end = timestamps(size - 1)
+      val end = timestamps(len - 1)
       val cal = Calendar.getInstance
       cal.setTimeInMillis(start)
       sb.append(cal.getTime)
@@ -482,6 +483,19 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       cal.setTimeInMillis(end)
       sb.append(cal.getTime)
     }
+    
+    sb.append(", values=(\n")
+    for (v <- vars) {
+      sb.append(v.name).append(": ..., ")
+      var i = Math.max(0, len - 6) // print last 6 values
+      while (i < len) {
+        sb.append(v(i)).append(", ")
+        i += 1
+      }
+      sb.append("\n")
+    }
+    sb.append(")")
+    
     sb.toString
   }
 
