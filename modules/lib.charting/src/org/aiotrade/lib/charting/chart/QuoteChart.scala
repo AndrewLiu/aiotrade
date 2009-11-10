@@ -191,8 +191,8 @@ class QuoteChart extends AbstractChart {
        */
       var open  = Null.Float
       var close = Null.Float
-      var max   = Math.MIN_FLOAT
-      var min   = Math.MAX_FLOAT
+      var max   = -Math.MAX_FLOAT
+      var min   = +Math.MAX_FLOAT
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)

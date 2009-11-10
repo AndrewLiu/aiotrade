@@ -76,7 +76,7 @@ class VolumeChart extends AbstractChart {
       var close  = Null.Float
       var high   = -Math.MAX_FLOAT
       var low    = +Math.MAX_FLOAT
-      var volume = -Math.MAX_FLOAT
+      var volume = Null.Float
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -95,7 +95,7 @@ class VolumeChart extends AbstractChart {
         i += 1
       }
 
-      if (volume != -Math.MAX_FLOAT /* means we've got volume value */) {
+      if (Null.not(volume) /* means we've got volume value */) {
         val color = if (close >= open) LookFeel().getPositiveColor else LookFeel().getNegativeColor
         setForeground(color)
                 
