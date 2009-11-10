@@ -369,7 +369,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
               val newItems = new Array[TItem](appendSize)
               var i = 0
               while (i < appendSize) {
-                val time = timestamps(begIdx)
+                val time = timestamps(begIdx + i)
                 vars foreach {_.addNullVal(time)}
                 newItems(i) = createItem(time)
                 i += 1
@@ -474,13 +474,13 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     val len = size
     sb.append(shortDescription).append("(").append(freq).append("): size=").append(len).append(", ")
     if (len > 0) {
-      val start = timestamps(0)
-      val end = timestamps(len - 1)
+      val start = items(0)
+      val end = items(len - 1)
       val cal = Calendar.getInstance
-      cal.setTimeInMillis(start)
+      cal.setTimeInMillis(start.time)
       sb.append(cal.getTime)
       sb.append(" - ")
-      cal.setTimeInMillis(end)
+      cal.setTimeInMillis(end.time)
       sb.append(cal.getTime)
     }
     
