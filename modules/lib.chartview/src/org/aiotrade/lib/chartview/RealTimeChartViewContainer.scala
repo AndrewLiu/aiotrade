@@ -64,9 +64,9 @@ class RealTimeChartViewContainer extends ChartViewContainer {
      * them having the same isOnCalendarTime and wBar.
      */
     for (c <- INSTANCES) {
-      getController.setOnCalendarMode(c.getController.isOnCalendarMode)
+      controller.isOnCalendarMode = c.controller.isOnCalendarMode
 
-      val othersWBar = c.getController.getWBar
+      val othersWBar = c.controller.wBar
       /** which idx is this othersWBar?, find it: */
       //                int othersWBarIdx = wBarIdx;
       //                for (int i = 0; i < BAR_WIDTH_POOL.length; i++) {
@@ -95,12 +95,12 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     gbc.gridy = 0
     gbc.weightx = 100
     gbc.weighty = 618
-    val quoteSer = getController.getMasterSer.asInstanceOf[QuoteSer]
-    quoteSer.shortDescription = getController.getContents.uniSymbol
-    setMasterView(new RealTimeQuoteChartView(getController, quoteSer), gbc)
+    val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
+    quoteSer.shortDescription = controller.contents.uniSymbol
+    setMasterView(new RealTimeQuoteChartView(controller, quoteSer), gbc)
 
     val volDescriptor = createVolIndicatorDecsriptor
-    volDescriptor.serviceInstance(getController.getMasterSer) foreach {volIndicator =>
+    volDescriptor.serviceInstance(controller.masterSer) foreach {volIndicator =>
       volIndicator.computableActor ! ComputeFrom(0)
       
       gbc.fill = GridBagConstraints.BOTH
@@ -116,7 +116,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     val indicator = new IndicatorDescriptor
     indicator.active = true
     indicator.serviceClassName = classOf[VOLIndicator].getName
-    indicator.freq = getController.getMasterSer.freq
+    indicator.freq = controller.masterSer.freq
     indicator
   }
 }

@@ -115,7 +115,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
 
   if (points == Nil) {
     this.chart = init
-    this.chart.setDepth(Pane.DEPTH_DRAWING)
+    this.chart.depth = Pane.DEPTH_DRAWING
 
     if (drawing != null) {
       attachDrawingPane(drawing)
@@ -154,13 +154,13 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
         
     /** now the chart's arg has been set, and ready to be put to drawing pane */
     drawing.putChart(chart)
-    drawing.getView.getMainLayeredPane.moveToBack(drawing)
+    drawing.view.mainLayeredPane.moveToBack(drawing)
   }
     
   def attachDrawingPane(drawing: DrawingPane) {
     if (this.drawingPane == null || this.drawingPane != drawing) {
       this.drawingPane = drawing
-      this.datumPlane = drawing.getDatumPlane
+      this.datumPlane = drawing.datumPlane
             
       /** should avoid listener being added more than once */
       if (!paneMouseAdapterForDrawingAdded) {
@@ -168,7 +168,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
       }
             
       assert(chart != null, "chart instance should has been created!")
-      chart.set(datumPlane, datumPlane.getMasterSer, Pane.DEPTH_DRAWING)
+      chart.set(datumPlane, datumPlane.masterSer, Pane.DEPTH_DRAWING)
     }
   }
     
@@ -538,7 +538,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
             drawingPane.accomplishedHandledChartChanged(AbstractHandledChart.this)
           }
           /** always set this is selected in this case: */
-          getChart.setSelected(true)
+          getChart.isSelected = true
         }
         /** else, check my selection status */
         else {
@@ -546,18 +546,18 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
             if (getChart.isSelected) {
               getChart.lookupActionAt(classOf[EditAction], e.getPoint) foreach {action =>
                 /** as the glassPane is always in the front, so add it there */
-                action.anchorEditor(drawingPane.getView.getGlassPane)
+                action.anchorEditor(drawingPane.view.glassPane)
                 action.execute
               }
             }
                         
-            getChart.setSelected(true)
+            getChart.isSelected = true
             /**
              * I was just selected only, don't call activate() here, let drawingPane
              * to decide if also activate me.
              */
           } else {
-            getChart.setSelected(false)
+            getChart.isSelected = false
             /**
              * I was just deselected only, don't call passivate() here, let drawingPane
              * to decide if also passivate me.

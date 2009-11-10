@@ -39,15 +39,15 @@ import org.aiotrade.lib.securities.QuoteSer
  */
 trait WithQuoteChart {
     
-  def getQuoteChart: QuoteChart
+  def quoteChart: QuoteChart
     
-  def getQuoteChartType: QuoteChart.Type
+  def quoteChartType: QuoteChart.Type
     
   def switchQuoteChartType(tpe: QuoteChart.Type): Unit
     
   def swithScalarType: Unit
     
-  def getQuoteSer: QuoteSer
+  def quoteSer: QuoteSer
     
 }
 

@@ -71,29 +71,30 @@ object Pane {
   val DEPTH_INVISIBLE = -100
 }
 
-abstract class Pane(protected val view: ChartView, protected var datumPlane: DatumPlane) extends JComponent {
+abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponent {
   import Pane._
 
   private val widgets = new ArrayList[Widget]
-  private var charts = new TreeSet[Chart]
+  private var _referCursorValue: Float = _
+  private var _isAutoReferCursorValue: Boolean = true
+  private var _charts = new TreeSet[Chart]
   private var referCursorChart: CursorChart = _
   private var mouseCursorChart: CursorChart = _
-  private var referCursorValue: Float = _
-  private var autoReferCursorValue: Boolean = true
   private var backRenderBuffer: BufferedImage = _
   private var wBackRenderBuffer: Int = _
   private var hBackRenderBuffer: Int = _
   private var renderStrategy: RenderStrategy = RenderStrategy.NoneBuffer
-
-  if (datumPlane == null) {
+  
+  val view: ChartView = aview
+  val datumPlane: DatumPlane = if (adatumPlane == null) {
     /** if a null datumPlane given, we assume it will be just me, such as a ChartPane */
     assert(this.isInstanceOf[DatumPlane], "A null datumPlane given, the datumPlane should be me!")
-    this.datumPlane = this.asInstanceOf[DatumPlane]
-  }
+    this.asInstanceOf[DatumPlane]
+  } else adatumPlane
 
   if (this.isInstanceOf[WithCursorChart]) {
     createCursorChart(this.datumPlane)
-    getView.getController.addObserver(this, new MouseCursorObserver[ChartingController] {
+    view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
         def update(controller: ChartingController) {
           paintChartOnXORMode(mouseCursorChart)
         }
@@ -106,10 +107,6 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     this.renderStrategy = renderStrategy
   }
 
-  def getDatumPlane: DatumPlane = {
-    datumPlane
-  }
-
   /** helper method for implementing WithCursorChart */
   private def createCursorChart(datumPlane: DatumPlane) {
     if (!(this.isInstanceOf[WithCursorChart])) {
@@ -120,15 +117,15 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     /** create refer cursor chart */
     referCursorChart = this.asInstanceOf[WithCursorChart].createCursorChartInstance(datumPlane)
     referCursorChart.setType(CursorChart.Type.Refer)
-    referCursorChart.set(datumPlane, view.getController.getMasterSer, DEPTH_DEFAULT - 1)
+    referCursorChart.set(datumPlane, view.controller.masterSer, DEPTH_DEFAULT - 1)
 
     /** create mouse cursor chart */
     mouseCursorChart = this.asInstanceOf[WithCursorChart].createCursorChartInstance(datumPlane)
     mouseCursorChart.setType(CursorChart.Type.Mouse)
-    mouseCursorChart.set(datumPlane, view.getController.getMasterSer, DEPTH_FRONT)
+    mouseCursorChart.set(datumPlane, view.controller.masterSer, DEPTH_FRONT)
 
-    referCursorChart.setFirstPlotting(true)
-    mouseCursorChart.setFirstPlotting(true)
+    referCursorChart.isFirstPlotting = true
+    mouseCursorChart.isFirstPlotting = true
   }
 
   /**
@@ -146,7 +143,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
         g.setXORMode(getBackground)
 
         if (chart.isFirstPlotting) {
-          chart.setFirstPlotting(false)
+          chart.isFirstPlotting = false
         } else {
           /** erase previous drawing */
           chart.render(g)
@@ -161,10 +158,6 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
         g.dispose
       }
     }
-  }
-
-  final def getView: ChartView = {
-    view
   }
 
   override protected def paintComponent(g: Graphics) {
@@ -198,8 +191,8 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
 
   protected def postPaintComponent {
     if (this.isInstanceOf[WithCursorChart]) {
-      referCursorChart.setFirstPlotting(true)
-      mouseCursorChart.setFirstPlotting(true)
+      referCursorChart.isFirstPlotting = true
+      mouseCursorChart.isFirstPlotting = true
     }
   }
 
@@ -247,7 +240,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     }
 
     /** plot and render charts that have been put */
-    for (chart <- charts) {
+    for (chart <- _charts) {
       chart.plot
       chart.render(g)
     }
@@ -296,20 +289,18 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     g.dispose
   }
 
-  protected def getCharts: SortedSet[Chart] = {
-    charts
-  }
-
+  protected def charts: SortedSet[Chart] = _charts
+  
   def putChart(chart: Chart) {
-    charts += chart
+    _charts += chart
   }
 
   def containsChart(chart: Chart): Boolean = {
-    charts.contains(chart)
+    _charts.contains(chart)
   }
 
   def removeChart(chart: Chart) {
-    charts -= chart
+    _charts -= chart
   }
 
   def addWidget[T <: Widget](widget: T): T = {
@@ -317,24 +308,19 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     widget
   }
 
-  def setReferCursorValue(referCursorValue: Float) {
-    this.referCursorValue = referCursorValue
+  def referCursorValue: Float = _referCursorValue
+  def referCursorValue_=(referCursorValue: Float) {
+    this._referCursorValue = referCursorValue
   }
 
-  def getReferCursorValue: Float = {
-    referCursorValue
+
+  def isAutoReferCursorValue: Boolean = _isAutoReferCursorValue
+  def isAutoReferCursorValue_=(b: Boolean) {
+    this._isAutoReferCursorValue = b
   }
 
-  def setAutoReferCursorValue(b: Boolean) {
-    this.autoReferCursorValue = b
-  }
-
-  def isAutoReferCursorValue: Boolean = {
-    autoReferCursorValue
-  }
-
-  def getChartAt(x: Int, y: Int): Chart = {
-    for (chart <- charts) {
+  def chartAt(x: Int, y: Int): Chart = {
+    for (chart <- _charts) {
       if (chart.isInstanceOf[CursorChart]) {
       } else if (chart.hits(x, y)) {
         return chart
@@ -344,7 +330,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
   }
 
   def isCursorCrossVisible: Boolean = {
-    view.getController.isCursorCrossLineVisible
+    view.controller.isCursorCrossLineVisible
   }
 
   /*- @RESERVER
@@ -378,7 +364,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
    */
   @throws(classOf[Throwable])
   override protected def finalize {
-    view.getController.removeObserversOf(this)
+    view.controller.removeObserversOf(this)
     view.removeObserversOf(this)
 
     super.finalize
@@ -397,7 +383,7 @@ abstract class Pane(protected val view: ChartView, protected var datumPlane: Dat
     while (i < sortedCharts.length && !break) {
       var exchangeHappened = false
       for (j <- sortedCharts.length - 2 to i) {
-        if (sortedCharts(j + 1).getDepth < sortedCharts(j).getDepth) {
+        if (sortedCharts(j + 1).depth < sortedCharts(j).depth) {
           val tmp = sortedCharts(j + 1)
           sortedCharts(j + 1) = sortedCharts(j)
           sortedCharts(j) = tmp

@@ -40,10 +40,10 @@ import org.aiotrade.lib.charting.view.pane.XControlPane
  *
  * @author Caoyuan Deng
  */
-class PopupIndicatorChartView(controller: ChartingController, 
-                              mainSer: TSer,
+class PopupIndicatorChartView(acontroller: ChartingController,
+                              amainSer: TSer,
                               empty: Boolean
-) extends IndicatorChartView(controller, mainSer, empty) {
+) extends IndicatorChartView(acontroller, amainSer, empty) {
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)
@@ -128,9 +128,7 @@ class PopupIndicatorChartView(controller: ChartingController,
     add(axisXPane, gbc)
   }
     
-  override def getXControlPane: XControlPane = {
-    xControlPane
-  }
+  override def xControlPane: XControlPane = xControlPane
 }
 
 

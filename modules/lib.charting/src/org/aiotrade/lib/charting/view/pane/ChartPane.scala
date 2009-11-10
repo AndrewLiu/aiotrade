@@ -46,15 +46,15 @@ import org.aiotrade.lib.util.awt.AWTUtil
  *
  * @author Caoyuan Deng
  */
-class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
+class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
     
   private var colorTheme: LookFeel = _
     
-  var isMouseEntered: Boolean = _
+  private var _isMouseEntered: Boolean = _
     
-  private var yMouse: Int = _
+  private var _yMouse: Int = _
     
-  private var chartValid: Boolean = _
+  private var _chartValid: Boolean = _
     
         
   setOpaque(false)
@@ -66,17 +66,17 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
         
   val myComponentListener = new ComponentListener {
     def componentHidden(e: ComponentEvent) {
-      for (chart <- getCharts) {
+      for (chart <- charts) {
         chart.reset
       }
-      chartValid = false
+      _chartValid = false
     }
             
     def componentMoved(e: ComponentEvent) {
     }
             
     def componentResized(e: ComponentEvent) {
-      chartValid = false
+      _chartValid = false
     }
             
     def componentShown(e: ComponentEvent) {
@@ -84,41 +84,40 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
   }
   addComponentListener(myComponentListener)
         
-  getView.getController.addObserver(this, new ChartValidityObserver[ChartingController] {
+  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
       def update(controller: ChartingController) {
-        chartValid = false
-        setGeometryValid(false)
+        _chartValid = false
+        isGeometryValid = false
       }
     }.asInstanceOf[ChartValidityObserver[Any]])
         
-  getView.addObserver(this, new ChartValidityObserver[ChartView] {
+  view.addObserver(this, new ChartValidityObserver[ChartView] {
       def update(subject: ChartView) {
-        chartValid = false
-        setGeometryValid(false)
+        _chartValid = false
+        isGeometryValid = false
       }
     }.asInstanceOf[ChartValidityObserver[Any]])
 
     
   protected def isChartValid: Boolean = {
-    chartValid && isGeometryValid
+    _chartValid && isGeometryValid
   }
     
   override protected def plotPane {
     colorTheme = LookFeel()
   }
-    
-  def getYMouse: Int = {
-    yMouse
-  }
-    
-  def setYMouse(yMouse: Int) {
-    this.yMouse = yMouse
+
+  def isMouseEntered = _isMouseEntered
+
+  def yMouse: Int = _yMouse
+  def yMouse_=(yMouse: Int) {
+    this._yMouse = yMouse
   }
     
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    view.getController.removeObserversOf(this)
+    view.controller.removeObserversOf(this)
     view.removeObserversOf(this)
         
     AWTUtil.removeAllAWTListenersOf(this)
@@ -145,7 +144,7 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
       }
             
       if (view.isInstanceOf[WithDrawingPane]) {
-        val drawing = view.asInstanceOf[WithDrawingPane].getSelectedDrawing
+        val drawing = view.asInstanceOf[WithDrawingPane].selectedDrawing
         if (drawing != null && drawing.isInDrawing) {
           return
         }
@@ -156,26 +155,26 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
           return
         }
         val viewContainer = view.getParent.asInstanceOf[ChartViewContainer]
-        val selectedChart = viewContainer.getSelectedChart
-        val theChart = getChartAt(e.getX, e.getY)
+        val selectedChart = viewContainer.selectedChart
+        val theChart = chartAt(e.getX, e.getY)
         if (theChart != null) {
           if (theChart == selectedChart) {
             /** deselect it */
-            viewContainer.setSelectedChart(null)
+            viewContainer.selectedChart = null
           } else {
-            viewContainer.setSelectedChart(theChart)
+            viewContainer.selectedChart = theChart
           }
         } else {
-          viewContainer.setSelectedChart(null)
+          viewContainer.selectedChart = null
         }
       } else {
         /** set refer cursor */
         val y = e.getY
         val b = bx(e.getX)
         if (y >= view.TITLE_HEIGHT_PER_LINE && y <= (getHeight - view.CONTROL_HEIGHT) &&
-            b >= 1 && b <= getNBars) {
+            b >= 1 && b <= nBars) {
           val position = rb(b)
-          view.getController.setReferCursorByRow(position, true)
+          view.controller.setReferCursorByRow(position, true)
         }
       }
             
@@ -185,24 +184,24 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
       val y = e.getY
             
       if (y >= view.TITLE_HEIGHT_PER_LINE && y <= getHeight - view.CONTROL_HEIGHT) {
-        isMouseEntered = true
-        view.getController.setMouseEnteredAnyChartPane(true)
+        _isMouseEntered = true
+        view.controller.isMouseEnteredAnyChartPane = true
       } else {
-        isMouseEntered = false
-        view.getController.setMouseEnteredAnyChartPane(false)
+        _isMouseEntered = false
+        view.controller.isMouseEnteredAnyChartPane = false
       }
             
       val b = bx(e.getX)
             
       /** mouse position really changed? */
       if (oldBMouse == b && oldYMouse == y) {
-        return;
+        return
       }
             
-      if (b >= 1 && b <= getNBars) {
-        setYMouse(y)
+      if (b >= 1 && b <= nBars) {
+        yMouse = y
         val row = rb(b)
-        view.getController.setMouseCursorByRow(row)
+        view.controller.setMouseCursorByRow(row)
       }
             
       oldBMouse = b
@@ -210,13 +209,13 @@ class ChartPane(view: ChartView) extends AbstractDatumPlane(view) {
     }
         
     override def mouseEntered(e: MouseEvent) {
-      isMouseEntered = true
-      view.getController.setMouseEnteredAnyChartPane(true)
+      _isMouseEntered = true
+      view.controller.isMouseEnteredAnyChartPane = true
     }
         
     override def mouseExited(e: MouseEvent) {
-      isMouseEntered = false
-      view.getController.setMouseEnteredAnyChartPane(false)
+      _isMouseEntered = false
+      view.controller.isMouseEnteredAnyChartPane = false
     }
         
     override def mouseDragged(e: MouseEvent) {

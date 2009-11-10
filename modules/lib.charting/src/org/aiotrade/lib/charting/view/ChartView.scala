@@ -78,8 +78,8 @@ import scala.collection.mutable.LinkedHashMap
  *
  * @author Caoyuan Deng
  */
-abstract class ChartView(protected var controller: ChartingController, 
-                         protected var mainSer: TSer,
+abstract class ChartView(protected var _controller: ChartingController,
+                         protected var _mainSer: TSer,
                          empty: Boolean
 ) extends {
   val AXISX_HEIGHT = 12
@@ -88,42 +88,42 @@ abstract class ChartView(protected var controller: ChartingController,
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeObservable {
 
-  protected var masterSer: MasterTSer = _
-  protected val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
+  private var _masterSer: MasterTSer = _
+  val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
   protected val overlappingSerChartToVars = new LinkedHashMap[TSer, LinkedHashMap[Chart, HashSet[TVar[_]]]]
-  protected var lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN
-  protected var mainChartPane: ChartPane = _
-  protected var glassPane: GlassPane = _
-  protected var axisXPane: AxisXPane = _
-  protected var axisYPane: AxisYPane = _
-  protected var divisionPane: DivisionPane = _
-  protected var xControlPane: XControlPane = _
-  protected var yControlPane: YControlPane = _
-  protected var mainLayeredPane: JLayeredPane = _
+  private var _lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN
+  private var _mainChartPane: ChartPane = _
+  private var _glassPane: GlassPane = _
+  private var _axisXPane: AxisXPane = _
+  private var _axisYPane: AxisYPane = _
+  private var _divisionPane: DivisionPane = _
+  private var _xControlPane: XControlPane = _
+  private var _yControlPane: YControlPane = _
+  private var _mainLayeredPane: JLayeredPane = _
   /** geometry */
-  private var nBars: Int = _ // number of bars
-  private var maxValue = 1f
-  private var minValue = 0f
-  private var oldMaxValue = maxValue
-  private var oldMinValue = minValue
+  private var _nBars: Int = _ // number of bars
+  private var _maxValue = 1F
+  private var _minValue = 0F
+  private var _oldMaxValue = _maxValue
+  private var _oldMinValue = _minValue
 
+  private var _isInteractive = true
+  private var _isPinned = false
   private var componentAdapter: ComponentAdapter = _
-  private var interactive = true
-  private var pinned = false
   private val observableHelper = new ChangeObservableHelper
   protected val serChangeListener = new MySerChangeListener
 
   if (!empty) {
-    init(controller, mainSer)
+    init(_controller, _mainSer)
   }
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)
 
   def init(controller: ChartingController, mainSer: TSer) {
-    this.controller = controller
-    this.masterSer = controller.getMasterSer
-    this.mainSer = mainSer
+    this._controller = controller
+    this._masterSer = controller.masterSer
+    this._mainSer = mainSer
 
     createBasisComponents
 
@@ -131,7 +131,7 @@ abstract class ChartView(protected var controller: ChartingController,
 
     putChartsOfMainSer
 
-    this.mainSer.addSerChangeListener(serChangeListener)
+    this._mainSer.addSerChangeListener(serChangeListener)
 
     /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
   }
@@ -173,13 +173,13 @@ abstract class ChartView(protected var controller: ChartingController,
      */
     setOpaque(true)
 
-    mainChartPane = new ChartPane(this)
-    glassPane = new GlassPane(this, mainChartPane)
-    axisXPane = new AxisXPane(this, mainChartPane)
-    axisYPane = new AxisYPane(this, mainChartPane)
-    divisionPane = new DivisionPane(this, mainChartPane)
+    _mainChartPane = new ChartPane(this)
+    _glassPane = new GlassPane(this, _mainChartPane)
+    _axisXPane = new AxisXPane(this, _mainChartPane)
+    _axisYPane = new AxisYPane(this, _mainChartPane)
+    _divisionPane = new DivisionPane(this, _mainChartPane)
 
-    mainLayeredPane = new JLayeredPane {
+    _mainLayeredPane = new JLayeredPane {
       /** this will let the pane components getting the proper size when init */
       override protected def paintComponent(g: Graphics) {
         val width = getWidth
@@ -189,14 +189,14 @@ abstract class ChartView(protected var controller: ChartingController,
         }
       }
     }
-    mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-    mainLayeredPane.add(mainChartPane, JLayeredPane.DEFAULT_LAYER)
+    _mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
+    _mainLayeredPane.add(_mainChartPane, JLayeredPane.DEFAULT_LAYER)
 
-    glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
+    _glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
 
-    axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
-    axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
-    divisionPane.setPreferredSize(new Dimension(10, 1))
+    _axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
+    _axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
+    _divisionPane.setPreferredSize(new Dimension(10, 1))
   }
 
   /**
@@ -232,7 +232,7 @@ abstract class ChartView(protected var controller: ChartingController,
     computeGeometry
 
     /** @TODO, use notify ? */
-    getMainChartPane.computeGeometry
+    mainChartPane.computeGeometry
   }
 
   /**
@@ -256,19 +256,19 @@ abstract class ChartView(protected var controller: ChartingController,
      * width, because other panes may be repainted before mainChartPane is
      * properly layouted (the width of mainChartPane is still not good)
      */
-    val newNBars = ((getWidth - AXISY_WIDTH) / controller.getWBar).intValue
+    val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).intValue
 
     /** avoid nBars == 0 */
-    setNBars(Math.max(newNBars, 1))
+    nBars = Math.max(newNBars, 1)
 
     /**
      * We only need computeMaxMin() once when a this should be repainted,
      * so do it here.
      */
     computeMaxMin
-    if (maxValue != oldMaxValue || minValue != oldMinValue) {
-      oldMaxValue = maxValue
-      oldMinValue = minValue
+    if (_maxValue != _oldMaxValue || _minValue != _oldMinValue) {
+      _oldMaxValue = _maxValue
+      _oldMinValue = _minValue
       notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
   }
@@ -283,105 +283,101 @@ abstract class ChartView(protected var controller: ChartingController,
      * outside, even in this's container, so here is relative safe place to
      * try, because here means the paint() is truely beging called by awt.
      */
-    if (getAxisXPane != null) {
-      getAxisXPane.syncWithView
+    if (axisXPane != null) {
+      axisXPane.syncWithView
     }
 
-    if (getAxisYPane != null) {
-      getAxisYPane.syncWithView
+    if (axisYPane != null) {
+      axisYPane.syncWithView
     }
 
-    if (getXControlPane != null) {
-      getXControlPane.syncWithView
+    if (xControlPane != null) {
+      xControlPane.syncWithView
     }
 
-    if (getYControlPane != null) {
-      getYControlPane.syncWithView
+    if (yControlPane != null) {
+      yControlPane.syncWithView
     }
 
   }
 
-  private def setNBars(nBars: Int) {
-    val oldValue = this.nBars
-    this.nBars = nBars
-    if (this.nBars != oldValue) {
+  private def nBars_=(nBars: Int) {
+    val oldValue = this._nBars
+    this._nBars = nBars
+    if (this._nBars != oldValue) {
       notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
   }
 
   protected def setMaxMinValue(max: Float, min: Float) {
-    maxValue = max
-    minValue = min
+    _maxValue = max
+    _minValue = min
   }
 
-  def setSelected(b: Boolean) {
-    getGlassPane.setSelected(b)
+  def isSelected = glassPane.isSelected
+  def isSelected_=(b: Boolean) {
+    glassPane.isSelected = b
   }
 
-  def setInteractive(b: Boolean) {
-    getGlassPane.setInteractive(b)
+  def isInteractive: Boolean = _isInteractive
+  def isInteractive_=(b: Boolean) {
+    glassPane.interactive(b)
 
-    this.interactive = b
+    this._isInteractive = b
   }
 
-  def isInteractive: Boolean = {
-    return interactive
-  }
-
+  def isPinned: Boolean =  _isPinned
   def pin {
-    getGlassPane.setPinned(true);
+    glassPane.pin(true)
 
-    this.pinned = true
+    this._isPinned = true
   }
 
   def unPin {
-    getGlassPane.setPinned(false)
+    glassPane.pin(false)
 
-    this.pinned = false
+    this._isPinned = false
   }
 
-  def isPinned: Boolean = {
-    pinned
-  }
-
-  def setYChartScale(yChartScale: Float) {
-    val datumPane = getMainChartPane
-    if (datumPane != null) {
-      datumPane.setYChartScale(yChartScale)
+  def yChartScale = mainChartPane.yChartScale
+  def yChartScale_=(yChartScale: Float) {
+    if (mainChartPane != null) {
+      val datumPane = mainChartPane
+      datumPane.yChartScale = yChartScale
     }
 
     repaint()
   }
 
-  def setValueScalar(valueScalar: Scalar) {
-    val datumPane = getMainChartPane
-    if (datumPane != null) {
-      datumPane.setValueScalar(valueScalar)
+  def valueScalar_=(valueScalar: Scalar) {
+    if (mainChartPane != null) {
+      val datumPane = mainChartPane
+      datumPane.valueScalar = valueScalar
     }
 
     repaint()
   }
 
   def adjustYChartScale(increment: Float) {
-    val datumPane = getMainChartPane
-    if (datumPane != null) {
+    if (mainChartPane != null) {
+      val datumPane = mainChartPane
       datumPane.growYChartScale(increment)
     }
 
     repaint()
   }
 
-  def setYChartScaleByCanvasValueRange(canvasValueRange: Double) {
-    val datumPane = getMainChartPane
-    if (datumPane != null) {
-      datumPane.setYChartScaleByCanvasValueRange(canvasValueRange)
+  def yChartScaleByCanvasValueRange_=(canvasValueRange: Double) {
+    if (mainChartPane != null) {
+      val datumPane = mainChartPane
+      datumPane.yChartScaleByCanvasValueRange_=(canvasValueRange)
     }
 
     repaint()
   }
 
   def scrollChartsVerticallyByPixel(increment: Int) {
-    val datumPane = getMainChartPane
+    val datumPane = mainChartPane
     if (datumPane != null) {
       datumPane.scrollChartsVerticallyByPixel(increment)
     }
@@ -396,12 +392,12 @@ abstract class ChartView(protected var controller: ChartingController,
    * @return time
    */
   final def tb(barIndex: Int): Long = {
-    masterSer.timeOfRow(rb(barIndex))
+    _masterSer.timeOfRow(rb(barIndex))
   }
 
   final def rb(barIndex: Int): Int = {
     /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    getController.getRightSideRow - nBars + barIndex
+    controller.rightSideRow - _nBars + barIndex
   }
 
   /**
@@ -411,73 +407,46 @@ abstract class ChartView(protected var controller: ChartingController,
    * @return index of bars, start from 1 and to nBars
    */
   final def bt(time: Long): Int = {
-    br(masterSer.rowOfTime(time))
+    br(_masterSer.rowOfTime(time))
   }
 
   final def br(row: Int): Int = {
-    row - getController.getRightSideRow + nBars
+    row - controller.rightSideRow + _nBars
   }
 
-  def getMaxValue: Float = {
-    maxValue
-  }
+  def maxValue: Float = _maxValue
+  def minValue: Float = _minValue
 
-  def getMinValue: Float = {
-    minValue
-  }
+  final def nBars: Int = _nBars
 
-  final def getNBars: Int = {
-    nBars
-  }
+  def divisionPane = _divisionPane
+  def glassPane: GlassPane = _glassPane
+  def mainChartPane: ChartPane = _mainChartPane
 
-  def getGlassPane = {
-    glassPane
-  }
+  def axisXPane: AxisXPane = _axisXPane
+  def axisYPane: AxisYPane = _axisYPane
 
-  def getMainChartPane: ChartPane = {
-    mainChartPane
-  }
+  final def controller: ChartingController = _controller
 
-  def getAxisXPane: AxisXPane = {
-    axisXPane
-  }
+  def masterSer: MasterTSer = _masterSer
+  final def mainSer: TSer = _mainSer
 
-  def getAxisYPane: AxisYPane = {
-    axisYPane
-  }
+  def mainLayeredPane: JLayeredPane = _mainLayeredPane
 
-  final def getController: ChartingController = {
-    controller
-  }
-
-  final def getMainSer: TSer = {
-    mainSer
-  }
-
-  def getMainLayeredPane: JLayeredPane = {
-    mainLayeredPane
-  }
-
-  def getMainSerChartMapVars = {
-    mainSerChartToVars
-  }
-
-  def getChartMapVars(ser: TSer): LinkedHashMap[Chart, HashSet[TVar[_]]] = {
+  def chartMapVars(ser: TSer): LinkedHashMap[Chart, HashSet[TVar[_]]] = {
     assert(ser != null, "Do not pass me a null ser!")
-    if (ser == getMainSer) mainSerChartToVars else overlappingSerChartToVars.get(ser).get
+    if (ser eq mainSer) mainSerChartToVars else overlappingSerChartToVars.get(ser).get
   }
 
-  def getOverlappingSers = {
-    overlappingSerChartToVars.keySet
-  }
+  def overlappingSers = overlappingSerChartToVars.keySet
 
-  def getAllSers = {
-    val allSers = new HashSet[TSer]
+  def allSers = {
+    val _allSers = new HashSet[TSer]
 
-    allSers += getMainSer
-    allSers ++= getOverlappingSers
+    _allSers += mainSer
+    _allSers ++= overlappingSers
 
-    allSers
+    _allSers
   }
 
   def popupToDesktop {
@@ -498,16 +467,16 @@ abstract class ChartView(protected var controller: ChartingController,
         val chartVars = new HashSet[TVar[_]]
         chartVarsMap.put(chart, chartVars += v)
 
-        chart.set(mainChartPane, ser)
+        chart.set(_mainChartPane, ser)
 
         chart match {
-          case _: GradientChart => chart.setDepth(depthGradient); depthGradient -= 1
-          case _: ProfileChart =>  chart.setDepth(depthGradient); depthGradient -= 1
-          case _: StickChart => chart.setDepth(-8)
-          case _ => chart.setDepth(lastDepthOfOverlappingChart); lastDepthOfOverlappingChart += 1
+          case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
+          case _: ProfileChart =>  chart.depth = depthGradient; depthGradient -= 1
+          case _: StickChart => chart.depth = -8
+          case _ => chart.depth = _lastDepthOfOverlappingChart; _lastDepthOfOverlappingChart += 1
         }
 
-        mainChartPane.putChart(chart)
+        _mainChartPane.putChart(chart)
       }
     }
 
@@ -521,12 +490,12 @@ abstract class ChartView(protected var controller: ChartingController,
 
     overlappingSerChartToVars.get(ser) foreach {chartVarsMap =>
       for (chart <- chartVarsMap.keySet) {
-        mainChartPane.removeChart(chart)
+        _mainChartPane.removeChart(chart)
         chart match {
           case _: GradientChart => /** noop */
           case _: ProfileChart => /** noop */
           case _: StickChart => /** noop */
-          case _ => lastDepthOfOverlappingChart -= 1
+          case _ => _lastDepthOfOverlappingChart -= 1
         }
       }
       /** release chartVarsMap */
@@ -541,8 +510,8 @@ abstract class ChartView(protected var controller: ChartingController,
 
   def computeMaxMin {
     /** if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 */
-    maxValue = 1
-    minValue = 0
+    _maxValue = 1
+    _minValue = 0
   }
 
   protected def putChartsOfMainSer: Unit
@@ -552,7 +521,7 @@ abstract class ChartView(protected var controller: ChartingController,
     if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
       ChartView.this match {
         case drawPane: WithDrawingPane =>
-          val drawing = drawPane.getSelectedDrawing
+          val drawing = drawPane.selectedDrawing
           if (drawing != null && drawing.isInDrawing) {
             return
           }
@@ -569,21 +538,23 @@ abstract class ChartView(protected var controller: ChartingController,
   /**
    * @return x-control pane, may be <code>null</code>
    */
-  def getXControlPane: XControlPane = {
-    xControlPane
+  def xControlPane: XControlPane = _xControlPane
+  def xControlPane_=(pane: XControlPane) {
+    _xControlPane = pane
   }
 
   /**
    * @return y-control pane, may be <code>null</code>
    */
-  def getYControlPane: YControlPane = {
-    yControlPane
+  def yControlPane: YControlPane = _yControlPane
+  def yControlPane_=(pane: YControlPane) {
+    _yControlPane = pane
   }
 
   @throws(classOf[Throwable])
   override protected def finalize {
     if (serChangeListener != null) {
-      mainSer.removeSerChangeListener(serChangeListener)
+      _mainSer.removeSerChangeListener(serChangeListener)
     }
 
     super.finalize

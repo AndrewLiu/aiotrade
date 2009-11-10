@@ -44,7 +44,7 @@ import org.aiotrade.lib.charting.widget.PathWidget
  *
  * @author Caoyuan Deng
  */
-class DivisionPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) {
+class DivisionPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
   setOpaque(true)
   setRenderStrategy(RenderStrategy.NoneBuffer)
   setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR))

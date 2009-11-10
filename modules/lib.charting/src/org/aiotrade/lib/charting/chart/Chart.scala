@@ -61,22 +61,21 @@ trait Chart extends Widget with Ordered[Chart] {
   def set(datumPlane: DatumPlane, ser: TSer, depth: Int): Unit
   def set(datumPlane: DatumPlane, ser: TSer): Unit
     
-  def setFirstPlotting(b: Boolean): Unit
   def isFirstPlotting: Boolean
+  def isFirstPlotting_=(b: Boolean): Unit
     
-  def setDepth(depth: Int): Unit
-  def getDepth: Int
+  def depth: Int
+  def depth_=(depth: Int): Unit
     
-  def setSer(ser: TSer): Unit
-  def getSer: TSer
-    
+  def ser: TSer
+  def ser_=(ser: TSer): Unit
     
   def setStrock(strockWidth: Int, strockType: StrockType): Unit
-  def getStrockWidth: Float
-  def getStrockType: StrockType
+  def strockWidth: Float
+  def strockType: StrockType
     
   def isSelected: Boolean
-  def setSelected(b: Boolean): Unit
+  def isSelected_=(b: Boolean): Unit
     
   def reset: Unit
     

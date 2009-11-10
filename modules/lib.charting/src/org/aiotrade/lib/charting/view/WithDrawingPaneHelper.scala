@@ -49,15 +49,13 @@ import scala.collection.mutable.HashMap
  * WithDrawingPaneHelper.
  */
 class WithDrawingPaneHelper(owner: ChartView) extends WithDrawingPane {
-  private val descriptorToDrawing = new HashMap[DrawingDescriptor, DrawingPane]
-  private var selectedDrawing: DrawingPane = _
+  val descriptorToDrawing = new HashMap[DrawingDescriptor, DrawingPane]
+  private var _selectedDrawing: DrawingPane = _
     
-  def getSelectedDrawing: DrawingPane = {
-    selectedDrawing
-  }
+  def selectedDrawing: DrawingPane = _selectedDrawing
     
-  def setSelectedDrawing(drawing: DrawingPane) {
-    selectedDrawing = drawing
+  def selectedDrawing_=(drawing: DrawingPane) {
+    _selectedDrawing = drawing
   }
     
   def findDrawingDescriptor(drawing: DrawingPane): DrawingDescriptor = {
@@ -73,34 +71,30 @@ class WithDrawingPaneHelper(owner: ChartView) extends WithDrawingPane {
   def addDrawing(descriptor: DrawingDescriptor, drawing: DrawingPane) {
     if (descriptorToDrawing.contains(descriptor)) {
       /** if this has been in drawings, don't add more */
-      setSelectedDrawing(drawing)
+      selectedDrawing = drawing
     } else {
       descriptorToDrawing.put(descriptor, drawing)
             
-      owner.getMainLayeredPane.add(drawing, JLayeredPane.DEFAULT_LAYER)
+      owner.mainLayeredPane.add(drawing, JLayeredPane.DEFAULT_LAYER)
       drawing.setVisible(false)
-      owner.getMainLayeredPane.moveToBack(drawing)
+      owner.mainLayeredPane.moveToBack(drawing)
             
-      setSelectedDrawing(drawing)
+      selectedDrawing = drawing
     }
   }
     
   def deleteDrawing(descriptor: DrawingDescriptor) {
     descriptorToDrawing.get(descriptor) foreach {drawing =>
-      owner.getMainLayeredPane.remove(drawing)
-      if (selectedDrawing != null && selectedDrawing.equals(drawing)) {
+      owner.mainLayeredPane.remove(drawing)
+      if (_selectedDrawing != null && _selectedDrawing.equals(drawing)) {
         selectedDrawing = null
-        owner.getController.setCursorCrossLineVisible(true)
+        owner.controller.isCursorCrossLineVisible = true
       }
-      owner.getController.updateViews
+      owner.controller.updateViews
     }
     descriptorToDrawing.remove(descriptor)
   }
     
-  def getDescriptorMapDrawing = {
-    descriptorToDrawing
-  }
-
   @throws(classOf[Throwable])
   override protected def finalize {
     super.finalize

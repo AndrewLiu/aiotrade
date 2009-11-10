@@ -47,39 +47,39 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
  * own datumPlane.
  * @see Pane#Pane(ChartView, DatumPlane)
  */
- abstract class AbstractDatumPlane(view: ChartView) extends Pane(view, null) with DatumPlane {
+ abstract class AbstractDatumPlane(aview: ChartView) extends Pane(aview, null) with DatumPlane {
     
-    private var geometryValid: Boolean = _
+    private var _isGeometryValid: Boolean = _
     
     /** geometry that need to be set before chart plotting and render */
-    private var nBars: Int = _ // fetched from view, number of bars, you may consider it as chart width
-    private var hChart: Int = _ // chart height in pixels, corresponds to the value range (maxValue - minValue)
-    private var hCanvas: Int = _ // canvas height in pixels
-    private var hChartOffsetToCanvas: Int = _ // chart's axis-y offset in canvas, named hXXXX means positive is from lower to upper;
-    private var hSpaceLower: Int = _ // height of spare space at lower side
-    private var hSpaceUpper: Int = _ // height of spare space at upper side
-    private var yCanvasLower: Int = _ // y of canvas' lower side
-    private var yChartLower: Int = _ // y of chart's lower side
-    private var wBar: Float = _ // fetched from viewContainer, pixels per bar
-    private var hOne: Float = _ // pixels per 1.0 value
-    private var maxValue: Float = _ // fetched from view
-    private var minValue: Float = _ // fetched from view
-    private var maxScaledValue: Float = _
-    private var minScaledValue: Float = _
+    private var _nBars: Int = _ // fetched from view, number of bars, you may consider it as chart width
+    private var _hChart: Int = _ // chart height in pixels, corresponds to the value range (maxValue - minValue)
+    private var _hCanvas: Int = _ // canvas height in pixels
+    private var _hChartOffsetToCanvas: Int = _ // chart's axis-y offset in canvas, named hXXXX means positive is from lower to upper;
+    private var _hSpaceLower: Int = _ // height of spare space at lower side
+    private var _hSpaceUpper: Int = _ // height of spare space at upper side
+    private var _yCanvasLower: Int = _ // y of canvas' lower side
+    private var _yChartLower: Int = _ // y of chart's lower side
+    private var _wBar: Float = _ // fetched from viewContainer, pixels per bar
+    private var _hOne: Float = _ // pixels per 1.0 value
+    private var _maxValue: Float = _ // fetched from view
+    private var _minValue: Float = _ // fetched from view
+    private var _maxScaledValue: Float = _
+    private var _minScaledValue: Float = _
     
-    private var valueScalar: Scalar = new LinearScalar
+    private var _valueScalar: Scalar = new LinearScalar
     
     /**
      * the percent of hCanvas to be used to render charty, is can be used to scale the chart
      */
-    private var yChartScale = 1.0F
+    private var _yChartScale = 1.0F
     
     /** the pixels used to record the chart vertically moving */
-    private var hChartScrolled: Int = _
+    private var _hChartScrolled: Int = _
         
     def computeGeometry {
-      this.wBar  = view.getController.getWBar
-      this.nBars = view.getNBars
+      this._wBar  = view.controller.wBar
+      this._nBars = view.nBars
         
       /**
        * @TIPS:
@@ -87,106 +87,95 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
        * if want to leave spare space at upper side, do hChart = hCanvas - space
        *     hOne = hChart / (maxValue - minValue)
        */
-      hSpaceLower = 1
-      if (view.getXControlPane != null) {
+      _hSpaceLower = 1
+      if (view.xControlPane != null) {
         /** leave xControlPane's space at lower side */
-        hSpaceLower += view.getXControlPane.getHeight
+        _hSpaceLower += view.xControlPane.getHeight
       }
         
       /** default values: */
-      hSpaceUpper = 0
-      maxValue = view.getMaxValue
-      minValue = view.getMinValue
+      _hSpaceUpper = 0
+      _maxValue = view.maxValue
+      _minValue = view.minValue
         
       /** adjust if necessary */
-      if (this.equals(view.getMainChartPane)) {
-        hSpaceUpper += view.TITLE_HEIGHT_PER_LINE
-      } else if (view.isInstanceOf[WithVolumePane] && this.equals(view.asInstanceOf[WithVolumePane].getVolumeChartPane)) {
-        maxValue = view.asInstanceOf[WithVolumePane].getMaxVolume
-        minValue = view.asInstanceOf[WithVolumePane].getMinVolume
+      if (this eq view.mainChartPane) {
+        _hSpaceUpper += view.TITLE_HEIGHT_PER_LINE
+      } else if (view.isInstanceOf[WithVolumePane] && this.eq(view.asInstanceOf[WithVolumePane].volumeChartPane)) {
+        _maxValue = view.asInstanceOf[WithVolumePane].maxVolume
+        _minValue = view.asInstanceOf[WithVolumePane].minVolume
       }
         
-      this.maxScaledValue = valueScalar.doScale(maxValue)
-      this.minScaledValue = valueScalar.doScale(minValue)
+      this._maxScaledValue = _valueScalar.doScale(_maxValue)
+      this._minScaledValue = _valueScalar.doScale(_minValue)
         
-      this.hCanvas = getHeight - hSpaceLower - hSpaceUpper
+      this._hCanvas = getHeight - _hSpaceLower - _hSpaceUpper
         
-      val hChartCouldBe = hCanvas
-      this.hChart = (hChartCouldBe * yChartScale).toInt
+      val hChartCouldBe = _hCanvas
+      this._hChart = (hChartCouldBe * _yChartScale).toInt
         
       /** allocate sparePixelsBroughtByYChartScale to upper and lower averagyly */
-      val sparePixelsBroughtByYChartScale = hChartCouldBe - hChart
-      hChartOffsetToCanvas = hChartScrolled + (sparePixelsBroughtByYChartScale * 0.5).intValue
+      val sparePixelsBroughtByYChartScale = hChartCouldBe - _hChart
+      _hChartOffsetToCanvas = _hChartScrolled + (sparePixelsBroughtByYChartScale * 0.5).toInt
         
         
-      yCanvasLower = hSpaceUpper + hCanvas
-      yChartLower = yCanvasLower - hChartOffsetToCanvas
+      _yCanvasLower = _hSpaceUpper + _hCanvas
+      _yChartLower = _yCanvasLower - _hChartOffsetToCanvas
         
       /**
        * @NOTICE
        * the chart height corresponds to value range.
        * (not canvas height, which may contain values exceed max/min)
        */
-      hOne = hChart.toFloat / (maxScaledValue - minScaledValue)
+      _hOne = _hChart.toFloat / (_maxScaledValue - _minScaledValue)
         
       /** avoid hOne == 0 */
-      this.hOne = Math.max(hOne, 0.0000000001F)
+      this._hOne = Math.max(_hOne, 0.0000000001F)
         
-      setGeometryValid(true)
+      isGeometryValid = true
     }
     
-    def isGeometryValid: Boolean = {
-      geometryValid
+    def isGeometryValid: Boolean = _isGeometryValid
+    protected def isGeometryValid_=(b: Boolean) {
+      _isGeometryValid = b
     }
     
-    protected def setGeometryValid(b: Boolean) {
-      this.geometryValid = b
+    def valueScalar: Scalar = _valueScalar
+    def valueScalar_=(valueScalar: Scalar) {
+      this._valueScalar = valueScalar
     }
     
-    def getValueScalar: Scalar = {
-      valueScalar
-    }
-    
-    def setValueScalar(valueScalar: Scalar) {
-      this.valueScalar = valueScalar
-    }
-    
-    def getYChartScale: Float = {
-      yChartScale
-    }
-    
-    def setYChartScale(yChartScale: Float) {
-      val oldValue = this.yChartScale
-      this.yChartScale = yChartScale
+    def yChartScale: Float = _yChartScale
+    def yChartScale_=(yChartScale: Float) {
+      val oldValue = this._yChartScale
+      this._yChartScale = yChartScale
         
-      if (oldValue != this.yChartScale) {
-        setGeometryValid(false)
+      if (oldValue != this._yChartScale) {
+        isGeometryValid = false
         repaint()
       }
     }
     
     def growYChartScale(increment: Float) {
-      setYChartScale(getYChartScale + increment)
+      yChartScale = yChartScale + increment
     }
     
-    def setYChartScaleByCanvasValueRange(canvasValueRange: Double) {
-      val oldCanvasValueRange = vy(getYCanvasUpper) - vy(getYCanvasLower)
-      val scale = oldCanvasValueRange / canvasValueRange.floatValue
-      val newYChartScale = yChartScale * scale
+    def yChartScaleByCanvasValueRange_=(canvasValueRange: Double) {
+      val oldCanvasValueRange = vy(yCanvasUpper) - vy(yCanvasLower)
+      val scale = oldCanvasValueRange / canvasValueRange.toFloat
+      val newYChartScale = _yChartScale * scale
         
-      setYChartScale(newYChartScale)
+      yChartScale = newYChartScale
     }
     
     def scrollChartsVerticallyByPixel(increment: Int) {
-      hChartScrolled += increment
+      _hChartScrolled += increment
         
       /** let repaint() to update the hChartOffsetToCanvas and other geom */
       repaint()
     }
     
-    def getMasterSer: MasterTSer = {
-      view.getController.getMasterSer
-    }
+    def masterSer: MasterTSer = view.controller.masterSer
     
     /**
      * barIndex -> x
@@ -195,7 +184,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return x
      */
     final def xb(barIndex: Int): Float = {
-      wBar * (barIndex - 1)
+      _wBar * (barIndex - 1)
     }
     
     final def xr(row: Int): Float = {
@@ -209,8 +198,8 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return y on the pane
      */
     final def yv(value: Float): Float = {
-      val scaledValue = valueScalar.doScale(value)
-      GeomUtil.yv(scaledValue, hOne, minScaledValue, yChartLower)
+      val scaledValue = _valueScalar.doScale(value)
+      GeomUtil.yv(scaledValue, _hOne, _minScaledValue, _yChartLower)
     }
     
     /**
@@ -219,8 +208,8 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return value
      */
     final def vy(y: Float): Float = {
-      val scaledValue = GeomUtil.vy(y, hOne, minScaledValue, yChartLower)
-      valueScalar.unScale(scaledValue)
+      val scaledValue = GeomUtil.vy(y, _hOne, _minScaledValue, _yChartLower)
+      _valueScalar.unScale(scaledValue)
     }
     
     /**
@@ -230,7 +219,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return index of bars, start from 1 to nBars
      */
     final def bx(x: Float): Int = {
-      Math.round(x / wBar + 1)
+      Math.round(x / _wBar + 1)
     }
     
     
@@ -248,11 +237,11 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
     
     final def rb(barIndex: Int): Int = {
       /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-      view.getController.getRightSideRow - nBars + barIndex
+      view.controller.rightSideRow - _nBars + barIndex
     }
     
     final def br(row: Int): Int = {
-      row - view.getController.getRightSideRow + nBars
+      row - view.controller.rightSideRow + _nBars
     }
     
     /**
@@ -262,7 +251,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return time
      */
     final def tb(barIndex: Int): Long = {
-      view.getController.getMasterSer.timeOfRow(rb(barIndex))
+      view.controller.masterSer.timeOfRow(rb(barIndex))
     }
     
     /**
@@ -272,62 +261,40 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return index of bars, start from 1 and to nBars
      */
     final def bt(time: Long): Int = {
-      br(view.getController.getMasterSer.rowOfTime(time))
+      br(view.controller.masterSer.rowOfTime(time))
     }
     
-    def getNBars: Int = {
-      nBars
-    }
+    def nBars: Int = _nBars
     
-    def getWBar: Float = {
-      wBar
-    }
+    def wBar: Float = _wBar
     
     /**
      * @return height of 1.0 value in pixels
      */
-    def getHOne: Float = {
-      hOne
-    }
+    def hOne: Float = _hOne
     
-    def getHCanvas: Int = {
-      hCanvas
-    }
+    def hCanvas: Int = _hCanvas
     
-    def getYCanvasLower: Int = {
-      yCanvasLower
-    }
+    def yCanvasLower: Int = _yCanvasLower
     
-    def getYCanvasUpper: Int = {
-      hSpaceUpper
-    }
+    def yCanvasUpper: Int = _hSpaceUpper
     
     /**
      * @return chart height in pixels, corresponds to the value range (maxValue - minValue)
      */
-    def getHChart: Int = {
-      hChart
-    }
+    def hChart: Int = _hChart
     
-    def getYChartLower: Int = {
-      yChartLower
-    }
+    def yChartLower: Int = _yChartLower
     
-    def getYChartUpper: Int = {
-      getYChartLower - hChart
-    }
+    def yChartUpper: Int = yChartLower - _hChart
     
-    def getMaxValue: Float = {
-      maxValue
-    }
+    def maxValue: Float = _maxValue
     
-    def getMinValue: Float = {
-      minValue
-    }
+    def minValue: Float = _minValue
 
     @throws(classOf[Throwable])
     override protected def finalize {
-      view.getController.removeObserversOf(this)
+      view.controller.removeObserversOf(this)
       view.removeObserversOf(this)
 
       super.finalize

@@ -53,16 +53,16 @@ import scala.collection.mutable.HashMap
 abstract class ChartViewContainer extends JPanel {
 
   private val descriptorsToSlaveView = new HashMap[IndicatorDescriptor, ChartView]
-  private var controller: ChartingController = _
-  private var masterView: ChartView = _
+  private var _controller: ChartingController = _
+  private var _masterView: ChartView = _
   /**
    * each viewContainer can only contains one selectedChart, so we define it here instead of
    * on ChartView or ChartPane;
    */
-  private var selectedChart: Chart = _
-  private var selectedView: ChartView = _
-  private var interactive = true
-  private var pinned = false
+  private var _selectedChart: Chart = _
+  private var _selectedView: ChartView = _
+  private var _isInteractive = true
+  private var _isPinned = false
   private var _parent: Component = _
 
   /**
@@ -70,7 +70,7 @@ abstract class ChartViewContainer extends JPanel {
    */
   def init(focusableParent: Component, controller: ChartingController) {
     this._parent = focusableParent
-    this.controller = controller
+    this._controller = controller
 
     initComponents
   }
@@ -81,18 +81,8 @@ abstract class ChartViewContainer extends JPanel {
 
   protected def initComponents: Unit
 
-  def getController: ChartingController = {
-    controller
-  }
-
-  def setInteractive(b: Boolean) {
-    getMasterView.setInteractive(b)
-
-    for (view <- descriptorsToSlaveView.valuesIterator) {
-      view.setInteractive(b)
-    }
-
-    this.interactive = b
+  def controller: ChartingController = {
+    _controller
   }
 
   /**
@@ -101,25 +91,31 @@ abstract class ChartViewContainer extends JPanel {
    *
    * @return true if the mouse will work interacticely, false else.
    */
-  def isInteractive: Boolean = {
-    interactive
+  def isInteractive: Boolean = _isInteractive
+  def isInteractive_=(b: Boolean) {
+    _masterView.isInteractive = b
+
+    for (view <- descriptorsToSlaveView.valuesIterator) {
+      view.isInteractive = b
+    }
+
+    this._isInteractive = b
   }
 
-  def pin {
-    getMasterView.pin
 
-    this.pinned = true
+  def isPinned: Boolean = _isPinned
+  def pin {
+    masterView.pin
+
+    this._isPinned = true
   }
 
   def unPin {
-    getMasterView.unPin
+    masterView.unPin
 
-    this.pinned = false
+    this._isPinned = false
   }
 
-  def isPinned: Boolean = {
-    pinned
-  }
 
   def adjustViewsHeight(increment: Int) {
     /**
@@ -134,7 +130,7 @@ abstract class ChartViewContainer extends JPanel {
 
     var numSlaveViews = 0
     var sumSlaveViewsHeight = 0f
-    for (view <- descriptorsToSlaveView.valuesIterator if view != getMasterView) {
+    for (view <- descriptorsToSlaveView.valuesIterator if view != masterView) {
       /** overlapping view is also in masterView, should ignor it */
       sumSlaveViewsHeight += view.getHeight
       numSlaveViews += 1
@@ -142,13 +138,13 @@ abstract class ChartViewContainer extends JPanel {
 
     if (numSlaveViews == 1 && sumSlaveViewsHeight == 0) {
       /** first slaveView added */
-      sumSlaveViewsHeight = 0.382f * masterView.getHeight
+      sumSlaveViewsHeight = 0.382f * _masterView.getHeight
     }
 
     setVisible(false)
 
     val adjustHeight = increment
-    gbc.weighty = masterView.getHeight + adjustHeight
+    gbc.weighty = _masterView.getHeight + adjustHeight
 
     /**
      * We need setConstraints and setSize together to take the effect
@@ -157,9 +153,9 @@ abstract class ChartViewContainer extends JPanel {
      * the size according to weightx and weighty, but for performence issue,
      * we'd better setSize() to the actual size that we want.
      */
-    gbl.setConstraints(masterView, gbc)
-    masterView.setSize(new Dimension(masterView.getWidth, gbc.weighty.toInt))
-    for (view <- descriptorsToSlaveView.valuesIterator if view != getMasterView) {
+    gbl.setConstraints(_masterView, gbc)
+    _masterView.setSize(new Dimension(_masterView.getWidth, gbc.weighty.toInt))
+    for (view <- descriptorsToSlaveView.valuesIterator if view ne masterView) {
       /** average assigning */
       gbc.weighty = (sumSlaveViewsHeight - adjustHeight) / numSlaveViews
       /*-
@@ -173,12 +169,12 @@ abstract class ChartViewContainer extends JPanel {
     setVisible(true)
   }
 
-  def getMasterView: ChartView = {
-    masterView
+  def masterView: ChartView = {
+    _masterView
   }
 
   protected def setMasterView(masterView: ChartView, gbc: GridBagConstraints) {
-    this.masterView = masterView
+    this._masterView = masterView
     add(masterView, gbc)
   }
 
@@ -187,10 +183,10 @@ abstract class ChartViewContainer extends JPanel {
     if (!descriptorsToSlaveView.contains(descriptor)) {
       var view: ChartView = null
       if (indicator.isOverlapping) {
-        view = getMasterView
+        view = masterView
         view.addOverlappingCharts(indicator)
       } else {
-        view = new IndicatorChartView(getController, indicator)
+        view = new IndicatorChartView(controller, indicator)
         if (gbc == null) {
           gbc = new GridBagConstraints
           gbc.fill = GridBagConstraints.BOTH
@@ -199,62 +195,55 @@ abstract class ChartViewContainer extends JPanel {
         add(view, gbc)
       }
       descriptorsToSlaveView.put(descriptor, view)
-      setSelectedView(view)
+      selectedView = view
     }
   }
 
   def removeSlaveView(descriptor: IndicatorDescriptor) {
     val view = lookupChartView(descriptor) match {
-      case Some(view) if view == getMasterView =>
+      case Some(view) if view eq masterView =>
         view.removeOverlappingCharts(descriptor.createdServerInstance().get)
       case Some(view) =>
         remove(view)
         adjustViewsHeight(0)
-        view.getAllSers.clear
+        view.allSers.clear
         repaint()
       case None =>
     }
     descriptorsToSlaveView.remove(descriptor)
   }
 
-  def getSlaveViews = {
-    descriptorsToSlaveView.valuesIterator
-  }
+  def slaveViews = descriptorsToSlaveView.valuesIterator
 
-  def setSelectedView(view: ChartView) {
-    if (selectedView != null) {
-      selectedView.setSelected(false)
+  def selectedView: ChartView = _selectedView
+  def selectedView_=(view: ChartView) {
+    if (_selectedView != null) {
+      _selectedView.isSelected = false
     }
 
     if (view != null) {
-      selectedView = view
-      selectedView.setSelected(true)
+      _selectedView = view
+      _selectedView.isSelected = true
     } else {
-      selectedView = null
+      _selectedView = null
     }
   }
 
-  def getSelectedView: ChartView = {
-    selectedView
-  }
-
-  def getSelectedChart: Chart = {
-    selectedChart
-  }
+  def selectedChart: Chart = _selectedChart
 
   /**
    * @param chart the chart to be set as selected, could be <b>null</b>
    */
-  def setSelectedChart(chart: Chart) {
-    if (selectedChart != null) {
-      selectedChart.setSelected(false)
+  def selectedChart_=(chart: Chart) {
+    if (_selectedChart != null) {
+      _selectedChart.isSelected = false
     }
 
     if (chart != null) {
-      selectedChart = chart
-      selectedChart.setSelected(true)
+      _selectedChart = chart
+      _selectedChart.isSelected = true
     } else {
-      selectedChart = null
+      _selectedChart = null
     }
 
     repaint()
@@ -299,45 +288,45 @@ abstract class ChartViewContainer extends JPanel {
 
   @throws(classOf[Exception])
   def saveToCustomSizeImage(file: File, fileFormat: String, begTime: Long, endTime: Long, height: Int) {
-    val begPos = controller.getMasterSer.rowOfTime(begTime)
-    val endPos = controller.getMasterSer.rowOfTime(endTime)
+    val begPos = _controller.masterSer.rowOfTime(begTime)
+    val endPos = _controller.masterSer.rowOfTime(endTime)
     val nBars = endPos - begPos
-    val width = (nBars * controller.getWBar).toInt
+    val width = (nBars * _controller.wBar).toInt
 
     /** backup: */
-    val backupRightCursorPos = controller.getRightSideRow
-    val backupReferCursorPos = controller.getReferCursorRow
+    val backupRightCursorPos = _controller.rightSideRow
+    val backupReferCursorPos = _controller.referCursorRow
 
-    controller.setCursorByRow(backupReferCursorPos, endPos, true)
+    _controller.setCursorByRow(backupReferCursorPos, endPos, true)
 
     saveToCustomSizeImage(file, fileFormat, width, height)
 
     /** restore: */
-    controller.setCursorByRow(backupReferCursorPos, backupRightCursorPos, true)
+    _controller.setCursorByRow(backupReferCursorPos, backupRightCursorPos, true)
   }
 
   @throws(classOf[Exception])
   def saveToImage(file: File, fileFormat: String) {
     val fileName = (file.toString + ".png")
 
-    if (masterView.getXControlPane != null) {
-      masterView.getXControlPane.setVisible(false)
+    if (_masterView.xControlPane != null) {
+      _masterView.xControlPane.setVisible(false)
     }
 
-    if (masterView.getYControlPane != null) {
-      masterView.getYControlPane.setVisible(false)
+    if (_masterView.yControlPane != null) {
+      _masterView.yControlPane.setVisible(false)
     }
 
     val image = paintToImage
 
     ImageIO.write(image, fileFormat, file)
 
-    if (masterView.getXControlPane != null) {
-      masterView.getXControlPane.setVisible(true)
+    if (_masterView.xControlPane != null) {
+      _masterView.xControlPane.setVisible(true)
     }
 
-    if (masterView.getYControlPane != null) {
-      masterView.getYControlPane.setVisible(true)
+    if (_masterView.yControlPane != null) {
+      _masterView.yControlPane.setVisible(true)
     }
   }
 

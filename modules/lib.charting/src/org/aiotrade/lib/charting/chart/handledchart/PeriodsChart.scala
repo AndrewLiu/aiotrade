@@ -71,7 +71,7 @@ class PeriodsChart extends AbstractChart {
     val label1 = addChild(new Label)
     label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
-    label1.model.set(xb(bs(1).intValue) + 2, yv(datumPlane.getMinValue), (Math.round(bs(1) - bs(0))).toString)
+    label1.model.set(xb(bs(1).toInt) + 2, yv(datumPlane.minValue), (Math.round(bs(1) - bs(0))).toString)
     label1.plot
         
     /** calculate Periods series */

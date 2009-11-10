@@ -85,10 +85,10 @@ abstract class CursorChart extends AbstractChart {
   protected def plotChart {
     laf = LookFeel()
         
-    referRow  = datumPlane.getView.getController.getReferCursorRow
-    referTime = datumPlane.getView.getController.getReferCursorTime
-    mouseRow  = datumPlane.getView.getController.getMouseCursorRow
-    mouseTime = datumPlane.getView.getController.getMouseCursorTime
+    referRow  = datumPlane.view.controller.referCursorRow
+    referTime = datumPlane.view.controller.referCursorTime
+    mouseRow  = datumPlane.view.controller.mouseCursorRow
+    mouseTime = datumPlane.view.controller.mouseCursorTime
         
     val pathWidget = addChild(new PathWidget)
     tpe match {
@@ -104,7 +104,7 @@ abstract class CursorChart extends AbstractChart {
         plotReferCursor
                 
       case Type.Mouse =>
-        if (! datumPlane.getView.getController.isMouseEnteredAnyChartPane) {
+        if (! datumPlane.view.controller.isMouseEnteredAnyChartPane) {
           return;
         }
                 

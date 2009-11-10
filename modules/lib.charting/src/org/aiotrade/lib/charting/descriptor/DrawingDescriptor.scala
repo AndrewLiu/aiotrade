@@ -99,7 +99,7 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
   protected def createServiceInstance(args: Any*): Option[DrawingPane] = {
     args match {
       case Seq(view: ChartView, _*) =>
-        Some(new DrawingPane(view, view.getMainChartPane, this))
+        Some(new DrawingPane(view, view.mainChartPane, this))
       case _ => None
     }
   }

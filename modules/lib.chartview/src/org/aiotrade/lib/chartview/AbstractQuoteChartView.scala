@@ -70,14 +70,14 @@ object AbstractQuoteChartView {
 
 }
 
-abstract class AbstractQuoteChartView(controller: ChartingController,
-                                      quoteSer: QuoteSer,
+abstract class AbstractQuoteChartView(acontroller: ChartingController,
+                                      aquoteSer: QuoteSer,
                                       empty: Boolean
 ) extends {
-  private var quoteChart: QuoteChart = _
+  private var _quoteChart: QuoteChart = _
   protected var maxVolume, minVolume: Float = _
   protected var sec: Sec = _
-} with ChartView(controller, quoteSer, empty) with WithQuoteChart {
+} with ChartView(acontroller, aquoteSer, empty) with WithQuoteChart {
   import AbstractQuoteChartView._
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
@@ -85,33 +85,32 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
 
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
-    sec = controller.getContents.serProvider.asInstanceOf[Sec]
+    sec = controller.contents.serProvider.asInstanceOf[Sec]
     if (axisXPane != null) {
       axisXPane.setTimeZone(sec.market.timeZone)
     }
   }
 
-  def getQuoteSer: QuoteSer = {
-    mainSer.asInstanceOf[QuoteSer]
-  }
+  def quoteSer: QuoteSer = mainSer.asInstanceOf[QuoteSer]
+  def quoteChart: QuoteChart = _quoteChart
 
   protected def putChartsOfMainSer {
-    quoteChart = new QuoteChart
+    _quoteChart = new QuoteChart
 
     val vars = new HashSet[TVar[_]]
-    mainSerChartToVars.put(quoteChart, vars)
+    mainSerChartToVars.put(_quoteChart, vars)
     for (v <- mainSer.vars if v.plot == Plot.Quote) {
       vars.add(v)
     }
 
-    quoteChart.model.set(
-      getQuoteSer.open,
-      getQuoteSer.high,
-      getQuoteSer.low,
-      getQuoteSer.close)
+    _quoteChart.model.set(
+      quoteSer.open,
+      quoteSer.high,
+      quoteSer.low,
+      quoteSer.close)
 
-    quoteChart.set(mainChartPane, mainSer, Pane.DEPTH_DEFAULT)
-    mainChartPane.putChart(quoteChart)
+    _quoteChart.set(mainChartPane, mainSer, Pane.DEPTH_DEFAULT)
+    mainChartPane.putChart(_quoteChart)
   }
 
   override def computeMaxMin {
@@ -123,7 +122,7 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
     maxVolume = -Math.MAX_FLOAT
 
     var i = 1
-    while (i <= getNBars) {
+    while (i <= nBars) {
       val time = tb(i)
       val item = mainSer(time).asInstanceOf[QuoteItem]
       if (item != null && item.close > 0) {
@@ -160,13 +159,13 @@ abstract class AbstractQuoteChartView(controller: ChartingController,
   }
 
   def getQuoteChart: QuoteChart = {
-    quoteChart
+    _quoteChart
   }
 
   def swithScalarType {
-    getMainChartPane.getValueScalar.getType match {
-      case Scalar.Type.Linear => setValueScalar(new LgScalar)
-      case _ => setValueScalar(new LinearScalar)
+    mainChartPane.valueScalar.getType match {
+      case Scalar.Type.Linear => mainChartPane.valueScalar = new LgScalar
+      case _ => mainChartPane.valueScalar = new LinearScalar
     }
   }
 

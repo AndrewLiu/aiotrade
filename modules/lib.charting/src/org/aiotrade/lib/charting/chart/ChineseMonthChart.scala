@@ -70,8 +70,8 @@ class ChineseMonthChart extends AbstractChart {
       if (chineseMonth > 0) {
         template.setForeground(color)
         val path = template.getPath
-        path.moveTo(xb(bar), yv(datumPlane.getMinValue))
-        path.lineTo(xb(bar), yv(datumPlane.getMaxValue))
+        path.moveTo(xb(bar), yv(datumPlane.minValue))
+        path.lineTo(xb(bar), yv(datumPlane.maxValue))
         heavyPathWidget.appendFrom(template)
       }
 

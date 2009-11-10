@@ -73,8 +73,8 @@ class SeasonChart extends AbstractChart {
             
       var j = 0
       while (j < wBar) {
-        path.moveTo(xb(bar) - barWidthHalf + j, yv(datumPlane.getMinValue))
-        path.lineTo(xb(bar) - barWidthHalf + j, yv(datumPlane.getMaxValue))
+        path.moveTo(xb(bar) - barWidthHalf + j, yv(datumPlane.minValue))
+        path.lineTo(xb(bar) - barWidthHalf + j, yv(datumPlane.maxValue))
         
         j += 1
       }

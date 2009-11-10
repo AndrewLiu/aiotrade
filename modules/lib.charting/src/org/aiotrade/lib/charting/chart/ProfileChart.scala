@@ -71,16 +71,16 @@ class ProfileChart extends AbstractChart {
     val w = datumPlane.getWidth
     val h = datumPlane.getHeight
         
-    val color = LookFeel().getGradientColor(getDepth, -10)
+    val color = LookFeel().getGradientColor(depth, -10)
     setForeground(color)
         
     val width = (w * 2.386).toInt
         
     //color = Color.YELLOW;//new Color(1.0f, 1.0f, 1.0f, 0.618f)
         
-    val controller = datumPlane.getView.getController
+    val controller = datumPlane.view.controller
         
-    time = controller.getReferCursorTime
+    time = controller.referCursorTime
         
     val xorigin = xb(bt(time))
         

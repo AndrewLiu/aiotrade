@@ -38,7 +38,7 @@ import org.aiotrade.lib.charting.view.ChartView
  *
  * @author Caoyuan Deng
  */
-class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) {
+class XControlPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
     
   setOpaque(false)
   setRenderStrategy(RenderStrategy.NoneBuffer)
@@ -55,12 +55,12 @@ class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
   }
     
   def syncWithView {
-    val masterSer = view.getController.getMasterSer
+    val masterSer = view.controller.masterSer
         
     val vModelRange = masterSer.size
-    val vShownRange = view.getNBars
+    val vShownRange = view.nBars
     val vModelEnd = masterSer.lastOccurredRow
-    val vShownEnd = view.getController.getRightSideRow
+    val vShownEnd = view.controller.rightSideRow
     val unit = 1.0
     val nUnitsBlock = (vShownRange * 0.168).toInt
         
@@ -78,11 +78,11 @@ class XControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
   class MyScrollControl extends AbstractScrollControl {
         
     protected def viewScrolledByUnit(nUnitsWithDirection: Double) {
-      view.getController.scrollChartsHorizontallyByBar(nUnitsWithDirection.toInt)
+      view.controller.scrollChartsHorizontallyByBar(nUnitsWithDirection.toInt)
     }
         
     protected def viewScaledToRange(valueShownRange: Double) {
-      view.getController.setWBarByNBars(getWidth, valueShownRange.toInt)
+      view.controller.setWBarByNBars(getWidth, valueShownRange.toInt)
     }
   }
     

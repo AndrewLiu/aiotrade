@@ -54,27 +54,24 @@ import org.aiotrade.lib.util.ChangeObservable
  */
 trait ChartingController extends ChangeObservable {
 
-    def getMasterSer: MasterTSer
+    def masterSer: MasterTSer
 
-    def getContents: AnalysisContents
-
-    def setCursorCrossLineVisible(b: Boolean): Unit
+    def contents: AnalysisContents
 
     def isCursorCrossLineVisible: Boolean
+    def isCursorCrossLineVisible_=(b: Boolean)
 
     def isMouseEnteredAnyChartPane: Boolean
+    def isMouseEnteredAnyChartPane_=(b: Boolean)
 
-    def setMouseEnteredAnyChartPane(b: Boolean)
-
-    def getWBar: Float
+    def wBar: Float
 
     def growWBar(increment: Int): Unit
 
     def setWBarByNBars(wViewPort: Int, nBars: Int): Unit
 
     def isOnCalendarMode: Boolean
-
-    def setOnCalendarMode(b: Boolean): Unit
+    def isOnCalendarMode_=(b: Boolean): Unit
 
     def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean): Unit
 
@@ -99,25 +96,20 @@ trait ChartingController extends ChangeObservable {
      * ======================================================
      * Bellow is the methods for cursor etc:
      */
-    def getReferCursorRow: Int
+    def referCursorRow: Int
+    def referCursorTime: Long
 
-    def getReferCursorTime: Long
+    def rightSideRow: Int
+    def rightSideTime: Long
 
-    def getRightSideRow: Int
+    def leftSideRow: Int
+    def leftSideTime: Long
 
-    def getRightSideTime: Long
-
-    def getLeftSideRow: Int
-
-    def getLeftSideTime: Long
-
-    def getMouseCursorRow: Int
-
-    def getMouseCursorTime: Long
+    def mouseCursorRow: Int
+    def mouseCursorTime: Long
 
     def isCursorAccelerated: Boolean
-
-    def setCursorAccelerated(b: Boolean): Unit
+    def isCursorAccelerated_=(b: Boolean)
 
     /**
      * Factory method to create ChartViewContainer instance

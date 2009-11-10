@@ -54,7 +54,7 @@ object AxisYPance {
   val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.00")
 }
 
-class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) {
+class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
   import AxisYPance._
 
   private var symmetricOnMiddleValue: Boolean = _
@@ -76,14 +76,14 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   add(mouseCursorLabel)
   add(referCursorLabel)
 
-  view.getController.addObserver(this, new MouseCursorObserver[ChartingController] {
+  view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateMouseCursorLabel
       }
     }.asInstanceOf[MouseCursorObserver[Any]])
 
-  view.getController.addObserver(this, new ReferCursorObserver[ChartingController] {
+  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateReferCursorLabel
@@ -100,16 +100,16 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   private def updateMouseCursorLabel {
     datumPlane.computeGeometry
-    val controller = getView.getController
+    val controller = view.controller
     if (controller.isMouseEnteredAnyChartPane) {
       var y, v: Float = 0f
-      if (datumPlane.getView.isInstanceOf[WithQuoteChart]) {
+      if (datumPlane.view.isInstanceOf[WithQuoteChart]) {
         if (datumPlane.isMouseEntered) {
-          y = datumPlane.getYMouse
+          y = datumPlane.yMouse
           v = datumPlane.vy(y)
         } else {
-          val mousePosition = controller.getMouseCursorRow
-          val quoteSer = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteSer
+          val mousePosition = controller.mouseCursorRow
+          val quoteSer = datumPlane.view.asInstanceOf[WithQuoteChart].quoteSer
           val item = quoteSer.itemOfRow(mousePosition).asInstanceOf[QuoteItem]
           v = if (item == null) 0 else item.close
           y = datumPlane.yv(v)
@@ -128,7 +128,7 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
         mouseCursorLabel.setVisible(true)
       } else {
         if (datumPlane.isMouseEntered) {
-          y = datumPlane.getYMouse
+          y = datumPlane.yMouse
           v = datumPlane.vy(y)
           val valueStr = COMMON_DECIMAL_FORMAT.format(v)
 
@@ -158,12 +158,12 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
    */
   private def updateReferCursorLabel {
     datumPlane.computeGeometry
-    val controller = getView.getController
+    val controller = view.controller
 
     var y, v: Float = 0f
-    if (datumPlane.getView.isInstanceOf[WithQuoteChart]) {
-      val referPosition = controller.getReferCursorRow
-      val quoteSer = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteSer
+    if (datumPlane.view.isInstanceOf[WithQuoteChart]) {
+      val referPosition = controller.referCursorRow
+      val quoteSer = datumPlane.view.asInstanceOf[WithQuoteChart].quoteSer
       val item = quoteSer.itemOfRow(referPosition).asInstanceOf[QuoteItem]
       v = if (item == null) 0 else item.close
       y = datumPlane.yv(v)
@@ -196,14 +196,14 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
     val hFm = fm.getHeight
 
     var nTicks = 6f
-    while (datumPlane.getHCanvas / nTicks < hFm + 20 && nTicks > -2) {
+    while (datumPlane.hCanvas / nTicks < hFm + 20 && nTicks > -2) {
       nTicks -= 2 // always keep even
     }
 
-    val maxValueOnCanvas = datumPlane.vy(datumPlane.getYCanvasUpper)
+    val maxValueOnCanvas = datumPlane.vy(datumPlane.yCanvasUpper)
     val minValueOnCanvas =
-      if (view.getYControlPane != null) datumPlane.vy(datumPlane.getYCanvasLower - view.getYControlPane.getHeight)
-    else datumPlane.vy(datumPlane.getYCanvasLower)
+      if (view.yControlPane != null) datumPlane.vy(datumPlane.yCanvasLower - view.yControlPane.getHeight)
+    else datumPlane.vy(datumPlane.yCanvasLower)
 
 
     val vMaxTick = maxValueOnCanvas // init value, will adjust later
@@ -214,7 +214,7 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
     if (!symmetricOnMiddleValue) {
       vTickUnit = roundTickUnit(vTickUnit)
-      vMinTick = (vMinTick / vTickUnit).intValue * vTickUnit
+      vMinTick = (vMinTick / vTickUnit).toInt * vTickUnit
     }
 
     val pathWidget = addWidget(new PathWidget)
@@ -308,7 +308,7 @@ class AxisYPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    view.getController.removeObserversOf(this)
+    view.controller.removeObserversOf(this)
     view.removeObserversOf(this)
 
     super.finalize

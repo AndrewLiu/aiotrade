@@ -62,18 +62,18 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     gbc.weightx = 100
     gbc.weighty = 618
         
-    val quoteSer = getController.getMasterSer.asInstanceOf[QuoteSer]
-    quoteSer.shortDescription = getController.getContents.uniSymbol
-    val quoteChartView = new AnalysisQuoteChartView(getController, quoteSer)
+    val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
+    quoteSer.shortDescription = controller.contents.uniSymbol
+    val quoteChartView = new AnalysisQuoteChartView(controller, quoteSer)
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */
     val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
     val  indicatorsToBeShowing = new ArrayList[Indicator]
-    for (descriptor <- getController.getContents.lookupDescriptors(classOf[IndicatorDescriptor])
-         if descriptor.active && descriptor.freq == getController.getMasterSer.freq
+    for (descriptor <- controller.contents.lookupDescriptors(classOf[IndicatorDescriptor])
+         if descriptor.active && descriptor.freq == controller.masterSer.freq
     ) {
-      descriptor.serviceInstance(getController.getMasterSer) foreach {indicator =>
+      descriptor.serviceInstance(controller.masterSer) foreach {indicator =>
         /**
          * @NOTICE
          * As the quoteSer may has been loaded, there may be no more UpdatedEvent
@@ -94,15 +94,15 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     /** now add slaveViews, the size has excluded those indicators not showing */
     val size = indicatorDescriptorsToBeShowing.size
     for (i <- 0 until size) {
-      gbc.weighty = 382f / size.floatValue
+      gbc.weighty = 382f / size.toFloat
       addSlaveView(indicatorDescriptorsToBeShowing(i), indicatorsToBeShowing(i), gbc)
     }
         
-    for (descriptor <- getController.getContents.lookupDescriptors(classOf[DrawingDescriptor])
-         if descriptor.freq == getController.getMasterSer.freq
+    for (descriptor <- controller.contents.lookupDescriptors(classOf[DrawingDescriptor])
+         if descriptor.freq == controller.masterSer.freq
     ) {
-      descriptor.serviceInstance(getMasterView) foreach {drawing =>
-        getMasterView.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
+      descriptor.serviceInstance(masterView) foreach {drawing =>
+        drawing.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
       }
     }
   }

@@ -49,7 +49,7 @@ import org.aiotrade.lib.charting.widget.PathWidget
  *
  * @author Caoyuan Deng
  */
-class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) {
+class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
 
   private val TICK_SPACING = 100 // in pixels
   private var timeZone: TimeZone = _
@@ -77,21 +77,21 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   add(mouseCursorLabel)
   add(referCursorLabel)
 
-  view.getController.addObserver(this, new MouseCursorObserver[ChartingController] {
+  view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateMouseCursorLabel
       }
     }.asInstanceOf[MouseCursorObserver[Any]])
 
-  view.getController.addObserver(this, new ReferCursorObserver[ChartingController] {
+  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateReferCursorLabel
       }
     }.asInstanceOf[ReferCursorObserver[Any]])
 
-  view.getController.addObserver(this, new ChartValidityObserver[ChartingController] {
+  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateReferCursorLabel
@@ -108,12 +108,12 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   private def updateMouseCursorLabel {
     datumPlane.computeGeometry
-    val controller = getView.getController
+    val controller = view.controller
 
     if (controller.isMouseEnteredAnyChartPane) {
-      val mousePosition = controller.getMouseCursorRow
-      val mouseTime = controller.getMouseCursorTime
-      val freq = controller.getMasterSer.freq
+      val mousePosition = controller.mouseCursorRow
+      val mouseTime = controller.mouseCursorTime
+      val freq = controller.masterSer.freq
       val x = datumPlane.xr(mousePosition).toInt
       cal.setTimeInMillis(mouseTime)
       val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
@@ -134,11 +134,11 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   private def updateReferCursorLabel {
     datumPlane.computeGeometry
-    val controller = getView.getController
+    val controller = view.controller
 
-    val referPosition = controller.getReferCursorRow
-    val referTime = controller.getReferCursorTime
-    val freq = controller.getMasterSer.freq
+    val referPosition = controller.referCursorRow
+    val referTime = controller.referCursorTime
+    val freq = controller.masterSer.freq
     val x = datumPlane.xr(referPosition).toInt
     cal.setTimeInMillis(referTime)
     val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
@@ -162,9 +162,9 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
   }
 
   private def plotAxisX {
-    val nTicks = getWidth() / TICK_SPACING
+    val nTicks = getWidth / TICK_SPACING
 
-    val nBars = datumPlane.getNBars
+    val nBars = datumPlane.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
     var bTickUnit = Math.round(nBars.toFloat / nTicks.toFloat)
     if (bTickUnit < 2) {
@@ -199,7 +199,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
           cal.setTimeInMillis(time)
           currDate = cal.getTime
           var stridingDate = false
-          val freqUnit = view.getMainSer.freq.unit
+          val freqUnit = view.mainSer.freq.unit
           freqUnit match {
             case TUnit.Day =>
               cal.setTime(currDate)
@@ -240,7 +240,7 @@ class AxisXPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datu
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    view.getController.removeObserversOf(this)
+    view.controller.removeObserversOf(this)
     view.removeObserversOf(this)
 
     super.finalize

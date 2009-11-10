@@ -43,7 +43,7 @@ import org.aiotrade.lib.charting.widget.PathWidget
  *
  * @author Caoyuan Deng
  */
-class DrawingPane(view: ChartView, datumPlane: DatumPlane, descriptor: DrawingDescriptor) extends Pane(view, datumPlane) {
+class DrawingPane(aview: ChartView, adatumPlane: DatumPlane, descriptor: DrawingDescriptor) extends Pane(aview, adatumPlane) {
   private var givenHandledChartsLoaded: Boolean = _
     
   private var selectedHandledChart: HandledChart = _
@@ -123,14 +123,14 @@ class DrawingPane(view: ChartView, datumPlane: DatumPlane, descriptor: DrawingDe
          * smoothly and the chart especially the handles in front of charts
          * of mainChartPane.
          */
-        view.getMainLayeredPane.moveToFront(this)
+        view.mainLayeredPane.moveToFront(this)
       } else {
         /**
          * if clear selectedHandledChart, move this to back, thus this pane
          * will be in back of mainChartPane and the handled charts in this
          * pane will not overlap mainChartPane's charts.
          */
-        view.getMainLayeredPane.moveToBack(this)
+        view.mainLayeredPane.moveToBack(this)
       }
             
       view.repaint()
@@ -147,7 +147,7 @@ class DrawingPane(view: ChartView, datumPlane: DatumPlane, descriptor: DrawingDe
       selectedHandledChart.removeMouseAdapterOnPane
             
       descriptor.removeHandledChart(selectedHandledChart)
-      PersistenceManager.getDefault.saveContents(view.getController.getContents)
+      PersistenceManager.getDefault.saveContents(view.controller.contents)
             
       setSelectedHandledChart(null)
     }
@@ -163,7 +163,7 @@ class DrawingPane(view: ChartView, datumPlane: DatumPlane, descriptor: DrawingDe
         
     /** the chart may have got new handlesPoints, so, put them to descriptor anyway and save */
     descriptor.putHandledChart(handledChart, handledChart.getCurrentHandlesPoints)
-    PersistenceManager.getDefault.saveContents(view.getController.getContents)
+    PersistenceManager.getDefault.saveContents(view.controller.contents)
         
   }
     

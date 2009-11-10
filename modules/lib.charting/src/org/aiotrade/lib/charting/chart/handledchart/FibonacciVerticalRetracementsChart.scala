@@ -81,7 +81,7 @@ class FibonacciVerticalRetracementsChart extends AbstractChart {
     )
         
         
-    val ymin = yv(datumPlane.getMinValue)
+    val ymin = yv(datumPlane.minValue)
     var n = 0
     while (n < Fn.length) {
       val b = Math.round(bs(0) + interval * Fn(n))

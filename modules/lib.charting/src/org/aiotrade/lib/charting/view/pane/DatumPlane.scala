@@ -48,13 +48,13 @@ trait DatumPlane {
   def getHeight: Int
     
   def isMouseEntered: Boolean
-  def getYMouse: Int
-  def getReferCursorValue: Float
+  def yMouse: Int
+  def referCursorValue: Float
   def isAutoReferCursorValue: Boolean
     
-  def getView: ChartView
+  def view: ChartView
     
-  def getMasterSer: MasterTSer
+  def masterSer: MasterTSer
     
   /**
    * in DatumPlane, we define this public interface for its users to call in case
@@ -64,15 +64,15 @@ trait DatumPlane {
   def computeGeometry: Unit
   def isGeometryValid: Boolean
     
-  def getNBars: Int
+  def nBars: Int
     
-  def getWBar: Float
+  def wBar: Float
     
-  def getHOne: Float
+  def hOne: Float
     
-  def getMaxValue: Float
+  def maxValue: Float
     
-  def getMinValue: Float
+  def minValue: Float
     
   def xb(barIndex: Int): Float
   def bx(x: Float): Int
@@ -91,32 +91,30 @@ trait DatumPlane {
     
   def tx(x: Float): Long
         
-  def getHCanvas: Int
+  def hCanvas: Int
     
-  def getYCanvasLower: Int
+  def yCanvasLower: Int
     
-  def getYCanvasUpper: Int
+  def yCanvasUpper: Int
     
   /**
    * @return chart height in pixels, corresponds to the value range (maxValue - minValue)
    */
-  def getHChart: Int
+  def hChart: Int
     
-  def getYChartLower: Int
+  def yChartLower: Int
     
-  def getYChartUpper: Int
+  def yChartUpper: Int
     
-  def getValueScalar: Scalar
+  def valueScalar: Scalar
+  def valueScalar_=(valueScalar: Scalar): Unit
     
-  def setValueScalar(valueScalar: Scalar): Unit
-    
-  def getYChartScale: Float
-    
-  def setYChartScale(yChartScale: Float): Unit
+  def yChartScale: Float
+  def yChartScale_=(yChartScale: Float): Unit
     
   def growYChartScale(increment: Float): Unit
     
-  def setYChartScaleByCanvasValueRange(canvasValueRange: Double): Unit
+  def yChartScaleByCanvasValueRange_=(canvasValueRange: Double): Unit
     
   def scrollChartsVerticallyByPixel(increment: Int): Unit
     

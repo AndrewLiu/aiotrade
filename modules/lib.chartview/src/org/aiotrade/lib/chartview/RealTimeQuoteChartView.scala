@@ -63,16 +63,16 @@ object RealTimeQuoteChartView {
 
 }
 
-class RealTimeQuoteChartView(controller: ChartingController,
-                             quoteSer: QuoteSer,
+class RealTimeQuoteChartView(acontroller: ChartingController,
+                             aquoteSer: QuoteSer,
                              empty: Boolean
 ) extends {
-  private var prevClose = Null.Float
+  private var _prevClose = Null.Float
   private var gridValues: Array[Float] = _
   private var tickerSer: QuoteSer = _
   private val cal = Calendar.getInstance
   private var market: Market = _
-} with AbstractQuoteChartView(controller, quoteSer, empty) {
+} with AbstractQuoteChartView(acontroller, aquoteSer, empty) {
   import RealTimeQuoteChartView._
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
@@ -81,12 +81,12 @@ class RealTimeQuoteChartView(controller: ChartingController,
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
 
-    getController.setAutoScrollToNewData(false)
-    getController.setOnCalendarMode(false)
-    getController.growWBar(-2)
+    controller.setAutoScrollToNewData(false)
+    controller.isOnCalendarMode = false
+    controller.growWBar(-2)
     axisYPane.setSymmetricOnMiddleValue(true)
 
-    quoteChartType = QuoteChart.Type.Line
+    RealTimeQuoteChartView.quoteChartType = QuoteChart.Type.Line
 
     market = sec.market
     tickerSer = sec.tickerSer
@@ -168,8 +168,8 @@ class RealTimeQuoteChartView(controller: ChartingController,
     var minValue1 = +Math.MAX_FLOAT
     var maxValue1 = -Math.MAX_FLOAT
     if (Null.not(prevClose)) {
-      minValue1 = getMinValue
-      maxValue1 = getMaxValue
+      minValue1 = minValue
+      maxValue1 = maxValue
       val maxDelta = Math.max(Math.abs(maxValue1 - prevClose), Math.abs(minValue1 - prevClose))
       maxValue1 = prevClose + maxDelta
       minValue1 = prevClose - maxDelta
@@ -178,31 +178,28 @@ class RealTimeQuoteChartView(controller: ChartingController,
 
   }
 
-  def getQuoteChartType: QuoteChart.Type = {
-    quoteChartType
-  }
-
+  def quoteChartType: QuoteChart.Type = RealTimeQuoteChartView.quoteChartType
   def switchQuoteChartType(tpe: QuoteChart.Type) {
     switchAllQuoteChartType(tpe)
 
     repaint()
   }
 
-
-  def setPrevClose(prevClose: Float) {
-    this.prevClose = prevClose
+  def prevClose = _prevClose
+  def prevClose_=(prevClose: Float) {
+    this._prevClose = prevClose
     gridValues(0) = prevClose
-    mainChartPane.setReferCursorValue(prevClose)
-    glassPane.setReferCursorValue(prevClose)
+    mainChartPane.referCursorValue = prevClose
+    glassPane.referCursorValue = prevClose
   }
 
   override def popupToDesktop {
-    val popupView = new RealTimeQuoteChartView(getController, getQuoteSer)
-    popupView.setInteractive(false)
+    val popupView = new RealTimeQuoteChartView(controller, quoteSer)
+    popupView.isInteractive = false
     val dimension = new Dimension(200, 150)
     val alwaysOnTop = true
 
-    getController.popupViewToDesktop(popupView, dimension, alwaysOnTop, false)
+    controller.popupViewToDesktop(popupView, dimension, alwaysOnTop, false)
   }
 
   override def updateView(evt: SerChangeEvent) {
@@ -215,8 +212,8 @@ class RealTimeQuoteChartView(controller: ChartingController,
         val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
         val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
 
-        getGlassPane.updateInstantValue(strValue, color)
-        setPrevClose(ticker(Ticker.PREV_CLOSE))
+        glassPane.updateInstantValue(strValue, color)
+        prevClose = ticker(Ticker.PREV_CLOSE)
 
         val time = ticker.time
         if (time >= lastOccurredTime) {
@@ -237,7 +234,6 @@ class RealTimeQuoteChartView(controller: ChartingController,
     val closeTime = market.closeTime(time)
 
     val begRow = masterSer.rowOfTime(openTime)
-    val nBars = getNBars
     val endRow = begRow + nBars - 1
 
     if (Null.is(prevClose)) {

@@ -486,7 +486,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     
     sb.append(", values=(\n")
     for (v <- vars) {
-      sb.append(v.name).append(": ..., ")
+      sb.append(v.name).append(": ... ")
       var i = Math.max(0, len - 6) // print last 6 values
       while (i < len) {
         sb.append(v(i)).append(", ")

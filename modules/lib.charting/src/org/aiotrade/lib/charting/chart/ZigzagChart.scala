@@ -57,7 +57,7 @@ class ZigzagChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val color = LookFeel().getChartColor(getDepth)
+    val color = LookFeel().getChartColor(depth)
     setForeground(color)
         
     val heavyPathWidget = addChild(new HeavyPathWidget)

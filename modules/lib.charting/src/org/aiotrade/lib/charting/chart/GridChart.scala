@@ -66,10 +66,7 @@ class GridChart extends AbstractChart {
   
   protected def createModel = new Model
 
-  override
-  def getStrockType: StrockType = {
-    StrockType.Dash
-  }
+  override  def strockType: StrockType = StrockType.Dash
 
   protected def plotChart {
     val m = model

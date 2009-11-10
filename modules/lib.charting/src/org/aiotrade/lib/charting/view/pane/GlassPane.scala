@@ -84,17 +84,17 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
+class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
   private val TRANSPARENT_COLOR = new Color(0, 0, 0, 0)
   private val BUTTON_SIZE = 12
   private val BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE)
   private val MONEY_DECIMAL_FORMAT = new DecimalFormat("0.###")
-} with Pane(view, datumPlane) with WithCursorChart {
+} with Pane(aview, adatumPlane) with WithCursorChart {
 
   private val overlappingSersToCloseButton = new HashMap[TSer, AIOCloseButton]
   private val overlappingSersToNameLabel = new HashMap[TSer, JLabel]
   private val selectedSerVarsToValueLabel = new HashMap[TVar[_], JLabel]
-  private var selected: Boolean = _
+  private var _isSelected: Boolean = _
   private var instantValueLabel: JLabel = _
   private var usingInstantTitleValue: Boolean = _
 
@@ -109,10 +109,10 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
   setLayout(new BorderLayout)
   add(titlePanel, BorderLayout.NORTH)
 
-  private var selectedSer = getView.getMainSer
+  private var _selectedSer = view.mainSer
 
-  private val closeButton = createCloseButton(getView.getMainSer)
-  private val nameLabel = createNameLabel(getView.getMainSer)
+  private val closeButton = createCloseButton(view.mainSer)
+  private val nameLabel = createNameLabel(view.mainSer)
 
   /** Container should be JComponent instead of JPanel to show selectedMark ? */
   private val pinnedMark = new PinnedMark
@@ -127,7 +127,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
   addMouseListener(paneMouseListener)
   addMouseMotionListener(paneMouseListener)
 
-  view.getController.addObserver(this, new ReferCursorObserver[ChartingController] {
+  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         if (!isUsingInstantTitleValue) {
@@ -136,7 +136,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
       }
     }.asInstanceOf[ReferCursorObserver[Any]])
 
-  view.getController.addObserver(this, new ChartValidityObserver[ChartingController] {
+  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
 
       def update(controller: ChartingController) {
         updateMainName
@@ -177,15 +177,15 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     button.addActionListener(new ActionListener {
 
         def actionPerformed(e: ActionEvent) {
-          if (getView.getParent.isInstanceOf[ChartViewContainer]) {
-            if (ser == getSelectedSer) {
-              if (ser != getView.getMainSer) {
-                setSelectedSer(getView.getMainSer)
+          if (view.getParent.isInstanceOf[ChartViewContainer]) {
+            if (ser == selectedSer) {
+              if (ser != view.mainSer) {
+                selectedSer = view.mainSer
               } else {
-                setSelectedSer(null)
+                selectedSer = null
               }
             }
-            val contents = getView.getController.getContents
+            val contents = view.controller.contents
             contents.lookupDescriptor(classOf[IndicatorDescriptor],
                                       ser.getClass.getName,
                                       ser.freq
@@ -220,10 +220,10 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     private var rolloverEffectSet: Boolean = _
 
     override def mouseClicked(e: MouseEvent) {
-      setSelectedSer(ser)
-      setSelected(true)
+      selectedSer = ser
+      isSelected = true
       if (e.getClickCount == 2) {
-        val contents = getView.getController.getContents
+        val contents = view.controller.contents
         contents.lookupDescriptor(classOf[IndicatorDescriptor],
                                   ser.getClass.getName,
                                   ser.freq
@@ -266,7 +266,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
   private def updateMainName {
     closeButton.setForeground(LookFeel().axisColor)
     closeButton.setBackground(LookFeel().backgroundColor)
-    if (getSelectedSer == getView.getMainSer) {
+    if (selectedSer == view.mainSer) {
       closeButton.setChosen(true)
     } else {
       closeButton.setChosen(false)
@@ -275,7 +275,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     nameLabel.setForeground(LookFeel().nameColor)
     nameLabel.setBackground(LookFeel().backgroundColor)
     nameLabel.setFont(LookFeel().axisFont)
-    nameLabel.setText(Computable.displayName(getView.getMainSer))
+    nameLabel.setText(Computable.displayName(view.mainSer))
 
     titlePanel.revalidate
     titlePanel.repaint()
@@ -297,7 +297,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
   final private def updateOverlappingNames {
     var begIdx = 2
-    val overlappingSers = view.getOverlappingSers
+    val overlappingSers = view.overlappingSers
     for (ser <- overlappingSers) {
       var label = overlappingSersToNameLabel.get(ser).getOrElse(null)
       var button = overlappingSersToCloseButton.get(ser) match {
@@ -319,7 +319,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
       button.setForeground(LookFeel().axisColor)
       button.setBackground(LookFeel().backgroundColor)
-      if (getSelectedSer == ser) {
+      if (selectedSer == ser) {
         button.setChosen(true)
       } else {
         button.setChosen(false)
@@ -353,13 +353,13 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
    * all those vars with var.getPlot() != Plot.None will be shown with value.
    */
   private def updateSelectedSerVarValues {
-    val ser = getSelectedSer
+    val ser = selectedSer
     if (ser == null) {
       return;
     }
 
-    val referTime = getView.getController.getReferCursorTime
-    val item = ser(referTime);
+    val referTime = view.controller.referCursorTime
+    val item = ser(referTime)
     if (item != null) {
       val serVars = ser.vars
       for (v <- serVars if v.plot != Plot.None) {
@@ -367,7 +367,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
         /** lookup this var's chart and use chart's color if possible */
         var chartOfVar: Chart = null
-        val chartToVars = getView.getChartMapVars(ser)
+        val chartToVars = view.chartMapVars(ser)
         val keys = chartToVars.keysIterator
         while (keys.hasNext && chartOfVar != null) {
           val chart = keys.next
@@ -429,22 +429,28 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     instantValueLabel.setText(valueStr)
   }
 
-  def isSelected: Boolean = {
-    this.selected
-  }
-
-  def setSelected(b: Boolean) {
+  def isSelected: Boolean = _isSelected
+  def isSelected_=(b: Boolean) {
     val oldValue = isSelected
-    this.selected = b
+    this._isSelected = b
     if (isSelected != oldValue) {
       /** todo: still need this? */
     }
   }
 
-  final private def setSelectedSer(selectedSer: TSer) {
-    val oldValue = getSelectedSer
-    this.selectedSer = selectedSer
-    if (getSelectedSer != oldValue) {
+  def interactive(b: Boolean) {
+    closeButton.setVisible(b)
+  }
+
+  def pin(b: Boolean) {
+    pinnedMark.setAutoHidden(!b)
+  }
+
+
+  final private def selectedSer_=(selectedSer: TSer) {
+    val oldValue = selectedSer
+    this._selectedSer = selectedSer
+    if (selectedSer != oldValue) {
       updateMainName
       updateOverlappingNames
       if (!isUsingInstantTitleValue) {
@@ -453,16 +459,8 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
     }
   }
 
-  final private def getSelectedSer: TSer = {
-    selectedSer
-  }
-
-  def setInteractive(b: Boolean) {
-    closeButton.setVisible(b)
-  }
-
-  def setPinned(b: Boolean) {
-    pinnedMark.setAutoHidden(!b)
+  final private def selectedSer: TSer = {
+    _selectedSer
   }
 
   /**
@@ -488,11 +486,11 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
   }
 
   private def forwardMouseEventToWhoMayBeCoveredByMe(e: MouseEvent) {
-    forwardMouseEvent(this, getView.getMainChartPane, e)
-    forwardMouseEvent(this, getView.getParent, e)
+    forwardMouseEvent(this, view.mainChartPane, e)
+    forwardMouseEvent(this, view.getParent, e)
 
-    if (getView.isInstanceOf[WithDrawingPane]) {
-      val drawingPane = getView.asInstanceOf[WithDrawingPane].getSelectedDrawing
+    if (view.isInstanceOf[WithDrawingPane]) {
+      val drawingPane = view.asInstanceOf[WithDrawingPane].selectedDrawing
       if (drawingPane != null) {
         forwardMouseEvent(this, drawingPane, e)
         if (drawingPane.getSelectedHandledChart != null) {
@@ -511,8 +509,8 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    getView.getController.removeObserversOf(this)
-    getView.removeObserversOf(this)
+    view.controller.removeObserversOf(this)
+    view.removeObserversOf(this)
 
     AWTUtil.removeAllAWTListenersOf(nameLabel)
     AWTUtil.removeAllAWTListenersOf(this)
@@ -528,7 +526,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
         return
       }
 
-      if (!(getView.getParent.isInstanceOf[ChartViewContainer])) {
+      if (!view.getParent.isInstanceOf[ChartViewContainer]) {
         return
       }
       val viewContainer = view.getParent.asInstanceOf[ChartViewContainer]
@@ -538,7 +536,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
         if (e.getClickCount == 1) {
 
           if (viewContainer.isInteractive) {
-            viewContainer.setSelectedView(getView)
+            viewContainer.selectedView = view
           } else {
             if (viewContainer.isPinned) {
               viewContainer.unPin
@@ -549,16 +547,16 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
         } else if (e.getClickCount == 2) {
 
-          getView.popupToDesktop
+          view.popupToDesktop
 
         }
 
       } else if (activeComponent == pinnedMark) {
 
-        if (getView.isPinned) {
-          getView.unPin
+        if (view.isPinned) {
+          view.unPin
         } else {
-          getView.pin
+          view.pin
         }
 
       }
@@ -651,11 +649,11 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
         cursorPath.lineTo(x, h)
       }
 
-      if (getView.isInstanceOf[WithQuoteChart]) {
-        val quoteSer = GlassPane.this.getView.asInstanceOf[WithQuoteChart].getQuoteSer
+      if (view.isInstanceOf[WithQuoteChart]) {
+        val quoteSer = GlassPane.this.view.asInstanceOf[WithQuoteChart].quoteSer
         val item = quoteSer.itemOfRow(referRow).asInstanceOf[QuoteItem]
         if (item != null) {
-          val y = if (isAutoReferCursorValue) yv(item.close) else yv(getReferCursorValue)
+          val y = if (isAutoReferCursorValue) yv(item.close) else yv(referCursorValue)
 
           /** plot cross' horizonal line */
           if (isCursorCrossVisible) {
@@ -671,7 +669,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
       val w = GlassPane.this.getWidth
       val h = GlassPane.this.getHeight
 
-      val mainChartPane = GlassPane.this.getView.getMainChartPane
+      val mainChartPane = GlassPane.this.view.mainChartPane
 
       /** plot vertical line */
       if (isCursorCrossVisible) {
@@ -680,15 +678,15 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
       }
 
       var y: Float = 0f
-      if (GlassPane.this.getView.isInstanceOf[WithQuoteChart]) {
+      if (GlassPane.this.view.isInstanceOf[WithQuoteChart]) {
         cal.setTimeInMillis(mouseTime)
 
-        val quoteSer = GlassPane.this.getView.asInstanceOf[WithQuoteChart].getQuoteSer
+        val quoteSer = GlassPane.this.view.asInstanceOf[WithQuoteChart].quoteSer
         var item = quoteSer.itemOfRow(mouseRow).asInstanceOf[QuoteItem]
         val vMouse = if (item == null) 0 else item.close
 
         if (mainChartPane.isMouseEntered) {
-          y = mainChartPane.getYMouse
+          y = mainChartPane.yMouse
         } else {
           y = if (item == null) 0 else mainChartPane.yv(item.close)
         }
@@ -724,7 +722,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
 
             new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
           } else { /** else, usually RealtimeQuoteChartView */
-            val vRefer = GlassPane.this.getReferCursorValue
+            val vRefer = GlassPane.this.referCursorValue
             val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
             new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vDisplay)).append("  ").append("%+3.2f".format(percent)).append("%").toString
@@ -739,7 +737,7 @@ class GlassPane(view: ChartView, datumPlane: DatumPlane) extends {
         label.plot
       } else { /** indicator view */
         if (mainChartPane.isMouseEntered) {
-          y = mainChartPane.getYMouse
+          y = mainChartPane.yMouse
 
           /** plot horizonal line */
           if (isCursorCrossVisible) {

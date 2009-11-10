@@ -66,13 +66,13 @@ object AnalysisQuoteChartView {
     quoteChartType = AbstractQuoteChartView.internal_switchAllQuoteChartType(quoteChartType, tpe)
   }
 }
-class AnalysisQuoteChartView(controller: ChartingController,
-                             quoteSer: QuoteSer,
+class AnalysisQuoteChartView(acontroller: ChartingController,
+                             aquoteSer: QuoteSer,
                              empty: Boolean
 ) extends {
   private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
-} with AbstractQuoteChartView(controller, quoteSer, empty) with WithDrawingPane {
+} with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane {
   import AnalysisQuoteChartView._
     
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
@@ -206,10 +206,7 @@ class AnalysisQuoteChartView(controller: ChartingController,
     }
   }
     
-  def getQuoteChartType: QuoteChart.Type = {
-    quoteChartType
-  }
-    
+  def quoteChartType: QuoteChart.Type = AnalysisQuoteChartView.quoteChartType
   def switchQuoteChartType(tpe: QuoteChart.Type) {
     switchAllQuoteChartType(tpe)
         
@@ -220,9 +217,9 @@ class AnalysisQuoteChartView(controller: ChartingController,
     val optsForCompareIndicator = new ArrayList[Factor]
         
     optsForCompareIndicator += (new DefaultFactor("Begin of Time Frame", rb(1)))
-    optsForCompareIndicator += (new DefaultFactor("End of Time Frame",   rb(getNBars)))
-    optsForCompareIndicator += (new DefaultFactor("Max Value", getMaxValue))
-    optsForCompareIndicator += (new DefaultFactor("Min Value", getMinValue))
+    optsForCompareIndicator += (new DefaultFactor("End of Time Frame",   rb(nBars)))
+    optsForCompareIndicator += (new DefaultFactor("Max Value", maxValue))
+    optsForCompareIndicator += (new DefaultFactor("Min Value", minValue))
         
     for (ser <- getCompareIndicators) {
       ser.factors = optsForCompareIndicator
@@ -231,11 +228,11 @@ class AnalysisQuoteChartView(controller: ChartingController,
     
   /** calculate maxValue and minValue again, including comparing quotes */
   private def calcMaxMinWithComparingQuotes {
-    var maxValue1 = getMaxValue
-    var minValue1 = getMinValue
+    var maxValue1 = maxValue
+    var minValue1 = minValue
     for (ser <- getCompareIndicators) {
       var i = 1
-      while (i <= getNBars) {
+      while (i <= nBars) {
         val time = tb(i)
         val item = ser(time)
         if (ser.exists(time)) {
@@ -303,12 +300,9 @@ class AnalysisQuoteChartView(controller: ChartingController,
    * -------------------------------------------------------
    */
     
-  def getSelectedDrawing: DrawingPane = {
-    withDrawingPaneHelper.getSelectedDrawing
-  }
-    
-  def setSelectedDrawing(drawing: DrawingPane) {
-    withDrawingPaneHelper.setSelectedDrawing(drawing)
+  def selectedDrawing: DrawingPane = withDrawingPaneHelper.selectedDrawing
+  def selectedDrawing_=(drawing: DrawingPane) {
+    withDrawingPaneHelper.selectedDrawing = drawing
   }
     
   def addDrawing(descriptor: DrawingDescriptor, drawing: DrawingPane) {
@@ -319,8 +313,8 @@ class AnalysisQuoteChartView(controller: ChartingController,
     withDrawingPaneHelper.deleteDrawing(descriptor)
   }
     
-  def getDescriptorMapDrawing: HashMap[DrawingDescriptor, DrawingPane] = {
-    withDrawingPaneHelper.getDescriptorMapDrawing
+  def descriptorToDrawing: HashMap[DrawingDescriptor, DrawingPane] = {
+    withDrawingPaneHelper.descriptorToDrawing
   }
 
   @throws(classOf[Throwable])

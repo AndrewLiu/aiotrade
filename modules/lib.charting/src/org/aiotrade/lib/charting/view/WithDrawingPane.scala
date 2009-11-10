@@ -41,11 +41,10 @@ import scala.collection.mutable.HashMap
  */
 trait WithDrawingPane {
     
-  def getSelectedDrawing: DrawingPane
+  def selectedDrawing: DrawingPane
+  def selectedDrawing_=(drawing: DrawingPane): Unit
     
-  def setSelectedDrawing(drawing: DrawingPane): Unit
-    
-  def getDescriptorMapDrawing: HashMap[DrawingDescriptor, DrawingPane]
+  def descriptorToDrawing: HashMap[DrawingDescriptor, DrawingPane]
     
   def addDrawing(descriptor: DrawingDescriptor, drawing: DrawingPane): Unit
     

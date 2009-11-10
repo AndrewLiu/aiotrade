@@ -88,19 +88,19 @@ class QuoteChart extends AbstractChart {
     
   protected def plotChart {
 
-    if (getDepth == Pane.DEPTH_DEFAULT) {
+    if (depth == Pane.DEPTH_DEFAULT) {
       positiveColor = LookFeel().getPositiveColor
       negativeColor = LookFeel().getNegativeColor
     } else {
       /** for comparing quotes charts */
-      positiveColor = LookFeel().getChartColor(getDepth)
+      positiveColor = LookFeel().getChartColor(depth)
       negativeColor = positiveColor
     }
         
     val color = positiveColor
     setForeground(color)
         
-    val tpe = datumPlane.getView.asInstanceOf[WithQuoteChart].getQuoteChartType
+    val tpe = datumPlane.view.asInstanceOf[WithQuoteChart].quoteChartType
     tpe match {
       case Type.Candle | Type.Ohlc =>
         plotCandleOrOhlcChart(tpe)

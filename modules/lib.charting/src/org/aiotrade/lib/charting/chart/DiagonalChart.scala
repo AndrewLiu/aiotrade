@@ -77,8 +77,8 @@ class DiagonalChart extends AbstractChart {
     val a2 = nBars - 1
     var i = 0
     while (i < 10) {
-      val b1 = (a1 - a0 + i * model.step) * 365.25F / 365 * model.k + model.b0
-      val b2 = (a2 - a0 + i * model.step) * 365.25F / 365 * model.k + model.b0
+      val b1 = (a1 - a0 + i * m.step) * 365.25F / 365 * m.k + m.b0
+      val b2 = (a2 - a0 + i * m.step) * 365.25F / 365 * m.k + m.b0
       path.moveTo(xb(a1), yv(b1))
       path.lineTo(xb(a2), yv(b2))
 

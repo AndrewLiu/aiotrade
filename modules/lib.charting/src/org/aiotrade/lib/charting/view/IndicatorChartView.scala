@@ -51,10 +51,10 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView(controller: ChartingController, 
-                         mainSer: TSer,
+class IndicatorChartView(acontroller: ChartingController,
+                         amainSer: TSer,
                          empty: Boolean
-) extends ChartView(controller, mainSer, empty) {
+) extends ChartView(acontroller, amainSer, empty) {
     
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)
@@ -132,7 +132,7 @@ class IndicatorChartView(controller: ChartingController,
     var depth = Pane.DEPTH_CHART_BEGIN
     var depthGradient = Pane.DEPTH_GRADIENT_BEGIN
         
-    for (ser <- getAllSers) {
+    for (ser <- allSers) {
       /** add charts */
       for (v <- ser.vars;
            chart = ChartFactory.createVarChart(v) if chart != null
@@ -141,10 +141,10 @@ class IndicatorChartView(controller: ChartingController,
         mainSerChartToVars.put(chart, chartVars += v)
                     
         chart match {
-          case _: GradientChart => chart.setDepth(depthGradient); depthGradient -= 1
-          case _: ProfileChart => chart.setDepth(depthGradient); depthGradient -= 1
-          case _: StickChart => chart.setDepth(-8)
-          case _ => chart.setDepth(depth); depth += 1
+          case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
+          case _: ProfileChart => chart.depth = depthGradient; depthGradient -= 1
+          case _: StickChart => chart.depth = -8
+          case _ => chart.depth = depth; depth += 1
         }
 
         chart.set(mainChartPane, ser)
@@ -169,7 +169,7 @@ class IndicatorChartView(controller: ChartingController,
     var maxValue1 = -Math.MAX_FLOAT
         
     var i = 1
-    while (i <= getNBars) {
+    while (i <= nBars) {
       val time = tb(i)
       val item = mainSer(time)
       if (item != null) {
@@ -192,11 +192,11 @@ class IndicatorChartView(controller: ChartingController,
   }
     
   override def popupToDesktop {
-    val popupView = new PopupIndicatorChartView(getController, getMainSer)
+    val popupView = new PopupIndicatorChartView(controller, mainSer)
     val alwaysOnTop = true
     val dim = new Dimension(getWidth, 200)
         
-    getController.popupViewToDesktop(popupView, dim, alwaysOnTop, false)
+    controller.popupViewToDesktop(popupView, dim, alwaysOnTop, false)
   }
 
   @throws(classOf[Throwable])

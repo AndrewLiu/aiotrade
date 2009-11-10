@@ -38,7 +38,7 @@ import org.aiotrade.lib.charting.view.ChartView
  *
  * @author Caoyuan Deng
  */
-class YControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, datumPlane) {
+class YControlPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
 
   setOpaque(false)
   setRenderStrategy(RenderStrategy.NoneBuffer)
@@ -55,9 +55,9 @@ class YControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
   }
     
   def syncWithView {
-    val mainChartPane = view.getMainChartPane
+    val mainChartPane = view.mainChartPane
         
-    val yChartScale = mainChartPane.getYChartScale
+    val yChartScale = mainChartPane.yChartScale
         
     val vModelRange = 1.0
     val modelEnd = 1.0
@@ -81,8 +81,8 @@ class YControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
   class MyScrollControl extends AbstractScrollControl {
     protected def viewScrolledByUnit(nUnitsWithDirection: Double) {
       val yChartScale = scrollControl.getValueShownEnd.asInstanceOf[Float]
-            
-      view.setYChartScale(yChartScale)
+      
+      view.yChartScale = yChartScale
     }
         
     protected def viewScaledToRange(viewRange: Double) {
@@ -91,48 +91,48 @@ class YControlPane(view: ChartView, datumPlane: DatumPlane) extends Pane(view, d
     
   @deprecated
   def syncWithView_scrollChart {
-    val mainChartPane = view.getMainChartPane
+    val mainChartPane = view.mainChartPane
         
-    val hCanvas = mainChartPane.getHCanvas
-    val yCanvasCenter = mainChartPane.getYCanvasUpper + hCanvas * 0.5
+    val hCanvas = mainChartPane.hCanvas
+    val yCanvasCenter = mainChartPane.yCanvasUpper + hCanvas * 0.5
         
     /** define the modelRange, as the value range of chart is relative fixed, so: */
         
-    val chartValueBeg = mainChartPane.getMinValue
-    val chartValueEnd = mainChartPane.getMaxValue
+    val chartValueBeg = mainChartPane.minValue
+    val chartValueEnd = mainChartPane.maxValue
     val chartValueRange = chartValueEnd - chartValueBeg
     /** give 8 times space for scrolling */
     val modelValueRange = chartValueRange * 8.0
     val modelRange = modelValueRange
         
     /** now try to find the modelBeg and modelEnd, we can decide the middle is at canvas center: */
-    val modelCenter = mainChartPane.vy(yCanvasCenter.floatValue)
+    val modelCenter = mainChartPane.vy(yCanvasCenter.toFloat)
     val modelEnd = modelCenter + modelRange * 0.5
     val modelBeg = modelEnd - modelRange
         
-    val canvasValueBeg = mainChartPane.vy(mainChartPane.getYChartLower)
-    val canvasValueEnd = mainChartPane.vy(mainChartPane.getYChartUpper)
+    val canvasValueBeg = mainChartPane.vy(mainChartPane.yChartLower)
+    val canvasValueEnd = mainChartPane.vy(mainChartPane.yChartUpper)
     val canvasValueRange = canvasValueEnd - canvasValueBeg
         
     val viewRange = canvasValueRange
     val viewEnd = canvasValueEnd
         
     /** the unit here is value-per-pixels, so when 1 UNIT is moved, will scroll unit value on pane */
-    val unit = 1.0 / mainChartPane.getHOne
-    val blockUnits = (hCanvas * 0.168 / mainChartPane.getHOne).intValue
+    val unit = 1.0 / mainChartPane.hOne
+    val blockUnits = (hCanvas * 0.168 / mainChartPane.hOne).toInt
         
     scrollControl.setValues(modelRange, viewRange, modelEnd, viewEnd, unit, blockUnits)
   }
     
   @deprecated private class MyScrollControl_scrollChart extends AbstractScrollControl {
-    val mainChartPane = view.getMainChartPane
+    val mainChartPane = view.mainChartPane
         
     protected def viewScrolledByUnit(nUnitsWithDirection: Double) {
-      view.scrollChartsVerticallyByPixel(nUnitsWithDirection.intValue)
+      view.scrollChartsVerticallyByPixel(nUnitsWithDirection.toInt)
     }
         
     protected def viewScaledToRange(viewRange: Double) {
-      view.setYChartScaleByCanvasValueRange(viewRange)
+      view.yChartScaleByCanvasValueRange_=(viewRange)
     }
   }
     

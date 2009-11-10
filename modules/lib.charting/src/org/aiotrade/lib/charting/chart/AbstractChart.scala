@@ -95,17 +95,18 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /** masterSer that will be got from: datumPlane.getMasterSer() */
   protected var masterSer: MasterTSer = _
     
-  protected var ser: TSer = _
+  private var _ser: TSer = _
     
   /**
    * the depth of this chart in pane,
    * the chart's container will decide the chart's defaultColor according to the depth
    */
-  private var depth: Int = _
-    
-  private var strockWidth = 1.0f
-  private var strockType: StrockType = StrockType.Base
-    
+  private var _depth: Int = _
+  private var _strockWidth = 1.0F
+  private var _strockType: StrockType = StrockType.Base
+  private var _isSelected: Boolean = _
+  private var _firstPlotting: Boolean = _
+
   /**
    * Keep convenient references to datumPane's geometry, thus we can also
    * shield the changes from datumPane.
@@ -118,9 +119,6 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   protected var nSegs: Int = _
     
   protected var nBarsCompressed = 1
-    
-  private var selected: Boolean = _
-  private var firstPlotting: Boolean = _
     
   /** @TODO */
   override def isContainerOnly: Boolean = {
@@ -143,25 +141,23 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   }
     
   def set(datumPane: DatumPlane, ser: TSer) {
-    set(datumPane, ser, this.depth)
+    set(datumPane, ser, this._depth)
   }
     
-  def setFirstPlotting(b: Boolean) {
-    this.firstPlotting = b
+  def isFirstPlotting: Boolean = _firstPlotting
+  def isFirstPlotting_=(b: Boolean) {
+    this._firstPlotting = b
   }
     
-  def isFirstPlotting: Boolean = {
-    firstPlotting
-  }
     
   /**
    * present only prepare the chart's pathSegs and textSegs, but not really render,
    * should call render(Graphics2D g) to render this chart upon g
    */
   protected def plotWidget {
-    this.masterSer = datumPlane.getMasterSer
-    this.nBars     = datumPlane.getNBars
-    this.wBar      = datumPlane.getWBar
+    this.masterSer = datumPlane.masterSer
+    this.nBars     = datumPlane.nBars
+    this.wBar      = datumPlane.wBar
         
     this.wSeg = Math.max(wBar, MIN_SEGMENT_WIDTH).toInt
     this.nSegs = (nBars * wBar / wSeg).toInt + 1
@@ -199,8 +195,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   protected def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
-    val w = getStrockWidth.toInt
-    var stroke: Stroke = getStrockType match {
+    val w = strockWidth.toInt
+    var stroke: Stroke = strockType match {
       case StrockType.Base =>
         if (w <= BASE_STROKES.length) BASE_STROKES(w - 1)
         else new BasicStroke(w)
@@ -223,45 +219,33 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     g.fillRect(point.x - 2, point.y - 2, 5, 5)
   }
     
-  def setDepth(depth: Int) {
-    this.depth = depth
+  def depth: Int = _depth
+  def depth_=(depth: Int) {
+    this._depth = depth
   }
     
-  def getDepth: Int = {
-    depth
-  }
     
-  def isSelected: Boolean = {
-    selected
-  }
-    
-  def setSelected(b: Boolean) {
-    this.selected = b
+  def isSelected: Boolean = _isSelected
+  def isSelected_=(b: Boolean) {
+    this._isSelected = b
   }
     
   def setStrock(width: Int, tpe: StrockType) {
-    this.strockWidth = width
-    this.strockType = tpe
+    this._strockWidth = width
+    this._strockType = tpe
   }
     
   /**
    * @return width of chart. not width of canvas!
    */
-  def getStrockWidth: Float = {
-    strockWidth
+  def strockWidth: Float = _strockWidth
+  def strockType: StrockType = _strockType
+    
+  def ser: TSer = _ser
+  def ser_=(ser: TSer) {
+    this._ser = ser
   }
     
-  def getStrockType: StrockType = {
-    strockType
-  }
-    
-  def setSer(ser: TSer) {
-    this.ser = ser
-  }
-    
-  def getSer: TSer = {
-    ser
-  }
     
   /**
    * Translate barIndex to X point for drawing
@@ -332,8 +316,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
 
   protected def plotVerticalLine(bar: Int, path: GeneralPath) {
     val x = xb(bar)
-    val yBeg = datumPlane.getYCanvasLower
-    val yEnd = datumPlane.getYCanvasUpper
+    val yBeg = datumPlane.yCanvasLower
+    val yEnd = datumPlane.yCanvasUpper
     path.moveTo(x, yBeg)
     path.lineTo(x, yEnd)
   }
@@ -351,10 +335,10 @@ abstract class AbstractChart extends AbstractWidget with Chart {
 
   /** compare according to the depth of chart, used for SortedSet<Chart> */
   final def compare(another: Chart): Int = {
-    if (this.getDepth == another.getDepth) {
+    if (this.depth == another.depth) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
     } else {
-      if (this.getDepth < another.getDepth) -1 else 1
+      if (this.depth < another.depth) -1 else 1
     }
   }
 
@@ -470,8 +454,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   @deprecated private def plotVerticalLine_seg(bar: Int, path: GeneralPath) {
     if (bar >= 1 && bar <= nBars) {
             
-      val y1 = yv(datumPlane.getMinValue)
-      val y2 = yv(datumPlane.getMinValue)
+      val y1 = yv(datumPlane.minValue)
+      val y2 = yv(datumPlane.minValue)
       val x = xb(bar)
             
       path.moveTo(x, y1)
