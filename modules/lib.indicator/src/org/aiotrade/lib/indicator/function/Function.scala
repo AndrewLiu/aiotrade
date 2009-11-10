@@ -36,14 +36,15 @@ import org.aiotrade.lib.math.timeseries.TSer
  * @author Caoyuan Deng
  * @Note baseSer should implement proper hashCode and equals method
  */
-case class FunctionID[T <: Function](functionClass: Class[T], baseSer: TSer, args: Any*) {
+final case class FunctionID[T <: Function](functionClass: Class[T], baseSer: TSer, args: Any*) {
 
-  override def equals(o: Any): Boolean = {
+  @inline final override def equals(o: Any): Boolean = {
     o match {
       case FunctionID(functionClass, baseSer, args@_*) if
-        this.functionClass == functionClass &&
-        this.baseSer == baseSer &&
-        this.args.size == args.size =>
+        this.functionClass.eq(functionClass) &&
+        this.baseSer.eq(baseSer) &&
+        this.args.size == args.size
+        =>
         val itr1 = this.args.iterator
         val itr2 = args.iterator
         while (itr1.hasNext && itr2.hasNext) {
@@ -56,9 +57,9 @@ case class FunctionID[T <: Function](functionClass: Class[T], baseSer: TSer, arg
     }
   }
 
-  override def hashCode :Int = {
+  @inline final override def hashCode: Int = {
     var h = 17
-    h = 37 * h + this.getClass.hashCode
+    h = 37 * h + functionClass.hashCode
     h = 37 * h + baseSer.hashCode
     val itr = args.iterator
     while (itr.hasNext) {

@@ -581,15 +581,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       values = newValues
     }
 
-    /**
-     * All those instances of DefaultVar or extended class will be equals if
-     * they have the same values, this prevent the duplicated manage of values.
-     * @See AbstractIndicator.injectVarsToSer()
-     */
-    override def equals(a: Any): Boolean = a match {
-      case x: InnerTVar[_] => this.values == x.values
-      case _ => false
-    }
   }
 
   protected class SparseTVar[V: Manifest](name: String, plot: Plot
@@ -635,18 +626,6 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
     }
 
     def validate {}
-
-    /**
-     * All those instances of SparseVar or extended class will be equals if
-     * they have the same values, this prevent the duplicated manage of values.
-     * @See AbstractIndicator.injectVarsToSer()
-     */
-    override def equals(o: Any): Boolean = {
-      o match {
-        case x: SparseTVar[_] => this.values == x.values
-        case _ => false
-      }
-    }
   }
 
   /**
@@ -709,27 +688,11 @@ class DefaultTSer(freq: TFreq) extends AbstractTSer(freq) {
       }
     }
 
-    /**
-     * Clear values that >= fromIdx
-     */
-    def clear(fromIdx: Int): Unit = {
-      if (fromIdx < 0) {
-        return
-      }
-      var i = values.size - 1
-      while (i >= fromIdx) {
-        values.remove(i)
-        i += 1
-      }
-    }
-
     def setColor(idx: Int, color: Color): Unit = {
       colors(idx) = color
     }
 
     def getColor(idx: Int): Color = colors(idx)
-
-    def size: Int = values.size
   }
 }
 

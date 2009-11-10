@@ -76,5 +76,38 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     value.asInstanceOf[T]
   }
 
+  /**
+   * Clear values that >= fromIdx
+   */
+  def clear(fromIdx: Int): Unit = {
+    if (fromIdx < 0) {
+      return
+    }
+    var i = values.size - 1
+    while (i >= fromIdx) {
+      values.remove(i)
+      i += 1
+    }
+  }
+
+  def size: Int = values.size
+
+  /**
+   * All instances of TVar or extended classes will be equals if they have the
+   * same values, this prevent the duplicated manage of values.
+   */
+  override def equals(o: Any): Boolean = {
+    o match {
+      case x: TVar[_] => this.values eq x.values
+      case _ => false
+    }
+  }
+
+  /**
+   * All instances of TVar or extended classes use identityHashCode as hashCode
+   */
+  private val _hashCode = System.identityHashCode(this)
+  override def hashCode: Int = _hashCode
+
   override def toString = name
 }
