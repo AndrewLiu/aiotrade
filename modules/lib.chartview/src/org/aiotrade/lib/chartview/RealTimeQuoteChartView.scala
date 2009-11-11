@@ -81,10 +81,10 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
 
-    controller.setAutoScrollToNewData(false)
+    controller.isAutoScrollToNewData = false
     controller.isOnCalendarMode = false
     controller.growWBar(-2)
-    axisYPane.setSymmetricOnMiddleValue(true)
+    axisYPane.isSymmetricOnMiddleValue = true
 
     RealTimeQuoteChartView.quoteChartType = QuoteChart.Type.Line
 
@@ -95,7 +95,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   }
 
   protected def initComponents {
-    glassPane.setUsingInstantTitleValue(true)
+    glassPane.isUsingInstantTitleValue = true
 
     setLayout(new GridBagLayout)
     val gbc = new GridBagConstraints

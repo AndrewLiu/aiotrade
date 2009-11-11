@@ -86,7 +86,8 @@ trait ChartingController extends ChangeObservable {
 
     def setMouseCursorByRow(row: Int): Unit
 
-    def setAutoScrollToNewData(b: Boolean): Unit
+    def isAutoScrollToNewData: Boolean
+    def isAutoScrollToNewData_=(b: Boolean)
 
     def updateViews: Unit
 

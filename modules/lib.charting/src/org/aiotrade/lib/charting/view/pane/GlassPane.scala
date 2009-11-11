@@ -96,7 +96,7 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
   private val selectedSerVarsToValueLabel = new HashMap[TVar[_], JLabel]
   private var _isSelected: Boolean = _
   private var instantValueLabel: JLabel = _
-  private var usingInstantTitleValue: Boolean = _
+  private var _isUsingInstantTitleValue: Boolean = _
 
 
   setOpaque(false)
@@ -255,12 +255,9 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
   override protected def plotPane {
   }
 
-  def isUsingInstantTitleValue: Boolean = {
-    return usingInstantTitleValue
-  }
-
-  def setUsingInstantTitleValue(b: Boolean) {
-    this.usingInstantTitleValue = b
+  def isUsingInstantTitleValue: Boolean = _isUsingInstantTitleValue
+  def isUsingInstantTitleValue_=(b: Boolean) {
+    this._isUsingInstantTitleValue = b
   }
 
   private def updateMainName {

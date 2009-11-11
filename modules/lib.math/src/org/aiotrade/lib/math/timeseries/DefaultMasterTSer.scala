@@ -34,21 +34,17 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
-class DefaultMasterTSer(freq: TFreq) extends DefaultTSer(freq) with MasterTSer {
-  private var onCalendarMode = false
+class DefaultMasterTSer(afreq: TFreq) extends DefaultTSer(afreq) with MasterTSer {
+  private var _isOnCalendarMode = false
     
-  def this() = {
-    this(TFreq.DAILY)
-  }
+  def this() = this(TFreq.DAILY)
         
-  def isOnCalendarMode = onCalendarMode
-
-  def setOnCalendarMode {
-    this.onCalendarMode = true
+  def isOnCalendarMode = _isOnCalendarMode
+  def toOnCalendarMode {
+    this._isOnCalendarMode = true
   }
-    
-  def setOnOccurredMode {
-    this.onCalendarMode = false
+  def toOnOccurredMode {
+    this._isOnCalendarMode = false
   }
         
   def rowOfTime(time: Long): Int = activeTimestamps.rowOfTime(time, freq)
@@ -58,7 +54,7 @@ class DefaultMasterTSer(freq: TFreq) extends DefaultTSer(freq) with MasterTSer {
     
   override def size: Int = activeTimestamps.sizeOf(freq)
 
-  private def activeTimestamps: TStamps = if (onCalendarMode) timestamps.asOnCalendar else timestamps
+  private def activeTimestamps: TStamps = if (_isOnCalendarMode) timestamps.asOnCalendar else timestamps
 }
 
 

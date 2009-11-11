@@ -181,7 +181,8 @@ object ChartingControllerFactory {
 
     }
 
-    def setAutoScrollToNewData(autoScrollToNewData: Boolean) {
+    def isAutoScrollToNewData: Boolean = _isAutoScrollToNewData
+    def isAutoScrollToNewData_=(autoScrollToNewData: Boolean) {
       this._isAutoScrollToNewData = autoScrollToNewData
     }
 
@@ -242,9 +243,9 @@ object ChartingControllerFactory {
         val rightCursorTime1 = rightSideTime
 
         if (b == true) {
-          masterSer.setOnCalendarMode
+          masterSer.toOnCalendarMode
         } else {
-          masterSer.setOnOccurredMode
+          masterSer.toOnOccurredMode
         }
 
         internal_setReferCursorByTime(referCursorTime1)

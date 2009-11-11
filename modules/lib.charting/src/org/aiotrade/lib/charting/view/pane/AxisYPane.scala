@@ -57,7 +57,7 @@ object AxisYPance {
 class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
   import AxisYPance._
 
-  private var symmetricOnMiddleValue: Boolean = _
+  private var _symmetricOnMiddleValue: Boolean = _
 
   setOpaque(true)
   setRenderStrategy(RenderStrategy.NoneBuffer)
@@ -212,7 +212,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     val vRange = vMaxTick - vMinTick
     var vTickUnit = vRange / nTicks
 
-    if (!symmetricOnMiddleValue) {
+    if (!_symmetricOnMiddleValue) {
       vTickUnit = roundTickUnit(vTickUnit)
       vMinTick = (vMinTick / vTickUnit).toInt * vTickUnit
     }
@@ -302,8 +302,9 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     vTickUnit
   }
 
-  def setSymmetricOnMiddleValue(b: Boolean) {
-    this.symmetricOnMiddleValue = b
+  def isSymmetricOnMiddleValue = _symmetricOnMiddleValue
+  def isSymmetricOnMiddleValue_=(b: Boolean) {
+    this._symmetricOnMiddleValue = b
   }
 
   @throws(classOf[Throwable])

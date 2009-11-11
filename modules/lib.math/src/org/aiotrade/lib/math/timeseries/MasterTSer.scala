@@ -45,8 +45,8 @@ trait MasterTSer extends TSer {
   def lastOccurredRow: Int
   def itemOfRow(row: Int): TItem
 
-  def setOnCalendarMode: Unit
-  def setOnOccurredMode: Unit
+  def toOnCalendarMode: Unit
+  def toOnOccurredMode: Unit
   def isOnCalendarMode: Boolean
 }
 
