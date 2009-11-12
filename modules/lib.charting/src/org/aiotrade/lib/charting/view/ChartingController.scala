@@ -54,66 +54,66 @@ import org.aiotrade.lib.util.ChangeObservable
  */
 trait ChartingController extends ChangeObservable {
 
-    def masterSer: MasterTSer
+  def masterSer: MasterTSer
 
-    def contents: AnalysisContents
+  def contents: AnalysisContents
 
-    def isCursorCrossLineVisible: Boolean
-    def isCursorCrossLineVisible_=(b: Boolean)
+  def isCursorCrossLineVisible: Boolean
+  def isCursorCrossLineVisible_=(b: Boolean)
 
-    def isMouseEnteredAnyChartPane: Boolean
-    def isMouseEnteredAnyChartPane_=(b: Boolean)
+  def isMouseEnteredAnyChartPane: Boolean
+  def isMouseEnteredAnyChartPane_=(b: Boolean)
 
-    def wBar: Float
+  def wBar: Float
 
-    def growWBar(increment: Int): Unit
+  def growWBar(increment: Int): Unit
 
-    def setWBarByNBars(wViewPort: Int, nBars: Int): Unit
+  def setWBarByNBars(wViewPort: Int, nBars: Int): Unit
 
-    def isOnCalendarMode: Boolean
-    def isOnCalendarMode_=(b: Boolean): Unit
+  def isOnCalendarMode: Boolean
+  def isOnCalendarMode_=(b: Boolean): Unit
 
-    def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean): Unit
+  def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean): Unit
 
-    def setReferCursorByRow(Row: Int, willUpdateViews: Boolean): Unit
+  def setReferCursorByRow(Row: Int, willUpdateViews: Boolean): Unit
 
-    def scrollReferCursor(increment: Int, willUpdateViews: Boolean): Unit
+  def scrollReferCursor(increment: Int, willUpdateViews: Boolean): Unit
 
-    /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
-    def scrollChartsHorizontallyByBar(increment: Int): Unit
+  /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
+  def scrollChartsHorizontallyByBar(increment: Int): Unit
 
-    def scrollReferCursorToLeftSide: Unit
+  def scrollReferCursorToLeftSide: Unit
 
-    def setMouseCursorByRow(row: Int): Unit
+  def setMouseCursorByRow(row: Int): Unit
 
-    def isAutoScrollToNewData: Boolean
-    def isAutoScrollToNewData_=(b: Boolean)
+  def isAutoScrollToNewData: Boolean
+  def isAutoScrollToNewData_=(b: Boolean)
 
-    def updateViews: Unit
+  def updateViews: Unit
 
-    def popupViewToDesktop(view: ChartView, dimension: Dimension, alwaysOnTop: Boolean, joint: Boolean): Unit
+  def popupViewToDesktop(view: ChartView, dimension: Dimension, alwaysOnTop: Boolean, joint: Boolean): Unit
 
-    /**
-     * ======================================================
-     * Bellow is the methods for cursor etc:
-     */
-    def referCursorRow: Int
-    def referCursorTime: Long
+  /**
+   * ======================================================
+   * Bellow is the methods for cursor etc:
+   */
+  def referCursorRow: Int
+  def referCursorTime: Long
 
-    def rightSideRow: Int
-    def rightSideTime: Long
+  def rightSideRow: Int
+  def rightSideTime: Long
 
-    def leftSideRow: Int
-    def leftSideTime: Long
+  def leftSideRow: Int
+  def leftSideTime: Long
 
-    def mouseCursorRow: Int
-    def mouseCursorTime: Long
+  def mouseCursorRow: Int
+  def mouseCursorTime: Long
 
-    def isCursorAccelerated: Boolean
-    def isCursorAccelerated_=(b: Boolean)
+  def isCursorAccelerated: Boolean
+  def isCursorAccelerated_=(b: Boolean)
 
-    /**
-     * Factory method to create ChartViewContainer instance
-     */
-     def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T
+  /**
+   * Factory method to create ChartViewContainer instance
+   */
+  def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T
 }

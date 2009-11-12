@@ -316,7 +316,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * should be atomic accessed/modified during function's running scope so.
    * Should avoid to enter here by multiple actors concurrently
    */
-  def validate: Unit = {
+  def validate {
     try {
       timestamps.readLock.lock
 
@@ -545,24 +545,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       value
     }
 
-    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
     override def apply(idx: Int): V = {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) match {
-          case null => NullVal
-          case value => value
-        }
-      } else NullVal
+      super.apply(idx)
     }
 
-    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
     override def update(idx: Int, value: V) {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) = value
-      } else {
-        assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
-               "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
-      }
+      super.update(idx, value)
     }
 
     def validate {
@@ -619,24 +609,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       values(time) = value
     }
 
-    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
     override def apply(idx: Int): V = {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) match {
-          case null => NullVal
-          case value => value
-        }
-      } else NullVal
+      super.apply(idx)
     }
 
-    // @todo redundant, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
     override def update(idx: Int, value: V) {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) = value
-      } else {
-        assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
-               "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
-      }
+      super.update(idx, value)
     }
 
     def validate {}
