@@ -226,15 +226,16 @@ Scala installation directory.
             <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <fsc addparams="@{addparams}" deprecation="${scalac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}" unchecked="${scalac.unchecked}">
+                <scalac addparams="-make:transitive -dependencyfile ${build.dir}/.scala_dependencies @{addparams}" deprecation="${scalac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}" unchecked="${scalac.unchecked}" force="yes">
                     <classpath>
                         <path path="@{classpath}"/>
                         <fileset dir="${scala.lib}">
                             <include name="**/*.jar"/>
                         </fileset>
+						<path><pathelement location="${build.classes.dir}"/></path>
                     </classpath>
                     <customize/>
-                </fsc>
+                </scalac>
             </sequential>
         </macrodef>
         <macrodef name="depend" uri="http://www.netbeans.org/ns/scala-project/1">

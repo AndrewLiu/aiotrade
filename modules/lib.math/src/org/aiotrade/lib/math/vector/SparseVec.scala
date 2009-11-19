@@ -95,7 +95,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   }
     
   def toDoubleArray: Array[Double] = {
-    val values = new Array[double](dimension)
+    val values = new Array[Double](dimension)
         
     /** as all values has been initialed to 0 , we only need to: */
     for (item <- items) {

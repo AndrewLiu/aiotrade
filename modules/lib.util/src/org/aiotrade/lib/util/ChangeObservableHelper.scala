@@ -59,7 +59,7 @@ class ChangeObservableHelper {
     observerToOwner += (observer -> owner)
   }
     
-  def  removeObserver(observer: ChangeObserver[Any]): Unit = synchronized {
+  def removeObserver(observer: ChangeObserver[Any]): Unit = synchronized {
     if (observer == null) {
       return
     }

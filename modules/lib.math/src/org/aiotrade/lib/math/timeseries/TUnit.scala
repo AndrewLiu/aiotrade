@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries
-
+ 
 import java.text.DateFormat
 import java.text.FieldPosition
 import java.util.Calendar

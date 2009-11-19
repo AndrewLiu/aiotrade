@@ -36,14 +36,14 @@ package org.aiotrade.lib.util
  * @version 1.0, November 24, 2006, 5:06 PM
  * @since   1.0.4
  */
-trait ChangeObservable {
+trait ChangeObservable { 
     
   def addObserver(owner: Object, observer: ChangeObserver[Any]): Unit
     
   def removeObserver(observer: ChangeObserver[Any]): Unit
     
   def removeObserversOf(owner: Object): Unit
-    
+     
   /**
    * A ChangeObservable implement can support may type of ChangeObserver, so
    * we only apply O here, the implement class can choose to notify this type

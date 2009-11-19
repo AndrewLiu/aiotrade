@@ -48,7 +48,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
    * Create a zero values <code>DefaultVec</code>.
    */
   def this() {
-    this(new Array[double](0))
+    this(new Array[Double](0))
   }
     
   /**

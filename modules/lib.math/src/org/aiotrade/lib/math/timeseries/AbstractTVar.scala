@@ -46,7 +46,7 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
 
   def toDoubleArray: Array[Double] = {
     val length = size
-    val result = new Array[double](length)
+    val result = new Array[Double](length)
         
     if (length > 0 && apply(0).isInstanceOf[Number]) {
       var i = 0

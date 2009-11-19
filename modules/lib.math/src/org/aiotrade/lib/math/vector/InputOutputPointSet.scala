@@ -153,7 +153,7 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
   def normalizeOutputs(dimensionIdx: Int): Unit = {
     val num = inputOutputPoints.length
         
-    val values = new Array[double](num)
+    val values = new Array[Double](num)
     for (i <- 0 until num) {
       values(i) = inputOutputPoints(i).output(dimensionIdx)
     }
@@ -180,7 +180,7 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
   def normalizeOutputsPositively(dimensionIdx: Int): Unit = {
     val num = inputOutputPoints.length
         
-    val values = new Array[double](num)
+    val values = new Array[Double](num)
     for (i <- 0 until num) {
       values(i) = inputOutputPoints(i).output(dimensionIdx)
     }
@@ -336,7 +336,7 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
      * do 'Z Score' normalization.
      * 2 more dimensions are added to store mean and stdDeviation
      */
-    val normalized = new Array[double](num + 2)
+    val normalized = new Array[Double](num + 2)
     for (i <- 0 until num) {
       normalized(i) = (values(i) - mean) / stdDeviation
     }
