@@ -131,12 +131,12 @@ abstract class AbstractFactor(var name: String) extends Factor {
     }
   }
 
-  override def equals(a: Any): Boolean = a match {
+  @inline final override def equals(a: Any): Boolean = a match {
     case x: Factor => this.value.equals(x.value)
     case _ => false
   }
 
-  override def hashCode = this.value.hashCode
+  @inline final override def hashCode = value.hashCode
 
   override def clone: Factor = {
     try {
