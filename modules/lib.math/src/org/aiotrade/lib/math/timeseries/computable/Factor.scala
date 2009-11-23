@@ -169,16 +169,16 @@ abstract class AbstractFactor(var name: String) extends Factor {
 
 
 import javax.swing.event.ChangeEvent
-class FactorChangeEvent(private var _source:AnyRef) extends ChangeEvent(_source) {
+class FactorChangeEvent(asource: AnyRef) extends ChangeEvent(asource) {
 
   override def getSource: Factor = {
     assert(source.isInstanceOf[Factor], "Source should be Factor")
 
-    _source.asInstanceOf[Factor]
+    source.asInstanceOf[Factor]
   }
 
   def source_=(factor: Factor) {
-    _source = factor
+    source = factor
   }
 }
 
