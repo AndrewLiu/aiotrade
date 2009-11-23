@@ -67,8 +67,8 @@ class FibonacciArcsChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[float](2)
-    val ys = new Array[float](2)
+    val xs = new Array[Float](2)
+    val ys = new Array[Float](2)
     xs(0) = xb(bt(model.t1))
     xs(1) = xb(bt(model.t2))
     ys(0) = yv(model.v1)
@@ -89,22 +89,22 @@ class FibonacciArcsChart extends AbstractChart {
     val radius4 = radius * 0.763f
         
     val arc1 = addChild(new Arc)
-    arc1.setForeground(color);
+    arc1.setForeground(color)
     arc1.model.set(xs(1) - radius1, ys(1) - radius1, radius1 * 2f, radius1 * 2f, 0f, 360f, 0)
     arc1.plot
         
     val arc2 = addChild(new Arc)
-    arc2.setForeground(color);
+    arc2.setForeground(color)
     arc2.model.set(xs(1) - radius2, ys(1) - radius2, radius2 * 2f, radius2 * 2f, 0f, 360f, 0)
     arc2.plot
         
     val arc3 = addChild(new Arc)
-    arc3.setForeground(color);
+    arc3.setForeground(color)
     arc3.model.set(xs(1) - radius3, ys(1) - radius3, radius3 * 2f, radius3 * 2f, 0f, 360f, 0)
     arc3.plot
         
     val arc4 = addChild(new Arc)
-    arc4.setForeground(color);
+    arc4.setForeground(color)
     arc4.model.set(xs(1) - radius4, ys(1) - radius4, radius4 * 2f, radius4 * 2f, 0f, 360f, 0)
     arc4.plot
         
