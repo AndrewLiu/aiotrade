@@ -43,7 +43,7 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
-  var reqId :int = _
+  var reqId: Int = _
   var secType = Sec.Type.Stock
   var primaryExchange = "SUPERSOES"
   var exchange = "SMART"
