@@ -146,8 +146,8 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
           prevNorm = item_j.close
           postNorm = item_j.close_adj
 
-          taritemOf.high  = Math.max(taritemOf.high, linearAdjust(item_j.high,  prevNorm, postNorm))
-          taritemOf.low   = Math.min(taritemOf.low,  linearAdjust(item_j.low,   prevNorm, postNorm))
+          taritemOf.high  = math.max(taritemOf.high, linearAdjust(item_j.high,  prevNorm, postNorm))
+          taritemOf.low   = math.min(taritemOf.low,  linearAdjust(item_j.low,   prevNorm, postNorm))
           taritemOf.close = linearAdjust(item_j.close,   prevNorm, postNorm)
 
           taritemOf.volume = taritemOf.volume + item_j.volume

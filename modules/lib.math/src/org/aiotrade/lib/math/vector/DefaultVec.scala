@@ -220,7 +220,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
     var result = 0d
         
     for (i <- 0 until dimension) {
-      result += Math.abs(apply(i))
+      result += math.abs(apply(i))
     }
         
     result
@@ -230,9 +230,9 @@ class DefaultVec(source: Array[Double]) extends Vec {
     var result = 0d
         
     for (i <- 0 until dimension) {
-      result += Math.pow(apply(i), 2.0)
+      result += math.pow(apply(i), 2.0)
     }
-    result = Math.sqrt(result)
+    result = math.sqrt(result)
         
     result
   }

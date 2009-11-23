@@ -200,8 +200,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       //                }
       //
       //                val itemTime = item.time
-      //                begTime = Math.min(begTime, itemTime)
-      //                endTime = Math.max(endTime, itemTime)
+      //                begTime = math.min(begTime, itemTime)
+      //                endTime = math.max(endTime, itemTime)
       //            }
       //
       //            evt = new SerChangeEvent(quoteSer, SerChangeEvent.Type.None, symbol, begTime, endTime)

@@ -706,8 +706,8 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
             val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
             var volumeSum = 0f
-            val rowBeg = Math.min(referRow, mouseRow)
-            val rowEnd = Math.max(referRow, mouseRow)
+            val rowBeg = math.min(referRow, mouseRow)
+            val rowEnd = math.max(referRow, mouseRow)
             var i = rowBeg
             while (i <= rowEnd) {
               item = quoteSer.itemOfRow(i).asInstanceOf[QuoteItem]

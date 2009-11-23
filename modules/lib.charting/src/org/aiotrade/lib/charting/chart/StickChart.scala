@@ -66,28 +66,28 @@ class StickChart extends AbstractChart {
     val template = new StickBar
     var bar = 1
     while (bar <= nBars) {
-      var max = -Math.MAX_FLOAT
-      var min = +Math.MAX_FLOAT
+      var max = -Float.MaxValue
+      var min = +Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
           val value = m.v(time)
-          max = Math.max(max, value)
-          min = Math.min(min, value)
+          max = math.max(max, value)
+          min = math.min(min, value)
         }
 
         i += 1
       }
             
             
-      max = Math.max(max, 0) // max not less than 0
-      min = Math.min(min, 0) // min not more than 0
+      max = math.max(max, 0) // max not less than 0
+      min = math.min(min, 0) // min not more than 0
 
       if (! (max == 0 && min == 0)) {
         var yValue = 0f
         var yDatum = 0f
-        if (Math.abs(max) > Math.abs(min)) {
+        if (math.abs(max) > math.abs(min)) {
           color = positiveColor
           yValue = yv(max)
           yDatum = yv(min)

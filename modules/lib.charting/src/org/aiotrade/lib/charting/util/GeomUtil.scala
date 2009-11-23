@@ -64,7 +64,7 @@ object GeomUtil {
    */
   def yOfCircle(x: Double, xCenter: Double, yCenter: Double, radius: Double, positiveSide: Boolean): Float = {
     val dx = x - xCenter
-    val dy = Math.sqrt(radius * radius - dx * dx)
+    val dy = math.sqrt(radius * radius - dx * dx)
     (if (positiveSide) yCenter + dy else yCenter - dy).floatValue
   }
     
@@ -81,11 +81,11 @@ object GeomUtil {
     val radius  = circle.getHeight / 2.0
     val dx = x - xCenter
     val dy = y - yCenter
-    (Math.sqrt(dx * dx + dy * dy) - radius).floatValue
+    (math.sqrt(dx * dx + dy * dy) - radius).toFloat
   }
     
   def samePoint(x1: Double, y1: Double, x2: Double, y2: Double): Boolean = {
-    x1.intValue == x2.intValue && y1.intValue == y2.intValue
+    x1.toInt == x2.toInt && y1.toInt == y2.toInt
   }
     
 }

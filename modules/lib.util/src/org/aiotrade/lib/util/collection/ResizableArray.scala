@@ -37,7 +37,7 @@ abstract class ResizableArray[A](implicit m: Manifest[A]) extends IndexedSeq[A]
   protected var array: Array[A] = makeArray(initialSize)
 
   protected def makeArray(size: Int) = {
-    val s = Math.max(size, 1)
+    val s = math.max(size, 1)
     (m.toString match {
         case "Byte"    => new Array[Byte](s)
         case "Short"   => new Array[Short](s)

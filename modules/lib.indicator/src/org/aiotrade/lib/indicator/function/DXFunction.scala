@@ -69,7 +69,7 @@ class DXFunction extends AbstractFunction {
       val diPlus_i  = _diPlus (i)
       val diMinus_i = _diMinus(i)
             
-      val dx_i = if (diPlus_i + diMinus_i == 0) 0f else Math.abs(diPlus_i - diMinus_i) / (diPlus_i + diMinus_i) * 100f
+      val dx_i = if (diPlus_i + diMinus_i == 0) 0f else math.abs(diPlus_i - diMinus_i) / (diPlus_i + diMinus_i) * 100f
             
       _dx(i) = dx_i
     }

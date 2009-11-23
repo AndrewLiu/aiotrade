@@ -71,7 +71,7 @@ class ZIGZAGFunction extends AbstractFunction {
     //        if (lastPeakIdx >= 0) {
     //            pseudoZigzag.set(lastPeakIdx, Null.Float);
     //
-    //            setComputedIdx(Math.min(getComputedIdx(), lastPeakIdx));
+    //            setComputedIdx(math.min(getComputedIdx(), lastPeakIdx));
     //        }
   }
     

@@ -259,7 +259,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).intValue
 
     /** avoid nBars == 0 */
-    nBars = Math.max(newNBars, 1)
+    nBars = math.max(newNBars, 1)
 
     /**
      * We only need computeMaxMin() once when a this should be repainted,

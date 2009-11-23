@@ -64,11 +64,11 @@ class ARBRIndicator extends ContIndicator {
       ar(i) = up_sum_i / dn_sum_i * 100
             
       val bs_tmp = H(i) - C(i)
-      bs(i) = Math.max(0, bs_tmp)
+      bs(i) = math.max(0, bs_tmp)
       val bs_sum_i = sum(i, bs, period)
             
       val ss_tmp = C(i) - L(i)
-      ss(i) = Math.max(0, ss_tmp)
+      ss(i) = math.max(0, ss_tmp)
       val ss_sum_i = sum(i, ss, period)
             
       br(i) = bs_sum_i / ss_sum_i * 100

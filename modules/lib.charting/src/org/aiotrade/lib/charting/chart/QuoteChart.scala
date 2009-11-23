@@ -131,8 +131,8 @@ class QuoteChart extends AbstractChart {
        */
       var open  = Null.Float
       var close = Null.Float
-      var high  = -Math.MAX_FLOAT
-      var low   = +Math.MAX_FLOAT
+      var high  = -Float.MaxValue
+      var low   = +Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -141,8 +141,8 @@ class QuoteChart extends AbstractChart {
             /** only get the first open as compressing period's open */
             open = m.openVar(time)
           }
-          high  = Math.max(high, m.highVar(time))
-          low   = Math.min(low,  m.lowVar (time))
+          high  = math.max(high, m.highVar(time))
+          low   = math.min(low,  m.lowVar (time))
           close = m.closeVar(time)
         }
 
@@ -191,8 +191,8 @@ class QuoteChart extends AbstractChart {
        */
       var open  = Null.Float
       var close = Null.Float
-      var max   = -Math.MAX_FLOAT
-      var min   = +Math.MAX_FLOAT
+      var max   = -Float.MaxValue
+      var min   = +Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -203,8 +203,8 @@ class QuoteChart extends AbstractChart {
             open = item.getFloat(m.openVar)
           }
           close = item.getFloat(m.closeVar)
-          max = Math.max(max, close)
-          min = Math.min(min, close)
+          max = math.max(max, close)
+          min = math.min(min, close)
         }
 
         i += 1

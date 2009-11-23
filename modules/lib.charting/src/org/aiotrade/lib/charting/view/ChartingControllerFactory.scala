@@ -225,7 +225,7 @@ object ChartingControllerFactory {
         while (i < n && !break) {
           if (newWBar > BAR_WIDTHS_ARRAY(i) && newWBar < BAR_WIDTHS_ARRAY(i + 1)) {
             /** which one is the nearest ? */
-            _wBarIdx = if (Math.abs(BAR_WIDTHS_ARRAY(i) - newWBar) < Math.abs(BAR_WIDTHS_ARRAY(i + 1) - newWBar)) i else i + 1
+            _wBarIdx = if (math.abs(BAR_WIDTHS_ARRAY(i) - newWBar) < math.abs(BAR_WIDTHS_ARRAY(i + 1) - newWBar)) i else i + 1
             break = true
           }
           i += 1
@@ -515,7 +515,7 @@ object ChartingControllerFactory {
             val oldReferRow = referCursorRow
             if (oldReferRow == _lastOccurredRowOfMasterSer || _lastOccurredRowOfMasterSer <= 0) {
               /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
-              val lastTime = Math.max(evt.endTime, amasterSer.lastOccurredTime)
+              val lastTime = math.max(evt.endTime, amasterSer.lastOccurredTime)
               val rightRow = amasterSer.rowOfTime(lastTime)
               val referRow = rightRow
 

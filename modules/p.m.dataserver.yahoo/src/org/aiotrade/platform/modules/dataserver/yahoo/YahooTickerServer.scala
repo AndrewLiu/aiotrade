@@ -175,7 +175,7 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.notifyObservers
 
             countOne
-            loop(Math.max(newestTime, time))
+            loop(math.max(newestTime, time))
           case _ => loop(newestTime)
         }
     }

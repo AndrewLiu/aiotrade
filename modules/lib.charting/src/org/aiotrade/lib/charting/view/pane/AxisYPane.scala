@@ -122,7 +122,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
         mouseCursorLabel.setText(valueStr)
         val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
         mouseCursorLabel.setBounds(
-          3, Math.round(y) - fm.getHeight + 1,
+          3, math.round(y) - fm.getHeight + 1,
           fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
 
         mouseCursorLabel.setVisible(true)
@@ -137,7 +137,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
           mouseCursorLabel.setFont(LookFeel().axisFont)
           mouseCursorLabel.setText(valueStr)
           val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
-          mouseCursorLabel.setBounds(3, Math.round(y) - fm.getHeight + 1,
+          mouseCursorLabel.setBounds(3, math.round(y) - fm.getHeight + 1,
                                      fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
 
           mouseCursorLabel.setVisible(true)
@@ -174,7 +174,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
       referCursorLabel.setFont(LookFeel().axisFont)
       referCursorLabel.setText(valueStr)
       val fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
-      referCursorLabel.setBounds(3, Math.round(y) - fm.getHeight + 1,
+      referCursorLabel.setBounds(3, math.round(y) - fm.getHeight + 1,
                                  fm.stringWidth(referCursorLabel.getText) + 2, fm.getHeight)
 
       referCursorLabel.setVisible(true)
@@ -240,11 +240,11 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
         path.moveTo(0, yTick)
         path.lineTo(2, yTick)
 
-        if (Math.abs(vTick) >= 100000) {
-          vTick = Math.abs(vTick / 100000.0f)
+        if (math.abs(vTick) >= 100000) {
+          vTick = math.abs(vTick / 100000.0f)
           shouldScale = true
         } else {
-          vTick = Math.abs(vTick)
+          vTick = math.abs(vTick)
         }
 
         if (i == 0 && shouldScale) {
@@ -276,10 +276,10 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
   private def roundTickUnit(avTickUnit: Float): Float = {
     /** sample : 0.032 */
     var vTickUnit = avTickUnit
-    val roundedExponent = Math.round(java.lang.Math.log10(vTickUnit)).intValue - 1   // -2
-    val adjustFactor = Math.pow(10, -roundedExponent)               // 100
-    val adjustedValue = (vTickUnit * adjustFactor).intValue       // 3.2 -> 3
-    vTickUnit = adjustedValue.floatValue / adjustFactor.floatValue     // 0.03
+    val roundedExponent = math.round(java.lang.Math.log10(vTickUnit)).intValue - 1   // -2
+    val adjustFactor = math.pow(10, -roundedExponent)               // 100
+    val adjustedValue = (vTickUnit * adjustFactor).toInt       // 3.2 -> 3
+    vTickUnit = adjustedValue.toFloat / adjustFactor.toFloat     // 0.03
 
     /** following DecimalFormat <-> float converts are try to round the decimal */
     if (vTickUnit <= 0.001) {

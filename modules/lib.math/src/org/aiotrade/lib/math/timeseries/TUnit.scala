@@ -162,7 +162,7 @@ object TUnit extends Enumeration {
        * Otherwise, the days between fromTime and toTime is <= 6,
        * we should consider it as following:
        */
-      if (Math.abs(between) < 1) {
+      if (math.abs(between) < 1) {
         cal.setTimeInMillis(fromTime)
         val weekOfYearA = cal.get(Calendar.WEEK_OF_YEAR)
 

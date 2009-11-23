@@ -130,7 +130,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
       _hOne = _hChart.toFloat / (_maxScaledValue - _minScaledValue)
         
       /** avoid hOne == 0 */
-      this._hOne = Math.max(_hOne, 0.0000000001F)
+      this._hOne = math.max(_hOne, 0.0000000001F)
         
       isGeometryValid = true
     }
@@ -219,7 +219,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return index of bars, start from 1 to nBars
      */
     final def bx(x: Float): Int = {
-      Math.round(x / _wBar + 1)
+      math.round(x / _wBar + 1)
     }
     
     

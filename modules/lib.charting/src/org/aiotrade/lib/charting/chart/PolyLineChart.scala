@@ -66,15 +66,15 @@ class PolyLineChart extends AbstractChart {
     var bar = 1
     while (bar <= nBars) {
       var value = Null.Float
-      var max = -Math.MAX_FLOAT
-      var min = +Math.MAX_FLOAT
+      var max = -Float.MaxValue
+      var min = +Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)
         if (ser.exists(time)) {
           value = m.v(time)
-          max = Math.max(max, value)
-          min = Math.min(min, value)
+          max = math.max(max, value)
+          min = math.min(min, value)
         }
 
         i += 1

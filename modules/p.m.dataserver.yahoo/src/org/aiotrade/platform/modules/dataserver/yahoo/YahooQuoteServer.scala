@@ -208,7 +208,7 @@ class YahooQuoteServer extends QuoteServer {
             } else {
               storage += quote
               countOne
-              Math.max(newestTime, time)
+              math.max(newestTime, time)
             }
                         
             loop(newestTime1)

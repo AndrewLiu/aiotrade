@@ -146,7 +146,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
       this.sessionId = sessionId
         
       /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
-      var begIdx = Math.min(computedIdx + 1, idx)
+      var begIdx = math.min(computedIdx + 1, idx)
       if (begIdx < 0) {
         begIdx = 0
       }
@@ -159,7 +159,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
        */
       val size = timestamps.size
         
-      val endIdx = Math.min(idx, size - 1)
+      val endIdx = math.min(idx, size - 1)
       /** fill with clear items from begIdx, then call computeSpot(i): */
       var i = begIdx
       while (i <= endIdx) {

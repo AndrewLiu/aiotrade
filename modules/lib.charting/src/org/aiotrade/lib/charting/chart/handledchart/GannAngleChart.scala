@@ -121,10 +121,10 @@ class GannAngleChart extends AbstractChart {
     val m = model
         
     val k = if (xs(1) - xs(0) == 0) 1f else (ys(1) - ys(0)) / (xs(1) - xs(0))
-    val xmin = Math.min(xs(0), xs(1))
-    val xmax = Math.max(xs(0), xs(1))
-    val ymin = Math.min(ys(0), ys(1))
-    val ymax = Math.max(ys(0), ys(1))
+    val xmin = math.min(xs(0), xs(1))
+    val xmax = math.max(xs(0), xs(1))
+    val ymin = math.min(ys(0), ys(1))
+    val ymax = math.max(ys(0), ys(1))
         
     /** main angle */
     if (drawMain) {

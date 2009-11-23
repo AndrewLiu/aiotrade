@@ -150,20 +150,20 @@ trait ComputableHelper {self: Indicator =>
         // * the timestamps <-> items map may not be validate now, should validate it first
         val begTimeX = begTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, true)
       } else if (begTime > self.computedTime){
         // * if begTime > computedTime, re-compute from computedTime
         val begTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, timestamps.size > self.items.size)
       } else {
         // * begTime == computedTime
         // * if begTime > computedTime, re-compute from computedTime
         val begTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, false)
       }
     }

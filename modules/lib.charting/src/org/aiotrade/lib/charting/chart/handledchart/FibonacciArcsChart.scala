@@ -81,7 +81,7 @@ class FibonacciArcsChart extends AbstractChart {
         
     val dx = xs(1) - xs(0)
     val dy = ys(1) - ys(0)
-    val radius = Math.sqrt(dx * dx + dy * dy).floatValue
+    val radius = math.sqrt(dx * dx + dy * dy).toFloat
         
     val radius1 = radius * 0.382f
     val radius2 = radius * 0.500f

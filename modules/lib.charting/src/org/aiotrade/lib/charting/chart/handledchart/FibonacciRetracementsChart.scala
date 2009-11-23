@@ -74,8 +74,8 @@ class FibonacciRetracementsChart extends AbstractChart {
     ys(1) = yv(model.v2)
     val k = if (xs(1) - xs(0) == 0) 1F else (ys(1) - ys(0)) / (xs(1) - xs(0))
     val interval = ys(1) - ys(0)
-    val xmin = Math.min(xs(0), xs(1))
-    val xmax = Math.max(xs(0), xs(1))
+    val xmin = math.min(xs(0), xs(1))
+    val xmax = math.max(xs(0), xs(1))
         
     val y01 = ys(0)
     val y02 = ys(0) + interval * 0.236f

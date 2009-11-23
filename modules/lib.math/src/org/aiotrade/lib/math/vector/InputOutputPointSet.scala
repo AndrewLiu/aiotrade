@@ -324,7 +324,7 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
       deviation_square_sum += deviation * deviation
     }
         
-    var stdDeviation = Math.sqrt(deviation_square_sum / (num * 1d))
+    var stdDeviation = math.sqrt(deviation_square_sum / (num * 1d))
         
     System.out.println("Mean: " + mean + " Standard Deviation: " + stdDeviation)
         

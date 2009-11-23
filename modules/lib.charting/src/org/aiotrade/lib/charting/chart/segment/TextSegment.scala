@@ -57,7 +57,7 @@ class TextSegment(var text: String, var x: Float, var y: Float, color: Color, va
     
   private def computeBounds(g: Graphics) {
     val fm = g.getFontMetrics
-    bounds.setBounds(Math.round(x), Math.round(y) - fm.getHeight + 1,
+    bounds.setBounds(math.round(x), math.round(y) - fm.getHeight + 1,
                      fm.stringWidth(text) + 1, fm.getHeight)
   }
     

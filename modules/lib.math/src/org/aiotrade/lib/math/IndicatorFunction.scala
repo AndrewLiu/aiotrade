@@ -110,8 +110,8 @@ object IndicatorFunction {
             
     } else {
             
-      val tr_tmp = Math.max(highs(idx) - lows(idx), Math.abs(highs(idx) - closes(idx - 1)))
-      Math.max(tr_tmp, Math.abs(lows(idx) - closes(idx - 1)))
+      val tr_tmp = math.max(highs(idx) - lows(idx), math.abs(highs(idx) - closes(idx - 1)))
+      math.max(tr_tmp, math.abs(lows(idx) - closes(idx - 1)))
             
     }
   }
@@ -186,7 +186,7 @@ object IndicatorFunction {
       val diPlus1  = diPlus( idx, period, highs, lows, closes)
       val diMinus1 = diMinus(idx, period, highs, lows, closes)
             
-      if (diPlus1 + diMinus1 == 0) 0 else Math.abs(diPlus1 - diMinus1) / (diPlus1 + diMinus1) * 100f
+      if (diPlus1 + diMinus1 == 0) 0 else math.abs(diPlus1 - diMinus1) / (diPlus1 + diMinus1) * 100f
             
     }
   }

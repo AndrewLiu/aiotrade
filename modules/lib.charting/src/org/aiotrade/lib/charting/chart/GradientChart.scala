@@ -91,7 +91,7 @@ class GradientChart extends AbstractChart {
                         
             var shade = shades(j)
             if (Null.not(shade)) {
-              shade = (Math.pow(shade, 1d / 3d)).toFloat
+              shade = (math.pow(shade, 1d / 3d)).toFloat
               color = new Color(shade, shade, shade)
               g.setColor(color)
               g.fillRect((centre - radius - 1).toInt, yv(range).toInt, (2 * (radius + 1)).toInt, yv(prevRange).toInt - yv(range).toInt)

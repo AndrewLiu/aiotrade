@@ -81,8 +81,8 @@ class FibonacciTimeZonesChart extends AbstractChart {
     while (n < numFn) {
             
       /*- @RESERVE
-       * double Fn = 100 * Math.pow(Math.PI, 2) * Math.pow(0.6180339, 15 - i);
-       * int step = (int)(Math.sqrt(Fn) * 29.5306);
+       * double Fn = 100 * math.pow(math.PI, 2) * math.pow(0.6180339, 15 - i);
+       * int step = (int)(math.sqrt(Fn) * 29.5306);
        */
             
       Fn(n) = Fn(n - 1) + Fn(n - 2)
@@ -102,7 +102,7 @@ class FibonacciTimeZonesChart extends AbstractChart {
     while (bar <= nBars) {
       var i = 0
       while (i < nBarsCompressed) {
-        if (bar + i == Math.round(bs(0))) {
+        if (bar + i == math.round(bs(0))) {
           plotVerticalLine(bar + i, path)
         }
                 
@@ -110,7 +110,7 @@ class FibonacciTimeZonesChart extends AbstractChart {
         var j = 1
         var break = false
         while (j < numFn * 2 && !break) {
-          if (bar + i == Math.round(bs(j)) || bar + i== Math.round(bs(j + 1))) {
+          if (bar + i == math.round(bs(j)) || bar + i== math.round(bs(j + 1))) {
             plotVerticalLine(bar + i, path)
             break = true
           }

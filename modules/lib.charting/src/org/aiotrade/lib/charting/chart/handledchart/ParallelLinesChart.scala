@@ -82,7 +82,7 @@ class ParallelLinesChart extends AbstractChart {
         
     val k = if (dx == 0) 1F else dy / dx
         
-    val distance = Math.abs(k * xs(2) - ys(2) + ys(0) - k * xs(0)) / Math.sqrt(k * k + 1)
+    val distance = math.abs(k * xs(2) - ys(2) + ys(0) - k * xs(0)) / math.sqrt(k * k + 1)
         
     val pathWidget = addChild(new PathWidget)
     pathWidget.setForeground(color)

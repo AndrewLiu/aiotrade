@@ -165,8 +165,8 @@ class IndicatorChartView(acontroller: ChartingController,
   }
     
   override def computeMaxMin {
-    var minValue1 = +Math.MAX_FLOAT
-    var maxValue1 = -Math.MAX_FLOAT
+    var minValue1 = +Float.MaxValue
+    var maxValue1 = -Float.MaxValue
         
     var i = 1
     while (i <= nBars) {
@@ -176,8 +176,8 @@ class IndicatorChartView(acontroller: ChartingController,
         for (v <- mainSer.vars if v.plot != Plot.None;
              value = item.getFloat(v) if Null.not(value)
         ) {
-          maxValue1 = Math.max(maxValue1, value)
-          minValue1 = Math.min(minValue1, value)
+          maxValue1 = math.max(maxValue1, value)
+          minValue1 = math.min(minValue1, value)
         }
       }
 

@@ -159,7 +159,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     this.nBars     = datumPlane.nBars
     this.wBar      = datumPlane.wBar
         
-    this.wSeg = Math.max(wBar, MIN_SEGMENT_WIDTH).toInt
+    this.wSeg = math.max(wBar, MIN_SEGMENT_WIDTH).toInt
     this.nSegs = (nBars * wBar / wSeg).toInt + 1
         
     this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt
@@ -398,10 +398,10 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     val dy = yEnd - yBeg
         
     val k: Float = if (dx == 0) 1 else dy / dx
-    val xmin = Math.min(xBeg, xEnd)
-    val xmax = Math.max(xBeg, xEnd)
-    val ymin = Math.min(yBeg, yEnd)
-    val ymax = Math.max(yBeg, yEnd)
+    val xmin = math.min(xBeg, xEnd)
+    val xmax = math.max(xBeg, xEnd)
+    val ymin = math.min(yBeg, yEnd)
+    val ymax = math.max(yBeg, yEnd)
         
     var xlast = xb(0) // bar 0
     var ylast = Null.Float

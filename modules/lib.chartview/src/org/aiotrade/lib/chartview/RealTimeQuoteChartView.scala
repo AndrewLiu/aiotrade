@@ -40,10 +40,10 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
-import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.Market
 import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
@@ -165,12 +165,12 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   override def computeMaxMin {
     super.computeMaxMin
 
-    var minValue1 = +Math.MAX_FLOAT
-    var maxValue1 = -Math.MAX_FLOAT
+    var minValue1 = +Float.MaxValue
+    var maxValue1 = -Float.MaxValue
     if (Null.not(prevClose)) {
       minValue1 = minValue
       maxValue1 = maxValue
-      val maxDelta = Math.max(Math.abs(maxValue1 - prevClose), Math.abs(minValue1 - prevClose))
+      val maxDelta = math.max(math.abs(maxValue1 - prevClose), math.abs(minValue1 - prevClose))
       maxValue1 = prevClose + maxDelta
       minValue1 = prevClose - maxDelta
       setMaxMinValue(maxValue1, minValue1)

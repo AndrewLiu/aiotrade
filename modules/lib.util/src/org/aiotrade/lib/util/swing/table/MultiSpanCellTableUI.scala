@@ -22,7 +22,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     val oldClipBounds = g.getClipBounds
     val clipBounds = new Rectangle(oldClipBounds)
     val tableWidth = table.getColumnModel.getTotalColumnWidth
-    clipBounds.width = Math.min(clipBounds.width, tableWidth)
+    clipBounds.width = math.min(clipBounds.width, tableWidth)
     g.setClip(clipBounds)
 
     val firstIndex = table.rowAtPoint(new Point(0, clipBounds.y))

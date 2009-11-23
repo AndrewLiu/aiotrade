@@ -67,7 +67,7 @@ class CCIFunction extends AbstractFunction {
             
       val tp_ma_i = ma(i, _tp, period)
             
-      _deviation(i) = Math.abs(_tp(i) - tp_ma_i)
+      _deviation(i) = math.abs(_tp(i) - tp_ma_i)
       val deviation_ma_i = ma(i, _deviation, period)
             
       _cci(i) = (_tp(i) - tp_ma_i) / (alpha.value * deviation_ma_i)

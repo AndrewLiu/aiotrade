@@ -74,9 +74,9 @@ class VolumeChart extends AbstractChart {
 
       var open   = Null.Float
       var close  = Null.Float
-      var high   = -Math.MAX_FLOAT
-      var low    = +Math.MAX_FLOAT
-      var volume = -Math.MAX_FLOAT // we are going to get max of volume during nBarsCompressed
+      var high   = -Float.MaxValue
+      var low    = +Float.MaxValue
+      var volume = -Float.MaxValue // we are going to get max of volume during nBarsCompressed
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -86,10 +86,10 @@ class VolumeChart extends AbstractChart {
             /** only get the first open as compressing period's open */
             open = item.open
           }
-          high   = Math.max(high, item.high)
-          low    = Math.min(low,  item.low)
+          high   = math.max(high, item.high)
+          low    = math.min(low,  item.low)
           close  = item.close
-          volume = Math.max(volume, item.volume)
+          volume = math.max(volume, item.volume)
         }
 
         i += 1

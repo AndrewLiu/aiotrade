@@ -239,8 +239,8 @@ class AnalysisQuoteChartView(acontroller: ChartingController,
           val compareHi = item.getFloat(ser.high)
           val compareLo = item.getFloat(ser.low)
           if (Null.not(compareHi) && Null.not(compareLo) && compareHi * compareLo != 0 ) {
-            maxValue1 = Math.max(maxValue1, compareHi)
-            minValue1 = Math.min(minValue1, compareLo)
+            maxValue1 = math.max(maxValue1, compareHi)
+            minValue1 = math.min(minValue1, compareLo)
           }
         }
 

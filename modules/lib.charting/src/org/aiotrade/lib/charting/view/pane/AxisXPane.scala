@@ -166,7 +166,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
 
     val nBars = datumPlane.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
-    var bTickUnit = Math.round(nBars.toFloat / nTicks.toFloat)
+    var bTickUnit = math.round(nBars.toFloat / nTicks.toFloat)
     if (bTickUnit < 2) {
       bTickUnit = 2
     }

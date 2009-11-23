@@ -114,21 +114,21 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
   }
 
   override def computeMaxMin {
-    var minValue1 = +Math.MAX_FLOAT
-    var maxValue1 = -Math.MAX_FLOAT
+    var minValue1 = +Float.MaxValue
+    var maxValue1 = -Float.MaxValue
 
     /** minimum volume should be 0 */
     minVolume = 0
-    maxVolume = -Math.MAX_FLOAT
+    maxVolume = -Float.MaxValue
 
     var i = 1
     while (i <= nBars) {
       val time = tb(i)
       val item = mainSer(time).asInstanceOf[QuoteItem]
       if (item != null && item.close > 0) {
-        maxValue1 = Math.max(maxValue1, item.high)
-        minValue1 = Math.min(minValue1, item.low)
-        maxVolume = Math.max(maxVolume, item.volume)
+        maxValue1 = math.max(maxValue1, item.high)
+        minValue1 = math.min(minValue1, item.low)
+        maxVolume = math.max(maxVolume, item.volume)
       }
 
       i += 1

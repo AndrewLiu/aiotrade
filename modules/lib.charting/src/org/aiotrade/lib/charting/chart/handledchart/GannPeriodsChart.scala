@@ -89,7 +89,7 @@ class GannPeriodsChart extends AbstractChart {
     val path = pathWidget.getPath
     var bar = 1
     while (bar <= nBars) {
-      if (bar == Math.round(bs(0))) {
+      if (bar == math.round(bs(0))) {
         plotVerticalLine(bar, path)
       }
             
@@ -97,7 +97,7 @@ class GannPeriodsChart extends AbstractChart {
       var j = 1
       var break = false
       while (j < numPn * 2 && !break) {
-        if (bar == Math.round(bs(j)) || bar == Math.round(bs(j + 1))) {
+        if (bar == math.round(bs(j)) || bar == math.round(bs(j + 1))) {
           plotVerticalLine(bar, path)
           break = true
         }

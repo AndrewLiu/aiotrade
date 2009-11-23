@@ -52,8 +52,8 @@ class TRFunction extends AbstractFunction {
             
     } else {
             
-      val tr_tmp = Math.max(H(i) - L(i), Math.abs(H(i) - C(i - 1)))
-      _tr(i) = Math.max(tr_tmp, Math.abs(L(i) - C(i - 1)))
+      val tr_tmp = math.max(H(i) - L(i), math.abs(H(i) - C(i - 1)))
+      _tr(i) = math.max(tr_tmp, math.abs(L(i) - C(i - 1)))
             
     }
   }

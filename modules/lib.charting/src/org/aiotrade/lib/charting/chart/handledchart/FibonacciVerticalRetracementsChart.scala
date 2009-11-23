@@ -84,7 +84,7 @@ class FibonacciVerticalRetracementsChart extends AbstractChart {
     val ymin = yv(datumPlane.minValue)
     var n = 0
     while (n < Fn.length) {
-      val b = Math.round(bs(0) + interval * Fn(n))
+      val b = math.round(bs(0) + interval * Fn(n))
       if (b >= 1 && b <= nBars) {
         val pathWidget = addChild(new PathWidget)
         pathWidget.setForeground(color)

@@ -71,7 +71,7 @@ class PeriodsChart extends AbstractChart {
     val label1 = addChild(new Label)
     label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
-    label1.model.set(xb(bs(1).toInt) + 2, yv(datumPlane.minValue), (Math.round(bs(1) - bs(0))).toString)
+    label1.model.set(xb(bs(1).toInt) + 2, yv(datumPlane.minValue), (math.round(bs(1) - bs(0))).toString)
     label1.plot
         
     /** calculate Periods series */
@@ -94,7 +94,7 @@ class PeriodsChart extends AbstractChart {
     while (bar <= nBars) {
       var i = 0
       while (i < nBarsCompressed) {
-        if (bar + i == Math.round(bs(0))) {
+        if (bar + i == math.round(bs(0))) {
           plotVerticalLine(bar + i, path)
         }
                 
@@ -102,7 +102,7 @@ class PeriodsChart extends AbstractChart {
         var j = 1
         var break = false
         while (j < numPn * 2 && !break) {
-          if (bar + i == Math.round(bs(j)) || bar + i == Math.round(bs(j + 1))) {
+          if (bar + i == math.round(bs(j)) || bar + i == math.round(bs(j + 1))) {
             plotVerticalLine(bar + i, path);
             break = true
           }

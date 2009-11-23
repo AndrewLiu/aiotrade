@@ -78,7 +78,7 @@ class SARFunction extends AbstractFunction {
                 
         if (currHigh > _ep(i - 1)) {
           /** new high, acceleration adds 'step' each day, till 'maximum' */
-          _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
+          _af(i) = math.min(_af(i - 1) + step.value, maximum.value)
           _ep(i) = currHigh
         } else {
           /** keep same acceleration */
@@ -110,7 +110,7 @@ class SARFunction extends AbstractFunction {
         val prevLow = L(i - 1)
                 
         if (currLow < _ep(i - 1)) {
-          _af(i) = Math.min(_af(i - 1) + step.value, maximum.value)
+          _af(i) = math.min(_af(i - 1) + step.value, maximum.value)
           _ep(i) = currLow
         } else {
           _af(i) = _af(i - 1)

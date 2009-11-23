@@ -64,8 +64,8 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     /** camparing base point is the value of begin time (the most left on screen */
         
     /** always compute from most left position on screen */
-    val begPos = begPosition.value.toInt//Math.min((int)begPosition.value(), begIdx);
-    val endPos = endPosition.value.toInt//Math.min((int)endPosition.value(),   _dataSize - 1);
+    val begPos = begPosition.value.toInt//math.min((int)begPosition.value(), begIdx);
+    val endPos = endPosition.value.toInt//math.min((int)endPosition.value(),   _dataSize - 1);
         
     /** get first value of baseSer in time frame, it will be the comparing base point */
     var baseNorm = Null.Float

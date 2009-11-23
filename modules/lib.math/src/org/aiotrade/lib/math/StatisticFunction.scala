@@ -203,7 +203,7 @@ object StatisticFunction {
 
     var max = -Float.MaxValue
     var min = +Float.MaxValue
-    val lastIdx = Math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(endIdx, values.size - 1)
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
@@ -224,13 +224,13 @@ object StatisticFunction {
 
     var max = -Float.MaxValue
     var min = +Float.MaxValue
-    val lastIdx = Math.min(endIdx, values.length - 1)
+    val lastIdx = math.min(endIdx, values.length - 1)
     var i = begIdx
     while (i <= lastIdx) {
       val value = values(i)
       if (Null.not(value)) {
-        max = Math.max(max, value)
-        min = Math.min(min, value)
+        max = math.max(max, value)
+        min = math.min(min, value)
       }
       i += 1
     }
@@ -247,7 +247,7 @@ object StatisticFunction {
     }
 
     val ma1 = ma(values, begIdx, endIdx)
-    val lastIdx = Math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(endIdx, values.size - 1)
     var deviation_square_sum = 0d
     var i = begIdx
     while (i <= lastIdx) {
@@ -257,7 +257,7 @@ object StatisticFunction {
     }
 
     val period1 = period(begIdx, endIdx) * 1d
-    Math.sqrt(deviation_square_sum / period1).toFloat
+    math.sqrt(deviation_square_sum / period1).toFloat
   }
 
   /**
@@ -338,7 +338,7 @@ object StatisticFunction {
       i += 1
     }
 
-    val lastIdx = Math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(endIdx, values.size - 1)
     var total = 0f
     i = begIdx1
     while (i <= lastIdx) {
@@ -383,7 +383,7 @@ object StatisticFunction {
       i += 1
     }
 
-    val lastIdx = Math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(endIdx, values.size - 1)
     var total = 0f
     i = begIdx
     while (i <= lastIdx) {

@@ -400,7 +400,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
         
     /** for norm1 operation, we only need compute with those data.value != 0 */
     for (i <- 0 until items.length) {
-      result += Math.abs(items(i).value)
+      result += math.abs(items(i).value)
     }
         
     return result;
@@ -411,9 +411,9 @@ class SparseVec(src: Array[VecItem]) extends Vec {
         
     /** for norm2 operation, we only need compute with those data.value != 0 */
     for (i <- 0 until items.length) {
-      result += Math.pow(items(i).value, 2)
+      result += math.pow(items(i).value, 2)
     }
-    result = Math.sqrt(result)
+    result = math.sqrt(result)
         
     result
   }
