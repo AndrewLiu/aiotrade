@@ -276,7 +276,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
   private def roundTickUnit(avTickUnit: Float): Float = {
     /** sample : 0.032 */
     var vTickUnit = avTickUnit
-    val roundedExponent = math.round(java.lang.Math.log10(vTickUnit)).intValue - 1   // -2
+    val roundedExponent = math.round(math.log10(vTickUnit)).toInt - 1   // -2
     val adjustFactor = math.pow(10, -roundedExponent)               // 100
     val adjustedValue = (vTickUnit * adjustFactor).toInt       // 3.2 -> 3
     vTickUnit = adjustedValue.toFloat / adjustFactor.toFloat     // 0.03

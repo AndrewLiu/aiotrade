@@ -42,7 +42,7 @@ import org.w3c.dom.Element
 @cloneable
 trait Factor {
     
-  def name :String
+  def name: String
   def name_=(name: String): Unit
     
   def value: Float
@@ -149,17 +149,15 @@ abstract class AbstractFactor(var name: String) extends Factor {
       newOne.maxValue = maxValue
 
       return newOne
-    } catch {
-      case ex: CloneNotSupportedException => throw new InternalError(ex.toString)
-    }
+    } catch {case ex: CloneNotSupportedException => throw new InternalError(ex.toString)}
   }
 
   def writeToBean(doc: BeansDocument) :Element = {
     val bean = doc.createBean(this)
 
-    doc.valuePropertyOfBean(bean, "name", name);
-    doc.valuePropertyOfBean(bean, "value", value);
-    doc.valuePropertyOfBean(bean, "step", step);
+    doc.valuePropertyOfBean(bean, "name", name)
+    doc.valuePropertyOfBean(bean, "value", value)
+    doc.valuePropertyOfBean(bean, "step", step)
     doc.valuePropertyOfBean(bean, "minValue", minValue)
     doc.valuePropertyOfBean(bean, "maxValue", maxValue)
 
@@ -169,7 +167,7 @@ abstract class AbstractFactor(var name: String) extends Factor {
 
 
 import javax.swing.event.ChangeEvent
-class FactorChangeEvent(asource: AnyRef) extends ChangeEvent(asource) {
+class FactorChangeEvent(_source: AnyRef) extends ChangeEvent(_source) {
 
   override def getSource: Factor = {
     assert(source.isInstanceOf[Factor], "Source should be Factor")
