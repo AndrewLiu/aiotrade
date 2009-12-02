@@ -33,11 +33,14 @@ package org.aiotrade.lib.securities
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
 /**
- * sofic: Stock, Options, Futures, Index, Currency
+ * Securities: Stock, Options, Futures, Index, Currency etc.
  *
  * @author Caoyuan Deng
  */
 object Sec {
+  /**
+   * We need to construct Type from String, so use Enumeration instead of case object there.
+   */
   object Type extends Enumeration {
     type Type = Value
 
