@@ -44,7 +44,7 @@ import org.aiotrade.lib.charting.widget.PathWidget
  */
 class ChineseMonthChart extends AbstractChart {
     
-  protected def createModel = null
+  protected def createModel: M = null
     
   protected def plotChart {
     val cal = Calendar.getInstance

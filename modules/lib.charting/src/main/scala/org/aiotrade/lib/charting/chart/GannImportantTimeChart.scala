@@ -41,7 +41,7 @@ import org.aiotrade.lib.util.NaturalCalendar
  */
 class GannImportantTimeChart extends AbstractChart {
     
-  protected def createModel = null
+  protected def createModel: M = null
     
   protected def plotChart {
     val cal = Calendar.getInstance

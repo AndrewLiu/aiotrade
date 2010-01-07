@@ -38,7 +38,7 @@ import org.aiotrade.lib.charting.widget.HeavyPathWidget
  */
 class SeasonChart extends AbstractChart {
     
-  protected def createModel = null
+  protected def createModel: M = null
     
   protected def plotChart {
     val barWidthHalf = if (wBar - 2 > 0) ((wBar - 2) / 2).toInt else 0

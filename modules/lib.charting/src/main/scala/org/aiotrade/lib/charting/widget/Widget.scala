@@ -71,7 +71,7 @@ import org.aiotrade.lib.util.collection.ArrayList
  */
 trait Widget {
 
-  type M <: WidgetModel
+  type M >: Null <: WidgetModel
 
   def setOpaque(opaque: Boolean): Unit
   def isOpaque: Boolean
