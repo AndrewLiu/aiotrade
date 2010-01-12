@@ -49,7 +49,7 @@ import org.aiotrade.lib.math.timeseries.TUnit._
  *
  * @author Caoyuan Deng
  */
-class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Comparable[TFreq] {
+class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFreq] {
 
   val interval = unit.getInterval * nUnits
 
@@ -128,15 +128,11 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Comparable[
 
   override def clone: TFreq = {
     try {
-      return super.clone.asInstanceOf[TFreq]
-    } catch {
-      case ex:CloneNotSupportedException => ex.printStackTrace()
-    }
-
-    null
+      super.clone.asInstanceOf[TFreq]
+    } catch {case ex:CloneNotSupportedException => ex.printStackTrace; null}
   }
 
-  def compareTo(another: TFreq): Int = {
+  override def compare(another: TFreq): Int = {
     if (this.unit.ordinal < another.unit.ordinal) {
       -1
     } else if (this.unit.ordinal > another.unit.ordinal) {

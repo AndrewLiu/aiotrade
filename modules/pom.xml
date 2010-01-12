@@ -76,8 +76,8 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
+        <!--sourceDirectory>src/main/scala</sourceDirectory-->
+        <!--testSourceDirectory>src/test/scala</testSourceDirectory-->
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
@@ -128,6 +128,7 @@
         <module>lib.util</module>
         <module>lib.securities</module>
         <module>lib.indicator</module>
+        <module>p.m.dataserver.ib</module>
         <module>p.m.dataserver.yahoo</module>
         <module>p.m.indicator.basic</module>
         <module>helper.test</module>

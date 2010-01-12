@@ -81,7 +81,6 @@ object TUnit extends Enumeration {
    * synchronized each method that uses this instance or declare the cal
    * instance as volatile to share this instance by threads.
    */
-  private val cal = Calendar.getInstance
     
   class V(name: String) extends Val(name) {
         
@@ -162,7 +161,8 @@ object TUnit extends Enumeration {
        * Otherwise, the days between fromTime and toTime is <= 6,
        * we should consider it as following:
        */
-      if (math.abs(between) < 1) {
+      if (Math.abs(between) < 1) {
+        val cal = Calendar.getInstance
         cal.setTimeInMillis(fromTime)
         val weekOfYearA = cal.get(Calendar.WEEK_OF_YEAR)
 
@@ -177,6 +177,7 @@ object TUnit extends Enumeration {
     }
 
     private def nMonthsBetween(fromTime: Long, toTime: Long):Int = {
+      val cal = Calendar.getInstance
       cal.setTimeInMillis(fromTime)
       val monthOfYearA = cal.get(Calendar.MONTH)
       val yearA = cal.get(Calendar.YEAR)
@@ -199,6 +200,7 @@ object TUnit extends Enumeration {
 
     /** snapped to first day of the week */
     private def timeAfterNWeeks(fromTime: Long, nWeeks: Int) :Long = {
+      val cal = Calendar.getInstance
       cal.setTimeInMillis(fromTime)
 
       /** set the time to first day of this week */
@@ -212,6 +214,7 @@ object TUnit extends Enumeration {
 
     /** snapped to 1st day of the month */
     private def timeAfterNMonths(fromTime: Long, nMonths: Int) :Long = {
+      val cal = Calendar.getInstance
       cal.setTimeInMillis(fromTime)
 
       /** set the time to this month's 1st day */

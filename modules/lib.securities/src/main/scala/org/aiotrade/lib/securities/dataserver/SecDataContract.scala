@@ -72,11 +72,12 @@ abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
   }
     
   override def writeToJava(id: String): String = {
-    super.writeToJava(id) +
-    JavaDocument.set(id, "setSecType", classOf[Sec.Type.Value].getName + "." + secType) +
-    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
-    JavaDocument.set(id, "setExchange", "" + exchange) +
-    JavaDocument.set(id, "setCurrency", "" + currency)
+    ""
+//    super.writeToJava(id) +
+//    JavaDocument.set(id, "setSecType", classOf[Sec.Type.Value].getName + "." + secType) +
+//    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
+//    JavaDocument.set(id, "setExchange", "" + exchange) +
+//    JavaDocument.set(id, "setCurrency", "" + currency)
   }
     
 }

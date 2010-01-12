@@ -177,8 +177,8 @@ class YahooQuoteServer extends QuoteServer {
              */
             try {
               val date = dateFormat.parse(dateTimeX.trim)
-							cal.clear
-							cal.setTime(date)
+              cal.clear
+              cal.setTime(date)
             } catch {
               case _: ParseException => loop(newestTime)
             }
@@ -208,7 +208,7 @@ class YahooQuoteServer extends QuoteServer {
             } else {
               storage += quote
               countOne
-              math.max(newestTime, time)
+              Math.max(newestTime, time)
             }
                         
             loop(newestTime1)
@@ -216,7 +216,7 @@ class YahooQuoteServer extends QuoteServer {
         }
     }
 
-		loop(-Long.MaxValue)
+    loop(-Long.MaxValue)
   }
 
   protected def loadFromSource(afterThisTime: Long): Long = {
