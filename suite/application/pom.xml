@@ -10,7 +10,7 @@
     <artifactId>application</artifactId>
     <packaging>nbm-application</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>modules-nb - NetBeans Platform based application</name>
+    <name>AIOTrade Platform Application</name>
 
     <dependencies>
         <dependency>
