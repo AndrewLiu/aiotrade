@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : RealTimeMode.xml
+    Created on : 2005年11月10日, 下午2:53
+    Author     : Caoyuan Deng
+    Description:
+        Purpose of the document follows.
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC
+          "-//NetBeans//DTD Filesystem 1.0//EN"
+          "http://www.netbeans.org/dtds/filesystem-1_0.dtd">
+<filesystem>
+    <folder name="Windows2">
+        <folder name="Modes">
+            <!-- configuration file is stored separately -->
+            <file name="realtime_1.wsmode" url="realtime_1.wsmode"/>
+            <folder name="realtime_1"/>
+        </folder>
+    </folder>
+</filesystem>

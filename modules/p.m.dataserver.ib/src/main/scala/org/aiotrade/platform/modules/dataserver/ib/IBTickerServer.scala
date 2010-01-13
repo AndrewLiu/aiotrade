@@ -99,7 +99,7 @@ object IBTickerServer extends IBTickerServer {
     for (contract <- subscribedContracts;
          tickerSnapshot <- tickerSnapshotOf(contract.symbol)
     ) {
-      newestTime = Math.max(newestTime, tickerSnapshot.ticker.time);
+      newestTime = Math.max(newestTime, tickerSnapshot.ticker.time)
       countOne
     }
         
@@ -139,7 +139,7 @@ object IBTickerServer extends IBTickerServer {
       return loadedTime1
     }
     try {
-      request;
+      request
       loadedTime1 = read
     } catch {case ex: Exception => System.out.println("Error in loading from source: " + ex.getMessage)
     }

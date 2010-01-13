@@ -131,6 +131,7 @@
         <module>p.m.dataserver.ib</module>
         <module>p.m.dataserver.yahoo</module>
         <module>p.m.indicator.basic</module>
+        <module>p.m.netbeans.ui</module>
         <module>helper.test</module>
         <module>lib.charting</module>
         <module>lib.chartview</module>

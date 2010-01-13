@@ -232,7 +232,7 @@ object IBWrapper extends IBWrapper {
         
     eclient.reqMktData(reqId, contract)
         
-    return reqId;
+    reqId
   }
     
   def cancelHisDataRequest(reqId: Int) {
@@ -335,7 +335,7 @@ object IBWrapper extends IBWrapper {
     
   override def tickPrice(tickerId: Int, field: Int, price: Double, canAutoExecute: Int) {
     // received price tick
-    val tickerSnapshot = getTickerSnapshot(tickerId);
+    val tickerSnapshot = getTickerSnapshot(tickerId)
     if (tickerSnapshot == null) {
       return;
     }
