@@ -69,6 +69,7 @@
         <module>branding</module>
         <module>../modules</module>
         <module>../modules-nb/module1</module>
+        <module>../modules-nb/p.m.netbeans.ui</module>
     </modules>
 
 </project>

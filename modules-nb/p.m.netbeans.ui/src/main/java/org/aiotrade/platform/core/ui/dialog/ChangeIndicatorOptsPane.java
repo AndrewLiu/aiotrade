@@ -41,7 +41,6 @@ import java.awt.GridBagLayout;
 import java.awt.LayoutManager;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -50,8 +49,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.NumberFormatter;
-import org.aiotrade.lib.charting.descriptor.IndicatorDescriptor;
-import org.aiotrade.lib.math.timeseries.computable.Opt;
+import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor;
+import org.aiotrade.lib.util.collection.ArrayList;
 
 /**
  * 
@@ -64,8 +64,8 @@ public class ChangeIndicatorOptsPane extends JComponent {
     private Frame owner;
     private IndicatorDescriptor descriptor;
     
-    private List<Opt> opts;
-    private List<Opt> oldOpts;
+    private ArrayList<Factor> opts;
+    private ArrayList<Factor> oldOpts;
     private int length;
     private JLabel[] optNameLables;
     private JSpinner[] optValueSpinners;
@@ -84,7 +84,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         this.owner = owner;
         this.descriptor = descriptor;
         
-        opts = descriptor.getOpts();
+        opts = descriptor.factors();
         oldOpts = new ArrayList<Opt>();
         for (Opt opt : opts) {
             oldOpts.add(opt.clone());
@@ -169,7 +169,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         };
         
         for (int i = 0, n = opts.size(); i < n; i++) {
-            Opt opt = opts.get(i);
+            Factor opt = opts.apply(i);
             
             gbc.gridx = 0;
             gbc.gridy = i + 1;
@@ -270,7 +270,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
             }
             transferValues();
         } else {
-            descriptor.setOpts(oldOpts);
+            descriptor.factors_$eq(oldOpts);
         }
         
         return retValue;
@@ -279,14 +279,14 @@ public class ChangeIndicatorOptsPane extends JComponent {
     private void transferValues() {
         for (int i = 0; i < length; i++) {
             Number optValue = (Number)optValueSpinners[i].getValue();
-            opts.get(i).setValue(optValue);
+            opts.apply(i).setValue(optValue);
         }
         
         saveAsDefault = saveAsDefaultCheckBox.isSelected();
         applyToAll = applyToAllCheckBox.isSelected();
     }
     
-    public List<Opt> getOpts() {
+    public ArrayList<Factor> getOpts() {
         return opts;
     }
     
