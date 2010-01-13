@@ -293,7 +293,8 @@ class ContentsParseHandler extends DefaultHandler {
         
     val freq = new TFreq(
       TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
-      meta.getValue("nunits").trim.toInt)
+      meta.getValue("nunits").trim.toInt
+    )
     dataContract.freq = freq
         
     dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean

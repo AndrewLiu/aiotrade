@@ -46,11 +46,24 @@ object Sec {
   object Type {
     case object Stock extends Type
     case object Index extends Type
-    case object Option  extends Type
+    case object Option extends Type
     case object Future extends Type
     case object FutureOption extends Type
     case object Currency extends Type
     case object Bag extends Type
+
+    def withName(name: String): Type = {
+      name match {
+        case "Stock" => Stock
+        case "Index" => Index
+        case "Option" => Option
+        case "Future" => Future
+        case "FutureOption" => FutureOption
+        case "Currency" => Currency
+        case "Bag" => Bag
+        case _ => null
+      }
+    }
   }
 }
 
