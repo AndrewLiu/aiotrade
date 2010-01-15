@@ -40,13 +40,10 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object IndicatorDescriptorActionFactory {
-  private var i: IndicatorDescriptorActionFactory = _
+  private lazy val instance = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
 
-  def getDefault: IndicatorDescriptorActionFactory = {
-    if (i == null) {
-      i = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
-    }
-    i
+  def apply(): IndicatorDescriptorActionFactory = {
+    instance
   }
 }
 

@@ -48,7 +48,7 @@ import org.openide.windows.WindowManager;
  * @version 1.0, December 11, 2006, 10:20 PM
  * @since   1.0.4
  */
-class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFactory.I {
+class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFactory {
     
   def createActions(descriptor: DrawingDescriptor): Array[Action] = {
     Array(

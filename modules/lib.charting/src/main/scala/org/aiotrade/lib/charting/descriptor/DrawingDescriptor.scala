@@ -105,7 +105,7 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
   }
     
   override def createDefaultActions: Array[Action] = {
-    DrawingDescriptorActionFactory.getDefault.createActions(this)
+    DrawingDescriptorActionFactory().createActions(this)
   }
     
 }

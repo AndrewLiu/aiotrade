@@ -40,13 +40,13 @@ import org.aiotrade.lib.util.ServiceLoader;
  * @since   1.0.4
  */
 object DrawingDescriptorActionFactory {
-  private var i: I = _
+  private lazy val instance = ServiceLoader.load(classOf[DrawingDescriptorActionFactory]).iterator.next
 
-  def getDefault: I = {
-    if (i == null) {i = ServiceLoader.load(classOf[I]).iterator.next; i} else i
-  }
-    
-  trait I {
-    def createActions(descriptor: DrawingDescriptor): Array[Action]
-  }
+  def apply(): DrawingDescriptorActionFactory = {
+    instance
+  }    
+}
+
+trait DrawingDescriptorActionFactory {
+  def createActions(descriptor: DrawingDescriptor): Array[Action]
 }

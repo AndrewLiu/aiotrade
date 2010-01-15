@@ -44,6 +44,7 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Array[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+  val folderName = "Indicators"
 
   private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= afactors
 
@@ -59,7 +60,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
   }
 
   def factors: Array[Factor]= _factors.toArray
-  def factors_=(factors: Array[Factor]): Unit = {
+  def factors_=(factors: Array[Factor]) {
     /**
      * @NOTICE:
      * always create a new copy of in factors to seperate the factors of this
@@ -119,7 +120,8 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
     
   def setFacsToDefault: Unit = {
     val defaultFacs = PersistenceManager().defaultContents.lookupDescriptor(
-      classOf[IndicatorDescriptor], serviceClassName, freq) match {
+      classOf[IndicatorDescriptor], serviceClassName, freq
+    ) match {
       case None => lookupServiceTemplate match {
           case None => None
           case Some(template) => Some(template.factors)
@@ -127,15 +129,12 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
       case Some(defaultDescriptor) => Some(defaultDescriptor.factors)
     }
 
-    defaultFacs match {
-      case Some(x) => factors = x
-      case None =>
-    }
+    defaultFacs foreach {x => factors = x}
   }
 
   def lookupServiceTemplate: Option[Indicator] = {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[Indicator], folderName)
-    services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+    services find {x => x.getClass.getName == serviceClassName} match {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Indicator])
@@ -144,10 +143,8 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
     }
   }
 
-  val folderName = "Indicators"
-
   override def createDefaultActions: Array[Action] = {
-    IndicatorDescriptorActionFactory.getDefault.createActions(this)
+    IndicatorDescriptorActionFactory().createActions(this)
   }
 
   override def writeToBean(doc: BeansDocument): Element = {
