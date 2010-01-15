@@ -45,7 +45,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.DrawingPane
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.util.swing.action.EditAction
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -61,7 +61,7 @@ object AbstractHandledChart {
   val VARIABLE_NUMBER_OF_HANDLES = Integer.MAX_VALUE
 }
 
-abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[ValuePoint]) extends HandledChart {
+abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[ValuePoint]) extends HandledChart {
   import AbstractHandledChart._
     
   private var drawingPane: DrawingPane = _
@@ -75,11 +75,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
    * another object, even in case of being got by others via public or
    * protected method
    */
-  private val currentHandles  = new ArrayList[Handle]
-  private val previousHandles = new ArrayList[Handle]
+  private val currentHandles  = new ArrayBuffer[Handle]
+  private val previousHandles = new ArrayBuffer[Handle]
     
   /** For moving chart: the valuePoint and handls when mouse is pressed before drag */
-  private val currentHandlesWhenMousePressed = new ArrayList[Handle]
+  private val currentHandlesWhenMousePressed = new ArrayBuffer[Handle]
   /**
    * define mousePressedPoint as final to force using copy(..) to set its value
    */
@@ -87,8 +87,8 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     
   private val allCurrentHandlesPathBuf = new GeneralPath
     
-  private var nHandles: Int = _
-  private var selectedHandleIdx: Int = 0
+  private var nHandles = 0
+  private var selectedHandleIdx = 0
     
   private var firstStretch = true
   private var accomplished = false
@@ -101,7 +101,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
   private var cursor: Cursor = _
     
   private val pointBuf = new ValuePoint
-  private val handlePointsBuf = new ArrayList[ValuePoint]
+  private val handlePointsBuf = new ArrayBuffer[ValuePoint]
     
 
   def this(drawing: DrawingPane) = this(drawing, null)
@@ -129,7 +129,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
   /**
    * init with known points
    */
-  def init(drawing: DrawingPane, points: ArrayList[ValuePoint]) {
+  def init(drawing: DrawingPane, points: ArrayBuffer[ValuePoint]) {
     assert(points != null, "this is for points known HandledChart!")
         
     attachDrawingPane(drawing)
@@ -385,7 +385,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     }
   }
     
-  private def renderHandles(g: Graphics , handles: ArrayList[Handle]) {
+  private def renderHandles(g: Graphics , handles: ArrayBuffer[Handle]) {
     for (handle <- handles) {
       handle.render(g)
     }
@@ -411,11 +411,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     readyToDrag
   }
     
-  def getCurrentHandlesPoints: ArrayList[ValuePoint] = {
+  def getCurrentHandlesPoints: ArrayBuffer[ValuePoint] = {
     handlesPoints(currentHandles)
   }
     
-  protected def handlesPoints(handles: ArrayList[Handle]): ArrayList[ValuePoint] = {
+  protected def handlesPoints(handles: ArrayBuffer[Handle]): ArrayBuffer[ValuePoint] = {
     handlePointsBuf.clear
     var i = 0
     val n = handles.size
@@ -478,7 +478,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     setChartModelAndRenderChart(g, currentHandles)
   }
     
-  private def setChartModelAndRenderChart(g: Graphics, handles: ArrayList[Handle]) {
+  private def setChartModelAndRenderChart(g: Graphics, handles: ArrayBuffer[Handle]) {
     /** 1. set chart's model according to the handles */
     setChartModel(handles)
         
@@ -494,13 +494,13 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
    *
    * @param handles the list of handles to be used to set the model
    */
-  protected def setChartModel(handles: ArrayList[Handle]): Unit
+  protected def setChartModel(handles: ArrayBuffer[Handle])
     
-  final def compareTo(another: HandledChart): Int = {
+  final def compare(another: HandledChart): Int = {
     if (this.toString.equalsIgnoreCase(another.toString)) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
     } else {
-      this.toString.compareTo(another.toString)
+      this.toString.compare(another.toString)
     }
   }
     
@@ -583,7 +583,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
         
     override def mousePressed(e: MouseEvent) {
       if (isReadyToDrag) {
-        mousePressedPoint.copy(p(e));
+        mousePressedPoint.copy(p(e))
         /** record handles when mouse pressed, for moveChart() */
         var i = 0
         val n = currentHandles.size
@@ -637,9 +637,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
             }
                         
             cursor = HANDLE_CURSOR
-          }
-          /** else, mouse does not point to any handle */
-          else {
+          } else { /** else, mouse does not point to any handle */
             selectedHandleIdx = -1
             /** mouse points to this chart ? */
             if (chart.hits(e.getX, e.getY)) {
@@ -668,7 +666,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
         }
                 
         /** notice drawingPane */
-        drawingPane.accomplishedHandledChartChanged(AbstractHandledChart.this);
+        drawingPane.accomplishedHandledChartChanged(AbstractHandledChart.this)
       }
     }
   }
@@ -692,11 +690,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     def this() = this(null)
 
     def copyPoint(src: ValuePoint) {
-      this.point.copy(src)
+      point.copy(src)
     }
         
     def getPoint: ValuePoint = {
-      point;
+      point
     }
         
     def getPath: GeneralPath = {
@@ -706,14 +704,14 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
        */
       plot
             
-      bufPath;
+      bufPath
     }
         
     private def plot {
       val location = getLocation
             
-      val x = location.getX.floatValue
-      val y = location.getY.floatValue
+      val x = location.getX.toFloat
+      val y = location.getY.toFloat
             
       bufPath.reset
       bufPath.moveTo(x - RADIUS, y - RADIUS)
@@ -755,14 +753,10 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayList[Valu
     }
         
     override def equals(o: Any): Boolean = {
-      if (o.isInstanceOf[Handle]) {
-        val another = o.asInstanceOf[Handle]
-        if (this.point.equals(another.getPoint)) {
-          return true
-        }
+      o match {
+        case x: Handle => point.equals(x.getPoint)
+        case _ => false
       }
-            
-      false
     }
   }
     

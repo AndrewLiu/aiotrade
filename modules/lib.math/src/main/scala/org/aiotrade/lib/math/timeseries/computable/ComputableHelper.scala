@@ -34,7 +34,6 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.util.collection.ArrayList
 
 
 /**
@@ -237,11 +236,11 @@ trait ComputableHelper {self: Indicator =>
    */
   def factors_=(factors: Array[Factor]) {
     if (factors != null) {
-      val values = new Array[Number](factors.size)
-      for (i <- 0 until factors.size) {
+      val values = new Array[Number](factors.length)
+      for (i <- 0 until factors.length) {
         values(i) = _factors(i).value
       }
-      factors_=(values)
+      factorValues_=(values)
     }
   }
     
@@ -250,15 +249,15 @@ trait ComputableHelper {self: Indicator =>
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factors_=(facValues: Array[Number]): Unit = {
+  def factorValues_=(facValues: Array[Number]): Unit = {
     var valueChanged = false
     if (facValues != null) {
-      if (factors.size == facValues.length) {
+      if (factors.length == facValues.length) {
         for (i <- 0 until facValues.length) {
           val myFactor = _factors(i)
           val inValue = facValues(i)
           /** check if changed happens before set myFactor */
-          if ((myFactor.value != inValue.floatValue)) {
+          if (myFactor.value != inValue.floatValue) {
             valueChanged = true
           }
           myFactor.value = inValue
@@ -272,14 +271,14 @@ trait ComputableHelper {self: Indicator =>
   }
     
   private def fireFactorsChangeEvents: Unit = {
-    factors.foreach{x => x.fireFactorChangeEvent(new FactorChangeEvent(x))}
+    factors foreach {x => x.fireFactorChangeEvent(new FactorChangeEvent(x))}
   }
     
   def replaceFac(oldFactor: Factor, newFactor: Factor): Unit = {
     var idxOld = -1
     var i = 0
     var break = false
-    while (i < factors.size && !break) {
+    while (i < factors.length && !break) {
       val factor = factors(i)
       if (factor.equals(oldFactor)) {
         idxOld = i

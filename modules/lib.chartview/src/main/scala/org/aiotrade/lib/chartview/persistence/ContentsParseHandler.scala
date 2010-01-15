@@ -50,6 +50,7 @@ import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
 import org.xml.sax.helpers.DefaultHandler
 import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Stack
 
@@ -63,12 +64,12 @@ class ContentsParseHandler extends DefaultHandler {
   private var contents: AnalysisContents = _
     
   private var indicatorDescriptor: IndicatorDescriptor = _
-  private var factors: ArrayList[Factor] = _
+  private var factors: ArrayBuffer[Factor] = _
     
   private var drawingDescriptor: DrawingDescriptor = _
-  private var handledChartMapPoints: HashMap[HandledChart, ArrayList[ValuePoint]] = _
+  private var handledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]] = _
   private var handledChartClassName: String = _
-  private var points: ArrayList[ValuePoint] = _
+  private var points: ArrayBuffer[ValuePoint] = _
     
   val DEBUG = false
     
@@ -164,11 +165,11 @@ class ContentsParseHandler extends DefaultHandler {
     indicatorDescriptor.active = (meta.getValue("active").trim).toBoolean
     indicatorDescriptor.serviceClassName = meta.getValue("class")
     val freq = new TFreq(
-      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
       meta.getValue("nunits").trim.toInt)
     indicatorDescriptor.freq = freq
         
-    factors = new ArrayList
+    factors = new ArrayBuffer
   }
     
   @throws(classOf[SAXException])
@@ -176,7 +177,7 @@ class ContentsParseHandler extends DefaultHandler {
     if (DEBUG) {
       System.err.println("end_indicator()")
     }
-    indicatorDescriptor.factors = factors
+    indicatorDescriptor.factors = factors.toArray
     contents.addDescriptor(indicatorDescriptor)
   }
     
@@ -186,7 +187,7 @@ class ContentsParseHandler extends DefaultHandler {
       System.err.println("start_chart: " + meta)
     }
     handledChartClassName = meta.getValue("class")
-    points = new ArrayList[ValuePoint]
+    points = new ArrayBuffer[ValuePoint]
   }
     
   @throws(classOf[SAXException])
@@ -292,7 +293,7 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.dateFormatPattern = meta.getValue("dateformat")
         
     val freq = new TFreq(
-      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
       meta.getValue("nunits").trim.toInt
     )
     dataContract.freq = freq
@@ -338,7 +339,7 @@ class ContentsParseHandler extends DefaultHandler {
     drawingDescriptor = new DrawingDescriptor
     drawingDescriptor.serviceClassName = meta.getValue("name")
     val freq = new TFreq(
-      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit.V],
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
       Integer.parseInt(meta.getValue("nunits").trim))
     drawingDescriptor.freq = freq
         

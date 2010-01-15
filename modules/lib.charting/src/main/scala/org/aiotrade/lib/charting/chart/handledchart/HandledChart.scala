@@ -35,7 +35,7 @@ import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.chart.Chart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.view.pane.DrawingPane
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * 
@@ -44,12 +44,12 @@ import org.aiotrade.lib.util.collection.ArrayList
  * @author Caoyuan Deng
  */
 
-trait HandledChart extends Comparable[HandledChart] {
+trait HandledChart extends Ordered[HandledChart] {
 
   type C <: Chart
 
   /** init with known points */
-  def init(drawing: DrawingPane, points: ArrayList[ValuePoint]): Unit
+  def init(drawing: DrawingPane, points: ArrayBuffer[ValuePoint]): Unit
     
   def attachDrawingPane(drawing: DrawingPane): Unit
     
@@ -68,7 +68,7 @@ trait HandledChart extends Comparable[HandledChart] {
     
   def isAccomplished: Boolean
     
-  def getCurrentHandlesPoints: ArrayList[ValuePoint]
+  def getCurrentHandlesPoints: ArrayBuffer[ValuePoint]
     
   def getChart: C
     

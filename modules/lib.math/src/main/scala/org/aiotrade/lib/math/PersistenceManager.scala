@@ -47,14 +47,13 @@ object PersistenceManager {
 }
 /** Interface of PersistenceManager */
 trait PersistenceManager {
-  def restoreProperties: Unit
-  def saveProperties: Unit
+  def restoreProperties
+  def saveProperties
 
-  def saveContents(contents: AnalysisContents): Unit
+  def saveContents(contents: AnalysisContents)
   def restoreContents(symbol: String): AnalysisContents
   def defaultContents: AnalysisContents
 
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Array[T]
-  //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
+  def lookupAllRegisteredServices[T: Manifest](tpe: Class[T], folderName: String): Array[T]
 }
 

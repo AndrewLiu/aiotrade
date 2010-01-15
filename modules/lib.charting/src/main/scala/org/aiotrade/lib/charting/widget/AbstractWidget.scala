@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform
 import java.awt.geom.GeneralPath
 import java.util.Collection
 import javax.swing.Action
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 import org.aiotrade.lib.charting.util.PathPool
 import scala.collection.mutable.{HashMap}
 
@@ -84,9 +84,9 @@ abstract class AbstractWidget extends Widget {
   private var _model: M = _
     
   private var renderColorsWithPathBuf: HashMap[Color, GeneralPath] = _
-  private var actions: ArrayList[Action] = _
+  private var actions: ArrayBuffer[Action] = _
     
-  var children: ArrayList[Widget] = _
+  var children: ArrayBuffer[Widget] = _
 
   def isOpaque: Boolean = {
     opaque
@@ -343,7 +343,7 @@ abstract class AbstractWidget extends Widget {
     
   def addChild[T <: Widget](child: T) :T = {
     if (children == null) {
-      children = new ArrayList[Widget]
+      children = new ArrayBuffer[Widget]
     }
         
     children += child
@@ -356,10 +356,10 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def getChildren: ArrayList[Widget] = {
+  def getChildren: ArrayBuffer[Widget] = {
     if (children != null) {
       children
-    } else new ArrayList[Widget]
+    } else new ArrayBuffer[Widget]
   }
     
   def resetChildren: Unit = {
@@ -376,8 +376,8 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): ArrayList[T] = {
-    val result = new ArrayList[T]
+  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): ArrayBuffer[T] = {
+    val result = new ArrayBuffer[T]
     if (children != null) {
       for (child <- children) {
         if (widgetType.isInstance(child) && child.getForeground.equals(foreground)) {
@@ -401,7 +401,7 @@ abstract class AbstractWidget extends Widget {
     
   def addAction(action: Action): Action = {
     if (actions == null) {
-      actions = new ArrayList[Action]
+      actions = new ArrayBuffer[Action]
     }
         
     actions += action

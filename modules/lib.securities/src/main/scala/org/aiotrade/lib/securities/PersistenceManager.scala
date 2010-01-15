@@ -45,10 +45,10 @@ object PersistenceManager {
 
 trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
 
-  def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long): Unit
+  def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long)
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote]
-  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long): Unit
-  def dropAllQuoteTables(symbol: String): Unit
+  def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long)
+  def dropAllQuoteTables(symbol: String)
 
-  def shutdown: Unit
+  def shutdown
 }

@@ -50,7 +50,6 @@ import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 
 
@@ -214,15 +213,15 @@ class AnalysisQuoteChartView(acontroller: ChartingController,
   }
     
   private def refreshQuoteCompareSer {
-    val optsForCompareIndicator = new ArrayList[Factor]
-        
-    optsForCompareIndicator += (new DefaultFactor("Begin of Time Frame", rb(1)))
-    optsForCompareIndicator += (new DefaultFactor("End of Time Frame",   rb(nBars)))
-    optsForCompareIndicator += (new DefaultFactor("Max Value", maxValue))
-    optsForCompareIndicator += (new DefaultFactor("Min Value", minValue))
+    val optsForCompareIndicator = Array(
+      new DefaultFactor("Begin of Time Frame", rb(1)),
+      new DefaultFactor("End of Time Frame",   rb(nBars)),
+      new DefaultFactor("Max Value", maxValue),
+      new DefaultFactor("Min Value", minValue)
+    )
         
     for (ser <- getCompareIndicators) {
-      ser.factors = optsForCompareIndicator
+      ser.factors = optsForCompareIndicator.asInstanceOf[Array[Factor]]
     }
   }
     

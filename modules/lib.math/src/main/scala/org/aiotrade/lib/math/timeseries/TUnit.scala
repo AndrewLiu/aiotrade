@@ -72,6 +72,18 @@ object TUnit {
     Month,
     Year
   )
+
+  def withName(name: String) = {
+    name match {
+      case "Second" => Second
+      case "Minute" => Minute
+      case "Hour"   => Hour
+      case "Day"    => Day
+      case "Week"   => Week
+      case "Month"  => Month
+      case "Year"   => Year
+    }
+  }
 }
 
 /**

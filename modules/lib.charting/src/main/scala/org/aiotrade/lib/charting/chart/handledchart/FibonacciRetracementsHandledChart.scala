@@ -31,7 +31,7 @@
 package org.aiotrade.lib.charting.chart.handledchart
 
 import org.aiotrade.lib.charting.chart.segment.Handle
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -47,7 +47,7 @@ class FibonacciRetracementsHandledChart extends AbstractHandledChart {
     new FibonacciRetracementsChart
   }
     
-  protected def setChartModel(handles: ArrayList[Handle]) {
+  protected def setChartModel(handles: ArrayBuffer[Handle]) {
     getChart.model.set(
       handles(0).getPoint.t,
       handles(0).getPoint.v,

@@ -36,7 +36,7 @@ import java.awt.Paint
 import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.Action
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * bounds(x, y, width, height) is relative to location(lx, ly), so the final
@@ -109,7 +109,7 @@ trait Widget {
     
   def addChild[T <: Widget](child: T): T
   def removeChild(child: Widget): Unit
-  def children: ArrayList[Widget]
+  def children: ArrayBuffer[Widget]
   def clearChildren: Unit
   def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): Seq[T]
   def lookupFirstChild[T <: Widget](widgetType: Class[T], foreground: Color): Option[T]

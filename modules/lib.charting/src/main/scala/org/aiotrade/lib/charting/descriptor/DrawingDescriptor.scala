@@ -37,7 +37,7 @@ import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.view.ChartView
 import org.aiotrade.lib.charting.view.pane.DrawingPane
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
 
@@ -47,7 +47,7 @@ import scala.collection.mutable.HashMap
  */
 class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPane] {
 
-  private var handledChartMapPoints = new HashMap[HandledChart, ArrayList[ValuePoint]]
+  private var handledChartMapPoints = new HashMap[HandledChart, ArrayBuffer[ValuePoint]]
   var displayName = "Layout One"
     
   serviceClassName = layerName
@@ -69,7 +69,7 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
   }
     
     
-  def putHandledChart(handledChart: HandledChart, handlePoints: ArrayList[ValuePoint]) {
+  def putHandledChart(handledChart: HandledChart, handlePoints: ArrayBuffer[ValuePoint]) {
     handledChartMapPoints.put(handledChart, handlePoints);
   }
     
@@ -77,11 +77,11 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
     handledChartMapPoints.remove(handledChart)
   }
     
-  def getHandledChartMapPoints: HashMap[HandledChart, ArrayList[ValuePoint]] = {
+  def getHandledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]] = {
     handledChartMapPoints
   }
     
-  def setHandledChartMapPoints(handledChartMapPoints: HashMap[HandledChart, ArrayList[ValuePoint]]) {
+  def setHandledChartMapPoints(handledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]]) {
     this.handledChartMapPoints = handledChartMapPoints
   }
     

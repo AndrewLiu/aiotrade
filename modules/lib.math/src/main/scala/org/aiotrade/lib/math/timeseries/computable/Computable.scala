@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries.computable
 
 import java.text.DecimalFormat
-import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TSer
 import scala.actors.Actor._
 
@@ -61,14 +60,14 @@ trait Computable {
   /**
    * @param time to be computed from
    */
-  def computeFrom(time: Long): Unit
+  def computeFrom(time: Long)
   def computedTime: Long
     
   def factors: Array[Factor]
-  def factors_=(factors: Array[Factor]): Unit
-  def factors_=(values: Array[Number]): Unit
+  def factors_=(factors: Array[Factor])
+  def factorValues_=(values: Array[Number])
     
-  def dispose: Unit
+  def dispose
 }
 
 object Computable {

@@ -40,12 +40,9 @@ import org.aiotrade.lib.securities.PersistenceManager
  *
  * @author Caoyuan Deng
  */
-object QuoteContract {
-  val folderName :String = "QuoteServers"
-}
-
 class QuoteContract extends SecDataContract[QuoteServer] {
-  import QuoteContract._
+  
+  val folderName :String = "QuoteServers"
 
   serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"
   active = true

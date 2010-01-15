@@ -23,9 +23,29 @@ import scala.collection.mutable.ArrayBuffer
  */
 class PlainPersistenceManager extends PersistenceManager {
 
-  private val quoteServers  = new ArrayBuffer[QuoteServer]
-  private val tickerServers = new ArrayBuffer[TickerServer]
-  private val indicators    = new ArrayBuffer[Indicator]
+  private val quoteServers  = Array[QuoteServer]() // new YahooQuoteServer
+  private val tickerServers = Array[TickerServer]() // new YahooTickerServer
+  private val indicators    = Array(new ARBRIndicator,
+                                    new BIASIndicator,
+                                    new BOLLIndicator,
+                                    new CCIIndicator,
+                                    new DMIIndicator,
+                                    new EMAIndicator,
+                                    new GMMAIndicator,
+                                    new HVDIndicator,
+                                    new KDIndicator,
+                                    new MACDIndicator,
+                                    new MAIndicator,
+                                    new MFIIndicator,
+                                    new MTMIndicator,
+                                    new OBVIndicator,
+                                    new ROCIndicator,
+                                    new RSIIndicator,
+                                    new SARIndicator,
+                                    new WMSIndicator,
+                                    new ZIGZAGFAIndicator,
+                                    new ZIGZAGIndicator
+  )
 
   def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {}
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = Array[Quote]()
@@ -41,45 +61,14 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
   def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Array[T] = {
+  def lookupAllRegisteredServices[T: Manifest](clz: Class[T], folderName: String): Array[T] = {
     if (clz == classOf[QuoteServer]) {
-      if (quoteServers.isEmpty) {
-        //quoteServers += new YahooQuoteServer
-      }
-      quoteServers.toArray.asInstanceOf[Array[T]]
+      quoteServers.asInstanceOf[Array[T]]
     } else if (clz == classOf[TickerServer]) {
-      if (tickerServers.isEmpty) {
-        //tickerServers += new YahooTickerServer
-      }
-      tickerServers.toArray.asInstanceOf[Array[T]]
+      tickerServers.asInstanceOf[Array[T]]
     } else if (clz == classOf[Indicator]) {
-      if (indicators.isEmpty) {
-        indicators ++= List(new ARBRIndicator,
-                            new BIASIndicator,
-                            new BOLLIndicator,
-                            new CCIIndicator,
-                            new DMIIndicator,
-                            new EMAIndicator,
-                            new GMMAIndicator,
-                            new HVDIndicator,
-                            new KDIndicator,
-                            new MACDIndicator,
-                            new MAIndicator,
-                            new MFIIndicator,
-                            new MTMIndicator,
-                            new OBVIndicator,
-                            new ROCIndicator,
-                            new RSIIndicator,
-                            new SARIndicator,
-                            new WMSIndicator,
-                            new ZIGZAGFAIndicator,
-                            new ZIGZAGIndicator
-        )
-      }
-      indicators.toArray.asInstanceOf[Array[T]]
-    } else {
-      Array[Object]().asInstanceOf[Array[T]]
-    }
+      indicators.asInstanceOf[Array[T]]
+    } else Array[T]()
   }
 
 }

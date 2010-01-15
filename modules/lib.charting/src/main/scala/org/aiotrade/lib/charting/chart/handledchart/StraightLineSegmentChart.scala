@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.chart.AbstractChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.PathWidget
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -44,9 +44,9 @@ import org.aiotrade.lib.util.collection.ArrayList
  */
 class StraightLineSegmentChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var points: ArrayList[ValuePoint] = _
+    var points: ArrayBuffer[ValuePoint] = _
         
-    def set(points: ArrayList[ValuePoint]) {
+    def set(points: ArrayBuffer[ValuePoint]) {
       this.points = points
     }
   }

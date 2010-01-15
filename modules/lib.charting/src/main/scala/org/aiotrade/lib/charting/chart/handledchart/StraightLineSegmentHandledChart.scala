@@ -31,7 +31,8 @@
 package org.aiotrade.lib.charting.chart.handledchart
 
 import org.aiotrade.lib.charting.chart.segment.Handle
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -47,7 +48,7 @@ class StraightLineSegmentHandledChart extends AbstractHandledChart {
     new StraightLineSegmentChart
   }
     
-  protected def setChartModel(handles: ArrayList[Handle]) {
+  protected def setChartModel(handles: ArrayBuffer[Handle]) {
     getChart.model.set(handlesPoints(handles))
   }
     
