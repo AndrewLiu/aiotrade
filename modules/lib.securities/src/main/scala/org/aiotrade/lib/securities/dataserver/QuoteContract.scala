@@ -106,7 +106,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   }
 
   def lookupServiceTemplate: Option[QuoteServer] =  {
-    val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[QuoteServer], folderName)
+    val services = PersistenceManager().lookupAllRegisteredServices(classOf[QuoteServer], folderName)
     services.find{x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>
         try {

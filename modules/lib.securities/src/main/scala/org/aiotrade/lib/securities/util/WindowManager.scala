@@ -28,45 +28,29 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.datasource
+package org.aiotrade.lib.securities.util
 
-import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.TSer
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait SerProvider[T <: TSer] {
+object WindowsManager {
+  private var defaultManager: WindowManager = null
+  
+  def getDefault: WindowManager = {
+    if (defaultManager == null) {
+      //defaultManager = new NetBeansWindowManager();
+    }
+    return defaultManager
+  }
+}
+
+trait WindowManager {
+  def getStatusText: String
     
+  def setStatusText(text: String);
     
-  /**
-   * Load quotes, can be called to load quotes whenever
-   * If there is already a dataServer is running and not finished, don't load again.
-   * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
-   */
-  def loadSer(freq: TFreq): Boolean
-    
-  def uniSymbol: String
-  def uniSymbol_=(symbol: String)
-    
-  def name: String
-    
-  def stopAllDataServer
-    
-  def isSerInLoading(freq: TFreq): Boolean
-  def isSerLoaded(freq: TFreq): Boolean
-    
-  def serOf(freq: TFreq): Option[T]
-    
-  def clearSer(freq: TFreq)
-    
-  def putSer(ser: T)
-    
-  def description: String
-  def description_=(description: String)
-    
-  def dataContract: DataContract[_]
-  def dataContract_=(dataContract: DataContract[_])
+  def setToolbarConfiguration(name: String);
 }
 

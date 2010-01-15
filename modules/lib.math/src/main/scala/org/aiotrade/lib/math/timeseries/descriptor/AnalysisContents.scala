@@ -167,7 +167,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   private class ContentsSaveAction extends SaveAction {
         
     def execute: Unit = {
-      PersistenceManager.getDefault.saveContents(AnalysisContents.this)
+      PersistenceManager().saveContents(AnalysisContents.this)
     }
         
   }

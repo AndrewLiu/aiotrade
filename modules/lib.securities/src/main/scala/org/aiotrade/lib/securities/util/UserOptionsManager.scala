@@ -28,69 +28,78 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities.dataserver
+package org.aiotrade.lib.securities.util
 
-import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.TFreq
+import java.net.InetSocketAddress
+import java.net.Proxy
 import org.aiotrade.lib.securities.PersistenceManager
-
+import org.aiotrade.lib.securities.dataserver.QuoteContract
 
 /**
  *
- * most fields' default value should be OK.
- *
  * @author Caoyuan Deng
  */
-object TickerContract {
-  val folderName = "TickerServers"
-}
-
-class TickerContract extends SecDataContract[TickerServer] {
-  import TickerContract._
+object UserOptionsManager {
     
-  serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
-  freq = TFreq.ONE_MIN
-  urlString = ""
-  refreshable = true
-  refreshInterval = 5 // seconds
-
-  private val cal = Calendar.getInstance
-  endDate = cal.getTime
-  cal.set(1990, Calendar.JANUARY, 1)
-  beginDate = cal.getTime
-
-  override def displayName = {
-    "Ticker Data Contract[" + symbol + "]"
+  private var optionsLoaded = false
+    
+  /** wont persistent */
+  var currentPreferredQuoteContract: QuoteContract = _
+    
+  /**
+   * @NOTICE
+   * proxy == null means using system proxies
+   */
+  private var proxy: Proxy = _
+    
+  def assertLoaded: Boolean = {
+    if (!optionsLoaded) {
+      PersistenceManager().restoreProperties
+      optionsLoaded = true
+    }
+    return optionsLoaded
+  }
+    
+  /** setOptionsLoaded(false) will force reload options */
+  def setOptionsLoaded(b: Boolean) {
+    optionsLoaded = b
+  }
+    
+  def getProxy: Proxy = {
+    assertLoaded
+    proxy
   }
     
   /**
-   * @param none args are needed
+   * use ProxySelector class to detect the proxy settings. If there is a
+   * Direct connection to Internet the Proxy type will be DIRECT else it will
+   * return the host and port.
    */
-  override def createServiceInstance(args: Any*): Option[TickerServer] = {
-    lookupServiceTemplate match {
-      case None => None
-      case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
-    }
-  }
-    
-  def lookupServiceTemplate :Option[TickerServer] = {
-    val services = PersistenceManager().lookupAllRegisteredServices(classOf[TickerServer], folderName)
-    services find {x => x.getClass.getName.equals(serviceClassName)} match {
-      case None =>
-        try {
-          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
-        } catch {case ex :Exception => ex.printStackTrace; None}
-      case some => some
-    }
-  }
+  def setProxy($proxy: Proxy) {
+    proxy = $proxy
         
-  /**
-   * Ticker contract don't care about freq, so override super
-   */
-  override def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
-    if (this.serviceClassName.equals(serviceClassName)) true
-    else false
+    if ($proxy == null) {
+      /** means use system proxies */
+      System.setProperty("java.net.useSystemProxies", "true")
+      System.clearProperty("http.proxyHost")
+    } else {
+      System.setProperty("java.net.useSystemProxies", "false")
+      $proxy.`type` match {
+        case Proxy.Type.DIRECT =>
+          System.clearProperty("http.proxyHost")
+        case Proxy.Type.HTTP =>
+          val addr = proxy.address.asInstanceOf[InetSocketAddress]
+          if (addr != null) {
+            System.setProperty("http.proxyHost", addr.getHostName)
+            System.setProperty("http.proxyPort", String.valueOf(addr.getPort))
+          }
+        case _ =>
+          System.setProperty("java.net.useSystemProxies", "true")
+      }
+    }
+        
   }
-    
+
 }
+
 

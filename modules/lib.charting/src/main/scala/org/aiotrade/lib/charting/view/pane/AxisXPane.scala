@@ -116,7 +116,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
       val freq = controller.masterSer.freq
       val x = datumPlane.xr(mousePosition).toInt
       cal.setTimeInMillis(mouseTime)
-      val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
+      val dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
 
       mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
       mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
@@ -141,7 +141,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     val freq = controller.masterSer.freq
     val x = datumPlane.xr(referPosition).toInt
     cal.setTimeInMillis(referTime)
-    val dateStr = freq.getUnit.formatNormalDate(cal.getTime, timeZone)
+    val dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
 
     referCursorLabel.setForeground(LookFeel().referCursorTextColor)
     referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
@@ -166,7 +166,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
 
     val nBars = datumPlane.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
-    var bTickUnit = math.round(nBars.toFloat / nTicks.toFloat)
+    var bTickUnit = Math.round(nBars.toFloat / nTicks.toFloat)
     if (bTickUnit < 2) {
       bTickUnit = 2
     }

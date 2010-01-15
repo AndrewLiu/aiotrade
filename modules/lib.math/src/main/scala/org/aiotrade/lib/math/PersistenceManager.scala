@@ -40,14 +40,9 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object PersistenceManager {
-  private var manager: PersistenceManager = null
+  private lazy val manager: PersistenceManager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
 
-  def getDefault: PersistenceManager = {
-    if (manager == null) {
-      manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
-    }
-    manager
-  }
+  def apply(): PersistenceManager = manager
     
 }
 /** Interface of PersistenceManager */
@@ -59,7 +54,7 @@ trait PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents
   def defaultContents: AnalysisContents
 
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T]
+  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Array[T]
   //def lookupAllRegisteredServices[T <: Ordered[T]](tpe:Class[T], folderName:String) :Seq[T]
 }
 

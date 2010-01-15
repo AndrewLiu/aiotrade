@@ -28,45 +28,47 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.datasource
+package org.aiotrade.lib.securities.util
 
-import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.TSer
-
-/**
+/** 
  *
  * @author Caoyuan Deng
  */
-trait SerProvider[T <: TSer] {
-    
-    
-  /**
-   * Load quotes, can be called to load quotes whenever
-   * If there is already a dataServer is running and not finished, don't load again.
-   * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
-   */
-  def loadSer(freq: TFreq): Boolean
-    
-  def uniSymbol: String
-  def uniSymbol_=(symbol: String)
-    
-  def name: String
-    
-  def stopAllDataServer
-    
-  def isSerInLoading(freq: TFreq): Boolean
-  def isSerLoaded(freq: TFreq): Boolean
-    
-  def serOf(freq: TFreq): Option[T]
-    
-  def clearSer(freq: TFreq)
-    
-  def putSer(ser: T)
-    
-  def description: String
-  def description_=(description: String)
-    
-  def dataContract: DataContract[_]
-  def dataContract_=(dataContract: DataContract[_])
-}
+import java.awt.Color
+import java.awt.FlowLayout
+import java.awt.Font
+import javax.swing.BorderFactory
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
+import javax.swing.border.BevelBorder
 
+class StatusBar extends JPanel {
+    
+  // Panes in the status bar.
+  private val marketPane = new StatusPane("SH")
+    
+  setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3))
+  setBackground(Color.lightGray)
+  setBorder(BorderFactory.createLineBorder(Color.darkGray))
+        
+  add(marketPane)
+    
+  // Set market pane label.
+  def setMarketPane(market: String) {
+
+  }
+    
+  // Nested class defining a status bar pane.
+  class StatusPane(text: String) extends JLabel {
+        
+    private val paneFont = new Font("Serif", Font.PLAIN, 10)
+        
+    setBackground(Color.lightGray)
+    //setForeground(Color.black)
+    setFont(paneFont)
+    setHorizontalAlignment(SwingConstants.CENTER)
+    setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED))
+    setText(text)
+  }
+}

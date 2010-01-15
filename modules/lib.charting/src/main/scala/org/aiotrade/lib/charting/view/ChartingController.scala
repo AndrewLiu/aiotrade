@@ -66,32 +66,32 @@ trait ChartingController extends ChangeObservable {
 
   def wBar: Float
 
-  def growWBar(increment: Int): Unit
+  def growWBar(increment: Int)
 
-  def setWBarByNBars(wViewPort: Int, nBars: Int): Unit
+  def setWBarByNBars(wViewPort: Int, nBars: Int)
 
   def isOnCalendarMode: Boolean
-  def isOnCalendarMode_=(b: Boolean): Unit
+  def isOnCalendarMode_=(b: Boolean)
 
-  def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean): Unit
+  def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean)
 
-  def setReferCursorByRow(Row: Int, willUpdateViews: Boolean): Unit
+  def setReferCursorByRow(Row: Int, willUpdateViews: Boolean)
 
-  def scrollReferCursor(increment: Int, willUpdateViews: Boolean): Unit
+  def scrollReferCursor(increment: Int, willUpdateViews: Boolean)
 
   /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
-  def scrollChartsHorizontallyByBar(increment: Int): Unit
+  def scrollChartsHorizontallyByBar(increment: Int)
 
-  def scrollReferCursorToLeftSide: Unit
+  def scrollReferCursorToLeftSide
 
-  def setMouseCursorByRow(row: Int): Unit
+  def setMouseCursorByRow(row: Int)
 
   def isAutoScrollToNewData: Boolean
   def isAutoScrollToNewData_=(b: Boolean)
 
-  def updateViews: Unit
+  def updateViews
 
-  def popupViewToDesktop(view: ChartView, dimension: Dimension, alwaysOnTop: Boolean, joint: Boolean): Unit
+  def popupViewToDesktop(view: ChartView, dimension: Dimension, alwaysOnTop: Boolean, joint: Boolean)
 
   /**
    * ======================================================

@@ -70,7 +70,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     tickerPool.returnObject(ticker)
   }
 
-  override protected def returnBorrowedTimeValues(tickers: ArrayList[Ticker]): Unit = {
+  override protected def returnBorrowedTimeValues(tickers: Array[Ticker]): Unit = {
     tickers foreach {tickerPool.returnObject(_)}
   }
 
@@ -119,7 +119,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     bufLoadEvents.clear
 
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract)
+      val storage = storageOf(contract).toArray
       val evt = composeSer(contract.symbol, serOf(contract).get, storage)
 
       if (evt != null) {
@@ -130,14 +130,14 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
       storage synchronized {
         returnBorrowedTimeValues(storage)
-        storage.clear
+        //storage.clear
       }
     }
   }
 
   override protected def postUpdate: Unit = {
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract)
+      val storage = storageOf(contract).toArray
       val evt = composeSer(contract.symbol, serOf(contract).get, storage)
 
       if (evt != null) {
@@ -148,7 +148,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
       storage synchronized {
         returnBorrowedTimeValues(storage)
-        storage.clear
+        //storage.clear
       }
     }
   }
@@ -180,7 +180,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
-  def composeSer(symbol: String, tickerSer: TSer, storage: ArrayList[Ticker]): SerChangeEvent = {
+  def composeSer(symbol: String, tickerSer: TSer, storage: Array[Ticker]): SerChangeEvent = {
     var evt: SerChangeEvent = null
 
     val cal = Calendar.getInstance(marketOf(symbol).timeZone)
@@ -264,7 +264,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               /** this is a new high happened in this ticker */
               itemx.high = ticker(Ticker.DAY_HIGH)
             }
-            itemx.high = math.max(itemx.high, ticker(Ticker.LAST_PRICE))
+            itemx.high = Math.max(itemx.high, ticker(Ticker.LAST_PRICE))
 
             if (prevTicker(Ticker.DAY_LOW) != 0) {
               if (ticker(Ticker.DAY_LOW) < prevTicker(Ticker.DAY_LOW)) {
@@ -273,7 +273,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               }
             }
             if (ticker(Ticker.LAST_PRICE) != 0) {
-              itemx.low = math.min(itemx.low, ticker(Ticker.LAST_PRICE))
+              itemx.low = Math.min(itemx.low, ticker(Ticker.LAST_PRICE))
             }
 
             itemx.close = ticker(Ticker.LAST_PRICE)
@@ -293,8 +293,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
         }
 
         val itemTime = ticker.time
-        begTime = math.min(begTime, itemTime)
-        endTime = math.max(endTime, itemTime)
+        begTime = Math.min(begTime, itemTime)
+        endTime = Math.max(endTime, itemTime)
 
         /**
          * Now, try to update today's quoteSer with current last ticker

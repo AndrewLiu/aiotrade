@@ -220,19 +220,19 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     uniSymbol
   }
 
-  def setDataContract(quoteContract: DataContract[_]): Unit = {
-    val freq = quoteContract.freq
-    freqToQuoteContract.put(freq, quoteContract.asInstanceOf[QuoteContract])
-    /** may need a new dataServer now: */
-    freqToQuoteServer.removeKey(freq)
-  }
-
   def dataContract: DataContract[_] = {
     freqToQuoteContract.get(defaultFreq).get
   }
+  
+  def dataContract_=(quoteContract: DataContract[_]) {
+    val freq = quoteContract.freq
+    freqToQuoteContract.put(freq, quoteContract.asInstanceOf[QuoteContract])
+    /** may need a new dataServer now: */
+    freqToQuoteServer.remove(freq)
+  }
 
 
-  def subscribeTickerServer: Unit = {
+  def subscribeTickerServer {
     assert(tickerContract != null, "ticker contract not set yet !")
 
     /**

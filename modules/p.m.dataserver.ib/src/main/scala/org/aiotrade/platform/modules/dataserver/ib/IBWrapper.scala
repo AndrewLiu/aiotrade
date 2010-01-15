@@ -38,16 +38,15 @@ import java.text.SimpleDateFormat;
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.datasource.DataServer;
-
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.QuotePool
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerPool
 import org.aiotrade.lib.securities.TickerSnapshot
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -132,7 +131,7 @@ object IBWrapper extends IBWrapper {
     reqId
   }
     
-  private def getQuoteStorage(reqId: Int): ArrayList[Quote] = {
+  private def getQuoteStorage(reqId: Int): ArrayBuffer[Quote] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.storage
@@ -160,8 +159,8 @@ object IBWrapper extends IBWrapper {
     var break = false
     while (!isConnected && !timeout && !break) {
       try {
-        wait(TUnit.Second.getInterval * 5)
-        timeout = true; // whatever
+        wait(TUnit.Second.interval * 5)
+        timeout = true // whatever
       } catch {case ex: InterruptedException => break = true}
     }
         
@@ -169,9 +168,9 @@ object IBWrapper extends IBWrapper {
       /**
        * IB Log levels: 1 = SYSTEM 2 = ERROR 3 = WARNING 4 = INFORMATION 5 = DETAIL
        */
-      eclient.setServerLogLevel(2);
-      eclient.reqNewsBulletins(true);
-      serverVersion = eclient.serverVersion();
+      eclient.setServerLogLevel(2)
+      eclient.reqNewsBulletins(true)
+      serverVersion = eclient.serverVersion
             
       //WindowManager.getDefault.setStatusText("TWS connected. Server version: " + serverVersion)
     } else {
@@ -187,7 +186,7 @@ object IBWrapper extends IBWrapper {
     TWS_DATE_FORMAT
   }
     
-  def reqHistoricalData(requestor: DataServer[_ <: DataContract[_]], storage: ArrayList[Quote],
+  def reqHistoricalData(requestor: DataServer[_ <: DataContract[_]], storage: ArrayBuffer[Quote],
                         contract: Contract, endDateTime: String, durationStr: String,
                         barSizeSetting: Int, whatToShow: String, useRTH: Int, formatDate: Int): Int = {
         
@@ -488,7 +487,7 @@ object IBWrapper extends IBWrapper {
 
   private case class HistoricalDataRequest(
     requestor: DataServer[_ <: DataContract[_]],
-    storage: ArrayList[Quote],
+    storage: ArrayBuffer[Quote],
     contract: Contract,
     endDateTime: String,
     durationStr: String,

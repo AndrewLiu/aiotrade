@@ -31,7 +31,7 @@
     <description>Basic Modules for AIOTrade.</description>
 
     <properties>
-        <scala.version>2.8.0-SNAPSHOT</scala.version>
+        <scala.version>2.8.0.Beta1-RC7</scala.version>
     </properties>
 
     <repositories>

@@ -51,9 +51,9 @@ trait ComputableHelper {self: Indicator =>
 
   /**
    * factors of this instance, such as period long, period short etc,
-   * it's 'final' to avoid being replaced somewhere.
+   * @todo it should be 'final' to avoid being replaced somewhere?.
    */
-  var _factors = new ArrayList[Factor]
+  var _factors = Array[Factor]()
         
   /**
    * preComputeFrom will set and backup the context before computeFrom(long begTime):
@@ -150,20 +150,20 @@ trait ComputableHelper {self: Indicator =>
         // * the timestamps <-> items map may not be validate now, should validate it first
         val begTimeX = begTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, true)
       } else if (begTime > self.computedTime){
         // * if begTime > computedTime, re-compute from computedTime
         val begTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, timestamps.size > self.items.size)
       } else {
         // * begTime == computedTime
         // * if begTime > computedTime, re-compute from computedTime
         val begTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
+        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
         (begTimeX, begIdxX, false)
       }
     }
@@ -201,11 +201,14 @@ trait ComputableHelper {self: Indicator =>
                                                baseSerChangeEventCallBack))
   }
     
-  def addFactor(factor: Factor): Unit = {
+  def addFactor(factor: Factor) {
     /** add factor change listener to this factor */
     addFactorChangeListener(factor)
-        
-    _factors += factor
+
+    val old = _factors
+    _factors = new Array[Factor](old.length + 1)
+    System.arraycopy(old, 0, _factors, 0, old.length)
+    _factors(_factors.length - 1) = factor
   }
     
   private def addFactorChangeListener(factor: Factor): Unit = {
@@ -225,14 +228,14 @@ trait ComputableHelper {self: Indicator =>
       })
   }
 
-  def factors: ArrayList[Factor] = _factors
+  def factors: Array[Factor] = _factors
 
   /**
    *
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factors_=(factors: ArrayList[Factor]): Unit = {
+  def factors_=(factors: Array[Factor]) {
     if (factors != null) {
       val values = new Array[Number](factors.size)
       for (i <- 0 until factors.size) {

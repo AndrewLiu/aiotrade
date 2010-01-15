@@ -220,7 +220,7 @@ class IBQuoteServer extends QuoteServer {
       while (ibWrapper.isHisDataReqPending(contract.reqId) && !timeout) {
         try {
           //System.out.println("dataserver is waiting: " + getSer(contract).getFreq());
-          wait(TUnit.Minute.getInterval * 1);
+          wait(TUnit.Minute.interval * 1)
           //System.out.println("dataserver is woke up: " + getSer(contract).getFreq());
           timeout = true // whatever
         } catch {case ex: InterruptedException =>

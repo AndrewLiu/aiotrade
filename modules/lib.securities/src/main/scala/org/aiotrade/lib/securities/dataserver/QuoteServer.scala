@@ -56,12 +56,12 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     quotePool.borrowObject
   }
 
-  protected def returnQuote(quote: Quote): Unit = {
+  protected def returnQuote(quote: Quote) {
     quotePool.returnObject(quote)
   }
 
-  protected def returnBorrowedTimeValues(quotes: ArrayList[Quote]): Unit = {
-    quotes.foreach{quotePool.returnObject(_)}
+  protected def returnBorrowedTimeValues(quotes: Array[Quote]) {
+    quotes foreach {quotePool.returnObject(_)}
   }
 
   protected def loadFromPersistence: Long = {
@@ -79,7 +79,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      * 1. restore data from database
      */
     val freq = serToBeFilled.freq
-    val storage = PersistenceManager.getDefault.restoreQuotes(contract.symbol, freq)
+    val storage = PersistenceManager().restoreQuotes(contract.symbol, freq)
     composeSer(contract.symbol, serToBeFilled, storage)
 
     /**
@@ -87,7 +87,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      * if quotes is empty, means no data in db, so, let newestTime = 0, which
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
-    val size = storage.size
+    val size = storage.length
     val loadedTime1 = if (size > 0) storage(size - 1).time else 0L
     serToBeFilled.fireSerChangeEvent(new SerChangeEvent(serToBeFilled,
                                                         SerChangeEvent.Type.RefreshInLoading,
@@ -100,7 +100,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      */
     storage.synchronized {
       returnBorrowedTimeValues(storage)
-      storage.clear
+      //storage.clear
     }
         
     loadedTime1
@@ -111,8 +111,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       val serToBeFilled = serOf(contract).get
 
       val freq = serToBeFilled.freq
-      val storage = storageOf(contract)
-      PersistenceManager.getDefault.saveQuotes(contract.symbol, freq, storage, sourceId)
+      val storage = storageOf(contract).toArray
+      PersistenceManager().saveQuotes(contract.symbol, freq, storage, sourceId)
 
       var evt = composeSer(contract.symbol, serToBeFilled, storage)
       //            if (evt != null) {
@@ -128,14 +128,14 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       storage.synchronized {
         returnBorrowedTimeValues(storage)
-        storage.clear
+        //storage.clear
       }
     }
   }
 
   override protected def postUpdate: Unit =  {
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract)
+      val storage = storageOf(contract).toArray
 
       val evt = composeSer(contract.symbol, serOf(contract).get, storage)
       //            if (evt != null) {
@@ -146,12 +146,12 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       storage.synchronized {
         returnBorrowedTimeValues(storage)
-        storage.clear
+        //storage.clear
       }
     }
   }
 
-  protected def composeSer(symbol: String, quoteSer: TSer, storage: ArrayList[Quote]): SerChangeEvent =  {
+  protected def composeSer(symbol: String, quoteSer: TSer, storage: Array[Quote]): SerChangeEvent =  {
     var evt: SerChangeEvent = null
 
     val size = storage.size

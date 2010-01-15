@@ -43,16 +43,12 @@ import org.aiotrade.lib.securities.{QuoteItem, QuoteSer}
 //@IndicatorName("QUOTECOMPARE")
 class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     
-  private var _serToBeCompared: QuoteSer = _
-        
-  def serToBeCompared_=(serToBeCompared: QuoteSer): Unit = {
-    this._serToBeCompared = serToBeCompared
-  }
+  var serToBeCompared: QuoteSer = _
     
   val begPosition = Factor("Begin of Time Frame", 0L)
   val endPosition = Factor("End of Time Frame",   0L)
-  val maxValue    = Factor("Max Value", -Float.MaxValue)
-  val minValue    = Factor("Min Value", +Float.MaxValue)
+  val maxValue    = Factor("Max Value", Float.MinValue)
+  val minValue    = Factor("Min Value", Float.MaxValue)
     
   var open   = TVar[Float]("O", Plot.Quote)
   var high   = TVar[Float]("H", Plot.Quote)
@@ -88,12 +84,12 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
     }
         
     if (baseSer.asInstanceOf[QuoteSer].adjusted) {
-      if (!_serToBeCompared.adjusted) {
-        _serToBeCompared.adjust(true)
+      if (!serToBeCompared.adjusted) {
+        serToBeCompared.adjust(true)
       }
     } else {
-      if (_serToBeCompared.adjusted) {
-        _serToBeCompared.adjust(false)
+      if (serToBeCompared.adjusted) {
+        serToBeCompared.adjust(false)
       }
     }
         
@@ -123,7 +119,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
          * we should fetch itemToBeCompared by time instead by position which may
          * not sync with baseSer.
          */
-        _serToBeCompared(time) match {
+        serToBeCompared(time) match {
           case null =>
           case itemToBeCompared:QuoteItem =>
             /** get first value of serToBeCompared in time frame */

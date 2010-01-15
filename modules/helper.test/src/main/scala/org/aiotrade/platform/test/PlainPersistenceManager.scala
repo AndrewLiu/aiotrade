@@ -15,7 +15,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.platform.modules.indicator.basic._
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
@@ -23,12 +23,12 @@ import org.aiotrade.lib.util.collection.ArrayList
  */
 class PlainPersistenceManager extends PersistenceManager {
 
-  private val quoteServers  = new ArrayList[QuoteServer]
-  private val tickerServers = new ArrayList[TickerServer]
-  private val indicators = new ArrayList[Indicator]
+  private val quoteServers  = new ArrayBuffer[QuoteServer]
+  private val tickerServers = new ArrayBuffer[TickerServer]
+  private val indicators    = new ArrayBuffer[Indicator]
 
-  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayList[Quote], sourceId: Long) {}
-  def restoreQuotes(symbol: String, freq: TFreq): ArrayList[Quote] = new ArrayList[Quote]
+  def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {}
+  def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = Array[Quote]()
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {}
   def dropAllQuoteTables(symbol: String) {}
 
@@ -41,18 +41,18 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
   def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T] = {
-    if (tpe == classOf[QuoteServer]) {
+  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Array[T] = {
+    if (clz == classOf[QuoteServer]) {
       if (quoteServers.isEmpty) {
         //quoteServers += new YahooQuoteServer
       }
-      quoteServers.asInstanceOf[Seq[T]]
-    } else if (tpe == classOf[TickerServer]) {
+      quoteServers.toArray.asInstanceOf[Array[T]]
+    } else if (clz == classOf[TickerServer]) {
       if (tickerServers.isEmpty) {
         //tickerServers += new YahooTickerServer
       }
-      tickerServers.asInstanceOf[Seq[T]]
-    } else if (tpe == classOf[Indicator]) {
+      tickerServers.toArray.asInstanceOf[Array[T]]
+    } else if (clz == classOf[Indicator]) {
       if (indicators.isEmpty) {
         indicators ++= List(new ARBRIndicator,
                             new BIASIndicator,
@@ -76,9 +76,9 @@ class PlainPersistenceManager extends PersistenceManager {
                             new ZIGZAGIndicator
         )
       }
-      indicators.asInstanceOf[Seq[T]]
+      indicators.toArray.asInstanceOf[Array[T]]
     } else {
-      Nil
+      Array[Object]().asInstanceOf[Array[T]]
     }
   }
 

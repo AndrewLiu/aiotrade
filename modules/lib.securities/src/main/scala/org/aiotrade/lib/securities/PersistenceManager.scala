@@ -32,27 +32,21 @@ package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.ServiceLoader
-import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  *
  * @author Caoyuan Deng
  */
 object PersistenceManager {
-  protected var manager: PersistenceManager = null
+  private lazy val manager: PersistenceManager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
 
-  def getDefault: PersistenceManager = {
-    if (manager == null) {
-      manager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
-    }
-    manager
-  }
+  def apply(): PersistenceManager = manager
 }
 
 trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
 
-  def saveQuotes(symbol: String, freq: TFreq, quotes: ArrayList[Quote], sourceId: Long): Unit
-  def restoreQuotes(symbol: String, freq: TFreq): ArrayList[Quote]
+  def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long): Unit
+  def restoreQuotes(symbol: String, freq: TFreq): Array[Quote]
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long): Unit
   def dropAllQuoteTables(symbol: String): Unit
 

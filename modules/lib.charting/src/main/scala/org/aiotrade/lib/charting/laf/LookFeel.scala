@@ -70,7 +70,7 @@ object LookFeel {
     val G2 = c2.getGreen
     val B2 = c2.getBlue
 
-    math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
+    Math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
   }
 }
 
@@ -166,8 +166,8 @@ abstract class LookFeel {
   }
 
   def getGradientColor(depth: Int, beginDepth: Int): Color = {
-    val steps = math.abs((depth - beginDepth))
-    val alpha = math.pow(0.618d, steps).toFloat
+    val steps = Math.abs((depth - beginDepth))
+    val alpha = Math.pow(0.618d, steps).toFloat
 
     //        Color color = Color.RED;
     //        int r = alpha * color.getRed();

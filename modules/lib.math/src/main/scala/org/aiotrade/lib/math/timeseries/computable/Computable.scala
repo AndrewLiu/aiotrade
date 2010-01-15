@@ -64,8 +64,8 @@ trait Computable {
   def computeFrom(time: Long): Unit
   def computedTime: Long
     
-  def factors: ArrayList[Factor]
-  def factors_=(factors: ArrayList[Factor]): Unit
+  def factors: Array[Factor]
+  def factors_=(factors: Array[Factor]): Unit
   def factors_=(values: Array[Number]): Unit
     
   def dispose: Unit
@@ -79,7 +79,7 @@ object Computable {
     case _ => ser.shortDescription
   }
 
-  def displayName(name: String, factors: ArrayList[Factor]): String = {
+  def displayName(name: String, factors: Array[Factor]): String = {
     factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
   }
 }

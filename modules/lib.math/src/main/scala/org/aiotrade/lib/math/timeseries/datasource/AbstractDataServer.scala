@@ -41,9 +41,8 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.{TSer, SerChangeEvent}
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.{HashMap, ArrayBuffer}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -72,7 +71,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   val ANCIENT_TIME: Long = -1
 
   // --- Following maps should be created once here, since server may be singleton:
-  private val contractToStorage = new HashMap[C, ArrayList[V]]
+  private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
   private val subscribedContractToSer = new HashMap[C, TSer]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
@@ -83,7 +82,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * second one (if available) is that who concerns first one.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[TSer, ArrayList[TSer]]
+  private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
   private var loadServer: LoadServer = _
   private var updateServer: UpdateServer = _
   private var updateTimer: Timer = _
@@ -95,7 +94,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   var inLoading: Boolean = _
   var inUpdating: Boolean = _
 
-  protected def init: Unit = {
+  protected def init {
   }
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
@@ -109,11 +108,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     dateFormat
   }
 
-  protected def resetCount: Unit = {
+  protected def resetCount {
     this.count = 0
   }
 
-  protected def countOne: Unit = {
+  protected def countOne {
     this.count += 1
 
     /*- @Reserve
@@ -129,9 +128,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
      */
   }
 
-  protected def storageOf(contract: C): ArrayList[V] = {
+  protected def storageOf(contract: C): ArrayBuffer[V] = {
     contractToStorage.get(contract) getOrElse {
-      val storage1 = new ArrayList[V]
+      val storage1 = new ArrayBuffer[V]
       contractToStorage.synchronized {
         contractToStorage.put(contract, storage1)
       }
@@ -151,7 +150,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   private def releaseStorage(contract: C): Unit = {
     /** don't get storage via getStorage(contract), which will create a new one if none */
     for (storage <- contractToStorage.get(contract)) {
-      returnBorrowedTimeValues(storage)
+      returnBorrowedTimeValues(storage.toArray)
       storage.synchronized {
         storage.clear
       }
@@ -161,7 +160,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     }
   }
 
-  protected def returnBorrowedTimeValues(datas: ArrayList[V]): Unit
+  protected def returnBorrowedTimeValues(datas: Array[V])
 
   protected def isAscending(values: Array[V]): Boolean = {
     val size = values.length
@@ -225,7 +224,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       subscribedSymbolToContract.put(contract.symbol, contract)
     }
     serToChainSers.synchronized {
-      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer]
+      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayBuffer[TSer]
       chainSersX ++= chainSers
       serToChainSers.put(ser, chainSersX)
     }
@@ -324,7 +323,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: ArrayList[V]): SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: Array[V]): SerChangeEvent
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {

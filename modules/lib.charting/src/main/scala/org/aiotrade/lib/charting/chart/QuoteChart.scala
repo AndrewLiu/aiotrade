@@ -56,8 +56,10 @@ object QuoteChart {
   abstract class Type
   object Type {
     case object Candle extends Type
-    case object Ohlc extends Type
-    case object Line extends Type
+    case object Ohlc   extends Type
+    case object Line   extends Type
+
+    def values = Array(Candle, Ohlc, Line)
   }
 }
 

@@ -48,7 +48,7 @@ class DrawingPane(aview: ChartView, adatumPlane: DatumPlane, descriptor: Drawing
     
   private var selectedHandledChart: HandledChart = _
     
-  private var layerName: String = descriptor.getDisplayName
+  var layerName: String = descriptor.getDisplayName
     
   private var activated: Boolean = _
     
@@ -147,7 +147,7 @@ class DrawingPane(aview: ChartView, adatumPlane: DatumPlane, descriptor: Drawing
       selectedHandledChart.removeMouseAdapterOnPane
             
       descriptor.removeHandledChart(selectedHandledChart)
-      PersistenceManager.getDefault.saveContents(view.controller.contents)
+      PersistenceManager().saveContents(view.controller.contents)
             
       setSelectedHandledChart(null)
     }
@@ -163,17 +163,10 @@ class DrawingPane(aview: ChartView, adatumPlane: DatumPlane, descriptor: Drawing
         
     /** the chart may have got new handlesPoints, so, put them to descriptor anyway and save */
     descriptor.putHandledChart(handledChart, handledChart.getCurrentHandlesPoints)
-    PersistenceManager.getDefault.saveContents(view.controller.contents)
+    PersistenceManager().saveContents(view.controller.contents)
         
   }
     
-  def setLayerName(layerName: String) {
-    this.layerName = layerName
-  }
-    
-  def getLayerName: String = {
-    layerName
-  }
     
   /** Check if in drawing */
   def isInDrawing: Boolean = {

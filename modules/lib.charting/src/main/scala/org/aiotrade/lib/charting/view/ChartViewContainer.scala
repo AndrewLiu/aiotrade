@@ -249,14 +249,8 @@ abstract class ChartViewContainer extends JPanel {
     repaint()
   }
 
-  def lookupIndicatorDescriptor(view: ChartView): IndicatorDescriptor = {
-    for (descriptor <- descriptorsToSlaveView.keysIterator) {
-      val theView = descriptorsToSlaveView.get(descriptor)
-      if (theView != null && theView == view) {
-        return descriptor
-      }
-    }
-    null
+  def lookupIndicatorDescriptor(view: ChartView): Option[IndicatorDescriptor] = {
+    descriptorsToSlaveView find {case (descriptor, aView) => aView != null && aView == view} map (_._1)
   }
 
   def lookupChartView(descriptor: IndicatorDescriptor): Option[ChartView] = {

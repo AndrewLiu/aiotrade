@@ -37,18 +37,18 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: ArrayList[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Array[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
 
-  private var _factors: ArrayList[Factor] = afactors
+  private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= afactors
 
   def this() {
-    this(null, TFreq.DAILY, new ArrayList[Factor], false)
+    this(null, TFreq.DAILY, Array[Factor](), false)
 
   }
 
@@ -58,8 +58,8 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
     setFacsToDefault
   }
 
-  def factors: ArrayList[Factor]= _factors
-  def factors_=(factors: ArrayList[Factor]): Unit = {
+  def factors: Array[Factor]= _factors.toArray
+  def factors_=(factors: Array[Factor]): Unit = {
     /**
      * @NOTICE:
      * always create a new copy of in factors to seperate the factors of this
@@ -118,7 +118,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
   }
     
   def setFacsToDefault: Unit = {
-    val defaultFacs = PersistenceManager.getDefault.defaultContents.lookupDescriptor(
+    val defaultFacs = PersistenceManager().defaultContents.lookupDescriptor(
       classOf[IndicatorDescriptor], serviceClassName, freq) match {
       case None => lookupServiceTemplate match {
           case None => None
@@ -134,7 +134,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
   }
 
   def lookupServiceTemplate: Option[Indicator] = {
-    val services = PersistenceManager.getDefault.lookupAllRegisteredServices(classOf[Indicator], folderName)
+    val services = PersistenceManager().lookupAllRegisteredServices(classOf[Indicator], folderName)
     services.find{x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>
         try {
