@@ -75,11 +75,11 @@ public class IBConnectAction extends CallableSystemAction {
         JOptionPane.showMessageDialog( parent, str, "IB Java Test Client", type);
     }
     
-    public String getName() {
+    def getName: String = {
         return "IB";
     }
     
-    public HelpCtx getHelpCtx() {
+    def getHelpCtx: HelpCtx {
         return HelpCtx.DEFAULT_HELP;
     }
     
