@@ -137,6 +137,7 @@
 
     <modules>
         <module>p.m.netbeans.ui</module>
+        <module>module1</module>
     </modules>
 
 </project>
