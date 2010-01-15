@@ -103,7 +103,7 @@ object TUnit {
 abstract class TUnit {
   import TUnit._
 
-  val interval: Long = {
+  def interval: Long = {
     this match {
       case Second => ONE_SECOND
       case Minute => ONE_MINUTE
@@ -124,7 +124,7 @@ abstract class TUnit {
     (time / interval) * interval
   }
 
-  val name: String = {
+  def name: String = {
     this match {
       case Second => "Second"
       case Minute => "Minute"
@@ -136,7 +136,7 @@ abstract class TUnit {
     }
   }
 
-  val shortDescription = {
+  def shortDescription = {
     this match {
       case Second => "s"
       case Minute => "m"
@@ -148,7 +148,7 @@ abstract class TUnit {
     }
   }
 
-  val compactDescription: String = {
+  def compactDescription: String = {
     this match {
       case Second => "Sec"
       case Minute => "Min"
@@ -160,7 +160,7 @@ abstract class TUnit {
     }
   }
 
-  val longDescription: String = {
+  def longDescription: String = {
     this match {
       case Second => "Second"
       case Minute => "Minute"

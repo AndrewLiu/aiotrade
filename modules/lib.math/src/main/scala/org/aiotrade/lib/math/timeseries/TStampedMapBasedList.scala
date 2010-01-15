@@ -198,7 +198,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
                     
   override def clear: Unit = timeToElementData.clear
     
-  override def equals(o: Any) :Boolean = timeToElementData.equals(o)
+  override def equals(o: Any): Boolean = timeToElementData.equals(o)
     
   override def hashCode: Int = timeToElementData.hashCode
 
