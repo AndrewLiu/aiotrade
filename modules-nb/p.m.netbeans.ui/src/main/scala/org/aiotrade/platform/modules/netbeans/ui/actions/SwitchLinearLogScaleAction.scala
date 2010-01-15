@@ -66,7 +66,7 @@ class SwitchLinearLogScaleAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/switchScale.png"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/switchScale.png"
   }
     
   override protected def asynchronous: Boolean = {

@@ -87,7 +87,7 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    return "org/aiotrade/platform/core/ui/netbeans/resources/switchAdjust.png";
+    return "org/aiotrade/platform/modules/netbeans/ui/resources/switchAdjust.png";
   }
     
   override protected def asynchronous: Boolean = {
@@ -95,7 +95,7 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/switchAdjust.png");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/switchAdjust.png");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton

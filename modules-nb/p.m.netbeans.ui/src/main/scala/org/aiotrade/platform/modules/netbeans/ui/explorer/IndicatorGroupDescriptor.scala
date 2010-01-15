@@ -57,7 +57,7 @@ import org.openide.windows.WindowManager;import scala.collection.mutable.HashMap
  */
 object IndicatorGroupDescriptor {
   val NAME = "Indicators"
-  val ICON = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/indicators.gif")
+  val ICON = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/indicators.gif")
 }
 class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
   import IndicatorGroupDescriptor._

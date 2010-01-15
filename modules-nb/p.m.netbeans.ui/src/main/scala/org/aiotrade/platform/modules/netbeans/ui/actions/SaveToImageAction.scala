@@ -146,7 +146,7 @@ class SaveToImageAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/saveToImage.png"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/saveToImage.png"
   }
     
   override protected def asynchronous: Boolean = {

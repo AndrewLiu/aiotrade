@@ -73,7 +73,7 @@ class RemoveCompareQuoteChartsAction extends CallableSystemAction {
   }
     
 //    protected def iconResource: String = {
-//        return "org/aiotrade/platform/core/ui/netbeans/resources/removeDrawingLine.gif";
+//        return "org/aiotrade/platform/modules/netbeans/ui/resources/removeDrawingLine.gif";
 //    }
     
   override

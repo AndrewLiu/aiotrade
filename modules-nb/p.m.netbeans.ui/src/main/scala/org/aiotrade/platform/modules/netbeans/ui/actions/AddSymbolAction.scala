@@ -163,7 +163,7 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/newSymbol.gif";
+    "org/aiotrade/platform/modules/netbeans/ui/resources/newSymbol.gif";
   }
     
   override protected def asynchronous: Boolean = {

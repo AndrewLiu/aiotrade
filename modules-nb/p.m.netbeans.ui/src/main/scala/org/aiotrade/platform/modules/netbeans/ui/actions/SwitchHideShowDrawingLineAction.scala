@@ -94,7 +94,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/hideDrawingLine.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/hideDrawingLine.gif"
   }
     
   override protected def asynchronous: Boolean = {
@@ -102,7 +102,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
   }
         
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/hideDrawingLine.gif");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/hideDrawingLine.gif");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton();

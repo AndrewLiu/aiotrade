@@ -89,7 +89,7 @@ class PickIndicatorAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/newIndicator.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/newIndicator.gif"
   }
     
   override protected def asynchronous: Boolean = {

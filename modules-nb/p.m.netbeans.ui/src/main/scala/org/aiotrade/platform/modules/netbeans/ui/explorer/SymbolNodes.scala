@@ -116,7 +116,7 @@ import scala.collection.mutable.HashSet
  * @author Caoyuan Deng
  */
 object SymbolNodes {
-  private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/symbol.gif");
+  private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/symbol.gif");
   /** Deserialize a Symbol from xml file */
 
   private def readContents(node: Node): AnalysisContents = {
@@ -463,7 +463,7 @@ object SymbolNodes {
 
   class SymbolStartWatchAction(node: Node) extends GeneralAction {
     putValue(Action.NAME, "Start Watching")
-    putValue(Action.SMALL_ICON, "org/aiotrade/platform/core/ui/netbeans/resources/startWatch.gif");
+    putValue(Action.SMALL_ICON, "org/aiotrade/platform/modules/netbeans/ui/resources/startWatch.gif");
 
     def execute {
       /** is this a folder ? if true, go recursively */
@@ -509,7 +509,7 @@ object SymbolNodes {
   class SymbolStopWatchAction(node: Node) extends GeneralAction {
 
     putValue(Action.NAME, "Stop Watching")
-    putValue(Action.SMALL_ICON, "org/aiotrade/platform/core/ui/netbeans/resources/stopWatch.gif");
+    putValue(Action.SMALL_ICON, "org/aiotrade/platform/modules/netbeans/ui/resources/stopWatch.gif");
     if (node.getLookup.lookup(classOf[DataFolder]) != null) {
       this.setEnabled(true)
     } else {

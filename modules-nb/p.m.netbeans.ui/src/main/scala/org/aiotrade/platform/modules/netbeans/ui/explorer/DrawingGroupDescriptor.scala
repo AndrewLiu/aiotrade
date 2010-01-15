@@ -51,7 +51,7 @@ import org.openide.windows.WindowManager;
  */
 object DrawingGroupDescriptor {
   val NAME = "Drawings";
-  private val ICON = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/drawings.gif");
+  private val ICON = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/drawings.gif");
 }
 
 class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {

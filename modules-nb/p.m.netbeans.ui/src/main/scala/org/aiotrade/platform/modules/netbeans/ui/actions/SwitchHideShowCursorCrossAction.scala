@@ -84,7 +84,7 @@ class SwitchHideShowCursorCrossAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/hideCursorCross.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/hideCursorCross.gif"
   }
     
   override protected def asynchronous: Boolean = {

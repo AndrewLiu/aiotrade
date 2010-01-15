@@ -88,7 +88,7 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/naturalTrading.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/naturalTrading.gif"
   }
     
   override protected def asynchronous: Boolean = {
@@ -96,7 +96,7 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/naturalTrading.gif");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/naturalTrading.gif");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton();

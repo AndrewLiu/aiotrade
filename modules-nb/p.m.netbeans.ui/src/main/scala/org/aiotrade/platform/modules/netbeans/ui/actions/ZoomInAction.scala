@@ -81,7 +81,7 @@ class ZoomInAction extends CallableSystemAction {
     
   override
   protected def iconResource: String = {
-    return "org/aiotrade/platform/core/ui/netbeans/resources/zoomIn.gif";
+    return "org/aiotrade/platform/modules/netbeans/ui/resources/zoomIn.gif";
   }
     
   override

@@ -82,7 +82,7 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/candleOhlc.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/candleOhlc.gif"
   }
     
   override  protected def asynchronous: Boolean = {

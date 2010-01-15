@@ -88,7 +88,7 @@ class SwitchCursorAcceleratedAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    return "org/aiotrade/platform/core/ui/netbeans/resources/switchCursorAcceleratedAction.gif";
+    return "org/aiotrade/platform/modules/netbeans/ui/resources/switchCursorAcceleratedAction.gif";
   }
     
   override protected def asynchronous: Boolean = {
@@ -96,7 +96,7 @@ class SwitchCursorAcceleratedAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/switchCursorAcceleratedAction.gif");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/switchCursorAcceleratedAction.gif");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton();

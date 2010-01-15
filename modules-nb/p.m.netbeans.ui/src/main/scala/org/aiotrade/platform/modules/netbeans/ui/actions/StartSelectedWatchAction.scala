@@ -67,7 +67,7 @@ class StartSelectedWatchAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/startWatch.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/startWatch.gif"
   }
     
   override protected def asynchronous: Boolean = {

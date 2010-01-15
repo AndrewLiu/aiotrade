@@ -107,7 +107,7 @@ class SwitchFrequencyAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/dropdown.png");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/dropdown.png");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton

@@ -95,7 +95,7 @@ class ChangeOptsAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/changeOpts.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/changeOpts.gif"
   }
     
   override protected def asynchronous: Boolean = {

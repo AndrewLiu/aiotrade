@@ -96,7 +96,7 @@ class PickDrawingLineAction extends CallableSystemAction {
 
   override
   def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/core/ui/netbeans/resources/drawingLine.png");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/netbeans/ui/resources/drawingLine.png");
     val icon = new ImageIcon(iconImage);
 
     toggleButton = new JToggleButton();

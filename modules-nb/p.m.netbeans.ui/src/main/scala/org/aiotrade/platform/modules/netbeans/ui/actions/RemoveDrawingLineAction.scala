@@ -68,7 +68,7 @@ class RemoveDrawingLineAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/core/ui/netbeans/resources/removeDrawingLine.gif"
+    "org/aiotrade/platform/modules/netbeans/ui/resources/removeDrawingLine.gif"
   }
     
   override protected def asynchronous: Boolean = {
