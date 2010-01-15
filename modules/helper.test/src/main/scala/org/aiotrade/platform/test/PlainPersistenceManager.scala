@@ -61,14 +61,16 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
   def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T: Manifest](clz: Class[T], folderName: String): Array[T] = {
+  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Array[T] = {
     if (clz == classOf[QuoteServer]) {
       quoteServers.asInstanceOf[Array[T]]
     } else if (clz == classOf[TickerServer]) {
       tickerServers.asInstanceOf[Array[T]]
     } else if (clz == classOf[Indicator]) {
       indicators.asInstanceOf[Array[T]]
-    } else Array[T]()
+    } else {
+      Array[Object]().asInstanceOf[Array[T]]
+    }
   }
 
 }
