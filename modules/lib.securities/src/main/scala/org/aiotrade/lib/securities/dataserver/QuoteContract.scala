@@ -41,7 +41,7 @@ import org.aiotrade.lib.securities.PersistenceManager
  * @author Caoyuan Deng
  */
 object QuoteContract {
-  val folderName :String = "QuoteServers"
+  val folderName = "QuoteServers"
 }
 
 class QuoteContract extends SecDataContract[QuoteServer] {
@@ -51,7 +51,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   active = true
   /** default freq */
   freq = TFreq.DAILY
-  dateFormatPattern = null
+  dateFormatPattern = "yyyy-MM-dd"
   urlString = ""
   refreshable = false
   refreshInterval = 60 // seconds

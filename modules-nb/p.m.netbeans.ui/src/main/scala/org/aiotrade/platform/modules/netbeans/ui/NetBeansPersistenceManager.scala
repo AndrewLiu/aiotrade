@@ -130,7 +130,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * we perfer contents instances long lives in application context, so, don't
    * use weak reference map here.
    */
-  var defaultContents: AnalysisContents = _
+  val defaultContents: AnalysisContents = restoreContents("Default")
   val quotePool = new QuotePool
   val tickerPool = new TickerPool
   private val TABLE_EXISTS_MARK = Long.MaxValue.toString
@@ -142,15 +142,6 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   restoreProperties
   checkAndCreateDatabaseIfNecessary
-
-  def getDefaultContents: AnalysisContents = {
-    if (defaultContents != null) {
-      defaultContents
-    } else {
-      defaultContents = restoreContents("Default");
-      defaultContents
-    }
-  }
 
   def saveContents(contents: AnalysisContents) {
     if (contents.uniSymbol.equalsIgnoreCase("Default")) {

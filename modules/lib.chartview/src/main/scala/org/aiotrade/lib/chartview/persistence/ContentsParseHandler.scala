@@ -49,7 +49,6 @@ import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
 import org.xml.sax.helpers.DefaultHandler
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Stack
