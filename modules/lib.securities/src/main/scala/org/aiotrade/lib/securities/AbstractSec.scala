@@ -243,7 +243,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
       if (defaultContract.serviceClassName.toUpperCase.contains("IB")) {
         tickerContract.serviceClassName = "org.aiotrade.platform.modules.dataserver.ib.IBTickerServer"
       } else {
-        tickerContract.serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooTickerServer"
+        tickerContract.serviceClassName = "org.aiotrade.platform.modules.dataserver.YahooTickerServer"
       }
     }
 

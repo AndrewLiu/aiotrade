@@ -44,7 +44,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   
   val folderName :String = "QuoteServers"
 
-  serviceClassName = "org.aiotrade.platform.modules.dataserver.basic.YahooQuoteServer"
+  serviceClassName = "org.aiotrade.platform.modules.dataserver.YahooQuoteServer"
   active = true
   /** default freq */
   freq = TFreq.DAILY

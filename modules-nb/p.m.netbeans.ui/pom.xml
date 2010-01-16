@@ -100,10 +100,20 @@
             <artifactId>lib.indicator</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- runtime dependencies -->
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>p.m.indicator.basic</artifactId>
             <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>p.m.dataserver.yahoo</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
