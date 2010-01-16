@@ -32,6 +32,8 @@ package org.aiotrade.platform.modules.ui.dialog;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -52,70 +54,74 @@ import scala.collection.mutable.Map;
  * resultMap to avoid null value when dialog is closed by click x
  */
 public class PickIndicatorDialog extends javax.swing.JDialog {
+
     private Map<String, Object> nameMapResult;
-    
+
     /** Creates new form PickIndicatorDialog */
     public PickIndicatorDialog(java.awt.Frame parent, boolean modal, Map<String, Object> nameMapResult) {
         super(parent, modal);
         initComponents();
-        
+
         this.nameMapResult = nameMapResult;
 
-        Indicator[] indicators = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(Indicator.class, "indicators");
-        
-        indicatorList.setListData(indicators);
-        
-        if (indicators.length > 0) {
+        scala.collection.Iterator<Indicator> indicators = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(Indicator.class, "Indicators").iterator();
+        List<Indicator> inds = new ArrayList<Indicator>();
+        while (indicators.hasNext()) {
+            inds.add(indicators.next());
+        }
+        indicatorList.setListData(inds.toArray());
+
+        if (inds.size() > 0) {
             indicatorList.setSelectedIndex(0);
         }
-        
+
         multipleEnableCheckBox.setSelected(false);
-        
+
         pack();
-        
+
         setLocationRelativeTo(parent);
-        
+
         indicatorList.requestFocus();
-        
+
         ActionListener OkActionListener = new java.awt.event.ActionListener() {
+
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 OkButtonActionPerformed(evt);
             }
         };
-        
+
         OkButton.registerKeyboardAction(
                 OkActionListener,
                 KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-                );
-        
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+
         ActionListener CancelActionListener = new java.awt.event.ActionListener() {
+
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CancelButtonActionPerformed(evt);
             }
         };
-        
+
         CancelButton.registerKeyboardAction(
                 OkActionListener,
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-                );
-        
-        
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+
         ChartViewContainer viewContainer = AnalysisChartTopComponent.getSelected().getSelectedViewContainer();
-        
+
         nameMapResult.put("Option", new Integer(JOptionPane.CANCEL_OPTION));
         if (viewContainer != null) {
             MasterTSer masterSer = viewContainer.controller().masterSer();
             nameMapResult.put("nUnits", new Integer(masterSer.freq().nUnits()));
-            nameMapResult.put("unit",   masterSer.freq().unit());
+            nameMapResult.put("unit", masterSer.freq().unit());
         } else {
             nameMapResult.put("nUnits", new Integer(1));
-            nameMapResult.put("unit",   TUnit$Day$.MODULE$);
+            nameMapResult.put("unit", TUnit$Day$.MODULE$);
         }
-        
+
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -216,30 +222,30 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
     private void CancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelButtonActionPerformed
         nameMapResult.put("Option", new Integer(JOptionPane.CANCEL_OPTION));
         dispose();
     }//GEN-LAST:event_CancelButtonActionPerformed
-    
+
     private void OkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OkButtonActionPerformed
         nameMapResult.put("Option", new Integer(JOptionPane.OK_OPTION));
         nameMapResult.put("selectedIndicator", indicatorList.getSelectedValue());
         nameMapResult.put("multipleEnable", multipleEnableCheckBox.isSelected());
         dispose();
     }//GEN-LAST:event_OkButtonActionPerformed
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
+
             public void run() {
                 new PickIndicatorDialog(new javax.swing.JFrame(), true, null).setVisible(true);
             }
         });
     }
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CancelButton;
     private javax.swing.JButton OkButton;
@@ -248,5 +254,4 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JCheckBox multipleEnableCheckBox;
     // End of variables declaration//GEN-END:variables
-    
 }

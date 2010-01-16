@@ -22,28 +22,28 @@ import org.aiotrade.platform.modules.indicator.basic._
  */
 class PlainPersistenceManager extends PersistenceManager {
 
-  private val quoteServers  = Array[QuoteServer]() // new YahooQuoteServer
-  private val tickerServers = Array[TickerServer]() // new YahooTickerServer
-  private val indicators    = Array(new ARBRIndicator,
-                                    new BIASIndicator,
-                                    new BOLLIndicator,
-                                    new CCIIndicator,
-                                    new DMIIndicator,
-                                    new EMAIndicator,
-                                    new GMMAIndicator,
-                                    new HVDIndicator,
-                                    new KDIndicator,
-                                    new MACDIndicator,
-                                    new MAIndicator,
-                                    new MFIIndicator,
-                                    new MTMIndicator,
-                                    new OBVIndicator,
-                                    new ROCIndicator,
-                                    new RSIIndicator,
-                                    new SARIndicator,
-                                    new WMSIndicator,
-                                    new ZIGZAGFAIndicator,
-                                    new ZIGZAGIndicator
+  private val quoteServers  = List[QuoteServer]()  // new YahooQuoteServer
+  private val tickerServers = List[TickerServer]() // new YahooTickerServer
+  private val indicators    = List(new ARBRIndicator,
+                                   new BIASIndicator,
+                                   new BOLLIndicator,
+                                   new CCIIndicator,
+                                   new DMIIndicator,
+                                   new EMAIndicator,
+                                   new GMMAIndicator,
+                                   new HVDIndicator,
+                                   new KDIndicator,
+                                   new MACDIndicator,
+                                   new MAIndicator,
+                                   new MFIIndicator,
+                                   new MTMIndicator,
+                                   new OBVIndicator,
+                                   new ROCIndicator,
+                                   new RSIIndicator,
+                                   new SARIndicator,
+                                   new WMSIndicator,
+                                   new ZIGZAGFAIndicator,
+                                   new ZIGZAGIndicator
   )
 
   def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {}
@@ -60,15 +60,15 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
   def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
 
-  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Array[T] = {
+  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Seq[T] = {
     if (clz == classOf[QuoteServer]) {
-      quoteServers.asInstanceOf[Array[T]]
+      quoteServers.asInstanceOf[Seq[T]]
     } else if (clz == classOf[TickerServer]) {
-      tickerServers.asInstanceOf[Array[T]]
+      tickerServers.asInstanceOf[Seq[T]]
     } else if (clz == classOf[Indicator]) {
-      indicators.asInstanceOf[Array[T]]
+      indicators.asInstanceOf[Seq[T]]
     } else {
-      Array[Object]().asInstanceOf[Array[T]]
+      Nil
     }
   }
 

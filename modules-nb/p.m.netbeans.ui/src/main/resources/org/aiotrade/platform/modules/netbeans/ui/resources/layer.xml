@@ -27,7 +27,7 @@
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-SaveToImageAction.instance"/>
         <!--file name="org-aiotrade-platform-modules-netbeans-ui-actions-SaveToCustomSizeImageAction.instance"/-->
     </folder>
-    
+
     <folder name="Menu">
         <folder name="File">
             <file name="AddSymbolAction.shadow">
@@ -44,9 +44,9 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-OnlineHelpAction.instance"/>
             </file>
         </folder>
-        
+
     </folder>
-    
+
     <folder name="Toolbars">
         <folder name="View">
             <file name="org-aiotrade-platform-modules-netbeans-ui-actions-AddSymbolAction.shadow">
@@ -83,7 +83,7 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-SaveToCustomSizeImageAction.instance"/>
             </file-->
         </folder>
-        
+
         <attr name="Stock/Indicator" boolvalue="true"/>
         <folder name="Indicator">
             <file name="org-aiotrade-platform-modules-netbeans-ui-actions-PickIndicatorAction.shadow">
@@ -96,7 +96,7 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-AddStatisticChartAction.instance"/>
             </file>
         </folder>
-        
+
         <attr name="Indicator/Draw" boolvalue="true"/>
         <folder name="Draw">
             <file name="org-aiotrade-platform-modules-netbeans-ui-actions-PickDrawingLineAction.shadow">
@@ -109,15 +109,15 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-SwitchHideShowDrawingLineAction.instance"/>
             </file>
         </folder>
-        
+
         <attr name="Draw/Memory" boolvalue="true"/>
-        
+
     </folder>
-    
-    <!-- 
-    http://www.netbeans.org/project/www/download/dev/javadoc/org-openide-util/org/openide/util/Utilities.html#stringToKey(java.lang.String) 
+
+    <!--
+    http://www.netbeans.org/project/www/download/dev/javadoc/org-openide-util/org/openide/util/Utilities.html#stringToKey(java.lang.String)
     http://java.sun.com/j2se/1.5.0/docs/api/java/awt/event/KeyEvent.html
-    
+
     This format has following form:
     [C][A][S][M]-identifier
 
@@ -127,8 +127,8 @@
     * A stands for the Alt key
     * S stands for the Shift key
     * M stands for the Meta key
-    
-    identifier can be any text constant from KeyEvent but without the leading VK_ characters. 
+
+    identifier can be any text constant from KeyEvent but without the leading VK_ characters.
     So KeyEvent.VK_ENTER is described as ENTER
     -->
     <folder name="Shortcuts">
@@ -149,7 +149,7 @@
         </file>
         <file name="ESCAPE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-SwitchHideShowCursorCrossAction.instance"/>
-        </file> 
+        </file>
         <file name="C-L.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-PickDrawingLineAction.instance"/>
         </file>
@@ -158,21 +158,21 @@
         </file>
         <file name="DELETE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-RemoveDrawingLineAction.instance"/>
-        </file> 
+        </file>
         <file name="C-I.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-PickIndicatorAction.instance"/>
         </file>
         <file name="C-P.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-ChangeOptsAction.instance"/>
-        </file> 
+        </file>
         <file name="C-T.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-SwitchCalendarTradingTimeViewAction.instance"/>
-        </file> 
+        </file>
         <file name="C-S.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-AddStatisticChartAction.instance"/>
-        </file> 
+        </file>
     </folder>
-    
+
     <folder name="Windows2">
         <folder name="Components">
             <file name="SymbolListTopComponent.settings" url="SymbolListTopComponent.xml"/>
@@ -189,19 +189,19 @@
             <file name="realtimeBoard.wsmode" url="realtimeBoard.wsmode"/>
         </folder>
     </folder>
-    
+
     <folder name="OptionsDialog">
         <attr name="GeneralOptions.instance/ColorFontOptions.instance" boolvalue="true"/>
         <file name="GeneralOptions.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.netbeans.ui.options.general.GeneralOptionsCategory"/>
         </file>
-        
+
         <attr name="ColorFontOptions.instance/Advanced.instance" boolvalue="true"/>
         <file name="ColorFontOptions.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.netbeans.ui.options.colors.ColorFontOptionsCategory"/>
         </file>
     </folder>
-    
+
     <folder name="DescriptorGroups">
         <file name="IndicatorGroupDescriptor.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.netbeans.ui.explorer.IndicatorGroupDescriptor"/>
@@ -210,21 +210,34 @@
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.netbeans.ui.explorer.DrawingGroupDescriptor"/>
         </file>
     </folder>
-    
+
     <!-- tell the loader to create "Symbols" folder at ../config/ -->
     <folder name="Symbols">
     </folder>
-    
+
     <folder name="UserOptions">
-        <!-- 
-        The files declared like here, will be automatically copied to <userdir>/config/ 
-        only when you modify and save it. 
+        <!--
+        The files declared like here, will be automatically copied to <userdir>/config/
+        only when you modify and save it.
         -->
         <file name="DefaultContents.xml" url="DefaultContents.xml"/>
         <file name="aiotrade.properties" url="aiotrade.properties"/>
         <folder name="Template">
             <file name="preview.csv" url="preview.csv"/>
         </folder>
+    </folder>
+
+
+    <folder name="QuoteServers">
+        <file name="Yahoo.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.yahoo.YahooQuoteServer"/>
+        </file>
+    </folder>
+
+    <folder name="TickerServers">
+        <file name="Yahoo.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.dataserver.yahoo.YahooTickerServer"/>
+        </file>
     </folder>
     
 </filesystem>

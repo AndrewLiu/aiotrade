@@ -36,8 +36,10 @@ import java.awt.event.ItemEvent;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -68,8 +70,12 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         this.quoteContract = quoteContract;
         initComponents();
 
-        QuoteServer[] quoteServers = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(QuoteServer.class, "quoteContracts");
-        dataSourceComboBox.setModel(new DefaultComboBoxModel(quoteServers));
+        scala.collection.Iterator<QuoteServer> quoteServers = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(QuoteServer.class, "QuoteServers").iterator();
+        List<QuoteServer> servers = new ArrayList<QuoteServer>();
+        while (quoteServers.hasNext()) {
+            servers.add(quoteServers.next());
+        }
+        dataSourceComboBox.setModel(new DefaultComboBoxModel(servers.toArray()));
 
         QuoteContract quoteContractTemplate = newSymbol
                 ? UserOptionsManager.currentPreferredQuoteContract()

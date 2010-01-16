@@ -399,11 +399,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
-  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Array[T] = {
+  def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Seq[T] = {
     val lookup = Lookups.forPath(folderName)
     val tp = new Lookup.Template(clz)
-    val instances = lookup.lookup(tp).allInstances
-    instances.toArray.asInstanceOf[Array[T]]
+    val instances = lookup.lookup(tp).allInstances.iterator
+    var sinstances = List[T]()
+    while (instances.hasNext) sinstances ::= instances.next
+    sinstances
   }
 
   private def checkAndCreateDatabaseIfNecessary {

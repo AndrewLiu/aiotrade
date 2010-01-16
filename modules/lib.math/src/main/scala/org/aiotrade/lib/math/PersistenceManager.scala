@@ -54,6 +54,6 @@ trait PersistenceManager {
   def restoreContents(symbol: String): AnalysisContents
   def defaultContents: AnalysisContents
 
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Array[T]
+  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T]
 }
 

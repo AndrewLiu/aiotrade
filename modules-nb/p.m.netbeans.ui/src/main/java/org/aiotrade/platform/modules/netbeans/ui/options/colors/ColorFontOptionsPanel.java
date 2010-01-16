@@ -60,33 +60,33 @@ import scala.collection.immutable.Nil;
  * @author Caoyuan Deng
  */
 public class ColorFontOptionsPanel extends javax.swing.JPanel {
-    
+
     /** Creates new Panel */
     public ColorFontOptionsPanel() {
         initComponents();
-        
-        ComboBoxModel lafModel = new DefaultComboBoxModel(new String[] {
-            "City Lights",
-            "Gray",
-            "Modern",
-            "White"
-        });
+
+        ComboBoxModel lafModel = new DefaultComboBoxModel(new String[]{
+                    "City Lights",
+                    "Gray",
+                    "Modern",
+                    "White"
+                });
         lafBox.setModel(lafModel);
-        
+
         ComboBoxModel quoteChartTypeModel = new DefaultComboBoxModel(QuoteChart$Type$.MODULE$.values());
         quoteChartTypeBox.setModel(quoteChartTypeModel);
     }
-    
-    
     private AnalysisChartViewContainer previewContainer;
     private boolean previewPanelInited = false;
+
     public void initPreviewPanel() {
         String symbol = "Preview";
-        
+
         QuoteContract quoteContract = new QuoteContract();
         QuoteServer previewQuoteServer = null;
-        QuoteServer[] quoteServers = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(QuoteServer.class, "quoteContract");
-        for (QuoteServer quoteServer : quoteServers) {
+        scala.collection.Iterator<QuoteServer> quoteServers = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(QuoteServer.class, "QuoteServices").iterator();
+        while (quoteServers.hasNext()) {
+            QuoteServer quoteServer = quoteServers.next();
             if (quoteServer.displayName().toUpperCase().contains("CSV ASCII FILE")) {
                 previewQuoteServer = quoteServer;
                 break;
@@ -99,7 +99,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         quoteContract.serviceClassName_$eq(previewQuoteServer.getClass().getName());
         quoteContract.symbol_$eq(symbol);
         quoteContract.dateFormatPattern_$eq(previewQuoteServer.defaultDateFormatPattern());
-        
+
         FileObject previewFile = FileUtil.getConfigFile("UserOptions/Template/preview.csv");
         if (previewFile != null) {
             try {
@@ -109,7 +109,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
                 ErrorManager.getDefault().notify(ex);
             }
         }
-        
+
         AnalysisContents contents = PersistenceManager$.MODULE$.apply().defaultContents();
         contents.addDescriptor(quoteContract);
         Stock stock = new Stock(symbol, Nil.$colon$colon(quoteContract));
@@ -117,21 +117,21 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         if (!stock.isSerLoaded(quoteContract.freq())) {
             stock.loadSer(quoteContract.freq());
         }
-        
+
         ChartingController controller = ChartingControllerFactory.createInstance(
                 stock.serOf(quoteContract.freq()).get(), contents);
         previewContainer = controller.createChartViewContainer(
                 AnalysisChartViewContainer.class, this).get();
-        
+
         previewPanel.setLayout(new BorderLayout());
         previewPanel.add(previewContainer, BorderLayout.CENTER);
-        
+
         previewPanelInited = true;
     }
-    
+
     private void refreshPreviewPanel() {
         if (previewPanelInited) {
-            String lafStr = (String)lafBox.getSelectedItem();
+            String lafStr = (String) lafBox.getSelectedItem();
             LookFeel laf = null;
             if (lafStr.equalsIgnoreCase("White")) {
                 laf = new White();
@@ -143,28 +143,28 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
                 laf = new Gray();
             }
             LookFeel.update(laf);
-            
+
             boolean reversedPositiveNegativeColor = reverseColorBox.isSelected();
             LookFeel.apply().setPositiveNegativeColorReversed(reversedPositiveNegativeColor);
-            
+
             boolean thinVolume = thinVolumeBox.isSelected();
             LookFeel.apply().setThinVolumeBar(thinVolume);
-            
-            QuoteChart.Type style = (QuoteChart.Type)quoteChartTypeBox.getSelectedItem();
+
+            QuoteChart.Type style = (QuoteChart.Type) quoteChartTypeBox.getSelectedItem();
             LookFeel.apply().setQuoteChartType(style);
-            
+
             boolean antiAlias = antiAliasBox.isSelected();
             LookFeel.apply().setAntiAlias(antiAlias);
-            
+
             boolean autoHideScroll = autoHideScrollBox.isSelected();
             LookFeel.apply().setAutoHideScroll(autoHideScroll);
-            
-            ((WithQuoteChart)previewContainer.masterView()).switchQuoteChartType(style);
-            
+
+            ((WithQuoteChart) previewContainer.masterView()).switchQuoteChartType(style);
+
             previewContainer.repaint();
         }
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -320,23 +320,22 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
     private void thinVolumeBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_thinVolumeBoxStateChanged
         refreshPreviewPanel();
     }//GEN-LAST:event_thinVolumeBoxStateChanged
-    
+
     private void antiAliasBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_antiAliasBoxStateChanged
         refreshPreviewPanel();
     }//GEN-LAST:event_antiAliasBoxStateChanged
-    
+
     private void reverseColorBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_reverseColorBoxStateChanged
         refreshPreviewPanel();
     }//GEN-LAST:event_reverseColorBoxStateChanged
-    
+
     private void quoteChartTypeBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_quoteChartTypeBoxItemStateChanged
         refreshPreviewPanel();
     }//GEN-LAST:event_quoteChartTypeBoxItemStateChanged
-    
+
     private void lafBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lafBoxItemStateChanged
         refreshPreviewPanel();
     }//GEN-LAST:event_lafBoxItemStateChanged
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     protected javax.swing.JCheckBox antiAliasBox;
     public javax.swing.JCheckBox autoHideScrollBox;
@@ -349,5 +348,4 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
     protected javax.swing.JCheckBox reverseColorBox;
     public javax.swing.JCheckBox thinVolumeBox;
     // End of variables declaration//GEN-END:variables
-    
 }
