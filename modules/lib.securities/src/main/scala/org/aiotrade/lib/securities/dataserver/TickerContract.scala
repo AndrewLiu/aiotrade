@@ -48,7 +48,7 @@ object TickerContract {
 class TickerContract extends SecDataContract[TickerServer] {
   import TickerContract._
     
-  serviceClassName = "org.aiotrade.platform.modules.dataserver.YahooTickerServer"
+  serviceClassName = "org.aiotrade.platform.modules.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
   urlString = ""
   refreshable = true
