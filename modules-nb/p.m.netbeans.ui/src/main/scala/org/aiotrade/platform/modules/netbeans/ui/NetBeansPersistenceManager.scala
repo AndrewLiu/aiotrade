@@ -434,19 +434,19 @@ object NetBeansPersistenceManager extends PersistenceManager {
     dbProp.put("create", "true")
 
     val conn = try {
-      DriverManager.getConnection(dbUrl, dbProp);
+      DriverManager.getConnection(dbUrl, dbProp)
     } catch {case ex: SQLException => ex.printStackTrace; null}
 
-    try {
-      if (conn != null && !conn.isClosed) {
+    if (conn != null && !conn.isClosed) {
+      try {
         /** check and create symbol index table if necessary */
         if (!symbolIndexTableExists(conn)) {
           createSymbolIndexTable(conn)
         }
 
         conn.close
-      }
-    } catch {case ex: SQLException => ex.printStackTrace}
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
 
     /** derby special properties */
     dbProp.remove("create")

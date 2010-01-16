@@ -105,14 +105,13 @@
             <artifactId>p.m.indicator.basic</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--dependency>
-            <code-name-base>org.h2database</code-name-base>
-            <build-prerequisite/>
-            <compile-dependency/>
-            <run-dependency>
-                <specification-version>1.0</specification-version>
-            </run-dependency>
-        </dependency-->
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.2.127</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
 </project>
