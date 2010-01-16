@@ -15,7 +15,6 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.platform.modules.indicator.basic._
-import scala.collection.mutable.ArrayBuffer
 
 /**
  *

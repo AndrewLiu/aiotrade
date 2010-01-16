@@ -69,50 +69,29 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-
-object NetBeansPersistenceManager extends PersistenceManager {
-
-  /** @TODO
-   * WindowManager.getDefault()
-   */
-  private val WIN_MAN = new NetBeansWindowManager
-  /**
-   * we perfer contents instances long lives in application context, so, don't
-   * use weak reference map here.
-   */
-  var defaultContents: AnalysisContents = _
-  private var contentMapOccuptantNode = Map[AnalysisContents, Node]()
-  private val TABLE_EXISTS_MARK = Long.MaxValue.toString
-  private val SYMBOL_INDEX_TABLE_NAME = "AIOTRADESYMBOLINDEX"
-  private val quotePool = new QuotePool
-  private val tickerPool = new TickerPool
-  private var userOptionsProp: Properties = _
-  private var dbProp: Properties = _
-  private var dbUrl: String = _
-
-  restoreProperties
-  checkAndCreateDatabaseIfNecessary
+object NetBeansPersistenceManager {
+  private var contentToOccuptantNode = Map[AnalysisContents, Node]()
 
   def getOccupantNode(contents: AnalysisContents): Node =  {
-    contentMapOccuptantNode.get(contents).getOrElse(null)
+    contentToOccuptantNode.get(contents).getOrElse(null)
   }
 
   def getOccupiedContents(node: Node): AnalysisContents =  {
-    for ((contents, aNode) <- contentMapOccuptantNode) {
+    for ((contents, aNode) <- contentToOccuptantNode) {
       if (aNode == node) {
-        return contents;
+        return contents
       }
     }
 
-    return null;
+    null
   }
 
   def lookupContents(symbol: String): Option[AnalysisContents] = {
-    contentMapOccuptantNode.keySet find (_.uniSymbol == symbol)
+    contentToOccuptantNode.keySet find (_.uniSymbol == symbol)
   }
 
   def putNode(contents: AnalysisContents, node: Node) {
-    contentMapOccuptantNode += (contents -> node)
+    contentToOccuptantNode += (contents -> node)
   }
 
   /**
@@ -133,26 +112,43 @@ object NetBeansPersistenceManager extends PersistenceManager {
      * return a null since it lookup via the old node.
      * Check it here
      */
-    val contents = getOccupiedContents(node);
+    val contents = getOccupiedContents(node)
     if (contents != null) {
-      contentMapOccuptantNode -= contents
+      contentToOccuptantNode -= contents
     }
   }
+}
 
-  def getQuotePool = {
-    quotePool;
-  }
+class NetBeansPersistenceManager extends PersistenceManager {
+  import NetBeansPersistenceManager._
 
-  def getTickerPool = {
-    tickerPool;
-  }
+  /** @TODO
+   * WindowManager.getDefault()
+   */
+  private val WIN_MAN = new NetBeansWindowManager
+  /**
+   * we perfer contents instances long lives in application context, so, don't
+   * use weak reference map here.
+   */
+  var defaultContents: AnalysisContents = _
+  val quotePool = new QuotePool
+  val tickerPool = new TickerPool
+  private val TABLE_EXISTS_MARK = Long.MaxValue.toString
+  private val SYMBOL_INDEX_TABLE_NAME = "AIOTRADESYMBOLINDEX"
+  private var userOptionsProp: Properties = _
+  private var dbProp: Properties = _
+  private var dbUrl: String = _
+  private val inSavingProperties = new Object
+
+  restoreProperties
+  checkAndCreateDatabaseIfNecessary
 
   def getDefaultContents: AnalysisContents = {
     if (defaultContents != null) {
-      return defaultContents;
+      defaultContents
     } else {
       defaultContents = restoreContents("Default");
-      return defaultContents;
+      defaultContents
     }
   }
 
@@ -160,7 +156,7 @@ object NetBeansPersistenceManager extends PersistenceManager {
     if (contents.uniSymbol.equalsIgnoreCase("Default")) {
       val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
       if (defaultContentsFile != null) {
-        var lock: FileLock = null;
+        var lock: FileLock = null
         try {
           lock = defaultContentsFile.lock
 
@@ -177,7 +173,7 @@ object NetBeansPersistenceManager extends PersistenceManager {
         }
       }
     } else {
-      contentMapOccuptantNode.get(contents) foreach {node =>
+      contentToOccuptantNode.get(contents) foreach {node =>
         /** refresh node's icon in explorer window */
         val children = node.getChildren
         for (child <- children.getNodes) {
@@ -232,10 +228,8 @@ object NetBeansPersistenceManager extends PersistenceManager {
        *  useful or useless in this case? */
     }
 
-    return contents;
+    contents
   }
-
-  private val inSavingProperties = new Object
 
   def saveProperties {
     inSavingProperties synchronized {
@@ -659,7 +653,7 @@ object NetBeansPersistenceManager extends PersistenceManager {
         val stmt = conn.createStatement
         val rs = stmt.executeQuery(strStmt)
         while (rs.next) {
-          val quote = getQuotePool.borrowObject
+          val quote = quotePool.borrowObject
 
           quote.time = rs.getLong("qtime")
           quote.open = rs.getFloat("qopen")
@@ -787,14 +781,14 @@ object NetBeansPersistenceManager extends PersistenceManager {
 
   private def propTableName(symbol: String, freq: TFreq): String = {
     val sym = propSymbol(symbol)
-    new StringBuilder(20).append(sym).append("_").append(freq.name).toString
+    sym + "_" + freq.name
   }
 
   /**
    * table name can not contain '.', '^', '-' etc, and should start with letter instead of number
    */
   private def propSymbol(symbol: String): String = {
-    val propSymbol = symbol.trim().replace('^', '_').replace('.', '_').replace('-', '_')
-    new StringBuilder(20).append("q").append(propSymbol).toString
+    val propSymbol = symbol.trim.replace('^', '_').replace('.', '_').replace('-', '_')
+    "q" + propSymbol
   }
 }
