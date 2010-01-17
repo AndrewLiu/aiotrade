@@ -53,14 +53,6 @@ import org.openide.windows.TopComponent;
 object SymbolListTopComponent {
   private var instance: Option[SymbolListTopComponent] = None
   def apply() = instance getOrElse new SymbolListTopComponent
-
-  @serializable
-  @SerialVersionUID(1L)
-  class ResolvableHelper {
-    def readResolve: Object = {
-      this
-    }
-  }
 }
 
 @serializable
@@ -107,11 +99,6 @@ class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider 
     
   override def componentClosed {
     // TODO add custom code on component closing
-  }
-    
-  /** replaces this in object stream */
-  override def writeReplace: Object = {
-    new ResolvableHelper
   }
     
   override protected def preferredID: String = {

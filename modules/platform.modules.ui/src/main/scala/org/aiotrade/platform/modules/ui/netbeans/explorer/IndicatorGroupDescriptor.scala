@@ -46,7 +46,8 @@ import org.aiotrade.platform.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.modules.ui.dialog.PickIndicatorDialog;
 import org.openide.util.Utilities;
-import org.openide.windows.WindowManager;import scala.collection.mutable.HashMap
+import org.openide.windows.WindowManager
+import scala.collection.mutable.HashMap
 
 
 /**
@@ -83,7 +84,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
   }
     
   private class AddIndicatorAction(contents: AnalysisContents) extends AddAction {
-    putValue(Action.NAME, "Add Indicator");
+    putValue(Action.NAME, "Add Indicator")
 
     def execute {
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
@@ -111,7 +112,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
          * setAllowMultipleIndicatorOnQuoteChartView in OptionManager, let
          * DescriptorNode.IndicatorViewAction or anyone to decide how to treat it.
          */
-        LookFeel().setAllowMultipleIndicatorOnQuoteChartView(multipleEnable);
+        LookFeel().setAllowMultipleIndicatorOnQuoteChartView(multipleEnable)
 
         val className = selectedIndicator.getClass.getName
 
