@@ -52,11 +52,7 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run {
-            val analysisTc = AnalysisChartTopComponent.getSelected
-                    
-            if (analysisTc == null) {
-              return;
-            }
+            val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
             val selectedView = analysisTc.getSelectedViewContainer.selectedView
             val ind = selectedView.overlappingSers find (x => x.isInstanceOf[ProbMassIndicator]) getOrElse {return}

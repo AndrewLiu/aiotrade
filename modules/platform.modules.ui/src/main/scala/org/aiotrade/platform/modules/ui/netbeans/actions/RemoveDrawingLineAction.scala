@@ -45,10 +45,7 @@ class RemoveDrawingLineAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run {
-            val analysisTc = AnalysisChartTopComponent.getSelected
-            if (analysisTc == null) {
-              return
-            }
+            val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
             val drawingPart = analysisTc.getSelectedViewContainer.masterView.asInstanceOf[WithDrawingPane].selectedDrawing
             drawingPart.removeSelectedHandledChart

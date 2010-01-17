@@ -101,33 +101,25 @@ object AnalysisChartTopComponent {
   var instanceRefs = List[WeakReference[AnalysisChartTopComponent]]()
 
   /** The Mode this component will live in. */
-  private val MODE = "editor";
-
+  private val MODE = "editor"
 
   def lookupTopComponent(symbol: String): Option[AnalysisChartTopComponent] = {
-    instanceRefs find {x => x.get.getStock.uniSymbol.equalsIgnoreCase(symbol)} map (_.get)
+    instanceRefs find (_.get.getStock.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
   }
 
-  def getSelected: AnalysisChartTopComponent = {
-    val tc = TopComponent.getRegistry.getActivated match {
-      case tc: AnalysisChartTopComponent => tc
-      case _ =>
-        for (ref <- instanceRefs) {
-          if (ref.get.isShowing) {
-            return ref.get
-          }
-        }
+  def selected: Option[AnalysisChartTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: AnalysisChartTopComponent => Some(x)
+      case _ => instanceRefs find (_.get.isShowing) map (_.get)
     }
-
-    null
   }
 }
 
 class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends TopComponent {
   import AnalysisChartTopComponent._
 
-  private var quoteContract: QuoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null)
-  private var ref: WeakReference[AnalysisChartTopComponent] = new WeakReference[AnalysisChartTopComponent](this)
+  private var quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
+  private var ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
 
 

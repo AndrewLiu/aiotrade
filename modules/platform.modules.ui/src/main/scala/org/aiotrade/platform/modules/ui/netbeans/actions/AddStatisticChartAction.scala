@@ -53,11 +53,7 @@ class AddStatisticChartAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable {
           def run {
-            val analysisWin = AnalysisChartTopComponent.getSelected
-                    
-            if (analysisWin == null) {
-              return
-            }
+            val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                     
             val viewContainer = analysisWin.getSelectedViewContainer
             val selectedChart = viewContainer.selectedChart

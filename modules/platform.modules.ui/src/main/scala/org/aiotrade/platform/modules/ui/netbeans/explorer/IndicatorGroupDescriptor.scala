@@ -86,57 +86,53 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     putValue(Action.NAME, "Add Indicator");
 
     def execute {
-      val analysisWin = AnalysisChartTopComponent.getSelected
-      if (analysisWin == null) {
-        return
-      }
+      val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
             
-      var nameMapResult = HashMap[String, Object]()
+      var nameToResult = HashMap[String, Object]()
             
       val dialog = new PickIndicatorDialog(
         WindowManager.getDefault.getMainWindow,
         true,
-        nameMapResult
+        nameToResult
       )
       dialog.setVisible(true)
             
-      if (nameMapResult.get("Option").asInstanceOf[Int] != JOptionPane.OK_OPTION) {
-        return;
-      }
-            
-      val selectedIndicator = nameMapResult.get("selectedIndicator").asInstanceOf[Indicator]
-      val multipleEnable    = nameMapResult.get("multipleEnable").asInstanceOf[Boolean]
-      val nUnits            = nameMapResult.get("nUnits").asInstanceOf[Int]
-      val unit              = nameMapResult.get("unit").asInstanceOf[TUnit]
-            
-      if (selectedIndicator == null) {
+      if (nameToResult("Option").asInstanceOf[Int] != JOptionPane.OK_OPTION) {
         return
       }
-            
-      /**
-       * setAllowMultipleIndicatorOnQuoteChartView in OptionManager, let
-       * DescriptorNode.IndicatorViewAction or anyone to decide how to treat it.
-       */
-      LookFeel().setAllowMultipleIndicatorOnQuoteChartView(multipleEnable);
-            
-      val className = selectedIndicator.getClass.getName
-            
-      (contents.lookupDescriptor(
-        classOf[IndicatorDescriptor],
-        className,
-        new TFreq(unit, nUnits)
-      ) match {
-        case None => 
-          contents.createDescriptor(
+
+      try {
+        val selectedIndicator = nameToResult("selectedIndicator").asInstanceOf[Indicator]
+        val multipleEnable    = nameToResult("multipleEnable").asInstanceOf[Boolean]
+        val nUnits            = nameToResult("nUnits").asInstanceOf[Int]
+        val unit              = nameToResult("unit").asInstanceOf[TUnit]
+        
+        /**
+         * setAllowMultipleIndicatorOnQuoteChartView in OptionManager, let
+         * DescriptorNode.IndicatorViewAction or anyone to decide how to treat it.
+         */
+        LookFeel().setAllowMultipleIndicatorOnQuoteChartView(multipleEnable);
+
+        val className = selectedIndicator.getClass.getName
+
+        (contents.lookupDescriptor(
             classOf[IndicatorDescriptor],
             className,
             new TFreq(unit, nUnits)
-          )
-        case some => some
-      }) foreach {descriptor =>
-        contents.lookupAction(classOf[SaveAction])   foreach {_.execute}
-        descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
-      }
+          ) match {
+            case None =>
+              contents.createDescriptor(
+                classOf[IndicatorDescriptor],
+                className,
+                new TFreq(unit, nUnits)
+              )
+            case some => some
+          }) foreach {descriptor =>
+          contents.lookupAction(classOf[SaveAction])   foreach {_.execute}
+          descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
+        }
+      } catch {case _ => return}
+            
     }
         
   }

@@ -48,10 +48,7 @@ class ChangeOptsAction extends CallableSystemAction {
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable() {
         def run {
-          val analysisWin = AnalysisChartTopComponent.getSelected
-          if (analysisWin == null) {
-            return
-          }
+          val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                 
           val selectedView = analysisWin.getSelectedViewContainer.selectedView
           if (selectedView == null) {

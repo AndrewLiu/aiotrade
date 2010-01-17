@@ -50,24 +50,22 @@ class PickIndicatorAction extends CallableSystemAction {
     java.awt.EventQueue.invokeLater(new Runnable {
             
         def run {
-          val analysisWin = AnalysisChartTopComponent.getSelected
-                
-          var contents: AnalysisContents = null
-          if (analysisWin == null) {
-            val symbolListWin = SymbolListTopComponent()
-            val nodes = symbolListWin.getExplorerManager.getSelectedNodes
-            if (nodes.length > 0) {
-              contents = nodes(0).getLookup.lookup(classOf[AnalysisContents])
-            } else {
-              return
-            }
-          } else {
-            contents = analysisWin.getSelectedViewContainer.controller.contents
+          val contents: AnalysisContents = AnalysisChartTopComponent.selected match {
+            case None =>
+              val symbolListWin = SymbolListTopComponent()
+              val nodes = symbolListWin.getExplorerManager.getSelectedNodes
+              if (nodes.length > 0) {
+                nodes(0).getLookup.lookup(classOf[AnalysisContents])
+              } else {
+                return
+              }
+            case Some(x) =>
+              x.getSelectedViewContainer.controller.contents
           }
                 
           val secNode = NetBeansPersistenceManager.occupantNodeOf(contents)
           if (secNode != null) {
-            val node = secNode.getChildren().findChild(IndicatorGroupDescriptor.NAME)
+            val node = secNode.getChildren.findChild(IndicatorGroupDescriptor.NAME)
             if (node != null) {
               node.getLookup.lookup(classOf[AddAction]).execute
             }

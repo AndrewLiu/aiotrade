@@ -108,7 +108,7 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
-        ChartViewContainer viewContainer = AnalysisChartTopComponent.getSelected().getSelectedViewContainer();
+        ChartViewContainer viewContainer = AnalysisChartTopComponent.selected().get().getSelectedViewContainer();
 
         nameMapResult.put("Option", new Integer(JOptionPane.CANCEL_OPTION));
         if (viewContainer != null) {

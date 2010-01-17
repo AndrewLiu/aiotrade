@@ -701,34 +701,32 @@ object SymbolNodes {
         contents.serProvider = sec
       }
 
-      val analysisTc = AnalysisChartTopComponent.getSelected
+      val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
 
       if (!sec.isSerLoaded(quoteContract.freq)) {
         val loadBegins = sec.loadSer(quoteContract.freq)
       }
 
-      if (analysisTc != null) {
-        val serToBeCompared = sec.serOf(quoteContract.freq).get
-        val viewContainer = analysisTc.lookupViewContainer(serToBeCompared.freq).getOrElse(null)
+      val serToBeCompared = sec.serOf(quoteContract.freq).get
+      val viewContainer = analysisTc.lookupViewContainer(serToBeCompared.freq).getOrElse(null)
 
-        if (viewContainer == null) {
-          return
-        }
-
-        val baseSer = viewContainer.controller.masterSer
-        val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
-        quoteCompareIndicator.shortDescription = sec.uniSymbol
-        quoteCompareIndicator.serToBeCompared = serToBeCompared
-        quoteCompareIndicator.computeFrom(0)
-
-        viewContainer.controller.scrollReferCursorToLeftSide
-        viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator);
-
-        analysisTc.setSelectedViewContainer(viewContainer)
-        analysisTc.requestActive
+      if (viewContainer == null) {
+        return
       }
 
+      val baseSer = viewContainer.controller.masterSer
+      val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
+      quoteCompareIndicator.shortDescription = sec.uniSymbol
+      quoteCompareIndicator.serToBeCompared = serToBeCompared
+      quoteCompareIndicator.computeFrom(0)
+
+      viewContainer.controller.scrollReferCursorToLeftSide
+      viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator);
+
+      analysisTc.setSelectedViewContainer(viewContainer)
+      analysisTc.requestActive
     }
+
   }
 
   /** Creating an action for adding a folder to organize stocks into groups */

@@ -154,10 +154,7 @@ class PickDrawingLineAction extends CallableSystemAction {
        * http://sourceforge.net/tracker/index.php?func=detail&aid=1579592&group_id=152032&atid=782880
        */
       item.setSelected(false);
-      val analysisWin = AnalysisChartTopComponent.getSelected
-      if (analysisWin == null) {
-        return;
-      }
+      val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
 
       val viewContainer = analysisWin.getSelectedViewContainer
       val masterView = viewContainer.masterView;

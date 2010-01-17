@@ -49,10 +49,7 @@ class SaveToImageAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run {
-            val analysisTc = AnalysisChartTopComponent.getSelected
-            if (analysisTc == null) {
-              return;
-            }
+            val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
             val calendar = Calendar.getInstance
 //                    

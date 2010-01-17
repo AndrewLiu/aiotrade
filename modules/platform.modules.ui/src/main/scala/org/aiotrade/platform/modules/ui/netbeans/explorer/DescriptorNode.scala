@@ -200,11 +200,10 @@ class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisCo
           val newName = evt.getNewValue.toString
                     
           if (descriptor.isInstanceOf[DrawingDescriptor]) {
-            val analysisWin = AnalysisChartTopComponent.getSelected
-            if (analysisWin != null) {
-              analysisWin.lookupDrawing(descriptor.asInstanceOf[DrawingDescriptor]) foreach {drawing =>
-                drawing.layerName = newName
-              }
+            for (analysisWin <- AnalysisChartTopComponent.selected;
+                 drawing <- analysisWin.lookupDrawing(descriptor.asInstanceOf[DrawingDescriptor])
+            ) {
+              drawing.layerName = newName
             }
                         
             descriptor.serviceClassName = evt.getNewValue.toString
