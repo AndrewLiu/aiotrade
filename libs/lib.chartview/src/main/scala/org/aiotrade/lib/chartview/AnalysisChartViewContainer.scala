@@ -102,7 +102,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
          if descriptor.freq == controller.masterSer.freq
     ) {
       descriptor.serviceInstance(masterView) foreach {drawing =>
-        drawing.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
+        masterView.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)
       }
     }
   }
