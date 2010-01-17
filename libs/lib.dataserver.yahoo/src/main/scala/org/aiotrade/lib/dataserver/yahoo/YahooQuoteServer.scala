@@ -31,15 +31,14 @@
 package org.aiotrade.lib.dataserver.yahoo
 
 import java.awt.Image
-import java.awt.image.BufferedImage
-import java.io.{BufferedReader, File, IOException, InputStream, InputStreamReader}
+import java.io.{BufferedReader, File, InputStreamReader}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.{Market, Quote}
+import org.aiotrade.lib.securities.{Market}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 
 /**
@@ -50,14 +49,14 @@ import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
  */
 object YahooQuoteServer {
   // * "http://table.finance.yahoo.com/table.csv"
-  protected val BaseUrl = "http://aiotrade.com/"
-  protected val UrlPath = "aiodata/yq"
+  protected val BaseUrl = "http://table.finance.yahoo.com"
+  protected val UrlPath = "/table.csv"
   protected val dateFormat: DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
   def marketOf(symbol: String): Market = {
     symbol.split("\\.") match {
       case Array(head, market) => market.toUpperCase match {
-          case "L" =>  Market.LDSE
+          case "L"  => Market.LDSE
           case "SS" => Market.SHSE
           case "SZ" => Market.SZSE
           case _ => Market.NYSE

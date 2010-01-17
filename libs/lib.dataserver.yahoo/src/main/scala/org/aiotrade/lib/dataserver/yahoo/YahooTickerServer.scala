@@ -53,8 +53,8 @@ object YahooTickerServer {
    */
   protected var singletonInstance: Option[YahooTickerServer] = None
   // * "http://download.finance.yahoo.com/d/quotes.csv"
-  protected val BaseUrl = "http://aiotrade.com/"
-  protected val UrlPath = "aiodata/yt"
+  protected val BaseUrl = "http://quote.yahoo.com"
+  protected val UrlPath = "/download/javasoft.beans"
 }
 
 class YahooTickerServer extends TickerServer {
