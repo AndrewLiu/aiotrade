@@ -53,11 +53,21 @@ import org.openide.windows.TopComponent;
 object SymbolListTopComponent {
   private var instance: Option[SymbolListTopComponent] = None
   def apply() = instance getOrElse new SymbolListTopComponent
+
+  @serializable
+  @SerialVersionUID(1L)
+  class ResolvableHelper {
+    def readResolve: Object = {
+      this
+    }
+  }
 }
 
+@serializable
 @SerialVersionUID(1L)
 class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider {
-  SymbolListTopComponent.instance = Some(this)
+  import SymbolListTopComponent._
+  instance = Some(this)
 
   /** holds currently scheduled/running task for set of activated node */
   private var nodeSetterTask: RequestProcessor#Task = _
@@ -114,13 +124,5 @@ class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider 
     
   def getRootNode: SymbolNode = {
     rootNode
-  }
-
-  @serializable
-  @SerialVersionUID(1L)
-  class ResolvableHelper {
-    def readResolve: Object = {
-      this
-    }
   }
 }
