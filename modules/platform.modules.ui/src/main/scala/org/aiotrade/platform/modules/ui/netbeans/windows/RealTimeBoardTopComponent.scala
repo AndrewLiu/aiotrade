@@ -100,23 +100,23 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
         
   private val boardPanel = new RealTimeBoardPanel(sec, contents);
         
-  setLayout(new BorderLayout);
+  setLayout(new BorderLayout)
         
-  add(boardPanel, BorderLayout.CENTER);
-  setName("Realtime - " + sec.uniSymbol);
+  add(boardPanel, BorderLayout.CENTER)
+  setName("Realtime - " + sec.uniSymbol)
         
   /** this component should setFocusable(true) to have the ability to grab the focus */
-  setFocusable(true);
+  setFocusable(true)
         
   /** as the NetBeans window system manage focus in a strange manner, we should do: */
-  addFocusListener(new FocusAdapter() {
+  addFocusListener(new FocusAdapter {
       override def focusGained(e: FocusEvent) {
-        getChartViewContainer.requestFocusInWindow
+        realTimeChartViewContainer foreach (_.requestFocusInWindow)
       }
-    });
+    })
     
   override def open {
-    val mode = WindowManager.getDefault().findMode(MODE)
+    val mode = WindowManager.getDefault.findMode(MODE)
     mode.dockInto(this)
         
     super.open
@@ -127,7 +127,7 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
       open
     }
         
-    /** hidden orthers */
+    /** hidden others */
     for (refX <- instanceRefs) {
       if (refX.get != this) {
         refX.get.setReallyClosed(false);
@@ -175,8 +175,8 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
     sec
   }
     
-  def getChartViewContainer: ChartViewContainer = {
-    boardPanel.getChartViewContainer
+  def realTimeChartViewContainer: Option[ChartViewContainer] = {
+    boardPanel.realTimeChartViewContainer
   }
     
   def watch {

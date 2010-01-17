@@ -58,7 +58,7 @@ class ZoomInAction extends CallableSystemAction {
                   c.controller.growWBar(+1)
                 }
               case x: RealTimeBoardTopComponent =>
-                x.getChartViewContainer.controller.growWBar(+1)
+                x.realTimeChartViewContainer foreach (_.controller.growWBar(+1))
               case _ =>
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), "Please select a view by clicking on it first!");
             }

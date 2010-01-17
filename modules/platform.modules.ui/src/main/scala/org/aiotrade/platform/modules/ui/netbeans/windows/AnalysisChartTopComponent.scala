@@ -158,30 +158,30 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   }
     
   private def initNodeChildrenRecursively(node: Node) {
-    if (! node.isLeaf()) {
+    if (!node.isLeaf) {
       /** call getChildren().getNodes(true) to initialize all children nodes */
-      val childrenNodes = node.getChildren().getNodes(true);
-      for (_node <- childrenNodes) {
-        initNodeChildrenRecursively(_node);
+      val childrenNodes = node.getChildren.getNodes(true)
+      for (child <- childrenNodes) {
+        initNodeChildrenRecursively(child)
       }
     }
   }
     
   private def injectActionsToPopupMenuForViewContainer {
     popupMenuForViewContainer = new JPopupMenu
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCandleOhlcAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomInAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomOutAction]));
-    popupMenuForViewContainer.addSeparator();
-    popupMenuForViewContainer.add(SystemAction.get(classOf[PickIndicatorAction]));
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeOptsAction]));
-    popupMenuForViewContainer.addSeparator();
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]));
-    popupMenuForViewContainer.addSeparator();
-    popupMenuForViewContainer.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]));
+    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomInAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomOutAction]))
+    popupMenuForViewContainer.addSeparator
+    popupMenuForViewContainer.add(SystemAction.get(classOf[PickIndicatorAction]))
+    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeOptsAction]))
+    popupMenuForViewContainer.addSeparator
+    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
+    popupMenuForViewContainer.addSeparator
+    popupMenuForViewContainer.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
   }
     
   private def initSec {
@@ -199,39 +199,39 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
     createTabbedPane
     createSupportedFreqsComboBox
         
-    defaultViewContainer = addViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null);
+    defaultViewContainer = addViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
         
     if (quoteContract.freq.unit == TUnit.Day) {
       createFollowedViewContainers
     }
         
     tabbedPaneContainer = new JPanel
-    val overlay = new OverlayLayout(tabbedPaneContainer);
-    tabbedPaneContainer.setLayout(overlay);
+    val overlay = new OverlayLayout(tabbedPaneContainer)
+    tabbedPaneContainer.setLayout(overlay)
         
-    val d = new Dimension(80, 22);
-    supportedFreqsComboBox.setPreferredSize(d);
-    supportedFreqsComboBox.setMaximumSize(d);
-    supportedFreqsComboBox.setMinimumSize(d);
-    supportedFreqsComboBox.setFocusable(false);
+    val dim = new Dimension(80, 22)
+    supportedFreqsComboBox.setPreferredSize(dim)
+    supportedFreqsComboBox.setMaximumSize(dim)
+    supportedFreqsComboBox.setMinimumSize(dim)
+    supportedFreqsComboBox.setFocusable(false)
     /** add supportedFreqsComboBox prior to tabbedPane, so supportedFreqsComboBox can accept mouse input */
-    tabbedPaneContainer.add(supportedFreqsComboBox);
+    tabbedPaneContainer.add(supportedFreqsComboBox)
         
-    tabbedPane.setOpaque(false);
-    tabbedPane.setFocusable(true);
-    tabbedPaneContainer.add(tabbedPane);
+    tabbedPane.setOpaque(false)
+    tabbedPane.setFocusable(true)
+    tabbedPaneContainer.add(tabbedPane)
         
-    tabbedPane.setAlignmentX(1.0f);
-    supportedFreqsComboBox.setAlignmentX(1.0f);
-    tabbedPane.setAlignmentY(0.0f);
-    supportedFreqsComboBox.setAlignmentY(0.0f);
+    tabbedPane.setAlignmentX(1.0f)
+    supportedFreqsComboBox.setAlignmentX(1.0f)
+    tabbedPane.setAlignmentY(0.0f)
+    supportedFreqsComboBox.setAlignmentY(0.0f)
         
-    setLayout(new BorderLayout());
-    add(tabbedPaneContainer, BorderLayout.CENTER);
+    setLayout(new BorderLayout)
+    add(tabbedPaneContainer, BorderLayout.CENTER)
     setName(sec.name)
         
     /** this component should setFocusable(true) to have the ability to grab the focus */
-    setFocusable(true);
+    setFocusable(true)
     /** as the NetBeans window system manage focus in a strange manner, we should do: */
     addFocusListener(new FocusAdapter {
         override def focusGained(e: FocusEvent) {
@@ -243,7 +243,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
             
         override def focusLost(e: FocusEvent) {
         }
-      });
+      })
         
     //tabbedPane.setFocusable(false);
     //FocusOwnerChecker check = new FocusOwnerChecker();
@@ -341,7 +341,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
               }
           }
         }
-      });
+      })
   }
     
   /**
@@ -368,22 +368,20 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
         
     val tickerSer = sec.tickerSer
     if (quoteContract.isFreqSupported(tickerSer.freq)) {
-      sec.loadSer(tickerSer.freq);
+      sec.loadSer(tickerSer.freq)
     }
     addViewContainer(tickerSer, contents, null)
   }
     
   private def addViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
     val controller = ChartingControllerFactory.createInstance(ser, contents)
-    val viewContainer = controller.createChartViewContainer(
-      classOf[AnalysisChartViewContainer], this
-    ).get
+    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this).get
 
     var title = $title
     if (title == null) {
       title = ser.freq.name
     }
-    title = new StringBuilder(" ").append(title).append(" ").toString
+    title = " " + title + " "
         
     tabbedPane.addTab(title, viewContainer)
         
@@ -392,7 +390,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
     /** inject popup menu from this TopComponent */
     viewContainer.setComponentPopupMenu(popupMenuForViewContainer);
         
-    viewContainer;
+    viewContainer
   }
     
   def getSelectedViewContainer: ChartViewContainer = {

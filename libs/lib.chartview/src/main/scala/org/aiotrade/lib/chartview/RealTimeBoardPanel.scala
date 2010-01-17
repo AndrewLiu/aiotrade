@@ -275,7 +275,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     // put infoTable to a box to simple the insets setting:
     val infoBox = new Box(BoxLayout.Y_AXIS) {
-
       // box does not paint anything, override paintComponent to get background:
       override protected def paintComponent(g: Graphics) {
         super.paintComponent(g)
@@ -456,8 +455,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     }
   }
 
-  def getChartViewContainer: ChartViewContainer = {
-    viewContainer
+  def realTimeChartViewContainer: Option[ChartViewContainer] = {
+    if (viewContainer == null) None else Some(viewContainer)
   }
 
   private def test {
