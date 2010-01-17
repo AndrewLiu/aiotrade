@@ -294,17 +294,17 @@ object SymbolNodes {
 
 
     override protected def createNodes(key: Node): Array[Node] = {
-      val node = key;
+      val node = key
 
       try {
         /** is a folder? if true, creat a folder node */
         if (node.getLookup.lookup(classOf[DataFolder]) != null) {
           return Array(new SymbolNode(node))
-        } /**
+        } else {
+          /**
            * else, deserilize a contents instance from the sec xml file,
            * and create a sec node for it
            */
-        else {
           var contents = readContents(node)
           if (contents != null) {
             /**
@@ -316,11 +316,11 @@ object SymbolNodes {
             }
 
             oneSymbolNode = new OneSymbolNode(node, contents)
-            val fileObject = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
+            val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
-            val newAttr = fileObject.getAttribute("new")
+            val newAttr = fo.getAttribute("new")
             if (newAttr != null && newAttr.asInstanceOf[Boolean] == true) {
-              fileObject.setAttribute("new", false)
+              fo.setAttribute("new", null)
 
               /** open view for new added sec */
               java.awt.EventQueue.invokeLater(new Runnable {

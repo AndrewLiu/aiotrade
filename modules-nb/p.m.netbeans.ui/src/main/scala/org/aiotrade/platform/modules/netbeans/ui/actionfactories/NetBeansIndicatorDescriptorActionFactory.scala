@@ -175,10 +175,10 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       if (retValue == JOptionPane.OK_OPTION) {
         /** apple to all ? */
         if (pane.isApplyToAll) {
-          val root = SymbolListTopComponent.getRootNode
-          setIndicatorOptsRecursively(root, descriptor);
+          val root = SymbolListTopComponent().getRootNode
+          setIndicatorOptsRecursively(root, descriptor)
         } else { /** else, only apply to this one */
-          setIndicatorOpts(descriptor, descriptor.factors);
+          setIndicatorOpts(descriptor, descriptor.factors)
         }
                 
         if (pane.isSaveAsDefault()) {

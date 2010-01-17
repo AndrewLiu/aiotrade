@@ -37,7 +37,7 @@
 
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>p.m.netbeans.ui</artifactId>
+            <artifactId>platform.modules.netbeans.ui</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>nbm</type>
         </dependency>

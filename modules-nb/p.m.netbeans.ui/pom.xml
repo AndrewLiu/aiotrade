@@ -7,7 +7,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>p.m.netbeans.ui</artifactId>
+    <artifactId>platform.modules.netbeans.ui</artifactId>
     <packaging>nbm</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>AIOTrade NetBeans UI</name>

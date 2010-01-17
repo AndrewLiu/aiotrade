@@ -42,13 +42,23 @@ import org.openide.util.RequestProcessor
 import org.openide.windows.TopComponent;
 
 /** 
- * Top component which displays something.
+ * Top component which displays explorer tree.
+ * @note This compoment must be created first to automatically monite node creating.
+ * Since it will be initilize automatically by NetBeans's layer configuatrion, we need
+ * to implement it as a class with public zero constructor and a companion object which
+ * share an instance between them.
  *
  * @author Caoyuan Deng
  */
+object SymbolListTopComponent {
+  private var instance: Option[SymbolListTopComponent] = None
+  def apply() = instance getOrElse new SymbolListTopComponent
+}
+
 @SerialVersionUID(1L)
-object SymbolListTopComponent extends TopComponent with ExplorerManager.Provider {
-        
+class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider {
+  SymbolListTopComponent.instance = Some(this)
+
   /** holds currently scheduled/running task for set of activated node */
   private var nodeSetterTask: RequestProcessor#Task = _
   private val NODE_SETTER_LOCK = new Object

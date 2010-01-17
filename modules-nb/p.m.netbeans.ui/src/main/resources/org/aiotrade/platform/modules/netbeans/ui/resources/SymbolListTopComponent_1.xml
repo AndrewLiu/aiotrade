@@ -5,7 +5,7 @@
           "http://www.netbeans.org/dtds/tc-ref2_0.dtd">
 
 <tc-ref version="2.0" >
-    <module name="org.aiotrade.platform.core.ui" spec="1.0" />
+    <module name="org.aiotrade.platform.modules.netbeans.ui" spec="1.0" />
     <tc-id id="SymbolListTopComponent" />
     <state opened="true" />
 </tc-ref>

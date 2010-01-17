@@ -21,7 +21,7 @@
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-SwitchHideShowDrawingLineAction.instance"/>
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-PickDrawingLineAction.instance"/>
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-RemoveDrawingLineAction.instance"/>
-        <file name="org-aiotrade-platform-modules-netbeans-ui-explorer-SymbolListOpenAction.instance"/>
+        <file name="org-aiotrade-platform-modules-netbeans-ui-actions-SymbolListOpenAction.instance"/>
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-OnlineHelpAction.instance"/>
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-SymbolLookupHelpAction.instance"/>
         <file name="org-aiotrade-platform-modules-netbeans-ui-actions-SaveToImageAction.instance"/>
@@ -32,16 +32,19 @@
         <folder name="File">
             <file name="AddSymbolAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-AddSymbolAction.instance"/>
+                <attr name="position" intvalue="100"/>
             </file>
         </folder>
         <folder name="Window">
             <file name="SymbolListOpenAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-explorer-SymbolListOpenAction.instance"/>
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-SymbolListOpenAction.instance"/>
+                <attr name="position" intvalue="100"/>
             </file>
         </folder>
         <folder name="Help">
             <file name="OnlineHelpAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-netbeans-ui-actions-OnlineHelpAction.instance"/>
+                <attr name="position" intvalue="100"/>
             </file>
         </folder>
 

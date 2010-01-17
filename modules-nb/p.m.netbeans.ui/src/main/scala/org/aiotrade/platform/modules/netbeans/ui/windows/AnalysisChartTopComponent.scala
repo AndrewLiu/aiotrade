@@ -121,8 +121,6 @@ object AnalysisChartTopComponent {
 
     null
   }
-
-
 }
 
 class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends TopComponent {

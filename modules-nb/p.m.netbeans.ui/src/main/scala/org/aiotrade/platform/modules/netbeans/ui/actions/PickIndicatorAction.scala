@@ -37,10 +37,8 @@ import org.aiotrade.platform.modules.netbeans.ui.explorer.IndicatorGroupDescript
 import org.aiotrade.platform.modules.netbeans.ui.explorer.SymbolListTopComponent;
 import org.aiotrade.platform.modules.netbeans.ui.explorer.SymbolListTopComponent
 import org.aiotrade.platform.modules.netbeans.ui.windows.AnalysisChartTopComponent;
-import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
-import org.openide.windows.WindowManager;
 
 /**
  *
@@ -48,35 +46,35 @@ import org.openide.windows.WindowManager;
  */
 class PickIndicatorAction extends CallableSystemAction {
     
-  def performAction() {
-    java.awt.EventQueue.invokeLater(new Runnable() {
+  def performAction {
+    java.awt.EventQueue.invokeLater(new Runnable {
             
-        def run() {
+        def run {
           val analysisWin = AnalysisChartTopComponent.getSelected
                 
-          var contents: AnalysisContents = null;
+          var contents: AnalysisContents = null
           if (analysisWin == null) {
-            val symbolListWin = SymbolListTopComponent
-            val nodes = symbolListWin.getExplorerManager().getSelectedNodes();
+            val symbolListWin = SymbolListTopComponent()
+            val nodes = symbolListWin.getExplorerManager.getSelectedNodes
             if (nodes.length > 0) {
-              contents = nodes(0).getLookup.lookup(classOf[AnalysisContents]);
+              contents = nodes(0).getLookup.lookup(classOf[AnalysisContents])
             } else {
-              return;
+              return
             }
           } else {
             contents = analysisWin.getSelectedViewContainer.controller.contents
           }
                 
-          val secNode = NetBeansPersistenceManager.occupantNodeOf(contents);
+          val secNode = NetBeansPersistenceManager.occupantNodeOf(contents)
           if (secNode != null) {
-            val node = secNode.getChildren().findChild(IndicatorGroupDescriptor.NAME);
+            val node = secNode.getChildren().findChild(IndicatorGroupDescriptor.NAME)
             if (node != null) {
               node.getLookup.lookup(classOf[AddAction]).execute
             }
           }
                 
         }
-      });
+      })
         
   }
     

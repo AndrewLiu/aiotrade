@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.netbeans.ui.explorer;
+package org.aiotrade.platform.modules.netbeans.ui.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;

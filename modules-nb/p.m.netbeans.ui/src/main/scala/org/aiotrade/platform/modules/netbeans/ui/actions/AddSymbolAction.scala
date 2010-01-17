@@ -30,8 +30,8 @@
  */
 package org.aiotrade.platform.modules.netbeans.ui.actions;
 
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.IOException
+import java.io.PrintStream
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.math.timeseries.datasource.DataContract;
@@ -42,7 +42,6 @@ import org.aiotrade.platform.modules.ui.dialog.ImportSymbolDialog
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
 import org.openide.loaders.DataFolder;
-import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
@@ -56,7 +55,7 @@ class AddSymbolAction extends CallableSystemAction {
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-          val symbolListTc = SymbolListTopComponent
+          val symbolListTc = SymbolListTopComponent()
           symbolListTc.requestActive
                 
           val selectedNodes = symbolListTc.getExplorerManager.getSelectedNodes
@@ -109,10 +108,11 @@ class AddSymbolAction extends CallableSystemAction {
     }
         
     var lock: FileLock = null
+    var out: PrintStream = null
     try {
       val writeTo = folderObject.createData(baseName + ix, "xml")
       lock = writeTo.lock
-      val out = new PrintStream(writeTo.getOutputStream(lock))
+      out = new PrintStream(writeTo.getOutputStream(lock))
             
       val contents = PersistenceManager().defaultContents
       /** clear default dataSourceContract */
@@ -123,16 +123,17 @@ class AddSymbolAction extends CallableSystemAction {
             
       out.print(ContentsPersistenceHandler.dumpContents(contents))
             
-      /** should remember to do out.close() here */
-      out.close
-            
       /**
-       * set attr: "new" for opening the view when a new node is
+       * set attr = "new" to open the view when a new node is
        * created late by SymbolNode.SymbolFolderChildren.creatNodes()
        */
       writeTo.setAttribute("new", true)
     } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
     } finally {
+      /** should remember to out.close() here */
+      if (out != null) {
+        out.close
+      }
       if (lock != null) {
         lock.releaseLock
       }
