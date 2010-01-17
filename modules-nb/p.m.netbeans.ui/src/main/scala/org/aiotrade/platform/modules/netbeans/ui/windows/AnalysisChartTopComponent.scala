@@ -289,7 +289,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
                     
               /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
                     
-              val secNode = NetBeansPersistenceManager.getOccupantNode(contents);
+              val secNode = NetBeansPersistenceManager.occupantNodeOf(contents);
               assert(secNode != null, "There should be at least one created node bound with descriptors here, as view has been opened!")
               for (groupNode <- secNode.getChildren().getNodes()) {
                 groupNode.asInstanceOf[GroupNode].freq = masterSer.freq

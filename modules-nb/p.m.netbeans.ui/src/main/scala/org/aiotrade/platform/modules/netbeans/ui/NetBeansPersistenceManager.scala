@@ -72,22 +72,16 @@ import scala.collection.mutable.ArrayBuffer
 object NetBeansPersistenceManager {
   private var contentToOccuptantNode = Map[AnalysisContents, Node]()
 
-  def getOccupantNode(contents: AnalysisContents): Node =  {
-    contentToOccuptantNode.get(contents).getOrElse(null)
+  def occupantNodeOf(contents: AnalysisContents): Node =  {
+    contentToOccuptantNode.get(contents) getOrElse null
   }
 
-  def getOccupiedContents(node: Node): AnalysisContents =  {
-    for ((contents, aNode) <- contentToOccuptantNode) {
-      if (aNode == node) {
-        return contents
-      }
-    }
-
-    null
+  def occupiedContentsOf(node: Node): AnalysisContents = {
+    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1) getOrElse null
   }
 
   def lookupContents(symbol: String): Option[AnalysisContents] = {
-    contentToOccuptantNode.keySet find (_.uniSymbol == symbol)
+    contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
   }
 
   def putNode(contents: AnalysisContents, node: Node) {
@@ -112,7 +106,7 @@ object NetBeansPersistenceManager {
      * return a null since it lookup via the old node.
      * Check it here
      */
-    val contents = getOccupiedContents(node)
+    val contents = occupiedContentsOf(node)
     if (contents != null) {
       contentToOccuptantNode -= contents
     }
@@ -145,14 +139,14 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   def saveContents(contents: AnalysisContents) {
     if (contents.uniSymbol.equalsIgnoreCase("Default")) {
-      val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
+      val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml")
       if (defaultContentsFile != null) {
         var lock: FileLock = null
         try {
           lock = defaultContentsFile.lock
 
-          val out = new PrintStream(defaultContentsFile.getOutputStream(lock));
-          out.print(ContentsPersistenceHandler.dumpContents(contents));
+          val out = new PrintStream(defaultContentsFile.getOutputStream(lock))
+          out.print(ContentsPersistenceHandler.dumpContents(contents))
 
           /** should remember to do out.close() here */
           out.close
@@ -173,12 +167,12 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         val dob = node.getLookup.lookup(classOf[DataObject])
         val writeTo = dob.getPrimaryFile
-        var lock: FileLock = null;
+        var lock: FileLock = null
         try {
           lock = writeTo.lock
 
-          val out = new PrintStream(writeTo.getOutputStream(lock));
-          out.print(ContentsPersistenceHandler.dumpContents(contents));
+          val out = new PrintStream(writeTo.getOutputStream(lock))
+          out.print(ContentsPersistenceHandler.dumpContents(contents))
 
           /** should remember to do out.close() here */
           out.close
@@ -204,14 +198,14 @@ class NetBeansPersistenceManager extends PersistenceManager {
           val is = defaultContentsFile.getInputStream
           val xmlReader = XMLUtil.createXMLReader
           val handler = new ContentsParseHandler
-          xmlReader.setContentHandler(handler);
-          xmlReader.parse(new InputSource(is));
+          xmlReader.setContentHandler(handler)
+          xmlReader.parse(new InputSource(is))
           contents = handler.getContents
 
           is.close
         } catch {
-          case ex: IOException => ErrorManager.getDefault.notify(ex);
-          case ex: SAXException => ErrorManager.getDefault.notify(ex);
+          case ex: IOException  => ErrorManager.getDefault.notify(ex)
+          case ex: SAXException => ErrorManager.getDefault.notify(ex)
         }
       }
     } else {
@@ -242,9 +236,9 @@ class NetBeansPersistenceManager extends PersistenceManager {
           val antiAliasStr = LookFeel().isAntiAlias.toString
           val autoHideScrollStr = LookFeel().isAutoHideScroll.toString
 
-          var proxyTypeStr = "";
-          var proxyHostStr = "";
-          var proxyPortStr = "";
+          var proxyTypeStr = ""
+          var proxyHostStr = ""
+          var proxyPortStr = ""
           var proxy = UserOptionsManager.getProxy
           if (proxy == null) {
             proxyTypeStr = "SYSTEM"
@@ -514,7 +508,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         stmt.close
         conn.commit
-      } catch {case ex: SQLException =>ex.printStackTrace}
+      } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
 
@@ -563,38 +557,37 @@ class NetBeansPersistenceManager extends PersistenceManager {
          * IDENTITY column present)
          */
         val tableName = propTableName(symbol, freq)
-        val stmtCreatTableStr_derby = new StringBuilder(200).append("CREATE TABLE ").append(tableName).append(" (").append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ").append("qtime BIGINT not null, ").append("qopen FLOAT, ").append("qhigh FLOAT, ").append("qlow FLOAT, ").append("qclose FLOAT, ").append("qclose_adj FLOAT, ").append("qvolume FLOAT, ").append("qamount FLOAT, ").append("qwap FLOAT, ").append("qhasgaps SMALLINT, ").append("qsourceid BIGINT").append(")").toString
+        val stmtCreatTableStr_derby = "CREATE TABLE " + tableName + " (qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
 
-        val stmtCreatTableStr_h2_hsqldb = new StringBuilder(200).append("CREATE CACHED TABLE ").append(tableName).append(" (").append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ") // IDENTITY(startInt, incrementInt)
-        .append("qtime BIGINT not null, ").append("qopen FLOAT, ").append("qhigh FLOAT, ").append("qlow FLOAT, ").append("qclose FLOAT, ").append("qclose_adj FLOAT, ").append("qvolume FLOAT, ").append("qamount FLOAT, ").append("qwap FLOAT, ").append("qhasgaps SMALLINT, ").append("qsourceid BIGINT").append(")").toString
+        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tableName + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
 
         var stmtStr = stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(tableName).append("_qtime ON ").append(tableName).append(" (qtime)").toString
+        stmtStr = "CREATE INDEX idx_" + tableName + "_qtime ON " + tableName + " (qtime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(tableName).append("_qsourceid ON ").append(tableName).append(" (qsourceid)").toString
+        stmtStr = "CREATE INDEX idx_" + tableName + "_qsourceid ON " + tableName + " (qsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
-        stmtStr = new StringBuilder(100).append("INSERT INTO ").append(tableName).append(" (qtime) VALUES (").append(TABLE_EXISTS_MARK).append(")").toString
+        stmtStr = "INSERT INTO " + tableName + " (qtime) VALUES (" + TABLE_EXISTS_MARK + ")"
         stmt.executeUpdate(stmtStr)
 
         /** insert a symbol index record into symbol index table */
-        stmtStr = new StringBuilder(100).append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol, qtablename, qfreq) VALUES (").append("'").append(propSymbol(symbol)).append("', '").append(tableName).append("', '").append(freq.toString()).append("')").toString
+        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + tableName + "', '" + freq.toString + "')"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
         conn.commit
 
-      } catch {case ex: SQLException =>
-          ex.printStackTrace
-      }
+      } catch {case ex: SQLException => ex.printStackTrace}
     }
 
-    return conn;
+    conn
   }
 
   def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {
@@ -607,8 +600,9 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
 
     try {
-      val tableName = propTableName(symbol, freq);
-      val stmtStr = new StringBuilder(200).append("INSERT INTO ").append(tableName).append(" (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qwap, qhasgaps, qsourceid)").append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString
+      val tableName = propTableName(symbol, freq)
+      val stmtStr =  "INSERT INTO " + tableName  +
+      " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmt = conn.prepareStatement(stmtStr)
       for (quote <- quotes) {
@@ -641,7 +635,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     if (conn != null) {
       try {
         val tableName = propTableName(symbol, freq);
-        val strStmt = new StringBuilder(100).append("SELECT * FROM ").append(tableName).append(" WHERE qtime != ").append(TABLE_EXISTS_MARK).append(" ORDER BY qtime ASC").toString
+        val strStmt = "SELECT * FROM " + tableName + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
 
         val stmt = conn.createStatement
         val rs = stmt.executeQuery(strStmt)
@@ -668,19 +662,19 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
         conn.close
 
-        WIN_MAN.setStatusText(quotes.size + " quotes restored from database.");
-      } catch {case ex: SQLException =>ex.printStackTrace}
+        WIN_MAN.setStatusText(quotes.size + " quotes restored from database.")
+      } catch {case ex: SQLException => ex.printStackTrace}
     }
 
     quotes.toArray
   }
 
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {
-    val conn = tableExists(symbol, freq);
+    val conn = tableExists(symbol, freq)
     if (conn != null) {
       try {
         val tableName = propTableName(symbol, freq)
-        val strStmt = new StringBuilder(100).append("DELETE FROM ").append(tableName).append(" WHERE qtime != ").append(TABLE_EXISTS_MARK).append(" AND qtime BETWEEN ? AND ? ").toString
+        val strStmt = "DELETE FROM " + tableName + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
 
         val stmt = conn.prepareStatement(strStmt)
 
@@ -693,7 +687,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
         conn.close
 
-        WIN_MAN.setStatusText("Delete data of " + tableName + " successfully.");
+        WIN_MAN.setStatusText("Delete data of " + tableName + " successfully.")
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -704,12 +698,12 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         var tableNames = List[String]()
 
-        var strStmt = new StringBuilder(100).append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'").toString
+        var strStmt = "SELECT * FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
 
         val stmt = conn.createStatement
-        val rs = stmt.executeQuery(strStmt);
-        while (rs.next()) {
-          val tableName = rs.getString("qtablename");
+        val rs = stmt.executeQuery(strStmt)
+        while (rs.next) {
+          val tableName = rs.getString("qtablename")
           tableNames ::= tableName
         }
         rs.close
@@ -726,8 +720,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
           conn.commit
         }
 
-        strStmt = new StringBuilder(100).append("DELETE FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(propSymbol(symbol)).append("'").toString
-        val deleteStmt = conn.prepareStatement(strStmt);
+        strStmt = "DELETE FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
+        val deleteStmt = conn.prepareStatement(strStmt)
         deleteStmt.execute
 
         deleteStmt.close

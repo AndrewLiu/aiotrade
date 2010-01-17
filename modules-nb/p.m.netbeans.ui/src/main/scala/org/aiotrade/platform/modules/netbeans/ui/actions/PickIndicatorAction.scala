@@ -67,7 +67,7 @@ class PickIndicatorAction extends CallableSystemAction {
             contents = analysisWin.getSelectedViewContainer.controller.contents
           }
                 
-          val secNode = NetBeansPersistenceManager.getOccupantNode(contents);
+          val secNode = NetBeansPersistenceManager.occupantNodeOf(contents);
           if (secNode != null) {
             val node = secNode.getChildren().findChild(IndicatorGroupDescriptor.NAME);
             if (node != null) {

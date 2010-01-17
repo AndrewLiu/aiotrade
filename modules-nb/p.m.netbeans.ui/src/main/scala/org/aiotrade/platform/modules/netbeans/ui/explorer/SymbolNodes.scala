@@ -255,7 +255,7 @@ object SymbolNodes {
            * Here we should find via OneSymbolNode.this instead of nodeEvent.getNode(),
            * which may return the delegated node.
            */
-          if (NetBeansPersistenceManager.getOccupiedContents(OneSymbolNode.this) != null) {
+          if (NetBeansPersistenceManager.occupiedContentsOf(OneSymbolNode.this) != null) {
             getLookup.lookup(classOf[SymbolClearDataAction]).perform(false)
           }
 
@@ -571,7 +571,7 @@ object SymbolNodes {
        * if node destroy is invoked by parent node, such as folder,
        * the lookup content may has been destroyed before node destroyed.
        */
-      val contents = NetBeansPersistenceManager.getOccupiedContents(node)
+      val contents = NetBeansPersistenceManager.occupiedContentsOf(node)
       if (contents != null) {
         val confirm = if (shouldConfirm) {
           JOptionPane.showConfirmDialog(

@@ -52,38 +52,32 @@ import org.openide.windows.WindowManager;
  * @author Caoyuan Deng
  */
 class AddSymbolAction extends CallableSystemAction {
-  private var symbolListTc = SymbolListTopComponent
-  private var currentNode: Node = _
-    
     
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-                
+          val symbolListTc = SymbolListTopComponent
           symbolListTc.requestActive
                 
           val selectedNodes = symbolListTc.getExplorerManager.getSelectedNodes
-          var selectedNode: Node = null
-          var currentFolder: DataFolder = null
-          if (selectedNodes.length > 0) {
-            currentNode = selectedNodes(0)
-          }
-                
-          if (currentNode != null) {
-            currentFolder = currentNode.getLookup.lookup(classOf[DataFolder])
-          }
+          var currentNode = if (selectedNodes.length > 0) {
+            selectedNodes(0)
+          } else null
+
+          var currentFolder = if (currentNode != null) {
+            currentNode.getLookup.lookup(classOf[DataFolder])
+          } else null
                 
           if (currentFolder == null) {
             /** add this stock in root folder */
             currentNode = symbolListTc.getExplorerManager.getRootContext
-            currentFolder = currentNode.getLookup().lookup(classOf[DataFolder])
+            currentFolder = currentNode.getLookup.lookup(classOf[DataFolder])
           }
                 
-          /** this will expand this node */
+          //- expand this node
           symbolListTc.getExplorerManager.setExploredContext(currentNode)
                 
-                
-          /** Now begin the dialog */
+          // --- Now begin the dialog
                 
           val quoteContract = new QuoteContract
           val pane = new ImportSymbolDialog(WindowManager.getDefault.getMainWindow, quoteContract, true)
@@ -92,13 +86,7 @@ class AddSymbolAction extends CallableSystemAction {
           }
                 
           /** quoteContract may bring in more than one symbol, should process it later */
-          val sourceSymbol = quoteContract.symbol
-          if (sourceSymbol == "") {
-            return
-          }
-                
-          val sourceSymbols = sourceSymbol.split(",")
-          for (symbol <- sourceSymbols) {
+          for (symbol <- quoteContract.symbol.split(",")) {
             val symbol1 = symbol.trim
                     
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
@@ -106,7 +94,6 @@ class AddSymbolAction extends CallableSystemAction {
                     
             createSymbolXmlFile(currentFolder, symbol1, quoteContract)
           }
-                
         }
       })
         
@@ -121,10 +108,10 @@ class AddSymbolAction extends CallableSystemAction {
       ix += 1
     }
         
-    var lock: FileLock = null;
+    var lock: FileLock = null
     try {
       val writeTo = folderObject.createData(baseName + ix, "xml")
-      lock = writeTo.lock();
+      lock = writeTo.lock
       val out = new PrintStream(writeTo.getOutputStream(lock))
             
       val contents = PersistenceManager().defaultContents
@@ -137,7 +124,7 @@ class AddSymbolAction extends CallableSystemAction {
       out.print(ContentsPersistenceHandler.dumpContents(contents))
             
       /** should remember to do out.close() here */
-      out.close();
+      out.close
             
       /**
        * set attr: "new" for opening the view when a new node is
@@ -154,7 +141,7 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Add Symbol";
+    "Add Symbol"
   }
     
     
@@ -163,7 +150,7 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   override protected def iconResource: String = {
-    "org/aiotrade/platform/modules/netbeans/ui/resources/newSymbol.gif";
+    "org/aiotrade/platform/modules/netbeans/ui/resources/newSymbol.gif"
   }
     
   override protected def asynchronous: Boolean = {

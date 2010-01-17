@@ -61,8 +61,7 @@ abstract class GroupDescriptor[T] extends Cloneable with Ordered[GroupDescriptor
   override def clone: GroupDescriptor[T] = {
     try {
       super.clone.asInstanceOf[GroupDescriptor[T]]
-    } catch {case ex: CloneNotSupportedException => ex.printStackTrace; null
-    }
+    } catch {case ex: CloneNotSupportedException => ex.printStackTrace; null}
   }
     
   def compare(another: GroupDescriptor[_]): Int = {
