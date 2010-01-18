@@ -26,6 +26,9 @@
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SymbolLookupHelpAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SaveToImageAction.instance"/>
         <!--file name="org-aiotrade-platform-modules-ui-netbeans-actions-SaveToCustomSizeImageAction.instance"/-->
+        <folder name="Edit">
+            <file name="org-netbeans-modules-quicksearch-QuickSearchAction.instance"/>
+        </folder>
     </folder>
 
     <folder name="Menu">
@@ -115,6 +118,15 @@
 
         <attr name="Draw/Memory" boolvalue="true"/>
 
+        <folder name="QuickSearch">
+            <attr name="position" intvalue="700"/>
+            <attr name="SystemFileSystem.localizingBundle" stringvalue="org.aiotrade.platform.modules.ui.netbeans.Bundle"/>
+            <file name="org-netbeans-modules-quicksearch-QuickSearchAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-netbeans-modules-quicksearch-QuickSearchAction.instance"/>
+                <attr name="position" intvalue="250"/>
+            </file>
+        </folder>
+
     </folder>
 
     <!--
@@ -173,6 +185,9 @@
         </file>
         <file name="C-S.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
+        </file>
+        <file name="D-I.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/org-netbeans-modules-quicksearch-QuickSearchAction.instance"/>
         </file>
     </folder>
 
