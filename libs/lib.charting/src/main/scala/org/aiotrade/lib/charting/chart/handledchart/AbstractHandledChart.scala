@@ -104,16 +104,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   private val handlePointsBuf = new ArrayBuffer[ValuePoint]
     
 
-  def this(drawing: DrawingPane) = this(drawing, null)
-
-  /**
-   * @NOTICE
-   * Should define a no args constructor explicitly for class.newInstance()
-   */
-  def this() = this(null)
-
-
-  if (points == Nil) {
+  if (points == null) {
     this.chart = init
     this.chart.depth = Pane.DEPTH_DRAWING
 
@@ -124,6 +115,14 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     init(drawing, points)
   }
     
+  def this(drawing: DrawingPane) = this(drawing, null)
+
+  /**
+   * @NOTICE
+   * Should define a no args constructor explicitly for class.newInstance()
+   */
+  def this() = this(null)
+
   protected def init: C
     
   /**

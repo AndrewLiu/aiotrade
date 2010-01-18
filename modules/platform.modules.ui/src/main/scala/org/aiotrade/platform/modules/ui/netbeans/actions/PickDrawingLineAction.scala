@@ -31,10 +31,8 @@
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collection;
 import javax.swing.DefaultSingleSelectionModel;
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
@@ -46,11 +44,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.lib.charting.view.ChartView;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.WithDrawingPane;
-import org.aiotrade.lib.charting.view.pane.DrawingPane;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
@@ -74,78 +68,76 @@ class PickDrawingLineAction extends CallableSystemAction {
   var handledCharts = Seq[HandledChart]()
 
   def performAction {
-    java.awt.EventQueue.invokeLater(new Runnable() {
-        def run() {
+    java.awt.EventQueue.invokeLater(new Runnable {
+        def run {
           toggleButton.setSelected(true)
         }
       })
   }
 
   def getName: String = {
-    return "Pick Drawing Line";
+    "Pick Drawing Line"
   }
 
   def getHelpCtx: HelpCtx = {
-    return HelpCtx.DEFAULT_HELP;
+    HelpCtx.DEFAULT_HELP
   }
 
-  override
-  protected def asynchronous: Boolean = {
+  override protected def asynchronous: Boolean = {
     return false;
   }
 
-  override
-  def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/drawingLine.png");
-    val icon = new ImageIcon(iconImage);
+  override def getToolbarPresenter: Component = {
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/drawingLine.png")
+    val icon = new ImageIcon(iconImage)
 
-    toggleButton = new JToggleButton();
-    toggleButton.setIcon(icon);
-    toggleButton.setToolTipText("Pick Drawing Line");
+    toggleButton = new JToggleButton
+    toggleButton.setIcon(icon)
+    toggleButton.setToolTipText("Pick Drawing Line")
 
-    handledCharts = PersistenceManager().lookupAllRegisteredServices(classOf[HandledChart], "HandledCharts");
-    popupMenu = new JPopupMenu();
+    handledCharts = PersistenceManager().lookupAllRegisteredServices(classOf[HandledChart], "HandledCharts")
+    popupMenu = new JPopupMenu
     popupMenu.setSelectionModel(new DefaultSingleSelectionModel)
     menuItemListener = new MyMenuItemListener
     for (handledChart <- handledCharts) {
       /** it's a selection menu other than an action menu, so use JRadioButtonMenuItem instead of JMenuItem */
-      val item = new JRadioButtonMenuItem(handledChart.toString());
-      item.addItemListener(menuItemListener);
-      popupMenu.add(item);
+      val item = new JRadioButtonMenuItem(handledChart.toString)
+      item.addItemListener(menuItemListener)
+      popupMenu.add(item)
     }
 
-    toggleButton.addItemListener(new ItemListener() {
+    toggleButton.addItemListener(new ItemListener {
 
         def itemStateChanged(e: ItemEvent) {
           if (e.getStateChange == ItemEvent.SELECTED) {
             /** show popup menu on toggleButton at position: (0, height) */
-            popupMenu.show(toggleButton, 0, toggleButton.getHeight());
+            popupMenu.show(toggleButton, 0, toggleButton.getHeight)
           }
         }
-      });
+      })
 
-    popupMenu.addPopupMenuListener(new PopupMenuListener() {
+    popupMenu.addPopupMenuListener(new PopupMenuListener {
 
         def popupMenuCanceled(e: PopupMenuEvent) {
-          toggleButton.setSelected(false);
+          toggleButton.setSelected(false)
         }
 
         def popupMenuWillBecomeInvisible(e: PopupMenuEvent) {
-          toggleButton.setSelected(false);
+          toggleButton.setSelected(false)
         }
 
         def popupMenuWillBecomeVisible(e: PopupMenuEvent) {
         }
       })
 
-    toggleButton;
+    toggleButton
   }
 
   private class MyMenuItemListener extends ItemListener {
 
     def itemStateChanged(e: ItemEvent) {
       if (e.getStateChange != ItemEvent.SELECTED) {
-        return;
+        return
       }
 
       val item = e.getSource.asInstanceOf[JMenuItem]
@@ -157,9 +149,9 @@ class PickDrawingLineAction extends CallableSystemAction {
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
 
       val viewContainer = analysisWin.selectedViewContainer.get
-      val masterView = viewContainer.masterView;
+      val masterView = viewContainer.masterView
       if (!(masterView.isInstanceOf [WithDrawingPane])) {
-        return;
+        return
       }
 
       val drawingPane = masterView.asInstanceOf[WithDrawingPane].selectedDrawing
@@ -175,7 +167,7 @@ class PickDrawingLineAction extends CallableSystemAction {
       }
 
       val selectedStr = item.getText
-      val theHandledChart = handledCharts find (x => x.toString.equalsIgnoreCase(selectedStr)) getOrElse null
+      val theHandledChart = handledCharts find (_.toString.equalsIgnoreCase(selectedStr)) getOrElse null
       assert(theHandledChart != null, "A just picked handled chart should be there!")
 
       val contents = viewContainer.controller.contents
@@ -187,8 +179,8 @@ class PickDrawingLineAction extends CallableSystemAction {
       ) match {
         case Some(descriptor) =>
           val handledChart = theHandledChart.createNewInstance
-          handledChart.attachDrawingPane(drawingPane);
-          drawingPane.setSelectedHandledChart(handledChart);
+          handledChart.attachDrawingPane(drawingPane)
+          drawingPane.setSelectedHandledChart(handledChart)
 
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         case None =>
