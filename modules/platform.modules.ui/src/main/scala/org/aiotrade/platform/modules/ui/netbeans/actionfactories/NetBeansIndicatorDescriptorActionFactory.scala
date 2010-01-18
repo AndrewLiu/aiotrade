@@ -106,7 +106,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
 
         viewContainer.selectedView = view
         analysisWin.requestActive
-        analysisWin.setSelectedViewContainer(viewContainer)
+        analysisWin.selectedViewContainer = viewContainer
       }
       
     }
@@ -125,7 +125,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         viewContainer.removeSlaveView(descriptor)
                 
         analysisWin.requestActive
-        analysisWin.setSelectedViewContainer(viewContainer)
+        analysisWin.selectedViewContainer = viewContainer
       }
         
     }

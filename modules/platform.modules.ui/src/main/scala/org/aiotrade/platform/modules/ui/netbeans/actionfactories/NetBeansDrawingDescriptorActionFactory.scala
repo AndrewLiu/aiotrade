@@ -96,7 +96,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
           }
                     
           analysisWin.requestActive
-          analysisWin.setSelectedViewContainer(viewContainer)
+          analysisWin.selectedViewContainer = viewContainer
         }
       }
             
@@ -120,7 +120,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
                     
           viewContainer.controller.isCursorCrossLineVisible = true
           analysisWin.requestActive
-          analysisWin.setSelectedViewContainer(viewContainer)
+          analysisWin.selectedViewContainer = viewContainer
         }
       }
     }
@@ -143,7 +143,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
           descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
                 
           AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
-            val masterView = analysisWin.getSelectedViewContainer.masterView
+            val masterView = analysisWin.selectedViewContainer.get.masterView
             masterView.asInstanceOf[WithDrawingPane].deleteDrawing(descriptor)
           }
         case _ =>

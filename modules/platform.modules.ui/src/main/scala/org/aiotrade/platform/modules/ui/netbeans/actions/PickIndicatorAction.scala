@@ -60,7 +60,7 @@ class PickIndicatorAction extends CallableSystemAction {
                 return
               }
             case Some(x) =>
-              x.getSelectedViewContainer.controller.contents
+              x.selectedViewContainer.get.controller.contents
           }
                 
           val secNode = NetBeansPersistenceManager.occupantNodeOf(contents)

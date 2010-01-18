@@ -97,7 +97,7 @@ class SaveToImageAction extends CallableSystemAction {
                     
             val dialog = new SaveToImageDialog(
               WindowManager.getDefault.getMainWindow,
-              analysisTc.getSelectedViewContainer
+              analysisTc.selectedViewContainer.get
             );
             dialog.setVisible(true);
                     
@@ -113,7 +113,7 @@ class SaveToImageAction extends CallableSystemAction {
             dialog.dispose();
                     
             try {
-              analysisTc.getSelectedViewContainer.saveToCustomSizeImage(file, "png", begTime, endTime, height);
+              analysisTc.selectedViewContainer foreach (_.saveToCustomSizeImage(file, "png", begTime, endTime, height))
             } catch {case ex: Exception => ErrorManager.getDefault().notify(ex)}
           }
         });

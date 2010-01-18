@@ -125,7 +125,7 @@ class AdjustYfactorAction extends CallableSystemAction {
   private def adjustYChartPercentInCanvas(yChartPercentInCanvas: Float) {
     val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
         
-    analysisTc.getSelectedViewContainer.masterView.yChartScale = yChartPercentInCanvas
+    analysisTc.selectedViewContainer.get.masterView.yChartScale = yChartPercentInCanvas
   }
 }
 

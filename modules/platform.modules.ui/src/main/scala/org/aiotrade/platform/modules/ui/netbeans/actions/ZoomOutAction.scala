@@ -50,18 +50,16 @@ class ZoomOutAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run() {
-            val tc = WindowManager.getDefault().getRegistry().getActivated();
+            val tc = WindowManager.getDefault.getRegistry.getActivated
             tc match {
               case x: AnalysisChartTopComponent =>
-                x.getSelectedViewContainer.controller.growWBar(-1);
+                x.selectedViewContainer.get.controller.growWBar(-1)
               case x: RealTimeChartsTopComponent =>
-                for (c <- x.getViewContainers) {
-                  c.controller.growWBar(-1);
-                }
+                x.getViewContainers foreach (_.controller.growWBar(+1))
               case x: RealTimeBoardTopComponent =>
                 x.realTimeChartViewContainer foreach (_.controller.growWBar(-1))
               case _ =>
-                JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), "Please select a view by clicking on it first!");
+                JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")
             }
           }
         });

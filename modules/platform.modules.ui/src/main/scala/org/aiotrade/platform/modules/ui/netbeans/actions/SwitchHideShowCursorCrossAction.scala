@@ -57,7 +57,7 @@ class SwitchHideShowCursorCrossAction extends CallableSystemAction {
           tc match {
             case _: AnalysisChartTopComponent =>
               for (ref <- AnalysisChartTopComponent.instanceRefs) {
-                controller = ref.get.getSelectedViewContainer.controller;
+                controller = ref.get.selectedViewContainer.get.controller;
                 controller.isCursorCrossLineVisible = !controller.isCursorCrossLineVisible
                 controller.updateViews
               }

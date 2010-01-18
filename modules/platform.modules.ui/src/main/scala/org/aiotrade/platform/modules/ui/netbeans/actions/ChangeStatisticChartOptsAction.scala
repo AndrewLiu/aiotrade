@@ -54,7 +54,7 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val selectedView = analysisTc.getSelectedViewContainer.selectedView
+            val selectedView = analysisTc.selectedViewContainer.get.selectedView
             val ind = selectedView.overlappingSers find (x => x.isInstanceOf[ProbMassIndicator]) getOrElse {return}
             val indicator = ind.asInstanceOf[Indicator]
 

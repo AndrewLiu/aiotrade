@@ -47,7 +47,7 @@ class RemoveDrawingLineAction extends CallableSystemAction {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val drawingPart = analysisTc.getSelectedViewContainer.masterView.asInstanceOf[WithDrawingPane].selectedDrawing
+            val drawingPart = analysisTc.selectedViewContainer.get.masterView.asInstanceOf[WithDrawingPane].selectedDrawing
             drawingPart.removeSelectedHandledChart
                     
           }

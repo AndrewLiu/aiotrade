@@ -50,7 +50,7 @@ class ChangeOptsAction extends CallableSystemAction {
         def run {
           val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                 
-          val selectedView = analysisWin.getSelectedViewContainer.selectedView
+          val selectedView = analysisWin.selectedViewContainer.get.selectedView
           if (selectedView == null) {
             return
           }
@@ -69,7 +69,7 @@ class ChangeOptsAction extends CallableSystemAction {
             return
           }
                 
-          val contents = analysisWin.getSelectedViewContainer.controller.contents
+          val contents = analysisWin.selectedViewContainer.get.controller.contents
           for (descriptor <- contents.lookupDescriptor(classOf[IndicatorDescriptor],
                                                        indicator.getClass.getName,
                                                        selectedView.mainSer.freq)

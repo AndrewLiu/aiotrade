@@ -97,9 +97,8 @@ class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {
             
       var freq = new TFreq(TUnit.Day, 1)
       AnalysisChartTopComponent.lookupTopComponent(contents.uniSymbol) foreach {analysisTc =>
-        val viewContainer = analysisTc.getSelectedViewContainer
-        if (viewContainer != null) {
-          freq = viewContainer.controller.masterSer.freq;
+        analysisTc.selectedViewContainer foreach {viewContainer =>
+          freq = viewContainer.controller.masterSer.freq
         }
       }
             

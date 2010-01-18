@@ -109,7 +109,7 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
                 
           val tc = WindowManager.getDefault.getRegistry.getActivated
           val viewContainer = tc match {
-            case x: AnalysisChartTopComponent => x.getSelectedViewContainer
+            case x: AnalysisChartTopComponent => x.selectedViewContainer.get
             case x: RealTimeChartTopComponent => x.getViewContainer
             case null => null
             case _ =>

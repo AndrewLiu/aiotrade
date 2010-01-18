@@ -156,7 +156,7 @@ class PickDrawingLineAction extends CallableSystemAction {
       item.setSelected(false);
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
 
-      val viewContainer = analysisWin.getSelectedViewContainer
+      val viewContainer = analysisWin.selectedViewContainer.get
       val masterView = viewContainer.masterView;
       if (!(masterView.isInstanceOf [WithDrawingPane])) {
         return;

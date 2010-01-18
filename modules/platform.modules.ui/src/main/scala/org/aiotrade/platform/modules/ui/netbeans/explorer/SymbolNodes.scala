@@ -122,7 +122,7 @@ object SymbolNodes {
   private def readContents(node: Node): AnalysisContents = {
     val xdo = node.getLookup.lookup(classOf[XMLDataObject])
     if (xdo == null) {
-      throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]));
+      throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
     }
     val readFrom = xdo.getPrimaryFile
     try {
@@ -723,7 +723,7 @@ object SymbolNodes {
       viewContainer.controller.scrollReferCursorToLeftSide
       viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator);
 
-      analysisTc.setSelectedViewContainer(viewContainer)
+      analysisTc.selectedViewContainer = viewContainer
       analysisTc.requestActive
     }
 
@@ -731,7 +731,7 @@ object SymbolNodes {
 
   /** Creating an action for adding a folder to organize stocks into groups */
   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
-    putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolNode], "SN_addfolderbutton"));
+    putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolNode], "SN_addfolderbutton"))
 
     def actionPerformed(ae: ActionEvent) {
       var floderName = JOptionPane.showInputDialog(

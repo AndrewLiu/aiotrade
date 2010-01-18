@@ -48,7 +48,7 @@ class RemoveCompareQuoteChartsAction extends CallableSystemAction {
           def run() {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val quoteChartview = analysisTc.getSelectedViewContainer.masterView.asInstanceOf[AnalysisQuoteChartView]
+            val quoteChartview = analysisTc.selectedViewContainer.get.masterView.asInstanceOf[AnalysisQuoteChartView]
             quoteChartview.getCompareIndicators match {
               case Seq(h: QuoteCompareIndicator, _*) =>
                 /** remove one each time, and this avoid java.util.ConcurrentModificationException */

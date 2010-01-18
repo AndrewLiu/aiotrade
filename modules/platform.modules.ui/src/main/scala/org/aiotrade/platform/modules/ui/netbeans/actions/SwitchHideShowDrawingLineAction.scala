@@ -113,7 +113,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
         def itemStateChanged(e: ItemEvent) {
           val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                 
-          val viewContainer = analysisWin.getSelectedViewContainer
+          val viewContainer = analysisWin.selectedViewContainer.get
           val masterView = viewContainer.masterView.asInstanceOf[WithDrawingPane]
           if (masterView.selectedDrawing == null) {
             return;

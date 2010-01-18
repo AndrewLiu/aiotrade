@@ -85,7 +85,8 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 
-/** This class implements serializbale by inheriting TopComponent, but should
+/**
+ * This class implements serializbale by inheriting TopComponent, but should
  * overide writeExternal() and readExternal() to implement own serializable
  * instead of via transient modifies.
  *
@@ -132,7 +133,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   private var supportedFreqsComboBox: JComboBox =_
     
   private var defaultViewContainer: ChartViewContainer = _
-  private var freqMapViewContainer = Map[TFreq, ChartViewContainer]();
+  private var freqToViewContainer = Map[TFreq, ChartViewContainer]();
     
     
   private var popupMenuForViewContainer: JPopupMenu = _
@@ -235,9 +236,8 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
     /** as the NetBeans window system manage focus in a strange manner, we should do: */
     addFocusListener(new FocusAdapter {
         override def focusGained(e: FocusEvent) {
-          val selectedViewContainer = getSelectedViewContainer
-          if (selectedViewContainer != null) {
-            selectedViewContainer.requestFocusInWindow
+          selectedViewContainer foreach {x =>
+            x.requestFocusInWindow
           }
         }
             
@@ -257,16 +257,16 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
      */
     UIManager.put("TabbedPane.contentBorderInsets", new Insets(2, 0, 0, 1))
     tabbedPane = new JTabbedPane(SwingConstants.TOP)
-    UIManager.put("TabbedPane.contentBorderInsets", oldInsets);
+    UIManager.put("TabbedPane.contentBorderInsets", oldInsets)
         
     tabbedPane.addChangeListener(new ChangeListener() {
-        private val selectedColor = new Color(177, 193, 209);
+        private val selectedColor = new Color(177, 193, 209)
             
         def stateChanged(e: ChangeEvent) {
           val tp = e.getSource.asInstanceOf[JTabbedPane]
                 
           for (i <- 0 until tp.getTabCount) {
-            tp.setBackgroundAt(i, null);
+            tp.setBackgroundAt(i, null)
           }
           val idx = tp.getSelectedIndex
           tp.setBackgroundAt(idx, selectedColor);
@@ -279,7 +279,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
                     
               /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
                     
-              val secNode = NetBeansPersistenceManager.occupantNodeOf(contents);
+              val secNode = NetBeansPersistenceManager.occupantNodeOf(contents)
               assert(secNode != null, "There should be at least one created node bound with descriptors here, as view has been opened!")
               for (groupNode <- secNode.getChildren().getNodes()) {
                 groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
@@ -325,7 +325,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
           val freq = e.getItem.asInstanceOf[TFreq]
           lookupViewContainer(freq) match {
             case Some(viewContainer) =>
-              setSelectedViewContainer(viewContainer)
+              selectedViewContainer_=(viewContainer)
             case None =>
               (sec.serOf(freq) match {
                   case None =>
@@ -337,7 +337,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
                 }
               ) foreach {ser =>
                 val viewContainer = addViewContainer(ser, contents, null)
-                setSelectedViewContainer(viewContainer)
+                selectedViewContainer_=(viewContainer)
               }
           }
         }
@@ -376,38 +376,34 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   private def addViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
     val controller = ChartingControllerFactory.createInstance(ser, contents)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this).get
-
-    var title = $title
-    if (title == null) {
-      title = ser.freq.name
-    }
-    title = " " + title + " "
+    val title = " " + (if ($title == null) ser.freq.name else $title) + " "
         
     tabbedPane.addTab(title, viewContainer)
         
-    freqMapViewContainer += (ser.freq -> viewContainer)
+    freqToViewContainer += (ser.freq -> viewContainer)
         
     /** inject popup menu from this TopComponent */
-    viewContainer.setComponentPopupMenu(popupMenuForViewContainer);
+    viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
         
     viewContainer
-  }
-    
-  def getSelectedViewContainer: ChartViewContainer = {
-    tabbedPane.getSelectedComponent match {
-      case x: ChartViewContainer => x
-      case _ => null
-    }        
   }
     
   def getTabbedPane: JTabbedPane = {
     tabbedPane
   }
     
-  def setSelectedViewContainer(viewContainer: ChartViewContainer) {
+  def selectedViewContainer: Option[ChartViewContainer] = {
+    tabbedPane.getSelectedComponent match {
+      case x: ChartViewContainer => Some(x)
+      case _ => None
+    }
+  }
+
+  def selectedViewContainer_=(viewContainer: ChartViewContainer) {
     /** check to avoid recursively call between tabbedPane and comboBox */
-    if (viewContainer ne getSelectedViewContainer) {
-      tabbedPane.setSelectedComponent(viewContainer)
+    selectedViewContainer match {
+      case Some(x) if x eq viewContainer =>
+      case _ => tabbedPane.setSelectedComponent(viewContainer)
     }
   }
     
@@ -467,18 +463,17 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   }
     
   private def updateToolbar {
-    val selectedViewContainer = getSelectedViewContainer
-    if (selectedViewContainer != null) {
-      SwitchCalendarTradingTimeViewAction.updateToolbar(selectedViewContainer);
-      SwitchAdjustQuoteAction.updateToolbar(selectedViewContainer);
-      SwitchHideShowDrawingLineAction.updateToolbar(selectedViewContainer);
+    selectedViewContainer foreach {x =>
+      SwitchCalendarTradingTimeViewAction.updateToolbar(x)
+      SwitchAdjustQuoteAction.updateToolbar(x)
+      SwitchHideShowDrawingLineAction.updateToolbar(x)
             
-      selectedViewContainer.requestFocusInWindow
+      x.requestFocusInWindow
     }
   }
     
   def lookupIndicator(descriptor: IndicatorDescriptor): Option[Indicator] = {
-    for (viewContainer <- freqMapViewContainer.valuesIterator) {
+    for (viewContainer <- freqToViewContainer.valuesIterator) {
       val freq = viewContainer.controller.masterSer.freq;
       if (freq.equals(descriptor.freq)) {
         viewContainer.lookupChartView(descriptor) foreach {chartView =>
@@ -499,7 +494,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   }
     
   def lookupDrawing(descriptor: DrawingDescriptor): Option[DrawingPane] = {
-    for (viewContainer <- freqMapViewContainer.valuesIterator) {
+    for (viewContainer <- freqToViewContainer.valuesIterator) {
       val freq = viewContainer.controller.masterSer.freq;
       if (freq.equals(descriptor.freq)) {
         val masterView = viewContainer.asInstanceOf[ChartViewContainer].masterView
@@ -516,12 +511,12 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   }
     
   def lookupViewContainer(freq: TFreq): Option[ChartViewContainer] = {
-    freqMapViewContainer.get(freq)
+    freqToViewContainer.get(freq)
   }
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    freqMapViewContainer = Map()
+    freqToViewContainer = Map()
     weeklyCombiner.dispose
     monthlyCombiner.dispose
         
