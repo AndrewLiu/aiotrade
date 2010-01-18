@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Localizing-Bundle: org/aiotrade/platform/modules/hotkey/Bundle.properties
+OpenIDE-Module-Layer: org/aiotrade/platform/modules/hotkey/resources/layer.xml

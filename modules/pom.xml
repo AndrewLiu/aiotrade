@@ -118,7 +118,7 @@
                     <useDefaultManifestFile>true</useDefaultManifestFile> <!-- to have the jar plugin pickup the nbm generated manifest -->
                 </configuration>
             </plugin>
-            
+
         </plugins>
     </build>
 
@@ -136,6 +136,7 @@
 
     <modules>
         <module>platform.modules.ui</module>
+        <module>platform.modules.hotkey</module>
     </modules>
 
 </project>

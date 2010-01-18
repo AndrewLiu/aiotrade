@@ -58,47 +58,22 @@ import org.openide.windows.WindowManager;
  * @author Caoyuan Deng
  */
 object PickDrawingLineAction {
-  private var toggleButton: JToggleButton = _
-  private var popupMenu: JPopupMenu = _
-}
-class PickDrawingLineAction extends CallableSystemAction {
-  import PickDrawingLineAction._
-    
-  private var menuItemListener: MyMenuItemListener = _
-  var handledCharts = Seq[HandledChart]()
 
-  def performAction {
-    java.awt.EventQueue.invokeLater(new Runnable {
-        def run {
-          toggleButton.setSelected(true)
-        }
-      })
-  }
+  private val handledCharts = PersistenceManager().lookupAllRegisteredServices(classOf[HandledChart], "HandledCharts")
+  private val toolbarPresenter: JToggleButton = createToolbarPresenter
 
-  def getName: String = {
-    "Pick Drawing Line"
-  }
+  private def createToolbarPresenter: JToggleButton = {
+    val menuItemListener: MyMenuItemListener = new MyMenuItemListener
 
-  def getHelpCtx: HelpCtx = {
-    HelpCtx.DEFAULT_HELP
-  }
-
-  override protected def asynchronous: Boolean = {
-    return false;
-  }
-
-  override def getToolbarPresenter: Component = {
     val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/drawingLine.png")
     val icon = new ImageIcon(iconImage)
 
-    toggleButton = new JToggleButton
+    val toggleButton = new JToggleButton
     toggleButton.setIcon(icon)
     toggleButton.setToolTipText("Pick Drawing Line")
 
-    handledCharts = PersistenceManager().lookupAllRegisteredServices(classOf[HandledChart], "HandledCharts")
-    popupMenu = new JPopupMenu
+    val popupMenu = new JPopupMenu
     popupMenu.setSelectionModel(new DefaultSingleSelectionModel)
-    menuItemListener = new MyMenuItemListener
     for (handledChart <- handledCharts) {
       /** it's a selection menu other than an action menu, so use JRadioButtonMenuItem instead of JMenuItem */
       val item = new JRadioButtonMenuItem(handledChart.toString)
@@ -145,7 +120,7 @@ class PickDrawingLineAction extends CallableSystemAction {
        * clear selected state. if want to do this, do not add items to buttonGroup. see bug report:
        * http://sourceforge.net/tracker/index.php?func=detail&aid=1579592&group_id=152032&atid=782880
        */
-      item.setSelected(false);
+      item.setSelected(false)
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
 
       val viewContainer = analysisWin.selectedViewContainer.get
@@ -194,4 +169,31 @@ class PickDrawingLineAction extends CallableSystemAction {
   }
 }
 
+class PickDrawingLineAction extends CallableSystemAction {
+  import PickDrawingLineAction._
 
+  def performAction {
+    java.awt.EventQueue.invokeLater(new Runnable {
+        def run {
+          toolbarPresenter.setSelected(true)
+        }
+      })
+  }
+
+  def getName: String = {
+    "Pick Drawing Line"
+  }
+
+  def getHelpCtx: HelpCtx = {
+    HelpCtx.DEFAULT_HELP
+  }
+
+  override protected def asynchronous: Boolean = {
+    false
+  }
+
+  override def getToolbarPresenter: Component = {
+    toolbarPresenter
+  }
+
+}

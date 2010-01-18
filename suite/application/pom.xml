@@ -6,7 +6,7 @@
         <artifactId>platform-suite</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>platform-application</artifactId>
     <packaging>nbm-application</packaging>
@@ -14,6 +14,11 @@
     <name>AIOTrade Platform Application</name>
 
     <dependencies>
+        <!--
+        all nb modules that will be packed must be incuded here,
+        even some of them have been declared dependencies by other nbm modules
+        -->
+
         <dependency>
             <groupId>org.netbeans.cluster</groupId>
             <artifactId>platform11</artifactId>
@@ -34,7 +39,14 @@
             <version>1.0-SNAPSHOT</version>
             <type>nbm</type>
         </dependency>
-        
+
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>platform-modules-hotkey</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
+
     </dependencies>
 
     <build>
