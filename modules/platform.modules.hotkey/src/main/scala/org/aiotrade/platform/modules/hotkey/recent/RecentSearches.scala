@@ -155,10 +155,10 @@ class RecentSearches private () {
         } catch {case ex: InterruptedException => Exceptions.printStackTrace(ex)}
         
         val rSize = model.getSize
-        var j = 0
+        var i = 0
         var break = false
-        while (j < rSize && !break) {
-          val res = model.getElementAt(j).asInstanceOf[ItemResult]
+        while (i < rSize && !break) {
+          val res = model.getElementAt(i).asInstanceOf[ItemResult]
           if (stripHTMLnames(res.displayName) == stripHTMLnames(name)) {
             action = res.action
             if (!action.isInstanceOf[FakeAction]) {
@@ -166,7 +166,7 @@ class RecentSearches private () {
               break = true
             }
           }
-          j += 1
+          i += 1
         }
       } else {
         action.run
