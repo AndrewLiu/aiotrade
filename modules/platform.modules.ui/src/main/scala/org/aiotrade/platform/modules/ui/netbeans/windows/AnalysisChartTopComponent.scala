@@ -193,8 +193,33 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
       sec.loadSer(quoteContract.freq)
     }
   }
-    
+
   private def initComponents {
+    setFont(LookFeel().axisFont)
+
+    setLayout(new BorderLayout)
+    defaultViewContainer = addViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+    setName(sec.name)
+
+    /** this component should setFocusable(true) to have the ability to grab the focus */
+    setFocusable(true)
+    /** as the NetBeans window system manage focus in a strange manner, we should do: */
+    addFocusListener(new FocusAdapter {
+        override def focusGained(e: FocusEvent) {
+          selectedViewContainer foreach {x =>
+            x.requestFocusInWindow
+          }
+        }
+
+        override def focusLost(e: FocusEvent) {
+        }
+      })
+
+    //tabbedPane.setFocusable(false);
+    //FocusOwnerChecker check = new FocusOwnerChecker();
+  }
+    
+  private def initComponents_old {
     setFont(LookFeel().axisFont)
         
     createTabbedPane
@@ -377,6 +402,20 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
     val controller = ChartingControllerFactory.createInstance(ser, contents)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this).get
     val title = " " + (if ($title == null) ser.freq.name else $title) + " "
+    add(viewContainer, BorderLayout.CENTER)
+
+    freqToViewContainer += (ser.freq -> viewContainer)
+
+    /** inject popup menu from this TopComponent */
+    viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
+
+    viewContainer
+  }
+
+  private def addViewContainer_old(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
+    val controller = ChartingControllerFactory.createInstance(ser, contents)
+    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this).get
+    val title = " " + (if ($title == null) ser.freq.name else $title) + " "
         
     tabbedPane.addTab(title, viewContainer)
         
@@ -387,7 +426,7 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
         
     viewContainer
   }
-    
+
   def getTabbedPane: JTabbedPane = {
     tabbedPane
   }

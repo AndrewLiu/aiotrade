@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.chartview
 
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
@@ -44,6 +45,7 @@ import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JTabbedPane
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.UIManager
@@ -51,6 +53,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
+import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 
 import org.aiotrade.lib.securities.Sec
@@ -91,6 +94,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var depthTable: JTable = _
   private var tickerTable: JTable = _
   private var tickerPane: JScrollPane = _
+  private var chartPane: JPanel = _
   private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
   private val symbol = new ValueCell
   private val sname = new ValueCell
@@ -104,7 +108,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val dayPercent = new ValueCell
   private val prevClose = new ValueCell
 
-	private val numbers = Array("①", "②", "③", "④", "⑤")
+  private val numbers = Array("①", "②", "③", "④", "⑤")
 
   /**
    * Creates new form RealtimeBoardPanel
@@ -128,20 +132,19 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   columeModel.getColumn(0).setMinWidth(22)
   columeModel.getColumn(1).setMinWidth(30)
 
-//        ChartingController controller = ChartingControllerFactory.createInstance(
-//                sec.getTickerSer(), contents);
-//        viewContainer = controller.createChartViewContainer(
-//                RealTimeChartViewContainer.class, this);
-//
-//        chartPane.setLayout(new BorderLayout());
-//        chartPane.add(viewContainer, BorderLayout.CENTER);
+  val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
+  viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
+  val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
+  tabbedPane.setFocusable(false)
 
+  chartPane.setLayout(new BorderLayout)
+  chartPane.add(viewContainer, BorderLayout.CENTER)
 
   private def initComponents {
     setFocusable(false)
 
     tickerPane = new JScrollPane
-    //chartPane = new JPanel();
+    chartPane  = new JPanel
 
     val infoModelData = Array(
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
@@ -296,14 +299,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     box.add(Box.createVerticalStrut(2))
 
     setLayout(new GridBagLayout)
-    add(box, new GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100, 0))
+    add(box,        new GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100,   0))
     add(tickerPane, new GBC(0, 1).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
-    //add(chartPane, new GBC(0,2).setFill(GBC.BOTH).setWeight(100, 100));
+    add(chartPane,  new GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
   }
 
   def update(tickerSnapshot: Observable) {
-		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
-    val neutralColor = LookFeel().getNeutralColor
+    val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    val neutralColor  = LookFeel().getNeutralColor
     val positiveColor = LookFeel().getPositiveColor
     val negativeColor = LookFeel().getNegativeColor
     symbol.value = ts.symbol
@@ -478,7 +481,7 @@ object ValueCell {
           case cell: ValueCell =>
             cell.row = i
             cell.column = j
-					case _ =>
+          case _ =>
         }
       }
     }

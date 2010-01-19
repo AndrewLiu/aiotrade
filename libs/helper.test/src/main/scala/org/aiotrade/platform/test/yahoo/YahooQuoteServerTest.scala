@@ -5,33 +5,19 @@
  * and open the template in the editor.
  */
 
-package org.aiotrade.lib.dataserver.yahoo
-
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.Assert._
-
-import org.aiotrade.platform.test._
+package org.aiotrade.platform.test.yahoo
 
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.dataserver.yahoo._
+import org.aiotrade.platform.test.StockCode
+import org.aiotrade.platform.test.TestHelper
 import scala.actors.Actor
 
 class YahooQuoteServerTest extends TestHelper {
 
-  @Before
-  def setUp: Unit = {
-  }
-
-  @After
-  def tearDown: Unit = {
-  }
-
-  @Test(timeout=1800000)
   def example = {
     //testBatch
   }
