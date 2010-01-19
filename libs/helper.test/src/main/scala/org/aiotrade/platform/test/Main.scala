@@ -7,8 +7,10 @@ package org.aiotrade.platform.test
 import java.awt.Color
 import java.awt.Dimension
 import javax.swing.JFrame
+import javax.swing.UIManager
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
 import org.aiotrade.lib.dataserver.yahoo.YahooTickerServer
+import org.aiotrade.lib.util.swing.plaf.HighContrastLAF
 
 
 /**
@@ -20,6 +22,8 @@ object Main {
    * @param args the command line arguments
    */
   def main(args: Array[String]) {
+    UIManager.setLookAndFeel(new HighContrastLAF)
+
     val frame = new JFrame
     val w = 800
     val h = 600
