@@ -56,6 +56,7 @@ class Result {
 
   private var items = new ArrayBuffer[Item](Query.MAX_NUM_OF_RESULTS)
   var isSearchFinished = false
+  private val pattern = Pattern.compile("<a\\s+href\\s*=\\s*\"(.*?)\"[^>]*>(.*?)</a>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE)
 
   def getItems: List[Item] = {
     items.toList
@@ -66,24 +67,23 @@ class Result {
     items.clear
     var html = $html
     try {
-      html = new String(html.getBytes, "UTF-8"); //NOI18N
+      html = new String(html.getBytes, "UTF-8") //NOI18N
     } catch {case ex: UnsupportedEncodingException => Logger.getLogger(classOf[Result].getName).log(Level.FINE, null, ex)}
 
-    val p = Pattern.compile("<a\\s+href\\s*=\\s*\"(.*?)\"[^>]*>(.*?)</a>", Pattern.CASE_INSENSITIVE|Pattern.MULTILINE)
-    val m = p.matcher(html)
+    val m = pattern.matcher(html)
     while( m.find) {
       val url = m.group(1)
       var title = m.group(2)
       if (url.startsWith("/")) {//NOI18N
         //look for previous/next links
-        val searchOffset = findSearchOffset( url );
+        val searchOffset = findSearchOffset( url )
         if (searchOffset > currentSearchOffset)
           isSearchFinished = false
       } else {
         if (!url.contains("google.com") ) {//NOI18N
           title = "<html>" + title //NOI18N
           val si = Item(url, title, null)
-          items + si
+          items += si
         }
       }
     }
@@ -116,7 +116,7 @@ class Result {
     
     val offset = url.substring(startIndex, endIndex)
     try {
-      return Integer.parseInt( offset );
+      return Integer.parseInt(offset)
     } catch {case ex: NumberFormatException =>}
 
     return -1

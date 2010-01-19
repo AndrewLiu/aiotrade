@@ -60,7 +60,7 @@ import org.aiotrade.platform.spi.hotkey.SearchRequest
 object ResultsModel {
   /** Amount of time during which model has to be unchanged in order to fire
    * changes to listeners. */
-  val COALESCE_TIME = 200;
+  val COALESCE_TIME = 200
   lazy val instance = new ResultsModel
 
   class ItemResult(val category: CategoryResult, sRequest: SearchRequest, val action: Runnable, $displayName: String,
@@ -70,7 +70,7 @@ object ResultsModel {
 
     private val HTML = "<html>"
 
-    val displayName = if (sRequest != null) highlightSubstring($displayName, sRequest) else $displayName;
+    val displayName = if (sRequest != null) highlightSubstring($displayName, sRequest) else $displayName
 
     def this(category: CategoryResult, sRequest: SearchRequest, action: Runnable, displayName: String) = {
       this(category, sRequest, action, displayName, null, null, null)
@@ -92,7 +92,7 @@ object ResultsModel {
       }
       // try to find substring
       val searchedText = sRequest.text
-      val index = text.toLowerCase().indexOf(searchedText.toLowerCase)
+      val index = text.toLowerCase.indexOf(searchedText.toLowerCase)
       if (index == -1) {
         return text
       }
@@ -145,13 +145,13 @@ class ResultsModel private () extends AbstractListModel with ActionListener {
 
   def getSize: Int = {
     if (results == null) {
-      return 0;
+      return 0
     }
     var size = 0
     for (cr <- results) {
       size += cr.items.size
     }
-    return size;
+    size
   }
 
   def getElementAt(index: Int): Object = {
@@ -160,16 +160,15 @@ class ResultsModel private () extends AbstractListModel with ActionListener {
     }
     // TBD - should probably throw AIOOBE if invalid index is on input
     var catIndex = index
-    var catSize = 0
-    var catItems: List[ItemResult] = null
     for (cr <- results) {
-      catItems = cr.items
-      catSize = catItems.size
+      val catItems = cr.items
+      val catSize = catItems.size
       if (catIndex < catSize) {
         return if (catIndex >= 0) catItems(catIndex) else null
       }
       catIndex -= catSize
     }
+    
     null
   }
 

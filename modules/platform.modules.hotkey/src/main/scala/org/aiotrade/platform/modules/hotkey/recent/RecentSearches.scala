@@ -146,7 +146,7 @@ class RecentSearches private () {
 
     private var action: Runnable = _ //remembered action
 
-    def run() {
+    def run {
       if (action == null || action.isInstanceOf [FakeAction]) {
         val model = ResultsModel.instance
         CommandEvaluator.evaluate(stripHTMLandPackageNames(name), model)

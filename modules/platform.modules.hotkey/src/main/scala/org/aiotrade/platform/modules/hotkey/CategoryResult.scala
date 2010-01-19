@@ -69,24 +69,24 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
   def addItem(item: ItemResult): Boolean = {
     LOCK synchronized {
       if (obsolete) {
-        return false;
+        return false
       }
       if (_items.size >= (if (allResults) ALL_MAX_RESULTS else MAX_RESULTS)) {
         if (!allResults) {
-          moreResults = true;
+          moreResults = true
         }
-        return false;
+        return false
       }
       _items += item
     }
         
     if (EventQueue.isDispatchThread) {
-      run();
+      run
     } else {
       SwingUtilities.invokeLater(this)
     }
         
-    return true;
+    true
   }
     
   /**
@@ -99,7 +99,7 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
     LOCK synchronized  {
       rItems = _items.toList
       if (moreResults) {
-        rItems ::= (new ItemResult(this, null, this, NbBundle.getMessage(getClass, "LBL_MoreResults")))
+        rItems ::= new ItemResult(this, null, this, NbBundle.getMessage(getClass, "LBL_MoreResults"))
       }
     }
     rItems
@@ -108,7 +108,7 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
   def isFirstItem(ir: ItemResult): Boolean = {
     LOCK synchronized {
       if (_items.size > 0 && _items(0).equals(ir)) {
-        return true;
+        return true
       }
     }
     false

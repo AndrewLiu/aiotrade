@@ -47,6 +47,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
+import javax.swing.JPanel
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -81,7 +82,7 @@ object QuickSearchPopup {
 
 }
 
-class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swing.JPanel
+class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
                                                                  with ListDataListener
                                                                  with ActionListener
                                                                  with TaskListener
@@ -118,13 +119,14 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
   initComponents
 
   rModel = ResultsModel.instance
-  jList1.setModel(rModel);
+  jList1.setModel(rModel)
   jList1.setCellRenderer(new SearchResultRender(this))
-  rModel.addListDataListener(this);
+  rModel.addListDataListener(this)
 
-  if( "Aqua".equals(UIManager.getLookAndFeel().getID) ) //NOI18N
+  if (UIManager.getLookAndFeel.getID == "Aqua") {//NOI18N
     jList1.setBackground(AbstractQuickSearchComboBar.getResultBackground)
-
+  }
+  
   updateStatusPanel
 
   def invoke {
@@ -151,7 +153,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
   }
 
   def getList: JList = {
-    return jList1;
+    jList1
   }
 
   def clearModel {
@@ -212,7 +214,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
     setBorder(javax.swing.BorderFactory.createLineBorder(AbstractQuickSearchComboBar.getPopupBorderColor))
     setLayout(new java.awt.BorderLayout)
 
-    jScrollPane1.setBorder(null);
+    jScrollPane1.setBorder(null)
     jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
     jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER)
 
@@ -238,7 +240,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
     gridBagConstraints.weightx = 1.0
     statusPanel.add(searchingSep, gridBagConstraints)
 
-    searchingLabel.setText(org.openide.util.NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.searchingLabel.text")); // NOI18N
+    searchingLabel.setText(NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.searchingLabel.text")) // NOI18N
     gridBagConstraints = new java.awt.GridBagConstraints
     gridBagConstraints.gridx = 0
     gridBagConstraints.gridy = 1
@@ -248,18 +250,18 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
 
     noResultsLabel.setForeground(java.awt.Color.red)
     noResultsLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-    noResultsLabel.setText(org.openide.util.NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.noResultsLabel.text")); // NOI18N
+    noResultsLabel.setText(NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.noResultsLabel.text")) // NOI18N
     noResultsLabel.setFocusable(false)
     gridBagConstraints = new java.awt.GridBagConstraints
     gridBagConstraints.gridx = 0
     gridBagConstraints.gridy = 3
-    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL
     gridBagConstraints.weightx = 1.0
     statusPanel.add(noResultsLabel, gridBagConstraints)
     gridBagConstraints = new java.awt.GridBagConstraints
     gridBagConstraints.gridx = 0
     gridBagConstraints.gridy = 4
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH
     gridBagConstraints.weightx = 1.0
     statusPanel.add(hintSep, gridBagConstraints)
 
@@ -325,7 +327,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
     val lPane = JLayeredPane.getLayeredPaneAbove(comboBar)
     if (lPane == null) {
       // #162075 - return when comboBar not yet seeded in AWT hierarchy
-      return;
+      return
     }
     if (!isDisplayable) {
       lPane.add(this, JLayeredPane.POPUP_LAYER.intValue + 1)
@@ -341,7 +343,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
       if (modelSize > 0 && !isVisible) {
         jList1.setSelectedIndex(0)
       }
-      if (jList1.getSelectedIndex() >= modelSize) {
+      if (jList1.getSelectedIndex >= modelSize) {
         jList1.setSelectedIndex(modelSize - 1)
       }
       setVisible(true)
@@ -405,7 +407,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends javax.swin
     val preferredSize = jList1.getPreferredSize
 
     preferredSize.width = width
-    preferredSize.height += statusPanel.getPreferredSize().height + 3;
+    preferredSize.height += statusPanel.getPreferredSize.height + 3
 
     result.setSize(preferredSize)
   }

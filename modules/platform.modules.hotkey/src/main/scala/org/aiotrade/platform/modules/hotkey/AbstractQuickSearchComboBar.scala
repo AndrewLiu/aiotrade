@@ -258,7 +258,7 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
 
   protected def maybeShowPopup(evt: MouseEvent) {
     if (evt != null && !SwingUtilities.isLeftMouseButton(evt)) {
-      return;
+      return
     }
 
     val pm = new JPopupMenu
@@ -273,7 +273,7 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
 
     for (cat <- ProviderModel.instance.categories) {
       if (!CommandEvaluator.RECENT.equals(cat.name)) {
-        val item = new JRadioButtonMenuItem(cat.displayName, cat == evalCat);
+        val item = new JRadioButtonMenuItem(cat.displayName, cat == evalCat)
         item.putClientProperty(CATEGORY, cat)
         item.addActionListener(this)
         pm.add(item)

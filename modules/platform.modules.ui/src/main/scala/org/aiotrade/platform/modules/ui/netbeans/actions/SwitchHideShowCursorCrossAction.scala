@@ -29,14 +29,10 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.platform.modules.ui.netbeans.actions;
-import java.lang.ref.WeakReference;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
-import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
@@ -46,32 +42,32 @@ import org.openide.windows.WindowManager;
 class SwitchHideShowCursorCrossAction extends CallableSystemAction {
     
   def performAction {
-    java.awt.EventQueue.invokeLater(new Runnable() {
-        def run() {
-          val tc = WindowManager.getDefault().getRegistry().getActivated();
+    java.awt.EventQueue.invokeLater(new Runnable {
+        def run {
+          val tc = WindowManager.getDefault.getRegistry.getActivated
           if (tc == null) {
-            return;
+            return
           }
                 
-          var controller: ChartingController = null;
           tc match {
             case _: AnalysisChartTopComponent =>
               for (ref <- AnalysisChartTopComponent.instanceRefs) {
-                controller = ref.get.selectedViewContainer.get.controller;
+                val controller = ref.get.selectedViewContainer.get.controller
                 controller.isCursorCrossLineVisible = !controller.isCursorCrossLineVisible
                 controller.updateViews
               }
             case _: RealTimeChartsTopComponent =>
               for (ref <- RealTimeChartsTopComponent.instanceRefs) {
                 for (vc <- ref.get.getViewContainers) {
-                  controller = vc.controller;
+                  val controller = vc.controller
                   controller.isCursorCrossLineVisible = !controller.isCursorCrossLineVisible
                   controller.updateViews
                 }
               }
+            case _ =>
           }
         }
-      });
+      })
         
   }
     

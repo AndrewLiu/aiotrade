@@ -66,7 +66,7 @@ class QuickSearchComboBar(ks: KeyStroke) extends AbstractQuickSearchComboBar(ks)
   private var jScrollPane1: javax.swing.JScrollPane = _
   private var jSeparator1: javax.swing.JSeparator = _
 
-  val findIcon = new javax.swing.ImageIcon(getClass.getResource("/org/aiotrade/platform/modules/hotkey/resources/find.png")) // NOI18N
+  val findIcon = new ImageIcon(getClass.getResource("/org/aiotrade/platform/modules/hotkey/resources/find.png")) // NOI18N
 
   initComponents
 
@@ -86,8 +86,6 @@ class QuickSearchComboBar(ks: KeyStroke) extends AbstractQuickSearchComboBar(ks)
         index = (index + 1) % 8
       }
     })
-
-
 
   private def initComponents {
     jPanel1 = new javax.swing.JPanel
@@ -193,7 +191,7 @@ class QuickSearchComboBar(ks: KeyStroke) extends AbstractQuickSearchComboBar(ks)
       new Dimension(computePrefWidth, orig.height)
     }
 
-    override def getPreferredSize: Dimension =  {
+    override def getPreferredSize: Dimension = {
       prefWidth
     }
 

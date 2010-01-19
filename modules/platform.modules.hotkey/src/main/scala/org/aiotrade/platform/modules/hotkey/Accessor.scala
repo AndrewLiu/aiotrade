@@ -60,7 +60,7 @@ object Accessor {
   try {
     Class.forName(c.getName, true, c.getClassLoader)
   } catch {case ex: ClassNotFoundException => assert(false, ex)}
-  //assert DEFAULT != null : "The DEFAULT field must be initialized";
+  //assert(DEFAULT != null, "The DEFAULT field must be initialized")
 }
 
 abstract class Accessor {

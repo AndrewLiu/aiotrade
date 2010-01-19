@@ -62,7 +62,7 @@ object Query {
 
   //restrict search for this site only
   //maximum number of search results requested
-  val MAX_NUM_OF_RESULTS = 50;
+  val MAX_NUM_OF_RESULTS = 50
   private val SITE_SEARCH = getSiteSearch
   //google doesn't allow searching in site subfolders, so we must make sure
   //the links we found have the following patterns in their URLs
@@ -77,11 +77,9 @@ object Query {
 
   private def getUrlPatterns: Array[String] = {
     try {
-      val patterns = NbBundle.getMessage(classOf[Query], "quicksearch.web.url_patterns" ); //NOI18N
-      return patterns.split("\\s|,|;|:" );
-    } catch {case ex: MissingResourceException =>}
-
-    null
+      val patterns = NbBundle.getMessage(classOf[Query], "quicksearch.web.url_patterns" ) //NOI18N
+      patterns.split("\\s|,|;|:" )
+    } catch {case ex: MissingResourceException =>; null}
   }
 }
 
@@ -97,14 +95,14 @@ class Query private () {
     searchThread = new Thread(createSearch(searchString, res, 0))
     searchThread.start
     try {
-      searchThread.join(20*1000);
+      searchThread.join(20*1000)
     } catch {case ex: InterruptedException =>}
 
     res
   }
     
   def searchMore(searchString: String ): Result = {
-    searchOffset += MAX_NUM_OF_RESULTS;
+    searchOffset += MAX_NUM_OF_RESULTS
     val res = new Result
     val searchMoreThread = new Thread(createSearch(searchString, res, searchOffset))
     searchMoreThread.start
@@ -128,27 +126,27 @@ class Query private () {
   private def createSearch(searchString: String, result: Result, searchOffset: Int): Runnable = {
     val res = new Runnable {
       def run() {
-        var query = searchString;
-        query = query.replaceAll( " ", "+" ); //NOI18N //NOI18N
-        query = query.replaceAll( "#", "%23" ); //NOI18N //NOI18N
-        query += "&num=" + MAX_NUM_OF_RESULTS; //NOI18N
-        query += "&hl=" + Locale.getDefault().getLanguage(); //NOI18N
-        if( null != SITE_SEARCH )
-          query += "&sitesearch=" + SITE_SEARCH; //NOI18N
-        if( searchOffset > 0 ) {
-          query += "&start=" + searchOffset; //NOI18N
+        var query = searchString
+        query = query.replaceAll(" ", "+") //NOI18N //NOI18N
+        query = query.replaceAll("#", "%23") //NOI18N //NOI18N
+        query += "&num=" + MAX_NUM_OF_RESULTS //NOI18N
+        query += "&hl=" + Locale.getDefault.getLanguage //NOI18N
+        if (null != SITE_SEARCH )
+          query += "&sitesearch=" + SITE_SEARCH //NOI18N
+        if (searchOffset > 0 ) {
+          query += "&start=" + searchOffset //NOI18N
         }
         try {
-          val s = new Socket("google.com", 80); //NOI18N
-          val p = new PrintStream(s.getOutputStream());
-          p.print("GET /search?q=" + query + " HTTP/1.0\r\n"); //NOI18N //NOI18N
+          val s = new Socket("google.com", 80) //NOI18N
+          val p = new PrintStream(s.getOutputStream)
+          p.print("GET /search?q=" + query + " HTTP/1.0\r\n") //NOI18N //NOI18N
           //fake browser headers
-          p.print("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0\r\n"); //NOI18N
-          p.print("Connection: close\r\n\r\n"); //NOI18N
+          p.print("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0\r\n") //NOI18N
+          p.print("Connection: close\r\n\r\n") //NOI18N
           //TODO proxy
           val in = new InputStreamReader(s.getInputStream)
 
-          val buffer = new BufferedReader(in);
+          val buffer = new BufferedReader(in)
 
           var line: String = null
           val rawHtml = new StringBuffer

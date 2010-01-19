@@ -80,7 +80,7 @@ class QuickSearchAction extends CallableSystemAction {
   }
 
   override protected def asynchronous = {
-    false;
+    false
   }
 
   override def getToolbarPresenter: java.awt.Component = {

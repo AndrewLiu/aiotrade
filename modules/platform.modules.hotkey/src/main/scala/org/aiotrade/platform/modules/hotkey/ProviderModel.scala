@@ -56,8 +56,8 @@ import scala.collection.mutable.ArrayBuffer
  */
 object ProviderModel {
   /** folder in layer file system where provider of fast access content are searched for */
-  private val SEARCH_PROVIDERS_FOLDER = "/QuickSearch"; //NOI18N
-  private val COMMAND_PREFIX = "command"; //NOI18N
+  private val SEARCH_PROVIDERS_FOLDER = "/QuickSearch" //NOI18N
+  private val COMMAND_PREFIX = "command" //NOI18N
 
   val instance: ProviderModel = new ProviderModel
 
@@ -83,8 +83,8 @@ object ProviderModel {
                                                                "Obtaining display name for " + curFO + " failed.", ex)
       }
 
-      var commandPrefix: String = null;
-      val cpAttr = curFO.getAttribute(COMMAND_PREFIX);
+      var commandPrefix: String = null
+      val cpAttr = curFO.getAttribute(COMMAND_PREFIX)
       if (cpAttr.isInstanceOf[String]) {
         commandPrefix = cpAttr.asInstanceOf[String]
       }
@@ -108,7 +108,6 @@ object ProviderModel {
     }
 
   } // end of Category
-
 
 }
 

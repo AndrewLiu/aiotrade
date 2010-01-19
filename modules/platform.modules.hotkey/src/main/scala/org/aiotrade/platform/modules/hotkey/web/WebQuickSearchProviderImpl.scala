@@ -59,15 +59,16 @@ object WebQuickSearchProviderImpl {
   private def createAction(url: String): Runnable = {
     new Runnable {
       def run {
-        val extendedUrl = appendId( url );
+        val extendedUrl = appendId(url)
         try {
           val displayer = HtmlBrowser.URLDisplayer.getDefault
           if (displayer != null) {
-            displayer.showURL(new URL(extendedUrl));
+            displayer.showURL(new URL(extendedUrl))
           }
         } catch {case ex: Exception =>
             StatusDisplayer.getDefault.setStatusText(
-              NbBundle.getMessage(classOf[WebQuickSearchProviderImpl], "Err_CannotDisplayURL", extendedUrl)) //NOI18N
+              NbBundle.getMessage(classOf[WebQuickSearchProviderImpl], "Err_CannotDisplayURL", extendedUrl)
+            ) //NOI18N
             Toolkit.getDefaultToolkit.beep
             Logger.getLogger(classOf[WebQuickSearchProviderImpl].getName).log(Level.FINE, null, ex)
         }
@@ -76,14 +77,14 @@ object WebQuickSearchProviderImpl {
   }
 
   private def appendId(url: String): String = {
-    val res = new StringBuffer(url)
+    val sb = new StringBuffer(url)
     if (url.contains("?") ) { //NOI18N
-      res.append('&') //NOI18N
+      sb.append('&') //NOI18N
     } else {
-      res.append('?') //NOI18N
+      sb.append('?') //NOI18N
     }
-    res.append("cid=925878")
-    res.toString
+    sb.append("cid=925878")
+    sb.toString
   }
 }
 

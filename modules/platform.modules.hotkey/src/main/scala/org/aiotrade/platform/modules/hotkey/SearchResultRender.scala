@@ -62,23 +62,24 @@ import org.openide.util.Utilities;
 object SearchResultRender {
   def getKeyStrokeAsText(keyStroke: KeyStroke): String = {
     if (keyStroke == null)  return ""
+
     val modifiers = keyStroke.getModifiers
-    val sb = new StringBuffer ();
+    val sb = new StringBuffer
     if ((modifiers & InputEvent.CTRL_DOWN_MASK) > 0)
-      sb.append ("Ctrl+");
+      sb append "Ctrl+"
     if ((modifiers & InputEvent.ALT_DOWN_MASK) > 0)
-      sb.append ("Alt+");
+      sb append "Alt+"
     if ((modifiers & InputEvent.SHIFT_DOWN_MASK) > 0)
-      sb.append ("Shift+");
+      sb append "Shift+"
     if ((modifiers & InputEvent.META_DOWN_MASK) > 0)
-      if (Utilities.isMac()) {
+      if (Utilities.isMac) {
         // Mac cloverleaf symbol
-        sb.append ("\u2318+");
+        sb append "\u2318+"
       } else if (isSolaris) {
         // Sun meta symbol
-        sb.append ("\u25C6+");
+        sb append "\u25C6+"
       } else {
-        sb.append ("Meta+");
+        sb append "Meta+"
       }
     if (keyStroke.getKeyCode != KeyEvent.VK_SHIFT &&
         keyStroke.getKeyCode != KeyEvent.VK_CONTROL &&
@@ -86,16 +87,14 @@ object SearchResultRender {
         keyStroke.getKeyCode != KeyEvent.VK_ALT &&
         keyStroke.getKeyCode != KeyEvent.VK_ALT_GRAPH
     )
-      sb.append (Utilities.keyToString (
-          KeyStroke.getKeyStroke (keyStroke.getKeyCode (), 0)
-        ))
+      sb append Utilities.keyToString(KeyStroke.getKeyStroke(keyStroke.getKeyCode, 0))
 
     sb.toString
   }
 
   private def isSolaris: Boolean = {
-    val osName = System.getProperty ("os.name");
-    osName != null && osName.startsWith ("SunOS");
+    val osName = System.getProperty ("os.name")
+    osName != null && osName.startsWith ("SunOS")
   }
 
 
@@ -107,7 +106,7 @@ object SearchResultRender {
 
     // no need to truncate non html text, JLabel will do it itself
     if (!text.startsWith("<html>")) {
-      return;
+      return
     }
 
     val prefWidth = label.getPreferredSize().width
@@ -141,20 +140,20 @@ class SearchResultRender(popup: QuickSearchPopup) extends JLabel with ListCellRe
     val ir = value.asInstanceOf[ItemResult]
     val shortcut = ir.shortcut
     resultLabel.setText(ir.displayName)
-    truncateLabel(resultLabel);
+    truncateLabel(resultLabel)
     if (shortcut != null && shortcut.size > 0 && !shortcut.isEmpty) {
       // TBD - display multi shortcuts
-      shortcutLabel.setText(getKeyStrokeAsText(shortcut.head));
-      itemPanel.add(shortcutLabel, BorderLayout.EAST);
+      shortcutLabel.setText(getKeyStrokeAsText(shortcut.head))
+      itemPanel.add(shortcutLabel, BorderLayout.EAST)
     } else {
-      itemPanel.remove(shortcutLabel);
+      itemPanel.remove(shortcutLabel)
     }
 
     val cr = ir.category
     if (cr.isFirstItem(ir)) {
       categoryLabel.setText(cr.category.displayName)
       if (index > 0) {
-        rendererComponent.add(dividerLine, BorderLayout.NORTH);
+        rendererComponent.add(dividerLine, BorderLayout.NORTH)
       }
     } else {
       categoryLabel.setText("")

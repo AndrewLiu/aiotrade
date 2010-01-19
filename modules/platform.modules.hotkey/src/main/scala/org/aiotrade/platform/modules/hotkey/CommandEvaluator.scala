@@ -130,14 +130,12 @@ object CommandEvaluator {
    *
    * @return true if providers are expected to return all results, false otherwise
    */
-  private def getProviderCategories (commands: Array[String], result: ArrayBuffer[Category]): Boolean = {
+  private def getProviderCategories(commands: Array[String], result: ArrayBuffer[Category]): Boolean = {
     val cats = ProviderModel.instance.categories
 
     // always include recent searches
-    for (cat <- cats) {
-      if (RECENT.equals(cat.name)) {
-        result += cat
-      }
+    for (cat <- cats if RECENT.equals(cat.name)) {
+      result += cat
     }
 
     // skip all but recent if empty string came
@@ -197,7 +195,7 @@ object CommandEvaluator {
         for (task <- tasks) {
           try {
             // wait no longer then one minute
-            task.waitFinished(TIMEOUT);
+            task.waitFinished(TIMEOUT)
           } catch {case ex: InterruptedException =>}
         }
       } finally {
