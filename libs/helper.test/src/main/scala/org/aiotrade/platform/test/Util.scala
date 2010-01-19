@@ -84,7 +84,7 @@ class Util {
     val locale = Locale.getDefault
 
     val laf = new CityLights
-    laf.setAntiAlias(true)
+    laf.setAntiAlias(false)
     EAST_REGIONS find (_.getCountry.equals(locale.getCountry)) foreach {x =>
       laf.setPositiveNegativeColorReversed(true)
     }

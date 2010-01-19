@@ -154,7 +154,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     )
     infoModel = new AttributiveCellTableModel(
       infoModelData.asInstanceOf[Array[Array[Any]]],
-      Array("A", "B", "C", "D").asInstanceOf[Array[Any]]
+      Array[Any]("A", "B", "C", "D")
     )
 
     infoCellAttr = infoModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -169,23 +169,22 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       sname.value = tickerContract.shortName
     }
 
-    for (cell <- Array(
-        lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen
-      )) {
+    for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.column)
     }
 
     infoTable = new MultiSpanCellTable(infoModel)
     infoTable.setDefaultRenderer(classOf[Object], new AttributiveCellRenderer)
-    infoTable.setFocusable(false);
-    infoTable.setCellSelectionEnabled(false);
-    infoTable.setShowHorizontalLines(false);
-    infoTable.setShowVerticalLines(false);
+    infoTable.setFocusable(false)
+    infoTable.setCellSelectionEnabled(false)
+    infoTable.setShowHorizontalLines(false)
+    infoTable.setShowVerticalLines(false)
     infoTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().heavyBackgroundColor))
+    infoTable.setForeground(Color.WHITE)
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
     depthModel = new AttributiveCellTableModel(
-      Array(
+      Array[Array[Any]](
         Array("卖⑤", null, null),
         Array("卖④", null, null),
         Array("卖③", null, null),
@@ -197,10 +196,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array("买③", null, null),
         Array("买④", null, null),
         Array("买⑤", null, null)
-      ).asInstanceOf[Array[Array[Any]]],
-      Array(
+      ),
+      Array[Any](
         BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size")
-      ).asInstanceOf[Array[Any]]
+      )
     )
 
     val depth = 5
@@ -235,10 +234,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     depthTable.setShowHorizontalLines(false)
     depthTable.setShowVerticalLines(false)
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
+    depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
 
     tickerModel = new DefaultTableModel(
-      Array(
+      Array[Array[Object]](
         Array(null, null, null),
         Array(null, null, null),
         Array(null, null, null),
@@ -249,10 +249,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array(null, null, null),
         Array(null, null, null),
         Array(null, null, null)
-      ).asInstanceOf[Array[Array[Object]]],
-      Array(
+      ),
+      Array[Object](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
-      ).asInstanceOf[Array[Object]]
+      )
     ) {
 
       val canEdit = Array(
@@ -287,16 +287,24 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       }
     }
     infoBox.setBackground(LookFeel().heavyBackgroundColor)
-    infoBox.add(Box.createVerticalStrut(5))
+    val strut1 = Box.createVerticalStrut(5)
+    strut1.setForeground(LookFeel().heavyBackgroundColor)
+    infoBox.add(strut1)
     infoBox.add(infoTable)
-    infoBox.add(Box.createVerticalStrut(4))
+    val strut2 = Box.createVerticalStrut(4)
+    strut2.setForeground(LookFeel().heavyBackgroundColor)
+    infoBox.add(strut2)
 
     // put fix size components to box
     val box = Box.createVerticalBox
     box.add(infoBox)
-    box.add(Box.createVerticalStrut(2))
+    val strut3 = Box.createVerticalStrut(2)
+    strut3.setForeground(LookFeel().heavyBackgroundColor)
+    box.add(strut3)
     box.add(depthTable)
-    box.add(Box.createVerticalStrut(2))
+    val strut4 = Box.createVerticalStrut(2)
+    strut4.setForeground(LookFeel().heavyBackgroundColor)
+    box.add(strut4)
 
     setLayout(new GridBagLayout)
     add(box,        new GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100,   0))
@@ -315,22 +323,22 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     val currentSize =
       if (prevTicker != null) {
-        (snapshotTicker(Ticker.DAY_VOLUME) - prevTicker(Ticker.DAY_VOLUME)).intValue
+        (snapshotTicker(Ticker.DAY_VOLUME) - prevTicker(Ticker.DAY_VOLUME)).toInt
       } else 0
 
     val depth = snapshotTicker.depth
     val dealRow = 5
     depthModel.setValueAt("%8.2f" format snapshotTicker(Ticker.LAST_PRICE), dealRow, 1)
-    depthModel.setValueAt(if (prevTicker == null) "-" else currentSize, dealRow, 2)
+    depthModel.setValueAt(if (prevTicker == null) "-" else currentSize,     dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
       depthModel.setValueAt("%8.2f" format snapshotTicker.askPrice(askIdx), askRow, 1)
-      depthModel.setValueAt(snapshotTicker.askSize(askIdx).intValue.toString, askRow, 2)
+      depthModel.setValueAt(snapshotTicker.askSize(askIdx).toInt.toString,  askRow, 2)
       val bidIdx = i
       val bidRow = depth + 1 + i
       depthModel.setValueAt("%8.2f" format snapshotTicker.bidPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt(snapshotTicker.bidSize(bidIdx).intValue.toString, bidRow, 2)
+      depthModel.setValueAt(snapshotTicker.bidSize(bidIdx).toInt.toString,  bidRow, 2)
     }
 
     marketCal.setTimeInMillis(snapshotTicker.time)
@@ -345,7 +353,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     dayPercent.value  = "%+3.2f%%" format snapshotTicker.changeInPercent
     dayVolume.value   = snapshotTicker(Ticker.DAY_VOLUME).toString
 
-    var fgColor = Color.BLACK
+    var fgColor = Color.WHITE
     var bgColor = neutralColor
     if (snapshotTicker(Ticker.DAY_CHANGE) > 0) {
       fgColor = Color.WHITE
@@ -354,9 +362,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       fgColor = Color.WHITE
       bgColor = negativeColor
     }
-    infoCellAttr.setForeground(fgColor, dayChange.row, dayChange.column)
+    infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.column)
     infoCellAttr.setForeground(fgColor, dayPercent.row, dayPercent.column)
-    infoCellAttr.setBackground(bgColor, dayChange.row, dayChange.column)
+    infoCellAttr.setBackground(bgColor, dayChange.row,  dayChange.column)
     infoCellAttr.setBackground(bgColor, dayPercent.row, dayPercent.column)
 
     /**
@@ -365,10 +373,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
      * @see UpdateServer.class in AbstractTickerDataServer.class and YahooTickerDataServer.class
      */
     if (prevTicker != null && snapshotTicker.isDayVolumeChanged(prevTicker)) {
-      fgColor = Color.BLACK;
-      bgColor = neutralColor;
+      fgColor = Color.WHITE
+      bgColor = neutralColor
       snapshotTicker.compareLastCloseTo(prevTicker) match {
-        case 1 =>
+        case  1 =>
           fgColor = Color.WHITE
           bgColor = positiveColor
         case -1 =>
@@ -378,10 +386,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       }
 
     }
-    infoCellAttr.setForeground(fgColor, lastPrice.row, lastPrice.column)
-    infoCellAttr.setBackground(bgColor, lastPrice.row, lastPrice.column)
-    depthCellAttr.setForeground(fgColor, dealRow, 1) // last deal
-    depthCellAttr.setBackground(bgColor, dealRow, 1) // last deal
+    infoCellAttr  setForeground (fgColor, lastPrice.row, lastPrice.column)
+    infoCellAttr  setBackground (bgColor, lastPrice.row, lastPrice.column)
+    depthCellAttr setForeground (fgColor, dealRow, 1) // last deal
+    depthCellAttr setBackground (bgColor, dealRow, 1) // last deal
 
     val tickerRow = Array(
       sdf.format(lastTradeTime),
@@ -409,7 +417,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
 
-    this.setForeground(Color.BLACK)
+    this.setForeground(Color.WHITE)
     this.setBackground(LookFeel().backgroundColor)
     this.setOpaque(true)
 
@@ -418,7 +426,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
                                                hasFocus: Boolean, row: Int, column: Int): Component = {
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
-      this.setForeground(Color.BLACK)
+      this.setForeground(Color.WHITE)
       this.setBackground(LookFeel().backgroundColor)
       this.setText(null)
 
@@ -463,11 +471,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def test {
-    tickerModel.addRow(Array("00:01", "12334", "1").asInstanceOf[Array[Object]])
-    tickerModel.addRow(Array("00:02", "12333", "1234").asInstanceOf[Array[Object]])
-    tickerModel.addRow(Array("00:03", "12335", "12345").asInstanceOf[Array[Object]])
-    tickerModel.addRow(Array("00:04", "12334", "123").asInstanceOf[Array[Object]])
-    tickerModel.addRow(Array("00:05", "12334", "123").asInstanceOf[Array[Object]])
+    tickerModel.addRow(Array[Object]("00:01", "12334",     "1"))
+    tickerModel.addRow(Array[Object]("00:02", "12333",  "1234"))
+    tickerModel.addRow(Array[Object]("00:03", "12335", "12345"))
+    tickerModel.addRow(Array[Object]("00:04", "12334",   "123"))
+    tickerModel.addRow(Array[Object]("00:05", "12334",   "123"))
     showCell(tickerTable, tickerTable.getRowCount - 1, 0)
   }
 }
