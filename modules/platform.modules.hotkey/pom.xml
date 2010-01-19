@@ -55,7 +55,7 @@
         </dependency>
 
         <!-- aiotrade modules -->
-        <dependency>
+        <!--dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-charting</artifactId>
             <version>${project.version}</version>
@@ -81,13 +81,12 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- runtime dependencies -->
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-indicator-basic</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
-        </dependency>
+        </dependency-->
 
     </dependencies>
 
