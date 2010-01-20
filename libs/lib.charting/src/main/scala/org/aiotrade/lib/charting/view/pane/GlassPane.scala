@@ -296,22 +296,23 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
     var begIdx = 2
     val overlappingSers = view.overlappingSers
     for (ser <- overlappingSers) {
-      var label = overlappingSersToNameLabel.get(ser).getOrElse(null)
-      var button = overlappingSersToCloseButton.get(ser) match {
-        case Some(x) => 
+      val (button, label) = (overlappingSersToCloseButton.get(ser), overlappingSersToNameLabel.get(ser)) match {
+        case (Some(button), Some(label)) =>
           begIdx += 2
-          x
-        case None =>
-          val buttonx = createCloseButton(ser)
-          label = createNameLabel(ser)
 
-          titlePanel.add(buttonx, begIdx)
+          (button, label)
+        case _ =>
+          val button = createCloseButton(ser)
+          val label  = createNameLabel(ser)
+
+          titlePanel.add(button, begIdx)
           begIdx += 1
           titlePanel.add(label, begIdx)
           begIdx += 1
-          overlappingSersToCloseButton.put(ser, buttonx)
+          overlappingSersToCloseButton.put(ser, button)
           overlappingSersToNameLabel.put(ser, label)
-          buttonx
+          
+          (button, label)
       }
 
       button.setForeground(LookFeel().axisColor)
@@ -706,8 +707,8 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
             val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
             var volumeSum = 0f
-            val rowBeg = math.min(referRow, mouseRow)
-            val rowEnd = math.max(referRow, mouseRow)
+            val rowBeg = Math.min(referRow, mouseRow)
+            val rowEnd = Math.max(referRow, mouseRow)
             var i = rowBeg
             while (i <= rowEnd) {
               item = quoteSer.itemOfRow(i).asInstanceOf[QuoteItem]

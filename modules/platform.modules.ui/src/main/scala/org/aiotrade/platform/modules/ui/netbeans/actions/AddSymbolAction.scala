@@ -30,21 +30,15 @@
  */
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 
-import java.io.IOException
-import java.io.PrintStream
-import javax.swing.JOptionPane;
-import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
-import org.aiotrade.lib.math.timeseries.datasource.DataContract;
-import org.aiotrade.lib.securities.PersistenceManager
+import javax.swing.JOptionPane
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager
 import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.aiotrade.platform.modules.ui.dialog.ImportSymbolDialog
-import org.openide.ErrorManager;
-import org.openide.filesystems.FileLock;
-import org.openide.loaders.DataFolder;
-import org.openide.util.HelpCtx;
-import org.openide.util.actions.CallableSystemAction;
-import org.openide.windows.WindowManager;
+import org.openide.loaders.DataFolder
+import org.openide.util.HelpCtx
+import org.openide.util.actions.CallableSystemAction
+import org.openide.windows.WindowManager
 
 /**
  *
@@ -91,60 +85,16 @@ class AddSymbolAction extends CallableSystemAction {
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
             quoteContract.symbol = symbol1
                     
-            createSymbolXmlFile(currentFolder, symbol1, quoteContract)
+            NetBeansPersistenceManager.createSymbolXmlFile(currentFolder, symbol1, quoteContract)
           }
         }
       })
         
   }
     
-  private def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract) {
-        
-    val folderObject = folder.getPrimaryFile
-    val baseName = symbol
-    var ix = 1
-    while (folderObject.getFileObject(baseName + ix, "xml") != null) {
-      ix += 1
-    }
-        
-    var lock: FileLock = null
-    var out: PrintStream = null
-    try {
-      val writeTo = folderObject.createData(baseName + ix, "xml")
-      lock = writeTo.lock
-      out = new PrintStream(writeTo.getOutputStream(lock))
-            
-      val contents = PersistenceManager().defaultContents
-      /** clear default dataSourceContract */
-      contents.clearDescriptors(classOf[DataContract[_]])
-            
-      contents.uniSymbol = symbol
-      contents.addDescriptor(quoteContract)
-            
-      out.print(ContentsPersistenceHandler.dumpContents(contents))
-            
-      /**
-       * set attr = "new" to open the view when a new node is
-       * created late by SymbolNode.SymbolFolderChildren.creatNodes()
-       */
-      writeTo.setAttribute("new", true)
-    } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
-    } finally {
-      /** should remember to out.close() here */
-      if (out != null) {
-        out.close
-      }
-      if (lock != null) {
-        lock.releaseLock
-      }
-    }
-        
-  }
-    
   def getName = {
     "Add Symbol"
   }
-    
     
   def getHelpCtx: HelpCtx = {
     HelpCtx.DEFAULT_HELP
@@ -155,7 +105,7 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   override protected def asynchronous: Boolean = {
-    false;
+    false
   }
     
     

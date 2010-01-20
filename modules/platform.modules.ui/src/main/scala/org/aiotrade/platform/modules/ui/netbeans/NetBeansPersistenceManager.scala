@@ -43,16 +43,19 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.QuotePool
 import org.aiotrade.lib.securities.TickerPool
+import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
@@ -110,6 +113,48 @@ object NetBeansPersistenceManager {
     if (contents != null) {
       contentToOccuptantNode -= contents
     }
+  }
+
+  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract) {
+    val folderObject = folder.getPrimaryFile
+    val baseName = symbol
+    var ix = 1
+    while (folderObject.getFileObject(baseName + ix, "xml") != null) {
+      ix += 1
+    }
+
+    var lock: FileLock = null
+    var out: PrintStream = null
+    try {
+      val writeTo = folderObject.createData(baseName + ix, "xml")
+      lock = writeTo.lock
+      out = new PrintStream(writeTo.getOutputStream(lock))
+
+      val contents = PersistenceManager().defaultContents
+      /** clear default dataSourceContract */
+      contents.clearDescriptors(classOf[DataContract[_]])
+
+      contents.uniSymbol = symbol
+      contents.addDescriptor(quoteContract)
+
+      out.print(ContentsPersistenceHandler.dumpContents(contents))
+
+      /**
+       * set attr = "new" to open the view when a new node is
+       * created late by SymbolNode.SymbolFolderChildren.creatNodes()
+       */
+      writeTo.setAttribute("new", true)
+    } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
+    } finally {
+      /** should remember to out.close() here */
+      if (out != null) {
+        out.close
+      }
+      if (lock != null) {
+        lock.releaseLock
+      }
+    }
+
   }
 }
 
@@ -183,7 +228,6 @@ class NetBeansPersistenceManager extends PersistenceManager {
           }
         }
       }
-
 
     }
   }
