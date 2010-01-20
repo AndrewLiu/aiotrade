@@ -92,7 +92,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   private var ref = new WeakReference[RealTimeWatchListTopComponent](this)
   instanceRefs ::= ref
     
-  private val s_id = "RealtimeWatchList"
+  private val s_id = "RealTimeWatchList"
     
   private var updateServerRegistered = false
     

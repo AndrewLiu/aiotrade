@@ -59,7 +59,7 @@ object RealTimeBoardTopComponent {
   var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]();
 
   /** The Mode this component will live in */
-  val MODE = "explorer"
+  val MODE = "realTimeBoard"
 
 
   def findInstance(sec: Sec): RealTimeBoardTopComponent = {
@@ -102,7 +102,7 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
   setLayout(new BorderLayout)
         
   add(boardPanel, BorderLayout.CENTER)
-  setName("Realtime - " + sec.uniSymbol)
+  setName("RealTime - " + sec.uniSymbol)
         
   /** this component should setFocusable(true) to have the ability to grab the focus */
   setFocusable(true)
@@ -149,7 +149,7 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
     if (reallyClosed) {
       super.componentClosed
     } else {
-      val win = WindowManager.getDefault.findTopComponent("RealtimeWatchList");
+      val win = WindowManager.getDefault.findTopComponent("RealTimeWatchList")
       if (win.isOpened) {
         /** closing is not allowed */
       } else {

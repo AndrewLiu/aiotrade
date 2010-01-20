@@ -193,15 +193,12 @@
             <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
         </folder>
         <folder name="Modes">
+            <file name="explorer.wsmode" url="explorer.wsmode"/>
+            <file name="editor.wsmode" url="editor.wsmode"/>
+            <file name="realTimeBoard.wsmode" url="realTimeBoard.wsmode"/>
             <folder name="explorer">
                 <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
             </folder>
-            <file name="realtime_1.wsmode" url="realtime_1.wsmode"/>
-            <file name="realtime_2.wsmode" url="realtime_2.wsmode"/>
-            <file name="realtime_3.wsmode" url="realtime_3.wsmode"/>
-            <file name="realtimeWatchList.wsmode" url="realtimeWatchList.wsmode"/>
-            <file name="realtimeCharts.wsmode" url="realtimeCharts.wsmode"/>
-            <file name="realtimeBoard.wsmode" url="realtimeBoard.wsmode"/>
         </folder>
     </folder>
 
