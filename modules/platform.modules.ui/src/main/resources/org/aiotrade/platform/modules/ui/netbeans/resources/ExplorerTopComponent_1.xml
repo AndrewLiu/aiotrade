@@ -6,6 +6,6 @@
 
 <tc-ref version="2.0" >
     <module name="org.aiotrade.platform.modules.ui" spec="1.0" />
-    <tc-id id="SymbolListTopComponent" />
+    <tc-id id="ExplorerTopComponent" />
     <state opened="true" />
 </tc-ref>

@@ -59,23 +59,23 @@ object RealTimeBoardTopComponent {
   var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]();
 
   /** The Mode this component will live in */
-  val MODE = "realtimeBoard"
+  val MODE = "explorer"
 
 
   def findInstance(sec: Sec): RealTimeBoardTopComponent = {
     for (ref <- instanceRefs) {
-      if (ref.get().getSec.equals(sec)) {
-        return ref.get();
+      if (ref.get.getSec.equals(sec)) {
+        return ref.get
       }
     }
 
-    return null;
+    null
   }
 
   def getInstance(sec: Sec, contents: AnalysisContents): RealTimeBoardTopComponent = {
-    var instance = findInstance(sec);
+    var instance = findInstance(sec)
     if (instance == null) {
-      instance = new RealTimeBoardTopComponent(sec, contents);
+      instance = new RealTimeBoardTopComponent(sec, contents)
     }
 
     if (!instance.isOpened) {
@@ -85,9 +85,8 @@ object RealTimeBoardTopComponent {
     instance
   }
 
-
-
 }
+
 class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends TopComponent {
   import RealTimeBoardTopComponent._
 
@@ -96,9 +95,9 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
     
   private var reallyClosed = false
     
-  private val s_id = sec.name + "_TK";
+  private val s_id = sec.name + "_TK"
         
-  private val boardPanel = new RealTimeBoardPanel(sec, contents);
+  private val boardPanel = new RealTimeBoardPanel(sec, contents)
         
   setLayout(new BorderLayout)
         
@@ -130,7 +129,7 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
     /** hidden others */
     for (refX <- instanceRefs) {
       if (refX.get != this) {
-        refX.get.setReallyClosed(false);
+        refX.get.setReallyClosed(false)
         refX.get.close
       }
     }
@@ -182,7 +181,7 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
   def watch {
     val tickerServer = sec.tickerServer
     if (tickerServer == null) {
-      return;
+      return
     }
     tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
       tickerSnapshot.addObserver(boardPanel)

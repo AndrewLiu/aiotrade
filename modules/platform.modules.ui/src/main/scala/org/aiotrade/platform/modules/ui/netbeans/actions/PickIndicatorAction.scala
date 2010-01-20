@@ -33,9 +33,8 @@ package org.aiotrade.platform.modules.ui.netbeans.actions;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.IndicatorGroupDescriptor;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent
+import org.aiotrade.platform.modules.ui.netbeans.nodes.IndicatorGroupDescriptor;
+import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -52,7 +51,7 @@ class PickIndicatorAction extends CallableSystemAction {
         def run {
           val contents: AnalysisContents = AnalysisChartTopComponent.selected match {
             case None =>
-              val symbolListWin = SymbolListTopComponent()
+              val symbolListWin = ExplorerTopComponent()
               val nodes = symbolListWin.getExplorerManager.getSelectedNodes
               if (nodes.length > 0) {
                 nodes(0).getLookup.lookup(classOf[AnalysisContents])

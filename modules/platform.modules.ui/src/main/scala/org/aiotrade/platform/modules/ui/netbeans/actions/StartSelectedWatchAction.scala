@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 import java.lang.ref.WeakReference;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolNodes.SymbolStartWatchAction
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolStartWatchAction
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;

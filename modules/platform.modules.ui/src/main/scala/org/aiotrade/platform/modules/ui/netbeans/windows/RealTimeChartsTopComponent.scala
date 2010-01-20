@@ -72,7 +72,7 @@ object RealTimeChartsTopComponent {
   private val SCROLL_SPEED_THROTTLE = 2400; // delay in milli seconds
 
   /** The Mode this component will live in. */
-  private val MODE = "realtimeCharts"
+  private val MODE = "editor"
 
 
   def getInstance: RealTimeChartsTopComponent = {

@@ -47,8 +47,8 @@ import org.aiotrade.lib.util.swing.action.HideAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.modules.ui.dialog.ChangeIndicatorOptsPane;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.IndicatorGroupDescriptor;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.IndicatorGroupDescriptor;
+import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.loaders.DataFolder;
 import org.openide.nodes.Node;
@@ -175,7 +175,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       if (retValue == JOptionPane.OK_OPTION) {
         /** apple to all ? */
         if (pane.isApplyToAll) {
-          val root = SymbolListTopComponent().getRootNode
+          val root = ExplorerTopComponent().getRootNode
           setIndicatorOptsRecursively(root, descriptor)
         } else { /** else, only apply to this one */
           setIndicatorOpts(descriptor, descriptor.factors)

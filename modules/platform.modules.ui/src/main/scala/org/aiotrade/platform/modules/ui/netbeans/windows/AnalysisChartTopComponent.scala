@@ -78,7 +78,7 @@ import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchCalendarTradingTi
 import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchHideShowDrawingLineAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomOutAction;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.GroupNode;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.GroupNode;
 import org.openide.nodes.Node;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
@@ -432,10 +432,11 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
   }
     
   def selectedViewContainer: Option[ChartViewContainer] = {
-    tabbedPane.getSelectedComponent match {
-      case x: ChartViewContainer => Some(x)
-      case _ => None
-    }
+    //tabbedPane.getSelectedComponent match {
+    //  case x: ChartViewContainer => Some(x)
+    //  case _ => None
+    //}
+    None
   }
 
   def selectedViewContainer_=(viewContainer: ChartViewContainer) {

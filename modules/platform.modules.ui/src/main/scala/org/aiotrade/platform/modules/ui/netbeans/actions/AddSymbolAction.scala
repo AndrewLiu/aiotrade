@@ -37,7 +37,7 @@ import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.math.timeseries.datasource.DataContract;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent
+import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.aiotrade.platform.modules.ui.dialog.ImportSymbolDialog
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
@@ -55,7 +55,7 @@ class AddSymbolAction extends CallableSystemAction {
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-          val symbolListTc = SymbolListTopComponent()
+          val symbolListTc = ExplorerTopComponent()
           symbolListTc.requestActive
                 
           val selectedNodes = symbolListTc.getExplorerManager.getSelectedNodes

@@ -28,10 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.ui.netbeans.explorer
+package org.aiotrade.platform.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolNodes.SymbolNode
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolNode
 import org.openide.ErrorManager;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
@@ -50,15 +51,17 @@ import org.openide.windows.TopComponent;
  *
  * @author Caoyuan Deng
  */
-object SymbolListTopComponent {
-  private var instance: Option[SymbolListTopComponent] = None
-  def apply() = instance getOrElse new SymbolListTopComponent
+object ExplorerTopComponent {
+  private var instance: Option[ExplorerTopComponent] = None
+  def apply() = instance getOrElse new ExplorerTopComponent
+
+  val tc_id = "ExplorerTopComponent"
 }
 
 @serializable
 @SerialVersionUID(1L)
-class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider {
-  import SymbolListTopComponent._
+class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
+  import ExplorerTopComponent._
   instance = Some(this)
 
   /** holds currently scheduled/running task for set of activated node */
@@ -73,8 +76,8 @@ class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider 
   private var rootNode: SymbolNode = _
   private var watchListNode: Node = _
     
-  setName(NbBundle.getMessage(this.getClass, "CTL_SymbolListTopComponent"))
-  setToolTipText(NbBundle.getMessage(this.getClass, "HINT_SymbolListTopComponent"))
+  setName(NbBundle.getMessage(this.getClass, "CTL_ExplorerTopComponent"))
+  setToolTipText(NbBundle.getMessage(this.getClass, "HINT_ExplorerTopComponent"))
   //setIcon(Utilities.loadImage("SET/PATH/TO/ICON/HERE", true));
         
   setLayout(new BorderLayout)
@@ -102,7 +105,7 @@ class SymbolListTopComponent extends TopComponent with ExplorerManager.Provider 
   }
     
   override protected def preferredID: String = {
-    "SymbolListTopComponent"
+    tc_id
   }
 
   def getExplorerManager: ExplorerManager = {

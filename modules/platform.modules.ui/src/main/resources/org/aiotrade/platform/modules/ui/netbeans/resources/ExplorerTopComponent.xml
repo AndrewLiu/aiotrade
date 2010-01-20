@@ -12,11 +12,11 @@
     <instanceof class="javax.accessibility.Accessible"/>
     <instanceof class="javax.swing.JComponent"/>
     <instanceof class="javax.swing.TransferHandler$HasGetTransferHandler"/>
-    <instanceof class="org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent"/>
+    <instanceof class="org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent"/>
     <instanceof class="org.openide.explorer.ExplorerManager$Provider"/>
     <instanceof class="org.openide.util.HelpCtx$Provider"/>
     <instanceof class="org.openide.util.Lookup$Provider"/>
     <instanceof class="org.openide.windows.TopComponent"/>
     <instanceof class="scala.ScalaObject"/>
-    <instance class="org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolListTopComponent"/>
+    <instance class="org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent"/>
 </settings>

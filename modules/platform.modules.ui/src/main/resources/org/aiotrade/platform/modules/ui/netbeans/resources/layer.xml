@@ -21,7 +21,7 @@
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-PickDrawingLineAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
-        <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SymbolListOpenAction.instance"/>
+        <file name="org-aiotrade-platform-modules-ui-netbeans-actions-OpenExplorerAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-OnlineHelpAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SymbolLookupHelpAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-SaveToImageAction.instance"/>
@@ -36,8 +36,8 @@
             </file>
         </folder>
         <folder name="Window">
-            <file name="SymbolListOpenAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-SymbolListOpenAction.instance"/>
+            <file name="OpenExplorerAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-OpenExplorerAction.instance"/>
                 <attr name="position" intvalue="100"/>
             </file>
         </folder>
@@ -190,11 +190,11 @@
 
     <folder name="Windows2">
         <folder name="Components">
-            <file name="SymbolListTopComponent.settings" url="SymbolListTopComponent.xml"/>
+            <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
         </folder>
         <folder name="Modes">
             <folder name="explorer">
-                <file name="SymbolListTopComponent.wstcref" url="SymbolListTopComponent_1.xml"/>
+                <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
             </folder>
             <file name="realtime_1.wsmode" url="realtime_1.wsmode"/>
             <file name="realtime_2.wsmode" url="realtime_2.wsmode"/>
@@ -264,10 +264,10 @@
     
     <folder name="DescriptorGroups">
         <file name="IndicatorGroupDescriptor.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.ui.netbeans.explorer.IndicatorGroupDescriptor"/>
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.ui.netbeans.nodes.IndicatorGroupDescriptor"/>
         </file>
         <file name="DrawingGroupDescriptor.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.ui.netbeans.explorer.DrawingGroupDescriptor"/>
+            <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.ui.netbeans.nodes.DrawingGroupDescriptor"/>
         </file>
     </folder>
 

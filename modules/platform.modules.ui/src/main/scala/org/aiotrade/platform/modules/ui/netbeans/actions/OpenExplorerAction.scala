@@ -41,14 +41,14 @@ import org.openide.windows.WindowManager;
  * 
  * @author Caoyuan Deng
  */
-class SymbolListOpenAction extends AbstractAction {
-  putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolListOpenAction], "CTL_SymbolListAction"));
+class OpenExplorerAction extends AbstractAction {
+  putValue(Action.NAME, NbBundle.getMessage(classOf[OpenExplorerAction], "CTL_OpenExplorerAction"))
   //putValue(Action.SMALL_ICON, new ImageIcon(Utilities.loadImage("SET/PATH/TO/ICON/HERE", true)));
 
   def actionPerformed(evt: ActionEvent) {
-    val win = WindowManager.getDefault.findTopComponent("SymbolListTopComponent");
+    val win = WindowManager.getDefault.findTopComponent("ExplorerTopComponent")
     if (win == null) {
-      ErrorManager.getDefault.log(ErrorManager.WARNING, "Cannot find SymbolList component.");
+      ErrorManager.getDefault.log(ErrorManager.WARNING, "Cannot find ExplorerTopComponent.")
       return
     }
     win.open

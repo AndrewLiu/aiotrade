@@ -37,8 +37,8 @@ import java.lang.ref.WeakReference;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolNodes.SymbolStartWatchAction
-import org.aiotrade.platform.modules.ui.netbeans.explorer.SymbolNodes.SymbolStopWatchAction
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolStartWatchAction
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.aiotrade.lib.chartview.RealTimeWatchListPanel
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.TickerSerProvider
@@ -69,7 +69,7 @@ import scala.collection.mutable.HashSet
  */
 object RealTimeWatchListTopComponent {
   /** The Mode this component will live in. */
-  private val MODE = "realtimeWatchList"
+  private val MODE = "editor"
   var instanceRefs = List[WeakReference[RealTimeWatchListTopComponent]]()
 
   private val watchingSecs = HashSet[Sec]()
@@ -94,20 +94,18 @@ class RealTimeWatchListTopComponent extends TopComponent {
     
   private val s_id = "RealtimeWatchList"
     
-    
   private var updateServerRegistered = false
     
   private var reallyClosed = false
   
   private val symbolToNode = HashMap[String, Node]()
     
-    
   private val rtWatchListPanel = new RealTimeWatchListPanel
-        
+
   setLayout(new BorderLayout)
         
   add(rtWatchListPanel, BorderLayout.CENTER)
-  setName("Watch List")
+  setName("List")
         
   private val popup = new JPopupMenu
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
@@ -141,7 +139,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     stopAllWatch
         
     for (ref <- instanceRefs) {
-      ref.get.setReallyClosed(true);
+      ref.get.setReallyClosed(true)
       ref.get.close
     }
     instanceRefs = Nil
@@ -241,7 +239,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     }
         
     def mouseClicked(e: MouseEvent) {
-      showPopup(e);
+      showPopup(e)
     }
         
     def mousePressed(e: MouseEvent) {
