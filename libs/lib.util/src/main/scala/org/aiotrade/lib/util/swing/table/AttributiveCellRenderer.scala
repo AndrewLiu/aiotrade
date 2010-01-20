@@ -5,9 +5,8 @@ import java.awt.Component
 import java.awt.Font
 import javax.swing.JTable
 import javax.swing.UIManager
-import javax.swing.border.{Border,EmptyBorder}
+import javax.swing.border.{Border, EmptyBorder}
 import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.TableModel
 
 /**
  * @version 1.0 11/22/98

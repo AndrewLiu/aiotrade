@@ -41,7 +41,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
   protected var spans: Array[Array[Array[Int]]] = _                 // CellSpan
   private var attrs: Array[Array[Attr]] = _
 
-  setSize(new Dimension(numColumns, numRows));
+  setSize(new Dimension(numColumns, numRows))
 
   def this() = {
     this(1, 1)
@@ -68,7 +68,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def setSpan(span: Array[Int], row: Int, column: Int): Unit = {
+  def setSpan(span: Array[Int], row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return
     }
@@ -86,7 +86,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def combine(rows: Array[Int], columns: Array[Int]): Unit = {
+  def combine(rows: Array[Int], columns: Array[Int]) {
     if (isOutOfBounds(rows, columns)) {
       return
     }
@@ -118,11 +118,11 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
     
     spans(startRow)(startColumn)(CellSpan.COLUMN) = columnSpan
-    spans(startRow)(startColumn)(CellSpan.ROW) = rowSpan;
+    spans(startRow)(startColumn)(CellSpan.ROW) = rowSpan
 
   }
 
-  def split(row: Int, column: Int): Unit = {
+  def split(row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -151,7 +151,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def setForeground(color: Color, row: Int, column: Int): Unit = {
+  def setForeground(color: Color, row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -163,7 +163,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     attr.foreground = color;
   }
 
-  def setForeground(color: Color, rows: Array[Int], columns: Array[Int]): Unit = {
+  def setForeground(color: Color, rows: Array[Int], columns: Array[Int]) {
     if (isOutOfBounds(rows, columns)) {
       return
     }
@@ -182,7 +182,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def setBackground(color: Color, row: Int, column: Int): Unit = {
+  def setBackground(color: Color, row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return;
     }
@@ -194,7 +194,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     attr.background = color
   }
 
-  def setBackground(color: Color, rows: Array[Int], columns: Array[Int]): Unit = {
+  def setBackground(color: Color, rows: Array[Int], columns: Array[Int]) {
     if (isOutOfBounds(rows, columns)) {
       return;
     }
@@ -217,7 +217,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def setFont(font: Font, row: Int, column: Int): Unit = {
+  def setFont(font: Font, row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return
     }
@@ -229,7 +229,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     attr.font = font
   }
 
-  def setFont(font: Font, rows: Array[Int], columns: Array[Int]): Unit = {
+  def setFont(font: Font, rows: Array[Int], columns: Array[Int]) {
     if (isOutOfBounds(rows, columns)) {
       return;
     }
@@ -248,7 +248,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     }
   }
 
-  def setHorizontalAlignment(horizontalAlignment: Int, row: Int, column: Int): Unit = {
+  def setHorizontalAlignment(horizontalAlignment: Int, row: Int, column: Int) {
     if (isOutOfBounds(row, column)) {
       return
     }
@@ -264,7 +264,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
   //
   // CellAttribute
   //
-  def addColumn: Unit = {
+  def addColumn {
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
@@ -280,7 +280,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     System.arraycopy(oldAttr, 0, attrs, 0, numRows);
   }
 
-  def addRow: Unit = {
+  def addRow {
     val oldSpan = spans
     val numRows = oldSpan.length;
     val numColumns = oldSpan(0).length;
@@ -297,7 +297,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     System.arraycopy(oldAttr, 0, attrs, 0, numRows)
   }
 
-  def insertRow(row: Int): Unit = {
+  def insertRow(row: Int) {
     val oldSpan = spans
     val numRows = oldSpan.length
     val numColumns = oldSpan(0).length
@@ -313,10 +313,10 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
   }
 
   def getSize: Dimension = {
-    return new Dimension(rowSize, columnSize);
+    return new Dimension(rowSize, columnSize)
   }
 
-  def setSize(size: Dimension): Unit = {
+  def setSize(size: Dimension) {
     columnSize = size.width
     rowSize = size.height
     spans = Array.ofDim(rowSize, columnSize, 2)   // 2: COLUMN,ROW
@@ -354,7 +354,7 @@ class DefaultCellAttribute(numRows: Int, numColumns: Int) extends CellAttribute 
     false
   }
 
-  private def setAttributes(tpe:AttrType, value: Object, rows: Array[Int], columns: Array[Int]): Unit = {
+  private def setAttributes(tpe:AttrType, value: Object, rows: Array[Int], columns: Array[Int]) {
     for (i <- 0 until rows.length) {
       val row = rows(i)
       for (j <- 0 until columns.length) {

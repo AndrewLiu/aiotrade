@@ -9,7 +9,6 @@ import java.awt.Rectangle
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
-import javax.swing.table.TableColumnModel
 import javax.swing.table.TableModel
 
 /**
@@ -33,7 +32,7 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
     if (!cellAtt.isVisible(row, column)) {
       val temp_row = row
       val temp_column = column
-      row += cellAtt.getSpan(temp_row, temp_column)(CellSpan.ROW)
+      row    += cellAtt.getSpan(temp_row, temp_column)(CellSpan.ROW)
       column += cellAtt.getSpan(temp_row, temp_column)(CellSpan.COLUMN)
     }
     val spans = cellAtt.getSpan(row, column)
@@ -64,7 +63,8 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
       val rm = getRowMargin
       r.setBounds(r.x + cm / 2, r.y + rm / 2, r.width - cm, r.height - rm)
     }
-    return r;
+
+    r
   }
 
   private def rowColumnAtPoint(point: Point): Array[Int] = {
@@ -85,6 +85,7 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
     
     retValue(CellSpan.COLUMN) = column + cellAtt.getSpan(row, column)(CellSpan.COLUMN)
     retValue(CellSpan.ROW) = row + cellAtt.getSpan(row, column)(CellSpan.ROW)
+
     retValue
   }
 
@@ -96,17 +97,17 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
     rowColumnAtPoint(point)(CellSpan.COLUMN)
   }
 
-  override def columnSelectionChanged(e: ListSelectionEvent): Unit = {
+  override def columnSelectionChanged(e: ListSelectionEvent) {
     repaint()
   }
 
-  override def valueChanged(e: ListSelectionEvent): Unit = {
+  override def valueChanged(e: ListSelectionEvent) {
     val firstIndex = e.getFirstIndex
     val lastIndex = e.getLastIndex
     if (firstIndex == -1 && lastIndex == -1) { // Selection cleared.
       repaint()
     }
-    val dirtyRegion = getCellRect(firstIndex, 0, false);
+    val dirtyRegion = getCellRect(firstIndex, 0, false)
     val numCoumns = getColumnCount
     var index = firstIndex;
     for (i <- 0 until numCoumns) {

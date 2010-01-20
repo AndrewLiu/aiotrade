@@ -4,25 +4,22 @@
  */
 package org.aiotrade.lib.util.swing.table;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import javax.swing.JComponent;
 import javax.swing.plaf.basic.BasicTableUI;
-import javax.swing.table.TableCellRenderer;
 
 /**
  * @version 1.0 11/26/98
  */
 class MultiSpanCellTableUI extends BasicTableUI {
 
-  override def paint(g: Graphics, c: JComponent): Unit = {
+  override def paint(g: Graphics, c: JComponent) {
     val oldClipBounds = g.getClipBounds
     val clipBounds = new Rectangle(oldClipBounds)
     val tableWidth = table.getColumnModel.getTotalColumnWidth
-    clipBounds.width = math.min(clipBounds.width, tableWidth)
+    clipBounds.width = Math.min(clipBounds.width, tableWidth)
     g.setClip(clipBounds)
 
     val firstIndex = table.rowAtPoint(new Point(0, clipBounds.y))
@@ -102,8 +99,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     cellRect.setBounds(cellRect.x + spacingWidth / 2, cellRect.y + spacingHeight / 2,
                        cellRect.width - spacingWidth, cellRect.height - spacingHeight)
 
-    if (table.isEditing() && table.getEditingRow() == row &&
-        table.getEditingColumn() == column) {
+    if (table.isEditing && table.getEditingRow == row && table.getEditingColumn == column) {
       val component = table.getEditorComponent
       component.setBounds(cellRect)
       component.validate
@@ -114,6 +110,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
       if (component.getParent == null) {
         rendererPane.add(component)
       }
+      
       rendererPane.paintComponent(g, component, table, cellRect.x, cellRect.y,
                                   cellRect.width, cellRect.height, true)
     }

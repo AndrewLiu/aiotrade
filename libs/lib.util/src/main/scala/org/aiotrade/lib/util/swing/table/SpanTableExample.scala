@@ -23,10 +23,10 @@ import javax.swing.SwingConstants;
  * @author dcaoyuan
  */
 object SpanTableExample {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val frame = new SpanTableExample
-    frame.addWindowListener(new WindowAdapter() {
-        override def windowClosing(e:WindowEvent) {
+    frame.addWindowListener(new WindowAdapter {
+        override def windowClosing(e: WindowEvent) {
           System.exit(0)
         }
       }
@@ -35,7 +35,7 @@ object SpanTableExample {
 }
 
 class SpanTableExample extends JFrame("Multi-Span Cell Example") {
-  val ml = new AttributiveCellTableModel(10, 6);
+  val ml = new AttributiveCellTableModel(10, 6)
   //  val ml = new AttributiveCellTableModel(
   //    Array(Array("代码：", "北京纽约太平洋证券有限公司", null, null),
   //          Array("最新：", new Integer(111), "总量：", new Integer(123000)),
@@ -98,7 +98,7 @@ class SpanTableExample extends JFrame("Multi-Span Cell Example") {
   box.add(scroll)
   box.add(new JSeparator(SwingConstants.HORIZONTAL))
   box.add(p_buttons)
-  getContentPane().add(box)
+  getContentPane.add(box)
   setSize(400, 200)
   setVisible(true)
 }

@@ -19,11 +19,11 @@ object AttributiveCellTableModel {
    * @return  the new vector; if <code>anArray</code> is <code>null</code>,
    *                          returns <code>null</code>
    */
-  def convertToVector(anArray: Array[Any]): Vector[_] = {
+  def convertToVector(anArray: Array[Object]): Vector[_] = {
     if (anArray == null) {
       return null
     }
-    val v = new Vector[Any](anArray.length)
+    val v = new Vector[Object](anArray.length)
     anArray foreach {x => v.addElement(x)}
     v
   }
@@ -34,7 +34,7 @@ object AttributiveCellTableModel {
    * @return the new vector of vectors; if <code>anArray</code> is
    *                          <code>null</code>, returns <code>null</code>
    */
-  def convertToVector(anArray: Array[Array[Any]]): Vector[Vector[_]] = {
+  def convertToVector(anArray: Array[Array[Object]]): Vector[Vector[_]] = {
     if (anArray == null) {
       return null
     }
@@ -50,11 +50,11 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
   if (columnNames != null) {
     setColumnIdentifiers(columnNames)
   } else {
-    val names = new Vector[AnyRef](numColumns)
+    val names = new Vector[Object](numColumns)
     names.setSize(numColumns)
     setColumnIdentifiers(names)
   }
-  dataVector = new Vector[AnyRef]
+  dataVector = new Vector[Object]
   setNumRows(numRows)
   
   protected var cellAtt: CellAttribute = new DefaultCellAttribute(numRows, numColumns)
@@ -76,12 +76,12 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     setDataVector(data, columnNames)
   }
 
-  def this(columnNames: Array[Any], numRows: Int) = {
+  def this(columnNames: Array[Object], numRows: Int) = {
     this(AttributiveCellTableModel.convertToVector(columnNames), numRows)
   }
 
-  def this(data: Array[Array[Any]], columnNames: Array[Any]) = {
-    this(AttributiveCellTableModel.convertToVector(columnNames), columnNames.size, 0)
+  def this(data: Array[Array[Object]], columnNames: Array[Object]) = {
+    this(AttributiveCellTableModel.convertToVector(columnNames), columnNames.length, 0)
     setDataVector(AttributiveCellTableModel.convertToVector(data), AttributiveCellTableModel.convertToVector(columnNames))
   }
 
@@ -89,7 +89,7 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
     if (newData == null) {
       throw new IllegalArgumentException("setDataVector) - Null parameter")
     }
-    dataVector = new Vector[AnyRef](0)
+    dataVector = new Vector[Object](0)
     columnIdentifiers = nonNullVector(columnNames)
     dataVector = newData
 
@@ -99,21 +99,21 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
                                      TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT))
   }
 
-  override def addColumn(columnName: AnyRef, columnData: Vector[_]): Unit = {
+  override def addColumn(columnName: Object, columnData: Vector[_]) {
     if (columnName == null) {
       throw new IllegalArgumentException("addColumn() - null parameter")
     }
-    columnIdentifiers.asInstanceOf[Vector[AnyRef]].addElement(columnName)
+    columnIdentifiers.asInstanceOf[Vector[Object]].addElement(columnName)
     var index = 0
     val enumeration = dataVector.elements
     while (enumeration.hasMoreElements) {
-      var value: AnyRef = null
+      var value: Object = null
       if ((columnData != null) && (index < columnData.size)) {
-        value = columnData.asInstanceOf[Vector[AnyRef]].elementAt(index)
+        value = columnData.asInstanceOf[Vector[Object]].elementAt(index)
       } else {
         value = null
       }
-      enumeration.nextElement.asInstanceOf[Vector[AnyRef]].addElement(value)
+      enumeration.nextElement.asInstanceOf[Vector[Object]].addElement(value)
       index += 1
     }
 
@@ -126,11 +126,11 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
   override def addRow(rowData: Vector[_]): Unit = {
     var newData: Vector[_] = null
     if (rowData == null) {
-      newData = new Vector[AnyRef](getColumnCount)
+      newData = new Vector[Object](getColumnCount)
     } else {
       rowData.setSize(getColumnCount)
     }
-    dataVector.asInstanceOf[Vector[AnyRef]].addElement(newData)
+    dataVector.asInstanceOf[Vector[Object]].addElement(newData)
 
     //
     cellAtt.addRow
@@ -142,12 +142,12 @@ class AttributiveCellTableModel(columnNames: Vector[_], numRows: Int, numColumns
   override def insertRow(row: Int, arowData: Vector[_]): Unit = {
     var rowData = arowData
     if (arowData == null) {
-      rowData = new Vector[AnyRef](getColumnCount)
+      rowData = new Vector[Object](getColumnCount)
     } else {
       rowData.setSize(getColumnCount)
     }
 
-    dataVector.asInstanceOf[Vector[AnyRef]].insertElementAt(rowData, row)
+    dataVector.asInstanceOf[Vector[Object]].insertElementAt(rowData, row)
 
     cellAtt.insertRow(row)
 

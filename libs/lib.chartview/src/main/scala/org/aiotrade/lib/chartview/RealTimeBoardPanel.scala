@@ -152,15 +152,15 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     tickerPane = new JScrollPane
     chartPane  = new JPanel
 
-    val infoModelData = Array(
+    val infoModelData = Array[Array[Object]](
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
       Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
       Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
       Array(BUNDLE.getString("prevClose"),  prevClose,  BUNDLE.getString("dayOpen"),   dayOpen)
     )
     infoModel = new AttributiveCellTableModel(
-      infoModelData.asInstanceOf[Array[Array[Any]]],
-      Array[Any]("A", "B", "C", "D")
+      infoModelData,
+      Array[Object]("A", "B", "C", "D")
     )
 
     infoCellAttr = infoModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -190,7 +190,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
     depthModel = new AttributiveCellTableModel(
-      Array[Array[Any]](
+      Array[Array[Object]](
         Array("卖⑤", null, null),
         Array("卖④", null, null),
         Array("卖③", null, null),
@@ -203,7 +203,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array("买④", null, null),
         Array("买⑤", null, null)
       ),
-      Array[Any](
+      Array[Object](
         BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     )
@@ -244,7 +244,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     depthTable.setBackground(LookFeel().infoBackgroundColor)
 
     tickerModel = new AttributiveCellTableModel( //new DefaultTableModel(
-      Array[Array[Any]](
+      Array[Array[Object]](
         Array(null, null, null),
         Array(null, null, null),
         Array(null, null, null),
@@ -256,7 +256,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array(null, null, null),
         Array(null, null, null)
       ),
-      Array[Any](
+      Array[Object](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     ) {

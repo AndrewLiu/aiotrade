@@ -13,17 +13,17 @@ trait ColoredCell {
 
   def getForeground(row: Int, column: Int): Color
 
-  def setForeground(color: Color, row: Int, column: Int): Unit
+  def setForeground(color: Color, row: Int, column: Int)
 
-  def setForeground(color: Color, rows: Array[Int], columns: Array[Int]): Unit
+  def setForeground(color: Color, rows: Array[Int], columns: Array[Int])
 
   def getBackground(row: Int, column: Int): Color
 
-  def setBackground(color: Color, row: Int, column: Int): Unit
+  def setBackground(color: Color, row: Int, column: Int)
 
-  def setBackground(color: Color, rows: Array[Int], columns: Array[Int]): Unit
+  def setBackground(color: Color, rows: Array[Int], columns: Array[Int])
 
   def getHorizontalAlignment(row: Int, column: Int) : Int
 
-  def setHorizontalAlignment(horizontalAlignment: Int, row: Int, column: Int): Unit
+  def setHorizontalAlignment(horizontalAlignment: Int, row: Int, column: Int)
 }
