@@ -35,7 +35,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
-import org.aiotrade.lib.securities.dataserver.{QuoteContract,QuoteServer,TickerServer,TickerContract}
+import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer, TickerServer, TickerContract}
 import scala.collection.mutable.HashMap
 
 /**
@@ -50,16 +50,18 @@ import scala.collection.mutable.HashMap
 
  * @author Caoyuan Deng
  */
-abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract], _tickerContract:TickerContract) extends Sec {
+abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract) extends Sec {
 
-  private val freqToQuoteContract = new HashMap[TFreq, QuoteContract]
+  private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
-  private val freqToQuoteServer = new HashMap[TFreq, QuoteServer]
-  private val freqToSer = new HashMap[TFreq, QuoteSer]
+  private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
+  private val freqToSer = HashMap[TFreq, QuoteSer]()
+
+  private var _uniSymbol = $uniSymbol
 
   var market = Market.NYSE
   var description: String = ""
-  var name: String = _uniSymbol.replace('.', '_')
+  var name: String = $uniSymbol.replace('.', '_')
   var defaultFreq: TFreq = _
   var tickerServer: TickerServer = _
 
@@ -69,16 +71,16 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     if (defaultFreq == null) {
       defaultFreq = freq
     }
-    freqToQuoteContract.put(freq, contract)
-    freqToSer.put(freq, new QuoteSer(freq))
+    freqToQuoteContract += (freq -> contract)
+    freqToSer += (freq -> new QuoteSer(freq))
   }
 
   /** tickerContract will always be built according to quoteContrat ? */
-  val tickerContract = if (_tickerContract == null) {
+  val tickerContract = if ($tickerContract == null) {
     val tc = new TickerContract
     tc.symbol = uniSymbol
     tc
-  } else _tickerContract
+  } else $tickerContract
     
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
   val tickerSer = new QuoteSer(tickerContract.freq)
@@ -93,7 +95,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
    *
    * The default contract holds most of the information to be used.
    */
-  def this(uniSymbol: String, quoteContract: Seq[QuoteContract]) {
+  def this(uniSymbol: String, quoteContract: Seq[QuoteContract]) = {
     this(uniSymbol, quoteContract, null)
   }
 
@@ -101,8 +103,8 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     freqToSer.get(freq)
   }
 
-  def putSer(ser: QuoteSer): Unit = {
-    freqToSer.put(ser.freq, ser)
+  def putSer(ser: QuoteSer) {
+    freqToSer += (ser.freq -> ser)
   }
 
   /**
@@ -112,29 +114,23 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
   def loadSer(freq: TFreq): Boolean= synchronized {
 
     /** ask contract instead of server */
-    val contract = freqToQuoteContract.get(freq) match {
-      case None => return false
-      case Some(x) => x
+    val contract = freqToQuoteContract  get(freq) getOrElse {return false}
+
+    val quoteServer = freqToQuoteServer get(freq) getOrElse {
+      contract.serviceInstance(Nil) match {
+        case None => return false
+        case Some(x) => freqToQuoteServer += (freq -> x); x
+      }
     }
 
-    val quoteServer = freqToQuoteServer.get(freq) match {
-      case None => contract.serviceInstance(Nil) match {
-          case None => return false
-          case Some(x) => freqToQuoteServer.put(freq, x); x
-        }
-      case Some(x) => x
-    }
-
-    val serToBeLoaded = serOf(freq) match {
-      case None =>
-        val x = new QuoteSer(freq)
-        freqToSer.put(freq, x)
-        x
-      case Some(x) => x
+    val serToBeLoaded = serOf(freq) getOrElse {
+      val x = new QuoteSer(freq)
+      freqToSer += (freq -> x)
+      x
     }
 
     if (!quoteServer.isContractSubsrcribed(contract)) {
-      quoteServer.subscribe(contract, serToBeLoaded);
+      quoteServer.subscribe(contract, serToBeLoaded)
     }
 
     var loadBeginning = false
@@ -151,29 +147,27 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
 
     if (loadBeginning) {
       val listener = new SerChangeListener {
-
-        override def serChanged(evt: SerChangeEvent): Unit = {
-          import org.aiotrade.lib.math.timeseries.SerChangeEvent.Type._
+        override def serChanged(evt: SerChangeEvent) {
           val sourceSer = evt.getSource
           val freq = sourceSer.freq
-          val contract = freqToQuoteContract.get(freq).get
-          val quoteServer = freqToQuoteServer.get(freq).get
+          val contract = freqToQuoteContract(freq)
+          val quoteServer = freqToQuoteServer(freq)
           evt.tpe match {
-            case FinishedLoading =>
+            case SerChangeEvent.Type.FinishedLoading =>
               sourceSer.loaded = true
-              for (quoteServer <- freqToQuoteServer.get(freq)) {
-                if (contract.refreshable) {
-                  quoteServer.startUpdateServer(contract.refreshInterval * 1000)
-                } else {
-                  quoteServer.unSubscribe(contract)
-                  freqToQuoteServer.removeKey(freq)
-                }
+              if (contract.refreshable) {
+                quoteServer.startUpdateServer(contract.refreshInterval * 1000)
+              } else {
+                quoteServer.unSubscribe(contract)
+                freqToQuoteServer -= freq
               }
+              
               sourceSer.removeSerChangeListener(this)
             case _ =>
           }
         }
       }
+      
       serToBeLoaded.addSerChangeListener(listener)
     }
 
@@ -181,36 +175,28 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
   }
 
   def isSerLoaded(freq:TFreq): Boolean = {
-    freqToSer.get(freq) match {
-      case None => false
-      case Some(x) => x.loaded
-    }
+    freqToSer.get(freq) map (_.loaded) getOrElse false
   }
 
   def isSerInLoading(freq: TFreq): Boolean = {
-    freqToSer.get(freq) match {
-      case None => false
-      case Some(x) => x.inLoading
-    }
+    freqToSer.get(freq) map (_.inLoading) getOrElse false
   }
 
-  def uniSymbol: String = _uniSymbol
-  def uniSymbol_=(symbol: String): Unit = {
-    this.uniSymbol = symbol
+  def uniSymbol: String = $uniSymbol
+  def uniSymbol_=(symbol: String) {
+    _uniSymbol = symbol
     name = symbol.replace('.', '_')
   }
 
-  def stopAllDataServer: Unit = {
-    for (server <- freqToQuoteServer.values) {
-      if (server.inUpdating) {
-        server.stopUpdateServer
-      }
+  def stopAllDataServer {
+    for (server <- freqToQuoteServer.valuesIterator if server.inUpdating) {
+      server.stopUpdateServer
     }
     freqToQuoteServer.clear
   }
 
-  def clearSer(freq: TFreq): Unit = {
-    for (ser <- serOf(freq)) {
+  def clearSer(freq: TFreq) {
+    serOf(freq) foreach {ser =>
       ser.clear(0)
       ser.loaded = false
     }
@@ -221,14 +207,14 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
   }
 
   def dataContract: DataContract[_] = {
-    freqToQuoteContract.get(defaultFreq).get
+    freqToQuoteContract(defaultFreq)
   }
   
   def dataContract_=(quoteContract: DataContract[_]) {
     val freq = quoteContract.freq
-    freqToQuoteContract.put(freq, quoteContract.asInstanceOf[QuoteContract])
+    freqToQuoteContract += (freq -> quoteContract.asInstanceOf[QuoteContract])
     /** may need a new dataServer now: */
-    freqToQuoteServer.remove(freq)
+    freqToQuoteServer -= freq
   }
 
 
@@ -239,7 +225,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
      * @TODO, temporary test code
      */
     if (tickerContract.serviceClassName == null) {
-      val defaultContract = freqToQuoteContract.get(defaultFreq).get
+      val defaultContract = freqToQuoteContract(defaultFreq)
       if (defaultContract.serviceClassName.toUpperCase.contains("IB")) {
         tickerContract.serviceClassName = "org.aiotrade.lib.dataserver.ib.IBTickerServer"
       } else {
@@ -250,7 +236,7 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     startTickerServerIfNecessary
   }
 
-  private def startTickerServerIfNecessary: Unit = {
+  private def startTickerServerIfNecessary {
     /**
      * @TODO, if tickerServer switched, should check here.
      */
@@ -261,8 +247,8 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
       var chainSers: List[TSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
-      serOf(TFreq.DAILY)  .foreach{x => chainSers = x :: chainSers}
-      serOf(TFreq.ONE_MIN).foreach{x => chainSers = x :: chainSers}
+      serOf(TFreq.DAILY)   foreach {x => chainSers ::= x}
+      serOf(TFreq.ONE_MIN) foreach {x => chainSers ::= x}
       tickerServer.subscribe(tickerContract, tickerSer, chainSers)
       //
       //            var break = false
@@ -280,14 +266,14 @@ abstract class AbstractSec(_uniSymbol:String, quoteContracts:Seq[QuoteContract],
     tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
   }
 
-  def unSubscribeTickerServer: Unit = {
+  def unSubscribeTickerServer {
     if (tickerServer != null && tickerContract != null) {
       tickerServer.unSubscribe(tickerContract)
     }
   }
 
   def isTickerServerSubscribed: Boolean = {
-    if (tickerServer != null) tickerServer.isContractSubsrcribed(tickerContract) else false
+    tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
   }
 }
 
