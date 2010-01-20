@@ -58,8 +58,8 @@ import scala.collection.mutable.HashMap
  */
 class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
-  private var scrollPane: JScrollPane = _
-  private var table: JTable = _
+  private val scrollPane = new JScrollPane
+  private val table = new JTable
   private val SYMBOL = "Symbol"
   private val TIME = "Time"
   private val LAST_PRICE = "Last"
@@ -94,8 +94,25 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   initComponents
 
-  table.setModel(tableModel)
-  table.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+  private def initComponents {
+    table.setFont(new Font("SansSerif", 0, 10))
+    table.setModel(
+      new DefaultTableModel(
+        Array(Array[Object]()),
+        Array[Object]()
+      )
+    )
+    table.setModel(tableModel)
+    table.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    table.setBackground(LookFeel().backgroundColor)
+    table.setGridColor(LookFeel().backgroundColor)
+
+    scrollPane.setViewportView(table)
+    scrollPane.setBackground(LookFeel().backgroundColor)
+    
+    setLayout(new BorderLayout)
+    add(BorderLayout.CENTER, scrollPane)
+  }
 
   class WatchListTableModel(columnNames: Array[String], rowCount: Int) extends DefaultTableModel(columnNames.asInstanceOf[Array[Object]], rowCount) {
 
@@ -133,7 +150,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   }
 
   def update(tickerSnapshot: Observable) {
-		val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
     val symbol = ts.symbol
     val snapshotTicker = ts.ticker
 
@@ -171,10 +188,10 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
         symbolToRow.put(symbol, row)
 
         val symbolToColColor = new HashMap[String, Color]
-        for (string <- columeNames) {
-          symbolToColColor.put(string, Color.WHITE)
+        for (name <- columeNames) {
+          symbolToColColor += (name -> Color.WHITE)
         }
-        rowToColColors.put(row, symbolToColColor)
+        rowToColColors += (row -> symbolToColColor)
 
         setColColorsByTicker(symbolToColColor, snapshotTicker, null, inWatching)
 
@@ -187,31 +204,32 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   val SWITCH_COLOR_A = Color.WHITE
   val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
-  private def setColColorsByTicker(symbolMapColColor: HashMap[String, Color], ticker: Ticker, prevTicker: Ticker, inWatching: Boolean) {
-    val bgColor = if (inWatching) Color.WHITE else Color.GRAY.brighter
+  private def setColColorsByTicker(symbolToColColor: HashMap[String, Color], ticker: Ticker, prevTicker: Ticker, inWatching: Boolean) {
+    val bgColor = if (inWatching) Color.BLACK else Color.GRAY.brighter
 
-    for (columeName <- symbolMapColColor.keysIterator) {
-      symbolMapColColor.put(columeName, bgColor)
+    for (columeName <- symbolToColColor.keysIterator) {
+      symbolToColColor += (columeName -> bgColor)
     }
 
+    val neutralColor  = LookFeel().getNeutralBgColor
     val positiveColor = LookFeel().getPositiveBgColor
     val negativeColor = LookFeel().getNegativeBgColor
 
     if (inWatching) {
       /** color of volume should be remembered for switching between two colors */
-      symbolMapColColor.put(DAY_VOLUME, bgColor)
+      symbolToColColor += (DAY_VOLUME -> bgColor)
     }
 
     if (ticker != null) {
       if (ticker(Ticker.DAY_CHANGE) > 0) {
-        symbolMapColColor.put(DAY_CHANGE, positiveColor)
-        symbolMapColColor.put(PERCENT, positiveColor)
+        symbolToColColor += (DAY_CHANGE -> positiveColor)
+        symbolToColColor += (PERCENT -> positiveColor)
       } else if (ticker(Ticker.DAY_CHANGE) < 0) {
-        symbolMapColColor.put(DAY_CHANGE, negativeColor)
-        symbolMapColColor.put(PERCENT, negativeColor)
+        symbolToColColor += (DAY_CHANGE -> negativeColor)
+        symbolToColColor += (PERCENT -> negativeColor)
       } else {
-        symbolMapColColor.put(DAY_CHANGE, Color.YELLOW)
-        symbolMapColColor.put(PERCENT, Color.YELLOW)
+        symbolToColColor += (DAY_CHANGE -> neutralColor)
+        symbolToColColor += (PERCENT -> neutralColor)
       }
 
       if (prevTicker != null) {
@@ -219,19 +237,19 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
           /** lastPrice's color */
           ticker.compareLastCloseTo(prevTicker) match {
             case 1 =>
-              symbolMapColColor.put(LAST_PRICE, positiveColor)
+              symbolToColColor += (LAST_PRICE -> positiveColor)
             case 0 =>
-              symbolMapColColor.put(LAST_PRICE, Color.YELLOW)
+              symbolToColColor += (LAST_PRICE -> neutralColor)
             case -1 =>
-              symbolMapColColor.put(LAST_PRICE, negativeColor)
+              symbolToColColor += (LAST_PRICE -> negativeColor)
             case _ =>
           }
 
           /** volumes color switchs between two colors if ticker renewed */
-          if (symbolMapColColor.get(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
-            symbolMapColColor.put(DAY_VOLUME, SWITCH_COLOR_B)
+          if (symbolToColColor(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
+            symbolToColColor += (DAY_VOLUME -> SWITCH_COLOR_B)
           } else {
-            symbolMapColColor.put(DAY_VOLUME, SWITCH_COLOR_A)
+            symbolToColColor += (DAY_VOLUME -> SWITCH_COLOR_A)
           }
         }
       }
@@ -259,26 +277,26 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   }
 
   def watch(symbol: String) {
-    symbolToInWatching.put(symbol, true)
+    symbolToInWatching += (symbol -> true)
 
-    val row = symbolToRow.get(symbol).getOrElse{return}
+    val row = symbolToRow.get(symbol) getOrElse {return}
 
-    val lastTicker = smbolToPreviousTicker.get(symbol).getOrElse{return}
-    rowToColColors.get(row) foreach {columeColorMap =>
-      setColColorsByTicker(columeColorMap, lastTicker, null, true)
+    val lastTicker = smbolToPreviousTicker.get(symbol) getOrElse {return}
+    rowToColColors.get(row) foreach {columeToColor =>
+      setColColorsByTicker(columeToColor, lastTicker, null, true)
     }
 
     repaint()
   }
 
   def unWatch(symbol: String) {
-    symbolToInWatching.put(symbol, false)
+    symbolToInWatching += (symbol -> false)
 
-    val row = symbolToRow.get(symbol).getOrElse{return}
+    val row = symbolToRow.get(symbol) getOrElse {return}
 
-    val lastTicker = smbolToPreviousTicker.get(symbol).getOrElse{return}
-    rowToColColors.get(row) foreach {columeColorMap =>
-      setColColorsByTicker(columeColorMap, lastTicker, null, false)
+    val lastTicker = smbolToPreviousTicker.get(symbol) getOrElse {return}
+    rowToColColors.get(row) foreach {columeToColor =>
+      setColColorsByTicker(columeToColor, lastTicker, null, false)
     }
 
     repaint()
@@ -304,7 +322,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {
     var symbol: String = _
 
-    this.setOpaque(true)
+    setOpaque(true)
 
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
                                       hasFocus: Boolean, row: Int, column: Int): Component = {
@@ -319,59 +337,47 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
        */
       val columnName = table.getColumnName(column)
 
-      val symbolToColColor = rowToColColors.get(row)
+      val symbolToColColor = rowToColColors(row)
 
-      this.setBackground(symbolToColColor.get(columnName))
-      if (isSelected && columnName.equals(SYMBOL)) {
-        this.setBackground(bgColorSelected)
+      setBackground(symbolToColColor(columnName))
+      if (isSelected && columnName == SYMBOL) {
+        setBackground(bgColorSelected)
       }
 
-      this.setForeground(Color.BLACK)
+      setForeground(Color.WHITE)
 
-      this.setText(null)
+      setText(null)
 
       if (value != null) {
-        if (columnName.equals(SYMBOL)) {
-          this.setHorizontalAlignment(SwingConstants.LEADING)
-        } else if (columnName.equals(TIME)) {
-          this.setHorizontalAlignment(SwingConstants.CENTER)
-        } else if (columnName.equals(LAST_PRICE)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-          this.setBackground(symbolToColColor.get(columnName))
-        } else if (columnName.equals(DAY_VOLUME)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-          this.setBackground(symbolToColColor.get(columnName))
-        } else if (columnName.equals(PREV_CLOSE)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-        } else if (columnName.equals(DAY_CHANGE)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-          this.setBackground(symbolToColColor.get(columnName))
-        } else if (columnName.equals(PERCENT)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-          this.setBackground(symbolToColColor.get(columnName))
-        } else if (columnName.equals(DAY_OPON)) {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
-        } else {
-          this.setHorizontalAlignment(SwingConstants.TRAILING)
+        columnName match {
+          case SYMBOL =>
+            setHorizontalAlignment(SwingConstants.LEADING)
+          case TIME =>
+            setHorizontalAlignment(SwingConstants.CENTER)
+          case LAST_PRICE =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+            setBackground(symbolToColColor(columnName))
+          case DAY_VOLUME =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+            setBackground(symbolToColColor(columnName))
+          case PREV_CLOSE =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+          case DAY_CHANGE =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+            setBackground(symbolToColColor(columnName))
+          case PERCENT =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+            setBackground(symbolToColColor(columnName))
+          case DAY_OPON =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
+          case _ =>
+            setHorizontalAlignment(SwingConstants.TRAILING)
         }
       }
-      this.setText(value.toString)
+      setText(value.toString)
 
-      return this;
+      this
     }
   }
 
-  private def initComponents {
-    scrollPane = new JScrollPane
-    table = new JTable
-
-    table.setFont(new Font("SansSerif", 0, 12))
-    table.setModel(new DefaultTableModel(
-        Array(Array()).asInstanceOf[Array[Array[Object]]],
-        Array().asInstanceOf[Array[Object]]))
-    scrollPane.setViewportView(table)
-
-    this.setLayout(new BorderLayout)
-    this.add(BorderLayout.CENTER, scrollPane)
-  }
 }

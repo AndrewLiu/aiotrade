@@ -86,22 +86,9 @@ object RealTimeBoardPanel {
 class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with TickerObserver {
   import RealTimeBoardPanel._
 
-  private var tickerContract: TickerContract = _
-  private var prevTicker: Ticker = _
-  private var infoModel: AttributiveCellTableModel = _
-  private var depthModel: AttributiveCellTableModel = _
-  private var tickerModel: AttributiveCellTableModel = _
-  private var infoCellAttr: DefaultCellAttribute = _
-  private var depthCellAttr: DefaultCellAttribute = _
-  private var tickerCellAttr: DefaultCellAttribute = _
-  private var infoTable: JTable = _
-  private var depthTable: JTable = _
-  private var tickerTable: JTable = _
-  private var tickerPane: JScrollPane = _
-  private var chartPane: JPanel = _
-  private var marketCal: Calendar = _
-  private var viewContainer: RealTimeChartViewContainer = _
-  private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
+  private val tickerContract: TickerContract = sec.tickerContract
+  private val tickerPane = new JScrollPane
+  private val chartPane = new JPanel
   private val symbol = new ValueCell
   private val sname = new ValueCell
   private val currentTime = new ValueCell
@@ -115,32 +102,27 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val prevClose = new ValueCell
 
   private val numbers = Array("①", "②", "③", "④", "⑤")
+  private val timeZone = sec.market.timeZone
+  private val marketCal = Calendar.getInstance(timeZone)
+  private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
+  sdf.setTimeZone(timeZone)
 
-  /**
-   * Creates new form RealtimeBoardPanel
-   */
+  private var prevTicker: Ticker = _
+  private var infoModel: AttributiveCellTableModel = _
+  private var depthModel: AttributiveCellTableModel = _
+  private var tickerModel: AttributiveCellTableModel = _
+  private var infoCellAttr: DefaultCellAttribute = _
+  private var depthCellAttr: DefaultCellAttribute = _
+  private var tickerCellAttr: DefaultCellAttribute = _
+  private var infoTable: JTable = _
+  private var depthTable: JTable = _
+  private var tickerTable: JTable = _
 
-  val timeZone = sec.market.timeZone
-  this.marketCal = Calendar.getInstance(timeZone)
-  this.sdf.setTimeZone(timeZone)
-  this.tickerContract = sec.tickerContract
   initComponents
 
-  private var columeModel = infoTable.getColumnModel
-  columeModel.getColumn(0).setMaxWidth(35)
-  columeModel.getColumn(2).setMaxWidth(35)
-
-  columeModel = depthTable.getColumnModel
-  columeModel.getColumn(0).setMinWidth(12)
-  columeModel.getColumn(1).setMinWidth(35)
-
-  columeModel = tickerTable.getColumnModel
-  columeModel.getColumn(0).setMinWidth(22)
-  columeModel.getColumn(1).setMinWidth(30)
-
-  val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
-  viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
-  val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
+  private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
+  private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
+  private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)
 
   chartPane.setLayout(new BorderLayout)
@@ -148,9 +130,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   private def initComponents {
     setFocusable(false)
-
-    tickerPane = new JScrollPane
-    chartPane  = new JPanel
 
     val infoModelData = Array[Array[Object]](
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
@@ -281,11 +260,24 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     tickerTable.setShowHorizontalLines(false)
     tickerTable.setShowVerticalLines(false)
     tickerTable.setForeground(Color.WHITE)
-    tickerTable.setBackground(LookFeel().infoBackgroundColor)
+    tickerTable.setBackground(LookFeel().backgroundColor)
+
+    var columeModel = infoTable.getColumnModel
+    columeModel.getColumn(0).setMaxWidth(35)
+    columeModel.getColumn(2).setMaxWidth(35)
+
+    columeModel = depthTable.getColumnModel
+    columeModel.getColumn(0).setMinWidth(12)
+    columeModel.getColumn(1).setMinWidth(35)
+
+    columeModel = tickerTable.getColumnModel
+    columeModel.getColumn(0).setMinWidth(22)
+    columeModel.getColumn(1).setMinWidth(30)
+
 
     /* @Note Border of JScrollPane may not be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
-    tickerPane.setBackground(LookFeel().infoBackgroundColor)
+    tickerPane.setBackground(LookFeel().backgroundColor)
     tickerPane.setViewportView(tickerTable)
 
     // put infoTable to a box to simple the insets setting:
@@ -298,11 +290,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         g.fillRect(rect.x, rect.y, rect.width, rect.height)
       }
     }
-    infoBox.setBackground(LookFeel().heavyBackgroundColor)
     infoBox.add(infoTable)
 
     // put fix size components to box
     val box = Box.createVerticalBox
+    box.setBackground(LookFeel().backgroundColor)
     box.add(infoBox)
     box.add(depthTable)
 
@@ -356,10 +348,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     var fgColor = Color.WHITE
     var bgColor = neutralColor
     if (snapshotTicker(Ticker.DAY_CHANGE) > 0) {
-      fgColor = Color.WHITE
+      fgColor = Color.BLACK
       bgColor = positiveColor
     } else if (snapshotTicker(Ticker.DAY_CHANGE) < 0) {
-      fgColor = Color.WHITE
+      fgColor = Color.BLACK
       bgColor = negativeColor
     }
     infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.column)
@@ -377,10 +369,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       bgColor = neutralColor
       snapshotTicker.compareLastCloseTo(prevTicker) match {
         case  1 =>
-          fgColor = Color.WHITE
+          fgColor = Color.BLACK
           bgColor = positiveColor
         case -1 =>
-          fgColor = Color.WHITE
+          fgColor = Color.BLACK
           bgColor = negativeColor
         case _ =>
       }
