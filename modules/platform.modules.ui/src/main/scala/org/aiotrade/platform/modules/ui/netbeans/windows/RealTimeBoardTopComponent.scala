@@ -56,27 +56,17 @@ import org.openide.windows.WindowManager;
  * exception. So, it's better to test serialization out of the IDE.
  */
 object RealTimeBoardTopComponent {
-  var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]();
+  var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]()
 
   /** The Mode this component will live in */
   val MODE = "realTimeBoard"
 
-
-  def findInstance(sec: Sec): RealTimeBoardTopComponent = {
-    for (ref <- instanceRefs) {
-      if (ref.get.getSec.equals(sec)) {
-        return ref.get
-      }
-    }
-
-    null
+  def instanceOf(sec: Sec): Option[RealTimeBoardTopComponent] = {
+    instanceRefs find (_.get.sec equals sec) map (_.get)
   }
 
   def getInstance(sec: Sec, contents: AnalysisContents): RealTimeBoardTopComponent = {
-    var instance = findInstance(sec)
-    if (instance == null) {
-      instance = new RealTimeBoardTopComponent(sec, contents)
-    }
+    val instance = instanceOf(sec) getOrElse new RealTimeBoardTopComponent(contents)
 
     if (!instance.isOpened) {
       instance.open
@@ -87,12 +77,14 @@ object RealTimeBoardTopComponent {
 
 }
 
-class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends TopComponent {
+class RealTimeBoardTopComponent private (contents: AnalysisContents) extends TopComponent {
   import RealTimeBoardTopComponent._
 
   private val ref = new WeakReference[RealTimeBoardTopComponent](this)
   instanceRefs ::= ref
     
+  val sec: Sec = contents.serProvider.asInstanceOf[Sec]
+
   private var reallyClosed = false
     
   private val s_id = sec.name + "_TK"
@@ -168,10 +160,6 @@ class RealTimeBoardTopComponent(sec: Sec, contents: AnalysisContents) extends To
     
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_NEVER;
-  }
-    
-  def getSec: Sec = {
-    sec
   }
     
   def realTimeChartViewContainer: Option[ChartViewContainer] = {

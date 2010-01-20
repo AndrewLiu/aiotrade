@@ -43,7 +43,7 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.chartview.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
-import org.aiotrade.lib.securities.Stock
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomOutAction;
@@ -71,12 +71,11 @@ object RealTimeChartTopComponent {
   var instanceRefs = List[WeakReference[RealTimeChartTopComponent]]()
 
   /** The Mode this component will live in. */
-  private val MODE = "realtime_";
+  private val MODE = "realtime_"
   private val REALTIME_MODE_NUMBER = 3
 
-
-  def getInstance(stock: Stock, contents: AnalysisContents): RealTimeChartTopComponent = {
-    val instance = instanceRefs find (x => x.get.getStock == stock) map (_.get) getOrElse new RealTimeChartTopComponent(stock, contents)
+  def getInstance(sec: Sec, contents: AnalysisContents): RealTimeChartTopComponent = {
+    val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
     
     if (!instance.isOpened) {
       instance.open
@@ -86,26 +85,28 @@ object RealTimeChartTopComponent {
   }
 
 }
-class RealTimeChartTopComponent(stock: Stock, contents: AnalysisContents) extends TopComponent {
+class RealTimeChartTopComponent private (contents: AnalysisContents) extends TopComponent {
   import RealTimeChartTopComponent._
 
   private val ref = new WeakReference[RealTimeChartTopComponent](this)
   instanceRefs ::= ref
-    
-  private val symbol = stock.uniSymbol
-  private val s_id = stock.name + "_RT"
+
+  val sec = contents.asInstanceOf[Sec]
+
+  private val symbol = sec.uniSymbol
+  private val s_id = sec.name + "_RT"
         
   //        if (!stock.isSeriesLoaded()) {
   //            stock.loadSeries();
   //        }
         
-  private val controller = ChartingControllerFactory.createInstance(stock.tickerSer, contents)
+  private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
         
   setLayout(new BorderLayout)
         
   add(viewContainer, SwingConstants.CENTER)
-  setName(stock.name + "_RT")
+  setName(sec.name + "_RT")
         
   private val popup = new JPopupMenu
   popup.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
@@ -130,7 +131,7 @@ class RealTimeChartTopComponent(stock: Stock, contents: AnalysisContents) extend
     })
         
   /** this component should setFocusable(true) to have the ability to grab the focus */
-  setFocusable(true);
+  setFocusable(true)
         
   /** as the NetBeans window system manage focus in a strange manner, we should do: */
   addFocusListener(new FocusAdapter {
@@ -141,11 +142,7 @@ class RealTimeChartTopComponent(stock: Stock, contents: AnalysisContents) extend
       override def focusLost(e: FocusEvent) {
       }
     })
-        
-
-    
-    
-    
+            
   private def showPopup(e: MouseEvent) {
     if (e.isPopupTrigger()) {
       popup.show(this, e.getX, e.getY)
@@ -162,13 +159,13 @@ class RealTimeChartTopComponent(stock: Stock, contents: AnalysisContents) extend
   }
     
   override protected def componentActivated {
-    if (stock.isTickerServerSubscribed) {
-      stock.subscribeTickerServer
+    if (sec.isTickerServerSubscribed) {
+      sec.subscribeTickerServer
     }
         
     /** active corresponding ticker board */
     for (ref <- instanceRefs; tc = ref.get) {
-      if (tc.getStock.equals(stock)) {
+      if (tc.sec.equals(sec)) {
         if (!tc.isOpened) {
           tc.open
         }
@@ -192,10 +189,6 @@ class RealTimeChartTopComponent(stock: Stock, contents: AnalysisContents) extend
     
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_NEVER
-  }
-    
-  def getStock: Stock = {
-    stock
   }
     
   def getViewContainer: RealTimeChartViewContainer = {

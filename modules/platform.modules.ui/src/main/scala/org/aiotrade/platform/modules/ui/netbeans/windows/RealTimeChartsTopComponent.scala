@@ -69,7 +69,7 @@ import org.openide.windows.WindowManager;
 object RealTimeChartsTopComponent {
   var instanceRefs = List[WeakReference[RealTimeChartsTopComponent]]()
 
-  private val SCROLL_SPEED_THROTTLE = 2400; // delay in milli seconds
+  private val SCROLL_SPEED_THROTTLE = 2400 // delay in milli seconds
 
   /** The Mode this component will live in. */
   private val MODE = "editor"
@@ -89,7 +89,7 @@ object RealTimeChartsTopComponent {
   }
 
 }
-class RealTimeChartsTopComponent extends TopComponent {
+class RealTimeChartsTopComponent private () extends TopComponent {
   import RealTimeChartsTopComponent._
 
   private val ref = new WeakReference[RealTimeChartsTopComponent](this);

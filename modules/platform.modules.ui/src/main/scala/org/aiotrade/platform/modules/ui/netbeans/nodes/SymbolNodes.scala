@@ -86,7 +86,6 @@ import org.openide.windows.WindowManager;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import scala.collection.mutable.HashSet
 
 
 /**
@@ -195,7 +194,7 @@ object SymbolNodes {
     }
 
     override def getOpenedIcon(tpe: Int): Image = {
-      getIcon(0);
+      getIcon(0)
     }
 
     override def getActions(context: Boolean): Array[Action] = {
@@ -426,16 +425,18 @@ object SymbolNodes {
       val contents = node.getLookup.lookup(classOf[AnalysisContents]);
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
       var mayNeedsReload = false
-      if (sec == null) {
-        sec = new Stock(contents.uniSymbol, List(quoteContract))
-        contents.serProvider = sec
-      } else {
-        mayNeedsReload = true
+      val sec = contents.serProvider match {
+        case null =>
+          val x = new Stock(contents.uniSymbol, List(quoteContract))
+          contents.serProvider = x
+          x
+        case x =>
+          mayNeedsReload = true
+          x.asInstanceOf[Sec]
       }
-
-      var analysisTc = AnalysisChartTopComponent.lookupTopComponent(sec.uniSymbol) getOrElse {
+      
+      var analysisTc = AnalysisChartTopComponent.instanceOf(sec.uniSymbol) getOrElse {
         /**
          * !NOTICE
          * close a TopComponent doen's mean this TopComponent is null, it still
@@ -446,7 +447,7 @@ object SymbolNodes {
           sec.clearSer(quoteContract.freq)
         }
         /** here should be the only place to new AnalysisChartTopComponent instance */
-        new AnalysisChartTopComponent(sec, contents)
+        new AnalysisChartTopComponent(contents)
       }
 
       if (!sec.isSerLoaded(quoteContract.freq)) {
@@ -475,7 +476,7 @@ object SymbolNodes {
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
 
       var sec = contents.serProvider match {
         case null =>
@@ -541,8 +542,7 @@ object SymbolNodes {
         RealTimeChartsTopComponent.instanceRefs.head.get.unWatch(sec)
       }
 
-      val rtBoardWin = RealTimeBoardTopComponent.findInstance(sec)
-      if (rtBoardWin != null) {
+      RealTimeBoardTopComponent.instanceOf(sec) foreach {rtBoardWin =>
         rtBoardWin.unWatch
       }
 

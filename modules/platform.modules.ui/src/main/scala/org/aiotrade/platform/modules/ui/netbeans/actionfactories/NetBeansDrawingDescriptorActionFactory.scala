@@ -63,7 +63,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     putValue(Action.NAME, "Show")
         
     def execute {
-      AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+      AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
         analysisWin.lookupViewContainer(descriptor.freq) foreach {viewContainer =>
           descriptor.active = true
                     
@@ -110,7 +110,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     def execute {
       descriptor.active = false
             
-      AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+      AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
         analysisWin.lookupViewContainer(descriptor.freq) foreach {viewContainer =>
           val masterView = viewContainer.masterView
                     
@@ -142,7 +142,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
           descriptor.containerContents.removeDescriptor(descriptor)
           descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
                 
-          AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+          AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
             val masterView = analysisWin.selectedViewContainer.get.masterView
             masterView.asInstanceOf[WithDrawingPane].deleteDrawing(descriptor)
           }

@@ -82,7 +82,7 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
   def inUpdating: Boolean
     
   def createNewInstance: Option[DataServer[_]]
-    
+
   /**
    * @return a long type source id, the format will be only 1 none-zero bit,
    *         the position of this bit is the source serial number

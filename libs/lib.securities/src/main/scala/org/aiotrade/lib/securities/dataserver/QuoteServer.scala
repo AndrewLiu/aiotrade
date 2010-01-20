@@ -34,10 +34,8 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.math.timeseries.{TSer,AddAll}
+import org.aiotrade.lib.math.timeseries.{TSer}
 import org.aiotrade.lib.securities.{Market, Quote, QuotePool, PersistenceManager}
-
-import org.aiotrade.lib.util.collection.ArrayList
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -236,6 +234,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
   }
 
   def marketOf(symbol: String): Market
+
+  def symbolsOf(market: Market): List[String]
 }
 
 

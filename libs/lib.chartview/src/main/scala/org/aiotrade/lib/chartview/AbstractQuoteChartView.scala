@@ -126,9 +126,9 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
       val time = tb(i)
       val item = mainSer(time).asInstanceOf[QuoteItem]
       if (item != null && item.close > 0) {
-        maxValue1 = math.max(maxValue1, item.high)
-        minValue1 = math.min(minValue1, item.low)
-        maxVolume = math.max(maxVolume, item.volume)
+        maxValue1 = Math.max(maxValue1, item.high)
+        minValue1 = Math.min(minValue1, item.low)
+        maxVolume = Math.max(maxVolume, item.volume)
       }
 
       i += 1

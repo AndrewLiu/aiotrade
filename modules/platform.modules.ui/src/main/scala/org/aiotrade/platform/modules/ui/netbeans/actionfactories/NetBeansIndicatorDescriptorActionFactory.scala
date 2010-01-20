@@ -79,7 +79,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = true;
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisWin <- AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol);
+      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
            viewContainer <- analysisWin.lookupViewContainer(descriptor.freq);
            view <- viewContainer.lookupChartView(descriptor);
            indicator <- descriptor.serviceInstance(viewContainer.controller.masterSer)
@@ -119,7 +119,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = false
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisWin <- AnalysisChartTopComponent.lookupTopComponent(descriptor.containerContents.uniSymbol);
+      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
            viewContainer <- analysisWin.lookupViewContainer(descriptor.freq)
       ) {
         viewContainer.removeSlaveView(descriptor)
@@ -240,7 +240,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
     }
         
     private def showEffect(descriptorToBeSet: IndicatorDescriptor) {
-      for (analysisWin <- AnalysisChartTopComponent.lookupTopComponent(descriptorToBeSet.containerContents.uniSymbol);
+      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptorToBeSet.containerContents.uniSymbol);
            descriptor <- analysisWin.lookupIndicator(descriptor)
       ) {
         descriptor.factors = descriptorToBeSet.factors

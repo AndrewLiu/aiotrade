@@ -294,6 +294,9 @@ class IBQuoteServer extends QuoteServer {
     Market.NYSE
   }
 
+  def symbolsOf(market: Market): List[String] = {
+    Nil
+  }
     
   /**
    * 1 1sec "<30;2000> S"

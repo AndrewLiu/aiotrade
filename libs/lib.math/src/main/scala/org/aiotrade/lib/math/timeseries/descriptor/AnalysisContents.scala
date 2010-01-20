@@ -28,18 +28,19 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.descriptor;
+package org.aiotrade.lib.math.timeseries.descriptor
 
-import javax.swing.Action;
-import org.aiotrade.lib.math.PersistenceManager;
-import org.aiotrade.lib.math.timeseries.TFreq;
+import javax.swing.Action
+import org.aiotrade.lib.math.PersistenceManager
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
-import org.aiotrade.lib.util.serialization.BeansDocument;
-import org.aiotrade.lib.util.swing.action.WithActions;
-import org.aiotrade.lib.util.swing.action.WithActionsHelper;
-import org.aiotrade.lib.util.swing.action.SaveAction;
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.aiotrade.lib.util.swing.action.WithActions
+import org.aiotrade.lib.util.swing.action.WithActionsHelper
+import org.aiotrade.lib.util.swing.action.SaveAction
 import org.w3c.dom.Element
 import scala.collection.mutable.ArrayBuffer
+
 /**
  *
  * @author Caoyuan Deng

@@ -104,8 +104,8 @@ object AnalysisChartTopComponent {
   /** The Mode this component will live in. */
   private val MODE = "editor"
 
-  def lookupTopComponent(symbol: String): Option[AnalysisChartTopComponent] = {
-    instanceRefs find (_.get.getStock.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
+  def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
+    instanceRefs find (_.get.sec.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
   }
 
   def selected: Option[AnalysisChartTopComponent] = {
@@ -116,15 +116,15 @@ object AnalysisChartTopComponent {
   }
 }
 
-class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends TopComponent {
+class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent {
   import AnalysisChartTopComponent._
 
-  private var quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
   private var ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
 
-
-  private var s_id: String = "";
+  val sec: Sec = contents.serProvider.asInstanceOf[Sec]
+  private var quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
+  private var s_id: String = ""
     
   private var symbol: String = _
     
@@ -496,10 +496,6 @@ class AnalysisChartTopComponent(sec: Sec, contents: AnalysisContents) extends To
     
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_NEVER
-  }
-    
-  def getStock: Sec = {
-    sec
   }
     
   private def updateToolbar {
