@@ -38,10 +38,6 @@ import org.aiotrade.lib.math.timeseries.datasource.SerProvider
  * @author Caoyuan Deng
  */
 object Sec {
-  /**
-   * We need to construct Type from String, so use Enumeration instead of case object there.
-   */
-
   abstract class Type
   object Type {
     case object Stock extends Type

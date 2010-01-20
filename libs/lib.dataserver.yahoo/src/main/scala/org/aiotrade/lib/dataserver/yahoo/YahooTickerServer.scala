@@ -233,7 +233,7 @@ class YahooTickerServer extends TickerServer {
 
   def defaultDateFormatPattern: String = "MM/dd/yyyy h:mma"
 
-  def sourceSerialNumber: Byte = 1
+  def sourceSerialNumber = 1
 
   def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 

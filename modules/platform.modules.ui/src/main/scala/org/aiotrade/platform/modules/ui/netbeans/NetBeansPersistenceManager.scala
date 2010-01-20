@@ -466,7 +466,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         /** check and create symbol index table if necessary */
         if (!symbolIndexTableExists(conn)) {
-          createSymbolIndexTable(conn)
+          createSymbolTable(conn)
         }
 
         conn.close
@@ -527,7 +527,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     false
   }
 
-  private def createSymbolIndexTable(conn: Connection) {
+  private def createSymbolTable(conn: Connection) {
     if (conn != null) {
       try {
         val stmt = conn.createStatement

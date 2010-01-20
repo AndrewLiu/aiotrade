@@ -272,8 +272,8 @@ class IBQuoteServer extends QuoteServer {
     "yyyyMMdd HH:mm:ss"
   }
     
-  def sourceSerialNumber: Byte = {
-    6.toByte
+  def sourceSerialNumber: Int = {
+    6
   }
     
   override def supportedFreqs = {
@@ -294,9 +294,7 @@ class IBQuoteServer extends QuoteServer {
     Market.NYSE
   }
 
-  def symbolsOf(market: Market): List[String] = {
-    Nil
-  }
+  def toSourceSymbol(market: Market, uniSymbol: String): String = uniSymbol
     
   /**
    * 1 1sec "<30;2000> S"

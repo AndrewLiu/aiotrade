@@ -235,8 +235,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
   def marketOf(symbol: String): Market
 
-  def symbolsOf(market: Market): List[String]
+  def toSourceSymbol(market: Market, uniSymbol: String): String
 }
-
-
 

@@ -90,9 +90,9 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
   def sourceId: Long
     
   /**
-   * @return a byte(from -128 to 127) type serial number, only 0 to 63 is valid.
+   * @return serial number, valid only when >= 0
    */
-  def sourceSerialNumber: Byte
+  def sourceSerialNumber: Int
     
   def icon: Option[Image]
 

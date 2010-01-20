@@ -2,6 +2,7 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
 <filesystem>
     <folder name="Actions">
+        <file name="org-aiotrade-platform-modules-ui-netbeans-actions-AddMarketSymbolsAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-AddSymbolAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-ChangeStatisticChartOptsAction.instance"/>
@@ -146,6 +147,9 @@
     <folder name="Shortcuts">
         <file name="SPACE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
+        </file>
+        <file name="C-A.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-AddMarketSymbolsAction.instance"/>
         </file>
         <file name="C-N.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-AddSymbolAction.instance"/>

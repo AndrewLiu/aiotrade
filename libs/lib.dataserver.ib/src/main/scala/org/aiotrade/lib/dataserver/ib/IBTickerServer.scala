@@ -159,12 +159,10 @@ object IBTickerServer extends IBTickerServer {
     "yyyyMMdd HH:mm:ss"
   }
     
-  def sourceSerialNumber = {
-    6.toByte
-  }
+  def sourceSerialNumber = 6
 
   def sourceTimeZone: TimeZone = {
-    TimeZone.getTimeZone("America/New_York");
+    TimeZone.getTimeZone("America/New_York")
   }
 
   override def marketOf(symbol: String) = {
