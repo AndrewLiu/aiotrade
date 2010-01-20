@@ -33,9 +33,11 @@ package org.aiotrade.lib.chartview
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Container
 import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.Point
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -43,12 +45,15 @@ import java.util.Calendar
 import java.util.ResourceBundle
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.CellRendererPane
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.UIManager
+import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -83,18 +88,19 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   private var tickerContract: TickerContract = _
   private var prevTicker: Ticker = _
-  private var infoModel: DefaultTableModel = _
-  private var depthModel: DefaultTableModel = _
-  private var tickerModel: DefaultTableModel = _
+  private var infoModel: AttributiveCellTableModel = _
+  private var depthModel: AttributiveCellTableModel = _
+  private var tickerModel: AttributiveCellTableModel = _
   private var infoCellAttr: DefaultCellAttribute = _
   private var depthCellAttr: DefaultCellAttribute = _
-  private var marketCal: Calendar = _
-  private var viewContainer: RealTimeChartViewContainer = _
+  private var tickerCellAttr: DefaultCellAttribute = _
   private var infoTable: JTable = _
   private var depthTable: JTable = _
   private var tickerTable: JTable = _
   private var tickerPane: JScrollPane = _
   private var chartPane: JPanel = _
+  private var marketCal: Calendar = _
+  private var viewContainer: RealTimeChartViewContainer = _
   private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
   private val symbol = new ValueCell
   private val sname = new ValueCell
@@ -157,7 +163,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       Array[Any]("A", "B", "C", "D")
     )
 
-    infoCellAttr = infoModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[DefaultCellAttribute]
+    infoCellAttr = infoModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
     /* Code for combining cells
      infoCellAttr.combine(new int[]{0}, new int[]{0, 1});
      infoCellAttr.combine(new int[]{1}, new int[]{0, 1, 2, 3});
@@ -214,8 +220,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthModel.setValueAt(BUNDLE.getString("ask") + numbers(bidIdx), bidRow, 0)
     }
 
-    depthTable = new MultiSpanCellTable(depthModel)
-    depthCellAttr = depthModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[DefaultCellAttribute]
+    depthCellAttr = depthModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
 
     for (i <- 0 until 11) {
       for (j <- 1 until 3) {
@@ -227,6 +232,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 //            depthCellAttr.setBackground(Color.gray, 5, j);
 //        }
 
+    depthTable = new MultiSpanCellTable(depthModel)
     depthTable.setDefaultRenderer(classOf[Object], new AttributiveCellRenderer)
     depthTable.setTableHeader(null)
     depthTable.setFocusable(false)
@@ -237,8 +243,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
 
-    tickerModel = new DefaultTableModel(
-      Array[Array[Object]](
+    tickerModel = new AttributiveCellTableModel( //new DefaultTableModel(
+      Array[Array[Any]](
         Array(null, null, null),
         Array(null, null, null),
         Array(null, null, null),
@@ -250,7 +256,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array(null, null, null),
         Array(null, null, null)
       ),
-      Array[Object](
+      Array[Any](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     ) {
@@ -264,14 +270,20 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       }
     }
 
-    tickerTable = new JTable(tickerModel)
-    tickerTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    tickerCellAttr = tickerModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
+
+    //tickerTable = new JTable(tickerModel)
+    //tickerTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    tickerTable = new MultiSpanCellTable(tickerModel)
+    tickerTable.setDefaultRenderer(classOf[Object], new AttributiveCellRenderer)
     tickerTable.setFocusable(false)
     tickerTable.setCellSelectionEnabled(false)
     tickerTable.setShowHorizontalLines(false)
     tickerTable.setShowVerticalLines(false)
+    tickerTable.setForeground(Color.WHITE)
+    tickerTable.setBackground(LookFeel().infoBackgroundColor)
 
-    /* @Note Border of JScrollPane may cannot be set by #setBorder, at least in Metal L&F: */
+    /* @Note Border of JScrollPane may not be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
     tickerPane.setBackground(LookFeel().infoBackgroundColor)
     tickerPane.setViewportView(tickerTable)
@@ -287,24 +299,12 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       }
     }
     infoBox.setBackground(LookFeel().heavyBackgroundColor)
-    val strut1 = Box.createVerticalStrut(5)
-    strut1.setForeground(LookFeel().heavyBackgroundColor)
-    infoBox.add(strut1)
     infoBox.add(infoTable)
-    val strut2 = Box.createVerticalStrut(4)
-    strut2.setForeground(LookFeel().heavyBackgroundColor)
-    infoBox.add(strut2)
 
     // put fix size components to box
     val box = Box.createVerticalBox
     box.add(infoBox)
-    val strut3 = Box.createVerticalStrut(2)
-    strut3.setForeground(LookFeel().heavyBackgroundColor)
-    box.add(strut3)
     box.add(depthTable)
-    val strut4 = Box.createVerticalStrut(2)
-    strut4.setForeground(LookFeel().heavyBackgroundColor)
-    box.add(strut4)
 
     setLayout(new GridBagLayout)
     add(box,        new GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100,   0))
@@ -415,27 +415,60 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     table.getModel.asInstanceOf[DefaultTableModel].fireTableDataChanged
   }
 
+  class CustomTableUI extends BasicTableUI {
+    override def installUI(c: JComponent) {
+      super.installUI(c)
+
+      table.remove(rendererPane)
+      rendererPane = createCustomCellRendererPane
+      table.add(rendererPane)
+    }
+
+    /**
+     * Creates a custom {@link CellRendererPane} that sets the renderer component to
+     * be non-opaque if the associated row isn't selected. This custom
+     * {@code CellRendererPane} is needed because a table UI delegate has no prepare
+     * renderer like {@link JTable} has.
+     */
+    private def createCustomCellRendererPane: CellRendererPane = new CellRendererPane {
+      override def paintComponent(graphics: Graphics, component: Component, 
+                                  container: Container, x: Int, y: Int, w: Int, h: Int,
+                                  shouldValidate: Boolean) {
+        // figure out what row we're rendering a cell for.
+        val rowAtPoint = table.rowAtPoint(new Point(x, y))
+        val isSelected = table.isRowSelected(rowAtPoint)
+        // if the component to render is a JComponent, add our tweaks.
+        if (component.isInstanceOf [JComponent]) {
+          val jcomponent = component.asInstanceOf[JComponent]
+          jcomponent.setOpaque(isSelected)
+        }
+
+        super.paintComponent(graphics, component, container, x, y, w, h, shouldValidate)
+      }
+    }
+  }
+  
   class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
 
-    this.setForeground(Color.WHITE)
-    this.setBackground(LookFeel().backgroundColor)
-    this.setOpaque(true)
-
+    setForeground(Color.WHITE)
+    setBackground(LookFeel().backgroundColor)
+    setOpaque(true)
 
     override def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
-                                               hasFocus: Boolean, row: Int, column: Int): Component = {
+                                               hasFocus: Boolean, row: Int, column: Int
+    ): Component = {
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
-      this.setForeground(Color.WHITE)
-      this.setBackground(LookFeel().backgroundColor)
-      this.setText(null)
+      setForeground(Color.WHITE)
+      setBackground(LookFeel().backgroundColor)
+      setText(null)
 
       if (value != null) {
         column match {
           case 0 => // Time
-            this.setHorizontalAlignment(SwingConstants.LEADING)
+            setHorizontalAlignment(SwingConstants.LEADING)
           case 1 => // Price
-            this.setHorizontalAlignment(SwingConstants.TRAILING)
+            setHorizontalAlignment(SwingConstants.TRAILING)
             if (row + 1 < table.getRowCount) {
               try {
                 var floatValue = NUMBER_FORMAT.parse(value.toString.trim).floatValue
@@ -443,22 +476,23 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
                 if (prevValue != null) {
                   val prevFloatValue = NUMBER_FORMAT.parse(prevValue.toString.trim).floatValue
                   if (floatValue > prevFloatValue) {
-                    this.setForeground(Color.WHITE)
-                    this.setBackground(LookFeel().getPositiveBgColor)
+                    setForeground(Color.WHITE)
+                    setBackground(LookFeel().getPositiveBgColor)
                   } else if (floatValue < prevFloatValue) {
-                    this.setForeground(Color.WHITE)
-                    this.setBackground(LookFeel().getNegativeBgColor)
+                    setForeground(Color.WHITE)
+                    setBackground(LookFeel().getNegativeBgColor)
                   } else {
-                    this.setForeground(Color.BLACK)
-                    this.setBackground(LookFeel().getNeutralBgColor)
+                    setForeground(Color.BLACK)
+                    setBackground(LookFeel().getNeutralBgColor)
                   }
                 }
               } catch {case ex: ParseException => ex.printStackTrace}
             }
           case 2 => // Size
-            this.setHorizontalAlignment(SwingConstants.TRAILING)
+            setHorizontalAlignment(SwingConstants.TRAILING)
         }
-        this.setText(value.toString)
+
+        setText(value.toString)
       }
 
       super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)

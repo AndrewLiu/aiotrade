@@ -24,6 +24,12 @@ object Main {
   def main(args: Array[String]) {
     UIManager.setLookAndFeel(new HighContrastLAF)
 
+    //UIManager.getInstalledLookAndFeels find {_.getName == "Nimbus"} foreach {laf =>
+    //  UIManager.setLookAndFeel(laf.getClassName)
+    //}
+    //UIManager.put("nimbusBlueGrey", Color.RED)
+    //UIManager.put("control", Color.RED)
+
     val frame = new JFrame
     val w = 800
     val h = 600

@@ -53,13 +53,13 @@ class AttributiveCellRenderer extends DefaultTableCellRenderer {
         null
       }
       if (border == null) {
-        border = UIManager.getBorder("Table.focusCellHighlightBorder");
+        border = UIManager.getBorder("Table.focusCellHighlightBorder")
       }
       setBorder(border)
 
       if (!isSelected && table.isCellEditable(row, column)) {
         setForeground(if (foreground != null) foreground else UIManager.getColor("Table.focusCellForeground"))
-        setBackground(UIManager.getColor("Table.focusCellBackground"));
+        setBackground(UIManager.getColor("Table.focusCellBackground"))
       }
     } else {
       setBorder(AttributiveCellRenderer.noFocusBorder)
