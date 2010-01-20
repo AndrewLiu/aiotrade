@@ -106,6 +106,9 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     table.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
     table.setBackground(LookFeel().backgroundColor)
     table.setGridColor(LookFeel().backgroundColor)
+    val header = table.getTableHeader
+    header.setForeground(Color.WHITE)
+    header.setBackground(LookFeel().backgroundColor)
 
     scrollPane.setViewportView(table)
     scrollPane.setBackground(LookFeel().backgroundColor)

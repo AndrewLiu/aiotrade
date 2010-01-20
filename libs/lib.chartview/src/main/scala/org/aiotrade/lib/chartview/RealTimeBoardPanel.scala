@@ -221,6 +221,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
+    val depthHeader = depthTable.getTableHeader
+    if (depthHeader != null) {
+      depthHeader.setForeground(Color.WHITE)
+      depthHeader.setBackground(LookFeel().backgroundColor)
+    }
 
     tickerModel = new AttributiveCellTableModel( //new DefaultTableModel(
       Array[Array[Object]](
@@ -261,6 +266,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     tickerTable.setShowVerticalLines(false)
     tickerTable.setForeground(Color.WHITE)
     tickerTable.setBackground(LookFeel().backgroundColor)
+    val tickerHeader = tickerTable.getTableHeader
+    if (tickerHeader != null) {
+      tickerHeader.setForeground(Color.WHITE)
+      tickerHeader.setBackground(LookFeel().backgroundColor)
+    }
 
     var columeModel = infoTable.getColumnModel
     columeModel.getColumn(0).setMaxWidth(35)
