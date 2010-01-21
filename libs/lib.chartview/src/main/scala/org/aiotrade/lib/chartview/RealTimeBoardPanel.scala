@@ -266,6 +266,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     tickerTable.setShowVerticalLines(false)
     tickerTable.setForeground(Color.WHITE)
     tickerTable.setBackground(LookFeel().backgroundColor)
+    tickerTable.setFillsViewportHeight(true)
     val tickerHeader = tickerTable.getTableHeader
     if (tickerHeader != null) {
       tickerHeader.setForeground(Color.WHITE)
@@ -355,14 +356,12 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     dayPercent.value  = "%+3.2f%%" format snapshotTicker.changeInPercent
     dayVolume.value   = snapshotTicker(Ticker.DAY_VOLUME).toString
 
-    var fgColor = Color.WHITE
-    var bgColor = neutralColor
+    var bgColor = LookFeel().backgroundColor
+    var fgColor = neutralColor
     if (snapshotTicker(Ticker.DAY_CHANGE) > 0) {
-      fgColor = Color.BLACK
-      bgColor = positiveColor
+      fgColor = positiveColor
     } else if (snapshotTicker(Ticker.DAY_CHANGE) < 0) {
-      fgColor = Color.BLACK
-      bgColor = negativeColor
+      fgColor = negativeColor
     }
     infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.column)
     infoCellAttr.setForeground(fgColor, dayPercent.row, dayPercent.column)
@@ -375,15 +374,13 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
      * @see UpdateServer.class in AbstractTickerDataServer.class and YahooTickerDataServer.class
      */
     if (prevTicker != null && snapshotTicker.isDayVolumeChanged(prevTicker)) {
-      fgColor = Color.WHITE
-      bgColor = neutralColor
+      bgColor = LookFeel().backgroundColor
+      fgColor = neutralColor
       snapshotTicker.compareLastCloseTo(prevTicker) match {
         case  1 =>
-          fgColor = Color.BLACK
-          bgColor = positiveColor
+          fgColor = positiveColor
         case -1 =>
-          fgColor = Color.BLACK
-          bgColor = negativeColor
+          fgColor = negativeColor
         case _ =>
       }
 
