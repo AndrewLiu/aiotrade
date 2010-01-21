@@ -95,7 +95,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   private val ref = new WeakReference[RealTimeChartsTopComponent](this);
   instanceRefs ::= ref
     
-  private val s_id = "RealtimeCharts"
+  private val tc_id = "RealtimeCharts"
     
   private var secToViewContainers = Map[Sec, ChartViewContainer]()
     
@@ -213,7 +213,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   }
     
   override protected def preferredID: String = {
-    s_id
+    tc_id
   }
     
   override def getPersistenceType: Int = {

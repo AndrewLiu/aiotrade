@@ -126,7 +126,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       storage.synchronized {
         returnBorrowedTimeValues(storage)
-        //storage.clear
+        storageOf(contract).clear
       }
     }
   }
@@ -144,7 +144,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       storage.synchronized {
         returnBorrowedTimeValues(storage)
-        //storage.clear
+        storageOf(contract).clear
       }
     }
   }

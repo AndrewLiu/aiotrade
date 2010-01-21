@@ -94,7 +94,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   val sec = contents.asInstanceOf[Sec]
 
   private val symbol = sec.uniSymbol
-  private val s_id = sec.name + "_RT"
+  private val tc_id = sec.name + "_RT"
         
   //        if (!stock.isSeriesLoaded()) {
   //            stock.loadSeries();
@@ -184,7 +184,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   }
     
   override protected def preferredID: String = {
-    s_id
+    tc_id
   }
     
   override def getPersistenceType: Int = {

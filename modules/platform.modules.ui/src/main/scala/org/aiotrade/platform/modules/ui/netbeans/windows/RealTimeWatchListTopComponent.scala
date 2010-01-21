@@ -93,7 +93,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   private var ref = new WeakReference[RealTimeWatchListTopComponent](this)
   instanceRefs ::= ref
     
-  private val s_id = "RealTimeWatchList"
+  private val tc_id = "RealTimeWatchList"
     
   private var updateServerRegistered = false
     
@@ -185,7 +185,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   def getSelectedSymbolNodes: List[Node] = {
     var selectedNodes = List[Node]();
     for (row <- rtWatchListPanel.getWatchListTable.getSelectedRows()) {
-      val symbol = rtWatchListPanel.getSymbolAtRow(row)
+      val symbol = rtWatchListPanel.symbolAtRow(row)
       if (symbol != null) {
         symbolToNode.get(symbol) foreach {node =>
           selectedNodes ::= node
@@ -198,7 +198,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   private def getAllSymbolNodes: List[Node] = {
     var nodes = List[Node]()
     for (row <- 0 until rtWatchListPanel.getWatchListTable.getRowCount) {
-      val symbol = rtWatchListPanel.getSymbolAtRow(row)
+      val symbol = rtWatchListPanel.symbolAtRow(row)
       if (symbol != null) {
         symbolToNode.get(symbol) foreach {node =>
           nodes ::= node
@@ -232,7 +232,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     
   private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseListener {
         
-    private def getRowAtY(e: MouseEvent): Int = {
+    private def rowAtY(e: MouseEvent): Int = {
       val columnModel = table.getColumnModel
       val col = columnModel.getColumnIndexAtX(e.getX)
       val row = e.getY / table.getRowHeight
@@ -249,7 +249,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
             
       /** when double click on a row, try to active this stock's tickering chart view */
       if (e.getClickCount == 2) {
-        val symbol = rtWatchListPanel.getSymbolAtRow(getRowAtY(e))
+        val symbol = rtWatchListPanel.symbolAtRow(rowAtY(e))
         if (symbol == null) {
           return
         }
@@ -276,7 +276,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     
     
   override protected def preferredID: String = {
-    s_id
+    tc_id
   }
     
   override def getPersistenceType: Int = {

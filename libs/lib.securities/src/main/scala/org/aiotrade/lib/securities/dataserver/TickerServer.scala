@@ -130,7 +130,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
       storage synchronized {
         returnBorrowedTimeValues(storage)
-        //storage.clear
+        storageOf(contract).clear
       }
     }
   }
@@ -146,9 +146,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
         //println(evt.symbol + ": update event:")
       }
 
-      storage synchronized {
+      storageOf(contract) synchronized {
         returnBorrowedTimeValues(storage)
-        //storage.clear
+        storageOf(contract).clear
       }
     }
   }

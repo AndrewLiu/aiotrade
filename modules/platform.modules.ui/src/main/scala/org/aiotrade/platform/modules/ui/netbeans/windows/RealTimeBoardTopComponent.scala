@@ -87,7 +87,7 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
 
   private var reallyClosed = false
     
-  private val s_id = sec.name + "_TK"
+  private val tc_id = sec.name + "_TK"
         
   private val boardPanel = new RealTimeBoardPanel(sec, contents)
         
@@ -155,11 +155,11 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
   }
     
   override protected def preferredID: String = {
-    s_id
+    tc_id
   }
     
   override def getPersistenceType: Int = {
-    TopComponent.PERSISTENCE_NEVER;
+    TopComponent.PERSISTENCE_NEVER
   }
     
   def realTimeChartViewContainer: Option[ChartViewContainer] = {
