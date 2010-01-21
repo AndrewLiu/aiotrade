@@ -137,8 +137,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
             val idx2 = s2.indexOf('%')
             val s12 = if (idx2 > 0) s2.substring(0, idx2) else s2
             try {
-              val d1 = s1.toDouble
-              val d2 = s2.toDouble
+              val d1 = s11.toDouble
+              val d2 = s12.toDouble
               if (d1 > d2) 1 else if (d1 < d2) -1 else 0
             } catch {case _ => s1 compareTo s2}
           case _ => 0
