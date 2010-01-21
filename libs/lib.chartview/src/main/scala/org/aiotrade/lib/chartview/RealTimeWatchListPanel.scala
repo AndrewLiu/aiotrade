@@ -35,6 +35,7 @@ import java.awt.Color
 import java.awt.Component
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Comparator
 import java.util.Locale
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -44,6 +45,7 @@ import javax.swing.SwingConstants
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
+import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerObserver
@@ -84,9 +86,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     DAY_OPEN
   )
   private val symbolToInWatching = new HashMap[String, Boolean]
-  private val symbolToRow = new HashMap[String, Int]
-  private val smbolToPreviousTicker = new HashMap[String, Ticker]
-  private val rowToColColors = new HashMap[Int, HashMap[String, Color]]
+  private val symbolToPreviousTicker = new HashMap[String, Ticker]
+  private val symbolToColColors = new HashMap[String, HashMap[String, Color]]
   private val tableModel: WatchListTableModel = new WatchListTableModel(columeNames, 0)
   private val df = new SimpleDateFormat("hh:mm", Locale.US)
   private val cal = Calendar.getInstance
@@ -106,13 +107,36 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     table.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
     table.setBackground(LookFeel().backgroundColor)
     table.setGridColor(LookFeel().backgroundColor)
-    table.setAutoCreateRowSorter(true)
     table.setFillsViewportHeight(true)
     val header = table.getTableHeader
     header.setForeground(Color.WHITE)
     header.setBackground(LookFeel().backgroundColor)
     header.setReorderingAllowed(true)
     header.getDefaultRenderer.asInstanceOf[DefaultTableCellRenderer].setHorizontalAlignment(SwingConstants.CENTER)
+
+    table.setAutoCreateRowSorter(false)
+    val sorter = new TableRowSorter(tableModel)
+    val comparator = new Comparator[Object] {
+      def compare(o1: Object, o2: Object): Int = {
+        (o1, o2) match {
+          case (s1: String, s2: String) =>
+            val idx1 = s1.indexOf('%')
+            val s11 = if (idx1 > 0) s1.substring(0, idx1) else s1
+            val idx2 = s2.indexOf('%')
+            val s12 = if (idx2 > 0) s2.substring(0, idx2) else s2
+            try {
+              val d1 = s1.toDouble
+              val d2 = s2.toDouble
+              if (d1 > d2) 1 else if (d1 < d2) -1 else 0
+            } catch {case _ => s1 compareTo s2}
+          case _ => 0
+        }
+      }
+    }
+    for (i <- 1 until tableModel.getColumnCount) {
+      sorter.setComparator(i, comparator)
+    }
+    table.setRowSorter(sorter)
 
     scrollPane.setViewportView(table)
     scrollPane.setBackground(LookFeel().backgroundColor)
@@ -139,14 +163,14 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     }
   }
 
-  final private def getColumnIndex(columeName: String): Int = {
+  final private def rowOf(columeName: String): Int = {
     var idx = -1
     val n = table.getColumnCount
 
     var i = 0
     var break = false
     while (i < n && !break) {
-      if (table.getColumnName(i).equals(columeName)) {
+      if (table.getColumnName(i) == columeName) {
         idx = i
         break = true
       }
@@ -161,9 +185,9 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val symbol = ts.symbol
     val snapshotTicker = ts.ticker
 
-    var previousTicker = smbolToPreviousTicker.get(symbol) getOrElse {
+    var previousTicker = symbolToPreviousTicker.get(symbol) getOrElse {
       val x = new Ticker
-      smbolToPreviousTicker += (symbol -> x)
+      symbolToPreviousTicker += (symbol -> x)
       x
     }
     
@@ -177,30 +201,28 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
      * Should set columeColors[] before addRow() or setValue() of table to
      * make the color effects take place at once.
      */
-    symbolToRow.get(symbol) match {
-      case Some(row) =>
+    symbolToColColors.get(symbol) match {
+      case Some(colNameToColor) =>
         if (snapshotTicker.isDayVolumeGrown(previousTicker)) {
-          val symbolToColColor = rowToColColors(row)
-          setColColorsByTicker(symbolToColColor, snapshotTicker, previousTicker, inWatching)
+          setColColorsByTicker(colNameToColor, snapshotTicker, previousTicker, inWatching)
 
-          val rowData1 = composeRowData(symbol, snapshotTicker)
-          for (i <- 0 until rowData1.length) {
-            table.setValueAt(rowData1(i), row, i)
+          val rowData = composeRowData(symbol, snapshotTicker)
+          val row = rowOf(symbol)
+          for (i <- 0 until rowData.length) {
+            table.setValueAt(rowData(i), row, i)
           }
         }
       case None =>
-        val row = tableModel.getRowCount
-        symbolToRow.put(symbol, row)
-
-        val symbolToColColor = new HashMap[String, Color]
+        val colNameToColor = new HashMap[String, Color]
         for (name <- columeNames) {
-          symbolToColColor += (name -> Color.WHITE)
+          colNameToColor += (name -> LookFeel().nameColor)
         }
-        rowToColColors += (row -> symbolToColColor)
+        symbolToColColors += (symbol -> colNameToColor)
 
-        setColColorsByTicker(symbolToColColor, snapshotTicker, null, inWatching)
+        setColColorsByTicker(colNameToColor, snapshotTicker, null, inWatching)
 
-        tableModel.addRow(composeRowData(symbol, snapshotTicker))
+        val rowData = composeRowData(symbol, snapshotTicker)
+        tableModel.addRow(rowData)
     }
 
     previousTicker.copy(snapshotTicker)
@@ -209,11 +231,11 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   val SWITCH_COLOR_A = LookFeel().nameColor
   val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
-  private def setColColorsByTicker(symbolToColColor: HashMap[String, Color], ticker: Ticker, prevTicker: Ticker, inWatching: Boolean) {
+  private def setColColorsByTicker(colNameToColColor: HashMap[String, Color], ticker: Ticker, prevTicker: Ticker, inWatching: Boolean) {
     val fgColor = if (inWatching) LookFeel().nameColor else Color.GRAY.brighter
 
-    for (columeName <- symbolToColColor.keysIterator) {
-      symbolToColColor += (columeName -> fgColor)
+    for (name <- colNameToColColor.keysIterator) {
+      colNameToColColor += (name -> fgColor)
     }
 
     val neutralColor  = LookFeel().getNeutralBgColor
@@ -221,29 +243,29 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val negativeColor = LookFeel().getNegativeBgColor
 
     if (inWatching) {
-      /** color of volume should be remembered for switching between two colors */
-      symbolToColColor += (DAY_VOLUME -> fgColor)
+      /** color of volume should be recorded for switching between two colors */
+      colNameToColColor += (DAY_VOLUME -> fgColor)
     }
 
     if (ticker != null) {
       if (ticker(Ticker.DAY_CHANGE) > 0) {
-        symbolToColColor += (DAY_CHANGE -> positiveColor)
-        symbolToColColor += (PERCENT    -> positiveColor)
+        colNameToColColor += (DAY_CHANGE -> positiveColor)
+        colNameToColColor += (PERCENT    -> positiveColor)
       } else if (ticker(Ticker.DAY_CHANGE) < 0) {
-        symbolToColColor += (DAY_CHANGE -> negativeColor)
-        symbolToColColor += (PERCENT    -> negativeColor)
+        colNameToColColor += (DAY_CHANGE -> negativeColor)
+        colNameToColColor += (PERCENT    -> negativeColor)
       } else {
-        symbolToColColor += (DAY_CHANGE -> neutralColor)
-        symbolToColColor += (PERCENT    -> neutralColor)
+        colNameToColColor += (DAY_CHANGE -> neutralColor)
+        colNameToColColor += (PERCENT    -> neutralColor)
       }
 
       def setColorToPrevClose(tickerField: Int, columnName: String) {
         if (ticker(tickerField) > ticker(Ticker.PREV_CLOSE)) {
-          symbolToColColor += (columnName -> positiveColor)
+          colNameToColColor += (columnName -> positiveColor)
         } else if (ticker(tickerField) < ticker(Ticker.PREV_CLOSE)) {
-          symbolToColColor += (columnName -> negativeColor)
+          colNameToColColor += (columnName -> negativeColor)
         } else {
-          symbolToColColor += (columnName -> neutralColor)
+          colNameToColColor += (columnName -> neutralColor)
         }
       }
 
@@ -255,21 +277,21 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
       if (prevTicker != null) {
         if (ticker.isDayVolumeChanged(prevTicker)) {
           /** lastPrice's color */
-          ticker.compareLastCloseTo(prevTicker) match {
-            case 1 =>
-              symbolToColColor += (LAST_PRICE -> positiveColor)
-            case 0 =>
-              symbolToColColor += (LAST_PRICE -> neutralColor)
-            case -1 =>
-              symbolToColColor += (LAST_PRICE -> negativeColor)
-            case _ =>
-          }
+          /* ticker.compareLastCloseTo(prevTicker) match {
+           case 1 =>
+           symbolToColColor += (LAST_PRICE -> positiveColor)
+           case 0 =>
+           symbolToColColor += (LAST_PRICE -> neutralColor)
+           case -1 =>
+           symbolToColColor += (LAST_PRICE -> negativeColor)
+           case _ =>
+           } */
 
           /** volumes color switchs between two colors if ticker renewed */
-          if (symbolToColColor(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
-            symbolToColColor += (DAY_VOLUME -> SWITCH_COLOR_B)
+          if (colNameToColColor(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
+            colNameToColColor += (DAY_VOLUME -> SWITCH_COLOR_B)
           } else {
-            symbolToColColor += (DAY_VOLUME -> SWITCH_COLOR_A)
+            colNameToColColor += (DAY_VOLUME -> SWITCH_COLOR_A)
           }
         }
       }
@@ -283,16 +305,16 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     cal.setTimeInMillis(ticker.time)
     val lastTradeTime = cal.getTime
 
-    rowData(getColumnIndex(SYMBOL)) = symbol
-    rowData(getColumnIndex(TIME)) = df.format(lastTradeTime)
-    rowData(getColumnIndex(LAST_PRICE)) = "%5.2f"    format ticker(Ticker.LAST_PRICE)
-    rowData(getColumnIndex(DAY_VOLUME)) = "%5.2f"    format ticker(Ticker.DAY_VOLUME)
-    rowData(getColumnIndex(PREV_CLOSE)) = "%5.2f"    format ticker(Ticker.PREV_CLOSE)
-    rowData(getColumnIndex(DAY_CHANGE)) = "%5.2f"    format ticker(Ticker.DAY_CHANGE)
-    rowData(getColumnIndex(PERCENT))    = "%+3.2f%%" format ticker.changeInPercent
-    rowData(getColumnIndex(DAY_HIGH))   = "%5.2f"    format ticker(Ticker.DAY_HIGH)
-    rowData(getColumnIndex(DAY_LOW))    = "%5.2f"    format ticker(Ticker.DAY_LOW)
-    rowData(getColumnIndex(DAY_OPEN))   = "%5.2f"    format ticker(Ticker.DAY_OPEN)
+    rowData(rowOf(SYMBOL)) = symbol
+    rowData(rowOf(TIME)) = df format lastTradeTime
+    rowData(rowOf(LAST_PRICE)) = "%5.2f"   format ticker(Ticker.LAST_PRICE)
+    rowData(rowOf(DAY_VOLUME)) = "%5.2f"   format ticker(Ticker.DAY_VOLUME)
+    rowData(rowOf(PREV_CLOSE)) = "%5.2f"   format ticker(Ticker.PREV_CLOSE)
+    rowData(rowOf(DAY_CHANGE)) = "%5.2f"   format ticker(Ticker.DAY_CHANGE)
+    rowData(rowOf(PERCENT))    = "%3.2f%%" format ticker.changeInPercent
+    rowData(rowOf(DAY_HIGH))   = "%5.2f"   format ticker(Ticker.DAY_HIGH)
+    rowData(rowOf(DAY_LOW))    = "%5.2f"   format ticker(Ticker.DAY_LOW)
+    rowData(rowOf(DAY_OPEN))   = "%5.2f"   format ticker(Ticker.DAY_OPEN)
 
     rowData
   }
@@ -300,34 +322,29 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   def watch(symbol: String) {
     symbolToInWatching += (symbol -> true)
 
-    val row = symbolToRow.get(symbol) getOrElse {return}
-
-    val lastTicker = smbolToPreviousTicker.get(symbol) getOrElse {return}
-    rowToColColors.get(row) foreach {columeToColor =>
-      setColColorsByTicker(columeToColor, lastTicker, null, true)
+    for (lastTicker <- symbolToPreviousTicker.get(symbol);
+         colNameToColors <- symbolToColColors.get(symbol)
+    ) {
+      setColColorsByTicker(colNameToColors, lastTicker, null, true)
+      repaint()
     }
-
-    repaint()
   }
 
   def unWatch(symbol: String) {
     symbolToInWatching += (symbol -> false)
 
-    val row = symbolToRow.get(symbol) getOrElse {return}
-
-    val lastTicker = smbolToPreviousTicker.get(symbol) getOrElse {return}
-    rowToColColors.get(row) foreach {columeToColor =>
-      setColColorsByTicker(columeToColor, lastTicker, null, false)
+    for (lastTicker <- symbolToPreviousTicker.get(symbol);
+         colNameToColors <- symbolToColColors.get(symbol)
+    ) {
+      setColColorsByTicker(colNameToColors, lastTicker, null, false)
+      repaint()
     }
-
-    repaint()
   }
 
   def clearAllWatch {
     symbolToInWatching.clear
-    symbolToRow.clear
-    smbolToPreviousTicker.clear
-    rowToColColors.clear
+    symbolToPreviousTicker.clear
+    symbolToColColors.clear
   }
 
   def getWatchListTable: JTable = {
@@ -336,7 +353,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   def getSymbolAtRow(row: Int): String = {
     if (row < table.getRowCount && row >= 0) {
-      table.getValueAt(row, getColumnIndex(SYMBOL)).toString
+      table.getValueAt(row, rowOf(SYMBOL)).toString
     } else null
   }
 
@@ -345,7 +362,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     setOpaque(true)
 
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
-                                      hasFocus: Boolean, row: Int, column: Int): Component = {
+                                      hasFocus: Boolean, row: Int, col: Int): Component = {
 
       /**
        * @NOTICE
@@ -355,39 +372,39 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
        * column index of watchListTable will change, but the column index
        * of watchListTableModel will remain the same.
        */
-      val columnName = table.getColumnName(column)
-
-      val symbolToColColor = rowToColColors(row)
+      val symbol = table.getValueAt(row, 0).asInstanceOf[String]
+      val symbolToColColor = symbolToColColors(symbol)
 
       setBackground(LookFeel().backgroundColor)
-      if (isSelected && columnName == SYMBOL) {
+      val colName = table.getColumnName(col)
+      if (isSelected && colName == SYMBOL) {
         setBackground(bgColorSelected)
       }
 
-      setForeground(symbolToColColor(columnName))
+      setForeground(symbolToColColor(colName))
       
       setText(null)
 
       if (value != null) {
-        columnName match {
+        colName match {
           case SYMBOL =>
             setHorizontalAlignment(SwingConstants.LEADING)
           case TIME =>
             setHorizontalAlignment(SwingConstants.CENTER)
           case LAST_PRICE =>
             setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(symbolToColColor(columnName))
+            setForeground(symbolToColColor(colName))
           case DAY_VOLUME =>
             setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(symbolToColColor(columnName))
+            setForeground(symbolToColColor(colName))
           case PREV_CLOSE =>
             setHorizontalAlignment(SwingConstants.TRAILING)
           case DAY_CHANGE =>
             setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(symbolToColColor(columnName))
+            setForeground(symbolToColColor(colName))
           case PERCENT =>
             setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(symbolToColColor(columnName))
+            setForeground(symbolToColColor(colName))
           case DAY_OPEN =>
             setHorizontalAlignment(SwingConstants.TRAILING)
           case _ =>
