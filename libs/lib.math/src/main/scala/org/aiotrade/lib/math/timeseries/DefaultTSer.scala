@@ -265,8 +265,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
 
   def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
-    var begTime = +Long.MaxValue
-    var endTime = -Long.MaxValue
+    var begTime = Long.MaxValue
+    var endTime = Long.MinValue
     try {
       _timestamps.writeLock.lock
 
@@ -288,8 +288,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         }
 
         val itemTime = item.time
-        begTime = math.min(begTime, itemTime)
-        endTime = math.max(endTime, itemTime)
+        begTime = Math.min(begTime, itemTime)
+        endTime = Math.max(endTime, itemTime)
       }
     } finally {
       _timestamps.writeLock.unlock
@@ -487,7 +487,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     sb.append(", values=(\n")
     for (v <- vars) {
       sb.append(v.name).append(": ... ")
-      var i = math.max(0, len - 6) // print last 6 values
+      var i = Math.max(0, len - 6) // print last 6 values
       while (i < len) {
         sb.append(v(i)).append(", ")
         i += 1

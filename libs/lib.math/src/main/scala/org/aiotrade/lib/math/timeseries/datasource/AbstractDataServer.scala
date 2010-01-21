@@ -130,11 +130,12 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   protected def storageOf(contract: C): ArrayBuffer[V] = {
     contractToStorage.get(contract) getOrElse {
-      val storage1 = new ArrayBuffer[V]
+      val x = new ArrayBuffer[V]
       contractToStorage.synchronized {
-        contractToStorage.put(contract, storage1)
+        contractToStorage += (contract -> x)
       }
-      storage1
+      
+      x
     }
   }
 
@@ -323,7 +324,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, storage: Array[V]): SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: TSer, values: Array[V]): SerChangeEvent
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {
@@ -337,18 +338,18 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     }
   }
 
-  protected def postLoad: Unit = {
+  protected def postLoad {
   }
 
   private class UpdateServer extends TimerTask {
-    override def run: Unit = {
+    override def run {
       loadedTime = loadFromSource(loadedTime)
 
       postUpdate
     }
   }
 
-  protected def postUpdate: Unit = {
+  protected def postUpdate {
   }
 
   override def createNewInstance: Option[DataServer[C]] = {

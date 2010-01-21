@@ -233,8 +233,8 @@ class RealTimeWatchListTopComponent extends TopComponent {
   private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseListener {
         
     private def rowAtY(e: MouseEvent): Int = {
-      val columnModel = table.getColumnModel
-      val col = columnModel.getColumnIndexAtX(e.getX)
+      val colModel = table.getColumnModel
+      val col = colModel.getColumnIndexAtX(e.getX)
       val row = e.getY / table.getRowHeight
             
       row

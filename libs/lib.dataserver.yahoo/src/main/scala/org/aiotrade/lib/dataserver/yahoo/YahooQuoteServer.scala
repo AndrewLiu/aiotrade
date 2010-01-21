@@ -80,7 +80,7 @@ class YahooQuoteServer extends QuoteServer {
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request: Unit = {
+  protected def request {
     val cal = Calendar.getInstance
 
     contract = currentContract match {
