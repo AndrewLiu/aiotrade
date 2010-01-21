@@ -328,7 +328,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {
-      loadFromPersistence
+      loadedTime = loadFromPersistence
 
       loadedTime = loadFromSource(loadedTime)
 
