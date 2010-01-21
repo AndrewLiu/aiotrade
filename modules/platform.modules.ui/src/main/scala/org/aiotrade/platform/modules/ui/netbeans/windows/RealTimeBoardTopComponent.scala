@@ -119,11 +119,9 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     }
         
     /** hidden others */
-    for (refX <- instanceRefs) {
-      if (refX.get != this) {
-        refX.get.setReallyClosed(false)
-        refX.get.close
-      }
+    for (ref <- instanceRefs; tc = ref.get if tc ne this) {
+      tc.setReallyClosed(false)
+      tc.close
     }
         
     super.componentActivated

@@ -90,7 +90,7 @@ object RealTimeWatchListTopComponent {
 class RealTimeWatchListTopComponent extends TopComponent {
   import RealTimeWatchListTopComponent._
 
-  private var ref = new WeakReference[RealTimeWatchListTopComponent](this)
+  private val ref = new WeakReference[RealTimeWatchListTopComponent](this)
   instanceRefs ::= ref
     
   private val tc_id = "RealTimeWatchList"
@@ -140,9 +140,9 @@ class RealTimeWatchListTopComponent extends TopComponent {
   override protected def componentClosed {
     stopAllWatch
         
-    for (ref <- instanceRefs) {
-      ref.get.setReallyClosed(true)
-      ref.get.close
+    for (ref <- instanceRefs; tc = ref.get) {
+      tc.setReallyClosed(true)
+      tc.close
     }
     instanceRefs = Nil
         

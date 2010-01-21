@@ -119,14 +119,14 @@ object AnalysisChartTopComponent {
 class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent {
   import AnalysisChartTopComponent._
 
-  private var ref = new WeakReference[AnalysisChartTopComponent](this)
+  private val ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
 
   val sec: Sec = contents.serProvider.asInstanceOf[Sec]
-  private var quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
-  private var s_id: String = ""
+  private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
+  private val tc_id: String = sec.name
     
-  private var symbol: String = _
+  private val symbol = sec.uniSymbol
     
   private var tabbedPaneContainer: JPanel = _
   private var tabbedPane: JTabbedPane = _
@@ -136,7 +136,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   private var freqToViewContainer = Map[TFreq, ChartViewContainer]();
     
     
-  private var popupMenuForViewContainer: JPopupMenu = _
+  private val popupMenuForViewContainer = new JPopupMenu
     
   var weeklyCombiner: QuoteSerCombiner = _
   var monthlyCombiner: QuoteSerCombiner = _
@@ -145,7 +145,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   injectActionsToDescriptors
   injectActionsToPopupMenuForViewContainer
 
-  initSec
+  loadSec
   initComponents
 
     
@@ -169,7 +169,6 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   }
     
   private def injectActionsToPopupMenuForViewContainer {
-    popupMenuForViewContainer = new JPopupMenu
     popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
     popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
     popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
@@ -185,10 +184,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     popupMenuForViewContainer.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
   }
     
-  private def initSec {
-    symbol = sec.uniSymbol
-    this.s_id = sec.name
-        
+  private def loadSec {
     if (!sec.isSerLoaded(quoteContract.freq)) {
       sec.loadSer(quoteContract.freq)
     }
@@ -315,7 +311,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
             case _ =>
           }
         }
-      });
+      })
         
   }
     
@@ -491,7 +487,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
       defaultViewContainer.requestFocusInWindow
     }
         
-    s_id
+    tc_id
   }
     
   override def getPersistenceType: Int = {

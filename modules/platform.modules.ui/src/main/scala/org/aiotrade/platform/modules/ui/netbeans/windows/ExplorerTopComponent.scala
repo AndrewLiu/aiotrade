@@ -55,7 +55,6 @@ object ExplorerTopComponent {
   private var instance: Option[ExplorerTopComponent] = None
   def apply() = instance getOrElse new ExplorerTopComponent
 
-  val tc_id = "ExplorerTopComponent"
 }
 
 @serializable
@@ -65,6 +64,8 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   instance = Some(this)
 
   /** holds currently scheduled/running task for set of activated node */
+  private val tc_id = "ExplorerTopComponent"
+  
   private var nodeSetterTask: RequestProcessor#Task = _
   private val NODE_SETTER_LOCK = new Object
     
