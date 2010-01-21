@@ -512,7 +512,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         val stmt = conn.createStatement
 
-        val existsTestStr = new StringBuilder(100).append("SELECT * FROM ").append(SYMBOL_INDEX_TABLE_NAME).append(" WHERE qsymbol = '").append(TABLE_EXISTS_MARK).append("'").toString
+        val existsTestStr = "SELECT * FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + TABLE_EXISTS_MARK + "'"
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {
@@ -532,22 +532,24 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         val stmt = conn.createStatement
 
-        val stmtCreatTableStr_derby = new StringBuilder(200).append("CREATE TABLE ").append(SYMBOL_INDEX_TABLE_NAME).append(" (").append("qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, ").append("qsymbol CHAR(30) not null, ").append("qtablename CHAR(60), ").append("qfreq CHAR(10)").append(")").toString
+        val stmtCreatTableStr_derby = 
+          "CREATE TABLE " + SYMBOL_INDEX_TABLE_NAME + " (" + "qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, qsymbol CHAR(30) not null, qtablename CHAR(60), qfreq CHAR(10))"
 
-        val stmtCreatTableStr_h2_hsqldb = new StringBuilder(200).append("CREATE CACHED TABLE ").append(SYMBOL_INDEX_TABLE_NAME).append(" (").append("qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, ").append("qsymbol CHAR(30) not null, ").append("qtablename CHAR(60), ").append("qfreq CHAR(10)").append(")").toString
+        val stmtCreatTableStr_h2_hsqldb = 
+          "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, qsymbol CHAR(30) not null, qtablename CHAR(60), qfreq CHAR(10))"
 
         var stmtStr = stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(SYMBOL_INDEX_TABLE_NAME).append("_qsymbol ON ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol)").toString
+        stmtStr = "CREATE INDEX idx_" + SYMBOL_INDEX_TABLE_NAME + "_qsymbol ON " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = new StringBuilder(100).append("CREATE INDEX idx_").append(SYMBOL_INDEX_TABLE_NAME).append("_qfreq ON ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qfreq)").toString
+        stmtStr = "CREATE INDEX idx_" + SYMBOL_INDEX_TABLE_NAME + "_qfreq ON " + SYMBOL_INDEX_TABLE_NAME + " (qfreq)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
-        stmtStr = new StringBuilder(100).append("INSERT INTO ").append(SYMBOL_INDEX_TABLE_NAME).append(" (qsymbol) VALUES (").append("'").append(TABLE_EXISTS_MARK).append("'").append(")").toString
+        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol) VALUES ('" + TABLE_EXISTS_MARK + "')"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
@@ -569,7 +571,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         val stmt = conn.createStatement
 
         val tableName = propTableName(symbol, freq)
-        val existsTestStr = new StringBuilder(100).append("SELECT * FROM ").append(tableName).append(" WHERE qtime = ").append(TABLE_EXISTS_MARK).toString
+        val existsTestStr = "SELECT * FROM " + tableName + " WHERE qtime = " + TABLE_EXISTS_MARK
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {
@@ -650,17 +652,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
       val stmt = conn.prepareStatement(stmtStr)
       for (quote <- quotes) {
-        stmt.setLong(1, quote.time)
-        stmt.setFloat(2, quote.open)
-        stmt.setFloat(3, quote.high)
-        stmt.setFloat(4, quote.low)
-        stmt.setFloat(5, quote.close)
-        stmt.setFloat(6, quote.volume)
-        stmt.setFloat(7, quote.amount)
-        stmt.setFloat(8, quote.close_adj)
-        stmt.setFloat(9, quote.wap)
-        stmt.setByte(10, if (quote.hasGaps) -1 else 1)
-        stmt.setLong(11, sourceId)
+        stmt setLong  (1, quote.time)
+        stmt setFloat (2, quote.open)
+        stmt setFloat (3, quote.high)
+        stmt setFloat (4, quote.low)
+        stmt setFloat (5, quote.close)
+        stmt setFloat (6, quote.volume)
+        stmt setFloat (7, quote.amount)
+        stmt setFloat (8, quote.close_adj)
+        stmt setFloat (9, quote.wap)
+        stmt setByte  (10, if (quote.hasGaps) -1 else 1)
+        stmt setLong  (11, sourceId)
 
         stmt.addBatch
       }
@@ -678,7 +680,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     val conn = tableExists(symbol, freq)
     if (conn != null) {
       try {
-        val tableName = propTableName(symbol, freq);
+        val tableName = propTableName(symbol, freq)
         val strStmt = "SELECT * FROM " + tableName + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
 
         val stmt = conn.createStatement
@@ -756,7 +758,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
 
         for (tableName <- tableNames) {
-          strStmt = new StringBuilder(100).append("DROP TABLE ").append(tableName).toString
+          strStmt = "DROP TABLE " + tableName
           val dropStmt = conn.prepareStatement(strStmt)
           dropStmt.execute
 

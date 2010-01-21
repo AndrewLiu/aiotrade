@@ -55,7 +55,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   private val symbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
 
   private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
-  private val symbolToPreviousTicker = new HashMap[String, Ticker]
+  private val symbolToPrevTicker = new HashMap[String, Ticker]
   private val cal = Calendar.getInstance
 
   override protected def init: Unit = {
@@ -108,8 +108,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair -= symbol
     }
-    symbolToPreviousTicker synchronized {
-      symbolToPreviousTicker -= symbol
+    symbolToPrevTicker synchronized {
+      symbolToPrevTicker -= symbol
     }
   }
 
@@ -163,8 +163,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair.clear
     }
-    symbolToPreviousTicker synchronized {
-      symbolToPreviousTicker.clear
+    symbolToPrevTicker synchronized {
+      symbolToPrevTicker.clear
     }
   }
 
@@ -184,10 +184,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     var evt: SerChangeEvent = null
 
     val cal = Calendar.getInstance(marketOf(symbol).timeZone)
-    var begTime = +Long.MaxValue
-    var endTime = -Long.MaxValue
+    var begTime = Long.MaxValue
+    var endTime = Long.MinValue
 
-    val size = storage.size
+    val size = storage.length
     if (size > 0) {
       val values = new Array[Ticker](size)
       storage.copyToArray(values, 0)
@@ -200,9 +200,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       while (i >= 0 && i <= size - 1) {
         ticker = storage(i)
         ticker.time = (freq.round(ticker.time, cal))
-        val prevTicker = symbolToPreviousTicker.get(symbol) getOrElse {
+        val prevTicker = symbolToPrevTicker.get(symbol) getOrElse {
           val x = new Ticker
-          symbolToPreviousTicker.put(symbol, x)
+          symbolToPrevTicker.put(symbol, x)
           x
         }
 
@@ -254,8 +254,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               /** a new interval starts, we'll need a new data */
               val itemxx = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
 
-              itemxx.high = -Float.MaxValue
-              itemxx.low  = +Float.MaxValue
+              itemxx.high = Float.MinValue
+              itemxx.low  = Float.MaxValue
               itemxx.open = ticker(Ticker.LAST_PRICE)
               itemxx
             }
@@ -300,10 +300,11 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
          * Now, try to update today's quoteSer with current last ticker
          */
         for (chainSer <- chainSersOf(tickerSer)) {
-          if (chainSer.freq == TFreq.DAILY) {
-            updateDailyQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, cal)
-          } else if (chainSer.freq == TFreq.ONE_MIN) {
-            updateMinuteQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer.asInstanceOf[QuoteSer], cal)
+          chainSer.freq match {
+            case TFreq.DAILY =>
+              updateDailyQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, cal)
+            case  TFreq.ONE_MIN =>
+              updateMinuteQuoteItem(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer.asInstanceOf[QuoteSer], cal)
           }
         }
 
@@ -319,7 +320,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
        * no new ticker got, but should consider if need to update quoteSer
        * as the quote window may be just opened.
        */
-      symbolToPreviousTicker.get(symbol) foreach {ticker =>
+      symbolToPrevTicker.get(symbol) foreach {ticker =>
         val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
         for (ser <- chainSersOf(tickerSer) if ser.freq == TFreq.DAILY && ser.exists(today)) {
           updateDailyQuoteItem(ser.asInstanceOf[QuoteSer], ticker, cal)

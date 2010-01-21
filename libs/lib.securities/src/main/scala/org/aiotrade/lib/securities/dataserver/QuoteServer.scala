@@ -152,16 +152,14 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
   protected def composeSer(symbol: String, quoteSer: TSer, storage: Array[Quote]): SerChangeEvent =  {
     var evt: SerChangeEvent = null
 
-    val size = storage.size
+    val size = storage.length
     if (size > 0) {
       val cal = Calendar.getInstance(marketOf(symbol).timeZone)
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
-      //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
+      storage foreach {x => x.time = freq.round(x.time, cal)}
       //println("==== after rounded ====")
-      storage.map{x => x.time = freq.round(x.time, cal); x}
-      //storage.foreach{x => cal.setTimeInMillis(x.time); println(cal.getTime)}
 
       // * copy to a new array and don't change it anymore, so we can ! it as message
       val values = new Array[Quote](size)
