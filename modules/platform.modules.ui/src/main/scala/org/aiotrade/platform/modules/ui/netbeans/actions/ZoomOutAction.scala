@@ -28,17 +28,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.ui.netbeans.actions;
+package org.aiotrade.platform.modules.ui.netbeans.actions
 
-import javax.swing.JOptionPane;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeBoardTopComponent;
-import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
-import org.openide.util.HelpCtx;
-import org.openide.util.actions.CallableSystemAction;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import javax.swing.JOptionPane
+import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent
+import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeBoardTopComponent
+import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeChartsTopComponent
+import org.openide.util.HelpCtx
+import org.openide.util.actions.CallableSystemAction
+import org.openide.windows.WindowManager
 
 /**
  *
@@ -48,42 +46,40 @@ class ZoomOutAction extends CallableSystemAction {
     
   def performAction {
     try {
-      java.awt.EventQueue.invokeLater(new Runnable() {
-          def run() {
+      java.awt.EventQueue.invokeLater(new Runnable {
+          def run {
             val tc = WindowManager.getDefault.getRegistry.getActivated
             tc match {
               case x: AnalysisChartTopComponent =>
                 x.selectedViewContainer.get.controller.growWBar(-1)
               case x: RealTimeChartsTopComponent =>
-                x.getViewContainers foreach (_.controller.growWBar(+1))
+                x.viewContainers foreach (_.controller.growWBar(-1))
               case x: RealTimeBoardTopComponent =>
                 x.realTimeChartViewContainer foreach (_.controller.growWBar(-1))
               case _ =>
                 JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")
             }
           }
-        });
+        })
     } catch {case ex: Exception =>}
         
   }
     
   def getName: String = {
-    return "Zoom Out";
+    "Zoom Out"
   }
     
     
   def getHelpCtx: HelpCtx = {
-    return HelpCtx.DEFAULT_HELP;
+    HelpCtx.DEFAULT_HELP
   }
     
-  override
-  protected def iconResource: String = {
-    return "org/aiotrade/platform/modules/ui/netbeans/resources/zoomOut.gif";
+  override protected def iconResource: String = {
+    "org/aiotrade/platform/modules/ui/netbeans/resources/zoomOut.gif"
   }
     
-  override
-  protected def asynchronous: Boolean = {
-    return false;
+  override protected def asynchronous: Boolean = {
+    false
   }
     
     

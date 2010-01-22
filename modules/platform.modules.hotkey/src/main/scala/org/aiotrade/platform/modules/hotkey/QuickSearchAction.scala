@@ -36,14 +36,17 @@
  * 
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
-package org.aiotrade.platform.modules.hotkey;
+package org.aiotrade.platform.modules.hotkey
 
-import javax.swing.Action;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import org.openide.util.HelpCtx;
-import org.openide.util.NbBundle;
-import org.openide.util.actions.CallableSystemAction;
+import java.awt.KeyEventDispatcher
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
+import javax.swing.Action
+import javax.swing.KeyStroke
+import javax.swing.UIManager
+import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
+import org.openide.util.actions.CallableSystemAction
 
 /**
  * QuickSearch Action provides toolbar presenter
@@ -86,5 +89,8 @@ class QuickSearchAction extends CallableSystemAction {
   override def getToolbarPresenter: java.awt.Component = {
     comboBar
   }
+
+
+
 
 }

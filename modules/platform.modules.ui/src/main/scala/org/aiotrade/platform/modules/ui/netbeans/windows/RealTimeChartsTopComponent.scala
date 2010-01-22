@@ -87,12 +87,12 @@ object RealTimeChartsTopComponent {
 
     instance
   }
-
 }
-class RealTimeChartsTopComponent private () extends TopComponent {
-  import RealTimeChartsTopComponent._
 
-  private val ref = new WeakReference[RealTimeChartsTopComponent](this);
+import RealTimeChartsTopComponent._
+class RealTimeChartsTopComponent private () extends TopComponent {
+
+  private val ref = new WeakReference[RealTimeChartsTopComponent](this)
   instanceRefs ::= ref
     
   private val tc_id = "RealtimeCharts"
@@ -102,7 +102,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   private var reallyClosed = false
             
   private val scrollTimerListener = new ScrollTimerListener
-  private val scrollTimer = new Timer(SCROLL_SPEED_THROTTLE, scrollTimerListener);
+  private val scrollTimer = new Timer(SCROLL_SPEED_THROTTLE, scrollTimerListener)
   scrollTimer.setInitialDelay(0)  // default InitialDelay
     
   setName("Watch List RealTime Charts")
@@ -169,7 +169,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     }
   }
     
-  def getViewContainers = {
+  def viewContainers = {
     secToViewContainers.valuesIterator.toList
   }
     
@@ -221,14 +221,14 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   }
     
   override def getActions: Array[Action] = {
-    val actions = super.getActions();
+    val actions = super.getActions
     val newActions = new Array[Action](actions.length + 1)
     for (i <- 0 until actions.length) {
       newActions(i) = actions(i)
     }
     newActions(actions.length) = SystemAction.get(classOf[SwitchCandleOhlcAction])
         
-    newActions;
+    newActions
   }
 
   @throws(classOf[Throwable])

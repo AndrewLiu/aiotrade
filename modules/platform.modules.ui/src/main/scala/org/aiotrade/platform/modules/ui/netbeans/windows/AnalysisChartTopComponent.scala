@@ -432,7 +432,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     //  case x: ChartViewContainer => Some(x)
     //  case _ => None
     //}
-    None
+    Some(defaultViewContainer)
   }
 
   def selectedViewContainer_=(viewContainer: ChartViewContainer) {

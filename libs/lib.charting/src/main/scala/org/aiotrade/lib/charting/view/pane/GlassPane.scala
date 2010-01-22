@@ -84,12 +84,12 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
+class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   private val TRANSPARENT_COLOR = new Color(0, 0, 0, 0)
   private val BUTTON_SIZE = 12
   private val BUTTON_DIMENSION = new Dimension(BUTTON_SIZE, BUTTON_SIZE)
   private val MONEY_DECIMAL_FORMAT = new DecimalFormat("0.###")
-} with Pane(aview, adatumPlane) with WithCursorChart {
+} with Pane($view, $datumPlane) with WithCursorChart {
 
   private val overlappingSersToCloseButton = new HashMap[TSer, AIOCloseButton]
   private val overlappingSersToNameLabel = new HashMap[TSer, JLabel]
@@ -361,7 +361,7 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
     if (item != null) {
       val serVars = ser.vars
       for (v <- serVars if v.plot != Plot.None) {
-        val vStr = new StringBuilder().append(" ").append(v.name).append(": ").append(MONEY_DECIMAL_FORMAT.format(item.getFloat(v)))
+        val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(item.getFloat(v))
 
         /** lookup this var's chart and use chart's color if possible */
         var chartOfVar: Chart = null
@@ -427,7 +427,7 @@ class GlassPane(aview: ChartView, adatumPlane: DatumPlane) extends {
     instantValueLabel.setText(valueStr)
   }
 
-  def isSelected: Boolean = _isSelected
+  def isSelected = _isSelected
   def isSelected_=(b: Boolean) {
     val oldValue = isSelected
     this._isSelected = b

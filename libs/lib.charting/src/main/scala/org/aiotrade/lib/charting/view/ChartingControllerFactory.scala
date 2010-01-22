@@ -61,7 +61,6 @@ import scala.collection.mutable.HashSet
 object ChartingControllerFactory {
   /** a static map to know how many controllers are bound with each MasterSer */
   private val sersWithcontrollers = new HashMap[MasterTSer, HashSet[ChartingController]]
-  private var cursorAccelerated = false
 
   def createInstance(masterSer: MasterTSer, contents: AnalysisContents): ChartingController = {
     val controllers = sersWithcontrollers.get(masterSer) getOrElse {
@@ -76,14 +75,6 @@ object ChartingControllerFactory {
     controller
   }
 
-  def isCursorAccelerated: Boolean = {
-    cursorAccelerated
-  }
-
-  def setCursorAccelerated(b: Boolean) {
-    cursorAccelerated = b
-  }
-
   object DefaultChartingController {
     /**
      * min spacing between rightRow and left / right edge, if want more, such as:
@@ -96,14 +87,19 @@ object ChartingControllerFactory {
     private val BAR_WIDTHS_ARRAY = Array(
       0.00025f, 0.0005f, 0.001f, 0.025f, 0.05f, 0.1f, 0.25f, 0.5f, 1f, 2f, 4f, 6f, 10f, 20f
     )
+
+    private var _isCursorAccelerated = false
   }
 
   /**
    * DefaultChartingController that implements ChartingController
    */
-  private class DefaultChartingController(amasterSer: MasterTSer, acontents: AnalysisContents) extends ChartingController {
-    import DefaultChartingController._
-    
+  import DefaultChartingController._
+  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController {
+
+    val masterSer = $masterSer
+    val contents  = $contents
+
     private val popupViews = new HashSet[ChartView]
     private var viewContainer: ChartViewContainer = _
     private var _wBarIdx = 11
@@ -126,7 +122,7 @@ object ChartingControllerFactory {
 
       if (mySerChangeListener == null) {
         mySerChangeListener = new MasterSerChangeListener
-        amasterSer.addSerChangeListener(mySerChangeListener)
+        masterSer.addSerChangeListener(mySerChangeListener)
       }
 
       addKeyMouseListenersTo(viewContainer)
@@ -153,20 +149,16 @@ object ChartingControllerFactory {
 
     private def removeKeyMouseListenersFrom(component: JComponent) {
       /** copy to a list to avoid concurrent issue */
-      component.getKeyListeners.toList foreach {x => component.removeKeyListener(x)}
-      component.getMouseWheelListeners.toList foreach {x => component.removeMouseWheelListener(x)}
+      component.getKeyListeners foreach {x => component.removeKeyListener(x)}
+      component.getMouseWheelListeners foreach {x => component.removeMouseWheelListener(x)}
     }
 
-    def masterSer: MasterTSer = amasterSer
-
-    def contents: AnalysisContents = acontents
-
-    def isCursorCrossLineVisible: Boolean = _isCursorCrossLineVisible
+    def isCursorCrossLineVisible = _isCursorCrossLineVisible
     def isCursorCrossLineVisible_=(b: Boolean) {
       this._isCursorCrossLineVisible = b
     }
 
-    def isMouseEnteredAnyChartPane: Boolean = _isMouseEnteredAnyChartPane
+    def isMouseEnteredAnyChartPane = _isMouseEnteredAnyChartPane
     def isMouseEnteredAnyChartPane_=(b: Boolean) {
       val oldValue = this._isMouseEnteredAnyChartPane
       this._isMouseEnteredAnyChartPane = b
@@ -181,7 +173,7 @@ object ChartingControllerFactory {
 
     }
 
-    def isAutoScrollToNewData: Boolean = _isAutoScrollToNewData
+    def isAutoScrollToNewData = _isAutoScrollToNewData
     def isAutoScrollToNewData_=(autoScrollToNewData: Boolean) {
       this._isAutoScrollToNewData = autoScrollToNewData
     }
@@ -236,7 +228,7 @@ object ChartingControllerFactory {
       updateViews
     }
 
-    def isOnCalendarMode: Boolean = masterSer.isOnCalendarMode
+    def isOnCalendarMode = masterSer.isOnCalendarMode
     def isOnCalendarMode_=(b: Boolean) {
       if (isOnCalendarMode != b) {
         val referCursorTime1 = referCursorTime
@@ -270,10 +262,8 @@ object ChartingControllerFactory {
     }
 
     def scrollReferCursor(increment: Int, willUpdateViews: Boolean) {
-      var referRow = referCursorRow
+      val referRow = referCursorRow + increment
       val rightRow = rightSideRow
-
-      referRow += increment
 
       val rightSpacing = rightRow - referRow
       if (rightSpacing >= MIN_RIGHT_SPACING) {
@@ -389,7 +379,7 @@ object ChartingControllerFactory {
       val oldValue = this._referCursorRow
       this._referCursorRow = row
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
-      this._lastOccurredRowOfMasterSer = amasterSer.lastOccurredRow
+      this._lastOccurredRowOfMasterSer = masterSer.lastOccurredRow
       if (this._referCursorRow != oldValue) {
         notifyObserversChanged(classOf[ReferCursorObserver[Any]])
         notifyObserversChanged(classOf[ChartValidityObserver[Any]])
@@ -423,19 +413,19 @@ object ChartingControllerFactory {
       notifyObserversChanged(classOf[MouseCursorObserver[Any]])
     }
 
-    def isCursorAccelerated: Boolean = cursorAccelerated
+    def isCursorAccelerated = _isCursorAccelerated
     def isCursorAccelerated_=(b: Boolean) {
-      cursorAccelerated = b
+      _isCursorAccelerated = b
     }
 
-    def popupViewToDesktop(view: ChartView, dimendion: Dimension, alwaysOnTop: Boolean, joint: Boolean) {
+    def popupViewToDesktop(view: ChartView, dim: Dimension, alwaysOnTop: Boolean, joint: Boolean) {
       val popupView = view
 
       popupViews.add(popupView)
       addKeyMouseListenersTo(popupView)
 
-      val w = dimendion.width
-      val h = dimendion.height
+      val w = dim.width
+      val h = dim.height
       val frame = new JFrame//new JDialog (), true);
       frame.setAlwaysOnTop(alwaysOnTop)
       frame.setTitle(popupView.mainSer.shortDescription)
@@ -479,7 +469,7 @@ object ChartingControllerFactory {
     @throws(classOf[Throwable])
     override protected def finalize {
       if (mySerChangeListener != null) {
-        amasterSer.removeSerChangeListener(mySerChangeListener)
+        masterSer.removeSerChangeListener(mySerChangeListener)
       }
 
       super.finalize
@@ -510,8 +500,8 @@ object ChartingControllerFactory {
             val oldReferRow = referCursorRow
             if (oldReferRow == _lastOccurredRowOfMasterSer || _lastOccurredRowOfMasterSer <= 0) {
               /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
-              val lastTime = Math.max(evt.endTime, amasterSer.lastOccurredTime)
-              val rightRow = amasterSer.rowOfTime(lastTime)
+              val lastTime = Math.max(evt.endTime, masterSer.lastOccurredTime)
+              val rightRow = masterSer.rowOfTime(lastTime)
               val referRow = rightRow
 
               setCursorByRow(referRow, rightRow, true)
@@ -579,30 +569,25 @@ object ChartingControllerFactory {
       }
 
       override def keyReleased(e: KeyEvent) {
-
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-          setCursorAccelerated(!isCursorAccelerated)
+        if (e.getKeyCode == KeyEvent.VK_SPACE) {
           /*-
            * let action to process this
-           setCursorAccelerated(!isCursorAccelerated());
+           _isCursorAccelerated = !_isCursorAccelerated
            */
         }
-
       }
 
       override def keyTyped(e: KeyEvent) {
       }
 
       private def moveCursorInDirection(fastSteps: Int, DIRECTION: Int) {
-        var steps = if (isCursorAccelerated) fastSteps else 1
-        steps *= DIRECTION
+        val steps = (if (isCursorAccelerated) fastSteps else 1) * DIRECTION
 
         scrollReferCursor(steps, true)
       }
 
       private def moveChartsInDirection(fastSteps: Int, DIRECTION: Int) {
-        var steps = if (isCursorAccelerated) fastSteps else 1
-        steps *= DIRECTION
+        val steps = (if (isCursorAccelerated) fastSteps else 1) * DIRECTION
 
         scrollChartsHorizontallyByBar(steps)
       }

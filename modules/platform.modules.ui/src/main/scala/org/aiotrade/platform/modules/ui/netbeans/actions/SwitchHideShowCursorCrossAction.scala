@@ -58,7 +58,7 @@ class SwitchHideShowCursorCrossAction extends CallableSystemAction {
               }
             case _: RealTimeChartsTopComponent =>
               for (ref <- RealTimeChartsTopComponent.instanceRefs) {
-                for (vc <- ref.get.getViewContainers) {
+                for (vc <- ref.get.viewContainers) {
                   val controller = vc.controller
                   controller.isCursorCrossLineVisible = !controller.isCursorCrossLineVisible
                   controller.updateViews

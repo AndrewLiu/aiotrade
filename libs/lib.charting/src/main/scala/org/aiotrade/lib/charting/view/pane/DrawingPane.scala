@@ -43,7 +43,8 @@ import org.aiotrade.lib.charting.widget.PathWidget
  *
  * @author Caoyuan Deng
  */
-class DrawingPane(aview: ChartView, adatumPlane: DatumPlane, descriptor: DrawingDescriptor) extends Pane(aview, adatumPlane) {
+class DrawingPane($view: ChartView, $datumPlane: DatumPlane, descriptor: DrawingDescriptor) extends Pane($view, $datumPlane) {
+
   private var givenHandledChartsLoaded: Boolean = _
     
   private var selectedHandledChart: HandledChart = _
