@@ -67,12 +67,13 @@ class QuickSearchAction extends CallableSystemAction {
     def dispatchKeyEvent(e: KeyEvent): Boolean = {
       if (e.getID == KeyEvent.KEY_TYPED) {
         val c = e.getKeyChar
-        if (c >= 'A' && c <'z' || c > '0' && c <'9') {
+        if (c >= 'A' && c <= 'z' || c >= '0' && c <= '9') {
           if (!km.getFocusOwner.isInstanceOf[JTextComponent]) {
             comboBar.requestFocus
-            // let comboBar's focusGained event to process this char
+            // let comboBar's focusGained event process this char
             comboBar.capturedChar = c
-            return true // true -- dispatched
+            // return true -- dispatched
+            return true 
           }
         }
       }
