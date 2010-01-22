@@ -8,69 +8,93 @@ import javax.swing.table.DefaultTableModel
  * @version 1.0 11/22/98
  */
 object AttributiveCellTableModel {
-  /**
-   * Returns a vector that contains the same objects as the array.
-   * @param anArray  the array to be converted
-   * @return  the new vector; if <code>anArray</code> is <code>null</code>,
-   *                          returns <code>null</code>
-   */
-  private def convertToVector(arr: Array[Object]): Vector[_] = {
-    if (arr == null) {
-      return null
-    }
-    val v = new Vector[Object](arr.length)
-    arr foreach {x => v.addElement(x)}
-    v
-  }
-
-  /**
-   * Returns a vector of vectors that contains the same objects as the array.
-   * @param anArray  the double array to be converted
-   * @return the new vector of vectors; if <code>anArray</code> is
-   *                          <code>null</code>, returns <code>null</code>
-   */
-  private def convertToVector(arr: Array[Array[Object]]): Vector[Vector[_]] = {
-    if (arr == null) {
-      return null
-    }
-    
-    val v = new Vector[Vector[_]](arr.length)
-    arr foreach {x => v.addElement(convertToVector(x))}
-    v
-  }
 
   def apply(data: Vector[_], colNames: Vector[_]) = {
     new AttributiveCellTableModel(data, colNames)
   }
 
   def apply(colNames: Vector[_], nRows: Int): AttributiveCellTableModel = {
-    val dataVector = new Vector[Object](nRows)
-    dataVector.setSize(nRows)
-    apply(dataVector, colNames)
+    new AttributiveCellTableModel(colNames, nRows)
   }
 
   def apply(nRows: Int, nCols: Int): AttributiveCellTableModel = {
-    val colNames = new Vector[Object](nCols)
-    colNames.setSize(nCols)
-    apply(colNames, nRows)
+    new AttributiveCellTableModel(nRows, nCols)
   }
 
-  def apply(data: Array[Array[Object]], colNames: Array[Object]): AttributiveCellTableModel = {
-    apply(convertToVector(data), convertToVector(colNames))
+  def apply(data: Array[_], colNames: Array[_]) = {
+    new AttributiveCellTableModel(data, colNames)
   }
 
-  def apply(colNames: Array[Object], nRows: Int): AttributiveCellTableModel = {
-    apply(convertToVector(colNames), nRows)
+  def apply(colNames: Array[_], nRows: Int): AttributiveCellTableModel = {
+    new AttributiveCellTableModel(colNames, nRows)
   }
 
   def apply(): AttributiveCellTableModel = {
-    apply(0, 0)
+    new AttributiveCellTableModel(0, 0)
+  }
+
+  private def prepareDataVector(nRows: Int): Vector[_] = {
+    val dataVector = new Vector[Object](nRows)
+    dataVector.setSize(nRows)
+    dataVector
+  }
+
+  private def prepareColNames(nCols: Int): Vector[_] = {
+    val colNames = new Vector[Object](nCols)
+    colNames.setSize(nCols)
+    colNames
+  }
+
+  /**
+   * Returns a vector that contains the same objects as the array.
+   * @param anArray  the array to be converted
+   * @return  the new vector; if <code>anArray</code> is <code>null</code>,
+   *                          returns <code>null</code>
+   */
+  private def arrayToVector(arr: Array[_]): Vector[_] = {
+    if (arr == null) {
+      return null
+    }
+
+    val vector = new Vector[Object](arr.length)
+    arr foreach {
+      case x: Array[_] => vector.addElement(arrayToVector(x))
+      case x: Object   => vector.addElement(x)
+      case null => vector.addElement(null)
+    }
+
+    vector
+  }
+
+  private def nonNullVector[T](v: Vector[T]): Vector[T] = {
+    if (v != null) v else new Vector[T]
   }
 }
 
+import AttributiveCellTableModel._
 class AttributiveCellTableModel(data: Vector[_], colNames: Vector[_]) extends DefaultTableModel(data, colNames) {
 
   protected var _cellAttr: CellAttribute = _
+
+  def this(colNames: Vector[_], nRows: Int) = {
+    this(prepareDataVector(nRows), colNames)
+  }
+
+  def this(nRows: Int, nCols: Int) = {
+    this(prepareColNames(nCols), nRows)
+  }
+
+  def this(data: Array[_], colNames: Array[_]) = {
+    this(arrayToVector(data), arrayToVector(colNames))
+  }
+
+  def this(colNames: Array[_], nRows: Int) = {
+    this(arrayToVector(colNames), nRows)
+  }
+
+  def this() = {
+    this(0, 0)
+  }
 
   override def setDataVector(data: Vector[_], colNames: Vector[_]) {
     if (data == null) {
@@ -162,8 +186,5 @@ class AttributiveCellTableModel(data: Vector[_], colNames: Vector[_]) extends De
    }
    */
 
-  private def nonNullVector[T](v: Vector[T]): Vector[T] = {
-    if (v != null) v else new Vector[T]
-  }
 }
 

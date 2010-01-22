@@ -131,7 +131,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private def initComponents {
     setFocusable(false)
 
-    val infoModelData = Array[Array[Object]](
+    val infoModelData = Array(
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
       Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
       Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
@@ -140,7 +140,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     ValueCell.setRowColumn(infoModelData)
     infoModel = AttributiveCellTableModel(
       infoModelData,
-      Array[Object]("A", "B", "C", "D")
+      Array("A", "B", "C", "D")
     )
 
     infoCellAttr = infoModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -169,7 +169,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
     depthModel = AttributiveCellTableModel(
-      Array[Array[Object]](
+      Array(
         Array("卖⑤", null, null),
         Array("卖④", null, null),
         Array("卖③", null, null),
@@ -182,7 +182,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array("买④", null, null),
         Array("买⑤", null, null)
       ),
-      Array[Object](
+      Array(
         BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     )
@@ -228,7 +228,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     }
 
     tickerModel = AttributiveCellTableModel( //new DefaultTableModel(
-      Array[Array[Object]](
+      Array(
         Array(null, null, null),
         Array(null, null, null),
         Array(null, null, null),
@@ -240,7 +240,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         Array(null, null, null),
         Array(null, null, null)
       ),
-      Array[Object](
+      Array(
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     )
