@@ -137,18 +137,18 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
       Array(BUNDLE.getString("prevClose"),  prevClose,  BUNDLE.getString("dayOpen"),   dayOpen)
     )
-    infoModel = new AttributiveCellTableModel(
+    ValueCell.setRowColumn(infoModelData)
+    infoModel = AttributiveCellTableModel(
       infoModelData,
       Array[Object]("A", "B", "C", "D")
     )
 
-    infoCellAttr = infoModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
+    infoCellAttr = infoModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
     /* Code for combining cells
      infoCellAttr.combine(new int[]{0}, new int[]{0, 1});
      infoCellAttr.combine(new int[]{1}, new int[]{0, 1, 2, 3});
      */
 
-    ValueCell.setRowColumn(infoModelData)
     symbol.value = sec.uniSymbol
     if (tickerContract != null) {
       sname.value = tickerContract.shortName
@@ -168,7 +168,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     infoTable.setForeground(Color.WHITE)
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
-    depthModel = new AttributiveCellTableModel(
+    depthModel = AttributiveCellTableModel(
       Array[Array[Object]](
         Array("卖⑤", null, null),
         Array("卖④", null, null),
@@ -199,7 +199,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthModel.setValueAt(BUNDLE.getString("ask") + numbers(bidIdx), bidRow, 0)
     }
 
-    depthCellAttr = depthModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
+    depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
 
     for (i <- 0 until 11) {
       for (j <- 1 until 3) {
@@ -227,7 +227,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
 
-    tickerModel = new AttributiveCellTableModel( //new DefaultTableModel(
+    tickerModel = AttributiveCellTableModel( //new DefaultTableModel(
       Array[Array[Object]](
         Array(null, null, null),
         Array(null, null, null),
@@ -243,18 +243,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       Array[Object](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
-    ) {
+    )
 
-      val canEdit = Array(
-        false, false, false
-      )
-
-      override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = {
-        canEdit(columnIndex)
-      }
-    }
-
-    tickerCellAttr = tickerModel.getCellAttribute.asInstanceOf[DefaultCellAttribute]
+    tickerCellAttr = tickerModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
 
     //tickerTable = new JTable(tickerModel)
     //tickerTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)

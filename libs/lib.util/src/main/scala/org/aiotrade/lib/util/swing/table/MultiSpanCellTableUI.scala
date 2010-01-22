@@ -22,18 +22,17 @@ class MultiSpanCellTableUI extends BasicTableUI {
     clipBounds.width = Math.min(clipBounds.width, tableWidth)
     g.setClip(clipBounds)
 
-    val firstIndex = table.rowAtPoint(new Point(0, clipBounds.y))
-    val lastIndex = table.getRowCount - 1
+    val beginRow = table.rowAtPoint(new Point(0, clipBounds.y))
 
     val rowRect = new Rectangle(0, 0,
                                 tableWidth, table.getRowHeight + table.getRowMargin)
-    rowRect.y = firstIndex * rowRect.height
+    rowRect.y = beginRow * rowRect.height
 
-    for (index <- firstIndex until lastIndex) {
+    for (row <- beginRow until table.getRowCount) {
       if (rowRect.intersects(clipBounds)) {
         //System.out.println();                  // debug
         //System.out.print("" + index +": ");    // row
-        paintRow(g, index)
+        paintRow(g, row)
       }
       rowRect.y += rowRect.height
     }
@@ -45,18 +44,18 @@ class MultiSpanCellTableUI extends BasicTableUI {
     var drawn = false
 
     val tableModel = table.getModel.asInstanceOf[AttributiveCellTableModel]
-    val cellAtt = tableModel.getCellAttribute.asInstanceOf[CellSpan]
+    val cellAttr = tableModel.cellAttribute.asInstanceOf[CellSpan]
     val nCols = table.getColumnCount
 
     def loop(col: Int) {
       if (col < nCols) {
         val cellRect = table.getCellRect(row, col, true)
-        val(cellRow, cellCol) = if (cellAtt.isVisible(row, col)) {
+        val(cellRow, cellCol) = if (cellAttr.isVisible(row, col)) {
           (row, col)
           //  System.out.print("   "+column+" ");  // debug
         } else {
-          val cellRow1 = row + cellAtt.getSpan(row, col)(CellSpan.ROW)
-          val cellCol1 = col + cellAtt.getSpan(row, col)(CellSpan.COLUMN)
+          val cellRow1 = row + cellAttr.getSpan(row, col)(CellSpan.ROW)
+          val cellCol1 = col + cellAttr.getSpan(row, col)(CellSpan.COL)
           (cellRow1, cellCol1)
           //  System.out.print("  ("+column+")");  // debug
         }
@@ -76,7 +75,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     loop(0)
   }
 
-  private def paintCell(g: Graphics, cellRect: Rectangle, row: Int, column: Int): Unit = {
+  private def paintCell(g: Graphics, cellRect: Rectangle, row: Int, col: Int): Unit = {
     val spacingHeight = table.getRowMargin
     val spacingWidth = table.getColumnModel.getColumnMargin
 
@@ -84,7 +83,7 @@ class MultiSpanCellTableUI extends BasicTableUI {
     g.setColor(table.getGridColor)
     val x1 = cellRect.x
     val y1 = cellRect.y
-    val x2 = cellRect.x + cellRect.width - 1
+    val x2 = cellRect.x + cellRect.width  - 1
     val y2 = cellRect.y + cellRect.height - 1
     if (table.getShowHorizontalLines) {
       g.drawLine(x1, y1, x2, y1)
@@ -99,13 +98,13 @@ class MultiSpanCellTableUI extends BasicTableUI {
     cellRect.setBounds(cellRect.x + spacingWidth / 2, cellRect.y + spacingHeight / 2,
                        cellRect.width - spacingWidth, cellRect.height - spacingHeight)
 
-    if (table.isEditing && table.getEditingRow == row && table.getEditingColumn == column) {
+    if (table.isEditing && table.getEditingRow == row && table.getEditingColumn == col) {
       val component = table.getEditorComponent
       component.setBounds(cellRect)
       component.validate
     } else {
-      val renderer = table.getCellRenderer(row, column)
-      val component = table.prepareRenderer(renderer, row, column)
+      val renderer = table.getCellRenderer(row, col)
+      val component = table.prepareRenderer(renderer, row, col)
 
       if (component.getParent == null) {
         rendererPane.add(component)

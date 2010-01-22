@@ -4,8 +4,6 @@
  */
 package org.aiotrade.lib.util.swing.table
 
-import java.awt.Dimension
-
 /**
  * @version 1.0 11/22/98
  */
@@ -17,7 +15,7 @@ trait CellAttribute {
 
   def insertRow(row: Int)
 
-  def getSize: Dimension
+  def dim: Dim
 
-  def setSize(size: Dimension)
+  def dim_=(dim: Dim)
 }

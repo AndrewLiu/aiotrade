@@ -35,7 +35,7 @@ object SpanTableExample {
 }
 
 class SpanTableExample extends JFrame("Multi-Span Cell Example") {
-  val ml = new AttributiveCellTableModel(10, 6)
+  val ml = AttributiveCellTableModel(10, 6)
   //  val ml = new AttributiveCellTableModel(
   //    Array(Array("代码：", "北京纽约太平洋证券有限公司", null, null),
   //          Array("最新：", new Integer(111), "总量：", new Integer(123000)),
@@ -52,7 +52,7 @@ class SpanTableExample extends JFrame("Multi-Span Cell Example") {
    }
    };
    */
-  val cellAtt = ml.getCellAttribute.asInstanceOf[CellSpan]
+  val cellAtt = ml.cellAttribute.asInstanceOf[CellSpan]
   val table = new MultiSpanCellTable(ml)
 
   cellAtt.combine(Array(0), Array(1, 2, 3))

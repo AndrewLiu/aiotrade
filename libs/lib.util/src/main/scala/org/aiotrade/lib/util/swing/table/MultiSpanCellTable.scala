@@ -22,71 +22,71 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
   setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
 
   override def getCellRect($row: Int, $col: Int, includeSpacing: Boolean): Rectangle = {
-    if ($row < 0 || $col < 0 || getRowCount <= $row || getColumnCount <= $col) {
+    if ($row < 0 || $col < 0 || $row >= getRowCount || $col >= getColumnCount) {
       return super.getCellRect($row, $col, includeSpacing)
     }
 
     var row = $row
     var col = $col
-    val cellAtt = getModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[CellSpan]
-    if (!cellAtt.isVisible(row, col)) {
+    val cellAttr = getModel.asInstanceOf[AttributiveCellTableModel].cellAttribute.asInstanceOf[CellSpan]
+    if (!cellAttr.isVisible(row, col)) {
       val temp_row = row
       val temp_col = col
-      row += cellAtt.getSpan(temp_row, temp_col)(CellSpan.ROW)
-      col += cellAtt.getSpan(temp_row, temp_col)(CellSpan.COLUMN)
+      row += cellAttr.getSpan(temp_row, temp_col)(CellSpan.ROW)
+      col += cellAttr.getSpan(temp_row, temp_col)(CellSpan.COL)
     }
-    val spans = cellAtt.getSpan(row, col)
+    val spans = cellAttr.getSpan(row, col)
 
     val cmodel = getColumnModel
     val cm = cmodel.getColumnMargin
-    val r = new Rectangle
-    val aCellHeight = rowHeight + rowMargin
-    r.y = row * aCellHeight
-    r.height = spans(CellSpan.ROW) * aCellHeight
+    val rect = new Rectangle
+    val cellHeight = rowHeight + rowMargin
+    rect.y = row * cellHeight
+    rect.height = spans(CellSpan.ROW) * cellHeight
 
     if (getComponentOrientation.isLeftToRight) {
       for (i <- 0 until col) {
-        r.x += cmodel.getColumn(i).getWidth
+        rect.x += cmodel.getColumn(i).getWidth
       }
     } else {
       for (i <- cmodel.getColumnCount - 1 until col) {
-        r.x += cmodel.getColumn(i).getWidth
+        rect.x += cmodel.getColumn(i).getWidth
       }
     }
-    r.width = cmodel.getColumn(col).getWidth
+    rect.width = cmodel.getColumn(col).getWidth
         
-    for (i <- 0 until spans(CellSpan.COLUMN) - 1) {
-      r.width += cmodel.getColumn(col + i).getWidth + cm
+    for (i <- 0 until spans(CellSpan.COL) - 1) {
+      rect.width += cmodel.getColumn(col + i).getWidth + cm
     }
 
     if (!includeSpacing) {
       val rm = getRowMargin
-      r.setBounds(r.x + cm / 2, r.y + rm / 2, r.width - cm, r.height - rm)
+      rect.setBounds(rect.x + cm / 2, rect.y + rm / 2, rect.width - cm, rect.height - rm)
     }
 
-    r
+    rect
   }
 
   private def rowColumnAtPoint(point: Point): Array[Int] = {
-    val retValue = Array(-1, -1)
+    val ret = Array(-1, -1)
     val row = point.y / (rowHeight + rowMargin)
-    if ((row < 0) || (getRowCount <= row)) {
-      return retValue
+    if (row < 0 || row >= getRowCount) {
+      return ret
     }
-    val column = getColumnModel.getColumnIndexAtX(point.x)
+    val col = getColumnModel.getColumnIndexAtX(point.x)
 
-    val cellAtt = getModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[CellSpan]
+    val cellAttr = getModel.asInstanceOf[AttributiveCellTableModel].cellAttribute.asInstanceOf[CellSpan]
 
-    if (cellAtt.isVisible(row, column)) {
-      retValue(CellSpan.COLUMN) = column
-      retValue(CellSpan.ROW) = row
-      return retValue
+    if (cellAttr.isVisible(row, col)) {
+      ret(CellSpan.COL) = col
+      ret(CellSpan.ROW) = row
+      return ret
     }
     
-    retValue(CellSpan.COLUMN) = column + cellAtt.getSpan(row, column)(CellSpan.COLUMN)
-    retValue(CellSpan.ROW) = row + cellAtt.getSpan(row, column)(CellSpan.ROW)
+    ret(CellSpan.COL) = col + cellAttr.getSpan(row, col)(CellSpan.COL)
+    ret(CellSpan.ROW) = row + cellAttr.getSpan(row, col)(CellSpan.ROW)
 
-    retValue
+    ret
   }
 
   override def rowAtPoint(point: Point): Int = {
@@ -94,7 +94,7 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
   }
 
   override def columnAtPoint(point: Point): Int = {
-    rowColumnAtPoint(point)(CellSpan.COLUMN)
+    rowColumnAtPoint(point)(CellSpan.COL)
   }
 
   override def columnSelectionChanged(e: ListSelectionEvent) {
@@ -102,20 +102,20 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
   }
 
   override def valueChanged(e: ListSelectionEvent) {
-    val firstIndex = e.getFirstIndex
-    val lastIndex = e.getLastIndex
-    if (firstIndex == -1 && lastIndex == -1) { // Selection cleared.
+    val firstIdx = e.getFirstIndex
+    val lastIdx  = e.getLastIndex
+    if (firstIdx == -1 && lastIdx == -1) { // Selection cleared.
       repaint()
     }
-    val dirtyRegion = getCellRect(firstIndex, 0, false)
-    val numCoumns = getColumnCount
-    var index = firstIndex
-    for (i <- 0 until numCoumns) {
-      dirtyRegion.add(getCellRect(index, i, false))
+    val dirtyRegion = getCellRect(firstIdx, 0, false)
+    val nCols = getColumnCount
+    var idx = firstIdx
+    for (i <- 0 until nCols) {
+      dirtyRegion.add(getCellRect(idx, i, false))
     }
-    index = lastIndex
-    for (i <- 0 until numCoumns) {
-      dirtyRegion.add(getCellRect(index, i, false))
+    idx = lastIdx
+    for (i <- 0 until nCols) {
+      dirtyRegion.add(getCellRect(idx, i, false))
     }
     repaint(dirtyRegion.x, dirtyRegion.y, dirtyRegion.width, dirtyRegion.height)
   }

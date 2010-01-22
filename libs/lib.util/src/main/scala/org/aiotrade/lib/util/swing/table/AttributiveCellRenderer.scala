@@ -18,20 +18,20 @@ class AttributiveCellRenderer extends DefaultTableCellRenderer {
 
   override def getTableCellRendererComponent(table: JTable, value: Object,
                                              isSelected: Boolean, hasFocus: Boolean,
-                                             row: Int, column: Int): Component = {
+                                             row: Int, col: Int): Component = {
     var foreground: Color = null
     var background: Color = null
     var font: Font = null
     val model = table.getModel
     if (model.isInstanceOf[AttributiveCellTableModel]) {
-      val cellAttr = model.asInstanceOf[AttributiveCellTableModel].getCellAttribute
+      val cellAttr = model.asInstanceOf[AttributiveCellTableModel].cellAttribute
       if (cellAttr.isInstanceOf[ColoredCell]) {
-        foreground = cellAttr.asInstanceOf[ColoredCell].getForeground(row, column)
-        background = cellAttr.asInstanceOf[ColoredCell].getBackground(row, column)
-        setHorizontalAlignment(cellAttr.asInstanceOf[ColoredCell].getHorizontalAlignment(row, column))
+        foreground = cellAttr.asInstanceOf[ColoredCell].getForeground(row, col)
+        background = cellAttr.asInstanceOf[ColoredCell].getBackground(row, col)
+        setHorizontalAlignment(cellAttr.asInstanceOf[ColoredCell].getHorizontalAlignment(row, col))
       }
       if (cellAttr.isInstanceOf[CellFont]) {
-        font = cellAttr.asInstanceOf[CellFont].getFont(row, column)
+        font = cellAttr.asInstanceOf[CellFont].getFont(row, col)
       }
     }
 
@@ -46,17 +46,15 @@ class AttributiveCellRenderer extends DefaultTableCellRenderer {
     setFont(if (font != null) font else table.getFont)
 
     if (hasFocus) {
-      var border: Border = if (isSelected) {
+      var border = if (isSelected) {
         UIManager.getBorder("Table.focusSelectedCellHighlightBorder")
-      } else {
-        null
-      }
+      } else null
       if (border == null) {
         border = UIManager.getBorder("Table.focusCellHighlightBorder")
       }
       setBorder(border)
 
-      if (!isSelected && table.isCellEditable(row, column)) {
+      if (!isSelected && table.isCellEditable(row, col)) {
         setForeground(if (foreground != null) foreground else UIManager.getColor("Table.focusCellForeground"))
         setBackground(UIManager.getColor("Table.focusCellBackground"))
       }
