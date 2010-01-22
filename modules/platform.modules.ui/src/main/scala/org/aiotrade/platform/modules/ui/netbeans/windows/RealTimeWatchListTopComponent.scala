@@ -183,7 +183,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   }
     
   def getSelectedSymbolNodes: List[Node] = {
-    var selectedNodes = List[Node]();
+    var selectedNodes = List[Node]()
     for (row <- rtWatchListPanel.getWatchListTable.getSelectedRows()) {
       val symbol = rtWatchListPanel.symbolAtRow(row)
       if (symbol != null) {

@@ -143,8 +143,8 @@ class QuoteChart extends AbstractChart {
             /** only get the first open as compressing period's open */
             open = m.openVar(time)
           }
-          high  = math.max(high, m.highVar(time))
-          low   = math.min(low,  m.lowVar (time))
+          high  = Math.max(high, m.highVar(time))
+          low   = Math.min(low,  m.lowVar (time))
           close = m.closeVar(time)
         }
 
@@ -205,8 +205,8 @@ class QuoteChart extends AbstractChart {
             open = item.getFloat(m.openVar)
           }
           close = item.getFloat(m.closeVar)
-          max = math.max(max, close)
-          min = math.min(min, close)
+          max = Math.max(max, close)
+          min = Math.min(min, close)
         }
 
         i += 1

@@ -95,7 +95,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   
   private val symbolToInWatching = new HashMap[String, Boolean]
   private val symbolToPrevTicker = new HashMap[String, Ticker]
-  private val symbolToColColors = new HashMap[String, HashMap[String, Color]]
+  private val symbolToColColors  = new HashMap[String, HashMap[String, Color]]
 
   private val scrollPane = new JScrollPane
   private val table = new JTable
@@ -207,7 +207,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
           setColColorsByTicker(colNameToColor, snapshotTicker, prevTicker, inWatching)
 
           val rowData = composeRowData(symbol, snapshotTicker)
-          val row = colOfName(symbol)
+          val row = rowOfSymbol(symbol)
           for (i <- 0 until rowData.length) {
             table.setValueAt(rowData(i), row, i)
           }
@@ -353,6 +353,20 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   def colOfName(colName: String): Int = {
     colNameToCol(colName)
+  }
+
+  def rowOfSymbol(symbol: String): Int = {
+    val colOfSymbol = colOfName(SYMBOL)
+    var row = 0
+    val nRows = table.getRowCount
+    while (row < nRows) {
+      if (table.getValueAt(row, colOfSymbol) == symbol) {
+        return row
+      }
+      row += 1
+    }
+
+    -1
   }
 
   def symbolAtRow(row: Int): String = {

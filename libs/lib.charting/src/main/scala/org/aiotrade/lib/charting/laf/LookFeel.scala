@@ -57,7 +57,6 @@ object LookFeel {
   private var thinVolumeBar: Boolean = _
   private var antiAlias: Boolean = _
   private var autoHideScroll: Boolean = _
-  private var fillBar = true
   /** won't persistent */
   private var allowMultipleIndicatorOnQuoteChartView: Boolean = _
 
@@ -90,6 +89,7 @@ abstract class LookFeel {
   protected val trackColor: Color = backgroundColor
   protected val thumbColor: Color = backgroundColor
 
+  var isFillBar = false
   val axisFont: Font
   val defaultFont = new Font("Dialog Input", Font.PLAIN, 9)
   val systemBackgroundColor: Color
@@ -199,10 +199,6 @@ abstract class LookFeel {
       i += 1
     }
     color
-  }
-
-  def isFillBar: Boolean = {
-    fillBar
   }
 
   def getNeutralColor = {

@@ -46,29 +46,29 @@ class MultiSpanCellTableUI extends BasicTableUI {
 
     val tableModel = table.getModel.asInstanceOf[AttributiveCellTableModel]
     val cellAtt = tableModel.getCellAttribute.asInstanceOf[CellSpan]
-    val numColumns = table.getColumnCount
+    val nCols = table.getColumnCount
 
-    def loop(column:Int) {
-      if (column < numColumns) {
-        val cellRect = table.getCellRect(row, column, true)
-        val(cellRow, cellColumn) = if (cellAtt.isVisible(row, column)) {
-          (row, column)
+    def loop(col: Int) {
+      if (col < nCols) {
+        val cellRect = table.getCellRect(row, col, true)
+        val(cellRow, cellCol) = if (cellAtt.isVisible(row, col)) {
+          (row, col)
           //  System.out.print("   "+column+" ");  // debug
         } else {
-          val cellRow1 = row + cellAtt.getSpan(row, column)(CellSpan.ROW)
-          val cellColumn1 = column + cellAtt.getSpan(row, column)(CellSpan.COLUMN)
-          (cellRow1, cellColumn1)
+          val cellRow1 = row + cellAtt.getSpan(row, col)(CellSpan.ROW)
+          val cellCol1 = col + cellAtt.getSpan(row, col)(CellSpan.COLUMN)
+          (cellRow1, cellCol1)
           //  System.out.print("  ("+column+")");  // debug
         }
 
         if (cellRect.intersects(rect)) {
           drawn = true
-          paintCell(g, cellRect, cellRow, cellColumn)
-          loop(column + 1)
+          paintCell(g, cellRect, cellRow, cellCol)
+          loop(col + 1)
         } else {
           if (drawn) { // break
           } else {
-            loop(column + 1)
+            loop(col + 1)
           }
         }
       }

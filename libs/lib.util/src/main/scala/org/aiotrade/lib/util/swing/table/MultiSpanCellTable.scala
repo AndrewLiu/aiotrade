@@ -21,21 +21,21 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
   setCellSelectionEnabled(true)
   setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION)
 
-  override def getCellRect(arow: Int, acolumn: Int, includeSpacing: Boolean): Rectangle = {
-    if (arow < 0 || acolumn < 0 || getRowCount <= arow || getColumnCount <= acolumn) {
-      return super.getCellRect(arow, acolumn, includeSpacing)
+  override def getCellRect($row: Int, $col: Int, includeSpacing: Boolean): Rectangle = {
+    if ($row < 0 || $col < 0 || getRowCount <= $row || getColumnCount <= $col) {
+      return super.getCellRect($row, $col, includeSpacing)
     }
 
-    var row = arow
-    var column = acolumn
+    var row = $row
+    var col = $col
     val cellAtt = getModel.asInstanceOf[AttributiveCellTableModel].getCellAttribute.asInstanceOf[CellSpan]
-    if (!cellAtt.isVisible(row, column)) {
+    if (!cellAtt.isVisible(row, col)) {
       val temp_row = row
-      val temp_column = column
-      row    += cellAtt.getSpan(temp_row, temp_column)(CellSpan.ROW)
-      column += cellAtt.getSpan(temp_row, temp_column)(CellSpan.COLUMN)
+      val temp_col = col
+      row += cellAtt.getSpan(temp_row, temp_col)(CellSpan.ROW)
+      col += cellAtt.getSpan(temp_row, temp_col)(CellSpan.COLUMN)
     }
-    val spans = cellAtt.getSpan(row, column)
+    val spans = cellAtt.getSpan(row, col)
 
     val cmodel = getColumnModel
     val cm = cmodel.getColumnMargin
@@ -45,18 +45,18 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
     r.height = spans(CellSpan.ROW) * aCellHeight
 
     if (getComponentOrientation.isLeftToRight) {
-      for (i <- 0 until column) {
-        r.x += cmodel.getColumn(i).getWidth()
+      for (i <- 0 until col) {
+        r.x += cmodel.getColumn(i).getWidth
       }
     } else {
-      for (i <- cmodel.getColumnCount - 1 until column) {
+      for (i <- cmodel.getColumnCount - 1 until col) {
         r.x += cmodel.getColumn(i).getWidth
       }
     }
-    r.width = cmodel.getColumn(column).getWidth
+    r.width = cmodel.getColumn(col).getWidth
         
     for (i <- 0 until spans(CellSpan.COLUMN) - 1) {
-      r.width += cmodel.getColumn(column + i).getWidth + cm
+      r.width += cmodel.getColumn(col + i).getWidth + cm
     }
 
     if (!includeSpacing) {
@@ -109,11 +109,11 @@ class MultiSpanCellTable(model: TableModel) extends JTable(model) {
     }
     val dirtyRegion = getCellRect(firstIndex, 0, false)
     val numCoumns = getColumnCount
-    var index = firstIndex;
+    var index = firstIndex
     for (i <- 0 until numCoumns) {
       dirtyRegion.add(getCellRect(index, i, false))
     }
-    index = lastIndex;
+    index = lastIndex
     for (i <- 0 until numCoumns) {
       dirtyRegion.add(getCellRect(index, i, false))
     }

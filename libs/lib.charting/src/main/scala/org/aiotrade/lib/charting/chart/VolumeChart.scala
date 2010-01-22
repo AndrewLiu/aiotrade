@@ -86,16 +86,17 @@ class VolumeChart extends AbstractChart {
             /** only get the first open as compressing period's open */
             open = item.open
           }
-          high   = math.max(high, item.high)
-          low    = math.min(low,  item.low)
+          high   = Math.max(high, item.high)
+          low    = Math.min(low,  item.low)
           close  = item.close
-          volume = math.max(volume, item.volume)
+          volume = Math.max(volume, item.volume)
         }
 
         i += 1
       }
 
       if (volume >= 0 /* means we've got volume value */) {
+
         val color = if (close >= open) LookFeel().getPositiveColor else LookFeel().getNegativeColor
         setForeground(color)
                 
