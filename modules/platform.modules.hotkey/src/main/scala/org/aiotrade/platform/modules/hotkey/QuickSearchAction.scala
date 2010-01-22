@@ -44,6 +44,7 @@ import java.awt.event.KeyEvent
 import javax.swing.Action
 import javax.swing.KeyStroke
 import javax.swing.UIManager
+import javax.swing.text.JTextComponent
 import org.openide.util.HelpCtx
 import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
@@ -54,12 +55,32 @@ import org.openide.util.actions.CallableSystemAction
  */
 class QuickSearchAction extends CallableSystemAction {
 
-  val isAqua = UIManager.getLookAndFeel.getID == "Aqua"
-  
-  lazy val comboBar: AbstractQuickSearchComboBar = if (isAqua)
-    new AquaQuickSearchComboBar(this.getValue(Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke])
+  private val isAqua = UIManager.getLookAndFeel.getID == "Aqua"
+  private val comboBar: AbstractQuickSearchComboBar = if (isAqua)
+    new AquaQuickSearchComboBar(getValue(Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke])
   else
-    new QuickSearchComboBar(this.getValue(Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke])
+    new QuickSearchComboBar(getValue(Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke])
+
+  // --- global keyboard processing
+  private val km = KeyboardFocusManager.getCurrentKeyboardFocusManager
+  private val dispatcher = new KeyEventDispatcher {
+    def dispatchKeyEvent(e: KeyEvent): Boolean = {
+      if (e.getID == KeyEvent.KEY_TYPED) {
+        val c = e.getKeyChar
+        if (c >= 'A' && c <'z' || c > '0' && c <'9') {
+          if (!km.getFocusOwner.isInstanceOf[JTextComponent]) {
+            comboBar.requestFocus
+            // let comboBar's focusGained event to process this char
+            comboBar.capturedChar = c
+            return true // true -- dispatched
+          }
+        }
+      }
+
+      false
+    }
+  }
+  km.addKeyEventDispatcher(dispatcher)
 
   def performAction {
     if (comboBar.command.isFocusOwner) {
@@ -89,8 +110,5 @@ class QuickSearchAction extends CallableSystemAction {
   override def getToolbarPresenter: java.awt.Component = {
     comboBar
   }
-
-
-
 
 }

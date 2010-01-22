@@ -117,6 +117,8 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
 
   var command: JTextComponent = _
 
+  var capturedChar: Char = 0
+
   initComponents
 
   setShowHint(true)
@@ -254,6 +256,11 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
       CommandEvaluator.isCatTemporary = false
       CommandEvaluator.evalCat = null
     }
+    
+    if (capturedChar != 0) {
+      command.getDocument.insertString(0, capturedChar.toString, null)
+      capturedChar = 0
+    }
   }
 
   protected def maybeShowPopup(evt: MouseEvent) {
@@ -341,7 +348,7 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
       sb.append(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar], "MSG_DiscoverabilityHint")) //NOI18N
     }
     sb.append(" (")
-    sb.append(SearchResultRender.getKeyStrokeAsText(keyStroke));
+    sb.append(SearchResultRender.getKeyStrokeAsText(keyStroke))
     sb.append(")")
 
     sb.toString
