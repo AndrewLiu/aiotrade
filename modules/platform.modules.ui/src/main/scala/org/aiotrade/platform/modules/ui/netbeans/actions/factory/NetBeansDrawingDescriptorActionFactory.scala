@@ -129,7 +129,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     
   private class DrawingDeleteAction(descriptor: DrawingDescriptor) extends DeleteAction {
             
-    putValue(Action.NAME, "Delete");
+    putValue(Action.NAME, "Delete")
         
     def execute {
       JOptionPane.showConfirmDialog(

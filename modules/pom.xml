@@ -136,7 +136,7 @@
 
     <modules>
         <module>platform.modules.ui</module>
-        <module>platform.modules.hotkey</module>
+        <module>platform.modules.quicksearch</module>
     </modules>
 
 </project>

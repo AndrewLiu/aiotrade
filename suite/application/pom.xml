@@ -42,7 +42,7 @@
 
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>platform-modules-hotkey</artifactId>
+            <artifactId>platform-modules-quicksearch</artifactId>
             <version>${project.version}</version>
             <type>nbm</type>
         </dependency>

@@ -119,8 +119,8 @@
         <folder name="QuickSearch">
             <attr name="position" intvalue="700"/>
             <attr name="SystemFileSystem.localizingBundle" stringvalue="org.aiotrade.platform.modules.ui.netbeans.Bundle"/>
-            <file name="org-aiotrade-platform-modules-hotkey-QuickSearchAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/Edit/org-aiotrade-platform-modules-hotkey-QuickSearchAction.instance"/>
+            <file name="org-aiotrade-platform-modules-quicksearch-QuickSearchAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Edit/org-aiotrade-platform-modules-quicksearch-QuickSearchAction.instance"/>
                 <attr name="position" intvalue="250"/>
             </file>
         </folder>
@@ -366,10 +366,10 @@
 
     <folder name="QuickSearch">
         <folder name="Symbols">
-            <attr name="command" stringvalue="Symbols"/>
+            <attr name="command" stringvalue="s"/>
             <attr name="position" intvalue="0"/>
-            <file name="org-aiotrade-platform-modules-ui-netbeans-search-SymbolSearchProvider.instance">
-                <attr name="displayName" bundlevalue="org.aiotrade.platform.modules.ui.netbeans.Bundle#QuickSearch/Symbols/org-aiotrade-platform-modules-ui-netbeans-search-SymbolSearchProvider.instance"/>
+            <file name="org-aiotrade-platform-modules-ui-netbeans-quicksearch-SymbolSearchProvider.instance">
+                <attr name="displayName" bundlevalue="org.aiotrade.platform.modules.ui.netbeans.Bundle#QuickSearch/Symbols/org-aiotrade-platform-modules-ui-netbeans-quicksearch-SymbolSearchProvider.instance"/>
             </file>
         </folder>
     </folder>
