@@ -62,13 +62,13 @@ class QuickSearchAction extends CallableSystemAction {
     new QuickSearchComboBar(getValue(Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke])
 
   // --- global keyboard processing
-  private val km = KeyboardFocusManager.getCurrentKeyboardFocusManager
+  private val kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager
   private val dispatcher = new KeyEventDispatcher {
     def dispatchKeyEvent(e: KeyEvent): Boolean = {
       if (e.getID == KeyEvent.KEY_TYPED) {
         val c = e.getKeyChar
         if (c >= 'A' && c <= 'z' || c >= '0' && c <= '9') {
-          if (!km.getFocusOwner.isInstanceOf[JTextComponent]) {
+          if (!kfm.getFocusOwner.isInstanceOf[JTextComponent]) {
             comboBar.requestFocus
             // let comboBar's focusGained event process this char
             comboBar.capturedChar = c
@@ -81,7 +81,7 @@ class QuickSearchAction extends CallableSystemAction {
       false
     }
   }
-  km.addKeyEventDispatcher(dispatcher)
+  kfm.addKeyEventDispatcher(dispatcher)
 
   def performAction {
     if (comboBar.command.isFocusOwner) {
