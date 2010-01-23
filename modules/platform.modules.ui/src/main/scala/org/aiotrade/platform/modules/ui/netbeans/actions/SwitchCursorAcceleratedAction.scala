@@ -31,7 +31,6 @@
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
@@ -53,13 +52,12 @@ object SwitchCursorAcceleratedAction {
   }
 
   def setSelected(b: Boolean) {
-    toggleButton.setSelected(b);
+    toggleButton.setSelected(b)
   }
-
-
 }
+
+import SwitchCursorAcceleratedAction._
 class SwitchCursorAcceleratedAction extends CallableSystemAction {
-  import SwitchCursorAcceleratedAction._
     
   /**
    * @NOTICE
@@ -67,58 +65,52 @@ class SwitchCursorAcceleratedAction extends CallableSystemAction {
    * component instead of here.
    */
   def performAction {
-    java.awt.EventQueue.invokeLater(new Runnable() {
+    java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-          if (toggleButton.isSelected()) {
-            toggleButton.setSelected(false);
+          if (toggleButton.isSelected) {
+            toggleButton.setSelected(false)
           } else {
-            toggleButton.setSelected(true);
+            toggleButton.setSelected(true)
           }
         }
-      });
+      })
         
   }
     
   def getName: String = {
-    return "Accelerate Cursor Moving";
+    "Accelerate Cursor Moving"
   }
     
   def getHelpCtx: HelpCtx = {
-    return HelpCtx.DEFAULT_HELP;
+    HelpCtx.DEFAULT_HELP
   }
     
   override protected def iconResource: String = {
-    return "org/aiotrade/platform/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif";
+    "org/aiotrade/platform/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif"
   }
     
   override protected def asynchronous: Boolean = {
-    return false;
+    false
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif");
+    val iconImage = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif")
     val icon = new ImageIcon(iconImage);
         
-    toggleButton = new JToggleButton();
-    toggleButton.setIcon(icon);
-    toggleButton.setToolTipText("Fast Moving");
+    toggleButton = new JToggleButton
+    toggleButton.setIcon(icon)
+    toggleButton.setToolTipText("Fast Moving")
         
-    toggleButton.addItemListener(new ItemListener() {
+    toggleButton.addItemListener(new ItemListener {
         def itemStateChanged(e: ItemEvent) {
           val state = e.getStateChange
                 
-          if (state == ItemEvent.SELECTED) {
-            ChartingControllerFactory.setCursorAccelerated(true);
-          } else {
-            ChartingControllerFactory.setCursorAccelerated(false);
-          }
+          ChartingControllerFactory.DefaultChartingController.isCursorAccelerated = (state == ItemEvent.SELECTED)
         }
-      });
+      })
         
     toggleButton
   }
-    
-    
 }
 
 

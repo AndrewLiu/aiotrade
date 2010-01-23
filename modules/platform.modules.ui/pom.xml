@@ -100,6 +100,11 @@
             <artifactId>lib-indicator</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>platform-modules-hotkey</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- runtime dependencies -->
         <dependency>
@@ -125,4 +130,5 @@
     </dependencies>
 
 </project>
+
 

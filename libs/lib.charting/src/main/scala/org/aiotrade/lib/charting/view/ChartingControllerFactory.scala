@@ -89,6 +89,11 @@ object ChartingControllerFactory {
     )
 
     private var _isCursorAccelerated = false
+
+    def isCursorAccelerated = _isCursorAccelerated
+    def isCursorAccelerated_=(b: Boolean) {
+      _isCursorAccelerated = b
+    }
   }
 
   /**

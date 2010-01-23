@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.1//EN" "http://www.netbeans.org/dtds/filesystem-1_1.dtd">
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
     <folder name="Actions">
         <file name="org-aiotrade-platform-modules-ui-netbeans-actions-AddMarketSymbolsAction.instance"/>
@@ -187,9 +187,6 @@
         <file name="C-S.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-platform-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
         </file>
-        <file name="D-I.shadow">
-            <attr name="originalFile" stringvalue="Actions/Edit/org-netbeans-modules-quicksearch-QuickSearchAction.instance"/>
-        </file>
     </folder>
 
     <folder name="Windows2">
@@ -262,7 +259,7 @@
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.charting.chart.handledchart.TextHandledChart"/>
         </file>
     </folder>
-    
+
     <folder name="DescriptorGroups">
         <file name="IndicatorGroupDescriptor.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.platform.modules.ui.netbeans.nodes.IndicatorGroupDescriptor"/>
@@ -365,6 +362,16 @@
         <!--file name="ZIGZAGFA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGFAIndicator"/>
         </file-->
+    </folder>
+
+    <folder name="QuickSearch">
+        <folder name="Symbols">
+            <attr name="command" stringvalue="Symbols"/>
+            <attr name="position" intvalue="0"/>
+            <file name="org-aiotrade-platform-modules-ui-netbeans-search-SymbolSearchProvider.instance">
+                <attr name="displayName" bundlevalue="org.aiotrade.platform.modules.ui.netbeans.Bundle#QuickSearch/Symbols/org-aiotrade-platform-modules-ui-netbeans-search-SymbolSearchProvider.instance"/>
+            </file>
+        </folder>
     </folder>
 
 </filesystem>
