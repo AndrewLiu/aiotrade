@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.platform.modules.ui.netbeans.actionfactories;
+package org.aiotrade.platform.modules.ui.netbeans.actions.factory
 
 import javax.swing.Action;
 import javax.swing.JOptionPane;
