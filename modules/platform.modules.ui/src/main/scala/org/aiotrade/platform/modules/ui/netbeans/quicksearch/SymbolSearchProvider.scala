@@ -8,6 +8,8 @@ package org.aiotrade.platform.modules.ui.netbeans.quicksearch
 import java.net.MalformedURLException
 import java.net.URL
 import org.aiotrade.lib.securities.Market
+import org.aiotrade.lib.util.swing.action.ViewAction;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.platform.spi.quicksearch.SearchProvider
 import org.aiotrade.platform.spi.quicksearch.SearchRequest
 import org.aiotrade.platform.spi.quicksearch.SearchResponse
@@ -43,7 +45,10 @@ class SymbolSearchProvider extends SearchProvider {
 
     def run {
       try {
-        URLDisplayer.getDefault.showURL(new URL(url))
+        SymbolNodes.findSymbolNode(symbol) match {
+          case Some(x) => x.getLookup.lookup(classOf[ViewAction]).execute
+          case None => URLDisplayer.getDefault.showURL(new URL(url))
+        }
       } catch {case ex: MalformedURLException =>}
     }
   }

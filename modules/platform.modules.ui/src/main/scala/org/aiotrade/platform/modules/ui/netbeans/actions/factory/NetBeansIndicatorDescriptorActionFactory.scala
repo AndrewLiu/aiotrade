@@ -175,7 +175,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       if (retValue == JOptionPane.OK_OPTION) {
         /** apple to all ? */
         if (pane.isApplyToAll) {
-          val root = ExplorerTopComponent().getRootNode
+          val root = ExplorerTopComponent().rootNode
           setIndicatorOptsRecursively(root, descriptor)
         } else { /** else, only apply to this one */
           setIndicatorOpts(descriptor, descriptor.factors)

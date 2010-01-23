@@ -32,8 +32,6 @@ package org.aiotrade.platform.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
-import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolNode
-import org.openide.ErrorManager;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
@@ -73,8 +71,10 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
     
   private val manager = new ExplorerManager
   private val treeView = new BeanTreeView
+
+  val rootNode = SymbolNodes.rootSymbolNode
+  manager.setRootContext(rootNode)
     
-  private var rootNode: SymbolNode = _
   private var watchListNode: Node = _
     
   setName(NbBundle.getMessage(this.getClass, "CTL_ExplorerTopComponent"))
@@ -84,14 +84,10 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   setLayout(new BorderLayout)
   add(treeView, BorderLayout.CENTER)
   treeView.setRootVisible(true)
-  try {
-    rootNode = new SymbolNodes.RootSymbolNode
-    manager.setRootContext(rootNode)
-  } catch {case ex: Exception => ErrorManager.getDefault.notify(ex)}
-  
-  val map = getActionMap
-  map.put("delete", ExplorerUtils.actionDelete(manager, true))
-  associateLookup(ExplorerUtils.createLookup(manager, map))
+
+  private val actionMap = getActionMap
+  actionMap.put("delete", ExplorerUtils.actionDelete(manager, true))
+  associateLookup(ExplorerUtils.createLookup(manager, actionMap))
     
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_ALWAYS
@@ -111,9 +107,5 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
 
   def getExplorerManager: ExplorerManager = {
     manager
-  }
-    
-  def getRootNode: SymbolNode = {
-    rootNode
-  }
+  }    
 }

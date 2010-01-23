@@ -39,7 +39,6 @@ import java.util.Calendar;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.chartview.AnalysisQuoteChartView
 import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
@@ -65,7 +64,7 @@ import org.openide.actions.DeleteAction;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
-import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.loaders.XMLDataObject;
 import org.openide.nodes.AbstractNode;
@@ -76,7 +75,7 @@ import org.openide.nodes.NodeEvent;
 import org.openide.nodes.NodeListener;
 import org.openide.nodes.NodeMemberEvent;
 import org.openide.nodes.NodeReorderEvent;
-import org.openide.util.Lookup;
+import org.openide.util.Lookup
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
@@ -138,6 +137,27 @@ object SymbolNodes {
     }
 
     null
+  }
+
+  def findSymbolNode(symbol: String): Option[Node] = {
+    findSymbolNode(rootSymbolNode, symbol)
+  }
+
+  private def findSymbolNode(node: Node, symbol: String): Option[Node] = {
+    if (node.getLookup.lookup(classOf[DataFolder]) == null) { // not a folder
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      if (contents != null && contents.uniSymbol == symbol) {
+        Some(node)
+      } else None
+    } else {
+      for (child <- node.getChildren.getNodes) {
+        findSymbolNode(child, symbol) match {
+          case None =>
+          case some => return some
+        }
+      }
+      None
+    }
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
@@ -277,7 +297,7 @@ object SymbolNodes {
    */
   @throws(classOf[DataObjectNotFoundException])
   @throws(classOf[IntrospectionException])
-  class RootSymbolNode extends SymbolNode(
+  object rootSymbolNode extends SymbolNode(
     DataObject.find(Repository.getDefault.getDefaultFileSystem.getRoot.getFileObject("Symbols")).getNodeDelegate
   ) {
 

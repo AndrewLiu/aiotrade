@@ -65,7 +65,7 @@ class QuickSearchAction extends CallableSystemAction {
   private val kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager
   private val dispatcher = new KeyEventDispatcher {
     def dispatchKeyEvent(e: KeyEvent): Boolean = {
-      if (e.getID == KeyEvent.KEY_TYPED) {
+      if (e.getID == KeyEvent.KEY_TYPED && !e.isAltDown && !e.isControlDown && !e.isMetaDown) {
         val c = e.getKeyChar
         if (c >= 'A' && c <= 'z' || c >= '0' && c <= '9') {
           if (!kfm.getFocusOwner.isInstanceOf[JTextComponent]) {
