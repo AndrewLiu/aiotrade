@@ -43,10 +43,13 @@ import java.awt.Color;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import javax.swing.JComponent;
+import javax.swing.JPanel
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
@@ -75,11 +78,13 @@ object AbstractQuickSearchComboBar {
     } else {
       UIManager.getColor("TextField.shadow")
     }
+
     if (shadow != null) shadow else getPopupBorderColor
   }
 
   def getPopupBorderColor: Color = {
     val shadow = UIManager.getColor("controlShadow")
+
     if (shadow != null) shadow else Color.GRAY
   }
 
@@ -89,6 +94,7 @@ object AbstractQuickSearchComboBar {
     } else {
       UIManager.getColor("TextPane.background")
     }
+
     if (textB != null) textB else Color.WHITE
   }
 
@@ -102,21 +108,20 @@ object AbstractQuickSearchComboBar {
     } else {
       UIManager.getColor("textInactiveText")
     }
+
     if (shadow != null) shadow else Color.DARK_GRAY
   }
 }
 
-abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends javax.swing.JPanel with ActionListener {
+abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends JPanel with ActionListener {
 
-  private val CATEGORY = "cat"
+  private val CATEGORY_PROP = "cat"
 
+  val command = createCommandField
   val displayer = new QuickSearchPopup(this)
+
   var caller: WeakReference[TopComponent] = _
-
   var origForeground: Color = _
-
-  var command: JTextComponent = _
-
   var capturedChar: Char = 0
 
   initComponents
@@ -152,35 +157,36 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
     setMaximumSize(new java.awt.Dimension(200, 2147483647))
     setName("Form") // NOI18N
     setOpaque(false)
-    addFocusListener(new java.awt.event.FocusAdapter {
-        override def focusLost(evt: java.awt.event.FocusEvent) {
+    addFocusListener(new FocusAdapter {
+        override def focusLost(evt: FocusEvent) {
           formFocusLost(evt)
         }
       })
 
-    command = createCommandField
-    command.setToolTipText(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar], "AbstractQuickSearchComboBar.command.toolTipText", Array[Object]("(" + SearchResultRender.getKeyStrokeAsText(keyStroke) + ")"))) // NOI18N
+    command.setToolTipText(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar], 
+                                               "AbstractQuickSearchComboBar.command.toolTipText",
+                                               Array[Object]("(" + SearchResultRender.getKeyStrokeAsText(keyStroke) + ")"))) // NOI18N
     command.setName("command") // NOI18N
-    command.addFocusListener(new java.awt.event.FocusAdapter {
-        override def focusGained(evt: java.awt.event.FocusEvent) {
+    command.addFocusListener(new FocusAdapter {
+        override def focusGained(evt: FocusEvent) {
           commandFocusGained(evt)
         }
-        override def focusLost(evt: java.awt.event.FocusEvent) {
+        override def focusLost(evt: FocusEvent) {
           commandFocusLost(evt)
         }
       })
     command.addKeyListener(new java.awt.event.KeyAdapter {
-        override def keyPressed(evt: java.awt.event.KeyEvent) {
+        override def keyPressed(evt: KeyEvent) {
           commandKeyPressed(evt)
         }
       })
   }
 
-  private def formFocusLost(evt: java.awt.event.FocusEvent) {
+  private def formFocusLost(evt: FocusEvent) {
     displayer.setVisible(false)
   }
 
-  private def commandKeyPressed(evt: java.awt.event.KeyEvent) {
+  private def commandKeyPressed(evt: KeyEvent) {
     evt.getKeyCode match {
       case KeyEvent.VK_DOWN =>
         displayer.selectNext
@@ -244,12 +250,12 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
   }
 
 
-  private def commandFocusLost(evt: java.awt.event.FocusEvent) {
+  private def commandFocusLost(evt: FocusEvent) {
     displayer.setVisible(false)
     setShowHint(true)
   }
 
-  private def commandFocusGained(evt: java.awt.event.FocusEvent) {
+  private def commandFocusGained(evt: FocusEvent) {
     caller = new WeakReference[TopComponent](TopComponent.getRegistry.getActivated)
     setShowHint(false)
     if (CommandEvaluator.isCatTemporary) {
@@ -269,22 +275,19 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
     }
 
     val pm = new JPopupMenu
-    var evalCat: ProviderModel.Category = null
-    if (!CommandEvaluator.isCatTemporary) {
-      evalCat = CommandEvaluator.evalCat
-    }
+    val evalCat = if (!CommandEvaluator.isCatTemporary) {
+      CommandEvaluator.evalCat
+    } else null
 
     val allCats = new JRadioButtonMenuItem(NbBundle.getMessage(getClass, "LBL_AllCategories"), evalCat == null)
     allCats.addActionListener(this)
     pm.add(allCats)
 
-    for (cat <- ProviderModel.instance.categories) {
-      if (!CommandEvaluator.RECENT.equals(cat.name)) {
-        val item = new JRadioButtonMenuItem(cat.displayName, cat == evalCat)
-        item.putClientProperty(CATEGORY, cat)
-        item.addActionListener(this)
-        pm.add(item)
-      }
+    for (cat <- ProviderModel.categories if !CommandEvaluator.RECENT.equals(cat.name)) {
+      val item = new JRadioButtonMenuItem(cat.displayName, cat == evalCat)
+      item.putClientProperty(CATEGORY_PROP, cat)
+      item.addActionListener(this)
+      pm.add(item)
     }
 
     pm.show(innerComponent, 0, innerComponent.getHeight - 1)
@@ -293,14 +296,14 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
   /** ActionListener implementation, reaction to popup menu item invocation */
   def actionPerformed(e: ActionEvent) {
     val item = e.getSource.asInstanceOf[JRadioButtonMenuItem]
-    CommandEvaluator.evalCat = item.getClientProperty(CATEGORY).asInstanceOf[Category]
+    CommandEvaluator.evalCat = item.getClientProperty(CATEGORY_PROP).asInstanceOf[Category]
     CommandEvaluator.isCatTemporary = false
     // refresh hint
     setShowHint(!command.isFocusOwner)
   }
 
-  /** Runs evaluation narrowed to specified category
-   *
+  /** 
+   * Runs evaluation narrowed to specified category
    */
   def evaluateCategory(cat: Category, temporary: Boolean) {
     CommandEvaluator.evalCat = cat
@@ -342,8 +345,7 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
   private def getHintText(cat: Category): String = {
     val sb = new StringBuilder
     if (cat != null) {
-      sb.append(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar],
-                                    "MSG_DiscoverabilityHint2", cat.displayName)) //NOI18N
+      sb.append(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar], "MSG_DiscoverabilityHint2", cat.displayName)) //NOI18N
     } else {
       sb.append(NbBundle.getMessage(classOf[AbstractQuickSearchComboBar], "MSG_DiscoverabilityHint")) //NOI18N
     }
@@ -366,13 +368,9 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends jav
 
   protected def computePrefWidth: Int = {
     val fm = command.getFontMetrics(command.getFont)
-    val pModel = ProviderModel.instance
     var maxWidth = 0
-    for (cat <- pModel.categories) {
-      // skip recent category
-      if (CommandEvaluator.RECENT != cat.name) {
+    for (cat <- ProviderModel.categories if cat.name != CommandEvaluator.RECENT) { // skip recent category
         maxWidth = Math.max(maxWidth, fm.stringWidth(getHintText(cat)))
-      }
     }
     // don't allow width grow too much
     Math.min(350, maxWidth)

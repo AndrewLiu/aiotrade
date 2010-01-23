@@ -44,10 +44,19 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionAdapter
+import javax.swing.BorderFactory
 import javax.swing.JComponent;
+import javax.swing.JLabel
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JSeparator
+import javax.swing.ScrollPaneConstants
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -64,49 +73,25 @@ import org.openide.util.TaskListener;
  * Component representing drop down for quick search
  * @author  Jan Becicka
  */
-object QuickSearchPopup {
-  /** Computes width of string up to maxCharCount, with font of given JComponent
-   * and with maximum percentage of owning Window that can be taken */
-  private def computeWidth (comp: JComponent, maxCharCount: Int, percent: Int): Int = {
-    val fm = comp.getFontMetrics(comp.getFont)
-    val charW = fm.charWidth('X')
-    var result = charW * maxCharCount
-    // limit width to 50% of containing window
-    val w = SwingUtilities.windowForComponent(comp)
-    if (w != null) {
-      result = Math.min(result, w.getWidth * percent / 100)
-    }
-    result
-  }
-
-
-}
-
 class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
                                                                  with ListDataListener
                                                                  with ActionListener
                                                                  with TaskListener
                                                                  with Runnable {
-  import QuickSearchPopup._
-
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private var hintLabel: javax.swing.JLabel = _
-  private var hintSep: javax.swing.JSeparator = _
-  private var jList1: javax.swing.JList = _
-  private var jScrollPane1: javax.swing.JScrollPane = _
-  private var noResultsLabel: javax.swing.JLabel = _
-  private var searchingLabel: javax.swing.JLabel = _
-  private var searchingSep: javax.swing.JSeparator = _
-  private var statusPanel: javax.swing.JPanel = _
-  // End of variables declaration//GEN-END:variables
-
-  private var rModel: ResultsModel = _
+  private val jScrollPane1 = new JScrollPane
+  private val jList1 = new JList
+  private val statusPanel = new JPanel
+  private val searchingSep = new JSeparator
+  private val searchingLabel = new JLabel
+  private val noResultsLabel = new JLabel
+  private val hintSep = new JSeparator
+  private val hintLabel = new JLabel
 
   /* Rect to store repetitive bounds computation */
   private val popupBounds = new Rectangle
 
-  private var updateTimer: Timer = _
   private val COALESCE_TIME = 600
+  private lazy val updateTimer: Timer = new Timer(COALESCE_TIME, this)
 
   /** text to search for */
   private var searchedText: String = _
@@ -118,10 +103,9 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
   /** Creates new form SilverPopup */
   initComponents
 
-  rModel = ResultsModel.instance
-  jList1.setModel(rModel)
+  jList1.setModel(ResultsModel)
   jList1.setCellRenderer(new SearchResultRender(this))
-  rModel.addListDataListener(this)
+  ResultsModel.addListDataListener(this)
 
   if (UIManager.getLookAndFeel.getID == "Aqua") {//NOI18N
     jList1.setBackground(AbstractQuickSearchComboBar.getResultBackground)
@@ -157,15 +141,11 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
   }
 
   def clearModel {
-    rModel.content = null
+    ResultsModel.content = null
   }
 
   def maybeEvaluate(text: String) {
     this.searchedText = text
-
-    if (updateTimer == null) {
-      updateTimer = new Timer(COALESCE_TIME, this)
-    }
 
     if (!updateTimer.isRunning) {
       // first change in possible flurry, start timer
@@ -185,7 +165,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
       if (evalTask != null) {
         evalTask.removeTaskListener(this)
       }
-      evalTask = CommandEvaluator.evaluate(searchedText, rModel)
+      evalTask = CommandEvaluator.evaluate(searchedText)
       evalTask.addTaskListener(this)
       // start waiting on all providers execution
       RequestProcessor.getDefault.post(evalTask)
@@ -202,30 +182,21 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private def initComponents {
 
-    jScrollPane1 = new javax.swing.JScrollPane
-    jList1 = new javax.swing.JList
-    statusPanel = new javax.swing.JPanel
-    searchingSep = new javax.swing.JSeparator
-    searchingLabel = new javax.swing.JLabel
-    noResultsLabel = new javax.swing.JLabel
-    hintSep = new javax.swing.JSeparator
-    hintLabel = new javax.swing.JLabel
-
-    setBorder(javax.swing.BorderFactory.createLineBorder(AbstractQuickSearchComboBar.getPopupBorderColor))
+    setBorder(BorderFactory.createLineBorder(AbstractQuickSearchComboBar.getPopupBorderColor))
     setLayout(new java.awt.BorderLayout)
 
     jScrollPane1.setBorder(null)
-    jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER)
+    jScrollPane1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    jScrollPane1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER)
 
     jList1.setFocusable(false);
-    jList1.addMouseListener(new java.awt.event.MouseAdapter {
-        override def mouseClicked(evt: java.awt.event.MouseEvent) {
+    jList1.addMouseListener(new MouseAdapter {
+        override def mouseClicked(evt: MouseEvent) {
           jList1MouseClicked(evt)
         }
       })
-    jList1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter {
-        override def mouseMoved(evt: java.awt.event.MouseEvent) {
+    jList1.addMouseMotionListener(new MouseMotionAdapter {
+        override def mouseMoved(evt: MouseEvent) {
           jList1MouseMoved(evt)
         }
       })
@@ -249,7 +220,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
     statusPanel.add(searchingLabel, gridBagConstraints)
 
     noResultsLabel.setForeground(java.awt.Color.red)
-    noResultsLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+    noResultsLabel.setHorizontalAlignment(SwingConstants.CENTER);
     noResultsLabel.setText(NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.noResultsLabel.text")) // NOI18N
     noResultsLabel.setFocusable(false)
     gridBagConstraints = new java.awt.GridBagConstraints
@@ -266,7 +237,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
     statusPanel.add(hintSep, gridBagConstraints)
 
     hintLabel.setBackground(AbstractQuickSearchComboBar.getResultBackground)
-    hintLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER)
+    hintLabel.setHorizontalAlignment(SwingConstants.CENTER)
     gridBagConstraints = new java.awt.GridBagConstraints
     gridBagConstraints.gridx = 0
     gridBagConstraints.gridy = 5
@@ -276,7 +247,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
     add(statusPanel, java.awt.BorderLayout.PAGE_END)
   }// </editor-fold>//GEN-END:initComponents
 
-  private def jList1MouseMoved(evt: java.awt.event.MouseEvent) {//GEN-FIRST:event_jList1MouseMoved
+  private def jList1MouseMoved(evt: MouseEvent) {//GEN-FIRST:event_jList1MouseMoved
     // selection follows mouse move
     val loc = evt.getPoint
     val index = jList1.locationToIndex(loc)
@@ -290,7 +261,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
 
   }//GEN-LAST:event_jList1MouseMoved
 
-  private def jList1MouseClicked(evt: java.awt.event.MouseEvent) {//GEN-FIRST:event_jList1MouseClicked
+  private def jList1MouseClicked(evt: MouseEvent) {//GEN-FIRST:event_jList1MouseClicked
     if (!SwingUtilities.isLeftMouseButton(evt)) {
       return
     }
@@ -321,7 +292,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
    * Updates size and visibility of this panel according to model content
    */
   def updatePopup {
-    val modelSize = rModel.getSize
+    val modelSize = ResultsModel.getSize
 
     // plug this popup into layered pane if needed
     val lPane = JLayeredPane.getLayeredPaneAbove(comboBar)
@@ -435,7 +406,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
     shouldBeVisible = shouldBeVisible || isInProgress
 
     val searchedNotEmpty = searchedText != null && searchedText.trim.length > 0
-    val areNoResults = rModel.getSize <= 0 && searchedNotEmpty && !isInProgress
+    val areNoResults = ResultsModel.getSize <= 0 && searchedNotEmpty && !isInProgress
     noResultsLabel.setVisible(areNoResults)
     comboBar.setNoResults(areNoResults)
     shouldBeVisible = shouldBeVisible || areNoResults
@@ -455,6 +426,20 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
       null
     } else NbBundle.getMessage(classOf[QuickSearchPopup], "QuickSearchPopup.hintLabel.text",
                                evalCat.displayName, SearchResultRender.getKeyStrokeAsText(comboBar.keyStroke))
+  }
+
+  /** Computes width of string up to maxCharCount, with font of given JComponent
+   * and with maximum percentage of owning Window that can be taken */
+  private def computeWidth (comp: JComponent, maxCharCount: Int, percent: Int): Int = {
+    val fm = comp.getFontMetrics(comp.getFont)
+    val charW = fm.charWidth('X')
+    var result = charW * maxCharCount
+    // limit width to 50% of containing window
+    val w = SwingUtilities.windowForComponent(comp)
+    if (w != null) {
+      result = Math.min(result, w.getWidth * percent / 100)
+    }
+    result
   }
 
 }

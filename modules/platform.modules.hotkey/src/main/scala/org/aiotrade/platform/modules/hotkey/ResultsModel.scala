@@ -57,16 +57,91 @@ import org.aiotrade.platform.spi.hotkey.SearchRequest
  *
  * @author Jan Becicka
  */
-object ResultsModel {
+object ResultsModel extends AbstractListModel with ActionListener {
   /** Amount of time during which model has to be unchanged in order to fire
    * changes to listeners. */
   val COALESCE_TIME = 200
-  lazy val instance = new ResultsModel
 
-  class ItemResult(val category: CategoryResult, sRequest: SearchRequest, val action: Runnable, $displayName: String,
-                   val shortcut: List[_ <: KeyStroke], val displayHint: String,
-                   //time of last access, used for recent searches
-                   var date: Date) {
+  private var _content: List[_ <: CategoryResult] = _
+
+  /* Timer for coalescing fast coming changes of model */
+  private var fireTimer: Timer = _
+
+  def content = _content.toList
+  def content_=(categories: List[_ <: CategoryResult]) {
+    val oldRes = this._content
+    this._content = categories
+
+    if (oldRes != null) {
+      for (cr <- oldRes) {
+        cr.setObsolete(true)
+      }
+    }
+
+    maybeFireChanges
+  }
+
+  /******* AbstractListModel impl ********/
+
+  def getSize: Int = {
+    if (_content == null) {
+      return 0
+    }
+    var size = 0
+    for (cr <- _content) {
+      size += cr.items.size
+    }
+    size
+  }
+
+  def getElementAt(index: Int): Object = {
+    if (_content == null) {
+      return null
+    }
+    // TBD - should probably throw AIOOBE if invalid index is on input
+    var catIndex = index
+    for (cr <- _content) {
+      val catItems = cr.items
+      val catSize = catItems.size
+      if (catIndex < catSize) {
+        return if (catIndex >= 0) catItems(catIndex) else null
+      }
+      catIndex -= catSize
+    }
+    
+    null
+  }
+
+  def categoryChanged(cr: CategoryResult) {
+    // fire change only if category is contained in model
+    if (_content != null && _content.contains(cr)) {
+      maybeFireChanges
+    }
+  }
+
+  private def maybeFireChanges {
+    if (fireTimer == null) {
+      fireTimer = new Timer(COALESCE_TIME, this)
+    }
+    if (!fireTimer.isRunning) {
+      // first change in possible flurry, start timer
+      fireTimer.start
+    } else {
+      // model change came too fast, let's wait until providers calm down :)
+      fireTimer.restart
+    }
+  }
+
+  def actionPerformed(e: ActionEvent) {
+    fireTimer.stop
+    fireContentsChanged(this, 0, getSize)
+  }
+
+  case class ItemResult(category: CategoryResult, private sRequest: SearchRequest, action: Runnable,
+                        private $displayName: String,
+                        shortcut: List[_ <: KeyStroke], displayHint: String,
+                        //time of last access, used for recent searches
+                        var date: Date) {
 
     private val HTML = "<html>"
 
@@ -111,92 +186,5 @@ object ResultsModel {
 
       sb.toString
     }
-
   }
-}
-
-class ResultsModel private () extends AbstractListModel with ActionListener {
-  import ResultsModel._
-
-  private var results: List[_ <: CategoryResult] = _
-
-  /* Timer for coalescing fast coming changes of model */
-  private var fireTimer: Timer = _
-
-
-  def content_=(categories: List[_ <: CategoryResult]) {
-    val oldRes = this.results
-    this.results = categories
-
-    if (oldRes != null) {
-      for (cr <- oldRes) {
-        cr.setObsolete(true)
-      }
-    }
-
-    maybeFireChanges
-  }
-
-  def content: List[_ <: CategoryResult] = {
-    results.toList
-  }
-
-  /******* AbstractListModel impl ********/
-
-  def getSize: Int = {
-    if (results == null) {
-      return 0
-    }
-    var size = 0
-    for (cr <- results) {
-      size += cr.items.size
-    }
-    size
-  }
-
-  def getElementAt(index: Int): Object = {
-    if (results == null) {
-      return null
-    }
-    // TBD - should probably throw AIOOBE if invalid index is on input
-    var catIndex = index
-    for (cr <- results) {
-      val catItems = cr.items
-      val catSize = catItems.size
-      if (catIndex < catSize) {
-        return if (catIndex >= 0) catItems(catIndex) else null
-      }
-      catIndex -= catSize
-    }
-    
-    null
-  }
-
-
-
-  def categoryChanged(cr: CategoryResult) {
-    // fire change only if category is contained in model
-    if (results != null && results.contains(cr)) {
-      maybeFireChanges
-    }
-  }
-
-  private def maybeFireChanges {
-    if (fireTimer == null) {
-      fireTimer = new Timer(COALESCE_TIME, this)
-    }
-    if (!fireTimer.isRunning) {
-      // first change in possible flurry, start timer
-      fireTimer.start
-    } else {
-      // model change came too fast, let's wait until providers calm down :)
-      fireTimer.restart
-    }
-  }
-
-  def actionPerformed(e: ActionEvent) {
-    fireTimer.stop
-    fireContentsChanged(this, 0, getSize)
-  }
-
 }

@@ -37,15 +37,15 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.aiotrade.platform.modules.hotkey;
+package org.aiotrade.platform.modules.hotkey
 
-import java.util.regex.Pattern;
-import org.aiotrade.platform.modules.hotkey.ProviderModel.Category;
-import org.aiotrade.platform.spi.hotkey.SearchProvider;
-import org.aiotrade.platform.spi.hotkey.SearchRequest;
-import org.aiotrade.platform.spi.hotkey.SearchResponse;
-import org.openide.util.RequestProcessor;
-import scala.collection.mutable.ArrayBuffer
+import java.util.regex.Pattern
+import org.aiotrade.platform.modules.hotkey.ProviderModel.Category
+import org.aiotrade.platform.spi.hotkey.SearchProvider
+import org.aiotrade.platform.spi.hotkey.SearchRequest
+import org.aiotrade.platform.spi.hotkey.SearchResponse
+import org.openide.util.RequestProcessor
+import scala.collection.mutable.ListBuffer
 
 /**
  * Command Evaluator. It evaluates commands from toolbar and creates results.
@@ -79,50 +79,47 @@ object CommandEvaluator {
    * execution. Use returned instance to recognize if this evaluation still
    * runs and when it actually will finish.
    */
-  def evaluate (command: String, model: ResultsModel): org.openide.util.Task = {
-    val l = ArrayBuffer[CategoryResult]()
+  def evaluate(command: String): org.openide.util.Task = {
+    val catResults = ListBuffer[CategoryResult]()
     val commands = parseCommand(command)
     val sRequest = Accessor.DEFAULT.createRequest(commands(1), null)
-    val tasks = ArrayBuffer[RequestProcessor#Task]()
+    val tasks = ListBuffer[RequestProcessor#Task]()
 
-    val provCats = ArrayBuffer[Category]()
-    val allResults = getProviderCategories(commands, provCats)
-
+    val (provCats, allResults) = getProviderCategories(commands)
     for (curCat <- provCats) {
       val catResult = new CategoryResult(curCat, allResults)
       val sResponse = Accessor.DEFAULT.createResponse(catResult, sRequest)
       for (provider <- curCat.providers) {
-        val t = runEvaluation(provider, sRequest, sResponse, curCat)
-        if (t != null) {
-          tasks += t
+        val task = runEvaluation(provider, sRequest, sResponse, curCat)
+        if (task != null) {
+          tasks += task
         }
       }
-      l += catResult
+      catResults += catResult
     }
 
-    model.content = l.toList
+    ResultsModel.content = catResults.toList
 
     new Wait4AllTask(tasks.toList)
   }
 
   private def parseCommand(command: String): Array[String] = {
-    val results = new Array[String](2)
+    val commands = new Array[String](2)
 
     val m = COMMAND_PATTERN.matcher(command)
-
     if (m.matches) {
-      results(0) = m.group(1)
-      if (ProviderModel.instance.isKnownCommand(results(0))) {
-        results(1) = m.group(3)
+      commands(0) = m.group(1)
+      if (ProviderModel.isKnownCommand(commands(0))) {
+        commands(1) = m.group(3)
       } else {
-        results(0) = null
-        results(1) = command
+        commands(0) = null
+        commands(1) = command
       }
     } else {
-      results(1) = command
+      commands(1) = command
     }
                 
-    results
+    commands
   }
 
   /** Returns array of providers to ask for evaluation according to
@@ -130,41 +127,37 @@ object CommandEvaluator {
    *
    * @return true if providers are expected to return all results, false otherwise
    */
-  private def getProviderCategories(commands: Array[String], result: ArrayBuffer[Category]): Boolean = {
-    val cats = ProviderModel.instance.categories
+  private def getProviderCategories(commands: Array[String]): (List[Category], Boolean) = {
+    val result = ListBuffer[Category]()
 
+    val cats = ProviderModel.categories
     // always include recent searches
-    for (cat <- cats if RECENT.equals(cat.name)) {
-      result += cat
-    }
+    result ++= cats filter (_.name == RECENT)
 
     // skip all but recent if empty string came
     if (commands(1) == null || commands(1).trim == "") {
-      return false
+      return (result.toList, false)
     }
 
     // command string has biggest priority for narrow evaluation to category
     if (commands(0) != null) {
-      for (curCat <- cats) {
-        val commandPrefix = curCat.commandPrefix
-        if (commandPrefix != null && commandPrefix.equalsIgnoreCase(commands(0))) {
-          result += curCat
-          return true
-        }
+      cats find {x => x.commandPrefix != null && x.commandPrefix.equalsIgnoreCase(commands(0))} match {
+        case Some(cat) => result += cat; return (result.toList, true)
+        case None =>
       }
     }
 
     // evaluation narrowed to category perhaps?
     if (evalCat != null) {
       result += evalCat
-      return true
+      return (result.toList, true)
     }
 
     // no narrowing
     result.clear
     result ++= cats
 
-    false
+    (result.toList, false)
   }
 
   private def runEvaluation(provider: SearchProvider, request: SearchRequest,

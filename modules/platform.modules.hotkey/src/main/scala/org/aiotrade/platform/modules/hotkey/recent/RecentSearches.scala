@@ -148,8 +148,8 @@ class RecentSearches private () {
 
     def run {
       if (action == null || action.isInstanceOf [FakeAction]) {
-        val model = ResultsModel.instance
-        CommandEvaluator.evaluate(stripHTMLandPackageNames(name), model)
+        val model = ResultsModel
+        CommandEvaluator.evaluate(stripHTMLandPackageNames(name))
         try {
           Thread.sleep(350)
         } catch {case ex: InterruptedException => Exceptions.printStackTrace(ex)}

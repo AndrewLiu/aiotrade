@@ -37,11 +37,11 @@
  * Portions Copyrighted 2008 Sun Microsystems, Inc.
  */
 
-package org.aiotrade.platform.modules.hotkey;
+package org.aiotrade.platform.modules.hotkey
 
-import java.awt.EventQueue;
-import javax.swing.SwingUtilities;
-import org.aiotrade.platform.modules.hotkey.ResultsModel.ItemResult;
+import java.awt.EventQueue
+import javax.swing.SwingUtilities
+import org.aiotrade.platform.modules.hotkey.ResultsModel.ItemResult
 import org.openide.util.NbBundle
 import scala.collection.mutable.ArrayBuffer
 
@@ -61,9 +61,7 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
   private val _items = new ArrayBuffer[ItemResult](if (allResults) ALL_MAX_RESULTS else MAX_RESULTS)
     
   private var obsolete = false
-    
   private var previousSize = 0
-
   private var moreResults = false
 
   def addItem(item: ItemResult): Boolean = {
@@ -102,6 +100,7 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
         rItems ::= new ItemResult(this, null, this, NbBundle.getMessage(getClass, "LBL_MoreResults"))
       }
     }
+
     rItems
   }
     
@@ -111,6 +110,7 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
         return true
       }
     }
+
     false
   }
 
@@ -146,9 +146,8 @@ class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) 
     // notification may be dismissed.
     if (curSize > previousSize) {
       previousSize = curSize
-      ResultsModel.instance.categoryChanged(this)
+      ResultsModel.categoryChanged(this)
     }
-        
   }
 
 }

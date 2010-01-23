@@ -39,12 +39,12 @@
  * made subject to such option by the copyright holder.
  */
 
-package org.aiotrade.platform.modules.hotkey;
+package org.aiotrade.platform.modules.hotkey
 
-import javax.swing.KeyStroke;
+import javax.swing.KeyStroke
 import org.aiotrade.platform.spi.hotkey.AccessorImpl
-import org.aiotrade.platform.spi.hotkey.SearchRequest;
-import org.aiotrade.platform.spi.hotkey.SearchResponse;
+import org.aiotrade.platform.spi.hotkey.SearchRequest
+import org.aiotrade.platform.spi.hotkey.SearchResponse
 
 /**
  * API trampoline pattern to hide constructors of 
@@ -66,8 +66,6 @@ object Accessor {
 abstract class Accessor {
     
   def createRequest(text: String, stroke: List[_ <: KeyStroke]): SearchRequest
-    
   def createResponse(catResult: CategoryResult, sRequest: SearchRequest): SearchResponse
-        
 }
 

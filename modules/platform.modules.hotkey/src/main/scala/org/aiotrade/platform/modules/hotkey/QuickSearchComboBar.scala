@@ -61,10 +61,10 @@ import org.openide.util.NbBundle
 class QuickSearchComboBar(ks: KeyStroke) extends AbstractQuickSearchComboBar(ks) {
   import AbstractQuickSearchComboBar._
 
-  private var jLabel2: javax.swing.JLabel = _
-  private var jPanel1: javax.swing.JPanel = _
-  private var jScrollPane1: javax.swing.JScrollPane = _
-  private var jSeparator1: javax.swing.JSeparator = _
+  private val jPanel1 = new javax.swing.JPanel
+  private val jLabel2 = new javax.swing.JLabel
+  private val jScrollPane1 = new javax.swing.JScrollPane
+  private val jSeparator1 = new javax.swing.JSeparator
 
   val findIcon = new ImageIcon(getClass.getResource("/org/aiotrade/platform/modules/hotkey/resources/find.png")) // NOI18N
 
@@ -88,11 +88,6 @@ class QuickSearchComboBar(ks: KeyStroke) extends AbstractQuickSearchComboBar(ks)
     })
 
   private def initComponents {
-    jPanel1 = new javax.swing.JPanel
-    jLabel2 = new javax.swing.JLabel
-    jScrollPane1 = new javax.swing.JScrollPane
-    jSeparator1 = new javax.swing.JSeparator
-
     setLayout(new java.awt.GridBagLayout())
 
     jPanel1.setBackground(getTextBackground)
