@@ -94,14 +94,11 @@ class RealTimeWatchListTopComponent extends TopComponent {
   instanceRefs ::= ref
     
   private val tc_id = "RealTimeWatchList"
-    
-  private var updateServerRegistered = false
-    
-  private var reallyClosed = false
-  
   private val symbolToNode = HashMap[String, Node]()
-    
   private val rtWatchListPanel = new RealTimeWatchListPanel
+
+  private var updateServerRegistered = false
+  private var reallyClosed = false
 
   setLayout(new BorderLayout)
         
@@ -247,7 +244,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     def mousePressed(e: MouseEvent) {
       showPopup(e)
             
-      /** when double click on a row, try to active this stock's tickering chart view */
+      /** when double click on a row, try to active this stock's realtime chart view */
       if (e.getClickCount == 2) {
         val symbol = rtWatchListPanel.symbolAtRow(rowAtY(e))
         if (symbol == null) {

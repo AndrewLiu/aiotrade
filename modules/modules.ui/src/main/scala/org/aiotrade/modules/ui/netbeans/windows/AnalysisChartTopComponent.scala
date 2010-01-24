@@ -474,7 +474,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     instanceRefs -= ref
     super.componentClosed
     /**
-     * componentClosed not means it will be discarded, just make it invisible,
+     * componentClosed not means it will be destroied, just make it invisible,
      * so, when to call dispose() ?
      */
     //sec.setSignSeriesLoaded(false);

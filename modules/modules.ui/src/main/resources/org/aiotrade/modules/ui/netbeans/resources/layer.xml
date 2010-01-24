@@ -365,6 +365,10 @@
     </folder>
 
     <folder name="QuickSearch">
+        <folder name="Actions_hidden"/>
+        <folder name="Help_hidden"/>
+        <folder name="GoToOption_hidden"/>
+        <folder name="Recent_hidden"/>
         <folder name="Symbols">
             <attr name="command" stringvalue="s"/>
             <attr name="position" intvalue="0"/>
