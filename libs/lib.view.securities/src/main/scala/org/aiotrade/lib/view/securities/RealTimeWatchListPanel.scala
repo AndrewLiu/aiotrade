@@ -43,6 +43,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.RowSorter
 import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
@@ -182,8 +183,27 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   def update(tickerSnapshot: Observable) {
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+
+    /*
+     * To avoid:
+     java.lang.NullPointerException
+     at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
+     at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
+     at javax.swing.JTable.getValueAt(JTable.java:2695)
+     at javax.swing.JTable.prepareRenderer(JTable.java:5712)
+     at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
+     * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
+     */
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          updateByTicker(ts)
+        }
+      })
+  }
+
+  private def updateByTicker(ts: TickerSnapshot) {
     val symbol = ts.symbol
-    val snapshotTicker = ts.ticker
+    val ticker = ts.ticker
 
     val prevTicker = symbolToPrevTicker.get(symbol) getOrElse {
       val x = new Ticker
@@ -203,10 +223,10 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
      */
     symbolToColColors.get(symbol) match {
       case Some(colNameToColor) =>
-        if (snapshotTicker.isDayVolumeGrown(prevTicker)) {
-          setColColorsByTicker(colNameToColor, snapshotTicker, prevTicker, inWatching)
+        if (ticker.isDayVolumeGrown(prevTicker)) {
+          setColColorsByTicker(colNameToColor, ticker, prevTicker, inWatching)
 
-          val rowData = composeRowData(symbol, snapshotTicker)
+          val rowData = composeRowData(symbol, ticker)
           val row = rowOfSymbol(symbol)
           for (i <- 0 until rowData.length) {
             table.setValueAt(rowData(i), row, i)
@@ -219,17 +239,17 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
         }
         symbolToColColors += (symbol -> colNameToColor)
 
-        setColColorsByTicker(colNameToColor, snapshotTicker, null, inWatching)
+        setColColorsByTicker(colNameToColor, ticker, null, inWatching)
 
-        val rowData = composeRowData(symbol, snapshotTicker)
+        val rowData = composeRowData(symbol, ticker)
         tableModel.addRow(rowData)
     }
 
-    prevTicker.copyFrom(snapshotTicker)
+    prevTicker.copyFrom(ticker)
   }
 
-  val SWITCH_COLOR_A = LookFeel().nameColor
-  val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
+  private val SWITCH_COLOR_A = LookFeel().nameColor
+  private val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
   private def setColColorsByTicker(colNameToColor: HashMap[String, Color], ticker: Ticker, prevTicker: Ticker, inWatching: Boolean) {
     val fgColor = if (inWatching) LookFeel().nameColor else Color.GRAY.brighter
@@ -259,7 +279,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
         colNameToColor += (PERCENT    -> neutralColor)
       }
 
-      def setColorToPrevClose(tickerField: Int, columnName: String) {
+      def setColorByPrevClose(tickerField: Int, columnName: String) {
         if (ticker(tickerField) > ticker(Ticker.PREV_CLOSE)) {
           colNameToColor += (columnName -> positiveColor)
         } else if (ticker(tickerField) < ticker(Ticker.PREV_CLOSE)) {
@@ -269,10 +289,10 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
         }
       }
 
-      setColorToPrevClose(Ticker.DAY_OPEN,   DAY_OPEN)
-      setColorToPrevClose(Ticker.DAY_HIGH,   DAY_HIGH)
-      setColorToPrevClose(Ticker.DAY_LOW,    DAY_LOW)
-      setColorToPrevClose(Ticker.LAST_PRICE, LAST_PRICE)
+      setColorByPrevClose(Ticker.DAY_OPEN,   DAY_OPEN)
+      setColorByPrevClose(Ticker.DAY_HIGH,   DAY_HIGH)
+      setColorByPrevClose(Ticker.DAY_LOW,    DAY_LOW)
+      setColorByPrevClose(Ticker.LAST_PRICE, LAST_PRICE)
 
       if (prevTicker != null) {
         if (ticker.isDayVolumeChanged(prevTicker)) {
@@ -289,9 +309,9 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
           /** volumes color switchs between two colors if ticker renewed */
           if (colNameToColor(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
-            colNameToColor += (DAY_VOLUME -> SWITCH_COLOR_B)
+            colNameToColor(DAY_VOLUME) = SWITCH_COLOR_B
           } else {
-            colNameToColor += (DAY_VOLUME -> SWITCH_COLOR_A)
+            colNameToColor(DAY_VOLUME) = SWITCH_COLOR_A
           }
         }
       }
