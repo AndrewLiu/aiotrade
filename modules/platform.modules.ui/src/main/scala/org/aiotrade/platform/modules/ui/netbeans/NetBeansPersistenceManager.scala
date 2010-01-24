@@ -43,22 +43,18 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.QuotePool
 import org.aiotrade.lib.securities.TickerPool
-import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.lib.util.swing.action.RefreshAction;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
-import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject;
-import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 import org.openide.xml.XMLUtil;
@@ -74,94 +70,6 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 object NetBeansPersistenceManager {
-  private var contentToOccuptantNode = Map[AnalysisContents, Node]()
-
-  def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
-    contentToOccuptantNode.get(contents)
-  }
-
-  def occupiedContentsOf(node: Node): Option[AnalysisContents] = {
-    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1)
-  }
-
-  def contentsOf(symbol: String): Option[AnalysisContents] = {
-    contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
-  }
-
-  def nodeOf(symbol: String): Option[Node] = {
-    contentsOf(symbol) map occupantNodeOf get
-  }
-
-  def putNode(contents: AnalysisContents, node: Node) {
-    contentToOccuptantNode += (contents -> node)
-  }
-
-  /**
-   * Remove node will not remove the contents, we prefer contents instances
-   * long lives in application context, so if node is moved to other place, we
-   * can just pick a contents from here (if exists) instead of read from xml
-   * file, and thus makes the opened topcomponent needn't to referencr to a new
-   * created contents instance.
-   * So, just do
-   * <code>putNode(contents, null)</code>
-   */
-  def removeNode(node: Node) {
-    /**
-     * @NOTICE
-     * When move a node from a folder to another folder, a new node could
-     * be created first, then the old node is removed. so the nodeMap may
-     * has been updated by the new node, and lookupContents(node) will
-     * return a null since it lookup via the old node.
-     * Check it here
-     */
-    occupiedContentsOf(node) foreach {contents =>
-      contentToOccuptantNode -= contents
-    }
-  }
-
-  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract): FileObject =  {
-    val folderObject = folder.getPrimaryFile
-    val baseName = symbol
-    var ix = 1
-    while (folderObject.getFileObject(baseName + ix, "xml") != null) {
-      ix += 1
-    }
-
-    var lock: FileLock = null
-    var out: PrintStream = null
-    var fo: FileObject = null
-    try {
-      fo = folderObject.createData(baseName + ix, "xml")
-      lock = fo.lock
-      out = new PrintStream(fo.getOutputStream(lock))
-
-      val contents = PersistenceManager().defaultContents
-      /** clear default dataSourceContract */
-      contents.clearDescriptors(classOf[DataContract[_]])
-
-      contents.uniSymbol = symbol
-      contents.addDescriptor(quoteContract)
-
-      out.print(ContentsPersistenceHandler.dumpContents(contents))
-
-      /**
-       * set attr = "new" to open the view when a new node is
-       * created late by SymbolNode.SymbolFolderChildren.creatNodes()
-       */
-      fo.setAttribute("new", true)
-    } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
-    } finally {
-      /** should remember to out.close() here */
-      if (out != null) {
-        out.close
-      }
-      if (lock != null) {
-        lock.releaseLock
-      }
-    }
-
-    fo
-  }
 }
 
 class NetBeansPersistenceManager extends PersistenceManager {
@@ -209,7 +117,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         }
       }
     } else {
-      contentToOccuptantNode.get(contents) foreach {node =>
+      SymbolNodes.occupantNodeOf(contents) foreach {node =>
         /** refresh node's icon in explorer window */
         val children = node.getChildren
         for (child <- children.getNodes) {

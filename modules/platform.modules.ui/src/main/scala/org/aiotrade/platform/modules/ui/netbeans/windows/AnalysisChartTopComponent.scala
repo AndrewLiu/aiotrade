@@ -66,7 +66,6 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ChangeOptsAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.PickIndicatorAction;
@@ -79,6 +78,7 @@ import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchHideShowDrawingLi
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.platform.modules.ui.netbeans.actions.ZoomOutAction;
 import org.aiotrade.platform.modules.ui.netbeans.nodes.GroupNode;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.nodes.Node;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
@@ -298,7 +298,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
                     
               /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
                     
-              val secNode_? = NetBeansPersistenceManager.occupantNodeOf(contents)
+              val secNode_? = SymbolNodes.occupantNodeOf(contents)
               assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
               for (groupNode <- secNode_?.get.getChildren.getNodes) {
                 groupNode.asInstanceOf[GroupNode].freq = masterSer.freq

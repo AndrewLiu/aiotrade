@@ -35,13 +35,16 @@ import java.awt.event.ActionEvent;
 import java.beans.IntrospectionException;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
+import java.io.PrintStream
 import java.util.Calendar;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.chartview.AnalysisQuoteChartView
 import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
+import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
 import org.aiotrade.lib.securities.PersistenceManager
@@ -54,13 +57,13 @@ import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.platform.modules.ui.netbeans.GroupDescriptor
-import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager;
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeBoardTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.aiotrade.platform.modules.ui.dialog.ImportSymbolDialog;
 import org.openide.ErrorManager;
 import org.openide.actions.DeleteAction;
+import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
@@ -114,10 +117,99 @@ import org.xml.sax.SAXException;
  * @author Caoyuan Deng
  */
 object SymbolNodes {
-  
-  private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/symbol.gif");
-  /** Deserialize a Symbol from xml file */
 
+  private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/symbol.gif");
+
+  private var contentToOccuptantNode = Map[AnalysisContents, Node]()
+
+  def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
+    contentToOccuptantNode.get(contents)
+  }
+
+  def occupiedContentsOf(node: Node): Option[AnalysisContents] = {
+    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1)
+  }
+
+  def contentsOf(symbol: String): Option[AnalysisContents] = {
+    contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
+  }
+
+  def nodeOf(symbol: String): Option[Node] = {
+    contentsOf(symbol) map occupantNodeOf get
+  }
+
+  def putNode(contents: AnalysisContents, node: Node) {
+    contentToOccuptantNode += (contents -> node)
+  }
+
+  /**
+   * Remove node will not remove the contents, we prefer contents instances
+   * long lives in application context, so if node is moved to other place, we
+   * can just pick a contents from here (if exists) instead of read from xml
+   * file, and thus makes the opened topcomponent needn't to referencr to a new
+   * created contents instance.
+   * So, just do
+   * <code>putNode(contents, null)</code>
+   */
+  def removeNode(node: Node) {
+    /**
+     * @NOTICE
+     * When move a node from a folder to another folder, a new node could
+     * be created first, then the old node is removed. so the nodeMap may
+     * has been updated by the new node, and lookupContents(node) will
+     * return a null since it lookup via the old node.
+     * Check it here
+     */
+    occupiedContentsOf(node) foreach {contents =>
+      contentToOccuptantNode -= contents
+    }
+  }
+
+  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract): FileObject =  {
+    val folderObject = folder.getPrimaryFile
+    val baseName = symbol
+    var ix = 1
+    while (folderObject.getFileObject(baseName + ix, "xml") != null) {
+      ix += 1
+    }
+
+    var lock: FileLock = null
+    var out: PrintStream = null
+    var fo: FileObject = null
+    try {
+      fo = folderObject.createData(baseName + ix, "xml")
+      lock = fo.lock
+      out = new PrintStream(fo.getOutputStream(lock))
+
+      val contents = PersistenceManager().defaultContents
+      /** clear default dataSourceContract */
+      contents.clearDescriptors(classOf[DataContract[_]])
+
+      contents.uniSymbol = symbol
+      contents.addDescriptor(quoteContract)
+
+      out.print(ContentsPersistenceHandler.dumpContents(contents))
+
+      /**
+       * set attr = "new" to open the view when a new node is
+       * created late by SymbolNode.SymbolFolderChildren.creatNodes()
+       */
+      fo.setAttribute("new", true)
+    } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
+    } finally {
+      /** should remember to out.close() here */
+      if (out != null) {
+        out.close
+      }
+      if (lock != null) {
+        lock.releaseLock
+      }
+    }
+
+    fo
+  }
+
+  /** Deserialize a Symbol from xml file */
   private def readContents(node: Node): AnalysisContents = {
     val xdo = node.getLookup.lookup(classOf[XMLDataObject])
     if (xdo == null) {
@@ -164,7 +256,7 @@ object SymbolNodes {
   /** Getting the Symbol node and wrapping it in a FilterNode */
   class OneSymbolNode(symbolFileNode: Node, contents: AnalysisContents, content: InstanceContent
   ) extends FilterNode(symbolFileNode, new SymbolChildren(contents), new AbstractLookup(content)) {
-    NetBeansPersistenceManager.putNode(contents, this)
+    putNode(contents, this)
 
     /* add the node to our own lookup */
     content.add(this)
@@ -269,11 +361,11 @@ object SymbolNodes {
            * Here we should find via OneSymbolNode.this instead of nodeEvent.getNode(),
            * which may return the delegated node.
            */
-          if (NetBeansPersistenceManager.occupiedContentsOf(OneSymbolNode.this) != null) {
+          if (occupiedContentsOf(OneSymbolNode.this) != null) {
             getLookup.lookup(classOf[SymbolClearDataAction]).perform(false)
           }
 
-          NetBeansPersistenceManager.removeNode(nodeEvent.getNode)
+          removeNode(nodeEvent.getNode)
           delegate.nodeDestroyed(nodeEvent)
         }
 
@@ -325,7 +417,7 @@ object SymbolNodes {
              * check if has existed in application context, if true,
              * use the existed one
              */
-            NetBeansPersistenceManager.contentsOf(contents.uniSymbol) foreach {existedOne =>
+            contentsOf(contents.uniSymbol) foreach {existedOne =>
               contents = existedOne
             }
 
@@ -479,7 +571,7 @@ object SymbolNodes {
 
   class SymbolStartWatchAction(node: Node) extends GeneralAction {
     putValue(Action.NAME, "Start Watching")
-    putValue(Action.SMALL_ICON, "org/aiotrade/platform/modules/ui/netbeans/resources/startWatch.gif");
+    putValue(Action.SMALL_ICON, "org/aiotrade/platform/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
       /** is this a folder ? if true, go recursively */
@@ -586,7 +678,7 @@ object SymbolNodes {
        * if node destroy is invoked by parent node, such as folder,
        * the lookup content may has been destroyed before node destroyed.
        */
-      NetBeansPersistenceManager.occupiedContentsOf(node) foreach {contents =>
+      occupiedContentsOf(node) foreach {contents =>
         val confirm = if (shouldConfirm) {
           JOptionPane.showConfirmDialog(
             WindowManager.getDefault.getMainWindow(),
@@ -605,7 +697,7 @@ object SymbolNodes {
     }
 
     def execute {
-      perform(true);
+      perform(true)
     }
   }
 
@@ -660,13 +752,13 @@ object SymbolNodes {
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         for (child <- node.getChildren().getNodes()) {
-          child.getLookup.lookup(classOf[SymbolRefreshDataAction]).execute;
+          child.getLookup.lookup(classOf[SymbolRefreshDataAction]).execute
         }
-        return;
+        return
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
       var sec = contents.serProvider.asInstanceOf[Sec]
@@ -687,18 +779,18 @@ object SymbolNodes {
     putValue(Action.NAME, "Set Data Source")
 
     def execute {
-      val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
 
       val pane = new ImportSymbolDialog(
         WindowManager.getDefault.getMainWindow,
         contents.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null),
-        false);
+        false)
       if (pane.showDialog != JOptionPane.OK_OPTION) {
-        return;
+        return
       }
 
       contents.lookupAction(classOf[SaveAction]) foreach {_.execute}
-      node.getLookup.lookup(classOf[SymbolReimportDataAction]).execute;
+      node.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
     }
   }
 
@@ -735,7 +827,7 @@ object SymbolNodes {
       quoteCompareIndicator.computeFrom(0)
 
       viewContainer.controller.scrollReferCursorToLeftSide
-      viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator);
+      viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator)
 
       analysisTc.selectedViewContainer = viewContainer
       analysisTc.requestActive
@@ -770,7 +862,7 @@ object SymbolNodes {
 
   @throws(classOf[IntrospectionException])
   class SymbolNode(symbolFolderNode: Node, content: InstanceContent
-  ) extends FilterNode(symbolFolderNode, new SymbolNodes.SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content)) {
+  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content)) {
 
     /* add the node to our own lookup */
     content.add(this)
@@ -820,7 +912,6 @@ object SymbolNodes {
         SystemAction.get(classOf[DeleteAction])
       )
     }
-
 
   }
 }

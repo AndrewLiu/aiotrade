@@ -32,9 +32,9 @@ package org.aiotrade.platform.modules.ui.netbeans.actions;
 
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.util.swing.action.AddAction;
-import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager;
 import org.aiotrade.platform.modules.ui.netbeans.nodes.IndicatorGroupDescriptor;
 import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent;
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -62,7 +62,7 @@ class PickIndicatorAction extends CallableSystemAction {
               x.selectedViewContainer.get.controller.contents
           }
                 
-          NetBeansPersistenceManager.occupantNodeOf(contents) foreach {secNode =>
+          SymbolNodes.occupantNodeOf(contents) foreach {secNode =>
             val node = secNode.getChildren.findChild(IndicatorGroupDescriptor.NAME)
             if (node != null) {
               node.getLookup.lookup(classOf[AddAction]).execute

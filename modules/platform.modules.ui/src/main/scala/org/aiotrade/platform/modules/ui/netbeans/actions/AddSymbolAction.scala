@@ -32,7 +32,7 @@ package org.aiotrade.platform.modules.ui.netbeans.actions;
 
 import javax.swing.JOptionPane
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.aiotrade.platform.modules.ui.dialog.ImportSymbolDialog
 import org.openide.loaders.DataFolder
@@ -85,7 +85,7 @@ class AddSymbolAction extends CallableSystemAction {
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
             quoteContract.symbol = symbol1
                     
-            NetBeansPersistenceManager.createSymbolXmlFile(currentFolder, symbol1, quoteContract)
+            SymbolNodes.createSymbolXmlFile(currentFolder, symbol1, quoteContract)
           }
         }
       })

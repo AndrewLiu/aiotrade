@@ -33,7 +33,7 @@ package org.aiotrade.platform.modules.ui.netbeans.actions;
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.Market
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.platform.modules.ui.netbeans.NetBeansPersistenceManager
+import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.platform.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.openide.loaders.DataFolder
 import org.openide.util.HelpCtx
@@ -65,7 +65,7 @@ class AddMarketSymbolsAction extends CallableSystemAction {
             // dataSourceDescriptor may has been set to more than one symbols, process it here
             quoteContract.symbol = symbol
                     
-            NetBeansPersistenceManager.createSymbolXmlFile(currentFolder, symbol, quoteContract)
+            SymbolNodes.createSymbolXmlFile(currentFolder, symbol, quoteContract)
           }
         }
       })
