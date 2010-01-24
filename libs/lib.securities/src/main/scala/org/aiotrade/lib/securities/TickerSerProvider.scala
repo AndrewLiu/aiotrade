@@ -31,13 +31,14 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.securities.dataserver.{TickerServer,TickerContract}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
 trait TickerSerProvider {
-    
+
   def uniSymbol: String
     
   def name: String
@@ -54,5 +55,6 @@ trait TickerSerProvider {
     
   def isTickerServerSubscribed: Boolean
     
+  def tickers: ArrayBuffer[Ticker]
 }
 

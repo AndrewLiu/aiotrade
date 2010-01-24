@@ -225,7 +225,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
         tableModel.addRow(rowData)
     }
 
-    prevTicker.copy(snapshotTicker)
+    prevTicker.copyFrom(snapshotTicker)
   }
 
   val SWITCH_COLOR_A = LookFeel().nameColor

@@ -176,7 +176,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   def update(tickerSnapshot: Observable): Unit = {
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
     val ticker = borrowTicker
-    ticker.copy(ts.ticker)
+    ticker.copyFrom(ts.ticker)
     storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
@@ -214,7 +214,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
              */
             val intervalLastTickerPair = new IntervalLastTickerPair
             symbolToIntervalLastTickerPair.put(symbol, intervalLastTickerPair)
-            intervalLastTickerPair.currIntervalOne.copy(ticker)
+            intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
             val itemx = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
 
@@ -237,7 +237,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
                         
             /** check if in new interval */
             val itemx = if (freq.sameInterval(ticker.time, intervalLastTickerPair.currIntervalOne.time, cal)) {
-              intervalLastTickerPair.currIntervalOne.copy(ticker)
+              intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
               /** still in same interval, just pick out the old data of this interval */
               tickerSer(ticker.time).asInstanceOf[QuoteItem]
@@ -248,8 +248,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
                * first:  intervalLastTicker.prevIntervalOne.copy(intervalLastTicker.currIntervalOne);
                * then:   intervalLastTicker.currIntervalOne.copy(ticker);
                */
-              intervalLastTickerPair.prevIntervalOne.copy(intervalLastTickerPair.currIntervalOne)
-              intervalLastTickerPair.currIntervalOne.copy(ticker)
+              intervalLastTickerPair.prevIntervalOne.copyFrom(intervalLastTickerPair.currIntervalOne)
+              intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
               /** a new interval starts, we'll need a new data */
               val itemxx = tickerSer.createItemOrClearIt(ticker.time).asInstanceOf[QuoteItem]
@@ -284,7 +284,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
             itemx
         }
 
-        prevTicker.copy(ticker)
+        prevTicker.copyFrom(ticker)
 
         if (shouldReverseOrder) {
           i -= 1

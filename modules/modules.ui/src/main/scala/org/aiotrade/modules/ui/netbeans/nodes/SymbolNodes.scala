@@ -546,10 +546,10 @@ object SymbolNodes {
          * close a TopComponent doen's mean this TopComponent is null, it still
          * exsit, just invsible
          */
-        /** if TopComponent of this stock has been shown before, should reload quote data */
-        if (mayNeedsReload) {
+        /** if TopComponent of this stock has been shown before, should reload quote data, why */
+        /* if (mayNeedsReload) {
           sec.clearSer(quoteContract.freq)
-        }
+        } */
         /** here should be the only place to new AnalysisChartTopComponent instance */
         new AnalysisChartTopComponent(contents)
       }

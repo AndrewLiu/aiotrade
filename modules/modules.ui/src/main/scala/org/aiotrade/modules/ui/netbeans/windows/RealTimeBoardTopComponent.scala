@@ -110,7 +110,7 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others
     for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[RealTimeBoardTopComponent]) {
-      //tc.setReallyClosed(false)
+      tc.asInstanceOf[RealTimeBoardTopComponent].setReallyClosed(false)
       tc.close
     }
 
@@ -139,7 +139,7 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
       super.componentClosed
     } else {
       val win = WindowManager.getDefault.findTopComponent("RealTimeWatchList")
-      if (win.isOpened) {
+      if (win != null && win.isOpened) {
         /** closing is not allowed */
       } else {
         super.componentClosed

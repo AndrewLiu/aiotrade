@@ -36,6 +36,8 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer, TickerServer, TickerContract}
+import org.aiotrade.lib.util.Observable
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
 /**
@@ -50,12 +52,14 @@ import scala.collection.mutable.HashMap
 
  * @author Caoyuan Deng
  */
-abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract) extends Sec {
+abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
+) extends Sec with TickerObserver {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
   private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
   private val freqToSer = HashMap[TFreq, QuoteSer]()
+  val tickers = ArrayBuffer[Ticker]()
 
   private var _uniSymbol = $uniSymbol
 
@@ -265,6 +269,7 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
     }
 
     tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
+    tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {_.addObserver(this)}
   }
 
   def unSubscribeTickerServer {
@@ -276,5 +281,11 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
   def isTickerServerSubscribed: Boolean = {
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
   }
+
+   def update(tickerSnapshot: Observable) {
+     val ticker = new Ticker
+     ticker.copyFrom(tickerSnapshot.asInstanceOf[TickerSnapshot].ticker)
+     tickers += ticker
+   }
 }
 

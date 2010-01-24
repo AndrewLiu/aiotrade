@@ -83,8 +83,8 @@ object RealTimeBoardPanel {
   private val NUMBER_FORMAT = NumberFormat.getInstance
 }
 
+import RealTimeBoardPanel._
 class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with TickerObserver {
-  import RealTimeBoardPanel._
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -127,6 +127,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   chartPane.setLayout(new BorderLayout)
   chartPane.add(viewContainer, BorderLayout.CENTER)
+
+  private val tickers = sec.tickers
+  if (tickers.size > 0) {
+    updateByTicker(tickers.last)
+  }
 
   private def initComponents {
     setFocusable(false)
@@ -308,50 +313,52 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   def update(tickerSnapshot: Observable) {
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    symbol.value = ts.symbol
+    updateByTicker(ts.ticker)
+  }
+
+  private def updateByTicker(ticker: Ticker) {
     val neutralColor  = LookFeel().getNeutralColor
     val positiveColor = LookFeel().getPositiveColor
     val negativeColor = LookFeel().getNegativeColor
-    symbol.value = ts.symbol
-
-    val snapshotTicker = ts.ticker
 
     val currentSize =
       if (prevTicker != null) {
-        (snapshotTicker(Ticker.DAY_VOLUME) - prevTicker(Ticker.DAY_VOLUME)).toInt
+        (ticker(Ticker.DAY_VOLUME) - prevTicker(Ticker.DAY_VOLUME)).toInt
       } else 0
 
-    val depth = snapshotTicker.depth
+    val depth = ticker.depth
     val dealRow = 5
-    depthModel.setValueAt("%8.2f" format snapshotTicker(Ticker.LAST_PRICE), dealRow, 1)
-    depthModel.setValueAt(if (prevTicker == null) "-" else currentSize,     dealRow, 2)
+    depthModel.setValueAt("%8.2f" format ticker(Ticker.LAST_PRICE),     dealRow, 1)
+    depthModel.setValueAt(if (prevTicker == null) "-" else currentSize, dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
-      depthModel.setValueAt("%8.2f" format snapshotTicker.askPrice(askIdx), askRow, 1)
-      depthModel.setValueAt(snapshotTicker.askSize(askIdx).toInt.toString,  askRow, 2)
+      depthModel.setValueAt("%8.2f" format ticker.askPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(ticker.askSize(askIdx).toInt.toString,  askRow, 2)
       val bidIdx = i
       val bidRow = depth + 1 + i
-      depthModel.setValueAt("%8.2f" format snapshotTicker.bidPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt(snapshotTicker.bidSize(bidIdx).toInt.toString,  bidRow, 2)
+      depthModel.setValueAt("%8.2f" format ticker.bidPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(ticker.bidSize(bidIdx).toInt.toString,  bidRow, 2)
     }
 
-    marketCal.setTimeInMillis(snapshotTicker.time)
+    marketCal.setTimeInMillis(ticker.time)
     val lastTradeTime = marketCal.getTime
     currentTime.value = sdf.format(lastTradeTime)
-    lastPrice.value   = "%8.2f"    format snapshotTicker(Ticker.LAST_PRICE)
-    prevClose.value   = "%8.2f"    format snapshotTicker(Ticker.PREV_CLOSE)
-    dayOpen.value     = "%8.2f"    format snapshotTicker(Ticker.DAY_OPEN)
-    dayHigh.value     = "%8.2f"    format snapshotTicker(Ticker.DAY_HIGH)
-    dayLow.value      = "%8.2f"    format snapshotTicker(Ticker.DAY_LOW)
-    dayChange.value   = "%+8.2f"   format snapshotTicker(Ticker.DAY_CHANGE)
-    dayPercent.value  = "%+3.2f%%" format snapshotTicker.changeInPercent
-    dayVolume.value   = snapshotTicker(Ticker.DAY_VOLUME).toString
+    lastPrice.value   = "%8.2f"    format ticker(Ticker.LAST_PRICE)
+    prevClose.value   = "%8.2f"    format ticker(Ticker.PREV_CLOSE)
+    dayOpen.value     = "%8.2f"    format ticker(Ticker.DAY_OPEN)
+    dayHigh.value     = "%8.2f"    format ticker(Ticker.DAY_HIGH)
+    dayLow.value      = "%8.2f"    format ticker(Ticker.DAY_LOW)
+    dayChange.value   = "%+8.2f"   format ticker(Ticker.DAY_CHANGE)
+    dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
+    dayVolume.value   = ticker(Ticker.DAY_VOLUME).toString
 
     var bgColor = LookFeel().backgroundColor
     var fgColor = neutralColor
-    if (snapshotTicker(Ticker.DAY_CHANGE) > 0) {
+    if (ticker(Ticker.DAY_CHANGE) > 0) {
       fgColor = positiveColor
-    } else if (snapshotTicker(Ticker.DAY_CHANGE) < 0) {
+    } else if (ticker(Ticker.DAY_CHANGE) < 0) {
       fgColor = negativeColor
     }
     infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.column)
@@ -364,10 +371,10 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
      * so assert here again.
      * @see UpdateServer.class in AbstractTickerDataServer.class and YahooTickerDataServer.class
      */
-    if (prevTicker != null && snapshotTicker.isDayVolumeChanged(prevTicker)) {
+    if (prevTicker != null && ticker.isDayVolumeChanged(prevTicker)) {
       bgColor = LookFeel().backgroundColor
       fgColor = neutralColor
-      snapshotTicker.compareLastCloseTo(prevTicker) match {
+      ticker.compareLastCloseTo(prevTicker) match {
         case  1 =>
           fgColor = positiveColor
         case -1 =>
@@ -383,7 +390,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     val tickerRow = Array(
       sdf.format(lastTradeTime),
-      "%5.2f" format snapshotTicker(Ticker.LAST_PRICE),
+      "%5.2f" format ticker(Ticker.LAST_PRICE),
       if (prevTicker == null) "-" else currentSize
     )
     tickerModel.insertRow(0, tickerRow.asInstanceOf[Array[Object]])
@@ -391,7 +398,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     if (prevTicker == null) {
       prevTicker = new Ticker
     }
-    prevTicker.copy(snapshotTicker)
+    prevTicker.copyFrom(ticker)
 
     repaint()
   }

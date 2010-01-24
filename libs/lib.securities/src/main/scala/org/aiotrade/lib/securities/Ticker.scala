@@ -56,9 +56,9 @@ object Ticker {
   val DAY_CHANGE = 7
 }
 
+import Ticker._
 @cloneable
 class Ticker(val depth: Int) extends TVal {
-  import Ticker._
     
   private val values = new Array[Float](8)
   private val bidPrices = new Array[Float](depth)
@@ -122,7 +122,7 @@ class Ticker(val depth: Int) extends TVal {
     }
   }
 
-  def copy(another: Ticker): Unit = {
+  def copyFrom(another: Ticker): Unit = {
     this.time = another.time
     System.arraycopy(another.values, 0, this.values, 0, this.values.length)
     System.arraycopy(another.bidPrices, 0, this.bidPrices, 0, depth)

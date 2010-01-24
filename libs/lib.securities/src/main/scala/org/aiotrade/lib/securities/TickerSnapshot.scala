@@ -93,7 +93,7 @@ class TickerSnapshot extends Observable {
 
   def copy(another: Ticker): Unit = {
     if (ticker.isValueChanged(another)) {
-      ticker.copy(another)
+      ticker.copyFrom(another)
       setChanged
     }
   }
