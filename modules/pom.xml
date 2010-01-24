@@ -29,11 +29,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.aiotrade</groupId>
-    <artifactId>platform-modules</artifactId>
+    <artifactId>modules</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>AIOTrade Platform Modules</name>
+    <name>AIOTrade Modules</name>
 
     <properties>
         <scala.version>2.8.0.Beta1-RC8</scala.version>
@@ -135,8 +135,8 @@
     </reporting>
 
     <modules>
-        <module>platform.modules.ui</module>
-        <module>platform.modules.quicksearch</module>
+        <module>modules.ui</module>
+        <module>modules.quicksearch</module>
     </modules>
 
 </project>
