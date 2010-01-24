@@ -112,11 +112,11 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
                 
           if (state == ItemEvent.SELECTED) {
             if (!quoteSeries.adjusted) {
-              quoteSeries.adjust(true);
+              quoteSeries.adjust(true)
             }
           } else {
             if (quoteSeries.adjusted) {
-              quoteSeries.adjust(false);
+              quoteSeries.adjust(false)
             }
           }
                 

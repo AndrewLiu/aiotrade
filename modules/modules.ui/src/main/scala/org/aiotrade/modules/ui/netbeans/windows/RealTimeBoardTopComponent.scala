@@ -178,7 +178,6 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     if (tickerServer == null) {
       return
     }
-    
     tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
       tickerSnapshot.deleteObserver(boardPanel)
     }

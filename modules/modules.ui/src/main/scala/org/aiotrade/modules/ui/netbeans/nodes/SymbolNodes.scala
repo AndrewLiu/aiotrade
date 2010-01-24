@@ -53,7 +53,7 @@ import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.util.swing.action.GeneralAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
-import org.aiotrade.lib.util.swing.action.ViewAction;
+import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
@@ -563,6 +563,12 @@ object SymbolNodes {
       }
 
       analysisTc.requestActive
+
+      sec.subscribeTickerServer
+
+      val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
+      rtBoardWin.watch
+      rtBoardWin.requestActive
     }
   }
 
@@ -598,13 +604,13 @@ object SymbolNodes {
       rtWatchListWin.requestActive
       rtWatchListWin.watch(sec, node)
 
-      val rtChartsWin = RealTimeChartsTopComponent.getInstance
-      rtChartsWin.requestActive
-      rtChartsWin.watch(sec, contents)
+      //val rtChartsWin = RealTimeChartsTopComponent.getInstance
+      //rtChartsWin.requestActive
+      //rtChartsWin.watch(sec, contents)
 
-      val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
-      rtBoardWin.watch
-      rtBoardWin.requestActive
+      //val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
+      //rtBoardWin.watch
+      //rtBoardWin.requestActive
 
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)

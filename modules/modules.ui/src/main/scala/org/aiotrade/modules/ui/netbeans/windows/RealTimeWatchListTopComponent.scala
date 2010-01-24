@@ -37,14 +37,14 @@ import java.lang.ref.WeakReference;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
-import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStartWatchAction
-import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.TickerSerProvider
+import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.actions.StopSelectedWatchAction
+import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.openide.nodes.Node;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
@@ -251,12 +251,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
           return
         }
                 
-        symbolToNode.get(symbol) foreach {node =>
-          val watchAction = node.getLookup.lookup(classOf[SymbolStartWatchAction])
-          if (watchAction != null) {
-            watchAction.execute
-          }
-        }
+        symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
       }
     }
         
@@ -288,49 +283,49 @@ class RealTimeWatchListTopComponent extends TopComponent {
 
 
   /* private def createTabbedPane {
-    /** get rid of the ugly border of JTabbedPane: */
-    val oldInsets = UIManager.getInsets("TabbedPane.contentBorderInsets")
-    /*- set top insets as 1 for TOP placement if you want:
-     UIManager.put("TabbedPane.contentBorderInsets", new Insets(1, 0, 0, 0))
-     */
-    UIManager.put("TabbedPane.contentBorderInsets", new Insets(2, 0, 0, 1))
-    val tabbedPane = new JTabbedPane(SwingConstants.TOP)
-    UIManager.put("TabbedPane.contentBorderInsets", oldInsets)
+   /** get rid of the ugly border of JTabbedPane: */
+   val oldInsets = UIManager.getInsets("TabbedPane.contentBorderInsets")
+   /*- set top insets as 1 for TOP placement if you want:
+    UIManager.put("TabbedPane.contentBorderInsets", new Insets(1, 0, 0, 0))
+    */
+   UIManager.put("TabbedPane.contentBorderInsets", new Insets(2, 0, 0, 1))
+   val tabbedPane = new JTabbedPane(SwingConstants.TOP)
+   UIManager.put("TabbedPane.contentBorderInsets", oldInsets)
 
-    tabbedPane.addChangeListener(new ChangeListener() {
-        private val selectedColor = new Color(177, 193, 209)
+   tabbedPane.addChangeListener(new ChangeListener() {
+   private val selectedColor = new Color(177, 193, 209)
 
-        def stateChanged(e: ChangeEvent) {
-          val tp = e.getSource.asInstanceOf[JTabbedPane]
+   def stateChanged(e: ChangeEvent) {
+   val tp = e.getSource.asInstanceOf[JTabbedPane]
 
-          for (i <- 0 until tp.getTabCount) {
-            tp.setBackgroundAt(i, null)
-          }
-          val idx = tp.getSelectedIndex
-          tp.setBackgroundAt(idx, selectedColor)
+   for (i <- 0 until tp.getTabCount) {
+   tp.setBackgroundAt(i, null)
+   }
+   val idx = tp.getSelectedIndex
+   tp.setBackgroundAt(idx, selectedColor)
 
-          updateToolbar
+   updateToolbar
 
-          tp.getSelectedComponent match {
-            case viewContainer: AnalysisChartViewContainer =>
-              val masterSer = viewContainer.controller.masterSer
+   tp.getSelectedComponent match {
+   case viewContainer: AnalysisChartViewContainer =>
+   val masterSer = viewContainer.controller.masterSer
 
-              /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
+   /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
 
-              val secNode_? = SymbolNodes.occupantNodeOf(contents)
-              assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
-              for (groupNode <- secNode_?.get.getChildren.getNodes) {
-                groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
-              }
+   val secNode_? = SymbolNodes.occupantNodeOf(contents)
+   assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
+   for (groupNode <- secNode_?.get.getChildren.getNodes) {
+   groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
+   }
 
-              /** update the supportedFreqsComboBox */
-              //setSelectedFreqItem(masterSer.freq)
-            case _ =>
-          }
-        }
-      })
+   /** update the supportedFreqsComboBox */
+   //setSelectedFreqItem(masterSer.freq)
+   case _ =>
+   }
+   }
+   })
 
-  } */
+   } */
 
 }
 
