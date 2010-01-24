@@ -193,6 +193,11 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
+    // hidden others
+    for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
+      tc.close
+    }
+
     /**
      * !NOTICE
      * mode.dockInto(this) seems will close this at first if this.isOpened()

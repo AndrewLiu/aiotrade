@@ -108,20 +108,19 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
+    // hidden others
+    for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[RealTimeBoardTopComponent]) {
+      //tc.setReallyClosed(false)
+      tc.close
+    }
+
     mode.dockInto(this)
-        
     super.open
   }
     
   override protected def componentActivated {
     if (!isOpened) {
       open
-    }
-        
-    /** hidden others */
-    for (ref <- instanceRefs; tc = ref.get if tc ne this) {
-      tc.setReallyClosed(false)
-      tc.close
     }
         
     super.componentActivated
