@@ -190,11 +190,6 @@ object SymbolNodes {
 
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
-      /**
-       * set attr to "new" to open the view automatically when a new node is
-       * created late by SymbolNode.SymbolFolderChildren.creatNodes()
-       */
-      fo.setAttribute("new", true)
     } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
     } finally {
       /** should remember to out.close() here */
@@ -424,16 +419,18 @@ object SymbolNodes {
             val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents)
             val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
-            val newAttr = fo.getAttribute("new")
-            if (newAttr != null && newAttr.asInstanceOf[Boolean] == true) {
-              fo.setAttribute("new", null)
+            // with "open" hint ?
+            fo.getAttribute("open") match {
+              case attr: java.lang.Boolean if attr.booleanValue =>
+                fo.setAttribute("open", null)
 
-              /** open view for new added sec */
-              java.awt.EventQueue.invokeLater(new Runnable {
-                  def run {
-                    oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
-                  }
-                })
+                /** open it */
+                java.awt.EventQueue.invokeLater(new Runnable {
+                    def run {
+                      oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
+                    }
+                  })
+              case _ =>
             }
 
             return Array(oneSymbolNode)
