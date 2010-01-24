@@ -52,7 +52,6 @@ import org.openide.windows.TopComponent;
 object ExplorerTopComponent {
   private var instance: Option[ExplorerTopComponent] = None
   def apply() = instance getOrElse new ExplorerTopComponent
-
 }
 
 @serializable
@@ -94,11 +93,11 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   }
     
   override def componentOpened {
-    // TODO add custom code on component opening
+    super.componentOpened
   }
     
   override def componentClosed {
-    // TODO add custom code on component closing
+    super.componentClosed
   }
     
   override protected def preferredID: String = {
