@@ -814,11 +814,7 @@ object SymbolNodes {
       }
 
       val serToBeCompared = sec.serOf(quoteContract.freq).get
-      val viewContainer = analysisTc.lookupViewContainer(serToBeCompared.freq).getOrElse(null)
-
-      if (viewContainer == null) {
-        return
-      }
+      val viewContainer = analysisTc.viewContainer
 
       val baseSer = viewContainer.controller.masterSer
       val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
@@ -829,7 +825,6 @@ object SymbolNodes {
       viewContainer.controller.scrollReferCursorToLeftSide
       viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator)
 
-      analysisTc.selectedViewContainer = viewContainer
       analysisTc.requestActive
     }
 

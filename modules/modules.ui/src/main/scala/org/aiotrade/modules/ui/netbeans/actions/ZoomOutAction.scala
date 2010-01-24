@@ -51,7 +51,7 @@ class ZoomOutAction extends CallableSystemAction {
             val tc = WindowManager.getDefault.getRegistry.getActivated
             tc match {
               case x: AnalysisChartTopComponent =>
-                x.selectedViewContainer.get.controller.growWBar(-1)
+                x.viewContainer.controller.growWBar(-1)
               case x: RealTimeChartsTopComponent =>
                 x.viewContainers foreach (_.controller.growWBar(-1))
               case x: RealTimeBoardTopComponent =>

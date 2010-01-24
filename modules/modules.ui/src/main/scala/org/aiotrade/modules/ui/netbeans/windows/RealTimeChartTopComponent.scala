@@ -101,7 +101,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   //        }
         
   private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
-  private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
+  val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
         
   setLayout(new BorderLayout)
         
@@ -189,10 +189,6 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
     
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_NEVER
-  }
-    
-  def getViewContainer: RealTimeChartViewContainer = {
-    viewContainer
   }
     
   override def getActions: Array[Action] = {

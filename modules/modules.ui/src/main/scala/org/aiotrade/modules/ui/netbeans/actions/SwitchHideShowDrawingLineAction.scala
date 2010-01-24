@@ -31,17 +31,13 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.lib.charting.view.ChartView;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.WithDrawingPane;
-import org.aiotrade.lib.charting.view.pane.DrawingPane;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.util.swing.action.HideAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
@@ -113,7 +109,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
         def itemStateChanged(e: ItemEvent) {
           val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                 
-          val viewContainer = analysisWin.selectedViewContainer.get
+          val viewContainer = analysisWin.viewContainer
           val masterView = viewContainer.masterView.asInstanceOf[WithDrawingPane]
           if (masterView.selectedDrawing == null) {
             return;

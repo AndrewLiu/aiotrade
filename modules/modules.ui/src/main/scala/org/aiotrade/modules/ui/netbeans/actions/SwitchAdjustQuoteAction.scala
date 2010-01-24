@@ -108,7 +108,7 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
                 
           val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                 
-          val quoteSeries = analysisTc.selectedViewContainer.get.masterView.asInstanceOf[WithQuoteChart].quoteSer
+          val quoteSeries = analysisTc.viewContainer.masterView.asInstanceOf[WithQuoteChart].quoteSer
                 
           if (state == ItemEvent.SELECTED) {
             if (!quoteSeries.adjusted) {

@@ -59,7 +59,7 @@ class PickIndicatorAction extends CallableSystemAction {
                 return
               }
             case Some(x) =>
-              x.selectedViewContainer.get.controller.contents
+              x.viewContainer.controller.contents
           }
                 
           SymbolNodes.occupantNodeOf(contents) foreach {secNode =>

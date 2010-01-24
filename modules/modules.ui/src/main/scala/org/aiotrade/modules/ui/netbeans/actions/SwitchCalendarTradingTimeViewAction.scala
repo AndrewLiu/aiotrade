@@ -109,8 +109,8 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
                 
           val tc = WindowManager.getDefault.getRegistry.getActivated
           val viewContainer = tc match {
-            case x: AnalysisChartTopComponent => x.selectedViewContainer.get
-            case x: RealTimeChartTopComponent => x.getViewContainer
+            case x: AnalysisChartTopComponent => x.viewContainer
+            case x: RealTimeChartTopComponent => x.viewContainer
             case null => null
             case _ =>
               JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")

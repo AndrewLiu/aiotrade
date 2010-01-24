@@ -285,7 +285,53 @@ class RealTimeWatchListTopComponent extends TopComponent {
     instanceRefs -= ref
     super.finalize
   }
-    
+
+
+  /* private def createTabbedPane {
+    /** get rid of the ugly border of JTabbedPane: */
+    val oldInsets = UIManager.getInsets("TabbedPane.contentBorderInsets")
+    /*- set top insets as 1 for TOP placement if you want:
+     UIManager.put("TabbedPane.contentBorderInsets", new Insets(1, 0, 0, 0))
+     */
+    UIManager.put("TabbedPane.contentBorderInsets", new Insets(2, 0, 0, 1))
+    val tabbedPane = new JTabbedPane(SwingConstants.TOP)
+    UIManager.put("TabbedPane.contentBorderInsets", oldInsets)
+
+    tabbedPane.addChangeListener(new ChangeListener() {
+        private val selectedColor = new Color(177, 193, 209)
+
+        def stateChanged(e: ChangeEvent) {
+          val tp = e.getSource.asInstanceOf[JTabbedPane]
+
+          for (i <- 0 until tp.getTabCount) {
+            tp.setBackgroundAt(i, null)
+          }
+          val idx = tp.getSelectedIndex
+          tp.setBackgroundAt(idx, selectedColor)
+
+          updateToolbar
+
+          tp.getSelectedComponent match {
+            case viewContainer: AnalysisChartViewContainer =>
+              val masterSer = viewContainer.controller.masterSer
+
+              /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
+
+              val secNode_? = SymbolNodes.occupantNodeOf(contents)
+              assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
+              for (groupNode <- secNode_?.get.getChildren.getNodes) {
+                groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
+              }
+
+              /** update the supportedFreqsComboBox */
+              //setSelectedFreqItem(masterSer.freq)
+            case _ =>
+          }
+        }
+      })
+
+  } */
+
 }
 
 

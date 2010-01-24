@@ -55,7 +55,7 @@ class AddStatisticChartAction extends CallableSystemAction {
           def run {
             val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val viewContainer = analysisWin.selectedViewContainer.get
+            val viewContainer = analysisWin.viewContainer
             val selectedChart = viewContainer.selectedChart
             if (selectedChart == null) {
               JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a chart first, by Ctrl + clicking on it!");
@@ -95,7 +95,7 @@ class AddStatisticChartAction extends CallableSystemAction {
               return
             }
                     
-            val baseSer = analysisWin.selectedViewContainer.get.controller.masterSer
+            val baseSer = analysisWin.viewContainer.controller.masterSer
             val statIndicator = new ProbMassIndicator(baseSer)
             statIndicator.baseVar = selectedVar.asInstanceOf[TVar[Float]]
             statIndicator.computeFrom(0)

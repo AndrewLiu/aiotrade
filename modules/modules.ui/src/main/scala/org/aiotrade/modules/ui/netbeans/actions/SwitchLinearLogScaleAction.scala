@@ -46,7 +46,7 @@ class SwitchLinearLogScaleAction extends CallableSystemAction {
       java.awt.EventQueue.invokeLater(new Runnable {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
-            analysisTc.selectedViewContainer.get.masterView.asInstanceOf[AnalysisQuoteChartView].swithScalarType
+            analysisTc.viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].swithScalarType
           }
         })
     } catch {case ex: Exception =>}

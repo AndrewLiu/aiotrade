@@ -32,7 +32,6 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.aiotrade.lib.charting.view.ChartView;
 import org.aiotrade.lib.indicator.ProbMassIndicator
 import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
@@ -54,7 +53,7 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val selectedView = analysisTc.selectedViewContainer.get.selectedView
+            val selectedView = analysisTc.viewContainer.selectedView
             val ind = selectedView.overlappingSers find (x => x.isInstanceOf[ProbMassIndicator]) getOrElse {return}
             val indicator = ind.asInstanceOf[Indicator]
 

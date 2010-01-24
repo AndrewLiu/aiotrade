@@ -31,7 +31,6 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import org.aiotrade.lib.charting.view.WithDrawingPane;
-import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -47,7 +46,7 @@ class RemoveDrawingLineAction extends CallableSystemAction {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val drawingPart = analysisTc.selectedViewContainer.get.masterView.asInstanceOf[WithDrawingPane].selectedDrawing
+            val drawingPart = analysisTc.viewContainer.masterView.asInstanceOf[WithDrawingPane].selectedDrawing
             drawingPart.removeSelectedHandledChart
                     
           }

@@ -123,7 +123,7 @@ object PickDrawingLineAction {
       item.setSelected(false)
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
 
-      val viewContainer = analysisWin.selectedViewContainer.get
+      val viewContainer = analysisWin.viewContainer
       val masterView = viewContainer.masterView
       if (!(masterView.isInstanceOf [WithDrawingPane])) {
         return
