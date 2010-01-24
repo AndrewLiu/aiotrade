@@ -191,7 +191,7 @@ object SymbolNodes {
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
       /**
-       * set attr = "new" to open the view when a new node is
+       * set attr to "new" to open the view automatically when a new node is
        * created late by SymbolNode.SymbolFolderChildren.creatNodes()
        */
       fo.setAttribute("new", true)
@@ -250,6 +250,24 @@ object SymbolNodes {
         }
       }
       None
+    }
+  }
+  
+  // ----- Node classes
+
+  /**
+   * The root node of SymbolNode
+   *  It will be 'Symbols' folder in default file system, usually the 'config' dir in userdir
+   *  Physical folder "Symbols" is defined in layer.xml
+   */
+  @throws(classOf[DataObjectNotFoundException])
+  @throws(classOf[IntrospectionException])
+  object rootSymbolNode extends SymbolNode(
+    DataObject.find(Repository.getDefault.getDefaultFileSystem.getRoot.getFileObject("Symbols")).getNodeDelegate
+  ) {
+
+    override def getDisplayName = {
+      NbBundle.getMessage(classOf[SymbolNode], "SN_title")
     }
   }
 
@@ -377,22 +395,6 @@ object SymbolNodes {
     }
   }
   
-  /**
-   * The root node of SymbolNode
-   *  It will be 'Symbols' folder in default file system, usually the 'config' dir in userdir
-   *  Physical folder "Symbols" is defined in layer.xml
-   */
-  @throws(classOf[DataObjectNotFoundException])
-  @throws(classOf[IntrospectionException])
-  object rootSymbolNode extends SymbolNode(
-    DataObject.find(Repository.getDefault.getDefaultFileSystem.getRoot.getFileObject("Symbols")).getNodeDelegate
-  ) {
-
-    override def getDisplayName = {
-      NbBundle.getMessage(classOf[SymbolNode], "SN_title")
-    }
-  }
-
   /** The child of the folder node, it may be a folder or Symbol ser file */
   private class SymbolFolderChildren(symbolFolderNode: Node) extends FilterNode.Children(symbolFolderNode) {
 
@@ -417,9 +419,7 @@ object SymbolNodes {
              * check if has existed in application context, if true,
              * use the existed one
              */
-            contentsOf(contents.uniSymbol) foreach {existedOne =>
-              contents = existedOne
-            }
+            contentsOf(contents.uniSymbol) foreach {existedOne => contents = existedOne}
 
             val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents)
             val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
@@ -523,7 +523,7 @@ object SymbolNodes {
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         for (child <- node.getChildren.getNodes) {
-          child.getLookup.lookup(classOf[SymbolViewAction]).execute
+          child.getLookup.lookup(classOf[ViewAction]).execute
         }
         return
       }
@@ -669,8 +669,8 @@ object SymbolNodes {
    */
   class SymbolClearDataAction(node: OneSymbolNode) extends GeneralAction {
 
-    private val CLEAR = "Clear data in database";
-    putValue(Action.NAME, CLEAR);
+    private val CLEAR = "Clear data in database"
+    putValue(Action.NAME, CLEAR)
 
     def perform(shouldConfirm: Boolean) {
       /**
