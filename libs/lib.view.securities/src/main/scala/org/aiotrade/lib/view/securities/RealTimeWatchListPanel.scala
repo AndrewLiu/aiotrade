@@ -55,7 +55,6 @@ import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.util.Observable
 import scala.collection.mutable.HashMap
 
-
 /**
  *
  * @author  Caoyuan Deng
@@ -183,6 +182,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   def update(tickerSnapshot: Observable) {
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
+    val symbol = ts.symbol
+    val ticker = ts.ticker
 
     /*
      * To avoid:
@@ -196,15 +197,12 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
      */
     SwingUtilities.invokeLater(new Runnable {
         def run {
-          updateByTicker(ts)
+          updateByTicker(symbol, ticker)
         }
       })
   }
 
-  private def updateByTicker(ts: TickerSnapshot) {
-    val symbol = ts.symbol
-    val ticker = ts.ticker
-
+  private def updateByTicker(symbol: String, ticker: Ticker) {
     val prevTicker = symbolToPrevTicker.get(symbol) getOrElse {
       val x = new Ticker
       symbolToPrevTicker += (symbol -> x)
