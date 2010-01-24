@@ -54,6 +54,7 @@ import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
+import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject;
@@ -75,16 +76,20 @@ import scala.collection.mutable.ArrayBuffer
 object NetBeansPersistenceManager {
   private var contentToOccuptantNode = Map[AnalysisContents, Node]()
 
-  def occupantNodeOf(contents: AnalysisContents): Node =  {
-    contentToOccuptantNode.get(contents) getOrElse null
+  def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
+    contentToOccuptantNode.get(contents)
   }
 
-  def occupiedContentsOf(node: Node): AnalysisContents = {
-    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1) getOrElse null
+  def occupiedContentsOf(node: Node): Option[AnalysisContents] = {
+    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1)
   }
 
-  def lookupContents(symbol: String): Option[AnalysisContents] = {
+  def contentsOf(symbol: String): Option[AnalysisContents] = {
     contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
+  }
+
+  def nodeOf(symbol: String): Option[Node] = {
+    contentsOf(symbol) map occupantNodeOf get
   }
 
   def putNode(contents: AnalysisContents, node: Node) {
@@ -109,13 +114,12 @@ object NetBeansPersistenceManager {
      * return a null since it lookup via the old node.
      * Check it here
      */
-    val contents = occupiedContentsOf(node)
-    if (contents != null) {
+    occupiedContentsOf(node) foreach {contents =>
       contentToOccuptantNode -= contents
     }
   }
 
-  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract) {
+  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract): FileObject =  {
     val folderObject = folder.getPrimaryFile
     val baseName = symbol
     var ix = 1
@@ -125,10 +129,11 @@ object NetBeansPersistenceManager {
 
     var lock: FileLock = null
     var out: PrintStream = null
+    var fo: FileObject = null
     try {
-      val writeTo = folderObject.createData(baseName + ix, "xml")
-      lock = writeTo.lock
-      out = new PrintStream(writeTo.getOutputStream(lock))
+      fo = folderObject.createData(baseName + ix, "xml")
+      lock = fo.lock
+      out = new PrintStream(fo.getOutputStream(lock))
 
       val contents = PersistenceManager().defaultContents
       /** clear default dataSourceContract */
@@ -143,7 +148,7 @@ object NetBeansPersistenceManager {
        * set attr = "new" to open the view when a new node is
        * created late by SymbolNode.SymbolFolderChildren.creatNodes()
        */
-      writeTo.setAttribute("new", true)
+      fo.setAttribute("new", true)
     } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
     } finally {
       /** should remember to out.close() here */
@@ -155,6 +160,7 @@ object NetBeansPersistenceManager {
       }
     }
 
+    fo
   }
 }
 

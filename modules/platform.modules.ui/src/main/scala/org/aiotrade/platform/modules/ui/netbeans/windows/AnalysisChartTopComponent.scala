@@ -90,7 +90,7 @@ import org.openide.windows.WindowManager;
  * overide writeExternal() and readExternal() to implement own serializable
  * instead of via transient modifies.
  *
- * !NOTICE
+ * @Note
  * when run/debug modules in NetBeans' IDE, the module will be
  * reloaded always, thus, when moduel has been disable but the reloading
  * procedure still not finished yet, deserialization will fail and throws
@@ -116,8 +116,8 @@ object AnalysisChartTopComponent {
   }
 }
 
+import AnalysisChartTopComponent._
 class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent {
-  import AnalysisChartTopComponent._
 
   private val ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
@@ -199,8 +199,8 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
 
     /** this component should setFocusable(true) to have the ability to grab the focus */
     setFocusable(true)
-    /** as the NetBeans window system manage focus in a strange manner, we should do: */
-    addFocusListener(new FocusAdapter {
+    // as the NetBeans window system manage focus in a strange manner, we should do:
+    /* addFocusListener(new FocusAdapter {
         override def focusGained(e: FocusEvent) {
           selectedViewContainer foreach {x =>
             x.requestFocusInWindow
@@ -209,7 +209,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
 
         override def focusLost(e: FocusEvent) {
         }
-      })
+      }) */
 
     //tabbedPane.setFocusable(false);
     //FocusOwnerChecker check = new FocusOwnerChecker();
@@ -257,9 +257,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     /** as the NetBeans window system manage focus in a strange manner, we should do: */
     addFocusListener(new FocusAdapter {
         override def focusGained(e: FocusEvent) {
-          selectedViewContainer foreach {x =>
-            x.requestFocusInWindow
-          }
+          selectedViewContainer foreach {_.requestFocusInWindow}
         }
             
         override def focusLost(e: FocusEvent) {
@@ -272,9 +270,9 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     
   private def createTabbedPane {
     /** get rid of the ugly border of JTabbedPane: */
-    val oldInsets = UIManager.getInsets("TabbedPane.contentBorderInsets");
+    val oldInsets = UIManager.getInsets("TabbedPane.contentBorderInsets")
     /*- set top insets as 1 for TOP placement if you want:
-     UIManager.put("TabbedPane.contentBorderInsets", new Insets(1, 0, 0, 0));
+     UIManager.put("TabbedPane.contentBorderInsets", new Insets(1, 0, 0, 0))
      */
     UIManager.put("TabbedPane.contentBorderInsets", new Insets(2, 0, 0, 1))
     tabbedPane = new JTabbedPane(SwingConstants.TOP)
@@ -290,7 +288,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
             tp.setBackgroundAt(i, null)
           }
           val idx = tp.getSelectedIndex
-          tp.setBackgroundAt(idx, selectedColor);
+          tp.setBackgroundAt(idx, selectedColor)
                 
           updateToolbar
 
@@ -300,9 +298,9 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
                     
               /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
                     
-              val secNode = NetBeansPersistenceManager.occupantNodeOf(contents)
-              assert(secNode != null, "There should be at least one created node bound with descriptors here, as view has been opened!")
-              for (groupNode <- secNode.getChildren().getNodes()) {
+              val secNode_? = NetBeansPersistenceManager.occupantNodeOf(contents)
+              assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
+              for (groupNode <- secNode_?.get.getChildren.getNodes) {
                 groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
               }
                     

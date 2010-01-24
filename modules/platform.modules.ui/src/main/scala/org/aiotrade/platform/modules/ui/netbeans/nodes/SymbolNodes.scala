@@ -114,6 +114,7 @@ import org.xml.sax.SAXException;
  * @author Caoyuan Deng
  */
 object SymbolNodes {
+  
   private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/platform/modules/ui/netbeans/resources/symbol.gif");
   /** Deserialize a Symbol from xml file */
 
@@ -166,10 +167,10 @@ object SymbolNodes {
     NetBeansPersistenceManager.putNode(contents, this)
 
     /* add the node to our own lookup */
-    content.add(this);
+    content.add(this)
 
     /* add additional items to the lookup */
-    content.add(contents);
+    content.add(contents)
     content.add(new SymbolViewAction(this))
     content.add(new SymbolReimportDataAction(this))
     content.add(new SymbolRefreshDataAction(this))
@@ -180,7 +181,7 @@ object SymbolNodes {
     content.add(new SymbolClearDataAction(this))
 
     /** add delegate's all lookup contents */
-    val result = symbolFileNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
+    private val result = symbolFileNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
     while (result.hasNext) {
       content.add(result.next)
     }
@@ -193,9 +194,8 @@ object SymbolNodes {
     @throws(classOf[IOException])
     @throws(classOf[IntrospectionException])
     def this(symbolFileNode: Node, contents: AnalysisContents) = {
-      this(symbolFileNode, contents, new InstanceContent);
+      this(symbolFileNode, contents, new InstanceContent)
     }
-
 
     override def getDisplayName = {
       val contents = getLookup.lookup(classOf[AnalysisContents])
@@ -203,14 +203,10 @@ object SymbolNodes {
     }
 
     override def getIcon(tpe: Int): Image = {
-      var icon: Image = null
+      val contents = getLookup.lookup(classOf[AnalysisContents])
+      val icon_? = contents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
 
-      val contents = getLookup.lookup(classOf[AnalysisContents]);
-      contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-        icon = quoteContract.icon.getOrElse(null)
-      }
-
-      if (icon != null) icon else DEFAUTL_SOURCE_ICON
+      icon_? getOrElse DEFAUTL_SOURCE_ICON
     }
 
     override def getOpenedIcon(tpe: Int): Image = {
@@ -243,8 +239,7 @@ object SymbolNodes {
       getActions(true)(0)
     }
 
-    override
-    protected def createNodeListener: NodeListener = {
+    override protected def createNodeListener: NodeListener = {
       val delegate = super.createNodeListener
       val newListener = new NodeListener {
 
@@ -309,32 +304,32 @@ object SymbolNodes {
   /** The child of the folder node, it may be a folder or Symbol ser file */
   private class SymbolFolderChildren(symbolFolderNode: Node) extends FilterNode.Children(symbolFolderNode) {
 
-    var oneSymbolNode: Node = _
-
-
+    /**
+     * @param a file node
+     */
     override protected def createNodes(key: Node): Array[Node] = {
-      val node = key
+      val symbolFileNode = key
 
       try {
         /** is a folder? if true, creat a folder node */
-        if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-          return Array(new SymbolNode(node))
+        if (symbolFileNode.getLookup.lookup(classOf[DataFolder]) != null) {
+          return Array(new SymbolNode(symbolFileNode))
         } else {
           /**
            * else, deserilize a contents instance from the sec xml file,
            * and create a sec node for it
            */
-          var contents = readContents(node)
+          var contents = readContents(symbolFileNode)
           if (contents != null) {
             /**
              * check if has existed in application context, if true,
              * use the existed one
              */
-            NetBeansPersistenceManager.lookupContents(contents.uniSymbol) foreach {existedOne =>
+            NetBeansPersistenceManager.contentsOf(contents.uniSymbol) foreach {existedOne =>
               contents = existedOne
             }
 
-            oneSymbolNode = new OneSymbolNode(node, contents)
+            val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents)
             val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
             val newAttr = fo.getAttribute("new")
@@ -352,7 +347,7 @@ object SymbolNodes {
             return Array(oneSymbolNode)
           } else {
             // best effort
-            return Array(new FilterNode(node))
+            return Array(new FilterNode(symbolFileNode))
           }
 
         }
@@ -362,7 +357,7 @@ object SymbolNodes {
       }
 
       // Some other type of Node (gotta do something)
-      Array(new FilterNode(node))
+      Array(new FilterNode(symbolFileNode))
     }
   }
 
@@ -591,8 +586,7 @@ object SymbolNodes {
        * if node destroy is invoked by parent node, such as folder,
        * the lookup content may has been destroyed before node destroyed.
        */
-      val contents = NetBeansPersistenceManager.occupiedContentsOf(node)
-      if (contents != null) {
+      NetBeansPersistenceManager.occupiedContentsOf(node) foreach {contents =>
         val confirm = if (shouldConfirm) {
           JOptionPane.showConfirmDialog(
             WindowManager.getDefault.getMainWindow(),
