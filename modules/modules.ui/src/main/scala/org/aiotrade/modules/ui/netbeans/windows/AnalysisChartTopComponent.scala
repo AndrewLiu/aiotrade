@@ -31,8 +31,6 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
 import javax.swing.JPopupMenu;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -61,9 +59,9 @@ import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.nodes.Node;
-import org.openide.util.actions.SystemAction;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import org.openide.util.actions.SystemAction
+import org.openide.windows.TopComponent
+import org.openide.windows.WindowManager
 
 
 /**
@@ -106,15 +104,13 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   val sec: Sec = contents.serProvider.asInstanceOf[Sec]
   private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
   private val tc_id: String = sec.name
-    
   private val symbol = sec.uniSymbol
-    
-  initComponents
-
-  var viewContainer: ChartViewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
-    
   private val popupMenuForViewContainer = new JPopupMenu
     
+  var viewContainer: ChartViewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+
+  initComponents
+
   injectActionsToDescriptors
   injectActionsToPopupMenuForViewContainer
 
@@ -159,10 +155,22 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     }
   }
 
+  private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
+    val controller = ChartingControllerFactory.createInstance(ser, contents)
+    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this)
+    val title = " " + (if ($title == null) ser.freq.name else $title) + " "
+
+    /** inject popup menu from this TopComponent */
+    viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
+
+    viewContainer
+  }
+
   private def initComponents {
     setFont(LookFeel().axisFont)
 
     setLayout(new BorderLayout)
+    add(viewContainer, BorderLayout.CENTER)
     setName(sec.name)
 
     /** this component should setFocusable(true) to have the ability to grab the focus */
@@ -183,18 +191,6 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     //FocusOwnerChecker check = new FocusOwnerChecker();
   }
     
-  private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
-    val controller = ChartingControllerFactory.createInstance(ser, contents)
-    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this).get
-    val title = " " + (if ($title == null) ser.freq.name else $title) + " "
-    add(viewContainer, BorderLayout.CENTER)
-
-    /** inject popup menu from this TopComponent */
-    viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
-
-    viewContainer
-  }
-
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     /**
@@ -267,30 +263,5 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     instanceRefs -= ref
     super.finalize
   }
-    
-  @deprecated
-  private def showPopup(e: MouseEvent) {
-    if (e.isPopupTrigger) {
-      popupMenuForViewContainer.show(this, e.getX, e.getY)
-    }
-  }
-    
-  @deprecated 
-  private class MyPopupMouseListener extends MouseListener {
-    def mouseClicked(e: MouseEvent) {
-      showPopup(e);
-    }
-    def mousePressed(e: MouseEvent) {
-      showPopup(e);
-    }
-    def mouseReleased(e: MouseEvent) {
-      showPopup(e);
-    }
-    def mouseEntered(e: MouseEvent) {
-    }
-    def mouseExited(e: MouseEvent) {
-    }
-  }
-    
-    
+  
 }

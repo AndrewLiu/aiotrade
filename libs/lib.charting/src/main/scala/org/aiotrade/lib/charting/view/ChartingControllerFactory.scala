@@ -60,12 +60,12 @@ import scala.collection.mutable.HashSet
  */
 object ChartingControllerFactory {
   /** a static map to know how many controllers are bound with each MasterSer */
-  private val sersWithcontrollers = new HashMap[MasterTSer, HashSet[ChartingController]]
+  private val sersTocontrollers = new HashMap[MasterTSer, HashSet[ChartingController]]
 
   def createInstance(masterSer: MasterTSer, contents: AnalysisContents): ChartingController = {
-    val controllers = sersWithcontrollers.get(masterSer) getOrElse {
+    val controllers = sersTocontrollers.get(masterSer) getOrElse {
       val controllersx = new HashSet[ChartingController]
-      sersWithcontrollers += (masterSer -> controllersx)
+      sersTocontrollers += (masterSer -> controllersx)
       controllersx
     }
 
@@ -373,9 +373,9 @@ object ChartingControllerFactory {
      * the following setter methods are named internal_setXXX, and are private.
      */
     private def internal_setWBar(wBar: Float) {
-      val oldValue = this._wBar
-      this._wBar = wBar
-      if (this._wBar != oldValue) {
+      val oldValue = _wBar
+      _wBar = wBar
+      if (_wBar != oldValue) {
         notifyObserversChanged(classOf[ChartValidityObserver[Any]])
       }
     }
@@ -453,21 +453,21 @@ object ChartingControllerFactory {
      * Factory method to create ChartViewContainer instance, got the relations
      * between ChartViewContainer and Controller ready.
      */
-    def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): Option[T] = {
+    def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T = {
       try {
         val instance = clazz.newInstance
         instance.init(focusableParent, this)
         /**
-         * @NOTICE
+         * @Note
          * Always call internal_setChartViewContainer(instance) next to
          * instance.init(focusableParent, this), since the internal_initCursorRow()
          * procedure needs the children of chartViewContainer ready.
          */
         internal_setChartViewContainer(instance)
-        Some(instance)
+        instance
       } catch {
-        case ex: InstantiationException => ex.printStackTrace; None
-        case ex: IllegalAccessException => ex.printStackTrace; None
+        case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+        case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
       }
     }
 

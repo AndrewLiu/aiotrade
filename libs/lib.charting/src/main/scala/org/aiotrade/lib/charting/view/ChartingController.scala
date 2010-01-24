@@ -115,5 +115,5 @@ trait ChartingController extends ChangeObservable {
   /**
    * Factory method to create ChartViewContainer instance
    */
-  def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): Option[T]
+  def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T
 }

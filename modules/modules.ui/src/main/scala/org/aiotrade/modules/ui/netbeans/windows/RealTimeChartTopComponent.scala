@@ -101,7 +101,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   //        }
         
   private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
-  val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
+  val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
         
   setLayout(new BorderLayout)
         

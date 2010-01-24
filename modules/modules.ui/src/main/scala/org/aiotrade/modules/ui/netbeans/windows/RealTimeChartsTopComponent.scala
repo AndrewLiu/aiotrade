@@ -144,9 +144,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   def watch(sec: Sec, contents: AnalysisContents) {
     if (!secToViewContainers.contains(sec)) {
       val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
-      val viewContainer = controller.createChartViewContainer(
-        classOf[RealTimeChartViewContainer], this
-      ).get
+      val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
             
       viewContainer.isInteractive = false
             
