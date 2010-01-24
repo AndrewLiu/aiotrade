@@ -7,10 +7,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lib-chartview</artifactId>
+    <artifactId>lib-view-securities</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>lib-chartview</name>
+    <name>lib-view-securities</name>
 
     <dependencies>
         <dependency>

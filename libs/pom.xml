@@ -128,7 +128,7 @@
         <module>lib.securities</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
-        <module>lib.chartview</module>
+        <module>lib.view.securities</module>
         <module>lib.indicator.basic</module>
         <module>lib.dataserver.ib</module>
         <module>lib.dataserver.yahoo</module>

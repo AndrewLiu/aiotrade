@@ -41,7 +41,7 @@ import javax.swing.Timer;
 import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
-import org.aiotrade.lib.chartview.RealTimeChartViewContainer
+import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.util.swing.AIOScrollView;

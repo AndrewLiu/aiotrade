@@ -30,7 +30,7 @@
  */
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 
-import org.aiotrade.lib.chartview.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;

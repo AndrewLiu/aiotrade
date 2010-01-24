@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.chartview
+package org.aiotrade.lib.view.securities
 
 import java.awt.BorderLayout
 import java.awt.Color
@@ -79,7 +79,7 @@ import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
  * @author Caoyuan Deng
  */
 object RealTimeBoardPanel {
-  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.chartview.Bundle")
+  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
 }
 

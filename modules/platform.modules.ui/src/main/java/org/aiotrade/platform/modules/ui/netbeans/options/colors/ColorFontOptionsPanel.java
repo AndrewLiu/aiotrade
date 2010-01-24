@@ -44,7 +44,7 @@ import org.aiotrade.lib.charting.laf.White;
 import org.aiotrade.lib.charting.view.ChartingController;
 import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.charting.view.WithQuoteChart;
-import org.aiotrade.lib.chartview.AnalysisChartViewContainer;
+import org.aiotrade.lib.view.securities.AnalysisChartViewContainer;
 import org.aiotrade.lib.securities.PersistenceManager$;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.Stock;

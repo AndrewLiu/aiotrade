@@ -40,8 +40,8 @@ import java.sql.SQLException;
 import java.util.Properties;
 import org.aiotrade.lib.charting.chart.QuoteChart;
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
-import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
+import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
+import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.PersistenceManager

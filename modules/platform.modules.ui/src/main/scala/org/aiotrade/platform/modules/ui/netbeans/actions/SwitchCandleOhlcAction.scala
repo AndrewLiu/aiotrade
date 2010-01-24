@@ -31,8 +31,8 @@
 package org.aiotrade.platform.modules.ui.netbeans.actions;
 
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.chartview.AnalysisQuoteChartView
-import org.aiotrade.lib.chartview.RealTimeQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.RealTimeQuoteChartView
 import org.aiotrade.platform.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.platform.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;

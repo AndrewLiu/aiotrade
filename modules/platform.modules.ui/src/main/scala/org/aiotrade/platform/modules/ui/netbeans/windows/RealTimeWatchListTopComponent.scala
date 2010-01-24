@@ -40,7 +40,7 @@ import javax.swing.JTable;
 import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolStartWatchAction
 import org.aiotrade.platform.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.chartview.RealTimeWatchListPanel
+import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.TickerSerProvider
 import org.aiotrade.platform.modules.ui.netbeans.actions.StartSelectedWatchAction

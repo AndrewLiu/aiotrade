@@ -56,7 +56,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.charting.view.WithDrawingPane;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
-import org.aiotrade.lib.chartview.AnalysisChartViewContainer
+import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.computable.Indicator;

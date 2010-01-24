@@ -40,9 +40,9 @@ import java.util.Calendar;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.chartview.AnalysisQuoteChartView
-import org.aiotrade.lib.chartview.persistence.ContentsParseHandler
-import org.aiotrade.lib.chartview.persistence.ContentsPersistenceHandler
+import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
+import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;

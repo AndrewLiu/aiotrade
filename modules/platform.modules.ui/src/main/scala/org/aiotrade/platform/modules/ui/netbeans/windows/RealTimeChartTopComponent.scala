@@ -40,7 +40,7 @@ import javax.swing.Action;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants
 import org.aiotrade.lib.charting.view.ChartingControllerFactory;
-import org.aiotrade.lib.chartview.RealTimeChartViewContainer
+import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.platform.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
 import org.aiotrade.lib.securities.Sec

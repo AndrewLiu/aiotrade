@@ -34,7 +34,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.lang.ref.WeakReference;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.chartview.RealTimeBoardPanel
+import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.Sec
 import org.openide.windows.TopComponent;

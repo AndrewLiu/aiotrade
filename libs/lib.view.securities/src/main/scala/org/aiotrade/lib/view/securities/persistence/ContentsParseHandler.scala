@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.chartview.persistence
+package org.aiotrade.lib.view.securities.persistence
 
 import java.text.NumberFormat
 import java.text.ParseException

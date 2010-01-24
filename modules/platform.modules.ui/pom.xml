@@ -82,7 +82,7 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-chartview</artifactId>
+            <artifactId>lib-view-securities</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
