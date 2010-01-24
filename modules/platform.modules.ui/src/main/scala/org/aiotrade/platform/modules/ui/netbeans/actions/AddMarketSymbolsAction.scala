@@ -48,24 +48,25 @@ class AddMarketSymbolsAction extends CallableSystemAction {
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-          val symbolListTc = ExplorerTopComponent()
-          symbolListTc.requestActive
+          val explorerTc = ExplorerTopComponent()
+          explorerTc.requestActive
                 
-          val selectedNodes = symbolListTc.getExplorerManager.getSelectedNodes
-          // add this stock in root folder
-          val  currentNode = symbolListTc.getExplorerManager.getRootContext
-          val  currentFolder = currentNode.getLookup.lookup(classOf[DataFolder])
-                
+          val selectedNodes = explorerTc.getExplorerManager.getSelectedNodes
+          val rootNode = explorerTc.getExplorerManager.getRootContext
+          val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+          val marketFolder = DataFolder.create(rootFolder, Market.SHSE.code)
+
           // expand this node
-          symbolListTc.getExplorerManager.setExploredContext(currentNode)
+          explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
+          // add symbols in market folder
           val quoteContract = createQuoteContract
           // quoteContract may bring in more than one symbol, should process it later
           for (symbol <- Market.symbolsOf(Market.SHSE)) {
             // dataSourceDescriptor may has been set to more than one symbols, process it here
             quoteContract.symbol = symbol
                     
-            SymbolNodes.createSymbolXmlFile(currentFolder, symbol, quoteContract)
+            SymbolNodes.createSymbolXmlFile(marketFolder, symbol, quoteContract)
           }
         }
       })
