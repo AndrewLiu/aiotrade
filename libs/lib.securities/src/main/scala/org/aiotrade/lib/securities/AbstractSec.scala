@@ -282,10 +282,10 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
   }
 
-   def update(tickerSnapshot: Observable) {
-     val ticker = new Ticker
-     ticker.copyFrom(tickerSnapshot.asInstanceOf[TickerSnapshot].ticker)
-     tickers += ticker
-   }
+  def update(tickerSnapshot: Observable) {
+    val ticker = new Ticker
+    ticker.copyFrom(tickerSnapshot.asInstanceOf[TickerSnapshot].ticker)
+    tickers += ticker
+  }
 }
 

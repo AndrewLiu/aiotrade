@@ -117,6 +117,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var infoTable: JTable = _
   private var depthTable: JTable = _
   private var tickerTable: JTable = _
+  private var lastTickerTime: Long = _
 
   initComponents
 
@@ -128,9 +129,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   chartPane.setLayout(new BorderLayout)
   chartPane.add(viewContainer, BorderLayout.CENTER)
 
-  private val tickers = sec.tickers
-  if (tickers.size > 0) {
-    updateByTicker(tickers.last)
+  for (ticker <- sec.tickers) {
+    updateByTicker(ticker)
+    lastTickerTime = ticker.time
   }
 
   private def initComponents {
@@ -314,7 +315,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   def update(tickerSnapshot: Observable) {
     val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
     symbol.value = ts.symbol
-    updateByTicker(ts.ticker)
+    val ticker = ts.ticker
+    if (ticker.time > lastTickerTime) {
+      lastTickerTime = ticker.time
+      updateByTicker(ts.ticker)
+    }
   }
 
   private def updateByTicker(ticker: Ticker) {
