@@ -171,7 +171,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
 
     setLayout(new BorderLayout)
     add(viewContainer, BorderLayout.CENTER)
-    setName(sec.name)
+    setName(sec.name + " - " + quoteContract.freq)
 
     /** this component should setFocusable(true) to have the ability to grab the focus */
     setFocusable(true)

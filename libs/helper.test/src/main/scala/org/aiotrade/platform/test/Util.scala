@@ -332,7 +332,7 @@ class Util {
     var title = atitle
 
     val controller = ChartingControllerFactory.createInstance(ser, contents)
-    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent).get
+    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent)
 
     if (title == null) {
       title = ser.freq.name
@@ -354,7 +354,7 @@ class Util {
   private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
     var masterSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
     val controller = ChartingControllerFactory.createInstance(masterSer, contents)
-    val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent).get
+    val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer
   }
 

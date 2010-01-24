@@ -150,10 +150,11 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
         override def serChanged(evt: SerChangeEvent) {
           val sourceSer = evt.getSource
           val freq = sourceSer.freq
-          val contract = freqToQuoteContract(freq)
-          val quoteServer = freqToQuoteServer(freq)
           evt.tpe match {
             case SerChangeEvent.Type.FinishedLoading =>
+              // contract quoteServer of freq centernly still exists only under this type of event
+              val contract = freqToQuoteContract(freq)
+              val quoteServer = freqToQuoteServer(freq)
               sourceSer.loaded = true
               if (contract.refreshable) {
                 quoteServer.startUpdateServer(contract.refreshInterval * 1000)

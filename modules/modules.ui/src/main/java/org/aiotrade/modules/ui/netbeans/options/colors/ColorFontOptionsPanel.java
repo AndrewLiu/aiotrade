@@ -120,8 +120,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
 
         ChartingController controller = ChartingControllerFactory.createInstance(
                 stock.serOf(quoteContract.freq()).get(), contents);
-        previewContainer = controller.createChartViewContainer(
-                AnalysisChartViewContainer.class, this).get();
+        previewContainer = controller.createChartViewContainer(AnalysisChartViewContainer.class, this);
 
         previewPanel.setLayout(new BorderLayout());
         previewPanel.add(previewContainer, BorderLayout.CENTER);

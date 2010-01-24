@@ -121,7 +121,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   initComponents
 
   private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
-  private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this).get
+  private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)
 
