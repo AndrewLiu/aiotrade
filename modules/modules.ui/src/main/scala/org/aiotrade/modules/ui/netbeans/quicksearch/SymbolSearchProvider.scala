@@ -18,7 +18,7 @@ import org.openide.awt.HtmlBrowser.URLDisplayer
 
 class SymbolSearchProvider extends SearchProvider {
 
-  private val symbols = Exchange.symbolsOf(Exchange.SS)
+  val symbols = Exchange.allExchanges map (Exchange.symbolsOf(_)) flatten
 
   /**
    * Method is called by infrastructure when search operation was requested.
