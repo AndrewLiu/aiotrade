@@ -31,8 +31,6 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import java.lang.ref.WeakReference;
 import javax.swing.JPopupMenu;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -82,7 +80,7 @@ import org.openide.windows.WindowManager
 object AnalysisChartTopComponent {
   var instanceRefs = List[WeakReference[AnalysisChartTopComponent]]()
 
-  /** The Mode this component will live in. */
+  // The Mode this component will live in.
   private val MODE = "editor"
 
   def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
@@ -175,15 +173,13 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     add(viewContainer, BorderLayout.CENTER)
     setName(sec.name + " - " + quoteContract.freq)
 
-    // this component should setFocusable(true) to have the ability to gain the focus
+    // component should setFocusable(true) to have the ability to gain the focus
     setFocusable(true)
-    // due to the strange manner of how NetBeans window system manage focus, we should do:
-    addFocusListener(new FocusAdapter {
-        override def focusGained(e: FocusEvent) {
-          viewContainer.requestFocusInWindow
-        }
-      })
-    //org.aiotrade.lib.util.awt.focusOwnerChecker // to enable owner checking
+  }
+
+  /** Should forward focus to sub-component viewContainer */
+  override def requestFocusInWindow: Boolean = {
+    viewContainer.requestFocusInWindow
   }
 
   override def open {

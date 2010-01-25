@@ -54,10 +54,11 @@ object ExplorerTopComponent {
   def apply() = instance getOrElse new ExplorerTopComponent
 }
 
+import ExplorerTopComponent._
 @serializable
 @SerialVersionUID(1L)
 class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
-  import ExplorerTopComponent._
+
   instance = Some(this)
 
   /** holds currently scheduled/running task for set of activated node */
@@ -87,7 +88,9 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   private val actionMap = getActionMap
   actionMap.put("delete", ExplorerUtils.actionDelete(manager, true))
   associateLookup(ExplorerUtils.createLookup(manager, actionMap))
-    
+  // --- to enable focus owner checking
+  //org.aiotrade.lib.util.awt.focusOwnerChecker 
+
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_ALWAYS
   }

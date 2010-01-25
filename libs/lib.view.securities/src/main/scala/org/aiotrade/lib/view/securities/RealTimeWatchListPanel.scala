@@ -113,6 +113,11 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   setLayout(new BorderLayout)
   add(BorderLayout.CENTER, scrollPane)
 
+  /** forward focus to scrollPane, so it can response UP/DOWN key event etc */
+  override def requestFocusInWindow: Boolean = {
+    scrollPane.requestFocusInWindow
+  }
+
   private def initTable {
     table.setFont(LookFeel().defaultFont)
     table.setModel(

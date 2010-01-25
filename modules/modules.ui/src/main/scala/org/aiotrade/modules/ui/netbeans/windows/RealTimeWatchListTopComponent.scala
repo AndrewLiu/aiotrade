@@ -31,8 +31,6 @@
 package org.aiotrade.modules.ui.netbeans.windows;
 
 import java.awt.BorderLayout;
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
@@ -71,9 +69,10 @@ import scala.collection.mutable.HashSet
  * exception. So, it's better to test serialization out of the IDE.
  */
 object RealTimeWatchListTopComponent {
-  /** The Mode this component will live in. */
-  private val MODE = "editor"
   var instanceRefs = List[WeakReference[RealTimeWatchListTopComponent]]()
+
+  // The Mode this component will live in.
+  private val MODE = "editor"
 
   private val watchingSecs = HashSet[Security]()
 
@@ -110,21 +109,19 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
         
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
-  // this component should setFocusable(true) to have the ability to gain the focus
+  // component should setFocusable(true) to have ability to gain the focus
   setFocusable(true)
-  // due to the strange manner of how NetBeans window system manage focus, we should do:
-  addFocusListener(new FocusAdapter {
-      override def focusGained(e: FocusEvent) {
-        watchListPanel.scrollPane.requestFocusInWindow
-      }
-    })
-  //org.aiotrade.lib.util.awt.focusOwnerChecker // to enable owner checking
 
   setLayout(new BorderLayout)
 
   add(watchListPanel, BorderLayout.CENTER)
   setName(name)
   setBackground(LookFeel().backgroundColor)
+
+  /** Should forward focus to sub-component watchListPanel */
+  override def requestFocusInWindow: Boolean = {
+    watchListPanel.requestFocusInWindow
+  }
 
   private def showPopup(e: MouseEvent) {
     if (e.isPopupTrigger()) {
