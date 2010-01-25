@@ -47,6 +47,7 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.securities.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Stock
@@ -247,6 +248,21 @@ object SymbolNodes {
       None
     }
   }
+
+  private def displayNameOf(node: Node): String = {
+    if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+      Exchange.allExchanges find (_.code == node.getName) match {
+        case Some(x) => x.code match {
+            case "SS" => "Shanghai"
+            case code => code
+          }
+        case None => node.getName
+      }
+    } else {
+      // @todo symbol local name + (symbol)?
+      node.getName
+    }
+  }
   
   // ----- Node classes
 
@@ -400,8 +416,9 @@ object SymbolNodes {
       val symbolFileNode = key
 
       try {
-        /** is a folder? if true, creat a folder node */
+        
         if (symbolFileNode.getLookup.lookup(classOf[DataFolder]) != null) {
+          /** it's a folder, so creat a folder node */
           return Array(new SymbolNode(symbolFileNode))
         } else {
           /**
@@ -548,8 +565,8 @@ object SymbolNodes {
          */
         /** if TopComponent of this stock has been shown before, should reload quote data, why */
         /* if (mayNeedsReload) {
-          sec.clearSer(quoteContract.freq)
-        } */
+         sec.clearSer(quoteContract.freq)
+         } */
         /** here should be the only place to new AnalysisChartTopComponent instance */
         new AnalysisChartTopComponent(contents)
       }
@@ -577,17 +594,29 @@ object SymbolNodes {
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
-      /** is this a folder ? if true, go recursively */
-      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+      if (node.getLookup.lookup(classOf[DataFolder]) == null) {
+        // it's an OneSymbolNode, do real things
+        watchOneSymbol(node)
+      } else {
+        /** it's a folder, go recursively */
         for (child <- node.getChildren.getNodes) {
           child.getLookup.lookup(classOf[SymbolStartWatchAction]).execute
         }
-        return
       }
+    }
 
-      /** otherwise, it's an OneSymbolNode, do real things */
+    private def getListName(node: Node): String = {
+      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+        displayNameOf(node)
+      } else {
+        getListName(node.getParentNode)
+      }
+    }
+
+    private def watchOneSymbol(node: Node) {
+      val listName = getListName(node)
+
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
-
       var sec = contents.serProvider match {
         case null =>
           contents.lookupActiveDescriptor(classOf[QuoteContract]) map {quoteContract =>
@@ -600,7 +629,7 @@ object SymbolNodes {
 
       sec.subscribeTickerServer
 
-      val rtWatchListWin = RealTimeWatchListTopComponent.getInstance
+      val rtWatchListWin = RealTimeWatchListTopComponent.getInstance(listName)
       rtWatchListWin.requestActive
       rtWatchListWin.watch(sec, node)
 
@@ -879,7 +908,6 @@ object SymbolNodes {
     content.add(new SymbolReimportDataAction(this))
     content.add(new SymbolViewAction(this))
 
-
     /**
      * Declaring the children of the root sec node
      *
@@ -911,6 +939,9 @@ object SymbolNodes {
       )
     }
 
+    override def getDisplayName: String = {
+      displayNameOf(this)
+    }
   }
 }
 

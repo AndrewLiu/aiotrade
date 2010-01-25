@@ -83,10 +83,10 @@ object RealTimeChartTopComponent {
 
     instance
   }
-
 }
+
+import RealTimeChartTopComponent._
 class RealTimeChartTopComponent private (contents: AnalysisContents) extends TopComponent {
-  import RealTimeChartTopComponent._
 
   private val ref = new WeakReference[RealTimeChartTopComponent](this)
   instanceRefs ::= ref

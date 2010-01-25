@@ -50,13 +50,12 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
         def run {
           val explorerTc = ExplorerTopComponent()
           explorerTc.requestActive
-                
-          val selectedNodes = explorerTc.getExplorerManager.getSelectedNodes
+          
           val rootNode = explorerTc.getExplorerManager.getRootContext
           val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
           val exchangeFolder = DataFolder.create(rootFolder, Exchange.SS.code)
 
-          // expand this node
+          // expand root node
           explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
           // add symbols in market folder

@@ -75,8 +75,8 @@ object RealTimeWatchListTopComponent {
 
   private val watchingSecs = HashSet[Security]()
 
-  def getInstance: RealTimeWatchListTopComponent = {
-    val instance = if (instanceRefs.isEmpty) new RealTimeWatchListTopComponent else instanceRefs.head.get
+  def getInstance(name: String): RealTimeWatchListTopComponent = {
+    val instance = instanceRefs find (_.get.getName == name) map (_.get) getOrElse new RealTimeWatchListTopComponent(name)
 
     if (!instance.isOpened) {
       instance.open
@@ -87,8 +87,8 @@ object RealTimeWatchListTopComponent {
 
 }
 
-class RealTimeWatchListTopComponent extends TopComponent {
-  import RealTimeWatchListTopComponent._
+import RealTimeWatchListTopComponent._
+class RealTimeWatchListTopComponent private (name: String) extends TopComponent {
 
   private val ref = new WeakReference[RealTimeWatchListTopComponent](this)
   instanceRefs ::= ref
@@ -103,7 +103,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
   setLayout(new BorderLayout)
         
   add(rtWatchListPanel, BorderLayout.CENTER)
-  setName("List")
+  setName(name)
   setBackground(LookFeel().backgroundColor)
         
   private val popup = new JPopupMenu
