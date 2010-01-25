@@ -95,14 +95,14 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     
   private val tc_id = "RealTimeWatchList"
   private val symbolToNode = HashMap[String, Node]()
-  private val rtWatchListPanel = new RealTimeWatchListPanel
+  private val watchListPanel = new RealTimeWatchListPanel
 
   private var updateServerRegistered = false
   private var reallyClosed = false
 
   setLayout(new BorderLayout)
         
-  add(rtWatchListPanel, BorderLayout.CENTER)
+  add(watchListPanel, BorderLayout.CENTER)
   setName(name)
   setBackground(LookFeel().backgroundColor)
         
@@ -110,7 +110,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
   popup.add(SystemAction.get(classOf[StopSelectedWatchAction]))
         
-  val watchListTable = rtWatchListPanel.getWatchListTable
+  val watchListTable = watchListPanel.table
         
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
     
@@ -147,7 +147,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   }
     
   def watch(sec: Security, node: Node) {
-    rtWatchListPanel.watch(sec.uniSymbol)
+    watchListPanel.watch(sec.uniSymbol)
     symbolToNode.put(sec.uniSymbol, node)
     watchingSecs.add(sec)
         
@@ -156,20 +156,20 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
       return
     }
     tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.addObserver(rtWatchListPanel)
+      tickerSnapshot.addObserver(watchListPanel)
     }
   }
     
   def unWatch(sec: TickerSerProvider) {
     val uniSymbol = sec.uniSymbol
-    rtWatchListPanel.unWatch(uniSymbol)
+    watchListPanel.unWatch(uniSymbol)
         
     val tickerServer = sec.tickerServer
     if (tickerServer == null) {
       return
     }
     tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.deleteObserver(rtWatchListPanel)
+      tickerSnapshot.deleteObserver(watchListPanel)
     }
         
     /**
@@ -181,8 +181,8 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     
   def getSelectedSymbolNodes: List[Node] = {
     var selectedNodes = List[Node]()
-    for (row <- rtWatchListPanel.getWatchListTable.getSelectedRows()) {
-      val symbol = rtWatchListPanel.symbolAtRow(row)
+    for (row <- watchListTable.getSelectedRows()) {
+      val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
         symbolToNode.get(symbol) foreach {node =>
           selectedNodes ::= node
@@ -194,8 +194,8 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     
   private def getAllSymbolNodes: List[Node] = {
     var nodes = List[Node]()
-    for (row <- 0 until rtWatchListPanel.getWatchListTable.getRowCount) {
-      val symbol = rtWatchListPanel.symbolAtRow(row)
+    for (row <- 0 until watchListTable.getRowCount) {
+      val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
         symbolToNode.get(symbol) foreach {node =>
           nodes ::= node
@@ -222,7 +222,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     }
         
     /** should clear tickerWatchListPanel */
-    rtWatchListPanel.clearAllWatch
+    watchListPanel.clearAllWatch
     watchingSecs.clear
     symbolToNode.clear
   }
@@ -246,7 +246,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
             
       /** when double click on a row, try to active this stock's realtime chart view */
       if (e.getClickCount == 2) {
-        val symbol = rtWatchListPanel.symbolAtRow(rowAtY(e))
+        val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol == null) {
           return
         }

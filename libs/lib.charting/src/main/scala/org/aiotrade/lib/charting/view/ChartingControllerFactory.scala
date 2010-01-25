@@ -539,7 +539,7 @@ object ChartingControllerFactory {
      */
     class ViewKeyAdapter extends KeyAdapter {
 
-      private val LEFT = -1
+      private val LEFT  = -1
       private val RIGHT = 1
 
       override
@@ -553,7 +553,7 @@ object ChartingControllerFactory {
 
         e.getKeyCode match {
           case KeyEvent.VK_LEFT =>
-            if (e.isControlDown()) {
+            if (e.isControlDown) {
               moveCursorInDirection(fastSteps, LEFT)
             } else {
               moveChartsInDirection(fastSteps, LEFT)
@@ -564,9 +564,9 @@ object ChartingControllerFactory {
             } else {
               moveChartsInDirection(fastSteps, RIGHT)
             }
-          case KeyEvent.VK_UP =>
+          case KeyEvent.VK_UP   if !e.isControlDown =>
             growWBar(1)
-          case KeyEvent.VK_DOWN =>
+          case KeyEvent.VK_DOWN if !e.isControlDown =>
             growWBar(-1)
           case _ =>
         }

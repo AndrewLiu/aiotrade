@@ -97,20 +97,27 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   private val symbolToPrevTicker = new HashMap[String, Ticker]
   private val symbolToColColors  = new HashMap[String, HashMap[String, Color]]
 
-  private val scrollPane = new JScrollPane
-  private val table = new JTable
+  val table = new JTable
   private val tableModel: WatchListTableModel = new WatchListTableModel(colNames , 0)
   private val df = new SimpleDateFormat("hh:mm", Locale.US)
   private val cal = Calendar.getInstance
   private val bgColorSelected = new Color(169, 178, 202)
 
-  initComponents
+  initTable
 
-  private def initComponents {
+  private val scrollPane = new JScrollPane
+  scrollPane.setViewportView(table)
+  scrollPane.setBackground(LookFeel().backgroundColor)
+
+  setLayout(new BorderLayout)
+  add(BorderLayout.CENTER, scrollPane)
+
+
+  private def initTable {
     table.setFont(LookFeel().defaultFont)
     table.setModel(
       new DefaultTableModel(
-        Array(Array[Object]()),
+        Array[Array[Object]](),
         Array[Object]()
       )
     )
@@ -154,12 +161,6 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     sorter.setSortKeys(sortKeys)
 
     table.setRowSorter(sorter)
-
-    scrollPane.setViewportView(table)
-    scrollPane.setBackground(LookFeel().backgroundColor)
-    
-    setLayout(new BorderLayout)
-    add(BorderLayout.CENTER, scrollPane)
   }
 
   class WatchListTableModel(columnNames: Array[String], rowCount: Int) extends DefaultTableModel(columnNames.asInstanceOf[Array[Object]], rowCount) {
@@ -363,10 +364,6 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     symbolToInWatching.clear
     symbolToPrevTicker.clear
     symbolToColColors.clear
-  }
-
-  def getWatchListTable: JTable = {
-    table
   }
 
   def colOfName(colName: String): Int = {
