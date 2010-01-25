@@ -145,9 +145,6 @@
     So KeyEvent.VK_ENTER is described as ENTER
     -->
     <folder name="Shortcuts">
-        <file name="SPACE.shadow">
-            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
-        </file>
         <file name="C-A.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddExchangeSymbolsAction.instance"/>
         </file>
@@ -156,12 +153,6 @@
         </file>
         <file name="C-B.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchCandleOhlcAction.instance"/>
-        </file>
-        <file name="UP.shadow">
-            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-ZoomInAction.instance"/>
-        </file>
-        <file name="DOWN.shadow">
-            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-ZoomOutAction.instance"/>
         </file>
         <file name="ESCAPE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowCursorCrossAction.instance"/>
