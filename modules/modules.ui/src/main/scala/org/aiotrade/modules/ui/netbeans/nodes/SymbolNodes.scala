@@ -533,9 +533,9 @@ object SymbolNodes {
     def execute {
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-        for (child <- node.getChildren.getNodes) {
+        /* for (child <- node.getChildren.getNodes) {
           child.getLookup.lookup(classOf[ViewAction]).execute
-        }
+        } */
         return
       }
 
@@ -568,6 +568,8 @@ object SymbolNodes {
         new AnalysisChartTopComponent(contents)
       }
 
+      analysisTc.setActivatedNodes(Array(node))
+
       if (!sec.isSerLoaded(quoteContract.freq)) {
         sec.loadSer(quoteContract.freq)
       }
@@ -578,9 +580,10 @@ object SymbolNodes {
 
       sec.subscribeTickerServer
 
-      val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
-      rtBoardWin.watch
-      rtBoardWin.open
+      val rtBoardTc = RealTimeBoardTopComponent.getInstance(sec, contents)
+      rtBoardTc.setActivatedNodes(Array(node))
+      rtBoardTc.watch
+      rtBoardTc.open
 
       analysisTc.requestActive
     }

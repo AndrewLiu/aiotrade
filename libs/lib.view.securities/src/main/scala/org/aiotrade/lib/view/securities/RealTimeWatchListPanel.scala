@@ -33,14 +33,18 @@ package org.aiotrade.lib.view.securities
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Comparator
 import java.util.Locale
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTable
+import javax.swing.KeyStroke
 import javax.swing.RowSorter
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -59,18 +63,26 @@ import scala.collection.mutable.HashMap
  *
  * @author  Caoyuan Deng
  */
+object RealTimeWatchListPanel {
+  val orig_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP.toChar)   // Fn + UP   in mac
+  val orig_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN.toChar) // Fn + DOWN in mac
+  val meta_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_UP.toChar,   InputEvent.META_MASK)
+  val meta_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN.toChar, InputEvent.META_MASK)
+}
+
+import RealTimeWatchListPanel._
 class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
-  private val SYMBOL = "Symbol"
-  private val TIME = "Time"
+  private val SYMBOL     = "Symbol"
+  private val TIME       = "Time"
   private val LAST_PRICE = "Last"
   private val DAY_VOLUME = "Volume"
   private val PREV_CLOSE = "Prev. cls"
   private val DAY_CHANGE = "Change"
-  private val PERCENT = "Percent"
-  private val DAY_HIGH = "High"
-  private val DAY_LOW = "Low"
-  private val DAY_OPEN = "Open"
+  private val PERCENT    = "Percent"
+  private val DAY_HIGH   = "High"
+  private val DAY_LOW    = "Low"
+  private val DAY_OPEN   = "Open"
   private val colNameToCol = Map[String, Int](
     SYMBOL     -> 0,
     TIME       -> 1,
@@ -109,6 +121,9 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   scrollPane.setViewportView(table)
   scrollPane.setBackground(LookFeel().backgroundColor)
   scrollPane.setFocusable(true)
+
+  scrollPane.registerKeyboardAction(scrollPane.getActionMap.get("scrollUp"),   "pageup",   meta_pgup, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+  scrollPane.registerKeyboardAction(scrollPane.getActionMap.get("scrollDown"), "pagedown", meta_pgdn, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
   setLayout(new BorderLayout)
   add(BorderLayout.CENTER, scrollPane)
