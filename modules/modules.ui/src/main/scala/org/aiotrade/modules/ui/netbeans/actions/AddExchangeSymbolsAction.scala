@@ -53,19 +53,19 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
           
           val rootNode = explorerTc.getExplorerManager.getRootContext
           val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
-          val exchangeFolder = DataFolder.create(rootFolder, Exchange.SS.code)
 
           // expand root node
           explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
-          // add symbols in market folder
+          // add symbols in exchange folder
           val quoteContract = createQuoteContract
-          // quoteContract may bring in more than one symbol, should process it later
-          for (symbol <- Exchange.symbolsOf(Exchange.SS)) {
-            // dataSourceDescriptor may has been set to more than one symbols, process it here
+          for (exchange <- Exchange.allExchanges;
+               exchangefolder = DataFolder.create(rootFolder, exchange.code);
+               symbol <- Exchange.symbolsOf(exchange)
+          ) {
             quoteContract.symbol = symbol
                     
-            SymbolNodes.createSymbolXmlFile(exchangeFolder, symbol, quoteContract)
+            SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, quoteContract)
           }
         }
       })
