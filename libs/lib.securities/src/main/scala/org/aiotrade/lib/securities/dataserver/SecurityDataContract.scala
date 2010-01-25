@@ -28,44 +28,57 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities
+package org.aiotrade.lib.securities.dataserver
 
-import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import java.util.Calendar
+import org.aiotrade.lib.math.timeseries.datasource.{DataContract,DataServer}
+import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.util.serialization.JavaDocument
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.w3c.dom.Element
 
 /**
- * Securities: Stock, Options, Futures, Index, Currency etc.
+ * most fields' default value should be OK.
  *
  * @author Caoyuan Deng
  */
-object Sec {
-  abstract class Type
-  object Type {
-    case object Stock extends Type
-    case object Index extends Type
-    case object Option extends Type
-    case object Future extends Type
-    case object FutureOption extends Type
-    case object Currency extends Type
-    case object Bag extends Type
+abstract class SecurityDataContract[S <: DataServer[_]] extends DataContract[S] {
+  var reqId = 0
+  var secType: Security.Type = Security.Type.Stock
+  var primaryExchange = "SUPERSOES"
+  var exchange = "SMART"
+  var currency = "USD"
+    
+  active = true
+  urlString = ""
+  refreshable = false
+  refreshInterval = 60 // seconds
+  inputStream = None
+    
+  private val cal = Calendar.getInstance
+  endDate = cal.getTime
+  cal.set(1970, Calendar.JANUARY, 1)
+  beginDate = cal.getTime
 
-    def withName(name: String): Type = {
-      name match {
-        case "Stock" => Stock
-        case "Index" => Index
-        case "Option" => Option
-        case "Future" => Future
-        case "FutureOption" => FutureOption
-        case "Currency" => Currency
-        case "Bag" => Bag
-        case _ => null
-      }
-    }
+  override def writeToBean(doc: BeansDocument): Element = {
+    val bean = super.writeToBean(doc)
+        
+    doc.valuePropertyOfBean(bean, "secType", secType)
+    doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
+    doc.valuePropertyOfBean(bean, "exchange", exchange)
+    doc.valuePropertyOfBean(bean, "currency", currency)
+        
+    bean
   }
-}
-
-trait Sec extends SerProvider[QuoteSer] with TickerSerProvider {
-
-  def market_=(market: Market): Unit
-  def market: Market
+    
+  override def writeToJava(id: String): String = {
+    ""
+    super.writeToJava(id) +
+    JavaDocument.set(id, "setSecType", classOf[Security.Type].getName + "." + secType) +
+    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
+    JavaDocument.set(id, "setExchange", "" + exchange) +
+    JavaDocument.set(id, "setCurrency", "" + currency)
+  }
+    
 }
 

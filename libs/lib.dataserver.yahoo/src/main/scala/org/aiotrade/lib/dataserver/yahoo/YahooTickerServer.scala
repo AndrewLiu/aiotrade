@@ -35,7 +35,7 @@ import java.net.{HttpURLConnection, URL}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
-import org.aiotrade.lib.securities.{Market, Ticker}
+import org.aiotrade.lib.securities.{Exchange, Ticker}
 import org.aiotrade.lib.securities.dataserver.{TickerServer}
 
 /**
@@ -237,8 +237,8 @@ class YahooTickerServer extends TickerServer {
 
   def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 
-  override def marketOf(symbol: String): Market = {
-    return YahooQuoteServer.marketOf(symbol)
+  override def exchangeOf(symbol: String): Exchange = {
+    return YahooQuoteServer.exchangeOf(symbol)
   }
 }
 

@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.QuotePool
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerPool
 import org.aiotrade.lib.securities.TickerSnapshot
@@ -64,31 +64,33 @@ object IBWrapper extends IBWrapper {
   private val HIS_REQ_PROC_SPEED_THROTTLE = 1000 * 20 // 20 seconds
 
   // TreeMap
-  private val freqToBarSize = TreeMap(TFreq.ONE_SEC      ->  1,
-                                      TFreq.FIVE_SECS    ->  2,
-                                      TFreq.FIFTEEN_SECS ->  3,
-                                      TFreq.THREE_SECS   ->  4,
-                                      TFreq.ONE_MIN      ->  5,
-                                      TFreq.TWO_MINS     ->  6,
-                                      TFreq.THREE_MINS   -> 16,
-                                      TFreq.FIVE_MINS    ->  7,
-                                      TFreq.FIFTEEN_MINS ->  8,
-                                      TFreq.THIRTY_MINS  ->  9,
-                                      TFreq.ONE_HOUR     -> 10,
-                                      TFreq.DAILY        -> 11,
-                                      TFreq.WEEKLY       -> 12,
-                                      TFreq.MONTHLY      -> 13,
-                                      TFreq.THREE_MONTHS -> 14,
-                                      TFreq.ONE_YEAR     -> 15)
+  private val freqToBarSize = TreeMap(
+    TFreq.ONE_SEC      ->  1,
+    TFreq.FIVE_SECS    ->  2,
+    TFreq.FIFTEEN_SECS ->  3,
+    TFreq.THREE_SECS   ->  4,
+    TFreq.ONE_MIN      ->  5,
+    TFreq.TWO_MINS     ->  6,
+    TFreq.THREE_MINS   -> 16,
+    TFreq.FIVE_MINS    ->  7,
+    TFreq.FIFTEEN_MINS ->  8,
+    TFreq.THIRTY_MINS  ->  9,
+    TFreq.ONE_HOUR     -> 10,
+    TFreq.DAILY        -> 11,
+    TFreq.WEEKLY       -> 12,
+    TFreq.MONTHLY      -> 13,
+    TFreq.THREE_MONTHS -> 14,
+    TFreq.ONE_YEAR     -> 15)
 
-  private val secTypesToName: Map[Sec.Type, String] = Map(Sec.Type.Stock        -> "STK",
-                                                          Sec.Type.Stock        -> "STK",
-                                                          Sec.Type.Option       -> "OPT",
-                                                          Sec.Type.Future       -> "FUT",
-                                                          Sec.Type.Index        -> "IND",
-                                                          Sec.Type.FutureOption -> "FOP",
-                                                          Sec.Type.Currency     -> "CASH",
-                                                          Sec.Type.Bag          -> "BAG")
+  private val secTypesToName: Map[Security.Type, String] = Map(
+    Security.Type.Stock        -> "STK",
+    Security.Type.Stock        -> "STK",
+    Security.Type.Option       -> "OPT",
+    Security.Type.Future       -> "FUT",
+    Security.Type.Index        -> "IND",
+    Security.Type.FutureOption -> "FOP",
+    Security.Type.Currency     -> "CASH",
+    Security.Type.Bag          -> "BAG")
 
   private var singletonInstance: IBWrapper = this
   private var eclient: EClientSocket = new EClientSocket(this)
@@ -120,7 +122,7 @@ object IBWrapper extends IBWrapper {
     freqToBarSize.keySet.toArray
   }
     
-  def getSecType(tpe: Sec.Type) = {
+  def getSecType(tpe: Security.Type) = {
     secTypesToName.get(tpe)
   }
     

@@ -35,7 +35,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
 import org.aiotrade.lib.indicator.basic.MAIndicator
@@ -60,7 +60,7 @@ class Util {
   import Util._
 
   private var tickerServer: TickerServer = _
-  private var sec: Sec = _
+  private var sec: Security = _
 
   /***
    * @param para parameters defined
@@ -107,13 +107,13 @@ class Util {
       } else null
 
     sec = new Stock(symbol, quoteContracts, tickerContract)
-    val market =
+    val exchange =
       if (quoteServer.getName == classOf[YahooQuoteServer].getName) {
-        YahooQuoteServer.marketOf(symbol)
+        YahooQuoteServer.exchangeOf(symbol)
       } else {
         null//ApcQuoteServer.GetMarket(symbol)
       }
-    sec.market = market
+    sec.exchange = exchange
 
     val dailyContents = createAnalysisContents(symbol, freqDaily, quoteServer, tickerServer);
     dailyContents.addDescriptor(dailyQuoteContract)
@@ -228,7 +228,7 @@ class Util {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Sec.Type.Stock
+    dataContract.secType = Security.Type.Stock
     dataContract.exchange= "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
@@ -252,7 +252,7 @@ class Util {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Sec.Type.Stock
+    dataContract.secType = Security.Type.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
@@ -351,7 +351,7 @@ class Util {
     viewContainer
   }
 
-  private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
+  private def createRealTimeViewContainer(sec: Security, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
     var masterSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
     val controller = ChartingControllerFactory.createInstance(masterSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)

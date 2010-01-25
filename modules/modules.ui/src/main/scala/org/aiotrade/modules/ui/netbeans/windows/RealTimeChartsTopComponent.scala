@@ -43,7 +43,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.util.swing.AIOScrollView;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
@@ -97,7 +97,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     
   private val tc_id = "RealtimeCharts"
     
-  private var secToViewContainers = Map[Sec, ChartViewContainer]()
+  private var secToViewContainers = Map[Security, ChartViewContainer]()
     
   private var reallyClosed = false
             
@@ -141,7 +141,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   setFocusable(true)
   
     
-  def watch(sec: Sec, contents: AnalysisContents) {
+  def watch(sec: Security, contents: AnalysisContents) {
     if (!secToViewContainers.contains(sec)) {
       val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
       val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
@@ -158,7 +158,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     scrollTimerListener.startScrollTimerIfNecessary
   }
     
-  def unWatch(sec: Sec) {
+  def unWatch(sec: Security) {
     secToViewContainers get sec match {
       case Some(viewContainer) =>
         scrollView.remove(viewContainer)

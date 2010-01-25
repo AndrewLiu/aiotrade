@@ -142,7 +142,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   /**
    * @TODO
    * temporary method? As in some data feed, the symbol is not unique,
-   * it may be same in different markets with different secType.
+   * it may be same in different exchanges with different secType.
    */
   protected def lookupContract(symbol: String): Option[C] = {
     subscribedSymbolToContract.get(symbol)

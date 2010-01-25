@@ -2,7 +2,7 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
     <folder name="Actions">
-        <file name="org-aiotrade-modules-ui-netbeans-actions-AddMarketSymbolsAction.instance"/>
+        <file name="org-aiotrade-modules-ui-netbeans-actions-AddExchangeSymbolsAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-ChangeStatisticChartOptsAction.instance"/>
@@ -149,7 +149,7 @@
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchCursorAcceleratedAction.instance"/>
         </file>
         <file name="C-A.shadow">
-            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddMarketSymbolsAction.instance"/>
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddExchangeSymbolsAction.instance"/>
         </file>
         <file name="C-N.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.instance"/>

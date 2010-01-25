@@ -44,7 +44,7 @@ import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction;
 import org.aiotrade.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction;
@@ -101,7 +101,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   private val ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
 
-  val sec: Sec = contents.serProvider.asInstanceOf[Sec]
+  val sec: Security = contents.serProvider.asInstanceOf[Security]
   private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
   private val tc_id: String = sec.name
   private val symbol = sec.uniSymbol

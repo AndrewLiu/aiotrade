@@ -38,7 +38,7 @@ import java.util.{Calendar, Date, Locale, TimeZone}
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.{Market}
+import org.aiotrade.lib.securities.{Exchange}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 
 /**
@@ -53,15 +53,15 @@ object YahooQuoteServer {
   protected val UrlPath = "/table.csv"
   protected val dateFormat: DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-  def marketOf(symbol: String): Market = {
+  def exchangeOf(symbol: String): Exchange = {
     symbol.split("\\.") match {
-      case Array(head, market) => market.toUpperCase match {
-          case "L"  => Market.LDSE
-          case "SS" => Market.SHSE
-          case "SZ" => Market.SZSE
-          case _ => Market.NYSE
+      case Array(head, exchange) => exchange.toUpperCase match {
+          case "L"  => Exchange.L
+          case "SS" => Exchange.SS
+          case "SZ" => Exchange.SZ
+          case _ => Exchange.N
         }
-      case _ => Market.NYSE
+      case _ => Exchange.N
     }
   }
 
@@ -161,9 +161,9 @@ class YahooQuoteServer extends QuoteServer {
     resetCount
     val storage = storageOf(contract)
     val symbol = contract.symbol
-    val market = marketOf(contract.symbol)
-    val timeZone = market.timeZone
-    // * for daily quote, yahoo returns market's local date, so use market time zone
+    val exchange = exchangeOf(contract.symbol)
+    val timeZone = exchange.timeZone
+    // * for daily quote, yahoo returns exchange's local date, so use exchange time zone
     val cal = Calendar.getInstance(timeZone)
     val dateFormat = dateFormatOf(timeZone)
     def loop(newestTime: Long): Long = reader.readLine match {
@@ -189,7 +189,7 @@ class YahooQuoteServer extends QuoteServer {
             }
 
             // quote time is rounded to 00:00, we should adjust it to open time
-            time += market.openTimeOfDay
+            time += exchange.openTimeOfDay
 
             val quote = borrowQuote
 
@@ -259,12 +259,12 @@ class YahooQuoteServer extends QuoteServer {
     TimeZone.getTimeZone("America/New_York")
   }
   
-  def marketOf(symbol: String): Market = {
-    YahooQuoteServer.marketOf(symbol)
+  def exchangeOf(symbol: String): Exchange = {
+    YahooQuoteServer.exchangeOf(symbol)
   }
 
-  def toSourceSymbol(market: Market, uniSymbol: String): String = {
-    market.code match {
+  def toSourceSymbol(exchange: Exchange, uniSymbol: String): String = {
+    exchange.code match {
       case "NYSE" =>
         uniSymbol
       case "SHSE" =>

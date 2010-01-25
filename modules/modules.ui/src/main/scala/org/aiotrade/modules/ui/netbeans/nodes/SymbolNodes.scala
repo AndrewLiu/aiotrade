@@ -48,7 +48,7 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.util.swing.action.GeneralAction;
@@ -537,7 +537,7 @@ object SymbolNodes {
           x
         case x =>
           mayNeedsReload = true
-          x.asInstanceOf[Sec]
+          x.asInstanceOf[Security]
       }
       
       var analysisTc = AnalysisChartTopComponent.instanceOf(sec.uniSymbol) getOrElse {
@@ -595,7 +595,7 @@ object SymbolNodes {
             contents.serProvider = sec
             sec
           } getOrElse null
-        case x: Sec => x
+        case x: Security => x
       }
 
       sec.subscribeTickerServer
@@ -641,7 +641,7 @@ object SymbolNodes {
 
       val sec = contents.serProvider match {
         case null => return
-        case x: Sec => x
+        case x: Security => x
       }
 
       if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
@@ -730,7 +730,7 @@ object SymbolNodes {
       val freq = quoteContract.freq
       PersistenceManager().deleteQuotes(contents.uniSymbol, freq, fromTime, Long.MaxValue)
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = contents.serProvider.asInstanceOf[Security]
       if (sec == null) {
         sec = new Stock(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec
@@ -764,7 +764,7 @@ object SymbolNodes {
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = contents.serProvider.asInstanceOf[Security]
       if (sec == null) {
         sec = new Stock(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec
@@ -804,7 +804,7 @@ object SymbolNodes {
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = contents.serProvider.asInstanceOf[Security]
       if (sec == null) {
         sec = new Stock(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec

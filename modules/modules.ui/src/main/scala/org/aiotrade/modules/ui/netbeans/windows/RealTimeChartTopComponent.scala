@@ -43,7 +43,7 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
@@ -74,7 +74,7 @@ object RealTimeChartTopComponent {
   private val MODE = "realtime_"
   private val REALTIME_MODE_NUMBER = 3
 
-  def getInstance(sec: Sec, contents: AnalysisContents): RealTimeChartTopComponent = {
+  def getInstance(sec: Security, contents: AnalysisContents): RealTimeChartTopComponent = {
     val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
     
     if (!instance.isOpened) {
@@ -91,7 +91,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   private val ref = new WeakReference[RealTimeChartTopComponent](this)
   instanceRefs ::= ref
 
-  val sec = contents.asInstanceOf[Sec]
+  val sec = contents.asInstanceOf[Security]
 
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"

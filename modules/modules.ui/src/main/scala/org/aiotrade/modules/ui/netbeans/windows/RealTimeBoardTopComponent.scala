@@ -36,7 +36,7 @@ import java.lang.ref.WeakReference;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 /**
@@ -61,11 +61,11 @@ object RealTimeBoardTopComponent {
   /** The Mode this component will live in */
   val MODE = "realTimeBoard"
 
-  def instanceOf(sec: Sec): Option[RealTimeBoardTopComponent] = {
+  def instanceOf(sec: Security): Option[RealTimeBoardTopComponent] = {
     instanceRefs find (_.get.sec equals sec) map (_.get)
   }
 
-  def getInstance(sec: Sec, contents: AnalysisContents): RealTimeBoardTopComponent = {
+  def getInstance(sec: Security, contents: AnalysisContents): RealTimeBoardTopComponent = {
     val instance = instanceOf(sec) getOrElse new RealTimeBoardTopComponent(contents)
 
     if (!instance.isOpened) {
@@ -83,7 +83,7 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
   private val ref = new WeakReference[RealTimeBoardTopComponent](this)
   instanceRefs ::= ref
     
-  val sec: Sec = contents.serProvider.asInstanceOf[Sec]
+  val sec: Security = contents.serProvider.asInstanceOf[Security]
 
   private var reallyClosed = false
     

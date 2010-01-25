@@ -43,7 +43,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
@@ -284,7 +284,7 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.serviceClassName = meta.getValue("class")
         
     dataContract.symbol = meta.getValue("symbol")
-    dataContract.secType = Sec.Type.withName(meta.getValue("sectype"))
+    dataContract.secType = Security.Type.withName(meta.getValue("sectype"))
     dataContract.exchange = meta.getValue("exchange")
     dataContract.primaryExchange = meta.getValue("primaryexchange")
     dataContract.currency = meta.getValue("currency")

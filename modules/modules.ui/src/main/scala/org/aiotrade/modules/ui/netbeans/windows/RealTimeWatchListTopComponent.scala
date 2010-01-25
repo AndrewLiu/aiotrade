@@ -39,7 +39,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.TickerSerProvider
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
@@ -73,7 +73,7 @@ object RealTimeWatchListTopComponent {
   private val MODE = "editor"
   var instanceRefs = List[WeakReference[RealTimeWatchListTopComponent]]()
 
-  private val watchingSecs = HashSet[Sec]()
+  private val watchingSecs = HashSet[Security]()
 
   def getInstance: RealTimeWatchListTopComponent = {
     val instance = if (instanceRefs.isEmpty) new RealTimeWatchListTopComponent else instanceRefs.head.get
@@ -146,7 +146,7 @@ class RealTimeWatchListTopComponent extends TopComponent {
     super.componentClosed
   }
     
-  def watch(sec: Sec, node: Node) {
+  def watch(sec: Security, node: Node) {
     rtWatchListPanel.watch(sec.uniSymbol)
     symbolToNode.put(sec.uniSymbol, node)
     watchingSecs.add(sec)

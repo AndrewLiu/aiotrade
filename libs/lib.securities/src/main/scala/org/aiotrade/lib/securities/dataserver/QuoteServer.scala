@@ -35,7 +35,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{TSer}
-import org.aiotrade.lib.securities.{Market, Quote, QuotePool, PersistenceManager}
+import org.aiotrade.lib.securities.{Exchange, Quote, QuotePool, PersistenceManager}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -154,7 +154,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
     val size = quotes.length
     if (size > 0) {
-      val cal = Calendar.getInstance(marketOf(symbol).timeZone)
+      val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
@@ -231,8 +231,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  def marketOf(symbol: String): Market
+  def exchangeOf(symbol: String): Exchange
 
-  def toSourceSymbol(market: Market, uniSymbol: String): String
+  def toSourceSymbol(exchange: Exchange, uniSymbol: String): String
 }
 

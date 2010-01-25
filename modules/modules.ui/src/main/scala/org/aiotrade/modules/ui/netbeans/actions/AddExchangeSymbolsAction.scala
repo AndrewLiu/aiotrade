@@ -31,7 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.Market
+import org.aiotrade.lib.securities.Exchange
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent
@@ -43,7 +43,7 @@ import org.openide.util.actions.CallableSystemAction
  *
  * @author Caoyuan Deng
  */
-class AddMarketSymbolsAction extends CallableSystemAction {
+class AddExchangeSymbolsAction extends CallableSystemAction {
     
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
@@ -54,7 +54,7 @@ class AddMarketSymbolsAction extends CallableSystemAction {
           val selectedNodes = explorerTc.getExplorerManager.getSelectedNodes
           val rootNode = explorerTc.getExplorerManager.getRootContext
           val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
-          val marketFolder = DataFolder.create(rootFolder, Market.SHSE.code)
+          val exchangeFolder = DataFolder.create(rootFolder, Exchange.SS.code)
 
           // expand this node
           explorerTc.getExplorerManager.setExploredContext(rootNode)
@@ -62,11 +62,11 @@ class AddMarketSymbolsAction extends CallableSystemAction {
           // add symbols in market folder
           val quoteContract = createQuoteContract
           // quoteContract may bring in more than one symbol, should process it later
-          for (symbol <- Market.symbolsOf(Market.SHSE)) {
+          for (symbol <- Exchange.symbolsOf(Exchange.SS)) {
             // dataSourceDescriptor may has been set to more than one symbols, process it here
             quoteContract.symbol = symbol
                     
-            SymbolNodes.createSymbolXmlFile(marketFolder, symbol, quoteContract)
+            SymbolNodes.createSymbolXmlFile(exchangeFolder, symbol, quoteContract)
           }
         }
       })
@@ -89,7 +89,7 @@ class AddMarketSymbolsAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Add Market Symbols"
+    "Add Exchange Symbols"
   }
     
   def getHelpCtx: HelpCtx = {

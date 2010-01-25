@@ -34,7 +34,7 @@ import java.util.logging.Logger
 import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, SerChangeEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Market, QuoteItem, QuoteSer, Ticker, TickerObserver, TickerPool, TickerSnapshot}
+import org.aiotrade.lib.securities.{Exchange, QuoteItem, QuoteSer, Ticker, TickerObserver, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.Observable
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.{HashMap}
@@ -183,7 +183,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   def composeSer(symbol: String, tickerSer: TSer, storage: Array[Ticker]): SerChangeEvent = {
     var evt: SerChangeEvent = null
 
-    val cal = Calendar.getInstance(marketOf(symbol).timeZone)
+    val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
     var begTime = Long.MaxValue
     var endTime = Long.MinValue
 
@@ -375,7 +375,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     minuteSer.fireSerChangeEvent(evt)
   }
 
-  def marketOf(symbol: String): Market
+  def exchangeOf(symbol: String): Exchange
 
   private class IntervalLastTickerPair {
     val currIntervalOne = new Ticker

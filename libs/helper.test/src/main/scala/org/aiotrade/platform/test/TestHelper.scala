@@ -28,7 +28,7 @@ trait TestHelper {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Sec.Type.Stock
+    dataContract.secType = Security.Type.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
@@ -49,7 +49,7 @@ trait TestHelper {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Sec.Type.Stock
+    dataContract.secType = Security.Type.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"

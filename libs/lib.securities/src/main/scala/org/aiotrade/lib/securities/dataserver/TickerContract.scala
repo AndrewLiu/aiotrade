@@ -45,7 +45,7 @@ object TickerContract {
   val folderName = "TickerServers"
 }
 
-class TickerContract extends SecDataContract[TickerServer] {
+class TickerContract extends SecurityDataContract[TickerServer] {
   import TickerContract._
     
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"

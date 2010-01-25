@@ -7,7 +7,7 @@ package org.aiotrade.modules.ui.netbeans.quicksearch
 
 import java.net.MalformedURLException
 import java.net.URL
-import org.aiotrade.lib.securities.Market
+import org.aiotrade.lib.securities.Exchange
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.spi.quicksearch.SearchProvider
@@ -18,7 +18,7 @@ import org.openide.awt.HtmlBrowser.URLDisplayer
 
 class SymbolSearchProvider extends SearchProvider {
 
-  private val symbols = Market.symbolsOf(Market.SHSE)
+  private val symbols = Exchange.symbolsOf(Exchange.SS)
 
   /**
    * Method is called by infrastructure when search operation was requested.

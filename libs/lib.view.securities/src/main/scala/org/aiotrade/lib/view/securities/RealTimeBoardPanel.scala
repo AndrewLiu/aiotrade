@@ -60,8 +60,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerObserver
 import org.aiotrade.lib.securities.TickerSnapshot
@@ -84,7 +83,7 @@ object RealTimeBoardPanel {
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with TickerObserver {
+class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with TickerObserver {
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -102,8 +101,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val prevClose = new ValueCell
 
   private val numbers = Array("①", "②", "③", "④", "⑤")
-  private val timeZone = sec.market.timeZone
-  private val marketCal = Calendar.getInstance(timeZone)
+  private val timeZone = sec.exchange.timeZone
+  private val exchCal = Calendar.getInstance(timeZone)
   private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
   sdf.setTimeZone(timeZone)
 
@@ -347,8 +346,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthModel.setValueAt(ticker.bidSize(bidIdx).toInt.toString,  bidRow, 2)
     }
 
-    marketCal.setTimeInMillis(ticker.time)
-    val lastTradeTime = marketCal.getTime
+    exchCal.setTimeInMillis(ticker.time)
+    val lastTradeTime = exchCal.getTime
     currentTime.value = sdf.format(lastTradeTime)
     lastPrice.value   = "%8.2f"    format ticker(Ticker.LAST_PRICE)
     prevClose.value   = "%8.2f"    format ticker(Ticker.PREV_CLOSE)

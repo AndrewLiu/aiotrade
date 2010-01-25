@@ -46,16 +46,16 @@ import javax.swing.border.BevelBorder
 class StatusBar extends JPanel {
     
   // Panes in the status bar.
-  private val marketPane = new StatusPane("SH")
+  private val exchangePane = new StatusPane("SH")
     
   setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3))
   setBackground(Color.lightGray)
   setBorder(BorderFactory.createLineBorder(Color.darkGray))
         
-  add(marketPane)
+  add(exchangePane)
     
-  // Set market pane label.
-  def setMarketPane(market: String) {
+  // Set exchange pane label.
+  def setExchangePane(exchange: String) {
 
   }
     

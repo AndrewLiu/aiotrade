@@ -52,8 +52,8 @@ import scala.collection.mutable.HashMap
 
  * @author Caoyuan Deng
  */
-abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends Sec with TickerObserver {
+abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
+) extends Security with TickerObserver {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
@@ -63,7 +63,7 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
 
   private var _uniSymbol = $uniSymbol
 
-  var market = Market.NYSE
+  var exchange = Exchange.N
   var description: String = ""
   var name: String = $uniSymbol.replace('.', '_')
   var defaultFreq: TFreq = _

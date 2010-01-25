@@ -44,7 +44,7 @@ object QuoteContract {
   val folderName = "QuoteServers"
 }
 
-class QuoteContract extends SecDataContract[QuoteServer] {
+class QuoteContract extends SecurityDataContract[QuoteServer] {
   import QuoteContract._
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"

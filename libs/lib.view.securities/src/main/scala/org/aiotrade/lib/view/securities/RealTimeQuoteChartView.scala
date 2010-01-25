@@ -44,7 +44,7 @@ import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
-import org.aiotrade.lib.securities.Market
+import org.aiotrade.lib.securities.Exchange
 import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Ticker
@@ -71,7 +71,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   private var gridValues: Array[Float] = _
   private var tickerSer: QuoteSer = _
   private val cal = Calendar.getInstance
-  private var market: Market = _
+  private var exchange: Exchange = _
 } with AbstractQuoteChartView(acontroller, aquoteSer, empty) {
   import RealTimeQuoteChartView._
 
@@ -88,7 +88,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
 
     RealTimeQuoteChartView.quoteChartType = QuoteChart.Type.Line
 
-    market = sec.market
+    exchange = sec.exchange
     tickerSer = sec.tickerSer
     assert(tickerSer != null)
     tickerSer.addSerChangeListener(serChangeListener)
@@ -226,12 +226,12 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
       lastOccurredTime = cal.getTimeInMillis
     }
 
-    adjustLeftSideRowToMarketOpenTime(lastOccurredTime)
+    adjustLeftSideRowToExchangeOpenTime(lastOccurredTime)
   }
 
-  private def adjustLeftSideRowToMarketOpenTime(time: Long) {
-    val openTime  = market.openTime(time)
-    val closeTime = market.closeTime(time)
+  private def adjustLeftSideRowToExchangeOpenTime(time: Long) {
+    val openTime  = exchange.openTime(time)
+    val closeTime = exchange.closeTime(time)
 
     val begRow = masterSer.rowOfTime(openTime)
     val endRow = begRow + nBars - 1
