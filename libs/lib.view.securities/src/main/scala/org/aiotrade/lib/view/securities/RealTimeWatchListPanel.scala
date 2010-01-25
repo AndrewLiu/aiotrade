@@ -414,7 +414,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
       val colNameToColor = symbolToColColors(symbol)
 
       val colName = table.getColumnName(col)
-      if (isSelected && colName == SYMBOL) {
+      if (isSelected) {
         setBackground(bgColorSelected)
       } else {
         setBackground(LookFeel().backgroundColor)
@@ -449,8 +449,9 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
           case _ =>
             setHorizontalAlignment(SwingConstants.TRAILING)
         }
+
+        setText(value.toString)
       }
-      setText(value.toString)
 
       this
     }

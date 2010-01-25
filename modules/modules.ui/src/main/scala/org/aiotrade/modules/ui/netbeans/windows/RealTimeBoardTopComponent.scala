@@ -30,8 +30,6 @@
  */
 package org.aiotrade.modules.ui.netbeans.windows;
 import java.awt.BorderLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.lang.ref.WeakReference;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
@@ -96,16 +94,13 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
   add(boardPanel, BorderLayout.CENTER)
   setName("RealTime - " + sec.uniSymbol)
         
-  /** this component should setFocusable(true) to have the ability to grab the focus */
-  setFocusable(true)
-        
-  /** as the NetBeans window system manage focus in a strange manner, we should do: */
-  addFocusListener(new FocusAdapter {
-      override def focusGained(e: FocusEvent) {
-        realTimeChartViewContainer foreach (_.requestFocusInWindow)
-      }
-    })
-    
+  setFocusable(false)
+
+
+  def setReallyClosed(b: Boolean) {
+    this.reallyClosed = b
+  }
+
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others
@@ -117,21 +112,17 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     mode.dockInto(this)
     super.open
   }
-    
+
+  override def requestActive {
+    // do not active it
+  }
+
   override protected def componentActivated {
-    if (!isOpened) {
-      open
-    }
-        
-    super.componentActivated
+    // do not active it
   }
     
   override protected def componentShowing {
     super.componentShowing
-  }
-    
-  def setReallyClosed(b: Boolean) {
-    this.reallyClosed = b
   }
     
   override protected def componentClosed {
@@ -146,7 +137,7 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
       }
       /**
        * do not remove it from instanceRefs here, so can be called back.
-       * remove it by RealtimeWatchListTopComponent
+       * remove it via RealtimeWatchListTopComponent if necessary
        */
     }
   }

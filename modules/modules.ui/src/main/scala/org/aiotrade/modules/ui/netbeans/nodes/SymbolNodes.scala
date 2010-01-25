@@ -576,13 +576,13 @@ object SymbolNodes {
         analysisTc.open
       }
 
-      analysisTc.requestActive
-
       sec.subscribeTickerServer
 
       val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
       rtBoardWin.watch
-      rtBoardWin.requestActive
+      rtBoardWin.open
+
+      analysisTc.requestActive
     }
   }
 

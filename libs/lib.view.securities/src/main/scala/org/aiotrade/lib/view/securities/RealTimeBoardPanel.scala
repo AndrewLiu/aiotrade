@@ -128,6 +128,10 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
   chartPane.setLayout(new BorderLayout)
   chartPane.add(viewContainer, BorderLayout.CENTER)
 
+  setFocusable(false)
+  chartPane.setFocusable(false)
+  viewContainer.setFocusable(false)
+
   for (ticker <- sec.tickers) {
     updateByTicker(ticker)
     lastTickerTime = ticker.time
