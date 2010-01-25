@@ -252,10 +252,7 @@ object SymbolNodes {
   private def displayNameOf(node: Node): String = {
     if (node.getLookup.lookup(classOf[DataFolder]) != null) {
       Exchange.allExchanges find (_.code == node.getName) match {
-        case Some(x) => x.code match {
-            case "SS" => "Shanghai"
-            case code => code
-          }
+        case Some(x) => x.shortDescription
         case None => node.getName
       }
     } else {

@@ -19,7 +19,7 @@ object Exchange {
   val SZ  = new Exchange("SZ", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shenzhen
   val L   = new Exchange("L",  TimeZone.getTimeZone("UTC"), 9, 30, 15, 0) // London
 
-  def allExchanges = List(N, SS, SZ, L)
+  val allExchanges = List(N, SS, SZ, L)
 
   val exchangeCodes = Map(
     "CI"  -> "Abidjan Stock Exchange",
@@ -246,7 +246,11 @@ object Exchange {
 
 }
 
+import Exchange._
 class Exchange(val code: String, val timeZone: TimeZone, openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
+
+  val longDescription:  String = BUNDLE.getString(code + "_Long")
+  val shortDescription: String = BUNDLE.getString(code + "_Short")
 
   val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
