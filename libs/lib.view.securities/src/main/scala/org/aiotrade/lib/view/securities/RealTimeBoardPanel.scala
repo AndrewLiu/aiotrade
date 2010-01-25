@@ -290,6 +290,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
     tickerPane.setBackground(LookFeel().backgroundColor)
     tickerPane.setViewportView(tickerTable)
+    //tickerPane.getVerticalScrollBar.setUI(new BasicScrollBarUI)
 
     // put infoTable to a box to simple the insets setting:
     val infoBox = new Box(BoxLayout.Y_AXIS) {

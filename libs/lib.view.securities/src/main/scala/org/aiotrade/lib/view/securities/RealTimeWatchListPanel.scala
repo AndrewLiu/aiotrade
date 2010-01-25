@@ -125,6 +125,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   scrollPane.registerKeyboardAction(scrollPane.getActionMap.get("scrollUp"),   "pageup",   meta_pgup, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   scrollPane.registerKeyboardAction(scrollPane.getActionMap.get("scrollDown"), "pagedown", meta_pgdn, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
+  //scrollPane.getVerticalScrollBar.setUI(new BasicScrollBarUI)
+
   setLayout(new BorderLayout)
   add(BorderLayout.CENTER, scrollPane)
 

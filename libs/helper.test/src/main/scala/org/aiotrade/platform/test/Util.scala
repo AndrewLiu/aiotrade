@@ -467,7 +467,7 @@ class Util {
     controller.setWBarByNBars(wViewPort, nBars)
 
 
-//        /** backup: */
+    // backup:
     val backupRightCursorPos = controller.rightSideRow
     val backupReferCursorPos = controller.referCursorRow
 

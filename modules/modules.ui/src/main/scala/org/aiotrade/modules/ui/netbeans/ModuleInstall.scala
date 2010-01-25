@@ -28,10 +28,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans;
+package org.aiotrade.modules.ui.netbeans
 
-//import org.aiotrade.platform.core.PersistenceManager;
-//import org.aiotrade.platform.core.UserOptionsManager;
+import javax.swing.UIManager
+import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.util.UserOptionsManager
 
 /**
  * How do i change the closing action of the MainWindow?
@@ -55,19 +56,29 @@ package org.aiotrade.modules.ui.netbeans;
  *
  * @author Caoyuan Deng
  */
-import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.util.UserOptionsManager
 
 class ModuleInstall extends org.openide.modules.ModuleInstall {
 
-  override protected def initialize {
-    super.initialize
-        
+  override def restored {
+    super.restored
+
     UserOptionsManager.assertLoaded
+
+    UIManager.put("ScrollBar.width", 12)
+
+//    UIManager.put("ScrollBar.foreground", LookFeel().backgroundColor)
+//    UIManager.put("ScrollBar.background", LookFeel().backgroundColor)
+//    UIManager.put("ScrollBar.track", LookFeel().getTrackColor)
+//    UIManager.put("ScrollBar.trackDarkShadow", LookFeel().borderColor)
+//    UIManager.put("ScrollBar.trackHighlight", LookFeel().getTrackColor)
+//    UIManager.put("ScrollBar.trackShadow", LookFeel().borderColor)
+//    UIManager.put("ScrollBar.thumb", LookFeel().getThumbColor)
+//    UIManager.put("ScrollBar.thumbDarkShadow", LookFeel().getThumbColor)
+//    UIManager.put("ScrollBar.thumbHighlight", LookFeel().getThumbColor)
+//    UIManager.put("ScrollBar.thumbShadow", LookFeel().getThumbColor)
   }
 
   override def closing: Boolean = {
-
     PersistenceManager().shutdown
         
     super.closing
