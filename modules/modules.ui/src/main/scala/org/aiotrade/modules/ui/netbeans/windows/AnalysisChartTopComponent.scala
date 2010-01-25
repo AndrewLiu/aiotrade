@@ -31,6 +31,8 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.lang.ref.WeakReference;
 import javax.swing.JPopupMenu;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -173,24 +175,17 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
     add(viewContainer, BorderLayout.CENTER)
     setName(sec.name + " - " + quoteContract.freq)
 
-    /** this component should setFocusable(true) to have the ability to grab the focus */
+    // this component should setFocusable(true) to have the ability to gain the focus
     setFocusable(true)
-    // as the NetBeans window system manage focus in a strange manner, we should do:
-    /* addFocusListener(new FocusAdapter {
-     override def focusGained(e: FocusEvent) {
-     selectedViewContainer foreach {x =>
-     x.requestFocusInWindow
-     }
-     }
-
-     override def focusLost(e: FocusEvent) {
-     }
-     }) */
-
-    //tabbedPane.setFocusable(false);
-    //FocusOwnerChecker check = new FocusOwnerChecker();
+    // due to the strange manner of how NetBeans window system manage focus, we should do:
+    addFocusListener(new FocusAdapter {
+        override def focusGained(e: FocusEvent) {
+          viewContainer.requestFocusInWindow
+        }
+      })
+    //org.aiotrade.lib.util.awt.focusOwnerChecker // to enable owner checking
   }
-    
+
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others

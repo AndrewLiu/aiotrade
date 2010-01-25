@@ -31,6 +31,8 @@
 package org.aiotrade.modules.ui.netbeans.windows;
 
 import java.awt.BorderLayout;
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
@@ -100,12 +102,6 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   private var updateServerRegistered = false
   private var reallyClosed = false
 
-  setLayout(new BorderLayout)
-        
-  add(watchListPanel, BorderLayout.CENTER)
-  setName(name)
-  setBackground(LookFeel().backgroundColor)
-        
   private val popup = new JPopupMenu
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
   popup.add(SystemAction.get(classOf[StopSelectedWatchAction]))
@@ -113,7 +109,23 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   val watchListTable = watchListPanel.table
         
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
-    
+
+  // this component should setFocusable(true) to have the ability to gain the focus
+  setFocusable(true)
+  // due to the strange manner of how NetBeans window system manage focus, we should do:
+  addFocusListener(new FocusAdapter {
+      override def focusGained(e: FocusEvent) {
+        watchListPanel.scrollPane.requestFocusInWindow
+      }
+    })
+  //org.aiotrade.lib.util.awt.focusOwnerChecker // to enable owner checking
+
+  setLayout(new BorderLayout)
+
+  add(watchListPanel, BorderLayout.CENTER)
+  setName(name)
+  setBackground(LookFeel().backgroundColor)
+
   private def showPopup(e: MouseEvent) {
     if (e.isPopupTrigger()) {
       popup.show(this, e.getX, e.getY)

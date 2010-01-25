@@ -105,13 +105,13 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   initTable
 
-  private val scrollPane = new JScrollPane
+  val scrollPane = new JScrollPane
   scrollPane.setViewportView(table)
   scrollPane.setBackground(LookFeel().backgroundColor)
+  scrollPane.setFocusable(true)
 
   setLayout(new BorderLayout)
   add(BorderLayout.CENTER, scrollPane)
-
 
   private def initTable {
     table.setFont(LookFeel().defaultFont)

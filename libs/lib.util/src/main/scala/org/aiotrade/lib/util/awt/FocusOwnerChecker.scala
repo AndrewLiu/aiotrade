@@ -28,35 +28,31 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.util;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+package org.aiotrade.lib.util.awt
+
+import java.awt.Component
+import java.awt.KeyboardFocusManager
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 
 
 /**
  *
  * @author Caoyuan Deng
  */
-object FocusOwnerChecker {
-  private var focusManager: KeyboardFocusManager = _
-}
-class FocusOwnerChecker {
-  import FocusOwnerChecker._
+object focusOwnerChecker {
 
-  focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager
-  focusManager.addPropertyChangeListener(new PropertyChangeListener {
-            
-      def propertyChange(e: PropertyChangeEvent): Unit = {
-        val prop = e.getPropertyName
-        if ("focusOwner".equals(prop) && e.getNewValue != null) {
-          val c = e.getNewValue.asInstanceOf[Component]
-          val name = c.getName
-          println("focus owner is: " + c)
+  KeyboardFocusManager.getCurrentKeyboardFocusManager.addPropertyChangeListener(new PropertyChangeListener {
+      def propertyChange(e: PropertyChangeEvent) {
+        e.getPropertyName match {
+          case "focusOwner" =>
+            e.getNewValue match {
+              case c: Component => println("focus owner is: " + c)
+              case _ =>
+            }
+          case _ =>
         }
       }
-            
     })
     
 }

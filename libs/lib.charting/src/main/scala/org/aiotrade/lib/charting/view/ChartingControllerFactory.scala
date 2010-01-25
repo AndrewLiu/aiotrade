@@ -148,8 +148,8 @@ object ChartingControllerFactory {
 
     private def addKeyMouseListenersTo(component: JComponent) {
       component.setFocusable(true)
-      component.addKeyListener(new ViewKeyAdapter)
-      component.addMouseWheelListener(new ViewMouseWheelListener)
+      component.addKeyListener(new ChartViewKeyAdapter)
+      component.addMouseWheelListener(new ChartViewMouseWheelListener)
     }
 
     private def removeKeyMouseListenersFrom(component: JComponent) {
@@ -537,7 +537,7 @@ object ChartingControllerFactory {
      * =============================================================
      * Bellow is the private listener classes for key and mouse:
      */
-    class ViewKeyAdapter extends KeyAdapter {
+    private class ChartViewKeyAdapter extends KeyAdapter {
 
       private val LEFT  = -1
       private val RIGHT = 1
@@ -575,10 +575,7 @@ object ChartingControllerFactory {
 
       override def keyReleased(e: KeyEvent) {
         if (e.getKeyCode == KeyEvent.VK_SPACE) {
-          /*-
-           * let action to process this
-           _isCursorAccelerated = !_isCursorAccelerated
-           */
+          _isCursorAccelerated = !_isCursorAccelerated
         }
       }
 
@@ -598,7 +595,7 @@ object ChartingControllerFactory {
       }
     }
 
-    class ViewMouseWheelListener extends MouseWheelListener {
+    private class ChartViewMouseWheelListener extends MouseWheelListener {
 
       def mouseWheelMoved(e: java.awt.event.MouseWheelEvent) {
         val view = internal_getCorrespondingChartView(e)
