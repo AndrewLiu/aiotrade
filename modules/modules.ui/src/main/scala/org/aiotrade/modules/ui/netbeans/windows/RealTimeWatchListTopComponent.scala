@@ -31,14 +31,15 @@
 package org.aiotrade.modules.ui.netbeans.windows;
 
 import java.awt.BorderLayout;
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
+import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
+import javax.swing.AbstractAction
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.KeyStroke
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.securities.Security
@@ -109,8 +110,22 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
         
   val watchListTable = watchListPanel.table
         
+  // replace default "ENTER" keybinding to viewSymbolAction
+  val viewSymbolAction = new AbstractAction {
+    def actionPerformed(e: ActionEvent) {
+      val row = watchListTable.getSelectedRow
+      if (row >= 0 && row < watchListTable.getRowCount) {
+        val symbol = watchListPanel.symbolAtRow(row)
+        if (symbol != null) {
+          symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
+        }
+      }
+    }
+  }
+  watchListTable.getInputMap.put(KeyStroke.getKeyStroke("ENTER"), "viewSymbol")
+  watchListTable.getActionMap.put("viewSymbol", viewSymbolAction)
+
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
-  watchListTable.addKeyListener  (new WatchListTableKeyListener(watchListTable))
 
   // component should setFocusable(true) to have ability to gain the focus
   setFocusable(true)
@@ -258,11 +273,9 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
       // when double click on a row, try to active this stock's realtime chart view
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
-        if (symbol == null) {
-          return
+        if (symbol != null) {
+          symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
         }
-                
-        symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
       }
     }
         
@@ -271,24 +284,6 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     }
   }
 
-  private class WatchListTableKeyListener(table: JTable) extends KeyAdapter {
-    override def keyPressed(e: KeyEvent) {
-      e.getKeyCode match {
-        case KeyEvent.VK_ENTER =>
-          val row = table.getSelectedRow
-          if (row >= 0 && row < table.getRowCount) {
-            val symbol = watchListPanel.symbolAtRow(row)
-            if (symbol == null) {
-              return
-            }
-
-            symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
-          }
-        case _ =>
-      }
-    }
-  }
-    
   override protected def preferredID: String = {
     tc_id
   }
