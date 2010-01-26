@@ -63,6 +63,7 @@ object RealTimeQuoteChartView {
 
 }
 
+import RealTimeQuoteChartView._
 class RealTimeQuoteChartView(acontroller: ChartingController,
                              aquoteSer: QuoteSer,
                              empty: Boolean
@@ -73,7 +74,6 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   private val cal = Calendar.getInstance
   private var exchange: Exchange = _
 } with AbstractQuoteChartView(acontroller, aquoteSer, empty) {
-  import RealTimeQuoteChartView._
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
@@ -170,7 +170,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
     if (Null.not(prevClose)) {
       minValue1 = minValue
       maxValue1 = maxValue
-      val maxDelta = math.max(math.abs(maxValue1 - prevClose), math.abs(minValue1 - prevClose))
+      val maxDelta = Math.max(Math.abs(maxValue1 - prevClose), Math.abs(minValue1 - prevClose))
       maxValue1 = prevClose + maxDelta
       minValue1 = prevClose - maxDelta
       setMaxMinValue(maxValue1, minValue1)

@@ -39,19 +39,18 @@ import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.util.collection.ArrayList
-
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
 object RealTimeChartViewContainer {
-  private val INSTANCES = new ArrayList[RealTimeChartViewContainer]
+  private val INSTANCES = new ArrayBuffer[RealTimeChartViewContainer]
 }
 
+import RealTimeChartViewContainer._
 class RealTimeChartViewContainer extends ChartViewContainer {
-  import RealTimeChartViewContainer._
 
   override def init(focusableParent: Component, controller: ChartingController) {
     super.init(focusableParent, controller)
@@ -83,7 +82,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     }
 
     /** add this to container at last */
-    INSTANCES + this
+    INSTANCES += this
   }
 
   protected def initComponents {
