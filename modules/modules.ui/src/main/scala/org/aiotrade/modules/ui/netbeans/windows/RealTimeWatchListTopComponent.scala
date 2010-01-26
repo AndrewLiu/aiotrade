@@ -31,8 +31,10 @@
 package org.aiotrade.modules.ui.netbeans.windows;
 
 import java.awt.BorderLayout;
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -108,6 +110,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   val watchListTable = watchListPanel.table
         
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
+  watchListTable.addKeyListener  (new WatchListTableKeyListener(watchListTable))
 
   // component should setFocusable(true) to have ability to gain the focus
   setFocusable(true)
@@ -236,8 +239,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     symbolToNode.clear
   }
     
-  private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseListener {
-        
+  private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseAdapter {
     private def rowAtY(e: MouseEvent): Int = {
       val colModel = table.getColumnModel
       val col = colModel.getColumnIndexAtX(e.getX)
@@ -246,14 +248,14 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
       row
     }
         
-    def mouseClicked(e: MouseEvent) {
+    override def mouseClicked(e: MouseEvent) {
       showPopup(e)
     }
         
-    def mousePressed(e: MouseEvent) {
+    override def mousePressed(e: MouseEvent) {
       showPopup(e)
             
-      /** when double click on a row, try to active this stock's realtime chart view */
+      // when double click on a row, try to active this stock's realtime chart view
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol == null) {
@@ -264,17 +266,28 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
       }
     }
         
-    def mouseReleased(e: MouseEvent) {
+    override def mouseReleased(e: MouseEvent) {
       showPopup(e)
     }
-        
-    def mouseEntered(e: MouseEvent) {
-    }
-        
-    def mouseExited(e: MouseEvent) {
+  }
+
+  private class WatchListTableKeyListener(table: JTable) extends KeyAdapter {
+    override def keyPressed(e: KeyEvent) {
+      e.getKeyCode match {
+        case KeyEvent.VK_ENTER =>
+          val row = table.getSelectedRow
+          if (row >= 0 && row < table.getRowCount) {
+            val symbol = watchListPanel.symbolAtRow(row)
+            if (symbol == null) {
+              return
+            }
+
+            symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
+          }
+        case _ =>
+      }
     }
   }
-    
     
   override protected def preferredID: String = {
     tc_id

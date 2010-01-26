@@ -542,8 +542,7 @@ object ChartingControllerFactory {
       private val LEFT  = -1
       private val RIGHT = 1
 
-      override
-      def keyPressed(e: KeyEvent) {
+      override def keyPressed(e: KeyEvent) {
         val view = internal_getCorrespondingChartView(e)
         if (view == null || !view.isInteractive) {
           return
