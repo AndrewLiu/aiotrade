@@ -113,7 +113,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
   private val tableModel: WatchListTableModel = new WatchListTableModel(colNames , 0)
   private val df = new SimpleDateFormat("hh:mm", Locale.US)
   private val cal = Calendar.getInstance
-  private val bgColorSelected = new Color(169, 178, 202)
+  private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
 
   initTable
 
@@ -208,7 +208,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val symbol = ts.symbol
     val ticker = ts.ticker
 
-    /*
+    /**
      * To avoid:
      java.lang.NullPointerException
      at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)

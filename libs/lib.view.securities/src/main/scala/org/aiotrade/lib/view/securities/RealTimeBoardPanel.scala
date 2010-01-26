@@ -164,7 +164,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     }
 
     for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
-      infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.column)
+      infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)
     }
 
     infoTable = new MultiSpanCellTable(infoModel)
@@ -370,10 +370,10 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     } else if (ticker(Ticker.DAY_CHANGE) < 0) {
       fgColor = negativeColor
     }
-    infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.column)
-    infoCellAttr.setForeground(fgColor, dayPercent.row, dayPercent.column)
-    infoCellAttr.setBackground(bgColor, dayChange.row,  dayChange.column)
-    infoCellAttr.setBackground(bgColor, dayPercent.row, dayPercent.column)
+    infoCellAttr.setForeground(fgColor, dayChange.row,  dayChange.col)
+    infoCellAttr.setForeground(fgColor, dayPercent.row, dayPercent.col)
+    infoCellAttr.setBackground(bgColor, dayChange.row,  dayChange.col)
+    infoCellAttr.setBackground(bgColor, dayPercent.row, dayPercent.col)
 
     /**
      * Sometimes, DataUpdatedEvent is fired by other symbols' new ticker,
@@ -392,8 +392,8 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
       }
 
     }
-    infoCellAttr  setForeground (fgColor, lastPrice.row, lastPrice.column)
-    infoCellAttr  setBackground (bgColor, lastPrice.row, lastPrice.column)
+    infoCellAttr  setForeground (fgColor, lastPrice.row, lastPrice.col)
+    infoCellAttr  setBackground (bgColor, lastPrice.row, lastPrice.col)
     depthCellAttr setForeground (fgColor, dealRow, 1) // last deal
     depthCellAttr setBackground (bgColor, dealRow, 1) // last deal
 
@@ -528,7 +528,7 @@ object ValueCell {
         rows(j) match {
           case cell: ValueCell =>
             cell.row = i
-            cell.column = j
+            cell.col = j
           case _ =>
         }
       }
@@ -536,7 +536,7 @@ object ValueCell {
   }
 }
 
-class ValueCell(var row: Int, var column: Int) {
+class ValueCell(var row: Int, var col: Int) {
   var value: String = _
 
   def this() = this(0, 0)
