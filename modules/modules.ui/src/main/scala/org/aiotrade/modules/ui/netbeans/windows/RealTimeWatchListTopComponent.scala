@@ -141,12 +141,6 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     watchListPanel.requestFocusInWindow
   }
 
-  private def showPopup(e: MouseEvent) {
-    if (e.isPopupTrigger()) {
-      popup.show(this, e.getX, e.getY)
-    }
-  }
-    
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     mode.dockInto(this)
@@ -253,8 +247,14 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     watchingSecs.clear
     symbolToNode.clear
   }
-    
+
   private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseAdapter {
+    private def showPopup(e: MouseEvent) {
+      if (e.isPopupTrigger) {
+        popup.show(RealTimeWatchListTopComponent.this, e.getX, e.getY)
+      }
+    }
+
     private def rowAtY(e: MouseEvent): Int = {
       val colModel = table.getColumnModel
       val col = colModel.getColumnIndexAtX(e.getX)
@@ -270,7 +270,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     override def mousePressed(e: MouseEvent) {
       showPopup(e)
             
-      // when double click on a row, try to active this stock's realtime chart view
+      // when double click on a row, active this stock's realtime chart view
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol != null) {

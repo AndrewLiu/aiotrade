@@ -93,16 +93,15 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
         case Week  => "Weekly"
         case Month => "Monthly"
         case Year  => "Yearly"
-        case _ =>
+        case _ => ""
       }
+    } else {
+      nUnits + unit.compactDescription + (if (nUnits > 1) "s" else "")
     }
+  }
 
-    val sb = new StringBuilder(10).append(nUnits).append(unit.compactDescription)
-    if (nUnits > 1) {
-      sb.append("s")
-    }
-
-    sb.toString
+  val shortDescription: String = {
+    nUnits + unit.shortDescription
   }
 
   override def equals(o: Any): Boolean = {

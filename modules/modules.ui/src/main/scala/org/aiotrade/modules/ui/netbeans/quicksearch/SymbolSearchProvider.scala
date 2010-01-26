@@ -32,14 +32,14 @@ class SymbolSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
 
-    for (symbol <- symbols if symbol.toLowerCase.indexOf(request.text.toLowerCase) != -1) {
-      if (!response.addResult(new SymbolFoundResult(symbol), symbol)) {
+    for (symbol <- symbols if symbol.toLowerCase.startsWith(request.text.toLowerCase)) {
+      if (!response.addResult(new FoundResult(symbol), symbol)) {
         return
       }
     }
   }
 
-  private class SymbolFoundResult(symbol: String) extends Runnable {
+  private class FoundResult(symbol: String) extends Runnable {
 
     private val url = "http://finance.yahoo.com/q?s=" + symbol
 

@@ -87,6 +87,16 @@ object AnalysisChartTopComponent {
     instanceRefs find (_.get.sec.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
   }
 
+  def getInstance(sec: Security, contents: AnalysisContents): AnalysisChartTopComponent = {
+    val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new AnalysisChartTopComponent(contents)
+
+    if (!instance.isOpened) {
+      instance.open
+    }
+
+    instance
+  }
+
   def selected: Option[AnalysisChartTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: AnalysisChartTopComponent => Some(x)
@@ -96,7 +106,7 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent {
+class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopComponent {
 
   private val ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
@@ -107,7 +117,7 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   private val symbol = sec.uniSymbol
   private val popupMenuForViewContainer = new JPopupMenu
     
-  var viewContainer: ChartViewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+  val viewContainer: ChartViewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
 
   initComponents
 
@@ -184,14 +194,14 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
 
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
-    // hidden others
+    // hidden others in "editor" mode
     for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
       tc.close
     }
 
     /**
      * !NOTICE
-     * mode.dockInto(this) seems will close this at first if this.isOpened()
+     * mode.dockInto(this) seems will close this first if this.isOpened()
      * So, when call open(), try to check if it was already opened, if true,
      * no need to call open() again
      */
@@ -209,8 +219,6 @@ class AnalysisChartTopComponent(contents: AnalysisContents) extends TopComponent
   }
     
   override protected def componentClosed {
-    sec.stopAllDataServer
-        
     instanceRefs -= ref
     super.componentClosed
     /**

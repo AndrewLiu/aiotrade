@@ -31,10 +31,8 @@
 package org.aiotrade.modules.ui.netbeans.windows;
 
 import java.awt.BorderLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
@@ -70,9 +68,7 @@ import org.openide.windows.WindowManager;
 object RealTimeChartTopComponent {
   var instanceRefs = List[WeakReference[RealTimeChartTopComponent]]()
 
-  /** The Mode this component will live in. */
-  private val MODE = "realtime_"
-  private val REALTIME_MODE_NUMBER = 3
+  private val MODE = "editor"
 
   def getInstance(sec: Security, contents: AnalysisContents): RealTimeChartTopComponent = {
     val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
@@ -83,22 +79,25 @@ object RealTimeChartTopComponent {
 
     instance
   }
+
+  def selected: Option[RealTimeChartTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: RealTimeChartTopComponent => Some(x)
+      case _ => instanceRefs find (_.get.isShowing) map (_.get)
+    }
+  }
+
 }
 
 import RealTimeChartTopComponent._
-class RealTimeChartTopComponent private (contents: AnalysisContents) extends TopComponent {
+class RealTimeChartTopComponent private (val contents: AnalysisContents) extends TopComponent {
 
   private val ref = new WeakReference[RealTimeChartTopComponent](this)
   instanceRefs ::= ref
 
-  val sec = contents.asInstanceOf[Security]
-
+  val sec = contents.serProvider.asInstanceOf[Security]
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"
-        
-  //        if (!stock.isSeriesLoaded()) {
-  //            stock.loadSeries();
-  //        }
         
   private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
@@ -106,7 +105,7 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   setLayout(new BorderLayout)
         
   add(viewContainer, SwingConstants.CENTER)
-  setName(sec.name + "_RT")
+  setName(sec.name + " - RealTime")
         
   private val popup = new JPopupMenu
   popup.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
@@ -114,67 +113,44 @@ class RealTimeChartTopComponent private (contents: AnalysisContents) extends Top
   popup.add(SystemAction.get(classOf[ZoomInAction]))
   popup.add(SystemAction.get(classOf[ZoomOutAction]))
         
-  addMouseListener(new MouseListener {
-      def mouseClicked(e: MouseEvent) {
+  addMouseListener(new MouseAdapter {
+      private def showPopup(e: MouseEvent) {
+        if (e.isPopupTrigger) {
+          popup.show(RealTimeChartTopComponent.this, e.getX, e.getY)
+        }
+      }
+
+      override def mouseClicked(e: MouseEvent) {
         showPopup(e)
       }
-      def mousePressed(e: MouseEvent) {
+      override def mousePressed(e: MouseEvent) {
         showPopup(e)
       }
-      def mouseReleased(e: MouseEvent) {
+      override def mouseReleased(e: MouseEvent) {
         showPopup(e)
-      }
-      def mouseEntered(e: MouseEvent) {
-      }
-      def mouseExited(e: MouseEvent) {
       }
     })
         
   /** this component should setFocusable(true) to have the ability to grab the focus */
   setFocusable(true)
-        
-  /** as the NetBeans window system manage focus in a strange manner, we should do: */
-  addFocusListener(new FocusAdapter {
-      override def focusGained(e: FocusEvent) {
-        viewContainer.requestFocusInWindow
-      }
-            
-      override def focusLost(e: FocusEvent) {
-      }
-    })
-            
-  private def showPopup(e: MouseEvent) {
-    if (e.isPopupTrigger()) {
-      popup.show(this, e.getX, e.getY)
-    }
+
+  /** Should forward focus to sub-component viewContainer */
+  override def requestFocusInWindow: Boolean = {
+    viewContainer.requestFocusInWindow
   }
-    
+
   override def open {
-    val size = instanceRefs.size
-    val modeSerialNumber = (size - 1) % REALTIME_MODE_NUMBER + 1
-    val modeName = MODE + modeSerialNumber
-    val mode = WindowManager.getDefault.findMode(modeName)
+    val mode = WindowManager.getDefault.findMode(MODE)
+    // hidden others in "editor" mode
+    for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[RealTimeChartTopComponent]) {
+      tc.close
+    }
+
     mode.dockInto(this)
     super.open
   }
     
   override protected def componentActivated {
-    if (sec.isTickerServerSubscribed) {
-      sec.subscribeTickerServer
-    }
-        
-    /** active corresponding ticker board */
-    for (ref <- instanceRefs; tc = ref.get) {
-      if (tc.sec.equals(sec)) {
-        if (!tc.isOpened) {
-          tc.open
-        }
-        tc.requestVisible
-      } else {
-        tc.close
-      }
-    }
-        
     super.componentActivated
   }
     

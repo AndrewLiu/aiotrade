@@ -367,6 +367,13 @@
                 <attr name="displayName" bundlevalue="org.aiotrade.modules.ui.netbeans.Bundle#QuickSearch/Symbols/org-aiotrade-modules-ui-netbeans-quicksearch-SymbolSearchProvider.instance"/>
             </file>
         </folder>
+        <folder name="Freqs">
+            <attr name="command" stringvalue="f"/>
+            <attr name="position" intvalue="1"/>
+            <file name="org-aiotrade-modules-ui-netbeans-quicksearch-FreqSearchProvider.instance">
+                <attr name="displayName" bundlevalue="org.aiotrade.modules.ui.netbeans.Bundle#QuickSearch/Freqs/org-aiotrade-modules-ui-netbeans-quicksearch-FreqSearchProvider.instance"/>
+            </file>
+        </folder>        
     </folder>
 
 </filesystem>
