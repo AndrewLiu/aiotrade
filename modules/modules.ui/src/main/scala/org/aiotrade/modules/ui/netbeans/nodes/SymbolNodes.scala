@@ -534,8 +534,8 @@ object SymbolNodes {
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         /* for (child <- node.getChildren.getNodes) {
-          child.getLookup.lookup(classOf[ViewAction]).execute
-        } */
+         child.getLookup.lookup(classOf[ViewAction]).execute
+         } */
         return
       }
 
@@ -554,21 +554,17 @@ object SymbolNodes {
           x.asInstanceOf[Security]
       }
       
-      var analysisTc = AnalysisChartTopComponent.instanceOf(sec.uniSymbol) getOrElse {
-        /**
-         * !NOTICE
-         * close a TopComponent doen's mean this TopComponent is null, it still
-         * exsit, just invsible
-         */
-        /** if TopComponent of this stock has been shown before, should reload quote data, why */
-        /* if (mayNeedsReload) {
-         sec.clearSer(quoteContract.freq)
-         } */
-        /** here should be the only place to new AnalysisChartTopComponent instance */
-        new AnalysisChartTopComponent(contents)
-      }
-
+      var analysisTc = AnalysisChartTopComponent(contents)
       analysisTc.setActivatedNodes(Array(node))
+      /**
+       * !NOTICE
+       * close a TopComponent doen's mean this TopComponent is null, it still
+       * exsit, just invsible
+       */
+      /** if TopComponent of this stock has been shown before, should reload quote data, why */
+      /* if (mayNeedsReload) {
+       sec.clearSer(quoteContract.freq)
+       } */
 
       if (!analysisTc.isOpened) {
         analysisTc.open

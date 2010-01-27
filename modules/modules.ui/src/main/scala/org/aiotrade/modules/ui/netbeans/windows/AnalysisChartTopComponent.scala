@@ -32,7 +32,6 @@ package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import java.lang.ref.WeakReference;
-import javax.swing.BorderFactory
 import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -82,6 +81,8 @@ import org.openide.windows.WindowManager
 object AnalysisChartTopComponent {
   var instanceRefs = List[WeakReference[AnalysisChartTopComponent]]()
 
+  private var singleton: AnalysisChartTopComponent = _
+
   // The Mode this component will live in.
   private val MODE = "editor"
 
@@ -89,14 +90,30 @@ object AnalysisChartTopComponent {
     instanceRefs find (_.get.sec.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
   }
 
-  def getInstance(sec: Security, contents: AnalysisContents): AnalysisChartTopComponent = {
-    val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new AnalysisChartTopComponent(contents)
+  def apply(contents: AnalysisContents): AnalysisChartTopComponent = {
+    apply(contents, false)
+  }
 
-    if (!instance.isOpened) {
-      instance.open
+  def apply(contents: AnalysisContents, standalone: Boolean): AnalysisChartTopComponent = {
+    if (standalone) {
+      val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new AnalysisChartTopComponent(contents)
+
+      if (!instance.isOpened) {
+        instance.open
+      }
+
+      instance
+    } else {
+      if (singleton == null) {
+        singleton = new AnalysisChartTopComponent(contents)
+      }
+
+      if (singleton.contents != contents) {
+        singleton.init(contents)
+      }
+
+      singleton
     }
-
-    instance
   }
 
   def selected: Option[AnalysisChartTopComponent] = {
@@ -108,103 +125,121 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopComponent {
+class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
 
   private val ref = new WeakReference[AnalysisChartTopComponent](this)
   instanceRefs ::= ref
 
-  val sec: Security = contents.serProvider.asInstanceOf[Security]
-  private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
-  private val tc_id: String = sec.name
-  private val symbol = sec.uniSymbol
-  private val popupMenuForViewContainer = new JPopupMenu
-    
-  val viewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
-  val realTimeBoard = new RealTimeBoardPanel(sec, contents)
+  private val popupMenuForViewContainer = {
+    val x = new JPopupMenu
+    x.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
+    x.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
+    x.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
+    x.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
+    x.add(SystemAction.get(classOf[ZoomInAction]))
+    x.add(SystemAction.get(classOf[ZoomOutAction]))
+    x.addSeparator
+    x.add(SystemAction.get(classOf[PickIndicatorAction]))
+    x.add(SystemAction.get(classOf[ChangeOptsAction]))
+    x.addSeparator
+    x.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
+    x.addSeparator
+    x.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
 
-  initComponents
-
-  injectActionsToDescriptors
-  injectActionsToPopupMenuForViewContainer
-
-  loadSec
-
-  private def injectActionsToDescriptors {
-    /** we choose here to lazily create actions instances */
-        
-    /** init all children of node to create the actions that will be injected to descriptor */
-    SymbolNodes.occupantNodeOf(contents) foreach (initNodeChildrenRecursively(_))
-  }
-    
-  private def initNodeChildrenRecursively(node: Node) {
-    if (!node.isLeaf) {
-      /** call getChildren().getNodes(true) to initialize all children nodes */
-      val childrenNodes = node.getChildren.getNodes(true)
-      for (child <- childrenNodes) {
-        initNodeChildrenRecursively(child)
-      }
-    }
-  }
-    
-  private def injectActionsToPopupMenuForViewContainer {
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomInAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ZoomOutAction]))
-    popupMenuForViewContainer.addSeparator
-    popupMenuForViewContainer.add(SystemAction.get(classOf[PickIndicatorAction]))
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeOptsAction]))
-    popupMenuForViewContainer.addSeparator
-    popupMenuForViewContainer.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
-    popupMenuForViewContainer.addSeparator
-    popupMenuForViewContainer.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
-  }
-    
-  private def loadSec {
-    if (!sec.isSerLoaded(quoteContract.freq)) {
-      sec.loadSer(quoteContract.freq)
-    }
-    sec.subscribeTickerServer
+    x
   }
 
-  private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
-    val controller = ChartingControllerFactory.createInstance(ser, contents)
-    val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], this)
-    val title = " " + (if ($title == null) ser.freq.name else $title) + " "
+  setFont(LookFeel().axisFont)
 
-    /** inject popup menu from this TopComponent */
-    viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
+  private val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+  splitPane.setFocusable(false)
+  //splitPane.setBorder(BorderFactory.createEmptyBorder)
+  splitPane.setOneTouchExpandable(true)
+  splitPane.setDividerSize(3)
 
-    viewContainer
-  }
+  // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
+  splitPane.setResizeWeight(1.0)
 
-  private def initComponents {
-    setFont(LookFeel().axisFont)
+  setLayout(new BorderLayout)
+  add(splitPane, BorderLayout.CENTER)
 
-    val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
-    splitPane.setFocusable(false)
-    //splitPane.setBorder(BorderFactory.createEmptyBorder)
-    splitPane.setOneTouchExpandable(true)
-    splitPane.setDividerSize(3)
+  // component should setFocusable(true) to have the ability to gain the focus
+  setFocusable(true)
 
-    // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
-    splitPane.setResizeWeight(1.0)
+  class State(val contents: AnalysisContents) {
+    val sec = contents.serProvider.asInstanceOf[Security]
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
+    val freq = quoteContract.freq
+    val tcId: String = sec.name
+    val symbol = sec.uniSymbol
+
+    val viewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+    val realTimeBoard = new RealTimeBoardPanel(sec, contents)
+
     splitPane.add(JSplitPane.LEFT,  viewContainer)
     splitPane.add(JSplitPane.RIGHT, realTimeBoard)
 
-    setLayout(new BorderLayout)
-    add(splitPane, BorderLayout.CENTER)
-    setName(sec.name + " - " + quoteContract.freq)
+    setName(sec.name + " - " + freq)
 
-    // component should setFocusable(true) to have the ability to gain the focus
-    setFocusable(true)
+    injectActionsToDescriptors
+
+    loadSec
+
+    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
+      val controller = ChartingControllerFactory.createInstance(ser, contents)
+      val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
+      val title = " " + (if ($title == null) ser.freq.name else $title) + " "
+
+      /** inject popup menu from this TopComponent */
+      viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
+
+      viewContainer
+    }
+
+    private def injectActionsToDescriptors {
+      /** we choose here to lazily create actions instances */
+
+      /** init all children of node to create the actions that will be injected to descriptor */
+      SymbolNodes.occupantNodeOf(contents) foreach (initNodeChildrenRecursively(_))
+    }
+
+    private def initNodeChildrenRecursively(node: Node) {
+      if (!node.isLeaf) {
+        /** call getChildren().getNodes(true) to initialize all children nodes */
+        val childrenNodes = node.getChildren.getNodes(true)
+        for (child <- childrenNodes) {
+          initNodeChildrenRecursively(child)
+        }
+      }
+    }
+
+    private def loadSec {
+      if (!sec.isSerLoaded(quoteContract.freq)) {
+        sec.loadSer(quoteContract.freq)
+      }
+      sec.subscribeTickerServer
+    }
+
   }
 
-  /** Should forward focus to sub-component viewContainer */
-  override def requestFocusInWindow: Boolean = {
-    viewContainer.requestFocusInWindow
+  private var state = init($contents)
+  def contents = state.contents
+  def viewContainer = state.viewContainer
+  def realTimeBoard = state.realTimeBoard
+  def freq = state.freq
+
+  private def sec = state.sec
+  private def tcId = state.tcId
+
+  def init(contents: AnalysisContents): State = {
+    if (state != null) {
+      unWatch
+    }
+
+    state = new State(contents)
+    watch
+
+    state
   }
 
   def watch {
@@ -225,6 +260,11 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
     }
   }
 
+  /** Should forward focus to sub-component viewContainer */
+  override def requestFocusInWindow: Boolean = {
+    viewContainer.requestFocusInWindow
+  }
+
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others in "editor" mode
@@ -239,7 +279,6 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
      * no need to call open() again
      */
     mode.dockInto(this)
-    watch
     super.open
   }
     
@@ -264,7 +303,7 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
   }
     
   override protected def preferredID: String = {
-    tc_id
+    tcId
   }
     
   override def getPersistenceType: Int = {

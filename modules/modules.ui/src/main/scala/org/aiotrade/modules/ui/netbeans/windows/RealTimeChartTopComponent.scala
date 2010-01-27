@@ -70,8 +70,8 @@ object RealTimeChartTopComponent {
 
   private val MODE = "editor"
 
-  def getInstance(sec: Security, contents: AnalysisContents): RealTimeChartTopComponent = {
-    val instance = instanceRefs find (_.get.sec == sec) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
+  def apply(contents: AnalysisContents): RealTimeChartTopComponent = {
+    val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
     
     if (!instance.isOpened) {
       instance.open

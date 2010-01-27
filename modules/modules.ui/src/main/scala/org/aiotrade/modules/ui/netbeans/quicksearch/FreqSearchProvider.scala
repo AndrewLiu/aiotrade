@@ -43,17 +43,17 @@ class FreqSearchProvider extends SearchProvider {
       val analysisTc_? = AnalysisChartTopComponent.selected
       val realtimeTc_? = RealTimeChartTopComponent.selected
 
-      val (sec, contents) = analysisTc_? match {
-        case Some(x) => (x.sec, x.contents)
+      val contents = analysisTc_? match {
+        case Some(x) => x.contents
         case None => realtimeTc_? match {
-            case Some(x) => (x.sec, x.contents)
+            case Some(x) => x.contents
             case None => return
           }
       }
 
       val tc = freq match {
-        case TFreq.ONE_MIN => RealTimeChartTopComponent.getInstance(sec, contents)
-        case TFreq.DAILY   => AnalysisChartTopComponent.getInstance(sec, contents)
+        case TFreq.ONE_MIN => RealTimeChartTopComponent(contents)
+        case TFreq.DAILY   => AnalysisChartTopComponent(contents)
         case _ => return // @Todo
       }
       tc.requestActive
