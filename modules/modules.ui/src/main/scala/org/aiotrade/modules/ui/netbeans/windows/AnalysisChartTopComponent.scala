@@ -32,14 +32,16 @@ package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import java.lang.ref.WeakReference;
+import javax.swing.BorderFactory
 import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
 import org.aiotrade.lib.charting.laf.LookFeel;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.charting.view.WithDrawingPane;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
+import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
@@ -117,7 +119,8 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
   private val symbol = sec.uniSymbol
   private val popupMenuForViewContainer = new JPopupMenu
     
-  val viewContainer: ChartViewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+  val viewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+  val realTimeBoard = new RealTimeBoardPanel(sec, contents)
 
   initComponents
 
@@ -163,6 +166,7 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
     if (!sec.isSerLoaded(quoteContract.freq)) {
       sec.loadSer(quoteContract.freq)
     }
+    sec.subscribeTickerServer
   }
 
   private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
@@ -179,8 +183,19 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
   private def initComponents {
     setFont(LookFeel().axisFont)
 
+    val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+    splitPane.setFocusable(false)
+    //splitPane.setBorder(BorderFactory.createEmptyBorder)
+    splitPane.setOneTouchExpandable(true)
+    splitPane.setDividerSize(3)
+
+    // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
+    splitPane.setResizeWeight(1.0)
+    splitPane.add(JSplitPane.LEFT,  viewContainer)
+    splitPane.add(JSplitPane.RIGHT, realTimeBoard)
+
     setLayout(new BorderLayout)
-    add(viewContainer, BorderLayout.CENTER)
+    add(splitPane, BorderLayout.CENTER)
     setName(sec.name + " - " + quoteContract.freq)
 
     // component should setFocusable(true) to have the ability to gain the focus
@@ -190,6 +205,24 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
   /** Should forward focus to sub-component viewContainer */
   override def requestFocusInWindow: Boolean = {
     viewContainer.requestFocusInWindow
+  }
+
+  def watch {
+    val tickerServer = sec.tickerServer
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.addObserver(realTimeBoard)
+      }
+    }
+  }
+
+  def unWatch {
+    val tickerServer = sec.tickerServer
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.deleteObserver(realTimeBoard)
+      }
+    }
   }
 
   override def open {
@@ -206,6 +239,7 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
      * no need to call open() again
      */
     mode.dockInto(this)
+    watch
     super.open
   }
     
@@ -220,6 +254,7 @@ class AnalysisChartTopComponent(val contents: AnalysisContents) extends TopCompo
     
   override protected def componentClosed {
     instanceRefs -= ref
+    unWatch
     super.componentClosed
     /**
      * componentClosed not means it will be destroied, just make it invisible,

@@ -183,15 +183,14 @@ class Util {
       val rtBoard = new RealTimeBoardPanel(sec, rtContents)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
-
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
       splitPane.setFocusable(false)
-      splitPane.setBackground(Color.WHITE)
       splitPane.setBorder(BorderFactory.createEmptyBorder)
-      splitPane.setOneTouchExpandable(false)
-      splitPane.setDividerSize(1)
-      //splitPane.setDividerLocation(width - leftPaneWidth)
-      //splitPane.setDividerLocation(0.7D)
+      splitPane.setOneTouchExpandable(true)
+      splitPane.setDividerSize(3)
+
+      // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
+      splitPane.setResizeWeight(1.0)
 
       splitPane.add(JSplitPane.LEFT, dailyPanel)
       splitPane.add(JSplitPane.RIGHT, rtBoard)

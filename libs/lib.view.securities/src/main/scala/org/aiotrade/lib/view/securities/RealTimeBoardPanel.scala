@@ -34,6 +34,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -81,6 +82,7 @@ import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
 object RealTimeBoardPanel {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
+  private val DIM = new Dimension(230, 100000)
 }
 
 import RealTimeBoardPanel._
@@ -137,6 +139,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
 
   private def initComponents {
     setFocusable(false)
+    setPreferredSize(DIM)
 
     val infoModelData = Array(
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
@@ -275,16 +278,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     tickerPane.setViewportView(tickerTable)
     //tickerPane.getVerticalScrollBar.setUI(new BasicScrollBarUI)
 
-    // put infoTable to a box to simple the insets setting:
-    val infoBox = new Box(BoxLayout.Y_AXIS) {
-      // box does not paint anything, override paintComponent to get background:
-      override protected def paintComponent(g: Graphics) {
-        super.paintComponent(g)
-        g.setColor(getBackground)
-        val rect = getBounds()
-        g.fillRect(rect.x, rect.y, rect.width, rect.height)
-      }
-    }
+    val infoBox = Box.createVerticalBox
     infoBox.add(infoTable)
 
     // put fix size components to box

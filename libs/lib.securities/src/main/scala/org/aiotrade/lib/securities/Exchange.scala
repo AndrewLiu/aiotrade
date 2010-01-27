@@ -181,7 +181,7 @@ object Exchange {
       case "SZ" =>
         List("000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ")
       case "L" =>
-        List("BP.L")
+        List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")
       case _ => Nil
     }
   }

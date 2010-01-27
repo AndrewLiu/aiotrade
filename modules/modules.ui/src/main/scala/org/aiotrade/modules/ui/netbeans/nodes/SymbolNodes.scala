@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans.nodes;
+package org.aiotrade.modules.ui.netbeans.nodes
 
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -540,7 +540,7 @@ object SymbolNodes {
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
       var mayNeedsReload = false
@@ -570,20 +570,9 @@ object SymbolNodes {
 
       analysisTc.setActivatedNodes(Array(node))
 
-      if (!sec.isSerLoaded(quoteContract.freq)) {
-        sec.loadSer(quoteContract.freq)
-      }
-
       if (!analysisTc.isOpened) {
         analysisTc.open
       }
-
-      sec.subscribeTickerServer
-
-      val rtBoardTc = RealTimeBoardTopComponent.getInstance(sec, contents)
-      rtBoardTc.setActivatedNodes(Array(node))
-      rtBoardTc.watch
-      rtBoardTc.open
 
       analysisTc.requestActive
     }
@@ -632,14 +621,6 @@ object SymbolNodes {
       val rtWatchListWin = RealTimeWatchListTopComponent.getInstance(listName)
       rtWatchListWin.requestActive
       rtWatchListWin.watch(sec, node)
-
-      //val rtChartsWin = RealTimeChartsTopComponent.getInstance
-      //rtChartsWin.requestActive
-      //rtChartsWin.watch(sec, contents)
-
-      //val rtBoardWin = RealTimeBoardTopComponent.getInstance(sec, contents)
-      //rtBoardWin.watch
-      //rtBoardWin.requestActive
 
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)

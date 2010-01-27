@@ -96,7 +96,6 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
         
   setFocusable(false)
 
-
   def setReallyClosed(b: Boolean) {
     this.reallyClosed = b
   }
@@ -156,21 +155,19 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     
   def watch {
     val tickerServer = sec.tickerServer
-    if (tickerServer == null) {
-      return
-    }
-    tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.addObserver(boardPanel)
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.addObserver(boardPanel)
+      }
     }
   }
     
-  def unWatch() {
+  def unWatch {
     val tickerServer = sec.tickerServer
-    if (tickerServer == null) {
-      return
-    }
-    tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.deleteObserver(boardPanel)
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.deleteObserver(boardPanel)
+      }
     }
   }
 
