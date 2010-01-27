@@ -626,7 +626,7 @@ object SymbolNodes {
   class SymbolStopWatchAction(node: Node) extends GeneralAction {
 
     putValue(Action.NAME, "Stop Watching")
-    putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/stopWatch.gif");
+    putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/stopWatch.gif")
     if (node.getLookup.lookup(classOf[DataFolder]) != null) {
       this.setEnabled(true)
     } else {
@@ -650,17 +650,17 @@ object SymbolNodes {
         case x: Security => x
       }
 
-      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
-        RealTimeWatchListTopComponent.instanceRefs.head.get.unWatch(sec)
-      }
-
-      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
-        RealTimeChartsTopComponent.instanceRefs.head.get.unWatch(sec)
-      }
-
-      RealTimeBoardTopComponent.instanceOf(sec) foreach {rtBoardWin =>
-        rtBoardWin.unWatch
-      }
+//      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
+//        RealTimeWatchListTopComponent.instanceRefs.head.get.unWatch(sec)
+//      }
+//
+//      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
+//        RealTimeChartsTopComponent.instanceRefs.head.get.unWatch(sec)
+//      }
+//
+//      RealTimeBoardTopComponent(contents) foreach {rtBoardWin =>
+//        rtBoardWin.unWatch
+//      }
 
       sec.unSubscribeTickerServer
 

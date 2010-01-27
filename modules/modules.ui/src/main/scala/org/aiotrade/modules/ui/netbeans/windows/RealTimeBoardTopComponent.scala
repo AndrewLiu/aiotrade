@@ -28,19 +28,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans.windows;
-import java.awt.BorderLayout;
-import java.lang.ref.WeakReference;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
+package org.aiotrade.modules.ui.netbeans.windows
+
+import java.awt.BorderLayout
+import java.lang.ref.WeakReference
+import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
-/**
- *
- * @author Caoyuan Deng
- */
+import org.openide.windows.TopComponent
+import org.openide.windows.WindowManager
 
 
 /** This class implements serializbale by inheriting TopComponent, but should
@@ -52,6 +49,8 @@ import org.openide.windows.WindowManager;
  * reloaded always, thus, when moduel has been disable but the reloading
  * procedure still not finished yet, deserialization will fail and throws
  * exception. So, it's better to test serialization out of the IDE.
+ *
+ * @author Caoyuan Deng
  */
 object RealTimeBoardTopComponent {
   var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]()
@@ -59,12 +58,8 @@ object RealTimeBoardTopComponent {
   /** The Mode this component will live in */
   val MODE = "realTimeBoard"
 
-  def instanceOf(sec: Security): Option[RealTimeBoardTopComponent] = {
-    instanceRefs find (_.get.sec equals sec) map (_.get)
-  }
-
-  def getInstance(sec: Security, contents: AnalysisContents): RealTimeBoardTopComponent = {
-    val instance = instanceOf(sec) getOrElse new RealTimeBoardTopComponent(contents)
+  def apply(contents: AnalysisContents): RealTimeBoardTopComponent = {
+    val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new RealTimeBoardTopComponent(contents)
 
     if (!instance.isOpened) {
       instance.open
@@ -75,8 +70,8 @@ object RealTimeBoardTopComponent {
 
 }
 
-class RealTimeBoardTopComponent private (contents: AnalysisContents) extends TopComponent {
-  import RealTimeBoardTopComponent._
+import RealTimeBoardTopComponent._
+class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends TopComponent {
 
   private val ref = new WeakReference[RealTimeBoardTopComponent](this)
   instanceRefs ::= ref
@@ -128,8 +123,8 @@ class RealTimeBoardTopComponent private (contents: AnalysisContents) extends Top
     if (reallyClosed) {
       super.componentClosed
     } else {
-      val win = WindowManager.getDefault.findTopComponent("RealTimeWatchList")
-      if (win != null && win.isOpened) {
+      val tc = WindowManager.getDefault.findTopComponent("RealTimeWatchList")
+      if (tc != null && tc.isOpened) {
         /** closing is not allowed */
       } else {
         super.componentClosed
