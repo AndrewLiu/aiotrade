@@ -45,7 +45,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.ResourceBundle
 import javax.swing.Box
-import javax.swing.BoxLayout
 import javax.swing.CellRendererPane
 import javax.swing.JComponent
 import javax.swing.JPanel

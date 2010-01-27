@@ -175,7 +175,7 @@ object Exchange {
   def symbolsOf(exchange: Exchange): List[String] = {
     exchange.code match {
       case "N" =>
-        List("GOOG", "JAVA", "YHOO")
+        List("GOOG", "ORCL", "YHOO")
       case "SS" =>
         SSSymbols
       case "SZ" =>
