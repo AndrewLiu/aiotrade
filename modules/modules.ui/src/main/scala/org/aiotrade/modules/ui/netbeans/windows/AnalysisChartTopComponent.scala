@@ -247,12 +247,19 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   private def tcId = state.tcId
 
   def init(contents: AnalysisContents): State = {
+    var ownFocus = false
     if (state != null) {
       unWatch
+      if (viewContainer.isFocusOwner || this.isFocusOwner) {
+        ownFocus = true
+      }
     }
 
     state = new State(contents)
     watch
+    if (ownFocus) {
+      viewContainer.requestFocusInWindow
+    }
 
     state
   }

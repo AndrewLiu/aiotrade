@@ -89,7 +89,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   actionMap.put("delete", ExplorerUtils.actionDelete(manager, true))
   associateLookup(ExplorerUtils.createLookup(manager, actionMap))
   // --- to enable focus owner checking
-  //org.aiotrade.lib.util.awt.focusOwnerChecker 
+  //org.aiotrade.lib.util.awt.focusOwnerChecker
 
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_ALWAYS
