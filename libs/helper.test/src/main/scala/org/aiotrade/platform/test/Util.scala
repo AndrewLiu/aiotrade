@@ -267,7 +267,7 @@ class Util {
   private def createAnalysisContents(symbol: String, freq: TFreq, quoteServer: Class[_], tickerServer: Class[_]): AnalysisContents = {
     val contents = new AnalysisContents(symbol)
 
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
+    contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator],  freq))
     contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
     contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
 

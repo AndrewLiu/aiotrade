@@ -6,8 +6,8 @@
 package org.aiotrade.modules.ui.netbeans.quicksearch
 
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
-import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartTopComponent
 import org.aiotrade.spi.quicksearch.SearchProvider
 import org.aiotrade.spi.quicksearch.SearchRequest
 import org.aiotrade.spi.quicksearch.SearchResponse
@@ -16,7 +16,7 @@ import org.aiotrade.spi.quicksearch.SearchResponse
 class FreqSearchProvider extends SearchProvider {
 
   private val freqs = Array(TFreq.ONE_MIN, TFreq.DAILY, TFreq.WEEKLY, TFreq.MONTHLY, TFreq.ONE_YEAR)
-  private val nameTofreq = freqs map (x => (x.shortDescription -> x)) toMap
+  private val nameTofreq = (freqs map (x => (x.shortDescription -> x)) toMap) + ("rt" -> TFreq.ONE_SEC)
 
   /**
    * Method is called by infrastructure when search operation was requested.
@@ -40,23 +40,17 @@ class FreqSearchProvider extends SearchProvider {
   private class FoundResult(freq: TFreq) extends Runnable {
 
     def run {
-      val analysisTc_? = AnalysisChartTopComponent.selected
-      val realtimeTc_? = RealTimeChartTopComponent.selected
+      for (tc <- AnalysisChartTopComponent.selected; contents = tc.contents;
+           quoteContract <- contents.lookupActiveDescriptor(classOf[QuoteContract])
+      ) {
+        freq match {
+          case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => quoteContract.freq = freq
+          case _ => return // @Todo
+        }
 
-      val contents = analysisTc_? match {
-        case Some(x) => x.contents
-        case None => realtimeTc_? match {
-            case Some(x) => x.contents
-            case None => return
-          }
+        val tc = AnalysisChartTopComponent(contents)
+        tc.requestActive
       }
-
-      val tc = freq match {
-        case TFreq.ONE_MIN => RealTimeChartTopComponent(contents)
-        case TFreq.DAILY   => AnalysisChartTopComponent(contents)
-        case _ => return // @Todo
-      }
-      tc.requestActive
     }
   }
 

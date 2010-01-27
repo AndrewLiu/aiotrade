@@ -41,10 +41,11 @@ import org.aiotrade.lib.charting.view.WithDrawingPane;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
+import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction;
@@ -95,8 +96,12 @@ object AnalysisChartTopComponent {
   }
 
   def apply(contents: AnalysisContents, standalone: Boolean): AnalysisChartTopComponent = {
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+    val freq = quoteContract.freq
     if (standalone) {
-      val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new AnalysisChartTopComponent(contents)
+      val instance = instanceRefs find {x => 
+        x.get.contents == contents && x.get.freq == freq
+      } map (_.get) getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {
         instance.open
@@ -108,7 +113,9 @@ object AnalysisChartTopComponent {
         singleton = new AnalysisChartTopComponent(contents)
       }
 
-      if (singleton.contents != contents) {
+      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+      val freq = quoteContract.freq
+      if (singleton.contents != contents || singleton.freq != freq) {
         singleton.init(contents)
       }
 
@@ -173,7 +180,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val tcId: String = sec.name
     val symbol = sec.uniSymbol
 
-    val viewContainer = createViewContainer(sec.serOf(quoteContract.freq).getOrElse(null), contents, null)
+    val viewContainer = createViewContainer(sec, freq, contents)
     val realTimeBoard = new RealTimeBoardPanel(sec, contents)
 
     splitPane.add(JSplitPane.LEFT,  viewContainer)
@@ -185,10 +192,18 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     loadSec
 
-    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, $title: String): AnalysisChartViewContainer = {
+    private def createViewContainer(sec: Security, freq: TFreq, contents: AnalysisContents) = {
+      val ser = freq match {
+        case TFreq.ONE_SEC => sec.tickerSer
+        case _ => sec.serOf(freq).getOrElse(null)
+      }
+
       val controller = ChartingControllerFactory.createInstance(ser, contents)
-      val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
-      val title = " " + (if ($title == null) ser.freq.name else $title) + " "
+      val viewContainer = if (freq == TFreq.ONE_SEC) {
+        controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
+      } else {
+        controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
+      }
 
       /** inject popup menu from this TopComponent */
       viewContainer.setComponentPopupMenu(popupMenuForViewContainer)

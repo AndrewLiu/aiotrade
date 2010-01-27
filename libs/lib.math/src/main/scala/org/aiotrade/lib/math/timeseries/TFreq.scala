@@ -93,10 +93,10 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
         case Week  => "Weekly"
         case Month => "Monthly"
         case Year  => "Yearly"
-        case _ => ""
+        case _ => nUnits + unit.compactDescription
       }
     } else {
-      nUnits + unit.compactDescription + (if (nUnits > 1) "s" else "")
+      nUnits + unit.compactDescription + "s"
     }
   }
 
@@ -170,7 +170,7 @@ object TFreq {
                        WEEKLY,
                        MONTHLY)
 
-  val SELF_DEFINED = new TFreq(TUnit.Second, 0)
+  val SELF_DEFINED = new TFreq(TUnit.Second, 1)
   val ONE_SEC      = new TFreq(TUnit.Second, 1)
   val TWO_SECS     = new TFreq(TUnit.Second, 2)
   val THREE_SECS   = new TFreq(TUnit.Second, 3)
