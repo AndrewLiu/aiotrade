@@ -43,6 +43,7 @@ import javax.swing.JOptionPane;
 import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
 import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
 import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
+import javax.swing.SwingUtilities
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
@@ -59,7 +60,6 @@ import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
-import org.aiotrade.modules.ui.netbeans.windows.RealTimeBoardTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog;
 import org.openide.ErrorManager;
@@ -413,7 +413,7 @@ object SymbolNodes {
       val symbolFileNode = key
 
       try {
-        
+
         if (symbolFileNode.getLookup.lookup(classOf[DataFolder]) != null) {
           /** it's a folder, so creat a folder node */
           return Array(new SymbolNode(symbolFileNode))
@@ -438,8 +438,9 @@ object SymbolNodes {
               case attr: java.lang.Boolean if attr.booleanValue =>
                 fo.setAttribute("open", null)
 
-                /** open it */
-                java.awt.EventQueue.invokeLater(new Runnable {
+                // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
+                // open it
+                SwingUtilities.invokeLater(new Runnable {
                     def run {
                       oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
                     }
