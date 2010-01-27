@@ -65,6 +65,8 @@ object AnalysisQuoteChartView {
     quoteChartType = AbstractQuoteChartView.internal_switchAllQuoteChartType(quoteChartType, tpe)
   }
 }
+
+import AnalysisQuoteChartView._
 class AnalysisQuoteChartView(acontroller: ChartingController,
                              aquoteSer: QuoteSer,
                              empty: Boolean
@@ -72,7 +74,6 @@ class AnalysisQuoteChartView(acontroller: ChartingController,
   private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
 } with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane {
-  import AnalysisQuoteChartView._
     
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)

@@ -31,7 +31,6 @@
 package org.aiotrade.lib.charting.view
 
 import java.awt.Dimension
-import java.awt.event.ComponentAdapter
 import javax.swing.JLayeredPane
 import java.awt.Graphics
 import javax.swing.JComponent
@@ -88,18 +87,30 @@ abstract class ChartView(protected var _controller: ChartingController,
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeObservable {
 
-  private var _masterSer: MasterTSer = _
-  val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
+  private val observableHelper = new ChangeObservableHelper
+
+  protected val serChangeListener = new MySerChangeListener
   protected val overlappingSerChartToVars = new LinkedHashMap[TSer, LinkedHashMap[Chart, HashSet[TVar[_]]]]
-  private var _lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN
-  private var _mainChartPane: ChartPane = _
-  private var _glassPane: GlassPane = _
-  private var _axisXPane: AxisXPane = _
-  private var _axisYPane: AxisYPane = _
-  private var _divisionPane: DivisionPane = _
+
+  val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
+
+  val mainChartPane = new ChartPane(this)
+  val glassPane = new GlassPane(this, mainChartPane)
+  val axisXPane = new AxisXPane(this, mainChartPane)
+  val axisYPane = new AxisYPane(this, mainChartPane)
+  val divisionPane = new DivisionPane(this, mainChartPane)
+  val mainLayeredPane = new JLayeredPane {
+    /** this will let the pane components getting the proper size when init */
+    override protected def paintComponent(g: Graphics) {
+      val width = getWidth
+      val height = getHeight
+      for (c <- getComponents if c.isInstanceOf[Pane]) {
+        c.setBounds(0, 0, width, height)
+      }
+    }
+  }
   private var _xControlPane: XControlPane = _
   private var _yControlPane: YControlPane = _
-  private var _mainLayeredPane: JLayeredPane = _
   /** geometry */
   private var _nBars: Int = _ // number of bars
   private var _maxValue = 1F
@@ -109,9 +120,9 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   private var _isInteractive = true
   private var _isPinned = false
-  private var componentAdapter: ComponentAdapter = _
-  private val observableHelper = new ChangeObservableHelper
-  protected val serChangeListener = new MySerChangeListener
+
+  private var _masterSer: MasterTSer = _
+  private var lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN
 
   if (!empty) {
     init(_controller, _mainSer)
@@ -173,30 +184,14 @@ abstract class ChartView(protected var _controller: ChartingController,
      */
     setOpaque(true)
 
-    _mainChartPane = new ChartPane(this)
-    _glassPane = new GlassPane(this, _mainChartPane)
-    _axisXPane = new AxisXPane(this, _mainChartPane)
-    _axisYPane = new AxisYPane(this, _mainChartPane)
-    _divisionPane = new DivisionPane(this, _mainChartPane)
+    mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
+    mainLayeredPane.add(mainChartPane, JLayeredPane.DEFAULT_LAYER)
 
-    _mainLayeredPane = new JLayeredPane {
-      /** this will let the pane components getting the proper size when init */
-      override protected def paintComponent(g: Graphics) {
-        val width = getWidth
-        val height = getHeight
-        for (c <- getComponents if c.isInstanceOf[Pane]) {
-          c.setBounds(0, 0, width, height)
-        }
-      }
-    }
-    _mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-    _mainLayeredPane.add(_mainChartPane, JLayeredPane.DEFAULT_LAYER)
+    glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
 
-    _glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-
-    _axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
-    _axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
-    _divisionPane.setPreferredSize(new Dimension(10, 1))
+    axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
+    axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
+    divisionPane.setPreferredSize(new Dimension(10, 1))
   }
 
   /**
@@ -256,10 +251,10 @@ abstract class ChartView(protected var _controller: ChartingController,
      * width, because other panes may be repainted before mainChartPane is
      * properly layouted (the width of mainChartPane is still not good)
      */
-    val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).intValue
+    val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).toInt
 
     /** avoid nBars == 0 */
-    nBars = math.max(newNBars, 1)
+    nBars = Math.max(newNBars, 1)
 
     /**
      * We only need computeMaxMin() once when a this should be repainted,
@@ -319,14 +314,14 @@ abstract class ChartView(protected var _controller: ChartingController,
     glassPane.isSelected = b
   }
 
-  def isInteractive: Boolean = _isInteractive
+  def isInteractive = _isInteractive
   def isInteractive_=(b: Boolean) {
     glassPane.interactive(b)
 
     this._isInteractive = b
   }
 
-  def isPinned: Boolean =  _isPinned
+  def isPinned =  _isPinned
   def pin {
     glassPane.pin(true)
 
@@ -419,19 +414,10 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   final def nBars: Int = _nBars
 
-  def divisionPane = _divisionPane
-  def glassPane: GlassPane = _glassPane
-  def mainChartPane: ChartPane = _mainChartPane
-
-  def axisXPane: AxisXPane = _axisXPane
-  def axisYPane: AxisYPane = _axisYPane
-
   final def controller: ChartingController = _controller
 
   def masterSer: MasterTSer = _masterSer
   final def mainSer: TSer = _mainSer
-
-  def mainLayeredPane: JLayeredPane = _mainLayeredPane
 
   def chartMapVars(ser: TSer): LinkedHashMap[Chart, HashSet[TVar[_]]] = {
     assert(ser != null, "Do not pass me a null ser!")
@@ -467,16 +453,16 @@ abstract class ChartView(protected var _controller: ChartingController,
         val chartVars = new HashSet[TVar[_]]
         chartVarsMap.put(chart, chartVars += v)
 
-        chart.set(_mainChartPane, ser)
+        chart.set(mainChartPane, ser)
 
         chart match {
           case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
           case _: ProfileChart =>  chart.depth = depthGradient; depthGradient -= 1
           case _: StickChart => chart.depth = -8
-          case _ => chart.depth = _lastDepthOfOverlappingChart; _lastDepthOfOverlappingChart += 1
+          case _ => chart.depth = lastDepthOfOverlappingChart; lastDepthOfOverlappingChart += 1
         }
 
-        _mainChartPane.putChart(chart)
+        mainChartPane.putChart(chart)
       }
     }
 
@@ -490,12 +476,12 @@ abstract class ChartView(protected var _controller: ChartingController,
 
     overlappingSerChartToVars.get(ser) foreach {chartVarsMap =>
       for (chart <- chartVarsMap.keySet) {
-        _mainChartPane.removeChart(chart)
+        mainChartPane.removeChart(chart)
         chart match {
           case _: GradientChart => /** noop */
           case _: ProfileChart => /** noop */
           case _: StickChart => /** noop */
-          case _ => _lastDepthOfOverlappingChart -= 1
+          case _ => lastDepthOfOverlappingChart -= 1
         }
       }
       /** release chartVarsMap */
