@@ -90,7 +90,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
   /* Rect to store repetitive bounds computation */
   private val popupBounds = new Rectangle
 
-  private val COALESCE_TIME = 600
+  private val COALESCE_TIME = 200
   private lazy val updateTimer: Timer = new Timer(COALESCE_TIME, this)
 
   /** text to search for */
@@ -335,7 +335,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
 
   def getResultWidth: Int = {
     if (resultWidth <= 0) {
-      resultWidth = computeWidth(jList1, 42, 50);
+      resultWidth = computeWidth(jList1, 42, 50)
     }
     resultWidth
   }

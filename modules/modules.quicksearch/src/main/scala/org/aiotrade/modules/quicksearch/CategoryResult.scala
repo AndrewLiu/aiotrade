@@ -53,7 +53,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 class CategoryResult(val category: ProviderModel.Category, allResults: Boolean) extends Runnable {
     
-  private val MAX_RESULTS = 7
+  private val MAX_RESULTS = 20
   private val ALL_MAX_RESULTS = 30
 
   private val LOCK = new Object
