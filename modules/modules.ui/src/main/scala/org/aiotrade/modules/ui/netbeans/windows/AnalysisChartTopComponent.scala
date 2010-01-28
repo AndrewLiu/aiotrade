@@ -183,8 +183,9 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val viewContainer = createViewContainer(sec, freq, contents)
     val realTimeBoard = new RealTimeBoardPanel(sec, contents)
 
-    splitPane.add(JSplitPane.LEFT,  viewContainer)
-    splitPane.add(JSplitPane.RIGHT, realTimeBoard)
+    splitPane.setLeftComponent(viewContainer)
+    splitPane.setRightComponent(realTimeBoard)
+    splitPane.revalidate
 
     setName(sec.name + " - " + freq)
 

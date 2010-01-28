@@ -171,7 +171,8 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
                    sec = contents.serProvider.asInstanceOf[Security]
               ) {
                 val realTimeBoard = new RealTimeBoardPanel(sec, contents)
-                splitPane.add(JSplitPane.RIGHT,  realTimeBoard)
+                splitPane.setRightComponent(realTimeBoard)
+                splitPane.revalidate
               }
             }
           }
@@ -179,7 +180,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
       }
     })
 
-  splitPane.add(JSplitPane.LEFT,  watchListPanel)
+  splitPane.setLeftComponent(watchListPanel)
 
   /** Should forward focus to sub-component watchListPanel */
   override def requestFocusInWindow: Boolean = {
