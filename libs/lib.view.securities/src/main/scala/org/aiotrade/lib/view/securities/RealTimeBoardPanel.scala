@@ -430,6 +430,24 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     table.setRowSelectionInterval(row, row)
   }
 
+  def watch {
+    val tickerServer = sec.tickerServer
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.addObserver(this)
+      }
+    }
+  }
+
+  def unWatch {
+    val tickerServer = sec.tickerServer
+    if (tickerServer != null) {
+      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
+        tickerSnapshot.deleteObserver(this)
+      }
+    }
+  }
+
   class CustomTableUI extends BasicTableUI {
     override def installUI(c: JComponent) {
       super.installUI(c)

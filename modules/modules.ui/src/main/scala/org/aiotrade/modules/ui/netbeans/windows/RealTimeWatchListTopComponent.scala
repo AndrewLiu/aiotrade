@@ -110,6 +110,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   private val tc_id = "RealTimeWatchList"
   private val symbolToNode = HashMap[String, Node]()
   private val watchListPanel = new RealTimeWatchListPanel
+  private var realTimeBoard: RealTimeBoardPanel = _
 
   private var updateServerRegistered = false
   private var reallyClosed = false
@@ -170,7 +171,12 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
                    contents = node.getLookup.lookup(classOf[AnalysisContents]);
                    sec = contents.serProvider.asInstanceOf[Security]
               ) {
-                val realTimeBoard = new RealTimeBoardPanel(sec, contents)
+                if (realTimeBoard != null) {
+                  realTimeBoard.unWatch
+                }
+                realTimeBoard = new RealTimeBoardPanel(sec, contents)
+                realTimeBoard.watch
+
                 splitPane.setRightComponent(realTimeBoard)
                 splitPane.revalidate
               }

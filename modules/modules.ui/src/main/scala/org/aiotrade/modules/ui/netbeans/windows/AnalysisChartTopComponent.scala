@@ -250,37 +250,19 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   def init(contents: AnalysisContents): State = {
     var ownFocus = false
     if (state != null) {
-      unWatch
+      realTimeBoard.unWatch
       if (viewContainer.isFocusOwner || this.isFocusOwner) {
         ownFocus = true
       }
     }
 
     state = new State(contents)
-    watch
+    realTimeBoard.watch
     if (ownFocus) {
       viewContainer.requestFocusInWindow
     }
 
     state
-  }
-
-  def watch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.addObserver(realTimeBoard)
-      }
-    }
-  }
-
-  def unWatch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.deleteObserver(realTimeBoard)
-      }
-    }
   }
 
   /** Should forward focus to sub-component viewContainer */
@@ -316,7 +298,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     
   override protected def componentClosed {
     instanceRefs -= ref
-    unWatch
+    realTimeBoard.unWatch
     super.componentClosed
     /**
      * componentClosed not means it will be destroied, just make it invisible,

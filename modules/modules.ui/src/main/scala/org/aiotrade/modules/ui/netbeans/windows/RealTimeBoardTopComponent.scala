@@ -148,24 +148,6 @@ class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends
     boardPanel.realTimeChartViewContainer
   }
     
-  def watch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.addObserver(boardPanel)
-      }
-    }
-  }
-    
-  def unWatch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.deleteObserver(boardPanel)
-      }
-    }
-  }
-
   @throws(classOf[Throwable])
   override protected def finalize {
     instanceRefs -= ref
