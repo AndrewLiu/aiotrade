@@ -337,7 +337,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
            } */
 
           /** volumes color switchs between two colors if ticker renewed */
-          if (colNameToColor(DAY_VOLUME).equals(SWITCH_COLOR_A)) {
+          if (colNameToColor(DAY_VOLUME) == SWITCH_COLOR_A) {
             colNameToColor(DAY_VOLUME) = SWITCH_COLOR_B
           } else {
             colNameToColor(DAY_VOLUME) = SWITCH_COLOR_A
@@ -348,9 +348,10 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
 
   }
 
-  private val rowData = new Array[Object](table.getColumnCount)
 
   private def composeRowData(symbol: String, ticker: Ticker): Array[Object] = {
+    val rowData = new Array[Object](table.getColumnCount)
+
     cal.setTimeInMillis(ticker.time)
     val lastTradeTime = cal.getTime
 
@@ -455,22 +456,6 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
             setHorizontalAlignment(SwingConstants.LEADING)
           case TIME =>
             setHorizontalAlignment(SwingConstants.CENTER)
-          case LAST_PRICE =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(colNameToColor(colName))
-          case DAY_VOLUME =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(colNameToColor(colName))
-          case PREV_CLOSE =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
-          case DAY_CHANGE =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(colNameToColor(colName))
-          case PERCENT =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
-            setForeground(colNameToColor(colName))
-          case DAY_OPEN =>
-            setHorizontalAlignment(SwingConstants.TRAILING)
           case _ =>
             setHorizontalAlignment(SwingConstants.TRAILING)
         }
