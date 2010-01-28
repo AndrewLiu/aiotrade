@@ -38,10 +38,16 @@ import java.lang.ref.WeakReference;
 import javax.swing.AbstractAction
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane
 import javax.swing.JTable;
 import javax.swing.KeyStroke
+import javax.swing.ListSelectionModel
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.TickerSerProvider
 import org.aiotrade.lib.util.swing.action.ViewAction
@@ -107,7 +113,25 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   private val popup = new JPopupMenu
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
   popup.add(SystemAction.get(classOf[StopSelectedWatchAction]))
-        
+
+  private val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+  splitPane.setFocusable(false)
+  //splitPane.setBorder(BorderFactory.createEmptyBorder)
+  splitPane.setOneTouchExpandable(true)
+  splitPane.setDividerSize(3)
+
+  // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
+  splitPane.setResizeWeight(1.0)
+
+  setLayout(new BorderLayout)
+  add(splitPane, BorderLayout.CENTER)
+
+  setName(name)
+  setBackground(LookFeel().backgroundColor)
+
+  // component should setFocusable(true) to have the ability to gain the focus
+  setFocusable(true)
+
   val watchListTable = watchListPanel.table
         
   // replace default "ENTER" keybinding to viewSymbolAction
@@ -127,14 +151,30 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
 
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
-  // component should setFocusable(true) to have ability to gain the focus
-  setFocusable(true)
+  watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      def valueChanged(e: ListSelectionEvent) {
+        val lsm = e.getSource.asInstanceOf[ListSelectionModel]
+        if (lsm.isSelectionEmpty) {
+          //no rows are selected
+        } else {
+          val row = watchListTable.getSelectedRow
+          if (row >= 0 && row < watchListTable.getRowCount) {
+            val symbol = watchListPanel.symbolAtRow(row)
+            if (symbol != null) {
+              for (node <- symbolToNode.get(symbol);
+                   contents = node.getLookup.lookup(classOf[AnalysisContents]);
+                   sec = contents.serProvider.asInstanceOf[Security]
+              ) {
+                val realTimeBoard = new RealTimeBoardPanel(sec, contents)
+                splitPane.add(JSplitPane.RIGHT,  realTimeBoard)
+              }
+            }
+          }
+        }
+      }
+    })
 
-  setLayout(new BorderLayout)
-
-  add(watchListPanel, BorderLayout.CENTER)
-  setName(name)
-  setBackground(LookFeel().backgroundColor)
+  splitPane.add(JSplitPane.LEFT,  watchListPanel)
 
   /** Should forward focus to sub-component watchListPanel */
   override def requestFocusInWindow: Boolean = {
@@ -223,8 +263,8 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
         }
       }
     }
+
     nodes
-        
   }
     
   private def stopAllWatch {
