@@ -64,7 +64,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
         
     val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
-    val quoteChartView = new AnalysisQuoteChartView(controller, quoteSer)
+    val quoteChartView = new AnalysisChartView(controller, quoteSer)
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */

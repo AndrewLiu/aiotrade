@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions;
 
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.CallableSystemAction;
@@ -46,7 +46,7 @@ class SwitchLinearLogScaleAction extends CallableSystemAction {
       java.awt.EventQueue.invokeLater(new Runnable {
           def run {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
-            analysisTc.viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].swithScalarType
+            analysisTc.viewContainer.masterView.asInstanceOf[AnalysisChartView].swithScalarType
           }
         })
     } catch {case ex: Exception =>}

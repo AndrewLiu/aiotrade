@@ -31,8 +31,8 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
-import org.aiotrade.lib.view.securities.RealTimeQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisChartView
+import org.aiotrade.lib.view.securities.RealTimeChartView
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
@@ -54,13 +54,13 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
               case null => return
               case _: AnalysisChartTopComponent =>
                 /** As all AnalysisQuoteChartView have the static quoteChartType, so call static method */
-                AnalysisQuoteChartView.switchAllQuoteChartType(null)
+                AnalysisChartView.switchAllQuoteChartType(null)
                 for (ref <- AnalysisChartTopComponent.instanceRefs) {
                   ref.get.repaint()
                 }
               case _: RealTimeChartsTopComponent =>
                 /** As all RealtimeQuoteChartView have the static quoteChartType, so call static method */
-                RealTimeQuoteChartView.switchAllQuoteChartType(null)
+                RealTimeChartView.switchAllQuoteChartType(null)
               case _ =>
                 JOptionPane.showMessageDialog(
                   WindowManager.getDefault.getMainWindow,

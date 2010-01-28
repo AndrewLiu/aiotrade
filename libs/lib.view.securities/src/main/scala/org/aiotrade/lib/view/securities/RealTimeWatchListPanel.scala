@@ -208,7 +208,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val symbol = ts.symbol
     val ticker = ts.ticker
 
-    /**
+    /*
      * To avoid:
      java.lang.NullPointerException
      at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)

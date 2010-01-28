@@ -57,7 +57,7 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-object AnalysisQuoteChartView {
+object AnalysisChartView {
   /** all AnalysisQuoteChartView instances share the same type */
   private var quoteChartType: QuoteChart.Type = LookFeel().getQuoteChartType
 
@@ -66,10 +66,10 @@ object AnalysisQuoteChartView {
   }
 }
 
-import AnalysisQuoteChartView._
-class AnalysisQuoteChartView(acontroller: ChartingController,
-                             aquoteSer: QuoteSer,
-                             empty: Boolean
+import AnalysisChartView._
+class AnalysisChartView(acontroller: ChartingController,
+                        aquoteSer: QuoteSer,
+                        empty: Boolean
 ) extends {
   private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
@@ -206,7 +206,7 @@ class AnalysisQuoteChartView(acontroller: ChartingController,
     }
   }
     
-  def quoteChartType: QuoteChart.Type = AnalysisQuoteChartView.quoteChartType
+  def quoteChartType: QuoteChart.Type = AnalysisChartView.quoteChartType
   def switchQuoteChartType(tpe: QuoteChart.Type) {
     switchAllQuoteChartType(tpe)
         

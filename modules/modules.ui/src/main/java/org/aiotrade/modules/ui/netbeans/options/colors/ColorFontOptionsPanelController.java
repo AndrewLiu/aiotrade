@@ -39,8 +39,8 @@ import org.aiotrade.lib.charting.laf.Gray;
 import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.charting.laf.Modern;
 import org.aiotrade.lib.charting.laf.White;
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView;
-import org.aiotrade.lib.view.securities.RealTimeQuoteChartView;
+import org.aiotrade.lib.view.securities.AnalysisChartView;
+import org.aiotrade.lib.view.securities.RealTimeChartView;
 import org.aiotrade.lib.securities.PersistenceManager$;
 import org.aiotrade.lib.securities.util.UserOptionsManager;
 import org.netbeans.spi.options.OptionsPanelController;
@@ -125,8 +125,8 @@ public final class ColorFontOptionsPanelController extends OptionsPanelControlle
 
         PersistenceManager$.MODULE$.apply().saveProperties();
         
-        AnalysisQuoteChartView.switchAllQuoteChartType(type);
-        RealTimeQuoteChartView.switchAllQuoteChartType(type);
+        AnalysisChartView.switchAllQuoteChartType(type);
+        RealTimeChartView.switchAllQuoteChartType(type);
         
         for (Object c : TopComponent.getRegistry().getOpened()) {
             if (c instanceof TopComponent) {

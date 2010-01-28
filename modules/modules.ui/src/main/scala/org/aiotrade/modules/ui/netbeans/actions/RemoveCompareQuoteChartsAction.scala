@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions;
 
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
@@ -48,7 +48,7 @@ class RemoveCompareQuoteChartsAction extends CallableSystemAction {
           def run() {
             val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                     
-            val quoteChartview = analysisTc.viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView]
+            val quoteChartview = analysisTc.viewContainer.masterView.asInstanceOf[AnalysisChartView]
             quoteChartview.getCompareIndicators match {
               case Seq(h: QuoteCompareIndicator, _*) =>
                 /** remove one each time, and this avoid java.util.ConcurrentModificationException */

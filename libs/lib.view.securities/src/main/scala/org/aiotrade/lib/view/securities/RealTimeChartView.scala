@@ -53,7 +53,7 @@ import org.aiotrade.lib.securities.Ticker
  *
  * @author Caoyuan Deng
  */
-object RealTimeQuoteChartView {
+object RealTimeChartView {
   /** all RealtimeQuoteChartView instances share the same type */
   private var quoteChartType: QuoteChart.Type = _
   
@@ -63,10 +63,10 @@ object RealTimeQuoteChartView {
 
 }
 
-import RealTimeQuoteChartView._
-class RealTimeQuoteChartView(acontroller: ChartingController,
-                             aquoteSer: QuoteSer,
-                             empty: Boolean
+import RealTimeChartView._
+class RealTimeChartView(acontroller: ChartingController,
+                        aquoteSer: QuoteSer,
+                        empty: Boolean
 ) extends {
   private var _prevClose = Null.Float
   private var gridValues: Array[Float] = _
@@ -86,7 +86,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
     controller.growWBar(-2)
     axisYPane.isSymmetricOnMiddleValue = true
 
-    RealTimeQuoteChartView.quoteChartType = QuoteChart.Type.Line
+    RealTimeChartView.quoteChartType = QuoteChart.Type.Line
 
     exchange = sec.exchange
     tickerSer = sec.tickerSer
@@ -178,7 +178,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
 
   }
 
-  def quoteChartType: QuoteChart.Type = RealTimeQuoteChartView.quoteChartType
+  def quoteChartType: QuoteChart.Type = RealTimeChartView.quoteChartType
   def switchQuoteChartType(tpe: QuoteChart.Type) {
     switchAllQuoteChartType(tpe)
 
@@ -194,7 +194,7 @@ class RealTimeQuoteChartView(acontroller: ChartingController,
   }
 
   override def popupToDesktop {
-    val popupView = new RealTimeQuoteChartView(controller, quoteSer)
+    val popupView = new RealTimeChartView(controller, quoteSer)
     popupView.isInteractive = false
     val dimension = new Dimension(200, 150)
     val alwaysOnTop = true

@@ -96,7 +96,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     gbc.weighty = 618
     val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
-    setMasterView(new RealTimeQuoteChartView(controller, quoteSer), gbc)
+    setMasterView(new RealTimeChartView(controller, quoteSer), gbc)
 
     val volDescriptor = createVolIndicatorDecsriptor
     volDescriptor.serviceInstance(controller.masterSer) foreach {volIndicator =>

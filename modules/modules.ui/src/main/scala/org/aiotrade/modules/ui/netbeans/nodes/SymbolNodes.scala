@@ -40,7 +40,7 @@ import java.util.Calendar;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
 import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
 import javax.swing.SwingUtilities
@@ -527,6 +527,67 @@ object SymbolNodes {
       }
     }
   }
+  
+  @throws(classOf[IntrospectionException])
+  class SymbolNode(symbolFolderNode: Node, content: InstanceContent
+  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content)) {
+
+    /* add the node to our own lookup */
+    content.add(this)
+
+    /** add delegate's all lookup contents */
+    val result = symbolFolderNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
+    while (result.hasNext) {
+      content.add(result.next)
+    }
+
+    /* add additional items to the lookup */
+    content.add(SystemAction.get(classOf[AddSymbolAction]))
+    content.add(new SymbolStartWatchAction(this))
+    content.add(new SymbolStopWatchAction(this))
+    content.add(new SymbolRefreshDataAction(this))
+    content.add(new SymbolReimportDataAction(this))
+    content.add(new SymbolViewAction(this))
+
+    /**
+     * Declaring the children of the root sec node
+     *
+     *
+     * @param symbolFolderNode: the folder or file('stockname.ser') which delegated to this node
+     */
+    @throws(classOf[DataObjectNotFoundException])
+    @throws(classOf[IntrospectionException])
+    def this(symbolFolderNode: Node) = {
+      this(symbolFolderNode, new InstanceContent)
+    }
+
+    /** Declaring the actions that can be applied to this node */
+    override def getActions(popup: Boolean): Array[Action] = {
+      val df = getLookup.lookup(classOf[DataFolder])
+      Array(
+        getLookup.lookup(classOf[AddSymbolAction]),
+        new AddFolderAction(df),
+        null,
+        getLookup.lookup(classOf[SymbolViewAction]),
+        null,
+        getLookup.lookup(classOf[SymbolStartWatchAction]),
+        getLookup.lookup(classOf[SymbolStopWatchAction]),
+        null,
+        getLookup.lookup(classOf[SymbolRefreshDataAction]),
+        getLookup.lookup(classOf[SymbolReimportDataAction]),
+        null,
+        SystemAction.get(classOf[DeleteAction])
+      )
+    }
+
+    override def getDisplayName: String = {
+      displayNameOf(this)
+    }
+  }
+
+
+
+  // ----- node actions
 
   private class SymbolViewAction(node: Node) extends ViewAction {
     putValue(Action.NAME, "View")
@@ -615,9 +676,9 @@ object SymbolNodes {
 
       sec.subscribeTickerServer
 
-      val rtWatchListWin = RealTimeWatchListTopComponent.getInstance(listName)
-      rtWatchListWin.requestActive
-      rtWatchListWin.watch(sec, node)
+      val watchListTc = RealTimeWatchListTopComponent.getInstance(listName)
+      watchListTc.requestActive
+      watchListTc.watch(sec, node)
 
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)
@@ -833,7 +894,7 @@ object SymbolNodes {
       quoteCompareIndicator.computeFrom(0)
 
       viewContainer.controller.scrollReferCursorToLeftSide
-      viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView].addQuoteCompareChart(quoteCompareIndicator)
+      viewContainer.masterView.asInstanceOf[AnalysisChartView].addQuoteCompareChart(quoteCompareIndicator)
 
       analysisTc.requestActive
     }
@@ -864,67 +925,4 @@ object SymbolNodes {
     }
   }
 
-
-  @throws(classOf[IntrospectionException])
-  class SymbolNode(symbolFolderNode: Node, content: InstanceContent
-  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content)) {
-
-    /* add the node to our own lookup */
-    content.add(this)
-
-    /** add delegate's all lookup contents */
-    val result = symbolFolderNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
-    while (result.hasNext) {
-      content.add(result.next)
-    }
-
-    /* add additional items to the lookup */
-    content.add(SystemAction.get(classOf[AddSymbolAction]))
-    content.add(new SymbolStartWatchAction(this))
-    content.add(new SymbolStopWatchAction(this))
-    content.add(new SymbolRefreshDataAction(this))
-    content.add(new SymbolReimportDataAction(this))
-    content.add(new SymbolViewAction(this))
-
-    /**
-     * Declaring the children of the root sec node
-     *
-     *
-     * @param symbolFolderNode: the folder or file('stockname.ser') which delegated to this node
-     */
-    @throws(classOf[DataObjectNotFoundException])
-    @throws(classOf[IntrospectionException])
-    def this(symbolFolderNode: Node) = {
-      this(symbolFolderNode, new InstanceContent)
-    }
-
-    /** Declaring the actions that can be applied to this node */
-    override def getActions(popup: Boolean): Array[Action] = {
-      val df = getLookup.lookup(classOf[DataFolder])
-      Array(
-        getLookup.lookup(classOf[AddSymbolAction]),
-        new AddFolderAction(df),
-        null,
-        getLookup.lookup(classOf[SymbolViewAction]),
-        null,
-        getLookup.lookup(classOf[SymbolStartWatchAction]),
-        getLookup.lookup(classOf[SymbolStopWatchAction]),
-        null,
-        getLookup.lookup(classOf[SymbolRefreshDataAction]),
-        getLookup.lookup(classOf[SymbolReimportDataAction]),
-        null,
-        SystemAction.get(classOf[DeleteAction])
-      )
-    }
-
-    override def getDisplayName: String = {
-      displayNameOf(this)
-    }
-  }
 }
-
-
-
-
-
-

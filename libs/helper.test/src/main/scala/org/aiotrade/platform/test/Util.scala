@@ -27,7 +27,7 @@ import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.swing.plaf.AIOTabbedPaneUI
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
-import org.aiotrade.lib.view.securities.AnalysisQuoteChartView
+import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.VOLIndicator
@@ -340,7 +340,7 @@ class Util {
 
     viewContainer.controller.isCursorCrossLineVisible = true
     viewContainer.controller.isOnCalendarMode = false
-    val masterView = viewContainer.masterView.asInstanceOf[AnalysisQuoteChartView]
+    val masterView = viewContainer.masterView.asInstanceOf[AnalysisChartView]
     masterView.switchQuoteChartType(tpe)
     masterView.xControlPane.setVisible(true)
     masterView.yControlPane.setVisible(true)
