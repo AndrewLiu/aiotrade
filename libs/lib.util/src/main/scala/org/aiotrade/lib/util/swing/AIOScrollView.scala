@@ -32,20 +32,20 @@ package org.aiotrade.lib.util.swing
 
 import java.awt.Graphics
 import javax.swing.JComponent
-
-import scala.collection.mutable.{Map, HashMap}
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.HashMap
 
 /**
  *
  * @author Caoyuan Deng
  */
-class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) extends JComponent {
+class AIOScrollView($viewPort: JComponent, $pictures: List[JComponent]) extends JComponent {
   private val W_INTERSPACE = 10
   private val H_INTERSPACE = 10
   private val MAX_H_PER_PICTURE = 180
     
-  private var viewPort: JComponent = aviewPort
-  private var pictures: List[_ <: JComponent] = apictures
+  private var viewPort = $viewPort
+  private val pictures = ArrayBuffer[JComponent]() ++= $pictures
     
   private var dModelBegByRewind: Int = _
     
@@ -68,7 +68,7 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
   private var frozen: Boolean = false
     
   /** <idx, x> pair */
-  private var idxMapX = new HashMap[Int, Int]
+  private val idxToX = new HashMap[Int, Int]
 
   setOpaque(true)
   setDoubleBuffered(true)
@@ -109,8 +109,16 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
   def isFrozen: Boolean = {
     frozen
   }
-    
-  override def paint(g: Graphics): Unit = {
+
+  def addPicture(picture: JComponent) {
+    pictures += picture
+  }
+
+  def removePicture(picture: JComponent) {
+    pictures -= picture
+  }
+
+  override def paint(g: Graphics) {
     hViewPort = viewPort.getHeight
     wViewPort = viewPort.getWidth
         
@@ -157,7 +165,7 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
     super.paint(g)
   }
     
-  private def rewindIfNecessary: Unit = {
+  private def rewindIfNecessary {
     /** check if need rewind scrolling */
     val modelEnd = modelBeg + modelRange
     val diff = modelEnd - shownRange
@@ -170,8 +178,8 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
     }
   }
     
-  private def computePicturesPosition: Unit = {
-    idxMapX.clear
+  private def computePicturesPosition {
+    idxToX.clear
     for (i <- 0 until pictures.size) {
       var x0 = modelBeg + i * wRow
       val x0BeforeRewound = x0 - dModelBegByRewind
@@ -182,21 +190,19 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
         x0 = x0BeforeRewound
       }
             
-      idxMapX.put(i, x0)
+      idxToX.put(i, x0)
     }
   }
     
-  private def alignIfNecessary: Unit = {
-    var pixelsScrollBack = 0;
+  private def alignIfNecessary {
+    var pixelsScrollBack = 0
         
-    var noneInFront = true;
+    var noneInFront = true
     if (shouldAlign) {
       /** find  the current front picture, align it at 0 */
-      idxMapX.find{case (idx, x) => x < 0 && x + wRow > 0} match {
-        case Some((idx0, x0)) =>
-          pixelsScrollBack = -x0
-          noneInFront = false
-        case None =>
+      for ((idx0, x0) <- idxToX find {case (idx, x) => x < 0 && x + wRow > 0}) {
+        pixelsScrollBack = -x0
+        noneInFront = false
       }
       
       if (noneInFront) {
@@ -210,19 +216,19 @@ class AIOScrollView(aviewPort: JComponent, apictures: List[_ <: JComponent]) ext
       }
             
       if (pixelsScrollBack > 0) {
-        modelBeg += pixelsScrollBack;
+        modelBeg += pixelsScrollBack
                 
         rewindIfNecessary
         computePicturesPosition
       }
             
       /** shouldAlign reset */
-      shouldAlign = false;
+      shouldAlign = false
     }
   }
     
-  private def placePictures: Unit = {
-    for ((idx, x0) <- idxMapX) {
+  private def placePictures {
+    for ((idx, x0) <- idxToX) {
       val picture = pictures(idx)
             
       if (x0 + wPicture < 0 || x0 > shownRange) {

@@ -23,6 +23,7 @@
         <file name="org-aiotrade-modules-ui-netbeans-actions-PickDrawingLineAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-OpenExplorerAction.instance"/>
+        <file name="org-aiotrade-modules-ui-netbeans-actions-OpenMultipleChartsAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-OnlineHelpAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-SymbolLookupHelpAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-SaveToImageAction.instance"/>

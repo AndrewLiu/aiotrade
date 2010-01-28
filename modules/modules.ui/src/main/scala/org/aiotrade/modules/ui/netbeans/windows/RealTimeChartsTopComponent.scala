@@ -75,7 +75,7 @@ object RealTimeChartsTopComponent {
   private val MODE = "editor"
 
 
-  def getInstance: RealTimeChartsTopComponent = {
+  def apply(): RealTimeChartsTopComponent = {
     var instance = instanceRefs match {
       case Nil => new RealTimeChartsTopComponent
       case head :: _ => head.get
@@ -151,6 +151,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
       secToViewContainers += (sec -> viewContainer)
             
       scrollView.add(viewContainer)
+      scrollView.addPicture(viewContainer)
       scrollView.repaint()
     }
         
@@ -159,11 +160,10 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   }
     
   def unWatch(sec: Security) {
-    secToViewContainers get sec match {
-      case Some(viewContainer) =>
-        scrollView.remove(viewContainer)
-        secToViewContainers -= sec
-      case None =>
+    for (viewContainer <- secToViewContainers.get(sec)) {
+      scrollView.remove(viewContainer)
+      scrollView.removePicture(viewContainer)
+      secToViewContainers -= sec
     }
   }
     

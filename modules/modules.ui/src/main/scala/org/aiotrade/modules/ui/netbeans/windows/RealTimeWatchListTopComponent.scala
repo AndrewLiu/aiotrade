@@ -51,6 +51,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.TickerSerProvider
 import org.aiotrade.lib.util.swing.action.ViewAction
+import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.actions.StopSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
@@ -61,12 +62,6 @@ import org.openide.windows.WindowManager
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
-/**
- *
- * @author Caoyuan Deng
- */
-
-
 /** This class implements serializbale by inheriting TopComponent, but should
  * overide writeExternal() and readExternal() to implement own serializable
  * instead of via transient modifies.
@@ -76,6 +71,8 @@ import scala.collection.mutable.HashSet
  * reloaded always, thus, when moduel has been disable but the reloading
  * procedure still not finished yet, deserialization will fail and throws
  * exception. So, it's better to test serialization out of the IDE.
+ *
+ * @author Caoyuan Deng
  */
 object RealTimeWatchListTopComponent {
   var instanceRefs = List[WeakReference[RealTimeWatchListTopComponent]]()
@@ -95,6 +92,13 @@ object RealTimeWatchListTopComponent {
     instance
   }
 
+  def selected: Option[RealTimeWatchListTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: RealTimeWatchListTopComponent => Some(x)
+      case _ => instanceRefs find (_.get.isShowing) map (_.get)
+    }
+  }
+
 }
 
 import RealTimeWatchListTopComponent._
@@ -111,6 +115,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   private var reallyClosed = false
 
   private val popup = new JPopupMenu
+  popup.add(SystemAction.get(classOf[OpenMultipleChartsAction]))
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
   popup.add(SystemAction.get(classOf[StopSelectedWatchAction]))
 
