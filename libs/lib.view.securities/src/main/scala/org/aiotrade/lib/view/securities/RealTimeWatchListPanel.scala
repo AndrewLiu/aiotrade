@@ -181,6 +181,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val sortKeys = new java.util.ArrayList[RowSorter.SortKey]
     sortKeys.add(new RowSorter.SortKey(colOfName(PERCENT), javax.swing.SortOrder.DESCENDING))
     sorter.setSortKeys(sortKeys)
+    sorter.setSortsOnUpdates(true)
 
     table.setRowSorter(sorter)
   }
@@ -267,6 +268,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     }
 
     prevTicker.copyFrom(ticker)
+    tableModel.fireTableRowsUpdated(0, tableModel.getRowCount - 1)
   }
 
   private val SWITCH_COLOR_A = LookFeel().nameColor
