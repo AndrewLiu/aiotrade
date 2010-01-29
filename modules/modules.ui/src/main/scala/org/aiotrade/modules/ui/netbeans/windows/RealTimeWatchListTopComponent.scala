@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans.windows;
+package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent
@@ -49,7 +49,6 @@ import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
-import org.aiotrade.lib.securities.TickerSerProvider
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
@@ -220,41 +219,24 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   }
     
   def watch(sec: Security, node: Node) {
-    watchListPanel.watch(sec.uniSymbol)
+    watchListPanel.watch(sec)
     symbolToNode.put(sec.uniSymbol, node)
     watchingSecs.add(sec)
-        
-    val tickerServer = sec.tickerServer
-    if (tickerServer == null) {
-      return
-    }
-    tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.addObserver(watchListPanel)
-    }
   }
     
-  def unWatch(sec: TickerSerProvider) {
-    val uniSymbol = sec.uniSymbol
-    watchListPanel.unWatch(uniSymbol)
-        
-    val tickerServer = sec.tickerServer
-    if (tickerServer == null) {
-      return
-    }
-    tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.deleteObserver(watchListPanel)
-    }
-        
+  def unWatch(sec: Security) {
+    watchListPanel.unWatch(sec)
+                
     /**
-     * !NOTICE
-     * don't remove from tickerNodeMap, because you may need to restart it
-     *    tickerNodeMap.remove(tickeringSignSeriesProvider.getSymbol());
+     * @Note
+     * don't remove from symbolToNode, because you may need to restart it
+     *    symbolToNode.remove(sec.uniSymbol))
      */
   }
     
   def getSelectedSymbolNodes: List[Node] = {
     var selectedNodes = List[Node]()
-    for (row <- watchListTable.getSelectedRows()) {
+    for (row <- watchListTable.getSelectedRows) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
         symbolToNode.get(symbol) foreach {node =>

@@ -53,11 +53,11 @@ import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.TickerSnapshot
-import org.aiotrade.lib.util.Observable
-import org.aiotrade.lib.util.Observer
+import org.aiotrade.lib.securities.TickerEvent
 import scala.collection.mutable.HashMap
+import scala.swing.Reactor
 
 /**
  *
@@ -71,7 +71,7 @@ object RealTimeWatchListPanel {
 }
 
 import RealTimeWatchListPanel._
-class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
+class RealTimeWatchListPanel extends JPanel with Reactor {
 
   private val SYMBOL     = "Symbol"
   private val TIME       = "Time"
@@ -129,6 +129,25 @@ class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
 
   setLayout(new BorderLayout)
   add(BorderLayout.CENTER, scrollPane)
+
+  reactions += {
+    case TickerEvent(sec: Security, ticker: Ticker) =>
+      /*
+       * To avoid:
+       java.lang.NullPointerException
+       at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
+       at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
+       at javax.swing.JTable.getValueAt(JTable.java:2695)
+       at javax.swing.JTable.prepareRenderer(JTable.java:5712)
+       at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
+       * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
+       */
+      SwingUtilities.invokeLater(new Runnable {
+          def run {
+            updateByTicker(sec.uniSymbol, ticker)
+          }
+        })
+  }
 
   /** forward focus to scrollPane, so it can response UP/DOWN key event etc */
   override def requestFocusInWindow: Boolean = {
@@ -203,28 +222,6 @@ class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = {
       canEdit(columnIndex)
     }
-  }
-
-  def update(tickerSnapshot: Observable) {
-    val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
-    val symbol = ts.symbol
-    val ticker = ts.ticker
-
-    /*
-     * To avoid:
-     java.lang.NullPointerException
-     at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
-     at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
-     at javax.swing.JTable.getValueAt(JTable.java:2695)
-     at javax.swing.JTable.prepareRenderer(JTable.java:5712)
-     at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
-     * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
-     */
-    SwingUtilities.invokeLater(new Runnable {
-        def run {
-          updateByTicker(symbol, ticker)
-        }
-      })
   }
 
   private def updateByTicker(symbol: String, ticker: Ticker) {
@@ -370,9 +367,11 @@ class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
     rowData
   }
 
-  def watch(symbol: String) {
-    symbolToInWatching(symbol) = true
+  def watch(sec: Security) {
+    listenTo(sec)
 
+    val symbol = sec.uniSymbol
+    symbolToInWatching(symbol) = true
     for (lastTicker <- symbolToPrevTicker.get(symbol);
          colNameToColors <- symbolToColColors.get(symbol)
     ) {
@@ -381,9 +380,11 @@ class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
     }
   }
 
-  def unWatch(symbol: String) {
-    symbolToInWatching(symbol) = false
+  def unWatch(sec: Security) {
+    deafTo(sec)
 
+    val symbol = sec.uniSymbol
+    symbolToInWatching(symbol) = false
     for (lastTicker <- symbolToPrevTicker.get(symbol);
          colNameToColors <- symbolToColColors.get(symbol)
     ) {
