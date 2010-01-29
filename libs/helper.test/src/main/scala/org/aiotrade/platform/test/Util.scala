@@ -428,15 +428,7 @@ class Util {
 
   def watchRealTime(contents: AnalysisContents, rtBoard: RealTimeBoardPanel) {
     sec.subscribeTickerServer
-
-    tickerServer = sec.tickerServer
-    if (tickerServer == null) {
-      return;
-    }
-
-    tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.addObserver(rtBoard)
-    }
+    rtBoard.watch
   }
 
   @throws(classOf[Exception])
