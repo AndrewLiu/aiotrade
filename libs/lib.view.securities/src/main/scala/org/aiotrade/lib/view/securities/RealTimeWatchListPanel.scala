@@ -181,7 +181,8 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     val sortKeys = new java.util.ArrayList[RowSorter.SortKey]
     sortKeys.add(new RowSorter.SortKey(colOfName(PERCENT), javax.swing.SortOrder.DESCENDING))
     sorter.setSortKeys(sortKeys)
-    sorter.setSortsOnUpdates(true)
+    // @Note sorter.setSortsOnUpdates(true) almost work except that the cells behind sort key
+    // of selected row doesn't refresh, TableRowSorter.sort manually
 
     table.setRowSorter(sorter)
   }
@@ -273,7 +274,7 @@ class RealTimeWatchListPanel extends JPanel with TickerObserver {
     prevTicker.copyFrom(ticker)
     
     if (updated) {
-      tableModel.fireTableRowsUpdated(0, tableModel.getRowCount - 1) // force to re-sort all rows
+      table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
     }
   }
 
