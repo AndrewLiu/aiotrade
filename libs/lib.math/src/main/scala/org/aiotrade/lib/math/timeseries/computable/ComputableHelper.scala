@@ -74,10 +74,10 @@ trait ComputableHelper extends Reactor {self: Indicator =>
     // * share same timestamps with baseSer, should be care of ReadWriteLock
     self.attach(baseSer.timestamps)
 
-    addBaseSerChangeListener
+    addBaseSerReaction
   }
 
-  private def addBaseSerChangeListener {
+  private def addBaseSerReaction {
     /**
      * The series is a result computed from baseSeries, so
      * should follow the baseSeries' data changing:
@@ -204,8 +204,8 @@ trait ComputableHelper extends Reactor {self: Indicator =>
   }
     
   def addFactor(factor: Factor) {
-    /** add factor change listener to this factor */
-    addFactorChangeListener(factor)
+    /** add factor reaction to this factor */
+    addFactorReaction(factor)
 
     val old = _factors
     _factors = new Array[Factor](old.length + 1)
@@ -213,21 +213,21 @@ trait ComputableHelper extends Reactor {self: Indicator =>
     _factors(_factors.length - 1) = factor
   }
     
-  private def addFactorChangeListener(factor: Factor): Unit = {
-    factor.addFactorChangeListener(new FactorChangeListener {
-        def factorChanged(evt: FactorChangeEvent): Unit = {
-          /**
-           * As any one of factor in factor changed will fire change events
-           * for each factor in factor, we only need respond to the first
-           * one.
-           * @see fireFacChangeEvents();
-           */
-          if (evt.getSource.equals(_factors(0))) {
-            // * call back
-            self.computableActor ! ComputeFrom(0)
-          }
+  private def addFactorReaction(factor: Factor) {
+    reactions += {
+      case FactorEvent(source) =>
+        /**
+         * As any factor in factors changed will publish events
+         * for each factor in factors, we only need respond to the first
+         * one.
+         */
+        if (source.equals(_factors(0))) {
+          self.computableActor ! ComputeFrom(0)
         }
-      })
+
+    }
+    listenTo(factor)
+
   }
 
   def factors: Array[Factor] = _factors
@@ -266,15 +266,11 @@ trait ComputableHelper extends Reactor {self: Indicator =>
     }
         
     if (valueChanged) {
-      fireFactorsChangeEvents
+      factors foreach {x => publish(FactorEvent(x))}
     }
   }
     
-  private def fireFactorsChangeEvents: Unit = {
-    factors foreach {x => x.fireFactorChangeEvent(new FactorChangeEvent(x))}
-  }
-    
-  def replaceFac(oldFactor: Factor, newFactor: Factor): Unit = {
+  def replaceFactor(oldFactor: Factor, newFactor: Factor): Unit = {
     var idxOld = -1
     var i = 0
     var break = false
@@ -287,7 +283,7 @@ trait ComputableHelper extends Reactor {self: Indicator =>
     }
         
     if (idxOld != -1) {
-      addFactorChangeListener(newFactor)
+      addFactorReaction(newFactor)
             
       factors(idxOld) = newFactor
     }

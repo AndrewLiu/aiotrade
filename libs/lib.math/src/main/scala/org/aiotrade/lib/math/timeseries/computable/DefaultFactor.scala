@@ -41,17 +41,18 @@ import org.aiotrade.lib.util.serialization.JavaDocument
  * If you use Factor in indicator, please considerate AbstractIndicator#InnerFactor first
  * which will be added to Indicator's factors automatically when new it.
  */
-class DefaultFactor(_name: String,
-                    _value: Number,
-                    _step: Number,
-                    _minValue: Number,
-                    _maxValue: Number
-) extends AbstractFactor(_name) {
-    
-  private var $value: Float = _value.floatValue
-  private var $step : Float = if (_step == null) 1.0f else _step.floatValue
-  private var $minValue: Float = if (_minValue == null) -Float.MaxValue else _minValue.floatValue
-  private var $maxValue: Float = if (_maxValue == null) +Float.MaxValue else _maxValue.floatValue
+class DefaultFactor($name: String,
+                    $value: Number,
+                    $step: Number,
+                    $minValue: Number,
+                    $maxValue: Number
+) extends Factor {
+
+  private var _name = $name
+  private var _value = $value.floatValue
+  private var _step = if ($step == null) 1.0f else $step.floatValue
+  private var _minValue = if ($minValue == null) -Float.MaxValue else $minValue.floatValue
+  private var _maxValue = if ($maxValue == null) +Float.MaxValue else $maxValue.floatValue
     
   def this(name: String, value: Number) = {
     this(name, value, null, null, null)
@@ -60,25 +61,30 @@ class DefaultFactor(_name: String,
   def this(name: String, value: Number, step: Number) = {
     this(name, value, step, null, null)
   }
-    
-  def value: Float = $value
+
+  def name = _name
+  def name_=(name: String) = {
+    this._name = name
+  }
+  
+  def value = _value
   def value_=(value: Number) = {
-    this.$value = value.floatValue
+    this._value = value.floatValue
   }
 
-  def step: Float = $step
+  def step = _step
   def step_=(step: Number) = {
-    this.$step = step.floatValue
+    this._step = step.floatValue
   }
     
-  def maxValue: Float = $maxValue
+  def maxValue = _maxValue
   def maxValue_=(maxValue: Number): Unit = {
-    this.$maxValue = maxValue.floatValue
+    this._maxValue = maxValue.floatValue
   }
     
-  def minValue: Float = $minValue
+  def minValue = _minValue
   def minValue_=(minValue: Number) = {
-    this.$minValue = minValue.floatValue
+    this._minValue = minValue.floatValue
   }
     
   def writeToJava(id: String): String = {

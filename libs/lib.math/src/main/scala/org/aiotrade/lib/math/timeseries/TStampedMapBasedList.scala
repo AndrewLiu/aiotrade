@@ -168,7 +168,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     }
   }
     
-  def apply(time: Long): A = timeToElementData.get(time).get
+  def apply(time: Long): A = timeToElementData.get(time).getOrElse(Null.Long.asInstanceOf[A])
     
   def update(time: Long, elem: A) {
     if (timestamps.contains(time)) {
@@ -204,7 +204,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
 
   override def apply(n: Int): A = {
     val time = timestamps(n)
-    if (time != null) timeToElementData.get(time).get else null.asInstanceOf[A]
+    if (Null.not(time)) timeToElementData.get(time).get else null.asInstanceOf[A]
   }
     
   override def update(n: Int, newelem: A) : Unit = {

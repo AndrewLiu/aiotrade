@@ -30,9 +30,10 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import javax.swing.event.EventListenerList
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
+import scala.swing.Publisher
+import scala.swing.event.Event
 
 /**
  * Class for defining indicator's factor
@@ -40,7 +41,7 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 @cloneable
-trait Factor {
+trait Factor extends Publisher {
     
   def name: String
   def name_=(name: String): Unit
@@ -57,14 +58,39 @@ trait Factor {
   def minValue: Float
   def minValue_=(minValue: Number): Unit
 
+  @inline final override def equals(a: Any): Boolean = a match {
+    case x: Factor => this.value.equals(x.value)
+    case _ => false
+  }
+
+  @inline final override def hashCode = value.hashCode
+
   /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
-  override def clone: Factor = {super.clone; this}
-    
-  def addFactorChangeListener(listener: FactorChangeListener): Unit
-  def removeFactorChangeListener(listener: FactorChangeListener): Unit
-  def fireFactorChangeEvent(evt: FactorChangeEvent): Unit
-    
-  def writeToBean(doc: BeansDocument): Element
+  override def clone: Factor = {
+    try {
+      val newOne = super.clone.asInstanceOf[Factor]
+
+      newOne.name = name
+      newOne.value = value
+      newOne.step = step
+      newOne.minValue = minValue
+      newOne.maxValue = maxValue
+
+      return newOne
+    } catch {case ex: CloneNotSupportedException => throw new InternalError(ex.toString)}
+  }
+
+  def writeToBean(doc: BeansDocument): Element = {
+    val bean = doc.createBean(this)
+
+    doc.valuePropertyOfBean(bean, "name", name)
+    doc.valuePropertyOfBean(bean, "value", value)
+    doc.valuePropertyOfBean(bean, "step", step)
+    doc.valuePropertyOfBean(bean, "minValue", minValue)
+    doc.valuePropertyOfBean(bean, "maxValue", maxValue)
+
+    bean
+  }
     
     
   //    public static class Float extends AbstractOpt implements Opt {
@@ -108,80 +134,4 @@ trait Factor {
   //    }
 }
 
-abstract class AbstractFactor(var name: String) extends Factor {
-  val factorChangeEventListenerList = new EventListenerList
-
-  def addFactorChangeListener(listener: FactorChangeListener) = {
-    factorChangeEventListenerList.add(classOf[FactorChangeListener], listener)
-  }
-
-  def removeFactorChangeListener(listener: FactorChangeListener) {
-    factorChangeEventListenerList.remove(classOf[FactorChangeListener], listener)
-  }
-
-  def fireFactorChangeEvent(evt: FactorChangeEvent) {
-    val listeners = factorChangeEventListenerList.getListenerList
-    /** Each listener occupies two elements - the first is the listener class */
-    var i = 0
-    while (i < listeners.length) {
-      if (listeners(i) == classOf[FactorChangeListener]) {
-        listeners(i + 1).asInstanceOf[FactorChangeListener].factorChanged(evt)
-      }
-      i += 2
-    }
-  }
-
-  @inline final override def equals(a: Any): Boolean = a match {
-    case x: Factor => this.value.equals(x.value)
-    case _ => false
-  }
-
-  @inline final override def hashCode = value.hashCode
-
-  override def clone: Factor = {
-    try {
-      val newOne = super.clone.asInstanceOf[Factor]
-
-      newOne.name = name
-      newOne.value = value
-      newOne.step = step
-      newOne.minValue = minValue
-      newOne.maxValue = maxValue
-
-      return newOne
-    } catch {case ex: CloneNotSupportedException => throw new InternalError(ex.toString)}
-  }
-
-  def writeToBean(doc: BeansDocument) :Element = {
-    val bean = doc.createBean(this)
-
-    doc.valuePropertyOfBean(bean, "name", name)
-    doc.valuePropertyOfBean(bean, "value", value)
-    doc.valuePropertyOfBean(bean, "step", step)
-    doc.valuePropertyOfBean(bean, "minValue", minValue)
-    doc.valuePropertyOfBean(bean, "maxValue", maxValue)
-
-    bean
-  }
-}
-
-
-import javax.swing.event.ChangeEvent
-class FactorChangeEvent(_source: AnyRef) extends ChangeEvent(_source) {
-
-  override def getSource: Factor = {
-    assert(source.isInstanceOf[Factor], "Source should be Factor")
-
-    source.asInstanceOf[Factor]
-  }
-
-  def source_=(factor: Factor) {
-    source = factor
-  }
-}
-
-import java.util.EventListener
-trait FactorChangeListener extends EventListener {
-  def factorChanged(evt:FactorChangeEvent): Unit
-}
-
+case class FactorEvent(source: Factor) extends Event
