@@ -32,6 +32,7 @@ package org.aiotrade.lib.securities
 
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
+import scala.swing.event.Event
 
 /**
  *
@@ -198,3 +199,7 @@ class Ticker(val depth: Int) extends TVal {
     null
   }
 }
+
+case class TickerEvent(source: Security, ticker: Ticker) extends Event
+case class TickersEvent(source: Security, ticker: List[Ticker]) extends Event
+

@@ -31,6 +31,7 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import scala.swing.Publisher
 
 /**
  * Securities: Stock, Options, Futures, Index, Currency etc.
@@ -63,9 +64,8 @@ object Security {
   }
 }
 
-trait Security extends SerProvider[QuoteSer] with TickerSerProvider {
+trait Security extends SerProvider[QuoteSer] with TickerSerProvider with Publisher {
 
-  def exchange_=(exchange: Exchange): Unit
   def exchange: Exchange
+  def exchange_=(exchange: Exchange): Unit
 }
-

@@ -63,16 +63,15 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.TickerSnapshot
+import org.aiotrade.lib.securities.TickerEvent
 import org.aiotrade.lib.securities.dataserver.TickerContract
-import org.aiotrade.lib.util.Observable
-import org.aiotrade.lib.util.Observer
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
 import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
 import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel
 import org.aiotrade.lib.util.swing.table.DefaultCellAttribute
 import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
+import scala.swing.Reactor
 
 /**
  *
@@ -85,7 +84,7 @@ object RealTimeBoardPanel {
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with Observer[TickerSnapshot] {
+class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with Reactor {
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -134,6 +133,18 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
 
   for (ticker <- sec.tickers) {
     updateByTicker(ticker)
+  }
+  scrollToLastRow(tickerTable)
+
+  reactions += {
+    case TickerEvent(src: Security, ticker: Ticker) =>
+      symbol.value = src.name
+      // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
+      if (ticker.time > prevTicker.time || ticker(Ticker.DAY_VOLUME) > prevTicker(Ticker.DAY_VOLUME)) {
+        updateByTicker(ticker)
+        scrollToLastRow(tickerTable)
+        repaint()
+      }
   }
 
   private def initComponents {
@@ -292,16 +303,6 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     add(chartPane,  new GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
   }
 
-  def update(tickerSnapshot: Observable) {
-    val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
-    symbol.value = ts.symbol
-    val ticker = ts.ticker
-    // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
-    if (ticker.time > prevTicker.time || ticker(Ticker.DAY_VOLUME) > prevTicker(Ticker.DAY_VOLUME)) {
-      updateByTicker(ts.ticker)
-    }
-  }
-
   private def updateByTicker(ticker: Ticker) {
     val neutralColor  = LookFeel().getNeutralColor
     val positiveColor = LookFeel().getPositiveColor
@@ -407,11 +408,9 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
       if (prevTicker == null) "-" else currentSize
     )
     tickerModel.addRow(tickerRow.asInstanceOf[Array[Object]])
-    scrollToLastRow(tickerTable)
 
     prevTicker.copyFrom(ticker)
 
-    repaint()
   }
 
   private def scrollToLastRow(table: JTable) {
@@ -431,21 +430,11 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
   }
 
   def watch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.addObserver(this)
-      }
-    }
+    listenTo(sec)
   }
 
   def unWatch {
-    val tickerServer = sec.tickerServer
-    if (tickerServer != null) {
-      tickerServer.tickerSnapshotOf(sec.tickerContract.symbol) foreach {tickerSnapshot =>
-        tickerSnapshot.deleteObserver(this)
-      }
-    }
+    deafTo(sec)
   }
 
   class CustomTableUI extends BasicTableUI {

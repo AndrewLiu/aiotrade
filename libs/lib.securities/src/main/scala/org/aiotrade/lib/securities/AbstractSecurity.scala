@@ -65,8 +65,8 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
   private var _uniSymbol = $uniSymbol
 
   var exchange = Exchange.N
-  var description: String = ""
-  var name: String = $uniSymbol.replace('.', '_')
+  var description = ""
+  var name = $uniSymbol.replace('.', '_')
   var defaultFreq: TFreq = _
   var tickerServer: TickerServer = _
 
@@ -76,8 +76,8 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     if (defaultFreq == null) {
       defaultFreq = freq
     }
-    freqToQuoteContract += (freq -> contract)
-    freqToSer += (freq -> new QuoteSer(freq))
+    freqToQuoteContract(freq) = contract
+    freqToSer(freq) = new QuoteSer(freq)
   }
 
   /** tickerContract will always be built according to quoteContrat ? */
@@ -109,7 +109,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
   }
 
   def putSer(ser: QuoteSer) {
-    freqToSer += (ser.freq -> ser)
+    freqToSer(ser.freq) = ser
   }
 
   /**
@@ -124,13 +124,13 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     val quoteServer = freqToQuoteServer get(freq) getOrElse {
       contract.serviceInstance(Nil) match {
         case None => return false
-        case Some(x) => freqToQuoteServer += (freq -> x); x
+        case Some(x) => freqToQuoteServer(freq) = x; x
       }
     }
 
     val serToBeLoaded = serOf(freq) getOrElse {
       val x = new QuoteSer(freq)
-      freqToSer += (freq -> x)
+      freqToSer(freq) = x
       x
     }
 
@@ -218,7 +218,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
   
   def dataContract_=(quoteContract: DataContract[_]) {
     val freq = quoteContract.freq
-    freqToQuoteContract += (freq -> quoteContract.asInstanceOf[QuoteContract])
+    freqToQuoteContract(freq) = quoteContract.asInstanceOf[QuoteContract]
     /** may need a new dataServer now: */
     freqToQuoteServer -= freq
   }
@@ -287,6 +287,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     val ticker = new Ticker
     ticker.copyFrom(tickerSnapshot.asInstanceOf[TickerSnapshot].ticker)
     tickers += ticker
+    publish(TickerEvent(this, ticker))
   }
 }
 
