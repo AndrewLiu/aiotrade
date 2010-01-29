@@ -47,7 +47,6 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.ChangeObserver
-import org.aiotrade.lib.util.ChangeObservableHelper
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import scala.swing.Reactions
@@ -99,9 +98,19 @@ object ChartingControllerFactory {
 
   /**
    * DefaultChartingController that implements ChartingController
+   * 
+   * ChangeSubject cases for ChartValidityObserver:
+   *   rightSideRow
+   *   referCursorRow
+   *   wBar
+   *   onCalendarMode
+   * ChangeSubject cases for MouseCursorObserver:
+   *   mosueCursor
+   *   mouseEnteredAnyChartPane
    */
   import DefaultChartingController._
-  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController with Reactor {
+  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController
+                                                                                                  with Reactor {
 
     val masterSer = $masterSer
     val contents  = $contents
@@ -126,8 +135,6 @@ object ChartingControllerFactory {
       case TSerEvent.Updated(_, _, fromTime, toTime, _, _)          => updateView(toTime)
       case _ =>
     }
-
-    private val observableHelper = new ChangeObservableHelper
 
     private def internal_setChartViewContainer(viewContainer: ChartViewContainer) {
       this.viewContainer = viewContainer
@@ -178,7 +185,7 @@ object ChartingControllerFactory {
       if (!_isMouseEnteredAnyChartPane) {
         /** this cleanups mouse cursor */
         if (this._isMouseEnteredAnyChartPane != oldValue) {
-          notifyObserversChanged(classOf[MouseCursorObserver[Any]])
+          notifyChanged(classOf[MouseCursorObserver])
           updateViews
         }
       }
@@ -255,7 +262,7 @@ object ChartingControllerFactory {
         internal_setReferCursorByTime(referCursorTime1)
         internal_setRightCursorByTime(rightCursorTime1)
 
-        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyChanged(classOf[ChartValidityObserver])
         updateViews
       }
     }
@@ -329,32 +336,6 @@ object ChartingControllerFactory {
       popupViews foreach {view => view.repaint()}
     }
 
-    def addObserver(owner: AnyRef, observer: ChangeObserver[Any]) {
-      observableHelper.addObserver(owner, observer)
-    }
-
-    def removeObserver(observer: ChangeObserver[Any]) {
-      observableHelper.removeObserver(observer)
-    }
-
-    def removeObserversOf(owner: Object) {
-      observableHelper.removeObserversOf(owner)
-    }
-
-    /**
-     * Changed cases for ChartValidityObserver:
-     *   rightSideRow
-     *   referCursorRow
-     *   wBar
-     *   onCalendarMode
-     * Change cases for MouseCursorObserver:
-     *   mosueCursor
-     *   mouseEnteredAnyChartPane
-     */
-    def notifyObserversChanged(observerType: Class[_ <: ChangeObserver[Any]]) {
-      observableHelper.notifyObserversChanged(this, observerType)
-    }
-
     final def referCursorRow: Int = _referCursorRow
     final def referCursorTime: Long = masterSer.timeOfRow(_referCursorRow)
 
@@ -383,7 +364,7 @@ object ChartingControllerFactory {
       val oldValue = _wBar
       _wBar = wBar
       if (_wBar != oldValue) {
-        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
@@ -393,8 +374,8 @@ object ChartingControllerFactory {
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
       this._lastOccurredRowOfMasterSer = masterSer.lastOccurredRow
       if (this._referCursorRow != oldValue) {
-        notifyObserversChanged(classOf[ReferCursorObserver[Any]])
-        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyChanged(classOf[ReferCursorObserver])
+        notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
@@ -402,7 +383,7 @@ object ChartingControllerFactory {
       val oldValue = this._rightSideRow
       this._rightSideRow = row
       if (this._rightSideRow != oldValue) {
-        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
@@ -422,7 +403,7 @@ object ChartingControllerFactory {
        * even mouseCursor row not changed, the mouse's y may has been changed,
        * so, notify observers without comparing the oldValue and newValue.
        */
-      notifyObserversChanged(classOf[MouseCursorObserver[Any]])
+      notifyChanged(classOf[MouseCursorObserver])
     }
 
     def isCursorAccelerated = _isCursorAccelerated
@@ -508,7 +489,7 @@ object ChartingControllerFactory {
         setCursorByRow(referRow, rightRow, true)
       }
 
-      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+      notifyChanged(classOf[ChartValidityObserver])
     }
 
     private def internal_getCorrespondingChartView(e: InputEvent): ChartView = {

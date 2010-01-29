@@ -76,28 +76,27 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
   add(mouseCursorLabel)
   add(referCursorLabel)
 
-  view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateMouseCursorLabel
+  view.controller.addObserver(this, new MouseCursorObserver {
+      val updater: Updater = {
+        case _: ChartingController =>
+          updateMouseCursorLabel
       }
-    }.asInstanceOf[MouseCursorObserver[Any]])
+    })
 
-  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateReferCursorLabel
+  view.controller.addObserver(this, new ReferCursorObserver {
+      val updater: Updater = {
+        case _: ChartingController =>
+          updateReferCursorLabel
       }
-    }.asInstanceOf[ReferCursorObserver[Any]])
+    })
 
-  view.addObserver(this, new ChartValidityObserver[ChartView] {
-
-      def update(view: ChartView) {
-        updateReferCursorLabel
+  view.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case _: ChartView =>
+          updateReferCursorLabel
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
+    })
     
-
   private def updateMouseCursorLabel {
     datumPlane.computeGeometry
     val controller = view.controller

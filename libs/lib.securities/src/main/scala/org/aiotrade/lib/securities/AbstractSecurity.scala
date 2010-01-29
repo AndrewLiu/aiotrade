@@ -35,9 +35,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer, TickerServer, TickerContract}
-import org.aiotrade.lib.util.Observable
-import org.aiotrade.lib.util.Observer
-import scala.swing.Reactor
+import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
@@ -54,7 +52,7 @@ import scala.collection.mutable.HashMap
  * @author Caoyuan Deng
  */
 abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends Security with Observer[TickerSnapshot] with Reactor {
+) extends Security with ChangeObserver {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
@@ -90,7 +88,14 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
   val tickerSer = new QuoteSer(tickerContract.freq)
 
-
+  val updater: Updater = {
+    case ts: TickerSnapshot =>
+      val ticker = new Ticker
+      ticker.copyFrom(ts.ticker)
+      tickers += ticker
+      publish(TickerEvent(this, ticker))
+  }
+  
   /**
    * As it's a SerProvider, when new create it, we also assign a quoteContract
    * to it, which is a the one with the default freq. And we can use it to
@@ -265,7 +270,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     }
 
     tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
-    tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {_.addObserver(this)}
+    tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {_.addObserver(this, this)}
   }
 
   def unSubscribeTickerServer {
@@ -278,11 +283,5 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
   }
 
-  def update(tickerSnapshot: Observable) {
-    val ticker = new Ticker
-    ticker.copyFrom(tickerSnapshot.asInstanceOf[TickerSnapshot].ticker)
-    tickers += ticker
-    publish(TickerEvent(this, ticker))
-  }
 }
 

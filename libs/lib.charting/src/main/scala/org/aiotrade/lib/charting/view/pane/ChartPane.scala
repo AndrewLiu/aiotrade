@@ -84,20 +84,21 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
   }
   addComponentListener(myComponentListener)
         
-  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
-      def update(controller: ChartingController) {
-        _chartValid = false
-        isGeometryValid = false
+  view.controller.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case _: ChartingController =>
+          _chartValid = false
+          isGeometryValid = false
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
+    })
         
-  view.addObserver(this, new ChartValidityObserver[ChartView] {
-      def update(subject: ChartView) {
+  view.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case _: ChartView =>
         _chartValid = false
         isGeometryValid = false
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
-
+    })
     
   protected def isChartValid: Boolean = {
     _chartValid && isGeometryValid

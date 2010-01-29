@@ -36,6 +36,8 @@ package org.aiotrade.lib.util
  * @version 1.0, November 24, 2006, 5:06 PM
  * @since   1.0.4
  */
-trait ChangeObserver[S] {
-  def update(subject: S): Unit
+trait ChangeObserver {
+  type Updater = PartialFunction[ChangeSubject, Unit]
+  
+  val updater: Updater
 }

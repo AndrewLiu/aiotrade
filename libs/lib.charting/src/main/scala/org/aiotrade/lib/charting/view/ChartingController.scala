@@ -34,7 +34,7 @@ import java.awt.Component
 import java.awt.Dimension
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.util.ChangeObservable
+import org.aiotrade.lib.util.ChangeSubject
 
 /**
  * Each MasterSer can have more than one ChartingController instances.
@@ -52,7 +52,7 @@ import org.aiotrade.lib.util.ChangeObservable
  *
  * @author Caoyuan Deng
  */
-trait ChartingController extends ChangeObservable {
+trait ChartingController extends ChangeSubject {
 
   def masterSer: MasterTSer
 

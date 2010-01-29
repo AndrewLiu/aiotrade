@@ -53,9 +53,7 @@ import org.aiotrade.lib.charting.view.pane.XControlPane
 import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.scalar.Scalar
-import org.aiotrade.lib.util.ChangeObservable
-import org.aiotrade.lib.util.ChangeObserver
-import org.aiotrade.lib.util.ChangeObservableHelper
+import org.aiotrade.lib.util.ChangeSubject
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.LinkedHashMap
 import scala.swing.Reactions
@@ -76,6 +74,12 @@ import scala.swing.Reactor
  *       1..n           1..n
  * ser --------> chart ------> var
  *
+ *
+ * ChangeSubject cases:
+ *   rightSideRow
+ *   referCursorRow
+ *   wBar
+ *   onCalendarMode
  * @author Caoyuan Deng
  */
 abstract class ChartView(protected var _controller: ChartingController,
@@ -86,9 +90,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   val AXISY_WIDTH = 50
   val CONTROL_HEIGHT = 12
   val TITLE_HEIGHT_PER_LINE = 12
-} with JComponent with ChangeObservable with Reactor {
-
-  private val observableHelper = new ChangeObservableHelper
+} with JComponent with ChangeSubject with Reactor {
 
   protected val serReaction: Reactions.Reaction = {
     case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
@@ -158,30 +160,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
   }
 
-  def addObserver(owner: Object, observer: ChangeObserver[Any]) {
-    observableHelper.addObserver(owner, observer)
-  }
-
-  def removeObserver(observer: ChangeObserver[Any]) {
-    observableHelper.removeObserver(observer)
-  }
-
-  def removeObserversOf(owner: Object) {
-    observableHelper.removeObserversOf(owner)
-  }
-
-  /**
-   * Changed cases:
-   *   rightSideRow
-   *   referCursorRow
-   *   wBar
-   *   onCalendarMode
-   */
-  def notifyObserversChanged(oberverType: Class[_ <: ChangeObserver[Any]]) {
-    observableHelper.notifyObserversChanged(this, oberverType)
-  }
-
-  protected def initComponents: Unit
+  protected def initComponents
 
   private def createBasisComponents {
     setDoubleBuffered(true)
@@ -275,7 +254,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     if (_maxValue != _oldMaxValue || _minValue != _oldMinValue) {
       _oldMaxValue = _maxValue
       _oldMinValue = _minValue
-      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+      notifyChanged(classOf[ChartValidityObserver])
     }
   }
 
@@ -311,7 +290,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     val oldValue = this._nBars
     this._nBars = nBars
     if (this._nBars != oldValue) {
-      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+      notifyChanged(classOf[ChartValidityObserver])
     }
   }
 
@@ -477,7 +456,7 @@ abstract class ChartView(protected var _controller: ChartingController,
       }
     }
 
-    notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+    notifyChanged(classOf[ChartValidityObserver])
 
     repaint()
   }
@@ -500,7 +479,7 @@ abstract class ChartView(protected var _controller: ChartingController,
       overlappingSerChartToVars.remove(ser)
     }
 
-    notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+    notifyChanged(classOf[ChartValidityObserver])
 
     repaint()
   }
@@ -526,9 +505,9 @@ abstract class ChartView(protected var _controller: ChartingController,
           case _ =>
         }
 
-        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyChanged(classOf[ChartValidityObserver])
 
-        /** repaint this chart view */
+        // repaint this chart view
         repaint()
     }
   }

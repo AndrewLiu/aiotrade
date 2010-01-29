@@ -368,7 +368,7 @@ object IBWrapper extends IBWrapper {
       }
     }
         
-    tickerSnapshot.notifyObservers
+    tickerSnapshot.notifyChanged
         
     //System.out.println("id=" + tickerId + "  " + TickType.getField( field) + "=" + price + " " +
     //(canAutoExecute != 0 ? " canAutoExecute" : " noAutoExecute"));

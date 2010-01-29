@@ -94,11 +94,12 @@ abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponen
 
   if (this.isInstanceOf[WithCursorChart]) {
     createCursorChart(this.datumPlane)
-    view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
-        def update(controller: ChartingController) {
-          paintChartOnXORMode(mouseCursorChart)
+    view.controller.addObserver(this, new MouseCursorObserver {
+        val updater: Updater = {
+          case _: ChartingController =>
+            paintChartOnXORMode(mouseCursorChart)
         }
-      }.asInstanceOf[MouseCursorObserver[Any]])
+      })
   }
 
   setDoubleBuffered(true)

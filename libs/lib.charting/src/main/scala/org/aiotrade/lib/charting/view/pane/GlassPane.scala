@@ -127,42 +127,41 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   addMouseListener(paneMouseListener)
   addMouseMotionListener(paneMouseListener)
 
-  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        if (!isUsingInstantTitleValue) {
-          updateSelectedSerVarValues
-        }
+  view.controller.addObserver(this, new ReferCursorObserver {
+      val updater: Updater = {
+        case _: ChartingController =>
+          if (!isUsingInstantTitleValue) {
+            updateSelectedSerVarValues
+          }
       }
-    }.asInstanceOf[ReferCursorObserver[Any]])
+    })
 
-  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateMainName
-        updateOverlappingNames
-        if (!isUsingInstantTitleValue) {
-          updateSelectedSerVarValues
-        }
+  view.controller.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case _: ChartingController =>
+          updateMainName
+          updateOverlappingNames
+          if (!isUsingInstantTitleValue) {
+            updateSelectedSerVarValues
+          }
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
+    })
 
-  view.addObserver(this, new ChartValidityObserver[ChartView] {
-
-      def update(view: ChartView) {
-        updateMainName
-        updateOverlappingNames
-        if (!isUsingInstantTitleValue) {
-          updateSelectedSerVarValues
-        }
+  view.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case _: ChartView =>
+          updateMainName
+          updateOverlappingNames
+          if (!isUsingInstantTitleValue) {
+            updateSelectedSerVarValues
+          }
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
+    })
 
   /**
    * @todo updateTitle() when
    * comparing chart added
    */
-  
 
   private def createCloseButton(ser: TSer): AIOCloseButton = {
     val button = new AIOCloseButton

@@ -36,6 +36,7 @@ import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.securities.{Exchange, Ticker}
+import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.{TickerServer}
 
 /**
@@ -172,7 +173,7 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
 
             tickerSnapshot.fullName = symbol
-            tickerSnapshot.notifyObservers
+            tickerSnapshot.notifyChanged
 
             countOne
             loop(Math.max(newestTime, time))

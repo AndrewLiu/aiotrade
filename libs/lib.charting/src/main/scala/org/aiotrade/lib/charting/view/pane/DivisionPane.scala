@@ -69,8 +69,7 @@ class DivisionPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview
   }
 
   @throws(classOf[Throwable])
-  override
-  protected def finalize {
+  override protected def finalize {
     if (myMouseAdapter != null) {
       removeMouseListener(myMouseAdapter)
       removeMouseMotionListener(myMouseAdapter)

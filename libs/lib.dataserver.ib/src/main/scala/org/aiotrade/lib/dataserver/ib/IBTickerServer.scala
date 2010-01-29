@@ -119,7 +119,7 @@ object IBTickerServer extends IBTickerServer {
     
   override protected def cancelRequest(contract: TickerContract) {
     tickerSnapshotOf(contract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.deleteObservers
+      tickerSnapshot.removeObservers
       ibWrapper.cancelMktDataRequest(contract.reqId)
     }
   }

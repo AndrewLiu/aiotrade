@@ -31,105 +31,105 @@
 package org.aiotrade.lib.util
 
 /**
- * Do not implement observerMap list using WeakReference, otherwise, we can not
- * add anonymous observer by:
- * addObserver(new ChangeObserver<Subject> {
- *      public void update(Subject) {
- *      }
- * });
- * 
- * 
+ *
  * @author  Caoyuan Deng
- * @version 1.0, November 24, 2006, 5:09 PM
- * @since 1.0.4
+ * @version 1.0, November 24, 2006, 5:06 PM
+ * @since   1.0.4
  */
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.ListBuffer
 
-class ChangeObservableHelper {
-  
+trait ChangeSubject {
+
   @transient
-  val observerToOwner = new HashMap[ChangeObserver[Any], AnyRef]
-    
-  def getObservers: Collection[ChangeObserver[Any]] = {
-    observerToOwner.keySet
+  private val observerToOwner = new HashMap[ChangeObserver, AnyRef]
+
+  def addObserver(owner: AnyRef, observer: ChangeObserver) {
+    synchronized {observerToOwner(observer) = owner}
   }
-    
-  def addObserver(owner: Object, observer: ChangeObserver[Any]): Unit = synchronized {
-    observerToOwner += (observer -> owner)
-  }
-    
-  def removeObserver(observer: ChangeObserver[Any]): Unit = synchronized {
+
+  def removeObserver(observer: ChangeObserver) {
     if (observer == null) {
       return
     }
-        
+
     if (observerToOwner.keySet.contains(observer)) {
-      observerToOwner -= observer
+      synchronized {observerToOwner -= observer}
     }
   }
-    
-  def removeObserversOf(owner: Object): Unit = {
-    val toBeRemoved = new ArrayList[ChangeObserver[Any]]
-    for (observer <- observerToOwner.keysIterator if observerToOwner.get(observer) == owner) {
-      toBeRemoved += observer
+
+  def removeObserversOf(owner: AnyRef) {
+    val toRemove = new ListBuffer[ChangeObserver]
+    for ((observer, ownerx) <- observerToOwner if ownerx == owner) {
+      toRemove += observer
     }
-        
-    synchronized {
-      observerToOwner --= toBeRemoved
-    }
+
+    synchronized {observerToOwner --= toRemove}
   }
-    
-  def notifyObserversChanged[T <: ChangeObserver[Any]](subject: Any, observerType: Class[T]): Unit = {
+
+  def removeObservers {
+    synchronized {observerToOwner.clear}
+  }
+
+  /**
+   * A ChangeObservable implement can support may type of ChangeObserver, so
+   * we only apply O here, the implement class can choose to notify this type
+   * of observers
+   *
+   * @Note since Class[T] is not co-variant, we have to explicitly use [T <: ChangeObserver]
+   */
+  def notifyChanged[T <: ChangeObserver](observerType: Class[T]) {
     for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
-      observer.update(subject)
+      if (observer.updater isDefinedAt this) observer.updater(this)
     }
   }
-    
-  def getObservers[T <: ChangeObserver[Any]: Manifest](observerType: Class[T]): ArrayList[T] = {
-    val result = new ArrayList[T]
+
+  def notifyChanged {
     for (observer <- observerToOwner.keysIterator) {
-      result += (observer.asInstanceOf[T])
+      if (observer.updater isDefinedAt this) observer.updater(this)
+    }
+  }
+
+  /**
+   * for use of wrap class
+   */
+//  def notifyObservers(subject: Observable): Unit = synchronized {
+//    if (changed) {
+//      /** must clone the observers in case deleteObserver is called */
+//      val clone = new Array[ObserverRef](observerRefs.size)
+//      observerRefs.copyToArray(clone, 0)
+//      clearChanged
+//      clone foreach {_.get.update(subject)}
+//    }
+//  }
+
+  def observers: Collection[ChangeObserver] = {
+    observerToOwner.keySet
+  }
+
+  def observersOf[T <: ChangeObserver](observerType: Class[T]): Collection[T] = {
+    val result = new ListBuffer[T]
+    for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
+      result += observer.asInstanceOf[T]
     }
     result
   }
-    
+
   /**
    * Returns the total number of obervers.
    */
-  def getObserverCount: Int = {
+  def observerCount: Int = {
     observerToOwner.size
   }
-    
-  private def getObserverCount(observerType: Class[_]): Int = {
+
+  private def observerCountOf[T <: ChangeObserver](observerType: Class[T]): Int = {
     var count = 0
     for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
       count += 1
     }
     count
   }
-    
-  /**
-   * @param observer the observer to be added
-   */
-  protected def add[T <: ChangeObserver[Any]](owner: AnyRef, observer: T): Unit = synchronized {
-    assert(observer != null, "Do not add a null observer!")
-    observerToOwner.put(observer, owner)
-  }
-    
-  /**
-   * @param observer the observer to be removed
-   */
-  protected def remove[T <: ChangeObserver[Any]](observer: T): Unit = synchronized {
-    if (observer == null) {
-      return
-    }
-        
-    if (observerToOwner.keySet.contains(observer)) {
-      observerToOwner.remove(observer)
-    }
-  }
-    
+
   override def toString = {
     val sb = new StringBuilder("ChangeObserverList: ")
     sb.append(observerToOwner.size).append(" observers: ")
@@ -137,7 +137,8 @@ class ChangeObservableHelper {
       sb.append(" type ").append(observer.getClass.getName)
       sb.append(" observer ").append(observer)
     }
-        
+
     sb.toString
   }
 }
+

@@ -30,7 +30,8 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.util.Observable
+import org.aiotrade.lib.util.ChangeObserver
+import org.aiotrade.lib.util.ChangeSubject
 
 /**
  * We use composite pattern here, wrap a ticker instead of inheriting it. So we
@@ -38,16 +39,15 @@ import org.aiotrade.lib.util.Observable
  *
  * @author Caoyuan Deng
  */
-class TickerSnapshot extends Observable {
+class TickerSnapshot extends ChangeSubject {
 
   val ticker = new Ticker
   var symbol: String = _
   var fullName: String = _
+  
+  private var changed: Boolean = _
 
-  def time: Long = {
-    ticker.time
-  }
-
+  def time = ticker.time
   def time_=(time: Long): Unit = {
     ticker.time = time
   }
@@ -96,6 +96,28 @@ class TickerSnapshot extends Observable {
       ticker.copyFrom(another)
       setChanged
     }
+  }
+
+  override def notifyChanged[T <: ChangeObserver](observerType: Class[T]) {
+    super.notifyChanged(observerType)
+    clearChanged
+  }
+
+  override def notifyChanged {
+    super.notifyChanged
+    clearChanged
+  }
+
+  private def setChanged {
+    synchronized {changed = true}
+  }
+
+  private def clearChanged {
+    synchronized {changed = false}
+  }
+
+  def hasChanged: Boolean = synchronized {
+    changed
   }
 }
 

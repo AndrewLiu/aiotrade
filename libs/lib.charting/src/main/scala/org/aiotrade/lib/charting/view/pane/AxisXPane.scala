@@ -77,26 +77,26 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
   add(mouseCursorLabel)
   add(referCursorLabel)
 
-  view.controller.addObserver(this, new MouseCursorObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateMouseCursorLabel
+  view.controller.addObserver(this, new MouseCursorObserver {
+      val updater: Updater = {
+        case subject: ChartingController =>
+          updateMouseCursorLabel
       }
-    }.asInstanceOf[MouseCursorObserver[Any]])
+    })
 
-  view.controller.addObserver(this, new ReferCursorObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateReferCursorLabel
+  view.controller.addObserver(this, new ReferCursorObserver {
+      val updater: Updater = {
+        case subject: ChartingController =>
+          updateReferCursorLabel
       }
-    }.asInstanceOf[ReferCursorObserver[Any]])
+    })
 
-  view.controller.addObserver(this, new ChartValidityObserver[ChartingController] {
-
-      def update(controller: ChartingController) {
-        updateReferCursorLabel
+  view.controller.addObserver(this, new ChartValidityObserver {
+      val updater: Updater = {
+        case subject: ChartingController =>
+          updateReferCursorLabel
       }
-    }.asInstanceOf[ChartValidityObserver[Any]])
+    })
   
 
   def setTimeZone(timeZone: TimeZone) {

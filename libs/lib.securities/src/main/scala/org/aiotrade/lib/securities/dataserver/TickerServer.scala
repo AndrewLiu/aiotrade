@@ -35,8 +35,7 @@ import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.securities.{Exchange, QuoteItem, QuoteSer, Ticker, TickerPool, TickerSnapshot}
-import org.aiotrade.lib.util.Observable
-import org.aiotrade.lib.util.Observer
+import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 
@@ -49,8 +48,9 @@ object TickerServer {
   val tickerPool = new TickerPool
 }
 
-abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with Observer[TickerSnapshot] {
-  import TickerServer._
+import TickerServer._
+abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with ChangeObserver {
+
   private val logger = Logger.getLogger(this.getClass.getName)
     
   private val symbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
@@ -58,6 +58,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
   private val symbolToPrevTicker = new HashMap[String, Ticker]
   private val cal = Calendar.getInstance
+
+  val updater: Updater = {
+    case ts: TickerSnapshot =>
+      val ticker = borrowTicker
+      ticker.copyFrom(ts.ticker)
+      storageOf(lookupContract(ts.symbol).get) += ticker
+  }
 
   override protected def init: Unit = {
     super.init
@@ -92,7 +99,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val symbol = contract.symbol
       if (!symbolToTickerSnapshot.contains(symbol)) {
         val tickerSnapshot = new TickerSnapshot
-        tickerSnapshot.addObserver(this)
+        tickerSnapshot.addObserver(this, this)
         tickerSnapshot.symbol = symbol
         symbolToTickerSnapshot.put(symbol, tickerSnapshot)
       }
@@ -102,7 +109,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   override def unSubscribe(contract: TickerContract): Unit = {
     super.unSubscribe(contract)
     val symbol = contract.symbol
-    tickerSnapshotOf(symbol) foreach {_.deleteObserver(this)}
+    tickerSnapshotOf(symbol) foreach {_.removeObserver(this)}
     symbolToTickerSnapshot synchronized {
       symbolToTickerSnapshot -= symbol
     }
@@ -153,7 +160,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
   override protected def postStopUpdateServer: Unit = {
     for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
-      tickerSnapshot.deleteObserver(this)
+      tickerSnapshot.removeObserver(this)
     }
     symbolToTickerSnapshot synchronized {
       symbolToTickerSnapshot.clear
@@ -169,13 +176,6 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   protected def loadFromPersistence: Long = {
     /** do nothing (tickers can be load from persistence? ) */
     loadedTime
-  }
-
-  def update(tickerSnapshot: Observable): Unit = {
-    val ts = tickerSnapshot.asInstanceOf[TickerSnapshot]
-    val ticker = borrowTicker
-    ticker.copyFrom(ts.ticker)
-    storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
   def composeSer(symbol: String, tickerSer: TSer, storage: Array[Ticker]): TSerEvent = {
