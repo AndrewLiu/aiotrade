@@ -28,14 +28,33 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.util
+package org.aiotrade.lib.util.awt
+
+import java.awt.AWTException
+import java.awt.Color
+import java.awt.MouseInfo
+import java.awt.Robot
+
 
 /**
- * Observer must be implemented by objects which are added to an Observable.
- * 
+ *
  * @author Caoyuan Deng
  */
-trait Observer[S <: Observable] {
-  def update(subject: Observable)
+
+object ColorPicker {
+  var robot:Robot = _
 }
 
+class ColorPicker {
+  import ColorPicker._
+    
+  try {
+    robot = new Robot
+  } catch {case ex: AWTException => ex.printStackTrace}
+    
+  def pickColor: Color = {
+    val mousePoint = MouseInfo.getPointerInfo.getLocation
+    robot.getPixelColor(mousePoint.x, mousePoint.y)
+  }
+    
+}
