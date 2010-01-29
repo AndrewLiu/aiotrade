@@ -31,9 +31,10 @@
 package org.aiotrade.lib.math.timeseries.computable
 
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
-import org.aiotrade.lib.math.timeseries.SerChangeListener
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TSer
+import scala.swing.Reactions
+import scala.swing.Reactor
 
 
 /**
@@ -45,7 +46,7 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-trait ComputableHelper {self: Indicator =>
+trait ComputableHelper extends Reactor {self: Indicator =>
   val logger = Logger.getLogger(this.getClass.getName)
 
   /**
@@ -61,10 +62,11 @@ trait ComputableHelper {self: Indicator =>
    *
    * @return begTime
    */
-  private var begTime: Long = _ // used by postComputeFrom only
+  private var fromTime: Long = _ // used by postComputeFrom only
 
-  private var baseSerChangeListener: SerChangeListener = _
-  private var baseSerChangeEventCallBack: () => Unit = _
+  private var baseSerReaction: Reactions.Reaction = _
+  // remember event's callback to be forwarded in postCompute()
+  private var baseTSerEventCallBack: () => Unit = _ 
 
   protected def initBaseSer(baseSer: TSer) {
     self.baseSer = baseSer
@@ -84,86 +86,88 @@ trait ComputableHelper {self: Indicator =>
      * 2. In case of series is not the same as baseSeries, should repond
      *    to FinishedLoading, RefreshInLoading and Updated event of baseSeries.
      */
+    import TSerEvent._
     if (self == baseSer) {
             
-      baseSerChangeListener = new SerChangeListener {
-        def serChanged(evt: SerChangeEvent): Unit = {
-          import SerChangeEvent.Type._
-          val fromTime = evt.beginTime
-          evt.tpe match {
-            case FinishedLoading | RefreshInLoading | Updated =>
-              /**
-               * only responds to those events fired by outside for baseSer,
-               * such as loaded from a data server etc.
-               */
-              // * call back
-              self.computableActor ! ComputeFrom(fromTime)
-            case _ =>
-          }
-                    
-          /** process event's callback, remember it to forwarded it in postCompute() late */
-          baseSerChangeEventCallBack = evt.callBack
-        }
+      baseSerReaction = {
+        case FinishedLoading(_, _, fromTime, toTime, _, callback) =>
+          /**
+           * only responds to those events fired by outside for baseSer,
+           * such as loaded from a data server etc.
+           */
+          // call back
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case Updated(_, _, fromTime, toTime, _, callback) =>
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case TSerEvent(_, _, _, _, _, callback) =>
+          baseTSerEventCallBack = callback
       }
             
     } else {
-            
-      baseSerChangeListener = new SerChangeListener {
-        def serChanged(evt: SerChangeEvent) {
-          import SerChangeEvent.Type._
-          val begTime = evt.beginTime
-          evt.tpe match {
-            case FinishedLoading | RefreshInLoading | Updated | FinishedComputing =>
-              /**
-               * If the resultSer is the same as baseSer (such as QuoteSer),
-               * the baseSer will fire an event when compute() finished,
-               * then run to here, this may cause a dead loop. So, added
-               * FinishedComputing event to diff from Updated(caused by outside)
-               */
-              /** call back */
-              self.computableActor ! ComputeFrom(begTime)
-            case Clear =>
-              self clear begTime
-            case _ =>
-          }
-                    
-          /** remember event's callback to be forwarded in postCompute() */
-          baseSerChangeEventCallBack = evt.callBack
-        }
+
+      baseSerReaction = {
+        case FinishedLoading(_, _, fromTime, toTime, _, callback) =>
+          /**
+           * If the resultSer is the same as baseSer (such as QuoteSer),
+           * the baseSer will fire an event when compute() finished,
+           * then run to here, this may cause a dead loop. So, added
+           * FinishedComputing event to diff from Updated(caused by outside)
+           */
+          // call back
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case Updated(_, _, fromTime, toTime, _, callback) =>
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case FinishedComputing(_, _, fromTime, toTime, _, callback) =>
+          self.computableActor ! ComputeFrom(fromTime)
+          baseTSerEventCallBack = callback
+        case Clear(_, _, fromTime, toTime, _, callback) =>
+          self clear fromTime
+          baseTSerEventCallBack = callback
+        case TSerEvent(_, _, _, _, _, callback) =>
+          baseTSerEventCallBack = callback
       }
-            
     }
-        
-    baseSer.addSerChangeListener(baseSerChangeListener)
-  }
     
-  def preComputeFrom(begTime: Long): Int = {
+    baseSer.reactions += baseSerReaction
+  }
+        
+  def preComputeFrom(fromTime: Long): Int = {
     assert(this.baseSer != null, "base series not set!")
 
     val timestamps = self.timestamps
 
-    val (begTime1, begIdx, mayNeedToValidate) = if (begTime <= 0) {
-      (begTime, 0, true)
+    val (fromTime1, fromIdx, mayNeedToValidate) = if (fromTime <= 0) {
+      (fromTime, 0, true)
     } else {
-      if (begTime < self.computedTime) {
+      if (fromTime < self.computedTime) {
         // * the timestamps <-> items map may not be validate now, should validate it first
-        val begTimeX = begTime
+        val fromTimeX = fromTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-        (begTimeX, begIdxX, true)
-      } else if (begTime > self.computedTime){
+        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        (fromTimeX, fromIdxX, true)
+      } else if (fromTime > self.computedTime){
         // * if begTime > computedTime, re-compute from computedTime
-        val begTimeX = self.computedTime
+        val fromTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-        (begTimeX, begIdxX, timestamps.size > self.items.size)
+        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        (fromTimeX, fromIdxX, timestamps.size > self.items.size)
       } else {
         // * begTime == computedTime
         // * if begTime > computedTime, re-compute from computedTime
-        val begTimeX = self.computedTime
+        val fromTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val begIdxX = Math.max(timestamps.indexOfOccurredTime(begTimeX), 0) // should not less then 0
-        (begTimeX, begIdxX, false)
+        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        (fromTimeX, fromIdxX, false)
       }
     }
 
@@ -173,7 +177,7 @@ trait ComputableHelper {self: Indicator =>
     //            self.validate
     //        }
 
-    this.begTime = begTime1
+    this.fromTime = fromTime1
                 
     //println(resultSer.freq + resultSer.shortDescription + ": computed time=" + computedTime + ", begIdx=" + begIdx)
     /**
@@ -183,21 +187,20 @@ trait ComputableHelper {self: Indicator =>
      */
     //        if (resultSer != baseSer) {
     //            /** in case of resultSer == baseSer, do this will also clear baseSer */
-    //            resultSer.clear(begTime);
+    //            resultSer.clear(fromTime);
     //        }
         
-    begIdx
+    fromIdx
   }
 
   def postComputeFrom: Unit = {
     logger.info(toString)
-    /** construct resultSer's change event, forward baseSerChangeEventCallBack */
-    self.fireSerChangeEvent(new SerChangeEvent(self,
-                                               SerChangeEvent.Type.FinishedComputing,
-                                               null,
-                                               begTime,
-                                               self.computedTime,
-                                               baseSerChangeEventCallBack))
+    // construct resultSer's change event, forward baseTSerEventCallBack
+    self.publish(TSerEvent.FinishedComputing(self,
+                                             null,
+                                             fromTime,
+                                             self.computedTime,
+                                             baseTSerEventCallBack))
   }
     
   def addFactor(factor: Factor) {
@@ -230,8 +233,6 @@ trait ComputableHelper {self: Indicator =>
   def factors: Array[Factor] = _factors
 
   /**
-   *
-   *
    * @return if any value of factors changed, return true, else return false
    */
   def factors_=(factors: Array[Factor]) {
@@ -245,7 +246,6 @@ trait ComputableHelper {self: Indicator =>
   }
     
   /**
-   *
    *
    * @return if any value of factors changed, return true, else return false
    */
@@ -294,8 +294,8 @@ trait ComputableHelper {self: Indicator =>
   }
 
   def dispose: Unit = {
-    if (baseSerChangeListener != null) {
-      baseSer.removeSerChangeListener(baseSerChangeListener)
+    if (baseSerReaction != null) {
+      baseSer.reactions -= baseSerReaction
     }
   }
     

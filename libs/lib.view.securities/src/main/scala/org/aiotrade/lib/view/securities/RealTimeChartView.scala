@@ -34,12 +34,11 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.util.Calendar
-import java.util.Date
 import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -48,6 +47,7 @@ import org.aiotrade.lib.securities.Exchange
 import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Ticker
+import scala.swing.Reactor
 
 /**
  *
@@ -73,7 +73,7 @@ class RealTimeChartView(acontroller: ChartingController,
   private var tickerSer: QuoteSer = _
   private val cal = Calendar.getInstance
   private var exchange: Exchange = _
-} with AbstractQuoteChartView(acontroller, aquoteSer, empty) {
+} with AbstractQuoteChartView(acontroller, aquoteSer, empty) with Reactor {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
@@ -91,7 +91,7 @@ class RealTimeChartView(acontroller: ChartingController,
     exchange = sec.exchange
     tickerSer = sec.tickerSer
     assert(tickerSer != null)
-    tickerSer.addSerChangeListener(serChangeListener)
+    listenTo(tickerSer)
   }
 
   protected def initComponents {
@@ -202,28 +202,25 @@ class RealTimeChartView(acontroller: ChartingController,
     controller.popupViewToDesktop(popupView, dimension, alwaysOnTop, false)
   }
 
-  override def updateView(evt: SerChangeEvent) {
+  override def updateView(evt: TSerEvent) {
     var lastOccurredTime = masterSer.lastOccurredTime
 
-    evt.lastObject match {
-      case null =>
-      case ticker: Ticker =>
-        val percentValue = ticker.changeInPercent
-        val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
-        val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
+    evt match {
+      case TSerEvent(_, _, _, _, lastObject, _) => lastObject match {
+          case ticker: Ticker =>
+            val percentValue = ticker.changeInPercent
+            val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
+            val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
 
-        glassPane.updateInstantValue(strValue, color)
-        prevClose = ticker(Ticker.PREV_CLOSE)
+            glassPane.updateInstantValue(strValue, color)
+            prevClose = ticker(Ticker.PREV_CLOSE)
 
-        val time = ticker.time
-        if (time >= lastOccurredTime) {
-          lastOccurredTime = time
+            val time = ticker.time
+            if (time >= lastOccurredTime) {
+              lastOccurredTime = time
+            }
+          case _ =>
         }
-    }
-
-    if (lastOccurredTime == 0) {
-      cal.setTime(new Date)
-      lastOccurredTime = cal.getTimeInMillis
     }
 
     adjustLeftSideRowToExchangeOpenTime(lastOccurredTime)

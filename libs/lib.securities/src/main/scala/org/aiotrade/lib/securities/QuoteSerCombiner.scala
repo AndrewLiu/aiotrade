@@ -32,25 +32,26 @@ package org.aiotrade.lib.securities
 
 import java.util.Calendar
 import java.util.TimeZone
-import org.aiotrade.lib.math.timeseries.{SerChangeEvent,SerChangeListener,TUnit}
+import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.math.timeseries.TUnit
+import scala.swing.Reactions
+import scala.swing.Reactor
 
 /**
  *
  * @author Caoyuan Deng
  */
-class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZone: TimeZone) {
+class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   private val cal = Calendar.getInstance(timeZone)
 
-  private val sourceSerChangelistener = new SerChangeListener {
-    def serChanged(evt: SerChangeEvent): Unit = {
-      if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
-        computeCont(evt.beginTime)
-      }
-    }
+  private val sourceSerReaction: Reactions.Reaction = {
+    case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) =>
+      computeCont(fromTime)
   }
-        
-  sourceQuoteSer.addSerChangeListener(sourceSerChangelistener)
+  
+  reactions += sourceSerReaction
+  listenTo(sourceQuoteSer)
     
   def computeFrom(fromTime: Long): Unit = {
     computeCont(fromTime)
@@ -174,12 +175,11 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
       loop(i + j)
     }; loop(masterFromIdx)
         
-    val evt = new SerChangeEvent(targetQuoteSer,
-                                 SerChangeEvent.Type.Updated,
-                                 null,
-                                 masterFromTime,
-                                 targetQuoteSer.lastOccurredTime)
-    targetQuoteSer.fireSerChangeEvent(evt)
+    val evt = TSerEvent.Updated(targetQuoteSer,
+                                null,
+                                masterFromTime,
+                                targetQuoteSer.lastOccurredTime)
+    targetQuoteSer.publish(evt)
   }
     
   /**
@@ -190,8 +190,9 @@ class QuoteSerCombiner(sourceQuoteSer: QuoteSer, targetQuoteSer: QuoteSer, timeZ
   }
     
   def dispose: Unit = {
-    if (sourceSerChangelistener != null) {
-      sourceQuoteSer.removeSerChangeListener(sourceSerChangelistener)
+    deafTo(sourceQuoteSer)
+    if (sourceSerReaction != null) {
+      reactions -= sourceSerReaction
     }
   }
 }

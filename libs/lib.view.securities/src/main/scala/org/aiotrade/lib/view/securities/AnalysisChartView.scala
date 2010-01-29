@@ -51,6 +51,7 @@ import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.HashMap
+import scala.swing.Reactor
 
 
 /**
@@ -73,7 +74,7 @@ class AnalysisChartView(acontroller: ChartingController,
 ) extends {
   private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
-} with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane {
+} with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane with Reactor {
     
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
@@ -82,7 +83,7 @@ class AnalysisChartView(acontroller: ChartingController,
         
     /**
      * To avoid null withDrawingPaneHelper when getSelectedDrawing called by other
-     * threads (such as dataLoadServer is running and fire a SerChangeEvent
+     * threads (such as dataLoadServer is running and fire a TSerEvent
      * to force a updateView() calling), we should create withDrawingPaneHelper before super.init call
      * (this will makes it be called before the code:
      *     this.mainSer.addSerChangeListener(serChangeListener)
@@ -265,7 +266,7 @@ class AnalysisChartView(acontroller: ChartingController,
   }
     
   def addQuoteCompareChart(ser: QuoteCompareIndicator) {
-    ser.addSerChangeListener(serChangeListener)
+    listenTo(ser)
         
     val chart = new QuoteChart
     compareIndicatorToChart.put(ser, chart)
@@ -285,7 +286,7 @@ class AnalysisChartView(acontroller: ChartingController,
   }
     
   def removeQuoteCompareChart(ser: QuoteCompareIndicator) {
-    ser.removeSerChangeListener(serChangeListener);
+    deafTo(ser)
         
     compareIndicatorToChart.get(ser) foreach {chart =>
       mainChartPane.removeChart(chart)

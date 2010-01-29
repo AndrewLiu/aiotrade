@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{TSer}
 import org.aiotrade.lib.securities.{Exchange, Quote, QuotePool, PersistenceManager}
@@ -87,10 +87,10 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      */
     val size = quotes.length
     val loadedTime1 = if (size > 0) quotes(size - 1).time else 0L
-    serToBeFilled.fireSerChangeEvent(new SerChangeEvent(serToBeFilled,
-                                                        SerChangeEvent.Type.RefreshInLoading,
-                                                        contract.symbol,
-                                                        0, loadedTime1))
+    serToBeFilled.publish(TSerEvent.RefreshInLoading(serToBeFilled,
+                                                     contract.symbol,
+                                                     0,
+                                                     loadedTime1))
 
     /**
      * 3. clear quotes for following loading usage, as these quotes is borrowed
@@ -114,15 +114,15 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       var evt = composeSer(contract.symbol, serToBeFilled, storage)
       //            if (evt != null) {
-      //                evt.tpe = SerChangeEvent.Type.FinishedLoading
+      //                evt.tpe = TSerEvent.Type.FinishedLoading
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": " + getCount() + " quote data loaded, load server finished");
       //            } else {
       //                /** even though, we may have loaded data in preLoad(), so, still need fire a FinishedLoading event */
       //                val loadedTime1 = serToBeFilled.lastOccurredTime
-      //                evt = new SerChangeEvent(serToBeFilled, SerChangeEvent.Type.FinishedLoading, contract.symbol, loadedTime1, loadedTime1)
+      //                evt = new TSerEvent(serToBeFilled, TSerEvent.Type.FinishedLoading, contract.symbol, loadedTime1, loadedTime1)
       //            }
       //
-      //            serToBeFilled.fireSerChangeEvent(evt)
+      //            serToBeFilled.fireTSerEvent(evt)
 
       storage.synchronized {
         returnBorrowedTimeValues(storage)
@@ -137,8 +137,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
       val evt = composeSer(contract.symbol, serOf(contract).get, storage)
       //            if (evt != null) {
-      //                evt.tpe = SerChangeEvent.Type.Updated
-      //                evt.getSource.fireSerChangeEvent(evt)
+      //                evt.tpe = TSerEvent.Type.Updated
+      //                evt.getSource.fireTSerEvent(evt)
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
       //            }
 
@@ -149,8 +149,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  protected def composeSer(symbol: String, quoteSer: TSer, quotes: Array[Quote]): SerChangeEvent =  {
-    var evt: SerChangeEvent = null
+  protected def composeSer(symbol: String, quoteSer: TSer, quotes: Array[Quote]): TSerEvent =  {
+    var evt: TSerEvent = null
 
     val size = quotes.length
     if (size > 0) {
@@ -200,7 +200,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       //                endTime = math.max(endTime, itemTime)
       //            }
       //
-      //            evt = new SerChangeEvent(quoteSer, SerChangeEvent.Type.None, symbol, begTime, endTime)
+      //            evt = new TSerEvent(quoteSer, TSerEvent.Type.None, symbol, begTime, endTime)
     }
 
     evt

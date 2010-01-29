@@ -39,8 +39,7 @@ import org.aiotrade.lib.charting.view.pane.AxisYPane
 import org.aiotrade.lib.charting.view.pane.ChartPane
 import org.aiotrade.lib.charting.view.pane.DivisionPane
 import org.aiotrade.lib.charting.view.pane.GlassPane
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
-import org.aiotrade.lib.math.timeseries.SerChangeListener
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
@@ -59,6 +58,8 @@ import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.ChangeObservableHelper
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.LinkedHashMap
+import scala.swing.Reactions
+import scala.swing.Reactor
 
 
 /**
@@ -85,11 +86,21 @@ abstract class ChartView(protected var _controller: ChartingController,
   val AXISY_WIDTH = 50
   val CONTROL_HEIGHT = 12
   val TITLE_HEIGHT_PER_LINE = 12
-} with JComponent with ChangeObservable {
+} with JComponent with ChangeObservable with Reactor {
 
   private val observableHelper = new ChangeObservableHelper
 
-  protected val serChangeListener = new MySerChangeListener
+  protected val serReaction: Reactions.Reaction = {
+    case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
+      updateView(evt)
+      callback()
+    case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
+      updateView(evt)
+      callback()
+    case TSerEvent(_, _, _, _, _, callback) =>
+      callback()
+  }
+  
   protected val overlappingSerChartToVars = new LinkedHashMap[TSer, LinkedHashMap[Chart, HashSet[TVar[_]]]]
 
   val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
@@ -142,7 +153,7 @@ abstract class ChartView(protected var _controller: ChartingController,
 
     putChartsOfMainSer
 
-    this._mainSer.addSerChangeListener(serChangeListener)
+    listenTo(this._mainSer)
 
     /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
   }
@@ -439,7 +450,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   }
 
   def addOverlappingCharts(ser: TSer) {
-    ser.addSerChangeListener(serChangeListener)
+    listenTo(ser)
 
     val chartVarsMap = new LinkedHashMap[Chart, HashSet[TVar[_]]]
     overlappingSerChartToVars += (ser -> chartVarsMap)
@@ -472,7 +483,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   }
 
   def removeOverlappingCharts(ser: TSer) {
-    ser.removeSerChangeListener(serChangeListener)
+    deafTo(ser)
 
     overlappingSerChartToVars.get(ser) foreach {chartVarsMap =>
       for (chart <- chartVarsMap.keySet) {
@@ -503,21 +514,22 @@ abstract class ChartView(protected var _controller: ChartingController,
   protected def putChartsOfMainSer: Unit
 
   /** this method only process FinishedComputing event, if you want more, do it in subclass */
-  protected def updateView(evt: SerChangeEvent) {
-    if (evt.tpe == SerChangeEvent.Type.FinishedComputing) {
-      ChartView.this match {
-        case drawPane: WithDrawingPane =>
-          val drawing = drawPane.selectedDrawing
-          if (drawing != null && drawing.isInDrawing) {
-            return
-          }
-        case _ =>
-      }
+  protected def updateView(evt: TSerEvent) {
+    evt match {
+      case TSerEvent.FinishedComputing(_, _, _, _, _, _) =>
+        ChartView.this match {
+          case drawPane: WithDrawingPane =>
+            val drawing = drawPane.selectedDrawing
+            if (drawing != null && drawing.isInDrawing) {
+              return
+            }
+          case _ =>
+        }
 
-      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
+        notifyObserversChanged(classOf[ChartValidityObserver[Any]])
 
-      /** repaint this chart view */
-      repaint()
+        /** repaint this chart view */
+        repaint()
     }
   }
 
@@ -539,27 +551,12 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    if (serChangeListener != null) {
-      _mainSer.removeSerChangeListener(serChangeListener)
+    deafTo(_mainSer)
+    if (serReaction != null) {
+      reactions -= serReaction
     }
 
     super.finalize
-  }
-
-  class MySerChangeListener extends SerChangeListener {
-
-    def serChanged(evt: SerChangeEvent) {
-      evt.tpe match {
-        case SerChangeEvent.Type.FinishedComputing | SerChangeEvent.Type.Updated =>
-          updateView(evt)
-        case _ =>
-      }
-
-      /** precess event's call back */
-      if (evt.callBack != null) {
-        evt.callBack()
-      }
-    }
   }
 }
 

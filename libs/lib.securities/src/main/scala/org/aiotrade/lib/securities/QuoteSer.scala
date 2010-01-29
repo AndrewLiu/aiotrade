@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, SerChangeEvent}
+import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
@@ -83,8 +83,8 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
         
     adjusted = b
         
-    val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, null, 0, lastOccurredTime)
-    fireSerChangeEvent(evt)
+    val evt = TSerEvent.Updated(this, null, 0, lastOccurredTime)
+    publish(evt)
   }
     
   /**

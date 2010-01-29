@@ -30,8 +30,10 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor._
+import scala.collection.mutable.ArrayBuffer
+import scala.swing.Publisher
+import scala.swing.event.Event
 
 /**
  * Time Series
@@ -40,7 +42,7 @@ import scala.actors.Actor._
  * @author Caoyuan Deng
  */
 case class AddAll[@specialized V <: TVal](values: Array[V])
-trait TSer {
+trait TSer extends Publisher {
 
   // ----- actor's implementation
   //    val serActor = actor {
@@ -60,7 +62,7 @@ trait TSer {
   def freq: TFreq
 
   def vars: Seq[TVar[_]]
-  def items: ArrayList[TItem]
+  def items: ArrayBuffer[TItem]
 
   def exists(time: Long): Boolean
   def apply(time: Long): TItem
@@ -81,10 +83,6 @@ trait TSer {
   def shortDescription: String
   def shortDescription_=(description: String): Unit
     
-  def addSerChangeListener(listener: SerChangeListener): Unit
-  def removeSerChangeListener(listener: SerChangeListener): Unit
-  def fireSerChangeEvent(evt: SerChangeEvent): Unit
-    
   def inLoading: Boolean
   def inLoading_=(b: Boolean): Unit
   def loaded: Boolean
@@ -93,60 +91,65 @@ trait TSer {
   def validate: Unit
 }
 
-import java.util.EventListener
-trait SerChangeListener extends EventListener {
-  def serChanged(evt: SerChangeEvent): Unit
+object TSerEvent {
+  case class RefreshInLoading(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class FinishedLoading(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class Updated(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class FinishedComputing(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class Clear(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class ToBeSet(
+    source: TSer,
+    symbol: String,
+    fromTime: Long,
+    toTime: Long,
+    lastObject: AnyRef = null,
+    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case object None extends TSerEvent(null, null, 0, 0, null, () => {})
+
+  type Callback = () => Unit
+
+  def unapply(e: TSerEvent): Option[(TSer, String, Long, Long, AnyRef, Callback)] = {
+    Some((e.source, e.symbol, e.fromTime, e.toTime, e.lastObject, e.callback))
+  }
 }
 
-
-import javax.swing.event.ChangeEvent
-object SerChangeEvent {
-  abstract class Type
-  object Type {
-    case object RefreshInLoading extends Type
-    case object FinishedLoading  extends Type
-    case object Updated extends Type
-    case object FinishedComputing extends Type
-    case object Clear extends Type
-    case object None extends Type
-  }
-  type CallBack = () => Unit
-}
-
-import org.aiotrade.lib.math.timeseries.SerChangeEvent._
-class SerChangeEvent(var _source: TSer,
-                     var tpe: Type,
-                     val symbol: String,
-                     val beginTime: Long,
-                     val endTime: Long,
-                     val lastObject: AnyRef, // object the event carries (It can be any thing other than a SerItem)
-                     var callBack: CallBack) extends ChangeEvent(_source) {
-
-
-  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long) = {
-    this(source, tpe, symbol, beginTime, endTime, null, null)
-  }
-
-  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long, lastObject: AnyRef) = {
-    this(source, tpe, symbol, beginTime, endTime, lastObject, null)
-  }
-
-  def this(source: TSer, tpe: Type, symbol: String, beginTime: Long, endTime: Long, callBack: CallBack) = {
-    this(source, tpe, symbol, beginTime, endTime, null, callBack)
-  }
-
-  override def getSource: TSer = {
-    assert(source.isInstanceOf[TSer], "Source should be TSer")
-
-    source.asInstanceOf[TSer]
-  }
-
-  def doCallBack: Unit = {
-    if (callBack != null) {
-      callBack()
-    }
-  }
-
-}
+import TSerEvent._
+abstract class TSerEvent(private val source: TSer,
+                         private val symbol: String,
+                         private val fromTime: Long,
+                         private val toTime: Long,
+                         private val lastObject: AnyRef, // object the event carries (It can be any thing other than a SerItem)
+                         private val callback: Callback
+) extends Event
 
 

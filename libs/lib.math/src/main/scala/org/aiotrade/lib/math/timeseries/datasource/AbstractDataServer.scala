@@ -41,7 +41,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.math.timeseries.{TSer, SerChangeEvent}
+import org.aiotrade.lib.math.timeseries.{TSer, TSerEvent}
 import scala.collection.mutable.{HashMap, ArrayBuffer}
 
 /**
@@ -324,7 +324,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param serToBeFilled Ser
    * @param time values
    */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, values: Array[V]): SerChangeEvent
+  protected def composeSer(symbol: String, serToBeFilled: TSer, values: Array[V]): TSerEvent
 
   protected class LoadServer extends Runnable {
     override def run: Unit = {

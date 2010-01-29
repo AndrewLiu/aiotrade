@@ -30,16 +30,12 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import javax.swing.event.EventListenerList
-
 /**
  *
  * @author Caoyuan Deng
  */
 abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
-  private val serChangeListenerList = new EventListenerList
-        
   var inLoading: Boolean = false
   private var _loaded: Boolean = false
 
@@ -49,26 +45,6 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   def init(freq: TFreq): Unit = {
     this.freq = freq.clone
-  }
-        
-  def addSerChangeListener(listener: SerChangeListener): Unit = {
-    serChangeListenerList.add(classOf[SerChangeListener], listener)
-  }
-    
-  def removeSerChangeListener(listener: SerChangeListener): Unit = {
-    serChangeListenerList.remove(classOf[SerChangeListener], listener)
-  }
-    
-  def fireSerChangeEvent(evt: SerChangeEvent): Unit = {
-    val listeners = serChangeListenerList.getListenerList
-    /** Each listener occupies two elements - the first is the listener class */
-    var i = 0
-    while (i < listeners.length) {
-      if (listeners(i) == classOf[SerChangeListener]) {
-        listeners(i + 1).asInstanceOf[SerChangeListener].serChanged(evt)
-      }
-      i += 2
-    }
   }
     
   def loaded: Boolean = _loaded

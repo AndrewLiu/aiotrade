@@ -44,13 +44,14 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.MasterTSer
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
-import org.aiotrade.lib.math.timeseries.SerChangeListener
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.ChangeObservableHelper
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
+import scala.swing.Reactions
+import scala.swing.Reactor
 
 
 /**
@@ -100,7 +101,7 @@ object ChartingControllerFactory {
    * DefaultChartingController that implements ChartingController
    */
   import DefaultChartingController._
-  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController {
+  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController with Reactor {
 
     val masterSer = $masterSer
     val contents  = $contents
@@ -117,7 +118,15 @@ object ChartingControllerFactory {
     private var _isAutoScrollToNewData = true
     private var _isMouseEnteredAnyChartPane: Boolean = _
     private var _isCursorCrossLineVisible = true
-    private var mySerChangeListener: MasterSerChangeListener = _
+    /** listen to masterSer and process loading, update events to check if need to update cursor */
+    private val masterSerReaction: Reactions.Reaction = {
+      /** this reaction only process loading, update events to check if need to update cursor */
+      case TSerEvent.FinishedLoading(_, _, fromTime, toTime, _, _)  => updateView(toTime)
+      case TSerEvent.RefreshInLoading(_, _, fromTime, toTime, _, _) => updateView(toTime)
+      case TSerEvent.Updated(_, _, fromTime, toTime, _, _)          => updateView(toTime)
+      case _ =>
+    }
+
     private val observableHelper = new ChangeObservableHelper
 
     private def internal_setChartViewContainer(viewContainer: ChartViewContainer) {
@@ -125,10 +134,8 @@ object ChartingControllerFactory {
 
       internal_initCursorRow
 
-      if (mySerChangeListener == null) {
-        mySerChangeListener = new MasterSerChangeListener
-        masterSer.addSerChangeListener(mySerChangeListener)
-      }
+      reactions += masterSerReaction
+      listenTo(masterSer)
 
       addKeyMouseListenersTo(viewContainer)
     }
@@ -473,50 +480,35 @@ object ChartingControllerFactory {
 
     @throws(classOf[Throwable])
     override protected def finalize {
-      if (mySerChangeListener != null) {
-        masterSer.removeSerChangeListener(mySerChangeListener)
+      deafTo(masterSer)
+      if (masterSerReaction != null) {
+        reactions -= masterSerReaction
       }
 
       super.finalize
     }
 
-    /**
-     * listen to masterSer and process loading, update events to check if need to update cursor
-     */
-    class MasterSerChangeListener extends SerChangeListener {
-
-      def serChanged(evt: SerChangeEvent) {
-        if (!_isAutoScrollToNewData) {
-          return
-        }
-
-        /** this method only process loading, update events to check if need to update cursor */
-        evt.tpe match {
-          case SerChangeEvent.Type.FinishedLoading | SerChangeEvent.Type.RefreshInLoading | SerChangeEvent.Type.Updated =>
-            viewContainer.masterView match {
-              case masterView: WithDrawingPane =>
-                val drawing = masterView.selectedDrawing
-                if (drawing != null && drawing.isInDrawing) {
-                  return
-                }
-              case _ =>
-            }
-
-            val oldReferRow = referCursorRow
-            if (oldReferRow == _lastOccurredRowOfMasterSer || _lastOccurredRowOfMasterSer <= 0) {
-              /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
-              val lastTime = Math.max(evt.endTime, masterSer.lastOccurredTime)
-              val rightRow = masterSer.rowOfTime(lastTime)
-              val referRow = rightRow
-
-              setCursorByRow(referRow, rightRow, true)
-            }
-
-            notifyObserversChanged(classOf[ChartValidityObserver[Any]])
-            
-          case _ =>
-        }
+    private def updateView(toTime: Long): Unit = {
+      viewContainer.masterView match {
+        case masterView: WithDrawingPane =>
+          val drawing = masterView.selectedDrawing
+          if (drawing != null && drawing.isInDrawing) {
+            return
+          }
+        case _ =>
       }
+
+      val oldReferRow = referCursorRow
+      if (oldReferRow == _lastOccurredRowOfMasterSer || _lastOccurredRowOfMasterSer <= 0) {
+        /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
+        val lastTime = Math.max(toTime, masterSer.lastOccurredTime)
+        val rightRow = masterSer.rowOfTime(lastTime)
+        val referRow = rightRow
+
+        setCursorByRow(referRow, rightRow, true)
+      }
+
+      notifyObserversChanged(classOf[ChartValidityObserver[Any]])
     }
 
     private def internal_getCorrespondingChartView(e: InputEvent): ChartView = {

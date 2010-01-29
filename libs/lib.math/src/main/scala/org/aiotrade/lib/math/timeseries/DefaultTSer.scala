@@ -36,6 +36,7 @@ import org.aiotrade.lib.util.collection.ArrayList
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.computable.SpotComputable
 import org.aiotrade.lib.math.timeseries.plottable.Plot
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -63,12 +64,12 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   private val INIT_CAPACITY = 100
 
-  val items = new ArrayList[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  val items = new ArrayBuffer[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayList[TVar[Any]]
+  val vars = new ArrayBuffer[TVar[Any]]
 
   /**
    * we implement occurred timestamps and items in density mode instead of spare
@@ -165,7 +166,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    [java] 	at org.aiotrade.lib.charting.view.ChartView.notifyObserversChanged(ChartView.scala:157)
    [java] 	at org.aiotrade.lib.charting.view.ChartView.updateView(ChartView.scala:562)
    [java] 	at org.aiotrade.lib.charting.view.ChartView$MySerChangeListener.serChanged(ChartView.scala:597)
-   [java] 	at org.aiotrade.lib.math.timeseries.AbstractTSer.fireSerChangeEvent(AbstractTSer.scala:68)
+   [java] 	at org.aiotrade.lib.math.timeseries.AbstractTSer.fireTSerEvent(AbstractTSer.scala:68)
    [java] 	at org.aiotrade.lib.math.timeseries.computable.ComputableHelper.postComputeFrom(ComputableHelper.scala:198)
    [java] 	at org.aiotrade.lib.indicator.AbstractIndicator.computeFrom(AbstractIndicator.scala:304)
    [java] 	at org.aiotrade.lib.math.timeseries.computable.Computable$$anonfun$1$$anonfun$apply$2$$anonfun$apply$1.apply(Computable.scala:49)
@@ -265,8 +266,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
 
   def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
-    var begTime = Long.MaxValue
-    var endTime = Long.MinValue
+    var frTime = Long.MaxValue
+    var toTime = Long.MinValue
     try {
       _timestamps.writeLock.lock
 
@@ -288,15 +289,15 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         }
 
         val itemTime = item.time
-        begTime = Math.min(begTime, itemTime)
-        endTime = Math.max(endTime, itemTime)
+        frTime = Math.min(frTime, itemTime)
+        toTime = Math.max(toTime, itemTime)
       }
     } finally {
       _timestamps.writeLock.unlock
     }
     logger.info("TimestampsLog: " + tsLog)
-    val evt = new SerChangeEvent(this, SerChangeEvent.Type.Updated, shortDescription, begTime, endTime)
-    fireSerChangeEvent(evt)
+    val evt = TSerEvent.Updated(this, shortDescription, frTime, toTime)
+    publish(evt)
     
     this
   }
@@ -420,11 +421,10 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       _timestamps.writeLock.unlock
     }
 
-    fireSerChangeEvent(new SerChangeEvent(this,
-                                          SerChangeEvent.Type.Clear,
-                                          shortDescription,
-                                          fromTime,
-                                          Long.MaxValue))
+    publish(TSerEvent.Clear(this,
+                            shortDescription,
+                            fromTime,
+                            Long.MaxValue))
   }
 
   /*-

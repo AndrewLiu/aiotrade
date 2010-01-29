@@ -31,14 +31,14 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
-import java.util.{Calendar}
-import org.aiotrade.lib.math.timeseries.{TFreq, TSer, SerChangeEvent, TUnit}
+import java.util.Calendar
+import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.securities.{Exchange, QuoteItem, QuoteSer, Ticker, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.Observable
 import org.aiotrade.lib.util.Observer
 import org.aiotrade.lib.util.collection.ArrayList
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.HashMap
 
 /** This class will load the quote datas from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
@@ -114,19 +114,18 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  private val bufLoadEvents = new ArrayList[SerChangeEvent]
+  private val bufLoadEvents = new ArrayList[TSerEvent]
 
   override protected def postLoad: Unit = {
     bufLoadEvents.clear
 
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
-      val evt = composeSer(contract.symbol, serOf(contract).get, storage)
-
-      if (evt != null) {
-        evt.tpe = SerChangeEvent.Type.FinishedLoading
-        evt.getSource.fireSerChangeEvent(evt)
-        logger.info(contract.symbol + ": " + count + ", items loaded, load server finished")
+      composeSer(contract.symbol, serOf(contract).get, storage) match {
+        case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
+          source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
+          logger.info(contract.symbol + ": " + count + ", items loaded, load server finished")
+        case _ =>
       }
 
       storage synchronized {
@@ -139,12 +138,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   override protected def postUpdate: Unit = {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
-      val evt = composeSer(contract.symbol, serOf(contract).get, storage)
-
-      if (evt != null) {
-        evt.tpe = SerChangeEvent.Type.Updated
-        evt.getSource.fireSerChangeEvent(evt)
-        //println(evt.symbol + ": update event:")
+      composeSer(contract.symbol, serOf(contract).get, storage) match {
+        case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
+          source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
+        case _ =>
       }
 
       storageOf(contract) synchronized {
@@ -181,8 +178,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
-  def composeSer(symbol: String, tickerSer: TSer, storage: Array[Ticker]): SerChangeEvent = {
-    var evt: SerChangeEvent = null
+  def composeSer(symbol: String, tickerSer: TSer, storage: Array[Ticker]): TSerEvent = {
+    var evt: TSerEvent = TSerEvent.None
 
     val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
     var begTime = Long.MaxValue
@@ -314,7 +311,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       /**
        * ! ticker may be null at here ???
        */
-      evt = new SerChangeEvent(tickerSer, SerChangeEvent.Type.None, symbol, begTime, endTime, ticker)
+      evt = TSerEvent.ToBeSet(tickerSer, symbol, begTime, endTime, ticker)
     } else {
 
       /**
@@ -351,8 +348,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       itemNow.close_adj = ticker(Ticker.LAST_PRICE)
 
       /** be ware of fromTime here may not be same as ticker's event */
-      val evt = new SerChangeEvent(dailySer, SerChangeEvent.Type.Updated, "", now, now)
-      dailySer.fireSerChangeEvent(evt)
+      dailySer.publish(TSerEvent.Updated(dailySer, "", now, now))
     }
   }
 
@@ -372,8 +368,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     itemNow.volume = tickerItem.volume
 
     /** be ware of fromTime here may not be same as ticker's event */
-    val evt = new SerChangeEvent(minuteSer, SerChangeEvent.Type.Updated, "", now, now)
-    minuteSer.fireSerChangeEvent(evt)
+    minuteSer.publish(TSerEvent.Updated(minuteSer, "", now, now))
   }
 
   def exchangeOf(symbol: String): Exchange

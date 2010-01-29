@@ -132,7 +132,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
    * inject Factor(s): new Factor() will call addFac which delegated
    * by computableHelper.addFac(..)
    */
-  private var _computedTime: Long = -Long.MaxValue
+  private var _computedTime = Long.MinValue
     
   /** some instance scope variables that can be set directly */
   protected var sname = "unkown"
@@ -212,7 +212,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
    *
    * @param begin time to be computed
    */
-  def computeFrom(begTime: Long): Unit = {
+  def computeFrom(fromTime: Long): Unit = {
     setSessionId
 
     /**
@@ -230,7 +230,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
       timestamps.readLock.lock
 
       val size = timestamps.size
-      val begIdx = super.preComputeFrom(begTime)
+      val fromIdx = super.preComputeFrom(fromTime)
 
       //            assert(timestamps.size == items.size,
       //                   "Should validate " + shortDescription + " first! " +
@@ -238,7 +238,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
       //                   ", items size=" + items.size +
       //                   ", begIdx=" + begIdx)
 
-      computeCont(begIdx, size)
+      computeCont(fromIdx, size)
         
       super.postComputeFrom
             
@@ -249,7 +249,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
         
   }
         
-  protected def computeCont(begIdx: Int, size: Int): Unit
+  protected def computeCont(fromIdx: Int, size: Int): Unit
     
   protected def longDescription: String = lname
     
@@ -444,7 +444,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
    * Fac can only lives in AbstractIndicator
    *
    *
-   * @see addFac()
+   * @see addFactor()
    * --------------------------------------------------------------------
    */
   object Factor {
@@ -460,8 +460,7 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
                               value: Number,
                               step: Number,
                               minValue: Number,
-                              maxValue: Number
-  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
+                              maxValue: Number) extends DefaultFactor(name, value, step, minValue, maxValue) {
 
     addFactor(this)
 

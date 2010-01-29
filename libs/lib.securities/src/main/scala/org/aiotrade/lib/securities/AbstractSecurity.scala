@@ -33,11 +33,11 @@ package org.aiotrade.lib.securities
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.SerChangeEvent
-import org.aiotrade.lib.math.timeseries.SerChangeListener
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer, TickerServer, TickerContract}
 import org.aiotrade.lib.util.Observable
 import org.aiotrade.lib.util.Observer
+import scala.swing.Reactor
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
@@ -54,7 +54,7 @@ import scala.collection.mutable.HashMap
  * @author Caoyuan Deng
  */
 abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends Security with Observer[TickerSnapshot] {
+) extends Security with Observer[TickerSnapshot] with Reactor {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
@@ -151,30 +151,25 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
     }
 
     if (loadBeginning) {
-      val listener = new SerChangeListener {
-        override def serChanged(evt: SerChangeEvent) {
-          val sourceSer = evt.getSource
+      reactions += {
+        case TSerEvent.FinishedLoading(sourceSer, _, fromTime, endTime, _, _) =>
+          // contract quoteServer of freq centernly still exists only under this type of event
           val freq = sourceSer.freq
-          evt.tpe match {
-            case SerChangeEvent.Type.FinishedLoading =>
-              // contract quoteServer of freq centernly still exists only under this type of event
-              val contract = freqToQuoteContract(freq)
-              val quoteServer = freqToQuoteServer(freq)
-              sourceSer.loaded = true
-              if (contract.refreshable) {
-                quoteServer.startUpdateServer(contract.refreshInterval * 1000)
-              } else {
-                quoteServer.unSubscribe(contract)
-                freqToQuoteServer -= freq
-              }
-              
-              sourceSer.removeSerChangeListener(this)
-            case _ =>
+          val contract = freqToQuoteContract(freq)
+          val quoteServer = freqToQuoteServer(freq)
+          sourceSer.loaded = true
+          if (contract.refreshable) {
+            quoteServer.startUpdateServer(contract.refreshInterval * 1000)
+          } else {
+            quoteServer.unSubscribe(contract)
+            freqToQuoteServer -= freq
           }
-        }
+
+          deafTo(sourceSer)
+        case _ =>
       }
       
-      serToBeLoaded.addSerChangeListener(listener)
+      listenTo(serToBeLoaded)
     }
 
     loadBeginning
