@@ -37,6 +37,7 @@ import org.aiotrade.lib.math.timeseries.SerChangeEvent
 import org.aiotrade.lib.math.timeseries.SerChangeListener
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer, TickerServer, TickerContract}
 import org.aiotrade.lib.util.Observable
+import org.aiotrade.lib.util.Observer
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
@@ -53,7 +54,7 @@ import scala.collection.mutable.HashMap
  * @author Caoyuan Deng
  */
 abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends Security with TickerObserver {
+) extends Security with Observer[TickerSnapshot] {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */

@@ -63,10 +63,10 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.TickerObserver
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.util.Observable
+import org.aiotrade.lib.util.Observer
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
 import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
@@ -85,7 +85,7 @@ object RealTimeBoardPanel {
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with TickerObserver {
+class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with Observer[TickerSnapshot] {
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane

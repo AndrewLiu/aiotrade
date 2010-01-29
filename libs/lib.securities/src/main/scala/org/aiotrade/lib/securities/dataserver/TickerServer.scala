@@ -34,8 +34,9 @@ import java.util.logging.Logger
 import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, SerChangeEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Exchange, QuoteItem, QuoteSer, Ticker, TickerObserver, TickerPool, TickerSnapshot}
+import org.aiotrade.lib.securities.{Exchange, QuoteItem, QuoteSer, Ticker, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.Observable
+import org.aiotrade.lib.util.Observer
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.{HashMap}
 
@@ -48,7 +49,7 @@ object TickerServer {
   val tickerPool = new TickerPool
 }
 
-abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with TickerObserver {
+abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with Observer[TickerSnapshot] {
   import TickerServer._
   private val logger = Logger.getLogger(this.getClass.getName)
     

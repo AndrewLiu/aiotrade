@@ -54,9 +54,9 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.TickerObserver
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.util.Observable
+import org.aiotrade.lib.util.Observer
 import scala.collection.mutable.HashMap
 
 /**
@@ -71,7 +71,7 @@ object RealTimeWatchListPanel {
 }
 
 import RealTimeWatchListPanel._
-class RealTimeWatchListPanel extends JPanel with TickerObserver {
+class RealTimeWatchListPanel extends JPanel with Observer[TickerSnapshot] {
 
   private val SYMBOL     = "Symbol"
   private val TIME       = "Time"
