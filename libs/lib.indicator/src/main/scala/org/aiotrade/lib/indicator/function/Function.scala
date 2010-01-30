@@ -94,7 +94,7 @@ trait Function {
    * This method will compute from computedIdx <b>to</b> idx.
    *
    * and AbstractIndicator.compute(final long begTime) will compute <b>from</b>
-   * begTime to last item
+   * begTime to last data
    *
    * @param sessionId, the sessionId usally is controlled by outside caller,
    *        such as an indicator

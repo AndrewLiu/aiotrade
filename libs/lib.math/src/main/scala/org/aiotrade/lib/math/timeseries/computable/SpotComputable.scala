@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import org.aiotrade.lib.math.timeseries.TItem
 
 /**
  *
@@ -40,6 +39,6 @@ trait SpotComputable extends ContComputable {
     
   def spotTime_=(time: Long): Unit
     
-  def computeItem(time: Long): TItem
+  def computeSpot(time: Long)
 }
 

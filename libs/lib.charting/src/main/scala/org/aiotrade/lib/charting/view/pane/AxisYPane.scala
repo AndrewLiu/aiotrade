@@ -43,7 +43,6 @@ import org.aiotrade.lib.charting.view.MouseCursorObserver
 import org.aiotrade.lib.charting.view.ReferCursorObserver
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.widget.Label
-import org.aiotrade.lib.securities.QuoteItem
 
 /**
  *
@@ -107,10 +106,10 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
           y = datumPlane.yMouse
           v = datumPlane.vy(y)
         } else {
-          val mousePosition = controller.mouseCursorRow
+          val mouseRow = controller.mouseCursorRow
           val quoteSer = datumPlane.view.asInstanceOf[WithQuoteChart].quoteSer
-          val item = quoteSer.itemOfRow(mousePosition).asInstanceOf[QuoteItem]
-          v = if (item == null) 0 else item.close
+          val time = quoteSer.timeOfRow(mouseRow)
+          v = if (quoteSer.exists(time)) quoteSer.close(time) else 0
           y = datumPlane.yv(v)
         }
         val valueStr = COMMON_DECIMAL_FORMAT.format(v)
@@ -161,10 +160,10 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
 
     var y, v: Float = 0f
     if (datumPlane.view.isInstanceOf[WithQuoteChart]) {
-      val referPosition = controller.referCursorRow
+      val referRow = controller.referCursorRow
       val quoteSer = datumPlane.view.asInstanceOf[WithQuoteChart].quoteSer
-      val item = quoteSer.itemOfRow(referPosition).asInstanceOf[QuoteItem]
-      v = if (item == null) 0 else item.close
+      val time = quoteSer.timeOfRow(referRow)
+      v = if (quoteSer.exists(time)) quoteSer.close(time) else 0
       y = datumPlane.yv(v)
       val valueStr = COMMON_DECIMAL_FORMAT.format(v)
 

@@ -36,7 +36,6 @@ import org.aiotrade.lib.charting.widget.StickBar
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 
 
@@ -78,18 +77,18 @@ class VolumeChart extends AbstractChart {
       var low    = +Float.MaxValue
       var volume = -Float.MaxValue // we are going to get max of volume during nBarsCompressed
       var i = 0
+      val quoteSer = masterSer.asInstanceOf[QuoteSer]
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = masterSer(time).asInstanceOf[QuoteItem]
-        if (item != null && item.close != 0) {
+        if (quoteSer.exists(time) && quoteSer.close(time) != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */
-            open = item.open
+            open = quoteSer.open(time)
           }
-          high   = Math.max(high, item.high)
-          low    = Math.min(low,  item.low)
-          close  = item.close
-          volume = Math.max(volume, item.volume)
+          close  = quoteSer.close(time)
+          high   = Math.max(high,   quoteSer.high(time))
+          low    = Math.min(low,    quoteSer.low(time))
+          volume = Math.max(volume, quoteSer.volume(time))
         }
 
         i += 1

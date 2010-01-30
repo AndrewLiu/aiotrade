@@ -48,10 +48,6 @@ import scala.collection.mutable.ArrayBuffer
  *   'calendarTimes'
  * the 'timestamps' is actaully with the same idx correspinding to 'vars'
  *
- * We here implement two dimention views:
- * 1. view values as a Item, crossing varList at any time point.
- * 2. view values as a array of var list.
- *
  *
  * This class implemets all interface of ser and partly MasterSer.
  * So you can use it as full series, but don't use those methods of MasterSeries
@@ -114,7 +110,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       case x: SpotComputable =>
         if (item == null || (item != null && item.isClear)) {
           /** re-get one from calculator */
-          item = x.computeItem(time)
+          x.computeSpot(time)
         }
       case _ =>
     }
@@ -257,7 +253,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
-               "Check your code, you are probably from createItemOrClearIt(long), " +
+               "Check your code, you are probably from createOrClear(long), " +
                "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(itemTime) +
                " return -1 ?")
         // * to avoid concurrent conflict, just do nothing here.
@@ -277,7 +273,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       var i = if (shouldReverse) size - 1 else 0
       while (i >= 0 && i < size) {
         val value = values(i)
-        val item = createItemOrClearIt(value.time)
+        val item = createOrClear(value.time)
         item.assignValue(value)
 
         if (shouldReverse) {
@@ -446,7 +442,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * And that why define some motheds signature begin with internal_, becuase
    * you'd better never think to open these methods to protected or public.
    */
-  def createItemOrClearIt(time: Long): TItem = {
+  def createOrClear(time: Long): TItem = {
     internal_apply(time) match {
       case null =>
         // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
@@ -459,7 +455,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     }
   }
 
-  def size: Int = items.size
+  def size: Int = timestamps.size
 
   def indexOfOccurredTime(time: Long): Int = {
     timestamps.indexOfOccurredTime(time)

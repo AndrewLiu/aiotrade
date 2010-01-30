@@ -198,13 +198,12 @@ class QuoteChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-        val item = ser(time)
-        if (item != null && item.getFloat(m.closeVar) != 0) {
+        if (ser.exists(time) && m.closeVar(time) != 0) {
           if (Null.is(open)) {
             /** only get the first open as compressing period's open */
-            open = item.getFloat(m.openVar)
+            open = m.openVar(time)
           }
-          close = item.getFloat(m.closeVar)
+          close = m.closeVar(time)
           max = Math.max(max, close)
           min = Math.min(min, close)
         }

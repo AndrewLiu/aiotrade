@@ -230,20 +230,20 @@ class RealTimeChartView(acontroller: ChartingController,
     val openTime  = exchange.openTime(time)
     val closeTime = exchange.closeTime(time)
 
-    val begRow = masterSer.rowOfTime(openTime)
-    val endRow = begRow + nBars - 1
+    val frRow = masterSer.rowOfTime(openTime)
+    val toRow = frRow + nBars - 1
 
     if (Null.is(prevClose)) {
       // @todo get precise prev *day* close
-      val prevRow = masterSer.itemOfRow(begRow - 1).asInstanceOf[QuoteItem]
-      if (prevRow != null) {
-        prevClose = prevRow.close
+      val prevTime = masterSer.timeOfRow(frRow - 1)
+      if (masterSer.exists(prevTime)) {
+        prevClose = masterSer.asInstanceOf[QuoteSer].close(prevTime)
         gridValues(0) = prevClose
       }
     }
 
     val lastOccurredRow = masterSer.lastOccurredRow
-    controller.setCursorByRow(lastOccurredRow, endRow, true)
+    controller.setCursorByRow(lastOccurredRow, toRow, true)
     //controller.updateViews();
   }
 }

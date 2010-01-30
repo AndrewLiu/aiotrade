@@ -40,13 +40,16 @@ trait MasterTSer extends TSer {
   /**
    * @NOTICE we can only trust MasterSer to translate row <-> time properly.
    */
+  def indexOfTime(time: Long): Int
+  def timeOfIndex(idx: Int): Long
+
   def timeOfRow(row: Int): Long
   def rowOfTime(time: Long): Int
   def lastOccurredRow: Int
   def itemOfRow(row: Int): TItem
 
-  def toOnCalendarMode: Unit
-  def toOnOccurredMode: Unit
+  def toOnCalendarMode
+  def toOnOccurredMode
   def isOnCalendarMode: Boolean
 }
 

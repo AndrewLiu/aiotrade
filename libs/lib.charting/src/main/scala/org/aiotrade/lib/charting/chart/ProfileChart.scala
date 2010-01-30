@@ -58,7 +58,6 @@ class ProfileChart extends AbstractChart {
 
   private val heavyPathWidget = new HeavyPathWidget
   private val cal = Calendar.getInstance
-  private var time: Long = _
     
   protected def createModel = new Model
     
@@ -80,16 +79,14 @@ class ProfileChart extends AbstractChart {
         
     val controller = datumPlane.view.controller
         
-    time = controller.referCursorTime
+    val time = controller.referCursorTime
         
     val xorigin = xb(bt(time))
         
     val path = heavyPathWidget.getPath(color)
         
-    val item = ser(time)
-        
-    if (item != null) {
-      item.get(m.v) match {
+    if (ser.exists(time)) {
+      m.v(time) match {
         case mass: Array[Array[Float]] =>
           plotProfileChart(mass, xorigin, width, path)
           g.setColor(color)

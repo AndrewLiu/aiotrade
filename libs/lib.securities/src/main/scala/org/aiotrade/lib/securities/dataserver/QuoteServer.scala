@@ -174,7 +174,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       //            var i = if (shouldReverse) size - 1 else 0
       //            while (i >= 0 && i <= size - 1) {
       //                val quote = values(i)
-      //                val item =  quoteSer.createItemOrClearIt(quote.time).asInstanceOf[QuoteItem]
+      //                val item =  quoteSer.createOrClear(quote.time).asInstanceOf[QuoteItem]
       //
       //                item.open   = quote.open
       //                item.high   = quote.high

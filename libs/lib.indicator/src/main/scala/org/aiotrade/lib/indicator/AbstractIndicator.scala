@@ -216,14 +216,14 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
     setSessionId
 
     /**
-     * get baseSer's itemList size via protected _itemSize here instead of by
+     * get baseSer's size via protected _Size here instead of by
      * indicator's subclass when begin computeCont, because we could not
-     * sure if the baseSer's _itemSize size has been change by others
+     * sure if the baseSer's _Size size has been change by others
      * (DataServer etc.)
      *
      * @Note
-     * It's better to pass itemSize as param to computeCont instead of keep it as instance field,
-     * so, we do not need to worry about if field _itemSize will be changed concurrent by another
+     * It's better to pass Size as param to computeCont instead of keep it as instance field,
+     * so, we do not need to worry about if field _Size will be changed concurrent by another
      * thread
      */
     try {
@@ -232,10 +232,10 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
       val size = timestamps.size
       val fromIdx = super.preComputeFrom(fromTime)
 
-      //            assert(timestamps.size == items.size,
+      //            assert(timestamps.size == size,
       //                   "Should validate " + shortDescription + " first! " +
       //                   ": timestamps size=" + timestamps.size +
-      //                   ", items size=" + items.size +
+      //                   ", size=" + size +
       //                   ", begIdx=" + begIdx)
 
       computeCont(fromIdx, size)

@@ -120,15 +120,14 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
     /** minimum volume should be 0 */
     minVolume = 0
     maxVolume = Float.MinValue
-
+    val qSer = mainSer.asInstanceOf[QuoteSer]
     var i = 1
     while (i <= nBars) {
       val time = tb(i)
-      val item = mainSer(time).asInstanceOf[QuoteItem]
-      if (item != null && item.close > 0) {
-        maxValue1 = Math.max(maxValue1, item.high)
-        minValue1 = Math.min(minValue1, item.low)
-        maxVolume = Math.max(maxVolume, item.volume)
+      if (qSer.exists(time) && qSer.close(time) > 0) {
+        maxValue1 = Math.max(maxValue1, qSer.high(time))
+        minValue1 = Math.min(minValue1, qSer.low(time))
+        maxVolume = Math.max(maxVolume, qSer.volume(time))
       }
 
       i += 1

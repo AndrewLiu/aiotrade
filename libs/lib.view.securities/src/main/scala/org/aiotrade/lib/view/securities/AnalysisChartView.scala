@@ -235,10 +235,9 @@ class AnalysisChartView(acontroller: ChartingController,
       var i = 1
       while (i <= nBars) {
         val time = tb(i)
-        val item = ser(time)
         if (ser.exists(time)) {
-          val compareHi = item.getFloat(ser.high)
-          val compareLo = item.getFloat(ser.low)
+          val compareHi = ser.high.float(time)
+          val compareLo = ser.low.float(time)
           if (Null.not(compareHi) && Null.not(compareLo) && compareHi * compareLo != 0 ) {
             maxValue1 = Math.max(maxValue1, compareHi)
             minValue1 = Math.min(minValue1, compareLo)

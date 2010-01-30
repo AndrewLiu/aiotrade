@@ -47,6 +47,9 @@ class DefaultMasterTSer(afreq: TFreq) extends DefaultTSer(afreq) with MasterTSer
     this._isOnCalendarMode = false
   }
         
+  def indexOfTime(time: Long): Int = activeTimestamps.indexOfOccurredTime(time)
+  def timeOfIndex(idx: Int): Long = activeTimestamps(idx)
+
   def rowOfTime(time: Long): Int = activeTimestamps.rowOfTime(time, freq)
   def timeOfRow(row: Int): Long = activeTimestamps.timeOfRow(row, freq)
   def itemOfRow(row: Int): TItem = apply(activeTimestamps.timeOfRow(row, freq))

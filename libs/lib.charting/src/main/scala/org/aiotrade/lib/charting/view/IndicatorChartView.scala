@@ -171,10 +171,9 @@ class IndicatorChartView(acontroller: ChartingController,
     var i = 1
     while (i <= nBars) {
       val time = tb(i)
-      val item = mainSer(time)
-      if (item != null) {
+      if (mainSer.exists(time)) {
         for (v <- mainSer.vars if v.plot != Plot.None;
-             value = item.getFloat(v) if Null.not(value)
+             value = v.float(time) if Null.not(value)
         ) {
           maxValue1 = math.max(maxValue1, value)
           minValue1 = math.min(minValue1, value)

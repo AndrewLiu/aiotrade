@@ -77,10 +77,10 @@ class ZIGZAGFunction extends AbstractFunction {
     
   override protected def postComputeTo(sessionId: Long, idx: Int): Unit = {
 
-    val lastIdx = _itemSize - 1
+    val lastIdx = size - 1
 
     /**
-     * did this computing session compute till the last item? if not, do not
+     * did this computing session compute till the last data? if not, do not
      * try to compute pseudo zigzag (ie. last peakHi/Lo in current trend)
      */
     if (idx != lastIdx) {
@@ -189,7 +189,7 @@ class ZIGZAGFunction extends AbstractFunction {
      * as zigzag's value is decided by future (+n step) idx, we should
      * go on computing untill a turn over happened.
      */
-    val size = _baseSer.items.size
+    val size = _baseSer.size
     var i = idx
     var break = false
     while (i < size && !break) {
@@ -210,7 +210,7 @@ class ZIGZAGFunction extends AbstractFunction {
      * as pseudo zigzag's value is decided by future (+n step) idx, we should
      * go on computing untill a turn over happened.
      */
-    val size = _baseSer.items.size
+    val size = _baseSer.size
     var i = idx
     var break = false
     while (i < size && !break) {
@@ -231,11 +231,11 @@ class ZIGZAGFunction extends AbstractFunction {
      * as zigzag direction 's value is decided by future (+n step) idx, we should
      * go on computing untill a turn over happened.
      */
-    val size = _baseSer.items.size
+    val size = _baseSer.size
     var i = idx
     var break = false
     while (i < size && !break) {
-      computeTo(sessionId, i);
+      computeTo(sessionId, i)
       if (i > 0 && _direction(i - 1) != _direction(i)) {
         /** a turn over happened */
         break = true

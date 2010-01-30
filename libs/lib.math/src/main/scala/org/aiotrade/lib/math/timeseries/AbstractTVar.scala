@@ -59,6 +59,26 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     result
   }
 
+  def float(time: Long): Float = {
+    toFloat(apply(time))
+  }
+
+  def float(idx: Int): Float = {
+    toFloat(apply(idx))
+  }
+
+  private def toFloat(v: V): Float = {
+    v match {
+      case null => Null.Float
+      case n: Number => n.floatValue
+      case o: AnyRef =>
+        assert(false, "Why you get here(TVar.float) ? " +
+               v + " Check your code and give me Float instead of float: " +
+               o.asInstanceOf[AnyRef].getClass.getCanonicalName)
+        Null.Float
+    }
+  }
+
   final def addNullVal(time: Long): Boolean = add(time, NullVal)
   final val NullVal = getNullVal[V]
   private def getNullVal[T](implicit m: Manifest[T]): T = {

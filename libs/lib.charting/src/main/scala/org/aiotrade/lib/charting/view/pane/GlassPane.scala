@@ -64,7 +64,6 @@ import org.aiotrade.lib.charting.view.ReferCursorObserver
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.widget.Label
-import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.util.awt.AWTUtil
 import org.aiotrade.lib.util.swing.AIOAutoHideComponent
 import org.aiotrade.lib.util.swing.AIOCloseButton
@@ -360,7 +359,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     if (ser.exists(referTime)) {
       val serVars = ser.vars
       for (v <- serVars if v.plot != Plot.None;
-           value = v(referTime) if value != null
+           value = v.float(referTime) if Null.not(value)
       ) {
         val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(value)
 
@@ -650,9 +649,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
       if (view.isInstanceOf[WithQuoteChart]) {
         val quoteSer = GlassPane.this.view.asInstanceOf[WithQuoteChart].quoteSer
-        val item = quoteSer.itemOfRow(referRow).asInstanceOf[QuoteItem]
-        if (item != null) {
-          val y = if (isAutoReferCursorValue) yv(item.close) else yv(referCursorValue)
+        val time = quoteSer.timeOfRow(referRow)
+        if (quoteSer.exists(time)) {
+          val y = if (isAutoReferCursorValue) yv(quoteSer.close(time)) else yv(referCursorValue)
 
           /** plot cross' horizonal line */
           if (isCursorCrossVisible) {
@@ -681,13 +680,13 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         cal.setTimeInMillis(mouseTime)
 
         val quoteSer = GlassPane.this.view.asInstanceOf[WithQuoteChart].quoteSer
-        var item = quoteSer.itemOfRow(mouseRow).asInstanceOf[QuoteItem]
-        val vMouse = if (item == null) 0 else item.close
+        val time = quoteSer.timeOfRow(mouseRow)
+        val vMouse = if (quoteSer.exists(time)) quoteSer.close(time) else 0
 
         if (mainChartPane.isMouseEntered) {
           y = mainChartPane.yMouse
         } else {
-          y = if (item == null) 0 else mainChartPane.yv(item.close)
+          y = if (quoteSer.exists(time)) mainChartPane.yv(quoteSer.close(time)) else 0
         }
 
 
@@ -701,8 +700,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
         val str = /** normal QuoteChartView ? */
           if (isAutoReferCursorValue) {
-            item = quoteSer.itemOfRow(referRow).asInstanceOf[QuoteItem]
-            val vRefer = if (item == null) 0f else item.close
+            val time = quoteSer.timeOfRow(referRow)
+            val vRefer = if (quoteSer.exists(time)) quoteSer.close(time) else 0
 
             val period = br(mouseRow) - br(referRow)
             val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
@@ -712,9 +711,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
             val rowEnd = Math.max(referRow, mouseRow)
             var i = rowBeg
             while (i <= rowEnd) {
-              item = quoteSer.itemOfRow(i).asInstanceOf[QuoteItem]
-              if (item != null) {
-                volumeSum += item.volume
+              val time = quoteSer.timeOfRow(i)
+              if (quoteSer.exists(time)) {
+                volumeSum += quoteSer.volume(time)
               }
               i += 1
             }

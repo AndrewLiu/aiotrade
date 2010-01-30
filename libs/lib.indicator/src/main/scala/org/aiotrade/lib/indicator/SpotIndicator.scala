@@ -47,29 +47,27 @@ import org.aiotrade.lib.math.timeseries.computable.SpotComputable
  */
 abstract class SpotIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) with SpotComputable {
     
-  var spotTime = -Long.MaxValue
+  var spotTime = Long.MinValue
     
   def this() = this(null)
     
-  def computeItem(time: Long): TItem = {
+  def computeSpot(time: Long) {
         
     /** get masterIndex before preCalc(), which may clear this data */
     val baseIdx = baseSer.indexOfOccurredTime(time)
         
     preComputeFrom(time)
         
-    val newItem = computeSpot(time, baseIdx)
+    computeSpot(time, baseIdx)
         
     spotTime = time
         
     postComputeFrom
-        
-    newItem;
   }
     
-  protected def computeCont(begIdx: Int, itemSize: Int): Unit = {
+  protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
-    while (i < itemSize) {
+    while (i < size) {
       val time = baseSer.timestamps(i)
       if (time == spotTime) {
         computeSpot(time, i)
@@ -78,6 +76,6 @@ abstract class SpotIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) w
     }
   }
     
-  protected def computeSpot(time: Long, baseIdx: Int): TItem
+  protected def computeSpot(time: Long, baseIdx: Int)
 }
 

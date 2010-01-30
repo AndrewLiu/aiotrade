@@ -57,18 +57,16 @@ class ProbMassIndicator(baseSer: TSer) extends SpotIndicator(baseSer) {
   val MASS3 = TVar[Array[Array[Float]]]("MASS3", Plot.Profile)
 
 
-  def computeSpot(time: Long, masterIdx: Int) :TItem =  {
-    val item = createItemOrClearIt(time)
+  def computeSpot(time: Long, masterIdx: Int) {
+    createOrClear(time)
         
     val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)
     val probability_mass2 = probMass(masterIdx, baseVar, period2, nIntervals)
     val probability_mass3 = probMass(masterIdx, baseVar, period3, nIntervals)
-        
-    item.set(MASS1, probability_mass1)
-    item.set(MASS2, probability_mass2)
-    item.set(MASS3, probability_mass3)
-        
-    item
+
+    MASS1(time) = probability_mass1
+    MASS2(time) = probability_mass2
+    MASS3(time) = probability_mass3
   }
 
   override def shortDescription: String =  {

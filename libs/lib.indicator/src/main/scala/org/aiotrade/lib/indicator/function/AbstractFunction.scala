@@ -80,8 +80,8 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
 
   /** base series to compute this. */
   protected var _baseSer: TSer = _
-  /** base series' item size */
-  protected var _itemSize: Int = _
+  /** base series' size */
+  protected var _Size: Int = _
     
   /** To store values of open, high, low, close, volume: */
   protected var O: TVar[Float] = _
@@ -123,7 +123,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
    * This method will compute from computedIdx <b>to</b> idx.
    *
    * and AbstractIndicator.compute(final long begTime) will compute <b>from</b>
-   * begTime to last item
+   * begTime to last data
    *
    * @param sessionId, the sessionId usally is controlled by outside caller,
    *        such as an indicator
@@ -152,19 +152,19 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
       }
         
       /**
-       * get baseSer's itemList size via protected _itemSize here instead of by
+       * get baseSer's size via protected _Size here instead of by
        * indicator's subclass when begin computeCont, because we could not
-       * sure if the baseSer's _itemSize size has been change by others
+       * sure if the baseSer's _Size size has been change by others
        * (DataServer etc.)
        */
       val size = timestamps.size
         
       val endIdx = math.min(idx, size - 1)
-      /** fill with clear items from begIdx, then call computeSpot(i): */
+      /** fill with clear data from begIdx, then call computeSpot(i): */
       var i = begIdx
       while (i <= endIdx) {
         val time = timestamps(i)
-        createItemOrClearIt(time)
+        createOrClear(time)
             
         computeSpot(i)
         i += 1

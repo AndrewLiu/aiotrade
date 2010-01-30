@@ -59,24 +59,22 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
    * @param boolean b: if true, do adjust, else, de adjust
    */
   def adjust(b:Boolean): Unit = {
-    val items1 = items
     var i = 0
-    while (i < items1.size) {
-      val item = items1(i).asInstanceOf[QuoteItem]
+    while (i < size) {
             
-      var prevNorm = item.close
+      var prevNorm = close(i)
       var postNorm = if (b) {
         /** do adjust */
-        item.close_adj
+        close_adj(i)
       } else {
         /** de adjust */
-        item.close_ori
+        close_ori(i)
       }
                         
-      item.high  = linearAdjust(item.high,  prevNorm, postNorm)
-      item.low   = linearAdjust(item.low,   prevNorm, postNorm)
-      item.open  = linearAdjust(item.open,  prevNorm, postNorm)
-      item.close = linearAdjust(item.close, prevNorm, postNorm)
+      high(i)  = linearAdjust(high(i),  prevNorm, postNorm)
+      low(i)   = linearAdjust(low(i),   prevNorm, postNorm)
+      open(i)  = linearAdjust(open(i),  prevNorm, postNorm)
+      close(i) = linearAdjust(close(i), prevNorm, postNorm)
 
       i += 1
     }

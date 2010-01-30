@@ -33,7 +33,7 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.securities.{QuoteItem, QuoteSer}
+import org.aiotrade.lib.securities.{QuoteSer}
 
 
 /**
@@ -56,27 +56,27 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
   var close  = TVar[Float]("C", Plot.Quote)
   var volume = TVar[Float]("V", Plot.Quote)
     
-  protected def computeCont(begIdx: Int, itemSize: Int) {
+  protected def computeCont(begIdx: Int, size: Int) {
     /** camparing base point is the value of begin time (the most left on screen */
         
     /** always compute from most left position on screen */
     val begPos = begPosition.value.toInt//math.min((int)begPosition.value(), begIdx);
     val endPos = endPosition.value.toInt//math.min((int)endPosition.value(),   _dataSize - 1);
-        
+
+    val baseQSer = baseSer.asInstanceOf[QuoteSer]
     /** get first value of baseSer in time frame, it will be the comparing base point */
     var baseNorm = Null.Float
-    var position = begPosition.value.toInt
+    var row = begPosition.value.toInt
     var end = endPosition.value.toInt
     var break = false
-    while (position <= end & !break) {
-      val baseItem = baseSer.asInstanceOf[QuoteSer].itemOfRow(position).asInstanceOf[QuoteItem]
-
-      if (baseItem != null) {
-        baseNorm = baseItem.close
+    while (row <= end & !break) {
+      val baseTime = baseQSer.timeOfRow(row)
+      if (baseQSer.exists(baseTime)) {
+        baseNorm = baseQSer.close(baseTime)
         break = true
       }
             
-      position += 1
+      row += 1
     }
         
     if (Null.is(baseNorm)) {
@@ -99,7 +99,7 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
      * we only calculate this indicator's value for a timeSet showing in screen,
      * instead of all over the time frame of baseSer, thus, we use
      * this time set for loop instead of the usaully usage in other indicators:
-     *        for (int i = fromIndex; i < baseItemList.size(); i++) {
+     *        for (int i = fromIndex; i < size(); i++) {
      *            ....
      *        }
      *
@@ -116,23 +116,21 @@ class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
             
         /**
          * !NOTICE:
-         * we should fetch itemToBeCompared by time instead by position which may
+         * we should fetch serToBeCompared by time instead by position which may
          * not sync with baseSer.
          */
-        serToBeCompared(time) match {
-          case null =>
-          case itemToBeCompared:QuoteItem =>
+        val compareQSer = serToBeCompared.asInstanceOf[QuoteSer]
+        if (compareQSer.exists(time)) {
             /** get first value of serToBeCompared in time frame */
             if (Null.is(compareNorm)) {
-              compareNorm = itemToBeCompared.close
+              compareNorm = compareQSer.close(time)
             }
                         
-            val item = apply(time).asInstanceOf[QuoteItem]
-            if (item != null) {
-              item.open  = linearAdjust(itemToBeCompared.open,  compareNorm, baseNorm)
-              item.high  = linearAdjust(itemToBeCompared.high,  compareNorm, baseNorm)
-              item.low   = linearAdjust(itemToBeCompared.low,   compareNorm, baseNorm)
-              item.close = linearAdjust(itemToBeCompared.close, compareNorm, baseNorm)
+            if (exists(time)) {
+              open(time)  = linearAdjust(compareQSer.open(time),  compareNorm, baseNorm)
+              high(time)  = linearAdjust(compareQSer.high(time),  compareNorm, baseNorm)
+              low(time)   = linearAdjust(compareQSer.low(time),   compareNorm, baseNorm)
+              close(time) = linearAdjust(compareQSer.close(time), compareNorm, baseNorm)
             }
         }
       }
