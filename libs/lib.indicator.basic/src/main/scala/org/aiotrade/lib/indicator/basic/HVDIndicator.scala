@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.math.timeseries.TItem
 import org.aiotrade.lib.indicator.SpotIndicator
 
 /**

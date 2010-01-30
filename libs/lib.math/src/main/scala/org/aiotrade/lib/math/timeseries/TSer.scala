@@ -75,7 +75,7 @@ trait TSer extends Publisher {
 
   def ++=[T <: TVal](values: Array[T]): TSer
     
-  def createOrClear(time: Long): TItem
+  def createOrClear(time: Long)
     
   def shortDescription: String
   def shortDescription_=(description: String): Unit

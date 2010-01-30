@@ -57,8 +57,9 @@ object TStampsLog {
   val REMOVE = 0x8000 // 1000 0000 0000 0000
   val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
+
+import TStampsLog._
 class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
-  import TStampsLog._
 
   private var _logCursor = -1
   private var _logTime = System.currentTimeMillis
@@ -90,12 +91,12 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
       val prev = apply(_logCursor)
       val prevKind = checkKind(prev)
       val prevSize = checkSize(prev)
-      println("Append log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize)
+      //println("Append log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize)
       if (prevKind == APPEND) {
         val newSize = prevSize + size
         if (newSize <= SIZE) {
           // merge with previous one
-          println("Append log (merged with prev): newSize=" + newSize)
+          //println("Append log (merged with prev): newSize=" + newSize)
           update(_logCursor, (APPEND | newSize).toShort)
         } else addLog(size)
       } else addLog(size)
@@ -122,14 +123,14 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
       val prev = apply(_logCursor)
       val prevKind = checkKind(prev)
       val prevSize = checkSize(prev)
-      println("Insert log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize + ", idx=" + idx)
+      //println("Insert log: prevKind=" + prevKind + ", prevCursor=" + _logCursor + ", prevSize=" + prevSize + ", idx=" + idx)
       if (prevKind == INSERT) {
         val prevIdx = shortsToInt(apply(_logCursor + 1), apply(_logCursor + 2))
         if (prevIdx + prevSize == idx) {
           val newSize = prevSize + size
           if (newSize <= SIZE) {
             // merge with previous one
-            println("Insert log (merged with prev): idx=" + prevIdx + ", newSize=" + newSize)
+            //println("Insert log (merged with prev): idx=" + prevIdx + ", newSize=" + newSize)
             update(_logCursor, (INSERT | newSize).toShort)
           } else addLog(size, idx)
         } else addLog(size, idx)
@@ -233,7 +234,10 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
     
   def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator
 
-  /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
+  /**
+   *this should not be abstract method to get scalac knowing it's a override of
+   * @cloneable instead of java.lang.Object#clone
+   */
   override def clone: TStamps = {super.clone; this}
 }
 
