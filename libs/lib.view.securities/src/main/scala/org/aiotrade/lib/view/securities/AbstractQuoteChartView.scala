@@ -41,7 +41,6 @@ import org.aiotrade.lib.charting.view.scalar.LinearScalar
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.plottable.Plot
-import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Security
 import scala.collection.mutable.HashSet

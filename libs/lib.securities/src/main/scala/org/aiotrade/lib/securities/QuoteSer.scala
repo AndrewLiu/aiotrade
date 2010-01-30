@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent}
+import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent, TVal, TItem}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 
 /**
@@ -50,15 +50,29 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
     
   val close_ori = TVar[Float]()
   val close_adj = TVar[Float]()
-    
-  override protected def createItem(time: Long) :QuoteItem = {
-    new QuoteItem(this, time)
+
+  override protected def assignValue(tval: TVal) {
+    val time = tval.time
+    tval match {
+      case quote: Quote =>
+        open(time)   = quote.open
+        high(time)   = quote.high
+        low(time)    = quote.low
+        close(time)  = quote.close
+        volume(time) = quote.volume
+
+        close_ori(time) = quote.close
+
+        val adjuestedClose = if (quote.close_adj != 0 ) quote.close_adj else quote.close
+        close_adj(time) = adjuestedClose
+      case _ => assert(false, "Should pass a Quote type TimeValue")
+    }
   }
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust
    */
-  def adjust(b:Boolean): Unit = {
+  def adjust(b: Boolean) {
     var i = 0
     while (i < size) {
             

@@ -257,6 +257,10 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     }
   }
 
+  protected def assignValue(tval: TVal) {
+    // todo
+  }
+
   def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
     var frTime = Long.MaxValue
     var toTime = Long.MinValue
@@ -270,7 +274,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       while (i >= 0 && i < size) {
         val value = values(i)
         val item = createOrClear(value.time)
-        item.assignValue(value)
+        assignValue(value)
 
         if (shouldReverse) {
           /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */

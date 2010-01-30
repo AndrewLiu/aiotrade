@@ -44,7 +44,6 @@ import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.securities.Exchange
-import org.aiotrade.lib.securities.QuoteItem
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Ticker
 import scala.swing.Reactor

@@ -166,41 +166,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       quotes.copyToArray(values, 0)
 
       quoteSer ++= values
-      //            var begTime = +Long.MaxValue
-      //            var endTime = -Long.MaxValue
-      //
-      //            val shouldReverse = !isAscending(values)
-      //
-      //            var i = if (shouldReverse) size - 1 else 0
-      //            while (i >= 0 && i <= size - 1) {
-      //                val quote = values(i)
-      //                val item =  quoteSer.createOrClear(quote.time).asInstanceOf[QuoteItem]
-      //
-      //                item.open   = quote.open
-      //                item.high   = quote.high
-      //                item.low    = quote.low
-      //                item.close  = quote.close
-      //                item.volume = quote.volume
-      //
-      //                item.close_ori = quote.close
-      //
-      //                val adjuestedClose = if (quote.close_adj != 0 ) quote.close_adj else quote.close
-      //                item.close_adj = adjuestedClose
-      //
-      //                if (shouldReverse) {
-      //                    /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
-      //                    i -= 1
-      //                } else {
-      //                    /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
-      //                    i += 1
-      //                }
-      //
-      //                val itemTime = item.time
-      //                begTime = math.min(begTime, itemTime)
-      //                endTime = math.max(endTime, itemTime)
-      //            }
-      //
-      //            evt = new TSerEvent(quoteSer, TSerEvent.Type.None, symbol, begTime, endTime)
     }
 
     evt
