@@ -49,13 +49,13 @@ import org.aiotrade.lib.securities.QuoteItem
  *
  * @author Caoyuan Deng
  */
-object AxisYPance {
+object AxisYPane {
   val CURRENCY_DECIMAL_FORMAT = new DecimalFormat("0.###")
   val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.00")
 }
 
+import AxisYPane._
 class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
-  import AxisYPance._
 
   private var _symmetricOnMiddleValue: Boolean = _
 

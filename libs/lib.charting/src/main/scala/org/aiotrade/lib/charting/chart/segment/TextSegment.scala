@@ -39,14 +39,14 @@ import java.awt.Rectangle
  *
  * @author Caoyuan Deng
  */
-class TextSegment(var text: String, var x: Float, var y: Float, color: Color, var bgColor: Color) extends AbstractSegment(color) {
+class TextSegment(var text: String, var x: Float, var y: Float, $color: Color, var bgColor: Color) extends AbstractSegment($color) {
     
   private var valid: Boolean = _
   private val bounds = new Rectangle
     
   def this() = this(null, 0f, 0f, null, null)
         
-  def this(text: String, x: Float, y: Float, color: Color) {
+  def this(text: String, x: Float, y: Float, color: Color) = {
     this(text, x, y, color, null)
   }
     

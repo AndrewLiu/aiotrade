@@ -71,8 +71,8 @@ object Pane {
   val DEPTH_INVISIBLE = -100
 }
 
+import Pane._
 abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponent {
-  import Pane._
 
   private val widgets = new ArrayBuffer[Widget]
   private var _referCursorValue: Float = _

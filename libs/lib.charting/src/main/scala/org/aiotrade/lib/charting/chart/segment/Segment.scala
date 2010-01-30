@@ -43,7 +43,7 @@ import java.awt.Graphics
  */
 trait Segment {
         
-    var color: Color
-    
-    def render(g: Graphics): Unit
+  var color: Color
+  
+  def render(g: Graphics): Unit
 }

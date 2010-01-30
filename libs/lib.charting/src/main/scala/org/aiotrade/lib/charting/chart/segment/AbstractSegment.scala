@@ -40,5 +40,4 @@ import org.aiotrade.lib.charting.laf.LookFeel
 
 /** Abstract class for shape or string segment
  */
-abstract class AbstractSegment(var color: Color = LookFeel().backgroundColor) extends Segment {
-}
+abstract class AbstractSegment(var color: Color = LookFeel().backgroundColor) extends Segment

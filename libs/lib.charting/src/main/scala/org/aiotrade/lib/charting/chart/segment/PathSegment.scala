@@ -44,10 +44,10 @@ import java.awt.geom.PathIterator
 
 /** Line segment
  */
-class PathSegment(acolor: Color) extends AbstractSegment {
+class PathSegment($color: Color) extends AbstractSegment {
   private val path = new GeneralPath(PathIterator.WIND_EVEN_ODD, 2)
     
-  this.color = acolor
+  this.color = $color
 
   def this() = this(null)
     

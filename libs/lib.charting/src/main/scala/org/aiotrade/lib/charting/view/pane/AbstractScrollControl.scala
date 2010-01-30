@@ -69,8 +69,8 @@ object AbstractScrollControl {
   }
 }
 
+import AbstractScrollControl._
 abstract class AbstractScrollControl extends JComponent {
-  import AbstractScrollControl._
 
   private val arrowComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)
   private val thumbComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)
