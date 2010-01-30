@@ -140,7 +140,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     case TickerEvent(src: Security, ticker: Ticker) =>
       symbol.value = src.name
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
-      if (ticker.time > prevTicker.time || ticker(Ticker.DAY_VOLUME) > prevTicker(Ticker.DAY_VOLUME)) {
+      if (ticker.time > prevTicker.time && ticker(Ticker.DAY_VOLUME) > prevTicker(Ticker.DAY_VOLUME)) {
         updateByTicker(ticker)
         scrollToLastRow(tickerTable)
         repaint()
@@ -152,6 +152,8 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     setPreferredSize(DIM)
 
     val infoModelData = Array(
+      Array(symbol,                         "",         BUNDLE.getString("time"),      currentTime),
+      Array(sname,                          "",         "",                            ""),
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
       Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
       Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
@@ -164,17 +166,17 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     )
 
     infoCellAttr = infoModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
-    /* Code for combining cells
-     infoCellAttr.combine(new int[]{0}, new int[]{0, 1});
-     infoCellAttr.combine(new int[]{1}, new int[]{0, 1, 2, 3});
-     */
+    // Code to combine cells
+    infoCellAttr.combine(Array(0), Array(0, 1))
+    infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
+    
 
     symbol.value = sec.uniSymbol
     if (tickerContract != null) {
       sname.value = tickerContract.shortName
     }
 
-    for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
+    for (cell <- Array(currentTime, lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)
     }
 

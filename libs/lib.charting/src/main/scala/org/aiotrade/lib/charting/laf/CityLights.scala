@@ -126,7 +126,7 @@ class CityLights extends LookFeel {
 
   val mouseCursorTextColor = Color.BLACK
   val mouseCursorTextBgColor = Color.YELLOW
-  val referCursorTextColor = Color.WHITE
+  val referCursorTextColor = Color.BLACK
   val referCursorTextBgColor = referCursorColor.darker
 
   val drawingMasterColor = Color.white // new Color(128, 128, 255); //new Color(128, 0, 128);
