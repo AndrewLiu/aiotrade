@@ -50,6 +50,7 @@ import javax.swing.event.MouseInputAdapter
 import org.aiotrade.lib.math.timeseries.computable.Computable
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.Chart
@@ -352,15 +353,16 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   private def updateSelectedSerVarValues {
     val ser = selectedSer
     if (ser == null) {
-      return;
+      return
     }
 
     val referTime = view.controller.referCursorTime
-    val item = ser(referTime)
-    if (item != null) {
+    if (ser.exists(referTime)) {
       val serVars = ser.vars
-      for (v <- serVars if v.plot != Plot.None) {
-        val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(item.getFloat(v))
+      for (v <- serVars if v.plot != Plot.None;
+           value = v(referTime) if value != null
+      ) {
+        val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(value)
 
         /** lookup this var's chart and use chart's color if possible */
         var chartOfVar: Chart = null
@@ -394,8 +396,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       }
 
       /** remove unused vars and their labels */
-      val toBeRemoved = selectedSerVarsToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
-      for (v <- toBeRemoved) {
+      val toRemove = selectedSerVarsToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
+      for (v <- toRemove) {
         val label = selectedSerVarsToValueLabel(v)
         // label maybe null? not init yet?
         if (label != null) {
