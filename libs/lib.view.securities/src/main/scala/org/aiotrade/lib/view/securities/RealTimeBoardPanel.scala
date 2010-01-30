@@ -140,7 +140,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     case TickerEvent(src: Security, ticker: Ticker) =>
       symbol.value = src.name
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
-      if (ticker.time > prevTicker.time && ticker(Ticker.DAY_VOLUME) > prevTicker(Ticker.DAY_VOLUME)) {
+      if (ticker.isValueChanged(prevTicker)) {
         updateByTicker(ticker)
         scrollToLastRow(tickerTable)
         repaint()
@@ -404,18 +404,24 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
 
     // --- update ticker table
 
-    val tickerRow = Array(
-      sdf.format(lastTradeTime),
-      "%5.2f" format ticker(Ticker.LAST_PRICE),
-      if (prevTicker == null) "-" else currentSize
-    )
-    tickerModel.addRow(tickerRow.asInstanceOf[Array[Object]])
+    if (ticker.isDayVolumeGrown(prevTicker)) {
+      val tickerRow = Array(
+        sdf.format(lastTradeTime),
+        "%5.2f" format ticker(Ticker.LAST_PRICE),
+        currentSize
+      )
+      tickerModel.addRow(tickerRow.asInstanceOf[Array[Object]])
+    }
 
     prevTicker.copyFrom(ticker)
 
   }
 
   private def scrollToLastRow(table: JTable) {
+    if (tickerTable.getRowCount < 1) {
+      return
+    }
+    
     // wrap in EDT to wait enough time to get rowCount updated
     SwingUtilities.invokeLater(new Runnable {
         def run {

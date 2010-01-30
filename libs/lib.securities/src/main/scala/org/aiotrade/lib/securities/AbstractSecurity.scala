@@ -88,12 +88,18 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
   val tickerSer = new QuoteSer(tickerContract.freq)
 
+  var prevTicker = new Ticker
+
   val updater: Updater = {
     case ts: TickerSnapshot =>
-      val ticker = new Ticker
-      ticker.copyFrom(ts.ticker)
-      tickers += ticker
-      publish(TickerEvent(this, ticker))
+      val tsTicker = ts.ticker
+      if (tsTicker.isValueChanged(prevTicker)) {
+        val ticker = new Ticker
+        ticker.copyFrom(tsTicker)
+        tickers += ticker
+        publish(TickerEvent(this, ticker))
+        prevTicker.copyFrom(tsTicker)
+      }
   }
   
   /**
