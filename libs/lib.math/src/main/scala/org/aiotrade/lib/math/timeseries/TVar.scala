@@ -42,24 +42,24 @@ import org.aiotrade.lib.util.collection.ArrayList
  */
 trait TVar[V] extends Plottable {
   def name: String
-  def name_=(name: String): Unit
+  def name_=(name: String)
 
   def add(time: Long, value: V): Boolean
   def addNullVal(time: Long): Boolean
   def apply(time: Long): V
-  def update(time: Long, value: V): Unit
+  def update(time: Long, value: V)
     
   def apply(idx: Int): V
-  def update(idx: Int, value: V): Unit
+  def update(idx: Int, value: V)
     
-  def clear(fromIdx: Int): Unit
+  def clear(fromIdx: Int)
     
   def size: Int
     
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]
-  def validate: Unit
+  def validate
 
   val NullVal: V
 

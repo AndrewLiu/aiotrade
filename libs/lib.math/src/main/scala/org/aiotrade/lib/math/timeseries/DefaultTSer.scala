@@ -401,7 +401,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   def clear(fromTime: Long): Unit = synchronized {
     try {
-      _timestamps.writeLock.lock
+      timestamps.writeLock.lock
             
       val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       if (fromIdx < 0) {
@@ -411,14 +411,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       vars foreach {_.clear(fromIdx)}
 
       for (i <- timestamps.size - 1 to fromIdx) {
-        _timestamps.remove(i)
+        timestamps.remove(i)
       }
 
       for (i <- items.size - 1 to fromIdx) {
         items.remove(i)
       }
     } finally {
-      _timestamps.writeLock.unlock
+      timestamps.writeLock.unlock
     }
 
     publish(TSerEvent.Clear(this,
@@ -519,7 +519,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     var values = new ArrayList[V](INIT_CAPACITY)
 
-    def add(time: Long, value: V): Boolean = {
+    final def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         if (idx == values.size) {
@@ -534,19 +534,18 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       }
     }
 
-    def apply(time: Long): V = {
+    final def apply(time: Long): V = {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx)
     }
 
-    def update(time: Long, value: V) {
+    final def update(time: Long, value: V) {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx) = value
-      value
     }
 
     // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
-    override def apply(idx: Int): V = {
+    final override def apply(idx: Int): V = {
       super.apply(idx)
     }
 

@@ -371,7 +371,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   def icon: Option[Image] = {
     if (DEFAULT_ICON == None) {
       val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
-      DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit().createImage(url)) else None
+      DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
     }
     DEFAULT_ICON
   }
