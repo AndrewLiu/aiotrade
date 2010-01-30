@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries
 
 import scala.actors.Actor._
-import scala.collection.mutable.ArrayBuffer
 import scala.swing.Publisher
 import scala.swing.event.Event
 
@@ -62,10 +61,8 @@ trait TSer extends Publisher {
   def freq: TFreq
 
   def vars: Seq[TVar[_]]
-  def items: ArrayBuffer[TItem]
 
   def exists(time: Long): Boolean
-  def apply(time: Long): TItem
     
   def lastOccurredTime: Long
     

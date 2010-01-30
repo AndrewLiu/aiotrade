@@ -101,21 +101,17 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
   
   def exists(time: Long): Boolean = {
-    apply(time: Long) != null
-  }
-
-  def apply(time: Long): TItem = {
     var item = internal_apply(time)
     this match {
       case x: SpotComputable =>
         if (item == null || (item != null && item.isClear)) {
-          /** re-get one from calculator */
+          /** re-get one by computing it */
           x.computeSpot(time)
+          return true
         }
       case _ =>
     }
-
-    item
+    item != null
   }
 
   /*_ @Todo removed synchronized for internal_itemOf and internal_addClearItem_fillTimestamps_InTimeOrder, which cause deadlock:

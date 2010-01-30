@@ -92,9 +92,9 @@ class ZigzagChart extends AbstractChart {
       }
             
       /** now we've got two good positions, go on to draw a line between them */
-            
-      val value1 = ser(tb(bar1)).getFloat(model.v)
-      val value2 = ser(tb(bar2)).getFloat(model.v)
+
+      val value1 = model.v.float(tb(bar1))
+      val value2 = model.v.float(tb(bar2))
             
       /** now try to draw line between these two points */
       val x1 = xb(bar1)

@@ -160,7 +160,7 @@ trait ComputableHelper extends Reactor {self: Indicator =>
         val fromTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
         val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
-        (fromTimeX, fromIdxX, timestamps.size > self.items.size)
+        (fromTimeX, fromIdxX, timestamps.size > self.size)
       } else {
         // * begTime == computedTime
         // * if begTime > computedTime, re-compute from computedTime
