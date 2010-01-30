@@ -39,85 +39,29 @@ import org.aiotrade.lib.util.ChangeSubject
  *
  * @author Caoyuan Deng
  */
-class TickerSnapshot extends ChangeSubject {
+class TickerSnapshot extends Ticker with ChangeSubject {
 
-  val ticker = new Ticker
-  var symbol: String = _
+  var symbol:   String = _
   var fullName: String = _
   
-  private var changed: Boolean = _
-
-  def time = ticker.time
-  def time_=(time: Long): Unit = {
-    ticker.time = time
-  }
-
-  def apply(field: Int): Float = {
-    ticker(field)
-  }
-
-  def update(field: Int, value: Float): Unit = {
-    if (ticker(field) != value) {
-      setChanged
-    }
-    ticker(field) = value
-  }
-
-  def setAskPrice(idx: Int, value: Float): Unit = {
-    if (ticker.askPrice(idx) != value) {
-      setChanged
-    }
-    ticker.setAskPrice(idx, value)
-  }
-
-  def setAskSize(idx: Int, value: Float): Unit = {
-    if (ticker.askSize(idx) != value) {
-      setChanged
-    }
-    ticker.setAskSize(idx, value)
-  }
-
-  def setBidPrice(idx: Int, value: Float): Unit = {
-    if (ticker.bidPrice(idx) != value) {
-      setChanged
-    }
-    ticker.setBidPrice(idx, value)
-  }
-
-  def setBidSize(idx: Int, value: Float): Unit = {
-    if (ticker.bidSize(idx) != value) {
-      setChanged
-    }
-    ticker.setBidSize(idx, value)
-  }
-
-  def copy(another: Ticker): Unit = {
-    if (ticker.isValueChanged(another)) {
-      ticker.copyFrom(another)
-      setChanged
+  override def copyFrom(another: Ticker): Unit = {
+    if (isValueChanged(another)) {
+      copyFrom(another)
+      isChanged = true
     }
   }
 
   override def notifyChanged[T <: ChangeObserver](observerType: Class[T]) {
     super.notifyChanged(observerType)
-    clearChanged
+    isChanged = false
   }
 
   override def notifyChanged {
     super.notifyChanged
-    clearChanged
+    isChanged = false
   }
 
-  private def setChanged {
-    synchronized {changed = true}
-  }
-
-  private def clearChanged {
-    synchronized {changed = false}
-  }
-
-  def hasChanged: Boolean = synchronized {
-    changed
+  def hasChanged: Boolean = {
+    isChanged
   }
 }
-

@@ -92,13 +92,12 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
 
   val updater: Updater = {
     case ts: TickerSnapshot =>
-      val tsTicker = ts.ticker
-      if (tsTicker.isValueChanged(prevTicker)) {
+      if (ts.isValueChanged(prevTicker)) {
         val ticker = new Ticker
-        ticker.copyFrom(tsTicker)
+        ticker.copyFrom(ts)
         tickers += ticker
         publish(TickerEvent(this, ticker))
-        prevTicker.copyFrom(tsTicker)
+        prevTicker.copyFrom(ts)
       }
   }
   

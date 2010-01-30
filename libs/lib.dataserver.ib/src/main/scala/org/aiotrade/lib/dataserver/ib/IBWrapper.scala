@@ -42,7 +42,6 @@ import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.QuotePool
 import org.aiotrade.lib.securities.Security
-import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.TickerPool
 import org.aiotrade.lib.securities.TickerSnapshot
 import scala.collection.immutable.TreeMap
@@ -252,7 +251,7 @@ object IBWrapper extends IBWrapper {
     reqIdToMktDataReq.contains(reqId)
   }
     
-  private def getTickerSnapshot(reqId: Int): TickerSnapshot = {
+  private def tickerSnapshotOf(reqId: Int): TickerSnapshot = {
     reqIdToMktDataReq.get(reqId) match {
       case None => null
       case Some(mktReq) => mktReq.snapshotTicker
@@ -336,39 +335,39 @@ object IBWrapper extends IBWrapper {
     
   override def tickPrice(tickerId: Int, field: Int, price: Double, canAutoExecute: Int) {
     // received price tick
-    val tickerSnapshot = getTickerSnapshot(tickerId)
-    if (tickerSnapshot == null) {
+    val snapshot = tickerSnapshotOf(tickerId)
+    if (snapshot == null) {
       return;
     }
         
-    tickerSnapshot synchronized {
+    snapshot synchronized {
       val value = price.toFloat
-      tickerSnapshot.time = System.currentTimeMillis
+      snapshot.time = System.currentTimeMillis
       field match {
         case TickType.ASK =>
-          tickerSnapshot.setAskPrice(0, value)
+          snapshot.setAskPrice(0, value)
         case TickType.ASK_SIZE =>
-          tickerSnapshot.setAskSize(0, value)
+          snapshot.setAskSize (0, value)
         case TickType.BID =>
-          tickerSnapshot.setBidPrice(0, value)
+          snapshot.setBidPrice(0, value)
         case TickType.BID_SIZE =>
-          tickerSnapshot.setBidSize(0, value)
+          snapshot.setBidSize (0, value)
         case TickType.CLOSE =>
-          tickerSnapshot(Ticker.PREV_CLOSE) = value
+          snapshot.prevClose = value
         case TickType.HIGH =>
-          tickerSnapshot(Ticker.DAY_HIGH) = value
+          snapshot.dayHigh = value
         case TickType.LAST =>
-          tickerSnapshot(Ticker.LAST_PRICE) = value
+          snapshot.lastPrice = value
         case TickType.LAST_SIZE =>
         case TickType.LOW =>
-          tickerSnapshot(Ticker.DAY_LOW) = value
+          snapshot.dayLow = value
         case TickType.VOLUME =>
-          tickerSnapshot(Ticker.DAY_VOLUME) = value
+          snapshot.dayVolume = value
         case _ =>
       }
     }
         
-    tickerSnapshot.notifyChanged
+    snapshot.notifyChanged
         
     //System.out.println("id=" + tickerId + "  " + TickType.getField( field) + "=" + price + " " +
     //(canAutoExecute != 0 ? " canAutoExecute" : " noAutoExecute"));
@@ -444,7 +443,7 @@ object IBWrapper extends IBWrapper {
     private var inRunning: Boolean = false
         
     def isInRunning = {
-      inRunning;
+      inRunning
     }
         
     def run {

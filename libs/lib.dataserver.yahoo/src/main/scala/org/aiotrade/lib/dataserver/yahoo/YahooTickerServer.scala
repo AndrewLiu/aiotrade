@@ -35,8 +35,7 @@ import java.net.{HttpURLConnection, URL}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
-import org.aiotrade.lib.securities.{Exchange, Ticker}
-import org.aiotrade.lib.securities.TickerSnapshot
+import org.aiotrade.lib.securities.{Exchange}
 import org.aiotrade.lib.securities.dataserver.{TickerServer}
 
 /**
@@ -136,7 +135,7 @@ class YahooTickerServer extends TickerServer {
           case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*)
             if !dateX.toUpperCase.contains("N/A") && !timeX.toUpperCase.contains("N/A") =>
 
-            val symbol = symbolX.toUpperCase.replace('"', ' ').trim
+            val symbol  = symbolX.toUpperCase.replace('"', ' ').trim
             val dateStr = dateX.replace('"', ' ').trim
             val timeStr = timeX.replace('"', ' ').trim
 
@@ -162,13 +161,13 @@ class YahooTickerServer extends TickerServer {
             val tickerSnapshot = tickerSnapshotOf(symbol).get
             tickerSnapshot.time = time
 
-            tickerSnapshot(Ticker.PREV_CLOSE) = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toFloat
-            tickerSnapshot(Ticker.LAST_PRICE) = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toFloat
-            tickerSnapshot(Ticker.DAY_CHANGE) = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toFloat
-            tickerSnapshot(Ticker.DAY_OPEN)   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toFloat
-            tickerSnapshot(Ticker.DAY_HIGH)   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toFloat
-            tickerSnapshot(Ticker.DAY_LOW)    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toFloat
-            tickerSnapshot(Ticker.DAY_VOLUME) = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toFloat / 100f
+            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toFloat
+            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toFloat
+            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toFloat
+            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toFloat
+            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toFloat
+            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toFloat
+            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toFloat / 100f
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toFloat)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
 

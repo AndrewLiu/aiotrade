@@ -62,7 +62,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   val updater: Updater = {
     case ts: TickerSnapshot =>
       val ticker = borrowTicker
-      ticker.copyFrom(ts.ticker)
+      ticker.copyFrom(ts)
       storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
@@ -223,10 +223,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
              * so give it a small 0.0001 (if give it a 0, it will won't be calculated
              * in calcMaxMin() of ChartView)
              */
-            itemx.open   = ticker(Ticker.LAST_PRICE)
-            itemx.high   = ticker(Ticker.LAST_PRICE)
-            itemx.low    = ticker(Ticker.LAST_PRICE)
-            itemx.close  = ticker(Ticker.LAST_PRICE)
+            itemx.open   = ticker.lastPrice
+            itemx.high   = ticker.lastPrice
+            itemx.low    = ticker.lastPrice
+            itemx.close  = ticker.lastPrice
             itemx.volume = 0.00001F
             itemx
 
@@ -254,30 +254,30 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
               itemxx.high = Float.MinValue
               itemxx.low  = Float.MaxValue
-              itemxx.open = ticker(Ticker.LAST_PRICE)
+              itemxx.open = ticker.lastPrice
               itemxx
             }
 
-            if (ticker(Ticker.DAY_HIGH) > prevTicker(Ticker.DAY_HIGH)) {
+            if (ticker.dayHigh > prevTicker.dayHigh) {
               /** this is a new high happened in this ticker */
-              itemx.high = ticker(Ticker.DAY_HIGH)
+              itemx.high = ticker.dayHigh
             }
-            itemx.high = Math.max(itemx.high, ticker(Ticker.LAST_PRICE))
+            itemx.high = Math.max(itemx.high, ticker.lastPrice)
 
-            if (prevTicker(Ticker.DAY_LOW) != 0) {
-              if (ticker(Ticker.DAY_LOW) < prevTicker(Ticker.DAY_LOW)) {
+            if (prevTicker.dayLow != 0) {
+              if (ticker.dayLow < prevTicker.dayLow) {
                 /** this is a new low that happened in this ticker */
-                itemx.low = ticker(Ticker.DAY_LOW)
+                itemx.low = ticker.dayLow
               }
             }
-            if (ticker(Ticker.LAST_PRICE) != 0) {
-              itemx.low = Math.min(itemx.low, ticker(Ticker.LAST_PRICE))
+            if (ticker.lastPrice != 0) {
+              itemx.low = Math.min(itemx.low, ticker.lastPrice)
             }
 
-            itemx.close = ticker(Ticker.LAST_PRICE)
-            val preVolume = intervalLastTickerPair.prevIntervalOne(Ticker.DAY_VOLUME)
+            itemx.close = ticker.lastPrice
+            val preVolume = intervalLastTickerPair.prevIntervalOne.dayVolume
             if (preVolume > 1) {
-              itemx.volume = ticker(Ticker.DAY_VOLUME) - intervalLastTickerPair.prevIntervalOne(Ticker.DAY_VOLUME)
+              itemx.volume = ticker.dayVolume - intervalLastTickerPair.prevIntervalOne.dayVolume
             }
             itemx
         }
@@ -337,15 +337,15 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     val now = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
     val itemNow = dailySer.createItemOrClearIt(now).asInstanceOf[QuoteItem]
         
-    if (ticker(Ticker.DAY_HIGH) != 0 && ticker(Ticker.DAY_LOW) != 0) {
-      itemNow.open   = ticker(Ticker.DAY_OPEN)
-      itemNow.high   = ticker(Ticker.DAY_HIGH)
-      itemNow.low    = ticker(Ticker.DAY_LOW)
-      itemNow.close  = ticker(Ticker.LAST_PRICE)
-      itemNow.volume = ticker(Ticker.DAY_VOLUME)
+    if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
+      itemNow.open   = ticker.dayOpen
+      itemNow.high   = ticker.dayHigh
+      itemNow.low    = ticker.dayLow
+      itemNow.close  = ticker.lastPrice
+      itemNow.volume = ticker.dayVolume
 
-      itemNow.close_ori = ticker(Ticker.LAST_PRICE)
-      itemNow.close_adj = ticker(Ticker.LAST_PRICE)
+      itemNow.close_ori = ticker.lastPrice
+      itemNow.close_adj = ticker.lastPrice
 
       /** be ware of fromTime here may not be same as ticker's event */
       dailySer.publish(TSerEvent.Updated(dailySer, "", now, now))

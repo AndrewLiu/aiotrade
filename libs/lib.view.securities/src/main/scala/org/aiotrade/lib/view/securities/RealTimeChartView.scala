@@ -209,11 +209,11 @@ class RealTimeChartView(acontroller: ChartingController,
       case TSerEvent(_, _, _, _, lastObject, _) => lastObject match {
           case ticker: Ticker =>
             val percentValue = ticker.changeInPercent
-            val strValue = ("%+3.2f%% " format percentValue) + ticker(Ticker.LAST_PRICE)
+            val strValue = ("%+3.2f%% " format percentValue) + ticker.lastPrice
             val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
 
             glassPane.updateInstantValue(strValue, color)
-            prevClose = ticker(Ticker.PREV_CLOSE)
+            prevClose = ticker.prevClose
 
             val time = ticker.time
             if (time >= lastOccurredTime) {

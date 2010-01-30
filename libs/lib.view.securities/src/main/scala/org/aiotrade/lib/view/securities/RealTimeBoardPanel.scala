@@ -312,10 +312,10 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
 
     // --- update depth table
 
-    val currentSize = (ticker(Ticker.DAY_VOLUME) - prevTicker(Ticker.DAY_VOLUME)).toInt
+    val currentSize = (ticker.dayVolume - prevTicker.dayVolume).toInt
     val depth = ticker.depth
     val dealRow = 5
-    depthModel.setValueAt("%8.2f" format ticker(Ticker.LAST_PRICE),     dealRow, 1)
+    depthModel.setValueAt("%8.2f" format ticker.lastPrice,              dealRow, 1)
     depthModel.setValueAt(if (prevTicker == null) "-" else currentSize, dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
@@ -335,9 +335,9 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
      */
     if (ticker.isDayVolumeChanged(prevTicker)) {
       val bgColor = LookFeel().backgroundColor
-      val fgColor = if (ticker(Ticker.LAST_PRICE) > ticker(Ticker.PREV_CLOSE)) {
+      val fgColor = if (ticker.lastPrice > ticker.prevClose) {
         positiveColor
-      } else if (ticker(Ticker.LAST_PRICE) < ticker(Ticker.PREV_CLOSE)) {
+      } else if (ticker.lastPrice < ticker.prevClose) {
         negativeColor
       } else {
         neutralColor
@@ -351,19 +351,19 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
     exchgCal.setTimeInMillis(ticker.time)
     val lastTradeTime = exchgCal.getTime
     currentTime.value = sdf.format(lastTradeTime)
-    lastPrice.value   = "%8.2f"    format ticker(Ticker.LAST_PRICE)
-    prevClose.value   = "%8.2f"    format ticker(Ticker.PREV_CLOSE)
-    dayOpen.value     = "%8.2f"    format ticker(Ticker.DAY_OPEN)
-    dayHigh.value     = "%8.2f"    format ticker(Ticker.DAY_HIGH)
-    dayLow.value      = "%8.2f"    format ticker(Ticker.DAY_LOW)
-    dayChange.value   = "%+8.2f"   format ticker(Ticker.DAY_CHANGE)
+    lastPrice.value   = "%8.2f"    format ticker.lastPrice
+    prevClose.value   = "%8.2f"    format ticker.prevClose
+    dayOpen.value     = "%8.2f"    format ticker.dayOpen
+    dayHigh.value     = "%8.2f"    format ticker.dayHigh
+    dayLow.value      = "%8.2f"    format ticker.dayLow
+    dayChange.value   = "%+8.2f"   format ticker.dayChange
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
-    dayVolume.value   = ticker(Ticker.DAY_VOLUME).toString
+    dayVolume.value   = ticker.dayVolume.toString
 
     var bgColor = LookFeel().backgroundColor
-    var fgColor = if (ticker(Ticker.DAY_CHANGE) > 0) {
+    var fgColor = if (ticker.dayChange > 0) {
       positiveColor
-    } else if (ticker(Ticker.DAY_CHANGE) < 0) {
+    } else if (ticker.dayChange < 0) {
       negativeColor
     } else {
       neutralColor
@@ -371,9 +371,9 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
 
     def setInfoCellColorByPrevCls(value: Float, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
-      val fgColor = if (value > ticker(Ticker.PREV_CLOSE)) {
+      val fgColor = if (value > ticker.prevClose) {
         positiveColor
-      } else if (value < ticker(Ticker.PREV_CLOSE)) {
+      } else if (value < ticker.prevClose) {
         negativeColor
       } else {
         neutralColor
@@ -395,19 +395,19 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
 
-    setInfoCellColorByPrevCls(ticker(Ticker.DAY_OPEN), dayOpen)
-    setInfoCellColorByPrevCls(ticker(Ticker.DAY_LOW), dayLow)
-    setInfoCellColorByPrevCls(ticker(Ticker.DAY_HIGH), dayHigh)
-    setInfoCellColorByPrevCls(ticker(Ticker.LAST_PRICE), lastPrice)
-    setInfoCellColorByZero(ticker(Ticker.DAY_CHANGE), dayChange)
-    setInfoCellColorByZero(ticker(Ticker.DAY_CHANGE), dayPercent)
+    setInfoCellColorByPrevCls(ticker.dayOpen, dayOpen)
+    setInfoCellColorByPrevCls(ticker.dayLow, dayLow)
+    setInfoCellColorByPrevCls(ticker.dayHigh, dayHigh)
+    setInfoCellColorByPrevCls(ticker.lastPrice, lastPrice)
+    setInfoCellColorByZero(ticker.dayChange, dayChange)
+    setInfoCellColorByZero(ticker.dayChange, dayPercent)
 
     // --- update ticker table
 
     if (ticker.isDayVolumeGrown(prevTicker)) {
       val tickerRow = Array(
         sdf.format(lastTradeTime),
-        "%5.2f" format ticker(Ticker.LAST_PRICE),
+        "%5.2f" format ticker.lastPrice,
         currentSize
       )
       tickerModel.addRow(tickerRow.asInstanceOf[Array[Object]])

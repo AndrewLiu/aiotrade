@@ -47,130 +47,132 @@ import scala.swing.event.Event
  * @author Caoyuan Deng
  */
 object Ticker {
-  val PREV_CLOSE = 0
-  val LAST_PRICE = 1
-  val DAY_OPEN = 2
-  val DAY_HIGH = 3
-  val DAY_LOW = 4
-  val DAY_VOLUME = 5
-  val DAY_AMOUNT = 6
-  val DAY_CHANGE = 7
+  private val PREV_CLOSE = 0
+  private val LAST_PRICE = 1
+  private val DAY_OPEN   = 2
+  private val DAY_HIGH   = 3
+  private val DAY_LOW    = 4
+  private val DAY_VOLUME = 5
+  private val DAY_AMOUNT = 6
+  private val DAY_CHANGE = 7
+
+  private val FIELD_LENGTH = 8
 }
 
 import Ticker._
 @cloneable
 class Ticker(val depth: Int) extends TVal {
-    
-  private val values = new Array[Float](8)
+  final protected var isChanged: Boolean = _
+
+  private val values    = new Array[Float](FIELD_LENGTH)
   private val bidPrices = new Array[Float](depth)
   private val bidSizes  = new Array[Float](depth)
   private val askPrices = new Array[Float](depth)
   private val askSizes  = new Array[Float](depth)
   private val cal = Calendar.getInstance
 
-  def this() {
-    this(5)
+  def this() = this(5)
+
+  final def prevClose = values(PREV_CLOSE)
+  final def lastPrice = values(LAST_PRICE)
+  final def dayOpen   = values(DAY_OPEN)
+  final def dayHigh   = values(DAY_HIGH)
+  final def dayLow    = values(DAY_LOW)
+  final def dayVolume = values(DAY_VOLUME)
+  final def dayAmount = values(DAY_AMOUNT)
+  final def dayChange = values(DAY_CHANGE)
+
+  final def prevClose_=(v: Float) = updateFieldValue(PREV_CLOSE, v)
+  final def lastPrice_=(v: Float) = updateFieldValue(LAST_PRICE, v)
+  final def dayOpen_=  (v: Float) = updateFieldValue(DAY_OPEN,   v)
+  final def dayHigh_=  (v: Float) = updateFieldValue(DAY_HIGH,   v)
+  final def dayLow_=   (v: Float) = updateFieldValue(DAY_LOW,    v)
+  final def dayVolume_=(v: Float) = updateFieldValue(DAY_VOLUME, v)
+  final def dayAmount_=(v: Float) = updateFieldValue(DAY_AMOUNT, v)
+  final def dayChange_=(v: Float) = updateFieldValue(DAY_CHANGE, v)
+
+  @inline private def updateFieldValue(fieldIdx: Int, v: Float) {
+    isChanged = values(fieldIdx) != v
+    values(fieldIdx) = v
   }
 
-  def bidPrice(idx: Int): Float = {
-    bidPrices(idx)
+  final def bidPrice(idx: Int) = bidPrices(idx)
+  final def bidSize (idx: Int) = bidSizes (idx)
+  final def askPrice(idx: Int) = askPrices(idx)
+  final def askSize (idx: Int) = askSizes (idx)
+
+  final def setBidPrice(idx: Int, v :Float) = updateDepthValue(bidPrices, idx, v)
+  final def setBidSize (idx: Int, v :Float) = updateDepthValue(bidSizes,  idx, v)
+  final def setAskPrice(idx: Int, v :Float) = updateDepthValue(askPrices, idx, v)
+  final def setAskSize (idx: Int, v :Float) = updateDepthValue(askSizes,  idx, v)
+
+  @inline private def updateDepthValue(depthValues: Array[Float], idx: Int, v: Float) {
+    isChanged = depthValues(idx) != v
+    depthValues(idx) == v
   }
 
-  def bidSize(idx: Int): Float = {
-    bidSizes(idx)
-  }
-
-  def askPrice(idx: Int): Float = {
-    askPrices(idx)
-  }
-
-  def askSize(idx: Int): Float = {
-    askSizes(idx)
-  }
-
-  def setBidPrice(idx: Int, value:Float) {
-    bidPrices(idx) = value
-  }
-
-  def setBidSize(idx: Int, value:Float) {
-    bidSizes(idx) = value
-  }
-
-  def setAskPrice(idx: Int, value:Float) {
-    askPrices(idx) = value
-  }
-
-  def setAskSize(idx: Int, value:Float) {
-    askSizes(idx) = value
-  }
-
-  def apply(field: Int): Float = {
-    values(field)
-  }
-
-  def update(field: Int, value: Float): Unit = {
-    this.values(field) = value
-  }
-
-  def reset: Unit =  {
+  final def reset: Unit =  {
     time = 0
-    for (i <- 0 until depth) {
+    
+    var i = 0
+    while (i < values.length) {
       values(i) = 0
+      i += 1
+    }
+
+    i = 0
+    while (i < depth) {
       bidPrices(i) = 0
-      bidSizes(i) = 0
+      bidSizes(i)  = 0
       askPrices(i) = 0
-      askSizes(i) = 0
+      askSizes(i)  = 0
+      i += 1
     }
   }
 
   def copyFrom(another: Ticker): Unit = {
     this.time = another.time
-    System.arraycopy(another.values, 0, this.values, 0, this.values.length)
-    System.arraycopy(another.bidPrices, 0, this.bidPrices, 0, depth)
-    System.arraycopy(another.bidSizes, 0, this.bidSizes, 0, depth)
-    System.arraycopy(another.askPrices, 0, this.askPrices, 0, depth)
-    System.arraycopy(another.askSizes, 0, this.askSizes, 0, depth)
+    System.arraycopy(another.values,    0, values,    0, values.length)
+    System.arraycopy(another.bidPrices, 0, bidPrices, 0, depth)
+    System.arraycopy(another.bidSizes,  0, bidSizes,  0, depth)
+    System.arraycopy(another.askPrices, 0, askPrices, 0, depth)
+    System.arraycopy(another.askSizes,  0, askSizes,  0, depth)
   }
 
-  def isValueChanged(another: Ticker): Boolean = {
-    for (i <- 0 until values.length) {
-      if (this.values(i) != another.values(i)) {
+  final def isValueChanged(another: Ticker): Boolean = {
+    var i = 0
+    while (i < values.length) {
+      if (values(i) != another.values(i)) {
         return true
       }
-    }
-    for (i <- 0 until depth) {
-      if (this.bidPrices(i) != another.bidPrices(i)) {
-        return true
-      }
-    }
-    for (i <- 0 until depth) {
-      if (this.bidSizes(i) != another.bidSizes(i)) {
-        return true
-      }
-    }
-    for (i <- 0 until depth) {
-      if (this.askPrices(i) != another.askPrices(i)) {
-        return true
-      }
-    }
-    for (i <- 0 until depth) {
-      if (this.askSizes(i) != another.askSizes(i)) {
-        return true
-      }
+      i += 1
     }
 
-    return false
+    i = 0
+    while (i < depth) {
+      if (bidPrices(i) != another.bidPrices(i) ||
+          bidSizes (i) != another.bidSizes (i) ||
+          askPrices(i) != another.askPrices(i) ||
+          askSizes (i) != another.askSizes (i)
+      ) {
+        return true
+      }
+
+      i += 1
+    }
+
+    false
   }
 
-  def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
-    this.values(DAY_VOLUME) > prevTicker.values(DAY_VOLUME) && isSameDay(prevTicker)
+  final def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
+    dayVolume > prevTicker.dayVolume && isSameDay(prevTicker)
   }
 
-  def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
-    this.values(DAY_VOLUME) != prevTicker.values(DAY_VOLUME) && isSameDay(prevTicker)
+  final def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
+    dayVolume != prevTicker.dayVolume && isSameDay(prevTicker)
   }
 
-  def isSameDay(prevTicker: Ticker): Boolean = {
+  final def isSameDay(prevTicker: Ticker): Boolean = {
     cal.setTimeInMillis(time)
     val month0 = cal.get(Calendar.MONTH)
     val day0 = cal.get(Calendar.DAY_OF_MONTH)
@@ -181,13 +183,13 @@ class Ticker(val depth: Int) extends TVal {
     month1 == month1 && day0 == day1
   }
 
-  def changeInPercent: Float = {
-    if (values(PREV_CLOSE) == 0) 0f  else (values(LAST_PRICE) - values(PREV_CLOSE)) / values(PREV_CLOSE) * 100f
+  final def changeInPercent: Float = {
+    if (prevClose == 0) 0f  else (lastPrice - prevClose) / prevClose * 100f
   }
 
-  def compareLastCloseTo(prevTicker: Ticker): Int = {
-    if (values(LAST_PRICE) > prevTicker.values(LAST_PRICE)) 1 
-    else if (values(LAST_PRICE) == prevTicker.values(LAST_PRICE)) 0
+  final def compareLastCloseTo(prevTicker: Ticker): Int = {
+    if (lastPrice > prevTicker.lastPrice) 1
+    else if (lastPrice == prevTicker.lastPrice) 0
     else 1
   }
 

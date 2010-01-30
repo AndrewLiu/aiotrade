@@ -99,7 +99,7 @@ object IBTickerServer extends IBTickerServer {
     for (contract <- subscribedContracts;
          tickerSnapshot <- tickerSnapshotOf(contract.symbol)
     ) {
-      newestTime = Math.max(newestTime, tickerSnapshot.ticker.time)
+      newestTime = Math.max(newestTime, tickerSnapshot.time)
       countOne
     }
         

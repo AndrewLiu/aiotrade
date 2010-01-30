@@ -295,10 +295,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     if (ticker != null) {
-      if (ticker(Ticker.DAY_CHANGE) > 0) {
+      if (ticker.dayChange > 0) {
         colNameToColor(DAY_CHANGE) = positiveColor
         colNameToColor(PERCENT)    = positiveColor
-      } else if (ticker(Ticker.DAY_CHANGE) < 0) {
+      } else if (ticker.dayChange < 0) {
         colNameToColor(DAY_CHANGE) = negativeColor
         colNameToColor(PERCENT)    = negativeColor
       } else {
@@ -306,20 +306,20 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         colNameToColor(PERCENT)    = neutralColor
       }
 
-      def setColorByPrevClose(tickerField: Int, columnName: String) {
-        if (ticker(tickerField) > ticker(Ticker.PREV_CLOSE)) {
+      def setColorByPrevClose(value: Float, columnName: String) {
+        if (value > ticker.prevClose) {
           colNameToColor(columnName) = positiveColor
-        } else if (ticker(tickerField) < ticker(Ticker.PREV_CLOSE)) {
+        } else if (value < ticker.prevClose) {
           colNameToColor(columnName) = negativeColor
         } else {
           colNameToColor(columnName) = neutralColor
         }
       }
 
-      setColorByPrevClose(Ticker.DAY_OPEN,   DAY_OPEN)
-      setColorByPrevClose(Ticker.DAY_HIGH,   DAY_HIGH)
-      setColorByPrevClose(Ticker.DAY_LOW,    DAY_LOW)
-      setColorByPrevClose(Ticker.LAST_PRICE, LAST_PRICE)
+      setColorByPrevClose(ticker.dayOpen,   DAY_OPEN)
+      setColorByPrevClose(ticker.dayHigh,   DAY_HIGH)
+      setColorByPrevClose(ticker.dayLow,    DAY_LOW)
+      setColorByPrevClose(ticker.lastPrice, LAST_PRICE)
 
       if (prevTicker != null) {
         if (ticker.isDayVolumeChanged(prevTicker)) {
@@ -355,14 +355,14 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
     rowData(colOfName(SYMBOL)) = symbol
     rowData(colOfName(TIME)) = df format lastTradeTime
-    rowData(colOfName(LAST_PRICE)) = "%5.2f"   format ticker(Ticker.LAST_PRICE)
-    rowData(colOfName(DAY_VOLUME)) = "%5.2f"   format ticker(Ticker.DAY_VOLUME)
-    rowData(colOfName(PREV_CLOSE)) = "%5.2f"   format ticker(Ticker.PREV_CLOSE)
-    rowData(colOfName(DAY_CHANGE)) = "%5.2f"   format ticker(Ticker.DAY_CHANGE)
+    rowData(colOfName(LAST_PRICE)) = "%5.2f"   format ticker.lastPrice
+    rowData(colOfName(DAY_VOLUME)) = "%5.2f"   format ticker.dayVolume
+    rowData(colOfName(PREV_CLOSE)) = "%5.2f"   format ticker.prevClose
+    rowData(colOfName(DAY_CHANGE)) = "%5.2f"   format ticker.dayChange
     rowData(colOfName(PERCENT))    = "%3.2f%%" format ticker.changeInPercent
-    rowData(colOfName(DAY_HIGH))   = "%5.2f"   format ticker(Ticker.DAY_HIGH)
-    rowData(colOfName(DAY_LOW))    = "%5.2f"   format ticker(Ticker.DAY_LOW)
-    rowData(colOfName(DAY_OPEN))   = "%5.2f"   format ticker(Ticker.DAY_OPEN)
+    rowData(colOfName(DAY_HIGH))   = "%5.2f"   format ticker.dayHigh
+    rowData(colOfName(DAY_LOW))    = "%5.2f"   format ticker.dayLow
+    rowData(colOfName(DAY_OPEN))   = "%5.2f"   format ticker.dayOpen
 
     rowData
   }
