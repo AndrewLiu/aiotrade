@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import scala.actors.Actor._
+import org.aiotrade.lib.util.actors.ChainActor
 import scala.swing.Publisher
 import scala.swing.event.Event
 
@@ -41,19 +41,19 @@ import scala.swing.event.Event
  * @author Caoyuan Deng
  */
 case class AddAll[@specialized V <: TVal](values: Array[V])
-trait TSer extends Publisher {
+trait TSer extends Publisher with ChainActor {
 
-  // ----- actor's implementation
-  //    val serActor = actor {
-  //        loop {
-  //            receive { // this actor will possess timestampslog's lock, which should be attached to same thread, so use receive here
-  //                case AddAll(values) => this ++ values
-  //            }
-  //        }
-  //    }
-  // ----- end of actor's implementation
+//  ----- actor's implementation
+//  val serActor = actor {
+//    loop {
+//      receive { // this actor will possess timestampslog's lock, which should be attached to same thread, so use receive here
+//        case AddAll(values) => this ++ values
+//      }
+//    }
+//  }
+//  ----- end of actor's implementation
 
-  def init(freq: TFreq): Unit
+  def init(freq: TFreq)
     
   def timestamps: TStamps
   def attach(timestamps: TStamps)
@@ -71,21 +71,31 @@ trait TSer extends Publisher {
   def indexOfOccurredTime(time: Long): Int
     
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
-  def clear(fromTime: Long): Unit
+  def clear(fromTime: Long)
 
   def ++=[T <: TVal](values: Array[T]): TSer
     
   def createOrClear(time: Long)
     
   def shortDescription: String
-  def shortDescription_=(description: String): Unit
+  def shortDescription_=(description: String)
     
   def inLoading: Boolean
-  def inLoading_=(b: Boolean): Unit
+  def inLoading_=(b: Boolean)
   def loaded: Boolean
-  def loaded_=(b: Boolean): Unit
+  def loaded_=(b: Boolean)
 
-  def validate: Unit
+  def validate
+
+  // --- for charting
+  
+  def isOverlapping: Boolean
+  def isOverlapping_=(b: Boolean)
+
+  /**
+   * horizonal _grids of this indicator used to draw grid
+   */
+  def grids: Array[Float]
 }
 
 object TSerEvent {
@@ -145,7 +155,7 @@ abstract class TSerEvent(private val source: TSer,
                          private val symbol: String,
                          private val fromTime: Long,
                          private val toTime: Long,
-                         private val lastObject: AnyRef, // object the event carries (It can be any thing other than a SerItem)
+                         private val lastObject: AnyRef, // object the event carries (it can be any thing other than a SerItem)
                          private val callback: Callback
 ) extends Event
 

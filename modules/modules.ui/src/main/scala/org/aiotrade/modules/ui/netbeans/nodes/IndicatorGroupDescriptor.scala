@@ -34,9 +34,9 @@ import java.awt.Image;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.util.swing.action.AddAction;
@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.dialog.PickIndicatorDialog;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.windows.WindowManager
 import scala.collection.mutable.HashMap
 
@@ -58,7 +58,7 @@ import scala.collection.mutable.HashMap
  */
 object IndicatorGroupDescriptor {
   val NAME = "Indicators"
-  val ICON = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/indicators.gif")
+  val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/indicators.gif")
 }
 class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
   import IndicatorGroupDescriptor._

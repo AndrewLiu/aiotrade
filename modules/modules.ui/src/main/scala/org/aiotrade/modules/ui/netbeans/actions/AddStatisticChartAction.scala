@@ -30,12 +30,8 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions;
 
-import java.util.Map;
-import java.util.Set;
 import javax.swing.JOptionPane;
-import org.aiotrade.lib.charting.chart.Chart;
 import org.aiotrade.lib.charting.view.ChartView;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.indicator.ProbMassIndicator
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;

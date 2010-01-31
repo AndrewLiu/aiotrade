@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions;
 import org.aiotrade.lib.charting.view.WithQuoteChart;
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.util.swing.action.EditAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;

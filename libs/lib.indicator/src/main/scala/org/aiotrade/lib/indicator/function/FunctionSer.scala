@@ -36,8 +36,7 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-trait FunctionSer extends TSer with Function {
-}
+trait FunctionSer extends TSer with Function
 
 
 

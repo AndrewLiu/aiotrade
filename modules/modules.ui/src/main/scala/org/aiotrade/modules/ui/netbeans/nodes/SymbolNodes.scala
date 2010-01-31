@@ -79,9 +79,9 @@ import org.openide.nodes.NodeEvent;
 import org.openide.nodes.NodeListener;
 import org.openide.nodes.NodeMemberEvent;
 import org.openide.nodes.NodeReorderEvent;
+import org.openide.util.ImageUtilities
 import org.openide.util.Lookup
 import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -119,7 +119,7 @@ import org.xml.sax.SAXException;
  */
 object SymbolNodes {
 
-  private val DEFAUTL_SOURCE_ICON = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif");
+  private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif");
 
   private var contentToOccuptantNode = Map[AnalysisContents, Node]()
 

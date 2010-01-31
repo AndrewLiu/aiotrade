@@ -37,11 +37,11 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
-import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -68,26 +68,26 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */
-    val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
-    val  indicatorsToBeShowing = new ArrayList[Indicator]
+    val indicatorDescriptorsToBeShowing = new ArrayBuffer[IndicatorDescriptor]
+    val  indicatorsToBeShowing = new ArrayBuffer[Indicator]
     for (descriptor <- controller.contents.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq == controller.masterSer.freq
     ) {
-      descriptor.serviceInstance(controller.masterSer) foreach {indicator =>
-        /**
-         * @NOTICE
-         * As the quoteSer may has been loaded, there may be no more UpdatedEvent
-         * etc fired, so, computeFrom(0) first.
-         */
-        indicator.computableActor ! ComputeFrom(0) // don't remove me
+      descriptor.serviceInstance(controller.masterSer) foreach {case indicator: Indicator =>
+          /**
+           * @NOTICE
+           * As the quoteSer may has been loaded, there may be no more UpdatedEvent
+           * etc fired, so, computeFrom(0) first.
+           */
+          indicator ! ComputeFrom(0) // don't remove me
                     
-        if (indicator.isOverlapping) {
-          addSlaveView(descriptor, indicator, null)
-        } else {
-          /** To get the extract size of slaveViews to be showing, store them first, then add them later */
-          indicatorDescriptorsToBeShowing += descriptor
-          indicatorsToBeShowing += indicator
-        }
+          if (indicator.isOverlapping) {
+            addSlaveView(descriptor, indicator, null)
+          } else {
+            /** To get the extract size of slaveViews to be showing, store them first, then add them later */
+            indicatorDescriptorsToBeShowing += descriptor
+            indicatorsToBeShowing += indicator.asInstanceOf[Indicator]
+          }
       }
     }
         

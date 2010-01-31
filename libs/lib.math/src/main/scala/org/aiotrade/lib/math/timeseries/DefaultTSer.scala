@@ -633,6 +633,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    */
   abstract class AbstractInnerTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractTVar[V](name, plot) {
+
     addVar(this.asInstanceOf[TVar[Any]])
 
     private val colors = new TStampedMapBasedList[Color](timestamps)
@@ -669,15 +670,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
           if (idx1 >= 0) {
             checkValidationAt(idx1)
           } else idx
-        } else -1 // it's good
+        } else -1 // it's ok
       } else idx
     }
 
-    def setColor(idx: Int, color: Color): Unit = {
+    def getColor(idx: Int) = colors(idx)
+    def setColor(idx: Int, color: Color) {
       colors(idx) = color
     }
-
-    def getColor(idx: Int): Color = colors(idx)
   }
 }
 

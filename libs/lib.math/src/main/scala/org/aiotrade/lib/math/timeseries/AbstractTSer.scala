@@ -39,22 +39,21 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   var inLoading: Boolean = false
   private var _loaded: Boolean = false
 
-  def this() = {
-    this(TFreq.DAILY)
-  }
+  def this() = this(TFreq.DAILY)
     
-  def init(freq: TFreq): Unit = {
+  def init(freq: TFreq) {
     this.freq = freq.clone
+    start
   }
     
-  def loaded: Boolean = _loaded
-  def loaded_=(b: Boolean): Unit = {
+  def loaded = _loaded
+  def loaded_=(b: Boolean) {
     inLoading = false
     _loaded = false
   }
 
   protected def isAscending[@specialized V <: TVal](values: Array[V]): Boolean = {
-    val size = values.size
+    val size = values.length
     if (size <= 1) {
       true
     } else {
@@ -70,6 +69,9 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       false
     }
   }
+
+  var grids: Array[Float] = Array()
+  var isOverlapping = false
 
   override def toString: String = {
     this.getClass.getSimpleName + "(" + freq + ")"

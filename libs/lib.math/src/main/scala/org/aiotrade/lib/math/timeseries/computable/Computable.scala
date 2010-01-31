@@ -32,44 +32,11 @@ package org.aiotrade.lib.math.timeseries.computable
 
 import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.TSer
-import scala.actors.Actor._
 
 /**
  *
  * @author Caoyuan Deng
  */
-case class ComputeFrom(time: Long)
-
-trait Computable {
-
-  val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
-
-  // ----- actor's implementation
-  val computableActor = actor {
-    loop {
-      react {
-        case ComputeFrom(time) => computeFrom(time)
-      }
-    }
-  }
-  // ----- end of actor's implementation
-
-  def baseSer: TSer
-  def baseSer_=(baseSer: TSer)
-
-  /**
-   * @param time to be computed from
-   */
-  def computeFrom(time: Long)
-  def computedTime: Long
-    
-  def factors: Array[Factor]
-  def factors_=(factors: Array[Factor])
-  def factorValues_=(values: Array[Number])
-    
-  def dispose
-}
-
 object Computable {
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
@@ -83,4 +50,41 @@ object Computable {
   }
 }
 
+case class ComputeFrom(time: Long)
+trait Computable extends TSer {
 
+  val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
+
+  actorActions += {
+    case ComputeFrom(time) => computeFrom(time)
+  }
+
+  // ----- actor's implementation
+//  val computableActor = actor {
+//    loop {
+//      react {
+//        case ComputeFrom(time) => computeFrom(time)
+//      }
+//    }
+//  }
+  // ----- end of actor's implementation
+
+  def init(baseSer: TSer)
+
+  def baseSer: TSer
+  def baseSer_=(baseSer: TSer)
+
+  /**
+   * @param time to be computed from
+   */
+  def computeFrom(time: Long)
+  def computedTime: Long
+
+  def factors: Array[Factor]
+  def factors_=(factors: Array[Factor])
+  def factorValues_=(values: Array[Number])
+
+  def dispose
+
+  def createNewInstance(baseSer: TSer): Computable
+}

@@ -43,7 +43,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Array[Factor], aactive: Boolean) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Array[Factor], aactive: Boolean) extends AnalysisDescriptor[Computable](aserviceClassName, afreq, aactive) {
   val folderName = "Indicators"
 
   private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= afactors
@@ -100,7 +100,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
    * those added-on modules.
    * @param baseSer for indicator
    */
-  override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
+  override protected def createServiceInstance(args: Any*): Option[Computable] = args match {
     case Seq(baseSer: TSer) => lookupServiceTemplate match {
         case None => None
         case Some(x) =>
@@ -132,12 +132,12 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
     defaultFacs foreach {x => factors = x}
   }
 
-  def lookupServiceTemplate: Option[Indicator] = {
-    val services = PersistenceManager().lookupAllRegisteredServices(classOf[Indicator], folderName)
+  def lookupServiceTemplate: Option[Computable] = {
+    val services = PersistenceManager().lookupAllRegisteredServices(classOf[Computable], folderName)
     services find {x => x.getClass.getName == serviceClassName} match {
       case None =>
         try {
-          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Indicator])
+          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Computable])
         } catch {case ex: Exception => ex.printStackTrace; None}
       case some => some
     }

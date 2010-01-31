@@ -40,11 +40,11 @@ class TradeDispatcher(cf: ConnectionFactory, host: String, port: Int) extends Ac
 
   def act = loop(Nil)
 
-  def loop(as: List[Actor]) {
+  def loop(traders: List[Actor]) {
     react {
-      case AddListener(a) => loop(a :: as)
-      case msg@TradeMessage(t) => as.foreach(_ ! msg); loop(as)
-      case _ => loop(as)
+      case AddListener(a) => loop(a :: traders)
+      case msg@TradeMessage(t) => traders.foreach(_ ! msg); loop(traders)
+      case _ => loop(traders)
     }
   }
 }

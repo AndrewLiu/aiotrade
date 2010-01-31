@@ -34,5 +34,4 @@ package org.aiotrade.lib.math.timeseries.computable
  *
  * @author Caoyuan Deng
  */
-trait ContComputable extends Computable {
-}
+trait ContComputable extends Computable

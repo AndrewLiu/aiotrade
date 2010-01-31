@@ -39,11 +39,11 @@ import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.chart.ProfileChart
 import org.aiotrade.lib.charting.chart.GradientChart
 import org.aiotrade.lib.charting.chart.StickChart
+import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.computable.Indicator
-import org.aiotrade.lib.charting.view.pane.Pane
+import org.aiotrade.lib.indicator.Indicator
 import scala.collection.mutable.HashSet
 
 

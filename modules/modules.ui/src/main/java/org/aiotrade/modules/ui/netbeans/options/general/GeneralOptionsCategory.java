@@ -35,8 +35,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.netbeans.spi.options.OptionsCategory;
 import org.netbeans.spi.options.OptionsPanelController;
+import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
-import org.openide.util.Utilities;
 
 
 /**
@@ -48,7 +48,7 @@ public final class GeneralOptionsCategory extends OptionsCategory {
     
     @Override
     public Icon getIcon() {
-        Image image = Utilities.loadImage("org/netbeans/modules/options/resources/generalOptions.png");
+        Image image = ImageUtilities.loadImage("org/netbeans/modules/options/resources/generalOptions.png");
         return new ImageIcon(image);
     }
     

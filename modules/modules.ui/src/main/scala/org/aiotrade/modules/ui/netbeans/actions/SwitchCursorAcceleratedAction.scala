@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
 import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -94,7 +94,7 @@ class SwitchCursorAcceleratedAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif")
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/switchCursorAcceleratedAction.gif")
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton

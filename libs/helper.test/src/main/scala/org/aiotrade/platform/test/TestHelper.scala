@@ -8,6 +8,7 @@
 package org.aiotrade.platform.test
 
 import java.util.concurrent.TimeUnit
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
@@ -128,8 +129,8 @@ trait TestHelper {
          if descriptor.active && descriptor.freq.equals(masterSer.freq)) yield {
 
       descriptor.serviceInstance(masterSer) match {
-        case None => println("In test: can not init instance of: " + descriptor.serviceClassName)
-        case Some(indicator) => indicators ::= indicator
+        case Some(indicator: Indicator) => indicators ::= indicator
+        case _ => println("In test: can not init instance of: " + descriptor.serviceClassName)
       }
     }
     indicators
@@ -148,7 +149,7 @@ trait TestHelper {
   def computeAsync(indicator: Indicator): Unit = {
     indicator match {
       case _: SpotComputable => // don't compute it right now
-      case _ => indicator.computableActor ! ComputeFrom(0)
+      case _ => indicator ! ComputeFrom(0)
     }
   }
 

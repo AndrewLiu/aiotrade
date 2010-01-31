@@ -44,7 +44,7 @@ import org.aiotrade.lib.math.timeseries.computable.SpotComputable
  * 
  * @author Caoyuan Deng
  */
-abstract class SpotIndicator(baseSer: TSer) extends AbstractIndicator(baseSer) with SpotComputable {
+abstract class SpotIndicator(baseSer: TSer) extends Indicator(baseSer) with SpotComputable {
     
   var spotTime = Long.MinValue
     

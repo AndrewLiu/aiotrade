@@ -31,7 +31,6 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
@@ -41,7 +40,7 @@ import org.aiotrade.lib.charting.view.WithQuoteChart;
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -95,16 +94,16 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/switchAdjust.png");
-    val icon = new ImageIcon(iconImage);
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/switchAdjust.png")
+    val icon = new ImageIcon(iconImage)
         
     toggleButton = new JToggleButton
     toggleButton.setIcon(icon)
-    toggleButton.setToolTipText("Adjust Quote");
+    toggleButton.setToolTipText("Adjust Quote")
         
     toggleButton.addItemListener(new ItemListener {
         def itemStateChanged(e: ItemEvent) {
-          val state = e.getStateChange();
+          val state = e.getStateChange
                 
           val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
                 

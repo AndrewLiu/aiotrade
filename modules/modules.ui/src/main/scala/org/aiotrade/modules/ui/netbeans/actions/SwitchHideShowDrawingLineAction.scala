@@ -42,7 +42,7 @@ import org.aiotrade.lib.util.swing.action.HideAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -98,7 +98,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
   }
         
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/hideDrawingLine.gif");
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/hideDrawingLine.gif");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton();

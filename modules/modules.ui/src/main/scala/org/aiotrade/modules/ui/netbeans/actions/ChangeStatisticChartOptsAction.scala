@@ -32,8 +32,8 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.ProbMassIndicator
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane;
@@ -63,7 +63,7 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
                     
             val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor);
                     
-            /** added listener, so when spnner changed, could preview */
+            // added listener, so when spnner changed, could preview
             val spinnerChangeListener = new ChangeListener {
               def stateChanged(e: ChangeEvent) {
                 indicator.factors = descriptor.factors

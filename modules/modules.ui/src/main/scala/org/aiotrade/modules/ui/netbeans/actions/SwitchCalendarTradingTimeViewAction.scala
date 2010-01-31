@@ -30,7 +30,6 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions;
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
@@ -40,9 +39,8 @@ import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartTopComponent;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
-import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 
@@ -96,7 +94,7 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/naturalTrading.gif");
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/naturalTrading.gif");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton();

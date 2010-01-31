@@ -12,8 +12,8 @@ import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.basic._
 
 /**

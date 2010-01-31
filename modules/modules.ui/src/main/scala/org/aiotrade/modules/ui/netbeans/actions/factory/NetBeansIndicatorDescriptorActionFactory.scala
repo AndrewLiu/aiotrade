@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
 import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
@@ -84,23 +85,23 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
            view <- viewContainer.lookupChartView(descriptor);
            indicator <- descriptor.serviceInstance(viewContainer.controller.masterSer)
       ) {
-        /**
+        /*
          * @NOTICE
          * descriptor's opts may be set by this call
          */
-        indicator.computableActor ! ComputeFrom(0)
+        indicator ! ComputeFrom(0)
                     
         if (indicator.isOverlapping) {
           if (!LookFeel().isAllowMultipleIndicatorOnQuoteChartView) {
-            /** hide previous overlapping indicator first if there is one */
+            // hide previous overlapping indicator first if there is one
             viewContainer.lookupIndicatorDescriptor(viewContainer.masterView) foreach {existedOne =>
               existedOne.lookupAction(classOf[HideAction]).get.execute
             }
           }
-          viewContainer.addSlaveView(descriptor, indicator, null)
+          viewContainer.addSlaveView(descriptor, indicator.asInstanceOf[Indicator], null)
           viewContainer.repaint();
         } else {
-          viewContainer.addSlaveView(descriptor, indicator, null)
+          viewContainer.addSlaveView(descriptor, indicator.asInstanceOf[Indicator], null)
           viewContainer.adjustViewsHeight(0);
         }
 
@@ -154,12 +155,12 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
   /** Action to change options */
   private class IndicatorEditAction(descriptor: IndicatorDescriptor) extends EditAction {
             
-    putValue(Action.NAME, "Change Options");
+    putValue(Action.NAME, "Change Options")
         
     def execute {
       val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor)
             
-      /** added listener, so when spnner changed, could preview */
+      // added listener, so when spnner changed, could preview
       val spinnerChangeListener = new ChangeListener {
         def stateChanged(e: ChangeEvent) {
           showEffect(descriptor)
@@ -171,11 +172,11 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       pane.removeSpinnerChangeListener(spinnerChangeListener);
             
       if (retValue == JOptionPane.OK_OPTION) {
-        /** apple to all ? */
+        // apple to all ?
         if (pane.isApplyToAll) {
           val root = ExplorerTopComponent().rootNode
           setIndicatorOptsRecursively(root, descriptor)
-        } else { /** else, only apply to this one */
+        } else { // else, only apply to this one
           setIndicatorOpts(descriptor, descriptor.factors)
         }
                 
@@ -195,9 +196,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
                     
           PersistenceManager().saveContents(defaultContents)
         }
-      }
-      /** else, opts may have been changed when preview, so, should do setOpts to restore old opts to indicator instance */
-      else {
+      } else { // else, opts may have been changed when preview, so, should do setOpts to restore old opts to indicator instance
         setIndicatorOpts(descriptor, descriptor.factors)
       }
             
@@ -209,13 +208,13 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
      * not be created yet.
      */
     private def setIndicatorOptsRecursively(rootNodeToBeSet: Node, descriptorWithOpts: IndicatorDescriptor) {
-      /** folder node ? */
+      // folder node ?
       if (rootNodeToBeSet.getLookup.lookup(classOf[DataFolder]) != null) {
         for (child <- rootNodeToBeSet.getChildren.getNodes) {
-          /** do recursive call */
+          // do recursive call
           setIndicatorOptsRecursively(child, descriptorWithOpts)
         }
-      } else { /** else, an OneSymbolNode */
+      } else { // else, an OneSymbolNode
         val contents = rootNodeToBeSet.getLookup.lookup(classOf[AnalysisContents])
         val indicatorGroupNode = rootNodeToBeSet.getChildren.findChild(IndicatorGroupDescriptor.NAME);
         if (indicatorGroupNode != null) {

@@ -42,7 +42,7 @@ import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.windows.WindowManager;
 
 /**
@@ -51,7 +51,7 @@ import org.openide.windows.WindowManager;
  */
 object DrawingGroupDescriptor {
   val NAME = "Drawings";
-  private val ICON = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/drawings.gif");
+  private val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/drawings.gif");
 }
 
 class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {

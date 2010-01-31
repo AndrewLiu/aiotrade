@@ -30,8 +30,6 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.Indicator
-
 /**
  * Usually, indicator instances are created by call createNewInstance(),
  * But in this class, createNewInstance() don't really create a new singletonInstance,
@@ -47,8 +45,9 @@ import org.aiotrade.lib.math.timeseries.computable.Indicator
 object SingletonIndicator {
   protected var singletonInstance: SingletonIndicator = _
 }
+
+import SingletonIndicator._
 abstract class SingletonIndicator extends ContIndicator(null) {
-  import SingletonIndicator._
     
   singletonInstance = this
     

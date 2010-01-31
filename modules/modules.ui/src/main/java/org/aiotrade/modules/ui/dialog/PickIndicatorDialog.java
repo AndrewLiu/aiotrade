@@ -40,7 +40,7 @@ import javax.swing.KeyStroke;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.math.timeseries.MasterTSer;
 import org.aiotrade.lib.math.timeseries.TUnit$Day$;
-import org.aiotrade.lib.math.timeseries.computable.Indicator;
+import org.aiotrade.lib.indicator.Indicator;
 import org.aiotrade.lib.securities.PersistenceManager$;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import scala.collection.mutable.Map;

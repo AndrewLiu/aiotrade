@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
+import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
 import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
@@ -99,8 +100,8 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     setMasterView(new RealTimeChartView(controller, quoteSer), gbc)
 
     val volDescriptor = createVolIndicatorDecsriptor
-    volDescriptor.serviceInstance(controller.masterSer) foreach {volIndicator =>
-      volIndicator.computableActor ! ComputeFrom(0)
+    volDescriptor.serviceInstance(controller.masterSer) foreach {case volIndicator: Indicator =>
+      volIndicator ! ComputeFrom(0)
       
       gbc.fill = GridBagConstraints.BOTH
       gbc.gridx = 0

@@ -49,7 +49,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -65,7 +65,7 @@ object PickDrawingLineAction {
   private def createToolbarPresenter: JToggleButton = {
     val menuItemListener: MyMenuItemListener = new MyMenuItemListener
 
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/drawingLine.png")
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/drawingLine.png")
     val icon = new ImageIcon(iconImage)
 
     val toggleButton = new JToggleButton

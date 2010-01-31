@@ -51,7 +51,7 @@ import org.openide.nodes.NodeEvent
 import org.openide.nodes.NodeListener
 import org.openide.nodes.NodeMemberEvent
 import org.openide.nodes.NodeReorderEvent
-import org.openide.util.Utilities
+import org.openide.util.ImageUtilities
 import org.openide.util.lookup.AbstractLookup
 import org.openide.util.lookup.InstanceContent
 
@@ -81,14 +81,14 @@ import org.openide.util.lookup.InstanceContent
  *         +- layer2
  */
 object DescriptorNode {
-  private val ACTIVE_ICON   = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/showingTrue.gif")
-  private val NOACTIVE_ICON = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/showingFalse.gif")
+  private val ACTIVE_ICON   = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/showingTrue.gif")
+  private val NOACTIVE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/showingFalse.gif")
 }
 
+import DescriptorNode._
 @throws(classOf[IntrospectionException])
 class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisContents, content: InstanceContent
 ) extends FilterNode(new BeanNode[AnalysisDescriptor[_]](descriptorInfo), Children.LEAF, new AbstractLookup(content)) {
-  import DescriptorNode._
 
   /* adds the node to our own lookup */
   content.add(this)

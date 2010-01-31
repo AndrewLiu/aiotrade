@@ -31,10 +31,10 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.indicator.function._
+import org.aiotrade.lib.math.timeseries.computable.Computable
 import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
 import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
 import org.aiotrade.lib.math.timeseries.computable.Factor
-import org.aiotrade.lib.math.timeseries.computable.Indicator
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
 import org.aiotrade.lib.securities.QuoteSer
 
@@ -42,7 +42,7 @@ import org.aiotrade.lib.securities.QuoteSer
  *
  * @author Caoyuan Deng
  */
-object AbstractIndicator {
+object Indicator {
   /** a static global session id */
   protected var sessionId: Long = _
 
@@ -123,8 +123,11 @@ object AbstractIndicator {
 
 }
 
-abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indicator with ComputableHelper  {
-  import AbstractIndicator._
+import Indicator._
+abstract class Indicator($baseSer: TSer) extends DefaultTSer
+                                            with Computable
+                                            with ComputableHelper
+                                            with Ordered[Indicator] {
 
   /**
    * !NOTICE
@@ -137,12 +140,6 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
   /** some instance scope variables that can be set directly */
   protected var sname = "unkown"
   protected var lname = "unkown"
-  var isOverlapping = false
-    
-  /**
-   * horizonal _grids of this indicator used to draw grid
-   */
-  var grids: Array[Float] = _
     
   /** base series to compute this */
   var baseSer: TSer = _
@@ -154,8 +151,8 @@ abstract class AbstractIndicator(abaseSer: TSer) extends DefaultTSer with Indica
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
 
-  if (abaseSer != null) {
-    init(abaseSer)
+  if ($baseSer != null) {
+    init($baseSer)
   }
     
   /**

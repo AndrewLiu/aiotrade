@@ -33,7 +33,6 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -49,7 +48,7 @@ import javax.swing.event.PopupMenuListener;
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.openide.util.HelpCtx;
-import org.openide.util.Utilities;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -107,7 +106,7 @@ class SwitchFrequencyAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
-    val iconImage = Utilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/dropdown.png");
+    val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/dropdown.png");
     val icon = new ImageIcon(iconImage);
         
     toggleButton = new JToggleButton
