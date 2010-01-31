@@ -12,19 +12,22 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import scala.actors.Actor
 
-case class AddListener(a: Actor)
-
 // The trade object that needs to be serialized
 @serializable
 case class Trade(ref: String, security: String, var value: Int)
-
 case class TradeMessage(message: Trade)
+case class AddListener(a: Actor)
 
-// The dispatcher that listens over the AMQP message endpoint
+
+/**
+ * The dispatcher that listens over the AMQP message endpoint.
+ * It manages a list of subscribers to the trade message and also sends AMQP
+ * messages coming in to the queue/exchange to the list of observers.
+ */
 class TradeDispatcher(cf: ConnectionFactory, host: String, port: Int) extends Actor {
 
   val conn = cf.newConnection(host, port)
-  val channel = conn.createChannel()
+  val channel = conn.createChannel
   val ticket = channel.accessRequest("/data")
 
   // set up exchange and queue
@@ -46,11 +49,14 @@ class TradeDispatcher(cf: ConnectionFactory, host: String, port: Int) extends Ac
   }
 }
 
+/**
+ * an actor that gets messages from upstream and publishes them to the AMQP exchange 
+ */
 class TradeMessageGenerator(cf: ConnectionFactory, host: String,
                             port: Int, exchange: String, routingKey: String) extends Actor {
 
   val conn = cf.newConnection(host, port)
-  val channel = conn.createChannel()
+  val channel = conn.createChannel
   val ticket = channel.accessRequest("/data")
 
   def send(msg: Trade) {
@@ -73,7 +79,15 @@ class TradeMessageGenerator(cf: ConnectionFactory, host: String,
   }
 }
 
-
+/**
+ * The consumer that reads from the exchange and does some business processing.
+ * Here the consumer (TradeValueCalculator) does valuation of the trade and has
+ * already been registered with the dispatcher above. Then it passes the message
+ * back to the dispatcher for relaying to the interested observers. Note that
+ * the TradeDispatcher has already passed itself as the actor while registering
+ * the object TradeValueCalculator as consumer callback in the snippet above
+ * (class TradeDispatcher).
+ */
 class TradeValueCalculator(channel: Channel, a: Actor) extends DefaultConsumer(channel) {
 
   override def handleDelivery(tag: String, env: Envelope,
@@ -85,14 +99,13 @@ class TradeValueCalculator(channel: Channel, a: Actor) extends DefaultConsumer(c
     val in = new ObjectInputStream(new ByteArrayInputStream(body))
 
     // deserialize
-    var t = in.readObject.asInstanceOf[Trade]
+    var trade = in.readObject.asInstanceOf[Trade]
 
     // invoke business processing logic
-    //t.value = computeTradeValue(...)
+    //trade.value = computeTradeValue(...)
 
-    // send back to dispatcher for further relay to
-    // interested observers
-    a ! TradeMessage(t)
+    // send back to dispatcher for further relay to interested observers
+    a ! TradeMessage(trade)
 
     channel.basicAck(deliveryTag, false)
   }
