@@ -139,6 +139,7 @@
         <module>lib.indicator.basic</module>
         <module>lib.dataserver.ib</module>
         <module>lib.dataserver.yahoo</module>
+        <module>lib.amqp</module>
         <module>helper.test</module>
     </modules>
 
