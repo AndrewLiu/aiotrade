@@ -90,7 +90,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
 
-  var id: FunctionID[_] = _
+  var id = FunctionID(this.getClass.asInstanceOf[Class[Function]], _baseSer) // avoid null
         
   def set(baseSer: TSer, args: Any*): Unit = {
     init(baseSer)
@@ -196,7 +196,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   protected def computeSpot(i: Int): Unit
 
   override def equals(o:Any) = o match {
-    case x: Function => this.id.equals(x.id)
+    case x: Function => id.equals(x.id)
     case _ => false
   }
 

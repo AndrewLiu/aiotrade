@@ -86,7 +86,7 @@ trait Function {
    * set the function's arguments.
    * @param baseSer, the ser that this function is based, ie. used to compute
    */
-  def set(baseSer: TSer, args: Any*): Unit
+  def set(baseSer: TSer, args: Any*)
 
   def id: FunctionID[_]
 
