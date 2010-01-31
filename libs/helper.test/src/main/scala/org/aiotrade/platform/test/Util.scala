@@ -23,7 +23,6 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.swing.plaf.AIOTabbedPaneUI
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
@@ -38,6 +37,7 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.basic.MAIndicator
 import org.aiotrade.lib.indicator.basic.RSIIndicator
 import scala.collection.mutable.HashSet

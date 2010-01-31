@@ -38,8 +38,8 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.indicator.Indicator
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
-import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 
@@ -73,7 +73,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     for (descriptor <- controller.contents.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq == controller.masterSer.freq
     ) {
-      descriptor.serviceInstance(controller.masterSer) foreach {case indicator: Indicator =>
+      descriptor.serviceInstance(controller.masterSer) foreach {indicator =>
           /**
            * @NOTICE
            * As the quoteSer may has been loaded, there may be no more UpdatedEvent

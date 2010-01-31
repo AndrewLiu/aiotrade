@@ -35,7 +35,7 @@ import java.text.SimpleDateFormat
 import javax.swing.text.DateFormatter
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.util.serialization.BeansDocument
 

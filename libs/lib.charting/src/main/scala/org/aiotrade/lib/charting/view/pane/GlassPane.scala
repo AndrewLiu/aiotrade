@@ -48,7 +48,6 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.MouseInputAdapter
 import org.aiotrade.lib.math.timeseries.computable.Computable
-import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
@@ -64,6 +63,7 @@ import org.aiotrade.lib.charting.view.ReferCursorObserver
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.widget.Label
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.util.awt.AWTUtil
 import org.aiotrade.lib.util.swing.AIOAutoHideComponent
 import org.aiotrade.lib.util.swing.AIOCloseButton

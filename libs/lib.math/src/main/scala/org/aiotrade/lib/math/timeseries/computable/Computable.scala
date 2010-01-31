@@ -59,16 +59,6 @@ trait Computable extends TSer {
     case ComputeFrom(time) => computeFrom(time)
   }
 
-  // ----- actor's implementation
-//  val computableActor = actor {
-//    loop {
-//      react {
-//        case ComputeFrom(time) => computeFrom(time)
-//      }
-//    }
-//  }
-  // ----- end of actor's implementation
-
   def init(baseSer: TSer)
 
   def baseSer: TSer

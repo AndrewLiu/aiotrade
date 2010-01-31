@@ -41,8 +41,8 @@ import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 import org.aiotrade.lib.charting.chart.Chart
-import org.aiotrade.lib.math.timeseries.computable.IndicatorDescriptor
 import org.aiotrade.lib.indicator.Indicator
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import scala.collection.mutable.HashMap
 
 

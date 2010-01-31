@@ -9,6 +9,7 @@ package org.aiotrade.platform.test
 
 import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.Indicator
+import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
