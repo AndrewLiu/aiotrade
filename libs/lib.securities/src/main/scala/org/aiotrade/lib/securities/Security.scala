@@ -48,6 +48,8 @@ object Security {
     case object FutureOption extends Type
     case object Currency extends Type
     case object Bag extends Type
+    case object Bonds extends Type
+    case object Equity extends Type
 
     def withName(name: String): Type = {
       name match {

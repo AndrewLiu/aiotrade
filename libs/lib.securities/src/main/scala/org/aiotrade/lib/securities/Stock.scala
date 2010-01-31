@@ -43,4 +43,7 @@ class Stock(uniSymbol: String,
   def this(uniSymbol: String, quoteContracts: Seq[QuoteContract]) {
     this(uniSymbol, quoteContracts, null)
   }
+
+  /** Industry Classification Code */
+  val icCode: String = ""
 }

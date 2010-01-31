@@ -14,7 +14,7 @@ import scala.collection.immutable.TreeMap
 object Exchange {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.Bundle")
 
-  val N   = new Exchange("N",  TimeZone.getTimeZone("America/New_York"), 9, 30, 15, 00)  // New York
+  val N   = new Exchange("N",  TimeZone.getTimeZone("America/New_York"), 9, 30, 16, 00)  // New York
   val SS  = new Exchange("SS", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shanghai
   val SZ  = new Exchange("SZ", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shenzhen
   val L   = new Exchange("L",  TimeZone.getTimeZone("UTC"), 9, 30, 15, 0) // London
