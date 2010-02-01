@@ -1,15 +1,8 @@
 package org.aiotrade.lib.amqp
 
 // message for adding observers
-import com.rabbitmq.client.AMQP
-import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.DefaultConsumer
-import com.rabbitmq.client.Envelope
-import com.rabbitmq.client.QueueingConsumer
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import scala.actors.Actor
 
