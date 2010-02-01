@@ -67,8 +67,8 @@ object YahooQuoteServer {
 
 }
 
+import YahooQuoteServer._
 class YahooQuoteServer extends QuoteServer {
-  import YahooQuoteServer._
 
   private var contract: QuoteContract = _
   private var gzipped = false

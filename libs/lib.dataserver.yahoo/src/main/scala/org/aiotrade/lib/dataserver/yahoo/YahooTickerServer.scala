@@ -57,8 +57,8 @@ object YahooTickerServer {
   protected val UrlPath = "/download/javasoft.beans"
 }
 
+import YahooTickerServer._
 class YahooTickerServer extends TickerServer {
-  import YahooTickerServer._
 
   private var gzipped = false
 

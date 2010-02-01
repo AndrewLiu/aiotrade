@@ -36,7 +36,7 @@ import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerPool, TickerSnapshot}
 import org.aiotrade.lib.util.ChangeObserver
-import org.aiotrade.lib.util.collection.ArrayList
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
 /** This class will load the quote datas from data source to its data storage: quotes.
@@ -66,7 +66,12 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       storageOf(lookupContract(ts.symbol).get) += ticker
   }
 
-  override protected def init: Unit = {
+  actorActions += {
+    case Loaded(loadedTime) =>
+      postLoad
+  }
+
+  override protected def init {
     super.init
   }
 
@@ -74,11 +79,11 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     tickerPool.borrowObject
   }
 
-  private def returnTicker(ticker:Ticker): Unit = {
+  private def returnTicker(ticker:Ticker) {
     tickerPool.returnObject(ticker)
   }
 
-  override protected def returnBorrowedTimeValues(tickers: Array[Ticker]): Unit = {
+  override protected def returnBorrowedTimeValues(tickers: Array[Ticker]) {
     tickers foreach {tickerPool.returnObject(_)}
   }
 
@@ -86,7 +91,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     symbolToTickerSnapshot.get(symbol)
   }
     
-  override def subscribe(contract: TickerContract, ser: TSer, chainSers: Seq[TSer] ): Unit = {
+  override def subscribe(contract: TickerContract, ser: TSer, chainSers: Seq[TSer]) {
     super.subscribe(contract, ser, chainSers)
     symbolToTickerSnapshot synchronized {
       /**
@@ -106,7 +111,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override def unSubscribe(contract: TickerContract): Unit = {
+  override def unSubscribe(contract: TickerContract) {
     super.unSubscribe(contract)
     val symbol = contract.symbol
     tickerSnapshotOf(symbol) foreach {_.removeObserver(this)}
@@ -121,9 +126,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  private val bufLoadEvents = new ArrayList[TSerEvent]
+  private val bufLoadEvents = new ArrayBuffer[TSerEvent]
 
-  override protected def postLoad: Unit = {
+  protected def postLoad {
     bufLoadEvents.clear
 
     for (contract <- subscribedContracts) {
@@ -142,7 +147,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postUpdate: Unit = {
+  override protected def postUpdate {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
       composeSer(contract.symbol, serOf(contract).get, storage) match {
@@ -158,7 +163,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postStopUpdateServer: Unit = {
+  override protected def postStopUpdateServer {
     for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
       tickerSnapshot.removeObserver(this)
     }
@@ -329,7 +334,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    * Try to update today's quote item according to ticker, if it does not
    * exist, create a new one.
    */
-  private def updateDailyQuote(dailySer: QuoteSer, ticker: Ticker, cal: Calendar): Unit = {
+  private def updateDailyQuote(dailySer: QuoteSer, ticker: Ticker, cal: Calendar) {
     val now = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
     dailySer.createOrClear(now)
         
@@ -352,7 +357,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
    * Try to update today's quote according to ticker, if it does not
    * exist, create a new one.
    */
-  private def updateMinuteQuote(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar): Unit = {
+  private def updateMinuteQuote(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar) {
     val now = TUnit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
     minuteSer.createOrClear(now)
 

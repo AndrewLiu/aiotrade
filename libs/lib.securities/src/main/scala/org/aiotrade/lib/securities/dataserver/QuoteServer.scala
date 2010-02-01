@@ -47,8 +47,13 @@ object QuoteServer {
   protected val quotePool = new QuotePool
 }
 
+import QuoteServer._
 abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
-  import QuoteServer._
+
+  actorActions += {
+    case Loaded(loadedTime) =>
+      postLoad
+  }
 
   protected def borrowQuote: Quote = {
     quotePool.borrowObject
@@ -104,7 +109,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     loadedTime1
   }
 
-  override protected def postLoad {
+  protected def postLoad {
     for (contract <- subscribedContracts) {
       val serToBeFilled = serOf(contract).get
 

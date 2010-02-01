@@ -42,6 +42,9 @@ import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.aiotrade.lib.math.timeseries.{TSer, TSerEvent}
+import org.aiotrade.lib.util.actors.ChainActor
+import scala.actors.Actor
+import scala.actors.Actor._
 import scala.collection.mutable.{HashMap, ArrayBuffer}
 
 /**
@@ -65,8 +68,10 @@ object AbstractDataServer {
   }
 }
 
-abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] {
-  import AbstractDataServer._
+import AbstractDataServer._
+abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] with ChainActor {
+  case class LoadHistory
+  case class Loaded(loadedTime: Long)
 
   val ANCIENT_TIME: Long = -1
 
@@ -83,7 +88,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * Example: ticker ser also will compose today's quoteSer
    */
   private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
-  private var loadServer: LoadServer = _
   private var updateServer: UpdateServer = _
   private var updateTimer: Timer = _
   protected var count: Int = 0
@@ -91,10 +95,17 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   protected var fromTime: Long = _
   protected var inputStream: Option[InputStream] = None
 
-  var inLoading: Boolean = _
   var inUpdating: Boolean = _
 
+  actorActions += {
+    case LoadHistory =>
+      loadedTime = loadFromPersistence
+      loadedTime = loadFromSource(loadedTime)
+      this ! Loaded(loadedTime)
+  }
+
   protected def init {
+    start
   }
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
@@ -181,7 +192,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     }
   }
 
-
   protected def currentContract: Option[C] = {
     /**
      * simplely return the contract currently in the front
@@ -252,7 +262,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     subscribedContractToSer.keysIterator exists {_.symbol == (contract.symbol)}
   }
 
-  def startLoadServer: Unit = {
+  def startLoadServer {
     if (currentContract == None) {
       assert(false, "dataContract not set!")
     }
@@ -261,25 +271,10 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       assert(false, "none ser subscribed!")
     }
 
-    if (loadServer == null) {
-      loadServer = new LoadServer
-    }
-
-    if (!inLoading) {
-      inLoading = true
-      new Thread(loadServer, "LoadServer").start
-      // @Note: ExecutorSrevice will cause access denied of modifyThreadGroup in Applet !!
-      //getExecutorService().submit(loadServer);
-    }
+    this ! LoadHistory
   }
 
   def startUpdateServer(updateInterval: Int): Unit = {
-    if (inLoading) {
-      println("should start update server after loaded")
-      inUpdating = false
-      return
-    }
-
     inUpdating = true
 
     // * in context of applet, a page refresh may cause timer into a unpredict status,
@@ -297,7 +292,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     updateTimer.schedule(updateServer, 1000, updateInterval)
   }
 
-  def stopUpdateServer: Unit = {
+  def stopUpdateServer {
     inUpdating = false
     updateServer = null
     updateTimer.cancel
@@ -325,21 +320,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param time values
    */
   protected def composeSer(symbol: String, serToBeFilled: TSer, values: Array[V]): TSerEvent
-
-  protected class LoadServer extends Runnable {
-    override def run: Unit = {
-      loadedTime = loadFromPersistence
-
-      loadedTime = loadFromSource(loadedTime)
-
-      inLoading = false
-
-      postLoad
-    }
-  }
-
-  protected def postLoad {
-  }
 
   private class UpdateServer extends TimerTask {
     override def run {

@@ -78,7 +78,6 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
     
   def stopUpdateServer: Unit
     
-  def inLoading:  Boolean
   def inUpdating: Boolean
     
   def createNewInstance: Option[DataServer[_]]

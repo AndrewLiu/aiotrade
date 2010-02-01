@@ -58,8 +58,9 @@ import org.aiotrade.lib.securities.dataserver.QuoteServer
 object IBQuoteServer {
   val ibWrapper = IBWrapper
 }
+
+import IBQuoteServer._
 class IBQuoteServer extends QuoteServer {
-  import IBQuoteServer._
 
   private val maxDurationInSeconds = 86400 // 24 hours
   private val maxDurationInDays    = 365

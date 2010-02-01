@@ -100,7 +100,25 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
         prevTicker.copyFrom(ts)
       }
   }
-  
+
+  reactions += {
+    case TSerEvent.FinishedLoading(sourceSer, _, fromTime, endTime, _, _) =>
+      // contract quoteServer of freq centernly still exists only under this type of event
+      val freq = sourceSer.freq
+      val contract = freqToQuoteContract(freq)
+      val quoteServer = freqToQuoteServer(freq)
+      sourceSer.loaded = true
+      if (contract.refreshable) {
+        quoteServer.startUpdateServer(contract.refreshInterval * 1000)
+      } else {
+        quoteServer.unSubscribe(contract)
+        freqToQuoteServer -= freq
+      }
+
+      deafTo(sourceSer)
+    case _ =>
+  }
+
   /**
    * As it's a SerProvider, when new create it, we also assign a quoteContract
    * to it, which is a the one with the default freq. And we can use it to
@@ -148,41 +166,12 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
       quoteServer.subscribe(contract, serToBeLoaded)
     }
 
-    var loadBeginning = false
-    /** If there is already a dataServer running and not finished, don't load again */
-    if (quoteServer.inLoading) {
-      System.out.println("A loading procedure is already running and not finished yet!");
-      loadBeginning = false
-      serToBeLoaded.inLoading = true
-    } else {
-      quoteServer.startLoadServer
-      loadBeginning = true
-      serToBeLoaded.inLoading = true
-    }
+    quoteServer.startLoadServer
+    serToBeLoaded.inLoading = true
 
-    if (loadBeginning) {
-      reactions += {
-        case TSerEvent.FinishedLoading(sourceSer, _, fromTime, endTime, _, _) =>
-          // contract quoteServer of freq centernly still exists only under this type of event
-          val freq = sourceSer.freq
-          val contract = freqToQuoteContract(freq)
-          val quoteServer = freqToQuoteServer(freq)
-          sourceSer.loaded = true
-          if (contract.refreshable) {
-            quoteServer.startUpdateServer(contract.refreshInterval * 1000)
-          } else {
-            quoteServer.unSubscribe(contract)
-            freqToQuoteServer -= freq
-          }
-
-          deafTo(sourceSer)
-        case _ =>
-      }
-      
-      listenTo(serToBeLoaded)
-    }
-
-    loadBeginning
+    listenTo(serToBeLoaded)
+    
+    true
   }
 
   def isSerLoaded(freq:TFreq): Boolean = {
