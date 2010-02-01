@@ -72,6 +72,8 @@ import AbstractDataServer._
 abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] with ChainActor {
   case class LoadHistory
   case class Loaded(loadedTime: Long)
+  case class Refresh
+  case class Refreshed(loadedTime: Long)
 
   val ANCIENT_TIME: Long = -1
 
@@ -88,8 +90,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * Example: ticker ser also will compose today's quoteSer
    */
   private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
-  private var updateServer: UpdateServer = _
-  private var updateTimer: Timer = _
+  private var refreshTimer: Timer = _
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _
@@ -102,6 +103,10 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       loadedTime = loadFromPersistence
       loadedTime = loadFromSource(loadedTime)
       this ! Loaded(loadedTime)
+      
+    case Refresh =>
+      loadedTime = loadFromSource(loadedTime)
+      this ! Refreshed(loadedTime)
   }
 
   protected def init {
@@ -110,11 +115,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-    val dateFormatStr = currentContract.get.dateFormatPattern match {
+    val pattern = currentContract.get.dateFormatPattern match {
       case null => defaultDateFormatPattern
       case x => x
     }
-    val dateFormat = new SimpleDateFormat(dateFormatStr)
+    val dateFormat = new SimpleDateFormat(pattern)
     dateFormat.setTimeZone(timeZone)
     dateFormat
   }
@@ -155,7 +160,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * temporary method? As in some data feed, the symbol is not unique,
    * it may be same in different exchanges with different secType.
    */
-  protected def lookupContract(symbol: String): Option[C] = {
+  protected def contractOf(symbol: String): Option[C] = {
     subscribedSymbolToContract.get(symbol)
   }
 
@@ -274,34 +279,29 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     this ! LoadHistory
   }
 
-  def startUpdateServer(updateInterval: Int): Unit = {
-    inUpdating = true
-
-    // * in context of applet, a page refresh may cause timer into a unpredict status,
-    // * so it's always better to restart this timer, so, cancel it first.
-    if (updateTimer != null) {
-      updateTimer.cancel
+  def startRefreshServer(refreshInterval: Int) {
+    // in context of applet, a page refresh may cause timer into a unpredict status,
+    // so it's always better to restart this timer, so, cancel it first.
+    if (refreshTimer != null) {
+      refreshTimer.cancel
     }
-    updateTimer = new Timer
 
-    if (updateServer != null) {
-      updateServer.cancel
-    }
-    updateServer = new UpdateServer
-
-    updateTimer.schedule(updateServer, 1000, updateInterval)
+    refreshTimer = new Timer
+    refreshTimer.schedule(new TimerTask {
+        def run {
+          AbstractDataServer.this ! Refresh
+        }
+      }, 1000, refreshInterval)
   }
 
-  def stopUpdateServer {
-    inUpdating = false
-    updateServer = null
-    updateTimer.cancel
-    updateTimer = null
+  def stopRefreshServer {
+    refreshTimer.cancel
+    refreshTimer = null
 
-    postStopUpdateServer
+    postStopRefreshServer
   }
 
-  protected def postStopUpdateServer: Unit = {
+  protected def postStopRefreshServer {
   }
 
   protected def loadFromPersistence: Long
@@ -314,23 +314,12 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   protected def loadFromSource(afterThisTime: Long): Long
 
   /**
-   * compose ser using data from timeValues
+   * compose ser using data from TVal(s)
    * @param symbol
    * @param serToBeFilled Ser
-   * @param time values
+   * @param TVal(s)
    */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, values: Array[V]): TSerEvent
-
-  private class UpdateServer extends TimerTask {
-    override def run {
-      loadedTime = loadFromSource(loadedTime)
-
-      postUpdate
-    }
-  }
-
-  protected def postUpdate {
-  }
+  protected def composeSer(symbol: String, serToBeFilled: TSer, tvals: Array[V]): TSerEvent
 
   override def createNewInstance: Option[DataServer[C]] = {
     try {

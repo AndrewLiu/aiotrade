@@ -63,12 +63,14 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     case ts: TickerSnapshot =>
       val ticker = borrowTicker
       ticker.copyFrom(ts)
-      storageOf(lookupContract(ts.symbol).get) += ticker
+      storageOf(contractOf(ts.symbol).get) += ticker
   }
 
   actorActions += {
     case Loaded(loadedTime) =>
       postLoad
+    case Refreshed(loadedTime) =>
+      postRefresh
   }
 
   override protected def init {
@@ -147,7 +149,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postUpdate {
+  protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
       composeSer(contract.symbol, serOf(contract).get, storage) match {
@@ -163,7 +165,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     }
   }
 
-  override protected def postStopUpdateServer {
+  override protected def postStopRefreshServer {
     for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
       tickerSnapshot.removeObserver(this)
     }
@@ -183,7 +185,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     loadedTime
   }
 
-  def composeSer(symbol: String, $tickerSer: TSer, storage: Array[Ticker]): TSerEvent = {
+  def composeSer(symbol: String, $tickerSer: TSer, tickers: Array[Ticker]): TSerEvent = {
     val tickerSer = $tickerSer.asInstanceOf[QuoteSer]
     var evt: TSerEvent = TSerEvent.None
 
@@ -191,10 +193,10 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     var begTime = Long.MaxValue
     var endTime = Long.MinValue
 
-    val size = storage.length
+    val size = tickers.length
     if (size > 0) {
       val values = new Array[Ticker](size)
-      storage.copyToArray(values, 0)
+      tickers.copyToArray(values, 0)
             
       val shouldReverseOrder = !isAscending(values)
 
@@ -202,11 +204,11 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val freq = tickerSer.freq
       var i = if (shouldReverseOrder) size - 1 else 0
       while (i >= 0 && i <= size - 1) {
-        ticker = storage(i)
+        ticker = tickers(i)
         ticker.time = (freq.round(ticker.time, cal))
         val prevTicker = symbolToPrevTicker.get(symbol) getOrElse {
           val x = new Ticker
-          symbolToPrevTicker.put(symbol, x)
+          symbolToPrevTicker(symbol) = x
           x
         }
 
@@ -218,7 +220,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
              * actually it should be, so maybe we should check this.
              */
             val intervalLastTickerPair = new IntervalLastTickerPair
-            symbolToIntervalLastTickerPair.put(symbol, intervalLastTickerPair)
+            symbolToIntervalLastTickerPair(symbol) = intervalLastTickerPair
             intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
             tickerSer.createOrClear(time)

@@ -109,7 +109,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
       val quoteServer = freqToQuoteServer(freq)
       sourceSer.loaded = true
       if (contract.refreshable) {
-        quoteServer.startUpdateServer(contract.refreshInterval * 1000)
+        quoteServer.startRefreshServer(contract.refreshInterval * 1000)
       } else {
         quoteServer.unSubscribe(contract)
         freqToQuoteServer -= freq
@@ -190,7 +190,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
 
   def stopAllDataServer {
     for (server <- freqToQuoteServer.valuesIterator if server.inUpdating) {
-      server.stopUpdateServer
+      server.stopRefreshServer
     }
     freqToQuoteServer.clear
   }
@@ -263,7 +263,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
             
     }
 
-    tickerServer.startUpdateServer(tickerContract.refreshInterval * 1000)
+    tickerServer.startRefreshServer(tickerContract.refreshInterval * 1000)
     tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {_.addObserver(this, this)}
   }
 

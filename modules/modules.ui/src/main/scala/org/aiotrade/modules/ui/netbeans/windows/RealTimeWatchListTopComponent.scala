@@ -271,8 +271,8 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
         
     for (sec <- watchingSecs) {
       val tickerServer = sec.tickerServer
-      if (tickerServer != null && tickerServer.inUpdating) {
-        tickerServer.stopUpdateServer
+      if (tickerServer != null) {
+        tickerServer.stopRefreshServer
       }
     }
         

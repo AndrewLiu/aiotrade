@@ -53,6 +53,8 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
   actorActions += {
     case Loaded(loadedTime) =>
       postLoad
+    case Refreshed(loadedTime) =>
+      postRefresh
   }
 
   protected def borrowQuote: Quote = {
@@ -136,7 +138,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     }
   }
 
-  override protected def postUpdate {
+  protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
 
