@@ -8,6 +8,19 @@ package org.aiotrade.lib.amqp
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConnectionParameters
 import scala.actors.Actor
+import scala.util.Random
+
+object SampleTradeListener {
+
+  def main(args: Array[String]) {
+    val instance = new SampleTradeListener
+    val messageGen = new TradeMessageGenerator(instance.factory, "localhost", 5672, "NYSE", "routingKey")
+    for (i <- 0 until 10) {
+      val ref = Random.nextLong
+      messageGen.send(Trade(ref.toString, "IBM", 10))
+    }
+  }
+}
 
 /**
  * @Usage:

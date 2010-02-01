@@ -31,12 +31,12 @@ class TradeDispatcher(cf: ConnectionFactory, host: String, port: Int) extends Ac
   val ticket = channel.accessRequest("/data")
 
   // set up exchange and queue
-  channel.exchangeDeclare(ticket, "mult", "direct")
-  channel.queueDeclare(ticket, "mult_queue")
-  channel.queueBind(ticket, "mult_queue", "mult", "routeroute")
+  channel.exchangeDeclare(ticket, "NYSE", "direct")
+  channel.queueDeclare(ticket, "NYSE_trading")
+  channel.queueBind(ticket, "NYSE_trading", "NYSE", "routingKey")
 
   // register consumer
-  channel.basicConsume(ticket, "mult_queue", false, new TradeValueCalculator(channel, this))
+  channel.basicConsume(ticket, "NYSE_trading", false, new TradeValueCalculator(channel, this))
 
   def act = loop(Nil)
 
@@ -103,6 +103,7 @@ class TradeValueCalculator(channel: Channel, a: Actor) extends DefaultConsumer(c
 
     // invoke business processing logic
     //trade.value = computeTradeValue(...)
+    println("trade value is: " + trade.value)
 
     // send back to dispatcher for further relay to interested observers
     a ! TradeMessage(trade)
