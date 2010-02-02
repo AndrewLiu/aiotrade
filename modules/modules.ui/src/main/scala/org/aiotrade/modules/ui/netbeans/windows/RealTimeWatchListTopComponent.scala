@@ -31,6 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
+import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
@@ -55,6 +56,7 @@ import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.actions.StopSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.openide.nodes.Node;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager
@@ -78,6 +80,8 @@ object RealTimeWatchListTopComponent {
 
   // The Mode this component will live in.
   private val MODE = "editor"
+
+  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
 
   private val watchingSecs = HashSet[Security]()
 
@@ -217,7 +221,12 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
         
     super.componentClosed
   }
-    
+
+
+  override def getIcon: Image = {
+    iconImage
+  }
+
   def watch(sec: Security, node: Node) {
     watchListPanel.watch(sec)
     symbolToNode.put(sec.uniSymbol, node)

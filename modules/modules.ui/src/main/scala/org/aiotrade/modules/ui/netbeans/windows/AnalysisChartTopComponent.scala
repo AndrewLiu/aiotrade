@@ -31,6 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
+import java.awt.Image
 import java.lang.ref.WeakReference;
 import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane
@@ -61,6 +62,7 @@ import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.nodes.Node;
+import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
@@ -86,6 +88,8 @@ object AnalysisChartTopComponent {
 
   // The Mode this component will live in.
   private val MODE = "editor"
+
+  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
 
   def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
     instanceRefs find (_.get.sec.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
@@ -306,7 +310,11 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
      */
     //sec.setSignSeriesLoaded(false);
   }
-    
+
+  override def getIcon: Image = {
+    iconImage
+  }
+
   override protected def preferredID: String = {
     tcId
   }
