@@ -128,7 +128,6 @@ class PopupIndicatorChartView(acontroller: ChartingController,
     add(axisXPane, gbc)
   }
     
-  override def xControlPane: XControlPane = xControlPane
 }
 
 
