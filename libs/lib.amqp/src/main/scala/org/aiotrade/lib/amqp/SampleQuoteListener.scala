@@ -9,6 +9,7 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConnectionParameters
+import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.QueueingConsumer
 import java.io.ByteArrayInputStream
@@ -79,11 +80,11 @@ object SampleQuoteListener {
     channel.exchangeDeclare(ticket, Constants.exchange, "topic")
     channel.queueDeclare(ticket, queue)
     channel.queueBind(ticket, queue, exchange, symbol)
-    val consumer = if (useWhile) new QueueingConsumer(channel) else new QuoteConsumer(channel, interester)
+    val consumer = if (useWhile) new QueueingConsumer(channel) else new QuoteConsumer(channel, interesterRelay)
     channel.basicConsume(ticket, queue, consumer)
 
     while (useWhile) {
-      val delivery = consumer.nextDelivery
+      val delivery = consumer.asInstanceOf[QueueingConsumer].nextDelivery
       val envelope = delivery.getEnvelope
       val body = delivery.getBody
 
@@ -94,7 +95,7 @@ object SampleQuoteListener {
           println(envelope.getRoutingKey + " received: " + symbol + " value=" + value)
 
           // send back to dispatcher for further relay to interested observers
-          interester ! QuoteMessage(quote)
+          interesterRelay ! QuoteMessage(quote)
       }
 
       channel.basicAck(envelope.getDeliveryTag, false)
@@ -102,7 +103,7 @@ object SampleQuoteListener {
   }
 
   def startListeners {
-    interester.start
+    interesterRelay.start
 
     import scala.actors.Actor._
     val quoteListener = actor {
@@ -114,11 +115,11 @@ object SampleQuoteListener {
       }
     }
     
-    interester ! AddListener(quoteListener)
+    interesterRelay ! AddListener(quoteListener)
   }
 }
 
-class QuoteConsumer(channel: Channel, interester: Actor) extends QueueingConsumer(channel) {
+class QuoteConsumer(channel: Channel, relay: Actor) extends DefaultConsumer(channel) {
 
   override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
     val contentType = props.contentType
@@ -129,7 +130,7 @@ class QuoteConsumer(channel: Channel, interester: Actor) extends QueueingConsume
       case quote@Quote(ref, symbol, value) =>
         println(env.getRoutingKey + " received: " + symbol + " value=" + value)
 
-        // send back to dispatcher for further relay to interested observers
+        // send back for further relay to interested observers
         //interester ! QuoteMessage(quote)
     }
 
@@ -139,7 +140,7 @@ class QuoteConsumer(channel: Channel, interester: Actor) extends QueueingConsume
 
 
 case class AddListener(a: Actor)
-object interester extends Actor {
+object interesterRelay extends Actor {
   def act {
     loop(Nil)
     def loop(listeners: List[Actor]) {
