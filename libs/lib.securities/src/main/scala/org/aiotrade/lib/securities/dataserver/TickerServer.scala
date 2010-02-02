@@ -34,7 +34,7 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerPool, TickerSnapshot}
+import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot}
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
@@ -44,11 +44,6 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-object TickerServer {
-  val tickerPool = new TickerPool
-}
-
-import TickerServer._
 abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with ChangeObserver {
 
   private val logger = Logger.getLogger(this.getClass.getName)
@@ -61,7 +56,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
   val updater: Updater = {
     case ts: TickerSnapshot =>
-      val ticker = borrowTicker
+      val ticker = new Ticker
       ticker.copyFrom(ts)
       storageOf(contractOf(ts.symbol).get) += ticker
   }
@@ -71,22 +66,6 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       postLoad
     case Refreshed(loadedTime) =>
       postRefresh
-  }
-
-  override protected def init {
-    super.init
-  }
-
-  private def borrowTicker: Ticker = {
-    tickerPool.borrowObject
-  }
-
-  private def returnTicker(ticker:Ticker) {
-    tickerPool.returnObject(ticker)
-  }
-
-  override protected def returnBorrowedTimeValues(tickers: Array[Ticker]) {
-    tickers foreach {tickerPool.returnObject(_)}
   }
 
   def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
@@ -108,7 +87,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
         val tickerSnapshot = new TickerSnapshot
         tickerSnapshot.addObserver(this, this)
         tickerSnapshot.symbol = symbol
-        symbolToTickerSnapshot.put(symbol, tickerSnapshot)
+        symbolToTickerSnapshot(symbol) = tickerSnapshot
       }
     }
   }
@@ -143,7 +122,6 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       }
 
       storage synchronized {
-        returnBorrowedTimeValues(storage)
         storageOf(contract).clear
       }
     }
@@ -159,7 +137,6 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       }
 
       storageOf(contract) synchronized {
-        returnBorrowedTimeValues(storage)
         storageOf(contract).clear
       }
     }

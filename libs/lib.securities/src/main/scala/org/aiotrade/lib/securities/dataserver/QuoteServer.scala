@@ -35,7 +35,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{TSer}
-import org.aiotrade.lib.securities.{Exchange, Quote, QuotePool, PersistenceManager}
+import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -43,11 +43,6 @@ import org.aiotrade.lib.securities.{Exchange, Quote, QuotePool, PersistenceManag
  *
  * @author Caoyuan Deng
  */
-object QuoteServer {
-  protected val quotePool = new QuotePool
-}
-
-import QuoteServer._
 abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
 
   actorActions += {
@@ -55,18 +50,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       postLoad
     case Refreshed(loadedTime) =>
       postRefresh
-  }
-
-  protected def borrowQuote: Quote = {
-    quotePool.borrowObject
-  }
-
-  protected def returnQuote(quote: Quote) {
-    quotePool.returnObject(quote)
-  }
-
-  protected def returnBorrowedTimeValues(quotes: Array[Quote]) {
-    quotes foreach {quotePool.returnObject(_)}
   }
 
   protected def loadFromPersistence: Long = {
@@ -104,7 +87,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
      * from pool, return them
      */
     quotes.synchronized {
-      returnBorrowedTimeValues(quotes)
       //storage.clear
     }
         
@@ -132,7 +114,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       //            serToBeFilled.fireTSerEvent(evt)
 
       storage.synchronized {
-        returnBorrowedTimeValues(storage)
         storageOf(contract).clear
       }
     }
@@ -150,7 +131,6 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
       //            }
 
       storage.synchronized {
-        returnBorrowedTimeValues(storage)
         storageOf(contract).clear
       }
     }

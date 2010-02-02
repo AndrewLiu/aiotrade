@@ -40,9 +40,7 @@ import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.QuotePool
 import org.aiotrade.lib.securities.Security
-import org.aiotrade.lib.securities.TickerPool
 import org.aiotrade.lib.securities.TickerSnapshot
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer
@@ -55,8 +53,6 @@ import scala.collection.mutable.ArrayBuffer
 class IBWrapper extends EWrapperAdapter
 
 object IBWrapper extends IBWrapper {
-  private val quotePool = new QuotePool
-  private val tickerPool = new TickerPool
 
   private val TWS_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd HH:mm:ss")
   private val HISTORICAL_DATA_END = "finished"
@@ -114,7 +110,7 @@ object IBWrapper extends IBWrapper {
       }
     }
         
-    1;
+    1
   }
     
   def getSupportedFreqs: Array[TFreq] = {
@@ -308,7 +304,7 @@ object IBWrapper extends IBWrapper {
             date.toLong * 1000
           } catch {case ex: NumberFormatException => return}
                     
-          val quote = quotePool.borrowObject
+          val quote = new Quote
                     
           quote.time = time
           quote.open = open.toFloat
@@ -337,7 +333,7 @@ object IBWrapper extends IBWrapper {
     // received price tick
     val snapshot = tickerSnapshotOf(tickerId)
     if (snapshot == null) {
-      return;
+      return
     }
         
     snapshot synchronized {

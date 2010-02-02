@@ -167,7 +167,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   private def releaseStorage(contract: C): Unit = {
     /** don't get storage via getStorage(contract), which will create a new one if none */
     for (storage <- contractToStorage.get(contract)) {
-      returnBorrowedTimeValues(storage.toArray)
       storage.synchronized {
         storage.clear
       }
@@ -176,8 +175,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       contractToStorage.remove(contract)
     }
   }
-
-  protected def returnBorrowedTimeValues(datas: Array[V])
 
   protected def isAscending(values: Array[V]): Boolean = {
     val size = values.length
@@ -301,8 +298,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     postStopRefreshServer
   }
 
-  protected def postStopRefreshServer {
-  }
+  protected def postStopRefreshServer {}
 
   protected def loadFromPersistence: Long
 

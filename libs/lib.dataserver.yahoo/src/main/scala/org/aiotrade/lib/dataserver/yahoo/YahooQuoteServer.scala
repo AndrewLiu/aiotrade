@@ -38,7 +38,7 @@ import java.util.{Calendar, Date, Locale, TimeZone}
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.{Exchange}
+import org.aiotrade.lib.securities.{Exchange, Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 
 /**
@@ -191,7 +191,7 @@ class YahooQuoteServer extends QuoteServer {
             // quote time is rounded to 00:00, we should adjust it to open time
             time += exchange.openTimeOfDay
 
-            val quote = borrowQuote
+            val quote = new Quote
 
             quote.time   = time
             quote.open   = openX.trim.toFloat
@@ -203,7 +203,6 @@ class YahooQuoteServer extends QuoteServer {
             quote.close_adj = adjCloseX.trim.toFloat
 
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
-              returnQuote(quote)
               newestTime
             } else {
               storage += quote
@@ -216,7 +215,7 @@ class YahooQuoteServer extends QuoteServer {
         }
     }
 
-    loop(-Long.MaxValue)
+    loop(Long.MinValue)
   }
 
   protected def loadFromSource(afterThisTime: Long): Long = {

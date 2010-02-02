@@ -79,6 +79,7 @@ class Quote extends TVal {
     var i = 0
     while (i < values.length) {
       values(i) = 0
+      i += 1
     }
     hasGaps = false
   }
