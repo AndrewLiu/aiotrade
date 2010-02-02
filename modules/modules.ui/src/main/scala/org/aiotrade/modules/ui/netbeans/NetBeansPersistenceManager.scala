@@ -518,10 +518,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
          */
         val tableName = propTableName(symbol, freq)
         val stmtCreatTableStr_derby = "CREATE TABLE " + tableName + " (qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
+        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qvwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
 
         val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tableName + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
+        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qvwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
 
         var stmtStr = stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
@@ -562,7 +562,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     try {
       val tableName = propTableName(symbol, freq)
       val stmtStr =  "INSERT INTO " + tableName  +
-      " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qvwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmt = conn.prepareStatement(stmtStr)
       for (quote <- quotes) {
@@ -574,7 +574,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt setFloat (6, quote.volume)
         stmt setFloat (7, quote.amount)
         stmt setFloat (8, quote.close_adj)
-        stmt setFloat (9, quote.wap)
+        stmt setFloat (9, quote.vwap)
         stmt setByte  (10, if (quote.hasGaps) -1 else 1)
         stmt setLong  (11, sourceId)
 
@@ -610,7 +610,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
           quote.volume = rs.getFloat("qvolume")
           quote.amount = rs.getFloat("qamount")
           quote.close_adj = rs.getFloat("qclose_adj")
-          quote.wap = rs.getFloat("qwap")
+          quote.vwap = rs.getFloat("qvwap")
           quote.hasGaps = (if (rs.getByte("qhasgaps") < 0) true else false)
           quote.sourceId = rs.getLong("qsourceid")
 

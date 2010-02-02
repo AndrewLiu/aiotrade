@@ -317,7 +317,7 @@ object IBWrapper extends IBWrapper {
           quote.close = close.toFloat
           quote.volume = volume
                     
-          quote.wap = WAP.toFloat
+          quote.vwap = WAP.toFloat
           quote.hasGaps = hasGaps
                     
           storage += quote

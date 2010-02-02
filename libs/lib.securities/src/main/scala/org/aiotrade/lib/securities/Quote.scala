@@ -47,7 +47,7 @@ class Quote extends TVal {
   private val VOLUME    = 4
   private val AMOUNT    = 5
   private val CLOSE_ADJ = 6
-  private val WAP       = 7
+  private val VWAP       = 7
     
   private val values = new Array[Float](8)
     
@@ -55,61 +55,31 @@ class Quote extends TVal {
     
   var hasGaps: Boolean = false
         
-  def amount: Float = {
-    return values(AMOUNT)
-  }
-    
-  def close: Float = values(CLOSE)
-    
-  def close_adj: Float = values(CLOSE_ADJ)
-    
-  def high: Float = values(HIGH)
-    
-  def low: Float = values(LOW)
-    
-  def open: Float = values(OPEN)
-    
+  def open:   Float = values(OPEN)
+  def high:   Float = values(HIGH)
+  def low:    Float = values(LOW)
+  def close:  Float = values(CLOSE)
   def volume: Float = values(VOLUME)
-    
-  def wap: Float = values(WAP)
-    
-  def amount_=(amount: Float): Unit = {
-    this.values(AMOUNT) = amount
-  }
-    
-  def close_=(close: Float): Unit = {
-    this.values(CLOSE) = close
-  }
-    
-  def close_adj_=(close_adj: Float): Unit = {
-    this.values(CLOSE_ADJ) = close_adj
-  }
-    
-    
-  def high_=(high: Float): Unit = {
-    this.values(HIGH) = high
-  }
-    
-  def low_=(low: Float): Unit = {
-    this.values(LOW) = low
-  }
-    
-  def open_=(open: Float): Unit = {
-    this.values(OPEN) = open
-  }
-    
-  def volume_=(volume: Float): Unit = {
-    this.values(VOLUME) = volume
-  }
-    
-  def wap_=(wap: Float): Unit = {
-    this.values(WAP) = wap
-  }
-    
+  def amount: Float = values(AMOUNT)
+  def close_adj: Float = values(CLOSE_ADJ)
+  def vwap: Float = values(VWAP)
+
+  def open_=  (open:   Float) = values(OPEN)   = open
+  def high_=  (high:   Float) = values(HIGH)   = high
+  def low_=   (low:    Float) = values(LOW)    = low
+  def close_= (close:  Float) = values(CLOSE)  = close
+  def volume_=(volume: Float) = values(VOLUME) = volume
+  def amount_=(amount: Float) = values(AMOUNT) = amount
+  def close_adj_=(close_adj: Float) = values(CLOSE_ADJ) = close_adj
+  def vwap_=(wap: Float) = values(VWAP) = wap
+
   def reset {
     time = 0
     sourceId = 0
-    values.map(x => 0)
+    var i = 0
+    while (i < values.length) {
+      values(i) = 0
+    }
     hasGaps = false
   }
 
