@@ -5,17 +5,18 @@
 
 package org.aiotrade.lib.amqp
 
-import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConnectionParameters
-import com.rabbitmq.client.DefaultConsumer
-import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.QueueingConsumer
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
 import scala.actors.Actor
 import scala.util.Random
+
+// The trade object that needs to be serialized
+@serializable
+case class Quote(ref: String, symbol: String, var value: Int)
 
 object SampleQuoteListener {
   val params = new ConnectionParameters
@@ -27,7 +28,7 @@ object SampleQuoteListener {
   val factory = new ConnectionFactory(params)
 
   def main(args: Array[String]) {
-    val amqp = new QuoteProducer(factory, "localhost", 5672)
+    val amqp = new TopicAMQPDispatcher(factory, "localhost", 5672)
 
     testNoWhile
 
@@ -55,8 +56,8 @@ object SampleQuoteListener {
 
   def sendMessages {
     // cretae msgsender
-    val msgSender = new QuoteMessageSender(factory, "localhost", 5672)
-    msgSender.start
+    val sender = new AMQPSender(factory, "localhost", 5672)
+    sender.start
 
     // send messages
     for (i <- 0 until 10;
@@ -64,7 +65,7 @@ object SampleQuoteListener {
     ) {
       val value = Random.nextInt
       val quote = Quote("ABCD", symbol, value)
-      msgSender ! QuoteMessage(quote)
+      sender ! AMQPMessage(quote, symbol)
     }
 
   }
@@ -95,7 +96,7 @@ object SampleQuoteListener {
           println(envelope.getRoutingKey + " received: " + symbol + " value=" + value)
 
           // send back to dispatcher for further relay to interested observers
-          interesterRelay ! QuoteMessage(quote)
+          interesterRelay ! AMQPMessage(quote, symbol)
       }
 
       channel.basicAck(envelope.getDeliveryTag, false)
@@ -109,7 +110,7 @@ object SampleQuoteListener {
     val quoteListener = actor {
       loop {
         react {
-          case msg@QuoteMessage(contents: Quote) =>
+          case msg@AMQPMessage(contents: Quote, key: String) =>
             println("received quote: " + msg.message)
         }
       }
@@ -119,25 +120,7 @@ object SampleQuoteListener {
   }
 }
 
-class QuoteConsumer(channel: Channel, relay: Actor) extends DefaultConsumer(channel) {
-
-  override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
-    val contentType = props.contentType
-
-    // deserialize
-    val in = new ObjectInputStream(new ByteArrayInputStream(body))
-    in.readObject match {
-      case quote@Quote(ref, symbol, value) =>
-        println(env.getRoutingKey + " received: " + symbol + " value=" + value)
-
-        // send back for further relay to interested observers
-        //interester ! QuoteMessage(quote)
-    }
-
-    channel.basicAck(env.getDeliveryTag, false)
-  }
-}
-
+class QuoteConsumer(channel: Channel, relay: Actor) extends AMQPConsumer[Quote](channel, relay)
 
 case class AddListener(a: Actor)
 object interesterRelay extends Actor {
@@ -146,7 +129,7 @@ object interesterRelay extends Actor {
     def loop(listeners: List[Actor]) {
       react {
         case AddListener(a) => loop(a :: listeners)
-        case msg@QuoteMessage(quote) => listeners.foreach(_ ! msg); loop(listeners)
+        case msg@AMQPMessage(quote, key: String) => listeners.foreach(_ ! msg); loop(listeners)
         case _ => loop(listeners)
       }
     }
