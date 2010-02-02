@@ -16,7 +16,16 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.aiotrade</groupId>
+        <artifactId>platform-suite</artifactId>
+        <relativePath>../suite/pom.xml</relativePath>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.aiotrade</groupId>
@@ -25,10 +34,9 @@
     <packaging>pom</packaging>
 
     <name>AIOTrade Modules</name>
-    <description>Basic Modules for AIOTrade.</description>
 
     <properties>
-        <scala.version>2.8.0-SNAPSHOT</scala.version>
+        <scala.version>2.8.0.Beta1</scala.version>
     </properties>
 
     <repositories>
@@ -58,12 +66,21 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-swing</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        
+        <!-- testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.4</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.specs</groupId>
             <artifactId>specs</artifactId>
@@ -73,15 +90,15 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <executions>
                     <execution>
+                        <phase>process-resources</phase> <!-- to support mix java/scala -->
                         <goals>
+                            <goal>add-source</goal> <!-- to support mix java/scala -->
                             <goal>compile</goal>
                             <goal>testCompile</goal>
                         </goals>
@@ -97,14 +114,20 @@
                     </args>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>nbm-maven-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <useDefaultManifestFile>true</useDefaultManifestFile> <!-- to have the jar plugin pickup the nbm generated manifest -->
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 
@@ -119,17 +142,10 @@
             </plugin>
         </plugins>
     </reporting>
-    
+
     <modules>
-        <module>lib.math</module>
-        <module>lib.util</module>
-        <module>lib.securities</module>
-        <module>lib.indicator</module>
-        <module>p.m.dataserver.yahoo</module>
-        <module>p.m.indicator.basic</module>
-        <module>helper.test</module>
-        <module>lib.charting</module>
-        <module>lib.chartview</module>
+        <module>modules.ui</module>
+        <module>modules.quicksearch</module>
     </modules>
 
 </project>
