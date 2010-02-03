@@ -98,7 +98,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int) ex
                     }}, delay)
               }
           }
-        case AMQPStop => exit
+        case AMQPStop => conn.close; exit
       }
     }
   }
