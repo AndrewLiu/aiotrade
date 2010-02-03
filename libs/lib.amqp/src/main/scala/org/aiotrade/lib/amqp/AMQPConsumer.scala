@@ -13,7 +13,10 @@ import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
 import scala.actors.Actor
 
-class AMQPConsumer[T](channel: Channel, observer: Actor) extends DefaultConsumer(channel) {
+class AMQPConsumer[T](channel: Channel, observer: Actor, noAck: Boolean) extends DefaultConsumer(channel) {
+
+  def this(channel: Channel, observer: Actor) = this(channel, observer, false)
+
   override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
     val contentType = props.contentType
 
@@ -25,6 +28,8 @@ class AMQPConsumer[T](channel: Channel, observer: Actor) extends DefaultConsumer
         observer ! AMQPMessage(content, props)
     }
 
-    channel.basicAck(env.getDeliveryTag, false)
+    if (!noAck) {
+      channel.basicAck(env.getDeliveryTag, false)
+    }
   }
 }

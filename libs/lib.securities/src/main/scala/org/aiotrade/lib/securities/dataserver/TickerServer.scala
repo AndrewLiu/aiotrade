@@ -182,14 +182,14 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       var i = if (shouldReverseOrder) size - 1 else 0
       while (i >= 0 && i <= size - 1) {
         ticker = tickers(i)
-        ticker.time = (freq.round(ticker.time, cal))
+        //ticker.time = (freq.round(ticker.time, cal))
         val prevTicker = symbolToPrevTicker.get(symbol) getOrElse {
           val x = new Ticker
           symbolToPrevTicker(symbol) = x
           x
         }
 
-        val time = ticker.time
+        val time = freq.round(ticker.time, cal)
         symbolToIntervalLastTickerPair.get(symbol) match {
           case None =>
             /**
@@ -234,7 +234,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
               /** a new interval starts, we'll need a new data */
-              tickerSer.createOrClear(ticker.time)
+              tickerSer.createOrClear(time)
               tickerSer.high(time) = Float.MinValue
               tickerSer.low(time)  = Float.MaxValue
               tickerSer.open(time) = ticker.lastPrice

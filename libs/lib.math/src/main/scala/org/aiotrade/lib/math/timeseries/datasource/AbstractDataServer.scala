@@ -283,7 +283,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       refreshTimer.cancel
     }
 
-    refreshTimer = new Timer
+    refreshTimer = new Timer("RefreshTimerOfDataServer")
     refreshTimer.schedule(new TimerTask {
         def run {
           AbstractDataServer.this ! Refresh
