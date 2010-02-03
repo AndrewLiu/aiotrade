@@ -1,36 +1,34 @@
 package org.aiotrade.lib.amqp
 
+import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
-import scala.actors.Actor
 
-case class AMQPMessage[T](message: T, routingKey: String)
+abstract class AMQPSender[T](cf: ConnectionFactory, host: String, port: Int, exchange: String){
 
-class AMQPSender[T](cf: ConnectionFactory, host: String, port: Int) extends Actor {
+  val (conn, channel, ticket) = connect
 
-  private val conn = cf.newConnection(host, port)
-  private val channel = conn.createChannel
-  private val ticket = channel.accessRequest("/data")
-
-  def act {
-    Actor.loop {
-      react {
-        case AMQPMessage(msg: T, routingKey: String) => send(msg, routingKey)
-      }
-    }
+  private def connect: (Connection, Channel, Int) = {
+    val conn = cf.newConnection(host, port)
+    val channel = conn.createChannel
+    val ticket = configure(channel)
+    (conn, channel, ticket)
   }
 
-  private def send(msg: T, routingKey: String) {
+  def configure(channel: Channel): Int
+
+  def send(msg: T, routingKey: String, props: AMQP.BasicProperties) {
     val bytes = new ByteArrayOutputStream
-    val os = new ObjectOutputStream(bytes)
-    os.writeObject(msg)
-    os.close
+    val store = new ObjectOutputStream(bytes)
+    store.writeObject(msg)
+    store.close
 
     val body = bytes.toByteArray
 
-    // publish to exchange, use symbol as routingKey
-    channel.basicPublish(ticket, Constants.exchange, routingKey, null, body)
-    println(msg + " sent: routingKey=" + routingKey + " size=" + body.length)
+    channel.basicPublish(ticket, exchange, routingKey, props, body)
+    //println(msg + " sent: routingKey=" + routingKey + " size=" + body.length)
   }
 }
