@@ -39,7 +39,7 @@ import scala.actors.Actor
  * Messages received from AMQP are wrapped in this case class. When you
  * register a listener, this is the case class that you will be matching on.
  */
-case class AMQPMessage[T](message: T, props: AMQP.BasicProperties)
+case class AMQPMessage(message: Any, props: AMQP.BasicProperties)
 
 /**
  * @param a The actor to add as a Listener to this Dispatcher.
@@ -83,7 +83,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
   def act {
     Actor.loop {
       react {
-        case msg: AMQPMessage[_] =>
+        case msg: AMQPMessage =>
           as foreach (_ ! msg)
         case AMQPAddListener(a) =>
           as ::= a

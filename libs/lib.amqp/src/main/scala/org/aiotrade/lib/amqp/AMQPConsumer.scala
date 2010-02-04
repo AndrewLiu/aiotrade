@@ -13,14 +13,14 @@ import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
 import scala.actors.Actor
 
-class AMQPConsumer[T](channel: Channel, observer: Actor) extends DefaultConsumer(channel) {
+class AMQPConsumer(channel: Channel, observer: Actor) extends DefaultConsumer(channel) {
   override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
     val contentType = props.contentType
 
     // deserialize
     val in = new ObjectInputStream(new ByteArrayInputStream(body))
     in.readObject match {
-      case content: T =>
+      case content =>
         // send back to interested observers for further relay
         observer ! AMQPMessage(content, props)
     }

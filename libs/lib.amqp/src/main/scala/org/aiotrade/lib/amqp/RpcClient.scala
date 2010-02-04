@@ -47,7 +47,7 @@ import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownSignalException
 import com.rabbitmq.client.impl.MethodArgumentReader;
 import com.rabbitmq.client.impl.MethodArgumentWriter;
-import com.rabbitmq.utility.BlockingCell;import java.util.HashMap
+import com.rabbitmq.utility.BlockingCell;
 
 
 
@@ -66,14 +66,14 @@ import com.rabbitmq.utility.BlockingCell;import java.util.HashMap
 @throws(classOf[IOException])
 class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   /** Map from request correlation ID to continuation BlockingCell */
-  val continuationMap: java.util.Map[String, BlockingCell[Object]] = new HashMap[String, BlockingCell[Object]]
+  val continuationMap: java.util.Map[String, BlockingCell[Object]] = new java.util.HashMap[String, BlockingCell[Object]]
   /** Contains the most recently-used request correlation ID */
   var correlationId = 0
 
   /** The name of our private reply queue */
   val replyQueue = setupReplyQueue
   /** Consumer attached to our reply queue */
-  var consumer: Consumer = setupConsumer
+  val consumer: Consumer = setupConsumer
 
   /**
    * Private API - ensures the RpcClient is correctly open.
@@ -94,7 +94,6 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   def close {
     if (consumer != null) {
       channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag);
-      consumer = null
     }
   }
 
@@ -123,17 +122,16 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
           while (itr.hasNext) {
             itr.next.getValue.set(signal)
           }
-          consumer = null
         }
       }
 
       @throws(classOf[IOException])
       override def handleDelivery(consumerTag: String,
                                   envelope: Envelope,
-                                  properties: AMQP.BasicProperties,
+                                  prop: AMQP.BasicProperties,
                                   body: Array[Byte]) {
         continuationMap synchronized  {
-          val replyId = properties.correlationId
+          val replyId = prop.correlationId
           val blocker = continuationMap.get(replyId)
           continuationMap.remove(replyId)
           blocker.set(body)
@@ -154,35 +152,31 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[ShutdownSignalException])
   def primitiveCall($props: AMQP.BasicProperties, message: Array[Byte]): Array[Byte] = {
     checkConsumer
-    var props = $props
+    val props = if ($props == null) {
+      new AMQP.BasicProperties(null, null, null, null,
+                               null, null,
+                               null, null, null, null,
+                               null, null, null, null)
+    } else $props
     val k = new BlockingCell[Object]
-    continuationMap synchronized  {
+    continuationMap synchronized {
       correlationId += 1
-      val replyId = "" + correlationId;
-      if (props != null) {
-        props.correlationId = replyId
-        props.replyTo = replyQueue
-      } else {
-        props = new AMQP.BasicProperties(null, null, null, null,
-                                         null, replyId,
-                                         replyQueue, null, null, null,
-                                         null, null, null, null)
-      }
+      val replyId = correlationId.toString
+      props.correlationId = replyId
+      props.replyTo = replyQueue
+      
       continuationMap.put(replyId, k)
     }
     publish(props, message)
-    val reply = k.uninterruptibleGet
-    if (reply.isInstanceOf[ShutdownSignalException]) {
-      val sig = reply.asInstanceOf[ShutdownSignalException];
-      val wrapper =
-        new ShutdownSignalException(sig.isHardError,
-                                    sig.isInitiatedByApplication,
-                                    sig.getReason,
-                                    sig.getReference)
-      wrapper.initCause(sig)
-      throw wrapper
-    } else {
-      return reply.asInstanceOf[Array[Byte]]
+    k.uninterruptibleGet match {
+      case sig: ShutdownSignalException =>
+        val wrapper = new ShutdownSignalException(sig.isHardError,
+                                                  sig.isInitiatedByApplication,
+                                                  sig.getReason,
+                                                  sig.getReference)
+        wrapper.initCause(sig)
+        throw wrapper
+      case reply: Array[Byte] => reply
     }
   }
 
@@ -196,7 +190,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def primitiveCall(message: Array[Byte]): Array[Byte] = {
-    return primitiveCall(null, message)
+    primitiveCall(null, message)
   }
 
   /**
@@ -209,7 +203,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def stringCall(message: String): String = {
-    return new String(primitiveCall(message.getBytes()))
+    new String(primitiveCall(message.getBytes))
   }
 
   /**
@@ -232,9 +226,8 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
     writer.writeTable(message)
     writer.flush
     val reply = primitiveCall(buffer.toByteArray)
-    val reader =
-      new MethodArgumentReader(new DataInputStream(new ByteArrayInputStream(reply)))
-    return reader.readTable
+    val reader = new MethodArgumentReader(new DataInputStream(new ByteArrayInputStream(reply)))
+    reader.readTable
   }
 
   /**
@@ -252,13 +245,13 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def mapCall(keyValuePairs: Array[Object]): java.util.Map[String, Object] = {
-    val message = new HashMap[String, Object]
+    val message = new java.util.HashMap[String, Object]
     var i = 0
     while (i < keyValuePairs.length) {
       message.put(keyValuePairs(i).asInstanceOf[String], keyValuePairs(i + 1))
       i += 1
     }
-    return mapCall(message)
+    mapCall(message)
   }
 
 }

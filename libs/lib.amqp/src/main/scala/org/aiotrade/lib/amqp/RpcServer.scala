@@ -44,16 +44,16 @@ import java.io.IOException
  * @param Channel we are communicating on
  * @param Queue to receive requests from
  */
-class RpcServer(val channel: Channel, $queueName: String) {
+class RpcServer(val channel: Channel, $queue: String) {
   /** Boolean controlling the exit from the mainloop. */
   protected var _mainloopRunning = true;
 
-  val queueName = if ($queueName == null || $queueName == "") {
+  val queue = if ($queue == null || $queue == "") {
     channel.queueDeclare.getQueue
-  } else $queueName
+  } else $queue
 
   /** Consumer attached to our request queue */
-  protected var consumer: QueueingConsumer = setupConsumer
+  protected val consumer: QueueingConsumer = setupConsumer
 
   /**
    * Creates an RpcServer listening on a temporary exclusive
@@ -71,8 +71,7 @@ class RpcServer(val channel: Channel, $queueName: String) {
   @throws(classOf[IOException])
   def close {
     if (consumer != null) {
-      channel.basicCancel(consumer.getConsumerTag());
-      consumer = null
+      channel.basicCancel(consumer.getConsumerTag)
     }
     terminateMainloop
   }
@@ -84,16 +83,16 @@ class RpcServer(val channel: Channel, $queueName: String) {
    */
   @throws(classOf[IOException])
   protected def setupConsumer: QueueingConsumer = {
-    val consumer = new QueueingConsumer(channel);
-    channel.basicConsume(queueName, consumer);
-    consumer
+    val consumerx = new QueueingConsumer(channel)
+    channel.basicConsume(queue, consumerx)
+    consumerx
   }
 
   /**
    * Public API - main server loop. Call this to begin processing
    * requests. Request processing will continue until the Channel
    * (or its underlying Connection) is shut down, or until
-   * terminateMainloop() is called.
+   * terminateMainloop) is called.
    *
    * Note that if the mainloop is blocked waiting for a request, the
    * termination flag is not checked until a request is received, so
@@ -139,11 +138,10 @@ class RpcServer(val channel: Channel, $queueName: String) {
   def processRequest(request: QueueingConsumer.Delivery) {
     var requestProps = request.getProperties
     if (requestProps.correlationId != null && requestProps.replyTo != null) {
-      val replyProperties = new AMQP.BasicProperties
-      val replyBody = handleCall(request, replyProperties)
-      replyProperties.correlationId = requestProps.correlationId
-      channel.basicPublish("", requestProps.replyTo,
-                           replyProperties, replyBody)
+      val replyProps = new AMQP.BasicProperties
+      val replyBody = handleCall(request, replyProps)
+      replyProps.correlationId = requestProps.correlationId
+      channel.basicPublish("", requestProps.replyTo,  replyProps, replyBody)
     } else {
       handleCast(request)
     }
@@ -153,20 +151,15 @@ class RpcServer(val channel: Channel, $queueName: String) {
    * Lowest-level response method. Calls
    * handleCall(AMQP.BasicProperties,byte[],AMQP.BasicProperties).
    */
-  def handleCall(request: QueueingConsumer.Delivery,
-                 replyProperties: AMQP.BasicProperties): Array[Byte] = {
-    handleCall(request.getProperties,
-               request.getBody,
-               replyProperties);
+  def handleCall(request: QueueingConsumer.Delivery, replyProps: AMQP.BasicProperties): Array[Byte] = {
+    handleCall(request.getProperties, request.getBody, replyProps)
   }
 
   /**
    * Mid-level response method. Calls
    * handleCall(byte[],AMQP.BasicProperties).
    */
-  def handleCall(requestProperties: AMQP.BasicProperties,
-                 requestBody: Array[Byte],
-                 replyProps: AMQP.BasicProperties): Array[Byte] = {
+  def handleCall(requestProps: AMQP.BasicProperties, requestBody: Array[Byte], replyProps: AMQP.BasicProperties): Array[Byte] = {
     handleCall(requestBody, replyProps)
   }
 
@@ -191,7 +184,7 @@ class RpcServer(val channel: Channel, $queueName: String) {
    * Mid-level handler method. Calls
    * handleCast(byte[]).
    */
-  def handleCast(requestProperties: AMQP.BasicProperties, requestBody: Array[Byte]) {
+  def handleCast(requestProps: AMQP.BasicProperties, requestBody: Array[Byte]) {
     handleCast(requestBody)
   }
 
