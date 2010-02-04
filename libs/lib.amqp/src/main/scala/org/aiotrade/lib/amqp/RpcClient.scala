@@ -32,12 +32,12 @@
 package org.aiotrade.lib.amqp
 
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.EOFException
+import java.io.IOException
 
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
@@ -45,9 +45,9 @@ import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownSignalException
-import com.rabbitmq.client.impl.MethodArgumentReader;
-import com.rabbitmq.client.impl.MethodArgumentWriter;
-import com.rabbitmq.utility.BlockingCell;
+import com.rabbitmq.client.impl.MethodArgumentReader
+import com.rabbitmq.client.impl.MethodArgumentWriter
+import com.rabbitmq.utility.BlockingCell
 
 
 
@@ -82,7 +82,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   def checkConsumer {
     if (consumer == null) {
-      throw new EOFException("RpcClient is closed");
+      throw new EOFException("RpcClient is closed")
     }
   }
 
@@ -93,7 +93,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   def close {
     if (consumer != null) {
-      channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag);
+      channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag)
     }
   }
 
@@ -126,10 +126,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
       }
 
       @throws(classOf[IOException])
-      override def handleDelivery(consumerTag: String,
-                                  envelope: Envelope,
-                                  prop: AMQP.BasicProperties,
-                                  body: Array[Byte]) {
+      override def handleDelivery(consumerTag: String, env: Envelope, prop: AMQP.BasicProperties, body: Array[Byte]) {
         continuationMap synchronized  {
           val replyId = prop.correlationId
           val blocker = continuationMap.get(replyId)
