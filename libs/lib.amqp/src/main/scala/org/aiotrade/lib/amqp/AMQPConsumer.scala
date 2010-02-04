@@ -13,10 +13,7 @@ import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
 import scala.actors.Actor
 
-class AMQPConsumer[T](channel: Channel, observer: Actor, noAck: Boolean) extends DefaultConsumer(channel) {
-
-  def this(channel: Channel, observer: Actor) = this(channel, observer, false)
-
+class AMQPConsumer[T](channel: Channel, observer: Actor) extends DefaultConsumer(channel) {
   override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
     val contentType = props.contentType
 
@@ -24,12 +21,13 @@ class AMQPConsumer[T](channel: Channel, observer: Actor, noAck: Boolean) extends
     val in = new ObjectInputStream(new ByteArrayInputStream(body))
     in.readObject match {
       case content: T =>
-        // send back for further relay to interested observers
+        // send back to interested observers for further relay
         observer ! AMQPMessage(content, props)
     }
 
-    if (!noAck) {
-      channel.basicAck(env.getDeliveryTag, false)
-    }
+    // if noAck is set false, messages will be blocked until an ack to broker, 
+    // so it's better always ack it. (Although prefetch may deliver more than
+    // one message to consumer)
+    channel.basicAck(env.getDeliveryTag, false)
   }
 }
