@@ -4,8 +4,11 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
+import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
+import java.util.logging.Logger
+import java.util.logging.Level
 import scala.actors.Actor
 
 /**
@@ -55,18 +58,21 @@ case object AMQPStop
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int) extends Actor {
+abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor {
+  private val log = Logger.getLogger(this.getClass.getName)
 
-  private val reconnectTimer = new Timer("AMQPReconnectTimer")
+  private lazy val reconnectTimer = new Timer("AMQPReconnectTimer")
   private var as: List[Actor] = Nil
 
-  var (conn, channel) = connect
+  var conn: Connection = _
+  var channel: Channel = _
 
-  private def connect: (Connection, Channel) = {
-    val conn = cf.newConnection(host, port)
-    val channel = conn.createChannel
+  connect
+
+  private def connect {
+    conn = cf.newConnection(host, port)
+    channel = conn.createChannel
     configure(channel)
-    (conn, channel)
   }
 
   /**
@@ -81,25 +87,43 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int) ex
           as foreach (_ ! msg)
         case AMQPAddListener(a) =>
           as ::= a
-        case AMQPReconnect(delay: Long) =>
-          try {
-            val (connx, channelx) = connect
-            conn = connx
-            channel = channelx
-            println("AMQPDispatcher: Successfully reconnected to AMQP Server")
-          } catch {
-            // Attempts to reconnect again using geometric back-off.
-            case e: Exception => {
-                val amqp = this
-                println("AMQPDispatcher: Will attempt reconnect again in " + (delay * 2) + "ms.")
-                reconnectTimer.schedule(new TimerTask {
-                    def run {
-                      amqp ! AMQPReconnect(delay * 2)
-                    }}, delay)
-              }
-          }
-        case AMQPStop => conn.close; exit
+        case AMQPReconnect(delay) => reconnect(delay)
+        case AMQPStop => disconnect; exit
       }
+    }
+  }
+
+  protected def disconnect = {
+    try {
+      channel.close
+    } catch {
+      case e: IOException => log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(host, port, this))
+      case _ => ()
+    }
+    try {
+      conn.close
+      log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(host, port, this))
+    } catch {
+      case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(host, port, this))
+      case _ => ()
+    }
+  }
+
+  protected def reconnect(delay: Long) = {
+    disconnect
+    try {
+      connect
+      log.log(Level.FINEST, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(host, port, this))
+    } catch {
+      case e: Exception =>
+        val waitInMillis = delay * 2
+        val self = this
+        log.log(Level.FINEST, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
+        reconnectTimer.schedule(new TimerTask {
+            def run {
+              self ! AMQPReconnect(waitInMillis)
+            }
+          }, delay)
     }
   }
 
