@@ -60,6 +60,7 @@ object Ticker {
 }
 
 import Ticker._
+@serializable
 @cloneable
 class Ticker(val depth: Int) extends TVal {
   final protected var isChanged: Boolean = _

@@ -38,6 +38,7 @@ import org.aiotrade.lib.math.timeseries.TVal
  *
  * @author Caoyuan Deng
  */
+@serializable
 class Quote extends TVal {
     
   private val OPEN      = 0
