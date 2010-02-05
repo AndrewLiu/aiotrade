@@ -4,7 +4,11 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.Consumer
+import com.rabbitmq.client.DefaultConsumer
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.ObjectOutputStream
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
@@ -33,13 +37,15 @@ import scala.actors.Actor
  */
 
 /**
- * @param message A deserialized value received via AMQP.
- * @param routingKey
+ * @param content A deserialized value received via AMQP.
+ * @param props
  *
  * Messages received from AMQP are wrapped in this case class. When you
  * register a listener, this is the case class that you will be matching on.
  */
-case class AMQPMessage(message: Any, props: AMQP.BasicProperties)
+case class AMQPMessage(content: Any, props: AMQP.BasicProperties)
+
+case class AMQPPublish(content: Any, routingKey: String, props: AMQP.BasicProperties)
 
 /**
  * @param a The actor to add as a Listener to this Dispatcher.
@@ -59,26 +65,34 @@ case object AMQPStop
  * messages coming in to the queue/exchange to the list of observers.
  */
 abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor {
+  case class State(conn: Connection, channel: Channel, queue: String, consumer: Consumer)
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   private lazy val reconnectTimer = new Timer("AMQPReconnectTimer")
   private var as: List[Actor] = Nil
 
-  var conn: Connection = _
-  var channel: Channel = _
+  private var state = connect
 
-  connect
+  private def conn = state.conn
+  def channel = state.channel
+  def queue = state.queue
+  def consumer = state.consumer
 
-  private def connect {
-    conn = cf.newConnection(host, port)
-    channel = conn.createChannel
-    configure(channel)
+  private def connect: State = {
+    val conn = cf.newConnection(host, port)
+    val channel = conn.createChannel
+    val (queue, consumer) = configure(channel)
+    State(conn, channel, queue, consumer)
   }
 
   /**
-   * Override this to configure the Channel and Consumer.
+   * Registers queue and consumer.
+   * @throws IOException if an error is encountered
+   * @return the newly created and registered (queue, consumer)
    */
-  def configure(channel: Channel)
+  @throws(classOf[IOException])
+  protected def configure(channel: Channel): (String, Consumer)
 
   def act {
     Actor.loop {
@@ -87,13 +101,29 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
           as foreach (_ ! msg)
         case AMQPAddListener(a) =>
           as ::= a
+        case AMQPPublish(content, routingKey, props) => publish(content, routingKey, props)
         case AMQPReconnect(delay) => reconnect(delay)
         case AMQPStop => disconnect; exit
       }
     }
   }
 
+  protected def publish(content: Any, routingKey: String, props: AMQP.BasicProperties) {
+    val bytes = new ByteArrayOutputStream
+    val store = new ObjectOutputStream(bytes)
+    store.writeObject(content)
+    store.close
+
+    val body = bytes.toByteArray
+
+    channel.basicPublish(exchange, routingKey, props, body)
+    //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+  }
+
   protected def disconnect = {
+    if (consumer != null) {
+      channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag)
+    }
     try {
       channel.close
     } catch {
