@@ -36,6 +36,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.IOException
+import scala.annotation.tailrec
 
 
 /**
@@ -46,14 +47,14 @@ import java.io.IOException
  */
 class RpcServer(val channel: Channel, $queue: String) {
   /** Boolean controlling the exit from the mainloop. */
-  protected var _mainloopRunning = true;
+  protected var mainloopRunning = true
 
   val queue = if ($queue == null || $queue == "") {
     channel.queueDeclare.getQueue
   } else $queue
 
   /** Consumer attached to our request queue */
-  protected val consumer: QueueingConsumer = setupConsumer
+  protected var consumer: QueueingConsumer = setupConsumer
 
   /**
    * Creates an RpcServer listening on a temporary exclusive
@@ -72,6 +73,7 @@ class RpcServer(val channel: Channel, $queue: String) {
   def close {
     if (consumer != null) {
       channel.basicCancel(consumer.getConsumerTag)
+      consumer = null
     }
     terminateMainloop
   }
@@ -103,14 +105,15 @@ class RpcServer(val channel: Channel, $queue: String) {
    */
   @throws(classOf[IOException])
   def mainloop: ShutdownSignalException = {
+    @tailrec
     def loop: ShutdownSignalException = {
-      if (!_mainloopRunning) return null
+      if (!mainloopRunning) return null
       var request: QueueingConsumer.Delivery = null
       try {
         request = consumer.nextDelivery
       } catch {case ex: InterruptedException => loop}
       processRequest(request)
-      channel.basicAck(request.getEnvelope().getDeliveryTag(), false)
+      channel.basicAck(request.getEnvelope.getDeliveryTag, false)
       loop
     }
     
@@ -128,7 +131,7 @@ class RpcServer(val channel: Channel, $queue: String) {
    * handler.
    */
   def terminateMainloop {
-    _mainloopRunning = false
+    mainloopRunning = false
   }
 
   /**

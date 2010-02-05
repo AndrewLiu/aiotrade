@@ -73,7 +73,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   /** The name of our private reply queue */
   val replyQueue = setupReplyQueue
   /** Consumer attached to our reply queue */
-  val consumer: Consumer = setupConsumer
+  var consumer: Consumer = setupConsumer
 
   /**
    * Private API - ensures the RpcClient is correctly open.
@@ -94,6 +94,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
   def close {
     if (consumer != null) {
       channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag)
+      consumer = null
     }
   }
 
@@ -122,6 +123,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
           while (itr.hasNext) {
             itr.next.getValue.set(signal)
           }
+          consumer = null
         }
       }
 
