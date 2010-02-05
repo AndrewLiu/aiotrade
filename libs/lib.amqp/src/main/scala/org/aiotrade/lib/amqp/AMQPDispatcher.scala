@@ -6,8 +6,11 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.DefaultConsumer
+import com.rabbitmq.client.Envelope
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.util.Timer
 import java.util.TimerTask
@@ -65,7 +68,7 @@ case object AMQPStop
  * messages coming in to the queue/exchange to the list of observers.
  */
 abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor {
-  case class State(conn: Connection, channel: Channel, queue: String, consumer: Consumer)
+  case class State(conn: Connection, channel: Channel, consumer: Consumer)
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -73,17 +76,15 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
   private var as: List[Actor] = Nil
 
   private var state = connect
-
-  private def conn = state.conn
-  def channel = state.channel
-  def queue = state.queue
-  def consumer = state.consumer
+  protected def conn = state.conn
+  protected def channel = state.channel
+  protected def consumer = state.consumer
 
   private def connect: State = {
     val conn = cf.newConnection(host, port)
     val channel = conn.createChannel
-    val (queue, consumer) = configure(channel)
-    State(conn, channel, queue, consumer)
+    val consumer = configure(channel)
+    State(conn, channel, consumer)
   }
 
   /**
@@ -92,7 +93,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
    * @return the newly created and registered (queue, consumer)
    */
   @throws(classOf[IOException])
-  protected def configure(channel: Channel): (String, Consumer)
+  protected def configure(channel: Channel): Consumer
 
   def act {
     Actor.loop {
@@ -108,7 +109,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     }
   }
 
-  protected def publish(content: Any, routingKey: String, props: AMQP.BasicProperties) {
+  protected def publish(exchange: String, content: Any, routingKey: String, props: AMQP.BasicProperties) {
     val bytes = new ByteArrayOutputStream
     val store = new ObjectOutputStream(bytes)
     store.writeObject(content)
@@ -116,8 +117,12 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
 
     val body = bytes.toByteArray
 
-    channel.basicPublish(exchange, routingKey, props, body)
     //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+    channel.basicPublish(exchange, routingKey, props, body)
+  }
+
+  protected def publish(content: Any, routingKey: String, props: AMQP.BasicProperties) {
+    publish(exchange, content, routingKey, props)
   }
 
   protected def disconnect = {
@@ -157,8 +162,23 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     }
   }
 
+  class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
+    override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
+      val contentType = props.contentType
+
+      // deserialize
+      val in = new ObjectInputStream(new ByteArrayInputStream(body))
+      in.readObject match {
+        case content =>
+          // send back to interested observers for further relay
+          val msg = AMQPMessage(content, props)
+          as foreach (_ ! msg)
+      }
+
+      // if noAck is set false, messages will be blocked until an ack to broker,
+      // so it's better always ack it. (Although prefetch may deliver more than
+      // one message to consumer)
+      channel.basicAck(env.getDeliveryTag, false)
+    }
+  }
 }
-
-
-
-
