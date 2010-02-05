@@ -47,8 +47,6 @@ import scala.actors.Actor
  */
 class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String, $queue: String
 ) extends AMQPDispatcher(cf, host, port, exchange) {
-  /** Boolean controlling the exit from the mainloop. */
-  protected var mainloopRunning = true
 
   /**
    * Creates an RpcServer listening on a temporary exclusive

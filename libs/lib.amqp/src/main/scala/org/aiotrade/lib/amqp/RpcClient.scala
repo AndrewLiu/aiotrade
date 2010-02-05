@@ -36,11 +36,9 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.ShutdownSignalException
-import com.rabbitmq.utility.BlockingCell
 import java.io.EOFException
 import java.io.IOException
 import scala.actors.Actor
-import scala.collection.mutable.HashMap
 
 /**
  * Convenience class which manages a temporary reply queue for simple RPC-style communication.
@@ -59,8 +57,6 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
 } with AMQPDispatcher(cf, host, port, exchange) {
-  /** Map from request correlation ID to continuation BlockingCell */
-  val replyIdToBlocker = new HashMap[String, BlockingCell[Object]]
   /** Contains the most recently-used request correlation ID */
   var correlationId = 0
 
@@ -110,15 +106,11 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
                                null, null, null, null,
                                null, null, null, null)
     } else $props
-    val k = new BlockingCell[Object]
-    replyIdToBlocker synchronized {
-      correlationId += 1
-      val replyId = correlationId.toString
-      props.correlationId = replyId
-      props.replyTo = replyQueue
 
-      replyIdToBlocker(replyId) = k
-    }
+    correlationId += 1
+    val replyId = correlationId.toString
+    props.correlationId = replyId
+    props.replyTo = replyQueue
 
     publish(content, routingKey: String, props: AMQP.BasicProperties)
   }
