@@ -37,6 +37,7 @@ import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.securities.{Exchange}
 import org.aiotrade.lib.securities.dataserver.{TickerServer}
+import scala.annotation.tailrec
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -129,6 +130,8 @@ class YahooTickerServer extends TickerServer {
     resetCount
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
+
+    @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
       case line => line.split(",") match {

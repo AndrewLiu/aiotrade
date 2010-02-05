@@ -40,6 +40,7 @@ import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.{Exchange, Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
+import scala.annotation.tailrec
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -166,6 +167,8 @@ class YahooQuoteServer extends QuoteServer {
     // * for daily quote, yahoo returns exchange's local date, so use exchange time zone
     val cal = Calendar.getInstance(timeZone)
     val dateFormat = dateFormatOf(timeZone)
+    
+    @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break now
       case line => line.split(",") match {
