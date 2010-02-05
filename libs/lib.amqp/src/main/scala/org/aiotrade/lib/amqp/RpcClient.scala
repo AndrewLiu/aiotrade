@@ -31,23 +31,21 @@
 
 package org.aiotrade.lib.amqp
 
-
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.EOFException
-import java.io.IOException
-
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownSignalException
-import com.rabbitmq.client.impl.MethodArgumentReader
-import com.rabbitmq.client.impl.MethodArgumentWriter
 import com.rabbitmq.utility.BlockingCell
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.EOFException
+import java.io.IOException
+import org.aiotrade.lib.amqp.impl.MethodArgumentReader
+import org.aiotrade.lib.amqp.impl.MethodArgumentWriter
 
 
 
@@ -219,7 +217,7 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def mapCall(message: java.util.Map[String, Object]): java.util.Map[String, Object] = {
+  def mapCall(message: Map[String, _]): Map[String, _] = {
     val buffer = new ByteArrayOutputStream
     val writer = new MethodArgumentWriter(new DataOutputStream(buffer))
     writer.writeTable(message)
@@ -243,11 +241,11 @@ class RpcClient(channel: Channel, exchange: String, routingKey: String) {
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def mapCall(keyValuePairs: Array[Object]): java.util.Map[String, Object] = {
-    val message = new java.util.HashMap[String, Object]
+  def mapCall(keyValuePairs: Array[_]): Map[String, _] = {
+    val message = Map[String, Any]()
     var i = 0
     while (i < keyValuePairs.length) {
-      message.put(keyValuePairs(i).asInstanceOf[String], keyValuePairs(i + 1))
+      message(keyValuePairs(i).asInstanceOf[String]) = keyValuePairs(i + 1)
       i += 1
     }
     mapCall(message)
