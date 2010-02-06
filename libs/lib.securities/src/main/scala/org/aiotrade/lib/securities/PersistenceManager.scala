@@ -50,5 +50,8 @@ trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long)
   def dropAllQuoteTables(symbol: String)
 
+  def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long)
+  def deleteRealTimeTickers
+
   def shutdown
 }

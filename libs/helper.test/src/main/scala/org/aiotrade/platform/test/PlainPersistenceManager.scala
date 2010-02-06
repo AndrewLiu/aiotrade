@@ -11,6 +11,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.Quote
+import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.indicator.Indicator
@@ -50,6 +51,8 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = Array[Quote]()
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {}
   def dropAllQuoteTables(symbol: String) {}
+  def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long) {}
+  def deleteRealTimeTickers {}
 
   def shutdown {}
 

@@ -67,6 +67,11 @@ import scala.collection.mutable.ArrayBuffer
  * This class implements persistence via NetBeans Node system
  * Actually it will be an application context
  *
+ * For h2 db connect:
+ * user: dbuser
+ * password: dbuserpwd
+ * jdbc:h2:~/myprjs/aiotrade.sf/opensource/suite/application/target/userdir/db/aiotrade
+ *
  * @author Caoyuan Deng
  */
 object NetBeansPersistenceManager {
@@ -370,7 +375,9 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
     /** test if database exists, if not, create it: */
     /** derby special properties */
-    dbProp.put("create", "true")
+    if (dbDriver.contains("derby")) {
+      dbProp.put("create", "true")
+    }
 
     val conn = try {
       DriverManager.getConnection(dbUrl, dbProp)
@@ -450,20 +457,26 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         val stmt = conn.createStatement
 
-        val stmtCreatTableStr_derby = 
-          "CREATE TABLE " + SYMBOL_INDEX_TABLE_NAME + " (" + "qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, qsymbol CHAR(30) not null, qtablename CHAR(60), qfreq CHAR(10))"
+        val stmtCreatTableStr_derby = "CREATE TABLE " + SYMBOL_INDEX_TABLE_NAME + " (" + 
+        "qid        INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+        "qsymbol    CHAR(30) NOT NULL, " +
+        "qtablename CHAR(60), " +
+        "qfreq      CHAR(10))"
 
-        val stmtCreatTableStr_h2_hsqldb = 
-          "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, qsymbol CHAR(30) not null, qtablename CHAR(60), qfreq CHAR(10))"
+        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + "(" +
+        "qid        INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+        "qsymbol    CHAR(30) NOT NULL, " +
+        "qtablename CHAR(60), " +
+        "qfreq      CHAR(10))"
 
         var stmtStr = if (dbDriver.contains("derby")) stmtCreatTableStr_derby else stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_" + SYMBOL_INDEX_TABLE_NAME + "_qsymbol ON " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol)"
+        stmtStr = "CREATE INDEX idx_qsymbol ON " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_" + SYMBOL_INDEX_TABLE_NAME + "_qfreq ON " + SYMBOL_INDEX_TABLE_NAME + " (qfreq)"
+        stmtStr = "CREATE INDEX idx_qfreq ON " + SYMBOL_INDEX_TABLE_NAME + " (qfreq)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
@@ -553,10 +566,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_" + table + "_qtime ON " + table + " (qtime)"
+        stmtStr = "CREATE INDEX idx_qtime ON " + table + " (qtime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_" + table + "_qsourceid ON " + table + " (qsourceid)"
+        stmtStr = "CREATE INDEX idx_qsourceid ON " + table + " (qsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
@@ -771,24 +784,24 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_" + tickerTable + "_ttime ON " + tickerTable + " (ttime)"
+        stmtStr = "CREATE INDEX idx_ttime ON " + tickerTable + " (ttime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_" + tickerTable + "_tsymbol ON " + tickerTable + " (tsymbol)"
+        stmtStr = "CREATE INDEX idx_tsymbol ON " + tickerTable + " (tsymbol)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_" + tickerTable + "_tsourceid ON " + tickerTable + " (tsourceid)"
+        stmtStr = "CREATE INDEX idx_tsourceid ON " + tickerTable + " (tsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further, 'ttime' will also present last ticker timestamp */
-        stmtStr = "INSERT INTO " + tickerTable + " (ttime, tsymbol) VALUES (" + TABLE_EXISTS_MARK + "," + TICKER_TABLE_EXISTS_MARK +  ")"
+        stmtStr = "INSERT INTO " + tickerTable + " (ttime, tsymbol) VALUES (" + TABLE_EXISTS_MARK + ", '" + TICKER_TABLE_EXISTS_MARK + "')"
         stmt.executeUpdate(stmtStr)
 
         // --- depth table
         val depthTable = "realtime_depth"
         val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTable + "(" +
         "did        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "tid        BIGINT  NOT NULL, " +
+        "tid        INTEGER NOT NULL, " +
         "dlevel     SMALLINT, " +
         "ddirection SMALLINT, " + // bid = -1, ask = 1
         "dprice     FLOAT, " +
@@ -797,7 +810,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTable + "(" +
         "did        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "tid        BIGINT  NOT NULL, " +
+        "tid        INTEGER NOT NULL, " +
         "dlevel     SMALLINT, " +
         "ddirection SMALLINT, " + // bid = -1, ask = 1
         "dprice     FLOAT, " +
@@ -805,6 +818,9 @@ class NetBeansPersistenceManager extends PersistenceManager {
         "dopid      CHAR(30))"
 
         stmtStr = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
+        stmt.executeUpdate(stmtStr)
+
+        stmtStr = "CREATE INDEX idx_tid ON " + depthTable + " (tid)"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
@@ -822,7 +838,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         val stmt = conn.createStatement
 
         val table = "realtime_ticker"
-        val existsTestStr = "SELECT * FROM " + table + " WHERE tsymbol = " + TICKER_TABLE_EXISTS_MARK
+        val existsTestStr = "SELECT * FROM " + table + " WHERE tsymbol = '" + TICKER_TABLE_EXISTS_MARK + "'"
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {

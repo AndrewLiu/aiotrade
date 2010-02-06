@@ -34,7 +34,7 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot}
+import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot, PersistenceManager}
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
@@ -114,6 +114,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
 
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
+      PersistenceManager().saveRealTimeTickers(storage, sourceId)
+
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
