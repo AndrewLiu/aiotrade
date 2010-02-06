@@ -110,7 +110,7 @@ class Ticker(val depth: Int) extends TVal {
 
   @inline private def updateDepthValue(depthValues: Array[Float], idx: Int, v: Float) {
     isChanged = depthValues(idx) != v
-    depthValues(idx) == v
+    depthValues(idx) = v
   }
 
   final def reset: Unit =  {
@@ -133,7 +133,7 @@ class Ticker(val depth: Int) extends TVal {
   }
 
   def copyFrom(another: Ticker): Unit = {
-    this.time = another.time
+    this.time   = another.time
     this.symbol = another.symbol
     System.arraycopy(another.values,    0, values,    0, values.length)
     System.arraycopy(another.bidPrices, 0, bidPrices, 0, depth)

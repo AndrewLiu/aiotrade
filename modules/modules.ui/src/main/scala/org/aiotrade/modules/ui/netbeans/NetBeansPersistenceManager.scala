@@ -673,7 +673,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     if (conn != null) {
       try {
         val tb = propTableName(symbol, freq)
-        val stmtStr = "DELETE FROM " + tb + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
+        val stmtStr = "DELETE FROM " + tb + " WHERE qid != 1 AND qtime BETWEEN ? AND ? "
 
         val stmt = conn.prepareStatement(stmtStr)
 
@@ -890,7 +890,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       val depthTb  = "realtime_depth"
 
       val stmtStr1 =  "INSERT INTO " + tickerTb +
-      " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmtStr2 =  "INSERT INTO " + depthTb +
       " (tid, dlevel, ddirection, dprice, dsize, dopid) VALUES (?, ?, ?, ?, ?, ?)"
@@ -904,10 +904,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt1 setFloat  (4, ticker.lastPrice)
         stmt1 setFloat  (5, ticker.dayOpen)
         stmt1 setFloat  (6, ticker.dayHigh)
-        stmt1 setFloat  (7, ticker.dayVolume)
-        stmt1 setFloat  (8, ticker.dayAmount)
-        stmt1 setFloat  (9, ticker.dayChange)
-        stmt1 setLong   (10, sourceId)
+        stmt1 setFloat  (7, ticker.dayLow)
+        stmt1 setFloat  (8, ticker.dayVolume)
+        stmt1 setFloat  (9, ticker.dayAmount)
+        stmt1 setFloat  (10, ticker.dayChange)
+        stmt1 setLong   (11, sourceId)
 
         stmt1.execute
         val keys = stmt1.getGeneratedKeys
@@ -969,7 +970,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         while (rs.next) {
           val symbol = rs.getString("tsymbol")
           if (ticker == null || ticker.symbol != symbol) {
-            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid)
+            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
             ticker = new Ticker
             ticker.symbol    = symbol
             ticker.time      = rs getLong  ("ttime")
@@ -1030,7 +1031,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         while (rs.next) {
           val symbol = rs.getString("tsymbol")
           if (ticker == null || ticker.symbol != symbol) {
-            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid)
+            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
             ticker = new Ticker
             ticker.symbol    = symbol
             ticker.time      = rs getLong  ("ttime")

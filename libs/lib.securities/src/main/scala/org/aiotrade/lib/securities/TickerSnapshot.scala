@@ -51,13 +51,17 @@ class TickerSnapshot extends Ticker with ChangeSubject {
   }
 
   override def notifyChanged[T <: ChangeObserver](observerType: Class[T]) {
-    super.notifyChanged(observerType)
-    isChanged = false
+    if (isChanged) {
+      super.notifyChanged(observerType)
+      isChanged = false
+    }
   }
 
   override def notifyChanged {
-    super.notifyChanged
-    isChanged = false
+    if (isChanged) {
+      super.notifyChanged
+      isChanged = false
+    }
   }
 
   def hasChanged: Boolean = {
