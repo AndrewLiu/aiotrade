@@ -34,17 +34,20 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
+import org.aiotrade.lib.securities.Exchange.ExchangeClosed
+import org.aiotrade.lib.securities.Exchange.ExchangeOpened
 import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot, PersistenceManager}
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
+import scala.swing.Reactor
 
 /** This class will load the quote datas from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
  *
  * @author Caoyuan Deng
  */
-abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with ChangeObserver {
+abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with ChangeObserver with Reactor {
 
   private val logger = Logger.getLogger(this.getClass.getName)
     
@@ -67,6 +70,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     case Refreshed(loadedTime) =>
       postRefresh
   }
+
+  reactions += {
+    case ExchangeOpened(exchange: Exchange) =>
+    case ExchangeClosed(exchange: Exchange) =>
+  }
+
+  listenTo(Exchange)
 
   def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
     symbolToTickerSnapshot.get(symbol)

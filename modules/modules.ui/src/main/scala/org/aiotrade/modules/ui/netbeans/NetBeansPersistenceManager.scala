@@ -890,7 +890,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       val depthTb  = "realtime_depth"
 
       val stmtStr1 =  "INSERT INTO " + tickerTb +
-      " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmtStr2 =  "INSERT INTO " + depthTb +
       " (tid, dlevel, ddirection, dprice, dsize, dopid) VALUES (?, ?, ?, ?, ?, ?)"

@@ -35,7 +35,10 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.math.timeseries.{TSer}
+import org.aiotrade.lib.securities.Exchange.ExchangeClosed
+import org.aiotrade.lib.securities.Exchange.ExchangeOpened
 import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager}
+import scala.swing.Reactor
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -43,7 +46,7 @@ import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager}
  *
  * @author Caoyuan Deng
  */
-abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
+abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with Reactor {
 
   actorActions += {
     case Loaded(loadedTime) =>
@@ -51,6 +54,13 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] {
     case Refreshed(loadedTime) =>
       postRefresh
   }
+
+  reactions += {
+    case ExchangeOpened(exchange: Exchange) =>
+    case ExchangeClosed(exchange: Exchange) =>
+  }
+
+  listenTo(Exchange)
 
   protected def loadFromPersistence: Long = {
     var loadedTime1 = loadedTime

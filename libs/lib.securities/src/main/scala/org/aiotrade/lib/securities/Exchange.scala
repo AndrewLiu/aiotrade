@@ -1,18 +1,20 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.aiotrade.lib.securities
 
-import java.util.{Calendar,TimeZone, ResourceBundle}
+import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.immutable.TreeMap
+import scala.swing.Publisher
+import scala.swing.event.Event
 
 /**
  *
  * @author dcaoyuan
  */
-object Exchange {
+object Exchange extends Publisher {
+  case class ExchangeOpened(exchange: Exchange) extends Event
+  case class ExchangeClosed(exchange: Exchange) extends Event
+
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.Bundle")
+  private val ONE_DAY = 24 * 60 * 60 * 1000
 
   val N   = new Exchange("N",  TimeZone.getTimeZone("America/New_York"), 9, 30, 16, 00)  // New York
   val SS  = new Exchange("SS", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shanghai
@@ -244,6 +246,27 @@ object Exchange {
     "600073" -> "上海梅林"
   )
 
+  private val timer = new Timer
+  for (exchange <- allExchanges) {
+    val preOpen = exchange.open
+    preOpen.add(Calendar.MINUTE, -15)
+    timer.schedule(new TimerTask {
+        def run {
+          // @todo process vacation here
+          publish(ExchangeOpened(exchange))
+        }
+      }, preOpen.getTime, ONE_DAY)
+
+    val postClose = exchange.close
+    postClose.add(Calendar.MINUTE, +15)
+    timer.schedule(new TimerTask {
+        def run {
+          // @todo process vacation here
+          publish(ExchangeClosed(exchange))
+        }
+      }, postClose.getTime, ONE_DAY)
+  }
+
 }
 
 import Exchange._
@@ -259,6 +282,21 @@ class Exchange(val code: String, val timeZone: TimeZone, openHour: Int, openMin:
   def this(openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
     this("NYSE", TimeZone.getTimeZone("UTC"), openHour, openMin, closeHour, closeMin)
   }
+
+  def open: Calendar = {
+    val cal = Calendar.getInstance(timeZone)
+    cal.set(Calendar.HOUR_OF_DAY, openHour)
+    cal.set(Calendar.MINUTE, openMin)
+    cal
+  }
+
+  def close: Calendar = {
+    val cal = Calendar.getInstance(timeZone)
+    cal.set(Calendar.HOUR_OF_DAY, closeHour)
+    cal.set(Calendar.MINUTE, closeMin)
+    cal
+  }
+
 
   def openTime(time: Long): Long = {
     val cal = Calendar.getInstance(timeZone)
