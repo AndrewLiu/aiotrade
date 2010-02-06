@@ -51,6 +51,8 @@ trait PersistenceManager extends org.aiotrade.lib.math.PersistenceManager {
   def dropAllQuoteTables(symbol: String)
 
   def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long)
+  def restoreTickers(symbol: String): Array[Ticker]
+  def restoreRealTimeTickersOverview: Array[Ticker]
   def deleteRealTimeTickers
 
   def shutdown

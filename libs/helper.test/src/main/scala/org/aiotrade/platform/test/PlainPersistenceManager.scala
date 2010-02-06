@@ -51,7 +51,10 @@ class PlainPersistenceManager extends PersistenceManager {
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = Array[Quote]()
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {}
   def dropAllQuoteTables(symbol: String) {}
+
   def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long) {}
+  def restoreTickers(symbol: String): Array[Ticker] = Array[Ticker]()
+  def restoreRealTimeTickersOverview: Array[Ticker] = Array[Ticker]()
   def deleteRealTimeTickers {}
 
   def shutdown {}

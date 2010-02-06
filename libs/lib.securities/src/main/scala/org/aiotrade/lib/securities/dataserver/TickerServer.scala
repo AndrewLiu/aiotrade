@@ -132,6 +132,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
   protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
+      PersistenceManager().saveRealTimeTickers(storage, sourceId)
+      
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))

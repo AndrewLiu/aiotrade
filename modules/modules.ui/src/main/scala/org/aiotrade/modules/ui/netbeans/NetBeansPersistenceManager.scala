@@ -501,8 +501,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         val stmt = conn.createStatement
 
-        val table = propTableName(symbol, freq)
-        val existsTestStr = "SELECT * FROM " + table + " WHERE qtime = " + TABLE_EXISTS_MARK
+        val tb = propTableName(symbol, freq)
+        val existsTestStr = "SELECT * FROM " + tb + " WHERE qtime = " + TABLE_EXISTS_MARK
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {
@@ -533,8 +533,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
          * result, multi-column primary keys are not possible with an
          * IDENTITY column present)
          */
-        val table = propTableName(symbol, freq)
-        val stmtCreatTableStr_derby = "CREATE TABLE " + table + "(" +
+        val tb = propTableName(symbol, freq)
+        val stmtCreatTableStr_derby = "CREATE TABLE " + tb + "(" +
         "qid        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
         "qtime      BIGINT  NOT NULL, " +
         "qopen      FLOAT, " +
@@ -548,7 +548,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         "qhasgaps   SMALLINT, " +
         "qsourceid  BIGINT)"
 
-        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + table + "(" +
+        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tb + "(" +
         "qid        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
         "qtime      BIGINT  NOT NULL, " +
         "qopen      FLOAT, " +
@@ -566,18 +566,18 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_qtime ON " + table + " (qtime)"
+        stmtStr = "CREATE INDEX idx_qtime ON " + tb + " (qtime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_qsourceid ON " + table + " (qsourceid)"
+        stmtStr = "CREATE INDEX idx_qsourceid ON " + tb + " (qsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
-        stmtStr = "INSERT INTO " + table + " (qtime) VALUES (" + TABLE_EXISTS_MARK + ")"
+        stmtStr = "INSERT INTO " + tb + " (qtime) VALUES (" + TABLE_EXISTS_MARK + ")"
         stmt.executeUpdate(stmtStr)
 
         /** insert a symbol index record into symbol index table */
-        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + table + "', '" + freq.toString + "')"
+        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + tb + "', '" + freq.toString + "')"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
@@ -599,8 +599,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
 
     try {
-      val table = propTableName(symbol, freq)
-      val stmtStr =  "INSERT INTO " + table  +
+      val tb = propTableName(symbol, freq)
+      val stmtStr =  "INSERT INTO " + tb  +
       " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qvwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmt = conn.prepareStatement(stmtStr)
@@ -628,16 +628,16 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = {
-    val quotes = ArrayBuffer[Quote]()
+    val quotes = new ArrayBuffer[Quote]
 
     val conn = quoteTableExists(symbol, freq)
     if (conn != null) {
       try {
-        val table = propTableName(symbol, freq)
-        val strStmt = "SELECT * FROM " + table + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
+        val tb = propTableName(symbol, freq)
+        val stmtStr = "SELECT * FROM " + tb + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
 
         val stmt = conn.createStatement
-        val rs = stmt.executeQuery(strStmt)
+        val rs = stmt.executeQuery(stmtStr)
         while (rs.next) {
           val quote = new Quote
 
@@ -672,10 +672,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
     val conn = quoteTableExists(symbol, freq)
     if (conn != null) {
       try {
-        val table = propTableName(symbol, freq)
-        val strStmt = "DELETE FROM " + table + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
+        val tb = propTableName(symbol, freq)
+        val stmtStr = "DELETE FROM " + tb + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
 
-        val stmt = conn.prepareStatement(strStmt)
+        val stmt = conn.prepareStatement(stmtStr)
 
         stmt.setLong(1, fromTime)
         stmt.setLong(2, toTime)
@@ -686,7 +686,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
         conn.close
 
-        WIN_MAN.setStatusText("Delete data of " + table + " successfully.")
+        WIN_MAN.setStatusText("Delete data of " + tb + " successfully.")
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -697,10 +697,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         var tableNames = List[String]()
 
-        var strStmt = "SELECT * FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
+        var stmtStr = "SELECT * FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
 
         val stmt = conn.createStatement
-        val rs = stmt.executeQuery(strStmt)
+        val rs = stmt.executeQuery(stmtStr)
         while (rs.next) {
           val tableName = rs.getString("qtablename")
           tableNames ::= tableName
@@ -711,16 +711,16 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
 
         for (tableName <- tableNames) {
-          strStmt = "DROP TABLE " + tableName
-          val dropStmt = conn.prepareStatement(strStmt)
+          stmtStr = "DROP TABLE " + tableName
+          val dropStmt = conn.prepareStatement(stmtStr)
           dropStmt.execute
 
           dropStmt.close
           conn.commit
         }
 
-        strStmt = "DELETE FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
-        val deleteStmt = conn.prepareStatement(strStmt)
+        stmtStr = "DELETE FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
+        val deleteStmt = conn.prepareStatement(stmtStr)
         deleteStmt.execute
 
         deleteStmt.close
@@ -751,8 +751,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
          * result, multi-column primary keys are not possible with an
          * IDENTITY column present)
          */
-        val tickerTable = "realtime_ticker"
-        val stmtCreateTableStr_derby = "CREATE TABLE " + tickerTable + "(" +
+        val tickerTb = "realtime_ticker"
+        val stmtCreateTableStr_derby = "CREATE TABLE " + tickerTb + "(" +
         "tid       INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
         "ttime     BIGINT   NOT NULL, " +
         "tsymbol   CHAR(30) NOT NULL, " +
@@ -766,7 +766,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         "daychange FLOAT, " +
         "tsourceid BIGINT)"
 
-        val stmtCreateTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tickerTable + "(" +
+        val stmtCreateTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tickerTb + "(" +
         "tid       INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
         "ttime     BIGINT   NOT NULL, " +
         "tsymbol   CHAR(30) NOT NULL, " +
@@ -784,22 +784,22 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_ttime ON " + tickerTable + " (ttime)"
+        stmtStr = "CREATE INDEX idx_ttime ON " + tickerTb + " (ttime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_tsymbol ON " + tickerTable + " (tsymbol)"
+        stmtStr = "CREATE INDEX idx_tsymbol ON " + tickerTb + " (tsymbol)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_tsourceid ON " + tickerTable + " (tsourceid)"
+        stmtStr = "CREATE INDEX idx_tsourceid ON " + tickerTb + " (tsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further, 'ttime' will also present last ticker timestamp */
-        stmtStr = "INSERT INTO " + tickerTable + " (ttime, tsymbol) VALUES (" + TABLE_EXISTS_MARK + ", '" + TICKER_TABLE_EXISTS_MARK + "')"
+        stmtStr = "INSERT INTO " + tickerTb + " (ttime, tsymbol) VALUES (" + TABLE_EXISTS_MARK + ", '" + TICKER_TABLE_EXISTS_MARK + "')"
         stmt.executeUpdate(stmtStr)
 
         // --- depth table
-        val depthTable = "realtime_depth"
-        val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTable + "(" +
+        val depthTb = "realtime_depth"
+        val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTb + "(" +
         "did        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
         "tid        INTEGER NOT NULL, " +
         "dlevel     SMALLINT, " +
@@ -808,7 +808,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         "dsize      FLOAT, " +
         "dopid      CHAR(30))"
 
-        val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTable + "(" +
+        val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTb + "(" +
         "did        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
         "tid        INTEGER NOT NULL, " +
         "dlevel     SMALLINT, " +
@@ -820,7 +820,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmtStr = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_tid ON " + depthTable + " (tid)"
+        stmtStr = "CREATE INDEX idx_tid ON " + depthTb + " (tid)"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
@@ -837,8 +837,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         val stmt = conn.createStatement
 
-        val table = "realtime_ticker"
-        val existsTestStr = "SELECT * FROM " + table + " WHERE tsymbol = '" + TICKER_TABLE_EXISTS_MARK + "'"
+        val tb = "realtime_ticker"
+        val existsTestStr = "SELECT * FROM " + tb + " WHERE tid = 1"
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {
@@ -857,24 +857,24 @@ class NetBeansPersistenceManager extends PersistenceManager {
     val conn = getDbConnection
     if (conn != null) {
       try {
-        val tickerTable = "realtime_ticker"
-        var strStmt = "DELETE FROM " + tickerTable + " WHERE ttime != " + TABLE_EXISTS_MARK
+        val tickerTb = "realtime_ticker"
+        var stmtStr = "DELETE FROM " + tickerTb + " WHERE tid != 1" // tid(1) is the exist mark row
 
-        var stmt = conn.prepareStatement(strStmt)
+        var stmt = conn.prepareStatement(stmtStr)
         stmt.execute
         stmt.close
 
-        val depthTable = "realtime_ticker"
-        strStmt = "DELETE FROM " + depthTable
+        val depthTb = "realtime_ticker"
+        stmtStr = "DELETE FROM " + depthTb
 
-        stmt = conn.prepareStatement(strStmt)
+        stmt = conn.prepareStatement(stmtStr)
         stmt.execute
         stmt.close
 
         conn.commit
         conn.close
 
-        WIN_MAN.setStatusText("Delete data of " + tickerTable + " successfully.")
+        WIN_MAN.setStatusText("Delete data of " + tickerTb + " successfully.")
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -886,13 +886,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
 
     try {
-      val tickerTable = "realtime_ticker"
-      val depthTable  = "realtime_depth"
+      val tickerTb = "realtime_ticker"
+      val depthTb  = "realtime_depth"
 
-      val stmtStr1 =  "INSERT INTO " + tickerTable +
+      val stmtStr1 =  "INSERT INTO " + tickerTb +
       " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-      val stmtStr2 =  "INSERT INTO " + depthTable +
+      val stmtStr2 =  "INSERT INTO " + depthTb +
       " (tid, dlevel, ddirection, dprice, dsize, dopid) VALUES (?, ?, ?, ?, ?, ?)"
 
       val stmt1 = conn.prepareStatement(stmtStr1, Statement.RETURN_GENERATED_KEYS)
@@ -953,7 +953,115 @@ class NetBeansPersistenceManager extends PersistenceManager {
     } catch {case ex: SQLException => ex.printStackTrace}
   }
 
-  // SELECT * FROM realtime_ticker as x WHERE ttime = (SELECT max(x.ttime) FROM realtime_ticker x2 WHERE x.tsymbol = x2.tsymbol)
+  def restoreTickers(symbol: String): Array[Ticker] = {
+    val tickers = new ArrayBuffer[Ticker]
+
+    val conn = getDbConnection
+    if (conn != null) {
+      try {
+        val tickerTb = "realtime_ticker"
+        val depthTb  = "realtime_depth"
+        val stmtStr = "SELECT * FROM " + tickerTb + " AS a LEFT JOIN " + depthTb + " AS b ON a.id = b.tid WHERE a.tsymbol = '" + symbol + "' ORDER BY a.ttime ASC"
+
+        val stmt = conn.createStatement
+        val rs = stmt.executeQuery(stmtStr)
+        var ticker: Ticker = null
+        while (rs.next) {
+          val symbol = rs.getString("tsymbol")
+          if (ticker == null || ticker.symbol != symbol) {
+            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid)
+            ticker = new Ticker
+            ticker.symbol    = symbol
+            ticker.time      = rs getLong  ("ttime")
+            ticker.prevClose = rs getFloat ("prevclose")
+            ticker.lastPrice = rs getFloat ("lastprice")
+            ticker.dayOpen   = rs getFloat ("dayopen")
+            ticker.dayHigh   = rs getFloat ("dayhigh")
+            ticker.dayLow    = rs getFloat ("daylow")
+            ticker.dayVolume = rs getFloat ("dayvolume")
+            ticker.dayAmount = rs getFloat ("dayamount")
+            ticker.dayChange = rs getFloat ("daychange")
+          } else {
+            // (tid, dlevel, ddirection, dprice, dsize, dopid)
+            val level     = rs getInt   ("dlevel")
+            val direction = rs getInt   ("ddirection")
+            val price     = rs getFloat ("dprice")
+            val size      = rs getFloat ("dsize")
+            val opid      = rs getFloat ("dopid")
+            if (direction == -1) {
+              ticker.setBidPrice(level, price)
+              ticker.setBidSize (level, size)
+            } else {
+              ticker.setAskPrice(level, price)
+              ticker.setAskSize (level, size)
+            }
+          }
+
+          tickers += ticker
+        }
+        rs.close
+
+        stmt.close
+        conn.commit
+        conn.close
+
+        WIN_MAN.setStatusText(tickers.size + " quotes restored from database.")
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
+
+    tickers.toArray
+  }
+
+  /**
+   * @return lastest tickers of all symbols
+   */
+  def restoreRealTimeTickersOverview: Array[Ticker] = {
+    val tickers = new ArrayBuffer[Ticker]
+
+    val conn = getDbConnection
+    if (conn != null) {
+      try {
+        val tickerTb = "realtime_ticker"
+        var stmtStr = "SELECT * FROM " + tickerTb + " AS a WHERE a.ttime = (SELECT max(a1.ttime) FROM " + tickerTb + " AS a1 WHERE a.tsymbol = a1.tsymbol) AND a.tid != 1"
+
+        val stmt = conn.createStatement
+        val rs = stmt.executeQuery(stmtStr)
+        var ticker: Ticker = null
+        while (rs.next) {
+          val symbol = rs.getString("tsymbol")
+          if (ticker == null || ticker.symbol != symbol) {
+            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid)
+            ticker = new Ticker
+            ticker.symbol    = symbol
+            ticker.time      = rs getLong  ("ttime")
+            ticker.prevClose = rs getFloat ("prevclose")
+            ticker.lastPrice = rs getFloat ("lastprice")
+            ticker.dayOpen   = rs getFloat ("dayopen")
+            ticker.dayHigh   = rs getFloat ("dayhigh")
+            ticker.dayLow    = rs getFloat ("daylow")
+            ticker.dayVolume = rs getFloat ("dayvolume")
+            ticker.dayAmount = rs getFloat ("dayamount")
+            ticker.dayChange = rs getFloat ("daychange")
+          } else {
+            // do not need depth
+          }
+
+          tickers += ticker
+        }
+        rs.close
+
+        stmt.close
+        conn.commit
+        conn.close
+
+        WIN_MAN.setStatusText("Load market overview successfully.")
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
+
+    tickers.toArray
+  }
+
+  // select * from realtime_ticker as a where a.ttime = (SELECT max(a1.ttime) FROM realtime_ticker as a1 where a.tsymbol = a1.tsymbol) WHERE
 
   // ----- shutdown
 
