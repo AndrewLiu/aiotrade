@@ -42,8 +42,8 @@ import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.Security
 import org.aiotrade.lib.securities.TickerSnapshot
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.immutable.TreeMap
-import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -128,14 +128,14 @@ object IBWrapper extends IBWrapper {
     reqId
   }
     
-  private def getQuoteStorage(reqId: Int): ArrayBuffer[Quote] = {
+  private def quoteStorageOf(reqId: Int): ArrayList[Quote] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.storage
     }
   }
     
-  private def getHisDataRequestor(reqId: Int): DataServer[_] = {
+  private def hisDataRequestorOf(reqId: Int): DataServer[_] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.requestor
@@ -183,7 +183,7 @@ object IBWrapper extends IBWrapper {
     TWS_DATE_FORMAT
   }
     
-  def reqHistoricalData(requestor: DataServer[_ <: DataContract[_]], storage: ArrayBuffer[Quote],
+  def reqHistoricalData(requestor: DataServer[_ <: DataContract[_]], storage: ArrayList[Quote],
                         contract: Contract, endDateTime: String, durationStr: String,
                         barSizeSetting: Int, whatToShow: String, useRTH: Int, formatDate: Int): Int = {
         
@@ -282,7 +282,7 @@ object IBWrapper extends IBWrapper {
   override def historicalData(reqId: Int, date: String,
                               open: Double, high: Double, low: Double, close: Double, volume: Int, WAP: Double, hasGaps: Boolean) {
         
-    val storage = getQuoteStorage(reqId)
+    val storage = quoteStorageOf(reqId)
     if (storage == null) {
       return
     }
@@ -291,7 +291,7 @@ object IBWrapper extends IBWrapper {
     storage synchronized {
       try {
         if (date.startsWith(HISTORICAL_DATA_END)) {
-          val requstor = getHisDataRequestor(reqId)
+          val requstor = hisDataRequestorOf(reqId)
           if (requstor != null) {
             requstor synchronized {
               requstor.notifyAll
@@ -387,11 +387,11 @@ object IBWrapper extends IBWrapper {
     
   private val msg = new StringBuilder(40)
   override def error(id: Int, errorCode: Int, errorMsg: String) {
-    msg.delete(0, msg.length);
+    msg.delete(0, msg.length)
     if (id < 0) {
       /** connected or not connected msg, notify connect() waiting */
       this synchronized {
-        notifyAll();
+        notifyAll
       }
     } else {
       msg.append("Error: reqId = ")
@@ -420,7 +420,7 @@ object IBWrapper extends IBWrapper {
   }
     
   private def resetHisReq(reqId: Int) {
-    val requstor = getHisDataRequestor(reqId)
+    val requstor = hisDataRequestorOf(reqId)
     if (requstor != null) {
       requstor synchronized {
         requstor.notifyAll
@@ -484,7 +484,7 @@ object IBWrapper extends IBWrapper {
 
   private case class HistoricalDataRequest(
     requestor: DataServer[_ <: DataContract[_]],
-    storage: ArrayBuffer[Quote],
+    storage: ArrayList[Quote],
     contract: Contract,
     endDateTime: String,
     durationStr: String,

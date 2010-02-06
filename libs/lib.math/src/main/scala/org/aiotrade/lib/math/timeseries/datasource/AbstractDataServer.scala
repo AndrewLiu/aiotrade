@@ -43,6 +43,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.aiotrade.lib.math.timeseries.{TSer, TSerEvent}
 import org.aiotrade.lib.util.actors.ChainActor
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.collection.mutable.{HashMap, ArrayBuffer}
@@ -78,7 +79,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   val ANCIENT_TIME: Long = -1
 
   // --- Following maps should be created once here, since server may be singleton:
-  private val contractToStorage = new HashMap[C, ArrayBuffer[V]]
+  private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
   private val subscribedContractToSer = new HashMap[C, TSer]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
@@ -144,9 +145,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
      */
   }
 
-  protected def storageOf(contract: C): ArrayBuffer[V] = {
+  protected def storageOf(contract: C): ArrayList[V] = {
     contractToStorage.get(contract) getOrElse {
-      val x = new ArrayBuffer[V]
+      val x = new ArrayList[V]
       contractToStorage.synchronized {
         contractToStorage += (contract -> x)
       }

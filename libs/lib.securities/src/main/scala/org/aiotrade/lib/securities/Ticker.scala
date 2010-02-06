@@ -63,14 +63,15 @@ import Ticker._
 @serializable
 @cloneable
 class Ticker(val depth: Int) extends TVal {
-  final protected var isChanged: Boolean = _
+  @transient final protected var isChanged: Boolean = _
+
+  final var symbol: String = _
 
   private val values    = new Array[Float](FIELD_LENGTH)
   private val bidPrices = new Array[Float](depth)
   private val bidSizes  = new Array[Float](depth)
   private val askPrices = new Array[Float](depth)
   private val askSizes  = new Array[Float](depth)
-  private val cal = Calendar.getInstance
 
   def this() = this(5)
 
@@ -133,6 +134,7 @@ class Ticker(val depth: Int) extends TVal {
 
   def copyFrom(another: Ticker): Unit = {
     this.time = another.time
+    this.symbol = another.symbol
     System.arraycopy(another.values,    0, values,    0, values.length)
     System.arraycopy(another.bidPrices, 0, bidPrices, 0, depth)
     System.arraycopy(another.bidSizes,  0, bidSizes,  0, depth)
@@ -166,14 +168,14 @@ class Ticker(val depth: Int) extends TVal {
   }
 
   final def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
-    dayVolume > prevTicker.dayVolume && isSameDay(prevTicker)
+    dayVolume > prevTicker.dayVolume // && isSameDay(prevTicker) @todo
   }
 
   final def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
-    dayVolume != prevTicker.dayVolume && isSameDay(prevTicker)
+    dayVolume != prevTicker.dayVolume // && isSameDay(prevTicker) @todo
   }
 
-  final def isSameDay(prevTicker: Ticker): Boolean = {
+  final def isSameDay(prevTicker: Ticker, cal: Calendar): Boolean = {
     cal.setTimeInMillis(time)
     val month0 = cal.get(Calendar.MONTH)
     val day0 = cal.get(Calendar.DAY_OF_MONTH)

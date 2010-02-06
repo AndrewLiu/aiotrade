@@ -38,9 +38,7 @@ import org.aiotrade.lib.math.timeseries.TVal
  *
  * @author Caoyuan Deng
  */
-@serializable
-class Quote extends TVal {
-    
+object Quote {
   private val OPEN      = 0
   private val HIGH      = 1
   private val LOW       = 2
@@ -48,31 +46,36 @@ class Quote extends TVal {
   private val VOLUME    = 4
   private val AMOUNT    = 5
   private val CLOSE_ADJ = 6
-  private val VWAP       = 7
+  private val VWAP      = 7
+}
+
+import Quote._
+@serializable
+class Quote extends TVal {
     
   private val values = new Array[Float](8)
     
-  var sourceId: Long = _
+  @transient var sourceId = 0L
     
-  var hasGaps: Boolean = false
+  var hasGaps = false
         
-  def open:   Float = values(OPEN)
-  def high:   Float = values(HIGH)
-  def low:    Float = values(LOW)
-  def close:  Float = values(CLOSE)
-  def volume: Float = values(VOLUME)
-  def amount: Float = values(AMOUNT)
-  def close_adj: Float = values(CLOSE_ADJ)
-  def vwap: Float = values(VWAP)
+  def open      = values(OPEN)
+  def high      = values(HIGH)
+  def low       = values(LOW)
+  def close     = values(CLOSE)
+  def volume    = values(VOLUME)
+  def amount    = values(AMOUNT)
+  def vwap      = values(VWAP)
+  def close_adj = values(CLOSE_ADJ)
 
-  def open_=  (open:   Float) = values(OPEN)   = open
-  def high_=  (high:   Float) = values(HIGH)   = high
-  def low_=   (low:    Float) = values(LOW)    = low
-  def close_= (close:  Float) = values(CLOSE)  = close
-  def volume_=(volume: Float) = values(VOLUME) = volume
-  def amount_=(amount: Float) = values(AMOUNT) = amount
-  def close_adj_=(close_adj: Float) = values(CLOSE_ADJ) = close_adj
-  def vwap_=(wap: Float) = values(VWAP) = wap
+  def open_=     (v: Float) = values(OPEN)      = v
+  def high_=     (v: Float) = values(HIGH)      = v
+  def low_=      (v: Float) = values(LOW)       = v
+  def close_=    (v: Float) = values(CLOSE)     = v
+  def volume_=   (v: Float) = values(VOLUME)    = v
+  def amount_=   (v: Float) = values(AMOUNT)    = v
+  def vwap_=     (v: Float) = values(VWAP)      = v
+  def close_adj_=(v: Float) = values(CLOSE_ADJ) = v
 
   def reset {
     time = 0

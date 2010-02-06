@@ -41,7 +41,6 @@ import org.aiotrade.lib.util.ChangeSubject
  */
 class TickerSnapshot extends Ticker with ChangeSubject {
 
-  var symbol:   String = _
   var fullName: String = _
   
   override def copyFrom(another: Ticker): Unit = {

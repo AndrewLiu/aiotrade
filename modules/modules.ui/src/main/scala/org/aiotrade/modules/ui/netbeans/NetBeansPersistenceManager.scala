@@ -37,6 +37,7 @@ import java.net.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement
 import java.util.Properties;
 import org.aiotrade.lib.charting.chart.QuoteChart;
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -46,8 +47,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.QuotePool
-import org.aiotrade.lib.securities.TickerPool
+import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
@@ -84,11 +84,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * use weak reference map here.
    */
   val defaultContents: AnalysisContents = restoreContents("Default")
-  val quotePool = new QuotePool
-  val tickerPool = new TickerPool
   private val TABLE_EXISTS_MARK = Long.MaxValue.toString
   private val SYMBOL_INDEX_TABLE_NAME = "AIOTRADESYMBOLINDEX"
+  private val TICKER_TABLE_EXISTS_MARK = "AIOTRADENULLSYMBOL"
   private var userOptionsProp: Properties = _
+  private var dbDriver:String = _
   private var dbProp: Properties = _
   private var dbUrl: String = _
   private val inSavingProperties = new Object
@@ -147,7 +147,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def restoreContents(symbol: String): AnalysisContents = {
-    var contents: AnalysisContents = null;
+    var contents: AnalysisContents = null
 
     if (symbol.equalsIgnoreCase("Default")) {
       val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
@@ -178,12 +178,12 @@ class NetBeansPersistenceManager extends PersistenceManager {
     inSavingProperties synchronized {
       val propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
       if (propertiesFile != null) {
-        var properties: Properties = null;
-        var lock: FileLock = null;
+        var props: Properties = null
+        var lock: FileLock = null
         try {
           lock = propertiesFile.lock
 
-          properties = new Properties
+          props = new Properties
 
           val laf = LookFeel
 
@@ -228,28 +228,28 @@ class NetBeansPersistenceManager extends PersistenceManager {
             strDbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password")
           }
 
-          properties.setProperty("org.aiotrade.platform.option.lookfeel", lafStr)
-          properties.setProperty("org.aiotrade.platform.option.colorreversed", colorReversedStr)
-          properties.setProperty("org.aiotrade.platform.option.thinvolume", thinVolumeStr)
-          properties.setProperty("org.aiotrade.platform.option.quotecharttype", quoteChartTypeStr)
-          properties.setProperty("org.aiotrade.platform.option.antialias", antiAliasStr)
-          properties.setProperty("org.aiotrade.platform.option.autohidescroll", autoHideScrollStr)
+          props.setProperty("org.aiotrade.platform.option.lookfeel", lafStr)
+          props.setProperty("org.aiotrade.platform.option.colorreversed", colorReversedStr)
+          props.setProperty("org.aiotrade.platform.option.thinvolume", thinVolumeStr)
+          props.setProperty("org.aiotrade.platform.option.quotecharttype", quoteChartTypeStr)
+          props.setProperty("org.aiotrade.platform.option.antialias", antiAliasStr)
+          props.setProperty("org.aiotrade.platform.option.autohidescroll", autoHideScrollStr)
 
-          properties.setProperty("org.aiotrade.platform.option.proxytype", proxyTypeStr)
-          properties.setProperty("org.aiotrade.platform.option.proxyhost", proxyHostStr)
-          properties.setProperty("org.aiotrade.platform.option.proxyport", proxyPortStr)
+          props.setProperty("org.aiotrade.platform.option.proxytype", proxyTypeStr)
+          props.setProperty("org.aiotrade.platform.option.proxyhost", proxyHostStr)
+          props.setProperty("org.aiotrade.platform.option.proxyport", proxyPortStr)
 
-          properties.setProperty("org.aiotrade.platform.jdbc.driver", strDbDriver)
-          properties.setProperty("org.aiotrade.platform.jdbc.url", strDbUrl)
-          properties.setProperty("org.aiotrade.platform.jdbc.user", strDbUser)
-          properties.setProperty("org.aiotrade.platform.jdbc.password", strDbPassword)
+          props.setProperty("org.aiotrade.platform.jdbc.driver", strDbDriver)
+          props.setProperty("org.aiotrade.platform.jdbc.url", strDbUrl)
+          props.setProperty("org.aiotrade.platform.jdbc.user", strDbUser)
+          props.setProperty("org.aiotrade.platform.jdbc.password", strDbPassword)
 
           /** save to file */
-          val out = propertiesFile.getOutputStream(lock);
-          properties.store(out, null);
+          val out = propertiesFile.getOutputStream(lock)
+          props.store(out, null)
 
           out.close
-        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex);
+        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)
         } finally {
           if (lock != null) {
             lock.releaseLock
@@ -262,7 +262,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def restoreProperties {
-    val propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
+    val propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties")
     if (propertiesFile != null) {
       userOptionsProp = null
       try {
@@ -352,10 +352,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   private def checkAndCreateDatabaseIfNecessary {
-    val strDbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver")
+    dbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver")
 
     try {
-      Class.forName(strDbDriver)
+      Class.forName(dbDriver)
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
 
     val strUserDir = System.getProperty("netbeans.user")
@@ -380,7 +380,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
       try {
         /** check and create symbol index table if necessary */
         if (!symbolIndexTableExists(conn)) {
-          createSymbolTable(conn)
+          createSymbolIndexTable(conn)
+        }
+
+        if (!tickerTableExists(conn)) {
+          createRealTimeTickerTable(conn)
         }
 
         conn.close
@@ -401,7 +405,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
      * level to get better perfomance.
      */
     try {
-      conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+      conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED)
     } catch {case ex: SQLException =>
         /**
          * As not all databases support TRANSACTION_READ_UNCOMMITTED level,
@@ -441,7 +445,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     false
   }
 
-  private def createSymbolTable(conn: Connection) {
+  private def createSymbolIndexTable(conn: Connection) {
     if (conn != null) {
       try {
         val stmt = conn.createStatement
@@ -452,7 +456,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         val stmtCreatTableStr_h2_hsqldb = 
           "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, qsymbol CHAR(30) not null, qtablename CHAR(60), qfreq CHAR(10))"
 
-        var stmtStr = stmtCreatTableStr_h2_hsqldb
+        var stmtStr = if (dbDriver.contains("derby")) stmtCreatTableStr_derby else stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
@@ -478,14 +482,14 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * @param tableName table name
    * @return a connection for following usage if true, null if false
    */
-  private def tableExists(symbol: String, freq: TFreq): Connection = {
+  private def quoteTableExists(symbol: String, freq: TFreq): Connection = {
     val conn = getDbConnection
     if (conn != null) {
       try {
         val stmt = conn.createStatement
 
-        val tableName = propTableName(symbol, freq)
-        val existsTestStr = "SELECT * FROM " + tableName + " WHERE qtime = " + TABLE_EXISTS_MARK
+        val table = propTableName(symbol, freq)
+        val existsTestStr = "SELECT * FROM " + table + " WHERE qtime = " + TABLE_EXISTS_MARK
         try {
           val rs = stmt.executeQuery(existsTestStr)
           if (rs.next) {
@@ -497,13 +501,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
       } catch {case ex: SQLException => ex.printStackTrace}
     }
 
-    return null;
+    null
   }
 
   /**
    * @return connection for following usage
    */
-  private def createTable(symbol: String, freq: TFreq): Connection = {
+  private def createQuoteTableOf(symbol: String, freq: TFreq): Connection = {
     val conn = getDbConnection
     if (conn != null) {
       try {
@@ -516,29 +520,51 @@ class NetBeansPersistenceManager extends PersistenceManager {
          * result, multi-column primary keys are not possible with an
          * IDENTITY column present)
          */
-        val tableName = propTableName(symbol, freq)
-        val stmtCreatTableStr_derby = "CREATE TABLE " + tableName + " (qid INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qvwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
+        val table = propTableName(symbol, freq)
+        val stmtCreatTableStr_derby = "CREATE TABLE " + table + "(" +
+        "qid        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+        "qtime      BIGINT  NOT NULL, " +
+        "qopen      FLOAT, " +
+        "qhigh      FLOAT, " +
+        "qlow       FLOAT, " +
+        "qclose     FLOAT, " +
+        "qclose_adj FLOAT, " +
+        "qvolume    FLOAT, " +
+        "qamount    FLOAT, " +
+        "qvwap      FLOAT, " +
+        "qhasgaps   SMALLINT, " +
+        "qsourceid  BIGINT)"
 
-        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tableName + " (qid INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "qtime BIGINT not null, qopen FLOAT, qhigh FLOAT, qlow FLOAT, qclose FLOAT, qclose_adj FLOAT, qvolume FLOAT, qamount FLOAT, qvwap FLOAT, qhasgaps SMALLINT, qsourceid BIGINT)"
+        val stmtCreatTableStr_h2_hsqldb = "CREATE CACHED TABLE " + table + "(" +
+        "qid        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+        "qtime      BIGINT  NOT NULL, " +
+        "qopen      FLOAT, " +
+        "qhigh      FLOAT, " +
+        "qlow       FLOAT, " +
+        "qclose     FLOAT, " +
+        "qclose_adj FLOAT, " +
+        "qvolume    FLOAT, " +
+        "qamount    FLOAT, " +
+        "qvwap      FLOAT, " +
+        "qhasgaps   SMALLINT, " +
+        "qsourceid  BIGINT)"
 
-        var stmtStr = stmtCreatTableStr_h2_hsqldb
+        var stmtStr = if (dbDriver.contains("derby")) stmtCreatTableStr_derby else stmtCreatTableStr_h2_hsqldb
         stmt.executeUpdate(stmtStr)
 
         /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        stmtStr = "CREATE INDEX idx_" + tableName + "_qtime ON " + tableName + " (qtime)"
+        stmtStr = "CREATE INDEX idx_" + table + "_qtime ON " + table + " (qtime)"
         stmt.executeUpdate(stmtStr)
 
-        stmtStr = "CREATE INDEX idx_" + tableName + "_qsourceid ON " + tableName + " (qsourceid)"
+        stmtStr = "CREATE INDEX idx_" + table + "_qsourceid ON " + table + " (qsourceid)"
         stmt.executeUpdate(stmtStr)
 
         /** insert a mark record for testing if table exists further */
-        stmtStr = "INSERT INTO " + tableName + " (qtime) VALUES (" + TABLE_EXISTS_MARK + ")"
+        stmtStr = "INSERT INTO " + table + " (qtime) VALUES (" + TABLE_EXISTS_MARK + ")"
         stmt.executeUpdate(stmtStr)
 
         /** insert a symbol index record into symbol index table */
-        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + tableName + "', '" + freq.toString + "')"
+        stmtStr = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + table + "', '" + freq.toString + "')"
         stmt.executeUpdate(stmtStr)
 
         stmt.close
@@ -551,17 +577,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {
-    var conn = tableExists(symbol, freq)
+    var conn = quoteTableExists(symbol, freq)
     if (conn == null) {
-      conn = createTable(symbol, freq)
+      conn = createQuoteTableOf(symbol, freq)
       if (conn == null) {
         return
       }
     }
 
     try {
-      val tableName = propTableName(symbol, freq)
-      val stmtStr =  "INSERT INTO " + tableName  +
+      val table = propTableName(symbol, freq)
+      val stmtStr =  "INSERT INTO " + table  +
       " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qvwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
       val stmt = conn.prepareStatement(stmtStr)
@@ -591,28 +617,28 @@ class NetBeansPersistenceManager extends PersistenceManager {
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = {
     val quotes = ArrayBuffer[Quote]()
 
-    val conn = tableExists(symbol, freq)
+    val conn = quoteTableExists(symbol, freq)
     if (conn != null) {
       try {
-        val tableName = propTableName(symbol, freq)
-        val strStmt = "SELECT * FROM " + tableName + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
+        val table = propTableName(symbol, freq)
+        val strStmt = "SELECT * FROM " + table + " WHERE qtime != " + TABLE_EXISTS_MARK + " ORDER BY qtime ASC"
 
         val stmt = conn.createStatement
         val rs = stmt.executeQuery(strStmt)
         while (rs.next) {
-          val quote = quotePool.borrowObject
+          val quote = new Quote
 
-          quote.time = rs.getLong("qtime")
-          quote.open = rs.getFloat("qopen")
-          quote.high = rs.getFloat("qhigh")
-          quote.low = rs.getFloat("qlow")
-          quote.close = rs.getFloat("qclose")
-          quote.volume = rs.getFloat("qvolume")
-          quote.amount = rs.getFloat("qamount")
+          quote.time      = rs.getLong("qtime")
+          quote.open      = rs.getFloat("qopen")
+          quote.high      = rs.getFloat("qhigh")
+          quote.low       = rs.getFloat("qlow")
+          quote.close     = rs.getFloat("qclose")
+          quote.volume    = rs.getFloat("qvolume")
+          quote.amount    = rs.getFloat("qamount")
           quote.close_adj = rs.getFloat("qclose_adj")
-          quote.vwap = rs.getFloat("qvwap")
-          quote.hasGaps = (if (rs.getByte("qhasgaps") < 0) true else false)
-          quote.sourceId = rs.getLong("qsourceid")
+          quote.vwap      = rs.getFloat("qvwap")
+          quote.hasGaps   = (if (rs.getByte("qhasgaps") < 0) true else false)
+          quote.sourceId  = rs.getLong("qsourceid")
 
           quotes += quote
         }
@@ -630,11 +656,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {
-    val conn = tableExists(symbol, freq)
+    val conn = quoteTableExists(symbol, freq)
     if (conn != null) {
       try {
-        val tableName = propTableName(symbol, freq)
-        val strStmt = "DELETE FROM " + tableName + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
+        val table = propTableName(symbol, freq)
+        val strStmt = "DELETE FROM " + table + " WHERE qtime != " + TABLE_EXISTS_MARK + " AND qtime BETWEEN ? AND ? "
 
         val stmt = conn.prepareStatement(strStmt)
 
@@ -647,7 +673,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         conn.commit
         conn.close
 
-        WIN_MAN.setStatusText("Delete data of " + tableName + " successfully.")
+        WIN_MAN.setStatusText("Delete data of " + table + " successfully.")
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -694,6 +720,227 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
+
+  // ----- realtime ticker tables
+
+  /**
+   * @return connection for following usage
+   */
+  private def createRealTimeTickerTable(conn: Connection): Connection = {
+    if (conn != null) {
+      try {
+        val stmt = conn.createStatement
+
+        /**
+         * Only one identity column is allowed in each table. Identity
+         * columns are autoincrement columns. They must be of INTEGER or
+         * BIGINT type and are automatically primary key columns (as a
+         * result, multi-column primary keys are not possible with an
+         * IDENTITY column present)
+         */
+        val tickerTable = "realtime_ticker"
+        val stmtCreateTableStr_derby = "CREATE TABLE " + tickerTable + "(" +
+        "tid       INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+        "ttime     BIGINT   NOT NULL, " +
+        "tsymbol   CHAR(30) NOT NULL, " +
+        "prevclose FLOAT, " +
+        "lastprice FLOAT, " +
+        "dayopen   FLOAT, " +
+        "dayhigh   FLOAT, " +
+        "daylow    FLOAT, " +
+        "dayvolume FLOAT, " +
+        "dayamount FLOAT, " +
+        "daychange FLOAT, " +
+        "tsourceid BIGINT)"
+
+        val stmtCreateTableStr_h2_hsqldb = "CREATE CACHED TABLE " + tickerTable + "(" +
+        "tid       INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+        "ttime     BIGINT   NOT NULL, " +
+        "tsymbol   CHAR(30) NOT NULL, " +
+        "prevclose FLOAT, " +
+        "lastprice FLOAT, " +
+        "dayopen   FLOAT, " +
+        "dayhigh   FLOAT, " +
+        "daylow    FLOAT, " +
+        "dayvolume FLOAT, " +
+        "dayamount FLOAT, " +
+        "daychange FLOAT, " +
+        "tsourceid BIGINT)"
+
+        var stmtStr = if (dbDriver.contains("derby")) stmtCreateTableStr_derby else stmtCreateTableStr_h2_hsqldb
+        stmt.executeUpdate(stmtStr)
+
+        /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
+        stmtStr = "CREATE INDEX idx_" + tickerTable + "_ttime ON " + tickerTable + " (ttime)"
+        stmt.executeUpdate(stmtStr)
+
+        stmtStr = "CREATE INDEX idx_" + tickerTable + "_tsymbol ON " + tickerTable + " (tsymbol)"
+        stmt.executeUpdate(stmtStr)
+
+        stmtStr = "CREATE INDEX idx_" + tickerTable + "_tsourceid ON " + tickerTable + " (tsourceid)"
+        stmt.executeUpdate(stmtStr)
+
+        /** insert a mark record for testing if table exists further, 'ttime' will also present last ticker timestamp */
+        stmtStr = "INSERT INTO " + tickerTable + " (ttime, tsymbol) VALUES (" + TABLE_EXISTS_MARK + "," + TICKER_TABLE_EXISTS_MARK +  ")"
+        stmt.executeUpdate(stmtStr)
+
+        // --- depth table
+        val depthTable = "realtime_depth"
+        val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTable + "(" +
+        "did        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+        "tid        BIGINT  NOT NULL, " +
+        "dlevel     SMALLINT, " +
+        "ddirection SMALLINT, " + // bid = -1, ask = 1
+        "dprice     FLOAT, " +
+        "dsize      FLOAT, " +
+        "dopid      CHAR(30))"
+
+        val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTable + "(" +
+        "did        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+        "tid        BIGINT  NOT NULL, " +
+        "dlevel     SMALLINT, " +
+        "ddirection SMALLINT, " + // bid = -1, ask = 1
+        "dprice     FLOAT, " +
+        "dsize      FLOAT, " +
+        "dopid      CHAR(30))"
+
+        stmtStr = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
+        stmt.executeUpdate(stmtStr)
+
+        stmt.close
+        conn.commit
+
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
+
+    conn
+  }
+
+  private def tickerTableExists(conn: Connection): Boolean = {
+    if (conn != null) {
+      try {
+        val stmt = conn.createStatement
+
+        val table = "realtime_ticker"
+        val existsTestStr = "SELECT * FROM " + table + " WHERE tsymbol = " + TICKER_TABLE_EXISTS_MARK
+        try {
+          val rs = stmt.executeQuery(existsTestStr)
+          if (rs.next) {
+            return true
+          }
+        } catch {case ex: SQLException =>
+            /** may be caused by none exist, so don't need to report */
+        }
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
+
+    false
+  }
+
+  def deleteRealTimeTickers {
+    val conn = getDbConnection
+    if (conn != null) {
+      try {
+        val tickerTable = "realtime_ticker"
+        var strStmt = "DELETE FROM " + tickerTable + " WHERE ttime != " + TABLE_EXISTS_MARK
+
+        var stmt = conn.prepareStatement(strStmt)
+        stmt.execute
+        stmt.close
+
+        val depthTable = "realtime_ticker"
+        strStmt = "DELETE FROM " + depthTable
+
+        stmt = conn.prepareStatement(strStmt)
+        stmt.execute
+        stmt.close
+
+        conn.commit
+        conn.close
+
+        WIN_MAN.setStatusText("Delete data of " + tickerTable + " successfully.")
+      } catch {case ex: SQLException => ex.printStackTrace}
+    }
+  }
+
+  def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long) {
+    val conn = getDbConnection
+    if (conn == null) {
+      return
+    }
+
+    try {
+      val tickerTable = "realtime_ticker"
+      val depthTable  = "realtime_depth"
+
+      val stmtStr1 =  "INSERT INTO " + tickerTable +
+      " (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, dayvolume, dayamount, daychange, tsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+      val stmtStr2 =  "INSERT INTO " + depthTable +
+      " (tid, dlevel, ddirection, dprice, dsize, dopid) VALUES (?, ?, ?, ?, ?, ?)"
+
+      val stmt1 = conn.prepareStatement(stmtStr1, Statement.RETURN_GENERATED_KEYS)
+      val stmt2 = conn.prepareStatement(stmtStr2)
+      for (ticker <- tickers) {
+        stmt1 setLong   (1, ticker.time)
+        stmt1 setString (2, ticker.symbol)
+        stmt1 setFloat  (3, ticker.prevClose)
+        stmt1 setFloat  (4, ticker.lastPrice)
+        stmt1 setFloat  (5, ticker.dayOpen)
+        stmt1 setFloat  (6, ticker.dayHigh)
+        stmt1 setFloat  (7, ticker.dayVolume)
+        stmt1 setFloat  (8, ticker.dayAmount)
+        stmt1 setFloat  (9, ticker.dayChange)
+        stmt1 setLong   (10, sourceId)
+
+        stmt1.execute
+        val keys = stmt1.getGeneratedKeys
+        if (keys.next) {
+          val tickerId = keys.getInt(1)
+
+          // bid (direction = -1)
+          var level = 0
+          while (level < ticker.depth) {
+            stmt2 setInt    (1, tickerId)
+            stmt2 setInt    (2, level)
+            stmt2 setInt    (3, -1)
+            stmt2 setFloat  (4, ticker.bidPrice(level))
+            stmt2 setFloat  (5, ticker.bidSize(level))
+            stmt2 setString (6, "")
+
+            stmt2.addBatch
+            level += 1
+          }
+
+          // ask (direction = 1)
+          level = 0
+          while (level < ticker.depth) {
+            stmt2 setInt    (1, tickerId)
+            stmt2 setInt    (2, level)
+            stmt2 setInt    (3, 1)
+            stmt2 setFloat  (4, ticker.askPrice(level))
+            stmt2 setFloat  (5, ticker.askSize(level))
+            stmt2 setString (6, "")
+
+            stmt2.addBatch
+            level += 1
+          }
+        }
+      }
+      
+      stmt2.executeBatch
+
+      stmt1.close
+      stmt2.close
+      conn.commit
+      conn.close
+    } catch {case ex: SQLException => ex.printStackTrace}
+  }
+
+  // SELECT * FROM realtime_ticker as x WHERE ttime = (SELECT max(x.ttime) FROM realtime_ticker x2 WHERE x.tsymbol = x2.tsymbol)
+
+  // ----- shutdown
+
   def shutdown {
     /**
      * Derby special action:
@@ -712,7 +959,6 @@ class NetBeansPersistenceManager extends PersistenceManager {
      * By default, a database is closed when the last connection is closed.
      * However, if it is never closed, the database is closed when the
      * virtual machine exists normally.
-     *
      */
     var SQLExGot = false
     try {
@@ -721,7 +967,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     } catch {case ex: SQLException => SQLExGot = true}
 
     if (SQLExGot == true) {
-      /** shutdown sucessfully */
+      // shutdown sucessfully
     }
 
   }
