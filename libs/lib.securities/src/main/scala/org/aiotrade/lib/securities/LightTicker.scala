@@ -30,7 +30,16 @@
  */
 package org.aiotrade.lib.securities
 
+import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Reader
+import java.io.Writer
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.util.json.JsonBuilder
+import scala.collection.mutable.Map
 
 /**
  *
@@ -58,8 +67,7 @@ object LightTicker {
 }
 
 import LightTicker._
-@serializable
-@cloneable
+@cloneable @serializable @SerialVersionUID(1L)
 class LightTicker(val depth: Int) extends TVal {
 
   final var symbol: String = _
@@ -126,6 +134,86 @@ class LightTicker(val depth: Int) extends TVal {
     } catch {case ex: CloneNotSupportedException => ex.printStackTrace}
 
     null
+  }
+
+  @throws(classOf[IOException])
+  def writeJson(out: Writer) {
+    out.write("{\"L\":{")
+
+    out.write("\"s\":\"")
+    out.write(symbol)
+    out.write("\",")
+
+    out.write("\"t\":")
+    out.write(time.toString)
+    out.write(",")
+
+    out.write("\"v\":[")
+    val lastIdx = values.length - 1
+    var i = 0
+    while (i < values.length) {
+      out.write(values(i).toString)
+      if (i < lastIdx) {
+        out.write(",")
+      }
+      i += 1
+    }
+    out.write("]")
+
+    out.write("}}")
+    out.close
+  }
+
+  @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
+  def readJson(in: Reader) {
+    val json = JsonBuilder.readJson(in).asInstanceOf[Map[String, Map[String, _]]]
+    println(json)
+    val fields = json("L")
+    symbol     = fields("s").asInstanceOf[String]
+    time       = fields("t").asInstanceOf[Long]
+    var values = fields("v").asInstanceOf[List[Number]]
+    var i = 0
+    while (!values.isEmpty) {
+      this.values(i) = values.head.floatValue
+      values = values.tail
+      i += 1
+    }
+    
+    in.close
+  }
+
+
+  @throws(classOf[IOException])
+  private def writeObject_todo(out: ObjectOutputStream) {
+    out.defaultWriteObject
+
+    out.writeObject(symbol)
+    for (value <- values) {
+      out.writeFloat(value)
+    }
+
+    out.close
+  }
+
+  @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
+  private def readObject_todo(in: ObjectInputStream) {
+    in.defaultReadObject
+
+    symbol = in.readObject.asInstanceOf[String]
+    var i = 0
+    while (i < values.length) {
+      values(i) = in.readFloat
+      i += 1
+    }
+
+    in.close
+  }
+
+  override def toString = {
+    val df = new SimpleDateFormat("hh:mm")
+    val cal = Calendar.getInstance
+    cal.setTimeInMillis(time)
+    symbol + ", " + df.format(cal.getTime) + ", " + values.mkString("[", ",", "]")
   }
 }
 
