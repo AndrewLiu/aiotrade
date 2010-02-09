@@ -11,11 +11,14 @@ import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.Ticker
 
 /**
+ ======
  Quote: 149 Bytes
+ ======
  Ticker: 434 Bytes
  2000 symbols of tickers per internal: 847.65625K
- 2000 symbols of tickers per day: -1711.966796875M
+ 2000 symbols of tickers per day: 2384.033203125M
  Tickers one day per symbol: 1220.625K
+ ======
  LightTicker: 187 Bytes
  2000 symbols of lighttickers per internal: 365.234375K
  2000 symbols of lighttickers per day: 1027.2216796875M
@@ -24,27 +27,28 @@ import org.aiotrade.lib.securities.Ticker
 object SerializedSize {
   val internal = 5
   val secondsOneDay = 4 * 60 * 60
-  val nTickersPerSymbol = secondsOneDay / 5
-
+  val nTickersPerSymbol = secondsOneDay / 5.0
+  val nSymbols = 2000
+  val kilo = 1024.0
 
   def main(args: Array[String]) {
-    val quote = new Quote // 149 bytes
+    val quote = new Quote
     serialize(quote)
     
-    val ticker = new Ticker // 368 bytes
-    var tickerSize = serialize(ticker)
-    println("2000 symbols of tickers per internal: " +  2000 * tickerSize / 1024.0 + "K")
-    println("2000 symbols of tickers per day: " +  2000 * nTickersPerSymbol * tickerSize / 1024.0 / 1024.0 + "M")
-    println("Tickers one day per symbol: " +  nTickersPerSymbol * tickerSize / 1024.0 + "K")
+    val ticker = new Ticker
+    var size = serialize(ticker)
+    println(nSymbols + " symbols of tickers per internal: " + (nSymbols * size / kilo) + "K")
+    println(nSymbols + " symbols of tickers per day: " + (nSymbols * nTickersPerSymbol * size / kilo / kilo) + "M")
+    println("Tickers one day per symbol: " + (nTickersPerSymbol * size / kilo) + "K")
 
-    tickerSize = serialize(ticker.toLightTicker)
-    println("2000 symbols of lighttickers per internal: " +  2000 * tickerSize / 1024.0 + "K")
-    println("2000 symbols of lighttickers per day: " +  2000 * nTickersPerSymbol * tickerSize / 1024.0 / 1024.0 + "M")
-    println("Lighttickers one day per symbol: " +  nTickersPerSymbol * tickerSize / 1024.0 + "K")
+    size = serialize(ticker.toLightTicker)
+    println(nSymbols + " symbols of lighttickers per internal: " + (nSymbols * size / kilo) + "K")
+    println(nSymbols + " symbols of lighttickers per day: " + (nSymbols * nTickersPerSymbol * size / kilo / kilo) + "M")
+    println("Lighttickers one day per symbol: " + (nTickersPerSymbol * size / kilo) + "K")
 
   }
 
-  def serialize(content: AnyRef) = {
+  def serialize(content: AnyRef): Int = {
     val bytes = new ByteArrayOutputStream
     val store = new ObjectOutputStream(bytes)
     store.writeObject(content)
@@ -52,6 +56,7 @@ object SerializedSize {
 
     val body = bytes.toByteArray
     val size = body.length
+    println("======")
     println(content.getClass.getSimpleName + ": " + size + " Bytes")
     size
   }
