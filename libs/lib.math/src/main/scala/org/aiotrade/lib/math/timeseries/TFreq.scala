@@ -104,6 +104,10 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
     nUnits + unit.shortDescription
   }
 
+  val compactDescription: String = {
+    nUnits + unit.compactDescription
+  }
+
   override def equals(o: Any): Boolean = {
     o match {
       case x: TFreq =>

@@ -1098,8 +1098,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   private def propTableName(symbol: String, freq: TFreq): String = {
-    val sym = propSymbol(symbol)
-    sym + "_" + freq.name
+    propSymbol(symbol) + "_" + freq.compactDescription
   }
 
   /**
