@@ -138,21 +138,21 @@ class LightTicker(val depth: Int) extends TVal {
 
   @throws(classOf[IOException])
   def writeJson(out: Writer) {
-    out.write("{\"L\":{")
+    out.write("{")
 
     out.write("\"s\":\"")
     out.write(symbol)
     out.write("\",")
 
     out.write("\"t\":")
-    out.write(time.toString)
+    out.write((time / 1000).toString)
     out.write(",")
 
     out.write("\"v\":[")
     val lastIdx = values.length - 1
     var i = 0
     while (i < values.length) {
-      out.write(values(i).toString)
+      out.write((values(i) * 100).toInt.toString)
       if (i < lastIdx) {
         out.write(",")
       }
@@ -160,21 +160,20 @@ class LightTicker(val depth: Int) extends TVal {
     }
     out.write("]")
 
-    out.write("}}")
+    out.write("}")
     out.close
   }
 
   @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
   def readJson(in: Reader) {
-    val json = JsonBuilder.readJson(in).asInstanceOf[Map[String, Map[String, _]]]
-    println(json)
-    val fields = json("L")
+    val fields = JsonBuilder.readJson(in).asInstanceOf[Map[String, _]]
+    println(fields)
     symbol     = fields("s").asInstanceOf[String]
-    time       = fields("t").asInstanceOf[Long]
+    time       = fields("t").asInstanceOf[Long] * 1000
     var values = fields("v").asInstanceOf[List[Number]]
     var i = 0
     while (!values.isEmpty) {
-      this.values(i) = values.head.floatValue
+      this.values(i) = values.head.floatValue / 100
       values = values.tail
       i += 1
     }
@@ -210,7 +209,7 @@ class LightTicker(val depth: Int) extends TVal {
   }
 
   override def toString = {
-    val df = new SimpleDateFormat("hh:mm")
+    val df = new SimpleDateFormat("hh:mm:ss")
     val cal = Calendar.getInstance
     cal.setTimeInMillis(time)
     symbol + ", " + df.format(cal.getTime) + ", " + values.mkString("[", ",", "]")
