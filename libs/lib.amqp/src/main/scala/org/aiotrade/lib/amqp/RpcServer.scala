@@ -28,11 +28,12 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Consumer = {
+    channel.exchangeDeclare(exchange, "direct")
     val queue = $queue match {
       case null | "" => channel.queueDeclare.getQueue
-      case _ =>$queue
+      case _ => channel.queueDeclare($queue); $queue
     }
-    
+
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(queue, consumer)
     consumer
@@ -43,9 +44,9 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
 
     /**
      *
-     * @return content that will be send back to caller
+     * @return AMQPMessage that will be send back to caller
      */
-    protected def process(msg: AMQPMessage): Any
+    protected def process(msg: AMQPMessage): AMQPMessage
 
     def act {
       Actor.loop {
@@ -53,8 +54,11 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
           case msg: AMQPMessage =>
             val requestProps = msg.props
             if (requestProps.correlationId != null && requestProps.replyTo != null) {
-              val replyProps = new AMQP.BasicProperties
-              val replyContent = process(msg)
+              val (replyContent, replyProps) = process(msg) match {
+                case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
+                case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
+              }
+              
               replyProps.correlationId = requestProps.correlationId
               publish("", replyContent, requestProps.replyTo, replyProps)
             }
