@@ -1,10 +1,10 @@
-package org.aiotrade.lib.util.json
+package org.aiotrade.lib.json
 
 
 import java.io.Reader
 import java.math.BigDecimal
 import java.math.BigInteger
-import org.aiotrade.lib.util.io.RestReader
+import org.aiotrade.lib.io.RestReader
 
 import scala.collection.mutable.{ListBuffer, Map, HashMap}
 

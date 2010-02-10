@@ -7,8 +7,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lib-util</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>lib-util</name>
+    <artifactId>lib-sevenzip</artifactId>
+    <version>9.10.beta</version>
+
+    <name>lib-sevenzip</name>
 
 </project>
+

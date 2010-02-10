@@ -18,6 +18,18 @@
             <artifactId>amqp-client</artifactId>
             <version>1.6.0</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>lib-sevenzip</artifactId>
+            <version>9.10.beta</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>lib-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

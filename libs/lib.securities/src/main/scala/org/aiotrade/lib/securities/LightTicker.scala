@@ -38,7 +38,8 @@ import java.io.Writer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
-import org.aiotrade.lib.util.json.JsonBuilder
+import org.aiotrade.lib.json.JsonBuilder
+import org.aiotrade.lib.json.JsonSerializable
 import scala.collection.mutable.Map
 
 /**
@@ -68,7 +69,7 @@ object LightTicker {
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val depth: Int) extends TVal {
+class LightTicker(val depth: Int) extends TVal with JsonSerializable {
 
   final var symbol: String = _
 
@@ -164,10 +165,9 @@ class LightTicker(val depth: Int) extends TVal {
     out.close
   }
 
-  @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
+  @throws(classOf[IOException])
   def readJson(in: Reader) {
     val fields = JsonBuilder.readJson(in).asInstanceOf[Map[String, _]]
-    println(fields)
     symbol     = fields("s").asInstanceOf[String]
     time       = fields("t").asInstanceOf[Long] * 1000
     var values = fields("v").asInstanceOf[List[Number]]

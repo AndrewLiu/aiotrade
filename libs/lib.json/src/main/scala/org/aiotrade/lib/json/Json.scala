@@ -1,6 +1,8 @@
-package org.aiotrade.lib.util.json
+package org.aiotrade.lib.json
 
 object Json {
+  type Json = Either[Map[String, _], List[_]]
+
   val TRUE_CHARS      = Array('t', 'r', 'u', 'e')
   val FALSE_CHARS     = Array('f', 'a', 'l', 's', 'e')
   val NULL_CHARS      = Array('n', 'u', 'l', 'l')
@@ -46,8 +48,6 @@ object Json {
     val EOF = 11
   }
 }
-
-class Json
 
 
 

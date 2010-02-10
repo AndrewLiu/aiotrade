@@ -7,8 +7,8 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lib-util</artifactId>
+    <artifactId>lib-io</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>lib-util</name>
+    <name>lib-io</name>
 
 </project>

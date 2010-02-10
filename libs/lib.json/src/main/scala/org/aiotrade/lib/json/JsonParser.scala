@@ -1,16 +1,10 @@
-/*
- * JsonParser.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 
-package org.aiotrade.lib.util.json
+package org.aiotrade.lib.json
 
-import org.aiotrade.lib.util.io.CharArray
-import org.aiotrade.lib.util.io.NullCharArray
-import org.aiotrade.lib.util.io.ByteStack
-import org.aiotrade.lib.util.io.RestReader
+import org.aiotrade.lib.io.CharArray
+import org.aiotrade.lib.io.NullCharArray
+import org.aiotrade.lib.io.ByteStack
+import org.aiotrade.lib.io.RestReader
 import scala.annotation.tailrec
 
 /**

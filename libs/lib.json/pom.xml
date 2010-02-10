@@ -7,27 +7,16 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lib-securities</artifactId>
+    <artifactId>lib-json</artifactId>
     <version>1.0-SNAPSHOT</version>
-    
-    <name>lib-securities</name>
+    <name>lib-json</name>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>lib-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>lib-json</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>lib-math</artifactId>
+            <artifactId>lib-io</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 
 </project>
-

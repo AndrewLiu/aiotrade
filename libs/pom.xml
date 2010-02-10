@@ -135,8 +135,10 @@
     </reporting>
 
     <modules>
-        <module>lib.math</module>
         <module>lib.util</module>
+        <module>lib.json</module>
+        <module>lib.io</module>
+        <module>lib.math</module>
         <module>lib.securities</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
@@ -146,6 +148,7 @@
         <module>lib.dataserver.yahoo</module>
         <module>lib.amqp</module>
         <module>helper.test</module>
+		<module>lib.sevenzip</module>
     </modules>
 
 </project>
