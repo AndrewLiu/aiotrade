@@ -5,7 +5,7 @@ import java.io.Reader
 import java.math.BigDecimal
 import java.math.BigInteger
 import org.aiotrade.lib.io.RestReader
-import scala.collection.mutable.{ListBuffer}
+import scala.collection.mutable.ListBuffer
 
 object JsonBuilder {  
   def readJson(json: String): Any = {
@@ -32,8 +32,8 @@ class JsonBuilder(parser: JsonParser) {
     case BOOLEAN      => getBoolean
     case NULL         => getNull
     case OBJECT_START => getObject
-    case OBJECT_END   => () // or ERROR?
     case ARRAY_START  => getArray
+    case OBJECT_END   => () // or ERROR?
     case ARRAY_END    => () // or ERROR?
     case EOF          => () // or ERROR?
     case _            => () // or ERROR?
@@ -62,26 +62,25 @@ class JsonBuilder(parser: JsonParser) {
   def getLong = parser.getLong
 
   def getNumber = {
-    val numStr = parser.getNumberChars.toString
-    val num = numStr.toDouble
+    val str = parser.getNumberChars.toString
+    val num = str.toDouble
 
-    if (java.lang.Double.isInfinite(num)) new BigDecimal(numStr)
-    else num
+    if (java.lang.Double.isInfinite(num)) new BigDecimal(str) else num
   }
 
   def getBigNumber: Any = {
-    val numChars = parser.getNumberChars.toCharArray
+    val chars = parser.getNumberChars.toCharArray
     var isBigDec = false
     var i = 0
-    while (i < numChars.length) {
-      numChars(i) match {
-        case ',' | 'e' | 'E' => return new BigDecimal(numChars)
+    while (i < chars.length) {
+      chars(i) match {
+        case ',' | 'e' | 'E' => return new BigDecimal(chars)
         case _ => // go on
       }
-      i +=1 
+      i += 1
     }
 
-    new BigInteger(numChars.toString)
+    new BigInteger(chars.toString)
   }
 
   def getBoolean: Boolean = parser.getBoolean
