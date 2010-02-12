@@ -1,7 +1,6 @@
 package org.aiotrade.lib.io
 
 import java.io.Reader
-import scala.annotation.tailrec
 
 /**
  * An incremental streaming reader, will not keep old data when refill
@@ -62,12 +61,15 @@ class RestReader(var data: Array[Char],  var pos: Int, var end: Int, var in: Rea
     }
   }
 
-  //@tailrec
   def nextSkipWs: Char = {
-    next match {
-      case ' ' | '\t' | '\n' | '\r' => nextSkipWs
-      case c => c
-    }
+    var c = EOF
+    do {
+      c = next
+    } while (c match {
+        case ' ' | '\t' | '\n' | '\r' => true
+        case _ => false
+      })
+    c
   }
 
   def charAt(i: Int): Char = data(i)
@@ -80,17 +82,21 @@ class RestReader(var data: Array[Char],  var pos: Int, var end: Int, var in: Rea
       data(pos - 1)
     } else throw new RuntimeException("Have not read yet")
   }
-    
+
   def expect(chars: Array[Char]) {
-    for (c <- chars) {
+    var i = 0
+    while (i < chars.length) {
+      val c0 = chars(i)
       val c1 = next
-      if (c1 != c) {
+      if (c1 != c0) {
         if (c1 == -1) {
           throw new RuntimeException("Unexpected EOF")
         } else {
           throw new RuntimeException("Expected " + new String(chars))
         }
       }
+
+      i += 1
     }
   }
 

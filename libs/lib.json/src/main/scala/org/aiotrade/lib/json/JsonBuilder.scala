@@ -32,9 +32,9 @@ class JsonBuilder(parser: JsonParser) {
     case BOOLEAN      => getBoolean
     case NULL         => getNull
     case OBJECT_START => getObject
-    case ARRAY_START  => getArray
     case OBJECT_END   => () // or ERROR?
     case ARRAY_END    => () // or ERROR?
+    case ARRAY_START  => getArray
     case EOF          => () // or ERROR?
     case _            => () // or ERROR?
   }

@@ -84,13 +84,12 @@ class JsonParser(val rest: RestReader) {
             state = stack.pop
             event = OBJECT_END
             event
-          case c if c != '"' =>
-            throw err("Expected string")
-          case _ =>
+          case '"' =>
             state = STATE_MEM_NAME
             valState = STRING
             event = STRING
             event
+          case _ => throw err("Expected string")
         }
       case STATE_MEM_NAME =>
         rest.nextSkipWs match {
@@ -138,8 +137,7 @@ class JsonParser(val rest: RestReader) {
             // state = STATE_ARR_ELEMENT
             event = next(rest.next)
             event
-          case _ =>
-            throw err("Expected ',' or ']'")
+          case _ => throw err("Expected ',' or ']'")
         }
       case _ => 0
     }
@@ -259,7 +257,7 @@ class JsonParser(val rest: RestReader) {
         // return the number, relying on nextEvent to return an error
         // for invalid chars following the number.
         if (c != rest.EOF) rest.backup(1)
-                
+
         // the max number of digits we are reading only allows for
         // a long to wrap once, so we can just check if the sign is
         // what is expected to detect an overflow.
@@ -295,7 +293,7 @@ class JsonParser(val rest: RestReader) {
   // call after 'e' or 'E' has been seen to read the rest of the exponent
   private def readExp(chars: CharArray, max: Int): Int = {
     numState |= HAS_EXPONENT
-        
+
     var c = rest.next
     var max1 = max - 1
 
@@ -353,7 +351,7 @@ class JsonParser(val rest: RestReader) {
       loop(chars, rest.next)
     }
   }
-    
+
   // backslash has already been read when this is called
   private def readEscapedChar: Char = {
     rest.next match {
@@ -372,7 +370,7 @@ class JsonParser(val rest: RestReader) {
       case _ => throw err("Invalid character escape in string")
     }
   }
-    
+
   // a dummy buffer we can use to point at other buffers
   private val tmp = new CharArray(null, 0, 0)
 
@@ -394,7 +392,7 @@ class JsonParser(val rest: RestReader) {
         loop(i + 1)
       }
     }
-    
+
     val start = rest.pos
     loop(start)
   }
@@ -410,8 +408,8 @@ class JsonParser(val rest: RestReader) {
       rest.fillMore
       rest.pos
     } else from
-    
-            
+
+
     rest.charAt(from1) match {
       case '"' =>
         flush(output, from1)
@@ -457,7 +455,7 @@ class JsonParser(val rest: RestReader) {
 
   def goto(what: Int) {
     valState match {
-      case v if v == what =>
+      case `what` =>
         valState = 0
       case 0 =>
         nextEvent      // TODO
@@ -512,7 +510,7 @@ class JsonParser(val rest: RestReader) {
 
   /** Reads a numeric value into the output. */
   def getNumberChars(output: CharArray) {
-    val ev = if (valState == 0) nextEvent else 0 
+    val ev = if (valState == 0) nextEvent else 0
 
     valState match {
       case LONG | NUMBER =>
@@ -560,7 +558,7 @@ class JsonParser(val rest: RestReader) {
     var msg1 = if (msg == null) {
       if (rest.pos >= rest.end) "Unexpected EOF" else "JSON Parse Error"
     } else msg
-    
+
     new RuntimeException(msg1 + ": " + tot)
   }
 

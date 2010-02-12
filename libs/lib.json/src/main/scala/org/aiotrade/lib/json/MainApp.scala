@@ -11,6 +11,9 @@ object MainApp {
     var json = JsonBuilder.readJson(text)
     println(json)
 
+    json = JsonBuilder.readJson("""{"key1": "val1"}""")
+    println(json)
+
     json = JsonBuilder.readJson("""{"key\"1" : "val1"}""")
     println(json)
 
