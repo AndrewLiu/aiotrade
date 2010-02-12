@@ -5,16 +5,15 @@ import java.io.Reader
 import java.math.BigDecimal
 import java.math.BigInteger
 import org.aiotrade.lib.io.RestReader
-
 import scala.collection.mutable.{ListBuffer}
 
 object JsonBuilder {  
-  def readJson(json: String) = {
+  def readJson(json: String): Any = {
     val parser = new JsonParser(new RestReader(json))
     new JsonBuilder(parser).getVal
   }
 
-  def readJson(json: Reader) = {
+  def readJson(json: Reader): Any = {
     val parser = new JsonParser(new RestReader(json))
     new JsonBuilder(parser).getVal
   }
