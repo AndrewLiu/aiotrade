@@ -174,7 +174,7 @@ class JsonParser(val rest: RestReader) {
         rest.next match {
           case '.' =>
             rest.backup(1)
-            readNumber('0',false)
+            readNumber('0', false)
             valState
           case c1 if !isDigit(c1) =>
             out.unsafePut('0')
@@ -276,7 +276,7 @@ class JsonParser(val rest: RestReader) {
     numState = HAS_FRACTION  // deliberate set instead of '|'
 
     @tailrec
-    def loop(chars:CharArray, max:Int, c:Char): Int = c match {
+    def loop(chars: CharArray, max: Int, c: Char): Int = c match {
       case _ if max < 0 => BIGNUMBER
       case c if isDigit(c) =>
         chars.put(c)
@@ -315,15 +315,16 @@ class JsonParser(val rest: RestReader) {
   }
 
   // continuation of readExpStart
+  @tailrec
   private def readExpDigits(chars: CharArray, max: Int, c: Char): Int = {
-    c match {
-      case _ if max < 0 => BIGNUMBER
-      case _ if isDigit(c) =>
-        chars.put(c)
-        readExpDigits(chars, max - 1, rest.next)
-      case _ =>
-        if (c != rest.EOF) rest.backup(1)
-        NUMBER
+    if (max < 0) {
+      BIGNUMBER
+    } else if (isDigit(c)) {
+      chars.put(c)
+      readExpDigits(chars, max - 1, rest.next)
+    } else {
+      if (c != rest.EOF) rest.backup(1)
+      NUMBER
     }
   }
 
@@ -346,8 +347,7 @@ class JsonParser(val rest: RestReader) {
         case 'e' | 'E' =>
           chars.put(c)
           readExp(chars, Integer.MAX_VALUE)
-        case _ =>
-          if (c != rest.EOF) rest.backup(1)
+        case _ => if (c != rest.EOF) rest.backup(1)
       }
 
       loop(chars, rest.next)
@@ -366,8 +366,8 @@ class JsonParser(val rest: RestReader) {
       case '\\' => '\\'
       case '"'  => '"'
       case 'u'  => (  (hexVal(rest.next) << 12)
-                    | (hexVal(rest.next) << 8)
-                    | (hexVal(rest.next) << 4)
+                    | (hexVal(rest.next) <<  8)
+                    | (hexVal(rest.next) <<  4)
                     | (hexVal(rest.next))).toChar
       case _ => throw err("Invalid character escape in string")
     }
@@ -405,12 +405,11 @@ class JsonParser(val rest: RestReader) {
    * this should be faster for strings with fewer escapes, but probably slower for many escapes.
    */
   private def readStringChars(output: CharArray, from: Int) {
-    val from1 = 
-      if (from >= rest.end) {
-        output.put(rest.data, rest.pos, from - rest.pos)
-        rest.fillMore
-        rest.pos
-      } else from
+    val from1 = if (from >= rest.end) {
+      output.put(rest.data, rest.pos, from - rest.pos)
+      rest.fillMore
+      rest.pos
+    } else from
     
             
     rest.charAt(from1) match {
@@ -517,7 +516,7 @@ class JsonParser(val rest: RestReader) {
 
     valState match {
       case LONG | NUMBER =>
-        output.put(this.out)
+        output.put(out)
       case BIGNUMBER =>
         continueNumber(output)
       case _ => throw err("Unexpected " + ev)
@@ -555,15 +554,13 @@ class JsonParser(val rest: RestReader) {
     // because the illegal char could have been the last in the buffer
     // or in the stream. To deal with this, the "eof" var was introduced
 
-    val str = "char='" + {if (rest.pos < rest.end) rest.last.asInstanceOf[Char] + "'" else "(EOF)"}
+    val str = "char='" + (if (rest.pos < rest.end) rest.last.asInstanceOf[Char] + "'" else "(EOF)")
     val pos = "position=" + rest.count
     val tot = str + ", " + pos
-    var msg1 = {
-      if (msg == null) {
-        if (rest.pos >= rest.end) "Unexpected EOF"
-        else "JSON Parse Error"
-      } else msg
-    }
+    var msg1 = if (msg == null) {
+      if (rest.pos >= rest.end) "Unexpected EOF" else "JSON Parse Error"
+    } else msg
+    
     new RuntimeException(msg1 + ": " + tot)
   }
 
