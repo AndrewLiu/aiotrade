@@ -127,11 +127,9 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
   }
 
   override def clone: LightTicker = {
-    try {
-      return super.clone.asInstanceOf[LightTicker]
-    } catch {case ex: CloneNotSupportedException => ex.printStackTrace}
-
-    null
+    val cloneOne = new LightTicker
+    cloneOne.copyFrom(this)
+    cloneOne
   }
 
   @throws(classOf[IOException])
@@ -145,13 +143,13 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
 
   @throws(classOf[IOException])
   def readJson(fields: Map[String, _]) {
-    symbol     = fields("s").asInstanceOf[String]
-    time       = fields("t").asInstanceOf[Long] * 1000
-    var values = fields("v").asInstanceOf[List[Number]]
+    symbol  = fields("s").asInstanceOf[String]
+    time    = fields("t").asInstanceOf[Long] * 1000
+    var vs  = fields("v").asInstanceOf[List[Number]]
     var i = 0
-    while (!values.isEmpty) {
-      this.values(i) = values.head.floatValue / 100
-      values = values.tail
+    while (!vs.isEmpty) {
+      values(i) = vs.head.floatValue / 100
+      vs = vs.tail
       i += 1
     }
   }

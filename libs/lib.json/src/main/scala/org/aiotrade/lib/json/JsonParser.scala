@@ -568,7 +568,7 @@ class JsonParser(val rest: RestReader) {
   }
 
   override def toString = {
-    "start=" + rest.pos + ",end=" + rest.end + ",state=" + stack.peak + "valState=" + valState
+    "start=" + rest.pos + ",end=" + rest.end + ",state=" + stack.peak + ",valState=" + valState
   }
 
 }

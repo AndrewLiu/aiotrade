@@ -38,13 +38,13 @@ class JsonInputStreamReader(in: InputStream, charsetName: String)  extends Input
       x
   }
 
-  private def readObject(name: String, fields: Map[String, _]): Any = {
+  private def readObject(clzName: String, fields: Map[String, _]): Any = {
     try {
-      Class.forName(name).newInstance match {
+      Class.forName(clzName).newInstance match {
         case x: JsonSerializable => x.readJson(fields); x
         case _ => null
       }
-    } catch {case ex: Exception => null}
+    } catch {case ex: ClassNotFoundException => null}
   }
 
   def readObject: Any = ret
