@@ -2,6 +2,7 @@ package org.aiotrade.lib.json
 
 object Json {
   type Json = Either[Map[String, _], List[_]]
+  type Object = Map[String, Map[String, _]]
 
   val TRUE_CHARS      = Array('t', 'r', 'u', 'e')
   val FALSE_CHARS     = Array('f', 'a', 'l', 's', 'e')

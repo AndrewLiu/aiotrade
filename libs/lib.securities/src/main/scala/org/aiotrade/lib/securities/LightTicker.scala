@@ -33,14 +33,11 @@ package org.aiotrade.lib.securities
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import java.io.Reader
-import java.io.Writer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
-import org.aiotrade.lib.json.JsonBuilder
+import org.aiotrade.lib.json.JsonOutputStreamWriter
 import org.aiotrade.lib.json.JsonSerializable
-import scala.collection.mutable.Map
 
 /**
  *
@@ -138,36 +135,16 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
   }
 
   @throws(classOf[IOException])
-  def writeJson(out: Writer) {
-    out.write("{")
-
-    out.write("\"s\":\"")
-    out.write(symbol)
-    out.write("\",")
-
-    out.write("\"t\":")
-    out.write((time / 1000).toString)
-    out.write(",")
-
-    out.write("\"v\":[")
-    val lastIdx = values.length - 1
-    var i = 0
-    while (i < values.length) {
-      out.write((values(i) * 100).toInt.toString)
-      if (i < lastIdx) {
-        out.write(",")
-      }
-      i += 1
-    }
-    out.write("]")
-
-    out.write("}")
-    out.close
+  def writeJson(out: JsonOutputStreamWriter) {
+    out.write("s", symbol)
+    out.write(',')
+    out.write("t", time / 1000)
+    out.write(',')
+    out.write("v", values map (_ * 100))
   }
 
   @throws(classOf[IOException])
-  def readJson(in: Reader) {
-    val fields = JsonBuilder.readJson(in).asInstanceOf[Map[String, _]]
+  def readJson(fields: Map[String, _]) {
     symbol     = fields("s").asInstanceOf[String]
     time       = fields("t").asInstanceOf[Long] * 1000
     var values = fields("v").asInstanceOf[List[Number]]
@@ -177,8 +154,6 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
       values = values.tail
       i += 1
     }
-    
-    in.close
   }
 
 
@@ -190,8 +165,6 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     for (value <- values) {
       out.writeFloat(value)
     }
-
-    out.close
   }
 
   @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
@@ -204,8 +177,6 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
       values(i) = in.readFloat
       i += 1
     }
-
-    in.close
   }
 
   override def toString = {

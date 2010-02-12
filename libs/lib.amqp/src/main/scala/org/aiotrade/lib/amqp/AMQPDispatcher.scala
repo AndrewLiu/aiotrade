@@ -7,27 +7,25 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.io.InputStreamReader
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.OutputStreamWriter
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
 import java.util.logging.Level
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 import org.aiotrade.lib.amqp.datatype.ContentType
-import org.aiotrade.lib.json.JsonBuilder
-import org.aiotrade.lib.json.JsonSerializable
 import scala.actors.Actor
 
-/**
+/*_ rabbitmqctl common usages:
+ sudo rabbitmq-server -n rabbit@localhost
+ sudo rabbitmqctl -n rabbit@localhost stop
+
+ sudo rabbitmqctl -n rabbit@localhost stop_app
+ sudo rabbitmqctl -n rabbit@localhost reset
+ sudo rabbitmqctl -n rabbit@localhost start_app
+ sudo rabbitmqctl -n rabbit@localhost list_queues name messages messages_uncommitted messages_unacknowledged
+ */
+
+/*_
  * Option 1:
  * create one queue per consumer with several bindings, one for each stock.
  * Prices in this case will be sent with a topic routing key.
@@ -71,22 +69,12 @@ case class AMQPReconnect(delay: Long)
 
 case object AMQPStop
 
-object AMQPDispatcher {
-  /**
-   * lzma properties with:
-   * encoder.SetEndMarkerMode(true)     // must set true
-   * encoder.SetDictionarySize(1 << 20) // 1048576
-   */
-  val lzmaProps = Array[Byte](93, 0, 0, 16, 0)
-}
-
 /**
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-import AMQPDispatcher._
-abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor {
+abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor with Serializer {
   case class State(conn: Connection, channel: Channel, consumer: Consumer)
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -193,113 +181,6 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     }
   }
 
-  def encodeJava(content: Any): Array[Byte] = {
-    val out = new ByteArrayOutputStream
-    val oout = new ObjectOutputStream(out)
-    oout.writeObject(content)
-    oout.close
-
-    out.toByteArray
-  }
-
-  def decodeJava(body: Array[Byte]): Any = {
-    // deserialize
-    val in = new ObjectInputStream(new ByteArrayInputStream(body))
-    in.readObject
-  }
-
-  def encodeJson(content: Any): Array[Byte] = {
-    val out = new ByteArrayOutputStream
-    val wout = new OutputStreamWriter(out, "UTF-8")
-
-    content match {
-      case x: JsonSerializable => x.writeJson(wout)
-      case _ => // todo
-    }
-    wout.close
-
-    out.toByteArray
-  }
-
-  def decodeJson(instance: JsonSerializable, body: Array[Byte]): Any = {
-    println(new String(body))
-    val rin = new InputStreamReader(new ByteArrayInputStream(body))
-    instance.readJson(rin)
-    instance
-  }
-
-  def decodeJson(body: Array[Byte]): Any = {
-    val reader = new InputStreamReader(new ByteArrayInputStream(body))
-    JsonBuilder.readJson(reader)
-  }
-
-  @throws(classOf[IOException])
-  def gzip(input: Array[Byte]): Array[Byte] = {
-    val out = new ByteArrayOutputStream
-    val bout = new BufferedOutputStream(new GZIPOutputStream(out))
-    bout.write(input)
-    bout.close
-
-    val body = out.toByteArray
-
-    out.close
-    body
-  }
-
-  @throws(classOf[IOException])
-  def ungzip(input: Array[Byte]): Array[Byte] = {
-    val in = new ByteArrayInputStream(input)
-    val bin = new BufferedInputStream(new GZIPInputStream(in))
-    val out = new ByteArrayOutputStream
-    
-    val buf = new Array[Byte](1024)
-    var len = -1
-    while ({len = bin.read(buf); len > 0}) {
-      out.write(buf, 0, len)
-    }
-    
-    val body = out.toByteArray
-
-    in.close
-    bin.close
-    out.close
-    body
-  }
-
-  @throws(classOf[IOException])
-  def lzma(input: Array[Byte]): Array[Byte] = {
-    val in = new ByteArrayInputStream(input)
-    val out = new ByteArrayOutputStream
-
-    val encoder = new SevenZip.Compression.LZMA.Encoder
-    encoder.SetEndMarkerMode(true)     // must set true
-    encoder.SetDictionarySize(1 << 20) // 1048576
-
-    encoder.Code(in, out, -1, -1, null)
-
-    val body = out.toByteArray
-
-    in.close
-    out.close
-    body
-  }
-
-  @throws(classOf[IOException])
-  def unlzma(input: Array[Byte]): Array[Byte] = {
-    val in = new ByteArrayInputStream(input)
-    val out = new ByteArrayOutputStream
-
-    val decoder = new SevenZip.Compression.LZMA.Decoder
-    decoder.SetDecoderProperties(lzmaProps)
-    decoder.Code(in, out, -1)
-    
-    val body = out.toByteArray
-
-    in.close
-    out.close
-    body
-  }
-
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
       import ContentType._
@@ -317,17 +198,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
 
       val content = contentType.mimeType match {
         case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
-        case JSON.mimeType =>
-          contentType.attribute("class") match {
-            case Some(clzName) =>
-              try {
-                Class.forName(clzName).newInstance match {
-                  case x: JsonSerializable => decodeJson(x, body1)
-                  case _ => decodeJson(body1)
-                }
-              } catch {case ex => ex.printStackTrace; decodeJson(body1)}
-            case _ => decodeJson(body1)
-          }
+        case JSON.mimeType => decodeJson(body1)
         case _ => decodeJava(body1)
       }
 

@@ -377,25 +377,26 @@ class JsonParser(val rest: RestReader) {
   private val tmp = new CharArray(null, 0, 0)
 
   private def readStringChars: CharArray = {
-    val start = rest.pos
-    val fst = rest.charAt(start)
-    
+    // @Note should be aware that when call rest.charAt(i), i should < rest.end
     @tailrec
-    def loop(i: Int, c: Char): CharArray = c match {
-      case _ if i >= rest.end || c == '\\' =>
+    def loop(i: Int): CharArray = {
+      if (i >= rest.end || rest.charAt(i) == '\\') {
         // could not decide yet, need going on use a bigger buffer
         out.reset
         readStringChars(out, i)
         out
-      case '"' =>
+      } else if (rest.charAt(i) == '"') {
         // found end of string, task finish
         tmp.set(rest.data, rest.pos, i) // directly use input buffer, batch copy data
         rest.seek(i + 1) // move pos till consumer this '"'
         tmp
-      case _ => loop(i + 1, rest.charAt(i + 1))
+      } else {
+        loop(i + 1)
+      }
     }
     
-    loop(start, fst)
+    val start = rest.pos
+    loop(start)
   }
 
   /**

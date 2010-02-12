@@ -6,7 +6,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import org.aiotrade.lib.io.RestReader
 
-import scala.collection.mutable.{ListBuffer, Map, HashMap}
+import scala.collection.mutable.{ListBuffer, HashMap}
 
 object JsonBuilder {  
   def readJson(json: String) = {
@@ -41,14 +41,11 @@ class JsonBuilder(parser: JsonParser) {
   }
 
   def getObject: Map[_, _] = {
-    val elems = new HashMap[Any, Any]
+    var elems = Map[Any, Any]()
     while (parser.nextEvent != OBJECT_END) {
       val key = getString
-
       parser.nextEvent
-      val value = getVal
-
-      elems(key) = value
+      elems += (key -> getVal)
     }
     elems
   }
