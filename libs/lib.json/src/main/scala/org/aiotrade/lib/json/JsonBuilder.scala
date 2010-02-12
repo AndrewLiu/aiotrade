@@ -6,7 +6,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import org.aiotrade.lib.io.RestReader
 
-import scala.collection.mutable.{ListBuffer, HashMap}
+import scala.collection.mutable.{ListBuffer}
 
 object JsonBuilder {  
   def readJson(json: String) = {
@@ -40,8 +40,8 @@ class JsonBuilder(parser: JsonParser) {
     case _            => () // or ERROR?
   }
 
-  def getObject: Map[_, _] = {
-    var elems = Map[Any, Any]()
+  def getObject: Map[String, _] = {
+    var elems = Map[String, Any]()
     while (parser.nextEvent != OBJECT_END) {
       val key = getString
       parser.nextEvent
