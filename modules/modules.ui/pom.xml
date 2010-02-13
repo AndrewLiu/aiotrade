@@ -106,6 +106,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.2.128</version>
+        </dependency>
+
         <!-- runtime dependencies -->
         <dependency>
             <groupId>org.aiotrade</groupId>
@@ -125,7 +131,6 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.2.128</version>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 

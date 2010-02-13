@@ -91,9 +91,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
    */
   val defaultContents: AnalysisContents = restoreContents("Default")
   private var userOptionsProp: Properties = _
-  private var dbDriver:String = _
+  private var dbDriver: String = _
+  private var dbUser: String = _
+  private var dbPassword: String = _
   private var dbProp: Properties = _
   private var dbUrl: String = _
+  private var connPoolMgr: MiniConnectionPoolManager = _
+
+  private var dbType: Int = _
+  private val DB_DERBY = 0
+  private val DB_H2 = 1
+
   private val inSavingProps = new Object
 
   restoreProperties
@@ -190,7 +198,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
           val laf = LookFeel
 
-          val lafStr = laf.getClass().getName
+          val lafStr = laf.getClass.getName
           val colorReversedStr = LookFeel().isPositiveNegativeColorReversed.toString
           val thinVolumeStr = LookFeel().isThinVolumeBar.toString;
           val quoteChartTypeStr = LookFeel().getQuoteChartType.toString
@@ -364,17 +372,22 @@ class NetBeansPersistenceManager extends PersistenceManager {
     val strUserDir = System.getProperty("netbeans.user")
     dbUrl = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade"
 
-    val strDbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user")
-    val strDbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password")
+    dbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user")
+    dbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password")
 
     dbProp = new Properties
-    dbProp.put("user", strDbUser)
-    dbProp.put("password", strDbPassword)
+    dbProp.put("user", dbUser)
+    dbProp.put("password", dbPassword)
 
     /** test if database exists, if not, create it: */
     /** derby special properties */
-    if (dbDriver.contains("derby")) {
-      dbProp.put("create", "true")
+    dbDriver match {
+      case "org.apache.derby.jdbc.EmbeddedDriver" =>
+        dbType = DB_DERBY
+        dbProp.put("create", "true")
+      case "org.h2.Driver" =>
+        dbType = DB_H2
+      case _ =>
     }
 
     val conn = getDbConnection
@@ -399,7 +412,28 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   private def getDbConnection: Connection = {
     val conn = try {
-      DriverManager.getConnection(dbUrl, dbProp)
+      dbType match {
+        case DB_DERBY =>
+          if (connPoolMgr == null) {
+            //val dataSource = new org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource();
+            //dataSource.setURL(dbUrl)
+            //dataSource.setUser(dbUser)
+            //dataSource.setPassword(dbPassword)
+            //dataSource.setCreateDatabase("create")
+            //connPoolManager = new MiniConnectionPoolManager(dataSource, 5)
+          }
+          DriverManager.getConnection(dbUrl, dbProp)
+        case DB_H2 =>
+          if (connPoolMgr == null) {
+            val dataSource = new org.h2.jdbcx.JdbcDataSource
+            dataSource.setURL(dbUrl)
+            dataSource.setUser(dbUser)
+            dataSource.setPassword(dbPassword)
+            connPoolMgr = new MiniConnectionPoolManager(dataSource, 5)
+          }
+          connPoolMgr.getConnection
+        case _ => DriverManager.getConnection(dbUrl, dbProp)
+      }
     } catch {case ex: SQLException => ex.printStackTrace; null}
 
     /**
@@ -482,6 +516,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         stmt.close
         conn.commit
+        conn.close
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -556,7 +591,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         stmt.close
         conn.commit
-
+        conn.close
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -795,6 +830,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         stmt.close
         conn.commit
+        conn.close
       } catch {case ex: SQLException => ex.printStackTrace}
     }
   }
@@ -1013,6 +1049,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
   // ----- shutdown
 
   def shutdown {
+    if (connPoolMgr == null) {
+      connPoolMgr.dispose
+    }
+    
     /**
      * Derby special action:
      *
