@@ -8,12 +8,12 @@ import java.io.Reader
  * @param data // input buffer with text in it that ready to read
  * @author Caoyuan Deng
  */
-class RestReader(var data: Array[Char],  var pos: Int, var end: Int, var in: Reader) {
+class RestReader(var data: Array[Char], var pos: Int, var end: Int, var in: Reader) {
 
-  val EOF = 0xFFFF.asInstanceOf[Char]
+  val EOF = 0xFFFF.toChar
 
-  var eof: Boolean = false     // true if the end of the stream was reached.
-  var gPos: Long = 0           // global position = gPos + start
+  var eof = false     // true if the end of the stream was reached.
+  var gPos = 0L       // global position = gPos + start
 
   def this(data: Array[Char], pos: Int, end: Int) = this(data, pos, end, null)
   def this(data: String, pos: Int, end: Int) = this(data.toCharArray, pos, end, null)
@@ -109,11 +109,11 @@ class RestReader(var data: Array[Char],  var pos: Int, var end: Int, var in: Rea
   }
 
   def skip(i: Int) {
-    this.pos += 1
+    pos += 1
   }
 
   def backup(i: Int) {
-    this.pos -= 1
+    pos -= 1
   }
 
 }

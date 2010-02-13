@@ -232,7 +232,7 @@ class JsonParser(val rest: RestReader) {
 
     // We build up the number in the negative plane since it's larger (by one) than
     // the positive plane.
-    val v:Long = '0' - fstChar
+    val v: Long = '0' - fstChar
 
     @tailrec
     def loop(c: Char, v: Long, i: Int): Long = c match {
@@ -405,7 +405,6 @@ class JsonParser(val rest: RestReader) {
       rest.fillMore
       rest.pos
     } else from
-
 
     rest.charAt(from1) match {
       case '"' =>
