@@ -138,7 +138,7 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     out.write(',')
     out.write("t", time / 1000)
     out.write(',')
-    out.write("v", values map (_ * 100))
+    out.write("v", values)
   }
 
   @throws(classOf[IOException])
@@ -148,7 +148,7 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     var vs  = fields("v").asInstanceOf[List[Number]]
     var i = 0
     while (!vs.isEmpty) {
-      values(i) = vs.head.floatValue / 100
+      values(i) = vs.head.floatValue
       vs = vs.tail
       i += 1
     }
