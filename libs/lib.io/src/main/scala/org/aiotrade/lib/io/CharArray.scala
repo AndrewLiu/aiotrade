@@ -10,17 +10,11 @@ import java.nio.CharBuffer
 /**
  * @author Caoyuan Deng
  */
-class CharArray(var buf: Array[Char], var off: Int, var end: Int) {
+class CharArray(private var buf: Array[Char], private var off: Int, private var end: Int) {
 
   def this(size: Int) = this(new Array[Char](size), 0, 9)
     
   def this() = this(32)
-
-  def set(chars:Array[Char], off: Int, end: Int) = {
-    this.buf = chars
-    this.off = off
-    this.end = end
-  }
 
   def toArray = buf
 
@@ -60,10 +54,10 @@ class CharArray(var buf: Array[Char], var off: Int, var end: Int) {
   protected def resize(len:Int) {
     val newBuf = new Array[Char](Math.max(buf.length << 1, len))
     Array.copy(buf, off, newBuf, 0, length)
-    buf = newBuf;
+    buf = newBuf
   }
 
-  def reserve(num:Int) {
+  def reserve(num: Int) {
     if (end + num > buf.length) {
       resize(end + num)
     }
@@ -71,9 +65,9 @@ class CharArray(var buf: Array[Char], var off: Int, var end: Int) {
   
   def put(c: Char) {
     if (end >= buf.length) {
-      resize(end + 1);
+      resize(end + 1)
     }
-    unsafePut(c);
+    unsafePut(c)
   }
 
   def put(b: Int) {
@@ -141,10 +135,10 @@ class CharArray(var buf: Array[Char], var off: Int, var end: Int) {
   def fill = 0  // or -1?
 
   def append(cs: CharSequence): CharArray = {
-    append(cs, 0, cs.length())
+    append(cs, 0, cs.length)
   }
 
-  def append(cs: CharSequence, start: Int, end: Int) = {
+  def append(cs: CharSequence, start: Int, end: Int): CharArray = {
     put(cs.subSequence(start, end).toString)
     this
   }

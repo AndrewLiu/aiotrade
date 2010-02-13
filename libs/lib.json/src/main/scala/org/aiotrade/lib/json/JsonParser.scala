@@ -371,9 +371,6 @@ class JsonParser(val rest: RestReader) {
     }
   }
 
-  // a dummy buffer we can use to point at other buffers
-  private val tmp = new CharArray(null, 0, 0)
-
   private def readStringChars: CharArray = {
     // @Note should be aware that when call rest.charAt(i), i should < rest.end
     @tailrec
@@ -385,7 +382,7 @@ class JsonParser(val rest: RestReader) {
         out
       } else if (rest.charAt(i) == '"') {
         // found end of string, task finish
-        tmp.set(rest.data, rest.pos, i) // directly use input buffer, batch copy data
+        val tmp = new CharArray(rest.data, rest.pos, i) // directly use input buffer, batch copy data
         rest.seek(i + 1) // move pos till consumer this '"'
         tmp
       } else {
@@ -555,7 +552,7 @@ class JsonParser(val rest: RestReader) {
     val str = "char='" + (if (rest.pos < rest.end) rest.last.asInstanceOf[Char] + "'" else "(EOF)")
     val pos = "position=" + rest.count
     val tot = str + ", " + pos
-    var msg1 = if (msg == null) {
+    val msg1 = if (msg == null) {
       if (rest.pos >= rest.end) "Unexpected EOF" else "JSON Parse Error"
     } else msg
 
