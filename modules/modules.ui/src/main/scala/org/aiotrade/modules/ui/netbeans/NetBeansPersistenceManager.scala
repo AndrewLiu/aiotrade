@@ -36,6 +36,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement
 import java.sql.SQLException;
 import java.sql.Statement
 import java.util.Properties;
@@ -390,21 +391,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
       case _ =>
     }
 
-    val conn = getDbConnection
-    if (conn != null) {
-      try {
-        /** check and create symbol index table if necessary */
-        if (!symbolIndexTableExists(conn)) {
-          createSymbolIndexTable(conn)
-        }
+    try {
+      /** check and create symbol index table if necessary */
+      if (!symbolIndexTableExists) {
+        createSymbolIndexTable
+      }
 
-        if (!tickerTableExists(conn)) {
-          createRealTimeTickerTable(conn)
-        }
+      if (!tickerTableExists) {
+        createRealTimeTickerTable
+      }
 
-        conn.close
-      } catch {case ex: SQLException => ex.printStackTrace}
-    }
+    } catch {case ex: SQLException => ex.printStackTrace}
 
     /** derby special properties */
     dbProp.remove("create")
@@ -461,19 +458,22 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * @param tb table name
    * @param connention
    */
-  private def tableExists(tb: String, conn: Connection): Boolean = {
-    if (conn != null) {
+  private def tableExists(tb: String): Boolean = {
+    var conn: Connection = null
+    var stmt: PreparedStatement = null
+    try {
+      conn = getDbConnection
       val existsTestSql = "SELECT * FROM " + tb + " WHERE 1 = 0"
-      try {
-        val stmt = conn.prepareStatement(existsTestSql)
-        val rs = stmt.executeQuery
+      stmt = conn.prepareStatement(existsTestSql)
+      val rs = stmt.executeQuery
 
-        if (stmt != null) stmt.close
-        if (rs   != null) rs.close
-        return true
-      } catch {
-        case ex: SQLException => // may be caused by none exist, so don't report
-      }
+      if (rs != null) rs.close
+      return true
+    } catch {
+      case ex: SQLException => // may be caused by none exist, so don't report
+    } finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
 
     false
@@ -483,41 +483,43 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * @param conn a db connection
    * @return true if exists, false if none
    */
-  private def symbolIndexTableExists(conn: Connection): Boolean = {
-    tableExists(SYMBOL_INDEX_TABLE_NAME, conn)
+  private def symbolIndexTableExists: Boolean = {
+    tableExists(SYMBOL_INDEX_TABLE_NAME)
   }
 
-  private def createSymbolIndexTable(conn: Connection) {
-    if (conn != null) {
-      try {
-        val stmt = conn.createStatement
+  private def createSymbolIndexTable {
+    var conn: Connection = null
+    var stmt: Statement = null
+    try {
+      conn = getDbConnection
+      stmt = conn.createStatement
 
-        val creatTableSql_derby = "CREATE TABLE " + SYMBOL_INDEX_TABLE_NAME + " (" +
-        "qid        INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "qsymbol    CHAR(30) NOT NULL, " +
-        "qtablename CHAR(60), " +
-        "qfreq      CHAR(10))"
+      val creatTableSql_derby = "CREATE TABLE " + SYMBOL_INDEX_TABLE_NAME + " (" +
+      "qid        INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+      "qsymbol    CHAR(30) NOT NULL, " +
+      "qtablename CHAR(60), " +
+      "qfreq      CHAR(10))"
 
-        val creatTableSql_h2_hsqldb = "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + "(" +
-        "qid        INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "qsymbol    CHAR(30) NOT NULL, " +
-        "qtablename CHAR(60), " +
-        "qfreq      CHAR(10))"
+      val creatTableSql_h2_hsqldb = "CREATE CACHED TABLE " + SYMBOL_INDEX_TABLE_NAME + "(" +
+      "qid        INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+      "qsymbol    CHAR(30) NOT NULL, " +
+      "qtablename CHAR(60), " +
+      "qfreq      CHAR(10))"
 
-        var sql = if (dbDriver.contains("derby")) creatTableSql_derby else creatTableSql_h2_hsqldb
-        stmt.executeUpdate(sql)
+      var sql = if (dbDriver.contains("derby")) creatTableSql_derby else creatTableSql_h2_hsqldb
+      stmt.executeUpdate(sql)
 
-        // @Note: index name in db is glode name, so, use idx_tableName_xxx to identify them
-        sql = "CREATE INDEX idx_qsymbol_" + SYMBOL_INDEX_TABLE_NAME + " ON " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol)"
-        stmt.executeUpdate(sql)
+      // @Note: index name in db is glode name, so, use idx_tableName_xxx to identify them
+      sql = "CREATE INDEX idx_qsymbol_" + SYMBOL_INDEX_TABLE_NAME + " ON " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol)"
+      stmt.executeUpdate(sql)
 
-        sql = "CREATE INDEX idx_qfreq_" + SYMBOL_INDEX_TABLE_NAME + " ON " + SYMBOL_INDEX_TABLE_NAME + " (qfreq)"
-        stmt.executeUpdate(sql)
+      sql = "CREATE INDEX idx_qfreq_" + SYMBOL_INDEX_TABLE_NAME + " ON " + SYMBOL_INDEX_TABLE_NAME + " (qfreq)"
+      stmt.executeUpdate(sql)
 
-        stmt.close
-        conn.commit
-        conn.close
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
   }
 
@@ -526,88 +528,92 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * @param freq
    * @param connection
    */
-  private def quoteTableExists(symbol: String, freq: TFreq, conn: Connection): Boolean = {
+  private def quoteTableExists(symbol: String, freq: TFreq): Boolean = {
     val tb = propTableName(symbol, freq)
-    tableExists(tb, conn)
+    tableExists(tb)
   }
 
   /**
    * @return connection for following usage
    */
-  private def createQuoteTableOf(symbol: String, freq: TFreq, conn: Connection) {
-    if (conn != null) {
-      try {
-        val stmt = conn.createStatement
+  private def createQuoteTableOf(symbol: String, freq: TFreq) {
+    var conn: Connection = null
+    var stmt: Statement = null
+    try {
+      conn = getDbConnection
+      stmt = conn.createStatement
 
-        /**
-         * Only one identity column is allowed in each table. Identity
-         * columns are autoincrement columns. They must be of INTEGER or
-         * BIGINT type and are automatically primary key columns (as a
-         * result, multi-column primary keys are not possible with an
-         * IDENTITY column present)
-         */
-        val tb = propTableName(symbol, freq)
-        val creatTableSql_derby = "CREATE TABLE " + tb + "(" +
-        "qid        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "qtime      BIGINT  NOT NULL, " +
-        "qopen      FLOAT, " +
-        "qhigh      FLOAT, " +
-        "qlow       FLOAT, " +
-        "qclose     FLOAT, " +
-        "qclose_adj FLOAT, " +
-        "qvolume    FLOAT, " +
-        "qamount    FLOAT, " +
-        "qvwap      FLOAT, " +
-        "qhasgaps   SMALLINT, " +
-        "qsourceid  BIGINT)"
+      /**
+       * Only one identity column is allowed in each table. Identity
+       * columns are autoincrement columns. They must be of INTEGER or
+       * BIGINT type and are automatically primary key columns (as a
+       * result, multi-column primary keys are not possible with an
+       * IDENTITY column present)
+       */
+      val tb = propTableName(symbol, freq)
+      val creatTableSql_derby = "CREATE TABLE " + tb + "(" +
+      "qid        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+      "qtime      BIGINT  NOT NULL, " +
+      "qopen      FLOAT, " +
+      "qhigh      FLOAT, " +
+      "qlow       FLOAT, " +
+      "qclose     FLOAT, " +
+      "qclose_adj FLOAT, " +
+      "qvolume    FLOAT, " +
+      "qamount    FLOAT, " +
+      "qvwap      FLOAT, " +
+      "qhasgaps   SMALLINT, " +
+      "qsourceid  BIGINT)"
 
-        val creatTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tb + "(" +
-        "qid        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "qtime      BIGINT  NOT NULL, " +
-        "qopen      FLOAT, " +
-        "qhigh      FLOAT, " +
-        "qlow       FLOAT, " +
-        "qclose     FLOAT, " +
-        "qclose_adj FLOAT, " +
-        "qvolume    FLOAT, " +
-        "qamount    FLOAT, " +
-        "qvwap      FLOAT, " +
-        "qhasgaps   SMALLINT, " +
-        "qsourceid  BIGINT)"
+      val creatTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tb + "(" +
+      "qid        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+      "qtime      BIGINT  NOT NULL, " +
+      "qopen      FLOAT, " +
+      "qhigh      FLOAT, " +
+      "qlow       FLOAT, " +
+      "qclose     FLOAT, " +
+      "qclose_adj FLOAT, " +
+      "qvolume    FLOAT, " +
+      "qamount    FLOAT, " +
+      "qvwap      FLOAT, " +
+      "qhasgaps   SMALLINT, " +
+      "qsourceid  BIGINT)"
 
-        var sql = if (dbDriver.contains("derby")) creatTableSql_derby else creatTableSql_h2_hsqldb
-        stmt.executeUpdate(sql)
+      var sql = if (dbDriver.contains("derby")) creatTableSql_derby else creatTableSql_h2_hsqldb
+      stmt.executeUpdate(sql)
 
-        /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        sql = "CREATE INDEX idx_qtime_" + tb + " ON " + tb + " (qtime)"
-        stmt.executeUpdate(sql)
+      /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
+      sql = "CREATE INDEX idx_qtime_" + tb + " ON " + tb + " (qtime)"
+      stmt.executeUpdate(sql)
 
-        sql = "CREATE INDEX idx_qsourceid_" + tb + " ON " + tb + " (qsourceid)"
-        stmt.executeUpdate(sql)
+      sql = "CREATE INDEX idx_qsourceid_" + tb + " ON " + tb + " (qsourceid)"
+      stmt.executeUpdate(sql)
 
-        /** insert a symbol index record into symbol index table */
-        sql = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + tb + "', '" + freq.toString + "')"
-        stmt.executeUpdate(sql)
+      /** insert a symbol index record into symbol index table */
+      sql = "INSERT INTO " + SYMBOL_INDEX_TABLE_NAME + " (qsymbol, qtablename, qfreq) VALUES ('" + propSymbol(symbol) + "', '" + tb + "', '" + freq.toString + "')"
+      stmt.executeUpdate(sql)
 
-        stmt.close
-        conn.commit
-        conn.close
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
   }
 
   def saveQuotes(symbol: String, freq: TFreq, quotes: Array[Quote], sourceId: Long) {
-    val conn = getDbConnection
-    if (!quoteTableExists(symbol, freq, conn)) {
-      createQuoteTableOf(symbol, freq, conn)
+    if (!quoteTableExists(symbol, freq)) {
+      createQuoteTableOf(symbol, freq)
     }
 
+    var conn: Connection = null
+    var stmt: PreparedStatement = null
     try {
+      conn = getDbConnection
       val tb = propTableName(symbol, freq)
       val sql =  "INSERT INTO " + tb  +
       " (qtime, qopen, qhigh, qlow, qclose, qvolume, qamount, qclose_adj, qvwap, qhasgaps, qsourceid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-      val stmt = conn.prepareStatement(sql)
+      stmt = conn.prepareStatement(sql)
       for (quote <- quotes) {
         stmt setLong  (1, quote.time)
         stmt setFloat (2, quote.open)
@@ -625,22 +631,25 @@ class NetBeansPersistenceManager extends PersistenceManager {
       }
       stmt.executeBatch
 
-      stmt.close
       conn.commit
-      conn.close
-    } catch {case ex: SQLException => ex.printStackTrace}
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
+    }
   }
 
   def restoreQuotes(symbol: String, freq: TFreq): Array[Quote] = {
     val quotes = new ArrayBuffer[Quote]
 
-    val conn = getDbConnection
-    if (quoteTableExists(symbol, freq, conn)) {
+    if (quoteTableExists(symbol, freq)) {
+      var conn: Connection = null
+      var stmt: PreparedStatement = null
       try {
+        conn = getDbConnection
         val tb = propTableName(symbol, freq)
         val sql = "SELECT * FROM " + tb + " ORDER BY qtime ASC"
 
-        val stmt = conn.prepareStatement(sql)
+        stmt = conn.prepareStatement(sql)
         val rs = stmt.executeQuery
         while (rs.next) {
           val quote = new Quote
@@ -661,213 +670,209 @@ class NetBeansPersistenceManager extends PersistenceManager {
         }
         rs.close
 
-        stmt.close
         conn.commit
-        conn.close
-
         WIN_MAN.setStatusText(quotes.size + " quotes restored from database.")
-      } catch {case ex: SQLException => ex.printStackTrace}
+      } catch {case ex: SQLException => ex.printStackTrace} finally {
+        if (conn != null) conn.close
+        if (stmt != null) stmt.close
+      }
     }
 
     quotes.toArray
   }
 
   def deleteQuotes(symbol: String, freq: TFreq, fromTime: Long, toTime: Long) {
-    val conn = getDbConnection
-    if (quoteTableExists(symbol, freq, conn)) {
+    if (quoteTableExists(symbol, freq)) {
+      var conn: Connection = null
+      var stmt: PreparedStatement = null
       try {
+        conn = getDbConnection
         val tb = propTableName(symbol, freq)
         val sql = "DELETE FROM " + tb + " WHERE qtime BETWEEN ? AND ? "
 
-        val stmt = conn.prepareStatement(sql)
+        stmt = conn.prepareStatement(sql)
 
         stmt.setLong(1, fromTime)
         stmt.setLong(2, toTime)
 
         stmt.execute
 
-        stmt.close
         conn.commit
-        conn.close
-
         WIN_MAN.setStatusText("Delete data of " + tb + " successfully.")
-      } catch {case ex: SQLException => ex.printStackTrace}
+      } catch {case ex: SQLException => ex.printStackTrace} finally {
+        if (conn != null) conn.close
+        if (stmt != null) stmt.close
+      }
     }
   }
 
   def dropAllQuoteTables(symbol: String) {
-    val conn = getDbConnection
-    if (symbolIndexTableExists(conn)) {
+    if (symbolIndexTableExists) {
+      var conn: Connection = null
+      var stmt: Statement = null
       try {
+        conn = getDbConnection
         var tableNames = List[String]()
-
         var sql = "SELECT * FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
 
-        val stmt = conn.prepareStatement(sql)
-        val rs = stmt.executeQuery
+        stmt = conn.createStatement
+        val rs = stmt.executeQuery(sql)
         while (rs.next) {
           val tableName = rs.getString("qtablename")
           tableNames ::= tableName
         }
         rs.close
 
-        stmt.close
-        conn.commit
-
         for (tableName <- tableNames) {
           sql = "DROP TABLE " + tableName
-          val dropStmt = conn.prepareStatement(sql)
-          dropStmt.execute
-
-          dropStmt.close
-          conn.commit
+          stmt.executeUpdate(sql)
         }
 
         sql = "DELETE FROM " + SYMBOL_INDEX_TABLE_NAME + " WHERE qsymbol = '" + propSymbol(symbol) + "'"
-        val deleteStmt = conn.prepareStatement(sql)
-        deleteStmt.execute
+        stmt.executeUpdate(sql)
 
-        deleteStmt.close
         conn.commit
-
-        conn.close
-
         WIN_MAN.setStatusText("Clear data of " + symbol + " successfully.")
-      } catch {case ex: SQLException =>ex.printStackTrace}
+      } catch {case ex: SQLException =>ex.printStackTrace} finally {
+        if (conn != null) conn.close
+        if (stmt != null) stmt.close
+      }
     }
   }
 
 
   // ----- realtime ticker tables
 
-  private def tickerTableExists(conn: Connection): Boolean = {
+  private def tickerTableExists: Boolean = {
     val tb = "realtime_ticker"
-    tableExists(tb, conn)
+    tableExists(tb)
   }
 
   /**
    * @return connection for following usage
    */
-  private def createRealTimeTickerTable(conn: Connection) {
-    if (conn != null) {
-      try {
-        val stmt = conn.createStatement
+  private def createRealTimeTickerTable {
+    var conn: Connection = null
+    var stmt: Statement = null
+    try {
+      conn = getDbConnection
+      stmt = conn.createStatement
 
-        /**
-         * Only one identity column is allowed in each table. Identity
-         * columns are autoincrement columns. They must be of INTEGER or
-         * BIGINT type and are automatically primary key columns (as a
-         * result, multi-column primary keys are not possible with an
-         * IDENTITY column present)
-         */
-        val tickerTb = "realtime_ticker"
-        val createTableSql_derby = "CREATE TABLE " + tickerTb + "(" +
-        "tid       INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "ttime     BIGINT   NOT NULL, " +
-        "tsymbol   CHAR(30) NOT NULL, " +
-        "prevclose FLOAT, " +
-        "lastprice FLOAT, " +
-        "dayopen   FLOAT, " +
-        "dayhigh   FLOAT, " +
-        "daylow    FLOAT, " +
-        "dayvolume FLOAT, " +
-        "dayamount FLOAT, " +
-        "daychange FLOAT, " +
-        "tsourceid BIGINT)"
+      /**
+       * Only one identity column is allowed in each table. Identity
+       * columns are autoincrement columns. They must be of INTEGER or
+       * BIGINT type and are automatically primary key columns (as a
+       * result, multi-column primary keys are not possible with an
+       * IDENTITY column present)
+       */
+      val tickerTb = "realtime_ticker"
+      val createTableSql_derby = "CREATE TABLE " + tickerTb + "(" +
+      "tid       INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+      "ttime     BIGINT   NOT NULL, " +
+      "tsymbol   CHAR(30) NOT NULL, " +
+      "prevclose FLOAT, " +
+      "lastprice FLOAT, " +
+      "dayopen   FLOAT, " +
+      "dayhigh   FLOAT, " +
+      "daylow    FLOAT, " +
+      "dayvolume FLOAT, " +
+      "dayamount FLOAT, " +
+      "daychange FLOAT, " +
+      "tsourceid BIGINT)"
 
-        val createTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tickerTb + "(" +
-        "tid       INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "ttime     BIGINT   NOT NULL, " +
-        "tsymbol   CHAR(30) NOT NULL, " +
-        "prevclose FLOAT, " +
-        "lastprice FLOAT, " +
-        "dayopen   FLOAT, " +
-        "dayhigh   FLOAT, " +
-        "daylow    FLOAT, " +
-        "dayvolume FLOAT, " +
-        "dayamount FLOAT, " +
-        "daychange FLOAT, " +
-        "tsourceid BIGINT)"
+      val createTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tickerTb + "(" +
+      "tid       INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+      "ttime     BIGINT   NOT NULL, " +
+      "tsymbol   CHAR(30) NOT NULL, " +
+      "prevclose FLOAT, " +
+      "lastprice FLOAT, " +
+      "dayopen   FLOAT, " +
+      "dayhigh   FLOAT, " +
+      "daylow    FLOAT, " +
+      "dayvolume FLOAT, " +
+      "dayamount FLOAT, " +
+      "daychange FLOAT, " +
+      "tsourceid BIGINT)"
 
-        var sql = if (dbDriver.contains("derby")) createTableSql_derby else createTableSql_h2_hsqldb
-        stmt.executeUpdate(sql)
+      var sql = if (dbDriver.contains("derby")) createTableSql_derby else createTableSql_h2_hsqldb
+      stmt.executeUpdate(sql)
 
-        /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
-        sql = "CREATE INDEX idx_ttime_" + tickerTb + " ON " + tickerTb + " (ttime)"
-        stmt.executeUpdate(sql)
+      /** index name in db is glode name, so, use idx_tableName_xxx to identify them */
+      sql = "CREATE INDEX idx_ttime_" + tickerTb + " ON " + tickerTb + " (ttime)"
+      stmt.executeUpdate(sql)
 
-        sql = "CREATE INDEX idx_tsymbol_" + tickerTb + " ON " + tickerTb + " (tsymbol)"
-        stmt.executeUpdate(sql)
+      sql = "CREATE INDEX idx_tsymbol_" + tickerTb + " ON " + tickerTb + " (tsymbol)"
+      stmt.executeUpdate(sql)
 
-        sql = "CREATE INDEX idx_tsourceid_" + tickerTb + " ON " + tickerTb + " (tsourceid)"
-        stmt.executeUpdate(sql)
+      sql = "CREATE INDEX idx_tsourceid_" + tickerTb + " ON " + tickerTb + " (tsourceid)"
+      stmt.executeUpdate(sql)
 
-        // --- depth table
-        val depthTb = "realtime_depth"
-        val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTb + "(" +
-        "did        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
-        "tid        INTEGER NOT NULL, " +
-        "dlevel     SMALLINT, " +
-        "ddirection SMALLINT, " + // bid = -1, ask = 1
-        "dprice     FLOAT, " +
-        "dsize      FLOAT, " +
-        "dopid      CHAR(30))"
+      // --- depth table
+      val depthTb = "realtime_depth"
+      val stmtCreateDepthTableStr_derby = "CREATE TABLE " + depthTb + "(" +
+      "did        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
+      "tid        INTEGER NOT NULL, " +
+      "dlevel     SMALLINT, " +
+      "ddirection SMALLINT, " + // bid = -1, ask = 1
+      "dprice     FLOAT, " +
+      "dsize      FLOAT, " +
+      "dopid      CHAR(30))"
 
-        val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTb + "(" +
-        "did        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
-        "tid        INTEGER NOT NULL, " +
-        "dlevel     SMALLINT, " +
-        "ddirection SMALLINT, " + // bid = -1, ask = 1
-        "dprice     FLOAT, " +
-        "dsize      FLOAT, " +
-        "dopid      CHAR(30))"
+      val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTb + "(" +
+      "did        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
+      "tid        INTEGER NOT NULL, " +
+      "dlevel     SMALLINT, " +
+      "ddirection SMALLINT, " + // bid = -1, ask = 1
+      "dprice     FLOAT, " +
+      "dsize      FLOAT, " +
+      "dopid      CHAR(30))"
 
-        sql = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
-        stmt.executeUpdate(sql)
+      sql = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
+      stmt.executeUpdate(sql)
 
-        sql = "CREATE INDEX idx_tid_" + depthTb + " ON " + depthTb + " (tid)"
-        stmt.executeUpdate(sql)
+      sql = "CREATE INDEX idx_tid_" + depthTb + " ON " + depthTb + " (tid)"
+      stmt.executeUpdate(sql)
 
-        stmt.close
-        conn.commit
-        conn.close
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
   }
 
   def deleteRealTimeTickers {
-    val conn = getDbConnection
-    if (conn != null) {
-      try {
-        val tickerTb = "realtime_ticker"
-        var sql = "DELETE FROM " + tickerTb
+    var conn: Connection = null
+    var stmt1: PreparedStatement = null
+    var stmt2: PreparedStatement = null
+    try {
+      conn = getDbConnection
+      val tickerTb = "realtime_ticker"
+      var sql = "DELETE FROM " + tickerTb
 
-        var stmt = conn.prepareStatement(sql)
-        stmt.execute
-        stmt.close
+      stmt1 = conn.prepareStatement(sql)
+      stmt1.execute
 
-        val depthTb = "realtime_ticker"
-        sql = "DELETE FROM " + depthTb
+      val depthTb = "realtime_ticker"
+      sql = "DELETE FROM " + depthTb
 
-        stmt = conn.prepareStatement(sql)
-        stmt.execute
-        stmt.close
+      stmt2 = conn.prepareStatement(sql)
+      stmt2.execute
 
-        conn.commit
-        conn.close
-
-        WIN_MAN.setStatusText("Delete data of " + tickerTb + " successfully.")
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+      WIN_MAN.setStatusText("Delete data of " + tickerTb + " successfully.")
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt1 != null) stmt1.close
+      if (stmt2 != null) stmt2.close
     }
   }
 
   def saveRealTimeTickers(tickers: Array[Ticker], sourceId: Long) {
-    val conn = getDbConnection
-    if (conn == null) {
-      return
-    }
-
+    var conn: Connection = null
+    var stmt1: PreparedStatement = null
+    var stmt2: PreparedStatement = null
     try {
+      conn = getDbConnection
       val tickerTb = "realtime_ticker"
       val depthTb  = "realtime_depth"
 
@@ -877,8 +882,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
       val sql2 =  "INSERT INTO " + depthTb +
       " (tid, dlevel, ddirection, dprice, dsize, dopid) VALUES (?, ?, ?, ?, ?, ?)"
 
-      val stmt1 = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS)
-      val stmt2 = conn.prepareStatement(sql2)
+      stmt1 = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS)
+      stmt2 = conn.prepareStatement(sql2)
       for (ticker <- tickers) {
         stmt1 setLong   (1, ticker.time)
         stmt1 setString (2, ticker.symbol)
@@ -929,67 +934,69 @@ class NetBeansPersistenceManager extends PersistenceManager {
       
       stmt2.executeBatch
 
-      stmt1.close
-      stmt2.close
       conn.commit
-      conn.close
-    } catch {case ex: SQLException => ex.printStackTrace}
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt1 != null) stmt1.close
+      if (stmt2 != null) stmt2.close
+    }
   }
 
   def restoreTickers(symbol: String): Array[Ticker] = {
     val tickers = new ArrayBuffer[Ticker]
 
-    val conn = getDbConnection
-    if (conn != null) {
-      try {
-        val tickerTb = "realtime_ticker"
-        val depthTb  = "realtime_depth"
-        val sql = "SELECT * FROM " + tickerTb + " AS a LEFT JOIN " + depthTb + " AS b ON a.id = b.tid WHERE a.tsymbol = '" + symbol + "' ORDER BY a.ttime ASC"
+    var conn: Connection = null
+    var stmt: PreparedStatement = null
+    try {
+      conn = getDbConnection
+      val tickerTb = "realtime_ticker"
+      val depthTb  = "realtime_depth"
+      val sql = "SELECT * FROM " + tickerTb + " AS a LEFT JOIN " + depthTb + " AS b ON a.id = b.tid WHERE a.tsymbol = '" + symbol + "' ORDER BY a.ttime ASC"
 
-        val stmt = conn.prepareStatement(sql)
-        val rs = stmt.executeQuery
-        var ticker: Ticker = null
-        while (rs.next) {
-          val symbol = rs.getString("tsymbol")
-          if (ticker == null || ticker.symbol != symbol) {
-            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
-            ticker = new Ticker
-            ticker.symbol    = symbol
-            ticker.time      = rs getLong  ("ttime")
-            ticker.prevClose = rs getFloat ("prevclose")
-            ticker.lastPrice = rs getFloat ("lastprice")
-            ticker.dayOpen   = rs getFloat ("dayopen")
-            ticker.dayHigh   = rs getFloat ("dayhigh")
-            ticker.dayLow    = rs getFloat ("daylow")
-            ticker.dayVolume = rs getFloat ("dayvolume")
-            ticker.dayAmount = rs getFloat ("dayamount")
-            ticker.dayChange = rs getFloat ("daychange")
+      stmt = conn.prepareStatement(sql)
+      val rs = stmt.executeQuery
+      var ticker: Ticker = null
+      while (rs.next) {
+        val symbol = rs.getString("tsymbol")
+        if (ticker == null || ticker.symbol != symbol) {
+          // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
+          ticker = new Ticker
+          ticker.symbol    = symbol
+          ticker.time      = rs getLong  ("ttime")
+          ticker.prevClose = rs getFloat ("prevclose")
+          ticker.lastPrice = rs getFloat ("lastprice")
+          ticker.dayOpen   = rs getFloat ("dayopen")
+          ticker.dayHigh   = rs getFloat ("dayhigh")
+          ticker.dayLow    = rs getFloat ("daylow")
+          ticker.dayVolume = rs getFloat ("dayvolume")
+          ticker.dayAmount = rs getFloat ("dayamount")
+          ticker.dayChange = rs getFloat ("daychange")
+        } else {
+          // (tid, dlevel, ddirection, dprice, dsize, dopid)
+          val level     = rs getInt   ("dlevel")
+          val direction = rs getInt   ("ddirection")
+          val price     = rs getFloat ("dprice")
+          val size      = rs getFloat ("dsize")
+          val opid      = rs getFloat ("dopid")
+          if (direction == -1) {
+            ticker.setBidPrice(level, price)
+            ticker.setBidSize (level, size)
           } else {
-            // (tid, dlevel, ddirection, dprice, dsize, dopid)
-            val level     = rs getInt   ("dlevel")
-            val direction = rs getInt   ("ddirection")
-            val price     = rs getFloat ("dprice")
-            val size      = rs getFloat ("dsize")
-            val opid      = rs getFloat ("dopid")
-            if (direction == -1) {
-              ticker.setBidPrice(level, price)
-              ticker.setBidSize (level, size)
-            } else {
-              ticker.setAskPrice(level, price)
-              ticker.setAskSize (level, size)
-            }
+            ticker.setAskPrice(level, price)
+            ticker.setAskSize (level, size)
           }
-
-          tickers += ticker
         }
-        rs.close
 
-        stmt.close
-        conn.commit
-        conn.close
+        tickers += ticker
+      }
+      rs.close
 
-        WIN_MAN.setStatusText(tickers.size + " quotes restored from database.")
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+
+      WIN_MAN.setStatusText(tickers.size + " quotes restored from database.")
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
 
     tickers.toArray
@@ -1001,44 +1008,44 @@ class NetBeansPersistenceManager extends PersistenceManager {
   def restoreRealTimeTickersOverview: Array[Ticker] = {
     val tickers = new ArrayBuffer[Ticker]
 
-    val conn = getDbConnection
-    if (conn != null) {
-      try {
-        val tickerTb = "realtime_ticker"
-        var sql = "SELECT * FROM " + tickerTb + " AS a WHERE a.ttime = (SELECT max(a1.ttime) FROM " + tickerTb + " AS a1 WHERE a.tsymbol = a1.tsymbol)"
+    var conn: Connection = null
+    var stmt: PreparedStatement = null
+    try {
+      conn = getDbConnection
+      val tickerTb = "realtime_ticker"
+      var sql = "SELECT * FROM " + tickerTb + " AS a WHERE a.ttime = (SELECT max(a1.ttime) FROM " + tickerTb + " AS a1 WHERE a.tsymbol = a1.tsymbol)"
 
-        val stmt = conn.prepareStatement(sql)
-        val rs = stmt.executeQuery
-        var ticker: Ticker = null
-        while (rs.next) {
-          val symbol = rs.getString("tsymbol")
-          if (ticker == null || ticker.symbol != symbol) {
-            // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
-            ticker = new Ticker
-            ticker.symbol    = symbol
-            ticker.time      = rs getLong  ("ttime")
-            ticker.prevClose = rs getFloat ("prevclose")
-            ticker.lastPrice = rs getFloat ("lastprice")
-            ticker.dayOpen   = rs getFloat ("dayopen")
-            ticker.dayHigh   = rs getFloat ("dayhigh")
-            ticker.dayLow    = rs getFloat ("daylow")
-            ticker.dayVolume = rs getFloat ("dayvolume")
-            ticker.dayAmount = rs getFloat ("dayamount")
-            ticker.dayChange = rs getFloat ("daychange")
-          } else {
-            // do not need depth
-          }
-
-          tickers += ticker
+      stmt = conn.prepareStatement(sql)
+      val rs = stmt.executeQuery
+      var ticker: Ticker = null
+      while (rs.next) {
+        val symbol = rs.getString("tsymbol")
+        if (ticker == null || ticker.symbol != symbol) {
+          // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
+          ticker = new Ticker
+          ticker.symbol    = symbol
+          ticker.time      = rs getLong  ("ttime")
+          ticker.prevClose = rs getFloat ("prevclose")
+          ticker.lastPrice = rs getFloat ("lastprice")
+          ticker.dayOpen   = rs getFloat ("dayopen")
+          ticker.dayHigh   = rs getFloat ("dayhigh")
+          ticker.dayLow    = rs getFloat ("daylow")
+          ticker.dayVolume = rs getFloat ("dayvolume")
+          ticker.dayAmount = rs getFloat ("dayamount")
+          ticker.dayChange = rs getFloat ("daychange")
+        } else {
+          // do not need depth
         }
-        rs.close
 
-        stmt.close
-        conn.commit
-        conn.close
+        tickers += ticker
+      }
+      rs.close
 
-        WIN_MAN.setStatusText("Load market overview successfully.")
-      } catch {case ex: SQLException => ex.printStackTrace}
+      conn.commit
+      WIN_MAN.setStatusText("Load market overview successfully.")
+    } catch {case ex: SQLException => ex.printStackTrace} finally {
+      if (conn != null) conn.close
+      if (stmt != null) stmt.close
     }
 
     tickers.toArray
