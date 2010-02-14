@@ -133,6 +133,4 @@ trait Serializer {
     body
   }
 
-
-  
 }

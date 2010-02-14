@@ -116,8 +116,10 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     }
   }
 
-  protected def publish(exchange: String, content: Any, routingKey: String, props: AMQP.BasicProperties) {
+  protected def publish(exchange: String, content: Any, routingKey: String, $props: AMQP.BasicProperties) {
     import ContentType._
+
+    val props = if ($props == null) new AMQP.BasicProperties else $props
 
     val contentType = props.contentType match {
       case null | "" => JAVA_SERIALIZED_OBJECT
@@ -144,7 +146,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     publish(exchange, content, routingKey, props)
   }
 
-  protected def disconnect = {
+  protected def disconnect {
     if (consumer != null) {
       channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag)
     }
@@ -163,7 +165,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
     }
   }
 
-  protected def reconnect(delay: Long) = {
+  protected def reconnect(delay: Long) {
     disconnect
     try {
       connect
