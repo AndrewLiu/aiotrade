@@ -53,8 +53,8 @@ class MiniConnectionPoolManager(dataSource: ConnectionPoolDataSource, maxConnect
   } catch {case e: SQLException => null}
   private val semaphore = new Semaphore(maxConnections, true)
   private val recycledConnections = new LinkedList[PooledConnection]
-  private var activeConnections = 0
   private val poolConnectionEventListener = new PoolConnectionEventListener
+  private var activeConnections = 0
   private var isDisposed = false
 
   /**
@@ -63,14 +63,12 @@ class MiniConnectionPoolManager(dataSource: ConnectionPoolDataSource, maxConnect
   @SerialVersionUID(1)
   object TimeoutException extends RuntimeException("Timeout while waiting for a free database connection.")
 
-
   /**
    * Constructs a MiniConnectionPoolManager object with a timeout of 60 seconds.
    * @param dataSource      the data source for the connections.
    * @param maxConnections  the maximum number of connections.
    */
   def this(dataSource: ConnectionPoolDataSource, maxConnections: Int) = this (dataSource, maxConnections, 60)
-
 
   /**
    * Closes all unused pooled connections.
@@ -157,7 +155,7 @@ class MiniConnectionPoolManager(dataSource: ConnectionPoolDataSource, maxConnect
   private def closeConnectionNoEx(pconn: PooledConnection) {
     try {
       pconn.close
-    } catch {case e: SQLException => log("Error while closing database connection: "+ e.toString)}
+    } catch {case e: SQLException => log("Error while closing database connection: " + e.toString)}
   }
 
   private def log(msg: String) {
@@ -172,20 +170,21 @@ class MiniConnectionPoolManager(dataSource: ConnectionPoolDataSource, maxConnect
 
   private def assertInnerState {
     if (activeConnections < 0) throw new AssertionError
-    if (activeConnections+recycledConnections.size   > maxConnections) throw new AssertionError
-    if (activeConnections+semaphore.availablePermits > maxConnections) throw new AssertionError
+    if (activeConnections + recycledConnections.size   > maxConnections) throw new AssertionError
+    if (activeConnections + semaphore.availablePermits > maxConnections) throw new AssertionError
   }
 
   private class PoolConnectionEventListener extends ConnectionEventListener {
     def connectionClosed(event: ConnectionEvent) {
       val pconn = event.getSource.asInstanceOf[PooledConnection]
-      pconn.removeConnectionEventListener (this)
-      recycleConnection (pconn)
+      pconn.removeConnectionEventListener(this)
+      recycleConnection(pconn)
     }
+
     def connectionErrorOccurred(event: ConnectionEvent) {
       val pconn = event.getSource.asInstanceOf[PooledConnection]
       pconn.removeConnectionEventListener(this)
-      disposeConnection (pconn)
+      disposeConnection(pconn)
     }
   }
 

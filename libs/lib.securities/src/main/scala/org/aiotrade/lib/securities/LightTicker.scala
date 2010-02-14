@@ -31,8 +31,6 @@
 package org.aiotrade.lib.securities
 
 import java.io.IOException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
@@ -150,29 +148,6 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     while (!vs.isEmpty) {
       values(i) = vs.head.floatValue
       vs = vs.tail
-      i += 1
-    }
-  }
-
-
-  @throws(classOf[IOException])
-  private def writeObject_todo(out: ObjectOutputStream) {
-    out.defaultWriteObject
-
-    out.writeObject(symbol)
-    for (value <- values) {
-      out.writeFloat(value)
-    }
-  }
-
-  @throws(classOf[IOException]) @throws(classOf[ClassNotFoundException])
-  private def readObject_todo(in: ObjectInputStream) {
-    in.defaultReadObject
-
-    symbol = in.readObject.asInstanceOf[String]
-    var i = 0
-    while (i < values.length) {
-      values(i) = in.readFloat
       i += 1
     }
   }
