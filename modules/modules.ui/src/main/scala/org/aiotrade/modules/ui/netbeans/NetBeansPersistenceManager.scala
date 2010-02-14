@@ -31,6 +31,8 @@
 package org.aiotrade.modules.ui.netbeans;
 
 import java.io.IOException;
+import java.io.InputStream
+import java.io.OutputStream
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -91,11 +93,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * use weak reference map here.
    */
   val defaultContents: AnalysisContents = restoreContents("Default")
-  private var userOptionsProp: Properties = _
+  private var userOptionsProps: Properties = _
   private var dbDriver: String = _
   private var dbUser: String = _
   private var dbPassword: String = _
-  private var dbProp: Properties = _
+  private var dbProps: Properties = _
   private var dbUrl: String = _
   private var connPoolMgr: MiniConnectionPoolManager = _
 
@@ -112,20 +114,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
     if (contents.uniSymbol.equalsIgnoreCase("Default")) {
       val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml")
       if (defaultContentsFile != null) {
+        var out: PrintStream = null
         var lock: FileLock = null
         try {
           lock = defaultContentsFile.lock
 
-          val out = new PrintStream(defaultContentsFile.getOutputStream(lock))
+          out = new PrintStream(defaultContentsFile.getOutputStream(lock))
           out.print(ContentsPersistenceHandler.dumpContents(contents))
-
+        } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
           /** should remember to do out.close() here */
-          out.close
-        } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
-        } finally {
-          if (lock != null) {
-            lock.releaseLock
-          }
+          if (out  != null) out.close
+          if (lock != null) lock.releaseLock
         }
       }
     } else {
@@ -138,20 +137,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         val dob = node.getLookup.lookup(classOf[DataObject])
         val writeTo = dob.getPrimaryFile
+        var out: PrintStream = null
         var lock: FileLock = null
         try {
           lock = writeTo.lock
 
-          val out = new PrintStream(writeTo.getOutputStream(lock))
+          out = new PrintStream(writeTo.getOutputStream(lock))
           out.print(ContentsPersistenceHandler.dumpContents(contents))
-
+        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)} finally {
           /** should remember to do out.close() here */
-          out.close
-        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)
-        } finally {
-          if (lock != null) {
-            lock.releaseLock
-          }
+          if (out  != null) out.close
+          if (lock != null) lock.releaseLock
         }
       }
 
@@ -164,18 +160,19 @@ class NetBeansPersistenceManager extends PersistenceManager {
     if (symbol.equalsIgnoreCase("Default")) {
       val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
       if (defaultContentsFile != null) {
+        var is: InputStream = null
         try {
-          val is = defaultContentsFile.getInputStream
+          is = defaultContentsFile.getInputStream
           val xmlReader = XMLUtil.createXMLReader
           val handler = new ContentsParseHandler
           xmlReader.setContentHandler(handler)
           xmlReader.parse(new InputSource(is))
           contents = handler.getContents
-
-          is.close
         } catch {
           case ex: IOException  => ErrorManager.getDefault.notify(ex)
           case ex: SAXException => ErrorManager.getDefault.notify(ex)
+        } finally {
+          if (is != null) is.close
         }
       }
     } else {
@@ -188,14 +185,14 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   def saveProperties {
     inSavingProps synchronized {
-      val propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
-      if (propertiesFile != null) {
-        var props: Properties = null
+      val propsFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties");
+      if (propsFile != null) {
+        var out: OutputStream = null
         var lock: FileLock = null
         try {
-          lock = propertiesFile.lock
+          lock = propsFile.lock
 
-          props = new Properties
+          val props = new Properties
 
           val laf = LookFeel
 
@@ -233,11 +230,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
           var strDbUrl = ""
           var strDbUser = ""
           var strDbPassword = ""
-          if (userOptionsProp != null) {
-            strDbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver")
-            strDbUrl = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url")
-            strDbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user")
-            strDbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password")
+          if (userOptionsProps != null) {
+            strDbDriver = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.driver")
+            strDbUrl = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.url")
+            strDbUser = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.user")
+            strDbPassword = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.password")
           }
 
           props.setProperty("org.aiotrade.platform.option.lookfeel", lafStr)
@@ -257,15 +254,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
           props.setProperty("org.aiotrade.platform.jdbc.password", strDbPassword)
 
           /** save to file */
-          val out = propertiesFile.getOutputStream(lock)
+          out = propsFile.getOutputStream(lock)
           props.store(out, null)
-
-          out.close
-        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)
-        } finally {
-          if (lock != null) {
-            lock.releaseLock
-          }
+        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)} finally {
+          if (out  != null) out.close
+          if (lock != null) lock.releaseLock
         }
 
       }
@@ -274,27 +267,27 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   def restoreProperties {
-    val propertiesFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties")
-    if (propertiesFile != null) {
-      userOptionsProp = null
+    val propsFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties")
+    if (propsFile != null) {
+      userOptionsProps = null
       try {
-        userOptionsProp = new Properties
-        val is = propertiesFile.getInputStream
-        userOptionsProp.load(is)
+        userOptionsProps = new Properties
+        val is = propsFile.getInputStream
+        userOptionsProps.load(is)
 
         is.close
       } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)}
 
-      if (userOptionsProp != null) {
-        val lafStr = userOptionsProp.getProperty("org.aiotrade.platform.option.lookfeel")
-        val colorReversedStr = userOptionsProp.getProperty("org.aiotrade.platform.option.colorreversed")
-        val thinVolumeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.thinvolume")
-        var quoteChartTypeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.quotecharttype")
-        val antiAliasStr = userOptionsProp.getProperty("org.aiotrade.platform.option.antialias")
-        val autoHideScrollStr = userOptionsProp.getProperty("org.aiotrade.platform.option.autohidescroll")
-        val proxyTypeStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxytype")
-        var proxyHostStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyhost")
-        val proxyPortStr = userOptionsProp.getProperty("org.aiotrade.platform.option.proxyport", "80")
+      if (userOptionsProps != null) {
+        val lafStr = userOptionsProps.getProperty("org.aiotrade.platform.option.lookfeel")
+        val colorReversedStr = userOptionsProps.getProperty("org.aiotrade.platform.option.colorreversed")
+        val thinVolumeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.thinvolume")
+        var quoteChartTypeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.quotecharttype")
+        val antiAliasStr = userOptionsProps.getProperty("org.aiotrade.platform.option.antialias")
+        val autoHideScrollStr = userOptionsProps.getProperty("org.aiotrade.platform.option.autohidescroll")
+        val proxyTypeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxytype")
+        var proxyHostStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxyhost")
+        val proxyPortStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxyport", "80")
 
         if (lafStr != null) {
           try {
@@ -364,31 +357,31 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   private def checkAndCreateDatabaseIfNecessary {
-    dbDriver = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.driver")
+    dbDriver = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.driver")
 
     try {
       Class.forName(dbDriver)
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
 
     val strUserDir = System.getProperty("netbeans.user")
-    dbUrl = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade"
+    dbUrl = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade"
 
-    dbUser = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.user")
-    dbPassword = userOptionsProp.getProperty("org.aiotrade.platform.jdbc.password")
+    dbUser = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.user")
+    dbPassword = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.password")
 
-    dbProp = new Properties
-    dbProp.put("user", dbUser)
-    dbProp.put("password", dbPassword)
+    dbProps = new Properties
+    dbProps.put("user", dbUser)
+    dbProps.put("password", dbPassword)
 
     /** test if database exists, if not, create it: */
     /** derby special properties */
     dbDriver match {
       case "org.apache.derby.jdbc.EmbeddedDriver" =>
         dbType = DB_DERBY
-        dbProp.put("create", "true")
+        dbProps.put("create", "true")
       case "org.h2.Driver" =>
         dbType = DB_H2
-      case _ =>
+      case _ => ()
     }
 
     try {
@@ -404,7 +397,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     } catch {case ex: SQLException => ex.printStackTrace}
 
     /** derby special properties */
-    dbProp.remove("create")
+    dbProps.remove("create")
   }
 
   private def getDbConnection: Connection = {
@@ -419,7 +412,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
             //dataSource.setCreateDatabase("create")
             //connPoolManager = new MiniConnectionPoolManager(dataSource, 5)
           }
-          DriverManager.getConnection(dbUrl, dbProp)
+          DriverManager.getConnection(dbUrl, dbProps)
         case DB_H2 =>
           if (connPoolMgr == null) {
             val dataSource = new org.h2.jdbcx.JdbcDataSource
@@ -429,7 +422,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
             connPoolMgr = new MiniConnectionPoolManager(dataSource, 5)
           }
           connPoolMgr.getConnection
-        case _ => DriverManager.getConnection(dbUrl, dbProp)
+        case _ => DriverManager.getConnection(dbUrl, dbProps)
       }
     } catch {case ex: SQLException => ex.printStackTrace; null}
 
@@ -861,7 +854,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       conn.commit
       WIN_MAN.setStatusText("Delete data of " + tickerTb + " successfully.")
     } catch {case ex: SQLException => ex.printStackTrace} finally {
-      if (conn != null) conn.close
+      if (conn  != null) conn.close
       if (stmt1 != null) stmt1.close
       if (stmt2 != null) stmt2.close
     }
@@ -936,7 +929,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
       conn.commit
     } catch {case ex: SQLException => ex.printStackTrace} finally {
-      if (conn != null) conn.close
+      if (conn  != null) conn.close
       if (stmt1 != null) stmt1.close
       if (stmt2 != null) stmt2.close
     }
@@ -1080,8 +1073,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
      */
     var SQLExGot = false
     try {
-      dbProp.put("shutdown", "true")
-      val conn = DriverManager.getConnection(dbUrl, dbProp)
+      dbProps.put("shutdown", "true")
+      val conn = DriverManager.getConnection(dbUrl, dbProps)
     } catch {case ex: SQLException => SQLExGot = true}
 
     if (SQLExGot == true) {
