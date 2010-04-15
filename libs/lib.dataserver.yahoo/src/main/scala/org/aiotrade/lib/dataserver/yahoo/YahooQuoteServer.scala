@@ -40,6 +40,7 @@ import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.{Exchange, Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.annotation.tailrec
 
 /**
@@ -208,7 +209,11 @@ class YahooQuoteServer extends QuoteServer {
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime
             } else {
-              storage + quote
+              // @Note: have to asIntstanceOf[ArrayList[Quote]] explicit, otherwise, compiler will throw:
+              // exception when typing storage.+=
+              // illegal cyclic reference involving class ArrayList in file /Users/dcaoyuan/myprjs/aiotrade.sf/opensource/libs/lib.dataserver.yahoo/src/main/scala/org/aiotrade/lib/dataserver/yahoo/YahooQuoteServer.scala
+              // Don't know why. but {{{storage + quote}}} works
+              storage.asInstanceOf[ArrayList[Quote]] += quote
               countOne
               math.max(newestTime, time)
             }
