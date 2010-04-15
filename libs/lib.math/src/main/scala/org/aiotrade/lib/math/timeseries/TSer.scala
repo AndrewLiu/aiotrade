@@ -40,7 +40,7 @@ import scala.swing.event.Event
  *
  * @author Caoyuan Deng
  */
-case class AddAll[@specialized V <: TVal](values: Array[V])
+case class AddAll[V <: TVal](values: Array[V])
 trait TSer extends Publisher with ChainActor {
 
 //  ----- actor's implementation

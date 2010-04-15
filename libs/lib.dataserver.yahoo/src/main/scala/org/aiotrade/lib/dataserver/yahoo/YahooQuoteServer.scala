@@ -208,9 +208,9 @@ class YahooQuoteServer extends QuoteServer {
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime
             } else {
-              storage += quote
+              storage + quote
               countOne
-              Math.max(newestTime, time)
+              math.max(newestTime, time)
             }
                         
             loop(newestTime1)

@@ -17,20 +17,24 @@ import scala.collection.generic.GenericCompanion
 import scala.collection.generic.GenericTraversableTemplate
 import scala.collection.generic.SeqFactory
 import scala.collection.mutable.Builder
-import scala.collection.mutable.IndexedSeqLike
+import scala.collection.mutable.IndexedSeqOptimized
 
 /** This class is used internally to implement data structures that
  *  are based on resizable arrays.
  *
+ *  @tparam A    type of the elements contained in this resizeable array.
+ *  
  *  @author  Matthias Zenger, Burak Emir
  *  @author Martin Odersky
  *  @version 2.8
  *  @since   1
  */
-abstract class ResizableArray[A](implicit m: Manifest[A]) extends IndexedSeq[A]
-                                                             with GenericTraversableTemplate[A, ResizableArray]
-                                                             with IndexedSeqLike[A, ResizableArray[A]] {
+trait ResizableArray[A] extends IndexedSeq[A]
+                           with GenericTraversableTemplate[A, ResizableArray]
+                           with IndexedSeqOptimized[A, ResizableArray[A]] {
 
+  protected implicit val m: Manifest[A]
+  
   override def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
@@ -70,22 +74,19 @@ abstract class ResizableArray[A](implicit m: Manifest[A]) extends IndexedSeq[A]
     array(idx) = elem
   }
 
-  /** Fills the given array <code>xs</code> with the elements of
-   *  this sequence starting at position <code>start</code>.
+  /** Fills the given array <code>xs</code> with at most `len` elements of
+   *  this traversable starting at position `start`.
+   *  Copying will stop once either the end of the current traversable is reached or
+   *  `len` elements have been copied or the end of the array is reached.
    *
    *  @param  xs the array to fill.
    *  @param  start starting index.
+   *  @param  len number of elements to copy
    */
-  override def copyToArray[B >: A](xs: Array[B], start: Int) {
-    Array.copy(array, 0, xs, start, size0)
+  override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
+    val len1 = len min (xs.length - start) min length
+    Array.copy(array, 0, xs, start, len1)
   }
-
-  /** Copy all elements to a buffer 
-   *  @param   The buffer to which elements are copied
-   override def copyToBuffer[B >: A](dest: Buffer[B]) {
-   dest ++= (array: Seq[AnyRef]).asInstanceOf[Seq[B]]
-   }
-   */
 
   override def foreach[U](f: A =>  U) {
     var i = 0

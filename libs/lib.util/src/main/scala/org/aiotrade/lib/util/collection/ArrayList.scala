@@ -1,6 +1,6 @@
 /*                     __                                               *\
  **     ________ ___   / /  ___     Scala API                            **
- **    / __/ __// _ | / /  / _ |    (c) 2003-2009, LAMP/EPFL             **
+ **    / __/ __// _ | / /  / _ |    (c) 2003-2010, LAMP/EPFL             **
  **  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
  ** /____/\___/_/ |_/____/_/ | |                                         **
  **                          |/                                          **
@@ -18,7 +18,7 @@ import scala.collection.generic.SeqFactory
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.BufferLike
 import scala.collection.mutable.Builder
-import scala.collection.mutable.IndexedSeqLike
+import scala.collection.mutable.IndexedSeqOptimized
 import scala.collection.mutable.WrappedArray
 
 
@@ -35,26 +35,23 @@ import scala.collection.mutable.WrappedArray
  *  @since   1
  */
 @serializable @SerialVersionUID(1529165946227428979L)
-class ArrayList[A: Manifest](
-  override protected val initialSize: Int
-) extends ResizableArray[A]
-     with Buffer[A]
+class ArrayList[A](override protected val initialSize: Int)(protected implicit val m: Manifest[A]
+) extends Buffer[A]
      with GenericTraversableTemplate[A, ArrayList]
      with BufferLike[A, ArrayList[A]]
-     with IndexedSeqLike[A, ArrayList[A]]
-     with Builder[A, ArrayList[A]] {
+     with IndexedSeqOptimized[A, ArrayList[A]]
+     with Builder[A, ArrayList[A]]
+     with ResizableArray[A] {
 
   override def companion: GenericCompanion[ArrayList] = ArrayList
 
-  import scala.collection.Traversable
-
-  def this() = this(16)
+  def this()(implicit m: Manifest[A]) = this(16)
 
   def clear() { reduceToSize(0) }
 
   override def sizeHint(len: Int) {
     if (len > size && len >= 1) {
-      val newarray = makeArray(len min 1)
+      val newarray = makeArray(len)
       Array.copy(array, 0, newarray, 0, size0)
       array = newarray
     }
@@ -76,16 +73,16 @@ class ArrayList[A: Manifest](
    *  via its <code>iterator</code> method. The identity of the
    *  buffer is returned.
    *
-   *  @param iter  the iterfable object.
+   *  @param iter  the itertable object.
    *  @return      the updated buffer.
    */
-  override def ++=(iter: Traversable[A]): this.type = {
-    val len = iter match {
+  override def ++=(xs: TraversableOnce[A]): this.type = {
+    val len = xs match {
       case xs: IndexedSeq[_] => xs.length
-      case _ => iter.size
+      case _ => xs.size
     }
     ensureSize(size0 + len)
-    iter match {
+    xs match {
       /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
       case xs: WrappedArray[_] =>
         Array.copy(xs.array, 0, array, size0, len)
@@ -100,7 +97,7 @@ class ArrayList[A: Manifest](
         size0 += len
         this
       case _ =>
-        super.++=(iter)
+        super.++=(xs)
     }
   }
   
@@ -126,7 +123,7 @@ class ArrayList[A: Manifest](
    *  @param iter  the iterable object.
    *  @return      the updated buffer.
    */
-  override def ++=:(iter: Traversable[A]): this.type = { insertAll(0, iter); this }
+  override def ++=:(xs: TraversableOnce[A]): this.type = { insertAll(0, xs.toTraversable); this }
 
   /** Inserts new elements at the index <code>n</code>. Opposed to method
    *  <code>update</code>, this method will not replace an element with a
@@ -137,8 +134,7 @@ class ArrayList[A: Manifest](
    *  @throws Predef.IndexOutOfBoundsException if <code>n</code> is out of bounds.
    */
   def insertAll(n: Int, seq: Traversable[A]) {
-    if ((n < 0) || (n > size0))
-      throw new IndexOutOfBoundsException(n.toString)
+    if ((n < 0) || (n > size0)) throw new IndexOutOfBoundsException(n.toString)
     val len = seq match {
       case xs: IndexedSeq[_] => xs.length
       case _ => seq.size
@@ -171,10 +167,10 @@ class ArrayList[A: Manifest](
    *  @throws Predef.IndexOutOfBoundsException if <code>n</code> is out of bounds.
    */
   override def remove(n: Int, count: Int) {
-    if ((n < 0) || (n >= size0) && count > 0)
-      throw new IndexOutOfBoundsException(n.toString)
+    require(count >= 0, "removing negative number of elements")
+    if (n < 0 || n > size0 - count) throw new IndexOutOfBoundsException(n.toString)
     copy(n + count, n, size0 - (n + count))
-    size0 -= count
+    reduceToSize(size0 - count)
   }
 
   /** Removes the element on a given index position
@@ -204,9 +200,7 @@ class ArrayList[A: Manifest](
     Array.copy(array, start, xs, 0, len)
   }
 
-  /*   override def apply(i: Int) = array(i)
-   override def update(i: Int, elem: A) = {array(i) = elem}
-*/}
+}
 
 /** Factory object for <code>ArrayBuffer</code> class.
  *
@@ -216,6 +210,11 @@ class ArrayList[A: Manifest](
  */
 object ArrayList extends SeqFactory[ArrayList] {
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ArrayList[A]] = new GenericCanBuildFrom[A]
+  /**
+   * we implement newBuilder for extending SeqFactory only. Since it's with no manifest arg,
+   * we can only create a ArrayList[AnyRef] instead of ArrayList[A], but we'll define another
+   * apply method to create ArrayList[A]
+   */
   def newBuilder[A]: Builder[A, ArrayList[A]] = new ArrayList[AnyRef].asInstanceOf[ArrayList[A]]
   def apply[A: Manifest]() = new ArrayList[A]
 }

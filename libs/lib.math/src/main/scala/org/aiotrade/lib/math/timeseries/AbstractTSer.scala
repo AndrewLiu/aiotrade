@@ -52,7 +52,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     _loaded = false
   }
 
-  protected def isAscending[@specialized V <: TVal](values: Array[V]): Boolean = {
+  protected def isAscending[V <: TVal](values: Array[V]): Boolean = {
     val size = values.length
     if (size <= 1) {
       true
