@@ -147,28 +147,28 @@ class IBQuoteServer extends QuoteServer {
       var durationStr = "D"
       freq.unit match {
         case TUnit.Second =>
-          durationInt = Math.min(durationInt, maxDurationInSeconds)
+          durationInt = math.min(durationInt, maxDurationInSeconds)
           durationStr = "S"
         case TUnit.Minute =>
           durationInt *= 60
-          durationInt = Math.min(durationInt, maxDurationInSeconds)
+          durationInt = math.min(durationInt, maxDurationInSeconds)
           durationStr = "S"
         case TUnit.Hour =>
           durationInt *= 60 * 24
-          durationInt = Math.min(durationInt, maxDurationInSeconds)
+          durationInt = math.min(durationInt, maxDurationInSeconds)
           durationStr = "S"
         case TUnit.Day =>
-          durationInt = Math.min(durationInt, maxDurationInDays)
+          durationInt = math.min(durationInt, maxDurationInDays)
           durationStr = "D"
         case TUnit.Week =>
-          durationInt = Math.min(durationInt, maxDurationInWeeks)
+          durationInt = math.min(durationInt, maxDurationInWeeks)
           durationStr = "W"
         case TUnit.Month =>
           durationInt *= 30
-          durationInt = Math.min(durationInt, maxDurationInDays)
+          durationInt = math.min(durationInt, maxDurationInDays)
           durationStr = "D"
         case TUnit.Year =>
-          durationInt = Math.min(durationInt, maxDurationInYears)
+          durationInt = math.min(durationInt, maxDurationInYears)
           durationStr = "Y"
         case _ =>
       }
@@ -238,7 +238,7 @@ class IBQuoteServer extends QuoteServer {
     val storage = storageOf(contract)
     storage synchronized {
       for (quote <- storage) {
-        newestTime = Math.max(newestTime, quote.time)
+        newestTime = math.max(newestTime, quote.time)
         countOne
       }
     }
@@ -255,7 +255,7 @@ class IBQuoteServer extends QuoteServer {
         
     var loadedTime1 = loadedTime
     if (!connect) {
-      return loadedTime1;
+      return loadedTime1
     }
     try {
       request

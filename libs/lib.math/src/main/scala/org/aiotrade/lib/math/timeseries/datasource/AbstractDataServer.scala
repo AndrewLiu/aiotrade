@@ -149,7 +149,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     contractToStorage.get(contract) getOrElse {
       val x = new ArrayList[V]
       contractToStorage.synchronized {
-        contractToStorage += (contract -> x)
+        contractToStorage(contract) = x
       }
       
       x
