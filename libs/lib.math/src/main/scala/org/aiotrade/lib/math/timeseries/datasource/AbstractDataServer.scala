@@ -145,7 +145,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
      */
   }
 
-  protected def storageOf(contract: C): ArrayList[V] = {
+  protected def storageOf(contract: C) = {
     contractToStorage.get(contract) getOrElse {
       val x = new ArrayList[V]
       contractToStorage.synchronized {
@@ -165,7 +165,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     subscribedSymbolToContract.get(symbol)
   }
 
-  private def releaseStorage(contract: C): Unit = {
+  private def releaseStorage(contract: C) {
     /** don't get storage via getStorage(contract), which will create a new one if none */
     for (storage <- contractToStorage.get(contract)) {
       storage.synchronized {
@@ -226,11 +226,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param symbol symbol in source
    * @param set the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: TSer): Unit = {
+  def subscribe(contract: C, ser: TSer) {
     subscribe(contract, ser, Nil)
   }
 
-  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer]): Unit = {
+  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer]) {
     subscribedContractToSer.synchronized {
       subscribedContractToSer.put(contract, ser)
     }
@@ -244,7 +244,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     }
   }
 
-  def unSubscribe(contract: C): Unit = {
+  def unSubscribe(contract: C) {
     cancelRequest(contract)
     serToChainSers.synchronized {
       serToChainSers.remove(subscribedContractToSer.get(contract).get)
@@ -258,7 +258,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     releaseStorage(contract)
   }
 
-  protected def cancelRequest(contract: C): Unit = {
+  protected def cancelRequest(contract: C) {
   }
 
   def isContractSubsrcribed(contract: C): Boolean = {
