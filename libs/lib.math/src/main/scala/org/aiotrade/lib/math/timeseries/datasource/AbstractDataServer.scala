@@ -46,7 +46,7 @@ import org.aiotrade.lib.util.actors.ChainActor
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor
 import scala.actors.Actor._
-import scala.collection.mutable.{HashMap, ArrayBuffer}
+import scala.collection.mutable.{HashMap}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -90,7 +90,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * second one (if available) is that who concerns first one.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[TSer, ArrayBuffer[TSer]]
+  private val serToChainSers = new HashMap[TSer, ArrayList[TSer]]
   private var refreshTimer: Timer = _
   protected var count: Int = 0
   protected var loadedTime: Long = _
@@ -238,7 +238,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       subscribedSymbolToContract.put(contract.symbol, contract)
     }
     serToChainSers.synchronized {
-      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayBuffer[TSer]
+      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer]
       chainSersX ++= chainSers
       serToChainSers.put(ser, chainSersX)
     }
