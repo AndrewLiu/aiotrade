@@ -73,8 +73,8 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
    *  via its <code>iterator</code> method. The identity of the
    *  buffer is returned.
    *
-   *  @param iter  the itertable object.
-   *  @return      the updated buffer.
+   *  @param xs  the itertable object.
+   *  @return    the updated buffer.
    */
   override def ++=(xs: TraversableOnce[A]): this.type = {
     val len = xs match {
@@ -85,10 +85,6 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
     xs match {
       /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
       case xs: WrappedArray[_] =>
-        Array.copy(xs.array, 0, array, size0, len)
-        size0 += len
-        this
-      case xs: ArrayList[_] =>
         Array.copy(xs.array, 0, array, size0, len)
         size0 += len
         this
@@ -145,14 +141,8 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
       /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
       case xs: WrappedArray[_] =>
         Array.copy(xs.array, 0, array, n, len)
-      case xs: ArrayList[_] =>
-        Array.copy(xs.array, 0, array, n, len)
       case xs: IndexedSeq[_] =>
-        if (len == 1) {
-          array(n) = xs(0)
-        } else {
-          xs.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
-        }
+        xs.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
       case _ =>
         seq.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
     }
