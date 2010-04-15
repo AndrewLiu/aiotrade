@@ -116,8 +116,8 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
    *  via its <code>iterator</code> method. The identity of the
    *  buffer is returned.
    *
-   *  @param iter  the iterable object.
-   *  @return      the updated buffer.
+   *  @param xs  the iterable object.
+   *  @return    the updated buffer.
    */
   override def ++=:(xs: TraversableOnce[A]): this.type = { insertAll(0, xs.toTraversable); this }
 
@@ -141,8 +141,6 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
       /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
       case xs: WrappedArray[_] =>
         Array.copy(xs.array, 0, array, n, len)
-      case xs: IndexedSeq[_] =>
-        xs.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
       case _ =>
         seq.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
     }
