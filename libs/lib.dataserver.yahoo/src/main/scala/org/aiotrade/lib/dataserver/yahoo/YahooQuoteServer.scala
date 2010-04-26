@@ -209,11 +209,7 @@ class YahooQuoteServer extends QuoteServer {
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime
             } else {
-              // @Note: have to asIntstanceOf[ArrayList[Quote]] explicit, otherwise, compiler will throw:
-              // exception when typing storage.+=
-              // illegal cyclic reference involving class ArrayList in file /Users/dcaoyuan/myprjs/aiotrade.sf/opensource/libs/lib.dataserver.yahoo/src/main/scala/org/aiotrade/lib/dataserver/yahoo/YahooQuoteServer.scala
-              // Don't know why. but {{{storage + quote}}} works
-              storage.asInstanceOf[ArrayList[Quote]] += quote
+              storage += quote
               countOne
               math.max(newestTime, time)
             }
