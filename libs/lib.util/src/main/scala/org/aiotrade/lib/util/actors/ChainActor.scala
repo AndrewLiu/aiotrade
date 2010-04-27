@@ -8,8 +8,14 @@ package org.aiotrade.lib.util.actors
 import scala.actors.Actor
 import scala.collection.mutable.ListBuffer
 
+object ChainActor {
+  /** a private case object None that will not accessable outside here */
+  private case object None
+  /** noneAction will never be matched since None is private */
+  private val noneAction: PartialFunction[Any, Unit] = {case None => exit}
+}
+
 trait ChainActor extends Actor {
-  private val emptyAction: PartialFunction[Any, Unit] = {case _ =>}
   protected val actorActions = new ListBuffer[PartialFunction[Any, Unit]]
 
   def act {
@@ -20,12 +26,6 @@ trait ChainActor extends Actor {
     }
   }
 
-  private def chainReactions: PartialFunction[Any, Unit] = {
-    val actions = actorActions.iterator
-    var chained = if (actions.hasNext) actions.next else emptyAction
-    while (actions.hasNext) {
-      chained = chained orElse actions.next
-    }
-    chained
-  }
+  private def chainReactions: PartialFunction[Any, Unit] =
+    (ChainActor.noneAction /: actorActions)(_ orElse _)
 }
