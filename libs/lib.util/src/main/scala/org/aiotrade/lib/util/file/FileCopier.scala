@@ -13,19 +13,19 @@ import java.io.IOException
 object FileCopier {
   
   @throws(classOf[IOException])
-  def copy(s: File, t: File, keepTimestamp: Boolean = true) {
-    copy(s, List(t), true)
+  def copyOne(src: File, dest: File, keepTimestamp: Boolean = true) {
+    copy(src, Array(dest), true)
   }
 
   @throws(classOf[IOException])
-  def copy(s: File, ts: Seq[File], keepTimestamp: Boolean = true) {
-    val timestamp = s.lastModified
-    val in = new FileInputStream(s) getChannel
+  def copy(src: File, dests: Array[File], keepTimestamp: Boolean = true) {
+    val timestamp = src.lastModified
+    val in = new FileInputStream(src) getChannel
     
-    for (t <- ts) {
+    for (t <- dests) {
       val out = new FileOutputStream(t) getChannel
 
-      in.transferTo(0, s.length, out)
+      in.transferTo(0, src.length, out)
       out.close
       
       if (keepTimestamp) t.setLastModified(timestamp)
