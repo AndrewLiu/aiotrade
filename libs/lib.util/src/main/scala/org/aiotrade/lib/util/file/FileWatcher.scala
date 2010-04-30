@@ -9,7 +9,7 @@ object FileWatcher {
   // ----- simple test
   def main(args: Array[String]) {
     val task = new FileWatcher(new File("temp.txt")) {
-      protected def onChange(event: Modified) {
+      protected def onChange(event: Event) {
         println(event)
       }
     }
@@ -23,13 +23,16 @@ abstract class FileWatcher(file: File) extends TimerTask {
   private var timeStamp: Long = file.lastModified
 
   final def run {
-    val timeStamp = file.lastModified
-
-    if( this.timeStamp != timeStamp ) {
-      this.timeStamp = timeStamp
-      onChange(Modified(file))
+    if (file.exists) {
+      val timeStamp = file.lastModified
+      if (this.timeStamp != timeStamp) {
+        this.timeStamp = timeStamp
+        onChange(Modified(file))
+      }
+    } else {
+      onChange(Deleted(file))
     }
   }
 
-  protected def onChange(event: Modified): Unit
+  protected def onChange(event: Event): Unit
 }
