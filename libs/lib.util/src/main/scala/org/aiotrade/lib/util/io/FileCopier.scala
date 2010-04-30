@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.aiotrade.lib.util.file
+package org.aiotrade.lib.util.io
 
 import java.io.File
 import java.io.FileInputStream
@@ -22,13 +22,13 @@ object FileCopier {
     val timestamp = src.lastModified
     val in = new FileInputStream(src) getChannel
     
-    for (t <- dests) {
-      val out = new FileOutputStream(t) getChannel
+    for (dest <- dests) {
+      val out = new FileOutputStream(dest) getChannel
 
       in.transferTo(0, src.length, out)
       out.close
       
-      if (keepTimestamp) t.setLastModified(timestamp)
+      if (keepTimestamp) dest.setLastModified(timestamp)
     }
     
     in.close

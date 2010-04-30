@@ -1,4 +1,4 @@
-package org.aiotrade.lib.util.file
+package org.aiotrade.lib.util.io
 
 import java.io.File
 import java.util.Date
@@ -15,7 +15,7 @@ object FileWatcher {
     }
 
     val timer = new Timer
-    timer.schedule(task , new Date, 1000)
+    timer.schedule(task, new Date, 1000)
   }
 }
 
