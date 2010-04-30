@@ -9,13 +9,13 @@ object FileWatcher {
   // ----- simple test
   def main(args: Array[String]) {
     val task = new FileWatcher(new File("temp.txt")) {
-      protected def onChange(file: File ) {
-        println("File "+ file.getName + " have change !")
+      protected def onChange(event: Modified) {
+        println(event)
       }
     }
 
     val timer = new Timer
-    timer.schedule( task , new Date, 1000)
+    timer.schedule(task , new Date, 1000)
   }
 }
 
@@ -27,9 +27,9 @@ abstract class FileWatcher(file: File) extends TimerTask {
 
     if( this.timeStamp != timeStamp ) {
       this.timeStamp = timeStamp
-      onChange(file)
+      onChange(Modified(file))
     }
   }
 
-  protected def onChange(file: File): Unit
+  protected def onChange(event: Modified): Unit
 }
