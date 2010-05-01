@@ -14,8 +14,15 @@ object BidAsk extends Table[BidAsk] with LongIdPK[BidAsk] {
   val size = numericColumn("size", 12, 2)
   val dealer = stringColumn("dealer", 30)
 
-  def lastOne(innerDayId: Long) = {
-    "select * from bid_ask where time = (select max(time) from bid_ask where innerDay_id = " + innerDayId + ")"
+  /**
+   * Select latest ask_bid in each group of "isBid" and "idx"
+   */
+  def latest = {
+    "SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx) = a.time"
+  }
+
+  def latest(innerDayId: Long) = {
+    "SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay_id = " + innerDayId + ") = a.time AND innerDay_id = " + innerDayId
   }
 }
 

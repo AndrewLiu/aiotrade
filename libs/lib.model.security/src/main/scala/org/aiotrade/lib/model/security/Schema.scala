@@ -1,5 +1,6 @@
 package org.aiotrade.lib.model.security
 
+import java.util.Calendar
 import ru.circumflex.orm.Criteria
 import ru.circumflex.orm.DDLExport
 import ru.circumflex.orm.LongIdPK
@@ -81,6 +82,24 @@ object Schema {
     quote1m.sec := sec
     quote1m.save
 
+    val cal = Calendar.getInstance
+    val innerDay1 = new InnerDay
+    innerDay1.sec := sec
+    innerDay1.time := cal.getTimeInMillis
+    innerDay1.save
+
+    cal.add(Calendar.DAY_OF_YEAR, 1)
+    val innerDay2 = new InnerDay
+    innerDay2.sec := sec
+    innerDay2.time := cal.getTimeInMillis
+    innerDay2.save
+
+    fillBidAsks(innerDay1)
+    fillBidAsks(innerDay2)
+
+    // SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx) = a.time
+    // SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay = 2) = a.time AND innerDay = 2
+
 //    Company.criteria.add("shortName" like "a%").list foreach (c =>
 //      println(c.shortName)
 //
@@ -98,6 +117,26 @@ object Schema {
 
     //new DDLExport(Category, Book).create   // creates database schema
 
+  }
+
+  def fillBidAsks(innerDay: InnerDay) {
+    val cal = Calendar.getInstance
+
+    for (i <- 0 until 10) {
+      cal.add(Calendar.HOUR, 1)
+      newRecords(innerDay, true,  cal)
+      newRecords(innerDay, false, cal)
+    }
+
+    def newRecords(innerDay: InnerDay, isBid: Boolean, cal: Calendar) =
+      for (i <- 1 to 3) {
+        val ba = new BidAsk
+        ba.innerDay := innerDay
+        ba.idx := i
+        ba.isBid := isBid
+        ba.time := cal.getTimeInMillis
+        ba.save
+      }
   }
 
   def sometest {
