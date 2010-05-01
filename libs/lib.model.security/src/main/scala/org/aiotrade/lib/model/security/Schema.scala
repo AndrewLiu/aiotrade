@@ -97,8 +97,8 @@ object Schema {
     fillBidAsks(innerDay1)
     fillBidAsks(innerDay2)
 
-    // SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx) = a.time
-    // SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay = 2) = a.time AND innerDay = 2
+    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
+    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay = 2) AND innerDay = 2
 
 //    Company.criteria.add("shortName" like "a%").list foreach (c =>
 //      println(c.shortName)

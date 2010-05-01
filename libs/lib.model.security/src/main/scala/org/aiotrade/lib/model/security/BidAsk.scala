@@ -18,11 +18,11 @@ object BidAsk extends Table[BidAsk] with LongIdPK[BidAsk] {
    * Select latest ask_bid in each group of "isBid" and "idx"
    */
   def latest = {
-    "SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx) = a.time"
+    "SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)"
   }
 
   def latest(innerDayId: Long) = {
-    "SELECT * FROM bid_ask AS a WHERE (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay_id = " + innerDayId + ") = a.time AND innerDay_id = " + innerDayId
+    "SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay_id = " + innerDayId + ") AND innerDay_id = " + innerDayId
   }
 }
 
