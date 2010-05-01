@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.aiotrade</groupId>
+        <artifactId>libs</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>lib-model-security</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>lib-model-security</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>ru.circumflex</groupId>
+            <artifactId>circumflex-orm</artifactId>
+            <version>0.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.9</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>postgresql</id>
+            <properties>
+                <orm.connection.driver>org.postgresql.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:postgresql://localhost:5432/inca</orm.connection.url>
+                <orm.connection.username>inca</orm.connection.username>
+                <orm.connection.password>incainca</orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.dialects.PostgreSQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>8.3-603.jdbc4</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>mysql</id>
+            <properties>
+                <orm.connection.driver>com.mysql.jdbc.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:mysql://localhost:3306/inca</orm.connection.url>
+                <orm.connection.username>inca</orm.connection.username>
+                <orm.connection.password>incainca</orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.dialects.MySQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.9</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+</project>
+
