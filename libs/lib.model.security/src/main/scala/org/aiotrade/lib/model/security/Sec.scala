@@ -8,6 +8,11 @@ object Sec extends Table[Sec] with LongIdPK[Sec] {
   val validFrom = longColumn("validfrom")
   val validTo = longColumn("validTo")
   val valid = booleanColumn("valid")
+
+  val company   = longColumn("company_id")   references Company
+  val secInfo   = longColumn("secInfo_id")   references SecInfo
+  val secStatus = longColumn("secStatus_id") references SecStatus
+  val secIssue  = longColumn("secIssue_id")  references SecIssue
 }
 
 class Sec extends Record[Sec](Sec) {
@@ -16,13 +21,13 @@ class Sec extends Record[Sec](Sec) {
   val validTo = field(Sec.validTo)
   val valid = field(Sec.valid)
 
-  val company = oneToOne(Company.sec)
+  val company = manyToOne(Sec.company) // the current one. ont to one ?
   val companyHists = oneToMany(Company.sec)
 
-  val secInfo = oneToOne(SecInfo.sec)
+  val secInfo = manyToOne(Sec.secInfo) // the current one. one to one ?
   val secInfoHists = oneToMany(SecInfo.sec)
   
-  val secIssue = oneToOne(SecIssue.sec)
+  val secIssue = manyToOne(Sec.secIssue) // the current one. one to one ?
   val secStatus = oneToMany(SecStatus.sec)
   val secDividends = oneToMany(SecDividend.sec)
   

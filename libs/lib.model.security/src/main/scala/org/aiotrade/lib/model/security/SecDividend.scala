@@ -18,6 +18,7 @@ object SecDividend extends Table[SecDividend] with LongIdPK[SecDividend] {
 
 class SecDividend extends Record[SecDividend](SecDividend) {
   val id = field(SecDividend.id)
+  val sec = manyToOne(SecDividend.sec)
   val prevClose = field(SecDividend.prevClose)
   val adjWeight = field(SecDividend.adjWeight)
   val cashBonus = field(SecDividend.cashBonus)

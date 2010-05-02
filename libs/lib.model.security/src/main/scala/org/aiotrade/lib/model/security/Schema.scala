@@ -65,13 +65,17 @@ object Schema {
     ci.industry := i
     ci.save
     c.shortName
-    println("listDate:" + c.listDate.get.getOrElse(0))
-    println("listDate:" + c.listDate.get.getOrElse(0))
-    c.industries.get foreach {x => println(x.industry)}
+    println("company's listDate: " + c.listDate.get.getOrElse(0))
+    println("company's industries: " + (c.industries.get map (_.industry) mkString(", ")))
 
     val sec = new Sec
     sec.company := c
     sec.save
+    c.sec := sec
+    c.update
+    println("sec's current company: " + sec.company.get.get.shortName.get.get)
+    println("sec's company history: " + (sec.companyHists.get map (_.shortName) mkString(", ")))
+    
     val quote1d = new Quote(Quote1d)
     quote1d.open := 1
     quote1d.sec := sec

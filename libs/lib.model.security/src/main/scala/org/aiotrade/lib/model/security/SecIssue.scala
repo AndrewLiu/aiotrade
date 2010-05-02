@@ -15,6 +15,7 @@ object SecIssue extends Table[SecIssue] with LongIdPK[SecIssue] {
 
 class SecIssue extends Record[SecIssue](SecIssue) {
   val id = field(SecIssue.id)
+  val sec = oneToOne(Sec.secIssue)
   val par = field(SecIssue.par)
   val price = field(SecIssue.price)
   val totalShares = field(SecIssue.totalShares)

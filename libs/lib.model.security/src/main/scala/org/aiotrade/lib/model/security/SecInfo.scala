@@ -10,7 +10,7 @@ object SecInfo extends Table[SecInfo] with LongIdPK[SecInfo] {
   val validTo = longColumn("validTo")
   val valid = booleanColumn("valid")
 
-  val symbol = stringColumn("symbol", 10).notNull.unique.validateNotEmpty.validatePattern("^[a-zA-Z]{1,8}$")
+  val symbol = stringColumn("symbol", 10).notNull//.unique.validateNotEmpty.validatePattern("^[a-zA-Z]{1,8}$")
   val name = stringColumn("name", 40)
   val totalShares = longColumn("totalShares")
   val freeFloat = longColumn("freeFloat")
@@ -21,6 +21,7 @@ object SecInfo extends Table[SecInfo] with LongIdPK[SecInfo] {
 
 class SecInfo extends Record[SecInfo](SecInfo) {
   val id = field(SecInfo.id)
+  val sec = manyToOne(SecInfo.sec)
   val validFrom = field(SecInfo.validFrom)
   val validTo = field(SecInfo.validTo)
   val valid = field(SecInfo.valid)

@@ -16,6 +16,7 @@ object SecStatus extends Table[SecStatus] with LongIdPK[SecStatus] {
 
 class SecStatus extends Record[SecStatus](SecStatus) {
   val id = field(SecStatus.id)
+  val sec = manyToOne(SecStatus.sec)
   val validFrom = field(SecStatus.validFrom)
   val validTo = field(SecStatus.validTo)
   val valid = field(SecStatus.valid)
