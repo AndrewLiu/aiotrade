@@ -11,7 +11,7 @@ import ru.circumflex.orm.Table
 /**
  * mysqldump5 -u root --no-data --database inca > nyapc.mysql
  */
-object Schema {
+object Model {
   
   object Category extends Table[Category] with LongIdPK[Category] {
     val name = stringColumn("name")     // creates a column
