@@ -154,7 +154,7 @@ class ClientConnection(val channel: SocketChannel) extends Actor with ChannelLis
     trait State
     case class NumFiles(buf: Array[Byte], idx: Int, len: Int) extends State
     case class FileMeta(name: Option[String], buf: Array[Byte], idx: Int, len: Int) extends State
-    case class FileData(out: OutputStream, idx: Int, len: Int) extends State
+    case class FileData(out: OutputStream, idx: Long, len: Long) extends State
     case object End extends State
     val NoneName = Some("")
 
@@ -195,14 +195,15 @@ class ClientConnection(val channel: SocketChannel) extends Actor with ChannelLis
           buf(i) = b
           val name = new String(buf) + System.currentTimeMillis
           //println("file name: " + name)
-          FileMeta(Some(name), new Array[Byte](4), 0, 4)
+          // expect file length in Long
+          FileMeta(Some(name), new Array[Byte](8), 0, 8)
 
           // read file length
         case FileMeta(Some(name), buf, i, len) if i < len - 1 => buf(i) = b; FileMeta(Some(name), buf, i + 1, len)
         case FileMeta(Some(name), buf, i, _) =>
           buf(i) = b
-          val len = decodeInt(buf)
-          //println("file length: " + len)
+          val len = decodeLong(buf)
+          println("file length: " + len)
           val file = new File(name)
           val out = new FileOutputStream(file)
           FileData(out, 0, len)

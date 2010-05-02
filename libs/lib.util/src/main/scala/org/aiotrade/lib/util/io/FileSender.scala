@@ -8,14 +8,11 @@ import java.io.OutputStream
 import java.net.Socket
 import Encoding._
 
-/**
- * @todo file length as Long
- */
 object FileSender {
-  // host and port of receiver
   private val port = 4711
   private val host = "localhost"
 
+  // ----- simple test
   def main(files: Array[String]) {
     val files = Array("/Users/dcaoyuan/file.text", "/Users/dcaoyuan/file.text")
     val sender = new FileSender(host, port)
@@ -24,6 +21,10 @@ object FileSender {
 
 }
 
+/**
+ * @param host host of receiver
+ * @param port port of receiver
+ */
 class FileSender(host: String, port: Int) {
 
   def send(files: Array[String]) {
@@ -47,6 +48,12 @@ class FileSender(host: String, port: Int) {
   }
 
   @throws(classOf[IOException])
+  private def writeLong(os: OutputStream, i: Long) {
+    val bytes = encodeLong(i)
+    os.write(bytes)
+  }
+
+  @throws(classOf[IOException])
   private def writeString(os: OutputStream, s: String) {
     val bytes = s.getBytes
     val len = bytes.length
@@ -58,7 +65,7 @@ class FileSender(host: String, port: Int) {
   @throws(classOf[FileNotFoundException])
   @throws(classOf[IOException])
   private def writeFile(os: OutputStream, file: File) {
-    writeInt(os, file.length.toInt)
+    writeLong(os, file.length)
 
     val bytes = new Array[Byte](1024)
     val is = new FileInputStream(file)
