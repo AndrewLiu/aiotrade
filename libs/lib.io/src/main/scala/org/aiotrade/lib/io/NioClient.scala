@@ -13,7 +13,7 @@ import scala.collection.mutable.HashMap
 
 object NioClient {
   case class SendData(data: Array[Byte], handler: RspHandler)
-  val handle = new RspHandler
+  case class ProcessData(data: Array[Byte], postAction: (Boolean) => Unit)
 
   // ----- simple test
   def main(args: Array[String]) {
@@ -21,38 +21,29 @@ object NioClient {
       val client = new NioClient(InetAddress.getByName("localhost"), 9090)
       client.selectReactor.start
       
-      client.selectReactor ! SendData("Hello World".getBytes, handle)
-      //handler.waitForResponse
+      val handler = new RspHandler
+      handler.start
+      client.selectReactor ! SendData("Hello World".getBytes, handler)
     } catch {case ex: Exception => ex.printStackTrace}
   }
 
 }
 
+import NioClient._
 class RspHandler extends Actor {
-  //private var rsp: Array[Byte] = null;
 
   def handleResponse(rsp: Array[Byte]): Boolean = {
-    //this.rsp = rsp
-    System.out.println(new String(rsp))
-    //this.notify
+    println(new String(rsp))
     true
   }
 
   def act = loop {
     react {
-      case _ =>
+      case ProcessData(data, postAction) =>
+        val finished = handleResponse(data)
+        postAction(finished)
     }
   }
-
-//  def waitForResponse = synchronized {
-//    while (rsp == null) {
-//      try {
-//        this.wait
-//      } catch {case ex: InterruptedException =>}
-//    }
-//
-//    System.out.println(new String(this.rsp))
-//  }
 }
 
 
@@ -67,13 +58,13 @@ class NioClient(hostAddress: InetAddress, port: Int) {
   val selector = SelectorProvider.provider.openSelector
 
   val readWriteSelector = new ReadWriteSelector(selector)
-  val selectReactor = new SelectReactor(readWriteSelector, handle)
+  val selectReactor = new SelectReactor(readWriteSelector)
   selectReactor.start
 
   readWriteSelector.addListener(selectReactor)
   readWriteSelector.start
 
-  class SelectReactor(rwSelector: ReadWriteSelector, worker: Actor) extends Actor {
+  class SelectReactor(rwSelector: ReadWriteSelector) extends Actor {
     // The buffer into which we'll read data when it's available
     private val readBuffer = ByteBuffer.allocate(8192)
 
@@ -98,12 +89,9 @@ class NioClient(hostAddress: InetAddress, port: Int) {
           }
           pendingData += (channel -> queue)
 
-
         case ConnectKey(key) =>
           // Register an interest in writing on this channel
-          if (key.isValid) {
-            key.interestOps(SelectionKey.OP_WRITE)
-          }
+          key.interestOps(SelectionKey.OP_WRITE)
           
         case ReadKey(key) => read(key)
         case WriteKey(key) => write(key)
@@ -165,8 +153,10 @@ class NioClient(hostAddress: InetAddress, port: Int) {
         return
       }
 
-      // Handle the response
-      handleResponse(socketChannel, readBuffer.array, numRead)
+      if (numRead > 0) {
+        // Handle the response
+        handleResponse(socketChannel, readBuffer.array, numRead)
+      }
     }
 
     @throws(classOf[IOException])
@@ -179,11 +169,13 @@ class NioClient(hostAddress: InetAddress, port: Int) {
       val handler = rspHandlers.get(socketChannel).getOrElse(return)
 
       // And pass the response to it
-      if (handler.handleResponse(rspData)) {
-        // The handler has seen enough, close the connection
-        socketChannel.close
-        socketChannel.keyFor(selector).cancel
-      }
+      handler ! ProcessData(rspData, finished =>
+        // The handler has seen enough?, if true, close the connection
+        if (finished) {
+          socketChannel.close
+          socketChannel.keyFor(selector).cancel
+        }
+      )
     }
 
     @throws(classOf[IOException])

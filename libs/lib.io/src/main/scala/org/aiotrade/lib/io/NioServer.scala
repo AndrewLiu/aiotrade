@@ -138,8 +138,10 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
         return
       }
 
-      // Hand the data off to our worker thread
-      worker ! ServerDataEvent(this, socketChannel, readBuffer.array, numRead)
+      if (numRead > 0) {
+        // Hand the data off to our worker thread
+        worker ! ServerDataEvent(this, socketChannel, readBuffer.array, numRead)
+      }
     }
 
     @throws(classOf[IOException])
@@ -215,7 +217,11 @@ class ReadWriteSelector(selector: Selector) extends Actor {
 
         if (key.isValid) {
           // Check what event is available and deal with it
-          if (key.isConnectable) {
+          if (key.isAcceptable) {
+            // it seems OP_ACCEPT can not be caught in actor's loop method, but
+          } else  if (key.isConnectable) {
+            // it seems OP_CONNECT can not be caught in actor's loop method, but
+            // still keep the code here
             if (finishConnection(key)) {
               listeners foreach {_ ! ConnectKey(key)}
             }
