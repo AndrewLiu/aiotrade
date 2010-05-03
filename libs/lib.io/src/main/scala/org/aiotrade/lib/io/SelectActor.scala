@@ -67,7 +67,7 @@ class SelectActor(ops: Int) extends Actor {
     val listeners = new java.util.Vector[ChannelListener]
     newListeners.drainTo(listeners)
 
-    for (listener <- listeners.iterator /* if listener.isOpen */) {
+    for (listener <- listeners.iterator if listener.isOpen) {
       try {
         listener.channel.register(selector, ops, listener)
       } catch {case ex: CancelledKeyException => ex.printStackTrace}

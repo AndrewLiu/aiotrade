@@ -25,6 +25,7 @@ object FileSender {
     val files = Array("/Users/dcaoyuan/file.text", "/Users/dcaoyuan/file.text")
     val sender = new FileSender(host, port)
     sender.send(files)
+    sender.send(files)
   }
 }
 
