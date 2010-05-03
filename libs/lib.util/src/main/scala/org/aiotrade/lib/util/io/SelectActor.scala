@@ -2,7 +2,6 @@ package org.aiotrade.lib.util.io
 
 import java.nio.channels.CancelledKeyException
 import java.nio.channels.SelectableChannel
-import java.nio.channels.Selector
 import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.LinkedBlockingQueue
 import scala.actors.Actor
@@ -13,16 +12,17 @@ object SelectActor {
   abstract class Event(sender: SelectActor)
   case class Read   (sender: SelectActor) extends Event(sender)
   case class Write  (sender: SelectActor) extends Event(sender)
+  case class Connect(sender: SelectActor) extends Event(sender)
   case class Unknown(sender: SelectActor) extends Event(sender)
 }
 
 import SelectActor._
-abstract class SelectActor(ops: Int) extends Actor {
+class SelectActor(ops: Int) extends Actor {
 
   // @Note tried using ConcurrentMap here before, but no success
   private val newListeners = new LinkedBlockingQueue[ChannelListener]
 
-  private val selector: Selector = SelectorProvider.provider.openSelector
+  private val selector = SelectorProvider.provider.openSelector
 
   def addListener(listener: ChannelListener) {
     newListeners put listener
@@ -50,7 +50,10 @@ abstract class SelectActor(ops: Int) extends Actor {
             Read(this)
           } else if (key.isWritable) {
             Write(this)
-          } else Unknown(this)
+          } else if (key.isConnectable) {
+            Connect(this)
+          } else
+            Unknown(this)
 
         // Remove the key so we don't immediately loop around to race on the same connection.
         key.cancel
@@ -64,7 +67,7 @@ abstract class SelectActor(ops: Int) extends Actor {
     val listeners = new java.util.Vector[ChannelListener]
     newListeners.drainTo(listeners)
 
-    for (listener <- listeners.iterator if listener.isOpen) {
+    for (listener <- listeners.iterator /* if listener.isOpen */) {
       try {
         listener.channel.register(selector, ops, listener)
       } catch {case ex: CancelledKeyException => ex.printStackTrace}
