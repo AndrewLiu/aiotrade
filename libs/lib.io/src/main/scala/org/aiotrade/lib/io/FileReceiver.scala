@@ -1,4 +1,4 @@
-package org.aiotrade.lib.util.io
+package org.aiotrade.lib.io
 
 import java.io.File
 import java.io.FileOutputStream
@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
-import org.aiotrade.lib.util.io.SelectActor.Read
+import org.aiotrade.lib.io.SelectActor.Read
 import scala.actors.Actor
 import Encoding._
 
@@ -82,12 +82,13 @@ class FileReceiver extends Actor {
         case Read(sender) =>
           try {
             val finished = readMoreInput
-            if (!finished) {
-              // add back this connection to the read selector.
-              sender.addListener(this)
-            } else {
-              close
-            }
+            sender.addListener(this)
+//            if (!finished) {
+//              // add back this connection to the read selector.
+//              sender.addListener(this)
+//            } else {
+//              close
+//            }
           } catch {case ex: IOException => ex.printStackTrace}
       }
     }

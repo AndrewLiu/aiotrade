@@ -1,4 +1,4 @@
-package org.aiotrade.lib.util.io
+package org.aiotrade.lib.io
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream

@@ -1,4 +1,4 @@
-package org.aiotrade.lib.util.io
+package org.aiotrade.lib.io
 
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -7,8 +7,8 @@ import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
-import org.aiotrade.lib.util.io.SelectActor.Connect
-import org.aiotrade.lib.util.io.SelectActor.Write
+import org.aiotrade.lib.io.SelectActor.Connect
+import org.aiotrade.lib.io.SelectActor.Write
 import scala.actors.Actor
 import scala.collection.immutable.Queue
 import Encoding._
@@ -42,6 +42,7 @@ class FileSender(host: String, port: Int) {
   val socketChannel = SocketChannel.open
   socketChannel.connect(new InetSocketAddress(host, port))
 
+  // connect selectionKey is not compatible with actor's loop and no-blocking mode
   while (!socketChannel.finishConnect) {}
   socketChannel.configureBlocking(false)
 

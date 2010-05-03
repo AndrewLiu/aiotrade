@@ -1,4 +1,4 @@
-package org.aiotrade.lib.util.io
+package org.aiotrade.lib.io
 
 import java.nio.channels.CancelledKeyException
 import java.nio.channels.SelectableChannel
