@@ -29,9 +29,12 @@ object FileReceiver {
 import FileReceiver._
 class FileReceiver extends Actor {
   
-
   val serverChannel = ServerSocketChannel.open
   serverChannel.socket.bind(new InetSocketAddress(port))
+
+  /**
+   * @Note actor's loop is not compitable with non-blocking mode, i.e. cannot work with SelectionKey.OP_ACCEPT
+   */
   serverChannel.configureBlocking(true)
 
   def stop {

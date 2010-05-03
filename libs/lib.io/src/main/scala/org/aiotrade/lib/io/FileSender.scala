@@ -17,9 +17,6 @@ object FileSender {
   private val port = 4711
   private val host = "localhost"
 
-  val connectSelector = new SelectActor(SelectionKey.OP_CONNECT)
-  connectSelector.start
-
   val writeSelector = new SelectActor(SelectionKey.OP_WRITE)
   writeSelector.start
 
@@ -42,13 +39,15 @@ class FileSender(host: String, port: Int) {
   val socketChannel = SocketChannel.open
   socketChannel.connect(new InetSocketAddress(host, port))
 
-  // connect selectionKey is not compatible with actor's loop and no-blocking mode
+  /**
+   * @Note actor's loop is not compitable with non-blocking mode, i.e. cannot work with SelectionKey.OP_CONNECT
+   */
   while (!socketChannel.finishConnect) {}
+  // then we can set it non-blocking
   socketChannel.configureBlocking(false)
 
   // connected, create listener and listen to writeSelector
   val conn = new ClientConnection(socketChannel)
-  //connectSelector.addListener(conn)
   writeSelector.addListener(conn)
   
   def send(files: Array[String]) {
