@@ -65,7 +65,6 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
 
   val clientSelector = SelectorProvider.provider.openSelector
   
-
   val readWriteSelector = new ReadWriteSelector(clientSelector)
   val selectReactor = new SelectReactor(readWriteSelector, worker)
   selectReactor.start
@@ -84,6 +83,92 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       // @Note it seems this call doesn't work, the selector.select and this register should be in same thread
       //clientChannel.register(clientSelector, SelectionKey.OP_READ)
       readWriteSelector.requestChange(Register(clientChannel, SelectionKey.OP_READ))
+    }
+  }
+
+  class SelectReactor(rwSelector: ReadWriteSelector, worker: Actor) extends Actor {
+    // The buffer into which we'll read data when it's available
+    private val readBuffer = ByteBuffer.allocate(8192)
+
+    private val pendingData = new HashMap[SocketChannel, Queue[ByteBuffer]]
+
+    def act = loop {
+      react {
+        case SendData(socket, data) =>
+          // Indicate we want the interest ops set changed
+          rwSelector.requestChange(ChangeOps(socket, SelectionKey.OP_WRITE))
+
+          // And queue the data we want written
+          val queue = pendingData.get(socket) match {
+            case None => Queue(ByteBuffer.wrap(data))
+            case Some(x) => x enqueue ByteBuffer.wrap(data)
+          }
+          pendingData += (socket -> queue)
+
+        case ReadKey(key) => read(key)
+        case WriteKey(key) => write(key)
+      }
+    }
+
+    @throws(classOf[IOException])
+    private def read(key: SelectionKey) {
+      println("new read selected")
+      val socketChannel = key.channel.asInstanceOf[SocketChannel]
+
+      // Clear out our read buffer so it's ready for new data
+      this.readBuffer.clear
+
+      // Attempt to read off the channel
+      var numRead = -1
+      try {
+        numRead = socketChannel.read(readBuffer)
+      } catch {case ex: IOException =>
+          // The remote forcibly closed the connection, cancel
+          // the selection key and close the channel.
+          key.cancel
+          socketChannel.close
+          return
+      }
+
+      if (numRead == -1) {
+        // Remote entity shut the socket down cleanly. Do the
+        // same from our end and cancel the channel.
+        key.channel.close
+        key.cancel
+        return
+      }
+
+      // Hand the data off to our worker thread
+      worker ! ServerDataEvent(this, socketChannel, readBuffer.array, numRead)
+    }
+
+    @throws(classOf[IOException])
+    private def write(key: SelectionKey) {
+      println("new write selected")
+      val socketChannel = key.channel.asInstanceOf[SocketChannel]
+
+      var queue = pendingData.get(socketChannel).getOrElse(return)
+
+      // Write until there's not more data ...
+      var done = false
+      while (!queue.isEmpty && !done) {
+        val (head, tail) = queue.dequeue
+        socketChannel.write(head)
+        if (head.remaining > 0) {
+          // ... or the socket's buffer fills up
+          done = true
+        } else {
+          queue = tail
+        }
+      }
+      pendingData(socketChannel) = queue
+
+      if (queue.isEmpty) {
+        // We wrote away all data, so we're no longer interested
+        // in writing on this socket. Switch back to waiting for
+        // data.
+        key.interestOps(SelectionKey.OP_READ)
+      }
     }
   }
 }
@@ -128,7 +213,10 @@ class ReadWriteSelector(selector: Selector) extends Actor {
 
         if (key.isValid) {
           // Check what event is available and deal with it
-          if (key.isReadable) {
+          if (key.isConnectable) {
+            finishConnection(key)
+            listeners foreach {_ ! ConnectKey(key)}
+          } else if (key.isReadable) {
             listeners foreach {_ ! ReadKey(key)}
           } else if (key.isWritable) {
             listeners foreach {_ ! WriteKey(key)}
@@ -137,93 +225,28 @@ class ReadWriteSelector(selector: Selector) extends Actor {
       }
     } catch {case ex: Exception => ex.printStackTrace}
   }
-}
-
-class SelectReactor(rwSelector: ReadWriteSelector, worker: Actor) extends Actor {
-  // The buffer into which we'll read data when it's available
-  private val readBuffer = ByteBuffer.allocate(8192)
-
-  private val pendingData = new HashMap[SocketChannel, Queue[ByteBuffer]]
-
-  def act = loop {
-    react {
-      case SendData(socket, data) =>
-        // Indicate we want the interest ops set changed
-        rwSelector.requestChange(ChangeOps(socket, SelectionKey.OP_WRITE))
-
-        // And queue the data we want written
-        val queue = pendingData.get(socket) match {
-          case None => Queue(ByteBuffer.wrap(data))
-          case Some(x) => x enqueue ByteBuffer.wrap(data)
-        }
-        pendingData += (socket -> queue)
-
-      case ReadKey(key) => read(key)
-      case WriteKey(key) => write(key)
-    }
-  }
 
   @throws(classOf[IOException])
-  private def read(key: SelectionKey) {
-    println("new read selected")
+  private def finishConnection(key: SelectionKey) {
     val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
-    // Clear out our read buffer so it's ready for new data
-    this.readBuffer.clear
-
-    // Attempt to read off the channel
-    var numRead = -1
+    // Finish the connection. If the connection operation failed
+    // this will raise an IOException.
     try {
-      numRead = socketChannel.read(readBuffer)
+      socketChannel.finishConnect
     } catch {case ex: IOException =>
-        // The remote forcibly closed the connection, cancel
-        // the selection key and close the channel.
+        // Cancel the channel's registration with our selector
+        System.out.println(ex)
         key.cancel
-        socketChannel.close
         return
     }
 
-    if (numRead == -1) {
-      // Remote entity shut the socket down cleanly. Do the
-      // same from our end and cancel the channel.
-      key.channel.close
-      key.cancel
-      return
-    }
-
-    // Hand the data off to our worker thread
-    worker ! ServerDataEvent(this, socketChannel, readBuffer.array, numRead)
+    // Register an interest in writing on this channel
+    key.interestOps(SelectionKey.OP_WRITE)
   }
 
-  @throws(classOf[IOException])
-  private def write(key: SelectionKey) {
-    println("new write selected")
-    val socketChannel = key.channel.asInstanceOf[SocketChannel]
-
-    var queue = pendingData.get(socketChannel).getOrElse(return)
-
-    // Write until there's not more data ...
-    var done = false
-    while (!queue.isEmpty && !done) {
-      val (head, tail) = queue.dequeue
-      socketChannel.write(head)
-      if (head.remaining > 0) {
-        // ... or the socket's buffer fills up
-        done = true
-      } else {
-        queue = tail
-      }
-    }
-    pendingData(socketChannel) = queue
-
-    if (queue.isEmpty) {
-      // We wrote away all data, so we're no longer interested
-      // in writing on this socket. Switch back to waiting for
-      // data.
-      key.interestOps(SelectionKey.OP_READ)
-    }
-  }
 }
+
 
 
 abstract class ChangeRequest(channel: SocketChannel, ops: Int)

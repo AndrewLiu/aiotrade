@@ -13,21 +13,22 @@ import scala.collection.mutable.HashMap
 
 object NioClient {
   case class SendData(data: Array[Byte], handler: RspHandler)
+  val handle = new RspHandler
 
   // ----- simple test
   def main(args: Array[String]) {
     try {
       val client = new NioClient(InetAddress.getByName("localhost"), 9090)
-      client.start
-      val handler = new RspHandler
-      client ! SendData("Hello World".getBytes, handler)
+      client.selectReactor.start
+      
+      client.selectReactor ! SendData("Hello World".getBytes, handle)
       //handler.waitForResponse
     } catch {case ex: Exception => ex.printStackTrace}
   }
 
 }
 
-class RspHandler {
+class RspHandler extends Actor {
   //private var rsp: Array[Byte] = null;
 
   def handleResponse(rsp: Array[Byte]): Boolean = {
@@ -35,6 +36,12 @@ class RspHandler {
     System.out.println(new String(rsp))
     //this.notify
     true
+  }
+
+  def act = loop {
+    react {
+      case _ =>
+    }
   }
 
 //  def waitForResponse = synchronized {
@@ -50,25 +57,23 @@ class RspHandler {
 
 
 /**
- *   // The host:port combination to connect to
- private InetAddress hostAddress;
- private int port;
-
+ * @parem hostAddress the host to connect to
+ * @param port the port to connect to
  */
 import NioClient._
 @throws(classOf[IOException])
-class NioClient(hostAddress: InetAddress, port: Int) extends Actor {
-  changingActor.start
-  
-  // The selector we'll be monitoring
-  private val selector = SelectorProvider.provider.openSelector
+class NioClient(hostAddress: InetAddress, port: Int) {
 
+  val selector = SelectorProvider.provider.openSelector
 
-  // A list of PendingChange instances
-  //private List pendingChanges = new LinkedList();
+  val readWriteSelector = new ReadWriteSelector(selector)
+  val selectReactor = new SelectReactor(readWriteSelector, handle)
+  selectReactor.start
 
+  readWriteSelector.addListener(selectReactor)
+  readWriteSelector.start
 
-  object changingActor extends Actor {
+  class SelectReactor(rwSelector: ReadWriteSelector, worker: Actor) extends Actor {
     // The buffer into which we'll read data when it's available
     private val readBuffer = ByteBuffer.allocate(8192)
 
@@ -81,29 +86,21 @@ class NioClient(hostAddress: InetAddress, port: Int) extends Actor {
       react {
         case SendData(data, handler) =>
           // Start a new connection
-          val socket = initiateConnection
+          val channel = initiateConnection
 
           // Register the response handler
-          rspHandlers += (socket -> handler);
+          rspHandlers += (channel -> handler)
 
           // And queue the data we want written
-          val queue = pendingData.get(socket) match {
+          val queue = pendingData.get(channel) match {
             case None => Queue(ByteBuffer.wrap(data))
             case Some(x) => x enqueue ByteBuffer.wrap(data)
           }
-          pendingData += (socket -> queue)
+          pendingData += (channel -> queue)
 
           // Finally, wake up our selecting thread so it can make the required changes
           selector.wakeup
 
-        case ChangeOps(socket, ops) =>
-          val key = socket.keyFor(selector)
-          key.interestOps(ops)
-
-        case Register(socket, ops) =>
-          socket.register(selector, ops)
-
-        case ConnectKey(key) => finishConnection(key)
         case ReadKey(key) => read(key)
         case WriteKey(key) => write(key)
 
@@ -112,23 +109,30 @@ class NioClient(hostAddress: InetAddress, port: Int) extends Actor {
 
     @throws(classOf[IOException])
     private def initiateConnection: SocketChannel = {
-      // Create a non-blocking socket channel
+      // open an channel and kick off connecting
       val socketChannel = SocketChannel.open
-      socketChannel.configureBlocking(false);
-
-      // Kick off connection establishment
       socketChannel.connect(new InetSocketAddress(hostAddress, port))
 
-      // Queue a channel registration since the caller is not the
-      // selecting thread. As part of the registration we'll register
-      // an interest in connection events. These are raised when a channel
-      // is ready to complete connection establishment.
-      this ! Register(socketChannel, SelectionKey.OP_CONNECT)
-//      synchronized(this.pendingChanges) {
-//        this.pendingChanges.add(new ChangeRequest(socketChannel, ChangeRequest.REGISTER, SelectionKey.OP_CONNECT));
-//      }
+      /**
+       * @Note actor's loop is not compitable with non-blocking mode, i.e. cannot work with SelectionKey.OP_CONNECT
+       */
+      // Finish the connection. If the connection operation failed
+      // this will raise an IOException.
+      try {
+        while (!socketChannel.finishConnect) {}
+      } catch {case ex: IOException =>
+          // Cancel the channel's registration with our selector
+          System.out.println(ex)
+          return null
+      }
 
-      return socketChannel;
+      // then we can set it non-blocking
+      socketChannel.configureBlocking(false)
+
+      // Register an interest in writing on this channel
+      rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_WRITE))
+
+      socketChannel
     }
 
     @throws(classOf[IOException])
@@ -224,81 +228,9 @@ class NioClient(hostAddress: InetAddress, port: Int) extends Actor {
       }
 
       // Register an interest in writing on this channel
-      key.interestOps(SelectionKey.OP_WRITE);
-    }
-
-
-  }
-
-//  public void send(byte[] data, RspHandler handler) {
-//    // Start a new connection
-//    SocketChannel socket = this.initiateConnection();
-//
-//    // Register the response handler
-//    this.rspHandlers.put(socket, handler);
-//
-//    // And queue the data we want written
-//    synchronized (this.pendingData) {
-//      List queue = (List) this.pendingData.get(socket);
-//      if (queue == null) {
-//        queue = new ArrayList();
-//        this.pendingData.put(socket, queue);
-//      }
-//      queue.add(ByteBuffer.wrap(data));
-//    }
-//
-//    // Finally, wake up our selecting thread so it can make the required changes
-//    this.selector.wakeup();
-//  }
-
-  def act = loop {
-    while (true) {
-      try {
-        // Process any pending changes
-//        synchronized (this.pendingChanges) {
-//          Iterator changes = this.pendingChanges.iterator();
-//          while (changes.hasNext()) {
-//            ChangeRequest change = (ChangeRequest) changes.next();
-//            switch (change.type) {
-//              case ChangeRequest.CHANGEOPS:
-//                SelectionKey key = change.socket.keyFor(this.selector);
-//                key.interestOps(change.ops);
-//                break;
-//              case ChangeRequest.REGISTER:
-//                change.socket.register(this.selector, change.ops);
-//                break;
-//            }
-//          }
-//          this.pendingChanges.clear();
-//        }
-
-        // Wait for an event one of the registered channels
-        this.selector.select();
-
-        // Iterate over the set of keys for which events are available
-        val selectedKeys = this.selector.selectedKeys.iterator
-        while (selectedKeys.hasNext) {
-          val key = selectedKeys.next.asInstanceOf[SelectionKey]
-          selectedKeys.remove
-
-          if (key.isValid) {
-            // Check what event is available and deal with it
-            if (key.isConnectable) {
-              changingActor ! ConnectKey(key)
-            } else if (key.isReadable) {
-              changingActor ! ReadKey(key)
-            } else if (key.isWritable) {
-              changingActor ! WriteKey(key)
-            }
-          }
-
-        }
-      } catch {case ex: Exception => ex.printStackTrace}
+      key.interestOps(SelectionKey.OP_WRITE)
     }
   }
-
-
-
 }
 
 
