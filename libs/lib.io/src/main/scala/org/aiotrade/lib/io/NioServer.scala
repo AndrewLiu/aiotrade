@@ -184,7 +184,9 @@ class ReadWriteSelector(selector: Selector) extends Actor {
 
   def requestChange(change: ChangeRequest) {
     pendingChanges synchronized {pendingChanges ::= change}
-    // interrupt selector.select blocking, so the loop can re-begin
+    
+    // wake up selecting thread so it can make the required changes.
+    // which will interrupt selector.select blocking, so the loop can re-begin
     selector.wakeup
   }
   
@@ -214,8 +216,9 @@ class ReadWriteSelector(selector: Selector) extends Actor {
         if (key.isValid) {
           // Check what event is available and deal with it
           if (key.isConnectable) {
-            finishConnection(key)
-            listeners foreach {_ ! ConnectKey(key)}
+            if (finishConnection(key)) {
+              listeners foreach {_ ! ConnectKey(key)}
+            }
           } else if (key.isReadable) {
             listeners foreach {_ ! ReadKey(key)}
           } else if (key.isWritable) {
@@ -226,8 +229,12 @@ class ReadWriteSelector(selector: Selector) extends Actor {
     } catch {case ex: Exception => ex.printStackTrace}
   }
 
+  /**
+   * When a connectable key selected, finishConnect call should be in same thread,
+   * so we finishConnection here
+   */
   @throws(classOf[IOException])
-  private def finishConnection(key: SelectionKey) {
+  private def finishConnection(key: SelectionKey): Boolean = {
     val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
     // Finish the connection. If the connection operation failed
@@ -236,13 +243,12 @@ class ReadWriteSelector(selector: Selector) extends Actor {
       socketChannel.finishConnect
     } catch {case ex: IOException =>
         // Cancel the channel's registration with our selector
-        System.out.println(ex)
+        ex.printStackTrace
         key.cancel
-        return
+        false
     }
 
-    // Register an interest in writing on this channel
-    key.interestOps(SelectionKey.OP_WRITE)
+    true
   }
 
 }

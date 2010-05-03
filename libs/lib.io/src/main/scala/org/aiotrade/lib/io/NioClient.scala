@@ -98,12 +98,15 @@ class NioClient(hostAddress: InetAddress, port: Int) {
           }
           pendingData += (channel -> queue)
 
-          // Finally, wake up our selecting thread so it can make the required changes
-          selector.wakeup
 
+        case ConnectKey(key) =>
+          // Register an interest in writing on this channel
+          if (key.isValid) {
+            key.interestOps(SelectionKey.OP_WRITE)
+          }
+          
         case ReadKey(key) => read(key)
         case WriteKey(key) => write(key)
-
       }
     }
 
@@ -121,8 +124,7 @@ class NioClient(hostAddress: InetAddress, port: Int) {
       try {
         while (!socketChannel.finishConnect) {}
       } catch {case ex: IOException =>
-          // Cancel the channel's registration with our selector
-          System.out.println(ex)
+          ex.printStackTrace
           return null
       }
 
@@ -130,6 +132,7 @@ class NioClient(hostAddress: InetAddress, port: Int) {
       socketChannel.configureBlocking(false)
 
       // Register an interest in writing on this channel
+      //rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_CONNECT))
       rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_WRITE))
 
       socketChannel
@@ -140,18 +143,18 @@ class NioClient(hostAddress: InetAddress, port: Int) {
       val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
       // Clear out our read buffer so it's ready for new data
-      this.readBuffer.clear();
+      readBuffer.clear
 
       // Attempt to read off the channel
       var numRead = -1
       try {
-        numRead = socketChannel.read(this.readBuffer);
+        numRead = socketChannel.read(readBuffer)
       } catch {case ex: IOException =>
           // The remote forcibly closed the connection, cancel
           // the selection key and close the channel.
           key.cancel
           socketChannel.close
-          return;
+          return
       }
 
       if (numRead == -1) {
@@ -168,10 +171,9 @@ class NioClient(hostAddress: InetAddress, port: Int) {
 
     @throws(classOf[IOException])
     private def handleResponse(socketChannel: SocketChannel, data: Array[Byte], numRead: Int) {
-      // Make a correctly sized copy of the data before handing it
-      // to the client
-      val rspData = new Array[Byte](numRead);
-      System.arraycopy(data, 0, rspData, 0, numRead);
+      // Make a correctly sized copy of the data before handing it to the client
+      val rspData = new Array[Byte](numRead)
+      System.arraycopy(data, 0, rspData, 0, numRead)
 
       // Look up the handler for this channel
       val handler = rspHandlers.get(socketChannel).getOrElse(return)
@@ -210,25 +212,6 @@ class NioClient(hostAddress: InetAddress, port: Int) {
         // data.
         key.interestOps(SelectionKey.OP_READ)
       }
-    }
-
-    @throws(classOf[IOException])
-    private def finishConnection(key: SelectionKey) {
-      val socketChannel = key.channel.asInstanceOf[SocketChannel]
-
-      // Finish the connection. If the connection operation failed
-      // this will raise an IOException.
-      try {
-        socketChannel.finishConnect
-      } catch {case ex: IOException =>
-          // Cancel the channel's registration with our selector
-          System.out.println(ex);
-          key.cancel
-          return;
-      }
-
-      // Register an interest in writing on this channel
-      key.interestOps(SelectionKey.OP_WRITE)
     }
   }
 }
