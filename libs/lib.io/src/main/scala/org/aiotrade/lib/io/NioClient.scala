@@ -57,14 +57,14 @@ class NioClient(hostAddress: InetAddress, port: Int) {
 
   val selector = SelectorProvider.provider.openSelector
 
-  val readWriteSelector = new ReadWriteSelector(selector)
-  val selectReactor = new SelectReactor(readWriteSelector)
+  val selectorActor = new SelectorActor(selector)
+  val selectReactor = new SelectReactor(selectorActor)
   selectReactor.start
 
-  readWriteSelector.addListener(selectReactor)
-  readWriteSelector.start
+  selectorActor.addListener(selectReactor)
+  selectorActor.start
 
-  class SelectReactor(rwSelector: ReadWriteSelector) extends Actor {
+  class SelectReactor(rwSelector: SelectorActor) extends Actor {
     // The buffer into which we'll read data when it's available
     private val readBuffer = ByteBuffer.allocate(8192)
 

@@ -5,7 +5,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
-import java.nio.channels.Selector
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
 import java.nio.channels.spi.SelectorProvider
@@ -65,12 +64,12 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
 
   val clientSelector = SelectorProvider.provider.openSelector
   
-  val readWriteSelector = new ReadWriteSelector(clientSelector)
-  val selectReactor = new SelectReactor(readWriteSelector, worker)
+  val selectorActor = new SelectorActor(clientSelector)
+  val selectReactor = new SelectReactor(selectorActor, worker)
   selectReactor.start
   
-  readWriteSelector.addListener(selectReactor)
-  readWriteSelector.start
+  selectorActor.addListener(selectReactor)
+  selectorActor.start
 
   def act = loop {
     val clientChannel = serverChannel.accept
@@ -82,11 +81,11 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       //
       // @Note it seems this call doesn't work, the selector.select and this register should be in same thread
       //clientChannel.register(clientSelector, SelectionKey.OP_READ)
-      readWriteSelector.requestChange(Register(clientChannel, SelectionKey.OP_READ))
+      selectorActor.requestChange(Register(clientChannel, SelectionKey.OP_READ))
     }
   }
 
-  class SelectReactor(rwSelector: ReadWriteSelector, worker: Actor) extends Actor {
+  class SelectReactor(rwSelector: SelectorActor, worker: Actor) extends Actor {
     // The buffer into which we'll read data when it's available
     private val readBuffer = ByteBuffer.allocate(8192)
 
@@ -175,93 +174,4 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
   }
 }
 
-class ReadWriteSelector(selector: Selector) extends Actor {
-
-  private var listeners = List[Actor]()
-  private var pendingChanges = List[ChangeRequest]()
-
-  def addListener(listener: Actor) {
-    listeners synchronized {listeners ::= listener}
-  }
-
-  def requestChange(change: ChangeRequest) {
-    pendingChanges synchronized {pendingChanges ::= change}
-    
-    // wake up selecting thread so it can make the required changes.
-    // which will interrupt selector.select blocking, so the loop can re-begin
-    selector.wakeup
-  }
-  
-  def act = loop {
-    try {
-      pendingChanges synchronized {
-        pendingChanges foreach {
-          case ChangeOps(channel, ops) =>
-            val key = channel.keyFor(selector)
-            key.interestOps(ops)
-
-          case Register(channel, ops) =>
-            channel.register(selector, ops)
-        }
-
-        pendingChanges = Nil
-      }
-      
-      selector.select
-
-      // Iterate over the set of keys for which events are available
-      val selectedKeys = selector.selectedKeys.iterator
-      while (selectedKeys.hasNext) {
-        val key = selectedKeys.next
-        selectedKeys.remove
-
-        if (key.isValid) {
-          // Check what event is available and deal with it
-          if (key.isAcceptable) {
-            // it seems OP_ACCEPT can not be caught in actor's loop method, but
-          } else  if (key.isConnectable) {
-            // it seems OP_CONNECT can not be caught in actor's loop method, but
-            // still keep the code here
-            if (finishConnection(key)) {
-              listeners foreach {_ ! ConnectKey(key)}
-            }
-          } else if (key.isReadable) {
-            listeners foreach {_ ! ReadKey(key)}
-          } else if (key.isWritable) {
-            listeners foreach {_ ! WriteKey(key)}
-          }
-        }
-      }
-    } catch {case ex: Exception => ex.printStackTrace}
-  }
-
-  /**
-   * When a connectable key selected, finishConnect call should be in same thread,
-   * so we finishConnection here
-   */
-  @throws(classOf[IOException])
-  private def finishConnection(key: SelectionKey): Boolean = {
-    val socketChannel = key.channel.asInstanceOf[SocketChannel]
-
-    // Finish the connection. If the connection operation failed
-    // this will raise an IOException.
-    try {
-      socketChannel.finishConnect
-    } catch {case ex: IOException =>
-        // Cancel the channel's registration with our selector
-        ex.printStackTrace
-        key.cancel
-        false
-    }
-
-    true
-  }
-
-}
-
-
-
-abstract class ChangeRequest(channel: SocketChannel, ops: Int)
-case class Register (channel: SocketChannel, ops: Int) extends ChangeRequest(channel, ops)
-case class ChangeOps(channel: SocketChannel, ops: Int) extends ChangeRequest(channel, ops)
 
