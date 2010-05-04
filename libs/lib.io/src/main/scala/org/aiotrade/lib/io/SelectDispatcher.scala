@@ -6,7 +6,7 @@ import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
 import scala.actors.Actor
 
-class SelectorActor(selector: Selector) extends Actor {
+class SelectDispatcher(selector: Selector) extends Actor {
 
   private var listeners = List[Actor]()
   private var pendingChanges = List[ChangeRequest]()

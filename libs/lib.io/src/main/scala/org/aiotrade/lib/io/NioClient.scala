@@ -12,9 +12,6 @@ import scala.collection.immutable.Queue
 import scala.collection.mutable.HashMap
 
 object NioClient {
-  case class SendData(data: Array[Byte], handler: RspHandler)
-  case class ProcessData(data: Array[Byte], postAction: (Boolean) => Unit)
-
   // ----- simple test
   def main(args: Array[String]) {
     try {
@@ -23,7 +20,9 @@ object NioClient {
       
       val handler = new RspHandler
       handler.start
-      client.selectReactor ! SendData("Hello World".getBytes, handler)
+
+      val channel = client.initiateConnection
+      client.selectReactor ! SendData(channel, "Hello World".getBytes, handler)
     } catch {case ex: Exception => ex.printStackTrace}
   }
 
@@ -39,9 +38,13 @@ class RspHandler extends Actor {
 
   def act = loop {
     react {
-      case ProcessData(data, postAction) =>
+      case ProcessData(reactor, channel, key, data) =>
         val finished = handleResponse(data)
-        postAction(finished)
+        // The handler has seen enough?, if true, close the connection
+        if (finished) {
+          channel.close
+          key.cancel
+        }
     }
   }
 }
@@ -57,30 +60,57 @@ class NioClient(hostAddress: InetAddress, port: Int) {
 
   val selector = SelectorProvider.provider.openSelector
 
-  val selectorActor = new SelectorActor(selector)
-  val selectReactor = new SelectReactor(selectorActor)
+  val selectDispatcher = new SelectDispatcher(selector)
+  val selectReactor = new SelectReactor(selectDispatcher)
   selectReactor.start
 
-  selectorActor.addListener(selectReactor)
-  selectorActor.start
+  selectDispatcher.addListener(selectReactor)
+  selectDispatcher.start
 
-  class SelectReactor(rwSelector: SelectorActor) extends Actor {
+  @throws(classOf[IOException])
+  def initiateConnection: SocketChannel = {
+    // open an channel and kick off connecting
+    val socketChannel = SocketChannel.open
+    socketChannel.connect(new InetSocketAddress(hostAddress, port))
+
+    /**
+     * @Note actor's loop is not compitable with non-blocking mode, i.e. cannot work with SelectionKey.OP_CONNECT
+     */
+    // Finish the connection. If the connection operation failed this will raise an IOException.
+    try {
+      while (!socketChannel.finishConnect) {}
+    } catch {case ex: IOException =>
+        ex.printStackTrace
+        return null
+    }
+
+    // then we can set it non-blocking
+    socketChannel.configureBlocking(false)
+
+    // Register an interest in writing on this channel
+    //rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_CONNECT))
+
+    socketChannel
+  }
+
+  class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
     // The buffer into which we'll read data when it's available
     private val readBuffer = ByteBuffer.allocate(8192)
 
     private val pendingData = new HashMap[SocketChannel, Queue[ByteBuffer]]
 
-    // Maps a SocketChannel to a RspHandler
-    private val rspHandlers = HashMap[SocketChannel, RspHandler]()
+    // Maps a SocketChannel to a Handler
+    private val rspHandlers = HashMap[SocketChannel, Actor]()
 
     def act = loop {
       react {
-        case SendData(data, handler) =>
-          // Start a new connection
-          val channel = initiateConnection
-
+        case SetResponseHandler(channel: SocketChannel, rspHandler: Actor) =>
           // Register the response handler
-          rspHandlers += (channel -> handler)
+          rspHandlers += (channel -> rspHandler)
+
+        case SendData(channel, data, rspHandler) =>
+          // Register the response handler
+          rspHandlers += (channel -> rspHandler)
 
           // And queue the data we want written
           val queue = pendingData.get(channel) match {
@@ -89,41 +119,16 @@ class NioClient(hostAddress: InetAddress, port: Int) {
           }
           pendingData += (channel -> queue)
 
+          // Fianally, indicate we want the interest ops set changed
+          dispatcher.requestChange(Register(channel, SelectionKey.OP_WRITE))
+
         case ConnectKey(key) =>
           // Register an interest in writing on this channel
           key.interestOps(SelectionKey.OP_WRITE)
-          
+
         case ReadKey(key) => read(key)
         case WriteKey(key) => write(key)
       }
-    }
-
-    @throws(classOf[IOException])
-    private def initiateConnection: SocketChannel = {
-      // open an channel and kick off connecting
-      val socketChannel = SocketChannel.open
-      socketChannel.connect(new InetSocketAddress(hostAddress, port))
-
-      /**
-       * @Note actor's loop is not compitable with non-blocking mode, i.e. cannot work with SelectionKey.OP_CONNECT
-       */
-      // Finish the connection. If the connection operation failed
-      // this will raise an IOException.
-      try {
-        while (!socketChannel.finishConnect) {}
-      } catch {case ex: IOException =>
-          ex.printStackTrace
-          return null
-      }
-
-      // then we can set it non-blocking
-      socketChannel.configureBlocking(false)
-
-      // Register an interest in writing on this channel
-      //rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_CONNECT))
-      rwSelector.requestChange(Register(socketChannel, SelectionKey.OP_WRITE))
-
-      socketChannel
     }
 
     @throws(classOf[IOException])
@@ -148,34 +153,21 @@ class NioClient(hostAddress: InetAddress, port: Int) {
       if (numRead == -1) {
         // Remote entity shut the socket down cleanly. Do the
         // same from our end and cancel the channel.
-        key.channel.close
         key.cancel
+        socketChannel.close
         return
       }
 
       if (numRead > 0) {
-        // Handle the response
-        handleResponse(socketChannel, readBuffer.array, numRead)
-      }
-    }
-
-    @throws(classOf[IOException])
-    private def handleResponse(socketChannel: SocketChannel, data: Array[Byte], numRead: Int) {
-      // Make a correctly sized copy of the data before handing it to the client
-      val rspData = new Array[Byte](numRead)
-      System.arraycopy(data, 0, rspData, 0, numRead)
-
-      // Look up the handler for this channel
-      val handler = rspHandlers.get(socketChannel).getOrElse(return)
-
-      // And pass the response to it
-      handler ! ProcessData(rspData, finished =>
-        // The handler has seen enough?, if true, close the connection
-        if (finished) {
-          socketChannel.close
-          socketChannel.keyFor(selector).cancel
+        // Look up the handler for this channel
+        rspHandlers.get(socketChannel) foreach {handler =>
+          // Make a correctly sized copy of the data before handing it to the client
+          val data = new Array[Byte](numRead)
+          System.arraycopy(readBuffer.array, 0, data, 0, numRead)
+          // Hand the data off to our handler actor
+          handler ! ProcessData(this, socketChannel, key, data)
         }
-      )
+      }
     }
 
     @throws(classOf[IOException])
