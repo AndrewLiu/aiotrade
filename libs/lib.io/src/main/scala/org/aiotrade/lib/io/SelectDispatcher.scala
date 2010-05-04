@@ -6,16 +6,18 @@ import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
 import scala.actors.Actor
 
+case class InterestInOps(channel: SocketChannel, ops: Int)
+
 class SelectDispatcher(selector: Selector) extends Actor {
 
   private var listeners = List[Actor]()
-  private var pendingChanges = List[ChangeRequest]()
+  private var pendingChanges = List[InterestInOps]()
 
   def addListener(listener: Actor) {
     listeners synchronized {listeners ::= listener}
   }
 
-  def requestChange(change: ChangeRequest) {
+  def requestChange(change: InterestInOps) {
     pendingChanges synchronized {pendingChanges ::= change}
 
     // wake up selecting thread so it can make the required changes.
@@ -27,12 +29,13 @@ class SelectDispatcher(selector: Selector) extends Actor {
     try {
       pendingChanges synchronized {
         pendingChanges foreach {
-          case ChangeOps(channel, ops) =>
+          case InterestInOps(channel, ops) =>
             val key = channel.keyFor(selector)
-            key.interestOps(ops)
-
-          case Register(channel, ops) =>
-            channel.register(selector, ops)
+            if (key == null) {
+              channel.register(selector, ops)
+            } else {
+              key.interestOps(ops)
+            }
         }
 
         pendingChanges = Nil
@@ -87,10 +90,5 @@ class SelectDispatcher(selector: Selector) extends Actor {
 
     true
   }
-
 }
 
-
-abstract class ChangeRequest(channel: SocketChannel, ops: Int)
-case class Register (channel: SocketChannel, ops: Int) extends ChangeRequest(channel, ops)
-case class ChangeOps(channel: SocketChannel, ops: Int) extends ChangeRequest(channel, ops)

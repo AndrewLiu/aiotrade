@@ -78,7 +78,7 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       //
       // @Note it seems this call doesn't work, the selector.select and this register should be in same thread
       //clientChannel.register(clientSelector, SelectionKey.OP_READ)
-      selectorActor.requestChange(Register(clientChannel, SelectionKey.OP_READ))
+      selectorActor.requestChange(InterestInOps(clientChannel, SelectionKey.OP_READ))
     }
   }
 }

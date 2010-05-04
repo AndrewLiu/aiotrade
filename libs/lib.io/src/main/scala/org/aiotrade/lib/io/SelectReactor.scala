@@ -43,12 +43,12 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
         }
         pendingData += (channel -> queue)
 
-          // Fianally, indicate we want the interest ops set changed
-        dispatcher.requestChange(ChangeOps(channel, SelectionKey.OP_WRITE))
+        // Fianally, indicate we want the interest ops set changed
+        dispatcher.requestChange(InterestInOps(channel, SelectionKey.OP_WRITE))
 
       case ConnectKey(key) => // not used yet
-          // Register an interest in writing on this channel
-          key.interestOps(SelectionKey.OP_WRITE)
+        // Register an interest in writing on this channel
+        key.interestOps(SelectionKey.OP_WRITE)
 
       case ReadKey(key) => read(key)
       case WriteKey(key) => write(key)
@@ -57,11 +57,10 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
 
   @throws(classOf[IOException])
   private def read(key: SelectionKey) {
-    println("new read selected")
     val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
     // Clear out our read buffer so it's ready for new data
-    this.readBuffer.clear
+    readBuffer.clear
 
     // Attempt to read off the channel
     var numRead = -1
@@ -97,7 +96,6 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
 
   @throws(classOf[IOException])
   private def write(key: SelectionKey) {
-    println("new write selected")
     val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
     var queue = pendingData.get(socketChannel).getOrElse(return)
