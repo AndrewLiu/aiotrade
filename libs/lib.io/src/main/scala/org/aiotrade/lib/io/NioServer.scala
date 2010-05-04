@@ -3,6 +3,7 @@ package org.aiotrade.lib.io
 import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.spi.SelectorProvider
@@ -16,11 +17,11 @@ case class WriteKey  (key: SelectionKey) extends KeyEvent(key)
 case class ConnectKey(key: SelectionKey) extends KeyEvent(key)
 
 object NioServer {
-  val worker = new EchoWorker
+  val handler = new EchoWorker
 
   def main(args: Array[String]) {
     try {
-      worker.start
+      handler.start
       new NioServer(null, 9090) start
     } catch {case ex: IOException => ex.printStackTrace}
   }
@@ -30,7 +31,7 @@ object NioServer {
       react {
         case ProcessData(reactor, channel, key, data) =>
           // Return to sender
-          reactor ! SendData(channel, data, this)
+          reactor ! SendData(channel, ByteBuffer.wrap(data), Some(this))
       }
     }
   }
@@ -72,7 +73,7 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       clientChannel.configureBlocking(false)
       println("new connection accepted")
 
-      selectReactor ! SetResponseHandler(clientChannel, worker)
+      selectReactor ! SetResponseHandler(clientChannel, Some(handler))
       // Register the new SocketChannel with our Selector, indicating
       // we'd like to be notified when there's data waiting to be read
       //

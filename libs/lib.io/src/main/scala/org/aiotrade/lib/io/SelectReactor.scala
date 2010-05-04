@@ -10,8 +10,8 @@ import scala.collection.immutable.Queue
 import scala.collection.mutable.HashMap
 
 case class ProcessData(reactor: Actor, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
-case class SendData(channel: SocketChannel, data: Array[Byte], rspHandler: Actor)
-case class SetResponseHandler(channel: SocketChannel, rspHandler: Actor)
+case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
+case class SetResponseHandler(channel: SocketChannel, rspHandler: Option[Actor])
 
 object SelectReactor {
 
@@ -28,18 +28,18 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
 
   def act = loop {
     react {
-      case SetResponseHandler(channel: SocketChannel, rspHandler: Actor) =>
+      case SetResponseHandler(channel, rspHandler) =>
         // Register the response handler
-        rspHandlers += (channel -> rspHandler)
+        rspHandler foreach {x => rspHandlers += (channel -> x)}
 
       case SendData(channel, data, rspHandler) =>
         // Register the response handler
-        rspHandlers += (channel -> rspHandler)
+        rspHandler foreach {x => rspHandlers += (channel -> x)}
 
         // And queue the data we want written
         val queue = pendingData.get(channel) match {
-          case None => Queue(ByteBuffer.wrap(data))
-          case Some(x) => x enqueue ByteBuffer.wrap(data)
+          case None => Queue(data)
+          case Some(x) => x enqueue data
         }
         pendingData += (channel -> queue)
 

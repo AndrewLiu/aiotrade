@@ -3,6 +3,7 @@ package org.aiotrade.lib.io
 import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.nio.channels.spi.SelectorProvider
 import scala.actors.Actor
@@ -14,33 +15,31 @@ object NioClient {
       val client = new NioClient(InetAddress.getByName("localhost"), 9090)
       client.selectReactor.start
       
-      val handler = new RspHandler
+      val handler = new EchoRspHandler
       handler.start
 
       val channel = client.initiateConnection
-      client.selectReactor ! SendData(channel, "Hello World".getBytes, handler)
+      client.selectReactor ! SendData(channel, ByteBuffer.wrap("Hello World".getBytes), Some(handler))
     } catch {case ex: Exception => ex.printStackTrace}
   }
 
-}
+  class EchoRspHandler extends Actor {
 
-import NioClient._
-class RspHandler extends Actor {
+    def handleResponse(rsp: Array[Byte]): Boolean = {
+      println(new String(rsp))
+      true
+    }
 
-  def handleResponse(rsp: Array[Byte]): Boolean = {
-    println(new String(rsp))
-    true
-  }
-
-  def act = loop {
-    react {
-      case ProcessData(reactor, channel, key, data) =>
-        val finished = handleResponse(data)
-        // The handler has seen enough?, if true, close the connection
-        if (finished) {
-          channel.close
-          key.cancel
-        }
+    def act = loop {
+      react {
+        case ProcessData(reactor, channel, key, data) =>
+          val finished = handleResponse(data)
+          // The handler has seen enough?, if true, close the connection
+          if (finished) {
+            channel.close
+            key.cancel
+          }
+      }
     }
   }
 }
@@ -50,7 +49,6 @@ class RspHandler extends Actor {
  * @parem hostAddress the host to connect to
  * @param port the port to connect to
  */
-import NioClient._
 @throws(classOf[IOException])
 class NioClient(hostAddress: InetAddress, port: Int) {
 
