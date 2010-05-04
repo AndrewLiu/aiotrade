@@ -162,10 +162,8 @@ class FileReceiver(hostAddress: InetAddress, port: Int) extends Actor {
       val handler = new FileReceiverHandler
       handler.start
       selectReactor ! SetResponseHandler(clientChannel, Some(handler))
-      // Register the new SocketChannel with our Selector, indicating
-      // we'd like to be notified when there's data waiting to be read
-      //
-      // @Note it seems this call doesn't work, the selector.select and this register should be in same thread
+
+      // Register the new channel with our selector via selectorActor, interested in data waiting to be read
       selectorActor.requestChange(InterestInOps(clientChannel, SelectionKey.OP_READ))
     }
   }

@@ -62,6 +62,7 @@ class FileSender(hostAddress: String, port: Int) {
   def send(files: Array[String]) {
     try {
       val channel = initiateConnection
+      
       sendInt(channel, files.length)
       for (file <- files) {
         sendString(channel, file)
