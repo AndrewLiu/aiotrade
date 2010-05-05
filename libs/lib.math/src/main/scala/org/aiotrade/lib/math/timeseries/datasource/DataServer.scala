@@ -40,7 +40,9 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
+trait DataServer extends Ordered[DataServer] {
+  type C <: DataContract[_]
+  type T <: TSer
     
   def displayName: String
     
@@ -53,7 +55,7 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
    * @param contract DataContract which contains all the type, market info for this source
    * @param ser the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: TSer): Unit
+  def subscribe(contract: C, ser: T)
     
   /**
    * first ser is the master one,
@@ -66,19 +68,19 @@ trait DataServer[C <: DataContract[_]] extends Ordered[DataServer[C]] {
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer])
+  def subscribe(contract: C, ser: T, chainSers: Seq[T])
     
   def unSubscribe(contract: C)
     
   def isContractSubsrcribed(contract: C): Boolean
     
-  def startLoadServer: Unit
+  def startLoadServer
     
-  def startRefreshServer(refreshInterval: Int): Unit
+  def startRefreshServer(refreshInterval: Int)
     
-  def stopRefreshServer: Unit
+  def stopRefreshServer
     
-  def createNewInstance: Option[DataServer[_]]
+  def createNewInstance: Option[DataServer]
 
   /**
    * @return a long type source id, the format will be only 1 none-zero bit,

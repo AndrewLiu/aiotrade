@@ -49,7 +49,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   private val withActionsHelper = new WithActionsHelper(this)
 
   /** Ser could be loaded lazily */
-  var serProvider: SerProvider[_] = _
+  var serProvider: SerProvider = _
     
   /** use List to store descriptor, so they can be ordered by index */
   private var descriptorBuf = ArrayBuffer[AnalysisDescriptor[_]]()

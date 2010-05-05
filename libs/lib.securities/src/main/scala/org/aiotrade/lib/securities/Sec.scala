@@ -31,6 +31,10 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.securities.dataserver.TickerServer
+import scala.collection.mutable.ArrayBuffer
 import scala.swing.Publisher
 
 /**
@@ -66,8 +70,25 @@ object Sec {
   }
 }
 
-trait Sec extends SerProvider[QuoteSer] with TickerSerProvider with Publisher {
+trait Sec extends SerProvider with Publisher {
+  type C = QuoteContract
+  type T = QuoteSer
 
   def exchange: Exchange
   def exchange_=(exchange: Exchange): Unit
+
+  def tickerSer: QuoteSer
+
+  def tickerServer: TickerServer
+
+  def tickerContract: TickerContract
+
+  def subscribeTickerServer: Unit
+
+  def unSubscribeTickerServer: Unit
+
+  def isTickerServerSubscribed: Boolean
+
+  def tickers: ArrayBuffer[Ticker]
+
 }

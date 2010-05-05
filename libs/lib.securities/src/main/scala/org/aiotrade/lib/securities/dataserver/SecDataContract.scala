@@ -31,7 +31,7 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.datasource.{DataContract,DataServer}
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.serialization.BeansDocument
@@ -42,7 +42,7 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class SecDataContract[S <: DataServer[_]] extends DataContract[S] {
+abstract class SecDataContract[S] extends DataContract[S] {
   var reqId = 0
   var secKind: Sec.Kind = Sec.Kind.Stock
   var primaryExchange = "SUPERSOES"

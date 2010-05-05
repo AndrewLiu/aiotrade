@@ -141,7 +141,7 @@ object IBTickerServer extends IBTickerServer {
     try {
       request
       loadedTime1 = read
-    } catch {case ex: Exception => System.out.println("Error in loading from source: " + ex.getMessage)
+    } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)
     }
         
     loadedTime1

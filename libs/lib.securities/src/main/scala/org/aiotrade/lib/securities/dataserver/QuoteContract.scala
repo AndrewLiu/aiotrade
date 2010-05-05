@@ -44,8 +44,8 @@ object QuoteContract {
   val folderName = "QuoteServers"
 }
 
+import QuoteContract._
 class QuoteContract extends SecDataContract[QuoteServer] {
-  import QuoteContract._
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   active = true
@@ -107,7 +107,7 @@ class QuoteContract extends SecDataContract[QuoteServer] {
 
   def lookupServiceTemplate: Option[QuoteServer] =  {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-    services.find{x => x.getClass.getName.equals(serviceClassName)} match {
+    services find {x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])

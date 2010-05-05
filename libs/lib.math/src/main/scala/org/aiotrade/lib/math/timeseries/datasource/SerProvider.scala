@@ -37,8 +37,9 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-trait SerProvider[T <: TSer] {
-    
+trait SerProvider {
+  type C <: DataContract[_]
+  type T <: TSer
     
   /**
    * Load quotes, can be called to load quotes whenever
@@ -66,7 +67,7 @@ trait SerProvider[T <: TSer] {
   def description: String
   def description_=(description: String)
     
-  def dataContract: DataContract[_]
-  def dataContract_=(dataContract: DataContract[_])
+  def dataContract: C
+  def dataContract_=(dataContract: C)
 }
 

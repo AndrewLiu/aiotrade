@@ -37,7 +37,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
 import org.aiotrade.lib.securities.Sec
@@ -85,7 +84,7 @@ object IBWrapper extends IBWrapper {
     Sec.Kind.Index        -> "IND",
     Sec.Kind.FutureOption -> "FOP",
     Sec.Kind.Currency     -> "CASH",
-   Sec.Kind.Bag          -> "BAG")
+    Sec.Kind.Bag          -> "BAG")
 
   private var singletonInstance: IBWrapper = this
   private var eclient: EClientSocket = new EClientSocket(this)
@@ -135,7 +134,7 @@ object IBWrapper extends IBWrapper {
     }
   }
     
-  private def hisDataRequestorOf(reqId: Int): DataServer[_] = {
+  private def hisDataRequestorOf(reqId: Int): DataServer = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.requestor
@@ -183,7 +182,7 @@ object IBWrapper extends IBWrapper {
     TWS_DATE_FORMAT
   }
     
-  def reqHistoricalData(requestor: DataServer[_ <: DataContract[_]], storage: ArrayList[Quote],
+  def reqHistoricalData(requestor: DataServer, storage: ArrayList[Quote],
                         contract: Contract, endDateTime: String, durationStr: String,
                         barSizeSetting: Int, whatToShow: String, useRTH: Int, formatDate: Int): Int = {
         
@@ -213,7 +212,7 @@ object IBWrapper extends IBWrapper {
     return reqId
   }
     
-  def reqMktData(requestor: DataServer[_], contract: Contract, tickerSnapshot: TickerSnapshot): Int = {
+  def reqMktData(requestor: DataServer, contract: Contract, tickerSnapshot: TickerSnapshot): Int = {
     val reqId = askReqId
         
     val mktReq = MarketDataRequest(
@@ -483,7 +482,7 @@ object IBWrapper extends IBWrapper {
   )
 
   private case class HistoricalDataRequest(
-    requestor: DataServer[_ <: DataContract[_]],
+    requestor: DataServer,
     storage: ArrayList[Quote],
     contract: Contract,
     endDateTime: String,

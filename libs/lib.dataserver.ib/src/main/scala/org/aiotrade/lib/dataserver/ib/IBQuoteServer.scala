@@ -67,7 +67,7 @@ class IBQuoteServer extends QuoteServer {
   private val maxDurationInWeeks   = 54
   private val maxDurationInYears   = 1
     
-  private var contract: QuoteContract = _
+  private lazy val contract: QuoteContract = currentContract.get
     
   protected def connect: Boolean = {
     if (!ibWrapper.isConnected) {
@@ -81,7 +81,6 @@ class IBQuoteServer extends QuoteServer {
   protected def request {
     val cal = Calendar.getInstance
         
-    contract = currentContract.get
     val storage = storageOf(contract)
         
     var bDate = new Date
@@ -260,7 +259,7 @@ class IBQuoteServer extends QuoteServer {
     try {
       request
       loadedTime1 = read
-    } catch {case ex: Exception => System.out.println("Error in loading from source: " + ex.getMessage)}
+    } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)}
         
     loadedTime1
   }

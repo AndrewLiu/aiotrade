@@ -45,7 +45,9 @@ import scala.swing.Reactor
  *
  * @author Caoyuan Deng
  */
-abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with Reactor {
+abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
+  type C = QuoteContract
+  type T = QuoteSer
 
   actorActions += {
     case Loaded(loadedTime) =>
@@ -70,7 +72,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
   }
 
   private def loadFromPersistence(contract: QuoteContract): Long = {
-    val serToBeFilled = serOf(contract).get.asInstanceOf[QuoteSer]
+    val serToBeFilled = serOf(contract).get
 
     /**
      * 1. restore data from database
@@ -104,7 +106,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
 
   protected def postLoad {
     for (contract <- subscribedContracts) {
-      val serToBeFilled = serOf(contract).get.asInstanceOf[QuoteSer]
+      val serToBeFilled = serOf(contract).get
 
       val freq = serToBeFilled.freq
       val storage = storageOf(contract).toArray
@@ -132,7 +134,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
 
-      val evt = composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage)
+      val evt = composeSer(contract.symbol, serOf(contract).get, storage)
       //            if (evt != null) {
       //                evt.tpe = TSerEvent.Type.Updated
       //                evt.getSource.fireTSerEvent(evt)

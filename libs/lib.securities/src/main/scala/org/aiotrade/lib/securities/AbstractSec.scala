@@ -207,13 +207,13 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
     uniSymbol
   }
 
-  def dataContract: DataContract[_] = {
+  def dataContract: QuoteContract = {
     freqToQuoteContract(defaultFreq)
   }
   
-  def dataContract_=(quoteContract: DataContract[_]) {
+  def dataContract_=(quoteContract: QuoteContract) {
     val freq = quoteContract.freq
-    freqToQuoteContract(freq) = quoteContract.asInstanceOf[QuoteContract]
+    freqToQuoteContract += (freq -> quoteContract)
     /** may need a new dataServer now: */
     freqToQuoteServer -= freq
   }
@@ -246,7 +246,7 @@ abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract
     }
 
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-      var chainSers: List[TSer] = Nil
+      var chainSers: List[QuoteSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
       serOf(TFreq.DAILY)   foreach {x => chainSers ::= x}
       serOf(TFreq.ONE_MIN) foreach {x => chainSers ::= x}

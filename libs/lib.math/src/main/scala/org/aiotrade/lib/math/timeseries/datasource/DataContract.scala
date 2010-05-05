@@ -49,7 +49,7 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
+abstract class DataContract[S] extends AnalysisDescriptor[S] {
 
   var symbol: String = _ // symbol in source
   var category: String = _

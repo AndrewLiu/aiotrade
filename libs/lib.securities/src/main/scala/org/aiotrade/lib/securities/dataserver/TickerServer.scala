@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.{TFreq, TSer, TSerEvent, TUnit}
+import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
 import org.aiotrade.lib.securities.Exchange.ExchangeClosed
 import org.aiotrade.lib.securities.Exchange.ExchangeOpened
@@ -47,7 +47,9 @@ import scala.swing.Reactor
  *
  * @author Caoyuan Deng
  */
-abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] with ChangeObserver with Reactor {
+abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserver with Reactor {
+  type C = TickerContract
+  type T = QuoteSer
 
   private val logger = Logger.getLogger(this.getClass.getName)
     
@@ -82,7 +84,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     symbolToTickerSnapshot.get(symbol)
   }
     
-  override def subscribe(contract: TickerContract, ser: TSer, chainSers: Seq[TSer]) {
+  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: Seq[QuoteSer]) {
     super.subscribe(contract, ser, chainSers)
     symbolToTickerSnapshot synchronized {
       /**
@@ -126,7 +128,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val storage = storageOf(contract).toArray
       PersistenceManager().saveRealTimeTickers(storage, sourceId)
 
-      composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage) match {
+      composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
           logger.info(contract.symbol + ": " + count + ", data loaded, load server finished")
@@ -144,7 +146,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val storage = storageOf(contract).toArray
       PersistenceManager().saveRealTimeTickers(storage, sourceId)
       
-      composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage) match {
+      composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
         case _ =>
@@ -299,9 +301,9 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
         for (chainSer <- chainSersOf(tickerSer)) {
           chainSer.freq match {
             case TFreq.DAILY =>
-              updateDailyQuote(chainSer.asInstanceOf[QuoteSer], ticker, cal)
+              updateDailyQuote(chainSer, ticker, cal)
             case  TFreq.ONE_MIN =>
-              updateMinuteQuote(chainSer.asInstanceOf[QuoteSer], ticker, tickerSer, cal)
+              updateMinuteQuote(chainSer, ticker, tickerSer, cal)
           }
         }
 
@@ -320,7 +322,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       symbolToPrevTicker.get(symbol) foreach {ticker =>
         val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
         for (ser <- chainSersOf(tickerSer) if ser.freq == TFreq.DAILY && ser.exists(today)) {
-          updateDailyQuote(ser.asInstanceOf[QuoteSer], ticker, cal)
+          updateDailyQuote(ser, ticker, cal)
         }
       }
     }

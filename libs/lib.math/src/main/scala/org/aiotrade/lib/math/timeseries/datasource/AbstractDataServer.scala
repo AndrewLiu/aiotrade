@@ -57,7 +57,10 @@ import scala.collection.mutable.{HashMap}
  * @author Caoyuan Deng
  */
 object AbstractDataServer {
-  var DEFAULT_ICON: Option[Image] = None
+  lazy val DEFAULT_ICON: Option[Image] = {
+    val url = classOf[AbstractDataServer[Any]].getResource("defaultIcon.gif")
+    if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
+  }
 
   private var _executorService: ExecutorService = _
   protected def executorService : ExecutorService = {
@@ -70,7 +73,7 @@ object AbstractDataServer {
 }
 
 import AbstractDataServer._
-abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] with ChainActor {
+abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with ChainActor {
   case object LoadHistory
   case object Refresh
 
@@ -82,7 +85,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   // --- Following maps should be created once here, since server may be singleton:
   private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  private val subscribedContractToSer = new HashMap[C, TSer]
+  private val subscribedContractToSer = new HashMap[C, T]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
@@ -92,7 +95,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * second one (if available) is that who concerns first one.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[TSer, ArrayList[TSer]]
+  private val serToChainSers = new HashMap[T, ArrayList[T]]
   private var refreshTimer: Timer = _
   protected var count: Int = 0
   protected var loadedTime: Long = _
@@ -201,20 +204,16 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
      * Till now, only QuoteDataServer call this method, and they all use the
      * per server per contract approach.
      */
-    for (contract <- subscribedContracts) {
-      return Some(contract)
-    }
-
-    None
+    if (subscribedContracts.isEmpty) None else Some(subscribedContracts.next)
   }
 
   def subscribedContracts: Iterator[C] = subscribedContractToSer.keysIterator
 
-  protected def serOf(contract: C): Option[TSer] = {
+  protected def serOf(contract: C): Option[T] = {
     subscribedContractToSer.get(contract)
   }
 
-  protected def chainSersOf(ser: TSer): Seq[TSer] = {
+  protected def chainSersOf(ser: T): Seq[T] = {
     serToChainSers.get(ser) match {
       case None => Nil
       case Some(x) => x
@@ -225,11 +224,11 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @param symbol symbol in source
    * @param set the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: TSer) {
+  def subscribe(contract: C, ser: T) {
     subscribe(contract, ser, Nil)
   }
 
-  def subscribe(contract: C, ser: TSer, chainSers: Seq[TSer]) {
+  def subscribe(contract: C, ser: T, chainSers: Seq[T]) {
     subscribedContractToSer.synchronized {
       subscribedContractToSer.put(contract, ser)
     }
@@ -237,7 +236,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
       subscribedSymbolToContract.put(contract.symbol, contract)
     }
     serToChainSers.synchronized {
-      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer]
+      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer].asInstanceOf[ArrayList[T]]
       chainSersX ++= chainSers
       serToChainSers.put(ser, chainSersX)
     }
@@ -309,9 +308,9 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    */
   protected def loadFromSource(afterThisTime: Long): Long
 
-  override def createNewInstance: Option[DataServer[C]] = {
+  override def createNewInstance: Option[DataServer] = {
     try {
-      val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[C, V]]
+      val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[V]]
       instance.init
 
       Some(instance)
@@ -325,13 +324,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * Override it to return your icon
    * @return a predifined image as the default icon
    */
-  def icon: Option[Image] = {
-    if (DEFAULT_ICON == None) {
-      val url = classOf[AbstractDataServer[Any,Any]].getResource("defaultIcon.gif")
-      DEFAULT_ICON = if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
-    }
-    DEFAULT_ICON
-  }
+  def icon: Option[Image] = DEFAULT_ICON
 
   /**
    * Convert source sn to source id in format of :
@@ -351,7 +344,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
     if (sn == 0) 0 else 1 << (sn - 1)
   }
 
-  override def compare(another: DataServer[C]): Int = {
+  override def compare(another: DataServer): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {
       if (this.hashCode < another.hashCode) -1
       else {
