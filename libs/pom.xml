@@ -143,6 +143,7 @@
         <module>lib.json</module>
         <module>lib.io</module>
         <module>lib.math</module>
+        <module>lib.model.securities</module>
         <module>lib.securities</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
@@ -153,6 +154,7 @@
         <module>lib.amqp</module>
         <module>helper.test</module>
 		<module>lib.sevenzip</module>
+		<module>circumflex</module>
     </modules>
 
 </project>

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.aiotrade.lib.model.security
+package org.aiotrade.lib.model.securities
 
 import ru.circumflex.orm.LongIdPK
 import ru.circumflex.orm.Record

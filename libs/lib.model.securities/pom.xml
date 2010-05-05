@@ -7,10 +7,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lib-model-security</artifactId>
+    <artifactId>lib-model-securities</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>lib-model-security</name>
+    <name>lib-model-securities</name>
 
     <dependencies>
         <dependency>

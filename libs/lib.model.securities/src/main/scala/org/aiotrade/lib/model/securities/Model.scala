@@ -1,4 +1,4 @@
-package org.aiotrade.lib.model.security
+package org.aiotrade.lib.model.securities
 
 import java.util.Calendar
 import ru.circumflex.orm.Criteria
