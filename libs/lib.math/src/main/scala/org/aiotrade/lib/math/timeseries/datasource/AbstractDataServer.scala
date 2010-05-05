@@ -41,7 +41,6 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.math.timeseries.{TSer}
 import org.aiotrade.lib.util.actors.ChainActor
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor
@@ -83,6 +82,7 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
 
   val ANCIENT_TIME: Long = -1
 
+  protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
   private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
   private val subscribedContractToSer = new HashMap[C, T]
@@ -91,11 +91,11 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
   // --- Above maps should be created once here, since server may be singleton
     
   /**
-   * first ser is the master one,
-   * second one (if available) is that who concerns first one.
+   * key ser is the master one,
+   * values (if available) are that who concern key ser.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[T, ArrayList[T]]
+  private val serToChainSers = new HashMap[T, List[T]]
   private var refreshTimer: Timer = _
   protected var count: Int = 0
   protected var loadedTime: Long = _
@@ -147,14 +147,13 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
      */
   }
 
-  protected def storageOf(contract: C) = {
-    contractToStorage.get(contract) getOrElse {
-      val x = new ArrayList[V]
-      contractToStorage.synchronized {
-        contractToStorage(contract) = x
-      }
-      
-      x
+  protected def storageOf(contract: C): ArrayList[V] = {
+    contractToStorage.get(contract) match {
+      case None =>
+        val x = new ArrayList[V]
+        contractToStorage synchronized {contractToStorage(contract) = x}
+        x
+      case Some(x) => x
     }
   }
 
@@ -170,13 +169,9 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
   private def releaseStorage(contract: C) {
     /** don't get storage via getStorage(contract), which will create a new one if none */
     for (storage <- contractToStorage.get(contract)) {
-      storage.synchronized {
-        storage.clear
-      }
+      storage synchronized {storage.clear}
     }
-    contractToStorage.synchronized {
-      contractToStorage.remove(contract)
-    }
+    contractToStorage synchronized {contractToStorage.remove(contract)}
   }
 
   protected def isAscending(values: Array[V]): Boolean = {
@@ -207,61 +202,42 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
     if (subscribedContracts.isEmpty) None else Some(subscribedContracts.next)
   }
 
-  def subscribedContracts: Iterator[C] = subscribedContractToSer.keysIterator
+  def subscribedContracts: Iterator[C] =
+    subscribedContractToSer.keysIterator
 
-  protected def serOf(contract: C): Option[T] = {
+  protected def serOf(contract: C): Option[T] = 
     subscribedContractToSer.get(contract)
-  }
 
-  protected def chainSersOf(ser: T): Seq[T] = {
-    serToChainSers.get(ser) match {
-      case None => Nil
-      case Some(x) => x
-    }
-  }
+  protected def chainSersOf(ser: T): List[T] = 
+    serToChainSers.get(ser) getOrElse Nil
 
   /**
    * @param symbol symbol in source
    * @param set the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: T) {
+  def subscribe(contract: C, ser: T) =
     subscribe(contract, ser, Nil)
+
+  def subscribe(contract: C, ser: T, chainSers: List[T]) = subscribingMutex synchronized {
+    subscribedContractToSer += (contract -> ser)
+    subscribedSymbolToContract += (contract.symbol -> contract)
+    val chainSersX = chainSers ::: (serToChainSers.get(ser) getOrElse Nil)
+    serToChainSers += (ser -> chainSersX)
   }
 
-  def subscribe(contract: C, ser: T, chainSers: Seq[T]) {
-    subscribedContractToSer.synchronized {
-      subscribedContractToSer.put(contract, ser)
-    }
-    subscribedSymbolToContract.synchronized {
-      subscribedSymbolToContract.put(contract.symbol, contract)
-    }
-    serToChainSers.synchronized {
-      val chainSersX = serToChainSers.get(ser) getOrElse new ArrayList[TSer].asInstanceOf[ArrayList[T]]
-      chainSersX ++= chainSers
-      serToChainSers.put(ser, chainSersX)
-    }
-  }
-
-  def unSubscribe(contract: C) {
+  def unSubscribe(contract: C) = subscribingMutex synchronized {
     cancelRequest(contract)
-    serToChainSers.synchronized {
-      serToChainSers.remove(subscribedContractToSer.get(contract).get)
-    }
-    subscribedContractToSer.synchronized {
-      subscribedContractToSer.remove(contract)
-    }
-    subscribedSymbolToContract.synchronized {
-      subscribedSymbolToContract.remove(contract.symbol)
-    }
+    serToChainSers -= subscribedContractToSer.get(contract).get
+    subscribedContractToSer -= contract
+    subscribedSymbolToContract -= contract.symbol
     releaseStorage(contract)
   }
 
   protected def cancelRequest(contract: C) {
   }
 
-  def isContractSubsrcribed(contract: C): Boolean = {
-    subscribedContractToSer.keysIterator exists {_.symbol == contract.symbol}
-  }
+  def isContractSubsrcribed(contract: C): Boolean = 
+    subscribedSymbolToContract contains contract.symbol
 
   def startLoadServer {
     if (currentContract == None) {
@@ -297,7 +273,7 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
     postStopRefreshServer
   }
 
-  protected def postStopRefreshServer {}
+  protected def postStopRefreshServer = ()
 
   protected def loadFromPersistence: Long
 
@@ -313,7 +289,7 @@ abstract class AbstractDataServer[V <: TVal: Manifest] extends DataServer with C
       val instance = getClass.newInstance.asInstanceOf[AbstractDataServer[V]]
       instance.init
 
-      Some(instance)
+      Option(instance)
     } catch {
       case ex: InstantiationException => ex.printStackTrace; None
       case ex: IllegalAccessException => ex.printStackTrace; None

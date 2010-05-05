@@ -34,8 +34,6 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.Exchange.ExchangeClosed
-import org.aiotrade.lib.securities.Exchange.ExchangeOpened
 import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot, PersistenceManager}
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
@@ -74,8 +72,8 @@ abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserv
   }
 
   reactions += {
-    case ExchangeOpened(exchange: Exchange) =>
-    case ExchangeClosed(exchange: Exchange) =>
+    case Exchange.Opened(exchange: Exchange) =>
+    case Exchange.Closed(exchange: Exchange) =>
   }
 
   listenTo(Exchange)
@@ -84,9 +82,9 @@ abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserv
     symbolToTickerSnapshot.get(symbol)
   }
     
-  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: Seq[QuoteSer]) {
+  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer]) {
     super.subscribe(contract, ser, chainSers)
-    symbolToTickerSnapshot synchronized {
+    subscribingMutex synchronized {
       /**
        * !NOTICE
        * the symbol-tickerSnapshot pair must be immutable, other wise, if
@@ -106,15 +104,11 @@ abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserv
 
   override def unSubscribe(contract: TickerContract) {
     super.unSubscribe(contract)
-    val symbol = contract.symbol
-    tickerSnapshotOf(symbol) foreach {_.removeObserver(this)}
-    symbolToTickerSnapshot synchronized {
+    subscribingMutex synchronized {
+      val symbol = contract.symbol
+      tickerSnapshotOf(symbol) foreach {this unObserve _}
       symbolToTickerSnapshot -= symbol
-    }
-    symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair -= symbol
-    }
-    symbolToPrevTicker synchronized {
       symbolToPrevTicker -= symbol
     }
   }
@@ -135,9 +129,7 @@ abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserv
         case _ =>
       }
 
-      storage synchronized {
-        storageOf(contract).clear
-      }
+      storage synchronized {storageOf(contract).clear}
     }
   }
 
@@ -152,9 +144,7 @@ abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserv
         case _ =>
       }
 
-      storageOf(contract) synchronized {
-        storageOf(contract).clear
-      }
+      storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
 

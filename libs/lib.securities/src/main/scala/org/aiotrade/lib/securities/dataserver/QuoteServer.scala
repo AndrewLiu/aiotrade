@@ -34,8 +34,6 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.Exchange.ExchangeClosed
-import org.aiotrade.lib.securities.Exchange.ExchangeOpened
 import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager, QuoteSer}
 import scala.swing.Reactor
 
@@ -50,15 +48,13 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
   type T = QuoteSer
 
   actorActions += {
-    case Loaded(loadedTime) =>
-      postLoad
-    case Refreshed(loadedTime) =>
-      postRefresh
+    case Loaded(loadedTime) => postLoad
+    case Refreshed(loadedTime) => postRefresh
   }
 
   reactions += {
-    case ExchangeOpened(exchange: Exchange) =>
-    case ExchangeClosed(exchange: Exchange) =>
+    case Exchange.Opened(exchange: Exchange) =>
+    case Exchange.Closed(exchange: Exchange) =>
   }
 
   listenTo(Exchange)
@@ -97,7 +93,7 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
      * 3. clear quotes for following loading usage, as these quotes is borrowed
      * from pool, return them
      */
-    quotes.synchronized {
+    quotes synchronized {
       //storage.clear
     }
         
@@ -124,9 +120,7 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
       //
       //            serToBeFilled.fireTSerEvent(evt)
 
-      storage.synchronized {
-        storageOf(contract).clear
-      }
+      storage synchronized {storageOf(contract).clear}
     }
   }
 
@@ -141,9 +135,7 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
       //            }
 
-      storage.synchronized {
-        storageOf(contract).clear
-      }
+      storage synchronized {storageOf(contract).clear}
     }
   }
 
@@ -153,7 +145,7 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
    * @param serToBeFilled Ser
    * @param TVal(s)
    */
-  protected def composeSer(symbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent =  {
+  protected def composeSer(symbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent = {
     var evt: TSerEvent = null
 
     val size = quotes.length
@@ -179,16 +171,10 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
    * Override to provide your options
    * @return supported frequency array.
    */
-  def supportedFreqs: Array[TFreq] = {
-    Array()
-  }
+  def supportedFreqs: Array[TFreq] = Array()
 
   def isFreqSupported(freq: TFreq): Boolean = {
-    for (afreq <- supportedFreqs) {
-      if (afreq.equals(freq)) {
-        return true
-      }
-    }
+    if (supportedFreqs exists (_ == freq)) return true
 
     /**
      * means supporting customed freqs (such as csv etc.), should ask
@@ -196,7 +182,7 @@ abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
      */
     currentContract match {
       case None => false
-      case Some(x) => x.freq.equals(freq)
+      case Some(x) => x.freq == freq
     }
   }
 

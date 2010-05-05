@@ -10,8 +10,8 @@ import scala.swing.event.Event
  * @author dcaoyuan
  */
 object Exchange extends Publisher {
-  case class ExchangeOpened(exchange: Exchange) extends Event
-  case class ExchangeClosed(exchange: Exchange) extends Event
+  case class Opened(exchange: Exchange) extends Event
+  case class Closed(exchange: Exchange) extends Event
 
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
@@ -253,7 +253,7 @@ object Exchange extends Publisher {
     timer.schedule(new TimerTask {
         def run {
           // @todo process vacation here
-          publish(ExchangeOpened(exchange))
+          publish(Opened(exchange))
         }
       }, preOpen.getTime, ONE_DAY)
 
@@ -262,7 +262,7 @@ object Exchange extends Publisher {
     timer.schedule(new TimerTask {
         def run {
           // @todo process vacation here
-          publish(ExchangeClosed(exchange))
+          publish(Closed(exchange))
         }
       }, postClose.getTime, ONE_DAY)
   }

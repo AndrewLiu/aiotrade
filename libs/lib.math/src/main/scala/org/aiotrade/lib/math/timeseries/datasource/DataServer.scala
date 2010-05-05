@@ -68,7 +68,7 @@ trait DataServer extends Ordered[DataServer] {
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: T, chainSers: Seq[T])
+  def subscribe(contract: C, ser: T, chainSers: List[T])
     
   def unSubscribe(contract: C)
     
