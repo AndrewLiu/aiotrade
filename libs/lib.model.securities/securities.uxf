@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>6</zoom_level><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>330</y><w>144</w><h>108</h></coordinates><panel_attributes>Market
+// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>6</zoom_level><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>330</y><w>144</w><h>108</h></coordinates><panel_attributes>Exchange
 --
 -id: Long
 -name: String
@@ -30,7 +30,7 @@
 -closeTime1: Long
 -openTime2: Long
 -closeTime2: Long
--closeDates: List[MarketCloseDate]
+-closeDates: List[ExchangeCloseDate]
 bg=blue</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>0</y><w>102</w><h>132</h></coordinates><panel_attributes>Quote
 --
 1M/1D
@@ -58,7 +58,7 @@ r1=has</panel_attributes><additional_attributes>18;18;312;204</additional_attrib
 -fullName: String
 -industries: List[String]
 -listedDate: Long
-bg=yellow</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>468</y><w>102</w><h>48</h></coordinates><panel_attributes>MarketCloseDate
+bg=yellow</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>468</y><w>102</w><h>48</h></coordinates><panel_attributes>ExchangeCloseDate
 --
 -id: Long
 -fromTime: Long
@@ -161,7 +161,7 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -secDividends: List[SecDividend]
 -company: Compony
 -companyHists: List[Compony]
--market: Market
+-exchange: Exchange
 -quotes: List[Quote]
 -innerDays: List[InnerDay]
 bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>594</y><w>102</w><h>78</h></coordinates><panel_attributes>DealRecord

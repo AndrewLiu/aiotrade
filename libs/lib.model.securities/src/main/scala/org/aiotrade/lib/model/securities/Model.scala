@@ -48,7 +48,7 @@ object Model {
     new DDLExport(
       Company, CompanyIndustry, Industry,
       Sec, SecDividend, SecInfo, SecIssue, SecStatus,
-      Market, MarketCloseDate,
+      Exchange, ExchangeCloseDate,
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
       InnerDay, Ticker, BidAsk, DealRecord, MoneyFlowTicker
     ).dropCreate
