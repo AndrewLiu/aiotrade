@@ -258,7 +258,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               /** this is a new high happened in this ticker */
               tickerSer.high(time) = ticker.dayHigh
             }
-            tickerSer.high(time) = Math.max(tickerSer.high(time), ticker.lastPrice)
+            tickerSer.high(time) = math.max(tickerSer.high(time), ticker.lastPrice)
 
             if (prevTicker.dayLow != 0) {
               if (ticker.dayLow < prevTicker.dayLow) {
@@ -267,7 +267,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
               }
             }
             if (ticker.lastPrice != 0) {
-              tickerSer.low(time) = Math.min(tickerSer.low(time), ticker.lastPrice)
+              tickerSer.low(time) = math.min(tickerSer.low(time), ticker.lastPrice)
             }
 
             tickerSer.close(time) = ticker.lastPrice
@@ -285,8 +285,8 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
           i += 1
         }
 
-        begTime = Math.min(begTime, time)
-        endTime = Math.max(endTime, time)
+        begTime = math.min(begTime, time)
+        endTime = math.max(endTime, time)
 
         /**
          * Now, try to update today's quoteSer with current last ticker

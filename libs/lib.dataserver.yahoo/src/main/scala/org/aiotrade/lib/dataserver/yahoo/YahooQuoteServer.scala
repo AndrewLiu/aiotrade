@@ -40,7 +40,6 @@ import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.{Exchange, Quote}
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
-import org.aiotrade.lib.util.collection.ArrayList
 import scala.annotation.tailrec
 
 /**
