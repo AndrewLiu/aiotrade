@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.dataserver.ib;
+package org.aiotrade.lib.dataserver.ib
 
 import com.ib.client.Contract;
 import com.ib.client.EClientSocket;
@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.immutable.TreeMap
@@ -77,15 +77,15 @@ object IBWrapper extends IBWrapper {
     TFreq.THREE_MONTHS -> 14,
     TFreq.ONE_YEAR     -> 15)
 
-  private val secTypesToName: Map[Security.Type, String] = Map(
-    Security.Type.Stock        -> "STK",
-    Security.Type.Stock        -> "STK",
-    Security.Type.Option       -> "OPT",
-    Security.Type.Future       -> "FUT",
-    Security.Type.Index        -> "IND",
-    Security.Type.FutureOption -> "FOP",
-    Security.Type.Currency     -> "CASH",
-    Security.Type.Bag          -> "BAG")
+  private val secKindToName: Map[Sec.Kind, String] = Map(
+    Sec.Kind.Stock        -> "STK",
+    Sec.Kind.Stock        -> "STK",
+    Sec.Kind.Option       -> "OPT",
+    Sec.Kind.Future       -> "FUT",
+    Sec.Kind.Index        -> "IND",
+    Sec.Kind.FutureOption -> "FOP",
+    Sec.Kind.Currency     -> "CASH",
+   Sec.Kind.Bag          -> "BAG")
 
   private var singletonInstance: IBWrapper = this
   private var eclient: EClientSocket = new EClientSocket(this)
@@ -117,8 +117,8 @@ object IBWrapper extends IBWrapper {
     freqToBarSize.keySet.toArray
   }
     
-  def getSecType(tpe: Security.Type) = {
-    secTypesToName.get(tpe)
+  def getSecKind(tpe: Sec.Kind) = {
+    secKindToName.get(tpe)
   }
     
   private def askReqId: Int = synchronized {

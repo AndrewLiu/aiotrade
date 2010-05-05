@@ -34,10 +34,9 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.math.timeseries.{TSer}
 import org.aiotrade.lib.securities.Exchange.ExchangeClosed
 import org.aiotrade.lib.securities.Exchange.ExchangeOpened
-import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager}
+import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager, QuoteSer}
 import scala.swing.Reactor
 
 /**
@@ -71,7 +70,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
   }
 
   private def loadFromPersistence(contract: QuoteContract): Long = {
-    val serToBeFilled = serOf(contract).get
+    val serToBeFilled = serOf(contract).get.asInstanceOf[QuoteSer]
 
     /**
      * 1. restore data from database
@@ -105,7 +104,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
 
   protected def postLoad {
     for (contract <- subscribedContracts) {
-      val serToBeFilled = serOf(contract).get
+      val serToBeFilled = serOf(contract).get.asInstanceOf[QuoteSer]
 
       val freq = serToBeFilled.freq
       val storage = storageOf(contract).toArray
@@ -133,7 +132,7 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
 
-      val evt = composeSer(contract.symbol, serOf(contract).get, storage)
+      val evt = composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage)
       //            if (evt != null) {
       //                evt.tpe = TSerEvent.Type.Updated
       //                evt.getSource.fireTSerEvent(evt)
@@ -146,7 +145,13 @@ abstract class QuoteServer extends AbstractDataServer[QuoteContract, Quote] with
     }
   }
 
-  protected def composeSer(symbol: String, quoteSer: TSer, quotes: Array[Quote]): TSerEvent =  {
+  /**
+   * compose ser using data from TVal(s)
+   * @param symbol
+   * @param serToBeFilled Ser
+   * @param TVal(s)
+   */
+  protected def composeSer(symbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent =  {
     var evt: TSerEvent = null
 
     val size = quotes.length

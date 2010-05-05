@@ -71,7 +71,7 @@ object IBTickerServer extends IBTickerServer {
                 
         // set contract fields
         m_contract.m_symbol = contract.symbol
-        m_contract.m_secType = IBWrapper.getSecType(contract.secType).get
+        m_contract.m_secType = IBWrapper.getSecKind(contract.secKind).get
         m_contract.m_expiry = ""
         m_contract.m_strike = 0
         m_contract.m_right = ""
@@ -99,7 +99,7 @@ object IBTickerServer extends IBTickerServer {
     for (contract <- subscribedContracts;
          tickerSnapshot <- tickerSnapshotOf(contract.symbol)
     ) {
-      newestTime = Math.max(newestTime, tickerSnapshot.time)
+      newestTime = math.max(newestTime, tickerSnapshot.time)
       countOne
     }
         

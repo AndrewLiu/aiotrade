@@ -34,7 +34,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
 import org.aiotrade.lib.indicator.IndicatorDescriptor
@@ -60,7 +60,7 @@ class Util {
   import Util._
 
   private var tickerServer: TickerServer = _
-  private var sec: Security = _
+  private var sec: Sec = _
 
   /***
    * @param para parameters defined
@@ -227,12 +227,12 @@ class Util {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Security.Type.Stock
+    dataContract.secKind = Sec.Kind.Stock
     dataContract.exchange= "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
 
-    dataContract.dateFormatPattern = "yyyy-MM-dd"
+    dataContract.dateFormatPattern = Some("yyyy-MM-dd")
 
     dataContract.freq = freq
 
@@ -251,12 +251,12 @@ class Util {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Security.Type.Stock
+    dataContract.secKind = Sec.Kind.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
 
-    dataContract.dateFormatPattern = "yyyy-MM-dd-HH-mm-ss"
+    dataContract.dateFormatPattern = Some("yyyy-MM-dd-HH-mm-ss")
     dataContract.freq = freq
     dataContract.refreshable = true
     dataContract.refreshInterval = 5
@@ -350,7 +350,7 @@ class Util {
     viewContainer
   }
 
-  private def createRealTimeViewContainer(sec: Security, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
+  private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
     var masterSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
     val controller = ChartingControllerFactory.createInstance(masterSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)

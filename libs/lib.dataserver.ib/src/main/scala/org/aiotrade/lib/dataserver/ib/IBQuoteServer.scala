@@ -113,7 +113,7 @@ class IBQuoteServer extends QuoteServer {
             
       // set contract fields
       m_contract.m_symbol = contract.symbol
-      m_contract.m_secType = IBWrapper.getSecType(contract.secType).get
+      m_contract.m_secType = IBWrapper.getSecKind(contract.secKind).get
       m_contract.m_expiry = ""
       m_contract.m_strike = 0
       m_contract.m_right = ""

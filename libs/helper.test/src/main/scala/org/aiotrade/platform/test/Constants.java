@@ -1,4 +1,4 @@
-package org.aiotrade.applet;
+package org.aiotrade.platform.test;
 
 /**
  *

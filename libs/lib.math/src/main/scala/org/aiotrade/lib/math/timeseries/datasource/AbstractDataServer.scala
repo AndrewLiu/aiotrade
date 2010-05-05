@@ -41,7 +41,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.math.timeseries.{TSer, TSerEvent}
+import org.aiotrade.lib.math.timeseries.{TSer}
 import org.aiotrade.lib.util.actors.ChainActor
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor
@@ -308,14 +308,6 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
    * @return loadedTime
    */
   protected def loadFromSource(afterThisTime: Long): Long
-
-  /**
-   * compose ser using data from TVal(s)
-   * @param symbol
-   * @param serToBeFilled Ser
-   * @param TVal(s)
-   */
-  protected def composeSer(symbol: String, serToBeFilled: TSer, tvals: Array[V]): TSerEvent
 
   override def createNewInstance: Option[DataServer[C]] = {
     try {

@@ -1,16 +1,8 @@
-/*
- * TestHelper.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package org.aiotrade.platform.test
 
 import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
-import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.datasource._
@@ -30,7 +22,7 @@ trait TestHelper {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Security.Type.Stock
+    dataContract.secKind = Sec.Kind.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"
@@ -51,7 +43,7 @@ trait TestHelper {
     dataContract.symbol = symbol
     dataContract.category = category
     dataContract.shortName = sname
-    dataContract.secType = Security.Type.Stock
+    dataContract.secKind = Sec.Kind.Stock
     dataContract.exchange = "SSH"
     dataContract.primaryExchange = "SSH"
     dataContract.currency = "USD"

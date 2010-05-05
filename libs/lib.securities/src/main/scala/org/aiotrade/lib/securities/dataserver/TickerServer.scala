@@ -42,7 +42,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.swing.Reactor
 
-/** This class will load the quote datas from data source to its data storage: quotes.
+/** This class will load the quote data from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
  *
  * @author Caoyuan Deng
@@ -126,7 +126,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val storage = storageOf(contract).toArray
       PersistenceManager().saveRealTimeTickers(storage, sourceId)
 
-      composeSer(contract.symbol, serOf(contract).get, storage) match {
+      composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
           logger.info(contract.symbol + ": " + count + ", data loaded, load server finished")
@@ -144,7 +144,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       val storage = storageOf(contract).toArray
       PersistenceManager().saveRealTimeTickers(storage, sourceId)
       
-      composeSer(contract.symbol, serOf(contract).get, storage) match {
+      composeSer(contract.symbol, serOf(contract).get.asInstanceOf[QuoteSer], storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
         case _ =>
@@ -176,8 +176,13 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
     loadedTime
   }
 
-  def composeSer(symbol: String, $tickerSer: TSer, tickers: Array[Ticker]): TSerEvent = {
-    val tickerSer = $tickerSer.asInstanceOf[QuoteSer]
+  /**
+   * compose ser using data from TVal(s)
+   * @param symbol
+   * @param serToBeFilled Ser
+   * @param TVal(s)
+   */
+  def composeSer(symbol: String, tickerSer: QuoteSer, tickers: Array[Ticker]): TSerEvent = {
     var evt: TSerEvent = TSerEvent.None
 
     val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
@@ -303,7 +308,7 @@ abstract class TickerServer extends AbstractDataServer[TickerContract, Ticker] w
       }
 
       /**
-       * ! ticker may be null at here ???
+       * ! ticker may be null at here ??? yes, if tickers.size == 0
        */
       evt = TSerEvent.ToBeSet(tickerSer, symbol, begTime, endTime, ticker)
     } else {
