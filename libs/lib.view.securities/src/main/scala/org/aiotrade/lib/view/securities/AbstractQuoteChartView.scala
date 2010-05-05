@@ -42,7 +42,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import scala.collection.mutable.HashSet
 
 
@@ -76,7 +76,7 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
 ) extends {
   private var _quoteChart: QuoteChart = _
   protected var maxVolume, minVolume: Float = _
-  protected var sec: Security = _
+  protected var sec: Sec = _
 } with ChartView(acontroller, aquoteSer, empty) with WithQuoteChart {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
@@ -84,7 +84,7 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
 
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
-    sec = controller.contents.serProvider.asInstanceOf[Security]
+    sec = controller.contents.serProvider.asInstanceOf[Sec]
     if (axisXPane != null) {
       axisXPane.setTimeZone(sec.exchange.timeZone)
     }

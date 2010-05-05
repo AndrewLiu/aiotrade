@@ -51,6 +51,7 @@ import org.aiotrade.lib.securities.PersistenceManager$;
 import org.aiotrade.lib.securities.dataserver.QuoteContract;
 import org.aiotrade.lib.securities.dataserver.QuoteServer;
 import org.aiotrade.lib.securities.util.UserOptionsManager;
+import scala.Option;
 
 /**
  *
@@ -108,8 +109,12 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
             jLabel7.setText(pattern);
         }
 
-        formatStringField.setText(quoteContractTemplate.dateFormatPattern());
-        SimpleDateFormat sdf = new SimpleDateFormat(quoteContractTemplate.dateFormatPattern(), Locale.US);
+        String dfPattern = "";
+        if (quoteContractTemplate.dateFormatPattern().isDefined()) {
+            dfPattern = quoteContractTemplate.dateFormatPattern().get();
+        }
+        formatStringField.setText(dfPattern);
+        SimpleDateFormat sdf = new SimpleDateFormat(dfPattern, Locale.US);
         dateFormatSample.setText(sdf.format(sampleDate));
 
         stockSymbolsField.grabFocus();
@@ -160,7 +165,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         quoteContract.refreshInterval_$eq((Integer) refreshInterval.getValue());
 
         String str = formatStringField.getText().trim();
-        quoteContract.dateFormatPattern_$eq(propDateFormatString(str));
+        quoteContract.dateFormatPattern_$eq(Option.apply(propDateFormatString(str)));
     }
 
     private String propDateFormatString(String str) {

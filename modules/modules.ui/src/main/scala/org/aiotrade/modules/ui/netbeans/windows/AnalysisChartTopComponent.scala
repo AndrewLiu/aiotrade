@@ -47,7 +47,7 @@ import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction;
 import org.aiotrade.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction;
@@ -178,7 +178,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   setFocusable(true)
 
   class State(val contents: AnalysisContents) {
-    val sec = contents.serProvider.asInstanceOf[Security]
+    val sec = contents.serProvider.asInstanceOf[Sec]
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
     val freq = quoteContract.freq
     val tcId: String = sec.name
@@ -197,7 +197,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     loadSec
 
-    private def createViewContainer(sec: Security, freq: TFreq, contents: AnalysisContents) = {
+    private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = freq match {
         case TFreq.ONE_SEC => sec.tickerSer
         case _ => sec.serOf(freq).getOrElse(null)

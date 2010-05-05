@@ -28,57 +28,46 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.securities.dataserver
+package org.aiotrade.lib.securities
 
-import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.datasource.{DataContract,DataServer}
-import org.aiotrade.lib.securities.Security
-import org.aiotrade.lib.util.serialization.JavaDocument
-import org.aiotrade.lib.util.serialization.BeansDocument
-import org.w3c.dom.Element
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import scala.swing.Publisher
 
 /**
- * most fields' default value should be OK.
+ * Securities: Stock, Options, Futures, Index, Currency etc.
  *
  * @author Caoyuan Deng
  */
-abstract class SecurityDataContract[S <: DataServer[_]] extends DataContract[S] {
-  var reqId = 0
-  var secType: Security.Type = Security.Type.Stock
-  var primaryExchange = "SUPERSOES"
-  var exchange = "SMART"
-  var currency = "USD"
-    
-  active = true
-  urlString = ""
-  refreshable = false
-  refreshInterval = 60 // seconds
-  inputStream = None
-    
-  private val cal = Calendar.getInstance
-  endDate = cal.getTime
-  cal.set(1970, Calendar.JANUARY, 1)
-  beginDate = cal.getTime
+object Sec {
+  trait Kind
+  object Kind {
+    case object Stock extends Kind
+    case object Index extends Kind
+    case object Option extends Kind
+    case object Future extends Kind
+    case object FutureOption extends Kind
+    case object Currency extends Kind
+    case object Bag extends Kind
+    case object Bonds extends Kind
+    case object Equity extends Kind
 
-  override def writeToBean(doc: BeansDocument): Element = {
-    val bean = super.writeToBean(doc)
-        
-    doc.valuePropertyOfBean(bean, "secType", secType)
-    doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
-    doc.valuePropertyOfBean(bean, "exchange", exchange)
-    doc.valuePropertyOfBean(bean, "currency", currency)
-        
-    bean
+    def withName(name: String): Kind = {
+      name match {
+        case "Stock" => Stock
+        case "Index" => Index
+        case "Option" => Option
+        case "Future" => Future
+        case "FutureOption" => FutureOption
+        case "Currency" => Currency
+        case "Bag" => Bag
+        case _ => null
+      }
+    }
   }
-    
-  override def writeToJava(id: String): String = {
-    ""
-    super.writeToJava(id) +
-    JavaDocument.set(id, "setSecType", classOf[Security.Type].getName + "." + secType) +
-    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
-    JavaDocument.set(id, "setExchange", "" + exchange) +
-    JavaDocument.set(id, "setCurrency", "" + currency)
-  }
-    
 }
 
+trait Sec extends SerProvider[QuoteSer] with TickerSerProvider with Publisher {
+
+  def exchange: Exchange
+  def exchange_=(exchange: Exchange): Unit
+}

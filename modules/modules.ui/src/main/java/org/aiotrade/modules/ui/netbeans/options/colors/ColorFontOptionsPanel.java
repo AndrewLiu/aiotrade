@@ -53,6 +53,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteServer;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import scala.Option;
 import scala.collection.immutable.Nil;
 
 /**
@@ -98,7 +99,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         quoteContract.active_$eq(true);
         quoteContract.serviceClassName_$eq(previewQuoteServer.getClass().getName());
         quoteContract.symbol_$eq(symbol);
-        quoteContract.dateFormatPattern_$eq(previewQuoteServer.defaultDateFormatPattern());
+        quoteContract.dateFormatPattern_$eq(Option.apply(previewQuoteServer.defaultDateFormatPattern()));
 
         FileObject previewFile = FileUtil.getConfigFile("UserOptions/Template/preview.csv");
         if (previewFile != null) {

@@ -53,7 +53,7 @@ import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.Ticker.TickerEvent
 import scala.collection.mutable.HashMap
@@ -131,7 +131,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   add(BorderLayout.CENTER, scrollPane)
 
   reactions += {
-    case TickerEvent(sec: Security, ticker: Ticker) =>
+    case TickerEvent(sec: Sec, ticker: Ticker) =>
       /*
        * To avoid:
        java.lang.NullPointerException
@@ -367,7 +367,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     rowData
   }
 
-  def watch(sec: Security) {
+  def watch(sec: Sec) {
     listenTo(sec)
 
     val symbol = sec.uniSymbol
@@ -380,7 +380,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
   }
 
-  def unWatch(sec: Security) {
+  def unWatch(sec: Sec) {
     deafTo(sec)
 
     val symbol = sec.uniSymbol

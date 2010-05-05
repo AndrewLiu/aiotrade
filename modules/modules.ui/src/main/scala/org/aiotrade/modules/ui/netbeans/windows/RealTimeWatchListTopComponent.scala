@@ -49,7 +49,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
@@ -83,7 +83,7 @@ object RealTimeWatchListTopComponent {
 
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
 
-  private val watchingSecs = HashSet[Security]()
+  private val watchingSecs = HashSet[Sec]()
 
   def getInstance(name: String): RealTimeWatchListTopComponent = {
     val instance = instanceRefs find (_.get.getName == name) map (_.get) getOrElse new RealTimeWatchListTopComponent(name)
@@ -172,7 +172,7 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
             if (symbol != null) {
               for (node <- symbolToNode.get(symbol);
                    contents = node.getLookup.lookup(classOf[AnalysisContents]);
-                   sec = contents.serProvider.asInstanceOf[Security]
+                   sec = contents.serProvider.asInstanceOf[Sec]
               ) {
                 if (realTimeBoard != null) {
                   realTimeBoard.unWatch
@@ -227,13 +227,13 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
     iconImage
   }
 
-  def watch(sec: Security, node: Node) {
+  def watch(sec: Sec, node: Node) {
     watchListPanel.watch(sec)
     symbolToNode.put(sec.uniSymbol, node)
     watchingSecs.add(sec)
   }
     
-  def unWatch(sec: Security) {
+  def unWatch(sec: Sec) {
     watchListPanel.unWatch(sec)
                 
     /**

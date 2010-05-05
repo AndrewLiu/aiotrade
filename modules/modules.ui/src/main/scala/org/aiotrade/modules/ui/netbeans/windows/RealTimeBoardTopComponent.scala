@@ -35,7 +35,7 @@ import java.lang.ref.WeakReference
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
 
@@ -76,7 +76,7 @@ class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends
   private val ref = new WeakReference[RealTimeBoardTopComponent](this)
   instanceRefs ::= ref
     
-  val sec: Security = contents.serProvider.asInstanceOf[Security]
+  val sec = contents.serProvider.asInstanceOf[Sec]
 
   private var reallyClosed = false
     

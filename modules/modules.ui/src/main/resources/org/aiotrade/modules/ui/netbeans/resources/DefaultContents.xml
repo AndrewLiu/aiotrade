@@ -2,8 +2,8 @@
 <sec unisymbol="Default">
     <sources>
         <source active="false" class="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
-                symbol="hsi" sectype="Stock" exchange="" primaryexchange="" currency="HKD"
-                dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="10" 
+                symbol="hsi" seckind="Stock" exchange="" primaryexchange="" currency="HKD"
+                dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="5000"
                 begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
         </source>
     </sources>

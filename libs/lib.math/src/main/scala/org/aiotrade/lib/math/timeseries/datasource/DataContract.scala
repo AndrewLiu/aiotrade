@@ -28,16 +28,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.datasource;
+package org.aiotrade.lib.math.timeseries.datasource
 
-import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
-import org.aiotrade.lib.util.serialization.BeansDocument;
-import org.aiotrade.lib.util.serialization.JavaDocument;
-import org.w3c.dom.Element;
+import java.io.InputStream
+import java.util.Calendar
+import java.util.Date
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.util.serialization.BeansDocument
+import org.aiotrade.lib.util.serialization.JavaDocument
+import org.w3c.dom.Element
 
 /**
  * Securities' data source request contract. It know how to find and invoke
@@ -56,10 +55,10 @@ abstract class DataContract[S <: DataServer[_]] extends AnalysisDescriptor[S] {
   var category: String = _
   var shortName: String = _
   var longName: String = _
-  var dateFormatPattern: String = null
+  var dateFormatPattern: Option[String] = None
   var urlString: String = ""
   var refreshable: Boolean = false
-  var refreshInterval: Int = 5 // seconds
+  var refreshInterval: Int = 5000 // ms
   var inputStream: Option[InputStream] = None
 
   private val cal = Calendar.getInstance

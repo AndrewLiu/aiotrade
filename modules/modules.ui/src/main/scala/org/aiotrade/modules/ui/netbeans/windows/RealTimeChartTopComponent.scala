@@ -41,7 +41,7 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
@@ -95,7 +95,7 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   private val ref = new WeakReference[RealTimeChartTopComponent](this)
   instanceRefs ::= ref
 
-  val sec = contents.serProvider.asInstanceOf[Security]
+  val sec = contents.serProvider.asInstanceOf[Sec]
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"
         

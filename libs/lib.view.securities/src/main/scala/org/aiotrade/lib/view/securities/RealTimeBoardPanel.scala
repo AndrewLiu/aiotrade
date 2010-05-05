@@ -61,7 +61,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Ticker
 import org.aiotrade.lib.securities.Ticker.TickerEvent
 import org.aiotrade.lib.securities.dataserver.TickerContract
@@ -84,7 +84,7 @@ object RealTimeBoardPanel {
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPanel with Reactor {
+class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -137,7 +137,7 @@ class RealTimeBoardPanel(sec: Security, contents: AnalysisContents) extends JPan
   scrollToLastRow(tickerTable)
 
   reactions += {
-    case TickerEvent(src: Security, ticker: Ticker) =>
+    case TickerEvent(src: Sec, ticker: Ticker) =>
       symbol.value = src.name
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {

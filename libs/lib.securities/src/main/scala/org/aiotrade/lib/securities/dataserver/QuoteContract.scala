@@ -44,17 +44,17 @@ object QuoteContract {
   val folderName = "QuoteServers"
 }
 
-class QuoteContract extends SecurityDataContract[QuoteServer] {
+class QuoteContract extends SecDataContract[QuoteServer] {
   import QuoteContract._
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   active = true
   /** default freq */
   freq = TFreq.DAILY
-  dateFormatPattern = "yyyy-MM-dd"
+  dateFormatPattern = Some("yyyy-MM-dd")
   urlString = ""
   refreshable = false
-  refreshInterval = 60 // seconds
+  refreshInterval = 60000 // ms
   inputStream = None
 
   private val cal = Calendar.getInstance
@@ -98,7 +98,7 @@ class QuoteContract extends SecurityDataContract[QuoteServer] {
   /**
    * @param none args are needed.
    */
-  override def createServiceInstance(args: Any*) :Option[QuoteServer] = {
+  override def createServiceInstance(args: Any*): Option[QuoteServer] = {
     lookupServiceTemplate match {
       case None => None
       case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]

@@ -45,14 +45,14 @@ object TickerContract {
   val folderName = "TickerServers"
 }
 
-class TickerContract extends SecurityDataContract[TickerServer] {
+class TickerContract extends SecDataContract[TickerServer] {
   import TickerContract._
     
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
   urlString = ""
   refreshable = true
-  refreshInterval = 5 // seconds
+  refreshInterval = 5000 // ms
 
   private val cal = Calendar.getInstance
   endDate = cal.getTime
@@ -73,7 +73,7 @@ class TickerContract extends SecurityDataContract[TickerServer] {
     }
   }
     
-  def lookupServiceTemplate :Option[TickerServer] = {
+  def lookupServiceTemplate: Option[TickerServer] = {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[TickerServer], folderName)
     services find {x => x.getClass.getName.equals(serviceClassName)} match {
       case None =>

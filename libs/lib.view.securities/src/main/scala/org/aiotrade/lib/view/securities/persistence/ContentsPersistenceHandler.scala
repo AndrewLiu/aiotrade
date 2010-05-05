@@ -63,11 +63,11 @@ object ContentsPersistenceHandler {
         buffer.append("active=\"" + dataContract.active + "\" ")
         buffer.append("class=\"" + dataContract.serviceClassName + "\" ")
         buffer.append("symbol=\"" + dataContract.symbol + "\" ")
-        buffer.append("sectype=\"" + dataContract.secType + "\" ")
+        buffer.append("seckind=\"" + dataContract.secKind + "\" ")
         buffer.append("exchange=\"" + dataContract.exchange + "\" ")
         buffer.append("primaryexchange=\"" + dataContract.primaryExchange + "\" ")
         buffer.append("currency=\"" + dataContract.currency + "\" ")
-        buffer.append("dateformat=\"" + dataContract.dateFormatPattern + "\" ")
+        dataContract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
         buffer.append("nunits=\"" + dataContract.freq.nUnits + "\" ")
         buffer.append("unit=\"" + dataContract.freq.unit + "\" ")
         buffer.append("refreshable=\"" + dataContract.refreshable + "\" ")

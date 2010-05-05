@@ -52,8 +52,8 @@ import scala.collection.mutable.HashMap
 
  * @author Caoyuan Deng
  */
-abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends Security with ChangeObserver {
+abstract class AbstractSec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
+) extends Sec with ChangeObserver {
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
@@ -110,7 +110,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
       val quoteServer = freqToQuoteServer(freq)
       sourceSer.loaded = true
       if (contract.refreshable) {
-        quoteServer.startRefreshServer(contract.refreshInterval * 1000)
+        quoteServer.startRefreshServer(contract.refreshInterval)
       } else {
         quoteServer.unSubscribe(contract)
         freqToQuoteServer -= freq
@@ -264,7 +264,7 @@ abstract class AbstractSecurity($uniSymbol: String, quoteContracts: Seq[QuoteCon
             
     }
 
-    tickerServer.startRefreshServer(tickerContract.refreshInterval * 1000)
+    tickerServer.startRefreshServer(tickerContract.refreshInterval)
     tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {_.addObserver(this, this)}
   }
 

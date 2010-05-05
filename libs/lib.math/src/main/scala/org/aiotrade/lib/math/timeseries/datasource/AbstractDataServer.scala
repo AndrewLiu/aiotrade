@@ -71,10 +71,12 @@ object AbstractDataServer {
 
 import AbstractDataServer._
 abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] extends DataServer[C] with ChainActor {
-  case class LoadHistory
-  case class Loaded(loadedTime: Long)
-  case class Refresh
-  case class Refreshed(loadedTime: Long)
+  case object LoadHistory
+  case object Refresh
+
+  trait ServerEvent
+  case class Loaded(loadedTime: Long) extends ServerEvent
+  case class Refreshed(loadedTime: Long) extends ServerEvent
 
   val ANCIENT_TIME: Long = -1
 
@@ -116,10 +118,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-    val pattern = currentContract.get.dateFormatPattern match {
-      case null => defaultDateFormatPattern
-      case x => x
-    }
+    val pattern = currentContract.get.dateFormatPattern getOrElse defaultDateFormatPattern
     val dateFormat = new SimpleDateFormat(pattern)
     dateFormat.setTimeZone(timeZone)
     dateFormat
@@ -262,7 +261,7 @@ abstract class AbstractDataServer[C <: DataContract[_], V <: TVal: Manifest] ext
   }
 
   def isContractSubsrcribed(contract: C): Boolean = {
-    subscribedContractToSer.keysIterator exists {_.symbol == (contract.symbol)}
+    subscribedContractToSer.keysIterator exists {_.symbol == contract.symbol}
   }
 
   def startLoadServer {

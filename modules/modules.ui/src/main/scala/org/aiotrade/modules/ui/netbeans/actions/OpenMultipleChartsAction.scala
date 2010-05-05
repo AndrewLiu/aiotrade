@@ -31,7 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.actions
 
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Security
+import org.aiotrade.lib.securities.Sec
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.openide.util.HelpCtx
@@ -51,7 +51,7 @@ class OpenMultipleChartsAction extends CallableSystemAction {
             for (watchlistTc <- RealTimeWatchListTopComponent.selected;
                  node <- watchlistTc.getSelectedSymbolNodes;
                  contents = node.getLookup.lookup(classOf[AnalysisContents]);
-                 sec = contents.serProvider.asInstanceOf[Security]
+                 sec = contents.serProvider.asInstanceOf[Sec]
             ) {
               chartsTc.watch(sec, contents)
             }

@@ -46,8 +46,8 @@ import scala.swing.event.Event
  * @author Caoyuan Deng
  */
 object Ticker {
-  case class TickerEvent (source: Security, ticker: Ticker) extends Event
-  case class TickersEvent(source: Security, ticker: List[Ticker]) extends Event
+  case class TickerEvent (source: Sec, ticker: Ticker) extends Event
+  case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
 }
 
 @serializable
