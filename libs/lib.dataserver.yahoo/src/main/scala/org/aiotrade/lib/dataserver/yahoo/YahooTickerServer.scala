@@ -108,24 +108,14 @@ class YahooTickerServer extends TickerServer {
       true
     } else false
         
-    inputStream = conn.getInputStream match {
-      case null => None
-      case is => Some(is)
-    }
+    inputStream = Option(conn.getInputStream)
   }
 
   @throws(classOf[Exception])
   protected def read: Long = {
-    val is = inputStream match {
-      case None => return loadedTime
-      case Some(x) => x
-    }
+    val is = inputStream getOrElse (return loadedTime)
 
-    val reader = if (gzipped) {
-      new BufferedReader(new InputStreamReader(new GZIPInputStream(is)))
-    } else {
-      new BufferedReader(new InputStreamReader(is))
-    }
+    val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
 
     resetCount
     val cal = Calendar.getInstance(sourceTimeZone)

@@ -133,10 +133,7 @@ class YahooQuoteServer extends QuoteServer {
         true
       } else false
             
-      inputStream = conn.getInputStream match {
-        case null => None
-        case is => Some(is)
-      }
+      inputStream = Option(conn.getInputStream)
     }
   }
 
@@ -145,16 +142,9 @@ class YahooQuoteServer extends QuoteServer {
    */
   @throws(classOf[Exception])
   protected def read: Long =  {
-    val is = inputStream match {
-      case None => return 0
-      case Some(x) => x
-    }
-
-    val reader = if (gzipped) {
-      new BufferedReader(new InputStreamReader(new GZIPInputStream(is)))
-    } else {
-      new BufferedReader(new InputStreamReader(is))
-    }
+    val is = inputStream getOrElse (return 0)
+    
+    val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
 
     /** skip first line */
     val s = reader.readLine
