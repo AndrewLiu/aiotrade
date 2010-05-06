@@ -15,8 +15,5 @@ class IntraDay extends Record[IntraDay](IntraDay) {
   val time = field(IntraDay.time)
 
   val tickers = oneToMany(Ticker.intraDay)
-  val bidAsks = oneToMany(BidAsk.intraDay)
   val dealRecords = oneToMany(DealRecord.intraDay)
-
-  val moneyFlows = oneToMany(MoneyFlowTicker.intraDay)
 }

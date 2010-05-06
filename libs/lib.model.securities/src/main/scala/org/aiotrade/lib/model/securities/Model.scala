@@ -50,7 +50,7 @@ object Model {
       Sec, SecDividend, SecInfo, SecIssue, SecStatus,
       Exchange, ExchangeCloseDate,
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
-      IntraDay, Ticker, BidAsk, DealRecord, MoneyFlowTicker
+      IntraDay, Ticker, DealRecord
     ).dropCreate
 
     val i = new Industry
@@ -98,10 +98,18 @@ object Model {
     intraDay2.time := cal.getTimeInMillis
     intraDay2.save
 
-    fillBidAsks(intraDay1)
-    fillBidAsks(intraDay2)
+    val ticker = new Ticker
+    ticker.intraDay := intraDay1
+    ticker.time := cal.getTimeInMillis
+    val bidAskDepth = 10
+    val bidAsks = new Array[Float](bidAskDepth * 4)
+    ticker.setBidAsks(bidAsks)
+    ticker.save
 
-    println(BidAsk.get(1).get.data)
+    val ticker1 = Ticker.get(1).get
+    val decodedBidAsks = ticker1.getBidAsks
+    val depth = decodedBidAsks.length / 4
+    println("Depth of bid ask: " + depth)
 
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
@@ -123,27 +131,6 @@ object Model {
 
     //new DDLExport(Category, Book).create   // creates database schema
 
-  }
-
-  def fillBidAsks(intraDay: IntraDay) {
-    val cal = Calendar.getInstance
-
-    for (i <- 0 until 10) {
-      cal.add(Calendar.HOUR, 1)
-      newRecords(intraDay, true,  cal)
-      newRecords(intraDay, false, cal)
-    }
-
-    def newRecords(intraDay: IntraDay, isBid: Boolean, cal: Calendar) =
-      for (i <- 1 to 3) {
-        val ba = new BidAsk
-        ba.intraDay := intraDay
-        ba.idx := i
-        ba.isBid := isBid
-        ba.time := cal.getTimeInMillis
-        ba.data := "abindata".getBytes
-        ba.save
-      }
   }
 
   def sometest {
