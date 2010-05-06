@@ -63,7 +63,7 @@ import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.Ticker.TickerEvent
+import org.aiotrade.lib.securities.TickerEvent
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder

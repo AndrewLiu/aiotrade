@@ -45,13 +45,10 @@ import scala.swing.event.Event
  *
  * @author Caoyuan Deng
  */
-object Ticker {
-  case class TickerEvent (source: Sec, ticker: Ticker) extends Event
-  case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
-}
+case class TickerEvent (source: Sec, ticker: Ticker) extends Event
+case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
 
-@serializable
-@cloneable
+@serializable @cloneable
 class Ticker(val depth: Int) extends LightTicker {
   @transient final protected var isChanged: Boolean = _
 
@@ -61,7 +58,7 @@ class Ticker(val depth: Int) extends LightTicker {
    * 2 - ask price
    * 3 - ask size
    */
-  private val data = new Array[Float](depth * 4)
+  private val bidAsks = new Array[Float](depth * 4)
 
   def this() = this(5)
 
@@ -70,10 +67,10 @@ class Ticker(val depth: Int) extends LightTicker {
     isChanged
   }
 
-  final def bidPrice(idx: Int) = data(idx * 4)
-  final def bidSize (idx: Int) = data(idx * 4 + 1)
-  final def askPrice(idx: Int) = data(idx * 4 + 2)
-  final def askSize (idx: Int) = data(idx * 4 + 3)
+  final def bidPrice(idx: Int) = bidAsks(idx * 4)
+  final def bidSize (idx: Int) = bidAsks(idx * 4 + 1)
+  final def askPrice(idx: Int) = bidAsks(idx * 4 + 2)
+  final def askSize (idx: Int) = bidAsks(idx * 4 + 3)
 
   final def setBidPrice(idx: Int, v: Float) = updateDepthValue(idx * 4, v)
   final def setBidSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 1, v)
@@ -81,23 +78,23 @@ class Ticker(val depth: Int) extends LightTicker {
   final def setAskSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 3, v)
 
   private def updateDepthValue(idx: Int, v: Float) {
-    isChanged = data(idx) != v
-    data(idx) = v
+    isChanged = bidAsks(idx) != v
+    bidAsks(idx) = v
   }
 
   override def reset {
     super.reset
 
     var i = 0
-    while (i < data.length) {
-      data(i) = 0
+    while (i < bidAsks.length) {
+      bidAsks(i) = 0
       i += 1
     }
   }
 
   def copyFrom(another: Ticker): Unit = {
     super.copyFrom(another)
-    System.arraycopy(another.data, 0, data, 0, data.length)
+    System.arraycopy(another.bidAsks, 0, bidAsks, 0, bidAsks.length)
   }
 
   final def isValueChanged(another: Ticker): Boolean = {
@@ -106,8 +103,8 @@ class Ticker(val depth: Int) extends LightTicker {
     }
 
     var i = 0
-    while (i < data.length) {
-      if (data(i) != another.data(i)) {
+    while (i < bidAsks.length) {
+      if (bidAsks(i) != another.bidAsks(i)) {
         return true
       }
 

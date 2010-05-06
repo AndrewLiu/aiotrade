@@ -55,7 +55,7 @@ import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.Sec
 import org.aiotrade.lib.securities.Ticker
-import org.aiotrade.lib.securities.Ticker.TickerEvent
+import org.aiotrade.lib.securities.TickerEvent
 import scala.collection.mutable.HashMap
 import scala.swing.Reactor
 
