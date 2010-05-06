@@ -64,22 +64,20 @@ object LightTicker {
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val depth: Int) extends TVal with JsonSerializable {
+class LightTicker extends TVal with JsonSerializable {
 
   final var symbol: String = _
 
-  private val values = new Array[Float](FIELD_LENGTH)
+  private val data = new Array[Float](FIELD_LENGTH)
 
-  def this() = this(5)
-
-  final def prevClose = values(PREV_CLOSE)
-  final def lastPrice = values(LAST_PRICE)
-  final def dayOpen   = values(DAY_OPEN)
-  final def dayHigh   = values(DAY_HIGH)
-  final def dayLow    = values(DAY_LOW)
-  final def dayVolume = values(DAY_VOLUME)
-  final def dayAmount = values(DAY_AMOUNT)
-  final def dayChange = values(DAY_CHANGE)
+  final def prevClose = data(PREV_CLOSE)
+  final def lastPrice = data(LAST_PRICE)
+  final def dayOpen   = data(DAY_OPEN)
+  final def dayHigh   = data(DAY_HIGH)
+  final def dayLow    = data(DAY_LOW)
+  final def dayVolume = data(DAY_VOLUME)
+  final def dayAmount = data(DAY_AMOUNT)
+  final def dayChange = data(DAY_CHANGE)
 
   final def prevClose_=(v: Float) = updateFieldValue(PREV_CLOSE, v)
   final def lastPrice_=(v: Float) = updateFieldValue(LAST_PRICE, v)
@@ -91,8 +89,8 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
   final def dayChange_=(v: Float) = updateFieldValue(DAY_CHANGE, v)
 
   protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
-    val isChanged = values(fieldIdx) != v
-    values(fieldIdx) = v
+    val isChanged = data(fieldIdx) != v
+    data(fieldIdx) = v
     isChanged
   }
 
@@ -100,8 +98,8 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     time = 0
 
     var i = 0
-    while (i < values.length) {
-      values(i) = 0
+    while (i < data.length) {
+      data(i) = 0
       i += 1
     }
   }
@@ -109,13 +107,13 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
   def copyFrom(another: LightTicker) {
     this.time   = another.time
     this.symbol = another.symbol
-    System.arraycopy(another.values, 0, values, 0, values.length)
+    System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
   def isValueChanged(another: LightTicker): Boolean = {
     var i = 0
-    while (i < values.length) {
-      if (values(i) != another.values(i)) {
+    while (i < data.length) {
+      if (data(i) != another.data(i)) {
         return true
       }
       i += 1
@@ -136,7 +134,7 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     out.write(',')
     out.write("t", time / 1000)
     out.write(',')
-    out.write("v", values)
+    out.write("v", data)
   }
 
   @throws(classOf[IOException])
@@ -146,7 +144,7 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     var vs  = fields("v").asInstanceOf[List[Number]]
     var i = 0
     while (!vs.isEmpty) {
-      values(i) = vs.head.floatValue
+      data(i) = vs.head.floatValue
       vs = vs.tail
       i += 1
     }
@@ -156,7 +154,7 @@ class LightTicker(val depth: Int) extends TVal with JsonSerializable {
     val df = new SimpleDateFormat("hh:mm:ss")
     val cal = Calendar.getInstance
     cal.setTimeInMillis(time)
-    symbol + ", " + df.format(cal.getTime) + ", " + values.mkString("[", ",", "]")
+    symbol + ", " + df.format(cal.getTime) + ", " + data.mkString("[", ",", "]")
   }
 }
 

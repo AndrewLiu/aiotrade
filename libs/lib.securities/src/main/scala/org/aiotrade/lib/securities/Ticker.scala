@@ -52,13 +52,16 @@ object Ticker {
 
 @serializable
 @cloneable
-class Ticker(depth: Int) extends LightTicker {
+class Ticker(val depth: Int) extends LightTicker {
   @transient final protected var isChanged: Boolean = _
 
-  private val bidPrices = new Array[Float](depth)
-  private val bidSizes  = new Array[Float](depth)
-  private val askPrices = new Array[Float](depth)
-  private val askSizes  = new Array[Float](depth)
+  /**
+   * 0 - bid price
+   * 1 - bid size
+   * 2 - ask price
+   * 3 - ask size
+   */
+  private val data = new Array[Float](depth * 4)
 
   def this() = this(5)
 
@@ -67,40 +70,34 @@ class Ticker(depth: Int) extends LightTicker {
     isChanged
   }
 
-  final def bidPrice(idx: Int) = bidPrices(idx)
-  final def bidSize (idx: Int) = bidSizes (idx)
-  final def askPrice(idx: Int) = askPrices(idx)
-  final def askSize (idx: Int) = askSizes (idx)
+  final def bidPrice(idx: Int) = data(idx * 4)
+  final def bidSize (idx: Int) = data(idx * 4 + 1)
+  final def askPrice(idx: Int) = data(idx * 4 + 2)
+  final def askSize (idx: Int) = data(idx * 4 + 3)
 
-  final def setBidPrice(idx: Int, v :Float) = updateDepthValue(bidPrices, idx, v)
-  final def setBidSize (idx: Int, v :Float) = updateDepthValue(bidSizes,  idx, v)
-  final def setAskPrice(idx: Int, v :Float) = updateDepthValue(askPrices, idx, v)
-  final def setAskSize (idx: Int, v :Float) = updateDepthValue(askSizes,  idx, v)
+  final def setBidPrice(idx: Int, v: Float) = updateDepthValue(idx * 4, v)
+  final def setBidSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 1, v)
+  final def setAskPrice(idx: Int, v: Float) = updateDepthValue(idx * 4 + 2, v)
+  final def setAskSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 3, v)
 
-  private def updateDepthValue(depthValues: Array[Float], idx: Int, v: Float) {
-    isChanged = depthValues(idx) != v
-    depthValues(idx) = v
+  private def updateDepthValue(idx: Int, v: Float) {
+    isChanged = data(idx) != v
+    data(idx) = v
   }
 
   override def reset {
     super.reset
 
     var i = 0
-    while (i < depth) {
-      bidPrices(i) = 0
-      bidSizes(i)  = 0
-      askPrices(i) = 0
-      askSizes(i)  = 0
+    while (i < data.length) {
+      data(i) = 0
       i += 1
     }
   }
 
   def copyFrom(another: Ticker): Unit = {
     super.copyFrom(another)
-    System.arraycopy(another.bidPrices, 0, bidPrices, 0, depth)
-    System.arraycopy(another.bidSizes,  0, bidSizes,  0, depth)
-    System.arraycopy(another.askPrices, 0, askPrices, 0, depth)
-    System.arraycopy(another.askSizes,  0, askSizes,  0, depth)
+    System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
   final def isValueChanged(another: Ticker): Boolean = {
@@ -109,12 +106,8 @@ class Ticker(depth: Int) extends LightTicker {
     }
 
     var i = 0
-    while (i < depth) {
-      if (bidPrices(i) != another.bidPrices(i) ||
-          bidSizes (i) != another.bidSizes (i) ||
-          askPrices(i) != another.askPrices(i) ||
-          askSizes (i) != another.askSizes (i)
-      ) {
+    while (i < data.length) {
+      if (data(i) != another.data(i)) {
         return true
       }
 
@@ -134,13 +127,13 @@ class Ticker(depth: Int) extends LightTicker {
 
   final def isSameDay(prevTicker: Ticker, cal: Calendar): Boolean = {
     cal.setTimeInMillis(time)
-    val month0 = cal.get(Calendar.MONTH)
-    val day0 = cal.get(Calendar.DAY_OF_MONTH)
+    val monthA = cal.get(Calendar.MONTH)
+    val dayA = cal.get(Calendar.DAY_OF_MONTH)
     cal.setTimeInMillis(prevTicker.time)
-    val month1 = cal.get(Calendar.MONTH)
-    val day1 = cal.get(Calendar.DAY_OF_MONTH)
+    val monthB = cal.get(Calendar.MONTH)
+    val dayB = cal.get(Calendar.DAY_OF_MONTH)
         
-    month1 == month1 && day0 == day1
+    monthB == monthB && dayA == dayB
   }
 
   final def changeInPercent: Float = {
@@ -154,7 +147,7 @@ class Ticker(depth: Int) extends LightTicker {
   }
 
   def toLightTicker: LightTicker = {
-    val light = new LightTicker(depth)
+    val light = new LightTicker
     light.copyFrom(this)
     light
   }
