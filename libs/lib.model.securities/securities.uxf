@@ -169,7 +169,7 @@ r1=has</panel_attributes><additional_attributes>287;322;21;21</additional_attrib
 m1=1..n
 r1=has</panel_attributes><additional_attributes>154;322;21;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>882</x><y>434</y><w>34</w><h>69</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>21;56;21;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>224</x><y>371</y><w>154</w><h>168</h></coordinates><panel_attributes>MoneyFlow
+r1=has</panel_attributes><additional_attributes>21;56;21;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>224</x><y>371</y><w>154</w><h>154</h></coordinates><panel_attributes>MoneyFlow
 --
 1M/1D
 --
