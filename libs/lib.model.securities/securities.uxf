@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>6</zoom_level><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>330</y><w>144</w><h>108</h></coordinates><panel_attributes>Exchange
+// This text will be stored with each diagram;  use it for notes.</help_text><zoom_level>7</zoom_level><element><type>com.umlet.element.base.Class</type><coordinates><x>847</x><y>329</y><w>168</w><h>126</h></coordinates><panel_attributes>Exchange
 --
 -id: Long
 -name: String
@@ -31,7 +31,7 @@
 -openTime2: Long
 -closeTime2: Long
 -closeDates: List[ExchangeCloseDate]
-bg=blue</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>0</y><w>102</w><h>132</h></coordinates><panel_attributes>Quote
+bg=blue</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>224</x><y>182</y><w>154</w><h>175</h></coordinates><panel_attributes>Quote
 --
 1M/1D
 --
@@ -45,10 +45,12 @@ bg=blue</panel_attributes><additional_attributes/></element><element><type>com.u
 -adjWeight: Float
 -volume: Float
 -amount: Float
+-tickers: List[Ticker]
+-dealRecord: List[DealRecord]
 fg=
-bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>12</y><w>324</w><h>216</h></coordinates><panel_attributes>lt=&lt;-
+bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>357</x><y>210</y><w>125</w><h>34</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;18;312;204</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>204</y><w>102</w><h>96</h></coordinates><panel_attributes>Company
+r1=has</panel_attributes><additional_attributes>21;21;112;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>847</x><y>182</y><w>119</w><h>112</h></coordinates><panel_attributes>Company
 --
 -id: Long
 -validFrom: Long
@@ -57,21 +59,21 @@ r1=has</panel_attributes><additional_attributes>18;18;312;204</additional_attrib
 -fullName: String
 -industries: List[String]
 -listedDate: Long
-bg=yellow</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>738</x><y>468</y><w>102</w><h>48</h></coordinates><panel_attributes>ExchangeCloseDate
+bg=yellow</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>847</x><y>490</y><w>119</w><h>56</h></coordinates><panel_attributes>ExchangeCloseDate
 --
 -id: Long
 -fromTime: Long
 -toTime: Long
-bg=blue</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>552</x><y>330</y><w>198</w><h>30</h></coordinates><panel_attributes>lt=&lt;-
+bg=blue</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>630</x><y>329</y><w>230</w><h>34</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-r1=listed</panel_attributes><additional_attributes>186;18;18;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>552</x><y>240</y><w>198</w><h>30</h></coordinates><panel_attributes>lt=&lt;-
+r1=listed</panel_attributes><additional_attributes>217;21;21;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>630</x><y>224</y><w>230</w><h>34</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-r1=of</panel_attributes><additional_attributes>186;18;18;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>468</x><y>348</y><w>30</w><h>288</h></coordinates><panel_attributes>lt=&lt;-
+r1=of</panel_attributes><additional_attributes>217;21;21;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>532</x><y>350</y><w>34</w><h>335</h></coordinates><panel_attributes>lt=&lt;-
 m1=1..n
-r1=has</panel_attributes><additional_attributes>18;276;18;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>318</y><w>102</w><h>168</h></coordinates><panel_attributes>Ticker
+r1=has</panel_attributes><additional_attributes>21;322;21;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>0</x><y>182</y><w>119</w><h>189</h></coordinates><panel_attributes>Ticker
 --
 -id: Long
--intraDay: intraDay
+-quote: Quote
 -time:Long
 -prevClose: Float
 -lastPrice: Float
@@ -84,12 +86,12 @@ r1=has</panel_attributes><additional_attributes>18;276;18;18</additional_attribu
 -dayVolume: Float
 -dayAmount: Float
 -dayChange: Float 
--moneyFlow: Float
+-bidAsks: Array[Byte]
 
 fg=
-bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>348</y><w>96</w><h>180</h></coordinates><panel_attributes>lt=&lt;-
+bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>98</x><y>203</y><w>139</w><h>34</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;18;84;168</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>438</x><y>624</y><w>102</w><h>138</h></coordinates><panel_attributes>SecInfo
+r1=has</panel_attributes><additional_attributes>21;21;126;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>497</x><y>672</y><w>119</w><h>161</h></coordinates><panel_attributes>SecInfo
 --
 -id: Long
 -sec: Sec
@@ -102,7 +104,7 @@ r1=has</panel_attributes><additional_attributes>18;18;84;168</additional_attribu
 -tradingUnit: Int
 -upperLimit: Float
 -lowerLimit: Float
-bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>552</x><y>624</y><w>102</w><h>102</h></coordinates><panel_attributes>SecStatus
+bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>630</x><y>672</y><w>119</w><h>119</h></coordinates><panel_attributes>SecStatus
 --
 -id: Long
 -sec: Sec
@@ -111,7 +113,7 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -suspension: Short
 -loanDirection: Short
 -dividStaus: Short
-bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>666</x><y>624</y><w>102</w><h>120</h></coordinates><panel_attributes>SecDividend
+bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>763</x><y>672</y><w>119</w><h>140</h></coordinates><panel_attributes>SecDividend
 --
 -id: Long
 -sec: Sec
@@ -123,20 +125,7 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -rightsPrice: Float
 -registerDate: Long
 -dividendDate: Long
-bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>492</y><w>102</w><h>96</h></coordinates><panel_attributes>BidAsk
---
--id: Long
--intraDay: intraDay
--time: Long
--idx: Int
--isBid: Boolean
--price: Float
--size: Int
--dealer: String
-fg=
-bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>498</y><w>96</w><h>30</h></coordinates><panel_attributes>lt=&lt;-
-m1=0..n
-r1=has</panel_attributes><additional_attributes>18;18;84;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>324</x><y>624</y><w>102</w><h>96</h></coordinates><panel_attributes>SecIssue
+bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>364</x><y>672</y><w>119</w><h>112</h></coordinates><panel_attributes>SecIssue
 --
 -id: Long
 -sec: Sec
@@ -145,7 +134,7 @@ r1=has</panel_attributes><additional_attributes>18;18;84;18</additional_attribut
 -totalShares: Long
 -issueDate: Long
 -listDate: Long
-bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>414</x><y>204</y><w>156</w><h>162</h></coordinates><panel_attributes>Sec
+bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>469</x><y>182</y><w>182</w><h>189</h></coordinates><panel_attributes>Sec
 --
 -id: Long
 -validFrom: Long
@@ -159,29 +148,28 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -companyHists: List[Compony]
 -exchange: Exchange
 -quotes: List[Quote]
--intraDays: List[intraDay]
-bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>594</y><w>102</w><h>78</h></coordinates><panel_attributes>DealRecord
+-moneyFlows: List[MoneyFlow]
+bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>0</x><y>385</y><w>119</w><h>84</h></coordinates><panel_attributes>DealRecord
 --
 -id: Long
--intraDay: intraDay
+-quote: Quote
 -time: Long
--dealer: String
 -price: Float
--size: Int
+-volume: Float
+-amount: Float
+
 fg=
-bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>498</y><w>96</w><h>150</h></coordinates><panel_attributes>lt=&lt;-
+bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>98</x><y>203</y><w>139</w><h>244</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;138;84;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>354</x><y>348</y><w>144</w><h>288</h></coordinates><panel_attributes>lt=&lt;-
+r1=has</panel_attributes><additional_attributes>21;231;126;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>399</x><y>350</y><w>167</w><h>335</h></coordinates><panel_attributes>lt=&lt;-
 m1=1
-r1=has</panel_attributes><additional_attributes>18;276;132;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>468</x><y>348</y><w>258</w><h>288</h></coordinates><panel_attributes>lt=&lt;-
+r1=has</panel_attributes><additional_attributes>21;322;154;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>532</x><y>350</y><w>300</w><h>335</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>246;276;18;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>468</x><y>348</y><w>144</w><h>288</h></coordinates><panel_attributes>lt=&lt;-
+r1=has</panel_attributes><additional_attributes>287;322;21;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>532</x><y>350</y><w>167</w><h>335</h></coordinates><panel_attributes>lt=&lt;-
 m1=1..n
-r1=has</panel_attributes><additional_attributes>132;276;18;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>768</x><y>420</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;-
+r1=has</panel_attributes><additional_attributes>154;322;21;21</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>882</x><y>434</y><w>34</w><h>69</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;48;18;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>228</x><y>282</y><w>198</w><h>210</h></coordinates><panel_attributes>lt=&lt;-
-m1=0..n
-r1=has</panel_attributes><additional_attributes>18;198;186;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>138</y><w>102</w><h>144</h></coordinates><panel_attributes>MoneyFlow
+r1=has</panel_attributes><additional_attributes>21;56;21;21</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>224</x><y>371</y><w>154</w><h>168</h></coordinates><panel_attributes>MoneyFlow
 --
 1M/1D
 --
@@ -190,31 +178,13 @@ r1=has</panel_attributes><additional_attributes>18;198;186;18</additional_attrib
 -time: Long
 -totalVolume: Float
 -superVolume: Float
--bigVolume: Float
+-grandVolume: Float
 -smallVolume: Float
 -totalAmount: Float
 -superAmount: Float
--bigAmount:Float
+-grandAmount:Float
 -smallVolume: Float
 fg=
-bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>678</y><w>102</w><h>78</h></coordinates><panel_attributes>MoneyFlowTicker
---
--id: Long
--intraDay: intraDay
--time: Long
--grade: Int
--amount: Float
--volume: Float
-fg=
-bg=green</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>498</y><w>96</w><h>228</h></coordinates><panel_attributes>lt=&lt;-
+bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>357</x><y>210</y><w>125</w><h>265</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;216;84;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>198</y><w>324</w><h>30</h></coordinates><panel_attributes>lt=&lt;-
-m1=0..n
-r1=has</panel_attributes><additional_attributes>18;18;312;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>186</x><y>480</y><w>126</w><h>72</h></coordinates><panel_attributes>intraDay
---
--id: Long
--time: Long
--tickers: List[Ticker]
--bidAsks: List[BidAsk]
--dealRecords: List[DealRecord]
-bg=blue</panel_attributes><additional_attributes/></element></umlet_diagram>
+r1=has</panel_attributes><additional_attributes>21;252;112;21</additional_attributes></element></umlet_diagram>

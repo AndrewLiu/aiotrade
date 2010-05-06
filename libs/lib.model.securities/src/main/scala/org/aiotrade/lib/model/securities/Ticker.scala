@@ -10,23 +10,19 @@ import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object Ticker extends Table[Ticker] with LongIdPK[Ticker] {
-  val intraDay = longColumn("intraDay_id").references(IntraDay)
+  val quote = longColumn("quote_id").references(Quote1d)
   val time = longColumn("time")
   
   val prevClose   = numericColumn("prevClose",  12, 2)
   val latestPrice = numericColumn("lastPrice",  12, 2)
 
-  val dayOpen    = numericColumn("dayOpen",    12, 2)
-  val dayHigh    = numericColumn("dayHigh",    12, 2)
-  val dayLow     = numericColumn("dayLow",     12, 2)
-  val dayVolume  = numericColumn("dayVolume",  18, 2)
-  val dayAmount  = numericColumn("dayAmount",  18, 2)
+  val dayOpen   = numericColumn("dayOpen",    12, 2)
+  val dayHigh   = numericColumn("dayHigh",    12, 2)
+  val dayLow    = numericColumn("dayLow",     12, 2)
+  val dayVolume = numericColumn("dayVolume",  18, 2)
+  val dayAmount = numericColumn("dayAmount",  18, 2)
 
-  val dayChange  = numericColumn("dayChange",  12, 2)
-
-  val mfGrade  = intColumn("grade")
-  val mfVolume = numericColumn("volume", 18, 2)
-  val mfAmount = numericColumn("amount", 18, 2)
+  val dayChange = numericColumn("dayChange",  12, 2)
 
   /**
    * Array[Float](depth) writeObject
@@ -36,11 +32,11 @@ object Ticker extends Table[Ticker] with LongIdPK[Ticker] {
 
 class Ticker extends Record[Ticker](Ticker) {
   val id = field(Ticker.id)
-  val intraDay = manyToOne(Ticker.intraDay)
+  val quote = manyToOne(Ticker.quote)
   val time = field(Ticker.time)
 
-  val prevClose    = field(Ticker.prevClose)
-  val latestPrice  = field(Ticker.latestPrice)
+  val prevClose   = field(Ticker.prevClose)
+  val latestPrice = field(Ticker.latestPrice)
 
   val dayOpen   = field(Ticker.dayOpen)
   val dayHigh   = field(Ticker.dayHigh)
@@ -49,14 +45,6 @@ class Ticker extends Record[Ticker](Ticker) {
   val dayAmount = field(Ticker.dayAmount)
 
   val dayChange = field(Ticker.dayChange)
-
-  /**
-   * Money flow
-   * 1 - super, 2 - grand, 3 - small
-   */
-  val mfGrade  = field(Ticker.mfGrade)
-  val mfVolume = field(Ticker.mfVolume)
-  val mfAmount = field(Ticker.mfAmount)
 
   /**
    * Array[Float](depth) readObject

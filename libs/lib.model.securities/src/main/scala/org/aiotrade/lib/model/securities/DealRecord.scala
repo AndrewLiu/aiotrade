@@ -5,20 +5,20 @@ import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object DealRecord extends Table[DealRecord] with LongIdPK[DealRecord] {
-  val intraDay = longColumn("intraDay_id").references(IntraDay)
+  val quote = longColumn("quote_id").references(Quote1d)
   val time = longColumn("time")
 
-  val price = numericColumn("price",  12, 2)
-  val size = numericColumn("size", 12, 2)
-  val dealer = stringColumn("dealer", 40)
+  val price  = numericColumn("price",  12, 2)
+  val volume = numericColumn("volume", 12, 2)
+  val amount = numericColumn("amount", 12, 2)
 }
 
 class DealRecord extends Record[DealRecord](DealRecord) {
   val id = field(DealRecord.id)
-  val intraDay = manyToOne(DealRecord.intraDay)
+  val quote = manyToOne(DealRecord.quote)
   val time = field(DealRecord.time)
 
-  val price = field(DealRecord.price)
-  val size = field(DealRecord.size)
-  val dealer = field(DealRecord.dealer)
+  val price  = field(DealRecord.price)
+  val volume = field(DealRecord.volume)
+  val amount = field(DealRecord.amount)
 }

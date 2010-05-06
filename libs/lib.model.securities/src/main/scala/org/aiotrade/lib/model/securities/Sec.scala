@@ -34,6 +34,4 @@ class Sec extends Record[Sec](Sec) {
 
   val dailyMonyFlow  = oneToMany(MoneyFlow1d.sec)
   val minuteMonyFlow = oneToMany(MoneyFlow1m.sec)
-
-  val intraDays = oneToMany(IntraDay.sec)
 }

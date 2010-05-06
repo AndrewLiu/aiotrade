@@ -50,7 +50,7 @@ object Model {
       Sec, SecDividend, SecInfo, SecIssue, SecStatus,
       Exchange, ExchangeCloseDate,
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
-      IntraDay, Ticker, DealRecord
+      Ticker, DealRecord
     ).dropCreate
 
     val i = new Industry
@@ -76,40 +76,45 @@ object Model {
     println("sec's current company: " + sec.company.get.get.shortName.get.get)
     println("sec's company history: " + (sec.companyHists.get map (_.shortName) mkString(", ")))
     
+    val cal = Calendar.getInstance
     val quote1d = new Quote(Quote1d)
-    quote1d.open := 1
+    //quote1d.id := 10000L
     quote1d.sec := sec
+    quote1d.time := cal.getTimeInMillis
+    quote1d.open := 1
     quote1d.save
 
+    cal.add(Calendar.DAY_OF_YEAR, 1)
+    val quote1da = new Quote(Quote1d)
+    quote1da.sec := sec
+    quote1da.time := cal.getTimeInMillis
+    quote1da.open := 1
+    quote1da.save
+
     val quote1m = new Quote(Quote1m)
-    quote1m.open := 1
     quote1m.sec := sec
+    quote1m.open := 1
+    quote1m.time := System.currentTimeMillis
     quote1m.save
 
-    val cal = Calendar.getInstance
-    val intraDay1 = new IntraDay
-    intraDay1.sec := sec
-    intraDay1.time := cal.getTimeInMillis
-    intraDay1.save
+    def makeTicker = {
+      val ticker = new Ticker
+      ticker.quote := quote1d
+      ticker.time := System.currentTimeMillis
+      val bidAskDepth = 10
+      val bidAsks = new Array[Float](bidAskDepth * 4)
+      ticker.setBidAsks(bidAsks)
+      ticker.save
+    }
 
-    cal.add(Calendar.DAY_OF_YEAR, 1)
-    val intraDay2 = new IntraDay
-    intraDay2.sec := sec
-    intraDay2.time := cal.getTimeInMillis
-    intraDay2.save
-
-    val ticker = new Ticker
-    ticker.intraDay := intraDay1
-    ticker.time := cal.getTimeInMillis
-    val bidAskDepth = 10
-    val bidAsks = new Array[Float](bidAskDepth * 4)
-    ticker.setBidAsks(bidAsks)
-    ticker.save
+    for (i <- 0 until 10) makeTicker
 
     val ticker1 = Ticker.get(1).get
     val decodedBidAsks = ticker1.getBidAsks
     val depth = decodedBidAsks.length / 4
     println("Depth of bid ask: " + depth)
+
+    println("tickers of quote: " + (quote1d.tickers.get map (x => x.time.get.get) mkString(", ")))
 
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2

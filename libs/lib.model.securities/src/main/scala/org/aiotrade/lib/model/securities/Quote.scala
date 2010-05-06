@@ -20,6 +20,8 @@ trait QuoteTable extends Table[Quote] with LongIdPK[Quote] {
   val amount = numericColumn("amount", 12, 2)
 
   val adjWeight = numericColumn("adjWeight", 12, 2)
+
+  val flag = intColumn("flag").default("0")
 }
 
 class Quote(table: QuoteTable) extends Record[Quote](table) {
@@ -35,4 +37,16 @@ class Quote(table: QuoteTable) extends Record[Quote](table) {
   val amount = field(table.amount)
   
   val adjWeight = field(table.adjWeight)
+
+  /**
+   * 0 means unclosed
+   * > 0 means closed
+   * 0000,000X closed
+   * 0000,00X0 verified
+   */
+  val flad = field(table.flag)
+
+  // Foreign keys
+  val tickers = oneToMany(Ticker.quote)
+  val dealRecords = oneToMany(DealRecord.quote)
 }
