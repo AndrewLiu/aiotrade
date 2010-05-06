@@ -5,7 +5,7 @@ import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object MoneyFlowTicker extends Table[MoneyFlowTicker] with LongIdPK[MoneyFlowTicker] {
-  val innerDay = longColumn("innerDay_id").references(InnerDay)
+  val intraDay = longColumn("intraDay_id").references(IntraDay)
   val time = longColumn("time")
 
   val grade = intColumn("grade") // 1 - super, 2 - grand, 3 - small
@@ -15,7 +15,7 @@ object MoneyFlowTicker extends Table[MoneyFlowTicker] with LongIdPK[MoneyFlowTic
 
 class MoneyFlowTicker extends Record[MoneyFlowTicker](MoneyFlowTicker) {
   val id = field(MoneyFlowTicker.id)
-  val innerDay = manyToOne(MoneyFlowTicker.innerDay)
+  val intraDay = manyToOne(MoneyFlowTicker.intraDay)
   val time = field(MoneyFlowTicker.time)
   
   val grade = field(MoneyFlowTicker.grade)

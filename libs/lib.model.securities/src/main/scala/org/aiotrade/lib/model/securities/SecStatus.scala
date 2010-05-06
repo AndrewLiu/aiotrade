@@ -7,8 +7,7 @@ import ru.circumflex.orm.Table
 object SecStatus extends Table[SecStatus] with LongIdPK[SecStatus] {
   val sec = longColumn("sec_id").references(Sec)
   val validFrom = longColumn("validfrom")
-  val validTo = longColumn("validTo")
-  val valid = booleanColumn("valid")
+  val validTo = longColumn("validTo").default("-1")
   val suspension = intColumn("suspension")
   val loanDirection = intColumn("loanDirection")
   val dividStatus = intColumn("dividStatus")
@@ -19,7 +18,6 @@ class SecStatus extends Record[SecStatus](SecStatus) {
   val sec = manyToOne(SecStatus.sec)
   val validFrom = field(SecStatus.validFrom)
   val validTo = field(SecStatus.validTo)
-  val valid = field(SecStatus.valid)
   val suspension = field(SecStatus.suspension)
   val loanDirection = field(SecStatus.loanDirection)
   val dividStatus = field(SecStatus.dividStatus)

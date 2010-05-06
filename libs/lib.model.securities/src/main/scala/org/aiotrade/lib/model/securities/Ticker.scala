@@ -5,7 +5,7 @@ import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object Ticker extends Table[Ticker] with LongIdPK[Ticker] {
-  val innerDay = longColumn("innerDay_id").references(InnerDay)
+  val intraDay = longColumn("intraDay_id").references(IntraDay)
   val time = longColumn("time")
   
   val prevClose   = numericColumn("prevClose",  12, 2)
@@ -22,7 +22,7 @@ object Ticker extends Table[Ticker] with LongIdPK[Ticker] {
 
 class Ticker extends Record[Ticker](Ticker) {
   val id = field(Ticker.id)
-  val innerDay = manyToOne(Ticker.innerDay)
+  val intraDay = manyToOne(Ticker.intraDay)
   val time = field(Ticker.time)
 
   val prevClose    = field(Ticker.prevClose)

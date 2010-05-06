@@ -53,7 +53,6 @@ r1=has</panel_attributes><additional_attributes>18;18;312;204</additional_attrib
 -id: Long
 -validFrom: Long
 -validTo: Long
--valid: Boolean
 -shortName: String
 -fullName: String
 -industries: List[String]
@@ -72,7 +71,7 @@ m1=1..n
 r1=has</panel_attributes><additional_attributes>18;276;18;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>318</y><w>102</w><h>168</h></coordinates><panel_attributes>Ticker
 --
 -id: Long
--innerDay: InnerDay
+-intraDay: intraDay
 -time:Long
 -prevClose: Float
 -lastPrice: Float
@@ -96,7 +95,6 @@ r1=has</panel_attributes><additional_attributes>18;18;84;168</additional_attribu
 -sec: Sec
 -validFrom: Long
 -validTo: Long
--valid: Boolean
 -symbol: String
 -name: String
 -totalShares: Long
@@ -110,7 +108,6 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -sec: Sec
 -validFrom: Long
 -validTo: Long
--valid: Boolean
 -suspension: Short
 -loanDirection: Short
 -dividStaus: Short
@@ -129,7 +126,7 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>492</y><w>102</w><h>96</h></coordinates><panel_attributes>BidAsk
 --
 -id: Long
--innerDay: InnerDay
+-intraDay: intraDay
 -time: Long
 -idx: Int
 -isBid: Boolean
@@ -153,7 +150,6 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -id: Long
 -validFrom: Long
 -validTo: Long
--valid: Boolean
 -secIssue: SecIssue
 -secInfo: SecInfo
 -secInfoHists: List[SecInfo]
@@ -163,11 +159,11 @@ bg=red</panel_attributes><additional_attributes/></element><element><type>com.um
 -companyHists: List[Compony]
 -exchange: Exchange
 -quotes: List[Quote]
--innerDays: List[InnerDay]
+-intraDays: List[intraDay]
 bg=red</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>594</y><w>102</w><h>78</h></coordinates><panel_attributes>DealRecord
 --
 -id: Long
--innerDay: InnerDay
+-intraDay: intraDay
 -time: Long
 -dealer: String
 -price: Float
@@ -204,7 +200,7 @@ fg=
 bg=orange</panel_attributes><additional_attributes/></element><element><type>com.umlet.element.base.Class</type><coordinates><x>18</x><y>678</y><w>102</w><h>78</h></coordinates><panel_attributes>MoneyFlowTicker
 --
 -id: Long
--innerDay: InnerDay
+-intraDay: intraDay
 -time: Long
 -grade: Int
 -amount: Float
@@ -214,7 +210,7 @@ bg=green</panel_attributes><additional_attributes/></element><element><type>com.
 m1=0..n
 r1=has</panel_attributes><additional_attributes>18;216;84;18</additional_attributes></element><element><type>com.umlet.element.base.Relation</type><coordinates><x>102</x><y>198</y><w>324</w><h>30</h></coordinates><panel_attributes>lt=&lt;-
 m1=0..n
-r1=has</panel_attributes><additional_attributes>18;18;312;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>186</x><y>480</y><w>126</w><h>72</h></coordinates><panel_attributes>InnerDay
+r1=has</panel_attributes><additional_attributes>18;18;312;18</additional_attributes></element><element><type>com.umlet.element.base.Class</type><coordinates><x>186</x><y>480</y><w>126</w><h>72</h></coordinates><panel_attributes>intraDay
 --
 -id: Long
 -time: Long

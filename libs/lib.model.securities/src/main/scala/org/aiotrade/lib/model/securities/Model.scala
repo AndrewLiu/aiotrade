@@ -50,7 +50,7 @@ object Model {
       Sec, SecDividend, SecInfo, SecIssue, SecStatus,
       Exchange, ExchangeCloseDate,
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
-      InnerDay, Ticker, BidAsk, DealRecord, MoneyFlowTicker
+      IntraDay, Ticker, BidAsk, DealRecord, MoneyFlowTicker
     ).dropCreate
 
     val i = new Industry
@@ -87,22 +87,22 @@ object Model {
     quote1m.save
 
     val cal = Calendar.getInstance
-    val innerDay1 = new InnerDay
-    innerDay1.sec := sec
-    innerDay1.time := cal.getTimeInMillis
-    innerDay1.save
+    val intraDay1 = new IntraDay
+    intraDay1.sec := sec
+    intraDay1.time := cal.getTimeInMillis
+    intraDay1.save
 
     cal.add(Calendar.DAY_OF_YEAR, 1)
-    val innerDay2 = new InnerDay
-    innerDay2.sec := sec
-    innerDay2.time := cal.getTimeInMillis
-    innerDay2.save
+    val intraDay2 = new IntraDay
+    intraDay2.sec := sec
+    intraDay2.time := cal.getTimeInMillis
+    intraDay2.save
 
-    fillBidAsks(innerDay1)
-    fillBidAsks(innerDay2)
+    fillBidAsks(intraDay1)
+    fillBidAsks(intraDay2)
 
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
-    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay = 2) AND innerDay = 2
+    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
 
 //    Company.criteria.add("shortName" like "a%").list foreach (c =>
 //      println(c.shortName)
@@ -123,19 +123,19 @@ object Model {
 
   }
 
-  def fillBidAsks(innerDay: InnerDay) {
+  def fillBidAsks(intraDay: IntraDay) {
     val cal = Calendar.getInstance
 
     for (i <- 0 until 10) {
       cal.add(Calendar.HOUR, 1)
-      newRecords(innerDay, true,  cal)
-      newRecords(innerDay, false, cal)
+      newRecords(intraDay, true,  cal)
+      newRecords(intraDay, false, cal)
     }
 
-    def newRecords(innerDay: InnerDay, isBid: Boolean, cal: Calendar) =
+    def newRecords(intraDay: IntraDay, isBid: Boolean, cal: Calendar) =
       for (i <- 1 to 3) {
         val ba = new BidAsk
-        ba.innerDay := innerDay
+        ba.intraDay := intraDay
         ba.idx := i
         ba.isBid := isBid
         ba.time := cal.getTimeInMillis

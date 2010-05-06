@@ -5,7 +5,7 @@ import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object BidAsk extends Table[BidAsk] with LongIdPK[BidAsk] {
-  val innerDay = longColumn("innerDay_id").references(InnerDay)
+  val intraDay = longColumn("intraDay_id").references(IntraDay)
   val time = longColumn("time")
 
   val idx = intColumn("idx")
@@ -21,14 +21,14 @@ object BidAsk extends Table[BidAsk] with LongIdPK[BidAsk] {
     "SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)"
   }
 
-  def latest(innerDayId: Long) = {
-    "SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND innerDay_id = " + innerDayId + ") AND innerDay_id = " + innerDayId
+  def latest(intraDayId: Long) = {
+    "SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay_id = " + intraDayId + ") AND intraDay_id = " + intraDayId
   }
 }
 
 class BidAsk extends Record[BidAsk](BidAsk) {
   val id = field(BidAsk.id)
-  val innerDay = manyToOne(BidAsk.innerDay)
+  val intraDay = manyToOne(BidAsk.intraDay)
   val time = field(BidAsk.time)
 
   val idx  = field(BidAsk.idx)

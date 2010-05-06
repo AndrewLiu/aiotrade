@@ -6,8 +6,7 @@ import ru.circumflex.orm.Table
 
 object Sec extends Table[Sec] with LongIdPK[Sec] {
   val validFrom = longColumn("validfrom")
-  val validTo = longColumn("validTo")
-  val valid = booleanColumn("valid")
+  val validTo = longColumn("validTo").default("-1")
 
   val company   = longColumn("company_id")   references Company
   val secInfo   = longColumn("secInfo_id")   references SecInfo
@@ -19,7 +18,6 @@ class Sec extends Record[Sec](Sec) {
   val id = field(Sec.id)
   val validFrom = field(Sec.validFrom)
   val validTo = field(Sec.validTo)
-  val valid = field(Sec.valid)
 
   val company = manyToOne(Sec.company) // the current one. ont to one ?
   val companyHists = oneToMany(Company.sec)
@@ -37,5 +35,5 @@ class Sec extends Record[Sec](Sec) {
   val dailyMonyFlow  = oneToMany(MoneyFlow1d.sec)
   val minuteMonyFlow = oneToMany(MoneyFlow1m.sec)
 
-  val innerDays = oneToMany(InnerDay.sec)
+  val intraDays = oneToMany(IntraDay.sec)
 }
