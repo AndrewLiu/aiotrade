@@ -5,6 +5,7 @@ import ORM._
 import java.lang.reflect.Constructor
 import java.sql.PreparedStatement
 import ru.circumflex.core.Circumflex
+import ru.circumflex.orm.Column.BinaryColumn
 import ru.circumflex.orm.Column.BooleanColumn
 import ru.circumflex.orm.Column.DateColumn
 import ru.circumflex.orm.Column.IntegerColumn
@@ -432,6 +433,16 @@ abstract class Relation[R](implicit m: Manifest[R]) extends JDBCHelper with Quer
    */
   protected[orm] def stringColumn(name: String, sqlType: String): StringColumn[R] = {
     val col = new StringColumn(this, name, sqlType)
+    addColumns(col)
+
+    col
+  }
+
+  /**
+   * Adds a varbinary column with limited maximum capacity.
+   */
+  protected[orm] def binaryColumn(name: String, size: Int): BinaryColumn[R] = {
+    val col = new BinaryColumn(this, name, size)
     addColumns(col)
 
     col

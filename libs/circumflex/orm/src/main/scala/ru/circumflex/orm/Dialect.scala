@@ -39,6 +39,7 @@ class Dialect {
   def numericType = "numeric"
   def stringType = "text"
   def varcharType = "varchar"
+  def varbinaryType = "varbinary"
   def booleanType = "boolean"
   def dateType = "date"
   def timeType = "time"

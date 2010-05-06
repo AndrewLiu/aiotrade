@@ -13,6 +13,7 @@ object BidAsk extends Table[BidAsk] with LongIdPK[BidAsk] {
   val price = numericColumn("price",  12, 2)
   val size = numericColumn("size", 12, 2)
   val dealer = stringColumn("dealer", 30)
+  val data = binaryColumn("data", 30)
 
   /**
    * Select latest ask_bid in each group of "isBid" and "idx"
@@ -36,4 +37,5 @@ class BidAsk extends Record[BidAsk](BidAsk) {
   val price = field(BidAsk.price)
   val size = field(BidAsk.size)
   val dealer = field(BidAsk.dealer)
+  val data = field(BidAsk.data)
 }

@@ -101,6 +101,8 @@ object Model {
     fillBidAsks(intraDay1)
     fillBidAsks(intraDay2)
 
+    println(BidAsk.get(1).get.data)
+
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
     // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
 
@@ -139,6 +141,7 @@ object Model {
         ba.idx := i
         ba.isBid := isBid
         ba.time := cal.getTimeInMillis
+        ba.data := "abindata".getBytes
         ba.save
       }
   }

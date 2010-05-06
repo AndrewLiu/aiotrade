@@ -144,6 +144,47 @@ object Column {
   }
 
   /**
+   * BINARY or VARBINARY column.
+   */
+  class BinaryColumn[R](relation: Relation[R],
+                        name: String,
+                        sqlType: String
+  ) extends Column[Array[Byte], R](relation, name, sqlType) with XmlSerializableColumn[String] {
+
+    def this(relation: Relation[R], name: String, size: Int) =
+      this(relation, name, dialect.varbinaryType + "(" + size + ")")
+
+    /**
+     * DSL-like way to add NotEmptyValidator.
+     */
+    def validateNotEmpty: this.type = {
+      relation.addFieldValidator(this, new NotEmptyValidator(qualifiedName))
+      return this
+    }
+
+    /**
+     * DSL-like way to add PatternValidator.
+     */
+    def validatePattern(regex: String): this.type = {
+      relation.addFieldValidator(this, new PatternValidator(qualifiedName, regex))
+      return this
+    }
+
+    /**
+     * Sets the default string expression for this column
+     * (quoting literals as necessary).
+     */
+    def defaultString(expr: String): this.type = {
+      _defaultExpression = Some(dialect.quoteLiteral(expr))
+      return this
+    }
+
+    def stringToValue(str: String) = str
+
+  }
+
+
+  /**
    * Integer column.
    */
   class IntegerColumn[R](relation: Relation[R], name: String
