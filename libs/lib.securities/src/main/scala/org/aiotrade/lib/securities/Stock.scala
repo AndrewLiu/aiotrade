@@ -36,9 +36,8 @@ import org.aiotrade.lib.securities.dataserver.{QuoteContract,TickerContract}
  *
  * @author Caoyuan Deng
  */
-class Stock(uniSymbol: String,
-            quoteContracts: Seq[QuoteContract],
-            tickerContract: TickerContract) extends AbstractSec(uniSymbol, quoteContracts, tickerContract) {
+class Stock(uniSymbol: String, quoteContracts: Seq[QuoteContract], tickerContract: TickerContract
+) extends AbstractSec(uniSymbol, quoteContracts, tickerContract) {
     
   def this(uniSymbol: String, quoteContracts: Seq[QuoteContract]) {
     this(uniSymbol, quoteContracts, null)

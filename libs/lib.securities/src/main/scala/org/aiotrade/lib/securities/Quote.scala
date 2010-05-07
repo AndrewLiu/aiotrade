@@ -53,36 +53,36 @@ import Quote._
 @serializable
 class Quote extends TVal {
     
-  private val values = new Array[Float](8)
+  private val data = new Array[Float](8)
     
   @transient var sourceId = 0L
     
   var hasGaps = false
         
-  def open      = values(OPEN)
-  def high      = values(HIGH)
-  def low       = values(LOW)
-  def close     = values(CLOSE)
-  def volume    = values(VOLUME)
-  def amount    = values(AMOUNT)
-  def vwap      = values(VWAP)
-  def close_adj = values(CLOSE_ADJ)
+  def open      = data(OPEN)
+  def high      = data(HIGH)
+  def low       = data(LOW)
+  def close     = data(CLOSE)
+  def volume    = data(VOLUME)
+  def amount    = data(AMOUNT)
+  def vwap      = data(VWAP)
+  def close_adj = data(CLOSE_ADJ)
 
-  def open_=     (v: Float) = values(OPEN)      = v
-  def high_=     (v: Float) = values(HIGH)      = v
-  def low_=      (v: Float) = values(LOW)       = v
-  def close_=    (v: Float) = values(CLOSE)     = v
-  def volume_=   (v: Float) = values(VOLUME)    = v
-  def amount_=   (v: Float) = values(AMOUNT)    = v
-  def vwap_=     (v: Float) = values(VWAP)      = v
-  def close_adj_=(v: Float) = values(CLOSE_ADJ) = v
+  def open_=     (v: Float) = data(OPEN)      = v
+  def high_=     (v: Float) = data(HIGH)      = v
+  def low_=      (v: Float) = data(LOW)       = v
+  def close_=    (v: Float) = data(CLOSE)     = v
+  def volume_=   (v: Float) = data(VOLUME)    = v
+  def amount_=   (v: Float) = data(AMOUNT)    = v
+  def vwap_=     (v: Float) = data(VWAP)      = v
+  def close_adj_=(v: Float) = data(CLOSE_ADJ) = v
 
   def reset {
     time = 0
     sourceId = 0
     var i = 0
-    while (i < values.length) {
-      values(i) = 0
+    while (i < data.length) {
+      data(i) = 0
       i += 1
     }
     hasGaps = false
@@ -92,10 +92,10 @@ class Quote extends TVal {
     val cal = Calendar.getInstance
     cal.setTimeInMillis(time)
     this.getClass.getSimpleName + ": " + cal.getTime +
-    " O: " + values(OPEN) +
-    " H: " + values(HIGH) +
-    " L: " + values(LOW) +
-    " C: " + values(CLOSE) +
-    " V: " + values(VOLUME)
+    " O: " + data(OPEN) +
+    " H: " + data(HIGH) +
+    " L: " + data(LOW) +
+    " C: " + data(CLOSE) +
+    " V: " + data(VOLUME)
   }
 }

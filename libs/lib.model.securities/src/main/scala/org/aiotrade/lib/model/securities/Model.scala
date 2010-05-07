@@ -103,7 +103,8 @@ object Model {
       ticker.time := System.currentTimeMillis
       val bidAskDepth = 10
       val bidAsks = new Array[Float](bidAskDepth * 4)
-      ticker.setBidAsks(bidAsks)
+      ticker.bidAsks := bidAsks
+      //ticker.setBidAsks(bidAsks)
       ticker.save
     }
 

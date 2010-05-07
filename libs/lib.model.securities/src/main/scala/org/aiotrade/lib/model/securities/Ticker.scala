@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import ru.circumflex.orm.ColumnField
 import ru.circumflex.orm.LongIdPK
 import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
@@ -48,9 +49,11 @@ class Ticker extends Record[Ticker](Ticker) {
 
   /**
    * Array[Float](depth) readObject
+   * field(Ticker.bidAsks)
    */
-  val bidAsks = field(Ticker.bidAsks)
-
+  val bidAsks = new ColumnField(this, Ticker.bidAsks) {
+    def :=(values: Array[Float]) = setBidAsks(values)
+  }
 
   // ----- helpers
   def setBidAsks(values: Array[Float]) {
