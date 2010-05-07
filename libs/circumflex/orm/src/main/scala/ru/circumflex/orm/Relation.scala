@@ -548,6 +548,30 @@ abstract class Relation[R](implicit m: Manifest[R]) extends JDBCHelper with Quer
       })
   }
 
+  def batchInsert(records: Seq[Record[R]]): Int = {
+    records foreach validate_!
+    batchInsert_!(records)
+  }
+
+  def batchInsert_!(records: Seq[Record[R]]): Int = {
+    if (readOnly)
+      throw new ORMException("The relation " + qualifiedName + " is read-only.")
+
+    transactionManager.dml(conn => {
+        var st: PreparedStatement = null
+        for (record <- records) {
+          val sql = dialect.insertRecord(record)
+          if (st == null) {
+            sqlLog.debug(sql)
+            st = conn.prepareStatement(sql)
+          }
+          setParams(record, st, columns.filter(c => c.default == None))
+          st.addBatch
+        }
+        if (st != null) {st.executeBatch; 1} else 0
+      })
+  }
+
   def refetchLast(record: Record[R]): Unit = {
     val expr = new SimpleExpression("root." + primaryKey.column.columnName +
                                     " = " + dialect.lastIdExpression(this), Nil)
