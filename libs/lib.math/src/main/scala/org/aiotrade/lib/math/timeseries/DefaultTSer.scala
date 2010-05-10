@@ -289,8 +289,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
           i += 1
         }
 
-        frTime = Math.min(frTime, time)
-        toTime = Math.max(toTime, time)
+        frTime = math.min(frTime, time)
+        toTime = math.max(toTime, time)
       }
     } finally {
       _timestamps.writeLock.unlock
@@ -485,7 +485,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     sb.append(", values=(\n")
     for (v <- vars) {
       sb.append(v.name).append(": ... ")
-      var i = Math.max(0, len - 6) // print last 6 values
+      var i = math.max(0, len - 6) // print last 6 values
       while (i < len) {
         sb.append(v(i)).append(", ")
         i += 1
