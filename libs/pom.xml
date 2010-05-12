@@ -154,7 +154,6 @@
         <module>lib.amqp</module>
         <module>helper.test</module>
 		<module>lib.sevenzip</module>
-		<module>circumflex</module>
     </modules>
 
 </project>
