@@ -1,24 +1,23 @@
 package org.aiotrade.lib.model.securities
 
-import ru.circumflex.orm.LongIdPK
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
-object SecIssue extends Table[SecIssue] with LongIdPK[SecIssue] {
-  val sec = longColumn("sec_id").references(Sec)
-  val par = numericColumn("par", 12, 2)
-  val price = numericColumn("price", 12, 2)
-  val totalShares = longColumn("totalShares")
-  val issueDate = longColumn("issueDate")
-  val listDate = longColumn("listDate")
+object SecIssue extends Table[SecIssue] {
+  val sec = "sec_id" REFERENCES(Sec) //oneToOne(Sec.secIssue)
+
+  val par = "par" FLOAT(12, 2) //field(SecIssue.par)
+  val price = "price" FLOAT(12, 2) //field(SecIssue.price)
+  val totalShare = "totalShare" BIGINT //field(SecIssue.totalShares)
+  val issueDate = "issueDate" BIGINT //field(SecIssue.issueDate)
+  val listDate = "listDate" BIGINT //field(SecIssue.listDate)
 }
 
-class SecIssue extends Record[SecIssue](SecIssue) {
-  val id = field(SecIssue.id)
-  val sec = oneToOne(Sec.secIssue)
-  val par = field(SecIssue.par)
-  val price = field(SecIssue.price)
-  val totalShares = field(SecIssue.totalShares)
-  val issueDate = field(SecIssue.issueDate)
-  val listDate = field(SecIssue.listDate)
+class SecIssue {
+  var sec: Sec = _
+
+  var par: Float = _
+  var price: Float = _
+  var totalShare: Long = _
+  var issueDate: Long = _
+  var listDate: Long = _
 }

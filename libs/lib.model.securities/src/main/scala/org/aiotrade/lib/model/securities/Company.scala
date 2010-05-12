@@ -1,25 +1,27 @@
 package org.aiotrade.lib.model.securities
 
-import ru.circumflex.orm.LongIdPK
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
-object Company extends Table[Company] with LongIdPK[Company] {
-  val sec = longColumn("sec_id").references(Sec)
-  val validFrom = longColumn("validfrom")
-  val validTo = longColumn("validTo").default("-1")
-  val shortName = stringColumn("shortName", 30)
-  val fullName = stringColumn("fullName", 30)
-  val listDate = longColumn("listDate")
+object Company extends Table[Company] {
+  val sec = "sec_id" REFERENCES(Sec) //manyToOne(Company.sec)
+
+  val validFrom = "validFrom" BIGINT
+  val validTo = "validTo" BIGINT //DEFAULT("-1")
+  val shortName = "shortName" VARCHAR(30) DEFAULT("''")
+  val fullName = "fullName" VARCHAR(30) DEFAULT("''")
+  val listDate = "listDate" BIGINT
+  
+  def industries = inverse(CompanyIndustry.company) //oneToMany(CompanyIndustry.company)
 }
 
-class Company extends Record[Company](Company) {
-  val id = field(Company.id)
-  val sec = manyToOne(Company.sec)
-  val validFrom = field(Company.validFrom)
-  val validTo = field(Company.validTo)
-  val shortName = field(Company.shortName)
-  val fullName = field(Company.fullName)
-  val listDate = field(Company.listDate)
-  val industries = oneToMany(CompanyIndustry.company)
+class Company {
+
+  var sec: Sec = _
+
+  var validFrom: Long = _
+  var validTo: Long = _
+  var shortName: String = ""
+  var fullName: String = ""
+  var listDate: Long = _
+  var industries: List[Industry] = Nil
 }

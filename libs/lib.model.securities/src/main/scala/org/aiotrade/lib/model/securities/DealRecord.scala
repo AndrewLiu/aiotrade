@@ -1,24 +1,23 @@
 package org.aiotrade.lib.model.securities
 
-import ru.circumflex.orm.LongIdPK
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
-object DealRecord extends Table[DealRecord] with LongIdPK[DealRecord] {
-  val quote = longColumn("quote_id").references(Quote1d)
-  val time = longColumn("time")
+object DealRecord extends Table[DealRecord] {
+  val quote = "quote_id" REFERENCES(Quote1d) //manyToOne(DealRecord.quote)
 
-  val price  = numericColumn("price",  12, 2)
-  val volume = numericColumn("volume", 12, 2)
-  val amount = numericColumn("amount", 12, 2)
+  val time = "time" BIGINT //field(DealRecord.time)
+
+  val price  = "price"  FLOAT(12, 2) //field(DealRecord.price)
+  val volume = "volume" FLOAT(12, 2) //field(DealRecord.volume)
+  val amount = "amount" FLOAT(12, 2) //field(DealRecord.amount)
 }
 
-class DealRecord extends Record[DealRecord](DealRecord) {
-  val id = field(DealRecord.id)
-  val quote = manyToOne(DealRecord.quote)
-  val time = field(DealRecord.time)
+class DealRecord {
+  var quote: Quote = _
+  
+  var time: Long = -1
 
-  val price  = field(DealRecord.price)
-  val volume = field(DealRecord.volume)
-  val amount = field(DealRecord.amount)
+  var price: Float  = _
+  var volume: Float = _
+  var amount: Float = _
 }

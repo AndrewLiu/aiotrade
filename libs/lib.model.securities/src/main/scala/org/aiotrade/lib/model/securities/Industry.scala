@@ -1,24 +1,19 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.aiotrade.lib.model.securities
 
-import ru.circumflex.orm.LongIdPK
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
-object Industry extends Table[Industry] with LongIdPK[Industry] {
-  val category = stringColumn("category")
-  val code = stringColumn("code", 10)
-  val name = stringColumn("name", 30)
+object Industry extends Table[Industry] {
+  val category = "category" VARCHAR(30) DEFAULT("''") //field(Industry.category)
+  val code = "code" VARCHAR(10) DEFAULT("''") //field(Industry.code)
+  val name = "name" VARCHAR(30) DEFAULT("''") //field(Industry.name)
+
+  def companies = inverse(CompanyIndustry.industry) // oneToMany(CompanyIndustry.industry)
 }
 
-class Industry extends Record[Industry](Industry) {
-  val id = field(Industry.id)
-  val category = field(Industry.category)
-  val code = field(Industry.code)
-  val name = field(Industry.name)
-  val companies = oneToMany(CompanyIndustry.industry)
+class Industry {
+  var category: String = ""
+  var code: String = ""
+  var name: String = ""
+
+  var companies: List[Company] = Nil
 }

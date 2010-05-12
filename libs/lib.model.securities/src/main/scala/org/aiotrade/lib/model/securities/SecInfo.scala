@@ -1,33 +1,38 @@
 package org.aiotrade.lib.model.securities
 
-import ru.circumflex.orm.LongIdPK
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
+import ru.circumflex.orm._
 
-object SecInfo extends Table[SecInfo] with LongIdPK[SecInfo] {
-  val sec = longColumn("sec_id").references(Sec)
-  val validFrom = longColumn("validfrom")
-  val validTo = longColumn("validTo").default("-1")
+object SecInfo extends Table[SecInfo] {
+  /**
+   * Belongs to one Sec
+   */
+  val sec = "sec_id" REFERENCES(Sec) ON_DELETE CASCADE //manyToOne(SecInfo.sec)
 
-  val symbol = stringColumn("symbol", 10).notNull//.unique.validateNotEmpty.validatePattern("^[a-zA-Z]{1,8}$")
-  val name = stringColumn("name", 40)
-  val totalShares = longColumn("totalShares")
-  val freeFloat = longColumn("freeFloat")
-  val tradingUnit = intColumn("tradingUnit")
-  val upperLimit = numericColumn("upperLimit", 12, 2)
-  val lowerLimit = numericColumn("lowerLimit", 12, 2)
+  val validFrom = "validFrom" BIGINT //field(SecInfo.validFrom)
+  val validTo = "validTo" BIGINT //field(SecInfo.validTo)
+  val symbol = "symbol" VARCHAR(10) DEFAULT("''") //field(SecInfo.symbol)
+  val name = "name" VARCHAR(40) DEFAULT("''") //field(SecInfo.name)
+  val totalShare = "totalShare" BIGINT //field(SecInfo.totalShares)
+  val freeFloat = "freeFloat" BIGINT //field(SecInfo.freeFloat)
+  val tradingUnit = "tradingUnit" INTEGER //field(SecInfo.tradingUnit)
+  val upperLimit = "upperLimit" FLOAT(12, 2)  //field(SecInfo.upperLimit)
+  val lowerLimit = "lowerLimit" FLOAT(12, 2)  //field(SecInfo.lowerLimit)
 }
 
-class SecInfo extends Record[SecInfo](SecInfo) {
-  val id = field(SecInfo.id)
-  val sec = manyToOne(SecInfo.sec)
-  val validFrom = field(SecInfo.validFrom)
-  val validTo = field(SecInfo.validTo)
-  val symbol = field(SecInfo.symbol)
-  val name = field(SecInfo.name)
-  val totalShare = field(SecInfo.totalShares)
-  val freeFloat = field(SecInfo.freeFloat)
-  val tradingUnit = field(SecInfo.tradingUnit)
-  val upperLimit = field(SecInfo.upperLimit)
-  val lowerLimit = field(SecInfo.lowerLimit)
+class SecInfo {
+  /**
+   * Belongs to one Sec
+   */
+  var sec: Sec = _
+  
+  var validFrom: Long = _
+  var validTo: Long = _
+  var symbol: String = ""
+  var name: String = ""
+  var totalShare: Long = _
+  var freeFloat: Long = _
+  var tradingUnit: Int = _
+  var upperLimit: Float = _
+  var lowerLimit: Float = _
 }
