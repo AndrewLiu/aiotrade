@@ -21,7 +21,7 @@ object Model {
       Company, CompanyIndustry, Industry,
       Exchange, ExchangeCloseDate,
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
-      Ticker, DealRecord
+      LightTicker, Ticker, DealRecord
     ).dropCreate.messages.foreach(msg => println(msg.body))
 
     val i = new Industry
@@ -73,22 +73,22 @@ object Model {
     Quote1m.save(quote1m)
 
     def makeTicker = {
-      val ticker = new Ticker
+      val ticker = new LightTicker
       ticker.quote = quote1d
       ticker.time = System.currentTimeMillis
       val bidAskDepth = 10
       val bidAsks = new Array[Float](bidAskDepth * 4)
-      ticker.bidAsks = ticker.encodeBidAsks(bidAsks)
-      Ticker.save(ticker)
+      //ticker.bidAsks = ticker.encodeBidAsks(bidAsks)
+      LightTicker.save(ticker)
     }
 
     for (i <- 0 until 10) makeTicker
 
 
-    val ticker1 = Ticker.get(1).get
-    val decodedBidAsks = ticker1.decodeBidAsks
-    val depth = decodedBidAsks.length / 4
-    println("Depth of bid ask: " + depth)
+    val ticker1 = LightTicker.get(1).get
+    //val decodedBidAsks = ticker1.decodeBidAsks
+    //val depth = decodedBidAsks.length / 4
+    //println("Depth of bid ask: " + depth)
 
     println("tickers of quote: " + (Quote1d.tickers(quote1d) map (x => x.time) mkString(", ")))
 
