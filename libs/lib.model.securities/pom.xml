@@ -16,7 +16,7 @@
         <dependency>
             <groupId>ru.circumflex</groupId>
             <artifactId>circumflex-orm</artifactId>
-            <version>0.9</version>
+            <version>1.1</version>
         </dependency>
 
         <dependency>
