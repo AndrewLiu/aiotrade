@@ -1,24 +1,23 @@
 package org.aiotrade.lib.securities.model
 
-import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
 
 object Sec extends Table[Sec] {
   val exchange = "exchange_id" REFERENCES(Exchange)
 
-  val validFrom = "validFrom" BIGINT //field(Sec.validFrom)
-  val validTo = "validTo" BIGINT //field(Sec.validTo)
+  val validFrom = "validFrom" BIGINT 
+  val validTo = "validTo" BIGINT
 
-  val company = "company_id" REFERENCES(Company) //manyToOne(Sec.company) // the current one. ont to one ?
-  def companyHists = inverse(Company.sec)//oneToMany(Company.sec)
+  val company = "company_id" REFERENCES(Company)
+  def companyHists = inverse(Company.sec)
 
-  val secInfo = "secInfo_id" REFERENCES(SecInfo) // manyToOne(Sec.secInfo) // the current one. one to one ?
-  def secInfoHists = inverse(SecInfo.sec) //oneToMany(SecInfo.sec)
+  val secInfo = "secInfo_id" REFERENCES(SecInfo) 
+  def secInfoHists = inverse(SecInfo.sec) 
   val secStatus = "secStatus_id" REFERENCES(SecStatus)
-  def secStatusHists = inverse(SecStatus.sec) //oneToMany(SecStatus.sec)
+  def secStatusHists = inverse(SecStatus.sec)
 
-  val secIssue = "secIssue_id" REFERENCES(SecIssue) //manyToOne(Sec.secIssue) // the current one. one to one ?
-  def secDividends = inverse(SecDividend.sec) //oneToMany(SecDividend.sec)
+  val secIssue = "secIssue_id" REFERENCES(SecIssue)
+  def secDividends = inverse(SecDividend.sec)
 
   def dailyQuotes = inverse(Quote1d.sec)
   def dailyMoneyFlow = inverse(MoneyFlow1d.sec)

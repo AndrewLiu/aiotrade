@@ -5,17 +5,21 @@ import ru.circumflex.orm.Criteria
 import ru.circumflex.orm.DDLUnit
 import ru.circumflex.orm.ORM._
 import ru.circumflex.orm._
+import scala.collection.mutable.HashMap
 
 /**
  * mysqldump5 -u root --no-data --database inca > nyapc.mysql
  */
 object Model {
+  val secs = new HashMap[String, Sec]
   
   def main(args: Array[String]) {
-    testSecurities
+    schema
+    (0 until 5) foreach save
+    select
   }
 
-  def testSecurities {
+  def schema = {
     new DDLUnit(
       Sec, SecDividend, SecInfo, SecIssue, SecStatus,
       Company, CompanyIndustry, Industry,
@@ -23,33 +27,40 @@ object Model {
       Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
       Ticker, DealRecord
     ).dropCreate.messages.foreach(msg => println(msg.body))
+  }
 
+  def save(i: Int) {
     val i = new Industry
     i.code = "0001"
     Industry.save(i)
 
-
-    val c = new Company
-    c.listDate = System.currentTimeMillis
-    c.shortName = "abc"
-    Company.save(c)
+    val com = new Company
+    com.listDate = System.currentTimeMillis
+    com.shortName = "abc"
+    Company.save(com)
 
     val inds = new CompanyIndustry
-    inds.company = c
+    inds.company = com
     inds.industry = i
     CompanyIndustry.save(inds)
 
-    println("company's listDate: " + c.listDate)
+    println("company's listDate: " + com.listDate)
     //println("company's industries: " + (c.industries.getValue map (_.industry) mkString(", ")))
 
+    val info = new SecInfo
+    info.symbol = "000001"
+    info.name = "???A"
+    SecInfo.save(info)
+
     val sec = new Sec
-    sec.company = c
+    sec.company = com
+    sec.secInfo = info
     Sec.save_!(sec)
 
-    c.sec = sec
-    Company.save_!(c)
-    //println("sec's current company: " + sec.company.getValue.shortName.getValue)
-    //println("sec's company history: " + (sec.companyHists.getValue map (_.shortName.getValue) mkString(", ")))
+    com.sec = sec
+    info.sec = sec
+    Company.update(com)
+    SecInfo.update(info)
 
     val cal = Calendar.getInstance
     val quote1d = new Quote
@@ -83,12 +94,15 @@ object Model {
     }
 
     for (i <- 0 until 10) makeTicker
+  }
 
-
+  def select {
     val ticker1 = Ticker.get(1).get
     val decodedBidAsks = ticker1.bidAsks
     val depth = decodedBidAsks.length / 4
     println("Depth of bid ask: " + depth)
+    
+    val quote1d = Quote1d.get(1).get
 
     println("tickers of quote: " + (Quote1d.tickers(quote1d) map (x => x.time) mkString(", ")))
 
@@ -100,7 +114,7 @@ object Model {
     )
 
     val co = Company as "co"
-    val ci = CompanyIndustry as "cis"
+    val ci = CompanyIndustry as "ci"
 
     val s1 = SELECT (co.*) FROM (co JOIN ci) WHERE ("co.shortName" LIKE "a") ORDER_BY ("co.shortName" ASC) list
     //val select1 = SELECT (co.*, cis.*) FROM (co JOIN cis) WHERE (co.shortName LIKE "a%") list
@@ -111,11 +125,32 @@ object Model {
     println("com: " + com.shortName + ", com.sec: " + com.sec)
     println("com's industries: " + (Company.industries(com) map (_.industry)))
     
-    
+    val sec = Sec.get(1).get
+
     val quotes = Sec.dailyQuotes(sec)
     com.sec.dailyQuotes ++= quotes
     println("sec's Quote: " + com.sec.dailyQuotes)
 
+    fetchAllSecs
+  }
+
+  private def fetchAllSecs {
+    /* .prefetch(Sec.secInfo.asInstanceOf[Association[Any, Any]]) */
+    val s = Sec as "sec"
+    val i = SecInfo as "info"
+    (SELECT (s.*, i.*) FROM (s JOIN i) list) foreach {case (sec, info) =>
+        if (info != null) {
+          println("sec's info: " + sec.secInfo)
+          println("secInfo's sec: " + info.sec)
+          secs += (info.symbol -> sec)
+        }
+    }
+//    Sec.all() foreach {sec =>
+//      Sec.secInfo(sec) match {
+//        case None =>
+//        case Some(info) => secs += (info.symbol -> sec)
+//      }
+//    }
   }
 
 
