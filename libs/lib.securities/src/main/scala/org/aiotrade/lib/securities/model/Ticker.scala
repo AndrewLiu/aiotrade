@@ -28,7 +28,7 @@ object Ticker extends Table[Ticker] {
   val time = "time" BIGINT
 
   val prevClose = "prevClose" FLOAT(12, 2)
-  val currPrice = "currPrice" FLOAT(12, 2)
+  val lastPrice = "lastPrice" FLOAT(12, 2)
 
   val dayOpen   = "dayOprn"   FLOAT(12, 2)
   val dayHigh   = "dayHigh"   FLOAT(12, 2)
@@ -100,7 +100,7 @@ class Ticker(val depth: Int) extends LightTicker {
     }
   }
 
-  def copyFrom(another: Ticker): Unit = {
+  def copyFrom(another: Ticker) = {
     super.copyFrom(another)
     System.arraycopy(another.bidAsks, 0, bidAsks, 0, bidAsks.length)
   }
@@ -142,12 +142,12 @@ class Ticker(val depth: Int) extends LightTicker {
   }
 
   final def changeInPercent: Float = {
-    if (prevClose == 0) 0f  else (currPrice - prevClose) / prevClose * 100f
+    if (prevClose == 0) 0f  else (lastPrice - prevClose) / prevClose * 100f
   }
 
-  final def compareLastCloseTo(prevTicker: Ticker): Int = {
-    if (currPrice > prevTicker.currPrice) 1
-    else if (currPrice == prevTicker.currPrice) 0
+  final def compareLastPriceTo(prevTicker: Ticker): Int = {
+    if (lastPrice > prevTicker.lastPrice) 1
+    else if (lastPrice == prevTicker.lastPrice) 0
     else 1
   }
 

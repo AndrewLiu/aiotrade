@@ -52,7 +52,7 @@ import org.aiotrade.lib.json.JsonSerializable
 
 private object LightTickerConstants {
   val PREV_CLOSE = 0
-  val CURR_PRICE = 1
+  val LAST_PRICE = 1
   val DAY_OPEN   = 2
   val DAY_HIGH   = 3
   val DAY_LOW    = 4
@@ -66,14 +66,14 @@ private object LightTickerConstants {
 import LightTickerConstants._
 @cloneable @serializable @SerialVersionUID(1L)
 class LightTicker extends TVal with JsonSerializable {
-  var quote: Quote = _
+  @transient var quote: Quote = _
 
   final var symbol: String = _
 
   private val data = new Array[Float](FIELD_LENGTH)
 
   final def prevClose = data(PREV_CLOSE)
-  final def currPrice = data(CURR_PRICE)
+  final def lastPrice = data(LAST_PRICE)
   final def dayOpen   = data(DAY_OPEN)
   final def dayHigh   = data(DAY_HIGH)
   final def dayLow    = data(DAY_LOW)
@@ -82,7 +82,7 @@ class LightTicker extends TVal with JsonSerializable {
   final def dayChange = data(DAY_CHANGE)
 
   final def prevClose_=(v: Float) = updateFieldValue(PREV_CLOSE, v)
-  final def currPrice_=(v: Float) = updateFieldValue(CURR_PRICE, v)
+  final def lastPrice_=(v: Float) = updateFieldValue(LAST_PRICE, v)
   final def dayOpen_=  (v: Float) = updateFieldValue(DAY_OPEN,   v)
   final def dayHigh_=  (v: Float) = updateFieldValue(DAY_HIGH,   v)
   final def dayLow_=   (v: Float) = updateFieldValue(DAY_LOW,    v)
