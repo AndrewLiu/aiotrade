@@ -36,8 +36,6 @@ import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.json.JsonOutputStreamWriter
 import org.aiotrade.lib.json.JsonSerializable
-import ru.circumflex.orm.Table
-import ru.circumflex.orm.ORM._
 
 /**
  *
@@ -51,25 +49,6 @@ import ru.circumflex.orm.ORM._
  *
  * @author Caoyuan Deng
  */
-
-object LightTicker extends Table[LightTicker] {
-  val quote = "quote_id" REFERENCES(Quote1d)
-
-  val time = "time" BIGINT
-
-  val prevClose = "prevClose" FLOAT(12, 2)
-  val currPrice = "currPrice" FLOAT(12, 2)
-
-  val dayOpen   = "dayOprn"   FLOAT(12, 2)
-  val dayHigh   = "dayHigh"   FLOAT(12, 2)
-  val dayLow    = "dayLow"    FLOAT(12, 2)
-  val dayVolume = "dayVolume" FLOAT(12, 2)
-  val dayAmount = "dayAmount" FLOAT(12, 2)
-
-  val dayChange = "dayChange" FLOAT(12, 2)
-
-  //val bidAsks = "bidAsks" VARBINARY(200)
-}
 
 private object LightTickerConstants {
   val PREV_CLOSE = 0

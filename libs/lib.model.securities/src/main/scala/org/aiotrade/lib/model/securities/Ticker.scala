@@ -1,74 +1,8 @@
 package org.aiotrade.lib.model.securities
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.util.Calendar
+import scala.swing.event.Event
 import ru.circumflex.orm.Table
-
-object Ticker extends Table[Ticker] {
-  val quote = "quote_id" REFERENCES(Quote1d)
-
-  val time = "time" BIGINT
-
-  val prevClose   = "prevClose"    FLOAT(12, 2)
-  val latestPrice = "lastestPrice" FLOAT(12, 2)
-
-  val dayOpen   = "dayOprn"   FLOAT(12, 2)
-  val dayHigh   = "dayHigh"   FLOAT(12, 2)
-  val dayLow    = "dayLow"    FLOAT(12, 2)
-  val dayVolume = "dayVolume" FLOAT(12, 2)
-  val dayAmount = "dayAmount" FLOAT(12, 2)
-
-  val dayChange = "dayChange" FLOAT(12, 2)
-
-  val bidAsks = "bidAsks" VARBINARY(200)
-}
-
-class Ticker {
-  var quote: Quote = _
-  
-  var time: Long = _
-
-  var prevClose: Float  = _
-  var latestPrice: Float  = _
-
-  var dayOpen   : Float  = _
-  var dayHigh   : Float  = _
-  var dayLow    : Float  = _
-  var dayVolume : Float  = _
-  var dayAmount : Float  = _
-
-  var dayChange : Float  = _
-
-  /**
-   * Array[Float](depth) readObject
-   */
-  var bidAsks: Array[Byte] = Array()
-
-  // ----- helpers
-  
-  def encodeBidAsks(values: Array[Float]) = {
-    val baos = new ByteArrayOutputStream
-    val dos = new ObjectOutputStream(baos)
-    try {
-      dos.writeObject(values)
-    } catch {case ioe: IOException =>}
-
-    baos.toByteArray
-  }
-
-  def decodeBidAsks: Array[Float] = {
-    val bais = new ByteArrayInputStream(bidAsks)
-    val dis = new ObjectInputStream(bais)
-    try {
-      dis.readObject.asInstanceOf[Array[Float]]
-    } catch {case ioe: IOException => Array[Float]()}
-  }
-
-}
-
 
 /**
  * Assume table BidAsk's structure:
@@ -87,3 +21,149 @@ class Ticker {
  }
 
  */
+
+object Ticker extends Table[Ticker] {
+  val quote = "quote_id" REFERENCES(Quote1d)
+
+  val time = "time" BIGINT
+
+  val prevClose = "prevClose" FLOAT(12, 2)
+  val currPrice = "currPrice" FLOAT(12, 2)
+
+  val dayOpen   = "dayOprn"   FLOAT(12, 2)
+  val dayHigh   = "dayHigh"   FLOAT(12, 2)
+  val dayLow    = "dayLow"    FLOAT(12, 2)
+  val dayVolume = "dayVolume" FLOAT(12, 2)
+  val dayAmount = "dayAmount" FLOAT(12, 2)
+
+  val dayChange = "dayChange" FLOAT(12, 2)
+
+  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
+}
+
+case class TickerEvent (source: Sec, ticker: Ticker) extends Event
+case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
+
+/**
+ *
+ * This is just a lightweight value object. So, it can be used to lightly store
+ * tickers at various time. That is, you can store many many tickers for same
+ * symbol efficiently, as in case of composing an one minute ser.
+ *
+ * The TickerSnapshot will present the last current snapshot ticker for one
+ * symbol, and implement Observable. You only need one TickerSnapshot for each
+ * symbol.
+ *
+ * @author Caoyuan Deng
+ */
+@serializable @cloneable
+class Ticker(val depth: Int) extends LightTicker {
+  @transient final protected var isChanged: Boolean = _
+
+  /**
+   * 0 - bid price
+   * 1 - bid size
+   * 2 - ask price
+   * 3 - ask size
+   */
+  var bidAsks = new Array[Float](depth * 4)
+
+  def this() = this(5)
+
+  override protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
+    isChanged = super.updateFieldValue(fieldIdx, v)
+    isChanged
+  }
+
+  final def bidPrice(idx: Int) = bidAsks(idx * 4)
+  final def bidSize (idx: Int) = bidAsks(idx * 4 + 1)
+  final def askPrice(idx: Int) = bidAsks(idx * 4 + 2)
+  final def askSize (idx: Int) = bidAsks(idx * 4 + 3)
+
+  final def setBidPrice(idx: Int, v: Float) = updateDepthValue(idx * 4, v)
+  final def setBidSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 1, v)
+  final def setAskPrice(idx: Int, v: Float) = updateDepthValue(idx * 4 + 2, v)
+  final def setAskSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 3, v)
+
+  private def updateDepthValue(idx: Int, v: Float) {
+    isChanged = bidAsks(idx) != v
+    bidAsks(idx) = v
+  }
+
+  override def reset {
+    super.reset
+
+    var i = 0
+    while (i < bidAsks.length) {
+      bidAsks(i) = 0
+      i += 1
+    }
+  }
+
+  def copyFrom(another: Ticker): Unit = {
+    super.copyFrom(another)
+    System.arraycopy(another.bidAsks, 0, bidAsks, 0, bidAsks.length)
+  }
+
+  final def isValueChanged(another: Ticker): Boolean = {
+    if (super.isValueChanged(another)) {
+      return true
+    }
+
+    var i = 0
+    while (i < bidAsks.length) {
+      if (bidAsks(i) != another.bidAsks(i)) {
+        return true
+      }
+
+      i += 1
+    }
+
+    false
+  }
+
+  final def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
+    dayVolume > prevTicker.dayVolume // && isSameDay(prevTicker) @todo
+  }
+
+  final def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
+    dayVolume != prevTicker.dayVolume // && isSameDay(prevTicker) @todo
+  }
+
+  final def isSameDay(prevTicker: Ticker, cal: Calendar): Boolean = {
+    cal.setTimeInMillis(time)
+    val monthA = cal.get(Calendar.MONTH)
+    val dayA = cal.get(Calendar.DAY_OF_MONTH)
+    cal.setTimeInMillis(prevTicker.time)
+    val monthB = cal.get(Calendar.MONTH)
+    val dayB = cal.get(Calendar.DAY_OF_MONTH)
+
+    monthB == monthB && dayA == dayB
+  }
+
+  final def changeInPercent: Float = {
+    if (prevClose == 0) 0f  else (currPrice - prevClose) / prevClose * 100f
+  }
+
+  final def compareLastCloseTo(prevTicker: Ticker): Int = {
+    if (currPrice > prevTicker.currPrice) 1
+    else if (currPrice == prevTicker.currPrice) 0
+    else 1
+  }
+
+  def toLightTicker: LightTicker = {
+    val light = new LightTicker
+    light.copyFrom(this)
+    light
+  }
+
+  override def clone: Ticker = {
+    try {
+      return super.clone.asInstanceOf[Ticker]
+    } catch {case ex: CloneNotSupportedException => ex.printStackTrace}
+
+    null
+  }
+}
+
+
