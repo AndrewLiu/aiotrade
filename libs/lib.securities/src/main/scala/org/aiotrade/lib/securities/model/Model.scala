@@ -1,14 +1,14 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
-import ru.circumflex.orm.Criteria
-import ru.circumflex.orm.DDLUnit
-import ru.circumflex.orm.ORM._
 import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
 
 /**
- * mysqldump5 -u root --no-data --database inca > nyapc.mysql
+ * mysqldump5 -u root --no-data --database inca > inca.mysql
+ *
+ *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
+ *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
  */
 object Model {
   val secs = new HashMap[String, Sec]
@@ -106,17 +106,15 @@ object Model {
 
     println("tickers of quote: " + (Quote1d.tickers(quote1d) map (x => x.time) mkString(", ")))
 
-    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
-    // SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
+    val co = Company
+    val ci = CompanyIndustry
 
-    Company.criteria.add("shortName" like "a%").list foreach (c =>
+    co.criteria.add(co.shortName like "a%").list foreach (c =>
       println(c.shortName)
     )
 
-    val co = Company as "co"
-    val ci = CompanyIndustry as "ci"
 
-    val s1 = SELECT (co.*) FROM (co JOIN ci) WHERE ("co.shortName" LIKE "a") ORDER_BY ("co.shortName" ASC) list
+    val s1 = SELECT (co.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a") ORDER_BY (co.shortName ASC) list
     //val select1 = SELECT (co.*, cis.*) FROM (co JOIN cis) WHERE (co.shortName LIKE "a%") list
 
     s1 foreach println
@@ -136,8 +134,8 @@ object Model {
 
   private def fetchAllSecs {
     /* .prefetch(Sec.secInfo.asInstanceOf[Association[Any, Any]]) */
-    val s = Sec as "sec"
-    val i = SecInfo as "info"
+    val s = Sec
+    val i = SecInfo
     (SELECT (s.*, i.*) FROM (s JOIN i) list) foreach {case (sec, info) =>
         if (info != null) {
           println("sec's info: " + sec.secInfo)
