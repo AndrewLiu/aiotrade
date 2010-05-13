@@ -1,4 +1,4 @@
-package org.aiotrade.lib.model.securities
+package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
 import scala.swing.event.Event

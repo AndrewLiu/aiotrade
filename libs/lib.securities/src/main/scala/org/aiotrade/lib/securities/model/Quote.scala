@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.model.securities
+package org.aiotrade.lib.securities.model
 
 
 import java.util.Calendar

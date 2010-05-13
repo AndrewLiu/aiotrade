@@ -1,4 +1,4 @@
-package org.aiotrade.lib.model.securities
+package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Record
 import ru.circumflex.orm.Table
