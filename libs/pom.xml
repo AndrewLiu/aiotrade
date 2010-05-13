@@ -143,7 +143,6 @@
         <module>lib.json</module>
         <module>lib.io</module>
         <module>lib.math</module>
-        <module>lib.model.securities</module>
         <module>lib.securities</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
