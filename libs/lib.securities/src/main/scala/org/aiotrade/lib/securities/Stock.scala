@@ -31,18 +31,15 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.securities.dataserver.{QuoteContract,TickerContract}
+import org.aiotrade.lib.securities.model.Sec
 
 /**
  *
  * @author Caoyuan Deng
  */
 class Stock(uniSymbol: String, quoteContracts: Seq[QuoteContract], tickerContract: TickerContract
-) extends AbstractSec(uniSymbol, quoteContracts, tickerContract) {
+) extends Sec(uniSymbol, quoteContracts, tickerContract) {
     
-  def this(uniSymbol: String, quoteContracts: Seq[QuoteContract]) {
-    this(uniSymbol, quoteContracts, null)
-  }
-
   /** Industry Classification Code */
   val icCode: String = ""
 }

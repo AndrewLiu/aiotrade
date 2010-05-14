@@ -31,6 +31,7 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.util.pool.{PoolableObjectFactory,StackObjectPool}
+import org.aiotrade.lib.securities.model.Ticker
 
 /**
  * @author Caoyuan Deng

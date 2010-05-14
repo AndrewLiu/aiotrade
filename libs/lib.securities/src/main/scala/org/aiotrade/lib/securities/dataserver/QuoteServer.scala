@@ -34,7 +34,11 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Exchange, Quote, PersistenceManager, QuoteSer}
+import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Quote
+
 import scala.swing.Reactor
 
 /**

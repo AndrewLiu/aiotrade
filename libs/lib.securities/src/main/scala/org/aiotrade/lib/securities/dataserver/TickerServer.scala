@@ -34,7 +34,9 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TUnit}
 import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
-import org.aiotrade.lib.securities.{Exchange, QuoteSer, Ticker, TickerSnapshot, PersistenceManager}
+import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot, PersistenceManager}
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap

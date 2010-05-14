@@ -32,6 +32,8 @@ package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.ServiceLoader
+import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Ticker
 
 /**
  *

@@ -2,8 +2,8 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object DealRecord extends Table[DealRecord] {
-  val quote = "quote_id" REFERENCES(Quote1d) //manyToOne(DealRecord.quote)
+object DealRecords extends Table[DealRecord] {
+  val quote = "quotes_id" REFERENCES(Quotes1d) //manyToOne(DealRecord.quote)
 
   val time = "time" BIGINT //field(DealRecord.time)
 

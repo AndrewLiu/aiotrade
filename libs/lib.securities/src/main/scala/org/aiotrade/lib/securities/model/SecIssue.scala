@@ -2,8 +2,8 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object SecIssue extends Table[SecIssue] {
-  val sec = "sec_id" REFERENCES(Sec) //oneToOne(Sec.secIssue)
+object SecIssues extends Table[SecIssue] {
+  val sec = "secs_id" REFERENCES(Secs) //oneToOne(Sec.secIssue)
 
   val par = "par" FLOAT(12, 2) //field(SecIssue.par)
   val price = "price" FLOAT(12, 2) //field(SecIssue.price)

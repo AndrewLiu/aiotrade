@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element

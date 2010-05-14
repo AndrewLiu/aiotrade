@@ -36,11 +36,11 @@ import java.util.Calendar
 import ru.circumflex.orm.Table
 import org.aiotrade.lib.math.timeseries.TVal
 
-object Quote1d extends QuoteTable
-object Quote1m extends QuoteTable
+object Quotes1d extends Quotes
+object Quotes1m extends Quotes
 
-abstract class QuoteTable extends Table[Quote] {
-  val sec = "sec_id" REFERENCES(Sec)
+abstract class Quotes extends Table[Quote] {
+  val sec = "secs_id" REFERENCES(Secs)
 
   val time = "time" BIGINT
 
@@ -57,8 +57,8 @@ abstract class QuoteTable extends Table[Quote] {
   val flag = "flag" INTEGER
 
   // Foreign keys
-  def tickers = inverse(Ticker.quote)
-  def dealRecords = inverse(Ticker.quote)
+  def tickers = inverse(Tickers.quote)
+  def dealRecords = inverse(Tickers.quote)
 }
 
 /**
@@ -66,18 +66,18 @@ abstract class QuoteTable extends Table[Quote] {
  *
  * @author Caoyuan Deng
  */
-private object QuoteConstants {
-  val OPEN      = 0
-  val HIGH      = 1
-  val LOW       = 2
-  val CLOSE     = 3
-  val VOLUME    = 4
-  val AMOUNT    = 5
-  val VWAP      = 6
-  val ADJWEIGHT = 7
+object Quote {
+  private val OPEN      = 0
+  private val HIGH      = 1
+  private val LOW       = 2
+  private val CLOSE     = 3
+  private val VOLUME    = 4
+  private val AMOUNT    = 5
+  private val VWAP      = 6
+  private val ADJWEIGHT = 7
 }
 
-import QuoteConstants._
+import Quote._
 @serializable
 class Quote extends TVal {
   var sec: Sec = _

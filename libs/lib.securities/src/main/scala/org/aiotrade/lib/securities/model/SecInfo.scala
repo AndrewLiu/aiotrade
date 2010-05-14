@@ -3,11 +3,11 @@ package org.aiotrade.lib.securities.model
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
-object SecInfo extends Table[SecInfo] {
+object SecInfos extends Table[SecInfo] {
   /**
    * Belongs to one Sec
    */
-  val sec = "sec_id" REFERENCES(Sec) ON_DELETE CASCADE //manyToOne(SecInfo.sec)
+  val sec = "secs_id" REFERENCES(Secs) ON_DELETE CASCADE //manyToOne(SecInfo.sec)
 
   val validFrom = "validFrom" BIGINT //field(SecInfo.validFrom)
   val validTo = "validTo" BIGINT //field(SecInfo.validTo)

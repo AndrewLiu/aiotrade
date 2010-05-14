@@ -2,8 +2,8 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object Company extends Table[Company] {
-  val sec = "sec_id" REFERENCES(Sec) //manyToOne(Company.sec)
+object Companies extends Table[Company] {
+  val sec = "secs_id" REFERENCES(Secs)
 
   val validFrom = "validFrom" BIGINT
   val validTo = "validTo" BIGINT //DEFAULT("-1")
@@ -11,7 +11,7 @@ object Company extends Table[Company] {
   val fullName = "fullName" VARCHAR(30) DEFAULT("''")
   val listDate = "listDate" BIGINT
   
-  def industries = inverse(CompanyIndustry.company) //oneToMany(CompanyIndustry.company)
+  def industries = inverse(CompanyIndustries.company)
 }
 
 class Company {

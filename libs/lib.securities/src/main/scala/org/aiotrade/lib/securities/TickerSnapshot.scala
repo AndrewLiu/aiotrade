@@ -32,9 +32,10 @@ package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.ChangeSubject
+import org.aiotrade.lib.securities.model.Ticker
 
 /**
- * We use composite pattern here, wrap a ticker instead of inheriting it. So we
+ * We use composite pattern here, wrap a Ticker instead of inheriting it. So we
  * can inherit ObservableHelper, and apply org.aiotrade.util.observer to it's observers.
  *
  * @author Caoyuan Deng

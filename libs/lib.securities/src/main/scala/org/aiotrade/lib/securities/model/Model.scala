@@ -21,45 +21,45 @@ object Model {
 
   def schema = {
     new DDLUnit(
-      Sec, SecDividend, SecInfo, SecIssue, SecStatus,
-      Company, CompanyIndustry, Industry,
-      Exchange, ExchangeCloseDate,
-      Quote1d, Quote1m, MoneyFlow1d, MoneyFlow1m,
-      Ticker, DealRecord
+      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
+      Companies, CompanyIndustries, Industries,
+      Exchanges, ExchangeCloseDates,
+      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
+      Tickers, DealRecords
     ).dropCreate.messages.foreach(msg => println(msg.body))
   }
 
   def save(i: Int) {
     val i = new Industry
     i.code = "0001"
-    Industry.save(i)
+    Industries.save(i)
 
     val com = new Company
     com.listDate = System.currentTimeMillis
     com.shortName = "abc"
-    Company.save(com)
+    Companies.save(com)
 
     val inds = new CompanyIndustry
     inds.company = com
     inds.industry = i
-    CompanyIndustry.save(inds)
+    CompanyIndustries.save(inds)
 
     println("company's listDate: " + com.listDate)
 
     val info = new SecInfo
     info.symbol = "000001"
     info.name = "???A"
-    SecInfo.save(info)
+    SecInfos.save(info)
 
     val sec = new Sec
     sec.company = com
     sec.secInfo = info
-    Sec.save_!(sec)
+    Secs.save_!(sec)
 
     com.sec = sec
     info.sec = sec
-    Company.update(com)
-    SecInfo.update(info)
+    Companies.update(com)
+    SecInfos.update(info)
 
     val cal = Calendar.getInstance
     val quote1d = new Quote
@@ -67,20 +67,20 @@ object Model {
     quote1d.sec = sec
     quote1d.time = cal.getTimeInMillis
     quote1d.open = 1
-    Quote1d.save(quote1d)
+    Quotes1d.save(quote1d)
 
     cal.add(Calendar.DAY_OF_YEAR, 1)
     val quote1da = new Quote
     quote1da.sec = sec
     quote1da.time = cal.getTimeInMillis
     quote1da.open = 1
-    Quote1d.save(quote1da)
+    Quotes1d.save(quote1da)
 
     val quote1m = new Quote
     quote1m.sec = sec
     quote1m.open = 1
     quote1m.time = System.currentTimeMillis
-    Quote1m.save(quote1m)
+    Quotes1m.save(quote1m)
 
     def makeTicker = {
       val ticker = new Ticker
@@ -89,24 +89,24 @@ object Model {
       val bidAskDepth = 10
       val bidAsks = new Array[Float](bidAskDepth * 4)
       ticker.bidAsks = bidAsks
-      Ticker.save(ticker)
+      Tickers.save(ticker)
     }
 
     for (i <- 0 until 10) makeTicker
   }
 
   def select {
-    val ticker1 = Ticker.get(1).get
+    val ticker1 = Tickers.get(1).get
     val decodedBidAsks = ticker1.bidAsks
     val depth = decodedBidAsks.length / 4
     println("Depth of bid ask: " + depth)
     
-    val quote1d = Quote1d.get(1).get
+    val quote1d = Quotes1d.get(1).get
 
-    println("tickers of quote: " + (Quote1d.tickers(quote1d) map (x => x.time) mkString(", ")))
+    println("tickers of quote: " + (Quotes1d.tickers(quote1d) map (x => x.time) mkString(", ")))
 
-    val co = Company
-    val ci = CompanyIndustry
+    val co = Companies
+    val ci = CompanyIndustries
 
     co.criteria.add(co.shortName like "a%").list foreach (c =>
       println(c.shortName)
@@ -116,14 +116,14 @@ object Model {
     val s1 = (SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list)
     s1 foreach println
 
-    val com = Company.get(1).get
-    Company.sec(com) // fetch com.sec
+    val com = Companies.get(1).get
+    Companies.sec(com) // fetch com.sec
     println("com: " + com.shortName + ", com.sec: " + com.sec)
-    println("com's industries: " + (Company.industries(com) map (CompanyIndustry.industry(_).getOrElse(null))))
+    println("com's industries: " + (Companies.industries(com) map (CompanyIndustries.industry(_).getOrElse(null))))
     
-    val sec = Sec.get(1).get
+    val sec = Secs.get(1).get
 
-    val quotes = Sec.dailyQuotes(sec)
+    val quotes = Secs.dailyQuotes(sec)
     println("sec's Quote: " + quotes)
     com.sec.dailyQuotes ++= quotes
     println("sec's Quote: " + com.sec.dailyQuotes)
@@ -133,8 +133,8 @@ object Model {
 
   private def fetchAllSecs {
     /* .prefetch(Sec.secInfo.asInstanceOf[Association[Any, Any]]) */
-    val s = Sec
-    val i = SecInfo
+    val s = Secs
+    val i = SecInfos
     (SELECT (s.*, i.*) FROM (s JOIN i) list) foreach {case (sec, info) =>
         if (info != null) {
           println("sec's info: " + sec.secInfo)

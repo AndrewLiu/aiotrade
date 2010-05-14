@@ -50,20 +50,20 @@ import org.aiotrade.lib.json.JsonSerializable
  * @author Caoyuan Deng
  */
 
-private object LightTickerConstants {
-  val PREV_CLOSE = 0
-  val LAST_PRICE = 1
-  val DAY_OPEN   = 2
-  val DAY_HIGH   = 3
-  val DAY_LOW    = 4
-  val DAY_VOLUME = 5
-  val DAY_AMOUNT = 6
-  val DAY_CHANGE = 7
+object LightTicker {
+  private val PREV_CLOSE = 0
+  private val LAST_PRICE = 1
+  private val DAY_OPEN   = 2
+  private val DAY_HIGH   = 3
+  private val DAY_LOW    = 4
+  private val DAY_VOLUME = 5
+  private val DAY_AMOUNT = 6
+  private val DAY_CHANGE = 7
 
-  val FIELD_LENGTH = 8
+  private val FIELD_LENGTH = 8
 }
 
-import LightTickerConstants._
+import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
 class LightTicker extends TVal with JsonSerializable {
   @transient var quote: Quote = _

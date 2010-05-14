@@ -2,11 +2,11 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object MoneyFlow1d extends MoneyFlowTable
-object MoneyFlow1m extends MoneyFlowTable
+object MoneyFlows1d extends MoneyFlows
+object MoneyFlows1m extends MoneyFlows
 
-abstract class MoneyFlowTable extends Table[MoneyFlow] {
-  val sec = "sec_id" REFERENCES(Sec) //manyToOne(table.sec)
+abstract class MoneyFlows extends Table[MoneyFlow] {
+  val sec = "secs_id" REFERENCES(Secs) //manyToOne(table.sec)
 
   val time = "time" BIGINT //field(table.time)
 

@@ -2,8 +2,8 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object SecStatus extends Table[SecStatus] {
-  val sec = "sec_id" REFERENCES(Sec) // manyToOne(SecStatus.sec)
+object SecStatuses extends Table[SecStatus] {
+  val sec = "secs_id" REFERENCES(Secs) // manyToOne(SecStatus.sec)
 
   val validFrom = "validFrom" BIGINT // field(SecStatus.validFrom)
   val validTo = "validTo" BIGINT //field(SecStatus.validTo)

@@ -32,6 +32,7 @@ package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.securities.model.Quote
 
 /**
  *
@@ -63,7 +64,7 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
 
         close_ori(time) = quote.close
 
-        val adjuestedClose = if (quote.close_adj != 0 ) quote.close_adj else quote.close
+        val adjuestedClose = if (quote.adjWeight != 0 ) quote.adjWeight else quote.close
         close_adj(time) = adjuestedClose
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }

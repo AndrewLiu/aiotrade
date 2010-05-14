@@ -22,8 +22,8 @@ import ru.circumflex.orm.Table
 
  */
 
-object Ticker extends Table[Ticker] {
-  val quote = "quote_id" REFERENCES(Quote1d)
+object Tickers extends Table[Ticker] {
+  val quote = "quotes_id" REFERENCES(Quotes1d)
 
   val time = "time" BIGINT
 

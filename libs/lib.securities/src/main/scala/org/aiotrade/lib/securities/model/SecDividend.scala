@@ -2,17 +2,17 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-object SecDividend extends Table[SecDividend] {
-  val sec = "sec_id" REFERENCES(Sec) //manyToOne(SecDividend.sec)
+object SecDividends extends Table[SecDividend] {
+  val sec = "secs_id" REFERENCES(Secs)
 
-  val prevClose = "prevClose" FLOAT(12, 2) //field(SecDividend.prevClose)
-  val adjWeight =  "adjWeight" FLOAT(12, 2) //field(SecDividend.adjWeight)
-  val cashBonus = "cashBonus" FLOAT(12, 2) //field(SecDividend.cashBonus)
-  val shareBobus = "shareBonus" FLOAT(12, 2) //field(SecDividend.shareBonus)
-  val shareRight =  "shareRight" FLOAT(12, 2) //field(SecDividend.right)
-  val shareRightPrice = "shareRightPrice" FLOAT(12, 2) //field(SecDividend.rightPrice)
-  val registerDate = "registerDate" BIGINT //field(SecDividend.registerDate)
-  val dividendDate = "dividendDate" BIGINT //field(SecDividend.dividendDate)
+  val prevClose = "prevClose" FLOAT(12, 2) 
+  val adjWeight =  "adjWeight" FLOAT(12, 2)
+  val cashBonus = "cashBonus" FLOAT(12, 2)
+  val shareBobus = "shareBonus" FLOAT(12, 2)
+  val shareRight =  "shareRight" FLOAT(12, 2) 
+  val shareRightPrice = "shareRightPrice" FLOAT(12, 2)
+  val registerDate = "registerDate" BIGINT
+  val dividendDate = "dividendDate" BIGINT
 }
 
 class SecDividend {
