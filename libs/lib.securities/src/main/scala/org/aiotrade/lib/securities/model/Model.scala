@@ -45,7 +45,6 @@ object Model {
     CompanyIndustry.save(inds)
 
     println("company's listDate: " + com.listDate)
-    //println("company's industries: " + (c.industries.getValue map (_.industry) mkString(", ")))
 
     val info = new SecInfo
     info.symbol = "000001"
@@ -114,18 +113,18 @@ object Model {
     )
 
 
-    val s1 = SELECT (co.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a") ORDER_BY (co.shortName ASC) list
-    //val select1 = SELECT (co.*, cis.*) FROM (co JOIN cis) WHERE (co.shortName LIKE "a%") list
-
+    val s1 = (SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list)
     s1 foreach println
 
     val com = Company.get(1).get
+    Company.sec(com) // fetch com.sec
     println("com: " + com.shortName + ", com.sec: " + com.sec)
-    println("com's industries: " + (Company.industries(com) map (_.industry)))
+    println("com's industries: " + (Company.industries(com) map (CompanyIndustry.industry(_).getOrElse(null))))
     
     val sec = Sec.get(1).get
 
     val quotes = Sec.dailyQuotes(sec)
+    println("sec's Quote: " + quotes)
     com.sec.dailyQuotes ++= quotes
     println("sec's Quote: " + com.sec.dailyQuotes)
 
