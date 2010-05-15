@@ -43,7 +43,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.swing.AIOScrollView;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;

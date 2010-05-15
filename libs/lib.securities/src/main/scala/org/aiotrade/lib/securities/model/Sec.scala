@@ -118,7 +118,7 @@ object Sec {
 class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
 ) extends SerProvider with Publisher with ChangeObserver {
   // --- database fields
-  var exchange: Exchange = _
+  var exchange: Exchange = Exchange.N
 
   var validFrom: Long = 0
   var validTo: Long = 0
@@ -169,7 +169,6 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
 
   private var _uniSymbol = $uniSymbol
 
-  //var exchange = Exchange.N
   var description = ""
   var name = $uniSymbol
   var defaultFreq: TFreq = _

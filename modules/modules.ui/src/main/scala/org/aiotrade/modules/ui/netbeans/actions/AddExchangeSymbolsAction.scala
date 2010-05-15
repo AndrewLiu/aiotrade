@@ -31,7 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.actions;
 
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent

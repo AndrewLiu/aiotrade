@@ -7,7 +7,7 @@ package org.aiotrade.modules.ui.netbeans.quicksearch
 
 import java.net.MalformedURLException
 import java.net.URL
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.spi.quicksearch.SearchProvider

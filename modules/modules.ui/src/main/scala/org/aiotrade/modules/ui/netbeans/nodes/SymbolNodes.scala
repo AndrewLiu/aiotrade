@@ -48,9 +48,9 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.util.swing.action.GeneralAction;

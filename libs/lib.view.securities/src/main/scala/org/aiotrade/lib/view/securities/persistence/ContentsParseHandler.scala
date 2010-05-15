@@ -43,7 +43,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException

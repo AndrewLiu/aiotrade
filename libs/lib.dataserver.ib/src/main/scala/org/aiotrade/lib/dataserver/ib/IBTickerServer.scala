@@ -32,7 +32,7 @@ package org.aiotrade.lib.dataserver.ib
 
 import com.ib.client.Contract
 import java.util.TimeZone
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 

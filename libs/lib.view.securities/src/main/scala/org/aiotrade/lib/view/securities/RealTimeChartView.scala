@@ -43,9 +43,9 @@ import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Ticker
+import org.aiotrade.lib.securities.model.Ticker
 import scala.swing.Reactor
 
 /**

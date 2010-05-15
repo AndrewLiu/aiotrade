@@ -38,7 +38,8 @@ import java.util.{Calendar, Date, Locale, TimeZone}
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.securities.{Exchange, Quote}
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
 import scala.annotation.tailrec
 
@@ -193,7 +194,7 @@ class YahooQuoteServer extends QuoteServer {
             quote.close  = closeX.trim.toFloat
             quote.volume = volumeX.trim.toFloat / 100f
             quote.amount = -1
-            quote.close_adj = adjCloseX.trim.toFloat
+            quote.adjWeight = adjCloseX.trim.toFloat
 
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime

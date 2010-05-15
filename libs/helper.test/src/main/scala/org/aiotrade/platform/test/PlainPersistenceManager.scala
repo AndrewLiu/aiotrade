@@ -10,8 +10,8 @@ package org.aiotrade.platform.test
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerServer
-import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.Ticker
+import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.indicator.Indicator

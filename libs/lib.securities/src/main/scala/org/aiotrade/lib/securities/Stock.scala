@@ -39,7 +39,11 @@ import org.aiotrade.lib.securities.model.Sec
  */
 class Stock(uniSymbol: String, quoteContracts: Seq[QuoteContract], tickerContract: TickerContract
 ) extends Sec(uniSymbol, quoteContracts, tickerContract) {
-    
+
+  def this(uniSymbol: String, quoteContract: Seq[QuoteContract]) = {
+    this(uniSymbol, quoteContract, null)
+  }
+
   /** Industry Classification Code */
   val icCode: String = ""
 }

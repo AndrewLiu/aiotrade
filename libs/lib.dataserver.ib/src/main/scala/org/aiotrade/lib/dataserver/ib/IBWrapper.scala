@@ -38,8 +38,8 @@ import java.text.SimpleDateFormat;
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.immutable.TreeMap

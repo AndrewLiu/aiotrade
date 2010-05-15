@@ -49,7 +49,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction

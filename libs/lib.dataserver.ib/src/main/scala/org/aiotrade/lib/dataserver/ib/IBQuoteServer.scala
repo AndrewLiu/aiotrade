@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import javax.imageio.ImageIO;
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.securities.Exchange
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 

@@ -8,6 +8,7 @@ import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
+import org.aiotrade.lib.securities.model._
 import org.aiotrade.lib.securities.dataserver._
 import org.aiotrade.lib.indicator.basic._
 

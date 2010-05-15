@@ -35,7 +35,7 @@ import java.lang.ref.WeakReference
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
 

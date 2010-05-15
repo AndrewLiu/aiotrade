@@ -49,8 +49,8 @@ import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.Quote
-import org.aiotrade.lib.securities.Ticker
+import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
@@ -615,7 +615,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt setFloat (5, quote.close)
         stmt setFloat (6, quote.volume)
         stmt setFloat (7, quote.amount)
-        stmt setFloat (8, quote.close_adj)
+        stmt setFloat (8, quote.adjWeight)
         stmt setFloat (9, quote.vwap)
         stmt setByte  (10, if (quote.hasGaps) -1 else 1)
         stmt setLong  (11, sourceId)
@@ -654,7 +654,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
           quote.close     = rs.getFloat("qclose")
           quote.volume    = rs.getFloat("qvolume")
           quote.amount    = rs.getFloat("qamount")
-          quote.close_adj = rs.getFloat("qclose_adj")
+          quote.adjWeight = rs.getFloat("qclose_adj")
           quote.vwap      = rs.getFloat("qvwap")
           quote.hasGaps   = (if (rs.getByte("qhasgaps") < 0) true else false)
           quote.sourceId  = rs.getLong("qsourceid")

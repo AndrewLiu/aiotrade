@@ -31,7 +31,7 @@
 package org.aiotrade.modules.ui.netbeans.actions
 
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.Sec
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.openide.util.HelpCtx
