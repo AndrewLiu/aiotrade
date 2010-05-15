@@ -154,10 +154,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
-  def restoreContents(symbol: String): AnalysisContents = {
+  def restoreContents(uniSymbol: String): AnalysisContents = {
     var contents: AnalysisContents = null
 
-    if (symbol.equalsIgnoreCase("Default")) {
+    if (uniSymbol.equalsIgnoreCase("Default")) {
       val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
       if (defaultContentsFile != null) {
         var is: InputStream = null

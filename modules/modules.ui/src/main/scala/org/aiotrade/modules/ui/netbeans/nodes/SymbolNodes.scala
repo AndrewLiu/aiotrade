@@ -606,12 +606,14 @@ object SymbolNodes {
       var mayNeedsReload = false
       val sec = contents.serProvider match {
         case null =>
-          val x = new Sec(contents.uniSymbol, List(quoteContract))
-          contents.serProvider = x
-          x
-        case x =>
+          val sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+          //new Sec(contents.uniSymbol, List(quoteContract))
+          sec.quoteContracts = List(quoteContract)
+          contents.serProvider = sec
+          sec
+        case sec =>
           mayNeedsReload = true
-          x.asInstanceOf[Sec]
+          sec.asInstanceOf[Sec]
       }
       
       var analysisTc = AnalysisChartTopComponent(contents)
@@ -665,7 +667,9 @@ object SymbolNodes {
       var sec = contents.serProvider match {
         case null =>
           contents.lookupActiveDescriptor(classOf[QuoteContract]) map {quoteContract =>
-            val sec = new Sec(contents.uniSymbol, List(quoteContract))
+            //val sec = new Sec(contents.uniSymbol, List(quoteContract))
+            val sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+            sec.quoteContracts = List(quoteContract)
             contents.serProvider = sec
             sec
           } getOrElse null
@@ -798,7 +802,9 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Sec(contents.uniSymbol, List(quoteContract))
+        //sec = new Sec(contents.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        sec.quoteContracts = List(quoteContract)
         contents.serProvider = sec
       } else {
         sec.dataContract = quoteContract
@@ -832,7 +838,9 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Sec(contents.uniSymbol, List(quoteContract))
+        //sec = new Sec(contents.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        sec.quoteContracts = List(quoteContract)
         contents.serProvider = sec
       } else {
         sec.dataContract = quoteContract
@@ -872,7 +880,9 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Sec(contents.uniSymbol, List(quoteContract))
+        //sec = new Sec(contents.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        sec.quoteContracts = List(quoteContract)
         contents.serProvider = sec
       }
 

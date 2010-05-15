@@ -115,8 +115,7 @@ object Sec {
   }
 }
 
-class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContract: TickerContract
-) extends SerProvider with Publisher with ChangeObserver {
+class Sec extends SerProvider with Publisher with ChangeObserver {
   // --- database fields
   var exchange: Exchange = Exchange.N
 
@@ -140,23 +139,7 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
   var minuteQuotes: List[Quote] = Nil
   var minuteMoneyFlow: List[MoneyFlow] = Nil
 
-  // an empty constructor for orm
-  def this() = this(null, Nil, null)
   // --- end of database fields
-
-  /**
-   * As it's a SerProvider, when new create it, we also assign a quoteContract
-   * to it, which is a the one with the default freq. And we can use it to
-   * subscribe data server for various freqs, since the data server will invoke
-   * the proper freq server according to ser's freq (the ser should be given to
-   * the server meanwhile when you subscribe.
-   *
-   * The default contract holds most of the information to be used.
-   */
-  def this(uniSymbol: String, quoteContract: Seq[QuoteContract]) = {
-    this(uniSymbol, quoteContract, null)
-  }
-
 
   type C = QuoteContract
   type T = QuoteSer
@@ -167,33 +150,45 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
   private val freqToSer = HashMap[TFreq, QuoteSer]()
   val tickers = ArrayBuffer[Ticker]()
 
-  private var _uniSymbol = $uniSymbol
-
   var description = ""
-  var name = $uniSymbol
+  var name = ""
   var defaultFreq: TFreq = _
+  private var _quoteContracts: Seq[QuoteContract] = Nil
+  private var _tickerContract: TickerContract = _
+
+  def quoteContracts = _quoteContracts
+  def quoteContracts_=(quoteContracts: Seq[QuoteContract]) {
+    _quoteContracts = quoteContracts
+    createFreqSers
+  }
+
+  /** create freq sers */
+  private def createFreqSers {
+    for (contract <- quoteContracts) {
+      val freq = contract.freq
+      if (defaultFreq == null) {
+        defaultFreq = freq
+      }
+      freqToQuoteContract(freq) = contract
+      freqToSer(freq) = new QuoteSer(freq)
+    }
+  }
+
+  /** tickerContract will always be built according to quoteContrat ? */
+  def tickerContract = {
+    if (_tickerContract == null) {
+      _tickerContract = new TickerContract
+    }
+    _tickerContract
+  }
+  def tickerContract_=(tickerContract: TickerContract) {
+    _tickerContract = tickerContract
+  }
 
   /**
    * @TODO, how about tickerServer switched?
    */
   lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-
-  /** create freq sers */
-  for (contract <- quoteContracts) {
-    val freq = contract.freq
-    if (defaultFreq == null) {
-      defaultFreq = freq
-    }
-    freqToQuoteContract(freq) = contract
-    freqToSer(freq) = new QuoteSer(freq)
-  }
-
-  /** tickerContract will always be built according to quoteContrat ? */
-  val tickerContract = if ($tickerContract == null) {
-    val tc = new TickerContract
-    tc.symbol = uniSymbol
-    tc
-  } else $tickerContract
 
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
   val tickerSer = new QuoteSer(tickerContract.freq)
@@ -242,7 +237,7 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to those maps.
    */
-  def loadSer(freq: TFreq): Boolean= synchronized {
+  def loadSer(freq: TFreq): Boolean = synchronized {
 
     /** ask contract instead of server */
     val contract = freqToQuoteContract  get(freq) getOrElse (return false)
@@ -280,10 +275,13 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
     freqToSer.get(freq) map (_.inLoading) getOrElse false
   }
 
-  def uniSymbol: String = _uniSymbol
-  def uniSymbol_=(symbol: String) {
-    _uniSymbol = symbol
-    //name = symbol.replace('.', '_')
+  def uniSymbol: String = 
+    if (secInfo != null) secInfo.uniSymbol else ""
+  def uniSymbol_=(uniSymbol: String) {
+    if (secInfo != null) {
+      secInfo.uniSymbol = uniSymbol
+    }
+    name = uniSymbol.replace('.', '_')
   }
 
   def stopAllDataServer {
@@ -304,10 +302,8 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
     "Company: " + company + ", info: " + secInfo
   }
 
-  def dataContract: QuoteContract = {
+  def dataContract: QuoteContract = 
     freqToQuoteContract(defaultFreq)
-  }
-
   def dataContract_=(quoteContract: QuoteContract) {
     val freq = quoteContract.freq
     freqToQuoteContract += (freq -> quoteContract)
@@ -315,9 +311,11 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
     freqToQuoteServer -= freq
   }
 
-
   def subscribeTickerServer {
-    assert(tickerContract != null, "ticker contract not set yet !")
+    if (uniSymbol == "") return
+
+    // always reset uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+    _tickerContract.symbol = uniSymbol
 
     /**
      * @TODO, temporary test code
@@ -335,7 +333,6 @@ class Sec($uniSymbol: String, quoteContracts: Seq[QuoteContract], $tickerContrac
   }
 
   private def startTickerServerIfNecessary {
-
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
       var chainSers: List[QuoteSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.

@@ -67,7 +67,9 @@ class YahooQuoteServerTest extends TestHelper {
 
     val quoteContracts = List(dailyQuoteContract, oneMinQuoteContract)
 
-    val sec = new Sec(symbol, quoteContracts, tickerContract)
+    val sec = Exchange.secOf(symbol).get
+    sec.quoteContracts = quoteContracts
+    sec.tickerContract = tickerContract
     val exchange = YahooQuoteServer.exchangeOf(symbol)
     sec.exchange = exchange
 
