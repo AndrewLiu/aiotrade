@@ -50,7 +50,7 @@ object Model {
     println("company's listDate: " + com.listDate)
 
     val info = new SecInfo
-    info.symbol = "000001"
+    info.uniSymbol = "000001.SS"
     info.name = "???A"
     SecInfos.save(info)
 
@@ -143,7 +143,7 @@ object Model {
         if (info != null) {
           println("sec's info: " + sec.secInfo)
           println("secInfo's sec: " + info.sec)
-          secs += (info.symbol -> sec)
+          secs += (info.uniSymbol -> sec)
         }
     }
 //    Sec.all() foreach {sec =>

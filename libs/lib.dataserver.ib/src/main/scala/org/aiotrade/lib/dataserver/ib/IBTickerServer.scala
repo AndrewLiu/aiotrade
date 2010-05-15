@@ -32,7 +32,6 @@ package org.aiotrade.lib.dataserver.ib
 
 import com.ib.client.Contract
 import java.util.TimeZone
-import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 
@@ -163,10 +162,6 @@ object IBTickerServer extends IBTickerServer {
 
   def sourceTimeZone: TimeZone = {
     TimeZone.getTimeZone("America/New_York")
-  }
-
-  override def exchangeOf(symbol: String) = {
-    Exchange.N
   }
 
 }

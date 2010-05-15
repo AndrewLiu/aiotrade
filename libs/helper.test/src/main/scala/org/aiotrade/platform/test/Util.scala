@@ -34,7 +34,6 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
 import org.aiotrade.lib.indicator.IndicatorDescriptor
@@ -106,7 +105,7 @@ class Util {
         createTickerContract(symbol, category, sname, freqOneMin, tickerServer)
       } else null
 
-    sec = new Stock(symbol, quoteContracts, tickerContract)
+    sec = new Sec(symbol, quoteContracts, tickerContract)
     val exchange =
       if (quoteServer.getName == classOf[YahooQuoteServer].getName) {
         YahooQuoteServer.exchangeOf(symbol)

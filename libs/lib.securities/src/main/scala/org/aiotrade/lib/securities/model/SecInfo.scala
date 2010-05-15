@@ -7,17 +7,17 @@ object SecInfos extends Table[SecInfo] {
   /**
    * Belongs to one Sec
    */
-  val sec = "secs_id" REFERENCES(Secs) ON_DELETE CASCADE //manyToOne(SecInfo.sec)
+  val sec = "secs_id" REFERENCES(Secs) ON_DELETE CASCADE
 
-  val validFrom = "validFrom" BIGINT //field(SecInfo.validFrom)
-  val validTo = "validTo" BIGINT //field(SecInfo.validTo)
-  val symbol = "symbol" VARCHAR(10) DEFAULT("''") //field(SecInfo.symbol)
-  val name = "name" VARCHAR(40) DEFAULT("''") //field(SecInfo.name)
-  val totalShare = "totalShare" BIGINT //field(SecInfo.totalShares)
-  val freeFloat = "freeFloat" BIGINT //field(SecInfo.freeFloat)
-  val tradingUnit = "tradingUnit" INTEGER //field(SecInfo.tradingUnit)
-  val upperLimit = "upperLimit" FLOAT(12, 2)  //field(SecInfo.upperLimit)
-  val lowerLimit = "lowerLimit" FLOAT(12, 2)  //field(SecInfo.lowerLimit)
+  val validFrom = "validFrom" BIGINT
+  val validTo = "validTo" BIGINT
+  val uniSymbol = "uniSymbol" VARCHAR(10) DEFAULT("''")
+  val name = "name" VARCHAR(40) DEFAULT("''")
+  val totalShare = "totalShare" BIGINT
+  val freeFloat = "freeFloat" BIGINT
+  val tradingUnit = "tradingUnit" INTEGER 
+  val upperLimit = "upperLimit" FLOAT(12, 2)
+  val lowerLimit = "lowerLimit" FLOAT(12, 2)
 }
 
 class SecInfo {
@@ -28,11 +28,11 @@ class SecInfo {
   
   var validFrom: Long = _
   var validTo: Long = _
-  var symbol: String = ""
+  var uniSymbol: String = ""
   var name: String = ""
   var totalShare: Long = _
   var freeFloat: Long = _
-  var tradingUnit: Int = _
-  var upperLimit: Float = _
-  var lowerLimit: Float = _
+  var tradingUnit: Int = 100
+  var upperLimit: Float = -1
+  var lowerLimit: Float = -1
 }

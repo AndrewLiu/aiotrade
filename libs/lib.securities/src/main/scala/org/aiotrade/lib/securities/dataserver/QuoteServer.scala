@@ -154,7 +154,7 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
 
     val size = quotes.length
     if (size > 0) {
-      val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
+      val cal = Calendar.getInstance(Exchange.exchangeOf(toUniSymbol(symbol)).timeZone)
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
@@ -190,8 +190,7 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
     }
   }
 
-  def exchangeOf(symbol: String): Exchange
-
-  def toSourceSymbol(exchange: Exchange, uniSymbol: String): String
+  def toSrcSymbol(uniSymbol: String): String = uniSymbol
+  def toUniSymbol(srcSymbol: String): String = srcSymbol
 }
 

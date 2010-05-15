@@ -197,6 +197,16 @@ object Exchange extends Publisher {
     }
   }
 
+  def exchangeOf(uniSymbol: String): Exchange = {
+    uniSymbol.toUpperCase.split('.') match {
+      case Array(symbol) => N
+      case Array(symbol, "L") => L
+      case Array(symbol, "SS") => SS
+      case Array(symbol, "SZ") => SZ
+      case _ => N
+    }
+  }
+
   lazy val SSSymbols = SSSymToName.keySet map (_ + ".SS") toList
 
   lazy val SSSymToName = TreeMap(

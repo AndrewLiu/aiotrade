@@ -47,7 +47,7 @@ import org.aiotrade.lib.charting.view.WithQuoteChart;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer;
 import org.aiotrade.lib.securities.PersistenceManager$;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.securities.Stock;
+import org.aiotrade.lib.securities.model.Sec;
 import org.aiotrade.lib.securities.dataserver.QuoteContract;
 import org.aiotrade.lib.securities.dataserver.QuoteServer;
 import org.openide.ErrorManager;
@@ -113,7 +113,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
 
         AnalysisContents contents = PersistenceManager$.MODULE$.apply().defaultContents();
         contents.addDescriptor(quoteContract);
-        Stock stock = new Stock(symbol, Nil.$colon$colon(quoteContract));
+        Sec stock = new Sec(symbol, Nil.$colon$colon(quoteContract));
         contents.serProvider_$eq(stock);
         if (!stock.isSerLoaded(quoteContract.freq())) {
             stock.loadSer(quoteContract.freq());

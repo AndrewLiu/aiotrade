@@ -251,24 +251,4 @@ class YahooQuoteServer extends QuoteServer {
   override def sourceTimeZone: TimeZone = {
     TimeZone.getTimeZone("America/New_York")
   }
-  
-  def exchangeOf(symbol: String): Exchange = {
-    YahooQuoteServer.exchangeOf(symbol)
-  }
-
-  def toSourceSymbol(exchange: Exchange, uniSymbol: String): String = {
-    exchange.code match {
-      case "NYSE" =>
-        uniSymbol
-      case "SHSE" =>
-        uniSymbol + ".SS"
-      case "SZSE" =>
-        uniSymbol + ".SZ"
-      case "LDSE" =>
-        uniSymbol + ".L"
-    }
-  }
 }
-
-
-

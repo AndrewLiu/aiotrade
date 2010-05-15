@@ -166,7 +166,7 @@ trait TestHelper {
     }
   }
 
-  def reportQuote(sec: Stock) {
+  def reportQuote(sec: Sec) {
     sec.uniSymbol
     println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
     sec.serOf(TFreq.DAILY)   foreach {x => println("daily: "  + x.size)}

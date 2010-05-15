@@ -51,7 +51,6 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.Stock
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.util.swing.action.GeneralAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
@@ -607,7 +606,7 @@ object SymbolNodes {
       var mayNeedsReload = false
       val sec = contents.serProvider match {
         case null =>
-          val x = new Stock(contents.uniSymbol, List(quoteContract))
+          val x = new Sec(contents.uniSymbol, List(quoteContract))
           contents.serProvider = x
           x
         case x =>
@@ -666,7 +665,7 @@ object SymbolNodes {
       var sec = contents.serProvider match {
         case null =>
           contents.lookupActiveDescriptor(classOf[QuoteContract]) map {quoteContract =>
-            val sec = new Stock(contents.uniSymbol, List(quoteContract))
+            val sec = new Sec(contents.uniSymbol, List(quoteContract))
             contents.serProvider = sec
             sec
           } getOrElse null
@@ -799,7 +798,7 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Stock(contents.uniSymbol, List(quoteContract))
+        sec = new Sec(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec
       } else {
         sec.dataContract = quoteContract
@@ -833,7 +832,7 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Stock(contents.uniSymbol, List(quoteContract))
+        sec = new Sec(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec
       } else {
         sec.dataContract = quoteContract
@@ -873,7 +872,7 @@ object SymbolNodes {
 
       var sec = contents.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        sec = new Stock(contents.uniSymbol, List(quoteContract))
+        sec = new Sec(contents.uniSymbol, List(quoteContract))
         contents.serProvider = sec
       }
 

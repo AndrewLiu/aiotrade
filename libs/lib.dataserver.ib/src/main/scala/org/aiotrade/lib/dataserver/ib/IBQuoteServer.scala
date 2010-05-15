@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.TimeZone;
 import javax.imageio.ImageIO;
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 
@@ -289,12 +288,6 @@ class IBQuoteServer extends QuoteServer {
   override def sourceTimeZone: TimeZone = {
     TimeZone.getTimeZone("America/New_York")
   }
-
-  def exchangeOf(symbol: String) = {
-    Exchange.N
-  }
-
-  def toSourceSymbol(exchange: Exchange, uniSymbol: String): String = uniSymbol
     
   /**
    * 1 1sec "<30;2000> S"

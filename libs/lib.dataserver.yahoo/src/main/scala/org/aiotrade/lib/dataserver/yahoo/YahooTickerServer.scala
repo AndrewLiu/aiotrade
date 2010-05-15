@@ -35,7 +35,6 @@ import java.net.{HttpURLConnection, URL}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
-import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import scala.annotation.tailrec
 
@@ -229,10 +228,6 @@ class YahooTickerServer extends TickerServer {
   def sourceSerialNumber = 1
 
   def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
-
-  override def exchangeOf(symbol: String): Exchange = {
-    return YahooQuoteServer.exchangeOf(symbol)
-  }
 }
 
 

@@ -179,7 +179,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
   def composeSer(symbol: String, tickerSer: QuoteSer, tickers: Array[Ticker]): TSerEvent = {
     var evt: TSerEvent = TSerEvent.None
 
-    val cal = Calendar.getInstance(exchangeOf(symbol).timeZone)
+    val cal = Calendar.getInstance(Exchange.exchangeOf(toUniSymbol(symbol)).timeZone)
     var begTime = Long.MaxValue
     var endTime = Long.MinValue
 
@@ -363,11 +363,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
     minuteSer.publish(TSerEvent.Updated(minuteSer, "", now, now))
   }
 
-  def exchangeOf(symbol: String): Exchange
-
   private class IntervalLastTickerPair {
     val currIntervalOne = new Ticker
     val prevIntervalOne = new Ticker
   }
 
+  def toSrcSymbol(uniSymbol: String): String = uniSymbol
+  def toUniSymbol(srcSymbol: String): String = srcSymbol
 }

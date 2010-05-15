@@ -120,7 +120,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       this ! Refreshed(loadedTime)
   }
 
-  // -- public interface
+  // -- public interfaces
+
   def displayName: String
 
   def defaultDateFormatPattern: String
@@ -244,7 +245,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   def sourceTimeZone: TimeZone
 
-  // -- end of public interface
+  // -- end of public interfaces
+
+  
   protected def init {
     start
   }
@@ -355,9 +358,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   override def compare(another: DataServer[V]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {
       if (this.hashCode < another.hashCode) -1
-      else {
-        if (this.hashCode == another.hashCode) 0 else 1
-      }
+      else if (this.hashCode == another.hashCode) 0
+      else 1
     } else {
       this.displayName.compareTo(another.displayName)
     }

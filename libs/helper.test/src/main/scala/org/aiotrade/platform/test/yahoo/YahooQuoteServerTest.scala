@@ -11,6 +11,7 @@ import org.aiotrade.lib.math.timeseries._
 import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
+import org.aiotrade.lib.securities.model._
 import org.aiotrade.lib.dataserver.yahoo._
 import org.aiotrade.platform.test.StockCode
 import org.aiotrade.platform.test.TestHelper
@@ -66,7 +67,7 @@ class YahooQuoteServerTest extends TestHelper {
 
     val quoteContracts = List(dailyQuoteContract, oneMinQuoteContract)
 
-    val sec = new Stock(symbol, quoteContracts, tickerContract)
+    val sec = new Sec(symbol, quoteContracts, tickerContract)
     val exchange = YahooQuoteServer.exchangeOf(symbol)
     sec.exchange = exchange
 
