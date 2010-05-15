@@ -33,7 +33,7 @@ package org.aiotrade.lib.securities.dataserver
 import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
@@ -47,7 +47,7 @@ import scala.swing.Reactor
  *
  * @author Caoyuan Deng
  */
-abstract class QuoteServer extends AbstractDataServer[Quote] with Reactor {
+abstract class QuoteServer extends DataServer[Quote] with Reactor {
   type C = QuoteContract
   type T = QuoteSer
 

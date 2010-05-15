@@ -468,7 +468,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         }
 
         QuoteServer selectedServer = (QuoteServer) evt.getItem();
-        Image icon = selectedServer.icon().get();
+        Image icon = (Image) selectedServer.icon().get();
         if (icon != null) {
             iconLabel.setIcon(new ImageIcon(icon));
         }

@@ -28,26 +28,103 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.datasource
+package org.aiotrade.lib.math.timeseries
+package datasource
 
 import java.awt.Image
+import java.awt.Toolkit
+import java.io.InputStream
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.TimeZone
-import org.aiotrade.lib.math.timeseries.TSer
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import org.aiotrade.lib.util.actors.ChainActor
+import org.aiotrade.lib.util.collection.ArrayList
+import scala.actors.Actor
+import scala.actors.Actor._
+import scala.collection.mutable.{HashMap}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
  *
+ * <K, V> data contract type, data pool type
+ *
  * @author Caoyuan Deng
  */
-trait DataServer extends Ordered[DataServer] {
+object DataServer {
+  lazy val DEFAULT_ICON: Option[Image] = {
+    val url = classOf[DataServer[_]].getResource("defaultIcon.gif")
+    if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
+  }
+
+  private var _executorService: ExecutorService = _
+  protected def executorService : ExecutorService = {
+    if (_executorService == null) {
+      _executorService = Executors.newFixedThreadPool(5)
+    }
+
+    _executorService
+  }
+
+}
+
+import DataServer._
+abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with ChainActor {
+
   type C <: DataContract[_]
   type T <: TSer
-    
+
+  case object LoadHistory
+  case object Refresh
+
+  trait ServerEvent
+  case class Loaded(loadedTime: Long) extends ServerEvent
+  case class Refreshed(loadedTime: Long) extends ServerEvent
+
+  val ANCIENT_TIME: Long = -1
+
+  protected val subscribingMutex = new Object
+  // --- Following maps should be created once here, since server may be singleton:
+  private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
+  private val subscribedContractToSer = new HashMap[C, T]
+  /** a quick seaching map */
+  private val subscribedSymbolToContract = new HashMap[String, C]
+  // --- Above maps should be created once here, since server may be singleton
+
+  /**
+   * key ser is the master one,
+   * values (if available) are that who concern key ser.
+   * Example: ticker ser also will compose today's quoteSer
+   */
+  private val serToChainSers = new HashMap[T, List[T]]
+  private var refreshTimer: Timer = _
+  protected var count: Int = 0
+  protected var loadedTime: Long = _
+  protected var fromTime: Long = _
+  protected var inputStream: Option[InputStream] = None
+
+  var inUpdating: Boolean = _
+
+  actorActions += {
+    case LoadHistory =>
+      loadedTime = loadFromPersistence
+      loadedTime = loadFromSource(loadedTime)
+      this ! Loaded(loadedTime)
+
+    case Refresh =>
+      loadedTime = loadFromSource(loadedTime)
+      this ! Refreshed(loadedTime)
+  }
+
+  // -- public interface
   def displayName: String
-    
+
   def defaultDateFormatPattern: String
-    
+
   /**
    *
    *
@@ -55,9 +132,10 @@ trait DataServer extends Ordered[DataServer] {
    * @param contract DataContract which contains all the type, market info for this source
    * @param ser the Ser that will be filled by this server
    */
-  def subscribe(contract: C, ser: T)
-    
-  /**
+  def subscribe(contract: C, ser: T): Unit =
+    subscribe(contract, ser, Nil)
+
+ /**
    * first ser is the master one,
    * second one (if available) is that who concerns first one, etc.
    * Example: tickering ser also will compose today's quoteSer
@@ -68,34 +146,225 @@ trait DataServer extends Ordered[DataServer] {
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: T, chainSers: List[T])
-    
-  def unSubscribe(contract: C)
-    
-  def isContractSubsrcribed(contract: C): Boolean
-    
-  def startLoadServer
-    
-  def startRefreshServer(refreshInterval: Int)
-    
-  def stopRefreshServer
-    
-  def createNewInstance: Option[DataServer]
+  def subscribe(contract: C, ser: T, chainSers: List[T]): Unit = subscribingMutex synchronized {
+    subscribedContractToSer += (contract -> ser)
+    subscribedSymbolToContract += (contract.symbol -> contract)
+    val chainSersX = chainSers ::: (serToChainSers.get(ser) getOrElse Nil)
+    serToChainSers += (ser -> chainSersX)
+  }
+
+  def unSubscribe(contract: C) = subscribingMutex synchronized {
+    cancelRequest(contract)
+    serToChainSers -= subscribedContractToSer.get(contract).get
+    subscribedContractToSer -= contract
+    subscribedSymbolToContract -= contract.symbol
+    releaseStorage(contract)
+  }
+
+  def isContractSubsrcribed(contract: C): Boolean =
+    subscribedSymbolToContract contains contract.symbol
+
+  def subscribedContracts: Iterator[C] =
+    subscribedContractToSer.keysIterator
+
+  def startLoadServer {
+    if (currentContract == None) {
+      assert(false, "dataContract not set!")
+    }
+
+    if (subscribedContractToSer.size == 0) {
+      assert(false, "none ser subscribed!")
+    }
+
+    this ! LoadHistory
+  }
+
+  def startRefreshServer(refreshInterval: Int) {
+    // in context of applet, a page refresh may cause timer into a unpredict status,
+    // so it's always better to restart this timer, so, cancel it first.
+    if (refreshTimer != null) {
+      refreshTimer.cancel
+    }
+
+    refreshTimer = new Timer("RefreshTimerOfDataServer")
+    refreshTimer.schedule(new TimerTask {
+        def run {
+          DataServer.this ! Refresh
+        }
+      }, 1000, refreshInterval)
+  }
+
+  def stopRefreshServer {
+    refreshTimer.cancel
+    refreshTimer = null
+
+    postStopRefreshServer
+  }
+
+  def createNewInstance: Option[DataServer[V]] = {
+    try {
+      val instance = getClass.newInstance.asInstanceOf[DataServer[V]]
+      instance.init
+
+      Option(instance)
+    } catch {
+      case ex: InstantiationException => ex.printStackTrace; None
+      case ex: IllegalAccessException => ex.printStackTrace; None
+    }
+  }
 
   /**
-   * @return a long type source id, the format will be only 1 none-zero bit,
-   *         the position of this bit is the source serial number
+   * Override it to return your icon
+   * @return a predifined image as the default icon
    */
-  def sourceId: Long
-    
+  def icon: Option[Image] = DEFAULT_ICON
+
+  /**
+   * Convert source sn to source id in format of :
+   * sn (0-63)       id (64 bits)
+   * 0               ..,0000,0000
+   * 1               ..,0000,0001
+   * 2               ..,0000,0010
+   * 3               ..,0000,0100
+   * 4               ..,0000,1000
+   * ...
+   * @return source id
+   */
+  def sourceId: Long = {
+    val sn = sourceSerialNumber
+    assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
+
+    if (sn == 0) 0 else 1 << (sn - 1)
+  }
+
   /**
    * @return serial number, valid only when >= 0
    */
   def sourceSerialNumber: Int
-    
-  def icon: Option[Image]
 
   def sourceTimeZone: TimeZone
+
+  // -- end of public interface
+  protected def init {
+    start
+  }
+
+  /** @Note DateFormat is not thread safe, so we always return a new instance */
+  protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
+    val pattern = currentContract.get.dateFormatPattern getOrElse defaultDateFormatPattern
+    val dateFormat = new SimpleDateFormat(pattern)
+    dateFormat.setTimeZone(timeZone)
+    dateFormat
+  }
+
+  protected def resetCount {
+    this.count = 0
+  }
+
+  protected def countOne {
+    this.count += 1
+
+    /*- @Reserve
+     * Don't do refresh in loading any more, it may cause potential conflict
+     * between connected refresh events (i.e. when processing one refresh event,
+     * another event occured concurrent.)
+     * if (count % 500 == 0 && System.currentTimeMillis() - startTime > 2000) {
+     *     startTime = System.currentTimeMillis();
+     *     preRefresh();
+     *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.RefreshInLoading, newestTime));
+     *     System.out.println("refreshed: count " + count);
+     * }
+     */
+  }
+
+  protected def storageOf(contract: C): ArrayList[V] = {
+    contractToStorage.get(contract) match {
+      case None =>
+        val x = new ArrayList[V]
+        contractToStorage synchronized {contractToStorage(contract) = x}
+        x
+      case Some(x) => x
+    }
+  }
+
+  /**
+   * @TODO
+   * temporary method? As in some data feed, the symbol is not unique,
+   * it may be same in different exchanges with different secType.
+   */
+  protected def contractOf(symbol: String): Option[C] = {
+    subscribedSymbolToContract.get(symbol)
+  }
+
+  private def releaseStorage(contract: C) {
+    /** don't get storage via getStorage(contract), which will create a new one if none */
+    for (storage <- contractToStorage.get(contract)) {
+      storage synchronized {storage.clear}
+    }
+    contractToStorage synchronized {contractToStorage.remove(contract)}
+  }
+
+  protected def isAscending(values: Array[V]): Boolean = {
+    val size = values.length
+    if (size <= 1) {
+      true
+    } else {
+      var i = 0
+      while (i < size - 1) {
+        if (values(i).time < values(i + 1).time) {
+          return true
+        } else if (values(i).time > values(i + 1).time) {
+          return false
+        }
+        i += 1
+      }
+      false
+    }
+  }
+
+  protected def currentContract: Option[C] = {
+    /**
+     * simplely return the contract currently in the front
+     * @Todo, do we need to implement a scheduler in case of multiple contract?
+     * Till now, only QuoteDataServer call this method, and they all use the
+     * per server per contract approach.
+     */
+    if (subscribedContracts.isEmpty) None else Some(subscribedContracts.next)
+  }
+
+  protected def serOf(contract: C): Option[T] = 
+    subscribedContractToSer.get(contract)
+
+  protected def chainSersOf(ser: T): List[T] = 
+    serToChainSers.get(ser) getOrElse Nil
+
+  protected def cancelRequest(contract: C) {
+  }
+
+  protected def postStopRefreshServer = ()
+
+  protected def loadFromPersistence: Long
+
+  /**
+   * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
+   *        process this condition.
+   * @return loadedTime
+   */
+  protected def loadFromSource(afterThisTime: Long): Long
+
+  override def compare(another: DataServer[V]): Int = {
+    if (this.displayName.equalsIgnoreCase(another.displayName)) {
+      if (this.hashCode < another.hashCode) -1
+      else {
+        if (this.hashCode == another.hashCode) 0 else 1
+      }
+    } else {
+      this.displayName.compareTo(another.displayName)
+    }
+  }
+
+  override def toString: String = displayName
 }
+
 
 

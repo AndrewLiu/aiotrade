@@ -8,14 +8,13 @@ import scala.swing.event.Event
 import ru.circumflex.orm.Table
 
 object Exchanges extends Table[Exchange] {
-  val name = "name" VARCHAR(10) DEFAULT("''") //field(Exchange.name)
-  val fullName = "fullName" VARCHAR(30) DEFAULT("''") //field(Exchange.fullName)
-  val openTime1 = "openTime1" BIGINT //field(Exchange.openTime1)
-  val closeTime1 = "closeTime1" BIGINT //field(Exchange.closeTime1)
-  val openTime2 = "openTime2" BIGINT //field(Exchange.openTime2)
-  val closeTime2 = "closeTime2" BIGINT //field(Exchange.closeTime2)
+  val code = "code" VARCHAR(4)
+  val name = "name" VARCHAR(10)
+  val fullName = "fullName" VARCHAR(30)
+  val timeZoneStr = "timeZoneStr" VARCHAR(30)
+  val openCloseHMs = "openCloseHMs" SERIALIZED(classOf[Array[Int]], 100)
 
-  def closeDates = inverse(ExchangeCloseDates.exchange) //oneToMany(ExchangeCloseDate.exchange)
+  def closeDates = inverse(ExchangeCloseDates.exchange)
   def secs = inverse(Secs.exchange)
 }
 
@@ -26,10 +25,10 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  val N   = new Exchange("N",  TimeZone.getTimeZone("America/New_York"), 9, 30, 16, 00)  // New York
-  val SS  = new Exchange("SS", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shanghai
-  val SZ  = new Exchange("SZ", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0) // Shenzhen
-  val L   = new Exchange("L",  TimeZone.getTimeZone("UTC"), 9, 30, 15, 0) // London
+  val N   = Exchange("N",  "America/New_York", Array(9, 30, 11, 30, 13, 0, 16, 0))  // New York
+  val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  val L   = Exchange("L",  "UTC", Array(9, 30, 11, 30, 13, 0, 15, 0)) // London
 
   val allExchanges = List(N, SS, SZ, L)
 
@@ -280,36 +279,42 @@ object Exchange extends Publisher {
     }
   }
 
+  def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
+    val exchange = new Exchange
+    exchange.code = code
+    exchange.timeZoneStr = timeZoneStr
+    exchange.openCloseHMs = openCloseHMs
+    exchange
+  }
 }
 
 
 import Exchange._
-class Exchange(val code: String, val timeZone: TimeZone, openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
+class Exchange {
 
   // --- database fields
-  def this() = this("", TimeZone.getTimeZone("Asia/Shanghai"), 9, 30, 15, 0)
-  
-  var name: String = ""
-  var fullName: String = ""
-  var openTime1: Long = _
-  var closeTime1: Long = _
-  var openTime2: Long = _
-  var closeTime2: Long = _
+  var code: String = "SS"
+  var name: String = "??"
+  var fullName: String = "???????"
+  var timeZoneStr: String = "Asia/Shanghai"
+  var openCloseHMs: Array[Int] = Array(9, 30, 11, 30, 13, 0, 15, 0)
 
   var closeDates: List[ExchangeCloseDate] = Nil
   var secs: List[Sec] = Nil
   // --- end database fields
 
-  val longDescription:  String = BUNDLE.getString(code + "_Long")
-  val shortDescription: String = BUNDLE.getString(code + "_Short")
+  lazy val longDescription:  String = BUNDLE.getString(code + "_Long")
+  lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
+  lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
 
-  val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
+  private lazy val openHour = openCloseHMs(0)
+  private lazy val openMin = openCloseHMs(1)
+  private lazy val closeHour = openCloseHMs(openCloseHMs.length - 2)
+  private lazy val closeMin = openCloseHMs(openCloseHMs.length - 1)
+
+  lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
   private var _symbols = List[String]()
-
-  def this(openHour: Int, openMin: Int, closeHour: Int, closeMin: Int) {
-    this("NYSE", TimeZone.getTimeZone("UTC"), openHour, openMin, closeHour, closeMin)
-  }
 
   def open: Calendar = {
     val cal = Calendar.getInstance(timeZone)

@@ -33,7 +33,7 @@ package org.aiotrade.lib.securities.dataserver
 import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TUnit}
-import org.aiotrade.lib.math.timeseries.datasource.AbstractDataServer
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot, PersistenceManager}
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
@@ -47,7 +47,7 @@ import scala.swing.Reactor
  *
  * @author Caoyuan Deng
  */
-abstract class TickerServer extends AbstractDataServer[Ticker] with ChangeObserver with Reactor {
+abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with Reactor {
   type C = TickerContract
   type T = QuoteSer
 

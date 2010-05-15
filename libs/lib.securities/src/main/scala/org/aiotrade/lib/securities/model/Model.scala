@@ -30,6 +30,9 @@ object Model {
   }
 
   def save(i: Int) {
+    Exchange.allExchanges foreach println
+    Exchange.allExchanges foreach Exchanges.save
+
     val i = new Industry
     i.code = "0001"
     Industries.save(i)
@@ -54,6 +57,7 @@ object Model {
     val sec = new Sec
     sec.company = com
     sec.secInfo = info
+    sec.exchange = Exchange.SS
     Secs.save_!(sec)
 
     com.sec = sec

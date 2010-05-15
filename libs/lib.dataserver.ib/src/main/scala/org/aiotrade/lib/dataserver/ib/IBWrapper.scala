@@ -134,7 +134,7 @@ object IBWrapper extends IBWrapper {
     }
   }
     
-  private def hisDataRequestorOf(reqId: Int): DataServer = {
+  private def hisDataRequestorOf(reqId: Int): DataServer[Quote] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.requestor
@@ -182,7 +182,7 @@ object IBWrapper extends IBWrapper {
     TWS_DATE_FORMAT
   }
     
-  def reqHistoricalData(requestor: DataServer, storage: ArrayList[Quote],
+  def reqHistoricalData(requestor: DataServer[Quote], storage: ArrayList[Quote],
                         contract: Contract, endDateTime: String, durationStr: String,
                         barSizeSetting: Int, whatToShow: String, useRTH: Int, formatDate: Int): Int = {
         
@@ -212,7 +212,7 @@ object IBWrapper extends IBWrapper {
     return reqId
   }
     
-  def reqMktData(requestor: DataServer, contract: Contract, tickerSnapshot: TickerSnapshot): Int = {
+  def reqMktData(requestor: DataServer[_], contract: Contract, tickerSnapshot: TickerSnapshot): Int = {
     val reqId = askReqId
         
     val mktReq = MarketDataRequest(
@@ -482,7 +482,7 @@ object IBWrapper extends IBWrapper {
   )
 
   private case class HistoricalDataRequest(
-    requestor: DataServer,
+    requestor: DataServer[Quote],
     storage: ArrayList[Quote],
     contract: Contract,
     endDateTime: String,
