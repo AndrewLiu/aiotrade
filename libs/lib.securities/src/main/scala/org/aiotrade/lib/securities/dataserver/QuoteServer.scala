@@ -34,11 +34,13 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.PersistenceManager
+//import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
-
+import org.aiotrade.lib.securities.model.Quotes1d
+import org.aiotrade.lib.securities.model.Quotes1m
+import org.aiotrade.lib.securities.model.Secs
 import scala.swing.Reactor
 
 /**
@@ -78,7 +80,13 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
      * 1. restore data from database
      */
     val freq = serToBeFilled.freq
-    val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
+    val sec = Exchange.secOf(contract.symbol).get
+    val quotes = if (freq == TFreq.DAILY) {
+      Secs.dailyQuotes(sec).toArray
+    } else if (freq == TFreq.ONE_MIN) {
+      Secs.minuteQuotes(sec).toArray
+    } else Array[Quote]()
+    //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
     composeSer(contract.symbol, serToBeFilled, quotes)
 
     /**
@@ -110,7 +118,14 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
 
       val freq = serToBeFilled.freq
       val storage = storageOf(contract).toArray
-      PersistenceManager().saveQuotes(contract.symbol, freq, storage, sourceId)
+      val sec = Exchange.secOf(contract.symbol).get
+      storage foreach {_.sec = sec}
+      if (freq == TFreq.DAILY) {
+        Quotes1d.insertBatch(storage)
+      } else if (freq == TFreq.ONE_MIN) {
+        Quotes1m.insertBatch(storage)
+      }
+      //PersistenceManager().saveQuotes(contract.symbol, freq, storage, sourceId)
 
       var evt = composeSer(contract.symbol, serToBeFilled, storage)
       //            if (evt != null) {
