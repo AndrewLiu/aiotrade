@@ -40,7 +40,7 @@ object Tickers extends Table[Ticker] {
 
   val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
 
-  INDEX(time)
+  INDEX("time_idx", time.name)
 }
 
 case class TickerEvent (source: Sec, ticker: Ticker) extends Event

@@ -17,7 +17,7 @@ object Exchanges extends Table[Exchange] {
   def closeDates = inverse(ExchangeCloseDates.exchange)
   def secs = inverse(Secs.exchange)
 
-  INDEX(code)
+  INDEX("code_idx", code.name)
 }
 
 object Exchange extends Publisher {

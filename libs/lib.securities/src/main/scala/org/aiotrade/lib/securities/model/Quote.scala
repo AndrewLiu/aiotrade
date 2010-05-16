@@ -60,7 +60,7 @@ abstract class Quotes extends Table[Quote] {
   def tickers = inverse(Tickers.quote)
   def dealRecords = inverse(Tickers.quote)
 
-  INDEX(time)
+  INDEX("time_idx", time.name)
 }
 
 /**
