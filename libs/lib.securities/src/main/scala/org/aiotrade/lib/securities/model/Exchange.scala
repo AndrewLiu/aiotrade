@@ -16,6 +16,8 @@ object Exchanges extends Table[Exchange] {
 
   def closeDates = inverse(ExchangeCloseDates.exchange)
   def secs = inverse(Secs.exchange)
+
+  INDEX(code)
 }
 
 object Exchange extends Publisher {
@@ -25,12 +27,20 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  val N   = Exchange("N",  "America/New_York", Array(9, 30, 11, 30, 13, 0, 16, 0))  // New York
-  val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-  val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  val L   = Exchange("L",  "UTC", Array(9, 30, 11, 30, 13, 0, 15, 0)) // London
+  def N  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "N" ) unique) getOrElse {
+    throw new Exception("Cannot find exchange of N(New York)")
+  }
+  def SS = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SS") unique) getOrElse {
+    throw new Exception("Cannot find exchange of SS(Shanghai)")
+  }
+  def SZ = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SZ") unique) getOrElse {
+    throw new Exception("Cannot find exchange of SZ(Shenzhen)")
+  }
+  def L  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "L" ) unique) getOrElse {
+    throw new Exception("Cannot find exchange of L(London)")
+  }
 
-  lazy val allExchanges = Exchanges.all()
+  def allExchanges = Exchanges.all()
 
   lazy val uniSymbolToSec = 
     (allExchanges map (x => secsOfExchange(x)) flatMap {secs =>

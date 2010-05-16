@@ -19,13 +19,29 @@ object Model {
     createSamples
   }
 
-  def test {
+  private def test {
     schema
-    (0 until 5) foreach save
-    select
+    sampleExchanges
+    (0 until 5) foreach testSave
+    testSelect
+  }
+
+  def createSamples = {
+    schema
+    sampleExchanges
+    sampleSecs
+    Exchange.allExchanges map (x => Exchange.symbolsOf(x).mkString(",")) foreach println
   }
 
   def schema {
+    List(
+      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
+      Companies, CompanyIndustries, Industries,
+      Exchanges, ExchangeCloseDates,
+      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
+      Tickers, DealRecords
+    ) foreach (_.invalideCaches)
+    
     new DDLUnit(
       Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Companies, CompanyIndustries, Industries,
@@ -35,7 +51,7 @@ object Model {
     ).dropCreate.messages.foreach(msg => println(msg.body))
   }
 
-  def save(i: Int) {
+  private def testSave(i: Int) {
     val i = new Industry
     i.code = "0001"
     Industries.save(i)
@@ -102,9 +118,9 @@ object Model {
     for (i <- 0 until 10) makeTicker
   }
 
-  def select {
-    val ticker1 = Tickers.get(1).get
-    val decodedBidAsks = ticker1.bidAsks
+  private def testSelect {
+    val ticker = Tickers.get(1).get
+    val decodedBidAsks = ticker.bidAsks
     val depth = decodedBidAsks.length / 4
     println("Depth of bid ask: " + depth)
     
@@ -157,15 +173,8 @@ object Model {
 //    }
   }
 
-  def createSamples = {
-    schema
-    sampleExchanges
-    sampleSecs
-    Exchange.allExchanges map (x => Exchange.symbolsOf(x).mkString(",")) foreach println
-  }
-
   def sampleExchanges = {
-    val exchanegs = List(Exchange.N, Exchange.SS, Exchange.SZ, Exchange.L)
+    val exchanegs = List(N, SS, SZ, L)
     exchanegs foreach println
     exchanegs foreach Exchanges.save
   }
@@ -202,6 +211,11 @@ object Model {
     secInfo.sec = sec
     SecInfos.update(secInfo)
   }
+
+  val N   = Exchange("N",  "America/New_York", Array(9, 30, 11, 30, 13, 0, 16, 0))  // New York
+  val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  val L   = Exchange("L",  "UTC", Array(9, 30, 11, 30, 13, 0, 15, 0)) // London
 
   val SSSymToName = TreeMap(
     "600000" -> "浦发银行",

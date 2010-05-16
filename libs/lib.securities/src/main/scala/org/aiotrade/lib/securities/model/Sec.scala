@@ -117,7 +117,7 @@ object Sec {
 
 class Sec extends SerProvider with Publisher with ChangeObserver {
   // --- database fields
-  var exchange: Exchange = Exchange.N
+  var exchange: Exchange = _
 
   var validFrom: Long = 0
   var validTo: Long = 0

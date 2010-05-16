@@ -59,6 +59,8 @@ abstract class Quotes extends Table[Quote] {
   // Foreign keys
   def tickers = inverse(Tickers.quote)
   def dealRecords = inverse(Tickers.quote)
+
+  INDEX(time)
 }
 
 /**
