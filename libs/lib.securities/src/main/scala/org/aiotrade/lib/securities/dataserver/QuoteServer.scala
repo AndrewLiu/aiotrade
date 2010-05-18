@@ -37,11 +37,8 @@ import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
-import org.aiotrade.lib.securities.model.Quotes
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
-import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.model.Secs
 import ru.circumflex.orm._
 import scala.swing.Reactor
 
@@ -127,7 +124,6 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
       } else if (freq == TFreq.ONE_MIN) {
         Quotes1m.insertBatch(storage)
       }
-      //PersistenceManager().saveQuotes(contract.symbol, freq, storage, sourceId)
 
       var evt = composeSer(contract.symbol, serToBeFilled, storage)
       //            if (evt != null) {

@@ -34,8 +34,8 @@ import java.util.logging.Logger
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
+import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.FillRecord
 import org.aiotrade.lib.securities.model.FillRecords
@@ -46,6 +46,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.ChangeObserver
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.swing.Reactor
@@ -73,14 +74,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
     case ts: TickerSnapshot =>
       val ticker = new Ticker
       ticker.copyFrom(ts)
+      // store ticker first, will batch process when got Refreshed event
       storageOf(contractOf(ts.symbol).get) += ticker
   }
 
   actorActions += {
-    case Loaded(loadedTime) =>
-      postLoad
-    case Refreshed(loadedTime) =>
-      postRefresh
+    case Loaded(loadedTime) => postLoad
+    case Refreshed(loadedTime) => postRefresh
   }
 
   reactions += {
@@ -134,6 +134,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
       val storage = storageOf(contract).toArray
       val sec = Exchange.secOf(contract.symbol).get
       val dailyQuote = lastQuoteOf(sec).dailyOne
+      assert(Quotes1d.idOf(dailyQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
       storage foreach (_.quote = dailyQuote)
       Tickers.insertBatch(storage)
 
@@ -153,6 +154,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
       val storage = storageOf(contract).toArray
       val sec = Exchange.secOf(contract.symbol).get
       val dailyQuote = lastQuoteOf(sec).dailyOne
+      assert(Quotes1d.idOf(dailyQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
       storage foreach (_.quote = dailyQuote)
       Tickers.insertBatch(storage)
       
@@ -209,6 +211,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
             
       val shouldReverseOrder = !isAscending(values)
 
+      val fillRecords = new Array[FillRecord](size)
       var ticker: Ticker = null // lastTicker will be stored in it
       val freq = tickerSer.freq
       var i = if (shouldReverseOrder) size - 1 else 0
@@ -216,6 +219,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
         ticker = tickers(i)
 
         val fillRecord = new FillRecord
+        fillRecords(i) = fillRecord
         fillRecord.quote = dailyQuote
         fillRecord.time = ticker.time
         
@@ -235,8 +239,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
             prev
         }
-
-        FillRecords.save(fillRecord)
 
         val time = freq.round(ticker.time, cal)
         val minuteQuote = minuteQuoteOf(sec, ticker.time, cal)
@@ -329,6 +331,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
       if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
         updateDailyQuote(dailyQuote, ticker)
         chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+      }
+
+      FillRecords.insertBatch(fillRecords)
+      val toBeClosed = minuteQuotesToBeClosed.toArray
+      if (toBeClosed.length > 0) {
+        Quotes1m.insertBatch(toBeClosed)
+        minuteQuotesToBeClosed.clear
       }
 
       /**
@@ -429,6 +438,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
    * @Note when day changes, should do secToLastQuote -= sec, this can be done
    * by listening to exchange's timer event
    */
+  private val minuteQuotesToBeClosed = new ArrayList[Quote]()
   protected def minuteQuoteOf(sec: Sec, time: Long, cal: Calendar): Quote = {
     val lastQuote = lastQuoteOf(sec)
     val now = TFreq.ONE_MIN.round(time, cal)
@@ -437,8 +447,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
-          // close and save prevOne
-          Quotes1m.save(prevOne)
+          minuteQuotesToBeClosed += prevOne
         }
 
         val quote = new Quote
@@ -449,4 +458,5 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
         quote
     }
   }
+
 }
