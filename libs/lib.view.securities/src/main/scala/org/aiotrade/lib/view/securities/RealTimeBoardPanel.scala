@@ -114,8 +114,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var depthCellAttr: DefaultCellAttribute = _
   private var infoTable: JTable = _
   private var depthTable: JTable = _
-  private var tickerTable: JTable = _
-  private var tickerModel: DefaultTableModel = _
+  private var fillTable: JTable = _
+  private var fillModel: DefaultTableModel = _
 
   initComponents
 
@@ -134,7 +134,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   for (ticker <- sec.tickers) {
     updateByTicker(ticker)
   }
-  scrollToLastRow(tickerTable)
+  scrollToLastRow(fillTable)
 
   reactions += {
     case TickerEvent(src: Sec, ticker: Ticker) =>
@@ -142,7 +142,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
         updateByTicker(ticker)
-        scrollToLastRow(tickerTable)
+        scrollToLastRow(fillTable)
         repaint()
       }
   }
@@ -249,23 +249,23 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
 
-    tickerModel = new DefaultTableModel(
+    fillModel = new DefaultTableModel(
       Array[Array[Object]](),
       Array[Object](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     )
 
-    tickerTable = new JTable(tickerModel)
-    tickerTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
-    tickerTable.setFocusable(false)
-    tickerTable.setCellSelectionEnabled(false)
-    tickerTable.setShowHorizontalLines(false)
-    tickerTable.setShowVerticalLines(false)
-    tickerTable.setForeground(Color.WHITE)
-    tickerTable.setBackground(LookFeel().backgroundColor)
-    tickerTable.setFillsViewportHeight(true)
-    val tickerHeader = tickerTable.getTableHeader
+    fillTable = new JTable(fillModel)
+    fillTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    fillTable.setFocusable(false)
+    fillTable.setCellSelectionEnabled(false)
+    fillTable.setShowHorizontalLines(false)
+    fillTable.setShowVerticalLines(false)
+    fillTable.setForeground(Color.WHITE)
+    fillTable.setBackground(LookFeel().backgroundColor)
+    fillTable.setFillsViewportHeight(true)
+    val tickerHeader = fillTable.getTableHeader
     if (tickerHeader != null) {
       tickerHeader.setForeground(Color.WHITE)
       tickerHeader.setBackground(LookFeel().backgroundColor)
@@ -280,14 +280,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     columnModel.getColumn(0).setMinWidth(12)
     columnModel.getColumn(1).setMinWidth(35)
 
-    columnModel = tickerTable.getColumnModel
+    columnModel = fillTable.getColumnModel
     columnModel.getColumn(0).setMinWidth(22)
     columnModel.getColumn(1).setMinWidth(30)
 
     /* @Note Border of JScrollPane may not be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
     tickerPane.setBackground(LookFeel().backgroundColor)
-    tickerPane.setViewportView(tickerTable)
+    tickerPane.setViewportView(fillTable)
     //tickerPane.getVerticalScrollBar.setUI(new BasicScrollBarUI)
 
     val infoBox = Box.createVerticalBox
@@ -312,11 +312,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     // --- update depth table
 
-    val currentSize = (ticker.dayVolume - prevTicker.dayVolume).toInt
+    val fillSize = (ticker.dayVolume - prevTicker.dayVolume).toInt
     val depth = ticker.depth
     val dealRow = 5
     depthModel.setValueAt("%8.2f" format ticker.lastPrice,              dealRow, 1)
-    depthModel.setValueAt(if (prevTicker == null) "-" else currentSize, dealRow, 2)
+    depthModel.setValueAt(if (prevTicker == null) "-" else fillSize, dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
@@ -405,12 +405,12 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     // --- update ticker table
 
     if (ticker.isDayVolumeGrown(prevTicker)) {
-      val tickerRow = Array(
+      val strikeRow = Array(
         sdf.format(lastTradeTime),
         "%5.2f" format ticker.lastPrice,
-        currentSize
+        fillSize
       )
-      tickerModel.addRow(tickerRow.asInstanceOf[Array[Object]])
+      fillModel.addRow(strikeRow.asInstanceOf[Array[Object]])
     }
 
     prevTicker.copyFrom(ticker)
@@ -418,14 +418,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def scrollToLastRow(table: JTable) {
-    if (tickerTable.getRowCount < 1) {
+    if (fillTable.getRowCount < 1) {
       return
     }
     
     // wrap in EDT to wait enough time to get rowCount updated
     SwingUtilities.invokeLater(new Runnable {
         def run {
-          showCell(tickerTable, tickerTable.getRowCount - 1, 0)
+          showCell(fillTable, fillTable.getRowCount - 1, 0)
         }
       })
   }
@@ -533,12 +533,12 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def test {
-    tickerModel.addRow(Array[Object]("00:01", "12334",     "1"))
-    tickerModel.addRow(Array[Object]("00:02", "12333",  "1234"))
-    tickerModel.addRow(Array[Object]("00:03", "12335", "12345"))
-    tickerModel.addRow(Array[Object]("00:04", "12334",   "123"))
-    tickerModel.addRow(Array[Object]("00:05", "12334",   "123"))
-    showCell(tickerTable, tickerTable.getRowCount - 1, 0)
+    fillModel.addRow(Array[Object]("00:01", "12334",     "1"))
+    fillModel.addRow(Array[Object]("00:02", "12333",  "1234"))
+    fillModel.addRow(Array[Object]("00:03", "12335", "12345"))
+    fillModel.addRow(Array[Object]("00:04", "12334",   "123"))
+    fillModel.addRow(Array[Object]("00:05", "12334",   "123"))
+    showCell(fillTable, fillTable.getRowCount - 1, 0)
   }
 }
 

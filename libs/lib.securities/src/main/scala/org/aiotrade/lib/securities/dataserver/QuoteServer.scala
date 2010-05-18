@@ -34,13 +34,15 @@ import java.util.{Calendar}
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-//import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Quotes
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Secs
+import ru.circumflex.orm._
 import scala.swing.Reactor
 
 /**
@@ -82,9 +84,9 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
     val freq = serToBeFilled.freq
     val sec = Exchange.secOf(contract.symbol).get
     val quotes = if (freq == TFreq.DAILY) {
-      Secs.dailyQuotes(sec).toArray
+      Quotes1d.closedQuotesOf(sec).toArray
     } else if (freq == TFreq.ONE_MIN) {
-      Secs.minuteQuotes(sec).toArray
+      Quotes1m.closedQuotesOf(sec).toArray
     } else Array[Quote]()
     //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
     composeSer(contract.symbol, serToBeFilled, quotes)

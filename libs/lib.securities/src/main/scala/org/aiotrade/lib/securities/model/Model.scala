@@ -39,7 +39,7 @@ object Model {
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, DealRecords
+      Tickers, FillRecords
     )
     
     new DDLUnit(tables: _*).dropCreate.messages.foreach(msg => println(msg.body))
