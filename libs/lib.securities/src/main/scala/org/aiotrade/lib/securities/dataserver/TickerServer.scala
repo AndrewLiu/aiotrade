@@ -32,15 +32,22 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
 import java.util.Calendar
-import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TUnit}
+import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot, PersistenceManager}
+import org.aiotrade.lib.securities.model.Tickers
+import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Quotes1d
+import org.aiotrade.lib.securities.model.Quotes1m
+import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.swing.Reactor
+import ru.circumflex.orm._
 
 /** This class will load the quote data from data source to its data storage: quotes.
  * @TODO it will be implemented as a Data Server ?
@@ -57,6 +64,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
   private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
   private val symbolToPrevTicker = new HashMap[String, Ticker]
+  private val secToLastQuote = new HashMap[Sec, LastQuote]
   private val cal = Calendar.getInstance
 
   val updater: Updater = {
@@ -122,7 +130,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
-      PersistenceManager().saveRealTimeTickers(storage, sourceId)
+      val sec = Exchange.secOf(contract.symbol).get
+      val dailyQuote = lastQuoteOf(sec).daily
+      storage foreach (_.quote = dailyQuote)
+      Tickers.insertBatch(storage)
 
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
@@ -131,14 +142,17 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
         case _ =>
       }
 
-      storage synchronized {storageOf(contract).clear}
+      storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
 
   protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
-      PersistenceManager().saveRealTimeTickers(storage, sourceId)
+      val sec = Exchange.secOf(contract.symbol).get
+      val dailyQuote = lastQuoteOf(sec).daily
+      storage foreach (_.quote = dailyQuote)
+      Tickers.insertBatch(storage)
       
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
@@ -183,8 +197,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
     var begTime = Long.MaxValue
     var endTime = Long.MinValue
 
+    val sec = Exchange.secOf(symbol).get
+    val dailyQuote = lastQuoteOf(sec).daily
     val size = tickers.length
     if (size > 0) {
+
       val values = new Array[Ticker](size)
       tickers.copyToArray(values, 0)
             
@@ -203,6 +220,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
         }
 
         val time = freq.round(ticker.time, cal)
+
+        val minuteQuote = minuteQuoteOf(sec, ticker.time, cal)
+
         symbolToIntervalLastTickerPair.get(symbol) match {
           case None =>
             /**
@@ -213,8 +233,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
             symbolToIntervalLastTickerPair(symbol) = intervalLastTickerPair
             intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
-            tickerSer.createOrClear(time)
-
             /**
              * As this is the first data of today:
              * 1. set OHLC = Ticker.LAST_PRICE
@@ -222,6 +240,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
              * so give it a small 0.0001 (if give it a 0, it will won't be calculated
              * in calcMaxMin() of ChartView)
              */
+            minuteQuote.open   = ticker.lastPrice
+            minuteQuote.high   = ticker.lastPrice
+            minuteQuote.low    = ticker.lastPrice
+            minuteQuote.close  = ticker.lastPrice
+            minuteQuote.volume = 0.00001F
+
+            tickerSer.createOrClear(time)
             tickerSer.open(time)   = ticker.lastPrice
             tickerSer.high(time)   = ticker.lastPrice
             tickerSer.low(time)    = ticker.lastPrice
@@ -247,6 +272,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
               intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
 
               /** a new interval starts, we'll need a new data */
+              minuteQuote.high = Float.MinValue
+              minuteQuote.low  = Float.MaxValue
+              minuteQuote.open = ticker.lastPrice
               tickerSer.createOrClear(time)
               tickerSer.high(time) = Float.MinValue
               tickerSer.low(time)  = Float.MaxValue
@@ -255,50 +283,48 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
             if (ticker.dayHigh > prevTicker.dayHigh) {
               /** this is a new high happened in this ticker */
+              minuteQuote.high = ticker.dayHigh
               tickerSer.high(time) = ticker.dayHigh
             }
+            minuteQuote.high = math.max(tickerSer.high(time), ticker.lastPrice)
             tickerSer.high(time) = math.max(tickerSer.high(time), ticker.lastPrice)
 
             if (prevTicker.dayLow != 0) {
               if (ticker.dayLow < prevTicker.dayLow) {
                 /** this is a new low that happened in this ticker */
+                minuteQuote.low = ticker.dayLow
                 tickerSer.low(time) = ticker.dayLow
               }
             }
             if (ticker.lastPrice != 0) {
+              minuteQuote.low = math.min(tickerSer.low(time), ticker.lastPrice)
               tickerSer.low(time) = math.min(tickerSer.low(time), ticker.lastPrice)
             }
 
+            minuteQuote.close = ticker.lastPrice
             tickerSer.close(time) = ticker.lastPrice
             val preVolume = intervalLastTickerPair.prevIntervalOne.dayVolume
             if (preVolume > 1) {
+              minuteQuote.volume = ticker.dayVolume - intervalLastTickerPair.prevIntervalOne.dayVolume
               tickerSer.volume(time) = ticker.dayVolume - intervalLastTickerPair.prevIntervalOne.dayVolume
             }
         }
 
         prevTicker.copyFrom(ticker)
 
-        if (shouldReverseOrder) {
-          i -= 1
-        } else {
-          i += 1
-        }
-
         begTime = math.min(begTime, time)
         endTime = math.max(endTime, time)
 
-        /**
-         * Now, try to update today's quoteSer with current last ticker
-         */
-        for (chainSer <- chainSersOf(tickerSer)) {
-          chainSer.freq match {
-            case TFreq.DAILY =>
-              updateDailyQuote(chainSer, ticker, cal)
-            case  TFreq.ONE_MIN =>
-              updateMinuteQuote(chainSer, ticker, tickerSer, cal)
-          }
-        }
+        // update 1m quoteSer with current last ticker
+        chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (updateQuoteSer(_, minuteQuote))
 
+        i += (if (shouldReverseOrder) -1 else 1)
+      }
+
+      // update daily quote and ser
+      if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+        updateDailyQuote(dailyQuote, ticker)
+        chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
       }
 
       /**
@@ -311,56 +337,47 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
        * no new ticker got, but should consider if need to update quoteSer
        * as the quote window may be just opened.
        */
-      symbolToPrevTicker.get(symbol) foreach {ticker =>
-        val today = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
-        for (ser <- chainSersOf(tickerSer) if ser.freq == TFreq.DAILY && ser.exists(today)) {
-          updateDailyQuote(ser, ticker, cal)
-        }
+      symbolToPrevTicker.get(symbol) match {
+        case Some(ticker) =>
+          if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+            updateDailyQuote(dailyQuote, ticker)
+            chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+          }
+        case None =>
       }
     }
 
     evt
   }
 
-  /**
-   * Try to update today's quote item according to ticker, if it does not
-   * exist, create a new one.
-   */
-  private def updateDailyQuote(dailySer: QuoteSer, ticker: Ticker, cal: Calendar) {
-    val now = TUnit.Day.beginTimeOfUnitThatInclude(ticker.time, cal)
-    dailySer.createOrClear(now)
-        
-    if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
-      dailySer.open(now)   = ticker.dayOpen
-      dailySer.high(now)   = ticker.dayHigh
-      dailySer.low(now)    = ticker.dayLow
-      dailySer.close(now)  = ticker.lastPrice
-      dailySer.volume(now) = ticker.dayVolume
-
-      dailySer.close_ori(now) = ticker.lastPrice
-      dailySer.close_adj(now) = ticker.lastPrice
-
-      /** be ware of fromTime here may not be same as ticker's event */
-      dailySer.publish(TSerEvent.Updated(dailySer, "", now, now))
-    }
+  private def updateDailyQuote(dailyQuote: Quote, ticker: Ticker) {
+    dailyQuote.open   = ticker.dayOpen
+    dailyQuote.high   = ticker.dayHigh
+    dailyQuote.low    = ticker.dayLow
+    dailyQuote.close  = ticker.lastPrice
+    dailyQuote.volume = ticker.dayVolume
+    dailyQuote.amount = ticker.dayAmount
   }
 
   /**
-   * Try to update today's quote according to ticker, if it does not
+   * Try to update today's quote item according to quote, if it does not
    * exist, create a new one.
    */
-  private def updateMinuteQuote(minuteSer: QuoteSer, ticker: Ticker, tickerSer: QuoteSer, cal: Calendar) {
-    val now = TUnit.Minute.beginTimeOfUnitThatInclude(ticker.time, cal)
-    minuteSer.createOrClear(now)
+  private def updateQuoteSer(seq: QuoteSer, quote: Quote) {
+    val now = quote.time
+    seq.createOrClear(now)
+        
+    seq.open(now)   = quote.open
+    seq.high(now)   = quote.high
+    seq.low(now)    = quote.low
+    seq.close(now)  = quote.close
+    seq.volume(now) = quote.volume
 
-    minuteSer.open(now)   = tickerSer.open(now)
-    minuteSer.high(now)   = tickerSer.high(now)
-    minuteSer.low(now)    = tickerSer.low(now)
-    minuteSer.close(now)  = tickerSer.close(now)
-    minuteSer.volume(now) = tickerSer.volume(now)
+    seq.close_ori(now) = quote.close
+    seq.close_adj(now) = quote.close
 
     /** be ware of fromTime here may not be same as ticker's event */
-    minuteSer.publish(TSerEvent.Updated(minuteSer, "", now, now))
+    seq.publish(TSerEvent.Updated(seq, "", now, now))
   }
 
   private class IntervalLastTickerPair {
@@ -370,4 +387,55 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol
+
+  protected case class LastQuote(var daily: Quote, var minute: Quote)
+
+  /**
+   * @Note when day changes, should do secToLastQuote -= sec, this can be done
+   * by listening to exchange's timer event
+   */
+  protected def lastQuoteOf(sec: Sec): LastQuote = {
+    secToLastQuote.get(sec) match {
+      case Some(lastQuote) => lastQuote
+      case None =>
+        val cal = Calendar.getInstance(sec.exchange.timeZone)
+        val now = TFreq.DAILY.round(System.currentTimeMillis, cal)
+
+        val quote = (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
+            (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ now)
+          ) unique) match {
+          case Some(quote) => quote
+          case None =>
+            val quote = new Quote
+            quote.time = now
+            quote.sec = sec
+            // @todo when to save it ?
+            //Quotes1d.save(quote)
+            quote
+        }
+
+        val lastQuote = LastQuote(quote, null)
+        secToLastQuote += (sec -> lastQuote)
+        lastQuote
+    }
+  }
+
+  /**
+   * @Note when day changes, should do secToLastQuote -= sec, this can be done
+   * by listening to exchange's timer event
+   */
+  protected def minuteQuoteOf(sec: Sec, time: Long, cal: Calendar): Quote = {
+    val lastQuote = lastQuoteOf(sec)
+    val now = TFreq.ONE_MIN.round(time, cal)
+    lastQuote.minute match {
+      case quote: Quote if quote.time == now => quote
+      case _ =>
+        val quote = new Quote
+        quote.time = now
+        quote.sec = sec
+        Quotes1m.save(quote)
+        lastQuote.minute = quote
+        quote
+    }
+  }
 }

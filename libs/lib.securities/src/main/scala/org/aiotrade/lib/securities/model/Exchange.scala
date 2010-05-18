@@ -27,16 +27,16 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  def N  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "N" ) unique) getOrElse {
+  lazy val N  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "N" ) unique) getOrElse {
     throw new Exception("Cannot find exchange of N(New York)")
   }
-  def SS = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SS") unique) getOrElse {
+  lazy val SS = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SS") unique) getOrElse {
     throw new Exception("Cannot find exchange of SS(Shanghai)")
   }
-  def SZ = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SZ") unique) getOrElse {
+  lazy val SZ = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SZ") unique) getOrElse {
     throw new Exception("Cannot find exchange of SZ(Shenzhen)")
   }
-  def L  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "L" ) unique) getOrElse {
+  lazy val L  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "L" ) unique) getOrElse {
     throw new Exception("Cannot find exchange of L(London)")
   }
 

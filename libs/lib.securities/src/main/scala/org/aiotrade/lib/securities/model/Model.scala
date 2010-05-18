@@ -15,7 +15,7 @@ object Model {
   val secs = new HashMap[String, Sec]
   
   def main(args: Array[String]) {
-    test
+    //test
     createSamples
   }
 
@@ -34,21 +34,15 @@ object Model {
   }
 
   def schema {
-    List(
+    val tables = List(
       Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
       Tickers, DealRecords
-    ) foreach (_.invalideCaches)
+    )
     
-    new DDLUnit(
-      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
-      Companies, CompanyIndustries, Industries,
-      Exchanges, ExchangeCloseDates,
-      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, DealRecords
-    ).dropCreate.messages.foreach(msg => println(msg.body))
+    new DDLUnit(tables: _*).dropCreate.messages.foreach(msg => println(msg.body))
   }
 
   private def testSave(i: Int) {
