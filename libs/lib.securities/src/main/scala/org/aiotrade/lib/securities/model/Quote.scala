@@ -58,7 +58,7 @@ abstract class Quotes extends Table[Quote] {
 
   // Foreign keys
   def tickers = inverse(Tickers.quote)
-  def dealRecords = inverse(Tickers.quote)
+  def fillRecords = inverse(FillRecords.quote)
 
   INDEX("time_idx", time.name)
 }
@@ -118,7 +118,7 @@ class Quote extends TVal {
 
   // Foreign keys
   var tickers: List[Ticker] = Nil
-  var dealRecords: List[Ticker] = Nil
+  var fillRecords: List[FillRecord] = Nil
 
   def reset {
     time = 0
@@ -142,31 +142,3 @@ class Quote extends TVal {
     " V: " + data(VOLUME)
   }
 }
-
-
-//class Quote {
-//  var sec: Sec = _
-//
-//  var time: Long = _
-//
-//  var open:   Float = _
-//  var high:   Float = _
-//  var low:    Float = _
-//  var close:  Float = _
-//  var volume: Float = _
-//  var amount: Float = _
-//
-//  var adjWeight: Float   = _
-//
-//  /**
-//   * 0 means unclosed
-//   * > 0 means closed
-//   * 0000,000X closed
-//   * 0000,00X0 verified
-//   */
-//  var flag: Int = 0
-//
-//  // Foreign keys
-//  var tickers: List[Ticker] = Nil
-//  var dealRecords: List[Ticker] = Nil
-//}

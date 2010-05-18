@@ -6,23 +6,27 @@ object MoneyFlows1d extends MoneyFlows
 object MoneyFlows1m extends MoneyFlows
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
-  val sec = "secs_id" REFERENCES(Secs) //manyToOne(table.sec)
+  val sec = "secs_id" REFERENCES(Secs)
 
-  val time = "time" BIGINT //field(table.time)
+  val time = "time" BIGINT
 
-  val totalVolume = "totalVolume" FLOAT(18, 2) //field(table.totalVolume)
-  val totalAmount = "totalAmount" FLOAT(18, 2) //field(table.totalAmount)
+  val totalVolume = "totalVolume" FLOAT(18, 2)
+  val totalAmount = "totalAmount" FLOAT(18, 2)
 
-  val superVolume = "superVolume" FLOAT(18, 2) //field(table.superVolume)
-  val superAmount = "superAmount" FLOAT(18, 2) //field(table.superAmount)
+  val superVolume = "superVolume" FLOAT(18, 2)
+  val superAmount = "superAmount" FLOAT(18, 2)
 
-  val grandVolume = "grandVolume" FLOAT(18, 2) //field(table.grandVolume)
-  val grangAmount = "grandAmount" FLOAT(18, 2) //field(table.grandAmount)
+  val largeVolume = "largeVolume" FLOAT(18, 2)
+  val largeAmount = "largeAmount" FLOAT(18, 2)
 
-  val smallVolume = "smallVolume" FLOAT(18, 2) //field(table.smallVolume)
-  val smallAmount = "smallAmount" FLOAT(18, 2) //field(table.smallAmount)
+  val smallVolume = "smallVolume" FLOAT(18, 2)
+  val smallAmount = "smallAmount" FLOAT(18, 2)
 }
 
+
+/**
+ * The definition of "super/large/small block" will depond on amount
+ */
 class MoneyFlow {
   var sec: Sec = _
   
@@ -34,8 +38,8 @@ class MoneyFlow {
   var superVolume: Float = _
   var superAmount: Float = _
 
-  var grandVolume: Float = _
-  var grangAmount: Float = _
+  var largeVolume: Float = _
+  var largeAmount: Float = _
 
   var smallVolume: Float = _
   var smallAmount: Float = _
