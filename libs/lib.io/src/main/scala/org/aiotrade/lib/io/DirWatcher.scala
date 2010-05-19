@@ -8,16 +8,11 @@ import java.util.TimerTask
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
-abstract class Event(file: File)
-case class Added(file: File) extends Event(file)
-case class Deleted(file: File) extends Event(file)
-case class Modified(file: File) extends Event(file)
-
 object DirWatcher {
   // ----- simple test
   def main(args: Array[String]) {
     val task = new DirWatcher("temp", "txt" ) {
-      protected def onChange(event: Event) {
+      override protected def onChange(event: FileEvent) {
         println(event)
       }
     }
@@ -27,13 +22,18 @@ object DirWatcher {
   }
 }
 
-abstract class DirWatcher(path: String, filter: String) extends TimerTask {
+class DirWatcher(path: String, filter: String) extends TimerTask with scala.swing.Publisher {
   private val dfw = new DirFilterWatcher(filter)
   private val dirs = new HashMap ++ (new File(path) listFiles dfw map (x => x -> x.lastModified))
 
   def this(path: String) = this(path, "")
 
   final def run {
+    apply()
+  }
+
+  /** always add () for empty apply method */
+  final def apply() {
     val files = new File(path) listFiles dfw
     val checkedFiles = new HashSet[File]
 
@@ -46,11 +46,11 @@ abstract class DirWatcher(path: String, filter: String) extends TimerTask {
         case None =>
           // new file
           dirs += (file -> file.lastModified)
-          onChange(Added(file))
+          onChange(FileAdded(file))
         case Some(lastModified) if lastModified != file.lastModified =>
           // modified file
           dirs += (file -> file.lastModified)
-          onChange(Modified(file))
+          onChange(FileModified(file))
         case _ =>
       }
       
@@ -61,11 +61,16 @@ abstract class DirWatcher(path: String, filter: String) extends TimerTask {
     val deletedfiles = dirs.clone.keySet -- checkedFiles
     deletedfiles foreach {file =>
       dirs -= file
-      onChange(Deleted(file))
+      onChange(FileDeleted(file))
     }
   }
 
-  protected def onChange(event: Event): Unit
+  /**
+   * Override it if you want sync processing
+   */
+  protected def onChange(event: FileEvent) {
+    publish(event)
+  }
 }
 
 class DirFilterWatcher(filter: String) extends FileFilter {
