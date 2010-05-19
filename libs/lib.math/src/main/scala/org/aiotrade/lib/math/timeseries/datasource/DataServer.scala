@@ -33,7 +33,6 @@ package datasource
 
 import java.awt.Image
 import java.awt.Toolkit
-import java.io.InputStream
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -41,7 +40,6 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.util.actors.ChainActor
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.actors.Actor
 import scala.actors.Actor._
@@ -49,13 +47,10 @@ import scala.collection.mutable.{HashMap}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
- *
- * <K, V> data contract type, data pool type
  *
  * @author Caoyuan Deng
  */
-object DataServer {
+object DataServer extends scala.swing.Publisher {
   lazy val DEFAULT_ICON: Option[Image] = {
     val url = classOf[DataServer[_]].getResource("defaultIcon.gif")
     if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
@@ -70,22 +65,38 @@ object DataServer {
     _executorService
   }
 
+  case class HeartBeat(interval: Long) extends scala.swing.event.Event
+  
+  val heartBeatInterval = 3000
+  val heartBeatTimer = new Timer("DataServer Heart Beat Timer")
+  startHeartBeatTimer
+  
+  def startHeartBeatTimer {
+    // in context of applet, a page refresh may cause timer into a unpredict status,
+    // so it's always better to restart this timer? , if so, cancel it first.
+    //    if (timer != null) {
+    //      timer.cancel
+    //    }
+    //    timer = new Timer("DataServer Heart Beat Timer")
+
+    heartBeatTimer.schedule(new TimerTask {
+        def run {
+          publish(HeartBeat(heartBeatInterval))
+        }
+      }, 1000, heartBeatInterval)
+  }
 }
 
+/**
+ * V data storege type
+ */
 import DataServer._
-abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with ChainActor {
+abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with scala.swing.Reactor {
 
   type C <: DataContract[_]
   type T <: TSer
 
-  case object LoadHistory
-  case object Refresh
-
-  trait ServerEvent
-  case class Loaded(loadedTime: Long) extends ServerEvent
-  case class Refreshed(loadedTime: Long) extends ServerEvent
-
-  val ANCIENT_TIME: Long = -1
+  val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
@@ -101,47 +112,81 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * Example: ticker ser also will compose today's quoteSer
    */
   private val serToChainSers = new HashMap[T, List[T]]
-  private var refreshTimer: Timer = _
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _
-  protected var inputStream: Option[InputStream] = None
-
   var inUpdating: Boolean = _
 
-  actorActions += {
-    case LoadHistory =>
-      loadedTime = loadFromPersistence
-      loadedTime = loadFromSource(loadedTime)
-      this ! Loaded(loadedTime)
+  var refreshable = false
 
-    case Refresh =>
-      loadedTime = loadFromSource(loadedTime)
-      this ! Refreshed(loadedTime)
+  private case object LoadHistory
+  private case object RefreshData
+  protected val dataLoader = actor {
+    loop {
+      react {
+        case LoadHistory =>
+          loadedTime = loadFromPersistence
+          loadedTime = loadFromSource(loadedTime)
+          postLoadHistory
+        case RefreshData if refreshable =>
+          loadedTime = loadFromSource(loadedTime)
+          postRefresh
+      }
+    }
   }
+
+  /**
+   * Since object DataServer is singleton, and all data server instances are willing
+   * to listen to it's HeartBeat event via registering this event, we need to
+   * transit HeartBeat event from this singleton object DataServer to dataLoader
+   */
+  reactions += {
+    case HeartBeat(interval) => dataLoader ! RefreshData
+  }
+
+  listenTo(DataServer)
 
   // -- public interfaces
 
-  def displayName: String
+  def loadHistory {
+    if (currentContract == None) {
+      assert(false, "dataContract not set!")
+    }
 
-  def defaultDateFormatPattern: String
+    if (subscribedContractToSer.size == 0) {
+      assert(false, "none ser subscribed!")
+    }
+
+    dataLoader ! LoadHistory
+  }
+
+  protected def postLoadHistory {}
+  protected def postRefresh {}
+
+  def startRefresh(refreshInterval: Int) {
+    refreshable = true
+  }
+
+  def stopRefresh {
+    refreshable = false
+    postStopRefresh
+  }
+
+  protected def postStopRefresh {}
+
+  protected def loadFromPersistence: Long
 
   /**
-   *
-   *
-   *
    * @param contract DataContract which contains all the type, market info for this source
    * @param ser the Ser that will be filled by this server
    */
   def subscribe(contract: C, ser: T): Unit =
     subscribe(contract, ser, Nil)
 
- /**
+  /**
    * first ser is the master one,
    * second one (if available) is that who concerns first one, etc.
    * Example: tickering ser also will compose today's quoteSer
-   *
-   *
    *
    * @param contract DataContract which contains all the type, market info for this source
    * @param ser the Ser that will be filled by this server
@@ -168,40 +213,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   def subscribedContracts: Iterator[C] =
     subscribedContractToSer.keysIterator
 
-  def startLoadServer {
-    if (currentContract == None) {
-      assert(false, "dataContract not set!")
-    }
-
-    if (subscribedContractToSer.size == 0) {
-      assert(false, "none ser subscribed!")
-    }
-
-    this ! LoadHistory
-  }
-
-  def startRefreshServer(refreshInterval: Int) {
-    // in context of applet, a page refresh may cause timer into a unpredict status,
-    // so it's always better to restart this timer, so, cancel it first.
-    if (refreshTimer != null) {
-      refreshTimer.cancel
-    }
-
-    refreshTimer = new Timer("RefreshTimerOfDataServer")
-    refreshTimer.schedule(new TimerTask {
-        def run {
-          DataServer.this ! Refresh
-        }
-      }, 1000, refreshInterval)
-  }
-
-  def stopRefreshServer {
-    refreshTimer.cancel
-    refreshTimer = null
-
-    postStopRefreshServer
-  }
-
   def createNewInstance: Option[DataServer[V]] = {
     try {
       val instance = getClass.newInstance.asInstanceOf[DataServer[V]]
@@ -213,6 +224,14 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       case ex: IllegalAccessException => ex.printStackTrace; None
     }
   }
+
+  def displayName: String
+  def defaultDateFormatPattern: String
+  def sourceTimeZone: TimeZone
+  /**
+   * @return serial number, valid only when >= 0
+   */
+  def sourceSerialNumber: Int
 
   /**
    * Override it to return your icon
@@ -238,19 +257,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     if (sn == 0) 0 else 1 << (sn - 1)
   }
 
-  /**
-   * @return serial number, valid only when >= 0
-   */
-  def sourceSerialNumber: Int
-
-  def sourceTimeZone: TimeZone
-
   // -- end of public interfaces
 
-  
-  protected def init {
-    start
-  }
+  protected def init {}
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
@@ -341,12 +350,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected def chainSersOf(ser: T): List[T] = 
     serToChainSers.get(ser) getOrElse Nil
 
-  protected def cancelRequest(contract: C) {
-  }
-
-  protected def postStopRefreshServer = ()
-
-  protected def loadFromPersistence: Long
+  protected def cancelRequest(contract: C) {}
 
   /**
    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should

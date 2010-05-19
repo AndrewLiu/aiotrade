@@ -40,7 +40,6 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import ru.circumflex.orm._
-import scala.swing.Reactor
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -48,14 +47,9 @@ import scala.swing.Reactor
  *
  * @author Caoyuan Deng
  */
-abstract class QuoteServer extends DataServer[Quote] with Reactor {
+abstract class QuoteServer extends DataServer[Quote] {
   type C = QuoteContract
   type T = QuoteSer
-
-  actorActions += {
-    case Loaded(loadedTime) => postLoad
-    case Refreshed(loadedTime) => postRefresh
-  }
 
   reactions += {
     case Exchange.Opened(exchange: Exchange) =>
@@ -111,7 +105,7 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
     loadedTime1
   }
 
-  protected def postLoad {
+  override protected def postLoadHistory {
     for (contract <- subscribedContracts) {
       val serToBeFilled = serOf(contract).get
 
@@ -137,11 +131,11 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
       //
       //            serToBeFilled.fireTSerEvent(evt)
 
-      storage synchronized {storageOf(contract).clear}
+      storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
 
-  protected def postRefresh {
+  override protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
 
@@ -152,7 +146,7 @@ abstract class QuoteServer extends DataServer[Quote] with Reactor {
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
       //            }
 
-      storage synchronized {storageOf(contract).clear}
+      storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
 

@@ -40,7 +40,7 @@ object Exchange extends Publisher {
     throw new Exception("Cannot find exchange of L(London)")
   }
 
-  def allExchanges = Exchanges.all()
+  lazy val allExchanges = Exchanges.all()
 
   lazy val uniSymbolToSec = 
     (allExchanges map (x => secsOfExchange(x)) flatMap {secs =>
@@ -67,9 +67,11 @@ object Exchange extends Publisher {
   def secOf(uniSymbol: String): Option[Sec] = 
     uniSymbolToSec.get(uniSymbol)
 
+  //startTimer
+  
   def startTimer {
-    val timer = new Timer
-    
+    val timer = new Timer("Exchange Open/Close Timer")
+
     for (exchange <- allExchanges) {
       val preOpen = exchange.open
       preOpen.add(Calendar.MINUTE, -15)

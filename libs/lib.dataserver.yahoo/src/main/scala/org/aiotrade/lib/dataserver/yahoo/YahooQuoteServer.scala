@@ -31,7 +31,7 @@
 package org.aiotrade.lib.dataserver.yahoo
 
 import java.awt.Image
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{BufferedReader, File, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
@@ -82,12 +82,12 @@ class YahooQuoteServer extends QuoteServer {
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request {
+  protected def request: Option[InputStream] = {
     val cal = Calendar.getInstance
 
     contract = currentContract match {
       case Some(x: QuoteContract) => x
-      case _ => return
+      case _ => return None
     }
 
     val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
@@ -134,17 +134,15 @@ class YahooQuoteServer extends QuoteServer {
         true
       } else false
             
-      inputStream = Option(conn.getInputStream)
-    }
+      Option(conn.getInputStream)
+    } else None
   }
 
   /**
    * @return readed time
    */
   @throws(classOf[Exception])
-  protected def read: Long =  {
-    val is = inputStream getOrElse (return 0)
-    
+  protected def read(is: InputStream): Long =  {
     val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
 
     /** skip first line */
@@ -221,8 +219,10 @@ class YahooQuoteServer extends QuoteServer {
     }
         
     try {
-      request
-      loadedTime1 = read
+      request match {
+        case Some(is) => loadedTime1 = read(is)
+        case None => loadedTime1 = 0
+      }
     } catch {
       case ex: Exception => ex.printStackTrace
     }

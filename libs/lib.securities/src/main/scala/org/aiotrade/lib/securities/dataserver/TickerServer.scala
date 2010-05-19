@@ -57,7 +57,7 @@ import ru.circumflex.orm._
  *
  * @author Caoyuan Deng
  */
-abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with Reactor {
+abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   type C = TickerContract
   type T = QuoteSer
 
@@ -70,17 +70,14 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
   private val secToLastQuote = new HashMap[Sec, LastQuote]
   private val cal = Calendar.getInstance
 
+  refreshable = true
+
   val updater: Updater = {
     case ts: TickerSnapshot =>
       val ticker = new Ticker
       ticker.copyFrom(ts)
       // store ticker first, will batch process when got Refreshed event
       storageOf(contractOf(ts.symbol).get) += ticker
-  }
-
-  actorActions += {
-    case Loaded(loadedTime) => postLoad
-    case Refreshed(loadedTime) => postRefresh
   }
 
   reactions += {
@@ -127,7 +124,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
 
   private val bufLoadEvents = new ArrayBuffer[TSerEvent]
 
-  protected def postLoad {
+  override protected def postLoadHistory {
     bufLoadEvents.clear
 
     for (contract <- subscribedContracts) {
@@ -149,7 +146,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
     }
   }
 
-  protected def postRefresh {
+  override protected def postRefresh {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
       val sec = Exchange.secOf(contract.symbol).get
@@ -168,7 +165,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver with 
     }
   }
 
-  override protected def postStopRefreshServer {
+  override protected def postStopRefresh {
     for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
       tickerSnapshot.removeObserver(this)
     }

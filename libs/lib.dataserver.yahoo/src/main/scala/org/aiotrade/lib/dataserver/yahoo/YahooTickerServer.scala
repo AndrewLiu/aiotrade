@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.dataserver.yahoo
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
@@ -69,7 +69,7 @@ class YahooTickerServer extends TickerServer {
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
   @throws(classOf[Exception])
-  protected def request: Unit = {
+  protected def request: Option[InputStream] = {
     val cal = Calendar.getInstance(sourceTimeZone)
 
     val urlStr = new StringBuilder(90)
@@ -78,8 +78,7 @@ class YahooTickerServer extends TickerServer {
 
     val contracts = subscribedContracts
     if (!contracts.hasNext) {
-      inputStream = None
-      return
+      return None
     }
 
     while (contracts.hasNext) {
@@ -107,13 +106,11 @@ class YahooTickerServer extends TickerServer {
       true
     } else false
         
-    inputStream = Option(conn.getInputStream)
+    Option(conn.getInputStream)
   }
 
   @throws(classOf[Exception])
-  protected def read: Long = {
-    val is = inputStream getOrElse (return loadedTime)
-
+  protected def read(is: InputStream): Long = {
     val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
 
     resetCount
@@ -204,8 +201,10 @@ class YahooTickerServer extends TickerServer {
     }
         
     try {
-      request
-      loadedTime1 = read
+      request match {
+        case Some(is) => loadedTime1 = read(is)
+        case None => loadedTime1 = loadedTime
+      }
     } catch {case ex: Exception => ex.printStackTrace}
 
     loadedTime1

@@ -214,7 +214,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       val quoteServer = freqToQuoteServer(freq)
       sourceSer.loaded = true
       if (contract.refreshable) {
-        quoteServer.startRefreshServer(contract.refreshInterval)
+        quoteServer.startRefresh(contract.refreshInterval)
       } else {
         quoteServer.unSubscribe(contract)
         freqToQuoteServer -= freq
@@ -259,7 +259,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       quoteServer.subscribe(contract, serToBeLoaded)
     }
 
-    quoteServer.startLoadServer
+    quoteServer.loadHistory
     serToBeLoaded.inLoading = true
 
     listenTo(serToBeLoaded)
@@ -286,7 +286,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
   def stopAllDataServer {
     for (server <- freqToQuoteServer.valuesIterator if server.inUpdating) {
-      server.stopRefreshServer
+      server.stopRefresh
     }
     freqToQuoteServer.clear
   }
@@ -352,7 +352,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
     }
 
-    tickerServer.startRefreshServer(tickerContract.refreshInterval)
+    tickerServer.startRefresh(tickerContract.refreshInterval)
     tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {this observe _}
   }
 
