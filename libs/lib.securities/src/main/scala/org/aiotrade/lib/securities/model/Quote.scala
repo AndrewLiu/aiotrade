@@ -63,7 +63,17 @@ abstract class Quotes extends Table[Quote] {
   INDEX("time_idx", time.name)
 
   def closedQuotesOf(sec: Sec): Seq[Quote] = {
-    (SELECT (this.*) FROM (this) WHERE ((this.id EQ Secs.idOf(sec)) AND (this.relationName + ".flag & " + Quote.MaskClosed + " = 1")) ORDER_BY (this.time) list)
+    (SELECT (this.*) FROM (this) WHERE ((Quotes.this.sec.field EQ Secs.idOf(sec)) AND (this.relationName + ".flag & " + Quote.MaskClosed + " = 1")) ORDER_BY (this.time) list)
+  }
+
+  def evictCacheOfClosedQuotes(quotes: Array[Quote]) {
+    var i = 0
+    while (i < quotes.length) {
+      val quote = quotes(i)
+      if (quote.closed_?) {
+        evictCache(quote)
+      }
+    }
   }
 
 }

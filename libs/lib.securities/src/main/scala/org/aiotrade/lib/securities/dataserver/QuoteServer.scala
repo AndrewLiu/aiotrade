@@ -131,6 +131,12 @@ abstract class QuoteServer extends DataServer[Quote] {
       //
       //            serToBeFilled.fireTSerEvent(evt)
 
+      if (freq == TFreq.DAILY) {
+        Quotes1d.evictCacheOfClosedQuotes(storage)
+      } else if (freq == TFreq.ONE_MIN) {
+        Quotes1m.evictCacheOfClosedQuotes(storage)
+      }
+      
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }

@@ -49,7 +49,6 @@ import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
-import scala.swing.Reactor
 import ru.circumflex.orm._
 
 /** This class will load the quote data from data source to its data storage: quotes.
@@ -142,6 +141,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
+      Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -161,6 +161,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
+      Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -331,9 +332,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       }
 
       FillRecords.insertBatch(fillRecords)
+      FillRecords.evictCaches(fillRecords)
       val toBeClosed = minuteQuotesToBeClosed.toArray
       if (toBeClosed.length > 0) {
         Quotes1m.insertBatch(toBeClosed)
+        Quotes1m.evictCaches(toBeClosed)
         minuteQuotesToBeClosed.clear
       }
 

@@ -150,6 +150,7 @@ class YahooQuoteServer extends QuoteServer {
 
     resetCount
     val storage = storageOf(contract)
+    val freq = contract.freq
     val symbol = contract.symbol
     val exchange = exchangeOf(contract.symbol)
     val timeZone = exchange.timeZone
@@ -176,12 +177,11 @@ class YahooQuoteServer extends QuoteServer {
             }
                     
             var time = cal.getTimeInMillis
+            // quote time is rounded to 00:00, we should adjust it to open time
+            time += exchange.openTimeOfDay
             if (time < fromTime) {
               loop(newestTime)
             }
-
-            // quote time is rounded to 00:00, we should adjust it to open time
-            time += exchange.openTimeOfDay
 
             val quote = new Quote
 
