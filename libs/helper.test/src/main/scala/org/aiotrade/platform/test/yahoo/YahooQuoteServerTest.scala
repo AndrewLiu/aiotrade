@@ -1,10 +1,3 @@
-/*
- * Test.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package org.aiotrade.platform.test.yahoo
 
 import org.aiotrade.lib.math.timeseries._
@@ -17,12 +10,11 @@ import org.aiotrade.platform.test.StockCode
 import org.aiotrade.platform.test.TestHelper
 import scala.actors.Actor
 
-class YahooQuoteServerTest extends TestHelper {
+object YahooQuoteServerTest extends TestHelper {
 
-  def example = {
-    //testBatch
+  def main(args: Array[String]) {
+    testBatch
   }
-
 
   def testBatch : Unit = {
     val size = 5

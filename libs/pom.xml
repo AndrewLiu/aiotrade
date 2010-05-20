@@ -152,7 +152,7 @@
         <module>lib.dataserver.yahoo</module>
         <module>lib.amqp</module>
         <module>helper.test</module>
-		<module>lib.sevenzip</module>
+        <module>lib.sevenzip</module>
     </modules>
 
 </project>
