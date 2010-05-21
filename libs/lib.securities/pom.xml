@@ -51,5 +51,32 @@
 
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <configuration>
+                    <launchers>
+                        <!-- mvn scala:run -Dlauncher=yahoo -->
+                        <launcher>
+                            <id>model</id>
+                            <mainClass>org.aiotrade.lib.securities.model.Model</mainClass>
+                            <!-- args are optional -->
+                        <!--args>
+                            <arg>arg1</arg>
+                        </args-->
+                        <!-- jvmArgs are optional -->
+                            <jvmArgs>
+                                <jvmArg>-Xmx512m</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <!-- you could define other launcher -->
+                    </launchers>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
 
