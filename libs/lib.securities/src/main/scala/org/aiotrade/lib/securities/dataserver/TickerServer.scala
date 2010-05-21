@@ -141,7 +141,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
-      Tickers.evictCaches(storage)
+      //Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -161,7 +161,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
-      Tickers.evictCaches(storage)
+      //Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -332,11 +332,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       }
 
       FillRecords.insertBatch(fillRecords)
-      FillRecords.evictCaches(fillRecords)
+      //FillRecords.evictCaches(fillRecords)
       val toBeClosed = minuteQuotesToBeClosed.toArray
       if (toBeClosed.length > 0) {
         Quotes1m.insertBatch(toBeClosed)
-        Quotes1m.evictCaches(toBeClosed)
+        //Quotes1m.evictCaches(toBeClosed)
         minuteQuotesToBeClosed.clear
       }
 
