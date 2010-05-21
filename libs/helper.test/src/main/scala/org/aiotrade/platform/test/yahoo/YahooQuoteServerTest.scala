@@ -5,6 +5,8 @@ import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.securities.model._
+import java.util.Timer
+import java.util.TimerTask
 import org.aiotrade.lib.dataserver.yahoo._
 import org.aiotrade.platform.test.StockCode
 import org.aiotrade.platform.test.TestHelper
@@ -30,14 +32,16 @@ object YahooQuoteServerTest extends TestHelper {
       i += 1
     }
 
-    while (true) {
-      waitFor(5000)
-      actors foreach {x =>
-        reportQuote(x.sec)
-        reportInds(x.oneMinInds)
-        reportInds(x.dailyInds)
-      }
-    }
+    val timer = new Timer
+    timer.schedule(new TimerTask {
+        def run {
+          actors foreach {x =>
+            reportQuote(x.sec)
+            reportInds(x.oneMinInds)
+            reportInds(x.dailyInds)
+          }
+        }
+      }, 5000)
   }
 
   class TestOne(symbol:String) extends Actor {
