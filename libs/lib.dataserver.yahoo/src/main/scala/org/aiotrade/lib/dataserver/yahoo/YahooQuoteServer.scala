@@ -251,4 +251,6 @@ class YahooQuoteServer extends QuoteServer {
   override def sourceTimeZone: TimeZone = {
     TimeZone.getTimeZone("America/New_York")
   }
+
+  def classOfTickerServer = Some(classOf[YahooTickerServer])
 }

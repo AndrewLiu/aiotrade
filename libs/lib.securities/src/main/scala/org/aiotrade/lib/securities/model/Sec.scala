@@ -245,7 +245,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     val quoteServer = freqToQuoteServer get(freq) getOrElse {
       contract.serviceInstance() match {
         case None => return false
-        case Some(x) => freqToQuoteServer(freq) = x; x
+        case Some(x) => freqToQuoteServer += (freq -> x); x
       }
     }
 
@@ -314,25 +314,23 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def subscribeTickerServer {
     if (uniSymbol == "") return
 
-    // always reset uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+    // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
     _tickerContract.symbol = uniSymbol
 
-    /**
-     * @TODO, temporary test code
-     */
     if (tickerContract.serviceClassName == null) {
-      val defaultContract = freqToQuoteContract(defaultFreq)
-      if (defaultContract.serviceClassName.toUpperCase.contains("IB")) {
-        tickerContract.serviceClassName = "org.aiotrade.lib.dataserver.ib.IBTickerServer"
-      } else {
-        tickerContract.serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
+      freqToQuoteServer.get(defaultFreq) match {
+        case Some(quoteServer) => quoteServer.classOfTickerServer match {
+            case Some(clz) => tickerContract.serviceClassName = clz.getClass.getName
+            case None =>
+          }
+        case None =>
       }
     }
 
-    startTickerServerIfNecessary
+    startTickerRefreshIfNecessary
   }
 
-  private def startTickerServerIfNecessary {
+  private def startTickerRefreshIfNecessary {
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
       var chainSers: List[QuoteSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.

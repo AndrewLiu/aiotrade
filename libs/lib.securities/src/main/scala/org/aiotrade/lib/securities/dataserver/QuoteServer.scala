@@ -203,6 +203,8 @@ abstract class QuoteServer extends DataServer[Quote] {
     }
   }
 
+  def classOfTickerServer: Option[Class[_ <: TickerServer]]
+
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol
 }

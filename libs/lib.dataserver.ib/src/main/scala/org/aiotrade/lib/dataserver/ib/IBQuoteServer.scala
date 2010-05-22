@@ -288,7 +288,9 @@ class IBQuoteServer extends QuoteServer {
   override def sourceTimeZone: TimeZone = {
     TimeZone.getTimeZone("America/New_York")
   }
-    
+
+  def classOfTickerServer = Some(classOf[IBTickerServer])
+
   /**
    * 1 1sec "<30;2000> S"
    * 2 5sec "<30;10000> S"
