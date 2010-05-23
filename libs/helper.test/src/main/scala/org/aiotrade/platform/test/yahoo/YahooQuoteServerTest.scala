@@ -8,9 +8,7 @@ import org.aiotrade.lib.securities.model._
 import java.util.Timer
 import java.util.TimerTask
 import org.aiotrade.lib.dataserver.yahoo._
-import org.aiotrade.platform.test.StockCode
 import org.aiotrade.platform.test.TestHelper
-import scala.actors.Actor
 
 object YahooQuoteServerTest extends TestHelper {
 
@@ -20,22 +18,22 @@ object YahooQuoteServerTest extends TestHelper {
 
   def testBatch : Unit = {
     val size = 5
-    val syms = StockCode.SHSE.keySet
-    val actors = new Array[TestOne](size)
+    val syms = Exchange.symbolsOf(Exchange.SS)
+    val testers = new Array[TestOne](size)
 
     var i = 0
     val itr = syms.iterator
     while (i < size && itr.hasNext) {
       val sym = itr.next
-      val actor = new TestOne(sym + ".SS")
-      actors(i) = actor
+      val tester = new TestOne(sym)
+      testers(i) = tester
       i += 1
     }
 
     val timer = new Timer
     timer.schedule(new TimerTask {
         def run {
-          actors foreach {x =>
+          testers foreach {x =>
             reportQuote(x.sec)
             reportInds(x.oneMinInds)
             reportInds(x.dailyInds)
@@ -44,9 +42,7 @@ object YahooQuoteServerTest extends TestHelper {
       }, 5000)
   }
 
-  class TestOne(symbol:String) extends Actor {
-
-    def act {}
+  class TestOne(symbol:String) {
 
     val quoteServer  = classOf[YahooQuoteServer]
     val tickerServer = classOf[YahooTickerServer]
