@@ -412,8 +412,9 @@ trait WeakIdentityBiHashTable[K, V] {
       while (e != null) {
         val next = e.nextEntry
         val key = e.get
-        if (key != null) {
+        if (key == null) {
           e.nextEntry = null  // Help GC
+          valueToIdx.remove(e.value)
           e.value = null.asInstanceOf[V] //  "   "
           tableSize -= 1
         } else {

@@ -27,18 +27,10 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  lazy val N  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "N" ) unique) getOrElse {
-    throw new Exception("Cannot find exchange of N(New York)")
-  }
-  lazy val SS = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SS") unique) getOrElse {
-    throw new Exception("Cannot find exchange of SS(Shanghai)")
-  }
-  lazy val SZ = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "SZ") unique) getOrElse {
-    throw new Exception("Cannot find exchange of SZ(Shenzhen)")
-  }
-  lazy val L  = (SELECT (Exchanges.*) FROM Exchanges WHERE (Exchanges.code EQ "L" ) unique) getOrElse {
-    throw new Exception("Cannot find exchange of L(London)")
-  }
+  lazy val N  = allExchanges.find(_.code == "N" ) getOrElse (throw new Exception("Cannot find exchange of N(New York)"))
+  lazy val SS = allExchanges.find(_.code == "SS") getOrElse (throw new Exception("Cannot find exchange of SS(Shanghai)"))
+  lazy val SZ = allExchanges.find(_.code == "SZ") getOrElse (throw new Exception("Cannot find exchange of SZ(Shenzhen)"))
+  lazy val L  = allExchanges.find(_.code == "L" ) getOrElse (throw new Exception("Cannot find exchange of L(London)"))
 
   lazy val allExchanges = Exchanges.all()
 
@@ -51,7 +43,7 @@ object Exchange extends Publisher {
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
       case Array(symbol) => N
-      case Array(symbol, "L") => L
+      case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
       case _ => N

@@ -360,7 +360,7 @@ trait WeakIdentityHashTable[K, V] {
       while (e != null) {
         val next = e.nextEntry
         val key = e.get
-        if (key != null) {
+        if (key == null) {
           e.nextEntry = null  // Help GC
           e.value = null.asInstanceOf[V] //  "   "
           tableSize -= 1

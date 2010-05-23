@@ -15,6 +15,7 @@ object WeakIdentityBiHashMapTest {
             new String("newString5")
       ))
 
+    testLots
   }
 
   def test[@specialized T: Manifest](keys: Array[T]) {
@@ -81,5 +82,16 @@ object WeakIdentityBiHashMapTest {
       println("key by value 3 should be Some: " + map.getByValue(3))
       println("key by value 4 should be None: " + map.getByValue(4))
     }
+  }
+
+  def testLots {
+    val map = new WeakIdentityBiHashMap[String, Long]
+    val keys = (0 until 20) map {i =>
+      val k = new String("String" + i)
+      map.put(k, i)
+      k
+    }
+
+    map foreach println
   }
 }

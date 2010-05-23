@@ -30,7 +30,9 @@ object Model {
     schema
     sampleExchanges
     sampleSecs
-    Exchange.allExchanges map (x => Exchange.symbolsOf(x).mkString(",")) foreach println
+    Exchange.allExchanges map (x => 
+      Exchange.symbolsOf(x).mkString(",")
+    ) foreach println
   }
 
   def schema {
@@ -196,11 +198,13 @@ object Model {
     secInfo.uniSymbol = uniSymbol
     secInfo.name = name
     SecInfos.save(secInfo)
+    assert(SecInfos.idOf(secInfo).isDefined, secInfo + " with none id")
 
     val sec = new Sec
     sec.secInfo = secInfo
     sec.exchange = exchange
     Secs.save_!(sec)
+    assert(Secs.idOf(sec).isDefined, sec + " with none id")
 
     secInfo.sec = sec
     SecInfos.update(secInfo)
