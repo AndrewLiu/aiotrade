@@ -299,7 +299,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   override def toString: String = {
-    "Company: " + company + ", info: " + secInfo
+    "Sec(Company=" + company + ", info=" + secInfo + ")"
   }
 
   def dataContract: QuoteContract = 

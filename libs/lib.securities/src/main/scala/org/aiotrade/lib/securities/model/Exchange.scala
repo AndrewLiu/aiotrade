@@ -1,6 +1,8 @@
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
+import scala.collection.mutable.ListBuffer
 import scala.swing.Publisher
 import scala.swing.event.Event
 
@@ -21,6 +23,8 @@ object Exchanges extends Table[Exchange] {
 }
 
 object Exchange extends Publisher {
+  val logger = Logger.getLogger(this.getClass.getSimpleName)
+
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
 
@@ -35,7 +39,7 @@ object Exchange extends Publisher {
   lazy val allExchanges = Exchanges.all()
 
   lazy val uniSymbolToSec = 
-    (allExchanges map (x => secsOfExchange(x)) flatMap {secs =>
+    (allExchanges map (x => secsOf(x)) flatMap {secs =>
         secs filter (_.secInfo != null) map (sec => sec.secInfo.uniSymbol -> sec)
       }
     ).toMap
@@ -50,11 +54,23 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOfExchange(exchange: Exchange): Seq[Sec] = 
-    (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) map (_._1)
+  def secsOf(exchange: Exchange): Seq[Sec] = {
+    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) map (_._1)
+    logger.info("Secs number of " + exchange.code + " is " + secs.size)
+    secs
+  }
 
-  def symbolsOf(exchange: Exchange): Seq[String] = 
-    secsOfExchange(exchange) filter (_.secInfo != null) map (_.secInfo.uniSymbol)
+  def symbolsOf(exchange: Exchange): Seq[String] = {
+    val syms = ListBuffer[String]()
+    secsOf(exchange) foreach {sec =>
+      if (sec.secInfo == null)
+        logger.warning("secInfo of sec " + sec + " is null")
+      else
+        syms += sec.secInfo.uniSymbol
+    }
+    logger.info("Syms number of " + exchange.code + " is " + syms.size)
+    syms
+  }
 
   def secOf(uniSymbol: String): Option[Sec] = 
     uniSymbolToSec.get(uniSymbol)

@@ -35,4 +35,8 @@ class SecInfo {
   var tradingUnit: Int = 100
   var upperLimit: Float = -1
   var lowerLimit: Float = -1
+
+  override def toString = {
+    "SecInfo(uniSymbol=" + uniSymbol + ")"
+  }
 }
