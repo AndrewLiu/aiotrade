@@ -54,6 +54,9 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
+                <configuration>
+                    <additionalArguments>-J-Xmx512m</additionalArguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
