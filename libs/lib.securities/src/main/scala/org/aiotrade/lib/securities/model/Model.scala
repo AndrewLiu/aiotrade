@@ -30,6 +30,7 @@ object Model {
     schema
     sampleExchanges
     sampleSecs
+    commit
     Exchange.allExchanges map (x => 
       Exchange.symbolsOf(x).mkString(",")
     ) foreach println
@@ -43,8 +44,9 @@ object Model {
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
       Tickers, FillRecords
     )
-    
-    new DDLUnit(tables: _*).dropCreate.messages.foreach(msg => println(msg.body))
+
+    val ddl = new DDLUnit(tables: _*)
+    ddl.dropCreate.messages.foreach(msg => println(msg.body))
   }
 
   private def testSave(i: Int) {

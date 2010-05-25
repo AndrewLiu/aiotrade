@@ -7,7 +7,7 @@ object SecInfos extends Table[SecInfo] {
   /**
    * Belongs to one Sec
    */
-  val sec = "secs_id" REFERENCES(Secs) ON_DELETE CASCADE
+  val sec = "secs_id" REFERENCES(Secs)
 
   val validFrom = "validFrom" BIGINT
   val validTo = "validTo" BIGINT

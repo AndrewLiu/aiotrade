@@ -133,6 +133,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       assert(Quotes1d.idOf(dailyQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
       storage foreach (_.quote = dailyQuote)
       Tickers.insertBatch(storage)
+      commit
 
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
@@ -141,7 +142,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
-      //Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -154,6 +154,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       assert(Quotes1d.idOf(dailyQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
       storage foreach (_.quote = dailyQuote)
       Tickers.insertBatch(storage)
+      commit
       
       composeSer(contract.symbol, serOf(contract).get, storage) match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
@@ -161,7 +162,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         case _ =>
       }
 
-      //Tickers.evictCaches(storage)
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
@@ -332,11 +332,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       }
 
       FillRecords.insertBatch(fillRecords)
-      //FillRecords.evictCaches(fillRecords)
+      commit
       val toBeClosed = minuteQuotesToBeClosed.toArray
       if (toBeClosed.length > 0) {
         Quotes1m.insertBatch(toBeClosed)
-        //Quotes1m.evictCaches(toBeClosed)
+        commit
         minuteQuotesToBeClosed.clear
       }
 
@@ -425,6 +425,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             quote.sec = sec
             quote.unclosed_! // @todo when to close it and update to db?
             Quotes1d.save(quote)
+            commit
             quote
         }
 
