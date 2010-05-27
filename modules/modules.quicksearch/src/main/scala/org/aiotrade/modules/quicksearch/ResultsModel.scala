@@ -137,8 +137,8 @@ object ResultsModel extends AbstractListModel with ActionListener {
     fireContentsChanged(this, 0, getSize)
   }
 
-  case class ItemResult(category: CategoryResult, private sRequest: SearchRequest, action: Runnable,
-                        private $displayName: String,
+  case class ItemResult(category: CategoryResult, private val sRequest: SearchRequest, action: Runnable,
+                        private val $displayName: String,
                         shortcut: List[_ <: KeyStroke], displayHint: String,
                         //time of last access, used for recent searches
                         var date: Date) {

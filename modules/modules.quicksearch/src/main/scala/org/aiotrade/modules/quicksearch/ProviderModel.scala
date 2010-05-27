@@ -100,7 +100,7 @@ object ProviderModel {
     categories.toList
   }
 
-  case class Category(private fo: FileObject, displayName: String, commandPrefix: String) {
+  case class Category(private val fo: FileObject, displayName: String, commandPrefix: String) {
 
     lazy val providers = loadProviders
 
