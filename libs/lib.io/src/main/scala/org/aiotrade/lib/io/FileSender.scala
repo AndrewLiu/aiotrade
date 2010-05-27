@@ -13,7 +13,7 @@ object FileSender {
 
   // ----- simple test
   def main(files: Array[String]) {
-    val files = Array("/Users/dcaoyuan/file.text", "/Users/dcaoyuan/file.text")
+    val files = Array("pom.xml", "pom.xml")
     val sender = new FileSender("localhost", 4711)
     sender.send(files)
     sender.send(files)

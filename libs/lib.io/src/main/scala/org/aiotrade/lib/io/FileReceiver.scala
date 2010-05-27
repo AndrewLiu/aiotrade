@@ -17,13 +17,13 @@ object FileReceiver {
   // ----- simple test
   def main(args: Array[String]) {
     try {
-      new FileReceiver(null, 4711) start
+      new FileReceiver(null, 4711, System.getProperty("user.home") + File.separator + "storage") start
     } catch {case ex: IOException => ex.printStackTrace}
   }
 
-  class FileReceiverHandler extends Actor {
+  class FileReceiverHandler(storageDir: File) extends Actor {
 
-    private val requestParser = new RequestParser
+    private val requestParser = new RequestParser(storageDir)
 
     private def handleRequest(data: Array[Byte]) = {
       var i = 0
@@ -55,7 +55,7 @@ object FileReceiver {
      *
      * At the moment, this does not support Keep-Alive connections.
      */
-    private class RequestParser {
+    private class RequestParser(storageDir: File) {
 
       /**
        * Indicates the current position of the parser.
@@ -102,19 +102,22 @@ object FileReceiver {
           case FileMeta(NoneName, buf, i, len) if i < len - 1 => buf(i) = b; FileMeta(NoneName, buf, i + 1, len)
           case FileMeta(NoneName, buf, i, _) =>
             buf(i) = b
-            val name = new String(buf) + System.currentTimeMillis
-            //println("file name: " + name)
+            val path = new String(buf) + "-" + System.currentTimeMillis
+            //println("file path: " + path)
             // expect file length in Long
-            FileMeta(Some(name), new Array[Byte](8), 0, 8)
+            FileMeta(Some(path), new Array[Byte](8), 0, 8)
 
             // read file length
-          case FileMeta(Some(name), buf, i, len) if i < len - 1 => buf(i) = b; FileMeta(Some(name), buf, i + 1, len)
-          case FileMeta(Some(name), buf, i, _) =>
+          case FileMeta(Some(path), buf, i, len) if i < len - 1 => buf(i) = b; FileMeta(Some(path), buf, i + 1, len)
+          case FileMeta(Some(path), buf, i, _) =>
             buf(i) = b
             val len = decodeLong(buf)
-            println("file length: " + len)
-            val file = new File(name)
-            val out = new FileOutputStream(file)
+            //println("file length: " + len)
+
+            val file = new File(path)
+            val fileName = file.getName
+            val saveToFile = new File(storageDir, fileName)
+            val out = new FileOutputStream(saveToFile)
             FileData(out, 0, len)
 
             // read file content
@@ -135,7 +138,12 @@ object FileReceiver {
 }
 
 import FileReceiver._
-class FileReceiver(hostAddress: InetAddress, port: Int) extends Actor {
+class FileReceiver(hostAddress: InetAddress, port: Int, storageDirPath: String) extends Actor {
+
+  val storageDir = new File(storageDirPath)
+  if (!storageDir.exists) {
+    storageDir.mkdirs
+  }
 
   // Create a new non-blocking server socket channel
   val serverChannel = ServerSocketChannel.open
@@ -159,7 +167,7 @@ class FileReceiver(hostAddress: InetAddress, port: Int) extends Actor {
       clientChannel.configureBlocking(false)
       println("new connection accepted")
 
-      val handler = new FileReceiverHandler
+      val handler = new FileReceiverHandler(storageDir)
       handler.start
       selectReactor ! SetResponseHandler(clientChannel, Some(handler))
 
