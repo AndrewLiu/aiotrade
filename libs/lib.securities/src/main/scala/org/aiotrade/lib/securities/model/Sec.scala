@@ -115,8 +115,11 @@ object Sec {
       }
     }
   }
+
+  val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
 }
 
+import Sec._
 class Sec extends SerProvider with Publisher with ChangeObserver {
   // --- database fields
   var exchange: Exchange = _
@@ -172,6 +175,11 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         defaultFreq = freq
       }
       freqToQuoteContract(freq) = contract
+      freqToSer(freq) = new QuoteSer(freq)
+    }
+    
+    // basic freqs:
+    for (freq <- basicFreqs if !freqToQuoteContract.contains(freq)) {
       freqToSer(freq) = new QuoteSer(freq)
     }
   }

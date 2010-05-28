@@ -58,16 +58,13 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
           explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
           // add symbols in exchange folder
-          val dailyQuoteContract = createQuoteContract
-          val minuteQuoteContract = createQuoteContract
-          minuteQuoteContract.freq = TFreq.DAILY
+          val dailyQuoteContract  = createQuoteContract
           for (exchange <- Exchange.allExchanges;
                exchangefolder = DataFolder.create(rootFolder, exchange.code);
                symbol <- Exchange.symbolsOf(exchange)
           ) {
             dailyQuoteContract.symbol = symbol
-            minuteQuoteContract.symbol = symbol
-            SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, dailyQuoteContract, minuteQuoteContract)
+            SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, dailyQuoteContract)
           }
         }
       })
