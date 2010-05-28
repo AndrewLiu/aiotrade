@@ -33,6 +33,7 @@ package org.aiotrade.lib.securities.model
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
@@ -242,9 +243,8 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
    * sec's ser and computeFrom(0) at once.
    */
   private def createCombinedSer(freq: TFreq): Option[QuoteSer] = {
-    println("create combine ser of " + freq)
-    val srcSer_? = freq match {
-      case TFreq.WEEKLY | TFreq.MONTHLY | TFreq.ONE_YEAR => serOf(TFreq.DAILY)
+    val srcSer_? = freq.unit match {
+      case TUnit.Day | TUnit.Week | TUnit.Month | TUnit.Year => serOf(TFreq.DAILY)
       case _ => serOf(TFreq.ONE_MIN)
     }
 

@@ -164,7 +164,7 @@ object SymbolNodes {
     }
   }
 
-  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContract: QuoteContract): FileObject =  {
+  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContracts: QuoteContract*): FileObject =  {
     val folderObject = folder.getPrimaryFile
     val baseName = symbol
     var ix = 1
@@ -185,7 +185,9 @@ object SymbolNodes {
       contents.clearDescriptors(classOf[DataContract[_]])
 
       contents.uniSymbol = symbol
-      contents.addDescriptor(quoteContract)
+      for (quoteContract <- quoteContracts) {
+        contents.addDescriptor(quoteContract)
+      }
 
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 

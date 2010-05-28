@@ -15,8 +15,19 @@ import org.aiotrade.spi.quicksearch.SearchResponse
 
 class FreqSearchProvider extends SearchProvider {
 
-  private val freqs = Array(TFreq.ONE_MIN, TFreq.DAILY, TFreq.WEEKLY, TFreq.MONTHLY, TFreq.ONE_YEAR)
-  private val nameTofreq = (freqs map (x => (x.shortDescription -> x)) toMap) + ("rt" -> TFreq.ONE_SEC)
+  private val freqs = Array(TFreq.ONE_MIN,
+                            TFreq.THREE_MINS,
+                            TFreq.FIVE_MINS,
+                            TFreq.FIFTEEN_MINS,
+                            TFreq.THIRTY_MINS,
+                            TFreq.DAILY,
+                            TFreq.THREE_DAYS,
+                            TFreq.FIVE_DAYS,
+                            TFreq.WEEKLY,
+                            TFreq.MONTHLY,
+                            TFreq.ONE_YEAR
+  )
+  private val nameToFreq = (freqs map (x => (x.shortDescription -> x)) toMap) + ("rt" -> TFreq.ONE_SEC)
 
   /**
    * Method is called by infrastructure when search operation was requested.
@@ -30,7 +41,7 @@ class FreqSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
 
-    for ((name, freq) <- nameTofreq if name.toLowerCase.startsWith(request.text.toLowerCase)) {
+    for ((name, freq) <- nameToFreq if name.toLowerCase.startsWith(request.text.toLowerCase)) {
       if (!response.addResult(new FoundResult(freq), name)) {
         return
       }
