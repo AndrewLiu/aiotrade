@@ -33,7 +33,7 @@ package org.aiotrade.lib.securities
 import java.util.Calendar
 import java.util.TimeZone
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.TUnit
+import scala.annotation.tailrec
 import scala.swing.Reactions
 import scala.swing.Reactor
 
@@ -46,8 +46,10 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
   private val cal = Calendar.getInstance(timeZone)
 
   private val sourceSerReaction: Reactions.Reaction = {
-    case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) =>
-      computeCont(fromTime)
+    case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Clear(_, _, fromTime, _, _, _) => computeCont(fromTime)
   }
   
   reactions += sourceSerReaction
@@ -61,7 +63,8 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
   protected def computeCont(fromTime: Long): Unit = {
-    val targetUnit = targetSer.freq.unit
+    val targetFreq = targetSer.freq
+    val targetUnit = targetFreq.unit
         
     val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, cal)
     val masterFromIdx1 = sourceSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
@@ -72,9 +75,8 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
         
     /** begin combining: */
                 
-        
     val l = sourceSer.size
-    //for (i <- masterFromIdx until size) {
+    @tailrec
     def loop(i: Int): Unit = {
       if (i >= l) return
             
@@ -85,40 +87,21 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
             
       val intervalBegin = targetUnit.beginTimeOfUnitThatInclude(time_i, cal)
             
-      cal.setTimeInMillis(intervalBegin)
-      val currWeekOfYear  = cal.get(Calendar.WEEK_OF_YEAR)
-      val currMonthOfYear = cal.get(Calendar.MONTH)
-      val currYear        = cal.get(Calendar.YEAR)
-            
       targetSer.createOrClear(intervalBegin)
             
       var prevNorm = sourceSer.close(time_i)
       var postNorm = sourceSer.close_adj(time_i)
             
       targetSer.open(intervalBegin)   = linearAdjust(sourceSer.open(time_i),  prevNorm, postNorm)
-      targetSer.high(intervalBegin)   = -Float.MaxValue
-      targetSer.low(intervalBegin)    = +Float.MaxValue
+      targetSer.high(intervalBegin)   = Float.MinValue
+      targetSer.low(intervalBegin)    = Float.MaxValue
       targetSer.volume(intervalBegin) = 0
             
       /** compose followed source data of this interval to targetData */
       var j = 0
       var break = false
       while (i + j < l && !break) {
-        val time_j = sourceSer.indexOfTime(i + j)
-                
-        cal.setTimeInMillis(time_j)
-                
-        var inSameInterval = true
-        targetUnit match {
-          case TUnit.Week =>
-            val weekOfYear = cal.get(Calendar.WEEK_OF_YEAR)
-            inSameInterval = (weekOfYear == currWeekOfYear)
-          case TUnit.Month =>
-            val monthOfYear = cal.get(Calendar.MONTH)
-            val year = cal.get(Calendar.YEAR)
-            inSameInterval = (year == currYear && monthOfYear == currMonthOfYear)
-          case _ =>
-        }
+        val time_j = sourceSer.timeOfIndex(i + j)
                 
         /**
          * @NOTICE
@@ -126,8 +109,10 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
          * timeInMillis assigned to it. so anyway, we let inSamePeriod = true
          * if j == 0, because jdata is the same data as idata in this case:
          */
-        inSameInterval = if (j == 0) true else inSameInterval
-                
+        val inSameInterval = if (j == 0) true else {
+          targetFreq.sameInterval(time_i, time_j, cal)
+        }
+        
         if (inSameInterval) {
           /**
            * @TIPS
@@ -142,8 +127,8 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
           prevNorm = sourceSer.close(time_j)
           postNorm = sourceSer.close_adj(time_j)
 
-          targetSer.high(intervalBegin)  = Math.max(targetSer.high(intervalBegin), linearAdjust(sourceSer.high(time_j),  prevNorm, postNorm))
-          targetSer.low(intervalBegin)   = Math.min(targetSer.low(intervalBegin),  linearAdjust(sourceSer.low(time_j),   prevNorm, postNorm))
+          targetSer.high(intervalBegin)  = math.max(targetSer.high(intervalBegin), linearAdjust(sourceSer.high(time_j),  prevNorm, postNorm))
+          targetSer.low(intervalBegin)   = math.min(targetSer.low(intervalBegin),  linearAdjust(sourceSer.low(time_j),   prevNorm, postNorm))
           targetSer.close(intervalBegin) = linearAdjust(sourceSer.close(time_j),   prevNorm, postNorm)
 
           targetSer.volume(intervalBegin) = targetSer.volume(intervalBegin) + sourceSer.volume(time_j)
@@ -168,7 +153,9 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
       targetSer.close(intervalBegin) = linearAdjust(targetSer.close(intervalBegin), prevNorm, postNorm)
             
       loop(i + j)
-    }; loop(masterFromIdx)
+    }
+
+    loop(masterFromIdx)
         
     val evt = TSerEvent.Updated(targetSer,
                                 null,

@@ -40,14 +40,11 @@ class FreqSearchProvider extends SearchProvider {
   private class FoundResult(freq: TFreq) extends Runnable {
 
     def run {
-      for (tc <- AnalysisChartTopComponent.selected; contents = tc.contents;
+      for (tc <- AnalysisChartTopComponent.selected;
+           contents = tc.contents;
            quoteContract <- contents.lookupActiveDescriptor(classOf[QuoteContract])
       ) {
-        freq match {
-          case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => quoteContract.freq = freq
-          case _ => return // @Todo
-        }
-
+        quoteContract.freq = freq
         val tc = AnalysisChartTopComponent(contents)
         tc.requestActive
       }

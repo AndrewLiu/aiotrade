@@ -37,6 +37,7 @@ object YahooQuoteServerTest extends TestHelper {
             reportQuote(x.sec)
             reportInds(x.oneMinInds)
             reportInds(x.dailyInds)
+            reportInds(x.weeklyInds)
           }
         }
       }, 5000)
@@ -73,6 +74,10 @@ object YahooQuoteServerTest extends TestHelper {
     rtContents.addDescriptor(oneMinQuoteContract)
     rtContents.serProvider = sec
 
+    val weeklyContents = createAnalysisContents(symbol, TFreq.WEEKLY)
+    //weeklyContents.addDescriptor(dailyQuoteContract)
+    weeklyContents.serProvider = sec
+
     val dailySer  = sec.serOf(dailyFreq).get
     val oneMinSer = sec.serOf(oneMinFreq).get
     val tickerSer = sec.tickerSer
@@ -84,6 +89,9 @@ object YahooQuoteServerTest extends TestHelper {
     loadSer(dailyContents)
     //loadSer(rtContents)
 
+    val weeklySer = sec.serOf(TFreq.WEEKLY).get
+    val weeklyInds = initIndicators(weeklyContents, weeklySer)
+    
     // wait for some secs for data loading
     //waitFor(10000)
 
@@ -93,6 +101,7 @@ object YahooQuoteServerTest extends TestHelper {
     // * For what ever condiction, we force to compute it again to test concurrent
     dailyInds  foreach {x => computeAsync(x)}
     oneMinInds foreach {x => computeAsync(x)}
+    weeklyInds foreach {x => computeAsync(x)}
 
     sec.subscribeTickerServer
   }

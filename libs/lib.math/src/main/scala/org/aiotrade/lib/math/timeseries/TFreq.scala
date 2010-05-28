@@ -80,9 +80,34 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
    * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
+   *
+   * @todo use nUnits
    */
   def sameInterval(timeA: Long, timeB: Long, cal: Calendar): Boolean = {
-    round(timeA, cal) == round(timeB, cal)
+    unit match {
+      case TUnit.Week =>
+        cal.setTimeInMillis(timeA)
+        val weekOfYearA = cal.get(Calendar.WEEK_OF_YEAR)
+        cal.setTimeInMillis(timeB)
+        val weekOfYearB = cal.get(Calendar.WEEK_OF_YEAR)
+        weekOfYearA == weekOfYearB
+      case TUnit.Month =>
+        cal.setTimeInMillis(timeA)
+        val monthOfYearA = cal.get(Calendar.MONTH)
+        val yearA = cal.get(Calendar.YEAR)
+        cal.setTimeInMillis(timeB)
+        val monthOfYearB = cal.get(Calendar.MONTH)
+        val yearB = cal.get(Calendar.YEAR)
+        yearA == yearB && monthOfYearA == monthOfYearB
+      case TUnit.Year =>
+        cal.setTimeInMillis(timeA)
+        val yearA = cal.get(Calendar.YEAR)
+        cal.setTimeInMillis(timeB)
+        val yearB = cal.get(Calendar.YEAR)
+        yearA == yearB
+      case _ =>
+        round(timeA, cal) == round(timeB, cal)
+    }
   }
 
   val name: String = {

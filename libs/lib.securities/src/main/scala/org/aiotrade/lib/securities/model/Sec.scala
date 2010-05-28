@@ -35,6 +35,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
@@ -224,13 +225,42 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     case _ =>
   }
 
+  def serOf(freq: TFreq): Option[QuoteSer] = freq match {
+    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToSer.get(freq)
+    case _ => freqToSer.get(freq) match {
+        case None => createCombinedSer(freq)
+        case x => x
+      }
+  }
   
-  def serOf(freq: TFreq): Option[QuoteSer] = {
-    freqToSer.get(freq)
+  /**
+   * @Note
+   * here should be aware that if sec's ser has been loaded, no more
+   * SerChangeEvent.Type.FinishedLoading will be fired, so if we create followed
+   * viewContainers here, should make sure that the QuoteSerCombiner listen
+   * to SeriesChangeEvent.FinishingCompute or SeriesChangeEvent.FinishingLoading from
+   * sec's ser and computeFrom(0) at once.
+   */
+  private def createCombinedSer(freq: TFreq): Option[QuoteSer] = {
+    println("create combine ser of " + freq)
+    val srcSer_? = freq match {
+      case TFreq.WEEKLY | TFreq.MONTHLY | TFreq.ONE_YEAR => serOf(TFreq.DAILY)
+      case _ => serOf(TFreq.ONE_MIN)
+    }
+
+    srcSer_? match {
+      case Some(srcSer) =>
+        val tarSer = new QuoteSer(freq)
+        val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
+        combiner.computeFrom(0) // don't remove me, see notice above.
+        putSer(tarSer)
+        Some(tarSer)
+      case None => None
+    }
   }
 
   def putSer(ser: QuoteSer) {
-    freqToSer(ser.freq) = ser
+    freqToSer.put(ser.freq, ser)
   }
 
   /**
