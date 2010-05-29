@@ -42,7 +42,7 @@ object YahooQuoteServerTest extends TestHelper {
               reportInds(x.weeklyInds)
             }
           }
-        }, 5000)
+        }, 5000, 6000)
     }
   }
 
