@@ -9,6 +9,8 @@ import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
+import scala.actors.Actor._
+
 object Exchanges extends Table[Exchange] {
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
@@ -27,6 +29,28 @@ object Exchange extends Publisher {
 
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
+  actor {
+    val timer = new Timer("Exchange Open/Close Timer")
+    for (exchange <- allExchanges) {
+      val preOpen = exchange.open
+      preOpen.add(Calendar.MINUTE, -15)
+      timer.schedule(new TimerTask {
+          def run {
+            // @todo process vacation here
+            publish(Opened(exchange))
+          }
+        }, preOpen.getTime, ONE_DAY)
+
+      val postClose = exchange.close
+      postClose.add(Calendar.MINUTE, +15)
+      timer.schedule(new TimerTask {
+          def run {
+            // @todo process vacation here
+            publish(Closed(exchange))
+          }
+        }, postClose.getTime, ONE_DAY)
+    }
+  }
 
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
@@ -74,32 +98,6 @@ object Exchange extends Publisher {
 
   def secOf(uniSymbol: String): Option[Sec] = 
     uniSymbolToSec.get(uniSymbol)
-
-  //startTimer
-  
-  def startTimer {
-    val timer = new Timer("Exchange Open/Close Timer")
-
-    for (exchange <- allExchanges) {
-      val preOpen = exchange.open
-      preOpen.add(Calendar.MINUTE, -15)
-      timer.schedule(new TimerTask {
-          def run {
-            // @todo process vacation here
-            publish(Opened(exchange))
-          }
-        }, preOpen.getTime, ONE_DAY)
-
-      val postClose = exchange.close
-      postClose.add(Calendar.MINUTE, +15)
-      timer.schedule(new TimerTask {
-          def run {
-            // @todo process vacation here
-            publish(Closed(exchange))
-          }
-        }, postClose.getTime, ONE_DAY)
-    }
-  }
 
   def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
     val exchange = new Exchange

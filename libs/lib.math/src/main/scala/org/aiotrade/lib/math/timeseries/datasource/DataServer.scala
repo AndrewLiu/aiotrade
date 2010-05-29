@@ -68,23 +68,17 @@ object DataServer extends Publisher {
   }
 
   case class HeartBeat(interval: Long) extends Event
-  
   val heartBeatInterval = 3000
-  val heartBeatTimer = new Timer("DataServer Heart Beat Timer")
-  startHeartBeatTimer
-  
-  def startHeartBeatTimer {
+  actor {
     // in context of applet, a page refresh may cause timer into a unpredict status,
     // so it's always better to restart this timer? , if so, cancel it first.
     //    if (timer != null) {
     //      timer.cancel
     //    }
     //    timer = new Timer("DataServer Heart Beat Timer")
-
-    heartBeatTimer.schedule(new TimerTask {
-        def run {
-          publish(HeartBeat(heartBeatInterval))
-        }
+    val timer = new Timer("DataServer Heart Beat Timer")
+    timer.schedule(new TimerTask {
+        def run = publish(HeartBeat(heartBeatInterval))
       }, 1000, heartBeatInterval)
   }
 }
