@@ -1,7 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
-import scala.swing.event.Event
+import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 
 /**

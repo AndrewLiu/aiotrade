@@ -46,7 +46,7 @@ import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Ticker
-import scala.swing.Reactor
+import org.aiotrade.lib.util.actors.Reactor
 
 /**
  *

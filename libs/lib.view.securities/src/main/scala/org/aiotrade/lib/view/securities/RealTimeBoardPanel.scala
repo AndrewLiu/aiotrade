@@ -65,13 +65,13 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
 import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
 import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel
 import org.aiotrade.lib.util.swing.table.DefaultCellAttribute
 import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
-import scala.swing.Reactor
 
 /**
  *

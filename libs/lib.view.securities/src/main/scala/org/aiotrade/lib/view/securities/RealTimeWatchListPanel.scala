@@ -56,8 +56,8 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
+import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
-import scala.swing.Reactor
 
 /**
  *

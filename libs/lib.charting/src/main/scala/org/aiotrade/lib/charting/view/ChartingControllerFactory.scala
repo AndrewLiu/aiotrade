@@ -46,11 +46,9 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.MasterTSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
-import org.aiotrade.lib.util.ChangeObserver
+import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-import scala.swing.Reactions
-import scala.swing.Reactor
 
 
 /**
@@ -127,21 +125,20 @@ object ChartingControllerFactory {
     private var _isAutoScrollToNewData = true
     private var _isMouseEnteredAnyChartPane: Boolean = _
     private var _isCursorCrossLineVisible = true
-    /** listen to masterSer and process loading, update events to check if need to update cursor */
-    private val masterSerReaction: Reactions.Reaction = {
-      /** this reaction only process loading, update events to check if need to update cursor */
-      case TSerEvent.FinishedLoading(_, _, fromTime, toTime, _, _)  => updateView(toTime)
-      case TSerEvent.RefreshInLoading(_, _, fromTime, toTime, _, _) => updateView(toTime)
-      case TSerEvent.Updated(_, _, fromTime, toTime, _, _)          => updateView(toTime)
-      case _ =>
-    }
 
     private def internal_setChartViewContainer(viewContainer: ChartViewContainer) {
       this.viewContainer = viewContainer
 
       internal_initCursorRow
 
-      reactions += masterSerReaction
+      reactions += {
+        /** this reaction only process loading, update events to check if need to update cursor */
+        case TSerEvent.FinishedLoading(_, _, fromTime, toTime, _, _)  => updateView(toTime)
+        case TSerEvent.RefreshInLoading(_, _, fromTime, toTime, _, _) => updateView(toTime)
+        case TSerEvent.Updated(_, _, fromTime, toTime, _, _)          => updateView(toTime)
+        case _ =>
+      }
+
       listenTo(masterSer)
 
       addKeyMouseListenersTo(viewContainer)
@@ -462,9 +459,6 @@ object ChartingControllerFactory {
     @throws(classOf[Throwable])
     override protected def finalize {
       deafTo(masterSer)
-      if (masterSerReaction != null) {
-        reactions -= masterSerReaction
-      }
 
       super.finalize
     }

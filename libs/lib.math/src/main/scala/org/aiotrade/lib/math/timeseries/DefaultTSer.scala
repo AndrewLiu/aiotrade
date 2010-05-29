@@ -296,8 +296,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       _timestamps.writeLock.unlock
     }
     logger.fine("TimestampsLog: " + tsLog)
-    val evt = TSerEvent.Updated(this, shortDescription, frTime, toTime)
-    publish(evt)
+
+    publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
     
     this
   }
@@ -421,10 +421,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       timestamps.writeLock.unlock
     }
 
-    publish(TSerEvent.Clear(this,
-                            shortDescription,
-                            fromTime,
-                            Long.MaxValue))
+    publish(TSerEvent.Clear(this, shortDescription, fromTime, Long.MaxValue))
   }
 
   /*-

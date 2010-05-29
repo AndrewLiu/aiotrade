@@ -33,8 +33,8 @@ package org.aiotrade.lib.math.timeseries.computable
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TSer
-import scala.swing.Reactions
-import scala.swing.Reactor
+import org.aiotrade.lib.util.actors.Reactions
+import org.aiotrade.lib.util.actors.Reactor
 
 
 /**
@@ -96,13 +96,13 @@ trait ComputableHelper extends Reactor {self: Computable =>
            * such as loaded from a data server etc.
            */
           // call back
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case Updated(_, _, fromTime, toTime, _, callback) =>
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case TSerEvent(_, _, _, _, _, callback) =>
           baseTSerEventCallBack = callback
@@ -119,16 +119,16 @@ trait ComputableHelper extends Reactor {self: Computable =>
            * FinishedComputing event to diff from Updated(caused by outside)
            */
           // call back
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case Updated(_, _, fromTime, toTime, _, callback) =>
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case FinishedComputing(_, _, fromTime, toTime, _, callback) =>
-          self ! ComputeFrom(fromTime)
+          computeFrom(fromTime)
           baseTSerEventCallBack = callback
         case Clear(_, _, fromTime, toTime, _, callback) =>
           self clear fromTime
@@ -222,7 +222,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
          * one.
          */
         if (source.equals(_factors(0))) {
-          self ! ComputeFrom(0)
+          computeFrom(0)
         }
 
     }

@@ -4,6 +4,7 @@ import java.util.Calendar
 import ru.circumflex.orm._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.HashMap
+import scala.actors.Scheduler
 
 /**
  * mysqldump5 -u root --no-data --database inca > inca.mysql
@@ -17,6 +18,9 @@ object Model {
   def main(args: Array[String]) {
     //test
     createSamples
+
+    Scheduler.shutdown
+    System.exit(0)
   }
 
   private def test {

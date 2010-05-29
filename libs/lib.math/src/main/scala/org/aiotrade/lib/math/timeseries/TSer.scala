@@ -30,9 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.util.actors.ChainActor
-import scala.swing.Publisher
-import scala.swing.event.Event
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Event
 
 /**
  * Time Series
@@ -41,7 +40,7 @@ import scala.swing.event.Event
  * @author Caoyuan Deng
  */
 case class AddAll[V <: TVal](values: Array[V])
-trait TSer extends Publisher with ChainActor {
+trait TSer extends Publisher {
 
 //  ----- actor's implementation
 //  val serActor = actor {

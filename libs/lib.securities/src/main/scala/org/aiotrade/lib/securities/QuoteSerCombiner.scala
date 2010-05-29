@@ -33,9 +33,8 @@ package org.aiotrade.lib.securities
 import java.util.Calendar
 import java.util.TimeZone
 import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.util.actors.Reactor
 import scala.annotation.tailrec
-import scala.swing.Reactions
-import scala.swing.Reactor
 
 /**
  *
@@ -43,16 +42,13 @@ import scala.swing.Reactor
  */
 class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
-  private val cal = Calendar.getInstance(timeZone)
-
-  private val sourceSerReaction: Reactions.Reaction = {
+  reactions += {
     case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.Clear(_, _, fromTime, _, _, _) => computeCont(fromTime)
   }
   
-  reactions += sourceSerReaction
   listenTo(sourceSer)
     
   def computeFrom(fromTime: Long): Unit = {
@@ -65,7 +61,8 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
   protected def computeCont(fromTime: Long): Unit = {
     val targetFreq = targetSer.freq
     val targetUnit = targetFreq.unit
-        
+
+    val cal = Calendar.getInstance(timeZone)
     val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, cal)
     val masterFromIdx1 = sourceSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
@@ -171,10 +168,5 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
     
-  def dispose: Unit = {
-    deafTo(sourceSer)
-    if (sourceSerReaction != null) {
-      reactions -= sourceSerReaction
-    }
-  }
+  def dispose {}
 }

@@ -32,8 +32,8 @@ package org.aiotrade.lib.math.timeseries.computable
 
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
-import scala.swing.Publisher
-import scala.swing.event.Event
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Event
 
 /**
  * Class for defining indicator's factor

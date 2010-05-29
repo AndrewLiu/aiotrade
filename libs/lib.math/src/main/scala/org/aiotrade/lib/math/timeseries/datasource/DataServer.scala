@@ -41,6 +41,9 @@ import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Reactor
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.collection.mutable.{HashMap}
@@ -50,7 +53,7 @@ import scala.collection.mutable.{HashMap}
  *
  * @author Caoyuan Deng
  */
-object DataServer extends scala.swing.Publisher {
+object DataServer extends Publisher {
   lazy val DEFAULT_ICON: Option[Image] = {
     val url = classOf[DataServer[_]].getResource("defaultIcon.gif")
     if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
@@ -65,7 +68,7 @@ object DataServer extends scala.swing.Publisher {
     _executorService
   }
 
-  case class HeartBeat(interval: Long) extends scala.swing.event.Event
+  case class HeartBeat(interval: Long) extends Event
   
   val heartBeatInterval = 3000
   val heartBeatTimer = new Timer("DataServer Heart Beat Timer")
@@ -91,7 +94,7 @@ object DataServer extends scala.swing.Publisher {
  * V data storege type
  */
 import DataServer._
-abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with scala.swing.Reactor {
+abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
 
   type C <: DataContract[_]
   type T <: TSer
@@ -119,21 +122,21 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   var refreshable = false
 
-  private case object LoadHistory
-  private case object RefreshData
-  protected val dataLoader = actor {
-    loop {
-      react {
-        case LoadHistory =>
-          loadedTime = loadFromPersistence
-          loadedTime = loadFromSource(loadedTime)
-          postLoadHistory
-        case RefreshData if refreshable =>
-          loadedTime = loadFromSource(loadedTime)
-          postRefresh
-      }
-    }
-  }
+  private case object LoadHistory extends Event
+  private case object RefreshData extends Event
+//  protected val dataLoader = actor {
+//    loop {
+//      react {
+//        case LoadHistory =>
+//          loadedTime = loadFromPersistence
+//          loadedTime = loadFromSource(loadedTime)
+//          postLoadHistory
+//        case RefreshData if refreshable =>
+//          loadedTime = loadFromSource(loadedTime)
+//          postRefresh
+//      }
+//    }
+//  }
 
   /**
    * Since object DataServer is singleton, and all data server instances are willing
@@ -141,7 +144,13 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * transit HeartBeat event from this singleton object DataServer to dataLoader
    */
   reactions += {
-    case HeartBeat(interval) => dataLoader ! RefreshData
+    case HeartBeat(interval) if refreshable =>
+      loadedTime = loadFromSource(loadedTime)
+      postRefresh
+    case LoadHistory =>
+      loadedTime = loadFromPersistence
+      loadedTime = loadFromSource(loadedTime)
+      postLoadHistory
   }
 
   listenTo(DataServer)
@@ -157,7 +166,10 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       assert(false, "none ser subscribed!")
     }
 
-    dataLoader ! LoadHistory
+    /**
+     * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
+     */
+    publish(LoadHistory)
   }
 
   protected def postLoadHistory {}

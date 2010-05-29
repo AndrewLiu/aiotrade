@@ -32,6 +32,7 @@ package org.aiotrade.lib.math.timeseries.computable
 
 import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.util.actors.Event
 
 /**
  *
@@ -50,12 +51,12 @@ object Computable {
   }
 }
 
-case class ComputeFrom(time: Long)
+case class ComputeFrom(time: Long) extends Event
 trait Computable extends TSer {
 
   val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
 
-  actorActions += {
+  reactions += {
     case ComputeFrom(time) => computeFrom(time)
   }
 

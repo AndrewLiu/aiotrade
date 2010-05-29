@@ -3,8 +3,8 @@ package org.aiotrade.lib.securities.model
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.ListBuffer
-import scala.swing.Publisher
-import scala.swing.event.Event
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Event
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._

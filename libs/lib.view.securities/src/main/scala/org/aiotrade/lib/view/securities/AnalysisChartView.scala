@@ -50,8 +50,8 @@ import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
-import scala.swing.Reactor
 
 
 /**

@@ -54,10 +54,9 @@ import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.scalar.Scalar
 import org.aiotrade.lib.util.ChangeSubject
+import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.LinkedHashMap
-import scala.swing.Reactions
-import scala.swing.Reactor
 
 
 /**
@@ -92,17 +91,6 @@ abstract class ChartView(protected var _controller: ChartingController,
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeSubject with Reactor {
 
-  protected val serReaction: Reactions.Reaction = {
-    case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
-      updateView(evt)
-      callback()
-    case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
-      updateView(evt)
-      callback()
-    case TSerEvent(_, _, _, _, _, callback) =>
-      callback()
-  }
-  
   protected val overlappingSerChartToVars = new LinkedHashMap[TSer, LinkedHashMap[Chart, HashSet[TVar[_]]]]
 
   val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
@@ -139,6 +127,17 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   if (!empty) {
     init(_controller, _mainSer)
+  }
+
+  reactions += {
+    case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
+      updateView(evt)
+      callback()
+    case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
+      updateView(evt)
+      callback()
+    case TSerEvent(_, _, _, _, _, callback) =>
+      callback()
   }
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
@@ -244,7 +243,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).toInt
 
     /** avoid nBars == 0 */
-    nBars = Math.max(newNBars, 1)
+    nBars = math.max(newNBars, 1)
 
     /**
      * We only need computeMaxMin() once when a this should be repainted,
@@ -531,10 +530,6 @@ abstract class ChartView(protected var _controller: ChartingController,
   @throws(classOf[Throwable])
   override protected def finalize {
     deafTo(_mainSer)
-    if (serReaction != null) {
-      reactions -= serReaction
-    }
-
     super.finalize
   }
 }
