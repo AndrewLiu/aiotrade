@@ -43,7 +43,6 @@ import java.util.concurrent.Executors
 import org.aiotrade.lib.util.collection.ArrayList
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.actors.Reactor
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.collection.mutable.{HashMap}
@@ -123,25 +122,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   var refreshable = false
 
   private case object LoadHistory extends Event
-  private case object RefreshData extends Event
-//  protected val dataLoader = actor {
-//    loop {
-//      react {
-//        case LoadHistory =>
-//          loadedTime = loadFromPersistence
-//          loadedTime = loadFromSource(loadedTime)
-//          postLoadHistory
-//        case RefreshData if refreshable =>
-//          loadedTime = loadFromSource(loadedTime)
-//          postRefresh
-//      }
-//    }
-//  }
 
   /**
-   * Since object DataServer is singleton, and all data server instances are willing
-   * to listen to it's HeartBeat event via registering this event, we need to
-   * transit HeartBeat event from this singleton object DataServer to dataLoader
+   * asynced loadHistory and refresh requests via actor modeled reactions
    */
   reactions += {
     case HeartBeat(interval) if refreshable =>
