@@ -153,20 +153,20 @@ trait ComputableHelper extends Reactor {self: Computable =>
         // * the timestamps <-> items map may not be validate now, should validate it first
         val fromTimeX = fromTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        val fromIdxX = math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
         (fromTimeX, fromIdxX, true)
       } else if (fromTime > self.computedTime){
         // * if begTime > computedTime, re-compute from computedTime
         val fromTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        val fromIdxX = math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
         (fromTimeX, fromIdxX, timestamps.size > self.size)
       } else {
         // * begTime == computedTime
         // * if begTime > computedTime, re-compute from computedTime
         val fromTimeX = self.computedTime
         // * indexOfOccurredTime always returns physical index, so don't worry about isOncalendarTime
-        val fromIdxX = Math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
+        val fromIdxX = math.max(timestamps.indexOfOccurredTime(fromTimeX), 0) // should not less then 0
         (fromTimeX, fromIdxX, false)
       }
     }

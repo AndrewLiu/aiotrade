@@ -30,22 +30,22 @@ import scala.collection.mutable.{Buffer, HashSet, Set}
 trait Publisher extends Reactor {
   import Reactions._
   
-  protected val listeners = new RefSet[Reaction] {
+  protected val listeners = new RefSet[Reactor] {
     import scala.ref._
-    val underlying = new HashSet[Reference[Reaction]]
-    protected def Ref(a: Reaction) = a match {
-      case a: StronglyReferenced => new StrongReference[Reaction](a) with super.Ref[Reaction]
-      case _ => new WeakReference[Reaction](a, referenceQueue) with super.Ref[Reaction]
+    val underlying = new HashSet[Reference[Reactor]]
+    protected def Ref(a: Reactor) = a match {
+      case a: StronglyReferenced => new StrongReference[Reactor](a) with super.Ref[Reactor]
+      case _ => new WeakReference[Reactor](a, referenceQueue) with super.Ref[Reactor]
     }
   }
 
-  private[actors] def subscribe(listener: Reaction) { listeners += listener }
-  private[actors] def unsubscribe(listener: Reaction) { listeners -= listener }
+  private[actors] def subscribe(listener: Reactor) { listeners += listener }
+  private[actors] def unsubscribe(listener: Reactor) { listeners -= listener }
   
   /**
    * Notify all registered reactions.
    */
-  def publish(e: Event) { for (l <- listeners) l(e) }
+  def publish(e: Event) { for (l <- listeners) l ! e }
   
   listenTo(this)
 }
@@ -60,11 +60,11 @@ private[actors] trait LazyPublisher extends Publisher {
   protected def onFirstSubscribe()
   protected def onLastUnsubscribe()
   
-  override def subscribe(listener: Reaction) { 
+  override def subscribe(listener: Reactor) {
     if (listeners.size == 1) onFirstSubscribe()
     super.subscribe(listener) 
   }
-  override def unsubscribe(listener: Reaction) { 
+  override def unsubscribe(listener: Reactor) {
     super.unsubscribe(listener) 
     if (listeners.size == 1) onLastUnsubscribe()
   }
