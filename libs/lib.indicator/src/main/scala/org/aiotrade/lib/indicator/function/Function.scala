@@ -88,8 +88,6 @@ trait Function {
    */
   def set(baseSer: TSer, args: Any*)
 
-  def id: FunctionID[_]
-
   /**
    * This method will compute from computedIdx <b>to</b> idx.
    *
