@@ -18,6 +18,9 @@ trait Reactor extends scala.actors.Reactor[Event] {
    * All reactions of this reactor.
    */
   val reactions: Reactions = new Reactions.Impl
+  
+  start
+
   /**
    * Listen to the given publisher as long as <code>deafTo</code> isn't called for 
    * them.
