@@ -9,6 +9,7 @@ import java.util.Timer
 import java.util.TimerTask
 import org.aiotrade.lib.dataserver.yahoo._
 import org.aiotrade.platform.test.TestHelper
+import scala.actors.Actor._
 
 object YahooQuoteServerTest extends TestHelper {
 
@@ -30,17 +31,19 @@ object YahooQuoteServerTest extends TestHelper {
       i += 1
     }
 
-    val timer = new Timer
-    timer.schedule(new TimerTask {
-        def run {
-          testers foreach {x =>
-            reportQuote(x.sec)
-            reportInds(x.oneMinInds)
-            reportInds(x.dailyInds)
-            reportInds(x.weeklyInds)
+    actor {
+      val timer = new Timer
+      timer.schedule(new TimerTask {
+          def run {
+            testers foreach {x =>
+              reportQuote(x.sec)
+              reportInds(x.oneMinInds)
+              reportInds(x.dailyInds)
+              reportInds(x.weeklyInds)
+            }
           }
-        }
-      }, 5000)
+        }, 5000)
+    }
   }
 
   class TestOne(symbol:String) {
