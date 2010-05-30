@@ -385,6 +385,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     seq.low(now)    = quote.low
     seq.close(now)  = quote.close
     seq.volume(now) = quote.volume
+    seq.amount(now) = quote.amount
 
     seq.close_ori(now) = quote.close
     seq.close_adj(now) = quote.close

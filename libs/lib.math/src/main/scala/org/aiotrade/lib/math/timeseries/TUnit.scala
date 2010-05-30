@@ -119,9 +119,50 @@ abstract class TUnit {
    * round time to unit's begin 0
    * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    */
+  def round(cal: Calendar): Long = {
+    this match {
+      case Day =>
+        roundToDay(cal)
+      case Week =>
+        /**
+         * set the time to this week's first day of one week
+         *     int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+         *     calendar.add(Calendar.DAY_OF_YEAR, -(dayOfWeek - Calendar.SUNDAY))
+         *
+         * From stebridev@users.sourceforge.net:
+         * In some place of the world the first day of month is Monday,
+         * not Sunday like in the United States. For example Sunday 15
+         * of August of 2004 is the week 33 in Italy and not week 34
+         * like in US, while Thursday 19 of August is in the week 34 in
+         * boot Italy and US.
+         */
+        val firstDayOfWeek = cal.getFirstDayOfWeek
+        cal.set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+        roundToDay(cal)
+      case Month =>
+        /** set the time to this month's 1st day */
+        val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)
+        cal.add(Calendar.DAY_OF_YEAR, -(dayOfMonth - 1))
+        roundToDay(cal)
+      case Year =>
+        cal.set(Calendar.DAY_OF_YEAR, 1)
+        roundToDay(cal)
+      case _ =>
+        val time = round(cal.getTimeInMillis)
+        cal.setTimeInMillis(time)
+    }
+
+    cal.getTimeInMillis
+  }
+
   def round(time: Long): Long = {
     //return (time + offsetToUTC / getInterval()) * getInterval() - offsetToUTC
     (time / interval) * interval
+  }
+
+  private def roundToDay(cal: Calendar) {
+    val time = Day.round(cal.getTimeInMillis)
+    cal.setTimeInMillis(time)
   }
 
   def name: String = {
@@ -189,7 +230,7 @@ abstract class TUnit {
      * Otherwise, the days between fromTime and toTime is <= 6,
      * we should consider it as following:
      */
-    if (Math.abs(between) < 1) {
+    if (math.abs(between) < 1) {
       val cal = Calendar.getInstance
       cal.setTimeInMillis(fromTime)
       val weekOfYearA = cal.get(Calendar.WEEK_OF_YEAR)
@@ -256,38 +297,7 @@ abstract class TUnit {
 
   def beginTimeOfUnitThatInclude(time: Long, cal: Calendar):Long = {
     cal.setTimeInMillis(time)
-
-    this match {
-      case Day =>
-        /** set the time to today's 0:00 by clear hour, minute, second etc. */
-        val year  = cal.get(Calendar.YEAR)
-        val month = cal.get(Calendar.MONTH)
-        val date  = cal.get(Calendar.DAY_OF_MONTH)
-        cal.clear()
-        cal.set(year, month, date)
-      case Week =>
-        /**
-         * set the time to this week's first day of one week
-         *     int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-         *     calendar.add(Calendar.DAY_OF_YEAR, -(dayOfWeek - Calendar.SUNDAY))
-         *
-         * From stebridev@users.sourceforge.net:
-         * In some place of the world the first day of month is Monday,
-         * not Sunday like in the United States. For example Sunday 15
-         * of August of 2004 is the week 33 in Italy and not week 34
-         * like in US, while Thursday 19 of August is in the week 34 in
-         * boot Italy and US.
-         */
-        val firstDayOfWeek = cal.getFirstDayOfWeek()
-        cal.set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
-      case Month =>
-        /** set the time to this month's 1st day */
-        val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)
-        cal.add(Calendar.DAY_OF_YEAR, -(dayOfMonth - 1))
-      case _ =>
-    }
-
-    cal.getTimeInMillis
+    round(cal)
   }
 
   def formatNormalDate(date: Date, timeZone: TimeZone): String = {

@@ -48,6 +48,7 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
   val low    = TVar[Float]("L", Plot.Quote)
   val close  = TVar[Float]("C", Plot.Quote)
   val volume = TVar[Float]("V", Plot.Volume)
+  val amount = TVar[Float]("V", Plot.Volume)
     
   val close_ori = TVar[Float]()
   val close_adj = TVar[Float]()
@@ -61,6 +62,7 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
         low(time)    = quote.low
         close(time)  = quote.close
         volume(time) = quote.volume
+        amount(time) = quote.amount
 
         close_ori(time) = quote.close
 
@@ -68,6 +70,19 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
         close_adj(time) = adjuestedClose
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
+  }
+
+  def valueOf(time: Long): Option[Quote] = {
+    if (exists(time)) {
+      val quote = new Quote
+      quote.open   = open(time)
+      quote.high   = high(time)
+      quote.low    = low(time)
+      quote.close  = close(time)
+      quote.volume = volume(time)
+      quote.amount = amount(time)
+      Some(quote)
+    } else None
   }
 
   /**

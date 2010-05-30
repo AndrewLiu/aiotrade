@@ -40,7 +40,7 @@ import scala.annotation.tailrec
  *
  * @author Caoyuan Deng
  */
-class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   reactions += {
     case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
@@ -49,7 +49,7 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
     case TSerEvent.Clear(_, _, fromTime, _, _, _) => computeCont(fromTime)
   }
   
-  listenTo(sourceSer)
+  listenTo(srcSer)
     
   def computeFrom(fromTime: Long): Unit = {
     computeCont(fromTime)
@@ -63,8 +63,9 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
     val targetUnit = targetFreq.unit
 
     val cal = Calendar.getInstance(timeZone)
-    val masterFromTime = targetUnit.beginTimeOfUnitThatInclude(fromTime, cal)
-    val masterFromIdx1 = sourceSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
+    cal.setTimeInMillis(fromTime)
+    val masterFromTime = targetUnit.round(cal)
+    val masterFromIdx1 = srcSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
         
     //System.out.println("myFromIdx: " + myFromIdx + " materFromIdx: " + masterFromIdx);
@@ -72,12 +73,12 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
         
     /** begin combining: */
                 
-    val l = sourceSer.size
+    val l = srcSer.size
     @tailrec
     def loop(i: Int): Unit = {
       if (i >= l) return
             
-      val time_i = sourceSer.timeOfIndex(i)
+      val time_i = srcSer.timeOfIndex(i)
       if (time_i < masterFromTime) {
         loop(i + 1)
       }
@@ -86,19 +87,20 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
             
       targetSer.createOrClear(intervalBegin)
             
-      var prevNorm = sourceSer.close(time_i)
-      var postNorm = sourceSer.close_adj(time_i)
+      var prevNorm = srcSer.close(time_i)
+      var postNorm = srcSer.close_adj(time_i)
             
-      targetSer.open(intervalBegin)   = linearAdjust(sourceSer.open(time_i),  prevNorm, postNorm)
+      targetSer.open(intervalBegin)   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
       targetSer.high(intervalBegin)   = Float.MinValue
       targetSer.low(intervalBegin)    = Float.MaxValue
       targetSer.volume(intervalBegin) = 0
+      targetSer.amount(intervalBegin) = 0
             
       /** compose followed source data of this interval to targetData */
       var j = 0
       var break = false
       while (i + j < l && !break) {
-        val time_j = sourceSer.timeOfIndex(i + j)
+        val time_j = srcSer.timeOfIndex(i + j)
                 
         /**
          * @NOTICE
@@ -121,17 +123,18 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
            * different scale close_adj, so must do adjust with its own close_adj firstly. then
            * use the last close_orj to de-adjust it.
            */
-          prevNorm = sourceSer.close(time_j)
-          postNorm = sourceSer.close_adj(time_j)
+          prevNorm = srcSer.close(time_j)
+          postNorm = srcSer.close_adj(time_j)
 
-          targetSer.high(intervalBegin)  = math.max(targetSer.high(intervalBegin), linearAdjust(sourceSer.high(time_j),  prevNorm, postNorm))
-          targetSer.low(intervalBegin)   = math.min(targetSer.low(intervalBegin),  linearAdjust(sourceSer.low(time_j),   prevNorm, postNorm))
-          targetSer.close(intervalBegin) = linearAdjust(sourceSer.close(time_j),   prevNorm, postNorm)
+          targetSer.high(intervalBegin)  = math.max(targetSer.high(intervalBegin), linearAdjust(srcSer.high(time_j),  prevNorm, postNorm))
+          targetSer.low(intervalBegin)   = math.min(targetSer.low(intervalBegin),  linearAdjust(srcSer.low(time_j),   prevNorm, postNorm))
+          targetSer.close(intervalBegin) = linearAdjust(srcSer.close(time_j),   prevNorm, postNorm)
 
-          targetSer.volume(intervalBegin) = targetSer.volume(intervalBegin) + sourceSer.volume(time_j)
+          targetSer.volume(intervalBegin) = targetSer.volume(intervalBegin) + srcSer.volume(time_j)
+          targetSer.amount(intervalBegin) = targetSer.amount(intervalBegin) + srcSer.amount(time_j)
 
-          targetSer.close_ori(intervalBegin) = sourceSer.close_ori(time_j)
-          targetSer.close_adj(intervalBegin) = sourceSer.close_adj(time_j)
+          targetSer.close_ori(intervalBegin) = srcSer.close_ori(time_j)
+          targetSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
 
           j += 1
         } else {
@@ -154,10 +157,7 @@ class QuoteSerCombiner(sourceSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZ
 
     loop(masterFromIdx)
         
-    val evt = TSerEvent.Updated(targetSer,
-                                null,
-                                masterFromTime,
-                                targetSer.lastOccurredTime)
+    val evt = TSerEvent.Updated(targetSer, null, masterFromTime, targetSer.lastOccurredTime)
     targetSer.publish(evt)
   }
     
