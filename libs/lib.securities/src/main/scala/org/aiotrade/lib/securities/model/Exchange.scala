@@ -9,6 +9,7 @@ import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
+import scala.actors.Actor
 import scala.actors.Actor._
 
 object Exchanges extends Table[Exchange] {
@@ -29,28 +30,35 @@ object Exchange extends Publisher {
 
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
-  actor {
-    val timer = new Timer("Exchange Open/Close Timer")
-    for (exchange <- allExchanges) {
-      val preOpen = exchange.open
-      preOpen.add(Calendar.MINUTE, -15)
-      timer.schedule(new TimerTask {
-          def run {
-            // @todo process vacation here
-            publish(Opened(exchange))
-          }
-        }, preOpen.getTime, ONE_DAY)
+  /**
+   * @Note should lazy call allExchanges during model running, so, don't start timer actor automatically
+   */
+  object exchangesActor extends Actor {
+    def act {
+      val timer = new Timer("Exchange Open/Close Timer")
+      for (exchange <- allExchanges) {
+        val preOpen = exchange.open
+        preOpen.add(Calendar.MINUTE, -15)
+        timer.schedule(new TimerTask {
+            def run {
+              // @todo process vacation here
+              publish(Opened(exchange))
+            }
+          }, preOpen.getTime, ONE_DAY)
 
-      val postClose = exchange.close
-      postClose.add(Calendar.MINUTE, +15)
-      timer.schedule(new TimerTask {
-          def run {
-            // @todo process vacation here
-            publish(Closed(exchange))
-          }
-        }, postClose.getTime, ONE_DAY)
+        val postClose = exchange.close
+        postClose.add(Calendar.MINUTE, +15)
+        timer.schedule(new TimerTask {
+            def run {
+              // @todo process vacation here
+              publish(Closed(exchange))
+            }
+          }, postClose.getTime, ONE_DAY)
+      }
     }
   }
+
+  def startTimer = exchangesActor.start
 
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
@@ -62,7 +70,7 @@ object Exchange extends Publisher {
 
   lazy val allExchanges = Exchanges.all()
 
-  lazy val uniSymbolToSec = 
+  lazy val uniSymbolToSec =
     (allExchanges map (x => secsOf(x)) flatMap {secs =>
         secs filter (_.secInfo != null) map (sec => sec.secInfo.uniSymbol -> sec)
       }
@@ -96,7 +104,7 @@ object Exchange extends Publisher {
     syms
   }
 
-  def secOf(uniSymbol: String): Option[Sec] = 
+  def secOf(uniSymbol: String): Option[Sec] =
     uniSymbolToSec.get(uniSymbol)
 
   def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {

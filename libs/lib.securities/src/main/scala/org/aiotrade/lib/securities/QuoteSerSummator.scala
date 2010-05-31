@@ -50,21 +50,21 @@ class QuoteSerSummator(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZ
 
   srcSers foreach (x => listenTo(x._1))
 
-  var serToBaseNorms = srcSers map {case (ser, weight) =>
+  var serToBaseNorm = srcSers map {case (ser, weight) =>
       if (ser.size > 0) {
         val time = ser.timeOfIndex(0)
         (ser, ser.valueOf(time))
       } else (ser, None)
   } toMap
 
-  def computeFrom(fromTime: Long): Unit = {
+  def computeFrom(fromTime: Long) {
     computeCont(fromTime)
   }
     
   /**
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
-  protected def computeCont(fromTime: Long): Unit = {
+  protected def computeCont(fromTime: Long) {
     val targetFreq = targetSer.freq
     val targetUnit = targetFreq.unit
 
@@ -79,9 +79,9 @@ class QuoteSerSummator(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZ
     while (time_i < now) {
       targetSer.createOrClear(time_i)
       for ((srcSer, weight) <- srcSers if srcSer.exists(time_i)) {
-        targetSer.open(time_i)   = targetSer.open(time_i) + (srcSer.open(time_i) / serToBaseNorms(srcSer).get.open) * weight
-        targetSer.high(time_i)   = targetSer.high(time_i) + (srcSer.high(time_i) / serToBaseNorms(srcSer).get.high) * weight
-        targetSer.low (time_i)   = targetSer.low (time_i) + (srcSer.low (time_i) / serToBaseNorms(srcSer).get.low)  * weight
+        targetSer.open(time_i)   = targetSer.open(time_i) + (srcSer.open(time_i) / serToBaseNorm(srcSer).get.open) * weight
+        targetSer.high(time_i)   = targetSer.high(time_i) + (srcSer.high(time_i) / serToBaseNorm(srcSer).get.high) * weight
+        targetSer.low (time_i)   = targetSer.low (time_i) + (srcSer.low (time_i) / serToBaseNorm(srcSer).get.low)  * weight
         targetSer.volume(time_i) = targetSer.volume(time_i) + srcSer.volume(time_i)
         targetSer.amount(time_i) = targetSer.amount(time_i) + srcSer.amount(time_i)
       }

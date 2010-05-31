@@ -14,6 +14,8 @@ import scala.actors.Scheduler
  */
 object Model {
   val secs = new HashMap[String, Sec]
+  // holding strong reference of exchange
+  var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
     //test
@@ -176,12 +178,15 @@ object Model {
   }
 
   def sampleExchanges = {
-    val exchanegs = List(N, SS, SZ, L)
-    exchanegs foreach println
-    exchanegs foreach Exchanges.save
+    exchanges = List(N, SS, SZ, L)
+    exchanges foreach println
+    exchanges foreach Exchanges.save
+    commit
   }
 
   def sampleSecs = {
+    println(Exchanges.idOf(Exchange.N))
+    
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
       createSec(symbol, symbol, Exchange.N)
     }
@@ -214,6 +219,7 @@ object Model {
 
     secInfo.sec = sec
     SecInfos.update(secInfo)
+    commit
   }
 
   val N   = Exchange("N",  "America/New_York", Array(9, 30, 11, 30, 13, 0, 16, 0))  // New York
