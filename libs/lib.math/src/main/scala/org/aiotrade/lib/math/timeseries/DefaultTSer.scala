@@ -105,22 +105,69 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   protected def addVar(v: TVar[Any]): Unit = {
     vars += v
   }
-  
+
+  /**
+   * @todo, holder.size of timestamps.size ?
+   */
+  def size: Int = holders.size
+
   def exists(time: Long): Boolean = {
-    var holder = internal_apply(time)
-    this match {
-      case x: SpotComputable =>
-        if (holder == 0) {
+    /**
+     * @NOTE:
+     * Should only get index from timestamps which has the proper
+     * position <-> time <-> item mapping
+     */
+    val idx = timestamps.indexOfOccurredTime(time)
+    if (idx >= 0 && idx < holders.size) {
+      true
+    } else {
+      this match {
+        case x: SpotComputable =>
           /** re-get one by computing it */
           x.computeSpot(time)
-          return true
-        }
-      case _ =>
+          true
+        case _ => false
+      }
     }
-    holder != 0
   }
 
-  /*_ @Todo removed synchronized for internal_apply and internal_addClearItem_fillTimestamps_InTimeOrder, would cause deadlock:
+  /*-
+   * !NOTICE
+   * This should be the only place to create an Item from outside, because it's
+   * a bit complex to finish an item creating procedure, the procedure contains
+   * at least 3 steps:
+   * 1. create a clear holder, which with clear = true, and idx to be set
+   *    later by holders;
+   * 2. add the time to timestamps properly.
+   * @see #internal_addClearItemAndNullVarValuesToList_And_Filltimestamps__InTimeOrder(long, SerItem)
+   * 3. add null value to vars at the proper idx.
+   * @see #internal_addTime_addClearItem_addNullVarValues()
+   *
+   * So we do not try to provide other public methods such as addItem() that can
+   * add item from outside, you should use this method to create a new (a clear)
+   * item and return it, or just clear it, if it has be there.
+   * And that why define some motheds signature begin with internal_, becuase
+   * you'd better never think to open these methods to protected or public.
+   */
+  def createOrClear(time: Long) {
+    /**
+     * @NOTE:
+     * Should only get index from timestamps which has the proper
+     * position <-> time <-> item mapping
+     */
+    val idx = timestamps.indexOfOccurredTime(time)
+    if (idx >= 0 && idx < holders.size) {
+      // existed, clear it
+      vars foreach {x => x(idx) = x.NullVal}
+      holders(idx) = 0
+    } else {
+      // create a new one, add placeholder
+      val holder = createItem(time)
+      internal_addItem_fillTimestamps_InTimeOrder(time, holder)
+    }
+  }
+
+  /*_ @Todo removed synchronized for internal_apply and internal_addClearItem_fillTimestamps_InTimeOrder, synchronized would cause deadlock:
    [java] "AWT-EventQueue-0" prio=6 tid=0x0000000101891800 nid=0x132013000 waiting for monitor entry [0x0000000132011000]
    [java]    java.lang.Thread.State: BLOCKED (on object monitor)
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:115)
@@ -180,19 +227,6 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    */
 
   /**
-   * This should be the only interface to fetch item, what ever by time or by row.
-   */
-  private def internal_apply(time: Long): Holder = {
-    /**
-     * @NOTE:
-     * Should only get index from timestamps which has the proper
-     * position <-> time <-> item mapping
-     */
-    val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < holders.size) holders(idx) else 0
-  }
-
-  /**
    * Add a clear item and corresponding time in time order,
    * should process time position (add time to timestamps orderly).
    * Support inserting time/clearItem pair in random order
@@ -200,7 +234,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * @param time
    * @param clearItem
    */
-  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, holder: Holder): Unit = {
+  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, holder: Holder) {
     // @Note: writeLock timestamps only when insert/append it
     val lastOccurredTime = timestamps.lastOccurredTime
     if (time < lastOccurredTime) {
@@ -423,38 +457,6 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     publish(TSerEvent.Clear(this, shortDescription, fromTime, Long.MaxValue))
   }
-
-  /*-
-   * !NOTICE
-   * This should be the only place to create an Item from outside, because it's
-   * a bit complex to finish an item creating procedure, the procedure contains
-   * at least 3 steps:
-   * 1. create a clear item instance, which with clear = true, and idx to be set
-   *    later by ItemList;
-   * @see #ItemList#add()
-   * 2. add the time to timestamps properly.
-   * @see #internal_addClearItemAndNullVarValuesToList_And_Filltimestamps__InTimeOrder(long, SerItem)
-   * 3. add null value to vars at the proper idx.
-   * @see #internal_addTime_addClearItem_addNullVarValues()
-   *
-   * So we do not try to provide other public methods such as addItem() that can
-   * add item from outside, you should use this method to create a new (a clear)
-   * item and return it, or just clear it, if it has be there.
-   * And that why define some motheds signature begin with internal_, becuase
-   * you'd better never think to open these methods to protected or public.
-   */
-  def createOrClear(time: Long) {
-    internal_apply(time) match {
-      case 0 =>
-        // * holder == 0 means timestamps.indexOfOccurredTime(time) is not exist
-        val holder = createItem(time)
-        internal_addItem_fillTimestamps_InTimeOrder(time, holder)
-      case flag =>
-        internal_addItem_fillTimestamps_InTimeOrder(time, 0)
-    }
-  }
-
-  def size: Int = holders.size
 
   def indexOfOccurredTime(time: Long): Int = {
     timestamps.indexOfOccurredTime(time)
