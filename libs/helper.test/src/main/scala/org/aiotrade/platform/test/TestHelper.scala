@@ -158,7 +158,7 @@ trait TestHelper {
     }
   }
 
-  def printLastValueOf(indicator: Indicator): Unit = {
+  def printLastValueOf(indicator: Indicator) {
     println
     println(indicator.freq + "-" +indicator.shortDescription + ":" + indicator.size)
     for (v <- indicator.vars if v.size > 0) {
@@ -175,7 +175,7 @@ trait TestHelper {
   }
 
   def reportInds(inds: Seq[Indicator]) {
-    inds foreach printLastValueOf
+    inds foreach {x => println(x.toString)}
   }
 
 

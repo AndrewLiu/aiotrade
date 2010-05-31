@@ -194,7 +194,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
   }
 
   def postComputeFrom: Unit = {
-    logger.info(toString)
+    logger.fine(toString)
     // construct resultSer's change event, forward baseTSerEventCallBack
     self.publish(TSerEvent.FinishedComputing(self,
                                              null,

@@ -583,8 +583,6 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     override def update(idx: Int, value: V) {
       super.update(idx, value)
     }
-
-    def validate {}
   }
 
   /**
