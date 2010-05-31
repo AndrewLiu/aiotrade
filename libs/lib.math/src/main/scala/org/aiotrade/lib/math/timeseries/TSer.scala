@@ -72,10 +72,6 @@ trait TSer extends Publisher {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long)
 
-  def ++=[T <: TVal](values: Array[T]): TSer
-    
-  def createOrClear(time: Long)
-    
   def shortDescription: String
   def shortDescription_=(description: String)
     

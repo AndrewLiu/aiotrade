@@ -36,7 +36,11 @@ package org.aiotrade.lib.math.timeseries
  * @author Caoyuan Deng
  */
 trait MasterTSer extends TSer {
-    
+
+  // --- Only MasterTSer can have methods that explictly add value
+  def createOrClear(time: Long)
+  def ++=[V <: TVal](values: Array[V]): TSer
+
   /**
    * @NOTICE we can only trust MasterSer to translate row <-> time properly.
    */

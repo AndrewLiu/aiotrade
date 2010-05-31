@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries.computable
 
-import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.actors.Reactions
@@ -47,7 +46,6 @@ import org.aiotrade.lib.util.actors.Reactor
  * @author Caoyuan Deng
  */
 trait ComputableHelper extends Reactor {self: Computable =>
-  val logger = Logger.getLogger(this.getClass.getName)
 
   /**
    * factors of this instance, such as period long, period short etc,
@@ -193,7 +191,6 @@ trait ComputableHelper extends Reactor {self: Computable =>
   }
 
   def postComputeFrom: Unit = {
-    logger.fine(toString)
     // construct resultSer's change event, forward baseTSerEventCallBack
     self.publish(TSerEvent.FinishedComputing(self,
                                              null,
