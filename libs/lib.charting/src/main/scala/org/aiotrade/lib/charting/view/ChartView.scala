@@ -508,6 +508,7 @@ abstract class ChartView(protected var _controller: ChartingController,
 
         // repaint this chart view
         repaint()
+      case _ =>
     }
   }
 
