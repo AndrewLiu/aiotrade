@@ -229,17 +229,12 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
       val size = timestamps.size
       val fromIdx = super.preComputeFrom(fromTime)
 
-      //            assert(timestamps.size == size,
-      //                   "Should validate " + shortDescription + " first! " +
-      //                   ": timestamps size=" + timestamps.size +
-      //                   ", size=" + size +
-      //                   ", begIdx=" + begIdx)
-
       computeCont(fromIdx, size)
         
       super.postComputeFrom
             
       _computedTime = timestamps.lastOccurredTime
+      
     } finally {
       timestamps.readLock.unlock
     }
@@ -457,7 +452,8 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
                               value: Number,
                               step: Number,
                               minValue: Number,
-                              maxValue: Number) extends DefaultFactor(name, value, step, minValue, maxValue) {
+                              maxValue: Number
+  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
 
     addFactor(this)
 

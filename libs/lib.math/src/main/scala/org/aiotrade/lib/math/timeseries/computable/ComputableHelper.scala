@@ -79,15 +79,14 @@ trait ComputableHelper extends Reactor {self: Computable =>
 
   private def addBaseSerReaction {
     /**
-     * The series is a result computed from baseSeries, so
-     * should follow the baseSeries' data changing:
-     * 1. In case of series is the same as baseSeries, should repond
-     *    to FinishingComputing event of baseSeries.
-     * 2. In case of series is not the same as baseSeries, should repond
-     *    to FinishedLoading, RefreshInLoading and Updated event of baseSeries.
+     * The ser is a result computed from baseSer, so should follow the baseSeries' data changing:
+     * 1. In case of series is the same as baseSeries, should respond to
+     *    FinishingComputing event of baseSeries.
+     * 2. In case of series is not the same as baseSeries, should respond to
+     *    FinishedLoading, RefreshInLoading and Updated event of baseSeries.
      */
     import TSerEvent._
-    if (self == baseSer) {
+    if (self eq baseSer) {
             
       baseSerReaction = {
         case FinishedLoading(_, _, fromTime, toTime, _, callback) =>

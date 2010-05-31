@@ -376,22 +376,22 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
    * Try to update today's quote item according to quote, if it does not
    * exist, create a new one.
    */
-  private def updateQuoteSer(seq: QuoteSer, quote: Quote) {
+  private def updateQuoteSer(ser: QuoteSer, quote: Quote) {
     val now = quote.time
-    seq.createOrClear(now)
+    ser.createOrClear(now)
         
-    seq.open(now)   = quote.open
-    seq.high(now)   = quote.high
-    seq.low(now)    = quote.low
-    seq.close(now)  = quote.close
-    seq.volume(now) = quote.volume
-    seq.amount(now) = quote.amount
+    ser.open(now)   = quote.open
+    ser.high(now)   = quote.high
+    ser.low(now)    = quote.low
+    ser.close(now)  = quote.close
+    ser.volume(now) = quote.volume
+    ser.amount(now) = quote.amount
 
-    seq.close_ori(now) = quote.close
-    seq.close_adj(now) = quote.close
+    ser.close_ori(now) = quote.close
+    ser.close_adj(now) = quote.close
 
     /** be ware of fromTime here may not be same as ticker's event */
-    seq.publish(TSerEvent.Updated(seq, "", now, now))
+    ser.publish(TSerEvent.Updated(ser, "", now, now))
   }
 
   private class IntervalLastTickerPair {

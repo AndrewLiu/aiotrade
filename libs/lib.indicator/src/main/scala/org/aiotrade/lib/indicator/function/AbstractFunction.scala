@@ -126,10 +126,12 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
    *        such as an indicator
    * @param idx, the idx to be computed to
    */
-  def computeTo(sessionId: Long, idx: Int): Unit = {
+  def computeTo(sessionId: Long, idx: Int) {
+    //validate
+
     try {
       timestamps.readLock.lock
-            
+
       preComputeTo(sessionId, idx)
         
       /**
@@ -143,9 +145,9 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
       this.sessionId = sessionId
         
       /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
-      var begIdx = math.min(computedIdx + 1, idx)
-      if (begIdx < 0) {
-        begIdx = 0
+      var fromIdx = math.min(computedIdx + 1, idx)
+      if (fromIdx < 0) {
+        fromIdx = 0
       }
         
       /**
@@ -156,10 +158,10 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
        */
       val size = timestamps.size
         
-      val endIdx = math.min(idx, size - 1)
+      val toIdx = math.min(idx, size - 1)
       /** fill with clear data from begIdx, then call computeSpot(i): */
-      var i = begIdx
-      while (i <= endIdx) {
+      var i = fromIdx
+      while (i <= toIdx) {
         val time = timestamps(i)
         createOrClear(time)
             
@@ -170,6 +172,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
       computedIdx = idx
         
       postComputeTo(sessionId, idx)
+      
     } finally {
       timestamps.readLock.unlock
     }
@@ -178,19 +181,19 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   /**
    * override this method to do something before computeTo, such as set computedIdx etc.
    */
-  protected def preComputeTo(sessionId: Long, idx: Int): Unit = {
+  protected def preComputeTo(sessionId: Long, idx: Int) {
   }
     
   /**
    * override this method to do something post computeTo
    */
-  protected def postComputeTo(sessionId: Long, idx: Int): Unit = {
+  protected def postComputeTo(sessionId: Long, idx: Int) {
   }
     
   /**
    * @param i, idx of spot
    */
-  protected def computeSpot(i: Int): Unit
+  protected def computeSpot(i: Int)
 
   /**
    * Define functions
@@ -202,7 +205,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
    * ----------------------------------------------------------------------
    */
     
-  protected def indexOfLastValidValue(var1: TVar[_]) :Int = {
+  protected def indexOfLastValidValue(var1: TVar[_]): Int = {
     val values = var1.values
     var i = values.size - 1; while (i > 0) {
       val value = values(i)

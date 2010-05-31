@@ -82,9 +82,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * Should only get index from timestamps which has the proper mapping of :
    * position <-> time <-> item
    */
-  private var _timestamps = TStampsFactory.createInstance(INIT_CAPACITY)
+  private var _timestamps: TStamps = TStampsFactory.createInstance(INIT_CAPACITY)
 
-  private var tsLog = timestamps.log
   private var tsLogCheckedCursor = 0
   private var tsLogCheckedSize = 0
 
@@ -93,10 +92,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   def this() = this(TFreq.DAILY)
 
   def timestamps: TStamps = _timestamps
-  
   def attach(timestamps: TStamps) {
     this._timestamps = timestamps
-    this.tsLog = timestamps.log
   }
 
   /**
@@ -107,7 +104,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
 
   /**
-   * @todo, holder.size of timestamps.size ?
+   * @todo, holder.size or timestamps.size ?
    */
   def size: Int = holders.size
 
@@ -253,7 +250,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
           // should add timestamps first
           _timestamps.insert(idx, time)
-          tsLog.logInsert(1, idx)
+          _timestamps.log.logInsert(1, idx)
 
           vars foreach {x => x.put(time, x.NullVal)}
           holders.insert(idx, holder)
@@ -269,7 +266,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
         /** should append timestamps first */
         _timestamps += time
-        tsLog.logAppend(1)
+        _timestamps.log.logAppend(1)
 
         vars foreach {x => x.put(time, x.NullVal)}
         holders += holder
@@ -325,10 +322,11 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         frTime = math.min(frTime, time)
         toTime = math.max(toTime, time)
       }
+      
     } finally {
       _timestamps.writeLock.unlock
     }
-    logger.fine("TimestampsLog: " + tsLog)
+    logger.fine("TimestampsLog: " + _timestamps.log)
 
     publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
     
