@@ -79,7 +79,6 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     }
   }
 
-  final def addNullVal(time: Long): Boolean = add(time, NullVal)
   final val NullVal = getNullVal[V]
   private def getNullVal[T](implicit m: Manifest[T]): T = {
     val value = m.toString match {

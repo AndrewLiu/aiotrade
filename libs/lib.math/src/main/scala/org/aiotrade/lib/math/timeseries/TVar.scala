@@ -44,8 +44,7 @@ trait TVar[V] extends Plottable {
   def name: String
   def name_=(name: String)
 
-  def add(time: Long, value: V): Boolean
-  def addNullVal(time: Long): Boolean
+  def put(time: Long, value: V): Boolean
   def apply(time: Long): V
   def update(time: Long, value: V)
     

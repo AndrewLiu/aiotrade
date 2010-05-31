@@ -62,9 +62,11 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   private val INIT_CAPACITY = 100
 
-  class TItem(var isClear: Boolean = true)
-
-  val items = new ArrayBuffer[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  /**
+   * a place holder plus flags
+   */
+  protected type Holder = Byte
+  val holders = new ArrayBuffer[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
@@ -105,20 +107,20 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
   
   def exists(time: Long): Boolean = {
-    var item = internal_apply(time)
+    var holder = internal_apply(time)
     this match {
       case x: SpotComputable =>
-        if (item == null || item.isClear) {
+        if (holder == 0) {
           /** re-get one by computing it */
           x.computeSpot(time)
           return true
         }
       case _ =>
     }
-    item != null
+    holder != 0
   }
 
-  /*_ @Todo removed synchronized for internal_itemOf and internal_addClearItem_fillTimestamps_InTimeOrder, which cause deadlock:
+  /*_ @Todo removed synchronized for internal_apply and internal_addClearItem_fillTimestamps_InTimeOrder, would cause deadlock:
    [java] "AWT-EventQueue-0" prio=6 tid=0x0000000101891800 nid=0x132013000 waiting for monitor entry [0x0000000132011000]
    [java]    java.lang.Thread.State: BLOCKED (on object monitor)
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:115)
@@ -180,14 +182,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   /**
    * This should be the only interface to fetch item, what ever by time or by row.
    */
-  private def internal_apply(time: Long): TItem = {
+  private def internal_apply(time: Long): Holder = {
     /**
      * @NOTE:
      * Should only get index from timestamps which has the proper
      * position <-> time <-> item mapping
      */
     val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < items.size) items(idx) else null
+    if (idx >= 0 && idx < holders.size) holders(idx) else 0
   }
 
   /**
@@ -198,15 +200,15 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * @param time
    * @param clearItem
    */
-  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, item: TItem): Unit = {
+  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, holder: Holder): Unit = {
     // @Note: writeLock timestamps only when insert/append it
     val lastOccurredTime = timestamps.lastOccurredTime
     if (time < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {_.addNullVal(time)}
+        vars foreach {x => x.put(time, x.NullVal)}
         // as timestamps includes this time, we just always put in a none-null item
-        items.insert(existIdx, item)
+        holders.insert(existIdx, holder)
       } else {
         val idx = timestamps.indexOfNearestOccurredTimeBehind(time)
         assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
@@ -219,10 +221,9 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
           _timestamps.insert(idx, time)
           tsLog.logInsert(1, idx)
 
-          vars foreach {_.addNullVal(time)}
+          vars foreach {x => x.put(time, x.NullVal)}
+          holders.insert(idx, holder)
 
-          // as timestamps includes this time, we just always put in a none-null item
-          items.insert(idx, item)
         } finally {
           _timestamps.writeLock.unlock
         }
@@ -232,24 +233,22 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       try {
         _timestamps.writeLock.lock
 
-        /** should add timestamps first */
+        /** should append timestamps first */
         _timestamps += time
         tsLog.logAppend(1)
 
-        vars foreach {_.addNullVal(time)}
-
-        // as timestamps includes this time, we just always put in a none-null item
-        items += item
+        vars foreach {x => x.put(time, x.NullVal)}
+        holders += holder
+        
       } finally {
         _timestamps.writeLock.unlock
       }
     } else {
-      // time == lastOccurredTime, keep same time and update item to clear.
+      // time == lastOccurredTime, keep same time and append vars and holders.
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {_.addNullVal(time)}
-        // as timestamps includes this time, we just always put in a none-null item
-        items += item
+        vars foreach {x => x.put(time, x.NullVal)}
+        holders += holder
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
@@ -302,9 +301,10 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     this
   }
 
-  protected def createItem(time: Long): TItem = {
-    new TItem
-  }
+  /**
+   * return a holder with flag != 0
+   */
+  protected def createItem(time: Long): Holder = 1
 
   def shortDescription :String = description
   def shortDescription_=(description: String): Unit = {
@@ -349,34 +349,34 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
                 tlogCurrSize - tsLogCheckedSize
               } else tlogCurrSize
 
-              val newItems = new Array[TItem](insertSize)
+              val newHolders = new Array[Holder](insertSize)
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
-                vars foreach {_.addNullVal(time)}
-                newItems(i) = createItem(time)
+                vars foreach {x => x.put(time, x.NullVal)}
+                newHolders(i) = createItem(time)
                 i += 1
               }
-              items.insertAll(begIdx1, newItems)
-              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + items.size)
+              holders.insertAll(begIdx1, newHolders)
+              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + holders.size)
                             
             case TStampsLog.APPEND =>
-              val begIdx = items.size
+              val begIdx = holders.size
 
               val appendSize = if (!cursorMoved) {
                 tlogCurrSize - tsLogCheckedSize
               } else tlogCurrSize
 
-              val newItems = new Array[TItem](appendSize)
+              val newHolders = new Array[Holder](appendSize)
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx + i)
-                vars foreach {_.addNullVal(time)}
-                newItems(i) = createItem(time)
+                vars foreach {x => x.put(time, x.NullVal)}
+                newHolders(i) = createItem(time)
                 i += 1
               }
-              items ++= newItems
-              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + items.size)
+              holders ++= newHolders
+              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + holders.size)
 
             case x => assert(false, "Unknown log type: " + x)
           }
@@ -387,8 +387,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         checkingCursor = tlog.nextCursor(checkingCursor)
       }
 
-      assert(timestamps.size == items.size,
-             "Timestamps size=" + timestamps.size + " vs items size=" + items.size +
+      assert(timestamps.size == holders.size,
+             "Timestamps size=" + timestamps.size + " vs items size=" + holders.size +
              ", checkedCursor=" + tsLogCheckedCursor +
              ", log=" + tlog)
     } catch {
@@ -414,8 +414,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         timestamps.remove(i)
       }
 
-      for (i <- items.size - 1 to fromIdx) {
-        items.remove(i)
+      for (i <- holders.size - 1 to fromIdx) {
+        holders.remove(i)
       }
     } finally {
       timestamps.writeLock.unlock
@@ -445,16 +445,16 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    */
   def createOrClear(time: Long) {
     internal_apply(time) match {
-      case null =>
-        // * item == null means timestamps.indexOfOccurredTime(time) is not in valid range
-        val item = createItem(time)
-        internal_addItem_fillTimestamps_InTimeOrder(time, item)
-      case item =>
-        item.isClear = false
+      case 0 =>
+        // * holder == 0 means timestamps.indexOfOccurredTime(time) is not exist
+        val holder = createItem(time)
+        internal_addItem_fillTimestamps_InTimeOrder(time, holder)
+      case flag =>
+        internal_addItem_fillTimestamps_InTimeOrder(time, 0)
     }
   }
 
-  def size: Int = items.size
+  def size: Int = holders.size
 
   def indexOfOccurredTime(time: Long): Int = {
     timestamps.indexOfOccurredTime(time)
@@ -515,7 +515,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     var values = new ArrayList[V](INIT_CAPACITY)
 
-    final def add(time: Long, value: V): Boolean = {
+    final def put(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         if (idx == values.size) {
@@ -557,7 +557,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     val values = new TStampedMapBasedList[V](timestamps)
 
-    def add(time: Long, value: V): Boolean = {
+    def put(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         values.add(time, value)
