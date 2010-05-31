@@ -62,7 +62,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   private val INIT_CAPACITY = 100
 
-  class TItem(val time: Long, var isClear: Boolean = true)
+  class TItem(var isClear: Boolean = true)
 
   val items = new ArrayBuffer[TItem]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
@@ -285,7 +285,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
           /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
           i -= 1
         } else {
-          /** the recent quote's index is less in quotes, thus the order in timePositions[] is same as quotes */
+          /** the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
           i += 1
         }
 
@@ -303,7 +303,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
 
   protected def createItem(time: Long): TItem = {
-    new TItem(time)
+    new TItem
   }
 
   def shortDescription :String = description
@@ -469,13 +469,14 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     val len = size
     sb.append(shortDescription).append("(").append(freq).append("): size=").append(len).append(", ")
     if (len > 0) {
-      val start = items(0)
-      val end = items(len - 1)
+
+      val first = timestamps(0)
+      val last = timestamps(len - 1)
       val cal = Calendar.getInstance
-      cal.setTimeInMillis(start.time)
+      cal.setTimeInMillis(first)
       sb.append(cal.getTime)
       sb.append(" - ")
-      cal.setTimeInMillis(end.time)
+      cal.setTimeInMillis(last)
       sb.append(cal.getTime)
     }
     
@@ -548,37 +549,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     override def update(idx: Int, value: V) {
       super.update(idx, value)
     }
-
-    def validate {
-      val newValues = new ArrayList[V](INIT_CAPACITY)
-
-      var i = 0
-      var j = 0
-      while (i < timestamps.size) {
-        val time = timestamps(i)
-        var break = false
-        var v = null.asInstanceOf[V]
-        while (j < items.size && !break) {
-          val vtime = items(j).time
-          if (vtime == time) {
-            // found existed value
-            v = values(j)
-            j += 1
-            break = true
-          } else if (vtime > time) {
-            // not existed value
-            v = null.asInstanceOf[V]
-            break = true
-          } else {
-            j += 1
-          }
-        }
-        newValues += v
-        i += 1
-      }
-      values = newValues
-    }
-
+ 
   }
 
   protected class SparseTVar[V: Manifest](name: String, plot: Plot
@@ -654,21 +625,6 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
         assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
                "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
       }
-    }
-    
-    private def checkValidationAt(idx: Int): Int = {
-      assert(idx >= 0, "Out of bounds: idx=" + idx)
-
-      val time = timestamps(idx)
-      if (idx < items.size) {
-        val itime = items(idx).time
-        if (itime != time) {
-          val idx1 = idx - 1
-          if (idx1 >= 0) {
-            checkValidationAt(idx1)
-          } else idx
-        } else -1 // it's ok
-      } else idx
     }
 
     def getColor(idx: Int) = colors(idx)

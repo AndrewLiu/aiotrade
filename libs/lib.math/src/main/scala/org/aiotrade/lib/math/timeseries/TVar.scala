@@ -62,7 +62,6 @@ trait TVar[V] extends Plottable {
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]
-  def validate
 
   val NullVal: V
 

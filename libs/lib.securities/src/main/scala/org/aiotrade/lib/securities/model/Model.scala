@@ -185,7 +185,10 @@ object Model {
   }
 
   def sampleSecs = {
-    println(Exchanges.idOf(Exchange.N))
+    assert(Exchanges.idOf(Exchange.N ).isDefined, Exchange.N  + " with none id")
+    assert(Exchanges.idOf(Exchange.L ).isDefined, Exchange.L  + " with none id")
+    assert(Exchanges.idOf(Exchange.SS).isDefined, Exchange.SS + " with none id")
+    assert(Exchanges.idOf(Exchange.SZ).isDefined, Exchange.SZ + " with none id")
     
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
       createSec(symbol, symbol, Exchange.N)
