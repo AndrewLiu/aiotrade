@@ -90,11 +90,11 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
 
-  def set(baseSer: TSer, args: Any*): Unit = {
+  def set(baseSer: TSer, args: Any*) {
     init(baseSer)
   }
     
-  protected def init(baseSer: TSer): Unit = {
+  protected def init(baseSer: TSer) {
     super.init(baseSer.freq)
     this._baseSer = baseSer
 
@@ -104,7 +104,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   }
     
   /** override this method to define your own pre-defined vars if necessary */
-  protected def initPredefinedVarsOfBaseSer: Unit = {
+  protected def initPredefinedVarsOfBaseSer {
     _baseSer match {
       case x: QuoteSer =>
         O = x.open
@@ -127,7 +127,6 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
    * @param idx, the idx to be computed to
    */
   def computeTo(sessionId: Long, idx: Int) {
-    //validate
 
     try {
       timestamps.readLock.lock
@@ -150,21 +149,13 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
         fromIdx = 0
       }
         
-      /**
-       * get baseSer's size via protected _Size here instead of by
-       * indicator's subclass when begin computeCont, because we could not
-       * sure if the baseSer's _Size size has been change by others
-       * (DataServer etc.)
-       */
+      /** fill with clear data from fromIdx, then call computeSpot(i): */
+      validate
+
       val size = timestamps.size
-        
       val toIdx = math.min(idx, size - 1)
-      /** fill with clear data from begIdx, then call computeSpot(i): */
       var i = fromIdx
       while (i <= toIdx) {
-        val time = timestamps(i)
-        createOrClear(time)
-            
         computeSpot(i)
         i += 1
       }

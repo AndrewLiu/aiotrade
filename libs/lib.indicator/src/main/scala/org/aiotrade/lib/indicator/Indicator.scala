@@ -212,20 +212,15 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
   def computeFrom(fromTime: Long): Unit = {
     setSessionId
 
-    /**
-     * get baseSer's size via protected _Size here instead of by
-     * indicator's subclass when begin computeCont, because we could not
-     * sure if the baseSer's _Size size has been change by others
-     * (DataServer etc.)
-     *
-     * @Note
-     * It's better to pass Size as param to computeCont instead of keep it as instance field,
-     * so, we do not need to worry about if field _Size will be changed concurrent by another
-     * thread
-     */
     try {
       timestamps.readLock.lock
 
+      /**
+       * @Note
+       * It's better to pass Size as param to computeCont instead of keep it as instance field,
+       * so, we do not need to worry about if field _Size will be changed concurrent by another
+       * thread
+       */
       val size = timestamps.size
       val fromIdx = super.preComputeFrom(fromTime)
 
