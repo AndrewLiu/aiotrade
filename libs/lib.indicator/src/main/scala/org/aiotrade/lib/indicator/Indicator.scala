@@ -257,7 +257,6 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
       instance.init(baseSer)
-            
       instance
     } catch {
       case ex: IllegalAccessException => ex.printStackTrace; null

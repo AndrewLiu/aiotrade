@@ -41,7 +41,7 @@ import org.aiotrade.lib.securities.{QuoteSer}
  * @author Caoyuan Deng
  */
 //@IndicatorName("QUOTECOMPARE")
-class QuoteCompareIndicator(baseSer: TSer) extends ContIndicator(baseSer) {
+class QuoteCompareIndicator($baseSer: TSer) extends ContIndicator($baseSer) {
     
   var serToBeCompared: QuoteSer = _
     

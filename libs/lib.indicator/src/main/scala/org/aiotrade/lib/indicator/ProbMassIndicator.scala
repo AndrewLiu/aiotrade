@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.TVar
  * @author Caoyuan Deng
  */
 //@IndicatorName("ProbMass")
-class ProbMassIndicator(baseSer: TSer) extends SpotIndicator(baseSer) {
+class ProbMassIndicator($baseSer: TSer) extends SpotIndicator($baseSer) {
   sname = "Probability Mass"
   lname = "Probability Mass"
   isOverlapping = true
@@ -57,8 +57,6 @@ class ProbMassIndicator(baseSer: TSer) extends SpotIndicator(baseSer) {
 
 
   def computeSpot(time: Long, masterIdx: Int) {
-    createOrClear(time)
-        
     val probability_mass1 = probMass(masterIdx, baseVar, period1, nIntervals)
     val probability_mass2 = probMass(masterIdx, baseVar, period2, nIntervals)
     val probability_mass3 = probMass(masterIdx, baseVar, period3, nIntervals)

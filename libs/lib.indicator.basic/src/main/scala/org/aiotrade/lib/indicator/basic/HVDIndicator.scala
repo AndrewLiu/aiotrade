@@ -51,8 +51,6 @@ class HVDIndicator extends SpotIndicator {
   val HVD3 = TVar[Array[Array[Float]]]("HVD3", Plot.Profile)
     
   def computeSpot(time: Long, baseIdx: Int) {
-    createOrClear(time)
-        
     val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
     val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
     val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)

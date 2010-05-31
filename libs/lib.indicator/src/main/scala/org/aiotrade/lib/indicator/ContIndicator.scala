@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-abstract class ContIndicator(baseSer: TSer) extends Indicator(baseSer) with ContComputable {
+abstract class ContIndicator($baseSer: TSer) extends Indicator($baseSer) with ContComputable {
 
   def this() = this(null)
 }
