@@ -44,7 +44,6 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.actors.Publisher
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 
@@ -153,7 +152,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
   private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
   private val freqToSer = HashMap[TFreq, QuoteSer]()
-  val tickers = ArrayBuffer[Ticker]()
 
   var description = ""
   var name = ""
@@ -207,7 +205,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     case ts: TickerSnapshot =>
       val ticker = new Ticker
       ticker.copyFrom(ts)
-      tickers += ticker
       publish(TickerEvent(this, ticker))
   }
 

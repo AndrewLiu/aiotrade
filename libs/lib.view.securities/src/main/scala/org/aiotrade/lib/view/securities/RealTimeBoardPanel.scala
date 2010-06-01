@@ -61,9 +61,11 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
+import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
@@ -131,7 +133,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   chartPane.setFocusable(false)
   viewContainer.setFocusable(false)
 
-  for (ticker <- sec.tickers) {
+  val dailyQuote = Quotes1d.currentDailyQuote(sec)
+  val tickers = Tickers.tickersOfToday(dailyQuote)
+  for (ticker <- tickers) {
     updateByTicker(ticker)
   }
   scrollToLastRow(fillTable)

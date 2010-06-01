@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model
 import java.util.Calendar
 import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
+import ru.circumflex.orm._
 
 /**
  * Assume table BidAsk's structure:
@@ -41,6 +42,10 @@ object Tickers extends Table[Ticker] {
   val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
 
   INDEX("time_idx", time.name)
+
+  def tickersOfToday(dailyQuote: Quote): Seq[Ticker] = {
+    SELECT (Tickers.*) FROM (Tickers) WHERE (Tickers.quote.field EQ Quotes1d.idOf(dailyQuote)) list
+  }
 }
 
 case class TickerEvent (source: Sec, ticker: Ticker) extends Event
