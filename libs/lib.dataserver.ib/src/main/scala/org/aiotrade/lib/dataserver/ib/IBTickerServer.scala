@@ -85,7 +85,7 @@ object IBTickerServer extends IBTickerServer {
       } catch {case ex: Exception => ex.printStackTrace; return}
       m_rc = true
             
-      val tickerSnapshot = tickerSnapshotOf(contract.symbol).get
+      val tickerSnapshot = tickerSnapshotOf(contract.symbol)
       val reqId = ibWrapper.reqMktData(this, m_contract, tickerSnapshot)
       contract.reqId = reqId
     }
@@ -95,9 +95,8 @@ object IBTickerServer extends IBTickerServer {
   protected def read: Long = {
     var newestTime  = Long.MinValue
     resetCount
-    for (contract <- subscribedContracts;
-         tickerSnapshot <- tickerSnapshotOf(contract.symbol)
-    ) {
+    for (contract <- subscribedContracts) {
+      val tickerSnapshot = tickerSnapshotOf(contract.symbol)
       newestTime = math.max(newestTime, tickerSnapshot.time)
       countOne
     }
@@ -117,10 +116,9 @@ object IBTickerServer extends IBTickerServer {
   }
     
   override protected def cancelRequest(contract: TickerContract) {
-    tickerSnapshotOf(contract.symbol) foreach {tickerSnapshot =>
-      tickerSnapshot.removeObservers
-      ibWrapper.cancelMktDataRequest(contract.reqId)
-    }
+    val tickerSnapshot = tickerSnapshotOf(contract.symbol)
+    tickerSnapshot.removeObservers
+    ibWrapper.cancelMktDataRequest(contract.reqId)
   }
     
   /**

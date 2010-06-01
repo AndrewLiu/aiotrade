@@ -193,6 +193,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     _tickerContract = tickerContract
   }
 
+  lazy val tickerSnapshot = new TickerSnapshot
   /**
    * @TODO, how about tickerServer switched?
    */
@@ -367,6 +368,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       serOf(TFreq.DAILY)   foreach {x => chainSers ::= x}
       serOf(TFreq.ONE_MIN) foreach {x => chainSers ::= x}
       tickerServer.subscribe(tickerContract, tickerSer, chainSers)
+      this observe tickerSnapshot
       //
       //            var break = false
       //            while (!break) {
@@ -381,13 +383,12 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     }
 
     tickerServer.startRefresh(tickerContract.refreshInterval)
-    tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {this observe _}
   }
 
   def unSubscribeTickerServer {
     if (tickerServer != null && tickerContract != null) {
       tickerServer.unSubscribe(tickerContract)
-      tickerServer.tickerSnapshotOf(tickerContract.symbol) foreach {this unObserve _}
+      this unObserve tickerSnapshot
     }
   }
 

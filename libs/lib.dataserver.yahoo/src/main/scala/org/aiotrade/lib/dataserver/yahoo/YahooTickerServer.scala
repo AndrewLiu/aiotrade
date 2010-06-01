@@ -147,7 +147,7 @@ class YahooTickerServer extends TickerServer {
               println("time of ticker: " + symbol + " is 0!")
             }
 
-            val tickerSnapshot = tickerSnapshotOf(symbol).get
+            val tickerSnapshot = tickerSnapshotOf(symbol)
             tickerSnapshot.time = time
 
             tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toFloat

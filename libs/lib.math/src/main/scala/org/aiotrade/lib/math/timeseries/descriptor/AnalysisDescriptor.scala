@@ -46,9 +46,9 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[+S](private var aserviceClassName: String, 
-                                      private var afreq: TFreq,
-                                      private var aactive: Boolean) extends WithActions {
+abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
+                                      private var _freq: TFreq,
+                                      private var _active: Boolean) extends WithActions {
 
   private val withActionsHelper = new WithActionsHelper(this)
 
@@ -91,14 +91,14 @@ abstract class AnalysisDescriptor[+S](private var aserviceClassName: String,
     _serviceInstance != None
   }
 
-  def serviceClassName_=(serviceClassName: String) = this.aserviceClassName = serviceClassName
-  def serviceClassName = aserviceClassName
+  def serviceClassName_=(serviceClassName: String) = this._serviceClassName = serviceClassName
+  def serviceClassName = _serviceClassName
 
-  def freq_=(freq: TFreq) = this.afreq = freq
-  def freq = afreq
+  def freq_=(freq: TFreq) = this._freq = freq
+  def freq = _freq
 
-  def active_=(active: Boolean) = this.aactive = active
-  def active = aactive
+  def active_=(active: Boolean) = this._active = active
+  def active = _active
 
   def displayName: String
     

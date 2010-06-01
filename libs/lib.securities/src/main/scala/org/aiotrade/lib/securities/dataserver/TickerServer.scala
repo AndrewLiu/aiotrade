@@ -61,8 +61,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   type T = QuoteSer
 
   private val logger = Logger.getLogger(this.getClass.getName)
-    
-  private val symbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
 
   private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
   private val symbolToPrevTicker = new HashMap[String, Ticker]
@@ -86,10 +84,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
   listenTo(Exchange)
 
-  def tickerSnapshotOf(symbol: String): Option[TickerSnapshot] = {
-    symbolToTickerSnapshot.get(symbol)
+  def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = {
+    val sec = Exchange.secOf(uniSymbol).get
+    sec.tickerSnapshot
   }
-    
+
   override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer]) {
     super.subscribe(contract, ser, chainSers)
     subscribingMutex synchronized {
@@ -101,12 +100,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
        * this symbol, the older one won't be updated any more.
        */
       val symbol = contract.symbol
-      if (!symbolToTickerSnapshot.contains(symbol)) {
-        val tickerSnapshot = new TickerSnapshot
-        tickerSnapshot.addObserver(this, this)
-        tickerSnapshot.symbol = symbol
-        symbolToTickerSnapshot(symbol) = tickerSnapshot
-      }
+      val sec = Exchange.secOf(contract.symbol).get
+      val tickerSnapshot = sec.tickerSnapshot
+      this observe tickerSnapshot
+      tickerSnapshot.symbol = symbol
     }
   }
 
@@ -114,8 +111,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     super.unSubscribe(contract)
     subscribingMutex synchronized {
       val symbol = contract.symbol
-      tickerSnapshotOf(symbol) foreach {this unObserve _}
-      symbolToTickerSnapshot -= symbol
+      val sec = Exchange.secOf(contract.symbol).get
+      val tickerSnapshot = sec.tickerSnapshot
+      this unObserve tickerSnapshot
       symbolToIntervalLastTickerPair -= symbol
       symbolToPrevTicker -= symbol
     }
@@ -167,11 +165,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   }
 
   override protected def postStopRefresh {
-    for (tickerSnapshot <- symbolToTickerSnapshot.valuesIterator) {
-      tickerSnapshot.removeObserver(this)
-    }
-    symbolToTickerSnapshot synchronized {
-      symbolToTickerSnapshot.clear
+    for (contract <- subscribedContracts) {
+      unSubscribe(contract)
     }
     symbolToIntervalLastTickerPair synchronized {
       symbolToIntervalLastTickerPair.clear
