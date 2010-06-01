@@ -15,15 +15,16 @@ object MoneyFlows1d extends MoneyFlows {
         (MoneyFlows1d.sec.field EQ Secs.idOf(sec)) AND (MoneyFlows1d.time EQ now)
       ) unique
     ) match {
-      case Some(mf) => mf
+      case Some(one) => one
       case None =>
-        val mf = new MoneyFlow
-        mf.time = now
-        mf.sec = sec
-        mf.unclosed_! // @todo when to close it and update to db?
-        MoneyFlows1d.save(mf)
+        val newone = new MoneyFlow
+        newone.time = now
+        newone.sec = sec
+        newone.unclosed_! // @todo when to close it and update to db?
+        newone.justOpen_!
+        MoneyFlows1d.save(newone)
         commit
-        mf
+        newone
     }
   }
 }
