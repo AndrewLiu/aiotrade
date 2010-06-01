@@ -1,6 +1,12 @@
 package org.aiotrade.lib.securities.model
 
+import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
+import org.aiotrade.lib.util.actors.Event
+
 import ru.circumflex.orm.Table
+
+case class FillRecordEvent(src: DataServer[_ <: TVal], fillRecords: Array[FillRecord]) extends Event
 
 object FillRecords extends Table[FillRecord] {
   val quote = "quotes_id" REFERENCES(Quotes1d)

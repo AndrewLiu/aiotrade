@@ -31,6 +31,7 @@
 
 package org.aiotrade.lib.securities.model
 
+import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -45,6 +46,7 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 
@@ -117,6 +119,9 @@ object Sec {
   }
 
   val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
+
+  val minuteQuotesTobeClosed = new ArrayList[Quote]()
+  val minuteMoneyFlowsTobeClosed = new ArrayList[MoneyFlow]()
 }
 
 import Sec._
@@ -195,7 +200,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     _tickerContract = tickerContract
   }
 
-  lazy val tickerSnapshot = new TickerSnapshot
+ 
   /**
    * @TODO, how about tickerServer switched?
    */
@@ -370,7 +375,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       serOf(TFreq.DAILY)   foreach {x => chainSers ::= x}
       serOf(TFreq.ONE_MIN) foreach {x => chainSers ::= x}
       tickerServer.subscribe(tickerContract, tickerSer, chainSers)
-      this observe tickerSnapshot
+      this observe lastData.tickerSnapshot
       //
       //            var break = false
       //            while (!break) {
@@ -390,11 +395,100 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def unSubscribeTickerServer {
     if (tickerServer != null && tickerContract != null) {
       tickerServer.unSubscribe(tickerContract)
-      this unObserve tickerSnapshot
+      this unObserve lastData.tickerSnapshot
     }
   }
 
   def isTickerServerSubscribed: Boolean = {
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
+  }
+
+  
+  // --- helper methods for realtime composing
+
+  /**
+   * store latest helper info
+   */
+  lazy val lastData = new LastData
+
+  class LastData {
+    val tickerSnapshot: TickerSnapshot = new TickerSnapshot
+    var prevTicker: Ticker = _
+    
+    var dailyQuote: Quote = _
+    var minuteQuote: Quote = _
+    
+    var dailyMoneyFlow: MoneyFlow = _
+    var MinuteMoneyFlow: MoneyFlow = _
+  }
+
+  /**
+   * @Note when day changes, should do secToLastQuote -= sec, this can be done
+   * by listening to exchange's timer event
+   */
+  def dailyQuoteOf(time: Long): Quote = {
+    assert(Secs.idOf(this) != None, "Sec: " + this + " is transient")
+    val cal = Calendar.getInstance(exchange.timeZone)
+    val now = TFreq.DAILY.round(time, cal)
+    lastData.dailyQuote match {
+      case one: Quote if one.time == now => one
+      case prevOne =>
+        val one = Quotes1d.currentDailyQuote(this)
+        lastData.dailyQuote = one
+        one
+    }
+  }
+
+  def dailyMoneyFlowOf(time: Long): MoneyFlow = {
+    assert(Secs.idOf(this) != None, "Sec: " + this + " is transient")
+    val cal = Calendar.getInstance(exchange.timeZone)
+    val now = TFreq.ONE_MIN.round(time, cal)
+    lastData.dailyMoneyFlow match {
+      case one: MoneyFlow if one.time == now => one
+      case prevOne =>
+        val one = MoneyFlows1d.currentDailyMoneyFlow(this)
+        lastData.dailyMoneyFlow = one
+        one
+    }
+  }
+
+  def minuteQuoteOf(time: Long): Quote = {
+    val cal = Calendar.getInstance(exchange.timeZone)
+    val now = TFreq.ONE_MIN.round(time, cal)
+    lastData.minuteQuote match {
+      case one: Quote if one.time == now => one
+      case prevOne => // minute changes or null
+        if (prevOne != null) {
+          prevOne.closed_!
+          minuteQuotesTobeClosed += prevOne
+        }
+
+        val newone = new Quote
+        newone.time = now
+        newone.sec = this
+        newone.unclosed_!
+        lastData.minuteQuote = newone
+        newone
+    }
+  }
+
+  def minuteMoneyFlowOf(time: Long): MoneyFlow = {
+    val cal = Calendar.getInstance(exchange.timeZone)
+    val now = TFreq.ONE_MIN.round(time, cal)
+    lastData.MinuteMoneyFlow match {
+      case one: MoneyFlow if one.time == now => one
+      case prevOne => // minute changes or null
+        if (prevOne != null) {
+          prevOne.closed_!
+          minuteMoneyFlowsTobeClosed += prevOne
+        }
+
+        val newone = new MoneyFlow
+        newone.time = now
+        newone.sec = this
+        newone.unclosed_!
+        lastData.MinuteMoneyFlow = newone
+        newone
+    }
   }
 }
