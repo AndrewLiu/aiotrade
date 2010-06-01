@@ -65,7 +65,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
   private val symbolToPrevTicker = new HashMap[String, Ticker]
   private val secToLastQuote = new HashMap[Sec, LastQuote]
-  private val cal = Calendar.getInstance
 
   refreshable = true
 
@@ -328,11 +327,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
       FillRecords.insertBatch(fillRecords)
       commit
-      val toBeClosed = minuteQuotesToBeClosed.toArray
+      val toBeClosed = minuteOnesTobeClosed.toArray
       if (toBeClosed.length > 0) {
         Quotes1m.insertBatch(toBeClosed)
         commit
-        minuteQuotesToBeClosed.clear
+        minuteOnesTobeClosed.clear
       }
 
       /**
@@ -406,11 +405,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   protected def lastQuoteOf(sec: Sec): LastQuote = {
     assert(Secs.idOf(sec) != None, "Sec: " + sec + " is transient")
     secToLastQuote.get(sec) match {
-      case Some(lastQuote) => lastQuote
+      case Some(lastOne) => lastOne
       case None =>
-        val dailyQuote = Quotes1d.currentDailyQuote(sec)
+        val dailyOne = Quotes1d.currentDailyQuote(sec)
 
-        val lastQuote = LastQuote(dailyQuote, null)
+        val lastQuote = LastQuote(dailyOne, null)
         secToLastQuote += (sec -> lastQuote)
         lastQuote
     }
@@ -420,24 +419,24 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
    * @Note when day changes, should do secToLastQuote -= sec, this can be done
    * by listening to exchange's timer event
    */
-  private val minuteQuotesToBeClosed = new ArrayList[Quote]()
+  private val minuteOnesTobeClosed = new ArrayList[Quote]()
   protected def minuteQuoteOf(sec: Sec, time: Long): Quote = {
     val cal = Calendar.getInstance(sec.exchange.timeZone)
-    val lastQuote = lastQuoteOf(sec)
+    val lastOne = lastQuoteOf(sec)
     val now = TFreq.ONE_MIN.round(time, cal)
-    lastQuote.minuteOne match {
+    lastOne.minuteOne match {
       case quote: Quote if quote.time == now => quote
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
-          minuteQuotesToBeClosed += prevOne
+          minuteOnesTobeClosed += prevOne
         }
 
         val quote = new Quote
         quote.time = now
         quote.sec = sec
         quote.unclosed_!
-        lastQuote.minuteOne = quote
+        lastOne.minuteOne = quote
         quote
     }
   }

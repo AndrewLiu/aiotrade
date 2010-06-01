@@ -85,7 +85,9 @@ abstract class Quotes extends Table[Quote] {
   INDEX("time_idx", time.name)
 
   def closedQuotesOf(sec: Sec): Seq[Quote] = {
-    (SELECT (this.*) FROM (this) WHERE ((Quotes.this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Quote.MaskClosed) EQ 1)) ORDER_BY (this.time) list)
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ 1)
+    ) ORDER_BY (this.time) list
   }
 }
 
@@ -103,21 +105,11 @@ object Quote {
   private val AMOUNT    = 5
   private val VWAP      = 6
   private val ADJWEIGHT = 7
-
-  // bit masks for flag
-  val MaskClosed   = 0x01   // 1   2^^0    000...00000001
-  val MaskVerified = 0x02   // 2   2^^1    000...00000010
-  private val flagbit3     = 0x04   // 4   2^^2    000...00000100
-  private val flagbit4     = 0x08   // 8   2^^3    000...00001000
-  private val flagbit5     = 0x10   // 16  2^^4    000...00010000
-  private val flagbit6     = 0x20   // 32  2^^5    000...00100000
-  private val flagbit7     = 0x40   // 64  2^^6    000...01000000
-  private val flagBit8     = 0x80   // 128 2^^7    000...10000000
 }
 
 import Quote._
 @serializable
-class Quote extends TVal {
+class Quote extends TVal with Flag {
   var sec: Sec = _
   
   private val data = new Array[Float](8)
@@ -144,19 +136,9 @@ class Quote extends TVal {
   def vwap_=     (v: Float) = data(VWAP)      = v
   def adjWeight_=(v: Float) = data(ADJWEIGHT) = v
 
-  var flag: Int = 1 // dafault is closed
-
   // Foreign keys
   var tickers: List[Ticker] = Nil
   var fillRecords: List[FillRecord] = Nil
-
-  def closed_? = (flag & MaskClosed) == 1
-  def closed_! {
-    flag |= MaskClosed
-  }
-  def unclosed_! {
-    flag &= ~MaskClosed
-  }
 
   def reset {
     time = 0

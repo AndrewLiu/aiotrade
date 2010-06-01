@@ -35,6 +35,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.TickerSnapshot
@@ -151,7 +152,8 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   /** each freq may have a standalone quoteDataServer for easy control and thread safe */
   private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
-  private val freqToSer = HashMap[TFreq, QuoteSer]()
+  private val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
+  private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
 
   var description = ""
   var name = ""
@@ -173,12 +175,12 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         defaultFreq = freq
       }
       freqToQuoteContract(freq) = contract
-      freqToSer(freq) = new QuoteSer(freq)
+      freqToQuoteSer(freq) = new QuoteSer(freq)
     }
     
     // basic freqs:
     for (freq <- basicFreqs if !freqToQuoteContract.contains(freq)) {
-      freqToSer(freq) = new QuoteSer(freq)
+      freqToQuoteSer(freq) = new QuoteSer(freq)
     }
   }
 
@@ -228,8 +230,8 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   def serOf(freq: TFreq): Option[QuoteSer] = freq match {
-    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToSer.get(freq)
-    case _ => freqToSer.get(freq) match {
+    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
+    case _ => freqToQuoteSer.get(freq) match {
         case None => createCombinedSer(freq)
         case x => x
       }
@@ -261,7 +263,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   def putSer(ser: QuoteSer) {
-    freqToSer.put(ser.freq, ser)
+    freqToQuoteSer.put(ser.freq, ser)
   }
 
   /**
@@ -282,7 +284,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
     val serToBeLoaded = serOf(freq) getOrElse {
       val x = new QuoteSer(freq)
-      freqToSer(freq) = x
+      freqToQuoteSer(freq) = x
       x
     }
 
@@ -299,11 +301,11 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   def isSerLoaded(freq:TFreq): Boolean = {
-    freqToSer.get(freq) map (_.loaded) getOrElse false
+    freqToQuoteSer.get(freq) map (_.loaded) getOrElse false
   }
 
   def isSerInLoading(freq: TFreq): Boolean = {
-    freqToSer.get(freq) map (_.inLoading) getOrElse false
+    freqToQuoteSer.get(freq) map (_.inLoading) getOrElse false
   }
 
   def uniSymbol: String = 
