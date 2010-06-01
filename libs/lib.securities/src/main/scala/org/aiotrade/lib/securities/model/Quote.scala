@@ -34,9 +34,31 @@ package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
 import ru.circumflex.orm._
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 
-object Quotes1d extends Quotes
+object Quotes1d extends Quotes {
+  def currentDailyQuote(sec: Sec): Quote = synchronized {
+    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val now = TFreq.DAILY.round(System.currentTimeMillis, cal)
+    
+    (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
+        (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ now)
+      ) unique
+    ) match {
+      case Some(quote) => quote
+      case None =>
+        val quote = new Quote
+        quote.time = now
+        quote.sec = sec
+        quote.unclosed_! // @todo when to close it and update to db?
+        Quotes1d.save(quote)
+        commit
+        quote
+    }
+  }
+}
+
 object Quotes1m extends Quotes
 
 abstract class Quotes extends Table[Quote] {
@@ -65,17 +87,6 @@ abstract class Quotes extends Table[Quote] {
   def closedQuotesOf(sec: Sec): Seq[Quote] = {
     (SELECT (this.*) FROM (this) WHERE ((Quotes.this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Quote.MaskClosed) EQ 1)) ORDER_BY (this.time) list)
   }
-
-  def evictCacheOfClosedQuotes(quotes: Array[Quote]) {
-    var i = 0
-    while (i < quotes.length) {
-      val quote = quotes(i)
-      if (quote.closed_?) {
-        evictCache(quote)
-      }
-    }
-  }
-
 }
 
 /**

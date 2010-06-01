@@ -48,7 +48,7 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
   val low    = TVar[Float]("L", Plot.Quote)
   val close  = TVar[Float]("C", Plot.Quote)
   val volume = TVar[Float]("V", Plot.Volume)
-  val amount = TVar[Float]("V", Plot.Volume)
+  val amount = TVar[Float]("A", Plot.Volume)
     
   val close_ori = TVar[Float]()
   val close_adj = TVar[Float]()

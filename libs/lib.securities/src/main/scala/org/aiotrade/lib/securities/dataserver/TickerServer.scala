@@ -195,11 +195,12 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   def composeSer(symbol: String, tickerSer: QuoteSer, tickers: Array[Ticker]): TSerEvent = {
     var evt: TSerEvent = TSerEvent.None
 
-    val cal = Calendar.getInstance(Exchange.exchangeOf(toUniSymbol(symbol)).timeZone)
     var begTime = Long.MaxValue
     var endTime = Long.MinValue
 
     val sec = Exchange.secOf(symbol).get
+    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    
     val dailyQuote = lastQuoteOf(sec).dailyOne
     val size = tickers.length
     if (size > 0) {
@@ -238,9 +239,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             prev
         }
 
+        val minuteQuote = minuteQuoteOf(sec, ticker.time)
         val time = freq.round(ticker.time, cal)
-        val minuteQuote = minuteQuoteOf(sec, ticker.time, cal)
-
         symbolToIntervalLastTickerPair.get(symbol) match {
           case None =>
             /**
@@ -413,22 +413,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     secToLastQuote.get(sec) match {
       case Some(lastQuote) => lastQuote
       case None =>
-        val cal = Calendar.getInstance(sec.exchange.timeZone)
-        val now = TFreq.DAILY.round(System.currentTimeMillis, cal)
-
-        val dailyQuote = (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
-            (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ now)
-          ) unique) match {
-          case Some(quote) => quote
-          case None =>
-            val quote = new Quote
-            quote.time = now
-            quote.sec = sec
-            quote.unclosed_! // @todo when to close it and update to db?
-            Quotes1d.save(quote)
-            commit
-            quote
-        }
+        val dailyQuote = Quotes1d.currentDailyQuote(sec)
 
         val lastQuote = LastQuote(dailyQuote, null)
         secToLastQuote += (sec -> lastQuote)
@@ -441,7 +426,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
    * by listening to exchange's timer event
    */
   private val minuteQuotesToBeClosed = new ArrayList[Quote]()
-  protected def minuteQuoteOf(sec: Sec, time: Long, cal: Calendar): Quote = {
+  protected def minuteQuoteOf(sec: Sec, time: Long): Quote = {
+    val cal = Calendar.getInstance(sec.exchange.timeZone)
     val lastQuote = lastQuoteOf(sec)
     val now = TFreq.ONE_MIN.round(time, cal)
     lastQuote.minuteOne match {

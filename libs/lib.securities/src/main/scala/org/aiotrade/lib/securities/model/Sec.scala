@@ -203,26 +203,21 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
   val tickerSer = new QuoteSer(tickerContract.freq)
 
-  val prevTicker = new Ticker
-
   val updater: Updater = {
     case ts: TickerSnapshot =>
-      if (ts.isValueChanged(prevTicker)) {
-        val ticker = new Ticker
-        ticker.copyFrom(ts)
-        tickers += ticker
-        publish(TickerEvent(this, ticker))
-        prevTicker.copyFrom(ts)
-      }
+      val ticker = new Ticker
+      ticker.copyFrom(ts)
+      tickers += ticker
+      publish(TickerEvent(this, ticker))
   }
 
   reactions += {
-    case TSerEvent.FinishedLoading(sourceSer, _, fromTime, endTime, _, _) =>
+    case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
       // contract quoteServer of freq centernly still exists only under this type of event
-      val freq = sourceSer.freq
+      val freq = srcSer.freq
       val contract = freqToQuoteContract(freq)
       val quoteServer = freqToQuoteServer(freq)
-      sourceSer.loaded = true
+      srcSer.loaded = true
       if (contract.refreshable) {
         quoteServer.startRefresh(contract.refreshInterval)
       } else {
@@ -230,7 +225,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         freqToQuoteServer -= freq
       }
 
-      deafTo(sourceSer)
+      deafTo(srcSer)
     case _ =>
   }
 
