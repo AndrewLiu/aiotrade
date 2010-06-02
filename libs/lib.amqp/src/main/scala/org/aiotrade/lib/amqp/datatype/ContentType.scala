@@ -40,6 +40,7 @@ object ContentType {
   case object MESSAGE_RFC822         extends CaseContentType("message", "rfc822", null)
   case object MULTIPART_RELATED      extends CaseContentType("multipart", "related", null)
   case object OPENSEARCH             extends CaseContentType("application", "opensearchdescription+xml", null)
+  case object OCTET_STREAM           extends CaseContentType("application", "octet-stream", null) // Non-interpreted binary files
   case object RSS                    extends CaseContentType("application", "rss+xml", DEFAULT_CHARSET)
   case object TEXT_XML               extends CaseContentType("text", "xml", DEFAULT_CHARSET)
   case object TEXT_HTML              extends CaseContentType("text", "html", DEFAULT_CHARSET)

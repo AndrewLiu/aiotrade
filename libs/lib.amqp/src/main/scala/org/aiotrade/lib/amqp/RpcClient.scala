@@ -79,7 +79,7 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
     props.correlationId = replyId
     props.replyTo = replyQueue
 
-    publish(content, routingKey: String, props: AMQP.BasicProperties)
+    publish(content, routingKey, props)
   }
 
   /**
