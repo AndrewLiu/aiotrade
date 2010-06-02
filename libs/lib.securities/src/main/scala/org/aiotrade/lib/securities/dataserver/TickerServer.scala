@@ -38,7 +38,6 @@ import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.FillRecord
-import org.aiotrade.lib.securities.model.FillRecordEvent
 import org.aiotrade.lib.securities.model.FillRecords
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -150,6 +149,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     val allTickers = new ArrayList[Ticker]
     val allFillRecords = new ArrayList[FillRecord]
+    val allSnapDepths = new ArrayList[SnapDepth]
 
     for (contract <- subscribedContracts) {
       val tickers = storageOf(contract).toArray
@@ -225,7 +225,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             fillRecord.price  = ticker.lastPrice
             fillRecord.volume = ticker.dayVolume - prevTicker.dayVolume
             fillRecord.amount = ticker.dayAmount - prevTicker.dayAmount
-      
+            
             if (minuteQuote.justOpen_?) {
               minuteQuote.unjustOpen_!
 
@@ -264,7 +264,12 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             }
           }
 
-          sec.lastData.prevTicker.copyFrom(ticker)
+          val prevPrice = if (dailyFirst) ticker.prevClose else prevTicker.lastPrice
+          val prevBidAsks = if (dailyFirst) Array[Float]() else {
+            val x = new Array[Float](prevTicker.bidAsks.length)
+            System.arraycopy(prevTicker.bidAsks, 0, x, 0, x.length)
+            x
+          }
 
           frTime = math.min(frTime, time)
           toTime = math.max(toTime, time)
@@ -272,6 +277,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           // update 1m quoteSer with minuteQuote
           updateQuoteSer(tickerSer, minuteQuote)
           chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (updateQuoteSer(_, minuteQuote))
+
+          allSnapDepths += SnapDepth(prevPrice, prevBidAsks, fillRecord)
+
+          sec.lastData.prevTicker.copyFrom(ticker)
 
           i += (if (shouldReverseOrder) -1 else 1)
         }
@@ -323,8 +332,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     // process events
 
-    DataServer.publish(FillRecordEvent(this, fillRecords))
-
+    DataServer.publish(SnapDepthsEvent(this, allSnapDepths.toArray))
     events
   }
 
