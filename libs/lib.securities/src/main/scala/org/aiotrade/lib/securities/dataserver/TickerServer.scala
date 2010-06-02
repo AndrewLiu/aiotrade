@@ -46,7 +46,7 @@ import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.ChangeObserver
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.util.collection.ArrayList
 import ru.circumflex.orm._
 
 /** This class will load the quote data from data source to its data storage: quotes.
@@ -84,75 +84,48 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
   override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer]) {
     super.subscribe(contract, ser, chainSers)
-    subscribingMutex synchronized {
-      /**
-       * !NOTICE
-       * the symbol-tickerSnapshot pair must be immutable, other wise, if
-       * the symbol is subscribed repeatly by outside, the old observers
-       * of tickerSnapshot may not know there is a new tickerSnapshot for
-       * this symbol, the older one won't be updated any more.
-       */
-      val symbol = contract.symbol
-      val sec = Exchange.secOf(contract.symbol).get
-      val tickerSnapshot = sec.lastData.tickerSnapshot
-      this observe tickerSnapshot
-      tickerSnapshot.symbol = symbol
-    }
+    /**
+     * !NOTICE
+     * the symbol-tickerSnapshot pair must be immutable, other wise, if
+     * the symbol is subscribed repeatly by outside, the old observers
+     * of tickerSnapshot may not know there is a new tickerSnapshot for
+     * this symbol, the older one won't be updated any more.
+     */
+    val symbol = contract.symbol
+    val sec = Exchange.secOf(contract.symbol).get
+    val tickerSnapshot = sec.lastData.tickerSnapshot
+    this observe tickerSnapshot
+    tickerSnapshot.symbol = symbol
   }
 
   override def unSubscribe(contract: TickerContract) {
     super.unSubscribe(contract)
-    subscribingMutex synchronized {
-      val symbol = contract.symbol
-      val sec = Exchange.secOf(contract.symbol).get
-      val tickerSnapshot = sec.lastData.tickerSnapshot
-      this unObserve tickerSnapshot
-    }
+    val symbol = contract.symbol
+    val sec = Exchange.secOf(contract.symbol).get
+    val tickerSnapshot = sec.lastData.tickerSnapshot
+    this unObserve tickerSnapshot
   }
 
-  private val bufLoadEvents = new ArrayBuffer[TSerEvent]
-
   override protected def postLoadHistory {
-    bufLoadEvents.clear
-
-    for (contract <- subscribedContracts) {
-      val storage = storageOf(contract).toArray
-      val sec = Exchange.secOf(contract.symbol).get
-      val dailyOne = sec.dailyQuoteOf(System.currentTimeMillis)
-      assert(Quotes1d.idOf(dailyOne) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
-      storage foreach (_.quote = dailyOne)
-      Tickers.insertBatch(storage)
-      commit
-
-      composeSer(contract.symbol, serOf(contract).get, storage) match {
+    composeSer foreach {event =>
+      event match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-          logger.info(contract.symbol + ": " + count + ", data loaded, load server finished")
+          logger.info(symbol + ": " + count + ", data loaded, load server finished")
         case _ =>
       }
-
-      storageOf(contract) synchronized {storageOf(contract).clear}
     }
   }
 
   override protected def postRefresh {
-    for (contract <- subscribedContracts) {
-      val storage = storageOf(contract).toArray
-      val sec = Exchange.secOf(contract.symbol).get
-      val dailyOne = sec.dailyQuoteOf(System.currentTimeMillis)
-      assert(Quotes1d.idOf(dailyOne) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
-      storage foreach (_.quote = dailyOne)
-      Tickers.insertBatch(storage)
-      commit
-      
-      composeSer(contract.symbol, serOf(contract).get, storage) match {
+    composeSer foreach {event =>
+      event match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
         case _ =>
       }
-
-      storageOf(contract) synchronized {storageOf(contract).clear}
     }
+
   }
 
   override protected def postStopRefresh {
@@ -172,162 +145,187 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
    * @param serToBeFilled Ser
    * @param TVal(s)
    */
-  def composeSer(symbol: String, tickerSer: QuoteSer, tickers: Array[Ticker]): TSerEvent = {
-    var evt: TSerEvent = TSerEvent.None
+  def composeSer: Seq[TSerEvent] = {
+    val events = new ArrayList[TSerEvent]
 
-    var frTime = Long.MaxValue
-    var toTime = Long.MinValue
+    val allTickers = new ArrayList[Ticker]
+    val allFillRecords = new ArrayList[FillRecord]
 
-    val sec = Exchange.secOf(symbol).get
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    for (contract <- subscribedContracts) {
+      val tickers = storageOf(contract).toArray
+      val symbol = contract.symbol
+      val sec = Exchange.secOf(symbol).get
+      val dailyOne = sec.dailyQuoteOf(System.currentTimeMillis)
+      assert(Quotes1d.idOf(dailyOne) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
+      tickers foreach (_.quote = dailyOne)
+      allTickers ++= tickers
+
+      val tickerSer = serOf(contract).get
+
+      var frTime = Long.MaxValue
+      var toTime = Long.MinValue
+
+      val cal = Calendar.getInstance(sec.exchange.timeZone)
     
-    val dailyQuote = sec.dailyQuoteOf(System.currentTimeMillis)
-    val size = tickers.length
-    if (size > 0) {
+      val dailyQuote = sec.dailyQuoteOf(System.currentTimeMillis)
+      val size = tickers.length
+      if (size > 0) {
 
-      val values = new Array[Ticker](size)
-      tickers.copyToArray(values, 0)
+        val values = new Array[Ticker](size)
+        tickers.copyToArray(values, 0)
             
-      val shouldReverseOrder = !isAscending(values)
+        val shouldReverseOrder = !isAscending(values)
 
-      val fillRecords = new Array[FillRecord](size)
-      var ticker: Ticker = null // lastTicker will be stored in it
-      val freq = tickerSer.freq
-      var i = if (shouldReverseOrder) size - 1 else 0
-      while (i >= 0 && i <= size - 1) {
-        ticker = tickers(i)
+        var ticker: Ticker = null // lastTicker will be stored in it
+        val freq = tickerSer.freq
+        var i = if (shouldReverseOrder) size - 1 else 0
+        while (i >= 0 && i <= size - 1) {
+          ticker = tickers(i)
 
-        val fillRecord = new FillRecord
-        fillRecords(i) = fillRecord
-        fillRecord.quote = dailyQuote
-        fillRecord.time = ticker.time
+          val fillRecord = new FillRecord
+          fillRecord.quote = dailyQuote
+          fillRecord.time = ticker.time
+          allFillRecords += fillRecord
         
-        val (prevTicker, dailyFirst) = sec.lastData.prevTicker match {
-          case null =>
-            val prev = new Ticker
-            sec.lastData.prevTicker = prev
-            (prev, true)
-          case prev => (prev, false)
-        }
+          val (prevTicker, dailyFirst) = sec.lastData.prevTicker match {
+            case null =>
+              val prev = new Ticker
+              sec.lastData.prevTicker = prev
+              (prev, true)
+            case prev => (prev, false)
+          }
 
-        val minuteQuote = sec.minuteQuoteOf(ticker.time)
-        val time = freq.round(ticker.time, cal)
-        if (dailyFirst) {
-          dailyQuote.unjustOpen_!
+          val minuteQuote = sec.minuteQuoteOf(ticker.time)
+          val time = freq.round(ticker.time, cal)
+          if (dailyFirst) {
+            dailyQuote.unjustOpen_!
 
-          /**
-           * this is today's first ticker we got when begin update data server,
-           * actually it should be, so maybe we should check this.
-           * As this is the first data of today:
-           * 1. set OHLC = Ticker.LAST_PRICE
-           * 2. to avoid too big volume that comparing to following dataSeries.
-           * so give it a small 0.0001 (if give it a 0, it will won't be calculated
-           * in calcMaxMin() of ChartView)
-           */
-          fillRecord.price  = ticker.lastPrice
-          fillRecord.volume = ticker.dayVolume
-          fillRecord.amount = ticker.dayAmount
+            /**
+             * this is today's first ticker we got when begin update data server,
+             * actually it should be, so maybe we should check this.
+             * As this is the first data of today:
+             * 1. set OHLC = Ticker.LAST_PRICE
+             * 2. to avoid too big volume that comparing to following dataSeries.
+             * so give it a small 0.0001 (if give it a 0, it will won't be calculated
+             * in calcMaxMin() of ChartView)
+             */
+            fillRecord.price  = ticker.lastPrice
+            fillRecord.volume = ticker.dayVolume
+            fillRecord.amount = ticker.dayAmount
 
-          minuteQuote.open   = ticker.lastPrice
-          minuteQuote.high   = ticker.lastPrice
-          minuteQuote.low    = ticker.lastPrice
-          minuteQuote.close  = ticker.lastPrice
-          minuteQuote.volume = 0.00001F
-          minuteQuote.amount = 0.00001F
+            minuteQuote.open   = ticker.lastPrice
+            minuteQuote.high   = ticker.lastPrice
+            minuteQuote.low    = ticker.lastPrice
+            minuteQuote.close  = ticker.lastPrice
+            minuteQuote.volume = 0.00001F
+            minuteQuote.amount = 0.00001F
           
-        } else {
-          
-          fillRecord.price  = ticker.lastPrice
-          fillRecord.volume = ticker.dayVolume - prevTicker.dayVolume
-          fillRecord.amount = ticker.dayAmount - prevTicker.dayAmount
-      
-          if (minuteQuote.justOpen_?) {
-            minuteQuote.unjustOpen_!
-
-            minuteQuote.open  = ticker.lastPrice
-            minuteQuote.high  = ticker.lastPrice
-            minuteQuote.low   = ticker.lastPrice
-            minuteQuote.close = ticker.lastPrice
-            
           } else {
+          
+            fillRecord.price  = ticker.lastPrice
+            fillRecord.volume = ticker.dayVolume - prevTicker.dayVolume
+            fillRecord.amount = ticker.dayAmount - prevTicker.dayAmount
+      
+            if (minuteQuote.justOpen_?) {
+              minuteQuote.unjustOpen_!
 
-            if (prevTicker.dayHigh != 0) {
-              if (ticker.dayHigh > prevTicker.dayHigh) {
-                /** this is a new day high happened during this ticker */
-                minuteQuote.high = ticker.dayHigh
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minuteQuote.high = math.max(minuteQuote.high, ticker.lastPrice)
-            }
+              minuteQuote.open  = ticker.lastPrice
+              minuteQuote.high  = ticker.lastPrice
+              minuteQuote.low   = ticker.lastPrice
+              minuteQuote.close = ticker.lastPrice
             
-            if (prevTicker.dayLow != 0) {
-              if (ticker.dayLow < prevTicker.dayLow) {
-                /** this is a new day low happened during this ticker */
-                minuteQuote.low = ticker.dayLow
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minuteQuote.low = math.min(minuteQuote.low, ticker.lastPrice)
-            }
+            } else {
 
-            minuteQuote.close = ticker.lastPrice
-            if (fillRecord.volume > 1) {
-              minuteQuote.volume += fillRecord.volume
-              minuteQuote.amount += fillRecord.amount
+              if (prevTicker.dayHigh != 0) {
+                if (ticker.dayHigh > prevTicker.dayHigh) {
+                  /** this is a new day high happened during this ticker */
+                  minuteQuote.high = ticker.dayHigh
+                }
+              }
+              if (ticker.lastPrice != 0) {
+                minuteQuote.high = math.max(minuteQuote.high, ticker.lastPrice)
+              }
+            
+              if (prevTicker.dayLow != 0) {
+                if (ticker.dayLow < prevTicker.dayLow) {
+                  /** this is a new day low happened during this ticker */
+                  minuteQuote.low = ticker.dayLow
+                }
+              }
+              if (ticker.lastPrice != 0) {
+                minuteQuote.low = math.min(minuteQuote.low, ticker.lastPrice)
+              }
+
+              minuteQuote.close = ticker.lastPrice
+              if (fillRecord.volume > 1) {
+                minuteQuote.volume += fillRecord.volume
+                minuteQuote.amount += fillRecord.amount
+              }
             }
           }
+
+          sec.lastData.prevTicker.copyFrom(ticker)
+
+          frTime = math.min(frTime, time)
+          toTime = math.max(toTime, time)
+
+          // update 1m quoteSer with minuteQuote
+          updateQuoteSer(tickerSer, minuteQuote)
+          chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (updateQuoteSer(_, minuteQuote))
+
+          i += (if (shouldReverseOrder) -1 else 1)
         }
 
-        sec.lastData.prevTicker.copyFrom(ticker)
+        // update daily quote and ser
+        if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+          updateDailyQuote(dailyQuote, ticker)
+          chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+        }
 
-        frTime = math.min(frTime, time)
-        toTime = math.max(toTime, time)
+        /**
+         * ! ticker may be null at here ??? yes, if tickers.size == 0
+         */
+        events += TSerEvent.ToBeSet(tickerSer, symbol, frTime, toTime, ticker)
+      } else {
 
-        // update 1m quoteSer with minuteQuote
-        updateQuoteSer(tickerSer, minuteQuote)
-        chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (updateQuoteSer(_, minuteQuote))
-
-        i += (if (shouldReverseOrder) -1 else 1)
+        /**
+         * no new ticker got, but should consider if need to update quoteSer
+         * as the quote window may be just opened.
+         */
+        sec.lastData.prevTicker match {
+          case null =>
+          case ticker =>
+            if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+              updateDailyQuote(dailyQuote, ticker)
+              chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+            }
+        }
       }
 
-      // update daily quote and ser
-      if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
-        updateDailyQuote(dailyQuote, ticker)
-        chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
-      }
 
-      FillRecords.insertBatch(fillRecords)
-      commit
-      val tobeClosed = Sec.minuteQuotesTobeClosed.toArray
-      if (tobeClosed.length > 0) {
-        Quotes1m.insertBatch(tobeClosed)
-        commit
-        Sec.minuteQuotesTobeClosed.clear
-      }
-
-      DataServer.publish(FillRecordEvent(this, fillRecords))
-      /**
-       * ! ticker may be null at here ??? yes, if tickers.size == 0
-       */
-      evt = TSerEvent.ToBeSet(tickerSer, symbol, frTime, toTime, ticker)
-    } else {
-
-      /**
-       * no new ticker got, but should consider if need to update quoteSer
-       * as the quote window may be just opened.
-       */
-      sec.lastData.prevTicker match {
-        case null =>
-        case ticker =>
-          if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
-            updateDailyQuote(dailyQuote, ticker)
-            chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
-          }
-      }
+      storageOf(contract) synchronized {storageOf(contract).clear}
     }
 
-    evt
+    // batch save to db
+
+    Tickers.insertBatch(allTickers.toArray)
+
+    val fillRecords = allFillRecords.toArray
+    FillRecords.insertBatch(fillRecords)
+
+    val tobeClosed = Sec.minuteQuotesTobeClosed.toArray
+    if (tobeClosed.length > 0) {
+      Quotes1m.insertBatch(tobeClosed)
+      Sec.minuteQuotesTobeClosed.clear
+    }
+
+    commit
+
+    // process events
+
+    DataServer.publish(FillRecordEvent(this, fillRecords))
+
+    events
   }
 
   private def updateDailyQuote(dailyQuote: Quote, ticker: Ticker) {
