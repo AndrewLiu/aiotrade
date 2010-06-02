@@ -10,6 +10,7 @@ import java.util.TimerTask
 import org.aiotrade.lib.dataserver.yahoo._
 import org.aiotrade.platform.test.TestHelper
 import scala.actors.Actor._
+import scala.collection.mutable.ArrayBuffer
 
 object YahooQuoteServerTest extends TestHelper {
 
@@ -17,10 +18,10 @@ object YahooQuoteServerTest extends TestHelper {
     testBatch
   }
 
-  def testBatch : Unit = {
+  def testBatch {
     val size = 5
     val syms = Exchange.symbolsOf(Exchange.SS)
-    val testers = new Array[TestOne](size)
+    val testers = new ArrayBuffer[TestOne]
 
     var i = 0
     val itr = syms.iterator

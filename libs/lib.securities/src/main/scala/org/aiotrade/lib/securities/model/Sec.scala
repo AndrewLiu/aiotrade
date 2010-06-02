@@ -467,6 +467,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         newone.time = now
         newone.sec = this
         newone.unclosed_!
+        newone.justOpen_!
         lastData.minuteQuote = newone
         newone
     }
@@ -487,6 +488,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         newone.time = now
         newone.sec = this
         newone.unclosed_!
+        newone.justOpen_!
         lastData.MinuteMoneyFlow = newone
         newone
     }

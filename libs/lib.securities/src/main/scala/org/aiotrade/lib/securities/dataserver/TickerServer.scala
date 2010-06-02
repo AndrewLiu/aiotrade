@@ -182,8 +182,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   def composeSer(symbol: String, tickerSer: QuoteSer, tickers: Array[Ticker]): TSerEvent = {
     var evt: TSerEvent = TSerEvent.None
 
-    var begTime = Long.MaxValue
-    var endTime = Long.MinValue
+    var frTime = Long.MaxValue
+    var toTime = Long.MinValue
 
     val sec = Exchange.secOf(symbol).get
     val cal = Calendar.getInstance(sec.exchange.timeZone)
@@ -209,82 +209,68 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         fillRecord.quote = dailyQuote
         fillRecord.time = ticker.time
         
-        val prevTicker = sec.lastData.prevTicker match {
+        val (prevTicker, dailyFirst) = sec.lastData.prevTicker match {
           case null =>
-            fillRecord.price  = ticker.lastPrice
-            fillRecord.volume = ticker.dayVolume
-            fillRecord.amount = ticker.dayAmount
-
             val prev = new Ticker
             sec.lastData.prevTicker = prev
-            prev
-          case prev =>
-            fillRecord.price  = ticker.lastPrice
-            fillRecord.volume = ticker.dayVolume - prev.dayVolume
-            fillRecord.amount = ticker.dayAmount - prev.dayAmount
-
-            prev
+            (prev, true)
+          case prev => (prev, false)
         }
 
         val minuteQuote = sec.minuteQuoteOf(ticker.time)
         val time = freq.round(ticker.time, cal)
-        symbolToIntervalLastTickerPair.get(symbol) match {
-          case None =>
-            /**
-             * this is today's first ticker we got when begin update data server,
-             * actually it should be, so maybe we should check this.
-             */
-            val intervalLastTickerPair = new IntervalLastTickerPair
-            symbolToIntervalLastTickerPair(symbol) = intervalLastTickerPair
-            intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
+        if (dailyFirst) {
+          dailyQuote.unjustOpen_!
 
-            /**
-             * As this is the first data of today:
-             * 1. set OHLC = Ticker.LAST_PRICE
-             * 2. to avoid too big volume that comparing to following dataSeries.
-             * so give it a small 0.0001 (if give it a 0, it will won't be calculated
-             * in calcMaxMin() of ChartView)
-             */
-            minuteQuote.open   = ticker.lastPrice
-            minuteQuote.high   = ticker.lastPrice
-            minuteQuote.low    = ticker.lastPrice
-            minuteQuote.close  = ticker.lastPrice
-            minuteQuote.volume = 0.00001F
-            minuteQuote.amount = 0.00001F
+          /**
+           * this is today's first ticker we got when begin update data server,
+           * actually it should be, so maybe we should check this.
+           * As this is the first data of today:
+           * 1. set OHLC = Ticker.LAST_PRICE
+           * 2. to avoid too big volume that comparing to following dataSeries.
+           * so give it a small 0.0001 (if give it a 0, it will won't be calculated
+           * in calcMaxMin() of ChartView)
+           */
+          fillRecord.price  = ticker.lastPrice
+          fillRecord.volume = ticker.dayVolume
+          fillRecord.amount = ticker.dayAmount
 
-          case Some(intervalLastTickerPair) =>
-            /** normal process */
-                        
-            /** check if in new interval */
-            if (freq.sameInterval(time, intervalLastTickerPair.currIntervalOne.time, cal)) {
-              intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
+          minuteQuote.open   = ticker.lastPrice
+          minuteQuote.high   = ticker.lastPrice
+          minuteQuote.low    = ticker.lastPrice
+          minuteQuote.close  = ticker.lastPrice
+          minuteQuote.volume = 0.00001F
+          minuteQuote.amount = 0.00001F
+          
+        } else {
+          
+          fillRecord.price  = ticker.lastPrice
+          fillRecord.volume = ticker.dayVolume - prevTicker.dayVolume
+          fillRecord.amount = ticker.dayAmount - prevTicker.dayAmount
+      
+          if (minuteQuote.justOpen_?) {
+            minuteQuote.unjustOpen_!
 
-              /** still in same interval, just pick out the old data of this interval */
-            } else {
-              /**
-               * !NOTICE
-               * Here, should:
-               * first:  intervalLastTicker.prevIntervalOne.copy(intervalLastTicker.currIntervalOne);
-               * then:   intervalLastTicker.currIntervalOne.copy(ticker);
-               */
-              intervalLastTickerPair.prevIntervalOne.copyFrom(intervalLastTickerPair.currIntervalOne)
-              intervalLastTickerPair.currIntervalOne.copyFrom(ticker)
+            minuteQuote.open  = ticker.lastPrice
+            minuteQuote.high  = ticker.lastPrice
+            minuteQuote.low   = ticker.lastPrice
+            minuteQuote.close = ticker.lastPrice
+            
+          } else {
 
-              /** a new interval starts, we'll need a new data */
-              minuteQuote.high = Float.MinValue
-              minuteQuote.low  = Float.MaxValue
-              minuteQuote.open = ticker.lastPrice
+            if (prevTicker.dayHigh != 0) {
+              if (ticker.dayHigh > prevTicker.dayHigh) {
+                /** this is a new day high happened during this ticker */
+                minuteQuote.high = ticker.dayHigh
+              }
             }
-
-            if (ticker.dayHigh > prevTicker.dayHigh) {
-              /** this is a new high happened in this ticker */
-              minuteQuote.high = ticker.dayHigh
+            if (ticker.lastPrice != 0) {
+              minuteQuote.high = math.max(minuteQuote.high, ticker.lastPrice)
             }
-            minuteQuote.high = math.max(minuteQuote.high, ticker.lastPrice)
-
+            
             if (prevTicker.dayLow != 0) {
               if (ticker.dayLow < prevTicker.dayLow) {
-                /** this is a new low that happened in this ticker */
+                /** this is a new day low happened during this ticker */
                 minuteQuote.low = ticker.dayLow
               }
             }
@@ -293,17 +279,17 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             }
 
             minuteQuote.close = ticker.lastPrice
-            val prevVolume = intervalLastTickerPair.prevIntervalOne.dayVolume
-            if (prevVolume > 1) {
-              minuteQuote.volume = ticker.dayVolume - intervalLastTickerPair.prevIntervalOne.dayVolume
-              minuteQuote.amount = ticker.dayAmount - intervalLastTickerPair.prevIntervalOne.dayAmount
+            if (fillRecord.volume > 1) {
+              minuteQuote.volume += fillRecord.volume
+              minuteQuote.amount += fillRecord.amount
             }
+          }
         }
 
-        prevTicker.copyFrom(ticker)
+        sec.lastData.prevTicker.copyFrom(ticker)
 
-        begTime = math.min(begTime, time)
-        endTime = math.max(endTime, time)
+        frTime = math.min(frTime, time)
+        toTime = math.max(toTime, time)
 
         // update 1m quoteSer with minuteQuote
         updateQuoteSer(tickerSer, minuteQuote)
@@ -331,7 +317,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       /**
        * ! ticker may be null at here ??? yes, if tickers.size == 0
        */
-      evt = TSerEvent.ToBeSet(tickerSer, symbol, begTime, endTime, ticker)
+      evt = TSerEvent.ToBeSet(tickerSer, symbol, frTime, toTime, ticker)
     } else {
 
       /**
@@ -365,21 +351,21 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
    * exist, create a new one.
    */
   private def updateQuoteSer(ser: QuoteSer, quote: Quote) {
-    val now = quote.time
-    ser.createOrClear(now)
+    val time = quote.time
+    ser.createOrClear(time)
         
-    ser.open(now)   = quote.open
-    ser.high(now)   = quote.high
-    ser.low(now)    = quote.low
-    ser.close(now)  = quote.close
-    ser.volume(now) = quote.volume
-    ser.amount(now) = quote.amount
+    ser.open(time)   = quote.open
+    ser.high(time)   = quote.high
+    ser.low(time)    = quote.low
+    ser.close(time)  = quote.close
+    ser.volume(time) = quote.volume
+    ser.amount(time) = quote.amount
 
-    ser.close_ori(now) = quote.close
-    ser.close_adj(now) = quote.close
+    ser.close_ori(time) = quote.close
+    ser.close_adj(time) = quote.close
 
     /** be ware of fromTime here may not be same as ticker's event */
-    ser.publish(TSerEvent.Updated(ser, "", now, now))
+    ser.publish(TSerEvent.Updated(ser, "", time, time))
   }
 
   private class IntervalLastTickerPair {

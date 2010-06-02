@@ -46,15 +46,16 @@ object Quotes1d extends Quotes {
         (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ now)
       ) unique
     ) match {
-      case Some(quote) => quote
+      case Some(one) => one
       case None =>
-        val quote = new Quote
-        quote.time = now
-        quote.sec = sec
-        quote.unclosed_! // @todo when to close it and update to db?
-        Quotes1d.save(quote)
+        val newone = new Quote
+        newone.time = now
+        newone.sec = sec
+        newone.unclosed_! // @todo when to close it and update to db?
+        newone.justOpen_!
+        Quotes1d.save(newone)
         commit
-        quote
+        newone
     }
   }
 }
