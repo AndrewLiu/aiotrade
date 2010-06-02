@@ -47,7 +47,6 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.ChangeObserver
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.HashMap
 import ru.circumflex.orm._
 
 /** This class will load the quote data from data source to its data storage: quotes.
@@ -60,8 +59,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   type T = QuoteSer
 
   private val logger = Logger.getLogger(this.getClass.getName)
-
-  private val symbolToIntervalLastTickerPair = new HashMap[String, IntervalLastTickerPair]
 
   refreshable = true
 
@@ -110,7 +107,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       val sec = Exchange.secOf(contract.symbol).get
       val tickerSnapshot = sec.lastData.tickerSnapshot
       this unObserve tickerSnapshot
-      symbolToIntervalLastTickerPair -= symbol
     }
   }
 
@@ -162,9 +158,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   override protected def postStopRefresh {
     for (contract <- subscribedContracts) {
       unSubscribe(contract)
-    }
-    symbolToIntervalLastTickerPair synchronized {
-      symbolToIntervalLastTickerPair.clear
     }
   }
 
@@ -366,11 +359,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     /** be ware of fromTime here may not be same as ticker's event */
     ser.publish(TSerEvent.Updated(ser, "", time, time))
-  }
-
-  private class IntervalLastTickerPair {
-    val currIntervalOne = new Ticker
-    val prevIntervalOne = new Ticker
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
