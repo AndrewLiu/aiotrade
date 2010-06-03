@@ -61,7 +61,7 @@ import scala.actors.Actor
  */
 case class AMQPMessage(content: Any, props: AMQP.BasicProperties)
 
-case class AMQPPublish(content: Any, routingKey: String, props: AMQP.BasicProperties)
+case class AMQPPublish(routingKey: String, props: AMQP.BasicProperties, content: Any)
 
 /**
  * @param a The actor to add as a Listener to this Dispatcher.
@@ -75,12 +75,28 @@ case class AMQPReconnect(delay: Long)
 
 case object AMQPStop
 
+object AMQPExchange {
+  /**
+   * Each AMQP broker declares one instance of each supported exchange type on it's
+   * own (for every virtual host). These exchanges are named after the their type
+   * with a prefix of amq., e.g. amq.fanout. The empty exchange name is an alias
+   * for amq.direct. For this default direct exchange (and only for that) the broker
+   * also declares a binding for every queue in the system with the binding key
+   * being identical to the queue name.
+   *
+   * This behaviour implies that any queue on the system can be written into by
+   * publishing a message to the default direct exchange with it's routing-key
+   * property being equal to the name of the queue.
+   */
+  val defaultDirect = "" // amp.direct
+}
+
 /**
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor with Serializer {
+abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor with Serializer {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -106,7 +122,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
   protected def consumer = state.consumer
 
   private def connect: State = {
-    val conn = cf.newConnection(host, port)
+    val conn = factory.newConnection(host, port)
     val channel = conn.createChannel
     val consumer = configure(channel)
     State(conn, channel, consumer)
@@ -126,13 +142,13 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
         as foreach (_ ! msg)
       case AMQPAddListener(a) =>
         as ::= a
-      case AMQPPublish(content, routingKey, props) => publish(content, routingKey, props)
+      case AMQPPublish(routingKey, props, content) => publish(exchange, routingKey, props, content)
       case AMQPReconnect(delay) => reconnect(delay)
       case AMQPStop => disconnect; exit
     }
   }
 
-  protected def publish(exchange: String, content: Any, routingKey: String, $props: AMQP.BasicProperties) {
+  protected def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
     import ContentType._
 
     val props = if ($props == null) new AMQP.BasicProperties else $props
@@ -157,10 +173,6 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
 
     //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
     channel.basicPublish(exchange, routingKey, props, body1)
-  }
-
-  protected def publish(content: Any, routingKey: String, props: AMQP.BasicProperties) {
-    publish(exchange, content, routingKey, props)
   }
 
   protected def disconnect {

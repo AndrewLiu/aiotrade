@@ -76,7 +76,7 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
       props.headers = headers
       props.contentType = "application/octet-stream"
       props.deliveryMode = 2 // persistent
-      publish(body, routingKey, props)
+      publish(exchange, routingKey, props, body)
     }
   }
 }
