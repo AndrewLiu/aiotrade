@@ -16,13 +16,19 @@ import org.aiotrade.lib.amqp.datatype.ContentType
 import scala.actors.Actor
 
 /*_ rabbitmqctl common usages:
- sudo rabbitmq-server -n rabbit@localhost
+ sudo rabbitmq-server -n rabbit@localhost &
  sudo rabbitmqctl -n rabbit@localhost stop
 
  sudo rabbitmqctl -n rabbit@localhost stop_app
  sudo rabbitmqctl -n rabbit@localhost reset
  sudo rabbitmqctl -n rabbit@localhost start_app
  sudo rabbitmqctl -n rabbit@localhost list_queues name messages messages_uncommitted messages_unacknowledged
+
+ If encountered troubes when start the server up, since the tables in the mnesia
+ database backing rabbitmq are locked (Don't know why this is the case). you can
+ get this running again brute force styleee by deleting the database:
+
+ sudo rm -rf /opt/local/var/lib/rabbitmq/mnesia/
  */
 
 /*_
@@ -75,14 +81,26 @@ case object AMQPStop
  * messages coming in to the queue/exchange to the list of observers.
  */
 abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor with Serializer {
-  case class State(conn: Connection, channel: Channel, consumer: Consumer)
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   private lazy val reconnectTimer = new Timer("AMQPReconnectTimer")
   private var as: List[Actor] = Nil
 
-  private var state = connect
+  case class State(conn: Connection, channel: Channel, consumer: Option[Consumer])
+  private var state: State = _
+
+  /**
+   * Connect only when start, so we can control it to connect at a appropriate time,
+   * for instance, all processors are ready. Otherwise, the messages may have been
+   * consumered before processors ready.
+   */
+  override def start: this.type = {
+    super.start
+    state = connect
+    this
+  }
+
   protected def conn = state.conn
   protected def channel = state.channel
   protected def consumer = state.consumer
@@ -100,7 +118,7 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
    * @return the newly created and registered (queue, consumer)
    */
   @throws(classOf[IOException])
-  protected def configure(channel: Channel): Consumer
+  protected def configure(channel: Channel): Option[Consumer]
 
   def act = loop {
     react {
@@ -146,8 +164,8 @@ abstract class AMQPDispatcher(cf: ConnectionFactory, host: String, port: Int, va
   }
 
   protected def disconnect {
-    if (consumer != null) {
-      channel.basicCancel(consumer.asInstanceOf[DefaultConsumer].getConsumerTag)
+    if (consumer.isDefined) {
+      channel.basicCancel(consumer.get.asInstanceOf[DefaultConsumer].getConsumerTag)
     }
     try {
       channel.close

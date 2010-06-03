@@ -30,13 +30,13 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
   var correlationId = 0
 
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Consumer = {
+  override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
     channel.queueBind(replyQueue, exchange, routingKey)
     
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(replyQueue, true, consumer)
-    consumer
+    Some(consumer)
   }
 
   /**
@@ -56,7 +56,7 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
    */
   @throws(classOf[IOException])
   protected def checkConsumer {
-    if (consumer == null) {
+    if (consumer == None) {
       throw new EOFException("RpcClient is closed")
     }
   }

@@ -27,7 +27,7 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
   }
 
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Consumer = {
+  override def configure(channel: Channel): Option[Consumer] = {
     channel.exchangeDeclare(exchange, "direct")
     val queue = $queue match {
       case null | "" => channel.queueDeclare.getQueue
@@ -36,7 +36,7 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
 
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(queue, consumer)
-    consumer
+    Some(consumer)
   }
 
   abstract class Processor extends Actor {
