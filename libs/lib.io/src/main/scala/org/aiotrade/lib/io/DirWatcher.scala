@@ -22,10 +22,10 @@ object DirWatcher {
   }
 }
 
-class DirWatcher(path: String, filter: String) extends TimerTask with scala.swing.Publisher {
-  private val dfw = new DirFilterWatcher(filter)
-  private val dirs = new HashMap ++ (new File(path) listFiles dfw map (x => x -> x.lastModified))
+class DirWatcher(path: String, filter: FileFilter) extends TimerTask with scala.swing.Publisher {
+  private val dirs = new HashMap ++ (new File(path) listFiles filter map (x => x -> x.lastModified))
 
+  def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
   def this(path: String) = this(path, "")
 
   final def run {
@@ -34,7 +34,7 @@ class DirWatcher(path: String, filter: String) extends TimerTask with scala.swin
 
   /** always add () for empty apply method */
   final def apply() {
-    val files = new File(path) listFiles dfw
+    val files = new File(path) listFiles filter
     val checkedFiles = new HashSet[File]
 
     var i = 0
@@ -73,7 +73,7 @@ class DirWatcher(path: String, filter: String) extends TimerTask with scala.swin
   }
 }
 
-class DirFilterWatcher(filter: String) extends FileFilter {
+class DirWatcherFilter(filter: String) extends FileFilter {
   def this() = this("")
 
   def accept(file: File): Boolean = 

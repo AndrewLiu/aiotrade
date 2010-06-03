@@ -5,7 +5,7 @@
 
 package org.aiotrade.lib.securities.model
 
-object Flag{
+object Flag {
   // bit masks for flag
   val MaskClosed           = 1 << 0   // 1   2^^0    000...00000001
   val MaskVerified         = 1 << 1   // 2   2^^1    000...00000010

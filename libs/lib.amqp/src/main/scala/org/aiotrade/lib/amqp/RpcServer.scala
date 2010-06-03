@@ -48,24 +48,23 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
      */
     protected def process(msg: AMQPMessage): AMQPMessage
 
-    def act {
-      Actor.loop {
-        react {
-          case msg: AMQPMessage =>
-            val requestProps = msg.props
-            if (requestProps.correlationId != null && requestProps.replyTo != null) {
-              val (replyContent, replyProps) = process(msg) match {
-                case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
-                case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
-              }
-              
-              replyProps.correlationId = requestProps.correlationId
-              publish("", replyContent, requestProps.replyTo, replyProps)
+    def act = loop {
+      react {
+        case msg: AMQPMessage =>
+          val requestProps = msg.props
+          if (requestProps.correlationId != null && requestProps.replyTo != null) {
+            val (replyContent, replyProps) = process(msg) match {
+              case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
+              case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
             }
-          case AMQPStop => exit
-        }
+              
+            replyProps.correlationId = requestProps.correlationId
+            publish("", replyContent, requestProps.replyTo, replyProps)
+          }
+        case AMQPStop => exit
       }
     }
+    
   }
 }
 

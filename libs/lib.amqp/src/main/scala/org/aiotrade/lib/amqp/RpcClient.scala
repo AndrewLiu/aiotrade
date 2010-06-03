@@ -71,10 +71,7 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
   def rpcCall($props: AMQP.BasicProperties, content: Any): Any = {
     checkConsumer
     val props = if ($props == null) {
-      new AMQP.BasicProperties(null, null, null, null,
-                               null, null,
-                               null, null, null, null,
-                               null, null, null, null)
+      new AMQP.BasicProperties
     } else $props
 
     correlationId += 1
@@ -82,7 +79,7 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
     props.correlationId = replyId
     props.replyTo = replyQueue
 
-    publish(content, routingKey: String, props: AMQP.BasicProperties)
+    publish(content, routingKey, props)
   }
 
   /**
@@ -104,12 +101,10 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
 
     protected def process(msg: AMQPMessage)
 
-    def act {
-      Actor.loop {
-        react {
-          case msg: AMQPMessage => process(msg)
-          case AMQPStop => exit
-        }
+    def act = loop {
+      react {
+        case msg: AMQPMessage => process(msg)
+        case AMQPStop => exit
       }
     }
   }
