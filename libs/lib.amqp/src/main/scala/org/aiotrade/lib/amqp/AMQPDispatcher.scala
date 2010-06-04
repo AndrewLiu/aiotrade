@@ -111,6 +111,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
    * for instance, all processors are ready. Otherwise, the messages may have been
    * consumered before processors ready.
    */
+  @throws(classOf[IOException])
   override def start: this.type = {
     super.start
     state = connect
@@ -121,6 +122,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
   protected def channel = state.channel
   protected def consumer = state.consumer
 
+  @throws(classOf[IOException])
   private def connect: State = {
     val conn = factory.newConnection(host, port)
     val channel = conn.createChannel
@@ -151,6 +153,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
     }
   }
 
+  @throws(classOf[IOException])
   protected def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
     import ContentType._
 
@@ -216,6 +219,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
   }
 
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
+    
+    @throws(classOf[IOException])
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
       import ContentType._
 

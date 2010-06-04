@@ -13,6 +13,7 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.AMQP.BasicProperties
+import org.aiotrade.lib.amqp.datatype.ContentType
 
 object FileProducer {
   private val queue = "filequeue"
@@ -76,7 +77,7 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
       headers.put("length", length.asInstanceOf[AnyRef])
       val props = new BasicProperties
       props.headers = headers
-      props.contentType = "application/octet-stream"
+      props.contentType = ContentType.OCTET_STREAM.mimeType
       props.deliveryMode = 2 // persistent
       publish(exchange, routingKey, props, body)
     }
