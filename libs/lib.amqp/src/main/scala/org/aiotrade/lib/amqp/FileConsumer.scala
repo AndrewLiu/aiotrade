@@ -38,8 +38,7 @@ object FileConsumer {
                                       FileProducer.routingKey,
                                       outputDirPath)
       
-      val processor = new consumer.DefaultProcessor
-      processor.start
+      new consumer.DefaultProcessor
       consumer.start
     }
   }
@@ -67,6 +66,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   }
 
   abstract class Processor extends Actor {
+    start
     FileConsumer.this ! AMQPAddListener(this)
 
     protected def process(msg: AMQPMessage)
@@ -80,6 +80,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   }
 
   class DefaultProcessor extends Processor {
+    
     override protected def process(msg: AMQPMessage) {
       val headers = msg.props.headers
       val content = msg.content.asInstanceOf[Array[Byte]]

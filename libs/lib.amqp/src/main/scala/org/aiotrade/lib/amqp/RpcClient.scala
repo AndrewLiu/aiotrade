@@ -22,10 +22,10 @@ import scala.actors.Actor
  * @see #setupReplyQueue
  */
 @throws(classOf[IOException])
-class RpcClient(cf: ConnectionFactory, host: String, port: Int, reqExchange: String, reqRoutingKey: String
+class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange: String, reqRoutingKey: String
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
-} with AMQPDispatcher(cf, host, port, reqExchange) {
+} with AMQPDispatcher(factory, host, port, reqExchange) {
   /** Contains the most recently-used request correlation ID */
   var correlationId = 0
 
@@ -91,8 +91,13 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, reqExchange: Str
     rpcCall(null, content)
   }
 
+  /**
+   * Processor that will automatically added as listener of this AMQPDispatcher
+   * and process AMQPMessage via process(msg)
+   */
 
   abstract class Processor extends Actor {
+    start
     RpcClient.this ! AMQPAddListener(this)
 
     protected def process(msg: AMQPMessage)

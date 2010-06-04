@@ -50,7 +50,9 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     channel.exchangeDeclare(exchange, "direct", true)
-    // produce to n queues:
+    // produce to n queues.
+    // we'll create these queues here whatever, so, even the consumer starts
+    // later than producer, they won't miss messages that were previously sent.
     for (i <- 0 until nConsumers) {
       val queuei = FileProducer.queueName(i)
       channel.queueDeclare(queuei, true)

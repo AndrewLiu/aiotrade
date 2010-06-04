@@ -43,7 +43,12 @@ class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: S
     Some(consumer)
   }
 
+  /**
+   * Processor that will automatically added as listener of this AMQPDispatcher
+   * and process AMQPMessage and reply to client via process(msg).
+   */
   abstract class Processor extends Actor {
+    start
     RpcServer.this ! AMQPAddListener(this)
 
     /**

@@ -144,7 +144,10 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
         as ::= a
       case AMQPPublish(routingKey, props, content) => publish(exchange, routingKey, props, content)
       case AMQPReconnect(delay) => reconnect(delay)
-      case AMQPStop => disconnect; exit
+      case AMQPStop =>
+        disconnect
+        as foreach (_ ! AMQPStop)
+        exit
     }
   }
 
