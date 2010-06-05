@@ -22,21 +22,19 @@ import scala.actors.Actor
  * @see #setupReplyQueue
  */
 @throws(classOf[IOException])
-class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String, routingKey: String
+class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange: String, reqRoutingKey: String
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
-} with AMQPDispatcher(cf, host, port, exchange) {
+} with AMQPDispatcher(factory, host, port, reqExchange) {
   /** Contains the most recently-used request correlation ID */
   var correlationId = 0
 
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Consumer = {
+  override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
-    channel.queueBind(replyQueue, exchange, routingKey)
-    
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(replyQueue, true, consumer)
-    consumer
+    Some(consumer)
   }
 
   /**
@@ -56,7 +54,7 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
    */
   @throws(classOf[IOException])
   protected def checkConsumer {
-    if (consumer == null) {
+    if (consumer == None) {
       throw new EOFException("RpcClient is closed")
     }
   }
@@ -70,16 +68,14 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
   @throws(classOf[ShutdownSignalException])
   def rpcCall($props: AMQP.BasicProperties, content: Any): Any = {
     checkConsumer
-    val props = if ($props == null) {
-      new AMQP.BasicProperties
-    } else $props
+    val props = if ($props == null) new AMQP.BasicProperties else $props
 
     correlationId += 1
     val replyId = correlationId.toString
     props.correlationId = replyId
     props.replyTo = replyQueue
 
-    publish(content, routingKey, props)
+    publish(reqExchange, reqRoutingKey, props, content)
   }
 
   /**
@@ -95,8 +91,13 @@ class RpcClient(cf: ConnectionFactory, host: String, port: Int, exchange: String
     rpcCall(null, content)
   }
 
+  /**
+   * Processor that will automatically added as listener of this AMQPDispatcher
+   * and process AMQPMessage via process(msg)
+   */
 
   abstract class Processor extends Actor {
+    start
     RpcClient.this ! AMQPAddListener(this)
 
     protected def process(msg: AMQPMessage)

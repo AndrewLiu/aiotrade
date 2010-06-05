@@ -14,32 +14,41 @@ import scala.actors.Actor
  * @param Channel we are communicating on
  * @param Queue to receive requests from
  */
-class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String, $queue: String
-) extends AMQPDispatcher(cf, host, port, exchange) {
+class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: String, reqQueue: String
+) extends AMQPDispatcher(factory, host, port, exchange) {
 
   /**
    * Creates an RpcServer listening on a temporary exclusive
    * autodelete queue.
    */
   @throws(classOf[IOException])
-  def this(cf: ConnectionFactory, host: String, port: Int, exchange: String) = {
-    this(cf, host, port, exchange, null)
+  def this(factory: ConnectionFactory, host: String, port: Int) = {
+    this(factory, host, port, "", null)
   }
 
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Consumer = {
-    channel.exchangeDeclare(exchange, "direct")
-    val queue = $queue match {
+  override def configure(channel: Channel): Option[Consumer] = {
+    if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
+    val queue = reqQueue match {
       case null | "" => channel.queueDeclare.getQueue
-      case _ => channel.queueDeclare($queue); $queue
+      case _ => channel.queueDeclare(reqQueue); reqQueue
     }
+    // use routingKey identical to queue name
+    val routingKey = queue
+
+    channel.queueBind(queue, exchange, routingKey)
 
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(queue, consumer)
-    consumer
+    Some(consumer)
   }
 
+  /**
+   * Processor that will automatically added as listener of this AMQPDispatcher
+   * and process AMQPMessage and reply to client via process(msg).
+   */
   abstract class Processor extends Actor {
+    start
     RpcServer.this ! AMQPAddListener(this)
 
     /**
@@ -51,15 +60,15 @@ class RpcServer(cf: ConnectionFactory, host: String, port: Int, exchange: String
     def act = loop {
       react {
         case msg: AMQPMessage =>
-          val requestProps = msg.props
-          if (requestProps.correlationId != null && requestProps.replyTo != null) {
+          val reqProps = msg.props
+          if (reqProps.correlationId != null && reqProps.replyTo != null) {
             val (replyContent, replyProps) = process(msg) match {
               case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
               case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
             }
               
-            replyProps.correlationId = requestProps.correlationId
-            publish("", replyContent, requestProps.replyTo, replyProps)
+            replyProps.correlationId = reqProps.correlationId
+            publish("", reqProps.replyTo, replyProps, replyContent)
           }
         case AMQPStop => exit
       }

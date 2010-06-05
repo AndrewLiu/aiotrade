@@ -6,42 +6,67 @@ import java.io.IOException
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.ConnectionParameters
 import com.rabbitmq.client.Consumer
 
 import scala.actors.Actor
 
 
 object FileConsumer {
-  val hostname = "localhost"
-  val port = 5672
 
-  val queue = "request.quote"
-  val exchange = "market.file"
-  val routingKey = "faster.server.dbffile"
+  // --- simple test
+  def main(args: Array[String]) {
+    val host = "localhost"
+
+    val params = new ConnectionParameters
+    params.setUsername("guest")
+    params.setPassword("guest")
+    params.setVirtualHost("/")
+    params.setRequestedHeartbeat(0)
+
+    val outputDirPath = System.getProperty("user.home") + File.separator + "storage"
+
+    val factory = new ConnectionFactory(params)
+
+    for (i <- 0 until 5) {
+      val queuei = FileProducer.queueName(i)
+      val consumer = new FileConsumer(FileProducer.factory,
+                                      host,
+                                      FileProducer.port,
+                                      FileProducer.exchange,
+                                      queuei,
+                                      FileProducer.routingKey,
+                                      outputDirPath)
+      
+      new consumer.DefaultProcessor
+      consumer.start
+    }
+  }
 
 }
 
-class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: String, $queue: String, outputDirName: String
+class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: String, queue: String, routingKey: String, outputDirPath: String
 ) extends AMQPDispatcher(cf, host, port, exchange) {
-  val outputDir = new File(outputDirName)
+  val outputDir = new File(outputDirPath)
   if (!outputDir.exists) {
     outputDir.mkdirs
+  } else {
+    assert(outputDir.isDirectory, "outputDir should be director: " + outputDir)
   }
-
+  
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Consumer = {
-    channel.exchangeDeclare(exchange, "direct")
-    val queue = $queue match {
-      case null | "" => channel.queueDeclare.getQueue
-      case _ => channel.queueDeclare($queue); $queue
-    }
-
+  override def configure(channel: Channel): Option[Consumer] = {
+    channel.exchangeDeclare(exchange, "direct", true)
+    channel.queueDeclare(queue, true)
+    channel.queueBind(queue, exchange, routingKey)
+    
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(queue, consumer)
-    consumer
+    Some(consumer)
   }
 
   abstract class Processor extends Actor {
+    start
     FileConsumer.this ! AMQPAddListener(this)
 
     protected def process(msg: AMQPMessage)
@@ -55,15 +80,22 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   }
 
   class DefaultProcessor extends Processor {
+    
     override protected def process(msg: AMQPMessage) {
       val headers = msg.props.headers
       val content = msg.content.asInstanceOf[Array[Byte]]
 
       try {
-        val fileName = headers.get("filename").toString + "_" + System.currentTimeMillis
-        val file = new File(fileName)
-        val saveToFile = new File(outputDir, fileName)
-        val out = new FileOutputStream(saveToFile)
+        var fileName = headers.get("filename").toString + "_" + System.currentTimeMillis
+        var outputFile = new File(outputDir, fileName)
+        var i = 1
+        while (outputFile.exists) {
+          fileName = fileName + "_" + i
+          outputFile = new File(outputDir, fileName)
+          i += 1
+        }
+        
+        val out = new FileOutputStream(outputFile)
         out.write(content)
         out.close
       } catch {
