@@ -9,7 +9,7 @@
 // $Id: ArrayList.scala 19223 2009-10-22 10:43:02Z malayeri $
 
 
-package org.aiotrade.lib.util.collection
+package org.aiotrade.lib.collection
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.generic.GenericCompanion
@@ -27,7 +27,7 @@ import scala.collection.mutable.WrappedArray
  *  access take constant time (amortized time). Prepends and removes are
  *  linear in the buffer size.
  *
- *  serialver -classpath ~/myapps/scala/lib/scala-library.jar:./ org.aiotrade.lib.util.collection.ArrayList
+ *  serialver -classpath ~/myapps/scala/lib/scala-library.jar:./ org.aiotrade.lib.collection.ArrayList
  *  
  *  @author  Matthias Zenger
  *  @author  Martin Odersky

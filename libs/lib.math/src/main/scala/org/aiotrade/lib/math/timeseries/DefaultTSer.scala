@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries
 
 import java.awt.Color
 import java.util.Calendar
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.computable.SpotComputable

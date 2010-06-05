@@ -28,7 +28,7 @@ object YahooQuoteServerTest extends TestHelper {
     while (i < size && itr.hasNext) {
       val sym = itr.next
       val tester = new TestOne(sym)
-      testers(i) = tester
+      testers += tester
       i += 1
     }
 

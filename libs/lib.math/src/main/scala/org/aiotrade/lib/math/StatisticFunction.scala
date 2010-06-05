@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math
 
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 
 /**
  *

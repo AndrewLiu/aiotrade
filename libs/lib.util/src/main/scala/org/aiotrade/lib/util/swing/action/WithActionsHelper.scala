@@ -32,7 +32,7 @@ package org.aiotrade.lib.util.swing.action
 
 import javax.swing.Action
 
-import  org.aiotrade.lib.util.collection.ArrayList
+import  org.aiotrade.lib.collection.ArrayList
 
 /**
  *

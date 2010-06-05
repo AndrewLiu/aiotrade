@@ -33,7 +33,7 @@ package org.aiotrade.lib.math.vector;
 import java.util.Random
 import java.util.StringTokenizer
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 
 /**
  * Sparse implement of Vec. It do not store 0 valued elements.

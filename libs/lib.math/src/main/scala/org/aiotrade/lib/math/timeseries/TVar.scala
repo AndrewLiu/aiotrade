@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.math.timeseries.plottable.Plottable
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 
 
 /**
