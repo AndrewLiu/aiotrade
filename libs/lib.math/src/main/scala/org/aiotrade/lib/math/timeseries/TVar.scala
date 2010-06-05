@@ -44,6 +44,8 @@ trait TVar[V] extends Plottable {
   def name: String
   def name_=(name: String)
 
+  def timestamps: TStamps
+
   def put(time: Long, value: V): Boolean
   def apply(time: Long): V
   def update(time: Long, value: V)
@@ -57,7 +59,9 @@ trait TVar[V] extends Plottable {
   def clear(fromIdx: Int)
     
   def size: Int
-    
+
+  def toArray(fromTime: Long, toTime: Long): (Array[V])
+  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[V], Array[Long])
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]

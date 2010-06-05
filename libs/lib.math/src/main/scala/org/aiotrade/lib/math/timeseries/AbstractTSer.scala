@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries
 
+import org.aiotrade.lib.util.collection.ArrayList
+
 /**
  *
  * @author Caoyuan Deng
@@ -50,6 +52,30 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   def loaded_=(b: Boolean) {
     inLoading = false
     _loaded = false
+  }
+
+  def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]]) = {
+    try {
+      timestamps.readLock.lock
+
+      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+      val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val len = toIdx - frIdx + 1
+      val times1 = new Array[Long](len)
+      timestamps.copyToArray(times1, frIdx, len)
+
+      val vs = new ArrayList[Array[Any]](vars.length)
+      for (v <- vars) {
+        val values1 = new Array[Any](len)
+        v.values.copyToArray(values1, frIdx, len)
+        vs + values1
+      }
+
+      (times1, vs.toArray)
+      
+    } finally {
+      timestamps.readLock.unlock
+    }
   }
 
   protected def isAscending[V <: TVal](values: Array[V]): Boolean = {

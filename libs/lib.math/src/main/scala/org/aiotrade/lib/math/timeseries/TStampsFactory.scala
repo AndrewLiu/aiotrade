@@ -192,7 +192,10 @@ object TStampsFactory {
       }
     }
         
-    /** return index of nearest behind or equal(if exist) time */
+    /**
+     * return index of nearest behind time (include this time (if exist)),
+     * @param time the time, inclusive
+     */
     def indexOfNearestOccurredTimeBehind(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {

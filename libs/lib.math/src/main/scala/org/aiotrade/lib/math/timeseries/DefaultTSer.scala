@@ -404,6 +404,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     private val colors = new TStampedMapBasedList[Color](timestamps)
 
+    def timestamps = DefaultTSer.this.timestamps
+
     /**
      * This method will never return null, return a nullValue at least.
      */

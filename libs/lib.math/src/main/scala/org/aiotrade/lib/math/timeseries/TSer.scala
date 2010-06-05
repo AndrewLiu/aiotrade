@@ -61,6 +61,8 @@ trait TSer extends Publisher {
 
   def vars: Seq[TVar[_]]
 
+  def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]])
+
   def exists(time: Long): Boolean
     
   def lastOccurredTime: Long
