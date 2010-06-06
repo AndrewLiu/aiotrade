@@ -11,6 +11,8 @@ import scala.actors.Actor
 import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
 
+case object RpcTimeOut
+
 /**
  * Convenience class which manages a temporary reply queue for simple RPC-style communication.
  * The class is agnostic about the format of RPC arguments / return values.
@@ -32,7 +34,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
   /** Map from request correlation ID to continuation BlockingCell */
   val continuationMap = new HashMap[String, SyncVar[Any]]
   /** Contains the most recently-used request correlation ID */
-  var correlationId = 0
+  var correlationId = 0L
 
   @throws(classOf[IOException])
   override def start: this.type = {
@@ -82,7 +84,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, timeout: Long = -1): Any = {
+  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = null, timeout: Long = -1): Any = {
     checkConsumer
     val props = if ($props == null) new AMQP.BasicProperties else $props
 
@@ -96,9 +98,15 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
       continuationMap.put(replyId, syncVar)
     }
 
-    publish(reqExchange, reqRoutingKey, props, req)
+    publish(reqExchange, if (routingKey == null) reqRoutingKey else routingKey, props, req)
 
-    (if (timeout == -1) syncVar.get else syncVar.get(timeout)) match {
+    val res = if (timeout == -1) {
+      syncVar.get
+    } else {
+      syncVar.get(timeout) getOrElse RpcTimeOut
+    }
+
+    res match {
       case sig: ShutdownSignalException =>
         val wrapper = new ShutdownSignalException(sig.isHardError,
                                                   sig.isInitiatedByApplication,
@@ -144,4 +152,3 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
   }
 
 }
-
