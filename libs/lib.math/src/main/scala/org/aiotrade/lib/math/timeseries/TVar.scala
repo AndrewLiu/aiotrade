@@ -61,7 +61,7 @@ trait TVar[V] extends Plottable {
   def size: Int
 
   def toArray(fromTime: Long, toTime: Long): (Array[V])
-  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[V], Array[Long])
+  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[Long], Array[V])
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]

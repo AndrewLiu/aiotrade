@@ -61,7 +61,7 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     }
   }
 
-  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[V], Array[Long]) = {
+  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[Long], Array[V]) = {
     try {
       timestamps.readLock.lock
 
@@ -73,7 +73,7 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
 
       timestamps.copyToArray(times1, frIdx, len)
       values.copyToArray(values1, frIdx, len)
-      (values1, times1)
+      (times1, values1)
       
     } finally {
       timestamps.readLock.unlock

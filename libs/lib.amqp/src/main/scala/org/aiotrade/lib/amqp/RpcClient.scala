@@ -131,10 +131,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
     def act = loop {
       react {
         case msg: AMQPMessage => process(msg)
-        case AMQPStop => 
-          println(this + " exited !")
-          exit
-        
+        case AMQPStop => exit
       }
     }
   }
