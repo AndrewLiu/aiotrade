@@ -7,6 +7,8 @@ import com.rabbitmq.client.Consumer
 import java.io.IOException
 import scala.actors.Actor
 
+trait RpcRequest
+case class RpcResponse(req: RpcRequest, result: Any)
 
 /**
  * Class which manages a request queue for a simple RPC-style service.
