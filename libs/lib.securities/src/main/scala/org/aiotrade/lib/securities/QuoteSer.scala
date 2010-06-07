@@ -86,6 +86,29 @@ class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
   }
 
   /**
+   * Try to update today's quote item according to quote, if it does not
+   * exist, create a new one.
+   */
+  def updateFrom(quote: Quote) {
+    val time = quote.time
+    createOrClear(time)
+
+    open(time)   = quote.open
+    high(time)   = quote.high
+    low(time)    = quote.low
+    close(time)  = quote.close
+    volume(time) = quote.volume
+    amount(time) = quote.amount
+
+    close_ori(time) = quote.close
+    close_adj(time) = quote.close
+
+    /** be ware of fromTime here may not be same as ticker's event */
+    publish(TSerEvent.Updated(this, "", time, time))
+  }
+
+
+  /**
    * @param boolean b: if true, do adjust, else, de adjust
    */
   def adjust(b: Boolean) {

@@ -115,7 +115,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   var refreshable = false
 
-  private case object LoadHistory extends Event
+  private case class LoadHistory(afterTime: Long) extends Event
 
   /**
    * asynced loadHistory and refresh requests via actor modeled reactions
@@ -124,8 +124,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     case HeartBeat(interval) if refreshable =>
       loadedTime = loadFromSource(loadedTime)
       postRefresh
-    case LoadHistory =>
-      loadedTime = loadFromPersistence
+    case LoadHistory(afterTime) =>
       loadedTime = loadFromSource(loadedTime)
       postLoadHistory
   }
@@ -134,7 +133,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   // -- public interfaces
 
-  def loadHistory {
+  def loadHistory(afterTime: Long) {
     if (currentContract == None) {
       assert(false, "dataContract not set!")
     }
@@ -146,7 +145,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
      */
-    publish(LoadHistory)
+    publish(LoadHistory(afterTime))
   }
 
   protected def postLoadHistory {}

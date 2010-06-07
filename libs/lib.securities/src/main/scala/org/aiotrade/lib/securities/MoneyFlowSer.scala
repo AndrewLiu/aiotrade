@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
-import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TVal, DefaultTSer}
+import org.aiotrade.lib.math.timeseries.{TVal, DefaultTSer, TSerEvent}
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.securities.model.MoneyFlow
 
@@ -38,22 +38,24 @@ import org.aiotrade.lib.securities.model.MoneyFlow
  *
  * @author Caoyuan Deng
  */
-class MoneyFlowSer(freq: TFreq) extends DefaultTSer(freq) {
-    
+class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
+
+  attach(baseSer.timestamps)
+
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
 
-  val totalVolume = TVar[Float]("V", Plot.Volume)
-  val totalAmount = TVar[Float]("A", Plot.Volume)
+  val totalVolume = TVar[Float]("V", Plot.Stick)
+  val totalAmount = TVar[Float]("A", Plot.None)
 
-  val superVolume = TVar[Float]("V", Plot.Volume)
-  val superAmount = TVar[Float]("A", Plot.Volume)
+  val superVolume = TVar[Float]("V", Plot.None)
+  val superAmount = TVar[Float]("A", Plot.None)
 
-  val largeVolume = TVar[Float]("V", Plot.Volume)
-  val largeAmount = TVar[Float]("A", Plot.Volume)
+  val largeVolume = TVar[Float]("V", Plot.None)
+  val largeAmount = TVar[Float]("A", Plot.None)
 
-  val smallVolume = TVar[Float]("V", Plot.Volume)
-  val smallAmount = TVar[Float]("A", Plot.Volume)
+  val smallVolume = TVar[Float]("V", Plot.None)
+  val smallAmount = TVar[Float]("A", Plot.None)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
@@ -88,6 +90,28 @@ class MoneyFlowSer(freq: TFreq) extends DefaultTSer(freq) {
       Some(mf)
     } else None
   }
+
+  /**
+   * Try to update today's quote item according to quote, if it does not
+   * exist, create a new one.
+   */
+  def updateFrom(mf: MoneyFlow) {
+    validate
+
+    val time = mf.time
+    totalVolume(time) = mf.totalVolume
+    totalAmount(time) = mf.totalAmount
+    superVolume(time) = mf.superVolume
+    superAmount(time) = mf.superAmount
+    largeVolume(time) = mf.largeVolume
+    largeAmount(time) = mf.largeAmount
+    smallVolume(time) = mf.smallVolume
+    smallAmount(time) = mf.smallVolume
+
+    /** be ware of fromTime here may not be same as ticker's event */
+    publish(TSerEvent.Updated(this, "", time, time))
+  }
+
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust
