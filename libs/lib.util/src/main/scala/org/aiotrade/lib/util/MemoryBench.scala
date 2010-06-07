@@ -1,7 +1,7 @@
 package org.aiotrade.lib.util
 
 
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.ArrayBuffer
 
 

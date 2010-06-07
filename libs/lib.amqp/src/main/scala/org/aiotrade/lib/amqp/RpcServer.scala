@@ -7,6 +7,8 @@ import com.rabbitmq.client.Consumer
 import java.io.IOException
 import scala.actors.Actor
 
+trait RpcRequest
+case class RpcResponse(req: RpcRequest, result: Any)
 
 /**
  * Class which manages a request queue for a simple RPC-style service.
@@ -14,8 +16,9 @@ import scala.actors.Actor
  * @param Channel we are communicating on
  * @param Queue to receive requests from
  */
-class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: String, reqQueue: String
+class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: String, val requestQueue: String
 ) extends AMQPDispatcher(factory, host, port, exchange) {
+  assert(requestQueue != null && requestQueue != "", "We need explicitly named requestQueue")
 
   /**
    * Creates an RpcServer listening on a temporary exclusive
@@ -29,17 +32,15 @@ class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: S
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
-    val queue = reqQueue match {
-      case null | "" => channel.queueDeclare.getQueue
-      case _ => channel.queueDeclare(reqQueue); reqQueue
-    }
-    // use routingKey identical to queue name
-    val routingKey = queue
 
-    channel.queueBind(queue, exchange, routingKey)
+    channel.queueDeclare(requestQueue)
+
+    // use routingKey identical to queue name
+    val routingKey = requestQueue
+    channel.queueBind(requestQueue, exchange, routingKey)
 
     val consumer = new AMQPConsumer(channel)
-    channel.basicConsume(queue, consumer)
+    channel.basicConsume(requestQueue, consumer)
     Some(consumer)
   }
 

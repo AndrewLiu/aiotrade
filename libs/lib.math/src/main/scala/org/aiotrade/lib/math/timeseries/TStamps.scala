@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 
 /**
  *
@@ -220,7 +220,10 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
    */
   def nearestIndexOfOccurredTime(time: Long): Int
     
-  /** return index of nearest behind or equal(if exist) time */
+    /**
+     * return index of nearest behind time (include this time (if exist)),
+     * @param time the time, inclusive
+     */
   def indexOfNearestOccurredTimeBehind(time: Long): Int
     
   /** return index of nearest before or equal(if exist) time */

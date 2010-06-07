@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.TickerSnapshot
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 import scala.collection.immutable.TreeMap
 
 

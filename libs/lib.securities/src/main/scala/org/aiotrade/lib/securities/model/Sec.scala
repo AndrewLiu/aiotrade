@@ -46,7 +46,7 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 

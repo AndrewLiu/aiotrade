@@ -9,7 +9,7 @@
 // $Id: ResizableArray.scala 19219 2009-10-22 09:43:14Z moors $
 
 
-package org.aiotrade.lib.util.collection
+package org.aiotrade.lib.collection
 
 
 import scala.collection.generic.CanBuildFrom

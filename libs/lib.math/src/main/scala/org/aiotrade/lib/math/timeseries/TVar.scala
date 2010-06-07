@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.math.timeseries.plottable.Plottable
-import org.aiotrade.lib.util.collection.ArrayList
+import org.aiotrade.lib.collection.ArrayList
 
 
 /**
@@ -43,6 +43,8 @@ import org.aiotrade.lib.util.collection.ArrayList
 trait TVar[V] extends Plottable {
   def name: String
   def name_=(name: String)
+
+  def timestamps: TStamps
 
   def put(time: Long, value: V): Boolean
   def apply(time: Long): V
@@ -57,7 +59,9 @@ trait TVar[V] extends Plottable {
   def clear(fromIdx: Int)
     
   def size: Int
-    
+
+  def toArray(fromTime: Long, toTime: Long): (Array[V])
+  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[Long], Array[V])
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]

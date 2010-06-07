@@ -44,6 +44,42 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
 
   var layer = LAYER_NOT_SET
 
+  def toArray(fromTime: Long, toTime: Long): Array[V] = {
+    try {
+      timestamps.readLock.lock
+
+      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+      val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val len = toIdx - frIdx + 1
+      val values1 = new Array[V](len)
+
+      values.copyToArray(values1, frIdx, len)
+      values1
+
+    } finally {
+      timestamps.readLock.unlock
+    }
+  }
+
+  def toArrayWithTime(fromTime: Long, toTime: Long): (Array[Long], Array[V]) = {
+    try {
+      timestamps.readLock.lock
+
+      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+      val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val len = toIdx - frIdx + 1
+      val times1 = new Array[Long](len)
+      val values1 = new Array[V](len)
+
+      timestamps.copyToArray(times1, frIdx, len)
+      values.copyToArray(values1, frIdx, len)
+      (times1, values1)
+      
+    } finally {
+      timestamps.readLock.unlock
+    }
+  }
+
   def toDoubleArray: Array[Double] = {
     val length = size
     val result = new Array[Double](length)

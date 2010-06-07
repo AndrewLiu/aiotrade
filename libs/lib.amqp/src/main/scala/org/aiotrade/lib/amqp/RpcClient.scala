@@ -8,6 +8,10 @@ import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
 import scala.actors.Actor
+import scala.collection.mutable.HashMap
+import scala.concurrent.SyncVar
+
+case object RpcTimeOut
 
 /**
  * Convenience class which manages a temporary reply queue for simple RPC-style communication.
@@ -26,8 +30,18 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
 } with AMQPDispatcher(factory, host, port, reqExchange) {
+
+  /** Map from request correlation ID to continuation BlockingCell */
+  val continuationMap = new HashMap[String, SyncVar[Any]]
   /** Contains the most recently-used request correlation ID */
-  var correlationId = 0
+  var correlationId = 0L
+
+  @throws(classOf[IOException])
+  override def start: this.type = {
+    super.start
+    new SyncProcessor
+    this
+  }
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
@@ -59,43 +73,55 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
     }
   }
 
-  /* @throws(classOf[IOException])
-   def publish(props: AMQP.BasicProperties, message: Array[Byte]) {
-   channel.basicPublish(exchange, routingKey, props, message)
-   } */
-
-  @throws(classOf[IOException])
-  @throws(classOf[ShutdownSignalException])
-  def rpcCall($props: AMQP.BasicProperties, content: Any): Any = {
-    checkConsumer
-    val props = if ($props == null) new AMQP.BasicProperties else $props
-
-    correlationId += 1
-    val replyId = correlationId.toString
-    props.correlationId = replyId
-    props.replyTo = replyQueue
-
-    publish(reqExchange, reqRoutingKey, props, content)
-  }
-
   /**
    * Perform a simple byte-array-based RPC roundtrip.
-   * @param message the byte array request message to send
-   * @return the byte array response received
+   * @param req the rpc request message to send
+   * @param props for request message, default null
+   * @param timeout in milliseconds, default infinit (-1)
+   * @return the response received
    * @throws ShutdownSignalException if the connection dies during our wait
    * @throws IOException if an error is encountered
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(content: Any): Any = {
-    rpcCall(null, content)
+  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = null, timeout: Long = -1): Any = {
+    checkConsumer
+    val props = if ($props == null) new AMQP.BasicProperties else $props
+
+    val syncVar = new SyncVar[Any]
+    continuationMap synchronized {
+      correlationId += 1
+      val replyId = correlationId.toString
+      props.correlationId = replyId
+      props.replyTo = replyQueue
+
+      continuationMap.put(replyId, syncVar)
+    }
+
+    publish(reqExchange, if (routingKey == null) reqRoutingKey else routingKey, props, req)
+
+    val res = if (timeout == -1) {
+      syncVar.get
+    } else {
+      syncVar.get(timeout) getOrElse RpcTimeOut
+    }
+
+    res match {
+      case sig: ShutdownSignalException =>
+        val wrapper = new ShutdownSignalException(sig.isHardError,
+                                                  sig.isInitiatedByApplication,
+                                                  sig.getReason,
+                                                  sig.getReference)
+        wrapper.initCause(sig)
+        throw wrapper
+      case reply: Any => reply
+    }
   }
 
   /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
    */
-
   abstract class Processor extends Actor {
     start
     RpcClient.this ! AMQPAddListener(this)
@@ -109,5 +135,17 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
       }
     }
   }
-}
 
+  class SyncProcessor extends Processor {
+
+    protected def process(msg: AMQPMessage) {
+      continuationMap synchronized  {
+        val replyId = msg.props.correlationId
+        val syncVar = continuationMap.get(replyId).get
+        continuationMap.remove(replyId)
+        syncVar.set(msg.content)
+      }
+    }
+  }
+
+}
