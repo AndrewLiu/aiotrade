@@ -275,8 +275,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           toTime = math.max(toTime, time)
 
           // update 1m quoteSer with minuteQuote
-          updateQuoteSer(tickerSer, minuteQuote)
-          chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (updateQuoteSer(_, minuteQuote))
+          tickerSer.updateFrom(minuteQuote)
+          chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (_.updateFrom(minuteQuote))
 
           allSnapDepths += SnapDepth(prevPrice, prevBidAsks, fillRecord)
 
@@ -288,7 +288,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         // update daily quote and ser
         if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
           updateDailyQuote(dailyQuote, ticker)
-          chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+          chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dailyQuote))
         }
 
         /**
@@ -306,7 +306,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           case ticker =>
             if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
               updateDailyQuote(dailyQuote, ticker)
-              chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (updateQuoteSer(_, dailyQuote))
+              chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dailyQuote))
             }
         }
       }
@@ -343,28 +343,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     dailyQuote.close  = ticker.lastPrice
     dailyQuote.volume = ticker.dayVolume
     dailyQuote.amount = ticker.dayAmount
-  }
-
-  /**
-   * Try to update today's quote item according to quote, if it does not
-   * exist, create a new one.
-   */
-  private def updateQuoteSer(ser: QuoteSer, quote: Quote) {
-    val time = quote.time
-    ser.createOrClear(time)
-        
-    ser.open(time)   = quote.open
-    ser.high(time)   = quote.high
-    ser.low(time)    = quote.low
-    ser.close(time)  = quote.close
-    ser.volume(time) = quote.volume
-    ser.amount(time) = quote.amount
-
-    ser.close_ori(time) = quote.close
-    ser.close_adj(time) = quote.close
-
-    /** be ware of fromTime here may not be same as ticker's event */
-    ser.publish(TSerEvent.Updated(ser, "", time, time))
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol

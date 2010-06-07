@@ -241,6 +241,20 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         case x => x
       }
   }
+
+  def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = freq match {
+    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
+        case None => serOf(freq) match {
+            case Some(quoteSer) => Some(new MoneyFlowSer(quoteSer))
+            case None => None
+          }
+        case x => x
+      }
+    case _ => freqToMoneyFlowSer.get(freq) match {
+        case None => None // @todo createCombinedSer(freq)
+        case x => x
+      }
+  }
   
   /**
    * @Note
@@ -419,7 +433,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     var minuteQuote: Quote = _
     
     var dailyMoneyFlow: MoneyFlow = _
-    var MinuteMoneyFlow: MoneyFlow = _
+    var minuteMoneyFlow: MoneyFlow = _
   }
 
   /**
@@ -431,7 +445,8 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     val cal = Calendar.getInstance(exchange.timeZone)
     val now = TFreq.DAILY.round(time, cal)
     lastData.dailyQuote match {
-      case one: Quote if one.time == now => one
+      case one: Quote if one.time == now =>
+        one
       case prevOne =>
         val one = Quotes1d.currentDailyQuote(this)
         lastData.dailyQuote = one
@@ -442,9 +457,10 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def dailyMoneyFlowOf(time: Long): MoneyFlow = {
     assert(Secs.idOf(this) != None, "Sec: " + this + " is transient")
     val cal = Calendar.getInstance(exchange.timeZone)
-    val now = TFreq.ONE_MIN.round(time, cal)
+    val now = TFreq.DAILY.round(time, cal)
     lastData.dailyMoneyFlow match {
-      case one: MoneyFlow if one.time == now => one
+      case one: MoneyFlow if one.time == now =>
+        one
       case prevOne =>
         val one = MoneyFlows1d.currentDailyMoneyFlow(this)
         lastData.dailyMoneyFlow = one
@@ -456,7 +472,8 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     val cal = Calendar.getInstance(exchange.timeZone)
     val now = TFreq.ONE_MIN.round(time, cal)
     lastData.minuteQuote match {
-      case one: Quote if one.time == now => one
+      case one: Quote if one.time == now =>
+        one
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
@@ -476,8 +493,9 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def minuteMoneyFlowOf(time: Long): MoneyFlow = {
     val cal = Calendar.getInstance(exchange.timeZone)
     val now = TFreq.ONE_MIN.round(time, cal)
-    lastData.MinuteMoneyFlow match {
-      case one: MoneyFlow if one.time == now => one
+    lastData.minuteMoneyFlow match {
+      case one: MoneyFlow if one.time == now =>
+        one
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
@@ -489,7 +507,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         newone.sec = this
         newone.unclosed_!
         newone.justOpen_!
-        lastData.MinuteMoneyFlow = newone
+        lastData.minuteMoneyFlow = newone
         newone
     }
   }
