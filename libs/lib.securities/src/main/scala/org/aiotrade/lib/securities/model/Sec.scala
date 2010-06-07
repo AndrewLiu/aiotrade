@@ -291,6 +291,14 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
    */
   def loadSer(freq: TFreq): Boolean = synchronized {
 
+    val serToBeLoaded = serOf(freq) getOrElse {
+      val x = new QuoteSer(freq)
+      freqToQuoteSer(freq) = x
+      x
+    }
+    
+    val loadedTime = QuoteServer.loadFromPersistence(this, serToBeLoaded)
+
     /** ask contract instead of server */
     val contract = freqToQuoteContract  get(freq) getOrElse (return false)
 
@@ -301,17 +309,11 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       }
     }
 
-    val serToBeLoaded = serOf(freq) getOrElse {
-      val x = new QuoteSer(freq)
-      freqToQuoteSer(freq) = x
-      x
-    }
-
     if (!quoteServer.isContractSubsrcribed(contract)) {
       quoteServer.subscribe(contract, serToBeLoaded)
     }
 
-    quoteServer.loadHistory
+    quoteServer.loadHistory(loadedTime)
     serToBeLoaded.inLoading = true
 
     listenTo(serToBeLoaded)

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.{Calendar}
+import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -39,7 +39,72 @@ import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
+import org.aiotrade.lib.securities.model.Sec
 import ru.circumflex.orm._
+
+object QuoteServer {
+
+  def loadFromPersistence(sec: Sec, serToBeLoaded: QuoteSer): Long = {
+    val uniSymbol = sec.secInfo.uniSymbol
+    val freq = serToBeLoaded.freq
+    
+    /**
+     * 1. restore data from database
+     */
+    val quotes = if (freq == TFreq.DAILY) {
+      Quotes1d.closedQuotesOf(sec).toArray
+    } else if (freq == TFreq.ONE_MIN) {
+      Quotes1m.closedQuotesOf(sec).toArray
+    } else Array[Quote]()
+    
+    //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
+    composeSer(uniSymbol, serToBeLoaded, quotes)
+
+    /**
+     * 2. get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    val size = quotes.length
+    val loadedTime1 = if (size > 0) quotes(size - 1).time else 0L
+    serToBeLoaded.publish(TSerEvent.RefreshInLoading(serToBeLoaded,
+                                                     uniSymbol,
+                                                     0,
+                                                     loadedTime1))
+
+    loadedTime1
+  }
+
+
+  /**
+   * compose ser using data from TVal(s)
+   * @param symbol
+   * @param serToBeFilled Ser
+   * @param TVal(s)
+   */
+  protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent = {
+    var evt: TSerEvent = null
+
+    val size = quotes.length
+    if (size > 0) {
+      val cal = Calendar.getInstance(Exchange.exchangeOf(uniSymbol).timeZone)
+      val freq = quoteSer.freq
+
+      //println("==== " + symbol + " ====")
+      quotes foreach {x => x.time = freq.round(x.time, cal)}
+      //println("==== after rounded ====")
+
+      // * copy to a new array and don't change it anymore, so we can ! it as message
+      val values = new Array[Quote](size)
+      quotes.copyToArray(values, 0)
+
+      quoteSer ++= values
+    }
+
+    evt
+  }
+
+}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -47,6 +112,7 @@ import ru.circumflex.orm._
  *
  * @author Caoyuan Deng
  */
+import QuoteServer._
 abstract class QuoteServer extends DataServer[Quote] {
   type C = QuoteContract
   type T = QuoteSer
@@ -61,49 +127,14 @@ abstract class QuoteServer extends DataServer[Quote] {
   protected def loadFromPersistence: Long = {
     var loadedTime1 = loadedTime
     for (contract <- subscribedContracts) {
-      loadedTime1 = loadFromPersistence(contract)
+      val uniSymbol = toUniSymbol(contract.symbol)
+      val sec = Exchange.secOf(uniSymbol).get
+      val ser = sec.serOf(contract.freq).get
+      loadedTime1 = QuoteServer.loadFromPersistence(sec, ser)
     }
     loadedTime1
   }
 
-  private def loadFromPersistence(contract: QuoteContract): Long = {
-    val serToBeFilled = serOf(contract).get
-
-    /**
-     * 1. restore data from database
-     */
-    val freq = serToBeFilled.freq
-    val sec = Exchange.secOf(contract.symbol).get
-    val quotes = if (freq == TFreq.DAILY) {
-      Quotes1d.closedQuotesOf(sec).toArray
-    } else if (freq == TFreq.ONE_MIN) {
-      Quotes1m.closedQuotesOf(sec).toArray
-    } else Array[Quote]()
-    //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
-    composeSer(contract.symbol, serToBeFilled, quotes)
-
-    /**
-     * 2. get the newest time which DataServer will load quotes after this time
-     * if quotes is empty, means no data in db, so, let newestTime = 0, which
-     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
-     */
-    val size = quotes.length
-    val loadedTime1 = if (size > 0) quotes(size - 1).time else 0L
-    serToBeFilled.publish(TSerEvent.RefreshInLoading(serToBeFilled,
-                                                     contract.symbol,
-                                                     0,
-                                                     loadedTime1))
-
-    /**
-     * 3. clear quotes for following loading usage, as these quotes is borrowed
-     * from pool, return them
-     */
-    quotes synchronized {
-      //storage.clear
-    }
-        
-    loadedTime1
-  }
 
   override protected def postLoadHistory {
     for (contract <- subscribedContracts) {
@@ -121,7 +152,7 @@ abstract class QuoteServer extends DataServer[Quote] {
         commit
       }
 
-      var evt = composeSer(contract.symbol, serToBeFilled, storage)
+      var evt = composeSer(toUniSymbol(contract.symbol), serToBeFilled, storage)
       //            if (evt != null) {
       //                evt.tpe = TSerEvent.Type.FinishedLoading
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": " + getCount() + " quote data loaded, load server finished");
@@ -141,7 +172,7 @@ abstract class QuoteServer extends DataServer[Quote] {
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract).toArray
 
-      val evt = composeSer(contract.symbol, serOf(contract).get, storage)
+      val evt = composeSer(toUniSymbol(contract.symbol), serOf(contract).get, storage)
       //            if (evt != null) {
       //                evt.tpe = TSerEvent.Type.Updated
       //                evt.getSource.fireTSerEvent(evt)
@@ -150,34 +181,6 @@ abstract class QuoteServer extends DataServer[Quote] {
 
       storageOf(contract) synchronized {storageOf(contract).clear}
     }
-  }
-
-  /**
-   * compose ser using data from TVal(s)
-   * @param symbol
-   * @param serToBeFilled Ser
-   * @param TVal(s)
-   */
-  protected def composeSer(symbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent = {
-    var evt: TSerEvent = null
-
-    val size = quotes.length
-    if (size > 0) {
-      val cal = Calendar.getInstance(Exchange.exchangeOf(toUniSymbol(symbol)).timeZone)
-      val freq = quoteSer.freq
-
-      //println("==== " + symbol + " ====")
-      quotes foreach {x => x.time = freq.round(x.time, cal)}
-      //println("==== after rounded ====")
-
-      // * copy to a new array and don't change it anymore, so we can ! it as message
-      val values = new Array[Quote](size)
-      quotes.copyToArray(values, 0)
-
-      quoteSer ++= values
-    }
-
-    evt
   }
 
   /**
