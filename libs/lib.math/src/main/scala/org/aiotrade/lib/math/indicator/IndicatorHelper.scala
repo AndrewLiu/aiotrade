@@ -37,7 +37,7 @@ import org.aiotrade.lib.util.actors.Reactor
 
 
 /**
- * A helper class to implement most of the Computable methods, it can be used
+ * A helper class to implement most of the Indicator methods, it can be used
  * by indicator etc.
  *
  * @param baseSer:Ser base series to compute resultSer

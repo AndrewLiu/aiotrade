@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.view
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.charting.chart.ChartFactory
 import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.chart.ProfileChart

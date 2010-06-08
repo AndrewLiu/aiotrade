@@ -36,7 +36,7 @@ import java.awt.geom.GeneralPath
 import java.util.Calendar
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
-import org.aiotrade.lib.math.StatisticFunction
+import org.aiotrade.lib.math.indicator.StatisticFunction
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel

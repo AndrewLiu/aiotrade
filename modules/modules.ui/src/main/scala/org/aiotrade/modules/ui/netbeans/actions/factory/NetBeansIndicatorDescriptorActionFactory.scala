@@ -38,8 +38,8 @@ import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.IndicatorDescriptorActionFactory
-import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.indicator.ComputeFrom
+import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.DeleteAction;

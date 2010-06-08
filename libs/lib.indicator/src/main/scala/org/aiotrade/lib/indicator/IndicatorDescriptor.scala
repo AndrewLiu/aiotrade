@@ -32,9 +32,8 @@ package org.aiotrade.lib.indicator
 
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
+import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.computable.Computable
-import org.aiotrade.lib.math.timeseries.computable.Factor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.serialization.BeansDocument
@@ -92,7 +91,7 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
       case Some(x) => x.shortDescription
     }
         
-    Computable.displayName(displayStr, factors)
+    org.aiotrade.lib.math.indicator.Indicator.displayName(displayStr, factors)
   }
 
   /**

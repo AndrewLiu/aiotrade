@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
 import org.aiotrade.lib.math.timeseries.TSer
 
 /**
@@ -38,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
-abstract class ContIndicator($baseSer: TSer) extends Indicator($baseSer) with ContComputable {
+abstract class ContIndicator($baseSer: TSer) extends Indicator($baseSer) with org.aiotrade.lib.math.indicator.ContIndicator {
 
   def this() = this(null)
 }

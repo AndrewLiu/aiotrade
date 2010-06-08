@@ -33,7 +33,7 @@ package org.aiotrade.lib.indicator.function
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.indicator.Factor
 
 /**
  *

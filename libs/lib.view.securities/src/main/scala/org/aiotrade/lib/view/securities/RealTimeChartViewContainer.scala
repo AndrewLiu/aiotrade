@@ -35,10 +35,9 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
-import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.VOLIndicator
-import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
+import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 

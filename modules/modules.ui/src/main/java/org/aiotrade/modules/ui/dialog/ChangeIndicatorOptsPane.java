@@ -49,7 +49,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.NumberFormatter;
 import org.aiotrade.lib.indicator.IndicatorDescriptor;
-import org.aiotrade.lib.math.timeseries.computable.Factor;
+import org.aiotrade.lib.math.indicator.Factor;
 
 /**
  * 

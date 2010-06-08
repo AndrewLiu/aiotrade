@@ -32,8 +32,8 @@ package org.aiotrade.lib.indicator.function
 
 import java.util.concurrent.ConcurrentHashMap
 import org.aiotrade.lib.math.timeseries.{DefaultTSer,TSer,TVar, Null}
-import org.aiotrade.lib.math.timeseries.computable.{Factor}
-import org.aiotrade.lib.securities.{QuoteSer}
+import org.aiotrade.lib.math.indicator.Factor
+import org.aiotrade.lib.securities.QuoteSer
 
 /**
  *

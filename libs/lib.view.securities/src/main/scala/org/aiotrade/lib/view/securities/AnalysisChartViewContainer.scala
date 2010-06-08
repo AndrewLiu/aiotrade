@@ -39,7 +39,7 @@ import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
-import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
+import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 

@@ -30,8 +30,8 @@
  */
 package org.aiotrade.lib.securities
 
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent, TVal}
-import org.aiotrade.lib.math.timeseries.plottable.Plot
 import org.aiotrade.lib.securities.model.Quote
 
 /**

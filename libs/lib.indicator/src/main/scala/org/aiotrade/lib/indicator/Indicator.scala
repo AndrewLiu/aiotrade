@@ -31,10 +31,8 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.indicator.function._
-import org.aiotrade.lib.math.timeseries.computable.Computable
-import org.aiotrade.lib.math.timeseries.computable.ComputableHelper
-import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.indicator.DefaultFactor
+import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
 import org.aiotrade.lib.securities.QuoteSer
 
@@ -125,15 +123,15 @@ object Indicator {
 
 import Indicator._
 abstract class Indicator($baseSer: TSer) extends DefaultTSer
-                                            with Computable
-                                            with ComputableHelper
+                                            with org.aiotrade.lib.math.indicator.Indicator
+                                            with org.aiotrade.lib.math.indicator.IndicatorHelper
                                             with Ordered[Indicator] {
 
   /**
    * !NOTICE
-   * computableHelper should be created here, because it will be used to
+   * IndicatorHelper should be created here, because it will be used to
    * inject Factor(s): new Factor() will call addFac which delegated
-   * by computableHelper.addFac(..)
+   * by indicatorHelper.addFac(..)
    */
   private var _computedTime = Long.MinValue
     

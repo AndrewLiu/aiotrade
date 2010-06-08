@@ -3,8 +3,9 @@ package org.aiotrade.platform.test
 import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.ComputeFrom
+import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.timeseries._
-import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
@@ -132,7 +133,7 @@ trait TestHelper {
 
   def computeSync(indicator: Indicator): Unit = {
     indicator match {
-      case _: SpotComputable => // don't compute it right now
+      case _: SpotIndicator => // don't compute it right now
       case _ =>
         val t0 = System.currentTimeMillis
         indicator.computeFrom(0)
@@ -142,7 +143,7 @@ trait TestHelper {
 
   def computeAsync(indicator: Indicator): Unit = {
     indicator match {
-      case _: SpotComputable => // don't compute it right now
+      case _: SpotIndicator => // don't compute it right now
       case _ => indicator ! ComputeFrom(0)
     }
   }

@@ -40,7 +40,7 @@ import org.aiotrade.lib.charting.view.scalar.LgScalar
 import org.aiotrade.lib.charting.view.scalar.LinearScalar
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Sec
 import scala.collection.mutable.HashSet
