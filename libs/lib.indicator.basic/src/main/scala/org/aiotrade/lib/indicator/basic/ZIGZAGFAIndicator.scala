@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class ZIGZAGFAIndicator extends ContIndicator {
+class ZIGZAGFAIndicator extends Indicator {
   sname = "ZIGZAGFA"
   lname = "Zigzag with Fibonacci Arcs"
   isOverlapping = true

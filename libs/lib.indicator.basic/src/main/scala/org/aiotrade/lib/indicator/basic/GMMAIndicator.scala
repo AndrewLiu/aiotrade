@@ -30,14 +30,14 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  * Guppy multiple Moving Average
  *
  * @author Caoyuan Deng
  */
-class GMMAIndicator extends ContIndicator {
+class GMMAIndicator extends Indicator {
   sname = "GMMA"
   lname = "Guppy Multiple Moving Average"
     

@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class KDIndicator extends ContIndicator {
+class KDIndicator extends Indicator {
   sname = "KD"
   lname = "Stochastics"
   grids = Array(20f, 80f)

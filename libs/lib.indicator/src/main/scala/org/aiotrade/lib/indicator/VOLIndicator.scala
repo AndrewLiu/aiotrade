@@ -34,7 +34,7 @@ package org.aiotrade.lib.indicator
  *
  * @author Caoyuan Deng
  */
-class VOLIndicator extends ContIndicator {
+class VOLIndicator extends Indicator {
   sname = "VOL"
   lname = "Volume"
     

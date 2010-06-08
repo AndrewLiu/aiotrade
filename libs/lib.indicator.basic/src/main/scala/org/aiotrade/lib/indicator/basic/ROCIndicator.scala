@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class ROCIndicator extends ContIndicator {
+class ROCIndicator extends Indicator {
   sname = "ROC"
   lname = "Rate of Change"
     

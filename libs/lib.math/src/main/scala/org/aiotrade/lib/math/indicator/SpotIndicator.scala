@@ -35,7 +35,7 @@ package org.aiotrade.lib.math.indicator
  *
  * @author Caoyuan Deng
  */
-trait SpotIndicator extends ContIndicator {
+trait SpotIndicator extends Indicator {
     
   def spotTime_=(time: Long)
     

@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class SARIndicator extends ContIndicator {
+class SARIndicator extends Indicator {
   sname = "SAR"
   lname = "Parabolic SAR"
   isOverlapping = true

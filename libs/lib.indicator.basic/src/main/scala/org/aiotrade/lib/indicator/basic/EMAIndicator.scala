@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class EMAIndicator extends ContIndicator {
+class EMAIndicator extends Indicator {
   sname = "EMA"
   lname = "Exponential Moving Average"
   isOverlapping = true

@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class WMSIndicator extends ContIndicator {
+class WMSIndicator extends Indicator {
   sname = "WMS"
   lname = "Williams' %R"
   grids = Array(10f, 90f)

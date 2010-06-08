@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.util.Signal
  *
  * @author Caoyuan Deng
  */
-abstract class SignalIndicator($baseSer: TSer) extends Indicator($baseSer) with org.aiotrade.lib.math.indicator.ContIndicator {
+abstract class SignalIndicator($baseSer: TSer) extends Indicator($baseSer) {
     
   isOverlapping = true
 

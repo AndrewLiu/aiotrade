@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MACDIndicator extends ContIndicator {
+class MACDIndicator extends Indicator {
   sname = "MACD"
   lname = "Moving Average Convergence/Divergence"
     

@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class RSIIndicator extends ContIndicator {
+class RSIIndicator extends Indicator {
   sname = "RSI"
   lname = "Relative Strength Index"
   grids = Array(20f, 80f)
