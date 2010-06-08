@@ -45,7 +45,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
@@ -60,21 +60,21 @@ object SwitchFrequencyAction {
   private var buttonGroup: ButtonGroup = _
   private var popup: JPopupMenu = _
   
-  def setSelectedItem(masterSignSeries: MasterTSer) {
-//        AbstractSignSeries.CombinedFrequency combinedFrequency = masterSignSeries.getCombinedFrequency();
+  def setSelectedItem(baseSignSeries: BaseTSer) {
+//        AbstractSignSeries.CombinedFrequency combinedFrequency = baseSignSeries.getCombinedFrequency();
 //        
 //        for (MenuElement item : popup.getSubElements()) {
 //            if (item instanceof JRadioButtonMenuItem) {
 //                if (((JRadioButtonMenuItem)item).getText().equalsIgnoreCase(combinedFrequency.toString())) {
 //                    ((JRadioButtonMenuItem)item).setSelected(true);
 //                    
-//                    updateToggleButtonText(combinedFrequency, masterSignSeries);
+//                    updateToggleButtonText(combinedFrequency, baseSignSeries);
 //                }
 //            }
 //        }
   }
     
-  private def updateToggleButtonText(unit: TUnit, masterSer: MasterTSer) {
+  private def updateToggleButtonText(unit: TUnit, baseSer: BaseTSer) {
         
   }
 

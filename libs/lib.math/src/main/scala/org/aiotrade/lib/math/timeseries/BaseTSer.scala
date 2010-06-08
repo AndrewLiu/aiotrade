@@ -35,14 +35,18 @@ package org.aiotrade.lib.math.timeseries
  * 
  * @author Caoyuan Deng
  */
-trait MasterTSer extends TSer {
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
-  // --- Only MasterTSer can have methods that explictly add value
+trait BaseTSer extends TSer {
+
+  def serProvider: SerProvider
+
+  // --- Only BaseTSer can have methods that explictly add value
   def createOrClear(time: Long)
   def ++=[V <: TVal](values: Array[V]): TSer
 
   /**
-   * @NOTICE we can only trust MasterSer to translate row <-> time properly.
+   * @NOTICE we can only trust BaseTSer to translate row <-> time properly.
    */
   def indexOfTime(time: Long): Int
   def timeOfIndex(idx: Int): Long

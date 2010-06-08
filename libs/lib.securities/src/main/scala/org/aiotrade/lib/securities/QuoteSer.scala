@@ -31,14 +31,15 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{DefaultMasterTSer, TFreq, TSerEvent, TVal}
+import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.Sec
 
 /**
  *
  * @author Caoyuan Deng
  */
-class QuoteSer($freq: TFreq) extends DefaultMasterTSer($freq) {
+class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
@@ -52,6 +53,8 @@ class QuoteSer($freq: TFreq) extends DefaultMasterTSer($freq) {
     
   val close_ori = TVar[Float]()
   val close_adj = TVar[Float]()
+
+  override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time

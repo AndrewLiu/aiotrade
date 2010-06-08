@@ -44,7 +44,7 @@ import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.model.Sec

@@ -897,7 +897,7 @@ object SymbolNodes {
       val serToBeCompared = sec.serOf(quoteContract.freq).get
       val viewContainer = analysisTc.viewContainer
 
-      val baseSer = viewContainer.controller.masterSer
+      val baseSer = viewContainer.controller.baseSer
       val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
       quoteCompareIndicator.shortDescription = sec.uniSymbol
       quoteCompareIndicator.serToBeCompared = serToBeCompared

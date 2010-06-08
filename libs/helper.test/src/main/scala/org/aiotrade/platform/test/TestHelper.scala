@@ -2,7 +2,7 @@ package org.aiotrade.platform.test
 
 import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.timeseries._
@@ -118,12 +118,12 @@ trait TestHelper {
     }
   }
 
-  def initIndicators(contents: AnalysisContents, masterSer: MasterTSer): Seq[Indicator] = {
+  def initIndicators(contents: AnalysisContents, baseSer: BaseTSer): Seq[Indicator] = {
     var indicators: List[Indicator] = Nil
     for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
-         if descriptor.active && descriptor.freq.equals(masterSer.freq)
+         if descriptor.active && descriptor.freq.equals(baseSer.freq)
     ) yield {
-      descriptor.serviceInstance(masterSer) match {
+      descriptor.serviceInstance(baseSer) match {
         case Some(indicator: Indicator) => indicators ::= indicator
         case _ => println("In test: can not init instance of: " + descriptor.serviceClassName)
       }

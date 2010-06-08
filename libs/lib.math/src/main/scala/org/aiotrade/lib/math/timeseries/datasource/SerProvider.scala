@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries.datasource
 
+import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 
@@ -59,6 +60,10 @@ trait SerProvider {
   def isSerLoaded(freq: TFreq): Boolean
     
   def serOf(freq: TFreq): Option[T]
+
+  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A]
+  def addIndicator(indicator: Indicator)
+  def removeIndicator(indicator: Indicator)
     
   def clearSer(freq: TFreq)
     

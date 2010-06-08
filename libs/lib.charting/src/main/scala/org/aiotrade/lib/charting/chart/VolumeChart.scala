@@ -35,7 +35,6 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.StickBar
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.QuoteSer
 
 
@@ -59,7 +58,7 @@ class VolumeChart extends AbstractChart {
   protected def createModel = new Model
 
   protected def plotChart {
-    assert(masterSer.isInstanceOf[QuoteSer], "VolumeChart's masterSer should be QuoteSer!")
+    assert(baseSer.isInstanceOf[QuoteSer], "VolumeChart's baseSer should be QuoteSer!")
 
     val m = model
 
@@ -77,7 +76,7 @@ class VolumeChart extends AbstractChart {
       var low    = +Float.MaxValue
       var volume = -Float.MaxValue // we are going to get max of volume during nBarsCompressed
       var i = 0
-      val quoteSer = masterSer.asInstanceOf[QuoteSer]
+      val quoteSer = baseSer.asInstanceOf[QuoteSer]
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (quoteSer.exists(time) && quoteSer.close(time) != 0) {

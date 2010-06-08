@@ -150,7 +150,7 @@ object PickDrawingLineAction {
       contents.lookupDescriptor(
         classOf[DrawingDescriptor],
         drawingPane.layerName,
-        viewContainer.controller.masterSer.freq
+        viewContainer.controller.baseSer.freq
       ) match {
         case Some(descriptor) =>
           val handledChart = theHandledChart.createNewInstance

@@ -35,7 +35,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
@@ -94,12 +94,12 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     gbc.gridy = 0
     gbc.weightx = 100
     gbc.weighty = 618
-    val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
+    val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
     setMasterView(new RealTimeChartView(controller, quoteSer), gbc)
 
     val volDescriptor = createVolIndicatorDecsriptor
-    volDescriptor.serviceInstance(controller.masterSer) foreach {volIndicator =>
+    volDescriptor.serviceInstance(quoteSer) foreach {volIndicator =>
       volIndicator ! ComputeFrom(0)
       
       gbc.fill = GridBagConstraints.BOTH
@@ -115,7 +115,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     val indicator = new IndicatorDescriptor
     indicator.active = true
     indicator.serviceClassName = classOf[VOLIndicator].getName
-    indicator.freq = controller.masterSer.freq
+    indicator.freq = controller.baseSer.freq
     indicator
   }
 }

@@ -43,7 +43,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
 
   def this() = this(TFreq.DAILY)
     
-  def init(freq: TFreq) {
+  def set(freq: TFreq) {
     this.freq = freq.clone
     start
   }

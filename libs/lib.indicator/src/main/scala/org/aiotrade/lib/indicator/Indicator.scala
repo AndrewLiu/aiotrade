@@ -33,7 +33,9 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
-import org.aiotrade.lib.math.timeseries.{DefaultTSer, TSer, TVar}
+import org.aiotrade.lib.math.indicator.{Indicator => TIndicator}
+import org.aiotrade.lib.math.indicator.IndicatorHelper
+import org.aiotrade.lib.math.timeseries.{DefaultTSer, TVar, BaseTSer}
 import org.aiotrade.lib.securities.QuoteSer
 
 /**
@@ -52,7 +54,7 @@ object Indicator {
    * a helper function for keeping the same functin form as Function, don't be
    * puzzled by the name, it actully will return funcion instance
    */
-  final protected def getInstance[T <: Function](clazz: Class[T], baseSer: TSer, args: Any*): T = {
+  final protected def getInstance[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
     AbstractFunction.getInstance(clazz, baseSer, args: _*)
   }
 
@@ -122,9 +124,9 @@ object Indicator {
 }
 
 import Indicator._
-abstract class Indicator($baseSer: TSer) extends DefaultTSer
-                                            with org.aiotrade.lib.math.indicator.Indicator
-                                            with org.aiotrade.lib.math.indicator.IndicatorHelper
+abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
+                                            with TIndicator
+                                            with IndicatorHelper
                                             with Ordered[Indicator] {
 
   /**
@@ -138,9 +140,9 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
   /** some instance scope variables that can be set directly */
   protected var sname = "unkown"
   protected var lname = "unkown"
-    
+
   /** base series to compute this */
-  var baseSer: TSer = _
+  var baseSer: BaseTSer = _
     
   /** To store values of open, high, low, close, volume: */
   protected var O: TVar[Float] = _
@@ -150,34 +152,31 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
   protected var V: TVar[Float] = _
 
   if ($baseSer != null) {
-    init($baseSer)
+    set($baseSer)
   }
     
   /**
    * Make sure this null args contructor only be called and return instance to
    * NetBeans layer manager for register usage, so it just do nothing.
    */
-  def this() {
-    this(null)
-  }
-    
+  def this() = this(null)
     
   /**
    * make sure this method will be called before this instance return to any others:
    * 1. via constructor (except the no-arg constructor)
    * 2. via createInstance
    */
-  def init(baseSer: TSer): Unit = {
+  def set(baseSer: BaseTSer) {
     if (baseSer != null) {
-      super.init(baseSer.freq)
-      super.initBaseSer(baseSer)
+      super.set(baseSer.freq)
+      super.setBaseSer(baseSer)
 
       initPredefinedVarsOfBaseSer
     }
   }
     
   /** override this method to define your predefined vars */
-  protected def initPredefinedVarsOfBaseSer: Unit = {
+  protected def initPredefinedVarsOfBaseSer {
     baseSer match {
       case x: QuoteSer =>
         O = x.open
@@ -207,7 +206,7 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
    *
    * @param begin time to be computed
    */
-  def computeFrom(fromTime: Long): Unit = {
+  def computeFrom(fromTime: Long) {
     setSessionId
 
     try {
@@ -251,10 +250,10 @@ abstract class Indicator($baseSer: TSer) extends DefaultTSer
     }
   }
     
-  def createNewInstance(baseSer: TSer): Indicator = {
+  def createNewInstance(baseSer: BaseTSer): Indicator = {
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
-      instance.init(baseSer)
+      instance.set(baseSer)
       instance
     } catch {
       case ex: IllegalAccessException => ex.printStackTrace; null

@@ -41,8 +41,8 @@ import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 import org.aiotrade.lib.charting.chart.Chart
-import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.Indicator
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import scala.collection.mutable.HashMap
 
 
@@ -282,8 +282,8 @@ abstract class ChartViewContainer extends JPanel {
 
   @throws(classOf[Exception])
   def saveToCustomSizeImage(file: File, fileFormat: String, begTime: Long, endTime: Long, height: Int) {
-    val begPos = _controller.masterSer.rowOfTime(begTime)
-    val endPos = _controller.masterSer.rowOfTime(endTime)
+    val begPos = _controller.baseSer.rowOfTime(begTime)
+    val endPos = _controller.baseSer.rowOfTime(endTime)
     val nBars = endPos - begPos
     val width = (nBars * _controller.wBar).toInt
 

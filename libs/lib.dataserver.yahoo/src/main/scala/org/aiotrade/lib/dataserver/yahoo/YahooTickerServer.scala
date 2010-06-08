@@ -131,7 +131,7 @@ class YahooTickerServer extends TickerServer {
             /**
              * !NOTICE
              * must catch the date parse exception, other wise, it's dangerous
-             * for build a calendarTimes in MasterSer
+             * for build a calendarTimes in BaseTSer
              */
             try {
               val date = dateFormat.parse(dateStr + " " + timeStr)

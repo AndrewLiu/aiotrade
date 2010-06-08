@@ -63,7 +63,7 @@ import org.aiotrade.lib.charting.view.ReferCursorObserver
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.widget.Label
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.util.awt.AWTUtil
 import org.aiotrade.lib.util.swing.AIOAutoHideComponent
 import org.aiotrade.lib.util.swing.AIOCloseButton

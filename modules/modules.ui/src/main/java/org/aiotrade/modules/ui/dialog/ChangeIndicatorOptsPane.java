@@ -48,7 +48,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.NumberFormatter;
-import org.aiotrade.lib.indicator.IndicatorDescriptor;
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.math.indicator.Factor;
 
 /**

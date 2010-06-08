@@ -35,7 +35,7 @@ import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;

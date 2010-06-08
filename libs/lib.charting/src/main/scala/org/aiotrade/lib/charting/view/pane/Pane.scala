@@ -118,12 +118,12 @@ abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponen
     /** create refer cursor chart */
     referCursorChart = this.asInstanceOf[WithCursorChart].createCursorChartInstance(datumPlane)
     referCursorChart.setType(CursorChart.Type.Refer)
-    referCursorChart.set(datumPlane, view.controller.masterSer, DEPTH_DEFAULT - 1)
+    referCursorChart.set(datumPlane, view.controller.baseSer, DEPTH_DEFAULT - 1)
 
     /** create mouse cursor chart */
     mouseCursorChart = this.asInstanceOf[WithCursorChart].createCursorChartInstance(datumPlane)
     mouseCursorChart.setType(CursorChart.Type.Mouse)
-    mouseCursorChart.set(datumPlane, view.controller.masterSer, DEPTH_FRONT)
+    mouseCursorChart.set(datumPlane, view.controller.baseSer, DEPTH_FRONT)
 
     referCursorChart.isFirstPlotting = true
     mouseCursorChart.isFirstPlotting = true

@@ -70,7 +70,7 @@ class ZigzagChart extends AbstractChart {
         return
       }
             
-      val position1 = masterSer.rowOfTime(ser.timestamps(index1))
+      val position1 = baseSer.rowOfTime(ser.timestamps(index1))
       val bar1 = br(position1)
       if (bar1 > nBars) {
         /** exceeds visible range */
@@ -83,7 +83,7 @@ class ZigzagChart extends AbstractChart {
         return
       }
             
-      val position2 = masterSer.rowOfTime(ser.timestamps(index2))
+      val position2 = baseSer.rowOfTime(ser.timestamps(index2))
       val bar2 = br(position2)
       if (bar2 < 1) {
         /** not in visible range yet */

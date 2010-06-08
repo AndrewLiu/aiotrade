@@ -52,7 +52,7 @@ trait TSer extends Publisher {
 //  }
 //  ----- end of actor's implementation
 
-  def init(freq: TFreq)
+  def set(freq: TFreq)
     
   def timestamps: TStamps
   def attach(timestamps: TStamps)

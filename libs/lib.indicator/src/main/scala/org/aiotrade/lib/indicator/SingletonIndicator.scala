@@ -47,7 +47,7 @@ object SingletonIndicator {
 }
 
 import SingletonIndicator._
-abstract class SingletonIndicator extends Indicator(null) {
+abstract class SingletonIndicator extends Indicator {
     
   singletonInstance = this
     

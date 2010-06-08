@@ -32,7 +32,7 @@ package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.indicator.StatisticFunction
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Factor
 
@@ -50,7 +50,7 @@ class MAFunction extends AbstractFunction {
     
   val _ma = TVar[Float]()
     
-  override def set(baseSer: TSer, args: Any*): Unit = {
+  override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
     args match {
       case Seq(a0: TVar[Float], a1: Factor) =>

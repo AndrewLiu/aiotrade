@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.indicator.StatisticFunction
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Factor
 
@@ -49,7 +49,7 @@ class EMAFunction extends AbstractFunction {
     
   val _ema = TVar[Float]()
     
-  override def set(baseSer: TSer, args: Any*): Unit = {
+  override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.baseVar = args(0).asInstanceOf[TVar[Float]]

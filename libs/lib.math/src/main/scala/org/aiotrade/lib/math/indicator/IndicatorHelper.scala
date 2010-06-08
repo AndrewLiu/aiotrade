@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.util.actors.Reactions
 import org.aiotrade.lib.util.actors.Reactor
 
@@ -66,7 +66,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
   // remember event's callback to be forwarded in postCompute()
   private var baseTSerEventCallBack: () => Unit = _ 
 
-  protected def initBaseSer(baseSer: TSer) {
+  protected def setBaseSer(baseSer: BaseTSer) {
     self.baseSer = baseSer
 
     // * share same timestamps with baseSer, should be care of ReadWriteLock
@@ -190,7 +190,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     fromIdx
   }
 
-  def postComputeFrom: Unit = {
+  def postComputeFrom {
     // construct resultSer's change event, forward baseTSerEventCallBack
     self.publish(TSerEvent.FinishedComputing(self,
                                              null,
@@ -245,7 +245,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factorValues_=(facValues: Array[Number]): Unit = {
+  def factorValues_=(facValues: Array[Number]) {
     var valueChanged = false
     if (facValues != null) {
       if (factors.length == facValues.length) {
@@ -285,7 +285,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     }
   }
 
-  def dispose: Unit = {
+  def dispose {
     if (baseSerReaction != null) {
       baseSer.reactions -= baseSerReaction
     }

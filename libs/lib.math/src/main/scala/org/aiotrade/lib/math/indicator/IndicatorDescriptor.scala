@@ -28,14 +28,13 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator
+package org.aiotrade.lib.math.indicator
 
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
-import org.aiotrade.lib.math.indicator.Factor
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
-import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
 import scala.collection.mutable.ArrayBuffer
@@ -103,7 +102,7 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
    * @param baseSer for indicator
    */
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
-    case Seq(baseSer: TSer) => lookupServiceTemplate match {
+    case Seq(baseSer: BaseTSer) => lookupServiceTemplate match {
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)
                 
@@ -120,7 +119,7 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
     case _ => None
   }
     
-  def setFacsToDefault: Unit = {
+  def setFacsToDefault {
     val defaultFacs = PersistenceManager().defaultContents.lookupDescriptor(
       classOf[IndicatorDescriptor], serviceClassName, freq
     ) match {

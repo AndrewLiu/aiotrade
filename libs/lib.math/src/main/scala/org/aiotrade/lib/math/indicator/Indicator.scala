@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.indicator
 
 import java.text.DecimalFormat
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.actors.Event
 
@@ -60,10 +61,11 @@ trait Indicator extends TSer {
     case ComputeFrom(time) => computeFrom(time)
   }
 
-  def init(baseSer: TSer)
+  def set(baseSer: BaseTSer)
+  def createNewInstance(baseSer: BaseTSer): Indicator
 
-  def baseSer: TSer
-  def baseSer_=(baseSer: TSer)
+  def baseSer: BaseTSer
+  def baseSer_=(baseSer: BaseTSer)
 
   /**
    * @param time to be computed from
@@ -77,5 +79,4 @@ trait Indicator extends TSer {
 
   def dispose
 
-  def createNewInstance(baseSer: TSer): Indicator
 }

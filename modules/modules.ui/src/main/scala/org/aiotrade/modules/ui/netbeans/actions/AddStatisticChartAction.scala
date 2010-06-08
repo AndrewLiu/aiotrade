@@ -91,7 +91,7 @@ class AddStatisticChartAction extends CallableSystemAction {
               return
             }
                     
-            val baseSer = analysisWin.viewContainer.controller.masterSer
+            val baseSer = analysisWin.viewContainer.controller.baseSer
             val statIndicator = new ProbMassIndicator(baseSer)
             statIndicator.baseVar = selectedVar.asInstanceOf[TVar[Float]]
             statIndicator.computeFrom(0)

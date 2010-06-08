@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.indicator.Factor
 
 /**
@@ -47,7 +47,7 @@ class SARFunction extends AbstractFunction {
     
   val _sar = TVar[Float]()
     
-  override def set(baseSer: TSer, args: Any*): Unit = {
+  override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
     this.initial = args(0).asInstanceOf[Factor]

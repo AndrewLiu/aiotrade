@@ -113,7 +113,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     if (controller.isMouseEnteredAnyChartPane) {
       val mousePosition = controller.mouseCursorRow
       val mouseTime = controller.mouseCursorTime
-      val freq = controller.masterSer.freq
+      val freq = controller.baseSer.freq
       val x = datumPlane.xr(mousePosition).toInt
       cal.setTimeInMillis(mouseTime)
       val dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
@@ -138,7 +138,7 @@ class AxisXPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
 
     val referPosition = controller.referCursorRow
     val referTime = controller.referCursorTime
-    val freq = controller.masterSer.freq
+    val freq = controller.baseSer.freq
     val x = datumPlane.xr(referPosition).toInt
     cal.setTimeInMillis(referTime)
     val dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)

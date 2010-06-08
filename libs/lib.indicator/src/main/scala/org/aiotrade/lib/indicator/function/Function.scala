@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 
 /** 
  * @author Caoyuan Deng
  * @Note baseSer should implement proper hashCode and equals method
  */
-final case class FunctionID[T <: Function](functionClass: Class[T], baseSer: TSer, args: Any*) {
+final case class FunctionID[T <: Function](functionClass: Class[T], baseSer: BaseTSer, args: Any*) {
 
   @inline final override def equals(o: Any): Boolean = {
     o match {
@@ -86,7 +86,7 @@ trait Function {
    * set the function's arguments.
    * @param baseSer, the ser that this function is based, ie. used to compute
    */
-  def set(baseSer: TSer, args: Any*)
+  def set(baseSer: BaseTSer, args: Any*)
 
   /**
    * This method will compute from computedIdx <b>to</b> idx.

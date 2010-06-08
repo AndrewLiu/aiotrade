@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.view.WithVolumePane
 import org.aiotrade.lib.charting.view.scalar.LinearScalar
 import org.aiotrade.lib.charting.view.scalar.Scalar
 import org.aiotrade.lib.charting.util.GeomUtil
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 
 /**
  *
@@ -175,7 +175,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
       repaint()
     }
     
-    def masterSer: MasterTSer = view.controller.masterSer
+    def baseSer: BaseTSer = view.controller.baseSer
     
     /**
      * barIndex -> x
@@ -251,7 +251,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return time
      */
     final def tb(barIndex: Int): Long = {
-      view.controller.masterSer.timeOfRow(rb(barIndex))
+      view.controller.baseSer.timeOfRow(rb(barIndex))
     }
     
     /**
@@ -261,7 +261,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer
      * @return index of bars, start from 1 and to nBars
      */
     final def bt(time: Long): Int = {
-      br(view.controller.masterSer.rowOfTime(time))
+      br(view.controller.baseSer.rowOfTime(time))
     }
     
     def nBars: Int = _nBars
