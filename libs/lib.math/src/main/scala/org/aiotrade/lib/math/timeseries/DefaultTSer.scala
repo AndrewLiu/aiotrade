@@ -35,7 +35,7 @@ import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.indicator.SpotIndicator
+import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import scala.collection.mutable.ArrayBuffer
 
