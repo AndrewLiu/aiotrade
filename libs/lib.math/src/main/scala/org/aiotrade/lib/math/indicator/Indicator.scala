@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.indicator
+package org.aiotrade.lib.math.indicator
 
 import java.text.DecimalFormat
 import org.aiotrade.lib.math.timeseries.TSer
@@ -54,7 +54,7 @@ object Indicator {
 case class ComputeFrom(time: Long) extends Event
 trait Indicator extends TSer {
 
-  val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
+  val Plot = org.aiotrade.lib.math.indicator.Plot
 
   reactions += {
     case ComputeFrom(time) => computeFrom(time)
