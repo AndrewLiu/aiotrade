@@ -28,10 +28,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.timeseries.indicator
+
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait ContComputable extends Computable
+trait SpotIndicator extends ContIndicator {
+    
+  def spotTime_=(time: Long)
+    
+  def computeSpot(time: Long)
+}

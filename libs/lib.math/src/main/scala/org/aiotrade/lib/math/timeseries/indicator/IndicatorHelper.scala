@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.timeseries.indicator
 
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TSer
@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.actors.Reactor
  *
  * @author Caoyuan Deng
  */
-trait ComputableHelper extends Reactor {self: Computable =>
+trait IndicatorHelper extends Reactor {self: Indicator =>
 
   /**
    * factors of this instance, such as period long, period short etc,

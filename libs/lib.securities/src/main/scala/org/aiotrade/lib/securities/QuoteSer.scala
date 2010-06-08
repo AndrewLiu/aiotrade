@@ -38,7 +38,7 @@ import org.aiotrade.lib.securities.model.Quote
  *
  * @author Caoyuan Deng
  */
-class QuoteSer(freq: TFreq) extends DefaultMasterTSer(freq) {
+class QuoteSer($freq: TFreq) extends DefaultMasterTSer($freq) {
     
   private var _shortDescription: String = ""
   var adjusted: Boolean = false

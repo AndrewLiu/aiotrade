@@ -35,7 +35,7 @@ import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable
+import org.aiotrade.lib.math.timeseries.indicator.SpotIndicator
 import org.aiotrade.lib.math.timeseries.plottable.Plot
 import scala.collection.mutable.ArrayBuffer
 
@@ -119,7 +119,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       true
     } else {
       this match {
-        case x: SpotComputable =>
+        case x: SpotIndicator =>
           /** re-get one by computing it */
           x.computeSpot(time)
           true

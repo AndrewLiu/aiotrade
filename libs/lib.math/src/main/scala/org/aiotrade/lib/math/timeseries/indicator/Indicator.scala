@@ -28,13 +28,54 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.timeseries.indicator
+
+import java.text.DecimalFormat
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.util.actors.Event
 
 /**
- * Define it as a RuntimeException, because this issue should be resolved in developing
- * 
+ *
  * @author Caoyuan Deng
  */
-class BaseSerNotSetException(message: String) extends RuntimeException(message) {
-    
+object Indicator {
+  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
+
+  def displayName(ser: TSer): String = ser match {
+    case x: Indicator => displayName(ser.shortDescription, x.factors)
+    case _ => ser.shortDescription
+  }
+
+  def displayName(name: String, factors: Array[Factor]): String = {
+    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
+  }
+}
+
+case class ComputeFrom(time: Long) extends Event
+trait Indicator extends TSer {
+
+  val Plot = org.aiotrade.lib.math.timeseries.plottable.Plot
+
+  reactions += {
+    case ComputeFrom(time) => computeFrom(time)
+  }
+
+  def init(baseSer: TSer)
+
+  def baseSer: TSer
+  def baseSer_=(baseSer: TSer)
+
+  /**
+   * @param time to be computed from
+   */
+  def computeFrom(time: Long)
+  def computedTime: Long
+
+  def factors: Array[Factor]
+  def factors_=(factors: Array[Factor])
+  def factorValues_=(values: Array[Number])
+
+  def dispose
+
+  def createNewInstance(baseSer: TSer): Indicator
 }
