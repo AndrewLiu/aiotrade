@@ -124,9 +124,9 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
     while (i <= nBars) {
       val time = tb(i)
       if (qSer.exists(time) && qSer.close(time) > 0) {
-        maxValue1 = Math.max(maxValue1, qSer.high(time))
-        minValue1 = Math.min(minValue1, qSer.low(time))
-        maxVolume = Math.max(maxVolume, qSer.volume(time))
+        maxValue1 = math.max(maxValue1, qSer.high(time))
+        minValue1 = math.min(minValue1, qSer.low(time))
+        maxVolume = math.max(maxVolume, qSer.volume(time))
       }
 
       i += 1

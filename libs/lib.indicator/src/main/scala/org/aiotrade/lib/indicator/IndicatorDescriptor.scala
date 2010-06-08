@@ -45,11 +45,11 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Array[Factor], aactive: Boolean
-) extends AnalysisDescriptor[Indicator](aserviceClassName, afreq, aactive) {
+class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Array[Factor], $active: Boolean
+) extends AnalysisDescriptor[Indicator]($serviceClassName, $freq, $active) {
   val folderName = "Indicators"
 
-  private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= afactors
+  private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= $factors
 
   def this() {
     this(null, TFreq.DAILY, Array[Factor](), false)
@@ -105,7 +105,6 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
    */
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
     case Seq(baseSer: TSer) => lookupServiceTemplate match {
-        case None => None
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)
                 
@@ -117,6 +116,7 @@ class IndicatorDescriptor(aserviceClassName: String, afreq: TFreq, afactors: Arr
             instance.factors = factors
           }
           Some(instance)
+        case None => None
       }
     case _ => None
   }

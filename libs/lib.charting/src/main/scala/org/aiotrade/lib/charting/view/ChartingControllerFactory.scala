@@ -62,9 +62,9 @@ object ChartingControllerFactory {
 
   def createInstance(masterSer: MasterTSer, contents: AnalysisContents): ChartingController = {
     val controllers = sersTocontrollers.get(masterSer) getOrElse {
-      val controllersx = new HashSet[ChartingController]
-      sersTocontrollers += (masterSer -> controllersx)
-      controllersx
+      val x = new HashSet[ChartingController]
+      sersTocontrollers += (masterSer -> x)
+      x
     }
 
     val controller = new DefaultChartingController(masterSer, contents)
