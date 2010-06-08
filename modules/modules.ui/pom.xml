@@ -7,10 +7,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>modules-ui</artifactId>
+    <artifactId>org-aiotrade-modules-ui</artifactId>
     <packaging>nbm</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>modules-ui</name>
+    <name>org-aiotrade-modules-ui</name>
 
     <dependencies>
         <dependency>
@@ -102,7 +102,7 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>modules-quicksearch</artifactId>
+            <artifactId>org-aiotrade-modules-quicksearch</artifactId>
             <version>${project.version}</version>
         </dependency>
 
