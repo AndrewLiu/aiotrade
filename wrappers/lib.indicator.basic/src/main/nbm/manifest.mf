@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Name: org-aiotrade-lib-indicator-basic
+OpenIDE-Module-Display-Category: aiotrade
+OpenIDE-Module-Public-Packages: org.aiotrade.lib.indicator.basice.*
+AutoUpdate-Show-In-Client: true

@@ -27,7 +27,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>AIOTrade Modules</name>
+    <name>AIOTrade Org Modules</name>
 
     <properties>
         <scala.version>2.8.0-SNAPSHOT</scala.version>
@@ -62,15 +62,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-swing</artifactId>
-            <version>${scala.version}</version>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-scala-lang</artifactId>
+            <version>${project.version}</version>
         </dependency>
         
         <!-- testing -->

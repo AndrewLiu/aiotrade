@@ -74,30 +74,47 @@
             <version>${netbeans.version}</version>
         </dependency>
 
+        <!-- ext wrapper modules -->
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-scala-lang</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>ru-circumflex-orm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- aiotrade modules -->
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-charting</artifactId>
+            <artifactId>org-aiotrade-lib-charting</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-view-securities</artifactId>
+            <artifactId>org-aiotrade-lib-securities</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-math</artifactId>
+            <artifactId>org-aiotrade-lib-view-securities</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-util</artifactId>
+            <artifactId>org-aiotrade-lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-indicator</artifactId>
+            <artifactId>org-aiotrade-lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-indicator</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -113,25 +130,20 @@
         </dependency>
 
         <!-- runtime dependencies -->
-        <dependency>
+        <!--dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-indicator-basic</artifactId>
+            <artifactId>org-aiotrade-lib-indicator-basic</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-dataserver-yahoo</artifactId>
+            <artifactId>org-aiotrade-lib-dataserver-yahoo</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
-        </dependency>
+        </dependency-->
 
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.2.128</version>
-        </dependency>
     </dependencies>
 
 </project>

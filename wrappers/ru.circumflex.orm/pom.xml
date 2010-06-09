@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.aiotrade</groupId>
+        <artifactId>wrappers</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ru-circumflex-orm</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>nbm</packaging>
+    <name>wrapper-ru-circumflex-orm</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <!-- Commons -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.circumflex</groupId>
+            <artifactId>circumflex-core</artifactId>
+            <version>1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-compiler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-swing</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ru.circumflex</groupId>
+            <artifactId>circumflex-orm</artifactId>
+            <version>1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-compiler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-swing</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-scala-lang</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <!-- Since com.mysql.jdbc.Driver.class is loaded under this module's classes, we should define
+                 dependency on it here instead of any other places. -->
+            <groupId>org.aiotrade</groupId>
+            <artifactId>com-mysql-jdbc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>nbm-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <publicPackages>
+                        <publicPackage>ru.circumflex.core</publicPackage>
+                        <publicPackage>ru.circumflex.orm</publicPackage>
+                        <publicPackage>com.mchange.v2.c3p0</publicPackage>
+                        <publicPackage>javax.servlet</publicPackage>
+                        <publicPackage>javax.servlet.http</publicPackage>
+                        <publicPackage>org.apache.commons.logging</publicPackage>
+                        <publicPackage>org.apache.log4j</publicPackage>
+                        <publicPackage>org.mortbay.jetty</publicPackage>
+                        <publicPackage>org.mortbay.jetty.nio</publicPackage>
+                        <publicPackage>org.mortbay.jetty.servlet</publicPackage>
+                        <publicPackage>org.mortbay.util</publicPackage>
+                        <publicPackage>org.mortbay.io</publicPackage>
+                        <publicPackage>org.mortbay.io.bio</publicPackage>
+                        <publicPackage>org.slf4j</publicPackage>
+                    </publicPackages>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+

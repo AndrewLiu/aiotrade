@@ -54,40 +54,13 @@
             <version>${netbeans.version}</version>
         </dependency>
 
-        <!-- aiotrade modules -->
-        <!--dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-charting</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!-- ext wrapper modules -->
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-chartview</artifactId>
+            <artifactId>org-scala-lang</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-math</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-indicator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-indicator-basic</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency-->
-
+        
     </dependencies>
 
 </project>

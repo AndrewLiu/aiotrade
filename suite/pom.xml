@@ -5,7 +5,7 @@
     <artifactId>platform-suite</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>AIOTrade Platform Suite</name>
+    <name>AIOTrade Org Suite</name>
 
     <properties>
         <netbeans.version>RELEASE68</netbeans.version>
@@ -69,6 +69,7 @@
         <module>branding</module>
         <module>../libs</module>
         <module>../modules</module>
+        <module>../wrappers</module>
     </modules>
 
 </project>
