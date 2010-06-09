@@ -38,7 +38,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.math.timeseries.MasterTSer;
+import org.aiotrade.lib.math.timeseries.BaseTSer;
 import org.aiotrade.lib.math.timeseries.TUnit$Day$;
 import org.aiotrade.lib.indicator.Indicator;
 import org.aiotrade.lib.securities.PersistenceManager$;
@@ -112,9 +112,9 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
 
         nameMapResult.put("Option", new Integer(JOptionPane.CANCEL_OPTION));
         if (viewContainer != null) {
-            MasterTSer masterSer = viewContainer.controller().masterSer();
-            nameMapResult.put("nUnits", new Integer(masterSer.freq().nUnits()));
-            nameMapResult.put("unit", masterSer.freq().unit());
+            BaseTSer baseSer = viewContainer.controller().baseSer();
+            nameMapResult.put("nUnits", new Integer(baseSer.freq().nUnits()));
+            nameMapResult.put("unit", baseSer.freq().unit());
         } else {
             nameMapResult.put("nUnits", new Integer(1));
             nameMapResult.put("unit", TUnit$Day$.MODULE$);

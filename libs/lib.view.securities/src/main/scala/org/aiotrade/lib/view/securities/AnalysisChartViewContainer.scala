@@ -38,8 +38,8 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
-import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
 import scala.collection.mutable.ArrayBuffer
 
@@ -62,7 +62,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     gbc.weightx = 100
     gbc.weighty = 618
         
-    val quoteSer = controller.masterSer.asInstanceOf[QuoteSer]
+    val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
     val quoteChartView = new AnalysisChartView(controller, quoteSer)
     setMasterView(quoteChartView, gbc)
@@ -71,9 +71,9 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     val indicatorDescriptorsToBeShowing = new ArrayBuffer[IndicatorDescriptor]
     val  indicatorsToBeShowing = new ArrayBuffer[Indicator]
     for (descriptor <- controller.contents.lookupDescriptors(classOf[IndicatorDescriptor])
-         if descriptor.active && descriptor.freq == controller.masterSer.freq
+         if descriptor.active && descriptor.freq == controller.baseSer.freq
     ) {
-      descriptor.serviceInstance(controller.masterSer) foreach {indicator =>
+      descriptor.serviceInstance(quoteSer) foreach {indicator =>
           /**
            * @NOTICE
            * As the quoteSer may has been loaded, there may be no more UpdatedEvent
@@ -99,7 +99,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     }
         
     for (descriptor <- controller.contents.lookupDescriptors(classOf[DrawingDescriptor])
-         if descriptor.freq == controller.masterSer.freq
+         if descriptor.freq == controller.baseSer.freq
     ) {
       descriptor.serviceInstance(masterView) foreach {drawing =>
         masterView.asInstanceOf[WithDrawingPane].addDrawing(descriptor, drawing)

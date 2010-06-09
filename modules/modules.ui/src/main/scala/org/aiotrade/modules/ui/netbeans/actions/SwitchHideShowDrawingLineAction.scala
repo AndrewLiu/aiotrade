@@ -115,12 +115,12 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
             return;
           }
                 
-          val masterSer = viewContainer.controller.masterSer
+          val baseSer = viewContainer.controller.baseSer
           val contents = viewContainer.controller.contents
           contents.lookupDescriptor(
             classOf[DrawingDescriptor],
             masterView.selectedDrawing.layerName,
-            masterSer.freq
+            baseSer.freq
           ) foreach {descriptor =>
             if (e.getStateChange == ItemEvent.SELECTED) {
               /** judge again to aviod recursively calling */

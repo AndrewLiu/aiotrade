@@ -30,9 +30,8 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
 
@@ -41,15 +40,13 @@ import org.aiotrade.lib.math.util.Signal
  *
  * @author Caoyuan Deng
  */
-abstract class SignalIndicator($baseSer: TSer) extends Indicator($baseSer) with ContComputable {
+abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
     
   isOverlapping = true
 
   val signalVar = new SparseTVar[Signal]("Signal", Plot.Signal)
     
-  def this() {
-    this(null)
-  }
+  def this() = this(null)
         
   protected def signal(idx: Int, sign: Sign): Unit = {
     signal(idx, sign, "")

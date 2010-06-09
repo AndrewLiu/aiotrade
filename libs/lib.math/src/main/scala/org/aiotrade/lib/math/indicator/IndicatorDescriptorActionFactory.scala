@@ -28,17 +28,26 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator
+package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.math.timeseries.computable.ContComputable
-import org.aiotrade.lib.math.timeseries.TSer
+import javax.swing.Action
+import org.aiotrade.lib.util.ServiceLoader
 
 /**
- * Abstract Continumm Indicator
  *
- * @author Caoyuan Deng
+ * @author  Caoyuan Deng
+ * @version 1.0, December 11, 2006, 10:20 PM
+ * @since   1.0.4
  */
-abstract class ContIndicator($baseSer: TSer) extends Indicator($baseSer) with ContComputable {
+object IndicatorDescriptorActionFactory {
+  private lazy val instance = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
 
-  def this() = this(null)
+  def apply(): IndicatorDescriptorActionFactory = {
+    instance
+  }
 }
+
+trait IndicatorDescriptorActionFactory {
+  def createActions(descriptor: IndicatorDescriptor): Array[Action]
+}
+

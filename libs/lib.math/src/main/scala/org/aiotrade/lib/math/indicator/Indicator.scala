@@ -28,26 +28,55 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator
+package org.aiotrade.lib.math.indicator
 
-import javax.swing.Action
-import org.aiotrade.lib.util.ServiceLoader
+import java.text.DecimalFormat
+import org.aiotrade.lib.math.timeseries.BaseTSer
+import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.util.actors.Event
 
 /**
  *
- * @author  Caoyuan Deng
- * @version 1.0, December 11, 2006, 10:20 PM
- * @since   1.0.4
+ * @author Caoyuan Deng
  */
-object IndicatorDescriptorActionFactory {
-  private lazy val instance = ServiceLoader.load(classOf[IndicatorDescriptorActionFactory]).iterator.next
+object Indicator {
+  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  def apply(): IndicatorDescriptorActionFactory = {
-    instance
+  def displayName(ser: TSer): String = ser match {
+    case x: Indicator => displayName(ser.shortDescription, x.factors)
+    case _ => ser.shortDescription
+  }
+
+  def displayName(name: String, factors: Array[Factor]): String = {
+    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
   }
 }
 
-trait IndicatorDescriptorActionFactory {
-  def createActions(descriptor: IndicatorDescriptor): Array[Action]
-}
+case class ComputeFrom(time: Long) extends Event
+trait Indicator extends TSer {
 
+  val Plot = org.aiotrade.lib.math.indicator.Plot
+
+  reactions += {
+    case ComputeFrom(time) => computeFrom(time)
+  }
+
+  def set(baseSer: BaseTSer)
+  def createNewInstance(baseSer: BaseTSer): Indicator
+
+  def baseSer: BaseTSer
+  def baseSer_=(baseSer: BaseTSer)
+
+  /**
+   * @param time to be computed from
+   */
+  def computeFrom(time: Long)
+  def computedTime: Long
+
+  def factors: Array[Factor]
+  def factors_=(factors: Array[Factor])
+  def factorValues_=(values: Array[Number])
+
+  def dispose
+
+}

@@ -1,7 +1,6 @@
 package org.aiotrade.platform.test.yahoo
 
 import org.aiotrade.lib.math.timeseries._
-import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
 import org.aiotrade.lib.securities.model._

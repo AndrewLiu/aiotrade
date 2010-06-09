@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MFIIndicator extends ContIndicator {
+class MFIIndicator extends Indicator {
   sname = "MFI"
   lname = "Money Flow Index"
   grids = Array(30f, 70f)

@@ -34,12 +34,11 @@ import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.aiotrade.lib.charting.laf.LookFeel;
-import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
-import org.aiotrade.lib.indicator.IndicatorDescriptorActionFactory
-import org.aiotrade.lib.math.timeseries.computable.ComputeFrom
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptorActionFactory
+import org.aiotrade.lib.math.indicator.ComputeFrom
+import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.DeleteAction;
@@ -83,7 +82,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
            viewContainer = analysisWin.viewContainer;
            view <- viewContainer.lookupChartView(descriptor);
-           indicator <- descriptor.serviceInstance(viewContainer.controller.masterSer)
+           indicator <- descriptor.serviceInstance(viewContainer.controller.baseSer)
       ) {
         /*
          * @NOTICE
@@ -98,10 +97,10 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
               existedOne.lookupAction(classOf[HideAction]).get.execute
             }
           }
-          viewContainer.addSlaveView(descriptor, indicator.asInstanceOf[Indicator], null)
+          viewContainer.addSlaveView(descriptor, indicator, null)
           viewContainer.repaint();
         } else {
-          viewContainer.addSlaveView(descriptor, indicator.asInstanceOf[Indicator], null)
+          viewContainer.addSlaveView(descriptor, indicator, null)
           viewContainer.adjustViewsHeight(0);
         }
 

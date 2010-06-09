@@ -34,12 +34,16 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
-class DefaultMasterTSer(afreq: TFreq) extends DefaultTSer(afreq) with MasterTSer {
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+
+class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTSer($freq) with BaseTSer {
   private var _isOnCalendarMode = false
     
   attach(TStampsFactory.createInstance(INIT_CAPACITY))
 
-  def this() = this(TFreq.DAILY)
+  def this() = this(null, TFreq.DAILY)
+
+  def serProvider = _serProvider
 
   /*-
    * !NOTICE
@@ -83,7 +87,7 @@ class DefaultMasterTSer(afreq: TFreq) extends DefaultTSer(afreq) with MasterTSer
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:115)
    [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.itemOfRow(DefaultMasterTSer.scala:56)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultBaseTSer.itemOfRow(DefaultBaseTSer.scala:56)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.syncWithView(AxisYPane.scala:187)
    [java] 	at org.aiotrade.lib.charting.view.ChartView.postPaintComponent(ChartView.scala:294)
@@ -109,7 +113,7 @@ class DefaultMasterTSer(afreq: TFreq) extends DefaultTSer(afreq) with MasterTSer
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:109)
    [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
    [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultMasterTSer.itemOfRow(DefaultMasterTSer.scala:56)
+   [java] 	at org.aiotrade.lib.math.timeseries.DefaultBaseTSer.itemOfRow(DefaultBaseTSer.scala:56)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:96)
    [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:93)

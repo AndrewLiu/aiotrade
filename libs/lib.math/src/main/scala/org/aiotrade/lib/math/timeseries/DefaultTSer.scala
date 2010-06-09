@@ -35,8 +35,8 @@ import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.SpotIndicator
+import org.aiotrade.lib.math.indicator.Plot
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -50,8 +50,8 @@ import scala.collection.mutable.ArrayBuffer
  * the 'timestamps' is actaully with the same idx correspinding to 'vars'
  *
  *
- * This class implemets all interface of ser and partly MasterSer.
- * So you can use it as full series, but don't use those methods of MasterSeries
+ * This class implemets all interface of ser and partly BaseTSer.
+ * So you can use it as full series, but don't use those methods of BaseTSer
  * except you sub class this.
  *
  * @author Caoyuan Deng
@@ -119,7 +119,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       true
     } else {
       this match {
-        case x: SpotComputable =>
+        case x: SpotIndicator =>
           /** re-get one by computing it */
           x.computeSpot(time)
           true
@@ -305,9 +305,9 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   override def hashCode: Int = _hashCode
 
   object TVar {
-    def apply[V: Manifest]() = new InnerTVar[V]("", Plot.None)
-    def apply[V: Manifest](name: String) = new InnerTVar[V](name, Plot.None)
-    def apply[V: Manifest](name: String, plot: Plot) = new InnerTVar[V](name, plot)
+    def apply[V: Manifest](): TVar[V] = new InnerTVar[V]("", Plot.None)
+    def apply[V: Manifest](name: String): TVar[V] = new InnerTVar[V](name, Plot.None)
+    def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
   }
   
   protected class InnerTVar[V: Manifest](name: String, plot: Plot

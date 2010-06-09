@@ -32,18 +32,18 @@ package org.aiotrade.lib.charting.view
 
 import java.awt.Component
 import java.awt.Dimension
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ChangeSubject
 
 /**
- * Each MasterSer can have more than one ChartingController instances.
+ * Each BaseTSer can have more than one ChartingController instances.
  *
  * A ChartingController instance keeps the 1-1 relation with:
- *   the MasterSer,
+ *   the BaseTSer,
  *   the AnalysisDescriptor, and
  *   a ChartViewContainer
- * Thus, ChartingController couples MasterSer-AnalysisDescriptor-ChartViewContainer
+ * Thus, ChartingController couples BaseTSer-AnalysisDescriptor-ChartViewContainer
  * together from outside.
  *
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -54,7 +54,7 @@ import org.aiotrade.lib.util.ChangeSubject
  */
 trait ChartingController extends ChangeSubject {
 
-  def masterSer: MasterTSer
+  def baseSer: BaseTSer
 
   def contents: AnalysisContents
 

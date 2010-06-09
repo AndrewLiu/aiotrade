@@ -31,9 +31,9 @@
 package org.aiotrade.lib.indicator.function
 
 import java.util.concurrent.ConcurrentHashMap
-import org.aiotrade.lib.math.timeseries.{DefaultTSer,TSer,TVar, Null}
-import org.aiotrade.lib.math.timeseries.computable.{Factor}
-import org.aiotrade.lib.securities.{QuoteSer}
+import org.aiotrade.lib.math.timeseries.{DefaultTSer, BaseTSer,TVar, Null}
+import org.aiotrade.lib.math.indicator.Factor
+import org.aiotrade.lib.securities.QuoteSer
 
 /**
  *
@@ -43,7 +43,7 @@ object AbstractFunction {
 
   private val idToFunctions = new ConcurrentHashMap[FunctionID[_], Function]
 
-  final def getInstance[T <: Function](tpe: Class[T], baseSer: TSer, args: Any*): T = {
+  final def getInstance[T <: Function](tpe: Class[T], baseSer: BaseTSer, args: Any*): T = {
     val id = FunctionID(tpe, baseSer, args: _*)
     idToFunctions.get(id) match {
       case null =>
@@ -79,7 +79,7 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   protected var computedIdx = -Integer.MAX_VALUE
 
   /** base series to compute this. */
-  protected var _baseSer: TSer = _
+  protected var _baseSer: BaseTSer = _
   /** base series' size */
   protected var _Size: Int = _
     
@@ -90,12 +90,12 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
   protected var C: TVar[Float] = _
   protected var V: TVar[Float] = _
 
-  def set(baseSer: TSer, args: Any*) {
-    init(baseSer)
+  def set(baseSer: BaseTSer, args: Any*) {
+    set(baseSer)
   }
     
-  protected def init(baseSer: TSer) {
-    super.init(baseSer.freq)
+  protected def set(baseSer: BaseTSer) {
+    super.set(baseSer.freq)
     this._baseSer = baseSer
 
     this.attach(baseSer.timestamps)

@@ -39,8 +39,8 @@ import org.aiotrade.lib.charting.view.WithDrawingPaneHelper
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.computable.DefaultFactor
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.indicator.DefaultFactor
+import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.view.pane.DrawingPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor

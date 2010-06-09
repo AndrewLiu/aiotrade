@@ -28,13 +28,36 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.timeseries
+
 
 /**
- * Define it as a RuntimeException, because this issue should be resolved in developing
  * 
  * @author Caoyuan Deng
  */
-class BaseSerNotSetException(message: String) extends RuntimeException(message) {
-    
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+
+trait BaseTSer extends TSer {
+
+  def serProvider: SerProvider
+
+  // --- Only BaseTSer can have methods that explictly add value
+  def createOrClear(time: Long)
+  def ++=[V <: TVal](values: Array[V]): TSer
+
+  /**
+   * @NOTICE we can only trust BaseTSer to translate row <-> time properly.
+   */
+  def indexOfTime(time: Long): Int
+  def timeOfIndex(idx: Int): Long
+
+  def timeOfRow(row: Int): Long
+  def rowOfTime(time: Long): Int
+  def lastOccurredRow: Int
+
+  def toOnCalendarMode
+  def toOnOccurredMode
+  def isOnCalendarMode: Boolean
 }
+
+

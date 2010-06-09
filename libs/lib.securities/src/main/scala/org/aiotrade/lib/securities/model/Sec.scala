@@ -32,6 +32,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -49,6 +50,7 @@ import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
+import scala.collection.mutable.ListBuffer
 
 
 object Secs extends Table[Sec] {
@@ -159,6 +161,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
   private val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
+  private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
 
   var description = ""
   var name = ""
@@ -180,12 +183,12 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         defaultFreq = freq
       }
       freqToQuoteContract(freq) = contract
-      freqToQuoteSer(freq) = new QuoteSer(freq)
+      freqToQuoteSer(freq) = new QuoteSer(this, freq)
     }
     
     // basic freqs:
     for (freq <- basicFreqs if !freqToQuoteContract.contains(freq)) {
-      freqToQuoteSer(freq) = new QuoteSer(freq)
+      freqToQuoteSer(freq) = new QuoteSer(this, freq)
     }
   }
 
@@ -207,7 +210,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
   /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
-  val tickerSer = new QuoteSer(tickerContract.freq)
+  val tickerSer = new QuoteSer(this, tickerContract.freq)
 
   val updater: Updater = {
     case ts: TickerSnapshot =>
@@ -242,6 +245,31 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       }
   }
 
+  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = {
+    freqToIndicators.get(freq) match {
+      case None => Nil
+      case Some(inds) => (inds filter (clazz.isInstance(_))).asInstanceOf[Seq[A]]
+    }
+  }
+
+  def addIndicator(indicator: Indicator) {
+    val freq = indicator.freq
+    val indicators = freqToIndicators.get(freq) getOrElse {
+      val x = new ListBuffer[Indicator]
+      freqToIndicators += (freq -> x)
+      x
+    }
+    indicators += indicator
+  }
+
+  def removeIndicator(indicator: Indicator) {
+    val freq = indicator.freq
+    freqToIndicators.get(freq) match {
+      case Some(indicators) => indicators -= indicator
+      case None =>
+    }
+  }
+
   def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = freq match {
     case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
         case None => serOf(freq) match {
@@ -272,7 +300,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
     srcSer_? match {
       case Some(srcSer) =>
-        val tarSer = new QuoteSer(freq)
+        val tarSer = new QuoteSer(this, freq)
         val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
         combiner.computeFrom(0) // don't remove me, see notice above.
         putSer(tarSer)
@@ -292,7 +320,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def loadSer(freq: TFreq): Boolean = synchronized {
 
     val serToBeLoaded = serOf(freq) getOrElse {
-      val x = new QuoteSer(freq)
+      val x = new QuoteSer(this, freq)
       freqToQuoteSer(freq) = x
       x
     }

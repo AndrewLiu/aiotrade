@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.math.timeseries.plottable.Plottable
+import org.aiotrade.lib.math.indicator.Plottable
 import org.aiotrade.lib.collection.ArrayList
 
 

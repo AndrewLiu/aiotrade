@@ -39,7 +39,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.math.timeseries.MasterTSer;
+import org.aiotrade.lib.math.timeseries.BaseTSer;
 
 /**
  *
@@ -48,7 +48,7 @@ import org.aiotrade.lib.math.timeseries.MasterTSer;
 public class SaveToImageDialog extends javax.swing.JDialog {
     private Frame parent;
     private ChartViewContainer viewContainer;
-    private MasterTSer masterSer;
+    private BaseTSer baseSer;
     private long fromTime, toTime;
     private int imageHeight, imageWidth;
     private File file;
@@ -64,7 +64,7 @@ public class SaveToImageDialog extends javax.swing.JDialog {
     public SaveToImageDialog(Frame parent, ChartViewContainer viewContainer) {
         super(parent, true);
         this.viewContainer = viewContainer;
-        this.masterSer = viewContainer.controller().masterSer();
+        this.baseSer = viewContainer.controller().baseSer();
         initComponents();
         
         setTitle("Save image to ...");
@@ -132,8 +132,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
     }
     
     private boolean variableFieldChanged() {
-        int begPosition = masterSer.rowOfTime(fromTime);
-        int endPosition = masterSer.rowOfTime(toTime);
+        int begPosition = baseSer.rowOfTime(fromTime);
+        int endPosition = baseSer.rowOfTime(toTime);
         imageWidth = (int)((endPosition - begPosition + 1) * viewContainer.controller().wBar());
         widthLable.setText(String.valueOf(imageWidth));
         if (imageWidth * imageHeight > 1024 * 768 * 20) {

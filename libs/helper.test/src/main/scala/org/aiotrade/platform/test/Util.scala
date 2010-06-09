@@ -37,7 +37,7 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.basic.MAIndicator
 import org.aiotrade.lib.indicator.basic.RSIIndicator
 import scala.collection.mutable.HashSet
@@ -353,8 +353,8 @@ class Util {
   }
 
   private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
-    var masterSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
-    val controller = ChartingControllerFactory.createInstance(masterSer, contents)
+    var baseSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
+    val controller = ChartingControllerFactory.createInstance(baseSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer
   }
@@ -451,8 +451,8 @@ class Util {
     fm.getContentPane.add(container)
     fm.pack
 
-    val begPos = controller.masterSer.rowOfTime(begTime)
-    val endPos = controller.masterSer.rowOfTime(endTime)
+    val begPos = controller.baseSer.rowOfTime(begTime)
+    val endPos = controller.baseSer.rowOfTime(endTime)
     val nBars = endPos - begPos + 1
 
     // wViewport should minus AxisYPane's width

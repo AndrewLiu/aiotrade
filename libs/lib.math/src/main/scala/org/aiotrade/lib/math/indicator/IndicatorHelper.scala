@@ -28,16 +28,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.util.actors.Reactions
 import org.aiotrade.lib.util.actors.Reactor
 
 
 /**
- * A helper class to implement most of the Computable methods, it can be used
+ * A helper class to implement most of the Indicator methods, it can be used
  * by indicator etc.
  *
  * @param baseSer:Ser base series to compute resultSer
@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.actors.Reactor
  *
  * @author Caoyuan Deng
  */
-trait ComputableHelper extends Reactor {self: Computable =>
+trait IndicatorHelper extends Reactor {self: Indicator =>
 
   /**
    * factors of this instance, such as period long, period short etc,
@@ -66,7 +66,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
   // remember event's callback to be forwarded in postCompute()
   private var baseTSerEventCallBack: () => Unit = _ 
 
-  protected def initBaseSer(baseSer: TSer) {
+  protected def setBaseSer(baseSer: BaseTSer) {
     self.baseSer = baseSer
 
     // * share same timestamps with baseSer, should be care of ReadWriteLock
@@ -190,7 +190,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
     fromIdx
   }
 
-  def postComputeFrom: Unit = {
+  def postComputeFrom {
     // construct resultSer's change event, forward baseTSerEventCallBack
     self.publish(TSerEvent.FinishedComputing(self,
                                              null,
@@ -245,7 +245,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factorValues_=(facValues: Array[Number]): Unit = {
+  def factorValues_=(facValues: Array[Number]) {
     var valueChanged = false
     if (facValues != null) {
       if (factors.length == facValues.length) {
@@ -285,7 +285,7 @@ trait ComputableHelper extends Reactor {self: Computable =>
     }
   }
 
-  def dispose: Unit = {
+  def dispose {
     if (baseSerReaction != null) {
       baseSer.reactions -= baseSerReaction
     }

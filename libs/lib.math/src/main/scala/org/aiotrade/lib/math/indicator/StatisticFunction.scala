@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math
+package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.collection.ArrayList

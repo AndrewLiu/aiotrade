@@ -103,7 +103,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   // --- Above maps should be created once here, since server may be singleton
 
   /**
-   * key ser is the master one,
+   * key ser is the base one,
    * values (if available) are that who concern key ser.
    * Example: ticker ser also will compose today's quoteSer
    */
@@ -172,7 +172,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     subscribe(contract, ser, Nil)
 
   /**
-   * first ser is the master one,
+   * first ser is the base one,
    * second one (if available) is that who concerns first one, etc.
    * Example: tickering ser also will compose today's quoteSer
    *

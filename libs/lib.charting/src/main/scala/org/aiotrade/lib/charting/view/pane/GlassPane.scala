@@ -47,8 +47,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.MouseInputAdapter
-import org.aiotrade.lib.math.timeseries.computable.Computable
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.Indicator
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
@@ -63,7 +63,7 @@ import org.aiotrade.lib.charting.view.ReferCursorObserver
 import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.charting.widget.Label
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.util.awt.AWTUtil
 import org.aiotrade.lib.util.swing.AIOAutoHideComponent
 import org.aiotrade.lib.util.swing.AIOCloseButton
@@ -271,7 +271,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     nameLabel.setForeground(LookFeel().nameColor)
     nameLabel.setBackground(LookFeel().backgroundColor)
     nameLabel.setFont(LookFeel().axisFont)
-    nameLabel.setText(Computable.displayName(view.mainSer))
+    nameLabel.setText(Indicator.displayName(view.mainSer))
 
     titlePanel.revalidate
     titlePanel.repaint()
@@ -325,7 +325,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       label.setForeground(LookFeel().nameColor)
       label.setBackground(LookFeel().backgroundColor)
       label.setFont(LookFeel().axisFont)
-      label.setText(Computable.displayName(ser))
+      label.setText(Indicator.displayName(ser))
     }
 
     /** remove unused ser's buttons and labels */

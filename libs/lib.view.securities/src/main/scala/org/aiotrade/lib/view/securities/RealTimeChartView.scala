@@ -202,7 +202,7 @@ class RealTimeChartView(acontroller: ChartingController,
   }
 
   override def updateView(evt: TSerEvent) {
-    var lastOccurredTime = masterSer.lastOccurredTime
+    var lastOccurredTime = baseSer.lastOccurredTime
 
     evt match {
       case TSerEvent(_, _, _, _, lastObject, _) => lastObject match {
@@ -229,19 +229,19 @@ class RealTimeChartView(acontroller: ChartingController,
     val openTime  = exchange.openTime(time)
     val closeTime = exchange.closeTime(time)
 
-    val frRow = masterSer.rowOfTime(openTime)
+    val frRow = baseSer.rowOfTime(openTime)
     val toRow = frRow + nBars - 1
 
     if (Null.is(prevClose)) {
       // @todo get precise prev *day* close
-      val prevTime = masterSer.timeOfRow(frRow - 1)
-      if (masterSer.exists(prevTime)) {
-        prevClose = masterSer.asInstanceOf[QuoteSer].close(prevTime)
+      val prevTime = baseSer.timeOfRow(frRow - 1)
+      if (baseSer.exists(prevTime)) {
+        prevClose = baseSer.asInstanceOf[QuoteSer].close(prevTime)
         gridValues(0) = prevClose
       }
     }
 
-    val lastOccurredRow = masterSer.lastOccurredRow
+    val lastOccurredRow = baseSer.lastOccurredRow
     controller.setCursorByRow(lastOccurredRow, toRow, true)
     //controller.updateViews();
   }

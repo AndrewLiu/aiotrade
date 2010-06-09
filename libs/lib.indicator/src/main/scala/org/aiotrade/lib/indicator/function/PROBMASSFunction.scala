@@ -30,10 +30,10 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.StatisticFunction
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.timeseries.computable.Factor
+import org.aiotrade.lib.math.indicator.Factor
 
 /**
  *
@@ -65,7 +65,7 @@ case class PROBMASSFunction extends AbstractFunction {
    */
   var _probMass: Array[Array[Float]] = _
     
-  override def set(baseSer: TSer, args: Any*) : Unit = {
+  override def set(baseSer: BaseTSer, args: Any*) : Unit = {
     super.set(baseSer)
     args match {
       case Seq(a0: TVar[Float], a1: TVar[Float], a2: Factor, a3: Factor) =>

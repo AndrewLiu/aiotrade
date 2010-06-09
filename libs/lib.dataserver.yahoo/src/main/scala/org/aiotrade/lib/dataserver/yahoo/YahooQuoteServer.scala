@@ -166,7 +166,7 @@ class YahooQuoteServer extends QuoteServer {
             /**
              * !NOTICE
              * must catch the date parse exception, other wise, it's dangerous
-             * for build a calendarTimes in MasterSer
+             * for build a calendarTimes in BaseSer
              */
             try {
               val date = dateFormat.parse(dateTimeX.trim)

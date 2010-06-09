@@ -30,8 +30,7 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.computable.SpotComputable
+import org.aiotrade.lib.math.timeseries.BaseTSer
 
 /**
  * Abstract Profile Indicator
@@ -44,7 +43,7 @@ import org.aiotrade.lib.math.timeseries.computable.SpotComputable
  * 
  * @author Caoyuan Deng
  */
-abstract class SpotIndicator($baseSer: TSer) extends Indicator($baseSer) with SpotComputable {
+abstract class SpotIndicator($baseSer: BaseTSer) extends Indicator($baseSer) with org.aiotrade.lib.math.indicator.SpotIndicator {
     
   var spotTime = Long.MinValue
     
@@ -52,7 +51,7 @@ abstract class SpotIndicator($baseSer: TSer) extends Indicator($baseSer) with Sp
     
   def computeSpot(time: Long) {
         
-    /** get masterIndex before preCalc(), which may clear this data */
+    /** get baseIndex before preCalc(), which may clear this data */
     val baseIdx = baseSer.indexOfOccurredTime(time)
         
     preComputeFrom(time)

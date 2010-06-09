@@ -75,17 +75,17 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
    * another object, even in case of being got by others via public or
    * protected method
    */
-  private val currentHandles  = new ArrayBuffer[Handle]
-  private val previousHandles = new ArrayBuffer[Handle]
+  private val currHandles = new ArrayBuffer[Handle]
+  private val prevHandles = new ArrayBuffer[Handle]
     
   /** For moving chart: the valuePoint and handls when mouse is pressed before drag */
-  private val currentHandlesWhenMousePressed = new ArrayBuffer[Handle]
+  private val currHandlesWhenMousePressed = new ArrayBuffer[Handle]
   /**
    * define mousePressedPoint as final to force using copy(..) to set its value
    */
   private val mousePressedPoint = new ValuePoint
     
-  private val allCurrentHandlesPathBuf = new GeneralPath
+  private val allCurrHandlesPathBuf = new GeneralPath
     
   private var nHandles = 0
   private var selectedHandleIdx = 0
@@ -137,19 +137,19 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
 
     var i = 0
     while (i < size) {
-      currentHandles += new Hdl
-      previousHandles += new Hdl
-      currentHandlesWhenMousePressed += new Hdl
+      currHandles += new Hdl
+      prevHandles += new Hdl
+      currHandlesWhenMousePressed += new Hdl
             
       /** assign currentHandles' points to points */
-      currentHandles(i).copyPoint(points(i))
+      currHandles(i).copyPoint(points(i))
       i += 1
     }
         
     accomplished = true
         
     /** set chart' arg according to current handles */
-    setChartModel(currentHandles)
+    setChartModel(currHandles)
         
     /** now the chart's arg has been set, and ready to be put to drawing pane */
     drawing.putChart(chart)
@@ -167,7 +167,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
       }
             
       assert(chart != null, "chart instance should has been created!")
-      chart.set(datumPlane, datumPlane.masterSer, Pane.DEPTH_DRAWING)
+      chart.set(datumPlane, datumPlane.baseSer, Pane.DEPTH_DRAWING)
     }
   }
     
@@ -203,32 +203,32 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
    */
   private def anchorHandle(point: ValuePoint): Boolean = {
         
-    if (currentHandles.size == 0) {
+    if (currHandles.size == 0) {
       if (nHandles == VARIABLE_NUMBER_OF_HANDLES) {
         /** this is a nHandles variable chart, create first handle */
-        currentHandles += new Hdl
-        previousHandles += new Hdl
-        currentHandlesWhenMousePressed += new Hdl
+        currHandles += new Hdl
+        prevHandles += new Hdl
+        currHandlesWhenMousePressed += new Hdl
       } else {
         /** this is a nHandles pre-defined chart, create all of the handles */
         var i = 0
         while (i < nHandles) {
-          currentHandles += new Hdl
-          previousHandles += new Hdl
-          currentHandlesWhenMousePressed += new Hdl
+          currHandles += new Hdl
+          prevHandles += new Hdl
+          currHandlesWhenMousePressed += new Hdl
           i += 1
         }
       }
     }
         
-    currentHandles(selectedHandleIdx).copyPoint(point);
+    currHandles(selectedHandleIdx).copyPoint(point);
         
     if (!accomplished) {
       /** make handles that not yet anchored having the same position as selectedHandle */
-      val n = currentHandles.size
+      val n = currHandles.size
       var i = selectedHandleIdx + 1
       while (i < n) {
-        currentHandles(i).copyPoint(point)
+        currHandles(i).copyPoint(point)
         i += 1
       }
     }
@@ -242,10 +242,10 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
       selectedHandleIdx += 1
             
       /** create next handle if not created yet */
-      if (currentHandles.size - 1 < selectedHandleIdx) {
-        currentHandles += new Hdl(point)
-        previousHandles += new Hdl(point)
-        currentHandlesWhenMousePressed += new Hdl
+      if (currHandles.size - 1 < selectedHandleIdx) {
+        currHandles += new Hdl(point)
+        prevHandles += new Hdl(point)
+        currHandlesWhenMousePressed += new Hdl
       }
     } else {
       /** if only one handle, should let it be drawn at once */
@@ -267,13 +267,13 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     backupCurrentHandlesToPreviousHandles
         
     /** set selectedHandle's new position */
-    currentHandles(selectedHandleIdx).copyPoint(point)
+    currHandles(selectedHandleIdx).copyPoint(point)
         
     if (!accomplished) {
       var i = selectedHandleIdx + 1
-      val n = currentHandles.size
+      val n = currHandles.size
       while (i < n) {
-        currentHandles(i).copyPoint(currentHandles(selectedHandleIdx).getPoint)
+        currHandles(i).copyPoint(currHandles(selectedHandleIdx).getPoint)
         i += 1
       }
     }
@@ -289,11 +289,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
         } else {
           /** erase previous drawing */
           renderPrevious(g)
-          previousHandles(selectedHandleIdx).render(g)
+          prevHandles(selectedHandleIdx).render(g)
         }
         /** current new drawing */
         renderCurrent(g)
-        currentHandles(selectedHandleIdx).render(g)
+        currHandles(selectedHandleIdx).render(g)
                 
         /** restore to paintMode */
         g.setPaintMode
@@ -301,15 +301,15 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
         if (!accomplished) {
           var i = 0
           while (i < selectedHandleIdx) {
-            currentHandles(i).render(g)
+            currHandles(i).render(g)
             i += 1
           }
         } else {
-          val n = currentHandles.size
+          val n = currHandles.size
           var i = 0
           while (i < n) {
             if (i != selectedHandleIdx) {
-              currentHandles(i).render(g)
+              currHandles(i).render(g)
             }
             i += 1
           }
@@ -332,10 +332,10 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     val vMoved = mouseDraggedPoint.v - mousePressedPoint.v
         
     val newPoint = new ValuePoint
-    val n = currentHandles.size
+    val n = currHandles.size
     var i = 0
     while (i < n) {
-      val oldPoint = currentHandlesWhenMousePressed(i).getPoint
+      val oldPoint = currHandlesWhenMousePressed(i).getPoint
             
       /** compute newTime, process bar fisrt, then transfer to time */
       val oldBar  = datumPlane.bt(oldPoint.t)
@@ -351,7 +351,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
        * because we need handle to recompute position. use copyPoint().
        */
       newPoint.set(newTime, newValue)
-      currentHandles(i).copyPoint(newPoint)
+      currHandles(i).copyPoint(newPoint)
 
       i += 1
     }
@@ -363,11 +363,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
                 
         /** erase previous drawing */
         renderPrevious(g)
-        renderHandles(g, previousHandles)
+        renderHandles(g, prevHandles)
                 
         /** current new drawing */
         renderCurrent(g)
-        renderHandles(g, currentHandles)
+        renderHandles(g, currHandles)
       } finally {
         g.dispose
       }
@@ -377,9 +377,9 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     
   private def backupCurrentHandlesToPreviousHandles {
     var i = 0
-    val n = currentHandles.size
+    val n = currHandles.size
     while (i < n) {
-      previousHandles(i).copyPoint(currentHandles(i).getPoint)
+      prevHandles(i).copyPoint(currHandles(i).getPoint)
       i += 1
     }
   }
@@ -411,7 +411,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   }
     
   def getCurrentHandlesPoints: ArrayBuffer[ValuePoint] = {
-    handlesPoints(currentHandles)
+    handlesPoints(currHandles)
   }
     
   protected def handlesPoints(handles: ArrayBuffer[Handle]): ArrayBuffer[ValuePoint] = {
@@ -435,16 +435,16 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   }
     
   def getAllCurrentHandlesPath: GeneralPath = {
-    allCurrentHandlesPathBuf.reset
-    for (handle <- currentHandles) {
-      allCurrentHandlesPathBuf.append(handle.getPath, false)
+    allCurrHandlesPathBuf.reset
+    for (handle <- currHandles) {
+      allCurrHandlesPathBuf.append(handle.getPath, false)
     }
         
-    allCurrentHandlesPathBuf;
+    allCurrHandlesPathBuf;
   }
     
   private def getHandleAt(x: Int, y: Int): Handle = {
-    for (handle <- currentHandles) {
+    for (handle <- currHandles) {
       if (handle.contains(x, y)) {
         return handle
       }
@@ -470,11 +470,11 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
   }
     
   private def renderPrevious(g: Graphics) {
-    setChartModelAndRenderChart(g, previousHandles)
+    setChartModelAndRenderChart(g, prevHandles)
   }
     
   private def renderCurrent(g: Graphics) {
-    setChartModelAndRenderChart(g, currentHandles)
+    setChartModelAndRenderChart(g, currHandles)
   }
     
   private def setChartModelAndRenderChart(g: Graphics, handles: ArrayBuffer[Handle]) {
@@ -585,9 +585,9 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
         mousePressedPoint.copy(p(e))
         /** record handles when mouse pressed, for moveChart() */
         var i = 0
-        val n = currentHandles.size
+        val n = currHandles.size
         while (i < n) {
-          currentHandlesWhenMousePressed(i).copyPoint(currentHandles(i).getPoint)
+          currHandlesWhenMousePressed(i).copyPoint(currHandles(i).getPoint)
           i += 1
         }
       }
@@ -630,7 +630,7 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
           val theHandle = getHandleAt(e.getX, e.getY)
           /** mouse points to theHandle ? */
           if (theHandle != null) {
-            val idx = currentHandles.indexOf(theHandle)
+            val idx = currHandles.indexOf(theHandle)
             if (idx >= 0) {
               selectedHandleIdx = idx
             }

@@ -51,8 +51,8 @@ object SwitchAdjustQuoteAction {
   private var toggleButton: JToggleButton = _
 
   def updateToolbar(selectedViewContainer: ChartViewContainer) {
-    if (selectedViewContainer.controller.masterSer.isInstanceOf[QuoteSer]) {
-      val selected = selectedViewContainer.controller.masterSer.asInstanceOf[QuoteSer].adjusted
+    if (selectedViewContainer.controller.baseSer.isInstanceOf[QuoteSer]) {
+      val selected = selectedViewContainer.controller.baseSer.asInstanceOf[QuoteSer].adjusted
       toggleButton.setSelected(selected)
     }
   }

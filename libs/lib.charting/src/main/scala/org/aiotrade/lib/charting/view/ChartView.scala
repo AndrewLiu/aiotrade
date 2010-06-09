@@ -40,7 +40,7 @@ import org.aiotrade.lib.charting.view.pane.ChartPane
 import org.aiotrade.lib.charting.view.pane.DivisionPane
 import org.aiotrade.lib.charting.view.pane.GlassPane
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.Chart
@@ -66,7 +66,7 @@ import scala.collection.mutable.LinkedHashMap
  *
  * Example: you can add a ChartView directly to a JFrame.
  *
- * masterSer: the ser instaceof MasterSer, with the calendar time feature,
+ * baseSer: the ser instaceof BaseTSer, with the calendar time feature,
  *            it's put in the masterView to control the cursor;
  * mainSer: vs overlappingSer, this view's main ser.
  *
@@ -122,7 +122,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   private var _isInteractive = true
   private var _isPinned = false
 
-  private var _masterSer: MasterTSer = _
+  private var _baseSer: BaseTSer = _
   private var lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN
 
   if (!empty) {
@@ -145,7 +145,7 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   def init(controller: ChartingController, mainSer: TSer) {
     this._controller = controller
-    this._masterSer = controller.masterSer
+    this._baseSer = controller.baseSer
     this._mainSer = mainSer
 
     createBasisComponents
@@ -376,7 +376,7 @@ abstract class ChartView(protected var _controller: ChartingController,
    * @return time
    */
   final def tb(barIndex: Int): Long = {
-    _masterSer.timeOfRow(rb(barIndex))
+    _baseSer.timeOfRow(rb(barIndex))
   }
 
   final def rb(barIndex: Int): Int = {
@@ -391,7 +391,7 @@ abstract class ChartView(protected var _controller: ChartingController,
    * @return index of bars, start from 1 and to nBars
    */
   final def bt(time: Long): Int = {
-    br(_masterSer.rowOfTime(time))
+    br(_baseSer.rowOfTime(time))
   }
 
   final def br(row: Int): Int = {
@@ -405,7 +405,7 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   final def controller: ChartingController = _controller
 
-  def masterSer: MasterTSer = _masterSer
+  def baseSer: BaseTSer = _baseSer
   final def mainSer: TSer = _mainSer
 
   def chartMapVars(ser: TSer): LinkedHashMap[Chart, HashSet[TVar[_]]] = {

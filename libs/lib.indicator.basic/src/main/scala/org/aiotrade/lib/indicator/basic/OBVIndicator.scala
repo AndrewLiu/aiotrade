@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class OBVIndicator extends ContIndicator {
+class OBVIndicator extends Indicator {
   sname = "OBV"
   lname = "On Balance Volume"
 

@@ -38,7 +38,7 @@ import java.awt.Point
 import java.awt.Stroke
 import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.util.GeomUtil
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
@@ -92,8 +92,8 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /** Component that charts x-y based on */
   protected var datumPlane: DatumPlane = _
     
-  /** masterSer that will be got from: datumPlane.getMasterSer() */
-  protected var masterSer: MasterTSer = _
+  /** baseSer that will be got from: datumPlane.baseSer */
+  protected var baseSer: BaseTSer = _
     
   private var _ser: TSer = _
     
@@ -155,11 +155,11 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * should call render(Graphics2D g) to render this chart upon g
    */
   protected def plotWidget {
-    this.masterSer = datumPlane.masterSer
-    this.nBars     = datumPlane.nBars
-    this.wBar      = datumPlane.wBar
+    this.baseSer = datumPlane.baseSer
+    this.nBars   = datumPlane.nBars
+    this.wBar    = datumPlane.wBar
         
-    this.wSeg = Math.max(wBar, MIN_SEGMENT_WIDTH).toInt
+    this.wSeg = math.max(wBar, MIN_SEGMENT_WIDTH).toInt
     this.nSegs = (nBars * wBar / wSeg).toInt + 1
         
     this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt

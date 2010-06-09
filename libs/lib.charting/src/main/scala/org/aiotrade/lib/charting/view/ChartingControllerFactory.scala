@@ -43,12 +43,12 @@ import java.awt.event.WindowEvent
 import javax.swing.JComponent
 import javax.swing.JFrame
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.actors.Reactor
-import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
+import scala.collection.mutable.WeakHashMap
 
 
 /**
@@ -57,17 +57,17 @@ import scala.collection.mutable.HashSet
  * @author Caoyuan Deng
  */
 object ChartingControllerFactory {
-  /** a static map to know how many controllers are bound with each MasterSer */
-  private val sersTocontrollers = new HashMap[MasterTSer, HashSet[ChartingController]]
+  /** a static map to know how many controllers are bound with each BaseTSer */
+  private val sersTocontrollers = new WeakHashMap[BaseTSer, HashSet[ChartingController]]
 
-  def createInstance(masterSer: MasterTSer, contents: AnalysisContents): ChartingController = {
-    val controllers = sersTocontrollers.get(masterSer) getOrElse {
-      val controllersx = new HashSet[ChartingController]
-      sersTocontrollers += (masterSer -> controllersx)
-      controllersx
+  def createInstance(baseSer: BaseTSer, contents: AnalysisContents): ChartingController = {
+    val controllers = sersTocontrollers.get(baseSer) getOrElse {
+      val x = new HashSet[ChartingController]
+      sersTocontrollers += (baseSer -> x)
+      x
     }
 
-    val controller = new DefaultChartingController(masterSer, contents)
+    val controller = new DefaultChartingController(baseSer, contents)
     controllers.add(controller)
 
     controller
@@ -107,10 +107,10 @@ object ChartingControllerFactory {
    *   mouseEnteredAnyChartPane
    */
   import DefaultChartingController._
-  private class DefaultChartingController($masterSer: MasterTSer, $contents: AnalysisContents) extends ChartingController
-                                                                                                  with Reactor {
+  private class DefaultChartingController($baseSer: BaseTSer, $contents: AnalysisContents) extends ChartingController
+                                                                                              with Reactor {
 
-    val masterSer = $masterSer
+    val baseSer = $baseSer
     val contents  = $contents
 
     private val popupViews = new HashSet[ChartView]
@@ -121,7 +121,7 @@ object ChartingControllerFactory {
     private var _referCursorRow: Int = _
     private var _mouseCursorRow: Int = _
     private var _rightSideRow: Int = _
-    private var _lastOccurredRowOfMasterSer: Int = _
+    private var _lastOccurredRowOfBaseSer: Int = _
     private var _isAutoScrollToNewData = true
     private var _isMouseEnteredAnyChartPane: Boolean = _
     private var _isCursorCrossLineVisible = true
@@ -139,19 +139,19 @@ object ChartingControllerFactory {
         case _ =>
       }
 
-      listenTo(masterSer)
+      listenTo(baseSer)
 
       addKeyMouseListenersTo(viewContainer)
     }
 
     private def internal_initCursorRow {
       /**
-       * masterSer may have finished computing at this time, to adjust
+       * baseSer may have finished computing at this time, to adjust
        * the cursor to proper row, update it here.
        * @NOTICE
        * don't set row directly, instead, use setCursorByRow(row, row);
        */
-      val row = masterSer.lastOccurredRow
+      val row = baseSer.lastOccurredRow
       setCursorByRow(row, row, true)
 
       _mouseCursorRow = referCursorRow
@@ -244,16 +244,16 @@ object ChartingControllerFactory {
       updateViews
     }
 
-    def isOnCalendarMode = masterSer.isOnCalendarMode
+    def isOnCalendarMode = baseSer.isOnCalendarMode
     def isOnCalendarMode_=(b: Boolean) {
       if (isOnCalendarMode != b) {
         val referCursorTime1 = referCursorTime
         val rightCursorTime1 = rightSideTime
 
         if (b == true) {
-          masterSer.toOnCalendarMode
+          baseSer.toOnCalendarMode
         } else {
-          masterSer.toOnOccurredMode
+          baseSer.toOnOccurredMode
         }
 
         internal_setReferCursorByTime(referCursorTime1)
@@ -334,12 +334,12 @@ object ChartingControllerFactory {
     }
 
     final def referCursorRow: Int = _referCursorRow
-    final def referCursorTime: Long = masterSer.timeOfRow(_referCursorRow)
+    final def referCursorTime: Long = baseSer.timeOfRow(_referCursorRow)
 
     final def rightSideRow: Int = _rightSideRow
-    final def rightSideTime: Long = masterSer.timeOfRow(_rightSideRow)
+    final def rightSideTime: Long = baseSer.timeOfRow(_rightSideRow)
 
-    final def leftSideTime: Long = masterSer.timeOfRow(leftSideRow)
+    final def leftSideTime: Long = baseSer.timeOfRow(leftSideRow)
     final def leftSideRow: Int = {
       val rightRow = rightSideRow
       val nBars = viewContainer.masterView.nBars
@@ -349,7 +349,7 @@ object ChartingControllerFactory {
 
 
     final def mouseCursorRow: Int = _mouseCursorRow
-    final def mouseCursorTime: Long = masterSer.timeOfRow(_mouseCursorRow)
+    final def mouseCursorTime: Long = baseSer.timeOfRow(_mouseCursorRow)
 
     /**
      * @NOTICE
@@ -369,7 +369,7 @@ object ChartingControllerFactory {
       val oldValue = this._referCursorRow
       this._referCursorRow = row
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
-      this._lastOccurredRowOfMasterSer = masterSer.lastOccurredRow
+      this._lastOccurredRowOfBaseSer = baseSer.lastOccurredRow
       if (this._referCursorRow != oldValue) {
         notifyChanged(classOf[ReferCursorObserver])
         notifyChanged(classOf[ChartValidityObserver])
@@ -385,11 +385,11 @@ object ChartingControllerFactory {
     }
 
     private def internal_setReferCursorByTime(time: Long) {
-      internal_setReferCursorRow(masterSer.rowOfTime(time))
+      internal_setReferCursorRow(baseSer.rowOfTime(time))
     }
 
     private def internal_setRightCursorByTime(time: Long) {
-      internal_setRightSideRow(masterSer.rowOfTime(time))
+      internal_setRightSideRow(baseSer.rowOfTime(time))
     }
 
     private def internal_setMouseCursorRow(row: Int) {
@@ -458,7 +458,7 @@ object ChartingControllerFactory {
 
     @throws(classOf[Throwable])
     override protected def finalize {
-      deafTo(masterSer)
+      deafTo(baseSer)
 
       super.finalize
     }
@@ -474,10 +474,10 @@ object ChartingControllerFactory {
       }
 
       val oldReferRow = referCursorRow
-      if (oldReferRow == _lastOccurredRowOfMasterSer || _lastOccurredRowOfMasterSer <= 0) {
+      if (oldReferRow == _lastOccurredRowOfBaseSer || _lastOccurredRowOfBaseSer <= 0) {
         /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
-        val lastTime = Math.max(toTime, masterSer.lastOccurredTime)
-        val rightRow = masterSer.rowOfTime(lastTime)
+        val lastTime = Math.max(toTime, baseSer.lastOccurredTime)
+        val rightRow = baseSer.rowOfTime(lastTime)
         val referRow = rightRow
 
         setCursorByRow(referRow, rightRow, true)

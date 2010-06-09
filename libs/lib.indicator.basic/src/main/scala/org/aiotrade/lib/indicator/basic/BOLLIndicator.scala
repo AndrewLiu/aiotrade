@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class BOLLIndicator extends ContIndicator {
+class BOLLIndicator extends Indicator {
   sname = "BOLL"
   lname = "Bollinger Bands"
   isOverlapping = true

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.Plot
 
 /**
  * This is a horizotal view of DefaultSeries. Is' a reference of one of

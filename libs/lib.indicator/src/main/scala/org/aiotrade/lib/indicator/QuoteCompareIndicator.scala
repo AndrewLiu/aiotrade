@@ -30,18 +30,16 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.MasterTSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.securities.{QuoteSer}
+import org.aiotrade.lib.securities.QuoteSer
 
 
 /**
  *
  * @author Caoyuan Deng
  */
-//@IndicatorName("QUOTECOMPARE")
-class QuoteCompareIndicator($baseSer: TSer) extends ContIndicator($baseSer) {
+class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
     
   var serToBeCompared: QuoteSer = _
     
@@ -112,7 +110,7 @@ class QuoteCompareIndicator($baseSer: TSer) extends ContIndicator($baseSer) {
         /** don't calulate those is less than beginPosition to got a proper compareBeginValue */
       } else {
             
-        val time = baseSer.asInstanceOf[MasterTSer].timeOfRow(i)
+        val time = baseSer.asInstanceOf[BaseTSer].timeOfRow(i)
             
         /**
          * !NOTICE:

@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.BaseTSer
 
 /**
  *
@@ -41,7 +41,7 @@ class TRFunction extends AbstractFunction {
     
   val _tr = TVar[Float]()
     
-  override def set(baseSer: TSer, args: Any*): Unit = {
+  override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
   }
     

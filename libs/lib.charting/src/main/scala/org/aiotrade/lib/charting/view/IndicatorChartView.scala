@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.view
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import org.aiotrade.lib.math.timeseries.plottable.Plot
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.charting.chart.ChartFactory
 import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.chart.ProfileChart
@@ -51,10 +51,10 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView(acontroller: ChartingController,
-                         amainSer: TSer,
-                         empty: Boolean
-) extends ChartView(acontroller, amainSer, empty) {
+class IndicatorChartView($controller: ChartingController,
+                         $mainSer: TSer,
+                         $empty: Boolean
+) extends ChartView($controller, $mainSer, $empty) {
     
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
   def this() = this(null, null, true)

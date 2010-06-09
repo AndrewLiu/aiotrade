@@ -368,18 +368,18 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
 
    tp.getSelectedComponent match {
    case viewContainer: AnalysisChartViewContainer =>
-   val masterSer = viewContainer.controller.masterSer
+   val baseSer = viewContainer.controller.baseSer
 
    /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
 
    val secNode_? = SymbolNodes.occupantNodeOf(contents)
    assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
    for (groupNode <- secNode_?.get.getChildren.getNodes) {
-   groupNode.asInstanceOf[GroupNode].freq = masterSer.freq
+   groupNode.asInstanceOf[GroupNode].freq = baseSer.freq
    }
 
    /** update the supportedFreqsComboBox */
-   //setSelectedFreqItem(masterSer.freq)
+   //setSelectedFreqItem(baseSer.freq)
    case _ =>
    }
    }

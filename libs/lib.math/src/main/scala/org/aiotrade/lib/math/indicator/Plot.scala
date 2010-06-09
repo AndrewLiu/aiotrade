@@ -28,10 +28,26 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.timeseries.computable
+package org.aiotrade.lib.math.indicator
 
 /**
+ * enum for defining chart style that could be used for Plottable
  *
  * @author Caoyuan Deng
  */
-trait ContComputable extends Computable
+abstract class Plot
+object Plot {
+  case object None    extends Plot
+  case object Line    extends Plot
+  case object Stick   extends Plot
+  case object Dot     extends Plot
+  case object Shade   extends Plot
+  case object Profile extends Plot
+  case object Quote   extends Plot
+  case object Volume  extends Plot
+  case object Signal  extends Plot
+  case object Zigzag  extends Plot
+}
+
+
+

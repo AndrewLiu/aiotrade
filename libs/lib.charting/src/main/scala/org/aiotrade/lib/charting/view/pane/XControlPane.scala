@@ -55,11 +55,11 @@ class XControlPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview
   }
     
   def syncWithView {
-    val masterSer = view.controller.masterSer
+    val baseSer = view.controller.baseSer
         
-    val vModelRange = masterSer.size
+    val vModelRange = baseSer.size
     val vShownRange = view.nBars
-    val vModelEnd = masterSer.lastOccurredRow
+    val vModelEnd = baseSer.lastOccurredRow
     val vShownEnd = view.controller.rightSideRow
     val unit = 1.0
     val nUnitsBlock = (vShownRange * 0.168).toInt

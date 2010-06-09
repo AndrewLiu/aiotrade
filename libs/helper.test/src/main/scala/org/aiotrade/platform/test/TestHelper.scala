@@ -2,9 +2,10 @@ package org.aiotrade.platform.test
 
 import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.indicator.Indicator
-import org.aiotrade.lib.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.ComputeFrom
+import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.timeseries._
-import org.aiotrade.lib.math.timeseries.computable._
 import org.aiotrade.lib.math.timeseries.datasource._
 import org.aiotrade.lib.math.timeseries.descriptor._
 import org.aiotrade.lib.securities._
@@ -117,12 +118,12 @@ trait TestHelper {
     }
   }
 
-  def initIndicators(contents: AnalysisContents, masterSer: MasterTSer): Seq[Indicator] = {
+  def initIndicators(contents: AnalysisContents, baseSer: BaseTSer): Seq[Indicator] = {
     var indicators: List[Indicator] = Nil
     for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
-         if descriptor.active && descriptor.freq.equals(masterSer.freq)
+         if descriptor.active && descriptor.freq.equals(baseSer.freq)
     ) yield {
-      descriptor.serviceInstance(masterSer) match {
+      descriptor.serviceInstance(baseSer) match {
         case Some(indicator: Indicator) => indicators ::= indicator
         case _ => println("In test: can not init instance of: " + descriptor.serviceClassName)
       }
@@ -132,7 +133,7 @@ trait TestHelper {
 
   def computeSync(indicator: Indicator): Unit = {
     indicator match {
-      case _: SpotComputable => // don't compute it right now
+      case _: SpotIndicator => // don't compute it right now
       case _ =>
         val t0 = System.currentTimeMillis
         indicator.computeFrom(0)
@@ -142,7 +143,7 @@ trait TestHelper {
 
   def computeAsync(indicator: Indicator): Unit = {
     indicator match {
-      case _: SpotComputable => // don't compute it right now
+      case _: SpotIndicator => // don't compute it right now
       case _ => indicator ! ComputeFrom(0)
     }
   }

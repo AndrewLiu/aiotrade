@@ -30,13 +30,13 @@
  */
 package org.aiotrade.lib.indicator.basic
 
-import org.aiotrade.lib.indicator.ContIndicator
+import org.aiotrade.lib.indicator.Indicator
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MAIndicator extends ContIndicator {
+class MAIndicator extends Indicator {
   sname = "MA"
   lname = "Moving Average"
   isOverlapping = true
