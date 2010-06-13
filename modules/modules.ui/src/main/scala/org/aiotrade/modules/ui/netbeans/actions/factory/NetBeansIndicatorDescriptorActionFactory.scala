@@ -30,29 +30,29 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions.factory
 
-import javax.swing.Action;
-import javax.swing.JOptionPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.Action
+import javax.swing.JOptionPane
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.IndicatorDescriptorActionFactory
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.math.indicator.Factor
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.util.swing.action.DeleteAction;
-import org.aiotrade.lib.util.swing.action.EditAction;
-import org.aiotrade.lib.util.swing.action.HideAction;
-import org.aiotrade.lib.util.swing.action.SaveAction;
-import org.aiotrade.lib.util.swing.action.ViewAction;
-import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane;
-import org.aiotrade.modules.ui.netbeans.nodes.IndicatorGroupDescriptor;
-import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent;
-import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
-import org.openide.loaders.DataFolder;
-import org.openide.nodes.Node;
-import org.openide.windows.WindowManager;
+import org.aiotrade.lib.util.swing.action.DeleteAction
+import org.aiotrade.lib.util.swing.action.EditAction
+import org.aiotrade.lib.util.swing.action.HideAction
+import org.aiotrade.lib.util.swing.action.SaveAction
+import org.aiotrade.lib.util.swing.action.ViewAction
+import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane
+import org.aiotrade.modules.ui.netbeans.nodes.IndicatorGroupDescriptor
+import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent
+import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
+import org.openide.loaders.DataFolder
+import org.openide.nodes.Node
+import org.openide.windows.WindowManager
 
 /**
  *
@@ -116,9 +116,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = false
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
-           viewContainer = analysisWin.viewContainer
+      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol)
       ) {
+        val viewContainer = analysisWin.viewContainer
         viewContainer.removeSlaveView(descriptor)
                 
         analysisWin.requestActive
@@ -139,10 +139,10 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       )
             
       if (confirm == JOptionPane.YES_OPTION) {
-        descriptor.lookupAction(classOf[HideAction]).get.execute;
+        descriptor.lookupAction(classOf[HideAction]) foreach (_.execute)
                 
-        descriptor.containerContents.removeDescriptor(descriptor);
-        descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+        descriptor.containerContents.removeDescriptor(descriptor)
+        descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach (_.execute)
       }
     }
         
@@ -164,9 +164,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         }
       }
             
-      pane.addSpinnerChangeListener(spinnerChangeListener);
-      val retValue = pane.showDialog();
-      pane.removeSpinnerChangeListener(spinnerChangeListener);
+      pane.addSpinnerChangeListener(spinnerChangeListener)
+      val retValue = pane.showDialog
+      pane.removeSpinnerChangeListener(spinnerChangeListener)
             
       if (retValue == JOptionPane.OK_OPTION) {
         // apple to all ?
@@ -179,10 +179,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
                 
         if (pane.isSaveAsDefault()) {
           val defaultContents = PersistenceManager().defaultContents
-          defaultContents.lookupDescriptor(
-            classOf[IndicatorDescriptor],
-            descriptor.serviceClassName,
-            descriptor.freq
+          defaultContents.lookupDescriptor(classOf[IndicatorDescriptor],
+                                           descriptor.serviceClassName,
+                                           descriptor.freq
           ) match {
             case Some(x) =>
               x.factors = descriptor.factors
@@ -213,7 +212,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         }
       } else { // else, an OneSymbolNode
         val contents = rootNodeToBeSet.getLookup.lookup(classOf[AnalysisContents])
-        val indicatorGroupNode = rootNodeToBeSet.getChildren.findChild(IndicatorGroupDescriptor.NAME);
+        val indicatorGroupNode = rootNodeToBeSet.getChildren.findChild(IndicatorGroupDescriptor.NAME)
         if (indicatorGroupNode != null) {
           for (descriptorToBeSet <- contents.lookupDescriptor(classOf[IndicatorDescriptor],
                                                               descriptorWithOpts.serviceClassName,
@@ -228,7 +227,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         
     private def setIndicatorOpts(descriptorToBeSet: IndicatorDescriptor, factors: Array[Factor]) {
       descriptorToBeSet.factors = factors
-      descriptorToBeSet.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+      descriptorToBeSet.containerContents.lookupAction(classOf[SaveAction]) foreach (_.execute)
             
       showEffect(descriptorToBeSet)
     }

@@ -220,7 +220,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       /** we choose here to lazily create actions instances */
 
       /** init all children of node to create the actions that will be injected to descriptor */
-      SymbolNodes.occupantNodeOf(contents) foreach (initNodeChildrenRecursively(_))
+      SymbolNodes.findSymbolNode(contents.uniSymbol) foreach (initNodeChildrenRecursively(_))
     }
 
     private def initNodeChildrenRecursively(node: Node) {
