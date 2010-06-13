@@ -29,8 +29,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.charting.view.pane
-import java.awt.Cursor
-import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.MouseAdapter

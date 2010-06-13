@@ -134,21 +134,22 @@ class IndicatorChartView($controller: ChartingController,
         
     for (ser <- allSers) {
       /** add charts */
-      for (v <- ser.vars;
-           chart = ChartFactory.createVarChart(v) if chart != null
-      ) {
-        val chartVars = new HashSet[TVar[_]]
-        mainSerChartToVars.put(chart, chartVars += v)
+      for (v <- ser.vars) {
+        val chart = ChartFactory.createVarChart(v)
+        if (chart != null) {
+          val vars = HashSet[TVar[_]](v)
+          mainSerChartToVars.put(chart, vars)
                     
-        chart match {
-          case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
-          case _: ProfileChart => chart.depth = depthGradient; depthGradient -= 1
-          case _: StickChart => chart.depth = -8
-          case _ => chart.depth = depth; depth += 1
-        }
+          chart match {
+            case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
+            case _: ProfileChart => chart.depth = depthGradient; depthGradient -= 1
+            case _: StickChart => chart.depth = -8
+            case _ => chart.depth = depth; depth += 1
+          }
 
-        chart.set(mainChartPane, ser)
-        mainChartPane.putChart(chart)
+          chart.set(mainChartPane, ser)
+          mainChartPane.putChart(chart)
+        }
       }
             
       /** plot grid */

@@ -62,7 +62,7 @@ class DivisionPane($view: ChartView, $datumPlane: DatumPlane) extends Pane($view
    * It seems horizontal or vertical line won't be painted by widger#renter because of not intersect.
    * But, I'll leave it as it, since I won't draw a real line now. We'll process border by chart pane itself.
    */
-  protected def plotPane_old = {
+  override protected def plotPane {
     val pathWidget = addWidget(new PathWidget)
     pathWidget.setForeground(LookFeel().borderColor)
     val path = pathWidget.getPath
