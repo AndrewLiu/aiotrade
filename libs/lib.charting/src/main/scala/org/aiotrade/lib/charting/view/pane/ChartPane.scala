@@ -29,6 +29,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.charting.view.pane
+import java.awt.Cursor
+import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.MouseAdapter
@@ -63,7 +65,7 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
   val mouseAdapter = new MyMouseAdapter
   addMouseListener(mouseAdapter)
   addMouseMotionListener(mouseAdapter)
-        
+
   val myComponentListener = new ComponentListener {
     def componentHidden(e: ComponentEvent) {
       for (chart <- charts) {
@@ -95,8 +97,8 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
   view.addObserver(this, new ChartValidityObserver {
       val updater: Updater = {
         case _: ChartView =>
-        _chartValid = false
-        isGeometryValid = false
+          _chartValid = false
+          isGeometryValid = false
       }
     })
     
@@ -224,4 +226,5 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
       //view.getController().setMouseEnteredAnyChartPane(false);
     }
   }
+
 }
