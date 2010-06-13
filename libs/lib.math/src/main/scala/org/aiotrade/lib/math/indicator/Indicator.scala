@@ -48,11 +48,12 @@ object Indicator {
   }
 
   def displayName(name: String, factors: Array[Factor]): String = {
-    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString("(", ",", ")")
+    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString(name + "(", ",", ")")
   }
 }
 
 case class ComputeFrom(time: Long) extends Event
+
 trait Indicator extends TSer {
 
   val Plot = org.aiotrade.lib.math.indicator.Plot

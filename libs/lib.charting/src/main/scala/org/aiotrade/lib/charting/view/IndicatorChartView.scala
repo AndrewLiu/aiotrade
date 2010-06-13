@@ -51,9 +51,7 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView($controller: ChartingController,
-                         $mainSer: TSer,
-                         $empty: Boolean
+class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty: Boolean
 ) extends ChartView($controller, $mainSer, $empty) {
     
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
