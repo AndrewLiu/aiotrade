@@ -27,7 +27,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>AIOTrade Libs</name>
+    <name>AIOTrade Org Libs</name>
 
     <properties>
         <scala.version>2.8.0-SNAPSHOT</scala.version>

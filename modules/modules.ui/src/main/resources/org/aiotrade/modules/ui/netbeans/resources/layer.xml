@@ -291,6 +291,9 @@
     </folder>
 
     <folder name="Indicators">
+        <file name="VOL.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.VOLIndicator"/>
+        </file>
         <file name="MA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.MAIndicator"/>
         </file>
@@ -344,9 +347,6 @@
         </file>
         <file name="GMMA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.GMMAIndicator"/>
-        </file>
-        <file name="VOL.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.VOLIndicator"/>
         </file>
         <file name="ZIGZAG.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGIndicator"/>
