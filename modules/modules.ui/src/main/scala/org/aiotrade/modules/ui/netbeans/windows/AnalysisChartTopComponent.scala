@@ -104,7 +104,7 @@ object AnalysisChartTopComponent {
     val freq = quoteContract.freq
     if (standalone) {
       val instance = instanceRefs find {x => 
-        x.get.contents == contents && x.get.freq == freq
+        (x.get.contents eq contents) && x.get.freq == freq
       } map (_.get) getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {
@@ -119,7 +119,7 @@ object AnalysisChartTopComponent {
 
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
       val freq = quoteContract.freq
-      if (singleton.contents != contents || singleton.freq != freq) {
+      if ((singleton.contents ne contents) || (singleton.freq != freq)) {
         singleton.init(contents)
       }
 

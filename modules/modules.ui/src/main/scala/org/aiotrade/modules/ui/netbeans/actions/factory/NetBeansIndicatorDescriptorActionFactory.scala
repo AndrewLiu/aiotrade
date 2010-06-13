@@ -75,8 +75,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
     putValue(Action.NAME, "Show")
         
     def execute {
-            
-      descriptor.active = true;
+      descriptor.active = true
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
       for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
@@ -98,10 +97,10 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
             }
           }
           viewContainer.addSlaveView(descriptor, indicator, null)
-          viewContainer.repaint();
+          viewContainer.repaint()
         } else {
           viewContainer.addSlaveView(descriptor, indicator, null)
-          viewContainer.adjustViewsHeight(0);
+          viewContainer.adjustViewsHeight(0)
         }
 
         viewContainer.selectedView = view

@@ -49,7 +49,7 @@ class PickIndicatorAction extends CallableSystemAction {
     java.awt.EventQueue.invokeLater(new Runnable {
             
         def run {
-          val contents: AnalysisContents = AnalysisChartTopComponent.selected match {
+          val contents = AnalysisChartTopComponent.selected match {
             case None =>
               val symbolListWin = ExplorerTopComponent()
               val nodes = symbolListWin.getExplorerManager.getSelectedNodes
@@ -58,8 +58,7 @@ class PickIndicatorAction extends CallableSystemAction {
               } else {
                 return
               }
-            case Some(x) =>
-              x.viewContainer.controller.contents
+            case Some(x) => x.viewContainer.controller.contents
           }
                 
           SymbolNodes.occupantNodeOf(contents) foreach {secNode =>
