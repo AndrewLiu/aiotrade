@@ -80,30 +80,29 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
             
       for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
            viewContainer = analysisWin.viewContainer;
-           view <- viewContainer.lookupChartView(descriptor);
            indicator <- descriptor.serviceInstance(viewContainer.controller.baseSer)
       ) {
-        /*
-         * @NOTICE
-         * descriptor's opts may be set by this call
-         */
-        indicator ! ComputeFrom(0)
+        viewContainer.lookupChartView(descriptor) match {
+          case Some(view) => viewContainer.selectedView = view
+          case None =>
+            /* @Note descriptor's opts may be set by this call */
+            indicator ! ComputeFrom(0)
                     
-        if (indicator.isOverlapping) {
-          if (!LookFeel().isAllowMultipleIndicatorOnQuoteChartView) {
-            // hide previous overlapping indicator first if there is one
-            viewContainer.lookupIndicatorDescriptor(viewContainer.masterView) foreach {existedOne =>
-              existedOne.lookupAction(classOf[HideAction]).get.execute
+            if (indicator.isOverlapping) {
+              if (!LookFeel().isAllowMultipleIndicatorOnQuoteChartView) {
+                // hide previous overlapping indicator first if there is one
+                viewContainer.lookupIndicatorDescriptor(viewContainer.masterView) foreach {existedOne =>
+                  existedOne.lookupAction(classOf[HideAction]).get.execute
+                }
+              }
+              viewContainer.addSlaveView(descriptor, indicator, null)
+              viewContainer.repaint()
+            } else {
+              viewContainer.addSlaveView(descriptor, indicator, null)
+              viewContainer.adjustViewsHeight(0)
             }
-          }
-          viewContainer.addSlaveView(descriptor, indicator, null)
-          viewContainer.repaint()
-        } else {
-          viewContainer.addSlaveView(descriptor, indicator, null)
-          viewContainer.adjustViewsHeight(0)
         }
 
-        viewContainer.selectedView = view
         analysisWin.requestActive
       }
       

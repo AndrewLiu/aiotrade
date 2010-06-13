@@ -89,24 +89,24 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     def execute {
       val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
             
-      var nameToResult = HashMap[String, Object]()
+      var keyToResult = HashMap[String, Object]()
             
       val dialog = new PickIndicatorDialog(
         WindowManager.getDefault.getMainWindow,
         true,
-        nameToResult
+        keyToResult
       )
       dialog.setVisible(true)
             
-      if (nameToResult("Option").asInstanceOf[Int] != JOptionPane.OK_OPTION) {
+      if (keyToResult("Option").asInstanceOf[Int] != JOptionPane.OK_OPTION) {
         return
       }
 
       try {
-        val selectedIndicator = nameToResult("selectedIndicator").asInstanceOf[Indicator]
-        val multipleEnable    = nameToResult("multipleEnable").asInstanceOf[Boolean]
-        val nUnits            = nameToResult("nUnits").asInstanceOf[Int]
-        val unit              = nameToResult("unit").asInstanceOf[TUnit]
+        val selectedIndicator = keyToResult("selectedIndicator").asInstanceOf[Indicator]
+        val multipleEnable    = keyToResult("multipleEnable").asInstanceOf[Boolean]
+        val nUnits            = keyToResult("nUnits").asInstanceOf[Int]
+        val unit              = keyToResult("unit").asInstanceOf[TUnit]
         
         /**
          * setAllowMultipleIndicatorOnQuoteChartView in OptionManager, let
@@ -129,7 +129,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
               )
             case some => some
           }) foreach {descriptor =>
-          contents.lookupAction(classOf[SaveAction])   foreach {_.execute}
+          contents.  lookupAction(classOf[SaveAction]) foreach {_.execute}
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         }
       } catch {case _ => return}
