@@ -32,4 +32,19 @@ object Null {
   def not(v: Float)   = !java.lang.Float. isNaN(v)
   def not(v: Double)  = !java.lang.Double.isNaN(v)
   def not(v: Boolean) = v != Boolean
+
+  def getNullVal[T](implicit m: Manifest[T]): T = {
+    val value = m.toString match {
+      case "Byte"    => Null.Byte   // -128 ~ 127
+      case "Short"   => Null.Short  // -32768 ~ 32767
+      case "Char"    => Null.Char   // 0(\u0000) ~ 65535(\uffff)
+      case "Int"     => Null.Int    // -2,147,483,648 ~ 2,147,483,647
+      case "Long"    => Null.Long   // -9,223,372,036,854,775,808 ~ 9,223,372,036,854,775,807
+      case "Float"   => Null.Float
+      case "Double"  => Null.Double
+      case "Boolean" => Null.Boolean
+      case _ => null
+    }
+    value.asInstanceOf[T]
+  }
 }

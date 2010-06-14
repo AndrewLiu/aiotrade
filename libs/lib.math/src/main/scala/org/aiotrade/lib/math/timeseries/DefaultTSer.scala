@@ -355,7 +355,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   protected class SparseTVar[V: Manifest](name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
-    val values = new TStampedMapBasedList[V](timestamps)
+    // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
+    lazy val values = new TStampedMapBasedList[V](timestamps)
 
     def put(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
@@ -402,7 +403,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
     addVar(this.asInstanceOf[TVar[Any]])
 
-    private val colors = new TStampedMapBasedList[Color](timestamps)
+    // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
+    private lazy val colors = new TStampedMapBasedList[Color](timestamps)
 
     def timestamps = DefaultTSer.this.timestamps
 
