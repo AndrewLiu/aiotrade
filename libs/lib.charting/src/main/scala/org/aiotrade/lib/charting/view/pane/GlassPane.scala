@@ -70,6 +70,7 @@ import org.aiotrade.lib.util.swing.AIOCloseButton
 import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
 import scala.collection.mutable.HashMap
+import scala.actors.Actor._
 
 
 /**
@@ -97,7 +98,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   private var instantValueLabel: JLabel = _
   private var _isUsingInstantTitleValue: Boolean = _
 
-
   setOpaque(false)
   setRenderStrategy(RenderStrategy.NoneBuffer)
 
@@ -122,46 +122,52 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   titlePanel.add(nameLabel)
   //titlePanel.add(pinnedMark)
 
+  case object UpdateTitlePanel
+  case object UpdateValues
+  private val updateActor = actor {
+    loop {
+      react {
+        case UpdateTitlePanel =>
+          updateMainName
+          updateOverlappingNames
+          if (!isUsingInstantTitleValue) {
+            updateSelectedSerVarValues
+          }
+
+          titlePanel.revalidate
+          titlePanel.repaint()
+        case UpdateValues =>
+          if (!isUsingInstantTitleValue) {
+            updateSelectedSerVarValues
+            
+            titlePanel.revalidate
+            titlePanel.repaint()
+          }
+      }
+    }
+  }
+
+
+
   val paneMouseListener = new PaneMouseInputAdapter
   addMouseListener(paneMouseListener)
   addMouseMotionListener(paneMouseListener)
 
   view.controller.addObserver(this, new ReferCursorObserver {
       val updater: Updater = {
-        case _: ChartingController =>
-          if (!isUsingInstantTitleValue) {
-            updateSelectedSerVarValues
-            titlePanel.revalidate
-            titlePanel.repaint()
-          }
+        case _: ChartingController => updateActor ! UpdateValues
       }
     })
 
   view.controller.addObserver(this, new ChartValidityObserver {
       val updater: Updater = {
-        case _: ChartingController =>
-          updateMainName
-          updateOverlappingNames
-          if (!isUsingInstantTitleValue) {
-            updateSelectedSerVarValues
-          }
-
-          titlePanel.revalidate
-          titlePanel.repaint()
+        case _: ChartingController => updateActor ! UpdateTitlePanel
       }
     })
 
   view.addObserver(this, new ChartValidityObserver {
       val updater: Updater = {
-        case _: ChartView =>
-          updateMainName
-          updateOverlappingNames
-          if (!isUsingInstantTitleValue) {
-            updateSelectedSerVarValues
-          }
-
-          titlePanel.revalidate
-          titlePanel.repaint()
+        case _: ChartView => updateActor ! UpdateTitlePanel
       }
     })
 
@@ -292,8 +298,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     //        }
   }
 
-  // should synchronized this method
-  private def updateOverlappingNames: Unit = overlappingSerToNameLabel synchronized {
+  // should synchronized this method or call via an updateActor
+  private def updateOverlappingNames {
     val overlappingSers = view.overlappingSers
 
     /** remove unused ser's buttons and labels */
@@ -445,16 +451,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     val oldOne = _selectedSer
     _selectedSer = selectedSer
     if (selectedSer ne oldOne) {
-      // update selected mark
-      updateMainName
-      updateOverlappingNames
-      if (!isUsingInstantTitleValue) {
-        // update value labels
-        updateSelectedSerVarValues
-      }
-      
-      titlePanel.revalidate
-      titlePanel.repaint()
+      // update selected mark and value labels
+      updateActor ! UpdateTitlePanel
     }
   }
 
