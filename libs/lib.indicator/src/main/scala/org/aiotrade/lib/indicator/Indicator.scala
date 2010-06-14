@@ -57,70 +57,6 @@ object Indicator {
   final protected def getInstance[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
     AbstractFunction.getInstance(clazz, baseSer, args: _*)
   }
-
-  // ----- Functions for test
-  final protected def crossOver(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
-    if (idx > 0) {
-      if (var1(idx) >= var2(idx) &&
-          var1(idx - 1) < var2(idx - 1)) {
-        return true
-      }
-    }
-    false
-  }
-
-  final protected def crossOver(idx: Int, var1: TVar[Float], value:Float): Boolean = {
-    if (idx > 0) {
-      if (var1(idx) >= value &&
-          var1(idx - 1) < value) {
-        return true
-      }
-    }
-    false
-  }
-
-  final protected def crossUnder(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
-    if (idx > 0) {
-      if (var1(idx) < var2(idx) &&
-          var1(idx - 1) >= var2(idx - 1)) {
-        return true
-      }
-    }
-    false
-  }
-
-  final protected def crossUnder(idx: Int, var1: TVar[Float], value: Float): Boolean = {
-    if (idx > 0) {
-      if (var1(idx) < value &&
-          var1(idx - 1) >= value) {
-        true
-      }
-    }
-    false
-  }
-
-  final protected def turnUp(idx: Int, var1: TVar[Float]): Boolean = {
-    if (idx > 1) {
-      if (var1(idx) > var1(idx - 1) &&
-          var1(idx - 1) <= var1(idx - 2)) {
-        return true
-      }
-    }
-    false
-  }
-
-  final protected def turnDown(idx: Int, var1: TVar[Float]): Boolean = {
-    if (idx > 1) {
-      if (var1(idx) < var1(idx - 1) &&
-          var1(idx - 1) >= var1(idx - 2)) {
-        return true
-      }
-    }
-    false
-  }
-
-  // ----- End of functions for test
-
 }
 
 import Indicator._
@@ -270,6 +206,69 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
    * Functions
    * ----------------------------------------------------------------------
    */
+
+  // ----- Functions for test
+  final protected def crossOver(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
+    if (idx > 0) {
+      if (var1(idx) >= var2(idx) &&
+          var1(idx - 1) < var2(idx - 1)) {
+        return true
+      }
+    }
+    false
+  }
+
+  final protected def crossOver(idx: Int, var1: TVar[Float], value:Float): Boolean = {
+    if (idx > 0) {
+      if (var1(idx) >= value &&
+          var1(idx - 1) < value) {
+        return true
+      }
+    }
+    false
+  }
+
+  final protected def crossUnder(idx: Int, var1: TVar[Float], var2: TVar[Float]): Boolean = {
+    if (idx > 0) {
+      if (var1(idx) < var2(idx) &&
+          var1(idx - 1) >= var2(idx - 1)) {
+        return true
+      }
+    }
+    false
+  }
+
+  final protected def crossUnder(idx: Int, var1: TVar[Float], value: Float): Boolean = {
+    if (idx > 0) {
+      if (var1(idx) < value &&
+          var1(idx - 1) >= value) {
+        true
+      }
+    }
+    false
+  }
+
+  final protected def turnUp(idx: Int, var1: TVar[Float]): Boolean = {
+    if (idx > 1) {
+      if (var1(idx) > var1(idx - 1) &&
+          var1(idx - 1) <= var1(idx - 2)) {
+        return true
+      }
+    }
+    false
+  }
+
+  final protected def turnDown(idx: Int, var1: TVar[Float]): Boolean = {
+    if (idx > 1) {
+      if (var1(idx) < var1(idx - 1) &&
+          var1(idx - 1) >= var1(idx - 2)) {
+        return true
+      }
+    }
+    false
+  }
+
+  // ----- End of functions for test
     
   final protected def sum(idx: Int, baseVar: TVar[_], period: Factor): Float = {
     getInstance(classOf[SUMFunction], baseSer, baseVar, period).sum(sessionId, idx)

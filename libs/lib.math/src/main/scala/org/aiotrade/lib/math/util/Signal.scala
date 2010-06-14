@@ -34,15 +34,12 @@ package org.aiotrade.lib.math.util
  *
  * @author Caoyuan Deng
  */
-class Signal(idx: Int, time: Long, val value: Float, val sign: Sign, val name: String) extends Number {
+case class Signal(idx: Int, time: Long, value: Float, sign: Sign, name: String) extends Number {
 
-  def doubleValue: Double = value.asInstanceOf[Double]
-
-  def floatValue = value
-
-  def intValue: Int = value.asInstanceOf[Int]
-
-  def longValue: Long = value.asInstanceOf[Long]
+  def floatValue: Float = value
+  def doubleValue: Double = value.toDouble
+  def intValue: Int = value.toInt
+  def longValue: Long = value.toLong
 }
 
 

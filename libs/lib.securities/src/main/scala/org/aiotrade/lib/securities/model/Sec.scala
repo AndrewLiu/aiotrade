@@ -122,8 +122,8 @@ object Sec {
 
   val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
 
-  val minuteQuotesTobeClosed = new ArrayList[Quote]()
-  val minuteMoneyFlowsTobeClosed = new ArrayList[MoneyFlow]()
+  val minuteQuotesToClose = new ArrayList[Quote]()
+  val minuteMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 }
 
 import Sec._
@@ -507,7 +507,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
-          minuteQuotesTobeClosed += prevOne
+          minuteQuotesToClose += prevOne
         }
 
         val newone = new Quote
@@ -529,7 +529,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       case prevOne => // minute changes or null
         if (prevOne != null) {
           prevOne.closed_!
-          minuteMoneyFlowsTobeClosed += prevOne
+          minuteMoneyFlowsToClose += prevOne
         }
 
         val newone = new MoneyFlow
