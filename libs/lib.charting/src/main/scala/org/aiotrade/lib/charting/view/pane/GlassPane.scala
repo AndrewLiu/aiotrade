@@ -132,6 +132,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         case _: ChartingController =>
           if (!isUsingInstantTitleValue) {
             updateSelectedSerVarValues
+            titlePanel.revalidate
+            titlePanel.repaint()
           }
       }
     })
@@ -144,6 +146,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           if (!isUsingInstantTitleValue) {
             updateSelectedSerVarValues
           }
+
+          titlePanel.revalidate
+          titlePanel.repaint()
       }
     })
 
@@ -155,6 +160,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           if (!isUsingInstantTitleValue) {
             updateSelectedSerVarValues
           }
+
+          titlePanel.revalidate
+          titlePanel.repaint()
       }
     })
 
@@ -270,9 +278,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     nameLabel.setFont(LookFeel().axisFont)
     nameLabel.setText(Indicator.displayName(view.mainSer))
 
-    titlePanel.revalidate
-    titlePanel.repaint()
-
     /** name of comparing quote */
     //        if ( view instanceof AnalysisQuoteChartView) {
     //            final FontMetrics fm = getFontMetrics(getFont());
@@ -339,9 +344,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       label.setFont(LookFeel().axisFont)
       label.setText(Indicator.displayName(ser))
     }
-
-    titlePanel.revalidate
-    titlePanel.repaint()
   }
 
   /**
@@ -405,9 +407,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       }
 
     }
-
-    titlePanel.revalidate
-    titlePanel.repaint()
   }
 
   def updateInstantValue(valueStr: String, color: Color) {
@@ -454,6 +453,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       if (!isUsingInstantTitleValue) {
         updateSelectedSerVarValues
       }
+
+      titlePanel.revalidate
+      titlePanel.repaint()
     }
   }
 
