@@ -273,14 +273,17 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = freq match {
     case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
         case None => serOf(freq) match {
-            case Some(quoteSer) => Some(new MoneyFlowSer(quoteSer))
+            case Some(quoteSer) => 
+              val x = new MoneyFlowSer(quoteSer)
+              freqToMoneyFlowSer.put(freq, x)
+              Some(x)
             case None => None
           }
-        case x => x
+        case some => some
       }
     case _ => freqToMoneyFlowSer.get(freq) match {
         case None => None // @todo createCombinedSer(freq)
-        case x => x
+        case some => some
       }
   }
   
