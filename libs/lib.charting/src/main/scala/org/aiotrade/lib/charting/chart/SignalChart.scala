@@ -74,31 +74,32 @@ class SignalChart extends AbstractChart {
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
-                
-        val signal = m.v(time)
-        if (signal != null) {
-          val value = signal.value
-          if (Null.not(value)) {
-            val x = xb(bar)
-            val y = yv(value)
+        if (ser.exists(time)) {
+          val signal = m.v(time)
+          if (signal ne null) {
+            val value = signal.value
+            if (Null.not(value)) {
+              val x = xb(bar)
+              val y = yv(value)
                         
-            signal.sign match {
-              case Sign.EnterLong =>
-                template.setForeground(color)
-                template.model.set(x, y + 3, true, false)
-              case Sign.ExitLong =>
-                template.setForeground(color)
-                template.model.set(x, y - 3, false, false)
-              case Sign.EnterShort =>
-                template.setForeground(color)
-                template.model.set(x, y + 3, false, false)
-              case Sign.ExitShort =>
-                template.setForeground(color)
-                template.model.set(x, y - 3, true, false)
-              case _ =>
+              signal.sign match {
+                case Sign.EnterLong =>
+                  template.setForeground(color)
+                  template.model.set(x, y + 3, true, false)
+                case Sign.ExitLong =>
+                  template.setForeground(color)
+                  template.model.set(x, y - 3, false, false)
+                case Sign.EnterShort =>
+                  template.setForeground(color)
+                  template.model.set(x, y + 3, false, false)
+                case Sign.ExitShort =>
+                  template.setForeground(color)
+                  template.model.set(x, y - 3, true, false)
+                case _ =>
+              }
+              template.plot
+              heavyPathWidget.appendFrom(template)
             }
-            template.plot
-            heavyPathWidget.appendFrom(template)
           }
         }
 
