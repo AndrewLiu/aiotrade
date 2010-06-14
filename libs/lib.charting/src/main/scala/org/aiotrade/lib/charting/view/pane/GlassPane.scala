@@ -289,12 +289,26 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   }
 
   final private def updateOverlappingNames {
-    var begIdx = 2
     val overlappingSers = view.overlappingSers
+
+    /** remove unused ser's buttons and labels */
+    val toBeRemoved = overlappingSersToCloseButton.keysIterator filter {ser => !overlappingSers.contains(ser)}
+    for (ser <- toBeRemoved) {
+      val button = overlappingSersToCloseButton(ser)
+      val label = overlappingSersToNameLabel(ser)
+      AWTUtil.removeAllAWTListenersOf(button)
+      AWTUtil.removeAllAWTListenersOf(label)
+      titlePanel.remove(button)
+      titlePanel.remove(label)
+      overlappingSersToCloseButton.remove(ser)
+      overlappingSersToNameLabel.remove(ser)
+    }
+
+    var idx = 2
     for (ser <- overlappingSers) {
       val (button, label) = (overlappingSersToCloseButton.get(ser), overlappingSersToNameLabel.get(ser)) match {
         case (Some(button), Some(label)) =>
-          begIdx += 2
+          idx += 2
 
           (button, label)
           
@@ -302,10 +316,10 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           val button = createCloseButton(ser)
           val label  = createNameLabel(ser)
 
-          titlePanel.add(button, begIdx)
-          begIdx += 1
-          titlePanel.add(label, begIdx)
-          begIdx += 1
+          titlePanel.add(button, idx)
+          idx += 1
+          titlePanel.add(label, idx)
+          idx += 1
           overlappingSersToCloseButton.put(ser, button)
           overlappingSersToNameLabel.put(ser, label)
           
@@ -326,19 +340,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       label.setText(Indicator.displayName(ser))
     }
 
-    /** remove unused ser's buttons and labels */
-    val toBeRemoved = overlappingSersToCloseButton.keysIterator filter {ser => !overlappingSers.contains(ser)}
-    for (ser <- toBeRemoved) {
-      val button = overlappingSersToCloseButton(ser)
-      val label = overlappingSersToNameLabel(ser)
-      AWTUtil.removeAllAWTListenersOf(button)
-      AWTUtil.removeAllAWTListenersOf(label)
-      titlePanel.remove(button)
-      titlePanel.remove(label)
-      overlappingSersToCloseButton.remove(ser)
-      overlappingSersToNameLabel.remove(ser)
-    }
-
     titlePanel.revalidate
     titlePanel.repaint()
   }
@@ -356,6 +357,19 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     val referTime = view.controller.referCursorTime
     if (ser.exists(referTime)) {
       val serVars = ser.vars
+
+      /** remove unused vars and their labels */
+      val toRemove = selectedSerVarsToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
+      for (v <- toRemove) {
+        val label = selectedSerVarsToValueLabel(v)
+        // label maybe null? not init yet?
+        if (label != null) {
+          AWTUtil.removeAllAWTListenersOf(label)
+          titlePanel.remove(label)
+        }
+        selectedSerVarsToValueLabel.remove(v)
+      }
+
       for (v <- serVars if v.plot != Plot.None;
            value = v.float(referTime) if Null.not(value)
       ) {
@@ -364,9 +378,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         /** lookup this var's chart and use chart's color if possible */
         var chartOfVar: Chart = null
         val chartToVars = view.chartMapVars(ser)
-        val keys = chartToVars.keysIterator
-        while (keys.hasNext && chartOfVar != null) {
-          val chart = keys.next
+        val charts = chartToVars.keysIterator
+        while (charts.hasNext && chartOfVar != null) {
+          val chart = charts.next
           chartToVars.get(chart) foreach {vars =>
             if (vars.contains(v)) chartOfVar = chart
           }
@@ -390,17 +404,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         valueLabel.setText(vStr)
       }
 
-      /** remove unused vars and their labels */
-      val toRemove = selectedSerVarsToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
-      for (v <- toRemove) {
-        val label = selectedSerVarsToValueLabel(v)
-        // label maybe null? not init yet?
-        if (label != null) {
-          AWTUtil.removeAllAWTListenersOf(label)
-          titlePanel.remove(label)
-        }
-        selectedSerVarsToValueLabel.remove(v)
-      }
     }
 
     titlePanel.revalidate
