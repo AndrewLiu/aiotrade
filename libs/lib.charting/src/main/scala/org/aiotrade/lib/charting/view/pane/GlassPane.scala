@@ -91,9 +91,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   private val MONEY_DECIMAL_FORMAT = new DecimalFormat("0.###")
 } with Pane($view, $datumPlane) with WithCursorChart {
 
-  private val overlappingSersToCloseButton = new HashMap[TSer, AIOCloseButton]
-  private val overlappingSersToNameLabel = new HashMap[TSer, JLabel]
-  private val selectedSerVarsToValueLabel = new HashMap[TVar[_], JLabel]
+  private val overlappingSerToNameLabel = new HashMap[TSer, (AIOCloseButton, JLabel)]
+  private val selectedSerVarToValueLabel = new HashMap[TVar[_], JLabel]
   private var _isSelected: Boolean = _
   private var instantValueLabel: JLabel = _
   private var _isUsingInstantTitleValue: Boolean = _
@@ -121,7 +120,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0))
   titlePanel.add(closeButton)
   titlePanel.add(nameLabel)
-  //titlePanel.add(pinnedMark);
+  //titlePanel.add(pinnedMark)
 
   val paneMouseListener = new PaneMouseInputAdapter
   addMouseListener(paneMouseListener)
@@ -204,7 +203,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         }
       })
 
-    return button
+    button
   }
 
   private def createNameLabel(ser: TSer): JLabel = {
@@ -293,16 +292,15 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     //        }
   }
 
-  final private def updateOverlappingNames {
+  // should synchronized this method
+  private def updateOverlappingNames: Unit = overlappingSerToNameLabel synchronized {
     val overlappingSers = view.overlappingSers
 
     /** remove unused ser's buttons and labels */
-    val toRemove = overlappingSersToCloseButton.keysIterator filter {ser => !overlappingSers.contains(ser)}
+    val toRemove = overlappingSerToNameLabel.keysIterator filter {ser => !overlappingSers.contains(ser)}
     for (ser <- toRemove) {
-      val button = overlappingSersToCloseButton(ser)
-      val label = overlappingSersToNameLabel(ser)
-      overlappingSersToCloseButton.remove(ser)
-      overlappingSersToNameLabel.remove(ser)
+      val (button, label) = overlappingSerToNameLabel(ser)
+      overlappingSerToNameLabel.remove(ser)
       AWTUtil.removeAllAWTListenersOf(button)
       AWTUtil.removeAllAWTListenersOf(label)
       titlePanel.remove(button)
@@ -311,22 +309,21 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
     var idx = 2
     for (ser <- overlappingSers) {
-      val (button, label) = (overlappingSersToCloseButton.get(ser), overlappingSersToNameLabel.get(ser)) match {
-        case (Some(button), Some(label)) =>
+      val (button, label) = overlappingSerToNameLabel.get(ser) match {
+        case Some((button, label)) =>
           idx += 2
 
           (button, label)
           
         case _ =>
           val button = createCloseButton(ser)
-          val label  = createNameLabel(ser)
+          val label = createNameLabel(ser)
 
           titlePanel.add(button, idx)
           idx += 1
           titlePanel.add(label, idx)
           idx += 1
-          overlappingSersToCloseButton.put(ser, button)
-          overlappingSersToNameLabel.put(ser, label)
+          overlappingSerToNameLabel.put(ser, (button, label))
           
           (button, label)
       }
@@ -361,10 +358,10 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       val serVars = ser.vars
 
       /** remove unused vars and their labels */
-      val toRemove = selectedSerVarsToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
+      val toRemove = selectedSerVarToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
       for (v <- toRemove) {
-        val label = selectedSerVarsToValueLabel(v)
-        selectedSerVarsToValueLabel.remove(v)
+        val label = selectedSerVarToValueLabel(v)
+        selectedSerVarToValueLabel.remove(v)
         // label maybe null? not init yet?
         if (label != null) {
           AWTUtil.removeAllAWTListenersOf(label)
@@ -389,14 +386,14 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         }
         val color = if (chartOfVar eq null) LookFeel().nameColor else chartOfVar.getForeground
 
-        val valueLabel = selectedSerVarsToValueLabel.get(v) getOrElse {
+        val valueLabel = selectedSerVarToValueLabel.get(v) getOrElse {
           val x = new JLabel
           x.setOpaque(false)
           x.setHorizontalAlignment(SwingConstants.LEADING)
           x.setPreferredSize(null) // null, let the UI delegate to decide the size
 
           titlePanel.add(x)
-          selectedSerVarsToValueLabel.put(v, x)
+          selectedSerVarToValueLabel.put(v, x)
           x
         }
 
@@ -445,15 +442,17 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
   private def selectedSer = _selectedSer
   private def selectedSer_=(selectedSer: TSer) {
-    val oldOne = selectedSer
-    this._selectedSer = selectedSer
+    val oldOne = _selectedSer
+    _selectedSer = selectedSer
     if (selectedSer ne oldOne) {
+      // update selected mark
       updateMainName
       updateOverlappingNames
       if (!isUsingInstantTitleValue) {
+        // update value labels
         updateSelectedSerVarValues
       }
-
+      
       titlePanel.revalidate
       titlePanel.repaint()
     }
