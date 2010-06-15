@@ -34,6 +34,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import javax.swing.text.DateFormatter
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -68,8 +69,9 @@ object ContentsPersistenceHandler {
         buffer.append("primaryexchange=\"" + dataContract.primaryExchange + "\" ")
         buffer.append("currency=\"" + dataContract.currency + "\" ")
         dataContract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
-        buffer.append("nunits=\"" + dataContract.freq.nUnits + "\" ")
-        buffer.append("unit=\"" + dataContract.freq.unit + "\" ")
+        // always store daily freq for datacontract
+        buffer.append("nunits=\"" + TFreq.DAILY.nUnits + "\" ")
+        buffer.append("unit=\"" + TFreq.DAILY.unit + "\" ")
         buffer.append("refreshable=\"" + dataContract.refreshable + "\" ")
         buffer.append("refreshinterval=\"" + dataContract.refreshInterval + "\" ")
         try {
