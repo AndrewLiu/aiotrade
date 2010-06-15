@@ -128,7 +128,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         }
       }
     } else {
-      SymbolNodes.occupantNodeOf(contents) foreach {node =>
+      SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
         /** refresh node's icon in explorer window */
         val children = node.getChildren
         for (child <- children.getNodes) {
@@ -144,7 +144,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
           out = new PrintStream(writeTo.getOutputStream(lock))
           out.print(ContentsPersistenceHandler.dumpContents(contents))
-        } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)} finally {
+        } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
           /** should remember to do out.close() here */
           if (out  != null) out.close
           if (lock != null) lock.releaseLock

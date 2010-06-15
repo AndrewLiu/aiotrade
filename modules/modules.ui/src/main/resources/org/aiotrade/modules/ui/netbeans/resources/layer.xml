@@ -354,6 +354,9 @@
         <!--file name="ZIGZAGFA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGFAIndicator"/>
         </file-->
+        <file name="MACDSignal.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.MACDSignal"/>
+        </file>
     </folder>
 
     <folder name="QuickSearch">

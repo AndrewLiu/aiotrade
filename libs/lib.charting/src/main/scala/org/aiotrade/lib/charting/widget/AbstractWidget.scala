@@ -266,7 +266,7 @@ abstract class AbstractWidget extends Widget {
     g.clip(bounds)
 
     val clipBounds = g.getClipBounds
-    if (intersects(clipBounds) || clipBounds.contains(bounds)) {
+    if (intersects(clipBounds) || clipBounds.contains(bounds) || bounds.height == 1 || bounds.width == 1) {
       if (isOpaque) {
         g.setPaint(getBackground)
         g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
@@ -280,9 +280,9 @@ abstract class AbstractWidget extends Widget {
     g.setTransform(backupTransform)
   }
     
-  protected def renderWidget(g: Graphics): Unit
+  protected def renderWidget(g: Graphics)
     
-  protected def renderChildren(g0: Graphics): Unit = {
+  protected def renderChildren(g0: Graphics) {
     if (children == null) {
       return
     }
@@ -291,20 +291,17 @@ abstract class AbstractWidget extends Widget {
         
     val clipBounds = g.getClipBounds
     for (child <- children) {
-      if (!child.intersects(clipBounds) && !clipBounds.contains(child.getBounds)) {
-      } else {
+      if (child.intersects(clipBounds) || clipBounds.contains(child.getBounds) || child.getBounds.height == 1 || child.getBounds.width == 1) {
         child match {
           case x: PathWidget =>
             if (renderColorsWithPathBuf == null) {
               renderColorsWithPathBuf = new HashMap[Color, GeneralPath]
             }
             val color = child.getForeground
-            val renderPathBuf = renderColorsWithPathBuf.get(color) match {
-              case None =>
-                val renderPathBufx = borrowPath
-                renderColorsWithPathBuf.put(color, renderPathBufx)
-                renderPathBufx
-              case Some(x) => x
+            val renderPathBuf = renderColorsWithPathBuf.get(color) getOrElse {
+              val renderPathBufx = borrowPath
+              renderColorsWithPathBuf.put(color, renderPathBufx)
+              renderPathBufx
             }
                 
             val path = x.getPath

@@ -117,7 +117,7 @@ import org.xml.sax.SAXException;
  */
 object SymbolNodes {
 
-  private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif");
+  private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif")
 
   private var contentToOccuptantNode = Map[AnalysisContents, Node]()
 
@@ -126,7 +126,7 @@ object SymbolNodes {
   }
 
   def occupiedContentsOf(node: Node): Option[AnalysisContents] = {
-    contentToOccuptantNode find {case (contents, aNode) => aNode == node} map (_._1)
+    contentToOccuptantNode find {case (contents, aNode) => (aNode eq node)} map (_._1)
   }
 
   def contentsOf(symbol: String): Option[AnalysisContents] = {

@@ -51,9 +51,7 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-class IndicatorChartView($controller: ChartingController,
-                         $mainSer: TSer,
-                         $empty: Boolean
+class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty: Boolean
 ) extends ChartView($controller, $mainSer, $empty) {
     
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)
@@ -134,21 +132,22 @@ class IndicatorChartView($controller: ChartingController,
         
     for (ser <- allSers) {
       /** add charts */
-      for (v <- ser.vars;
-           chart = ChartFactory.createVarChart(v) if chart != null
-      ) {
-        val chartVars = new HashSet[TVar[_]]
-        mainSerChartToVars.put(chart, chartVars += v)
+      for (v <- ser.vars) {
+        val chart = ChartFactory.createVarChart(v)
+        if (chart != null) {
+          val vars = HashSet[TVar[_]](v)
+          mainSerChartToVars.put(chart, vars)
                     
-        chart match {
-          case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
-          case _: ProfileChart => chart.depth = depthGradient; depthGradient -= 1
-          case _: StickChart => chart.depth = -8
-          case _ => chart.depth = depth; depth += 1
-        }
+          chart match {
+            case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
+            case _: ProfileChart => chart.depth = depthGradient; depthGradient -= 1
+            case _: StickChart => chart.depth = -8
+            case _ => chart.depth = depth; depth += 1
+          }
 
-        chart.set(mainChartPane, ser)
-        mainChartPane.putChart(chart)
+          chart.set(mainChartPane, ser)
+          mainChartPane.putChart(chart)
+        }
       }
             
       /** plot grid */
@@ -165,9 +164,10 @@ class IndicatorChartView($controller: ChartingController,
   }
     
   override def computeMaxMin {
-    var minValue1 = +Float.MaxValue
-    var maxValue1 = -Float.MaxValue
-        
+    var minValue1 = Float.MaxValue
+    var maxValue1 = Float.MinValue
+
+    var shouldMinBeZero = false
     var i = 1
     while (i <= nBars) {
       val time = tb(i)
@@ -175,6 +175,9 @@ class IndicatorChartView($controller: ChartingController,
         for (v <- mainSer.vars if v.plot != Plot.None;
              value = v.float(time) if Null.not(value)
         ) {
+          if (v.plot == Plot.Volume) {
+            shouldMinBeZero = true
+          }
           maxValue1 = math.max(maxValue1, value)
           minValue1 = math.min(minValue1, value)
         }
@@ -183,10 +186,9 @@ class IndicatorChartView($controller: ChartingController,
       i += 1
     }
         
-    if (maxValue1 == minValue1) {
-      maxValue1 += 1
-    }
-        
+    if (maxValue1 == minValue1) maxValue1 += 1
+    if (shouldMinBeZero) minValue1 = 0
+
     setMaxMinValue(maxValue1, minValue1)
   }
     

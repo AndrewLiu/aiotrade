@@ -52,7 +52,7 @@ import scala.collection.mutable.HashMap
  */
 abstract class ChartViewContainer extends JPanel {
 
-  private val descriptorsToSlaveView = new HashMap[IndicatorDescriptor, ChartView]
+  private val descriptorToSlaveView = new HashMap[IndicatorDescriptor, ChartView]
   private var _controller: ChartingController = _
   private var _masterView: ChartView = _
   /**
@@ -95,7 +95,7 @@ abstract class ChartViewContainer extends JPanel {
   def isInteractive_=(b: Boolean) {
     _masterView.isInteractive = b
 
-    for (view <- descriptorsToSlaveView.valuesIterator) {
+    for (view <- descriptorToSlaveView.valuesIterator) {
       view.isInteractive = b
     }
 
@@ -130,7 +130,7 @@ abstract class ChartViewContainer extends JPanel {
 
     var numSlaveViews = 0
     var sumSlaveViewsHeight = 0f
-    for (view <- descriptorsToSlaveView.valuesIterator if view != masterView) {
+    for (view <- descriptorToSlaveView.valuesIterator if view != masterView) {
       /** overlapping view is also in masterView, should ignor it */
       sumSlaveViewsHeight += view.getHeight
       numSlaveViews += 1
@@ -155,7 +155,7 @@ abstract class ChartViewContainer extends JPanel {
      */
     gbl.setConstraints(_masterView, gbc)
     _masterView.setSize(new Dimension(_masterView.getWidth, gbc.weighty.toInt))
-    for (view <- descriptorsToSlaveView.valuesIterator if view ne masterView) {
+    for (view <- descriptorToSlaveView.valuesIterator if view ne masterView) {
       /** average assigning */
       gbc.weighty = (sumSlaveViewsHeight - adjustHeight) / numSlaveViews
       /*-
@@ -180,7 +180,7 @@ abstract class ChartViewContainer extends JPanel {
 
   def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, agbc: GridBagConstraints) {
     var gbc = agbc
-    if (!descriptorsToSlaveView.contains(descriptor)) {
+    if (!descriptorToSlaveView.contains(descriptor)) {
       var view: ChartView = null
       if (indicator.isOverlapping) {
         view = masterView
@@ -194,7 +194,7 @@ abstract class ChartViewContainer extends JPanel {
         }
         add(view, gbc)
       }
-      descriptorsToSlaveView.put(descriptor, view)
+      descriptorToSlaveView.put(descriptor, view)
       selectedView = view
     }
   }
@@ -210,10 +210,10 @@ abstract class ChartViewContainer extends JPanel {
         repaint()
       case None =>
     }
-    descriptorsToSlaveView.remove(descriptor)
+    descriptorToSlaveView.remove(descriptor)
   }
 
-  def slaveViews = descriptorsToSlaveView.valuesIterator
+  def slaveViews = descriptorToSlaveView.valuesIterator
 
   def selectedView: ChartView = _selectedView
   def selectedView_=(view: ChartView) {
@@ -250,15 +250,15 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   def lookupIndicatorDescriptor(view: ChartView): Option[IndicatorDescriptor] = {
-    descriptorsToSlaveView find {case (descriptor, aView) => aView != null && aView == view} map (_._1)
+    descriptorToSlaveView find {case (descriptor, aView) => (aView ne null) && (aView eq view)} map (_._1)
   }
 
   def lookupChartView(descriptor: IndicatorDescriptor): Option[ChartView] = {
-    descriptorsToSlaveView.get(descriptor)
+    descriptorToSlaveView.get(descriptor)
   }
 
   def getDescriptorsWithSlaveView: HashMap[IndicatorDescriptor, ChartView] = {
-    descriptorsToSlaveView
+    descriptorToSlaveView
   }
 
   def getFocusableParent: Component = {
@@ -339,7 +339,7 @@ abstract class ChartViewContainer extends JPanel {
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    descriptorsToSlaveView.clear
+    descriptorToSlaveView.clear
     super.finalize
   }
 }

@@ -433,14 +433,13 @@ abstract class ChartView(protected var _controller: ChartingController,
     val chartVarsMap = new LinkedHashMap[Chart, HashSet[TVar[_]]]
     overlappingSerChartToVars += (ser -> chartVarsMap)
 
-    var depthGradient = Pane.DEPTH_GRADIENT_BEGIN;
+    var depthGradient = Pane.DEPTH_GRADIENT_BEGIN
 
     for (v <- ser.vars) {
-      
       val chart = ChartFactory.createVarChart(v)
       if (chart != null) {
-        val chartVars = new HashSet[TVar[_]]
-        chartVarsMap.put(chart, chartVars += v)
+        val vars = HashSet[TVar[_]](v)
+        chartVarsMap.put(chart, vars)
 
         chart.set(mainChartPane, ser)
 

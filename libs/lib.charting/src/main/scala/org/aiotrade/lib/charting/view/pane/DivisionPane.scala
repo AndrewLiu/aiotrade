@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.view.pane
 import java.awt.Cursor
+import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
@@ -41,24 +42,27 @@ import org.aiotrade.lib.charting.widget.PathWidget
 
 
 /**
+ * We use a divisionPane instead of adding a mouse listener to other components,
+ * because that we can easily define the dragged dy by compute the e.getY.
+ * @see mouseDragged
  *
  * @author Caoyuan Deng
  */
-class DivisionPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, adatumPlane) {
+class DivisionPane($view: ChartView, $datumPlane: DatumPlane) extends Pane($view, $datumPlane) {
   setOpaque(true)
   setRenderStrategy(RenderStrategy.NoneBuffer)
   setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR))
         
-  private var myMouseAdapter = new MyMouseAdapter
-  addMouseMotionListener(myMouseAdapter)
-  addMouseListener(myMouseAdapter)
+  private var divisionMouseAdapter = new DivisionMouseAdapter
+  addMouseMotionListener(divisionMouseAdapter)
+  addMouseListener(divisionMouseAdapter)
 
   /**
    * @Notice:
    * It seems horizontal or vertical line won't be painted by widger#renter because of not intersect.
    * But, I'll leave it as it, since I won't draw a real line now. We'll process border by chart pane itself.
    */
-  protected def plotPane_old = {
+  override protected def plotPane {
     val pathWidget = addWidget(new PathWidget)
     pathWidget.setForeground(LookFeel().borderColor)
     val path = pathWidget.getPath
@@ -70,37 +74,36 @@ class DivisionPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    if (myMouseAdapter != null) {
-      removeMouseListener(myMouseAdapter)
-      removeMouseMotionListener(myMouseAdapter)
+    if (divisionMouseAdapter != null) {
+      removeMouseListener(divisionMouseAdapter)
+      removeMouseMotionListener(divisionMouseAdapter)
     }
         
     super.finalize
   }
     
-  class MyMouseAdapter extends MouseAdapter with MouseMotionListener {
+  class DivisionMouseAdapter extends MouseAdapter with MouseMotionListener {
     private var readyToDrag = false
-    private var yMousePressed: Int = _
+    private var startPos: Point = _
         
     override def mousePressed(e: MouseEvent) {
-      yMousePressed = e.getY
-            
+      startPos = e.getPoint
       readyToDrag = true
     }
         
     override def mouseDragged(e: MouseEvent) {
-      if (!(view.getParent.isInstanceOf[ChartViewContainer])) {
+      if (!view.getParent.isInstanceOf[ChartViewContainer]) {
         return
       }
             
       val viewContainer = view.getParent.asInstanceOf[ChartViewContainer]
       if (readyToDrag) {
-        /** as this pane only 1 point height, the yMoved will always be e.getY() */
-        val yMoved = e.getY
-        viewContainer.adjustViewsHeight(yMoved)
+        // as this pane only 1 point height, the dy will always be e.getY
+        val dy = e.getY
+        viewContainer.adjustViewsHeight(dy)
       }
             
-      yMousePressed = e.getY
+      startPos = e.getPoint
     }
         
     override def mouseReleased(e: MouseEvent) {

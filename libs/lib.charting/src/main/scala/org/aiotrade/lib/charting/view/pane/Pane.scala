@@ -72,7 +72,7 @@ object Pane {
 }
 
 import Pane._
-abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponent {
+abstract class Pane(val view: ChartView, $datumPlane: DatumPlane) extends JComponent {
 
   private val widgets = new ArrayBuffer[Widget]
   private var _referCursorValue: Float = _
@@ -85,12 +85,11 @@ abstract class Pane(aview: ChartView, adatumPlane: DatumPlane) extends JComponen
   private var hBackRenderBuffer: Int = _
   private var renderStrategy: RenderStrategy = RenderStrategy.NoneBuffer
   
-  val view: ChartView = aview
-  val datumPlane: DatumPlane = if (adatumPlane == null) {
+  val datumPlane = if ($datumPlane == null) {
     /** if a null datumPlane given, we assume it will be just me, such as a ChartPane */
     assert(this.isInstanceOf[DatumPlane], "A null datumPlane given, the datumPlane should be me!")
     this.asInstanceOf[DatumPlane]
-  } else adatumPlane
+  } else $datumPlane
 
   if (this.isInstanceOf[WithCursorChart]) {
     createCursorChart(this.datumPlane)

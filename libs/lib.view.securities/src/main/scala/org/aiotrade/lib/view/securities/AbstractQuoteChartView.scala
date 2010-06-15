@@ -97,10 +97,10 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
     _quoteChart = new QuoteChart
 
     val vars = new HashSet[TVar[_]]
-    mainSerChartToVars.put(_quoteChart, vars)
     for (v <- mainSer.vars if v.plot == Plot.Quote) {
       vars.add(v)
     }
+    mainSerChartToVars.put(_quoteChart, vars)
 
     _quoteChart.model.set(
       quoteSer.open,

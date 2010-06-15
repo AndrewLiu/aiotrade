@@ -322,10 +322,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val fillRecords = allFillRecords.toArray
     FillRecords.insertBatch(fillRecords)
 
-    val tobeClosed = Sec.minuteQuotesTobeClosed.toArray
-    if (tobeClosed.length > 0) {
-      Quotes1m.insertBatch(tobeClosed)
-      Sec.minuteQuotesTobeClosed.clear
+    val toClose = Sec.minuteQuotesToClose.toArray
+    if (toClose.length > 0) {
+      Quotes1m.insertBatch(toClose)
+      Sec.minuteQuotesToClose.clear
     }
 
     commit

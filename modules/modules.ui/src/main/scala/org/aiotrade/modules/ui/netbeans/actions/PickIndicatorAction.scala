@@ -49,20 +49,19 @@ class PickIndicatorAction extends CallableSystemAction {
     java.awt.EventQueue.invokeLater(new Runnable {
             
         def run {
-          val contents: AnalysisContents = AnalysisChartTopComponent.selected match {
+          val uniSymbol = AnalysisChartTopComponent.selected match {
             case None =>
               val symbolListWin = ExplorerTopComponent()
               val nodes = symbolListWin.getExplorerManager.getSelectedNodes
               if (nodes.length > 0) {
-                nodes(0).getLookup.lookup(classOf[AnalysisContents])
+                nodes(0).getLookup.lookup(classOf[AnalysisContents]).uniSymbol
               } else {
                 return
               }
-            case Some(x) =>
-              x.viewContainer.controller.contents
+            case Some(x) => x.viewContainer.controller.contents.uniSymbol
           }
-                
-          SymbolNodes.occupantNodeOf(contents) foreach {secNode =>
+
+          SymbolNodes.findSymbolNode(uniSymbol) foreach {secNode =>
             val node = secNode.getChildren.findChild(IndicatorGroupDescriptor.NAME)
             if (node != null) {
               node.getLookup.lookup(classOf[AddAction]).execute

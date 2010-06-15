@@ -104,7 +104,7 @@ object AnalysisChartTopComponent {
     val freq = quoteContract.freq
     if (standalone) {
       val instance = instanceRefs find {x => 
-        x.get.contents == contents && x.get.freq == freq
+        (x.get.contents eq contents) && x.get.freq == freq
       } map (_.get) getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {
@@ -119,7 +119,7 @@ object AnalysisChartTopComponent {
 
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
       val freq = quoteContract.freq
-      if (singleton.contents != contents || singleton.freq != freq) {
+      if ((singleton.contents ne contents) || (singleton.freq != freq)) {
         singleton.init(contents)
       }
 
@@ -220,7 +220,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       /** we choose here to lazily create actions instances */
 
       /** init all children of node to create the actions that will be injected to descriptor */
-      SymbolNodes.occupantNodeOf(contents) foreach (initNodeChildrenRecursively(_))
+      SymbolNodes.findSymbolNode(contents.uniSymbol) foreach (initNodeChildrenRecursively(_))
     }
 
     private def initNodeChildrenRecursively(node: Node) {

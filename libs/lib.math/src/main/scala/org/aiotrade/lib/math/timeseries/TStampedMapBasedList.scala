@@ -127,9 +127,9 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     
   private val timeToElementData = new HashMap[Long, A]()
 
-  override def size :Int = timestamps.size
+  override def size: Int = timestamps.size
 
-  override def isEmpty :Boolean = timestamps.isEmpty
+  override def isEmpty: Boolean = timestamps.isEmpty
     
   override def contains(o: Any) :Boolean = timeToElementData.valuesIterator.contains(o)
     
@@ -140,7 +140,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     array
   }
     
-  override def copyToArray[B >: A](xs: Array[B], start:Int): Unit = {
+  override def copyToArray[B >: A](xs: Array[B], start: Int) {
     val length = timestamps.size
     var i = 0
     while (i < length) {
@@ -168,7 +168,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     }
   }
     
-  def apply(time: Long): A = timeToElementData.get(time).getOrElse(Null.Long.asInstanceOf[A])
+  def apply(time: Long): A = timeToElementData.get(time).getOrElse(Null.getNullVal)
     
   def update(time: Long, elem: A) {
     if (timestamps.contains(time)) {
