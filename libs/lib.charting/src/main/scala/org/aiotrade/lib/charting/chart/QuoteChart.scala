@@ -82,8 +82,8 @@ class QuoteChart extends AbstractChart {
 
   type M = Model
 
-  private var positiveColor: Color = _
-  private var negativeColor: Color = _
+  private var posColor: Color = _
+  private var negColor: Color = _
     
 
   protected def createModel: Model = new Model
@@ -91,15 +91,15 @@ class QuoteChart extends AbstractChart {
   protected def plotChart {
 
     if (depth == Pane.DEPTH_DEFAULT) {
-      positiveColor = LookFeel().getPositiveColor
-      negativeColor = LookFeel().getNegativeColor
+      posColor = LookFeel().getPositiveColor
+      negColor = LookFeel().getNegativeColor
     } else {
       /** for comparing quotes charts */
-      positiveColor = LookFeel().getChartColor(depth)
-      negativeColor = positiveColor
+      posColor = LookFeel().getChartColor(depth)
+      negColor = posColor
     }
         
-    val color = positiveColor
+    val color = posColor
     setForeground(color)
         
     val tpe = datumPlane.view.asInstanceOf[WithQuoteChart].quoteChartType
@@ -123,7 +123,7 @@ class QuoteChart extends AbstractChart {
      * its resource when reset();
      */
     val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = if (tpe == Type.Candle) new CandleBar else new OhlcBar
+    val tp = if (tpe == Type.Candle) new CandleBar else new OhlcBar
     var bar = 1
     while (bar <= nBars) {
             
@@ -133,8 +133,8 @@ class QuoteChart extends AbstractChart {
        */
       var open  = Null.Float
       var close = Null.Float
-      var high  = -Float.MaxValue
-      var low   = +Float.MaxValue
+      var high  = Float.MinValue
+      var low   = Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -143,8 +143,8 @@ class QuoteChart extends AbstractChart {
             /** only get the first open as compressing period's open */
             open = m.openVar(time)
           }
-          high  = Math.max(high, m.highVar(time))
-          low   = Math.min(low,  m.lowVar (time))
+          high  = math.max(high, m.highVar(time))
+          low   = math.min(low,  m.lowVar (time))
           close = m.closeVar(time)
         }
 
@@ -152,7 +152,7 @@ class QuoteChart extends AbstractChart {
       }
             
       if (Null.not(close) && close != 0) {
-        val color = if (close >= open) positiveColor else negativeColor
+        val color = if (close >= open) posColor else negColor
                 
         val yOpen  = yv(open)
         val yHigh  = yv(high)
@@ -162,14 +162,14 @@ class QuoteChart extends AbstractChart {
         tpe match {
           case Type.Candle =>
             val fillBar = LookFeel().isFillBar
-            template.asInstanceOf[CandleBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar, fillBar || close < open)
+            tp.asInstanceOf[CandleBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar, fillBar || close < open)
           case Type.Ohlc =>
-            template.asInstanceOf[OhlcBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar)
+            tp.asInstanceOf[OhlcBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar)
           case _ =>
         }
-        template.setForeground(color)
-        template.plot
-        heavyPathWidget.appendFrom(template)
+        tp.setForeground(color)
+        tp.plot
+        heavyPathWidget.appendFrom(tp)
       }
 
       bar += nBarsCompressed
@@ -181,7 +181,7 @@ class QuoteChart extends AbstractChart {
     val m = model
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new LineSegment
+    val tp = new LineSegment
     var y1 = Null.Float   // for prev
     var y2 = Null.Float   // for curr
     var bar = 1
@@ -204,21 +204,21 @@ class QuoteChart extends AbstractChart {
             open = m.openVar(time)
           }
           close = m.closeVar(time)
-          max = Math.max(max, close)
-          min = Math.min(min, close)
+          max = math.max(max, close)
+          min = math.min(min, close)
         }
 
         i += 1
       }
             
       if (Null.not(close) && close != 0) {
-        val color = if (close >= open) positiveColor else negativeColor
+        val color = if (close >= open) posColor else negColor
                 
         y2 = yv(close)
         if (nBarsCompressed > 1) {
           /** draw a vertical line to cover the min to max */
           val x = xb(bar)
-          template.model.set(x, yv(min), x, yv(max))
+          tp.model.set(x, yv(min), x, yv(max))
         } else {
           if (Null.not(y1)) {
             /**
@@ -227,14 +227,14 @@ class QuoteChart extends AbstractChart {
              */
             val x1 = xb(bar - nBarsCompressed)
             val x2 = xb(bar)
-            template.model.set(x1, y1, x2, y2)
+            tp.model.set(x1, y1, x2, y2)
           }
         }
         y1 = y2
                 
-        template.setForeground(color)
-        template.plot
-        heavyPathWidget.appendFrom(template)
+        tp.setForeground(color)
+        tp.plot
+        heavyPathWidget.appendFrom(tp)
       }
 
       bar += 1

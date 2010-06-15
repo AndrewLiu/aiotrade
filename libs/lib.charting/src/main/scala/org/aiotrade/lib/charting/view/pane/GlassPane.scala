@@ -69,8 +69,8 @@ import org.aiotrade.lib.util.swing.AIOAutoHideComponent
 import org.aiotrade.lib.util.swing.AIOCloseButton
 import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
+import scala.actors.Reactor
 import scala.collection.mutable.HashMap
-import scala.actors.Actor._
 
 
 /**
@@ -124,8 +124,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
   case object UpdateTitlePanel
   case object UpdateValues
-  private val updateActor = actor {
-    loop {
+  private val updateActor = new Reactor[Any] {
+    start
+    def act = loop {
       react {
         case UpdateTitlePanel =>
           updateMainName
