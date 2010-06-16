@@ -49,11 +49,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
     
   def this() = this(null)
         
-  protected def signal(idx: Int, sign: Sign) {
-    signal(idx, sign, "")
-  }
-    
-  protected def signal(idx: Int, sign: Sign, name: String) {
+  protected def signal(idx: Int, sign: Sign, text: String = null, description: String = "") {
     val time = baseSer.timestamps(idx)
         
     /** appoint a value for this sign as the drawing position */
@@ -65,7 +61,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       case _ => Null.Float
     }
         
-    signalVar(idx) = Signal(idx, time, value, sign, name)
+    signalVar(idx) = Signal(idx, time, value, sign, text, description)
   }
     
   protected def removeSignal(idx: Int): Unit = {

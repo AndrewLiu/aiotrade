@@ -33,6 +33,7 @@ package org.aiotrade.lib.charting.chart
 import java.awt.Color
 import org.aiotrade.lib.charting.widget.Arrow
 import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.Label
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
@@ -56,7 +57,7 @@ class SignalChart extends AbstractChart {
   type M = Model
     
   protected def createModel = new Model
-    
+
   protected def plotChart {
     val m = model
         
@@ -67,7 +68,7 @@ class SignalChart extends AbstractChart {
     setForeground(color)
 
     val heavyPathWidget = addChild(new HeavyPathWidget)
-    val tp = new Arrow
+    val arrowTp = new Arrow
     var bar = 1
     while (bar <= nBars) {
             
@@ -81,24 +82,60 @@ class SignalChart extends AbstractChart {
             if (Null.not(value)) {
               val x = xb(bar)
               val y = yv(value)
-                        
+              val text = signal.text
+              val isText = text != null
+
               signal.sign match {
                 case Sign.EnterLong =>
-                  tp.setForeground(color)
-                  tp.model.set(x, y + 3, true, false)
+                  if (isText) {
+                    val labelTp = addChild(new Label)
+                    labelTp.setForeground(color)
+                    labelTp.model.setText(text)
+                    val bounds = labelTp.textBounds
+                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
+                  } else {
+                    arrowTp.setForeground(color)
+                    arrowTp.model.set(x, y + 3, true, false)
+                  }
                 case Sign.ExitLong =>
-                  tp.setForeground(color)
-                  tp.model.set(x, y - 3, false, false)
+                  if (isText) {
+                    val labelTp = addChild(new Label)
+                    labelTp.setForeground(color)
+                    labelTp.model.setText(text)
+                    val bounds = labelTp.textBounds
+                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
+                  } else {
+                    arrowTp.setForeground(color)
+                    arrowTp.model.set(x, y - 3, false, false)
+                  }
                 case Sign.EnterShort =>
-                  tp.setForeground(color)
-                  tp.model.set(x, y + 3, false, false)
+                  if (isText) {
+                    val labelTp = addChild(new Label)
+                    labelTp.setForeground(color)
+                    labelTp.model.setText(text)
+                    val bounds = labelTp.textBounds
+                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height, signal.text, false)
+                  } else {
+                    arrowTp.setForeground(color)
+                    arrowTp.model.set(x, y + 3, false, false)
+                  }
                 case Sign.ExitShort =>
-                  tp.setForeground(color)
-                  tp.model.set(x, y - 3, true, false)
+                  if (isText) {
+                    val labelTp = addChild(new Label)
+                    labelTp.setForeground(color)
+                    labelTp.model.setText(text)
+                    val bounds = labelTp.textBounds
+                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3, signal.text, false)
+                  } else {
+                    arrowTp.setForeground(color)
+                    arrowTp.model.set(x, y - 3, true, false)
+                  }
                 case _ =>
               }
-              tp.plot
-              heavyPathWidget.appendFrom(tp)
+              if (!isText) {
+                arrowTp.plot
+                heavyPathWidget.appendFrom(arrowTp)
+              }
             }
           }
         }
