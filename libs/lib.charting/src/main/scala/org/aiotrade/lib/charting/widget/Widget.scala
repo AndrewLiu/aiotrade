@@ -73,21 +73,21 @@ trait Widget {
 
   type M >: Null <: WidgetModel
 
-  def setOpaque(opaque: Boolean): Unit
+  def setOpaque(opaque: Boolean)
   def isOpaque: Boolean
     
-  def setBackground(paint: Paint): Unit
+  def setBackground(paint: Paint)
   def getBackground: Paint
     
-  def setForeground(color: Color): Unit
+  def setForeground(color: Color)
   def getForeground: Color
     
-  def setLocation(location: Point): Unit
-  def setLocation(x: Double, y: Double): Unit
+  def setLocation(location: Point)
+  def setLocation(x: Double, y: Double)
   def getLocation: Point
     
-  def setBounds(rect: Rectangle): Unit
-  def setBounds(x: Double, y: Double, width: Double, height: Double): Unit
+  def setBounds(rect: Rectangle)
+  def setBounds(x: Double, y: Double, width: Double, height: Double)
   def getBounds: Rectangle
     
   def contains(point: Point): Boolean
@@ -101,20 +101,21 @@ trait Widget {
     
   def model: M
     
-  def plot: Unit
-  def render(g: Graphics): Unit
-  def reset: Unit
+  def plot
+  def render(g: Graphics)
+  def reset
 
   def isContainerOnly: Boolean
     
   def addChild[T <: Widget](child: T): T
-  def removeChild(child: Widget): Unit
+  def removeChild(child: Widget)
   def children: ArrayBuffer[Widget]
-  def clearChildren: Unit
+  def clearChildren
   def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): Seq[T]
   def lookupFirstChild[T <: Widget](widgetType: Class[T], foreground: Color): Option[T]
     
   def addAction(action: Action): Action
+  def removeAction(action: Action)
   def lookupAction[T <: Action](tpe: Class[T]): Option[T]
   def lookupActionAt[T <: Action](tpe: Class[T], point: Point): Option[T]
 

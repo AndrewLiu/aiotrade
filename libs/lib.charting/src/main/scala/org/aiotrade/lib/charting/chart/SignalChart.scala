@@ -67,7 +67,7 @@ class SignalChart extends AbstractChart {
     setForeground(color)
 
     val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new Arrow
+    val tp = new Arrow
     var bar = 1
     while (bar <= nBars) {
             
@@ -84,21 +84,21 @@ class SignalChart extends AbstractChart {
                         
               signal.sign match {
                 case Sign.EnterLong =>
-                  template.setForeground(color)
-                  template.model.set(x, y + 3, true, false)
+                  tp.setForeground(color)
+                  tp.model.set(x, y + 3, true, false)
                 case Sign.ExitLong =>
-                  template.setForeground(color)
-                  template.model.set(x, y - 3, false, false)
+                  tp.setForeground(color)
+                  tp.model.set(x, y - 3, false, false)
                 case Sign.EnterShort =>
-                  template.setForeground(color)
-                  template.model.set(x, y + 3, false, false)
+                  tp.setForeground(color)
+                  tp.model.set(x, y + 3, false, false)
                 case Sign.ExitShort =>
-                  template.setForeground(color)
-                  template.model.set(x, y - 3, true, false)
+                  tp.setForeground(color)
+                  tp.model.set(x, y - 3, true, false)
                 case _ =>
               }
-              template.plot
-              heavyPathWidget.appendFrom(template)
+              tp.plot
+              heavyPathWidget.appendFrom(tp)
             }
           }
         }

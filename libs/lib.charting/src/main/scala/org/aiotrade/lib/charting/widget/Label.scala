@@ -81,11 +81,11 @@ class Label extends AbstractWidget {
   protected def createModel = new Model
     
   def setFont(font: Font) {
-    this.font = font;
+    this.font = font
   }
     
   def getFont: Font = {
-    font;
+    font
   }
     
   override protected def makePreferredBounds: Rectangle = {
