@@ -42,6 +42,7 @@ import java.awt.image.BufferedImage
 import javax.swing.JComponent
 import javax.swing.JTextField
 import org.aiotrade.lib.util.swing.action.EditAction
+
 /**
  *
  * @author  Caoyuan Deng
@@ -53,6 +54,7 @@ class Label extends AbstractWidget {
     var x: Float = _
     var y: Float = _
     var text = "Click me to edit"
+    var editable = true
         
     def set(x: Float, y: Float, text: String) {
       this.x = x
@@ -60,13 +62,22 @@ class Label extends AbstractWidget {
       this.text = text
     }
         
-    def setText(text: String) {
-      this.text = text
-    }
-        
     def set(x: Float, y: Float) {
       this.x = x
       this.y = y
+    }
+
+    def setText(text: String) {
+      this.text = text
+    }
+
+    def setEditable(b: Boolean) {
+      this.editable = b
+      if (editable) {
+        if (lookupAction(classOf[EditAction]).isEmpty) addAction(new LabelEditAction)
+      } else {
+        lookupAction(classOf[EditAction]) foreach removeAction
+      }
     }
   }
 
@@ -76,10 +87,14 @@ class Label extends AbstractWidget {
     
   private var font: Font = _
 
-  addAction(new LabelEditAction)
+  protected def createModel = {
+    val m = new Model
+    if (m.editable) {
+      addAction(new LabelEditAction)
+    }
+    m
+  }
 
-  protected def createModel = new Model
-    
   def setFont(font: Font) {
     this.font = font
   }
@@ -118,8 +133,7 @@ class Label extends AbstractWidget {
     return getBounds.contains(x, y, width, height)
   }
     
-  protected def plotWidget {
-  }
+  protected def plotWidget {}
     
   def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
