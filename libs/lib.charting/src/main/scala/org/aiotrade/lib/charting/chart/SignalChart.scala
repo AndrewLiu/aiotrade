@@ -47,9 +47,9 @@ import org.aiotrade.lib.math.util.Signal
  */
 class SignalChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: TVar[Signal] = _
+    var v: TVar[List[Signal]] = _
         
-    def set(v: TVar[Signal]) {
+    def set(v: TVar[List[Signal]]) {
       this.v = v
     }
   }
@@ -76,67 +76,74 @@ class SignalChart extends AbstractChart {
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
-          val signal = m.v(time)
-          if (signal ne null) {
-            val value = signal.value
-            if (Null.not(value)) {
-              val x = xb(bar)
-              val y = yv(value)
-              val text = signal.text
-              val isText = text != null
+          var signals = m.v(time)
+          var j = 0
+          while ((signals ne null) && (signals != Nil)) {
+            signals = signals.reverse
+            val signal = signals.head
+            if (signal ne null) {
+              val value = signal.value
+              if (Null.not(value)) {
+                val x = xb(bar)
+                val y = yv(value)
+                val text = signal.text
 
-              signal.sign match {
-                case Sign.EnterLong =>
-                  if (isText) {
-                    val labelTp = addChild(new Label)
-                    labelTp.setForeground(color)
-                    labelTp.model.setText(text)
-                    val bounds = labelTp.textBounds
-                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
-                  } else {
-                    arrowTp.setForeground(color)
-                    arrowTp.model.set(x, y + 3, true, false)
-                  }
-                case Sign.ExitLong =>
-                  if (isText) {
-                    val labelTp = addChild(new Label)
-                    labelTp.setForeground(color)
-                    labelTp.model.setText(text)
-                    val bounds = labelTp.textBounds
-                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
-                  } else {
-                    arrowTp.setForeground(color)
-                    arrowTp.model.set(x, y - 3, false, false)
-                  }
-                case Sign.EnterShort =>
-                  if (isText) {
-                    val labelTp = addChild(new Label)
-                    labelTp.setForeground(color)
-                    labelTp.model.setText(text)
-                    val bounds = labelTp.textBounds
-                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height, signal.text, false)
-                  } else {
-                    arrowTp.setForeground(color)
-                    arrowTp.model.set(x, y + 3, false, false)
-                  }
-                case Sign.ExitShort =>
-                  if (isText) {
-                    val labelTp = addChild(new Label)
-                    labelTp.setForeground(color)
-                    labelTp.model.setText(text)
-                    val bounds = labelTp.textBounds
-                    labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3, signal.text, false)
-                  } else {
-                    arrowTp.setForeground(color)
-                    arrowTp.model.set(x, y - 3, true, false)
-                  }
-                case _ =>
-              }
-              if (!isText) {
-                arrowTp.plot
-                heavyPathWidget.appendFrom(arrowTp)
+                signal.sign match {
+                  case Sign.EnterLong =>
+                    if (signal.isTextSignal) {
+                      val labelTp = addChild(new Label)
+                      labelTp.setForeground(color)
+                      labelTp.model.setText(text)
+                      val bounds = labelTp.textBounds
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
+                    } else {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y + 3, true, false)
+                    }
+                  case Sign.ExitLong =>
+                    if (signal.isTextSignal) {
+                      val labelTp = addChild(new Label)
+                      labelTp.setForeground(color)
+                      labelTp.model.setText(text)
+                      val bounds = labelTp.textBounds
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
+                    } else {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y - 3, false, false)
+                    }
+                  case Sign.EnterShort =>
+                    if (signal.isTextSignal) {
+                      val labelTp = addChild(new Label)
+                      labelTp.setForeground(color)
+                      labelTp.model.setText(text)
+                      val bounds = labelTp.textBounds
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
+                    } else {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y + 3, false, false)
+                    }
+                  case Sign.ExitShort =>
+                    if (signal.isTextSignal) {
+                      val labelTp = addChild(new Label)
+                      labelTp.setForeground(color)
+                      labelTp.model.setText(text)
+                      val bounds = labelTp.textBounds
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
+                    } else {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y - 3, true, false)
+                    }
+                  case _ =>
+                }
+                
+                if (!signal.isTextSignal) {
+                  arrowTp.plot
+                  heavyPathWidget.appendFrom(arrowTp)
+                }
               }
             }
+            signals = signals.tail
+            j += 1
           }
         }
 

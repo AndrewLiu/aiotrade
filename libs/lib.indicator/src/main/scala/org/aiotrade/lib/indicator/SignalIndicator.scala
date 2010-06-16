@@ -45,7 +45,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
   isOverlapping = true
 
   //val signalVar = new SparseTVar[Signal]("Signal", Plot.Signal)
-  val signalVar = TVar[Signal]("Signal", Plot.Signal)
+  val signalVar = TVar[List[Signal]]("Signal", Plot.Signal)
     
   def this() = this(null)
         
@@ -60,8 +60,11 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       case Sign.ExitShort  => L(idx)
       case _ => Null.Float
     }
+
+    val signal = Signal(idx, time, value, sign, text, description)
+    val signals = signalVar(idx)
         
-    signalVar(idx) = Signal(idx, time, value, sign, text, description)
+    signalVar(idx) = if (signals eq null) List(signal) else signal :: signals
   }
     
   protected def removeSignal(idx: Int): Unit = {
