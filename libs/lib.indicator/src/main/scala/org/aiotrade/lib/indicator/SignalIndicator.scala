@@ -66,12 +66,16 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
         
     signalVar(idx) = if (signals eq null) List(signal) else signal :: signals
   }
-    
-  protected def removeSignal(idx: Int): Unit = {
-    val time = baseSer.timestamps(idx)
-    time
-    /** @TODO */
+
+  protected def removeSignals(idx: Int) {
+    signalVar(idx) = null
   }
     
+  protected def removeSignal(idx: Int, signal: Signal) {
+    signalVar(idx) match {
+      case null =>
+      case xs => signalVar(idx) = xs.filter(_ ne signal)
+    }
+  }
 }
 
