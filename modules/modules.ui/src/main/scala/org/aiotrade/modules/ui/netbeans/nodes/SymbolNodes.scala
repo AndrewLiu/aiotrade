@@ -608,14 +608,13 @@ object SymbolNodes {
       var mayNeedsReload = false
       val sec = contents.serProvider match {
         case null =>
-          val sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
-          //new Sec(contents.uniSymbol, List(quoteContract))
-          sec.quoteContracts = List(quoteContract)
-          contents.serProvider = sec
-          sec
-        case sec =>
+          val x = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+          x.quoteContracts = List(quoteContract)
+          contents.serProvider = x
+          x
+        case x =>
           mayNeedsReload = true
-          sec.asInstanceOf[Sec]
+          x.asInstanceOf[Sec]
       }
       
       var analysisTc = AnalysisChartTopComponent(contents)

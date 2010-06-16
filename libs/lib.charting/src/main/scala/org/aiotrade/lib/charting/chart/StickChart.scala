@@ -56,18 +56,18 @@ class StickChart extends AbstractChart {
   protected def plotChart {
     val m = model
         
-    val positiveColor = LookFeel().getPositiveColor
-    val negativeColor = LookFeel().getNegativeColor
+    val posColor = LookFeel().getPositiveColor
+    val negColor = LookFeel().getNegativeColor
         
-    var color = positiveColor
+    var color = posColor
     setForeground(color)
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new StickBar
+    val tp = new StickBar
     var bar = 1
     while (bar <= nBars) {
-      var max = -Float.MaxValue
-      var min = +Float.MaxValue
+      var max = Float.MinValue
+      var min = Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -88,20 +88,20 @@ class StickChart extends AbstractChart {
         var yValue = 0f
         var yDatum = 0f
         if (math.abs(max) > math.abs(min)) {
-          color = positiveColor
+          color = posColor
           yValue = yv(max)
           yDatum = yv(min)
         } else {
-          color = negativeColor
+          color = negColor
           yValue = yv(min)
           yDatum = yv(max)
         }
                 
         val x = xb(bar)
-        template.setForeground(color)
-        template.model.set(x, yDatum, yValue, wBar, true, false)
-        template.plot
-        heavyPathWidget.appendFrom(template)
+        tp.setForeground(color)
+        tp.model.set(x, yDatum, yValue, wBar, true, false)
+        tp.plot
+        heavyPathWidget.appendFrom(tp)
 
         if (x % AbstractChart.MARK_INTERVAL == 0) {
           addMarkPoint(x.toInt, yValue.toInt)

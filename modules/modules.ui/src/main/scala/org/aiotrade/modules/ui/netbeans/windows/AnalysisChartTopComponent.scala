@@ -181,7 +181,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val sec = contents.serProvider.asInstanceOf[Sec]
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
     val freq = quoteContract.freq
-    val tcId: String = sec.name
+    val tcId = sec.name
     val symbol = sec.uniSymbol
 
     val viewContainer = createViewContainer(sec, freq, contents)

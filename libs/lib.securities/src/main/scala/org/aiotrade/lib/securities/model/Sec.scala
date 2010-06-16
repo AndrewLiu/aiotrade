@@ -327,11 +327,15 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       freqToQuoteSer(freq) = x
       x
     }
-    
+
+    // load from persistence
     val loadedTime = QuoteServer.loadFromPersistence(this, serToBeLoaded)
 
-    /** ask contract instead of server */
+    // try to load from quote server
+
+    // ask contract instead of server
     val contract = freqToQuoteContract  get(freq) getOrElse (return false)
+    if (!contract.isFreqSupported(freq)) return false
 
     val quoteServer = freqToQuoteServer get(freq) getOrElse {
       contract.serviceInstance() match {

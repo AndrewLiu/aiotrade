@@ -39,7 +39,7 @@ import org.aiotrade.lib.util.actors.Reactor
  *
  * @author Caoyuan Deng
  */
-class QuoteSerSummator(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+class QuoteSerJointer(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   reactions += {
     case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
