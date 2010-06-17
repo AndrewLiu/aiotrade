@@ -31,6 +31,7 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.Null
+import java.awt.Color
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
@@ -48,11 +49,26 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
   val signalVar = TVar[List[Signal]]("Signal", Plot.Signal)
     
   def this() = this(null)
-        
-  protected def signal(idx: Int, sign: Sign, text: String = null, description: String = "") {
+
+  protected def signal(idx: Int, sign: Sign) {
+    signal(idx, sign, null, null)
+  }
+
+  protected def signal(idx: Int, sign: Sign, color: Color) {
+    signal(idx, sign, null, color)
+  }
+
+  protected def signal(idx: Int, sign: Sign, text: String) {
+    signal(idx, sign, text, null)
+  }
+
+  protected def signal(idx: Int, sign: Sign, text: String, color: Color) {
+    // remove posible duplicte signals
+    removeSignals(idx, sign, text, color)
+    
     val time = baseSer.timestamps(idx)
         
-    /** appoint a value for this sign as the drawing position */
+    // appoint a value for this sign as the drawing position
     val value = sign match {
       case Sign.EnterLong  => L(idx)
       case Sign.ExitLong   => H(idx)
@@ -61,21 +77,35 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       case _ => Null.Float
     }
 
-    val signal = Signal(idx, time, value, sign, text, description)
-    val signals = signalVar(idx)
-        
-    signalVar(idx) = if (signals eq null) List(signal) else signal :: signals
+    val signal = Signal(idx, time, value, sign, text, color)
+    signalVar(idx) = signalVar(idx) match {
+      case null => List(signal)
+      case xs => signal :: xs
+    }
   }
 
   protected def removeSignals(idx: Int) {
     signalVar(idx) = null
   }
     
-  protected def removeSignal(idx: Int, signal: Signal) {
+  protected def removeSignals(idx: Int, sign: Sign) {
+    removeSignals(idx, sign, null, null)
+  }
+
+  protected def removeSignals(idx: Int, sign: Sign, text: String) {
+    removeSignals(idx, sign, text, null)
+  }
+
+  protected def removeSignals(idx: Int, sign: Sign, color: Color) {
+    removeSignals(idx, sign, null, color)
+  }
+
+  protected def removeSignals(idx: Int, sign: Sign, text: String, color: Color) {
     signalVar(idx) match {
       case null =>
-      case xs => signalVar(idx) = xs.filter(_ ne signal)
+      case xs => signalVar(idx) = xs filterNot (x=> x.sign == sign && x.text == text && x.color == color)
     }
   }
+
 }
 
