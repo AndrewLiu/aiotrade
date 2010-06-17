@@ -69,7 +69,7 @@ object ChartFactory {
         chart.asInstanceOf[ZigzagChart].model.set(v)
       case Plot.Signal =>
         chart = new SignalChart
-        chart.asInstanceOf[SignalChart].model.set((v.asInstanceOf[TVar[Signal]]))
+        chart.asInstanceOf[SignalChart].model.set(v.asInstanceOf[TVar[List[Signal]]])
       case _ =>
     }
         

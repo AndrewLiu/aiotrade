@@ -34,7 +34,8 @@ package org.aiotrade.lib.math.util
  *
  * @author Caoyuan Deng
  */
-case class Signal(idx: Int, time: Long, value: Float, sign: Sign, name: String) {
+case class Signal(idx: Int, time: Long, value: Float, sign: Sign, text: String = null, description: String = "") {
+  def isTextSignal = text != null
   def floatValue: Float = value
   def doubleValue: Double = value.toDouble
   def intValue: Int = value.toInt

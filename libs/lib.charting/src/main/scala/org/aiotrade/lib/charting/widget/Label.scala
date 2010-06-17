@@ -41,7 +41,9 @@ import java.awt.event.ActionListener
 import java.awt.image.BufferedImage
 import javax.swing.JComponent
 import javax.swing.JTextField
+import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.util.swing.action.EditAction
+
 /**
  *
  * @author  Caoyuan Deng
@@ -53,61 +55,77 @@ class Label extends AbstractWidget {
     var x: Float = _
     var y: Float = _
     var text = "Click me to edit"
+    var editable = false
         
-    def set(x: Float, y: Float, text: String) {
+    def set(x: Float, y: Float, text: String, editable: Boolean = false) {
       this.x = x
       this.y = y
       this.text = text
-    }
-        
-    def setText(text: String) {
-      this.text = text
+      setEditable(editable)
     }
         
     def set(x: Float, y: Float) {
       this.x = x
       this.y = y
     }
+
+    def setText(text: String) {
+      this.text = text
+    }
+
+    def setEditable(b: Boolean) {
+      this.editable = b
+      if (editable) {
+        if (lookupAction(classOf[EditAction]).isEmpty) addAction(new LabelEditAction)
+      } else {
+        lookupAction(classOf[EditAction]) foreach removeAction
+      }
+    }
+
   }
 
   type M = Model
 
   private val scratchBuffer = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
     
-  private var font: Font = _
+  private var font: Font = LookFeel().axisFont
 
-  addAction(new LabelEditAction)
-
-  protected def createModel = new Model
-    
-  def setFont(font: Font) {
-    this.font = font;
-  }
-    
-  def getFont: Font = {
-    font;
-  }
-    
-  override protected def makePreferredBounds: Rectangle = {
-    /**
-     * To get the right bounds/size if the text, we need to have a FontRenderContext.
-     * And that context has to come from the Graphics2D object, which will come
-     * from graphics, that we haven't known yet! A bit of a chicken-and-egg
-     * problem. The solution is to create a scratch buffer just to get the
-     * FontRenderContext. Then call Font.getStringBounds() to get the size of
-     * the text and draw it later.
-     */
-    val m = model
+  /**
+   * To get the right bounds/size if the text, we need to have a FontRenderContext.
+   * And that context has to come from the Graphics2D object, which will come
+   * from graphics, that we haven't known yet! A bit of a chicken-and-egg
+   * problem. The solution is to create a scratch buffer just to get the
+   * FontRenderContext. Then call Font.getStringBounds() to get the size of
+   * the text and draw it later.
+   */
+  def textBounds = {
     val g = scratchBuffer.createGraphics
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val frc = g.getFontRenderContext
-    val strBounds = getFont.getStringBounds(m.text, frc).getBounds
+    val bounds = font.getStringBounds(model.text, frc).getBounds
     g.dispose
-        
+    bounds
+  }
+
+  protected def createModel = {
+    val m = new Model
+    if (m.editable) addAction(new LabelEditAction)
+    m
+  }
+
+  def setFont(font: Font) {
+    this.font = font
+  }
+    
+  def getFont: Font = font
+    
+  override protected def makePreferredBounds: Rectangle = {
+    val bounds = textBounds
+    val m = model
     /** x, y is the baseline of string, we need to shift the top-left of bounds */
     new Rectangle(
-      (m.x - 1).intValue, (m.y - 1).intValue - strBounds.height,
-      if (strBounds.width < 5) 5 else strBounds.width + 2, strBounds.height + 2)
+      (m.x - 1).intValue, (m.y - 1).intValue - bounds.height,
+      if (bounds.width < 5) 5 else bounds.width + 2, bounds.height + 2)
   }
     
   protected def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
@@ -118,8 +136,7 @@ class Label extends AbstractWidget {
     return getBounds.contains(x, y, width, height)
   }
     
-  protected def plotWidget {
-  }
+  protected def plotWidget {}
     
   def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]

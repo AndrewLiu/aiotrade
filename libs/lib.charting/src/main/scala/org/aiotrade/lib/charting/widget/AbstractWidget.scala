@@ -245,14 +245,14 @@ abstract class AbstractWidget extends Widget {
     
   protected def createModel: M
     
-  def plot: Unit = {
+  def plot {
     reset
     plotWidget
   }
     
-  protected def plotWidget: Unit
+  protected def plotWidget
     
-  def render(g0: Graphics): Unit = {
+  def render(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
     val location = getLocation
@@ -347,7 +347,7 @@ abstract class AbstractWidget extends Widget {
     child
   }
     
-  def removeChild(child: Widget): Unit = {
+  def removeChild(child: Widget) {
     if (children != null) {
       children.remove(children.indexOf(child))
     }
@@ -359,7 +359,7 @@ abstract class AbstractWidget extends Widget {
     } else new ArrayBuffer[Widget]
   }
     
-  def resetChildren: Unit = {
+  def resetChildren {
     if (children != null) {
       for (child <- children) {
         child.reset
@@ -367,7 +367,7 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  def clearChildren: Unit = {
+  def clearChildren {
     if (children != null) {
       children.clear
     }
@@ -405,6 +405,12 @@ abstract class AbstractWidget extends Widget {
     action
   }
     
+  def removeAction(action: Action) {
+    if (actions != null) {
+      actions -= action
+    }
+  }
+
   def lookupAction[T <: Action](tpe: Class[T]): Option[T] = {
     if (actions != null) {
       for (action <- actions) {
@@ -430,7 +436,7 @@ abstract class AbstractWidget extends Widget {
     if (getBounds.contains(point)) lookupAction(tpe) else None
   }
     
-  def reset: Unit = {
+  def reset {
     if (children != null) {
       for (child <- children) {
         child.reset

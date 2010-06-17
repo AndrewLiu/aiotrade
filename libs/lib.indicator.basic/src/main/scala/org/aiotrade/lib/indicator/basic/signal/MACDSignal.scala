@@ -54,16 +54,16 @@ class MACDSignal extends SignalIndicator {
     var i = begIdx
     while (i < size) {
       _macd(i) = macd(i, C, periodSlow, periodFast)
-
       _signal(i) = ema(i, _macd, periodSignal)
-
       _osc(i) = _macd(i) - _signal(i)
 
       if (crossOver(i, _macd, _signal)) {
+        removeSignals(i) // avoid duplicate
         signal(i, Sign.EnterLong)
       }
 
       if (crossUnder(i, _macd, _signal)) {
+        removeSignals(i) // avoid duplicate
         signal(i, Sign.ExitLong)
       }
 
