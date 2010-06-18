@@ -52,12 +52,11 @@ object QuoteServer {
      * 1. restore data from database
      */
     val quotes = if (freq == TFreq.DAILY) {
-      Quotes1d.closedQuotesOf(sec).toArray
+      Quotes1d.closedQuotesOf(sec)
     } else if (freq == TFreq.ONE_MIN) {
-      Quotes1m.closedQuotesOf(sec).toArray
-    } else Array[Quote]()
+      Quotes1m.closedQuotesOf(sec)
+    } else Nil
     
-    //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
     composeSer(uniSymbol, serToBeLoaded, quotes)
 
     /**
@@ -82,7 +81,7 @@ object QuoteServer {
    * @param serToBeFilled Ser
    * @param TVal(s)
    */
-  protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent = {
+  protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Seq[Quote]): TSerEvent = {
     var evt: TSerEvent = null
 
     val size = quotes.length
@@ -91,14 +90,13 @@ object QuoteServer {
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
+
+      val a = for (quote <- quotes) yield quote
       quotes foreach {x => x.time = freq.round(x.time, cal)}
       //println("==== after rounded ====")
 
       // * copy to a new array and don't change it anymore, so we can ! it as message
-      val values = new Array[Quote](size)
-      quotes.copyToArray(values, 0)
-
-      quoteSer ++= values
+      quoteSer ++= quotes.toArray
     }
 
     evt
@@ -141,14 +139,14 @@ abstract class QuoteServer extends DataServer[Quote] {
       val serToBeFilled = serOf(contract).get
 
       val freq = serToBeFilled.freq
-      val storage = storageOf(contract).toArray
+      val storage = storageOf(contract)
       val sec = Exchange.secOf(contract.symbol).get
       storage foreach {_.sec = sec}
       if (freq == TFreq.DAILY) {
-        Quotes1d.insertBatch(storage)
+        Quotes1d.insertBatch(storage.toArray)
         commit
       } else if (freq == TFreq.ONE_MIN) {
-        Quotes1m.insertBatch(storage)
+        Quotes1m.insertBatch(storage.toArray)
         commit
       }
 
@@ -170,7 +168,7 @@ abstract class QuoteServer extends DataServer[Quote] {
 
   override protected def postRefresh {
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract).toArray
+      val storage = storageOf(contract)
 
       val evt = composeSer(toUniSymbol(contract.symbol), serOf(contract).get, storage)
       //            if (evt != null) {

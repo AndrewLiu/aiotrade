@@ -1,6 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm.Table
@@ -50,12 +51,25 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   
   val flag = "flag" INTEGER
 
+  def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
+    SELECT (this.*) FROM (this) WHERE (
+      this.sec.field EQ Secs.idOf(sec)
+    ) ORDER_BY (this.time) list
+  }
+
   def closedMoneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
+    val xs = new ArrayList[MoneyFlow]()
+    for (x <- moneyFlowOf(sec) if x.closed_?) {
+      xs += x
+    }
+    xs
+  }
+
+  def closedMoneyFlowOf__filterByDB(sec: Sec): Seq[MoneyFlow] = {
     SELECT (this.*) FROM (this) WHERE (
       (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
     ) ORDER_BY (this.time) list
   }
-
 }
 
 
