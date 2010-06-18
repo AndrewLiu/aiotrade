@@ -78,10 +78,16 @@ class SignalChart extends AbstractChart {
         if (ser.exists(time)) {
           var signals = m.v(time)
           var j = 0
+          var dyUp = 3
+          var dyDn = 3
           while ((signals ne null) && (signals != Nil)) {
             signals = signals.reverse
             val signal = signals.head
             if (signal ne null) {
+              val color = signal.color match {
+                case null => Color.YELLOW
+                case x => x
+              }
               val value = signal.value
               if (Null.not(value)) {
                 val x = xb(bar)
@@ -95,10 +101,12 @@ class SignalChart extends AbstractChart {
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height)
+                      dyUp += (3 + bounds.height)
                     } else {
                       arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y + 3, true, false)
+                      arrowTp.model.set(x, y + dyUp, true, false)
+                      dyUp += (3 + 12)
                     }
                   case Sign.ExitLong =>
                     if (signal.isTextSignal) {
@@ -106,10 +114,12 @@ class SignalChart extends AbstractChart {
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
+                      dyDn += (3 + bounds.height)
                     } else {
                       arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y - 3, false, false)
+                      arrowTp.model.set(x, y - dyDn, false, false)
+                      dyDn += (3 + 12)
                     }
                   case Sign.EnterShort =>
                     if (signal.isTextSignal) {
@@ -117,10 +127,12 @@ class SignalChart extends AbstractChart {
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + 3 + bounds.height)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp)
+                      dyUp += (3 + bounds.height)
                     } else {
                       arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y + 3, false, false)
+                      arrowTp.model.set(x, y + dyUp, false, false)
+                      dyUp += (3 + 12)
                     }
                   case Sign.ExitShort =>
                     if (signal.isTextSignal) {
@@ -128,10 +140,12 @@ class SignalChart extends AbstractChart {
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - 3)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
+                      dyDn += (3 + bounds.height)
                     } else {
                       arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y - 3, true, false)
+                      arrowTp.model.set(x, y - dyDn, true, false)
+                      dyDn += (3 + 12)
                     }
                   case _ =>
                 }
