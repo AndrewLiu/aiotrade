@@ -84,19 +84,23 @@ object QuoteServer {
   protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Seq[Quote]): TSerEvent = {
     var evt: TSerEvent = null
 
-    val size = quotes.length
-    if (size > 0) {
+    if (quotes.size > 0) {
       val cal = Calendar.getInstance(Exchange.exchangeOf(uniSymbol).timeZone)
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
 
-      val a = for (quote <- quotes) yield quote
-      quotes foreach {x => x.time = freq.round(x.time, cal)}
+      // copy to a new array and don't change it anymore, so we can ! it as message
+      val quotes1 = quotes.toArray
+      var i = 0
+      while (i < quotes1.length) {
+        val quote = quotes1(i)
+        quote.time = freq.round(quote.time, cal)
+        i += 1
+      }
       //println("==== after rounded ====")
 
-      // * copy to a new array and don't change it anymore, so we can ! it as message
-      quoteSer ++= quotes.toArray
+      quoteSer ++= quotes1
     }
 
     evt
@@ -162,7 +166,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       //
       //            serToBeFilled.fireTSerEvent(evt)
       
-      storageOf(contract) synchronized {storageOf(contract).clear}
+      storage synchronized {storage.clear}
     }
   }
 
@@ -177,7 +181,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
       //            }
 
-      storageOf(contract) synchronized {storageOf(contract).clear}
+      storage synchronized {storage.clear}
     }
   }
 
