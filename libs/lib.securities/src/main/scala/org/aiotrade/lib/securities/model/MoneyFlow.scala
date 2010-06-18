@@ -52,7 +52,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   def closedMoneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
     SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ 1)
+      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
     ) ORDER_BY (this.time) list
   }
 
