@@ -166,6 +166,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       repaint()
   }
 
+  def watch {
+    listenTo(sec)
+  }
+
+  def unWatch {
+    deafTo(sec)
+  }
+
   private def initComponents {
     setFocusable(false)
     setPreferredSize(DIM)
@@ -368,13 +376,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
     def setInfoCellColorByZero(value: Float, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
-      val fgColor = if (value > 0) {
-        posColor
-      } else if (value < 0) {
-        negColor
-      } else {
-        neuColor
-      }
+      val fgColor = (
+        if (value > 0) posColor
+        else if (value < 0) negColor
+        else neuColor
+      )
       infoCellAttr.setForeground(fgColor, cell.row, cell.col)
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
@@ -395,6 +401,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       val askRow = i
       depthModel.setValueAt("%8.2f" format marketDepth.askPrice(askIdx), askRow, 1)
       depthModel.setValueAt(marketDepth.askSize(askIdx).toInt.toString,  askRow, 2)
+      
       val bidIdx = i
       val bidRow = depth + 1 + i
       depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(bidIdx), bidRow, 1)
@@ -446,14 +453,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     table.scrollRectToVisible(rect)
     table.clearSelection
     table.setRowSelectionInterval(row, row)
-  }
-
-  def watch {
-    listenTo(sec)
-  }
-
-  def unWatch {
-    deafTo(sec)
   }
 
   class CustomTableUI extends BasicTableUI {
