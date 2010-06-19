@@ -139,15 +139,15 @@ class RealTimeChartView(acontroller: ChartingController,
   override def computeMaxMin {
     super.computeMaxMin
 
-    var minValue1 = Float.MaxValue
-    var maxValue1 = Float.MinValue
+    var min = Float.MaxValue
+    var max = Float.MinValue
     if (Null.not(prevClose)) {
-      minValue1 = minValue
-      maxValue1 = maxValue
-      val maxDelta = math.max(math.abs(maxValue1 - prevClose), math.abs(minValue1 - prevClose))
-      maxValue1 = prevClose + maxDelta
-      minValue1 = prevClose - maxDelta
-      setMaxMinValue(maxValue1, minValue1)
+      min = minValue
+      max = maxValue
+      val maxDelta = math.max(math.abs(max - prevClose), math.abs(min - prevClose))
+      max = prevClose + maxDelta
+      min = prevClose - maxDelta
+      setMaxMinValue(max, min)
     }
 
   }
