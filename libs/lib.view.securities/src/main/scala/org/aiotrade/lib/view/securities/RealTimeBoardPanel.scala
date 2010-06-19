@@ -335,15 +335,19 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     val lastTradeTime = exchgCal.getTime
     // --- update depth table
 
+    val fillSize = (ticker.dayVolume - prevTicker.dayVolume).toInt
+
+    ticker.bidAsks
+
     val fillRecord = new FillRecord // tempary solution
     fillRecord.time = lastTradeTime.getTime
     fillRecord.price = ticker.lastPrice
-    fillRecord.volume = (ticker.dayVolume - prevTicker.dayVolume).toInt
+    fillRecord.volume = fillSize
 
     val depth = ticker.depth
     val dealRow = 5
     depthModel.setValueAt("%8.2f" format ticker.lastPrice,              dealRow, 1)
-    depthModel.setValueAt(if (prevTicker == null) "-" else fillRecord.volume, dealRow, 2)
+    depthModel.setValueAt(if (prevTicker == null) "-" else fillSize, dealRow, 2)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
@@ -374,6 +378,21 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     }
 
     // --- update info table
+
+    prevTicker.copyFrom(ticker)
+  }
+
+  private def updateDepthTable(askBids: Array[Float]) {
+
+  }
+
+  private def updateInfoTable(ticker: Ticker) {
+    val neuColor = LookFeel().getNeutralColor
+    val posColor = LookFeel().getPositiveColor
+    val negColor = LookFeel().getNegativeColor
+
+    exchgCal.setTimeInMillis(ticker.time)
+    val lastTradeTime = exchgCal.getTime
 
     currentTime.value = sdf.format(lastTradeTime)
     lastPrice.value   = "%8.2f"    format ticker.lastPrice
@@ -426,16 +445,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     setInfoCellColorByPrevCls(ticker.lastPrice, lastPrice)
     setInfoCellColorByZero(ticker.dayChange, dayChange)
     setInfoCellColorByZero(ticker.dayChange, dayPercent)
+  }
 
-    // --- update fill table
-
-    if (updateFillRecord && ticker.isDayVolumeGrown(prevTicker)) {
-      fillRecords += fillRecord
-      fillModel.fireTableDataChanged
-    }
-
-    prevTicker.copyFrom(ticker)
-
+  private def updateFillTable(fillRecord: FillRecord) {
+    fillRecords += fillRecord
+    fillModel.fireTableDataChanged
   }
 
   private def scrollToLastRow(table: JTable) {
