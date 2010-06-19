@@ -39,6 +39,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -87,27 +88,20 @@ class RealTimeChartViewContainer extends ChartViewContainer {
 
   protected def initComponents {
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
 
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.weightx = 100
-    gbc.weighty = 618
     val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
-    setMasterView(new RealTimeChartView(controller, quoteSer), gbc)
+    setMasterView(new RealTimeChartView(controller, quoteSer), GBC(0, 0).
+                  setFill(GridBagConstraints.BOTH).
+                  setWeight(100, 618))
 
     val volDescriptor = createVolIndicatorDecsriptor
     volDescriptor.serviceInstance(quoteSer) foreach {volIndicator =>
       volIndicator ! ComputeFrom(0)
       
-      gbc.fill = GridBagConstraints.BOTH
-      gbc.gridx = 0
-      gbc.gridy = 1
-      gbc.weightx = 100
-      gbc.weighty = 382
-      addSlaveView(volDescriptor, volIndicator, gbc)
+      addSlaveView(volDescriptor, volIndicator, GBC(0, 1).
+                   setFill(GridBagConstraints.BOTH).
+                   setWeight(100, 382))
     }
   }
 

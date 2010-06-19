@@ -3,39 +3,25 @@ package org.aiotrade.lib.util.swing
 import java.awt.GridBagConstraints
 import java.awt.Insets
 
-/**
- * This class simplifies the use of the GridBagConstraints class.
- * @version 1.01 2004-05-06
- * @author Cay Horstmann
- */
+object GBC {
+  def apply(gridx: Int = GridBagConstraints.RELATIVE, 
+            gridy: Int = GridBagConstraints.RELATIVE,
+            gridwidth: Int = 1, gridheight: Int = 1) = new GBC(gridx, gridy, gridwidth, gridheight)
+}
+
 /**
  * Constructs a GBC with given gridx, gridy, gridwidth, gridheight and all
  * other grid bag constraint values set to the default.
- * @param gridx the gridx position
- * @param gridy the gridy position
- * @param gridwidth the cell span in x-direction
- * @param gridheight the cell span in y-direction
+ * @param gridx the gridx position, default GridBagConstraints.RELATIVE
+ * @param gridy the gridy position, default GridBagConstraints.RELATIVE
+ * @param gridwidth  the cell span in x-direction, default 1
+ * @param gridheight the cell span in y-direction, default 1
  */
-class GBC(agridx: Int, agridy: Int, agridwidth: Int, agridheight: Int) extends GridBagConstraints {
-  gridx = agridx
-  gridy = agridy
-
-  if (agridwidth > 0) {
-    gridwidth = agridwidth
-  }
-
-  if (agridheight > 0) {
-    gridheight = agridheight
-  }
-  /**
-   * Constructs a GBC with a given gridx and gridy position and all other grid
-   * bag constraint values set to the default.
-   * @param gridx the gridx position
-   * @param gridy the gridy position
-   */
-  def this(gridx: Int, gridy: Int) = {
-    this(gridx, gridy, -1, -1)
-  }
+class GBC private ($gridx: Int, $gridy: Int, $gridwidth: Int, $gridheight: Int) extends GridBagConstraints {
+  gridx = $gridx
+  gridy = $gridy
+  gridwidth = $gridwidth
+  gridheight = $gridheight
 
   /**
    * Sets the anchor.

@@ -50,8 +50,8 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   def loaded = _loaded
   def loaded_=(b: Boolean) {
-    inLoading = false
-    _loaded = false
+    inLoading = if (b) false else inLoading
+    _loaded = b
   }
 
   def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]]) = {

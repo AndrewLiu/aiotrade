@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.XControlPane
+import org.aiotrade.lib.util.swing.GBC
 
 /**
  *
@@ -55,7 +56,6 @@ class PopupIndicatorChartView(acontroller: ChartingController,
     /** begin to set the layout: */
         
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
         
     /**
      * @NOTICE be ware of the components added order:
@@ -70,62 +70,36 @@ class PopupIndicatorChartView(acontroller: ChartingController,
      * @see GlassPane#processMouseEvent(MouseEvent) and
      *      GlassPane#processMouseMotionEvent(MouseEvent)
      */
+
+    add(xControlPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
         
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(xControlPane, gbc)
+    add(glassPane,  GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(glassPane, gbc)
-        
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(mainLayeredPane, gbc)
+    add(mainLayeredPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
     /**
      * add the axisYPane in the same grid as yControlPane then, it will be
      * covered by yControlPane partly in SOUTH
      */
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 1
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 0
-    gbc.weighty = 100
-    add(axisYPane, gbc)
+    add(axisYPane, GBC(1, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(0, 100))
         
     /** add axisXPane and dividentPane across 2 gridwidth horizontally, */
-        
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(axisXPane, gbc)
+    add(axisXPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
   }
     
 }

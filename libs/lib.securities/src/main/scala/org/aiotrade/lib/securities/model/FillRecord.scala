@@ -14,7 +14,7 @@ object FillRecords extends Table[FillRecord] {
   val volume = "volume" FLOAT(12, 2)
   val amount = "amount" FLOAT(12, 2)
 
-  val flag = "flag" TINYINT
+  val flag = "flag" TINYINT // @Note jdbc type of TINYINT is Int
 
   INDEX("time_idx", time.name)
 
@@ -46,7 +46,7 @@ class FillRecord {
   var volume: Float = _
   var amount: Float = _
 
-  var flag: Byte = _
+  var flag: Int = _ // @Note jdbc type of TINYINT is Int
 
   none_!
   same_!
@@ -54,14 +54,14 @@ class FillRecord {
   def none_? : Boolean = (flag & MaskNone) == MaskNone
   def in_?   : Boolean = (flag & MaskIn) == MaskIn
   def out_?  : Boolean = (flag & MaskOut) == MaskOut
-  def none_! {flag = (((flag | MaskNone) & ~MaskIn) & ~MaskOut).toByte}
-  def out_!  {flag = (((flag | MaskOut) & ~MaskIn) & ~MaskNone).toByte}
-  def in_!   {flag = (((flag | MaskIn) & ~MaskOut) & ~MaskNone).toByte}
+  def none_! {flag = (((flag | MaskNone) & ~MaskIn) & ~MaskOut)}
+  def out_!  {flag = (((flag | MaskOut) & ~MaskIn) & ~MaskNone)}
+  def in_!   {flag = (((flag | MaskIn) & ~MaskOut) & ~MaskNone)}
 
   def same_? : Boolean = (flag & MaskSame) == MaskSame
   def up_?   : Boolean = (flag & MaskUp) == MaskUp
   def down_? : Boolean = (flag & MaskDown) == MaskDown
-  def same_! {flag = (((flag | MaskSame) & ~MaskDown) & ~MaskUp).toByte}
-  def up_!   {flag = (((flag | MaskUp) & ~MaskDown) & ~MaskSame).toByte}
-  def down_! {flag = (((flag | MaskDown) & ~MaskUp) & ~MaskSame).toByte}
+  def same_! {flag = (((flag | MaskSame) & ~MaskDown) & ~MaskUp)}
+  def up_!   {flag = (((flag | MaskUp) & ~MaskDown) & ~MaskSame)}
+  def down_! {flag = (((flag | MaskDown) & ~MaskUp) & ~MaskSame)}
 }

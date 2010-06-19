@@ -340,9 +340,9 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     box.add(depthTable)
 
     setLayout(new GridBagLayout)
-    add(box,        new GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100,   0))
-    add(tickerPane, new GBC(0, 1).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
-    add(chartPane,  new GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
+    add(box,        GBC(0, 0).setFill(GridBagConstraints.BOTH).setWeight(100,   0))
+    add(tickerPane, GBC(0, 1).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
+    add(chartPane,  GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
   }
 
   private def updateInfoTable(ticker: Ticker) {
