@@ -293,7 +293,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         }
       }
 
-      def getColumnName(col: Int) = columnNames(col)
+      override def getColumnName(col: Int) = columnNames(col)
     }
 
     fillTable = new JTable(fillModel)
