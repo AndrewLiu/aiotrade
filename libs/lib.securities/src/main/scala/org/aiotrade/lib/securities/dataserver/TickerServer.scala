@@ -38,7 +38,9 @@ import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.FillRecord
+import org.aiotrade.lib.securities.model.FillRecordEvent
 import org.aiotrade.lib.securities.model.FillRecords
+import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
@@ -265,11 +267,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           }
 
           val prevPrice = if (dailyFirst) ticker.prevClose else prevTicker.lastPrice
-          val prevBidAsks = if (dailyFirst) Array[Float]() else {
-            val x = new Array[Float](prevTicker.bidAsks.length)
-            System.arraycopy(prevTicker.bidAsks, 0, x, 0, x.length)
-            x
-          }
+          val prevDepth = if (dailyFirst) MarketDepth.Empty else MarketDepth(prevTicker.bidAsks, copy = true)
 
           frTime = math.min(frTime, time)
           toTime = math.max(toTime, time)
@@ -278,9 +276,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           tickerSer.updateFrom(minuteQuote)
           chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (_.updateFrom(minuteQuote))
 
-          allSnapDepths += SnapDepth(prevPrice, prevBidAsks, fillRecord)
+          allSnapDepths += SnapDepth(prevPrice, prevDepth, fillRecord)
 
           sec.lastData.prevTicker.copyFrom(ticker)
+
+          sec.publish(FillRecordEvent(ticker.prevClose, fillRecord))
 
           i += (if (shouldReverseOrder) -1 else 1)
         }

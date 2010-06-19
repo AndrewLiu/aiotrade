@@ -33,12 +33,13 @@ package org.aiotrade.lib.securities.dataserver
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.FillRecord
+import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.util.actors.Event
 
 case class SnapDepthsEvent(src: DataServer[_ <: TVal], snapDepths: Array[SnapDepth]) extends Event
 
 case class SnapDepth (
   prevPrice: Float,
-  prevBidAsks: Array[Float],
+  prevDepth: MarketDepth,
   fillRecord: FillRecord
 )

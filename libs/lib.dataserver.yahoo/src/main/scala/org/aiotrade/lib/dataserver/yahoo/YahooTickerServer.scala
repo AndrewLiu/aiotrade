@@ -121,7 +121,7 @@ class YahooTickerServer extends TickerServer {
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
       case line => line.split(",") match {
-          case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _*)
+          case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _, _, _, nameX, marketX, _*)
             if !dateX.toUpperCase.contains("N/A") && !timeX.toUpperCase.contains("N/A") =>
 
             val symbol  = symbolX.toUpperCase.replace('"', ' ').trim
@@ -160,7 +160,7 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toFloat)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
 
-            tickerSnapshot.fullName = symbol
+            tickerSnapshot.fullName = nameX
             tickerSnapshot.notifyChanged
 
             countOne

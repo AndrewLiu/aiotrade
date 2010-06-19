@@ -55,12 +55,17 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.basic.BasicTableUI
+import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.DefaultTableModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.securities.model.FillRecord
+import org.aiotrade.lib.securities.model.FillRecordEvent
+import org.aiotrade.lib.securities.model.FillRecords
+import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
@@ -103,7 +108,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val dayPercent = new ValueCell
   private val prevClose = new ValueCell
 
-  private val numbers = Array("①", "②", "③", "④", "⑤")
+  private val numberStrs = Array("①", "②", "③", "④", "⑤")
   private val timeZone = sec.exchange.timeZone
   private val exchgCal = Calendar.getInstance(timeZone)
   private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
@@ -117,7 +122,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var infoTable: JTable = _
   private var depthTable: JTable = _
   private var fillTable: JTable = _
-  private var fillModel: DefaultTableModel = _
+  private var fillModel: AbstractTableModel = _
 
   initComponents
 
@@ -135,9 +140,15 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   val dailyQuote = Quotes1d.currentDailyQuote(sec)
   val tickers = Tickers.tickersOfToday(dailyQuote)
-  for (ticker <- tickers) {
-    updateByTicker(ticker)
+  if (!tickers.isEmpty) {
+    val ticker = tickers.last
+    updateInfoTable(ticker)
+    updateDepthTable(ticker.marketDepth)
+    prevTicker.copyFrom(ticker)
   }
+  
+  val fillRecords = new ArrayList[FillRecord]
+  fillRecords ++= FillRecords.fillRecordsOfToday(dailyQuote)
   scrollToLastRow(fillTable)
 
   reactions += {
@@ -145,10 +156,22 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       symbol.value = src.name
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
-        updateByTicker(ticker)
-        scrollToLastRow(fillTable)
+        updateInfoTable(ticker)
+        updateDepthTable(ticker.marketDepth)
+        prevTicker.copyFrom(ticker)
         repaint()
       }
+    case FillRecordEvent(prevClose, fillRecord) =>
+      updateFillTable(prevClose, fillRecord)
+      repaint()
+  }
+
+  def watch {
+    listenTo(sec)
+  }
+
+  def unWatch {
+    deafTo(sec)
   }
 
   private def initComponents {
@@ -174,7 +197,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     infoCellAttr.combine(Array(0), Array(0, 1))
     infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
-
     symbol.value = sec.uniSymbol
     if (tickerContract != null) {
       sname.value = tickerContract.shortName
@@ -214,15 +236,15 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     )
 
     val depth = 5
-    val dealRow = 5
-    depthModel.setValueAt(BUNDLE.getString("deal"), dealRow, 0)
+    val lastFillRow = 5
+    depthModel.setValueAt(BUNDLE.getString("deal"), lastFillRow, 0)
     for (i <- 0 until depth) {
       val askIdx = depth - 1 - i
       val askRow = i
-      depthModel.setValueAt(BUNDLE.getString("bid") + numbers(askIdx), askRow, 0)
+      depthModel.setValueAt(BUNDLE.getString("bid") + numberStrs(askIdx), askRow, 0)
       val bidIdx = i
       val bidRow = depth + 1 + i
-      depthModel.setValueAt(BUNDLE.getString("ask") + numbers(bidIdx), bidRow, 0)
+      depthModel.setValueAt(BUNDLE.getString("ask") + numberStrs(bidIdx), bidRow, 0)
     }
 
     depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -253,12 +275,26 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
 
-    fillModel = new DefaultTableModel(
-      Array[Array[Object]](),
-      Array[Object](
+    fillModel = new AbstractTableModel {
+      private val columnNames = Array[String](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
-    )
+
+      def getRowCount: Int = fillRecords.size
+      def getColumnCount: Int = columnNames.length
+
+      def getValueAt(row: Int, col: Int): Object = {
+        val fillRecord = fillRecords(row)
+        col match {
+          case 0 => sdf.format(fillRecord.time)
+          case 1 => "%5.2f" format fillRecord.price
+          case 3 => fillRecord.volume.toString
+          case _ => null
+        }
+      }
+
+      override def getColumnName(col: Int) = columnNames(col)
+    }
 
     fillTable = new JTable(fillModel)
     fillTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
@@ -309,52 +345,15 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     add(chartPane,  new GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
   }
 
-  private def updateByTicker(ticker: Ticker) {
-    val neutralColor  = LookFeel().getNeutralColor
-    val positiveColor = LookFeel().getPositiveColor
-    val negativeColor = LookFeel().getNegativeColor
+  private def updateInfoTable(ticker: Ticker) {
+    val neuColor = LookFeel().getNeutralColor
+    val posColor = LookFeel().getPositiveColor
+    val negColor = LookFeel().getNegativeColor
 
-    // --- update depth table
+    exchgCal.setTimeInMillis(System.currentTimeMillis)
+    val now = exchgCal.getTime
 
-    val fillSize = (ticker.dayVolume - prevTicker.dayVolume).toInt
-    val depth = ticker.depth
-    val dealRow = 5
-    depthModel.setValueAt("%8.2f" format ticker.lastPrice,              dealRow, 1)
-    depthModel.setValueAt(if (prevTicker == null) "-" else fillSize, dealRow, 2)
-    for (i <- 0 until depth) {
-      val askIdx = depth - 1 - i
-      val askRow = i
-      depthModel.setValueAt("%8.2f" format ticker.askPrice(askIdx), askRow, 1)
-      depthModel.setValueAt(ticker.askSize(askIdx).toInt.toString,  askRow, 2)
-      val bidIdx = i
-      val bidRow = depth + 1 + i
-      depthModel.setValueAt("%8.2f" format ticker.bidPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt(ticker.bidSize(bidIdx).toInt.toString,  bidRow, 2)
-    }
-    
-    /**
-     * Sometimes, DataUpdatedEvent is fired by other symbols' new ticker,
-     * so assert here again.
-     * @see UpdateServer.class in AbstractTickerDataServer.class and YahooTickerDataServer.class
-     */
-    if (ticker.isDayVolumeChanged(prevTicker)) {
-      val bgColor = LookFeel().backgroundColor
-      val fgColor = if (ticker.lastPrice > ticker.prevClose) {
-        positiveColor
-      } else if (ticker.lastPrice < ticker.prevClose) {
-        negativeColor
-      } else {
-        neutralColor
-      }
-      depthCellAttr.setForeground(fgColor, dealRow, 1) // last deal
-      depthCellAttr.setBackground(bgColor, dealRow, 1) // last deal
-    }
-
-    // --- update info table
-
-    exchgCal.setTimeInMillis(ticker.time)
-    val lastTradeTime = exchgCal.getTime
-    currentTime.value = sdf.format(lastTradeTime)
+    currentTime.value = sdf.format(now)
     lastPrice.value   = "%8.2f"    format ticker.lastPrice
     prevClose.value   = "%8.2f"    format ticker.prevClose
     dayOpen.value     = "%8.2f"    format ticker.dayOpen
@@ -364,37 +363,24 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
     dayVolume.value   = ticker.dayVolume.toString
 
-    var bgColor = LookFeel().backgroundColor
-    var fgColor = if (ticker.dayChange > 0) {
-      positiveColor
-    } else if (ticker.dayChange < 0) {
-      negativeColor
-    } else {
-      neutralColor
-    }
-
     def setInfoCellColorByPrevCls(value: Float, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
-      val fgColor = if (value > ticker.prevClose) {
-        positiveColor
-      } else if (value < ticker.prevClose) {
-        negativeColor
-      } else {
-        neutralColor
-      }
+      val fgColor = (
+        if (value > ticker.prevClose) posColor
+        else if (value < ticker.prevClose) negColor
+        else neuColor
+      )
       infoCellAttr.setForeground(fgColor, cell.row, cell.col)
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
 
     def setInfoCellColorByZero(value: Float, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
-      val fgColor = if (value > 0) {
-        positiveColor
-      } else if (value < 0) {
-        negativeColor
-      } else {
-        neutralColor
-      }
+      val fgColor = (
+        if (value > 0) posColor
+        else if (value < 0) negColor
+        else neuColor
+      )
       infoCellAttr.setForeground(fgColor, cell.row, cell.col)
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
@@ -405,31 +391,59 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     setInfoCellColorByPrevCls(ticker.lastPrice, lastPrice)
     setInfoCellColorByZero(ticker.dayChange, dayChange)
     setInfoCellColorByZero(ticker.dayChange, dayPercent)
+  }
+  
+  private def updateDepthTable(marketDepth: MarketDepth) {
+    val depth = marketDepth.depth
+    var i = 0
+    while (i < depth) {
+      val askIdx = depth - 1 - i
+      val askRow = i
+      depthModel.setValueAt("%8.2f" format marketDepth.askPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(marketDepth.askSize(askIdx).toInt.toString,  askRow, 2)
+      
+      val bidIdx = i
+      val bidRow = depth + 1 + i
+      depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(marketDepth.bidSize(bidIdx).toInt.toString,  bidRow, 2)
 
-    // --- update ticker table
-
-    if (ticker.isDayVolumeGrown(prevTicker)) {
-      val strikeRow = Array(
-        sdf.format(lastTradeTime),
-        "%5.2f" format ticker.lastPrice,
-        fillSize
-      )
-      fillModel.addRow(strikeRow.asInstanceOf[Array[Object]])
+      i += 1
     }
+  }
 
-    prevTicker.copyFrom(ticker)
+  private def updateFillTable(prevClose: Float, fillRecord: FillRecord) {
+    // update last fill row in depth table
+    val neuColor = LookFeel().getNeutralColor
+    val posColor = LookFeel().getPositiveColor
+    val negColor = LookFeel().getNegativeColor
 
+    val lastFillRow = 5
+    depthModel.setValueAt("%8.2f" format fillRecord.price, lastFillRow, 1)
+    depthModel.setValueAt(fillRecord.volume.toString,      lastFillRow, 2)
+
+    val bgColor = LookFeel().backgroundColor
+    val fgColor = (
+      if (fillRecord.price > prevClose) posColor
+      else if (fillRecord.price < prevClose) negColor
+      else neuColor
+    )
+
+    depthCellAttr.setForeground(fgColor, lastFillRow, 1)
+    depthCellAttr.setBackground(bgColor, lastFillRow, 1)
+
+    // update fill table
+    fillRecords += fillRecord
+    fillModel.fireTableDataChanged
+    scrollToLastRow(fillTable)
   }
 
   private def scrollToLastRow(table: JTable) {
-    if (fillTable.getRowCount < 1) {
-      return
-    }
+    if (table.getRowCount < 1) return
     
     // wrap in EDT to wait enough time to get rowCount updated
     SwingUtilities.invokeLater(new Runnable {
         def run {
-          showCell(fillTable, fillTable.getRowCount - 1, 0)
+          showCell(table, table.getRowCount - 1, 0)
         }
       })
   }
@@ -439,14 +453,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     table.scrollRectToVisible(rect)
     table.clearSelection
     table.setRowSelectionInterval(row, row)
-  }
-
-  def watch {
-    listenTo(sec)
-  }
-
-  def unWatch {
-    deafTo(sec)
   }
 
   class CustomTableUI extends BasicTableUI {
@@ -537,11 +543,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def test {
-    fillModel.addRow(Array[Object]("00:01", "12334",     "1"))
-    fillModel.addRow(Array[Object]("00:02", "12333",  "1234"))
-    fillModel.addRow(Array[Object]("00:03", "12335", "12345"))
-    fillModel.addRow(Array[Object]("00:04", "12334",   "123"))
-    fillModel.addRow(Array[Object]("00:05", "12334",   "123"))
+//    fillRecords += ((0, 1234f, 1))
+//    fillRecords += ((1, 1234f, 1))
+//    fillRecords += ((2, 1234f, 1))
+//    fillRecords += ((3, 1234f, 1))
+//    fillRecords += ((4, 1234f, 1))
     showCell(fillTable, fillTable.getRowCount - 1, 0)
   }
 }

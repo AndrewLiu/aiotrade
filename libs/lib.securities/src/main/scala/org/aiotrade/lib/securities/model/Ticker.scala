@@ -44,7 +44,7 @@ object Tickers extends Table[Ticker] {
   INDEX("time_idx", time.name)
 
   def tickersOfToday(dailyQuote: Quote): Seq[Ticker] = {
-    SELECT (Tickers.*) FROM (Tickers) WHERE (Tickers.quote.field EQ Quotes1d.idOf(dailyQuote)) list
+    SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
   }
 }
 
@@ -65,36 +65,35 @@ case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
  */
 @serializable @cloneable
 class Ticker(val depth: Int) extends LightTicker {
-  @transient final protected var isChanged: Boolean = _
+  @transient final protected var _isChanged: Boolean = _
 
-  /**
-   * 0 - bid price
-   * 1 - bid size
-   * 2 - ask price
-   * 3 - ask size
-   */
-  var bidAsks = new Array[Float](depth * 4)
+  val marketDepth = new MarketDepth(new Array[Float](depth * 4))
 
   def this() = this(5)
 
-  override protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
-    isChanged = super.updateFieldValue(fieldIdx, v)
-    isChanged
+  def bidAsks = marketDepth.bidAsks
+  def bidAsks_=(values: Array[Float]) {
+    marketDepth.bidAsks = values
   }
 
-  final def bidPrice(idx: Int) = bidAsks(idx * 4)
-  final def bidSize (idx: Int) = bidAsks(idx * 4 + 1)
-  final def askPrice(idx: Int) = bidAsks(idx * 4 + 2)
-  final def askSize (idx: Int) = bidAsks(idx * 4 + 3)
+  final def bidPrice(idx: Int) = marketDepth.bidPrice(idx)
+  final def bidSize (idx: Int) = marketDepth.bidSize (idx)
+  final def askPrice(idx: Int) = marketDepth.askPrice(idx)
+  final def askSize (idx: Int) = marketDepth.askSize (idx)
 
-  final def setBidPrice(idx: Int, v: Float) = updateDepthValue(idx * 4, v)
-  final def setBidSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 1, v)
-  final def setAskPrice(idx: Int, v: Float) = updateDepthValue(idx * 4 + 2, v)
-  final def setAskSize (idx: Int, v: Float) = updateDepthValue(idx * 4 + 3, v)
+  final def setBidPrice(idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
+  final def setBidSize (idx: Int, v: Float) = marketDepth.setBidSize (idx, v)
+  final def setAskPrice(idx: Int, v: Float) = marketDepth.setAskPrice(idx, v)
+  final def setAskSize (idx: Int, v: Float) = marketDepth.setAskSize (idx, v)
 
-  private def updateDepthValue(idx: Int, v: Float) {
-    isChanged = bidAsks(idx) != v
-    bidAsks(idx) = v
+  def isChanged = _isChanged || marketDepth.isChanged
+  def isChanged_=(b: Boolean) = {
+    _isChanged = b
+  }
+
+  override protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
+    _isChanged = super.updateFieldValue(fieldIdx, v)
+    _isChanged
   }
 
   override def reset {

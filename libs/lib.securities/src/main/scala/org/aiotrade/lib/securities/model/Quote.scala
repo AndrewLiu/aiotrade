@@ -34,6 +34,7 @@ package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
 import ru.circumflex.orm._
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 
@@ -85,11 +86,27 @@ abstract class Quotes extends Table[Quote] {
 
   INDEX("time_idx", time.name)
 
-  def closedQuotesOf(sec: Sec): Seq[Quote] = {
+  def quotesOf(sec: Sec): Seq[Quote] = {
     SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ 1)
+      this.sec.field EQ Secs.idOf(sec)
     ) ORDER_BY (this.time) list
   }
+
+  def closedQuotesOf(sec: Sec): Seq[Quote] = {
+    val xs = new ArrayList[Quote]()
+    for (x <- quotesOf(sec) if x.closed_?) {
+      xs += x
+    }
+    xs
+  }
+
+  def closedQuotesOf_filterByDB(sec: Sec): Seq[Quote] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+    ) ORDER_BY (this.time) list
+  }
+
+
 }
 
 /**

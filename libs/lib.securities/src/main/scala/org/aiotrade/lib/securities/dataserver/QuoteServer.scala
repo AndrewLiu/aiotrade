@@ -52,12 +52,11 @@ object QuoteServer {
      * 1. restore data from database
      */
     val quotes = if (freq == TFreq.DAILY) {
-      Quotes1d.closedQuotesOf(sec).toArray
+      Quotes1d.closedQuotesOf(sec)
     } else if (freq == TFreq.ONE_MIN) {
-      Quotes1m.closedQuotesOf(sec).toArray
-    } else Array[Quote]()
+      Quotes1m.closedQuotesOf(sec)
+    } else Nil
     
-    //val quotes = PersistenceManager().restoreQuotes(contract.symbol, freq)
     composeSer(uniSymbol, serToBeLoaded, quotes)
 
     /**
@@ -82,23 +81,26 @@ object QuoteServer {
    * @param serToBeFilled Ser
    * @param TVal(s)
    */
-  protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Array[Quote]): TSerEvent = {
+  protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Seq[Quote]): TSerEvent = {
     var evt: TSerEvent = null
 
-    val size = quotes.length
-    if (size > 0) {
+    if (quotes.size > 0) {
       val cal = Calendar.getInstance(Exchange.exchangeOf(uniSymbol).timeZone)
       val freq = quoteSer.freq
 
       //println("==== " + symbol + " ====")
-      quotes foreach {x => x.time = freq.round(x.time, cal)}
+
+      // copy to a new array and don't change it anymore, so we can ! it as message
+      val quotes1 = quotes.toArray
+      var i = 0
+      while (i < quotes1.length) {
+        val quote = quotes1(i)
+        quote.time = freq.round(quote.time, cal)
+        i += 1
+      }
       //println("==== after rounded ====")
 
-      // * copy to a new array and don't change it anymore, so we can ! it as message
-      val values = new Array[Quote](size)
-      quotes.copyToArray(values, 0)
-
-      quoteSer ++= values
+      quoteSer ++= quotes1
     }
 
     evt
@@ -141,14 +143,14 @@ abstract class QuoteServer extends DataServer[Quote] {
       val serToBeFilled = serOf(contract).get
 
       val freq = serToBeFilled.freq
-      val storage = storageOf(contract).toArray
+      val storage = storageOf(contract)
       val sec = Exchange.secOf(contract.symbol).get
       storage foreach {_.sec = sec}
       if (freq == TFreq.DAILY) {
-        Quotes1d.insertBatch(storage)
+        Quotes1d.insertBatch(storage.toArray)
         commit
       } else if (freq == TFreq.ONE_MIN) {
-        Quotes1m.insertBatch(storage)
+        Quotes1m.insertBatch(storage.toArray)
         commit
       }
 
@@ -164,13 +166,13 @@ abstract class QuoteServer extends DataServer[Quote] {
       //
       //            serToBeFilled.fireTSerEvent(evt)
       
-      storageOf(contract) synchronized {storageOf(contract).clear}
+      storage synchronized {storage.clear}
     }
   }
 
   override protected def postRefresh {
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract).toArray
+      val storage = storageOf(contract)
 
       val evt = composeSer(toUniSymbol(contract.symbol), serOf(contract).get, storage)
       //            if (evt != null) {
@@ -179,7 +181,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": update event:");
       //            }
 
-      storageOf(contract) synchronized {storageOf(contract).clear}
+      storage synchronized {storage.clear}
     }
   }
 
