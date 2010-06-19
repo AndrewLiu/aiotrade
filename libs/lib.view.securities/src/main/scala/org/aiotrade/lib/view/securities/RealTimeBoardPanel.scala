@@ -55,11 +55,13 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.basic.BasicTableUI
+import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
@@ -110,6 +112,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   sdf.setTimeZone(timeZone)
 
   private val prevTicker: Ticker = new Ticker
+  private val fillRecords = new ArrayList[(Long, Float, Int)]()
   private var infoModel: AttributiveCellTableModel = _
   private var depthModel: AttributiveCellTableModel = _
   private var infoCellAttr: DefaultCellAttribute = _
@@ -117,7 +120,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var infoTable: JTable = _
   private var depthTable: JTable = _
   private var fillTable: JTable = _
-  private var fillModel: DefaultTableModel = _
+  private var fillModel: TableModel = _
 
   initComponents
 
@@ -253,12 +256,26 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
 
-    fillModel = new DefaultTableModel(
-      Array[Array[Object]](),
-      Array[Object](
+    fillModel = new AbstractTableModel {
+      private val columnNames = Array[String](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
-    )
+
+      def getRowCount: Int = fillRecords.size
+      def getColumnCount: Int = columnNames.length
+
+      def getValueAt(row: Int, col: Int): Object = {
+        val fillRecord = fillRecords(row)
+        col match {
+          case 0 => sdf.format(fillRecord._1)
+          case 1 => "%5.2f" format fillRecord._2
+          case 3 => fillRecord._3.toString
+          case _ => null
+        }
+      }
+
+      def getColumnName(col: Int) = columnNames(col)
+    }
 
     fillTable = new JTable(fillModel)
     fillTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
@@ -409,12 +426,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     // --- update ticker table
 
     if (ticker.isDayVolumeGrown(prevTicker)) {
-      val strikeRow = Array(
-        sdf.format(lastTradeTime),
-        "%5.2f" format ticker.lastPrice,
-        fillSize
-      )
-      fillModel.addRow(strikeRow.asInstanceOf[Array[Object]])
+      fillRecords += ((lastTradeTime.getTime, ticker.lastPrice, fillSize))
     }
 
     prevTicker.copyFrom(ticker)
@@ -537,11 +549,11 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def test {
-    fillModel.addRow(Array[Object]("00:01", "12334",     "1"))
-    fillModel.addRow(Array[Object]("00:02", "12333",  "1234"))
-    fillModel.addRow(Array[Object]("00:03", "12335", "12345"))
-    fillModel.addRow(Array[Object]("00:04", "12334",   "123"))
-    fillModel.addRow(Array[Object]("00:05", "12334",   "123"))
+    fillRecords += ((0, 1234f, 1))
+    fillRecords += ((1, 1234f, 1))
+    fillRecords += ((2, 1234f, 1))
+    fillRecords += ((3, 1234f, 1))
+    fillRecords += ((4, 1234f, 1))
     showCell(fillTable, fillTable.getRowCount - 1, 0)
   }
 }
