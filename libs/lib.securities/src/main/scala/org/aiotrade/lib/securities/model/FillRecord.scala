@@ -1,6 +1,9 @@
 package org.aiotrade.lib.securities.model
 
+import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm._
+
+case class FillRecordEvent(prevClose: Float, fillRecord: FillRecord) extends Event
 
 object FillRecords extends Table[FillRecord] {
   val quote = "quotes_id" REFERENCES(Quotes1d)

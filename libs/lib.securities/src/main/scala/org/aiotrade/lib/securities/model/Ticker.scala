@@ -76,15 +76,15 @@ class Ticker(val depth: Int) extends LightTicker {
     marketDepth.bidAsks = values
   }
 
-  final def bidPrice(idx: Int) = marketDepth.bidAsks(idx * 4)
-  final def bidSize (idx: Int) = marketDepth.bidAsks(idx * 4 + 1)
-  final def askPrice(idx: Int) = marketDepth.bidAsks(idx * 4 + 2)
-  final def askSize (idx: Int) = marketDepth.bidAsks(idx * 4 + 3)
+  final def bidPrice(idx: Int) = marketDepth.bidPrice(idx)
+  final def bidSize (idx: Int) = marketDepth.bidSize (idx)
+  final def askPrice(idx: Int) = marketDepth.askPrice(idx)
+  final def askSize (idx: Int) = marketDepth.askSize (idx)
 
   final def setBidPrice(idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
-  final def setBidSize (idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
-  final def setAskPrice(idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
-  final def setAskSize (idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
+  final def setBidSize (idx: Int, v: Float) = marketDepth.setBidSize (idx, v)
+  final def setAskPrice(idx: Int, v: Float) = marketDepth.setAskPrice(idx, v)
+  final def setAskSize (idx: Int, v: Float) = marketDepth.setAskSize (idx, v)
 
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {

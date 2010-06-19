@@ -38,6 +38,7 @@ import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.FillRecord
+import org.aiotrade.lib.securities.model.FillRecordEvent
 import org.aiotrade.lib.securities.model.FillRecords
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
@@ -278,6 +279,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           allSnapDepths += SnapDepth(prevPrice, prevDepth, fillRecord)
 
           sec.lastData.prevTicker.copyFrom(ticker)
+
+          sec.publish(FillRecordEvent(ticker.prevClose, fillRecord))
 
           i += (if (shouldReverseOrder) -1 else 1)
         }
