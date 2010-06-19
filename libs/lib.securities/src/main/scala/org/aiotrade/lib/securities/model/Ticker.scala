@@ -44,7 +44,7 @@ object Tickers extends Table[Ticker] {
   INDEX("time_idx", time.name)
 
   def tickersOfToday(dailyQuote: Quote): Seq[Ticker] = {
-    SELECT (Tickers.*) FROM (Tickers) WHERE (Tickers.quote.field EQ Quotes1d.idOf(dailyQuote)) list
+    SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
   }
 }
 

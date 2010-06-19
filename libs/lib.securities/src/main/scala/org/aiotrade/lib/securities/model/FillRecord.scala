@@ -1,6 +1,6 @@
 package org.aiotrade.lib.securities.model
 
-import ru.circumflex.orm.Table
+import ru.circumflex.orm._
 
 object FillRecords extends Table[FillRecord] {
   val quote = "quotes_id" REFERENCES(Quotes1d)
@@ -12,6 +12,13 @@ object FillRecords extends Table[FillRecord] {
   val amount = "amount" FLOAT(12, 2)
 
   val flag = "flag" TINYINT
+
+  INDEX("time_idx", time.name)
+
+  def fillRecordsOfToday(dailyQuote: Quote): Seq[FillRecord] = {
+    SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
+  }
+
 }
 
 object FillRecord {
