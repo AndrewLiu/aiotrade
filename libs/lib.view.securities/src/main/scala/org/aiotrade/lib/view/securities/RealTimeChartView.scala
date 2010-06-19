@@ -47,6 +47,7 @@ import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.actors.Reactor
+import org.aiotrade.lib.util.swing.GBC
 
 /**
  *
@@ -97,57 +98,31 @@ class RealTimeChartView(acontroller: ChartingController,
     glassPane.isUsingInstantTitleValue = true
 
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
 
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 618
-    add(glassPane, gbc)
+    add(glassPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 618))
 
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 618
-    add(mainLayeredPane, gbc)
+    add(mainLayeredPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 618))
 
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 1
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 0
-    gbc.weighty = 100
-    add(axisYPane, gbc)
+    add(axisYPane, GBC(1, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(0, 100))
 
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(axisXPane, gbc)
+    add(axisXPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
 
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(divisionPane, gbc)
+    add(divisionPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
   }
 
   override protected def putChartsOfMainSer {

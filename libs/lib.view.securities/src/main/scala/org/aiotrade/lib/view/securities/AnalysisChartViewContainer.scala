@@ -41,6 +41,7 @@ import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -56,12 +57,8 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     
   protected def initComponents {
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.weightx = 100
-    gbc.weighty = 618
-        
+    val gbc = GBC(0).setFill(GridBagConstraints.BOTH).setWeight(100, 618)
+    
     val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
     quoteSer.shortDescription = controller.contents.uniSymbol
     val quoteChartView = new AnalysisChartView(controller, quoteSer)
@@ -74,20 +71,20 @@ class AnalysisChartViewContainer extends ChartViewContainer {
          if descriptor.active && descriptor.freq == controller.baseSer.freq
     ) {
       descriptor.serviceInstance(quoteSer) foreach {indicator =>
-          /**
-           * @NOTICE
-           * As the quoteSer may has been loaded, there may be no more UpdatedEvent
-           * etc fired, so, computeFrom(0) first.
-           */
-          indicator ! ComputeFrom(0) // don't remove me
+        /**
+         * @NOTICE
+         * As the quoteSer may has been loaded, there may be no more UpdatedEvent
+         * etc fired, so, computeFrom(0) first.
+         */
+        indicator ! ComputeFrom(0) // don't remove me
                     
-          if (indicator.isOverlapping) {
-            addSlaveView(descriptor, indicator, null)
-          } else {
-            /** To get the extract size of slaveViews to be showing, store them first, then add them later */
-            indicatorDescriptorsToBeShowing += descriptor
-            indicatorsToBeShowing += indicator.asInstanceOf[Indicator]
-          }
+        if (indicator.isOverlapping) {
+          addSlaveView(descriptor, indicator, null)
+        } else {
+          /** To get the extract size of slaveViews to be showing, store them first, then add them later */
+          indicatorDescriptorsToBeShowing += descriptor
+          indicatorsToBeShowing += indicator.asInstanceOf[Indicator]
+        }
       }
     }
         

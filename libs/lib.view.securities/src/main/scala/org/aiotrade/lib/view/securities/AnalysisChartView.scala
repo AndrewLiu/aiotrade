@@ -51,6 +51,7 @@ import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.actors.Reactor
+import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.HashMap
 
 
@@ -104,7 +105,6 @@ class AnalysisChartView(acontroller: ChartingController,
     /** begin to set the layout: */
         
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
         
     /**
      * !NOTICE be ware of the components added order:
@@ -120,82 +120,46 @@ class AnalysisChartView(acontroller: ChartingController,
      *      GlassPane#processMouseMotionEvent(MouseEvent)
      */
         
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(xControlPane, gbc)
+    add(xControlPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(glassPane, gbc)
+    add(glassPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(mainLayeredPane, gbc)
+    add(mainLayeredPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
     /** add the yControlPane first, it will cover axisYPane partly in SOUTH */
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 1
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 0
-    gbc.weighty = 0
-    add(yControlPane, gbc)
+    add(yControlPane, GBC(1, 0, 1, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(0, 0))
         
     /**
      * add the axisYPane in the same grid as yControlPane then, it will be
      * covered by yControlPane partly in SOUTH
      */
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 1
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 0
-    gbc.weighty = 100
-    add(axisYPane, gbc)
+    add(axisYPane, GBC(1, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(0, 100))
         
     /** add axisXPane and dividentPane across 2 gridwidth horizontally, */
+    add(axisXPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(axisXPane, gbc)
-        
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(divisionPane, gbc)
+    add(divisionPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
   }
     
   override protected def computeGeometry {

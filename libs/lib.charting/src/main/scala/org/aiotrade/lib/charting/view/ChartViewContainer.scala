@@ -43,6 +43,7 @@ import javax.swing.JPanel
 import org.aiotrade.lib.charting.chart.Chart
 import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.HashMap
 
 
@@ -91,7 +92,7 @@ abstract class ChartViewContainer extends JPanel {
    *
    * @return true if the mouse will work interacticely, false else.
    */
-  def isInteractive: Boolean = _isInteractive
+  def isInteractive = _isInteractive
   def isInteractive_=(b: Boolean) {
     _masterView.isInteractive = b
 
@@ -122,11 +123,6 @@ abstract class ChartViewContainer extends JPanel {
      * @TODO
      * Need implement adjusting each views' height ?
      */
-    val gbl = getLayout.asInstanceOf[GridBagLayout]
-    val gbc = new GridBagConstraints
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.weightx = 100
 
     var numSlaveViews = 0
     var sumSlaveViewsHeight = 0f
@@ -143,8 +139,9 @@ abstract class ChartViewContainer extends JPanel {
 
     setVisible(false)
 
+    val gbl = getLayout.asInstanceOf[GridBagLayout]
     val adjustHeight = increment
-    gbc.weighty = _masterView.getHeight + adjustHeight
+    val gbc = GBC(0).setFill(GridBagConstraints.BOTH).setWeight(100, _masterView.getHeight + adjustHeight)
 
     /**
      * We need setConstraints and setSize together to take the effect
@@ -178,8 +175,7 @@ abstract class ChartViewContainer extends JPanel {
     add(masterView, gbc)
   }
 
-  def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, agbc: GridBagConstraints) {
-    var gbc = agbc
+  def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, $gbc: GridBagConstraints) {
     if (!descriptorToSlaveView.contains(descriptor)) {
       var view: ChartView = null
       if (indicator.isOverlapping) {
@@ -187,11 +183,9 @@ abstract class ChartViewContainer extends JPanel {
         view.addOverlappingCharts(indicator)
       } else {
         view = new IndicatorChartView(controller, indicator)
-        if (gbc == null) {
-          gbc = new GridBagConstraints
-          gbc.fill = GridBagConstraints.BOTH
-          gbc.gridx = 0
-        }
+        val gbc = if ($gbc == null) {
+          GBC(0).setFill(GridBagConstraints.BOTH)
+        } else $gbc
         add(view, gbc)
       }
       descriptorToSlaveView.put(descriptor, view)

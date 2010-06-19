@@ -44,6 +44,7 @@ import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.indicator.Indicator
+import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.HashSet
 
 
@@ -82,47 +83,26 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
    */
   protected def initComponents {
     setLayout(new GridBagLayout)
-    val gbc = new GridBagConstraints
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(glassPane, gbc)
+    add(glassPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 0
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 100 - 100 / 6.18
-    add(mainLayeredPane, gbc)
+    add(mainLayeredPane, GBC(0, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(100, 100 - 100 / 6.18))
         
-    gbc.anchor = GridBagConstraints.CENTER
-    gbc.fill = GridBagConstraints.BOTH
-    gbc.gridx = 1
-    gbc.gridy = 0
-    gbc.gridwidth = 1
-    gbc.gridheight = 1
-    gbc.weightx = 0
-    gbc.weighty = 100
-    add(axisYPane, gbc)
+    add(axisYPane, GBC(1, 0, 1, 1).
+        setAnchor(GridBagConstraints.CENTER).
+        setFill(GridBagConstraints.BOTH).
+        setWeight(0, 100))
         
-    gbc.anchor = GridBagConstraints.SOUTH
-    gbc.fill = GridBagConstraints.HORIZONTAL
-    gbc.gridx = 0
-    gbc.gridy = GridBagConstraints.RELATIVE
-    gbc.gridwidth = 2
-    gbc.gridheight = 1
-    gbc.weightx = 100
-    gbc.weighty = 0
-    add(divisionPane, gbc)
+    add(divisionPane, GBC(0, GridBagConstraints.RELATIVE, 2, 1).
+        setAnchor(GridBagConstraints.SOUTH).
+        setFill(GridBagConstraints.HORIZONTAL).
+        setWeight(100, 0))
   }
     
     
