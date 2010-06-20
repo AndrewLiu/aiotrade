@@ -8,33 +8,12 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 object MoneyFlows1d extends MoneyFlows {
-  def currentDailyMoneyFlow(sec: Sec): MoneyFlow = synchronized {
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
-    val now = TFreq.DAILY.round(System.currentTimeMillis, cal)
-
-    (SELECT (MoneyFlows1d.*) FROM (MoneyFlows1d) WHERE (
-        (MoneyFlows1d.sec.field EQ Secs.idOf(sec)) AND (MoneyFlows1d.time EQ now)
-      ) unique
-    ) match {
-      case Some(one) => one
-      case None =>
-        val newone = new MoneyFlow
-        newone.time = now
-        newone.sec = sec
-        newone.unclosed_! // @todo when to close it and update to db?
-        newone.justOpen_!
-        MoneyFlows1d.save(newone)
-        commit
-        newone
-    }
-  }
-
   def dailyMoneyFlowOf(sec: Sec, time: Long): MoneyFlow = synchronized {
     val cal = Calendar.getInstance(sec.exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
-    (SELECT (MoneyFlows1d.*) FROM (MoneyFlows1d) WHERE (
-        (MoneyFlows1d.sec.field EQ Secs.idOf(sec)) AND (MoneyFlows1d.time EQ rounded)
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
       ) unique
     ) match {
       case Some(one) => one

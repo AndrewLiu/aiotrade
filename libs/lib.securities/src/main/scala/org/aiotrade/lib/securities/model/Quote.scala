@@ -39,33 +39,18 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 
 object Quotes1d extends Quotes {
-  def currentDailyQuote(sec: Sec): Quote = synchronized {
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
-    val now = TFreq.DAILY.round(System.currentTimeMillis, cal)
-    
-    (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
-        (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ now)
-      ) unique
-    ) match {
-      case Some(one) => one
-      case None =>
-        val newone = new Quote
-        newone.time = now
-        newone.sec = sec
-        newone.unclosed_! // @todo when to close it and update to db?
-        newone.justOpen_!
-        Quotes1d.save(newone)
-        commit
-        newone
-    }
+  def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ MAX(this.time))
+    ) unique
   }
 
   def dailyQuoteOf(sec: Sec, time: Long): Quote = synchronized {
     val cal = Calendar.getInstance(sec.exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
-    (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
-        (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ rounded)
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
       ) unique
     ) match {
       case Some(one) => one

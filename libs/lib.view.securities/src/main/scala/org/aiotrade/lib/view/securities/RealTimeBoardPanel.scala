@@ -138,18 +138,23 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   chartPane.setFocusable(false)
   viewContainer.setFocusable(false)
 
-  val dailyQuote = Quotes1d.currentDailyQuote(sec)
-  val tickers = Tickers.tickersOfToday(dailyQuote)
-  if (!tickers.isEmpty) {
-    val ticker = tickers.last
-    updateInfoTable(ticker)
-    updateDepthTable(ticker.marketDepth)
-    prevTicker.copyFrom(ticker)
+  val (tickers, fillRecords) = Quotes1d.lastDailyQuoteOf(sec) match {
+    case Some(dailyQuote) =>
+      val tickersx = Tickers.tickersOfToday(dailyQuote)
+      if (!tickersx.isEmpty) {
+        val ticker = tickersx.last
+        updateInfoTable(ticker)
+        updateDepthTable(ticker.marketDepth)
+        prevTicker.copyFrom(ticker)
+      }
+
+      val fillRecordsx = new ArrayList[FillRecord]
+      fillRecordsx ++= FillRecords.fillRecordsOfToday(dailyQuote)
+      scrollToLastRow(fillTable)
+
+      (tickersx, fillRecordsx)
+    case None => (new ArrayList[Ticker], new ArrayList[FillRecord])
   }
-  
-  val fillRecords = new ArrayList[FillRecord]
-  fillRecords ++= FillRecords.fillRecordsOfToday(dailyQuote)
-  scrollToLastRow(fillTable)
 
   reactions += {
     case TickerEvent(src: Sec, ticker: Ticker) =>
