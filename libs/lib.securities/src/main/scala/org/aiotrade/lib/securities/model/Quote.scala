@@ -59,6 +59,27 @@ object Quotes1d extends Quotes {
         newone
     }
   }
+
+  def dailyQuoteOf(sec: Sec, time: Long): Quote = synchronized {
+    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val rounded = TFreq.DAILY.round(time, cal)
+
+    (SELECT (Quotes1d.*) FROM (Quotes1d) WHERE (
+        (Quotes1d.sec.field EQ Secs.idOf(sec)) AND (Quotes1d.time EQ rounded)
+      ) unique
+    ) match {
+      case Some(one) => one
+      case None =>
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_! // @todo when to close it and update to db?
+        newone.justOpen_!
+        Quotes1d.save(newone)
+        commit
+        newone
+    }
+  }
 }
 
 object Quotes1m extends Quotes
@@ -145,14 +166,14 @@ class Quote extends TVal with Flag {
   def vwap      = data(VWAP)
   def adjWeight = data(ADJWEIGHT)
 
-  def open_=     (v: Float) = data(OPEN)      = v
-  def high_=     (v: Float) = data(HIGH)      = v
-  def low_=      (v: Float) = data(LOW)       = v
-  def close_=    (v: Float) = data(CLOSE)     = v
-  def volume_=   (v: Float) = data(VOLUME)    = v
-  def amount_=   (v: Float) = data(AMOUNT)    = v
-  def vwap_=     (v: Float) = data(VWAP)      = v
-  def adjWeight_=(v: Float) = data(ADJWEIGHT) = v
+  def open_=     (v: Float) {data(OPEN)      = v}
+  def high_=     (v: Float) {data(HIGH)      = v}
+  def low_=      (v: Float) {data(LOW)       = v}
+  def close_=    (v: Float) {data(CLOSE)     = v}
+  def volume_=   (v: Float) {data(VOLUME)    = v}
+  def amount_=   (v: Float) {data(AMOUNT)    = v}
+  def vwap_=     (v: Float) {data(VWAP)      = v}
+  def adjWeight_=(v: Float) {data(ADJWEIGHT) = v}
 
   // Foreign keys
   var tickers: List[Ticker] = Nil
