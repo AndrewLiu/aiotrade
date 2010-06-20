@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -44,6 +43,9 @@ import ru.circumflex.orm._
 
 object QuoteServer {
 
+  /**
+   * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
+   */
   def loadFromPersistence(sec: Sec, serToBeLoaded: QuoteSer): Long = {
     val uniSymbol = sec.secInfo.uniSymbol
     val freq = serToBeLoaded.freq
@@ -76,31 +78,19 @@ object QuoteServer {
 
 
   /**
-   * compose ser using data from TVal(s)
+   * compose ser using data from quote(s)
+   *
+   * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    * @param symbol
    * @param serToBeFilled Ser
-   * @param TVal(s)
+   * @param quotes
    */
   protected def composeSer(uniSymbol: String, quoteSer: QuoteSer, quotes: Seq[Quote]): TSerEvent = {
     var evt: TSerEvent = null
 
-    if (quotes.size > 0) {
-      val cal = Calendar.getInstance(Exchange.exchangeOf(uniSymbol).timeZone)
-      val freq = quoteSer.freq
-
-      //println("==== " + symbol + " ====")
-
+    if (!quotes.isEmpty) {
       // copy to a new array and don't change it anymore, so we can ! it as message
-      val quotes1 = quotes.toArray
-      var i = 0
-      while (i < quotes1.length) {
-        val quote = quotes1(i)
-        quote.time = freq.round(quote.time, cal)
-        i += 1
-      }
-      //println("==== after rounded ====")
-
-      quoteSer ++= quotes1
+      quoteSer ++= quotes.toArray
     }
 
     evt
@@ -126,6 +116,9 @@ abstract class QuoteServer extends DataServer[Quote] {
 
   listenTo(Exchange)
 
+  /**
+   * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
+   */
   protected def loadFromPersistence: Long = {
     var loadedTime1 = loadedTime
     for (contract <- subscribedContracts) {
@@ -138,6 +131,9 @@ abstract class QuoteServer extends DataServer[Quote] {
   }
 
 
+  /**
+   * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
+   */
   override protected def postLoadHistory {
     for (contract <- subscribedContracts) {
       val serToBeFilled = serOf(contract).get

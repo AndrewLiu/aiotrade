@@ -172,13 +172,10 @@ class YahooQuoteServer extends QuoteServer {
               val date = dateFormat.parse(dateTimeX.trim)
               cal.clear
               cal.setTime(date)
-            } catch {
-              case _: ParseException => loop(newestTime)
-            }
-                    
+            } catch {case _: ParseException => loop(newestTime)}
+
+            // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
             var time = cal.getTimeInMillis
-            // quote time is rounded to 00:00, we should adjust it to open time
-            time += exchange.openTimeOfDay
             if (time < fromTime) {
               loop(newestTime)
             }

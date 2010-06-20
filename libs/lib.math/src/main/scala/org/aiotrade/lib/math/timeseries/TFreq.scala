@@ -31,10 +31,80 @@
 package org.aiotrade.lib.math.timeseries
 
 
-import java.util.{Calendar}
+import java.util.Calendar
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
 import org.aiotrade.lib.math.timeseries.TUnit._
+
+object TFreq {
+  val PREDEFINED = Set(ONE_MIN,
+                       TWO_MINS,
+                       THREE_MINS,
+                       FOUR_MINS,
+                       FIVE_MINS,
+                       FIFTEEN_MINS,
+                       THIRTY_MINS,
+                       DAILY,
+                       TWO_DAYS,
+                       THREE_DAYS,
+                       FOUR_DAYS,
+                       FIVE_DAYS,
+                       WEEKLY,
+                       MONTHLY)
+
+  val SELF_DEFINED = new TFreq(TUnit.Second, 1)
+  val ONE_SEC      = new TFreq(TUnit.Second, 1)
+  val TWO_SECS     = new TFreq(TUnit.Second, 2)
+  val THREE_SECS   = new TFreq(TUnit.Second, 3)
+  val FOUR_SECS    = new TFreq(TUnit.Second, 3)
+  val FIVE_SECS    = new TFreq(TUnit.Second, 5)
+  val FIFTEEN_SECS = new TFreq(TUnit.Second, 15)
+  val THIRTY_SECS  = new TFreq(TUnit.Second, 30)
+  val ONE_MIN      = new TFreq(TUnit.Minute, 1)
+  val TWO_MINS     = new TFreq(TUnit.Minute, 2)
+  val THREE_MINS   = new TFreq(TUnit.Minute, 3)
+  val FOUR_MINS    = new TFreq(TUnit.Minute, 3)
+  val FIVE_MINS    = new TFreq(TUnit.Minute, 5)
+  val FIFTEEN_MINS = new TFreq(TUnit.Minute, 15)
+  val THIRTY_MINS  = new TFreq(TUnit.Minute, 30)
+  val ONE_HOUR     = new TFreq(TUnit.Hour,   1)
+  val DAILY        = new TFreq(TUnit.Day,    1)
+  val TWO_DAYS     = new TFreq(TUnit.Day,    2)
+  val THREE_DAYS   = new TFreq(TUnit.Day,    3)
+  val FOUR_DAYS    = new TFreq(TUnit.Day,    4)
+  val FIVE_DAYS    = new TFreq(TUnit.Day,    5)
+  val WEEKLY       = new TFreq(TUnit.Week,   1)
+  val MONTHLY      = new TFreq(TUnit.Month,  1)
+  val THREE_MONTHS = new TFreq(TUnit.Month,  3)
+  val ONE_YEAR     = new TFreq(TUnit.Year,   1)
+
+  // simple test
+  def main(args: Array[String]) {
+    val tz = java.util.TimeZone.getTimeZone("America/New_York")
+
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy h:mma")
+    df.setTimeZone(tz)
+
+    val date0 = df.parse("6/18/2010 0:00am")
+    val time0 = date0.getTime // 1276833600000
+
+    val date1 = df.parse("6/18/2010 4:00pm")
+    val time1 = date1.getTime // 1276891200000
+
+    val cal = Calendar.getInstance(tz)
+    val rounded0 = TFreq.DAILY.round(time0, cal)
+    if (rounded0 == time0) 
+      println(time0 + " was properly rounded")
+    else
+      println("Error: " + time0 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded0 + " !!!")
+
+    val rounded1 = TFreq.DAILY.round(time1, cal)
+    if (rounded1 == time0) 
+      println(time1 + " was properly rounded")
+    else
+      println("Error: " + time1 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded1 + " !!!")
+  }
+}
 
 /**
  * Class combining Unit and nUnits.
@@ -71,12 +141,11 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
    */
   def round(time: Long, cal: Calendar): Long = {
     cal.setTimeInMillis(time)
-    val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset - cal.get(Calendar.DST_OFFSET)
+    val offsetToLocalZeroOfDay = cal.getTimeZone.getRawOffset + cal.get(Calendar.DST_OFFSET)
     ((time + offsetToLocalZeroOfDay) / interval) * interval - offsetToLocalZeroOfDay
   }
 
   /**
-   * round time to freq's begin 0
    * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
    * @param cal Calendar instance with proper timeZone set, <b>cal is not thread safe</b>
@@ -181,47 +250,4 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
   def writeToJava(id: String): String = {
     "todo"//JavaDocument.create(id, classOf[Frequency], getUnit, getNUnits)
   }
-}
-
-object TFreq {
-  val PREDEFINED = Set(ONE_MIN,
-                       TWO_MINS,
-                       THREE_MINS,
-                       FOUR_MINS,
-                       FIVE_MINS,
-                       FIFTEEN_MINS,
-                       THIRTY_MINS,
-                       DAILY,
-                       TWO_DAYS,
-                       THREE_DAYS,
-                       FOUR_DAYS,
-                       FIVE_DAYS,
-                       WEEKLY,
-                       MONTHLY)
-
-  val SELF_DEFINED = new TFreq(TUnit.Second, 1)
-  val ONE_SEC      = new TFreq(TUnit.Second, 1)
-  val TWO_SECS     = new TFreq(TUnit.Second, 2)
-  val THREE_SECS   = new TFreq(TUnit.Second, 3)
-  val FOUR_SECS    = new TFreq(TUnit.Second, 3)
-  val FIVE_SECS    = new TFreq(TUnit.Second, 5)
-  val FIFTEEN_SECS = new TFreq(TUnit.Second, 15)
-  val THIRTY_SECS  = new TFreq(TUnit.Second, 30)
-  val ONE_MIN      = new TFreq(TUnit.Minute, 1)
-  val TWO_MINS     = new TFreq(TUnit.Minute, 2)
-  val THREE_MINS   = new TFreq(TUnit.Minute, 3)
-  val FOUR_MINS    = new TFreq(TUnit.Minute, 3)
-  val FIVE_MINS    = new TFreq(TUnit.Minute, 5)
-  val FIFTEEN_MINS = new TFreq(TUnit.Minute, 15)
-  val THIRTY_MINS  = new TFreq(TUnit.Minute, 30)
-  val ONE_HOUR     = new TFreq(TUnit.Hour,   1)
-  val DAILY        = new TFreq(TUnit.Day,    1)
-  val TWO_DAYS     = new TFreq(TUnit.Day,    2)
-  val THREE_DAYS   = new TFreq(TUnit.Day,    3)
-  val FOUR_DAYS    = new TFreq(TUnit.Day,    4)
-  val FIVE_DAYS    = new TFreq(TUnit.Day,    5)
-  val WEEKLY       = new TFreq(TUnit.Week,   1)
-  val MONTHLY      = new TFreq(TUnit.Month,  1)
-  val THREE_MONTHS = new TFreq(TUnit.Month,  3)
-  val ONE_YEAR     = new TFreq(TUnit.Year,   1)
 }
