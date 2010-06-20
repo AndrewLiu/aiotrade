@@ -40,9 +40,7 @@ import org.aiotrade.lib.math.timeseries.TVal
 
 object Quotes1d extends Quotes {
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
-    SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ MAX(this.time))
-    ) unique
+    (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
   }
 
   def dailyQuoteOf(sec: Sec, time: Long): Quote = synchronized {
@@ -51,8 +49,8 @@ object Quotes1d extends Quotes {
 
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
-      ) unique
-    ) match {
+      ) list
+    ) headOption match {
       case Some(one) => one
       case None =>
         val newone = new Quote
@@ -88,7 +86,7 @@ abstract class Quotes extends Table[Quote] {
 
   // Foreign keys
   def tickers = inverse(Tickers.quote)
-  def fillRecords = inverse(FillRecords.quote)
+  def executions = inverse(Executions.quote)
 
   INDEX("time_idx", time.name)
 
@@ -162,7 +160,7 @@ class Quote extends TVal with Flag {
 
   // Foreign keys
   var tickers: List[Ticker] = Nil
-  var fillRecords: List[FillRecord] = Nil
+  var executions: List[Execution] = Nil
 
   def reset {
     time = 0

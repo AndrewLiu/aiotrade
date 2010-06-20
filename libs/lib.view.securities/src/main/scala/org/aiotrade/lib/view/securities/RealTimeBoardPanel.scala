@@ -62,9 +62,9 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.securities.model.FillRecord
-import org.aiotrade.lib.securities.model.FillRecordEvent
-import org.aiotrade.lib.securities.model.FillRecords
+import org.aiotrade.lib.securities.model.Execution
+import org.aiotrade.lib.securities.model.ExecutionEvent
+import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
@@ -114,6 +114,13 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
   sdf.setTimeZone(timeZone)
 
+  private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
+    case Some(lastDailyQuote) =>
+      (Tickers.tickersOfToday(lastDailyQuote), new ArrayList[Execution] ++ Executions.executionsOfToday(lastDailyQuote))
+    case None =>
+      (Nil, new ArrayList[Execution])
+  }
+
   private val prevTicker: Ticker = new Ticker
   private var infoModel: AttributiveCellTableModel = _
   private var depthModel: AttributiveCellTableModel = _
@@ -121,9 +128,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var depthCellAttr: DefaultCellAttribute = _
   private var infoTable: JTable = _
   private var depthTable: JTable = _
-  private var fillTable: JTable = _
-  private var fillModel: AbstractTableModel = _
-
+  private var executionTable: JTable = _
+  private var executionModel: AbstractTableModel = _
   initComponents
 
   private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
@@ -138,24 +144,6 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   chartPane.setFocusable(false)
   viewContainer.setFocusable(false)
 
-  val (tickers, fillRecords) = Quotes1d.lastDailyQuoteOf(sec) match {
-    case Some(dailyQuote) =>
-      val tickersx = Tickers.tickersOfToday(dailyQuote)
-      if (!tickersx.isEmpty) {
-        val ticker = tickersx.last
-        updateInfoTable(ticker)
-        updateDepthTable(ticker.marketDepth)
-        prevTicker.copyFrom(ticker)
-      }
-
-      val fillRecordsx = new ArrayList[FillRecord]
-      fillRecordsx ++= FillRecords.fillRecordsOfToday(dailyQuote)
-      scrollToLastRow(fillTable)
-
-      (tickersx, fillRecordsx)
-    case None => (new ArrayList[Ticker], new ArrayList[FillRecord])
-  }
-
   reactions += {
     case TickerEvent(src: Sec, ticker: Ticker) =>
       symbol.value = src.name
@@ -166,10 +154,19 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         prevTicker.copyFrom(ticker)
         repaint()
       }
-    case FillRecordEvent(prevClose, fillRecord) =>
-      updateFillTable(prevClose, fillRecord)
+    case ExecutionEvent(prevClose, execution) =>
+      updateExecutionTable(prevClose, execution)
       repaint()
   }
+
+  // use last ticker to update info/depth table
+  if (!tickers.isEmpty) {
+    val ticker = tickers.last
+    updateInfoTable(ticker)
+    updateDepthTable(ticker.marketDepth)
+    prevTicker.copyFrom(ticker)
+  }
+  scrollToLastRow(executionTable)
 
   def watch {
     listenTo(sec)
@@ -280,20 +277,20 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
 
-    fillModel = new AbstractTableModel {
+    executionModel = new AbstractTableModel {
       private val columnNames = Array[String](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
 
-      def getRowCount: Int = fillRecords.size
+      def getRowCount: Int = executions.size
       def getColumnCount: Int = columnNames.length
 
       def getValueAt(row: Int, col: Int): Object = {
-        val fillRecord = fillRecords(row)
+        val execution = executions(row)
         col match {
-          case 0 => sdf.format(fillRecord.time)
-          case 1 => "%5.2f" format fillRecord.price
-          case 3 => fillRecord.volume.toString
+          case 0 => sdf.format(execution.time)
+          case 1 => "%5.2f" format execution.price
+          case 3 => execution.volume.toString
           case _ => null
         }
       }
@@ -301,16 +298,16 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
       override def getColumnName(col: Int) = columnNames(col)
     }
 
-    fillTable = new JTable(fillModel)
-    fillTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
-    fillTable.setFocusable(false)
-    fillTable.setCellSelectionEnabled(false)
-    fillTable.setShowHorizontalLines(false)
-    fillTable.setShowVerticalLines(false)
-    fillTable.setForeground(Color.WHITE)
-    fillTable.setBackground(LookFeel().backgroundColor)
-    fillTable.setFillsViewportHeight(true)
-    val tickerHeader = fillTable.getTableHeader
+    executionTable = new JTable(executionModel)
+    executionTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    executionTable.setFocusable(false)
+    executionTable.setCellSelectionEnabled(false)
+    executionTable.setShowHorizontalLines(false)
+    executionTable.setShowVerticalLines(false)
+    executionTable.setForeground(Color.WHITE)
+    executionTable.setBackground(LookFeel().backgroundColor)
+    executionTable.setFillsViewportHeight(true)
+    val tickerHeader = executionTable.getTableHeader
     if (tickerHeader != null) {
       tickerHeader.setForeground(Color.WHITE)
       tickerHeader.setBackground(LookFeel().backgroundColor)
@@ -325,14 +322,14 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     columnModel.getColumn(0).setMinWidth(12)
     columnModel.getColumn(1).setMinWidth(35)
 
-    columnModel = fillTable.getColumnModel
+    columnModel = executionTable.getColumnModel
     columnModel.getColumn(0).setMinWidth(22)
     columnModel.getColumn(1).setMinWidth(30)
 
     /* @Note Border of JScrollPane may not be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
     tickerPane.setBackground(LookFeel().backgroundColor)
-    tickerPane.setViewportView(fillTable)
+    tickerPane.setViewportView(executionTable)
     //tickerPane.getVerticalScrollBar.setUI(new BasicScrollBarUI)
 
     val infoBox = Box.createVerticalBox
@@ -416,30 +413,30 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     }
   }
 
-  private def updateFillTable(prevClose: Float, fillRecord: FillRecord) {
-    // update last fill row in depth table
+  private def updateExecutionTable(prevClose: Float, execution: Execution) {
+    // update last execution row in depth table
     val neuColor = LookFeel().getNeutralColor
     val posColor = LookFeel().getPositiveColor
     val negColor = LookFeel().getNegativeColor
 
-    val lastFillRow = 5
-    depthModel.setValueAt("%8.2f" format fillRecord.price, lastFillRow, 1)
-    depthModel.setValueAt(fillRecord.volume.toString,      lastFillRow, 2)
+    val lastExecutionRow = 5
+    depthModel.setValueAt("%8.2f" format execution.price, lastExecutionRow, 1)
+    depthModel.setValueAt(execution.volume.toString,      lastExecutionRow, 2)
 
     val bgColor = LookFeel().backgroundColor
     val fgColor = (
-      if (fillRecord.price > prevClose) posColor
-      else if (fillRecord.price < prevClose) negColor
+      if (execution.price > prevClose) posColor
+      else if (execution.price < prevClose) negColor
       else neuColor
     )
 
-    depthCellAttr.setForeground(fgColor, lastFillRow, 1)
-    depthCellAttr.setBackground(bgColor, lastFillRow, 1)
+    depthCellAttr.setForeground(fgColor, lastExecutionRow, 1)
+    depthCellAttr.setBackground(bgColor, lastExecutionRow, 1)
 
-    // update fill table
-    fillRecords += fillRecord
-    fillModel.fireTableDataChanged
-    scrollToLastRow(fillTable)
+    // update execution table
+    executions += execution
+    executionModel.fireTableDataChanged
+    scrollToLastRow(executionTable)
   }
 
   private def scrollToLastRow(table: JTable) {
@@ -548,12 +545,12 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   }
 
   private def test {
-//    fillRecords += ((0, 1234f, 1))
-//    fillRecords += ((1, 1234f, 1))
-//    fillRecords += ((2, 1234f, 1))
-//    fillRecords += ((3, 1234f, 1))
-//    fillRecords += ((4, 1234f, 1))
-    showCell(fillTable, fillTable.getRowCount - 1, 0)
+//    executions += ((0, 1234f, 1))
+//    executions += ((1, 1234f, 1))
+//    executions += ((2, 1234f, 1))
+//    executions += ((3, 1234f, 1))
+//    executions += ((4, 1234f, 1))
+    showCell(executionTable, executionTable.getRowCount - 1, 0)
   }
 }
 

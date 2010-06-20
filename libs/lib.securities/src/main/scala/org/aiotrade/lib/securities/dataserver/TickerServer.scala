@@ -36,9 +36,9 @@ import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.model.FillRecord
-import org.aiotrade.lib.securities.model.FillRecordEvent
-import org.aiotrade.lib.securities.model.FillRecords
+import org.aiotrade.lib.securities.model.Execution
+import org.aiotrade.lib.securities.model.ExecutionEvent
+import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -149,7 +149,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val events = new ArrayList[TSerEvent]
 
     val allTickers = new ArrayList[Ticker]
-    val allFillRecords = new ArrayList[FillRecord]
+    val allExecutions = new ArrayList[Execution]
     val allSnapDepths = new ArrayList[SnapDepth]
 
     for (contract <- subscribedContracts) {
@@ -180,10 +180,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           ticker.quote = dayQuote
           allTickers += ticker
 
-          val fillRecord = new FillRecord
-          fillRecord.quote = dayQuote
-          fillRecord.time = ticker.time
-          allFillRecords += fillRecord
+          val execution = new Execution
+          execution.quote = dayQuote
+          execution.time = ticker.time
+          allExecutions += execution
         
           val (prevTicker, dayFirst) = sec.lastData.prevTicker match {
             case null =>
@@ -206,9 +206,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
              * so give it a small 0.0001 (if give it a 0, it will won't be calculated
              * in calcMaxMin() of ChartView)
              */
-            fillRecord.price  = ticker.lastPrice
-            fillRecord.volume = ticker.dayVolume
-            fillRecord.amount = ticker.dayAmount
+            execution.price  = ticker.lastPrice
+            execution.volume = ticker.dayVolume
+            execution.amount = ticker.dayAmount
 
             minQuote.open   = ticker.lastPrice
             minQuote.high   = ticker.lastPrice
@@ -219,9 +219,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           
           } else {
           
-            fillRecord.price  = ticker.lastPrice
-            fillRecord.volume = ticker.dayVolume - prevTicker.dayVolume
-            fillRecord.amount = ticker.dayAmount - prevTicker.dayAmount
+            execution.price  = ticker.lastPrice
+            execution.volume = ticker.dayVolume - prevTicker.dayVolume
+            execution.amount = ticker.dayAmount - prevTicker.dayAmount
             
             if (minQuote.justOpen_?) {
               minQuote.unjustOpen_!
@@ -254,9 +254,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
               }
 
               minQuote.close = ticker.lastPrice
-              if (fillRecord.volume > 1) {
-                minQuote.volume += fillRecord.volume
-                minQuote.amount += fillRecord.amount
+              if (execution.volume > 1) {
+                minQuote.volume += execution.volume
+                minQuote.amount += execution.amount
               }
             }
           }
@@ -271,11 +271,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           tickerSer.updateFrom(minQuote)
           chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (_.updateFrom(minQuote))
 
-          allSnapDepths += SnapDepth(prevPrice, prevDepth, fillRecord)
+          allSnapDepths += SnapDepth(prevPrice, prevDepth, execution)
 
           sec.lastData.prevTicker.copyFrom(ticker)
 
-          sec.publish(FillRecordEvent(ticker.prevClose, fillRecord))
+          sec.publish(ExecutionEvent(ticker.prevClose, execution))
 
           i += (if (shouldReverseOrder) -1 else 1)
         }
@@ -316,8 +316,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     Tickers.insertBatch(allTickers.toArray)
 
-    val fillRecords = allFillRecords.toArray
-    FillRecords.insertBatch(fillRecords)
+    val executions = allExecutions.toArray
+    Executions.insertBatch(executions)
 
     val toClose = Sec.minuteQuotesToClose.toArray
     if (toClose.length > 0) {

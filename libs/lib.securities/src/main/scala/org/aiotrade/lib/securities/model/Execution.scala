@@ -3,9 +3,9 @@ package org.aiotrade.lib.securities.model
 import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm._
 
-case class FillRecordEvent(prevClose: Float, fillRecord: FillRecord) extends Event
+case class ExecutionEvent(prevClose: Float, execution: Execution) extends Event
 
-object FillRecords extends Table[FillRecord] {
+object Executions extends Table[Execution] {
   val quote = "quotes_id" REFERENCES(Quotes1d)
 
   val time = "time" BIGINT
@@ -18,13 +18,13 @@ object FillRecords extends Table[FillRecord] {
 
   INDEX("time_idx", time.name)
 
-  def fillRecordsOfToday(dailyQuote: Quote): Seq[FillRecord] = {
+  def executionsOfToday(dailyQuote: Quote): Seq[Execution] = {
     SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
   }
 
 }
 
-object FillRecord {
+object Execution {
   // bit masks for flag
   val MaskNone          = 1 << 0   //    000...00000001
   val MaskIn            = 1 << 1   //    000...00000010
@@ -36,8 +36,8 @@ object FillRecord {
   private val flagbit4  = 1 << 7   //    000...10000000
 }
 
-import FillRecord._
-class FillRecord {
+import Execution._
+class Execution {
   var quote: Quote = _
   
   var time: Long = -1

@@ -14,8 +14,8 @@ object MoneyFlows1d extends MoneyFlows {
 
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
-      ) unique
-    ) match {
+      ) list
+    ) headOption match {
       case Some(one) => one
       case None =>
         val newone = new MoneyFlow
