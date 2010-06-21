@@ -289,8 +289,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         val execution = executions(row)
         col match {
           case 0 => sdf.format(execution.time)
-          case 1 => "%5.2f" format execution.price
-          case 2 => execution.volume.toString
+          case 1 => "%5.2f"  format execution.price
+          case 2 => "%10.2f" format execution.volume
           case _ => null
         }
       }
@@ -420,8 +420,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
     val negColor = LookFeel().getNegativeColor
 
     val lastExecutionRow = 5
-    depthModel.setValueAt("%8.2f" format execution.price, lastExecutionRow, 1)
-    depthModel.setValueAt(execution.volume.toString,      lastExecutionRow, 2)
+    depthModel.setValueAt("%5.2f"  format execution.price,  lastExecutionRow, 1)
+    depthModel.setValueAt("%10.2f" format execution.volume, lastExecutionRow, 2)
 
     val bgColor = LookFeel().backgroundColor
     val fgColor = (

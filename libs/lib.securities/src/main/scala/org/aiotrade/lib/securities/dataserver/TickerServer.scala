@@ -180,11 +180,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           ticker.quote = dayQuote
           allTickers += ticker
 
-          val execution = new Execution
-          execution.quote = dayQuote
-          execution.time = ticker.time
-          allExecutions += execution
-        
           val (prevTicker, dayFirst) = sec.lastData.prevTicker match {
             case null =>
               val prev = new Ticker
@@ -194,6 +189,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           }
 
           val minQuote = sec.minuteQuoteOf(ticker.time)
+          var execution: Execution = null
           if (dayFirst) {
             dayQuote.unjustOpen_!
 
@@ -206,9 +202,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
              * so give it a small 0.0001 (if give it a 0, it will won't be calculated
              * in calcMaxMin() of ChartView)
              */
+            execution = new Execution
+            execution.quote = dayQuote
+            execution.time = ticker.time
             execution.price  = ticker.lastPrice
             execution.volume = ticker.dayVolume
             execution.amount = ticker.dayAmount
+            allExecutions += execution
 
             minQuote.open   = ticker.lastPrice
             minQuote.high   = ticker.lastPrice
@@ -218,10 +218,16 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             minQuote.amount = 0.00001F
           
           } else {
-          
-            execution.price  = ticker.lastPrice
-            execution.volume = ticker.dayVolume - prevTicker.dayVolume
-            execution.amount = ticker.dayAmount - prevTicker.dayAmount
+
+            if (ticker.dayVolume > prevTicker.dayVolume) {
+              execution = new Execution
+              execution.quote = dayQuote
+              execution.time = ticker.time
+              execution.price  = ticker.lastPrice
+              execution.volume = ticker.dayVolume - prevTicker.dayVolume
+              execution.amount = ticker.dayAmount - prevTicker.dayAmount
+              allExecutions += execution
+            }
             
             if (minQuote.justOpen_?) {
               minQuote.unjustOpen_!
@@ -254,15 +260,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
               }
 
               minQuote.close = ticker.lastPrice
-              if (execution.volume > 1) {
+              if (execution != null && execution.volume > 1) {
                 minQuote.volume += execution.volume
                 minQuote.amount += execution.amount
               }
             }
           }
 
-          val prevPrice = if (dayFirst) ticker.prevClose else prevTicker.lastPrice
-          val prevDepth = if (dayFirst) MarketDepth.Empty else MarketDepth(prevTicker.bidAsks, copy = true)
 
           frTime = math.min(frTime, ticker.time)
           toTime = math.max(toTime, ticker.time)
@@ -271,11 +275,15 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           tickerSer.updateFrom(minQuote)
           chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (_.updateFrom(minQuote))
 
-          allSnapDepths += SnapDepth(prevPrice, prevDepth, execution)
-
+          if (execution != null) {
+            val prevPrice = if (dayFirst) ticker.prevClose else prevTicker.lastPrice
+            val prevDepth = if (dayFirst) MarketDepth.Empty else MarketDepth(prevTicker.bidAsks, copy = true)
+            allSnapDepths += SnapDepth(prevPrice, prevDepth, execution)
+            
+            sec.publish(ExecutionEvent(ticker.prevClose, execution))
+          }
+          
           sec.lastData.prevTicker.copyFrom(ticker)
-
-          sec.publish(ExecutionEvent(ticker.prevClose, execution))
 
           i += 1
         }
