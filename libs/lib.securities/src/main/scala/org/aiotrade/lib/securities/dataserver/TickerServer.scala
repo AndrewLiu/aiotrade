@@ -67,7 +67,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       val ticker = new Ticker
       ticker.copyFrom(ts)
       // store ticker first, will batch process when got Refreshed event
-      storageOf(contractOf(ts.symbol).get) += ticker
+      val storage = storageOf(contractOf(ts.symbol).get)
+      storage synchronized {storage += ticker}
   }
 
   reactions += {
@@ -154,7 +155,12 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     for (contract <- subscribedContracts) {
       val storage = storageOf(contract)
-      val tickers = storage.toArray
+      val tickers = storage synchronized {
+        val x = storage.toArray
+        storage.clear
+        x
+      }
+
       val symbol = contract.symbol
       val sec = Exchange.secOf(symbol).get
       val tickerSer = serOf(contract).get
@@ -164,15 +170,9 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
       val size = tickers.length
       if (size > 0) {
-
-        val values = new Array[Ticker](size)
-        tickers.copyToArray(values, 0)
-            
-        val shouldReverseOrder = !isAscending(values)
-
         var ticker: Ticker = null // to store last ticker
-        var i = if (shouldReverseOrder) size - 1 else 0
-        while (i >= 0 && i <= size - 1) {
+        var i = 0
+        while (i < size) {
           ticker = tickers(i)
 
           val dayQuote = sec.dailyQuoteOf(ticker.time)
@@ -277,7 +277,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
           sec.publish(ExecutionEvent(ticker.prevClose, execution))
 
-          i += (if (shouldReverseOrder) -1 else 1)
+          i += 1
         }
 
         // update daily quote and ser
@@ -309,7 +309,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       }
 
 
-      storage synchronized {storage.clear}
     }
 
     // batch save to db
