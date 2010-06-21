@@ -290,7 +290,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
         col match {
           case 0 => sdf.format(execution.time)
           case 1 => "%5.2f" format execution.price
-          case 3 => execution.volume.toString
+          case 2 => execution.volume.toString
           case _ => null
         }
       }
