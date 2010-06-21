@@ -143,10 +143,12 @@ abstract class QuoteServer extends DataServer[Quote] {
       val sec = Exchange.secOf(contract.symbol).get
       storage foreach {_.sec = sec}
       if (freq == TFreq.DAILY) {
-        Quotes1d.insertBatch(storage.toArray)
+        //Quotes1d.insertBatch(storage.toArray)
+        Quotes1d.saveBatch(sec, storage)
         commit
       } else if (freq == TFreq.ONE_MIN) {
-        Quotes1m.insertBatch(storage.toArray)
+        //Quotes1m.insertBatch(storage.toArray)
+        Quotes1m.saveBatch(sec, storage)
         commit
       }
 

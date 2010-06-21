@@ -37,6 +37,7 @@ import ru.circumflex.orm._
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
+import scala.collection.mutable.HashMap
 
 object Quotes1d extends Quotes {
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
@@ -110,7 +111,28 @@ abstract class Quotes extends Table[Quote] {
     ) ORDER_BY (this.time) list
   }
 
+  def saveBatch(sec: Sec, sortedQuotes: Seq[Quote]) {
+    if (sortedQuotes.isEmpty) return
 
+    val head = sortedQuotes.head
+    val last = sortedQuotes.last
+    val frTime = math.min(head.time, last.time)
+    val toTime = math.max(head.time, last.time)
+    val exists = new HashMap[Long, Quote]
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
+      ) ORDER_BY (this.time) list
+    ) foreach {x => exists.put(x.time, x)}
+
+    val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
+    for (x <- updates) {
+      val existOne = exists(x.time)
+      existOne.copyFrom(x)
+      this.update_!(existOne)
+    }
+
+    this.insertBatch(inserts.toArray)
+  }
 }
 
 /**
@@ -161,6 +183,14 @@ class Quote extends TVal with Flag {
   // Foreign keys
   var tickers: List[Ticker] = Nil
   var executions: List[Execution] = Nil
+
+  def copyFrom(another: Quote) {
+    var i = 0
+    while (i < data.length) {
+      data(i) = another.data(i)
+      i += 1
+    }
+  }
 
   def reset {
     time = 0
