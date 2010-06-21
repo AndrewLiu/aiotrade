@@ -48,7 +48,7 @@ object Model {
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, FillRecords
+      Tickers, Executions
     )
 
     val ddl = new DDLUnit(tables: _*)

@@ -114,6 +114,7 @@ class YahooTickerServer extends TickerServer {
     val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
 
     resetCount
+    // time in Yahoo! tickers is in Yahoo! Inc's local time instead of exchange place, we need to convert to UTC time
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
 
@@ -137,9 +138,7 @@ class YahooTickerServer extends TickerServer {
               val date = dateFormat.parse(dateStr + " " + timeStr)
               cal.clear
               cal.setTime(date)
-            } catch {
-              case ex: ParseException => loop(newestTime)
-            }
+            } catch {case _: ParseException => loop(newestTime)}
 
             val time = cal.getTimeInMillis
             if (time == 0) {
@@ -226,7 +225,7 @@ class YahooTickerServer extends TickerServer {
 
   def sourceSerialNumber = 1
 
-  def sourceTimeZone = TimeZone.getTimeZone("America/New_York")
+  val sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 }
 
 
