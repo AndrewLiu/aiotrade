@@ -80,7 +80,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
   def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = {
     val sec = Exchange.secOf(uniSymbol).get
-    sec.lastData.tickerSnapshot
+    sec.tickerSnapshot
   }
 
   override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer]) {
@@ -94,7 +94,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
      */
     val symbol = contract.symbol
     val sec = Exchange.secOf(contract.symbol).get
-    val tickerSnapshot = sec.lastData.tickerSnapshot
+    val tickerSnapshot = sec.tickerSnapshot
     this observe tickerSnapshot
     tickerSnapshot.symbol = symbol
   }
@@ -103,7 +103,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     super.unSubscribe(contract)
     val symbol = contract.symbol
     val sec = Exchange.secOf(contract.symbol).get
-    val tickerSnapshot = sec.lastData.tickerSnapshot
+    val tickerSnapshot = sec.tickerSnapshot
     this unObserve tickerSnapshot
   }
 
@@ -180,14 +180,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           ticker.quote = dayQuote
           allTickers += ticker
 
-          val (prevTicker, dayFirst) = sec.lastData.prevTicker match {
-            case null =>
-              val prev = new Ticker
-              sec.lastData.prevTicker = prev
-              (prev, true)
-            case prev => (prev, false)
-          }
-
+          val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
           val minQuote = sec.minuteQuoteOf(ticker.time)
           var execution: Execution = null
           if (dayFirst) {
@@ -283,7 +276,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             sec.publish(ExecutionEvent(ticker.prevClose, execution))
           }
           
-          sec.lastData.prevTicker.copyFrom(ticker)
+          prevTicker.copyFrom(ticker)
 
           i += 1
         }
@@ -299,10 +292,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
          * ! ticker may be null at here ??? yes, if tickers.size == 0
          */
         events += TSerEvent.ToBeSet(tickerSer, symbol, frTime, toTime, ticker)
-      } else {
+        
+      } /* else {
 
         /**
-         * no new ticker got, but should consider if need to update quoteSer
+         * no new ticker got, but should consider if it's necessary to to update quoteSer
          * as the quote window may be just opened.
          */
         sec.lastData.prevTicker match {
@@ -314,7 +308,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
               chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
             }
         }
-      }
+      } */
 
 
     }

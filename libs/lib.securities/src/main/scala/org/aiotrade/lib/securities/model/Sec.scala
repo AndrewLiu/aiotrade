@@ -460,9 +460,9 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   /**
    * store latest helper info
    */
-  lazy val lastData = new LastData
+  private lazy val lastData = new LastData
 
-  class LastData {
+  private class LastData {
     val tickerSnapshot: TickerSnapshot = new TickerSnapshot
     var prevTicker: Ticker = _
     
@@ -474,7 +474,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   /**
-   * @Note when day changes, should do secToLastQuote -= sec, this can be done
+   * @Note when day changes, should do LastData.dailyQuote to null, this can be done
    * by listening to exchange's timer event
    */
   def dailyQuoteOf(time: Long): Quote = {
@@ -484,7 +484,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     lastData.dailyQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOne =>
+      case prevOne => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(this, rounded)
         lastData.dailyQuote = newone
         newone
@@ -498,7 +498,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     lastData.dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOne =>
+      case prevOne => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(this, rounded)
         lastData.dailyMoneyFlow = newone
         newone
@@ -548,4 +548,25 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         newone
     }
   }
+
+  /**
+   * @return (lastTicker of day, day first?)
+   */
+  def lastTickerOf(dailyQuote: Quote): (Ticker, Boolean) = {
+    lastData.prevTicker match {
+      case null =>
+        Tickers.lastTickerOf(dailyQuote) match  {
+          case None =>
+            val x = new Ticker
+            lastData.prevTicker = x
+            (x, true)
+          case Some(x) =>
+            lastData.prevTicker = x
+            (x, false)
+        }
+      case x => (x, false)
+    }
+  }
+
+  def tickerSnapshot: TickerSnapshot = lastData.tickerSnapshot
 }
