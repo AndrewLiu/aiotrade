@@ -52,6 +52,8 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   
   val flag = "flag" INTEGER
 
+  INDEX("time_idx", time.name)
+
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
     SELECT (this.*) FROM (this) WHERE (
       this.sec.field EQ Secs.idOf(sec)

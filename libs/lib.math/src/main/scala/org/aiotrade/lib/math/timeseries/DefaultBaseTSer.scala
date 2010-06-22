@@ -208,12 +208,17 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     }
   }
 
-
-  def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
-    var frTime = Long.MaxValue
-    var toTime = Long.MinValue
+  /**
+   * To use this method, should define proper assignValue(value)
+   */
+  override def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
+    if (values.length < 1) return this
+    
     try {
       timestamps.writeLock.lock
+
+      var frTime = Long.MaxValue
+      var toTime = Long.MinValue
 
       val shouldReverse = !isAscending(values)
 
@@ -225,6 +230,9 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
         createOrClear(time)
         assignValue(value)
 
+        frTime = math.min(frTime, time)
+        toTime = math.max(toTime, time)
+
         if (shouldReverse) {
           /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
           i -= 1
@@ -232,18 +240,15 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
           /** the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
           i += 1
         }
-
-        frTime = math.min(frTime, time)
-        toTime = math.max(toTime, time)
       }
+
+      publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
 
     } finally {
       timestamps.writeLock.unlock
     }
+
     logger.fine("TimestampsLog: " + timestamps.log)
-
-    publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
-
     this
   }
 

@@ -135,11 +135,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     }
   }
 
-  protected def loadFromPersistence: Long = {
-    /** do nothing (tickers can be load from persistence? ) */
-    loadedTime
-  }
-
   /**
    * compose ser using data from TVal(s)
    * @param symbol
@@ -180,7 +175,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           ticker.quote = dayQuote
           allTickers += ticker
 
-          val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
+          val (prevTicker, dayFirst) = sec.lastTickerOfDay(dayQuote)
           val minQuote = sec.minuteQuoteOf(ticker.time)
           var execution: Execution = null
           if (dayFirst) {
@@ -232,7 +227,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             
             } else {
 
-              if (prevTicker.dayHigh != 0) {
+              if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
                 if (ticker.dayHigh > prevTicker.dayHigh) {
                   /** this is a new day high happened during this ticker */
                   minQuote.high = ticker.dayHigh
@@ -242,7 +237,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
                 minQuote.high = math.max(minQuote.high, ticker.lastPrice)
               }
             
-              if (prevTicker.dayLow != 0) {
+              if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
                 if (ticker.dayLow < prevTicker.dayLow) {
                   /** this is a new day low happened during this ticker */
                   minQuote.low = ticker.dayLow
