@@ -188,6 +188,33 @@ class ArrayList[@specialized A](override protected val initialSize: Int)(protect
     Array.copy(array, start, xs, 0, len)
   }
 
+  // --- overrided methods for performance
+
+  override def head: A = {
+    if (isEmpty) throw new NoSuchElementException
+    else apply(0)
+  }
+
+  override def last: A = {
+    if (isEmpty) throw new NoSuchElementException
+    else apply(size - 1)
+  }
+
+  override def reverse: ArrayList[A] = {
+    val reversed = new ArrayList[A](this.size)
+    var i = 0
+    while (i < size) {
+      reversed(i) = apply(size - 1 - i)
+      i += 1
+    }
+    reversed
+  }
+
+  override def partition(p: A => Boolean): (ArrayList[A], ArrayList[A]) = {
+    val l, r = new ArrayList[A]
+    for (x <- this) (if (p(x)) l else r) += x
+    (l, r)
+  }
 }
 
 /** Factory object for <code>ArrayBuffer</code> class.

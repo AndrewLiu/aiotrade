@@ -46,9 +46,9 @@ object QuoteServer {
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
-  def loadFromPersistence(sec: Sec, serToBeLoaded: QuoteSer): Long = {
+  def loadFromPersistence(sec: Sec, serToLoad: QuoteSer): Long = {
     val uniSymbol = sec.secInfo.uniSymbol
-    val freq = serToBeLoaded.freq
+    val freq = serToLoad.freq
     
     /**
      * 1. restore data from database
@@ -59,7 +59,7 @@ object QuoteServer {
       Quotes1m.closedQuotesOf(sec)
     } else Nil
     
-    composeSer(uniSymbol, serToBeLoaded, quotes)
+    composeSer(uniSymbol, serToLoad, quotes)
 
     /**
      * 2. get the newest time which DataServer will load quotes after this time
@@ -68,10 +68,10 @@ object QuoteServer {
      */
     val size = quotes.length
     val loadedTime1 = if (size > 0) quotes(size - 1).time else 0L
-    serToBeLoaded.publish(TSerEvent.RefreshInLoading(serToBeLoaded,
-                                                     uniSymbol,
-                                                     0,
-                                                     loadedTime1))
+    serToLoad.publish(TSerEvent.RefreshInLoading(serToLoad,
+                                                 uniSymbol,
+                                                 0,
+                                                 loadedTime1))
 
     loadedTime1
   }
@@ -136,21 +136,23 @@ abstract class QuoteServer extends DataServer[Quote] {
    */
   override protected def postLoadHistory {
     for (contract <- subscribedContracts) {
-      val serToBeFilled = serOf(contract).get
+      val serToFill = serOf(contract).get
 
-      val freq = serToBeFilled.freq
+      val freq = serToFill.freq
       val storage = storageOf(contract)
       val sec = Exchange.secOf(contract.symbol).get
       storage foreach {_.sec = sec}
       if (freq == TFreq.DAILY) {
-        Quotes1d.insertBatch(storage.toArray)
+        //Quotes1d.insertBatch(storage.toArray)
+        Quotes1d.saveBatch(sec, storage)
         commit
       } else if (freq == TFreq.ONE_MIN) {
-        Quotes1m.insertBatch(storage.toArray)
+        //Quotes1m.insertBatch(storage.toArray)
+        Quotes1m.saveBatch(sec, storage)
         commit
       }
 
-      var evt = composeSer(toUniSymbol(contract.symbol), serToBeFilled, storage)
+      var evt = composeSer(toUniSymbol(contract.symbol), serToFill, storage)
       //            if (evt != null) {
       //                evt.tpe = TSerEvent.Type.FinishedLoading
       //                //WindowManager.getDefault().setStatusText(contract.getSymbol() + ": " + getCount() + " quote data loaded, load server finished");
