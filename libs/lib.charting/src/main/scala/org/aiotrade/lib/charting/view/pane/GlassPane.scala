@@ -396,7 +396,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         val color = if (chart eq null) {
           LookFeel().nameColor
         } else {
-          println("chart depth=" + chart.depth)
           if (chart.depth >= 0) {
             LookFeel().getChartColor(chart.depth)
           } else {
@@ -404,7 +403,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           }
         }
 
-        println("chart color: " + color)
         val valueLabel = selectedSerVarToValueLabel.get(v) getOrElse {
           val x = new JLabel
           x.setOpaque(false)

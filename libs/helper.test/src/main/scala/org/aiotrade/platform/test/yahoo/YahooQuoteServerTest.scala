@@ -81,13 +81,12 @@ object YahooQuoteServerTest extends TestHelper {
     //weeklyContents.addDescriptor(dailyQuoteContract)
     weeklyContents.serProvider = sec
 
-    val dailySer  = sec.serOf(dailyFreq).get
-    val oneMinSer = sec.serOf(oneMinFreq).get
-    val tickerSer = sec.tickerSer
+    val daySer  = sec.serOf(dailyFreq).get
+    val minSer = sec.serOf(oneMinFreq).get
 
     // * init indicators before loadSer, so, they can receive the FinishedLoading evt
-    val dailyInds  = initIndicators(dailyContents, dailySer)
-    val oneMinInds = initIndicators(rtContents, oneMinSer)
+    val dailyInds  = initIndicators(dailyContents, daySer)
+    val oneMinInds = initIndicators(rtContents, minSer)
 
     loadSer(dailyContents)
     //loadSer(rtContents)

@@ -209,9 +209,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
    */
   lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
-  /** create tickerSer. We'll always have a standalone tickerSer, even we have another 1-min quoteSer */
-  val tickerSer = new QuoteSer(this, tickerContract.freq)
-
   val updater: Updater = {
     case ts: TickerSnapshot =>
       val ticker = new Ticker
@@ -457,7 +454,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     if (uniSymbol == "") return
 
     // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-    _tickerContract.symbol = uniSymbol
+    tickerContract.symbol = uniSymbol
 
     if (tickerContract.serviceClassName == null) {
       freqToQuoteServer.get(defaultFreq) match {
@@ -474,11 +471,15 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
   private def startTickerRefreshIfNecessary {
     if (!tickerServer.isContractSubsrcribed(tickerContract)) {
+      val minSer = serOf(TFreq.ONE_MIN).get
+      if (isSerLoaded(TFreq.ONE_MIN)) {
+        loadSerFromPersistence(TFreq.ONE_MIN)
+      }
       var chainSers: List[QuoteSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
-      serOf(TFreq.DAILY)   foreach {x => chainSers ::= x}
-      serOf(TFreq.ONE_MIN) foreach {x => chainSers ::= x}
-      tickerServer.subscribe(tickerContract, tickerSer, chainSers)
+      serOf(TFreq.DAILY) foreach {x => chainSers ::= x}
+      
+      tickerServer.subscribe(tickerContract, minSer, chainSers)
       this observe lastData.tickerSnapshot
       //
       //            var break = false

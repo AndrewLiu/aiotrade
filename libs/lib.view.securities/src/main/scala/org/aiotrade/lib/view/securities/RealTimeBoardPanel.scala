@@ -62,6 +62,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
@@ -145,7 +146,8 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   private var executionModel: AbstractTableModel = _
   initComponents
 
-  private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
+  private val rtSer = sec.serOf(TFreq.ONE_MIN).get
+  private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)

@@ -198,7 +198,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = freq match {
-        case TFreq.ONE_SEC => sec.tickerSer
+        case TFreq.ONE_SEC => sec.serOf(TFreq.ONE_MIN).get
         case _ => sec.serOf(freq).getOrElse(null)
       }
 

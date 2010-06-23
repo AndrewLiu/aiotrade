@@ -38,6 +38,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants
 import org.aiotrade.lib.charting.view.ChartingControllerFactory;
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
 import org.aiotrade.lib.securities.model.Sec
@@ -98,8 +99,9 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   val sec = contents.serProvider.asInstanceOf[Sec]
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"
-        
-  private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
+
+  private val rtSer = sec.serOf(TFreq.ONE_MIN).get
+  private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
         
   setLayout(new BorderLayout)

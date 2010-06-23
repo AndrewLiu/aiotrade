@@ -353,7 +353,7 @@ class Util {
   }
 
   private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
-    var baseSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
+    var baseSer = sec.serOf(TFreq.ONE_MIN).get
     val controller = ChartingControllerFactory.createInstance(baseSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer

@@ -36,6 +36,7 @@ import java.awt.GridBagLayout
 import java.util.Calendar
 import org.aiotrade.lib.charting.chart.GridChart
 import org.aiotrade.lib.charting.view.ChartingController
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSerEvent
@@ -64,16 +65,16 @@ object RealTimeChartView {
 }
 
 import RealTimeChartView._
-class RealTimeChartView(acontroller: ChartingController,
-                        aquoteSer: QuoteSer,
-                        empty: Boolean
+class RealTimeChartView($controller: ChartingController,
+                        $quoteSer: QuoteSer,
+                        $empty: Boolean
 ) extends {
   private var _prevClose = Null.Float
   private var gridValues: Array[Float] = _
-  private var tickerSer: QuoteSer = _
+  private var rtSer: QuoteSer = _
   private val cal = Calendar.getInstance
   private var exchange: Exchange = _
-} with AbstractQuoteChartView(acontroller, aquoteSer, empty) with Reactor {
+} with AbstractQuoteChartView($controller, $quoteSer, $empty) with Reactor {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
@@ -89,9 +90,9 @@ class RealTimeChartView(acontroller: ChartingController,
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
 
     exchange = sec.exchange
-    tickerSer = sec.tickerSer
-    assert(tickerSer != null)
-    listenTo(tickerSer)
+    rtSer = sec.serOf(TFreq.ONE_MIN).get
+    assert(rtSer != null)
+    listenTo(rtSer)
   }
 
   protected def initComponents {

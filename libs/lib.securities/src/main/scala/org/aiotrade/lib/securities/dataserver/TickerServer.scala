@@ -158,7 +158,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
       val symbol = contract.symbol
       val sec = Exchange.secOf(symbol).get
-      val tickerSer = serOf(contract).get
+      val minSer = serOf(contract).get
 
       var frTime = Long.MaxValue
       var toTime = Long.MinValue
@@ -260,8 +260,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           toTime = math.max(toTime, ticker.time)
 
           // update 1m quoteSer with minuteQuote
-          tickerSer.updateFrom(minQuote)
-          chainSersOf(tickerSer) find (_.freq == TFreq.ONE_MIN) foreach (_.updateFrom(minQuote))
+          minSer.updateFrom(minQuote)
 
           if (execution != null) {
             val prevPrice = if (dayFirst) ticker.prevClose else prevTicker.lastPrice
@@ -280,13 +279,13 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
           val dayQuote = sec.dailyQuoteOf(ticker.time)
           updateDailyQuote(dayQuote, ticker)
-          chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
+          chainSersOf(minSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
         }
 
         /**
          * ! ticker may be null at here ??? yes, if tickers.size == 0
          */
-        events += TSerEvent.ToBeSet(tickerSer, symbol, frTime, toTime, ticker)
+        events += TSerEvent.ToBeSet(minSer, symbol, frTime, toTime, ticker)
         
       } /* else {
 

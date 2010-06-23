@@ -172,7 +172,6 @@ trait TestHelper {
     sec.serOf(TFreq.DAILY)   foreach {x => println("daily:  "  + x.size)}
     sec.serOf(TFreq.ONE_MIN) foreach {x => println("1 min:  "  + x.size)}
     sec.serOf(TFreq.WEEKLY)  foreach {x => println("weekly: "  + x.size)}
-    println("ticker: "  + sec.tickerSer.size)
   }
 
   def reportInds(inds: Seq[Indicator]) {
