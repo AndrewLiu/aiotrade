@@ -134,40 +134,6 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   }
 
   /**
-   * To use this method, should define proper assignValue(value)
-   */
-  def ++=[V <: TVal](values: Array[V]): TSer = {
-    validate
-
-    if (values.length < 1) return this
-
-    try {
-      timestamps.readLock.lock
-
-      var frTime = Long.MaxValue
-      var toTime = Long.MinValue
-      
-      var i = 0
-      while (i < values.length) {
-        val value = values(i)
-        val time = value.time
-        assignValue(value)
-
-        frTime = math.min(frTime, time)
-        toTime = math.max(toTime, time)
-        i += 1
-      }
-
-      publish(TSerEvent.Updated(this, "", frTime, toTime))
-    } finally {
-      timestamps.readLock.unlock
-    }
-
-    this
-  }
-
-
-  /**
    * return a holder with flag != 0
    */
   protected def createItem(time: Long): Holder = 1

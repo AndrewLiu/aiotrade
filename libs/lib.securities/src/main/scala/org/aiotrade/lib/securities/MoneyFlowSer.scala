@@ -31,16 +31,15 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{TVal, DefaultTSer, TSerEvent}
+import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, DefaultBaseTSer, TFreq}
 import org.aiotrade.lib.securities.model.MoneyFlow
+import org.aiotrade.lib.securities.model.Sec
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
-
-  attach(baseSer.timestamps)
+class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
@@ -93,9 +92,9 @@ class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
    * exist, create a new one.
    */
   def updateFrom(mf: MoneyFlow) {
-    validate
-
     val time = mf.time
+    createOrClear(time)
+
     totalVolume(time) = mf.totalVolume
     totalAmount(time) = mf.totalAmount
     superVolume(time) = mf.superVolume
@@ -146,16 +145,12 @@ class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 
-  override def shortDescription_=(symbol: String): Unit = {
-    this._shortDescription = symbol
+  override def shortDescription_=(desc: String): Unit = {
+    this._shortDescription = desc
   }
     
   override def shortDescription: String = {
-    if (adjusted) {
-      _shortDescription + "(*)"
-    } else {
-      _shortDescription
-    }
+    _shortDescription
   }
     
 }

@@ -274,7 +274,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
         case None => serOf(freq) match {
             case Some(quoteSer) => 
-              val x = new MoneyFlowSer(quoteSer)
+              val x = new MoneyFlowSer(this, freq)
               freqToMoneyFlowSer.put(freq, x)
               Some(x)
             case None => None
