@@ -69,9 +69,6 @@ class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
         largeAmount(time) = mf.largeAmount
         smallVolume(time) = mf.smallVolume
         smallAmount(time) = mf.smallVolume
-
-//        val adjuestedClose = if (mf.adjWeight != 0 ) mf.adjWeight else mf.close
-//        close_adj(time) = adjuestedClose
       case _ =>
     }
   }
@@ -111,7 +108,6 @@ class MoneyFlowSer(baseSer: QuoteSer) extends DefaultTSer(baseSer.freq) {
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
   }
-
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust

@@ -57,8 +57,7 @@ object IBWrapper extends IBWrapper {
   private val HISTORICAL_DATA_END = "finished"
   private val HIS_REQ_PROC_SPEED_THROTTLE = 1000 * 20 // 20 seconds
 
-  // TreeMap
-  private val freqToBarSize = TreeMap(
+  private val freqToBarSize = Map[TFreq, Int](
     TFreq.ONE_SEC      ->  1,
     TFreq.FIVE_SECS    ->  2,
     TFreq.FIFTEEN_SECS ->  3,
@@ -103,13 +102,7 @@ object IBWrapper extends IBWrapper {
   private var serverVersion: Int = _
     
   def getBarSize(freq: TFreq) = {
-    for (afreq <- freqToBarSize.keySet) {
-      if (afreq.equals(freq)) {
-        freqToBarSize.get(afreq)
-      }
-    }
-        
-    1
+    freqToBarSize.get(freq) getOrElse (1)
   }
     
   def getSupportedFreqs: Array[TFreq] = {

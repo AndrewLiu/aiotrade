@@ -116,7 +116,7 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
 
   private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
     case Some(lastDailyQuote) =>
-      (Tickers.tickersOfToday(lastDailyQuote), new ArrayList[Execution] ++ Executions.executionsOfToday(lastDailyQuote))
+      (Tickers.tickersOfDay(lastDailyQuote), new ArrayList[Execution] ++ Executions.executionsOfDay(lastDailyQuote))
     case None =>
       (Nil, new ArrayList[Execution])
   }

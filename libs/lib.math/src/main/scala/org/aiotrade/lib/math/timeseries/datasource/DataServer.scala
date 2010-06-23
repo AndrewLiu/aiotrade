@@ -125,7 +125,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       loadedTime = loadFromSource(loadedTime)
       postRefresh
     case LoadHistory(afterTime) =>
-      loadedTime = loadFromSource(loadedTime)
+      loadedTime = loadFromSource(afterTime)
       postLoadHistory
   }
 
@@ -161,8 +161,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   }
 
   protected def postStopRefresh {}
-
-  protected def loadFromPersistence: Long
 
   /**
    * @param contract DataContract which contains all the type, market info for this source

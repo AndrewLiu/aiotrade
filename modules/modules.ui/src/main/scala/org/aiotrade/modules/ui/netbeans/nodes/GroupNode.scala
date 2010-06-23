@@ -145,7 +145,7 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
 ) extends FilterNode(new BeanNode[GroupDescriptor[_]](group), new GroupNode.GroupChildren(contents, group.getBindClass), new AbstractLookup(content)) {
   import GroupNode._
 
-  private var _freq = TFreq.DAILY
+  private var _freq: TFreq = TFreq.DAILY
 
 
   /* add this node to our own lookup */
@@ -216,7 +216,7 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
 
   def freq: TFreq = _freq
   def freq_=(freq: TFreq) {
-    this._freq = freq.clone
+    this._freq = freq
     getLookup.lookup(classOf[UpdateAction]).execute
   }
 

@@ -18,7 +18,7 @@ object Executions extends Table[Execution] {
 
   INDEX("time_idx", time.name)
 
-  def executionsOfToday(dailyQuote: Quote): Seq[Execution] = {
+  def executionsOfDay(dailyQuote: Quote): Seq[Execution] = {
     SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
   }
 

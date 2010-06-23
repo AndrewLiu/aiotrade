@@ -317,24 +317,78 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   /**
+   * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
+   */
+  def loadSerFromPersistence(freq: TFreq): Long = {
+    val quotes = freq match {
+      case TFreq.DAILY   => Quotes1d.closedQuotesOf(this)
+      case TFreq.ONE_MIN => Quotes1m.closedQuotesOf(this)
+      case _ => return 0L
+    }
+    
+    val ser = serOf(freq).get
+    ser ++= quotes.toArray
+
+    /**
+     * get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    if (!quotes.isEmpty) {
+      val loadedTime = math.max(quotes.head.time, quotes.last.time)
+      val uniSymbol = secInfo.uniSymbol
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
+      loadedTime
+    } else 0L
+  }
+
+  /**
+   * All values in persistence should have been properly rounded to 00:00 of exchange's local time
+   */
+  def loadMoneyFlowSerFromPersistence(freq: TFreq): Long = {
+    val mfs = freq match {
+      case TFreq.DAILY   => MoneyFlows1d.closedMoneyFlowOf(this)
+      case TFreq.ONE_MIN => MoneyFlows1m.closedMoneyFlowOf(this)
+      case _ => return 0L
+    }
+
+    val ser = moneyFlowSerOf(freq).get
+    ser ++= mfs.toArray
+    
+    /**
+     * get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    if (!mfs.isEmpty) {
+      val loadedTime = math.max(mfs.head.time, mfs.last.time)
+      val uniSymbol = secInfo.uniSymbol
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
+      loadedTime
+    } else 0L
+  }
+
+
+  /**
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to those maps.
    */
   def loadSer(freq: TFreq): Boolean = synchronized {
 
-    val serToBeLoaded = serOf(freq) getOrElse {
+    val ser = serOf(freq) getOrElse {
       val x = new QuoteSer(this, freq)
       freqToQuoteSer(freq) = x
       x
     }
 
     // load from persistence
-    val loadedTime = QuoteServer.loadFromPersistence(this, serToBeLoaded)
+    val loadedTime = loadSerFromPersistence(freq)
+    println("Loaded from persistence, loaded time=" + loadedTime)
 
     // try to load from quote server
 
     // ask contract instead of server
-    val contract = freqToQuoteContract  get(freq) getOrElse (return false)
+    val contract = freqToQuoteContract get(freq) getOrElse (return false)
     if (!contract.isFreqSupported(freq)) return false
 
     val quoteServer = freqToQuoteServer get(freq) getOrElse {
@@ -345,18 +399,18 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     }
 
     if (!quoteServer.isContractSubsrcribed(contract)) {
-      quoteServer.subscribe(contract, serToBeLoaded)
+      quoteServer.subscribe(contract, ser)
     }
 
     quoteServer.loadHistory(loadedTime)
-    serToBeLoaded.inLoading = true
+    ser.inLoading = true
 
-    listenTo(serToBeLoaded)
+    listenTo(ser)
 
     true
   }
 
-  def isSerLoaded(freq:TFreq): Boolean = {
+  def isSerLoaded(freq: TFreq): Boolean = {
     freqToQuoteSer.get(freq) map (_.loaded) getOrElse false
   }
 
@@ -460,9 +514,9 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   /**
    * store latest helper info
    */
-  lazy val lastData = new LastData
+  private lazy val lastData = new LastData
 
-  class LastData {
+  private class LastData {
     val tickerSnapshot: TickerSnapshot = new TickerSnapshot
     var prevTicker: Ticker = _
     
@@ -474,7 +528,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   /**
-   * @Note when day changes, should do secToLastQuote -= sec, this can be done
+   * @Note when day changes, should do LastData.dailyQuote to null, this can be done
    * by listening to exchange's timer event
    */
   def dailyQuoteOf(time: Long): Quote = {
@@ -484,7 +538,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     lastData.dailyQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOne =>
+      case prevOne => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(this, rounded)
         lastData.dailyQuote = newone
         newone
@@ -498,7 +552,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     lastData.dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOne =>
+      case prevOne => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(this, rounded)
         lastData.dailyMoneyFlow = newone
         newone
@@ -548,4 +602,25 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
         newone
     }
   }
+
+  /**
+   * @return (lastTicker of day, day first?)
+   */
+  def lastTickerOfDay(dailyQuote: Quote): (Ticker, Boolean) = {
+    lastData.prevTicker match {
+      case null =>
+        Tickers.lastTickerOfDay(dailyQuote) match  {
+          case None =>
+            val x = new Ticker
+            lastData.prevTicker = x
+            (x, true)
+          case Some(x) =>
+            lastData.prevTicker = x
+            (x, false)
+        }
+      case x => (x, false)
+    }
+  }
+
+  def tickerSnapshot: TickerSnapshot = lastData.tickerSnapshot
 }
