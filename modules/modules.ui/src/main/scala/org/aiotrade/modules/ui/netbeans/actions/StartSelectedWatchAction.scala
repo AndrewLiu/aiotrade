@@ -29,7 +29,6 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.modules.ui.netbeans.actions;
-import java.lang.ref.WeakReference;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStartWatchAction
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.openide.nodes.Node;
@@ -46,14 +45,14 @@ class StartSelectedWatchAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run() {
-            for ((tc, _) <- RealTimeWatchListTopComponent.instanceRefs) {
-              for (node <- tc.getSelectedSymbolNodes) {
+            for (x <- RealTimeWatchListTopComponent.instances) {
+              for (node <- x.getSelectedSymbolNodes) {
                 node.getLookup.lookup(classOf[SymbolStartWatchAction]).execute
               }
             }
           }
         })
-    } catch {case ex:Exception =>}
+    } catch {case ex: Exception =>}
         
   }
     

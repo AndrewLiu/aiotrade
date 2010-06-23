@@ -14,12 +14,17 @@ package org.aiotrade.lib.util.actors
  * The counterpart to publishers. Listens to events from registered publishers.
  */
 trait Reactor extends scala.actors.Reactor[Event] {
+
   /**
    * All reactions of this reactor.
    */
-  val reactions: Reactions = new Reactions.Impl
+  val reactions: Reactions = new Reactions.Impl += {
+    case Stop => exit
+  }
   
   start
+
+  def stop {this ! Stop}
 
   /**
    * Listen to the given publisher as long as <code>deafTo</code> isn't called for 

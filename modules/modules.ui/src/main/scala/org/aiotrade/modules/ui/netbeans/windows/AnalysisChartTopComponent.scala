@@ -82,7 +82,8 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object AnalysisChartTopComponent {
-  var instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnalysisContents]()
+  private val instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   private var singleton: AnalysisChartTopComponent = _
 
@@ -92,7 +93,7 @@ object AnalysisChartTopComponent {
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
 
   def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
-    instanceRefs find {_._1.sec.uniSymbol.equalsIgnoreCase(symbol)} map (_._1)
+    instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
   }
 
   def apply(contents: AnalysisContents): AnalysisChartTopComponent = {
@@ -103,9 +104,9 @@ object AnalysisChartTopComponent {
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
     if (standalone) {
-      val instance = instanceRefs find {x => 
-        (x._1.contents eq contents) && x._1.freq == freq
-      } map (_._1) getOrElse new AnalysisChartTopComponent(contents)
+      val instance = instances find {x =>
+        (x.contents == contents) && x.freq == freq
+      } getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {
         instance.open
@@ -130,14 +131,14 @@ object AnalysisChartTopComponent {
   def selected: Option[AnalysisChartTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: AnalysisChartTopComponent => Some(x)
-      case _ => instanceRefs find (_._1.isShowing) map (_._1)
+      case _ => instances find (_.isShowing)
     }
   }
 }
 
 import AnalysisChartTopComponent._
 class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
-  instanceRefs.put(this, $contents)
+  instanceRefs.put(this, null)
 
   private val popupMenuForViewContainer = {
     val x = new JPopupMenu

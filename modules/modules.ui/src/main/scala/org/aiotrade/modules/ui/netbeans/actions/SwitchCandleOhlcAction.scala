@@ -55,8 +55,8 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
               case _: AnalysisChartTopComponent =>
                 /** As all AnalysisQuoteChartView have the static quoteChartType, so call static method */
                 AnalysisChartView.switchAllQuoteChartType(null)
-                for ((tc, _) <- AnalysisChartTopComponent.instanceRefs) {
-                  tc.repaint()
+                for (x <- AnalysisChartTopComponent.instances) {
+                  x.repaint()
                 }
               case _: RealTimeChartsTopComponent =>
                 /** As all RealtimeQuoteChartView have the static quoteChartType, so call static method */

@@ -33,7 +33,6 @@ package org.aiotrade.modules.ui.netbeans.windows;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
-import java.lang.ref.WeakReference;
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants
@@ -47,7 +46,9 @@ import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import org.openide.windows.WindowManager
+import scala.collection.mutable.WeakHashMap
+
 /**
  *
  * @author Caoyuan Deng
@@ -66,12 +67,13 @@ import org.openide.windows.WindowManager;
  * exception. So, it's better to test serialization out of the IDE.
  */
 object RealTimeChartTopComponent {
-  var instanceRefs = List[WeakReference[RealTimeChartTopComponent]]()
+  private val instanceRefs = WeakHashMap[RealTimeChartTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   private val MODE = "editor"
 
   def apply(contents: AnalysisContents): RealTimeChartTopComponent = {
-    val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new RealTimeChartTopComponent(contents)
+    val instance = instances find (_.contents == contents) getOrElse new RealTimeChartTopComponent(contents)
     
     if (!instance.isOpened) {
       instance.open
@@ -83,7 +85,7 @@ object RealTimeChartTopComponent {
   def selected: Option[RealTimeChartTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: RealTimeChartTopComponent => Some(x)
-      case _ => instanceRefs find (_.get.isShowing) map (_.get)
+      case _ => instances find (_.isShowing)
     }
   }
 
@@ -91,9 +93,7 @@ object RealTimeChartTopComponent {
 
 import RealTimeChartTopComponent._
 class RealTimeChartTopComponent private (val contents: AnalysisContents) extends TopComponent {
-
-  private val ref = new WeakReference[RealTimeChartTopComponent](this)
-  instanceRefs ::= ref
+  instanceRefs.put(this, null)
 
   val sec = contents.serProvider.asInstanceOf[Sec]
   private val symbol = sec.uniSymbol
@@ -155,7 +155,7 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   }
     
   override protected def componentClosed {
-    instanceRefs -= ref
+    instanceRefs.remove(this)
     super.componentClosed
   }
     
@@ -180,7 +180,6 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    instanceRefs -= ref
     super.finalize
   }
     

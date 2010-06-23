@@ -418,8 +418,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
     freqToQuoteSer.get(freq) map (_.inLoading) getOrElse false
   }
 
-  def uniSymbol: String = 
-    if (secInfo != null) secInfo.uniSymbol else ""
+  def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else ""
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {
       secInfo.uniSymbol = uniSymbol

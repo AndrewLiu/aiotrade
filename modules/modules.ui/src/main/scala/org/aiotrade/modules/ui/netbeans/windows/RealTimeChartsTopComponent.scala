@@ -34,7 +34,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.lang.ref.WeakReference;
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
 import javax.swing.Timer;
@@ -51,7 +50,8 @@ import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
 import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import org.openide.windows.WindowManager;import scala.collection.mutable.WeakHashMap
+
 
 /**
  * This class implements serializbale by inheriting TopComponent, but should
@@ -67,7 +67,8 @@ import org.openide.windows.WindowManager;
  * @author Caoyuan Deng
  */
 object RealTimeChartsTopComponent {
-  var instanceRefs = List[WeakReference[RealTimeChartsTopComponent]]()
+  private val instanceRefs = WeakHashMap[RealTimeChartsTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   private val SCROLL_SPEED_THROTTLE = 2400 // delay in milli seconds
 
@@ -76,10 +77,9 @@ object RealTimeChartsTopComponent {
 
 
   def apply(): RealTimeChartsTopComponent = {
-    var instance = instanceRefs match {
-      case Nil => new RealTimeChartsTopComponent
-      case head :: _ => head.get
-    }
+    val instance = if (instances.isEmpty) {
+      new RealTimeChartsTopComponent
+    } else instances.head
 
     if (!instance.isOpened) {
       instance.open
@@ -91,9 +91,7 @@ object RealTimeChartsTopComponent {
 
 import RealTimeChartsTopComponent._
 class RealTimeChartsTopComponent private () extends TopComponent {
-
-  private val ref = new WeakReference[RealTimeChartsTopComponent](this)
-  instanceRefs ::= ref
+  instanceRefs.put(this, null)
     
   private val tc_id = "RealtimeCharts"
     
@@ -234,7 +232,6 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     if (myMouseAdapter != null) {
       removeMouseListener(myMouseAdapter)
     }
-    instanceRefs -= ref
     super.finalize
   }
     

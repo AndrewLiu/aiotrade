@@ -76,7 +76,8 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object RealTimeWatchListTopComponent {
-  var instanceRefs = WeakHashMap[RealTimeWatchListTopComponent, String]()
+  private val instanceRefs = WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   // The Mode this component will live in.
   private val MODE = "editor"
@@ -86,10 +87,7 @@ object RealTimeWatchListTopComponent {
   private val watchingSecs = HashSet[Sec]()
 
   def getInstance(name: String): RealTimeWatchListTopComponent = {
-    val instance = instanceRefs find (_._2 == name) match {
-      case Some((x, _)) => x
-      case None => new RealTimeWatchListTopComponent(name)
-    }
+    val instance = instances find (_.name == name) getOrElse new RealTimeWatchListTopComponent(name)
 
     if (!instance.isOpened) {
       instance.open
@@ -101,15 +99,15 @@ object RealTimeWatchListTopComponent {
   def selected: Option[RealTimeWatchListTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: RealTimeWatchListTopComponent => Some(x)
-      case _ => instanceRefs find (_._1.isShowing) map (_._1)
+      case _ => instances find (_.isShowing)
     }
   }
 
 }
 
 import RealTimeWatchListTopComponent._
-class RealTimeWatchListTopComponent private (name: String) extends TopComponent {
-  instanceRefs.put(this, name)
+class RealTimeWatchListTopComponent private (val name: String) extends TopComponent {
+  instanceRefs.put(this, null)
     
   private val tc_id = "RealTimeWatchList"
   private val symbolToNode = HashMap[String, Node]()
@@ -177,7 +175,6 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
               ) {
                 if (realTimeBoard != null) {
                   realTimeBoard.unWatch
-                  realTimeBoard
                   splitPane.remove(realTimeBoard)
                 }
                 realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
@@ -216,12 +213,12 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   override protected def componentClosed {
     stopAllWatch
         
-    for ((tc, _) <- instanceRefs) {
-      tc.setReallyClosed(true)
-      tc.close
+    for (x <- instances) {
+      x.setReallyClosed(true)
+      x.close
     }
     instanceRefs.clear
-        
+    
     super.componentClosed
   }
 

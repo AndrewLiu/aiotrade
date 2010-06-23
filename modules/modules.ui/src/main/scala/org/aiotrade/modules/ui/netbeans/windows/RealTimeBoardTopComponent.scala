@@ -53,16 +53,14 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object RealTimeBoardTopComponent {
-  var instanceRefs = WeakHashMap[RealTimeBoardTopComponent, AnalysisContents]()
+  private val instanceRefs = WeakHashMap[RealTimeBoardTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   /** The Mode this component will live in */
   val MODE = "realTimeBoard"
 
   def apply(contents: AnalysisContents): RealTimeBoardTopComponent = {
-    val instance = instanceRefs find (_._2 eq contents) match {
-      case Some(x) => x._1
-      case None => new RealTimeBoardTopComponent(contents)
-    }
+    val instance = instances find (_.contents == contents) getOrElse RealTimeBoardTopComponent(contents)
 
     if (!instance.isOpened) {
       instance.open
@@ -75,7 +73,7 @@ object RealTimeBoardTopComponent {
 
 import RealTimeBoardTopComponent._
 class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends TopComponent {
-  instanceRefs.put(this, contents)
+  instanceRefs.put(this, null)
     
   val sec = contents.serProvider.asInstanceOf[Sec]
 

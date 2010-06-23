@@ -91,22 +91,20 @@ object RealTimeBoardPanel {
   private val NUMBER_FORMAT = NumberFormat.getInstance
   private val DIM = new Dimension(230, 100000)
 
-  var instanceRefs = WeakHashMap[RealTimeBoardPanel, Sec]()
+  private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
+  def instances = instanceRefs.keys
 
   def instanceOf(sec: Sec, contents: AnalysisContents): RealTimeBoardPanel = {
-    instanceRefs find {_._2 eq sec} match {
-      case Some(x) => x._1
-      case None => new RealTimeBoardPanel(sec, contents)
-    }
+    instances find {_.sec eq sec} getOrElse new RealTimeBoardPanel(sec, contents)
   }
 
   val logger = Logger.getLogger(this.getClass.getSimpleName)
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel private (sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
-  instanceRefs.put(this, sec)
-  logger.info("Instances of " + this.getClass.getSimpleName + " is " + instanceRefs.size)
+class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
+  instanceRefs.put(this, null)
+  logger.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
