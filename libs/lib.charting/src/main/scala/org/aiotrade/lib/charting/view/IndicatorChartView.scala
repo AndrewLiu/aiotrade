@@ -112,11 +112,15 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
         
     for (ser <- allSers) {
       /** add charts */
-      for (v <- ser.vars) {
+      for (v <- ser.vars if v.plot != Plot.None) {
         val chart = ChartFactory.createVarChart(v)
         if (chart != null) {
-          val vars = HashSet[TVar[_]](v)
-          mainSerChartToVars.put(chart, vars)
+          val vars = mainSerChartToVars.get(chart) getOrElse {
+            val x = HashSet[TVar[_]]()
+            mainSerChartToVars.put(chart, x)
+            x
+          }
+          vars.add(v)
                     
           chart match {
             case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
@@ -144,8 +148,8 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
   }
     
   override def computeMaxMin {
-    var minValue1 = Float.MaxValue
-    var maxValue1 = Float.MinValue
+    var min = Float.MaxValue
+    var max = Float.MinValue
 
     var shouldMinBeZero = false
     var i = 1
@@ -158,18 +162,18 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
           if (v.plot == Plot.Volume) {
             shouldMinBeZero = true
           }
-          maxValue1 = math.max(maxValue1, value)
-          minValue1 = math.min(minValue1, value)
+          max = math.max(max, value)
+          min = math.min(min, value)
         }
       }
 
       i += 1
     }
         
-    if (maxValue1 == minValue1) maxValue1 += 1
-    if (shouldMinBeZero) minValue1 = 0
+    if (max == min) max += 1
+    if (shouldMinBeZero) min = 0
 
-    setMaxMinValue(maxValue1, minValue1)
+    setMaxMinValue(max, min)
   }
     
   override def popupToDesktop {

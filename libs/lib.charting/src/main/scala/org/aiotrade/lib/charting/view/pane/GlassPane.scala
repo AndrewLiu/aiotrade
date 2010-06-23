@@ -362,10 +362,10 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
     val referTime = view.controller.referCursorTime
     if (ser.exists(referTime)) {
-      val serVars = ser.vars
+      val vars = ser.vars
 
       /** remove unused vars and their labels */
-      val toRemove = selectedSerVarToValueLabel.keysIterator filter {v => !serVars.contains(v) || v.plot == Plot.None}
+      val toRemove = selectedSerVarToValueLabel.keysIterator filter {v => !vars.contains(v) || v.plot == Plot.None}
       for (v <- toRemove) {
         val label = selectedSerVarToValueLabel(v)
         selectedSerVarToValueLabel.remove(v)
@@ -376,23 +376,35 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         }
       }
 
-      for (v <- serVars if v.plot != Plot.None;
+      for (v <- vars if v.plot != Plot.None;
            value = v.float(referTime) if Null.not(value)
       ) {
         val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(value)
 
         /** lookup this var's chart and use chart's color if possible */
-        var chartOfVar: Chart = null
-        val chartToVars = view.chartMapVars(ser)
+        var chart: Chart = null
+        val chartToVars = view.chartToVarsOf(ser)
         val charts = chartToVars.keysIterator
-        while (charts.hasNext && chartOfVar != null) {
-          val chart = charts.next
-          chartToVars.get(chart) foreach {vars =>
-            if (vars.contains(v)) chartOfVar = chart
+        while (charts.hasNext && chart == null) {
+          val chartx = charts.next
+          chartToVars.get(chartx) find (_.contains(v)) match {
+            case Some(x) => chart = chartx
+            case None =>
           }
         }
-        val color = if (chartOfVar eq null) LookFeel().nameColor else chartOfVar.getForeground
+        
+        val color = if (chart eq null) {
+          LookFeel().nameColor
+        } else {
+          println("chart depth=" + chart.depth)
+          if (chart.depth >= 0) {
+            LookFeel().getChartColor(chart.depth)
+          } else {
+            LookFeel().nameColor
+          }
+        }
 
+        println("chart color: " + color)
         val valueLabel = selectedSerVarToValueLabel.get(v) getOrElse {
           val x = new JLabel
           x.setOpaque(false)

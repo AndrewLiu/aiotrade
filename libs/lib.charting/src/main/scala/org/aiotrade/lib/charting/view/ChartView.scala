@@ -39,6 +39,7 @@ import org.aiotrade.lib.charting.view.pane.AxisYPane
 import org.aiotrade.lib.charting.view.pane.ChartPane
 import org.aiotrade.lib.charting.view.pane.DivisionPane
 import org.aiotrade.lib.charting.view.pane.GlassPane
+import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
@@ -55,8 +56,8 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.scalar.Scalar
 import org.aiotrade.lib.util.ChangeSubject
 import org.aiotrade.lib.util.actors.Reactor
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-import scala.collection.mutable.LinkedHashMap
 
 
 /**
@@ -91,9 +92,9 @@ abstract class ChartView(protected var _controller: ChartingController,
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeSubject with Reactor {
 
-  protected val overlappingSerChartToVars = new LinkedHashMap[TSer, LinkedHashMap[Chart, HashSet[TVar[_]]]]
+  protected val overlappingSerChartToVars = new HashMap[TSer, HashMap[Chart, HashSet[TVar[_]]]]
 
-  val mainSerChartToVars = new LinkedHashMap[Chart, HashSet[TVar[_]]]
+  val mainSerChartToVars = new HashMap[Chart, HashSet[TVar[_]]]
 
   val mainChartPane = new ChartPane(this)
   val glassPane = new GlassPane(this, mainChartPane)
@@ -408,7 +409,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   def baseSer: BaseTSer = _baseSer
   final def mainSer: TSer = _mainSer
 
-  def chartMapVars(ser: TSer): LinkedHashMap[Chart, HashSet[TVar[_]]] = {
+  def chartToVarsOf(ser: TSer): HashMap[Chart, HashSet[TVar[_]]] = {
     assert(ser != null, "Do not pass me a null ser!")
     if (ser eq mainSer) mainSerChartToVars else overlappingSerChartToVars.get(ser).get
   }
@@ -430,18 +431,23 @@ abstract class ChartView(protected var _controller: ChartingController,
   def addOverlappingCharts(ser: TSer) {
     listenTo(ser)
 
-    val chartVarsMap = new LinkedHashMap[Chart, HashSet[TVar[_]]]
-    overlappingSerChartToVars += (ser -> chartVarsMap)
+    val chartToVars = overlappingSerChartToVars.get(ser) getOrElse {
+      val x = new HashMap[Chart, HashSet[TVar[_]]]
+      overlappingSerChartToVars.put(ser, x)
+      x
+    }
 
     var depthGradient = Pane.DEPTH_GRADIENT_BEGIN
 
-    for (v <- ser.vars) {
+    for (v <- ser.vars if v.plot != Plot.None) {
       val chart = ChartFactory.createVarChart(v)
       if (chart != null) {
-        val vars = HashSet[TVar[_]](v)
-        chartVarsMap.put(chart, vars)
-
-        chart.set(mainChartPane, ser)
+        val vars = chartToVars.get(chart) getOrElse {
+          val x = HashSet[TVar[_]]()
+          chartToVars.put(chart, x)
+          x
+        }
+        vars.add(v)
 
         chart match {
           case _: GradientChart => chart.depth = depthGradient; depthGradient -= 1
@@ -450,6 +456,7 @@ abstract class ChartView(protected var _controller: ChartingController,
           case _ => chart.depth = lastDepthOfOverlappingChart; lastDepthOfOverlappingChart += 1
         }
 
+        chart.set(mainChartPane, ser)
         mainChartPane.putChart(chart)
       }
     }
@@ -462,8 +469,8 @@ abstract class ChartView(protected var _controller: ChartingController,
   def removeOverlappingCharts(ser: TSer) {
     deafTo(ser)
 
-    overlappingSerChartToVars.get(ser) foreach {chartVarsMap =>
-      for (chart <- chartVarsMap.keySet) {
+    overlappingSerChartToVars.get(ser) foreach {chartToVars =>
+      for (chart <- chartToVars.keySet) {
         mainChartPane.removeChart(chart)
         chart match {
           case _: GradientChart => /** noop */
@@ -472,8 +479,8 @@ abstract class ChartView(protected var _controller: ChartingController,
           case _ => lastDepthOfOverlappingChart -= 1
         }
       }
-      /** release chartVarsMap */
-      chartVarsMap.clear
+      /** release chartToVars */
+      chartToVars.clear
       overlappingSerChartToVars.remove(ser)
     }
 

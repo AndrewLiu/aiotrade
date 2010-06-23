@@ -66,8 +66,8 @@ class PolyLineChart extends AbstractChart {
     var bar = 1
     while (bar <= nBars) {
       var value = Null.Float
-      var max = -Float.MaxValue
-      var min = +Float.MaxValue
+      var max = Float.MinValue
+      var min = Float.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)
