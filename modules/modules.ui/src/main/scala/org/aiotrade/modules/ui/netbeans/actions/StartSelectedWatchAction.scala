@@ -46,8 +46,8 @@ class StartSelectedWatchAction extends CallableSystemAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable() {
           def run() {
-            for (ref <- RealTimeWatchListTopComponent.instanceRefs) {
-              for (node <- ref.get.getSelectedSymbolNodes) {
+            for ((tc, _) <- RealTimeWatchListTopComponent.instanceRefs) {
+              for (node <- tc.getSelectedSymbolNodes) {
                 node.getLookup.lookup(classOf[SymbolStartWatchAction]).execute
               }
             }

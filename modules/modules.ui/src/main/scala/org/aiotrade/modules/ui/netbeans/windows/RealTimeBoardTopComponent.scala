@@ -31,13 +31,13 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout
-import java.lang.ref.WeakReference
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
+import scala.collection.mutable.WeakHashMap
 
 
 /** This class implements serializbale by inheriting TopComponent, but should
@@ -53,13 +53,16 @@ import org.openide.windows.WindowManager
  * @author Caoyuan Deng
  */
 object RealTimeBoardTopComponent {
-  var instanceRefs = List[WeakReference[RealTimeBoardTopComponent]]()
+  var instanceRefs = WeakHashMap[RealTimeBoardTopComponent, AnalysisContents]()
 
   /** The Mode this component will live in */
   val MODE = "realTimeBoard"
 
   def apply(contents: AnalysisContents): RealTimeBoardTopComponent = {
-    val instance = instanceRefs find (_.get.contents == contents) map (_.get) getOrElse new RealTimeBoardTopComponent(contents)
+    val instance = instanceRefs find (_._2 eq contents) match {
+      case Some(x) => x._1
+      case None => new RealTimeBoardTopComponent(contents)
+    }
 
     if (!instance.isOpened) {
       instance.open
@@ -72,9 +75,7 @@ object RealTimeBoardTopComponent {
 
 import RealTimeBoardTopComponent._
 class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends TopComponent {
-
-  private val ref = new WeakReference[RealTimeBoardTopComponent](this)
-  instanceRefs ::= ref
+  instanceRefs.put(this, contents)
     
   val sec = contents.serProvider.asInstanceOf[Sec]
 
@@ -82,7 +83,7 @@ class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends
     
   private val tc_id = sec.name + "_TK"
         
-  private val boardPanel = new RealTimeBoardPanel(sec, contents)
+  private val boardPanel = RealTimeBoardPanel.instanceOf(sec, contents)
         
   setLayout(new BorderLayout)
         
@@ -150,7 +151,6 @@ class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends
     
   @throws(classOf[Throwable])
   override protected def finalize {
-    instanceRefs -= ref
     super.finalize
   }
     

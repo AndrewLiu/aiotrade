@@ -182,7 +182,7 @@ class Util {
       val dailyPanel = new JPanel(new BorderLayout)
       dailyPanel.add(BorderLayout.CENTER, dailyViewContainer)
 
-      val rtBoard = new RealTimeBoardPanel(sec, rtContents)
+      val rtBoard = RealTimeBoardPanel.instanceOf(sec, rtContents)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)

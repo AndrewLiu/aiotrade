@@ -44,6 +44,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.ResourceBundle
+import java.util.logging.Logger
 import javax.swing.Box
 import javax.swing.CellRendererPane
 import javax.swing.JComponent
@@ -79,6 +80,7 @@ import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
 import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel
 import org.aiotrade.lib.util.swing.table.DefaultCellAttribute
 import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
+import scala.collection.mutable.WeakHashMap
 
 /**
  *
@@ -88,10 +90,23 @@ object RealTimeBoardPanel {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
   private val DIM = new Dimension(230, 100000)
+
+  var instanceRefs = WeakHashMap[RealTimeBoardPanel, Sec]()
+
+  def instanceOf(sec: Sec, contents: AnalysisContents): RealTimeBoardPanel = {
+    instanceRefs find {_._2 eq sec} match {
+      case Some(x) => x._1
+      case None => new RealTimeBoardPanel(sec, contents)
+    }
+  }
+
+  val logger = Logger.getLogger(this.getClass.getSimpleName)
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
+class RealTimeBoardPanel private (sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
+  instanceRefs.put(this, sec)
+  logger.info("Instances of " + this.getClass.getSimpleName + " is " + instanceRefs.size)
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane

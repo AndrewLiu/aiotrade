@@ -32,7 +32,6 @@ package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import java.awt.Image
-import java.lang.ref.WeakReference;
 import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -66,6 +65,7 @@ import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
+import scala.collection.mutable.WeakHashMap
 
 
 /**
@@ -82,7 +82,7 @@ import org.openide.windows.WindowManager
  * @author Caoyuan Deng
  */
 object AnalysisChartTopComponent {
-  var instanceRefs = List[WeakReference[AnalysisChartTopComponent]]()
+  var instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnalysisContents]()
 
   private var singleton: AnalysisChartTopComponent = _
 
@@ -92,7 +92,7 @@ object AnalysisChartTopComponent {
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
 
   def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
-    instanceRefs find (_.get.sec.uniSymbol.equalsIgnoreCase(symbol)) map (_.get)
+    instanceRefs find {_._1.sec.uniSymbol.equalsIgnoreCase(symbol)} map (_._1)
   }
 
   def apply(contents: AnalysisContents): AnalysisChartTopComponent = {
@@ -104,8 +104,8 @@ object AnalysisChartTopComponent {
     val freq = quoteContract.freq
     if (standalone) {
       val instance = instanceRefs find {x => 
-        (x.get.contents eq contents) && x.get.freq == freq
-      } map (_.get) getOrElse new AnalysisChartTopComponent(contents)
+        (x._1.contents eq contents) && x._1.freq == freq
+      } map (_._1) getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {
         instance.open
@@ -130,16 +130,14 @@ object AnalysisChartTopComponent {
   def selected: Option[AnalysisChartTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: AnalysisChartTopComponent => Some(x)
-      case _ => instanceRefs find (_.get.isShowing) map (_.get)
+      case _ => instanceRefs find (_._1.isShowing) map (_._1)
     }
   }
 }
 
 import AnalysisChartTopComponent._
 class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
-
-  private val ref = new WeakReference[AnalysisChartTopComponent](this)
-  instanceRefs ::= ref
+  instanceRefs.put(this, $contents)
 
   private val popupMenuForViewContainer = {
     val x = new JPopupMenu
@@ -185,7 +183,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val symbol = sec.uniSymbol
 
     val viewContainer = createViewContainer(sec, freq, contents)
-    val realTimeBoard = new RealTimeBoardPanel(sec, contents)
+    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
 
     splitPane.setLeftComponent(viewContainer)
     splitPane.setRightComponent(realTimeBoard)
@@ -255,9 +253,11 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     var ownFocus = false
     if (state != null) {
       realTimeBoard.unWatch
+      splitPane.remove(realTimeBoard)
       if (viewContainer.isFocusOwner || this.isFocusOwner) {
         ownFocus = true
       }
+      splitPane.remove(viewContainer)
     }
 
     state = new State(contents)
@@ -301,7 +301,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   }
     
   override protected def componentClosed {
-    instanceRefs -= ref
+    instanceRefs.remove(this)
     realTimeBoard.unWatch
     super.componentClosed
     /**
@@ -351,7 +351,6 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     
   @throws(classOf[Throwable])
   override protected def finalize {
-    instanceRefs -= ref
     super.finalize
   }
   
