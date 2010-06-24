@@ -424,7 +424,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   }
 
   def stopAllDataServer {
-    for (server <- freqToQuoteServer.valuesIterator if server.inUpdating) {
+    for (server <- freqToQuoteServer.valuesIterator) {
       server.stopRefresh
     }
     freqToQuoteServer.clear

@@ -124,7 +124,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
   case object UpdateTitlePanel
   case object UpdateValues
-  private val updateActor = new Reactor[Any] {
+  private val updateActor = new scala.actors.Reactor[Any] {
     start
     def act = loop {
       react {
