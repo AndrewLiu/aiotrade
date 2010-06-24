@@ -182,7 +182,7 @@ class Util {
       val dailyPanel = new JPanel(new BorderLayout)
       dailyPanel.add(BorderLayout.CENTER, dailyViewContainer)
 
-      val rtBoard = new RealTimeBoardPanel(sec, rtContents)
+      val rtBoard = RealTimeBoardPanel.instanceOf(sec, rtContents)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
@@ -353,7 +353,7 @@ class Util {
   }
 
   private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
-    var baseSer = sec.serOf(TFreq.ONE_MIN).getOrElse(sec.tickerSer)
+    var baseSer = sec.serOf(TFreq.ONE_MIN).get
     val controller = ChartingControllerFactory.createInstance(baseSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer

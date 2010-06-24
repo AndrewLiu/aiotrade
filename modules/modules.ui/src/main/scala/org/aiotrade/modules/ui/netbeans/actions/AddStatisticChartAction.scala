@@ -62,7 +62,7 @@ class AddStatisticChartAction extends CallableSystemAction {
             var selectedVar: TVar[_] = null
             /** search in masterView's overlappingCharts first */
             for (ser <- viewContainer.masterView.overlappingSers) {
-              val chartToVars = viewContainer.masterView.chartMapVars(ser)
+              val chartToVars = viewContainer.masterView.chartToVarsOf(ser)
               for ((chart, vars) <- chartToVars if chart eq selectedChart) {
                 /** simply pick up first var? */
                 vars.find(x => true) foreach {v =>

@@ -35,7 +35,6 @@ import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent;
-import java.lang.ref.WeakReference;
 import javax.swing.AbstractAction
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -62,6 +61,7 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
+import scala.collection.mutable.WeakHashMap
 
 /** This class implements serializbale by inheriting TopComponent, but should
  * overide writeExternal() and readExternal() to implement own serializable
@@ -76,7 +76,8 @@ import scala.collection.mutable.HashSet
  * @author Caoyuan Deng
  */
 object RealTimeWatchListTopComponent {
-  var instanceRefs = List[WeakReference[RealTimeWatchListTopComponent]]()
+  private val instanceRefs = WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
   // The Mode this component will live in.
   private val MODE = "editor"
@@ -86,7 +87,7 @@ object RealTimeWatchListTopComponent {
   private val watchingSecs = HashSet[Sec]()
 
   def getInstance(name: String): RealTimeWatchListTopComponent = {
-    val instance = instanceRefs find (_.get.getName == name) map (_.get) getOrElse new RealTimeWatchListTopComponent(name)
+    val instance = instances find (_.name == name) getOrElse new RealTimeWatchListTopComponent(name)
 
     if (!instance.isOpened) {
       instance.open
@@ -98,17 +99,15 @@ object RealTimeWatchListTopComponent {
   def selected: Option[RealTimeWatchListTopComponent] = {
     TopComponent.getRegistry.getActivated match {
       case x: RealTimeWatchListTopComponent => Some(x)
-      case _ => instanceRefs find (_.get.isShowing) map (_.get)
+      case _ => instances find (_.isShowing)
     }
   }
 
 }
 
 import RealTimeWatchListTopComponent._
-class RealTimeWatchListTopComponent private (name: String) extends TopComponent {
-
-  private val ref = new WeakReference[RealTimeWatchListTopComponent](this)
-  instanceRefs ::= ref
+class RealTimeWatchListTopComponent private (val name: String) extends TopComponent {
+  instanceRefs.put(this, null)
     
   private val tc_id = "RealTimeWatchList"
   private val symbolToNode = HashMap[String, Node]()
@@ -176,8 +175,9 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
               ) {
                 if (realTimeBoard != null) {
                   realTimeBoard.unWatch
+                  splitPane.remove(realTimeBoard)
                 }
-                realTimeBoard = new RealTimeBoardPanel(sec, contents)
+                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
                 realTimeBoard.watch
 
                 splitPane.setRightComponent(realTimeBoard)
@@ -213,12 +213,12 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
   override protected def componentClosed {
     stopAllWatch
         
-    for (ref <- instanceRefs; tc = ref.get) {
-      tc.setReallyClosed(true)
-      tc.close
+    for (x <- instances) {
+      x.setReallyClosed(true)
+      x.close
     }
-    instanceRefs = Nil
-        
+    instanceRefs.clear
+    
     super.componentClosed
   }
 
@@ -337,7 +337,6 @@ class RealTimeWatchListTopComponent private (name: String) extends TopComponent 
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    instanceRefs -= ref
     super.finalize
   }
 

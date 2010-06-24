@@ -44,6 +44,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.ResourceBundle
+import java.util.logging.Logger
 import javax.swing.Box
 import javax.swing.CellRendererPane
 import javax.swing.JComponent
@@ -61,6 +62,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
@@ -79,6 +81,7 @@ import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
 import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel
 import org.aiotrade.lib.util.swing.table.DefaultCellAttribute
 import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
+import scala.collection.mutable.WeakHashMap
 
 /**
  *
@@ -88,10 +91,21 @@ object RealTimeBoardPanel {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
   private val DIM = new Dimension(230, 100000)
+
+  private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
+  def instances = instanceRefs.keys
+
+  def instanceOf(sec: Sec, contents: AnalysisContents): RealTimeBoardPanel = {
+    instances find {_.sec eq sec} getOrElse new RealTimeBoardPanel(sec, contents)
+  }
+
+  val logger = Logger.getLogger(this.getClass.getSimpleName)
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
+class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
+  instanceRefs.put(this, null)
+  logger.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -132,7 +146,8 @@ class RealTimeBoardPanel(sec: Sec, contents: AnalysisContents) extends JPanel wi
   private var executionModel: AbstractTableModel = _
   initComponents
 
-  private val controller = ChartingControllerFactory.createInstance(sec.tickerSer, contents)
+  private val rtSer = sec.serOf(TFreq.ONE_MIN).get
+  private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)
