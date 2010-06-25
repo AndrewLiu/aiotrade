@@ -40,14 +40,15 @@ import org.aiotrade.lib.indicator.VOLIndicator
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.swing.GBC
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.WeakHashMap
 
 /**
  *
  * @author Caoyuan Deng
  */
 object RealTimeChartViewContainer {
-  private val INSTANCES = new ArrayBuffer[RealTimeChartViewContainer]
+  private val instanceRefs = WeakHashMap[RealTimeChartViewContainer, AnyRef]()
+  private def instances = instanceRefs.keys
 }
 
 import RealTimeChartViewContainer._
@@ -63,7 +64,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
      * if there has been other RealtimeChartViewContainer opened, try to make
      * them having the same isOnCalendarTime and wBar.
      */
-    for (c <- INSTANCES) {
+    for (c <- instances) {
       controller.isOnCalendarMode = c.controller.isOnCalendarMode
 
       val othersWBar = c.controller.wBar
@@ -83,7 +84,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     }
 
     /** add this to container at last */
-    INSTANCES += this
+    instanceRefs.put(this, null)
   }
 
   protected def initComponents {

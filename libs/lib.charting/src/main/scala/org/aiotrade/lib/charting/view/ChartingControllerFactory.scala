@@ -48,8 +48,6 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashSet
-import scala.collection.mutable.WeakHashMap
-
 
 /**
  * Only DefaultChartingController will be provided in this factory
@@ -57,20 +55,8 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object ChartingControllerFactory {
-  /** a static map to know how many controllers are bound with each BaseTSer */
-  private val sersTocontrollers = new WeakHashMap[BaseTSer, HashSet[ChartingController]]
-
   def createInstance(baseSer: BaseTSer, contents: AnalysisContents): ChartingController = {
-    val controllers = sersTocontrollers.get(baseSer) getOrElse {
-      val x = new HashSet[ChartingController]
-      sersTocontrollers += (baseSer -> x)
-      x
-    }
-
-    val controller = new DefaultChartingController(baseSer, contents)
-    controllers.add(controller)
-
-    controller
+    new DefaultChartingController(baseSer, contents)
   }
 
   object DefaultChartingController {

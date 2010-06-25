@@ -111,27 +111,40 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _
-  var inUpdating: Boolean = _
 
   var refreshable = false
 
+  // --- a proxy actor to detect the speed refreshing requests, if consumer can
+  // not catch up the producer, will drop some requests.
+  // We here also avoid concurent racing risk of Refresh/LoadHistory requests
+  private case object Refresh
   private case class LoadHistory(afterTime: Long) extends Event
+  private var inRefreshing: Boolean = _
+  private val refreshActor = new scala.actors.Reactor[Any] {
+    start
+    def act = loop {
+      react {
+        case Refresh if !inRefreshing =>
+          inRefreshing = true
+          loadedTime = loadFromSource(loadedTime)
+          postRefresh
+          inRefreshing = false
+        case LoadHistory(afterTime) =>
+          loadedTime = loadFromSource(afterTime)
+          postLoadHistory
+      }
+    }
+  }
 
-  /**
-   * asynced loadHistory and refresh requests via actor modeled reactions
-   */
+
   reactions += {
     case HeartBeat(interval) if refreshable =>
-      loadedTime = loadFromSource(loadedTime)
-      postRefresh
-    case LoadHistory(afterTime) =>
-      loadedTime = loadFromSource(afterTime)
-      postLoadHistory
+      refreshActor ! Refresh
   }
 
   listenTo(DataServer)
 
-  // -- public interfaces
+  // --- public interfaces
 
   def loadHistory(afterTime: Long) {
     if (currentContract == None) {
@@ -145,7 +158,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
      */
-    publish(LoadHistory(afterTime))
+    refreshActor ! LoadHistory(afterTime)
   }
 
   protected def postLoadHistory {}
