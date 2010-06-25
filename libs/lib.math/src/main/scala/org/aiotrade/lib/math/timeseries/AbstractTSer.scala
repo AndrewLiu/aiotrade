@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math.timeseries
 
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import org.aiotrade.lib.collection.ArrayList
 
 /**
@@ -40,6 +41,10 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   var inLoading: Boolean = false
   private var _loaded: Boolean = false
+
+  private val readWriteLock = new ReentrantReadWriteLock
+  protected val readLock  = readWriteLock.readLock
+  protected val writeLock = readWriteLock.writeLock
 
   def this() = this(TFreq.DAILY)
     
@@ -56,6 +61,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
 
   def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]]) = {
     try {
+      readLock.lock
       timestamps.readLock.lock
 
       val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
@@ -74,6 +80,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       (times1, vs.toArray)
       
     } finally {
+      readLock.unlock
       timestamps.readLock.unlock
     }
   }

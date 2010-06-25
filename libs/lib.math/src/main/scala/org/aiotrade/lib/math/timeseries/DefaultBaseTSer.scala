@@ -64,20 +64,25 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
    * you'd better never think to open these methods to protected or public.
    */
   def createOrClear(time: Long) {
-    /**
-     * @NOTE:
-     * Should only get index from timestamps which has the proper
-     * position <-> time <-> item mapping
-     */
-    val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < holders.size) {
-      // existed, clear it
-      vars foreach {x => x(idx) = x.NullVal}
-      holders(idx) = 0
-    } else {
-      // create a new one, add placeholder
-      val holder = createItem(time)
-      internal_addItem_fillTimestamps_InTimeOrder(time, holder)
+    try {
+      writeLock.lock
+      /**
+       * @NOTE:
+       * Should only get index from timestamps which has the proper
+       * position <-> time <-> item mapping
+       */
+      val idx = timestamps.indexOfOccurredTime(time)
+      if (idx >= 0 && idx < holders.size) {
+        // existed, clear it
+        vars foreach {x => x(idx) = x.NullVal}
+        holders(idx) = 0
+      } else {
+        // create a new one, add placeholder
+        val holder = createItem(time)
+        internal_addItem_fillTimestamps_InTimeOrder(time, holder)
+      }
+    } finally {
+      writeLock.unlock
     }
   }
 
@@ -156,7 +161,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     if (values.length < 1) return this
     
     try {
-      timestamps.writeLock.lock
+      writeLock.lock
 
       var frTime = Long.MaxValue
       var toTime = Long.MinValue
@@ -186,7 +191,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
       publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
 
     } finally {
-      timestamps.writeLock.unlock
+      writeLock.unlock
     }
 
     logger.fine("TimestampsLog: " + timestamps.log)
@@ -210,7 +215,15 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     
   override def size: Int = activeTimestamps.sizeOf(freq)
 
-  private def activeTimestamps: TStamps = if (_isOnCalendarMode) timestamps.asOnCalendar else timestamps
+  private def activeTimestamps: TStamps = {
+    try {
+      readLock.lock
+
+      if (_isOnCalendarMode) timestamps.asOnCalendar else timestamps
+    } finally {
+      readLock.unlock
+    }
+  }
 }
 
 

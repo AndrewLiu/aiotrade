@@ -106,25 +106,41 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   /**
    * @todo, holder.size or timestamps.size ?
    */
-  def size: Int = holders.size
+  def size: Int = {
+    try {
+      readLock.lock
+      
+      holders.size
+    } finally {
+      readLock.unlock
+    }
+  }
 
   def exists(time: Long): Boolean = {
-    /**
-     * @NOTE:
-     * Should only get index from timestamps which has the proper
-     * position <-> time <-> item mapping
-     */
-    val idx = timestamps.indexOfOccurredTime(time)
-    if (idx >= 0 && idx < holders.size) {
-      true
-    } else {
-      this match {
-        case x: SpotIndicator =>
-          /** re-get one by computing it */
-          x.computeSpot(time)
-          true
-        case _ => false
+    try {
+      readLock.lock
+      timestamps.readLock.lock
+
+      /**
+       * @NOTE:
+       * Should only get index from timestamps which has the proper
+       * position <-> time <-> item mapping
+       */
+      val idx = timestamps.indexOfOccurredTime(time)
+      if (idx >= 0 && idx < holders.size) {
+        true
+      } else {
+        this match {
+          case x: SpotIndicator =>
+            /** re-get one by computing it */
+            x.computeSpot(time)
+            true
+          case _ => false
+        }
       }
+    } finally {
+      readLock.unlock
+      timestamps.readLock.unlock
     }
   }
 
@@ -151,6 +167,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    */
   def validate {
     try {
+      writeLock.lock
       timestamps.readLock.lock
 
       val tlog = timestamps.log
@@ -226,6 +243,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     } catch {
       case ex => logger.log(Level.WARNING, "exception", ex)
     } finally {
+      writeLock.unlock
       timestamps.readLock.unlock
     }
 
@@ -233,7 +251,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   def clear(fromTime: Long) {
     try {
-      timestamps.writeLock.lock
+      writeLock.lock
+      timestamps.readLock.lock
             
       val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       if (fromIdx < 0) {
@@ -242,26 +261,39 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
       vars foreach {_.clear(fromIdx)}
 
-      for (i <- timestamps.size - 1 to fromIdx) {
-        timestamps.remove(i)
-      }
+//      for (i <- timestamps.size - 1 to fromIdx) {
+//        timestamps.remove(i)
+//      }
 
       for (i <- holders.size - 1 to fromIdx) {
         holders.remove(i)
       }
     } finally {
-      timestamps.writeLock.unlock
+      writeLock.unlock
+      timestamps.readLock.unlock
     }
 
     publish(TSerEvent.Cleared(this, shortDescription, fromTime, Long.MaxValue))
   }
 
   def indexOfOccurredTime(time: Long): Int = {
-    timestamps.indexOfOccurredTime(time)
+    try {
+      timestamps.readLock.lock
+
+      timestamps.indexOfOccurredTime(time)
+    } finally {
+      timestamps.readLock.unlock
+    }
   }
 
   def lastOccurredTime: Long = {
-    timestamps.lastOccurredTime
+    try {
+      timestamps.readLock.lock
+
+      timestamps.lastOccurredTime
+    } finally {
+      timestamps.readLock.unlock
+    }
   }
 
   override def toString = {
