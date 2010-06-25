@@ -20,6 +20,7 @@ trait Reactor extends scala.actors.Reactor[Event] {
    */
   val reactions: Reactions = new Reactions.Impl += {
     case Stop => exit
+    case _ => // it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reactoion
   }
   
   start
