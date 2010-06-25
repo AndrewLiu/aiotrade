@@ -143,15 +143,18 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
         
       this.sessionId = sessionId
         
-      /** computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
+      // computedIdx itself has been computed, so, compare computedIdx + 1 with idx */
       var fromIdx = math.min(computedIdx + 1, idx)
       if (fromIdx < 0) {
         fromIdx = 0
       }
-        
-      /** fill with clear data from fromIdx, then call computeSpot(i): */
-      validate
 
+      // fill with clear data from fromIdx
+      if (this ne _baseSer) {
+        validate
+      }
+
+      // call computeSpot(i):
       val size = timestamps.size
       val toIdx = math.min(idx, size - 1)
       var i = fromIdx
@@ -160,9 +163,9 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
         i += 1
       }
         
-      computedIdx = idx
+      computedIdx = toIdx
         
-      postComputeTo(sessionId, idx)
+      postComputeTo(sessionId, toIdx)
       
     } finally {
       timestamps.readLock.unlock
@@ -198,7 +201,8 @@ abstract class AbstractFunction extends DefaultTSer with FunctionSer {
     
   protected def indexOfLastValidValue(var1: TVar[_]): Int = {
     val values = var1.values
-    var i = values.size - 1; while (i > 0) {
+    var i = values.size - 1
+    while (i > 0) {
       val value = values(i)
       if (value != null && !(value.isInstanceOf[Float] && Null.is(value.asInstanceOf[Float]))) {
         return _baseSer.indexOfOccurredTime(timestamps(i))

@@ -184,15 +184,15 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
 }
 
 import java.util.{Calendar,GregorianCalendar,TimeZone}
-import java.util.concurrent.locks.{Lock,ReentrantReadWriteLock}
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 @cloneable
 abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new ReentrantReadWriteLock
-  val readLock:  Lock = readWriteLock.readLock
-  val writeLock: Lock = readWriteLock.writeLock
+  val readLock  = readWriteLock.readLock
+  val writeLock = readWriteLock.writeLock
 
   val log = new TStampsLog(initialSize)
 

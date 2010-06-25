@@ -147,7 +147,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    * @Note:
    * This function is not thread safe, since tsLogCheckedCursor and tsLogCheckedSize
    * should be atomic accessed/modified during function's running scope so.
-   * Should avoid to enter here by multiple actors concurrently
+   * Should avoid to enter here by multiple actors concurrent
    */
   def validate {
     try {

@@ -93,7 +93,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
       case TSerEvent.Updated(_, _, fromTime, toTime, _, callback) =>
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
-      case TSerEvent.FinishedComputing(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne self) =>
+      case TSerEvent.FinishedComputing(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne this) =>
         /**
          * If the resultSer is the same as baseSer (such as QuoteSer),
          * the baseSer will fire an event when compute() finished,
@@ -102,7 +102,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
          */
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
-      case TSerEvent.Cleared(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne self) =>
+      case TSerEvent.Cleared(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne this) =>
         self.clear(fromTime)
         baseSerEventCallBack = callback
     }
@@ -141,7 +141,9 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
       }
     }
 
-    self.validate
+    if (this ne baseSer) {
+      self.validate
+    }
 
     //        if (mayNeedToValidate) {
     //            self.validate

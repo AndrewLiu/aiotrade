@@ -51,14 +51,14 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
   
   listenTo(srcSer)
     
-  def computeFrom(fromTime: Long): Unit = {
+  def computeFrom(fromTime: Long) {
     computeCont(fromTime)
   }
     
   /**
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
-  protected def computeCont(fromTime: Long): Unit = {
+  protected def computeCont(fromTime: Long) {
     val targetFreq = targetSer.freq
     val targetUnit = targetFreq.unit
 

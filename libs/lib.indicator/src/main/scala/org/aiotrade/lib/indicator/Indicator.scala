@@ -148,6 +148,7 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
     try {
       timestamps.readLock.lock
 
+      val fromIdx = super.preComputeFrom(fromTime)
       /**
        * @Note
        * It's better to pass Size as param to computeCont instead of keep it as instance field,
@@ -155,18 +156,15 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
        * thread
        */
       val size = timestamps.size
-      val fromIdx = super.preComputeFrom(fromTime)
 
       computeCont(fromIdx, size)
         
-      super.postComputeFrom
-            
       _computedTime = timestamps.lastOccurredTime
+      super.postComputeFrom
       
     } finally {
       timestamps.readLock.unlock
     }
-        
   }
         
   protected def computeCont(fromIdx: Int, size: Int): Unit
