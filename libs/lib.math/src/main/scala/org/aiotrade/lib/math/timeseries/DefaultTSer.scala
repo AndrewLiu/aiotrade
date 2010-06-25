@@ -99,7 +99,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   /**
    * used only by InnerVar's constructor and AbstractIndicator's functions
    */
-  protected def addVar(v: TVar[Any]): Unit = {
+  protected def addVar(v: TVar[Any]) {
     vars += v
   }
 
@@ -231,7 +231,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   }
 
-  def clear(fromTime: Long): Unit = synchronized {
+  def clear(fromTime: Long) {
     try {
       timestamps.writeLock.lock
             

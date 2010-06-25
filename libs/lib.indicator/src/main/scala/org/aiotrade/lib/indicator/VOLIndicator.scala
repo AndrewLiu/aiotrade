@@ -46,8 +46,8 @@ class VOLIndicator extends Indicator {
   val ma2 = TVar[Float]("MA2", Plot.Line)
     
     
-  protected def computeCont(begin: Int, size: Int): Unit = {
-    var i = begin
+  protected def computeCont(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
       vol(i) = V(i)
       ma1(i) = ma(i, V, period1)

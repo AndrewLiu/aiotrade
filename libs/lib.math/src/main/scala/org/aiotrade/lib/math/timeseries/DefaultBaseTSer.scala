@@ -81,65 +81,6 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     }
   }
 
-  /*_ @Todo removed synchronized for internal_apply and internal_addClearItem_fillTimestamps_InTimeOrder, synchronized would cause deadlock:
-   [java] "AWT-EventQueue-0" prio=6 tid=0x0000000101891800 nid=0x132013000 waiting for monitor entry [0x0000000132011000]
-   [java]    java.lang.Thread.State: BLOCKED (on object monitor)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:115)
-   [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultBaseTSer.itemOfRow(DefaultBaseTSer.scala:56)
-   [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
-   [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.syncWithView(AxisYPane.scala:187)
-   [java] 	at org.aiotrade.lib.charting.view.ChartView.postPaintComponent(ChartView.scala:294)
-   [java] 	at org.aiotrade.lib.charting.view.ChartView.paintComponent(ChartView.scala:231)
-   [java] 	at javax.swing.JComponent.paint(JComponent.java:1029)
-   [java] 	at javax.swing.JComponent._paintImmediately(JComponent.java:5098)
-   [java] 	at javax.swing.JComponent.paintImmediately(JComponent.java:4882)
-   [java] 	at javax.swing.RepaintManager.paintDirtyRegions(RepaintManager.java:829)
-   [java] 	at javax.swing.RepaintManager.paintDirtyRegions(RepaintManager.java:714)
-   [java] 	at javax.swing.RepaintManager.seqPaintDirtyRegions(RepaintManager.java:694)
-   [java] 	at javax.swing.SystemEventQueueUtilities$ComponentWorkRequest.run(SystemEventQueueUtilities.java:128)
-   [java] 	at java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:209)
-   [java] 	at java.awt.EventQueue.dispatchEvent(EventQueue.java:633)
-   [java] 	at java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:296)
-   [java] 	at java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:211)
-   [java] 	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:201)
-   [java] 	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:196)
-   [java] 	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:188)
-   [java] 	at java.awt.EventDispatchThread.run(EventDispatchThread.java:122)
-
-   [java] "ForkJoinPool-1-worker-2" daemon prio=5 tid=0x000000010195f800 nid=0x131d0a000 waiting for monitor entry [0x0000000131d08000]
-   [java]    java.lang.Thread.State: BLOCKED (on object monitor)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer.internal_apply(DefaultTSer.scala:109)
-   [java] 	- waiting to lock <0x00000001070295d8> (a org.aiotrade.lib.securities.QuoteSer)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultTSer(DefaultTSer.scala:354)
-   [java] 	at org.aiotrade.lib.math.timeseries.DefaultBaseTSer.itemOfRow(DefaultBaseTSer.scala:56)
-   [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane.org$aiotrade$lib$charting$view$pane$AxisYPane$$updateReferCursorLabel(AxisYPane.scala:167)
-   [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:96)
-   [java] 	at org.aiotrade.lib.charting.view.pane.AxisYPane$$anon$3.update(AxisYPane.scala:93)
-   [java] 	at org.aiotrade.lib.util.ChangeObservableHelper$$anonfun$notifyObserversChanged$2.apply(ChangeObservableHelper.scala:85)
-   [java] 	at org.aiotrade.lib.util.ChangeObservableHelper$$anonfun$notifyObserversChanged$2.apply(ChangeObservableHelper.scala:84)
-   [java] 	at scala.collection.Iterator$class.foreach(Iterator.scala:542)
-   [java] 	at scala.collection.Iterator$$anon$20.foreach(Iterator.scala:365)
-   [java] 	at org.aiotrade.lib.util.ChangeObservableHelper.notifyObserversChanged(ChangeObservableHelper.scala:84)
-   [java] 	at org.aiotrade.lib.charting.view.ChartView.notifyObserversChanged(ChartView.scala:157)
-   [java] 	at org.aiotrade.lib.charting.view.ChartView.updateView(ChartView.scala:562)
-   [java] 	at org.aiotrade.lib.charting.view.ChartView$MySerChangeListener.serChanged(ChartView.scala:597)
-   [java] 	at org.aiotrade.lib.math.timeseries.AbstractTSer.fireTSerEvent(AbstractTSer.scala:68)
-   [java] 	at org.aiotrade.lib.math.timeseries.computable.ComputableHelper.postComputeFrom(ComputableHelper.scala:198)
-   [java] 	at org.aiotrade.lib.indicator.AbstractIndicator.computeFrom(AbstractIndicator.scala:304)
-   [java] 	at org.aiotrade.lib.math.timeseries.computable.Computable$$anonfun$1$$anonfun$apply$2$$anonfun$apply$1.apply(Computable.scala:49)
-   [java] 	at org.aiotrade.lib.math.timeseries.computable.Computable$$anonfun$1$$anonfun$apply$2$$anonfun$apply$1.apply(Computable.scala:48)
-   [java] 	at scala.actors.Reaction$$anonfun$$init$$1.apply(Reaction.scala:33)
-   [java] 	at scala.actors.Reaction$$anonfun$$init$$1.apply(Reaction.scala:29)
-   [java] 	at scala.actors.ReactorTask.run(ReactorTask.scala:33)
-   [java] 	at scala.actors.scheduler.ForkJoinScheduler$$anon$1.compute(ForkJoinScheduler.scala:111)
-   [java] 	at scala.concurrent.forkjoin.RecursiveAction.exec(Unknown Source)
-   [java] 	at scala.concurrent.forkjoin.ForkJoinTask.quietlyExec(Unknown Source)
-   [java] 	at scala.concurrent.forkjoin.ForkJoinWorkerThread.mainLoop(Unknown Source)
-   [java] 	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(Unknown Source)
-   */
-
   /**
    * Add a clear item and corresponding time in time order,
    * should process time position (add time to timestamps orderly).
@@ -211,7 +152,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
   /**
    * To use this method, should define proper assignValue(value)
    */
-  override def ++=[V <: TVal](values: Array[V]): TSer = synchronized {
+  override def ++=[V <: TVal](values: Array[V]): TSer = {
     if (values.length < 1) return this
     
     try {
