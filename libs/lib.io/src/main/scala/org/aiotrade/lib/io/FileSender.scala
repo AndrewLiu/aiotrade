@@ -58,7 +58,8 @@ class FileSender(hostAddress: String, port: Int) {
 
     socketChannel
   }
-  
+
+  @throws(classOf[IOException])
   def send(files: Array[String]) {
     try {
       val channel = initiateConnection
@@ -68,7 +69,10 @@ class FileSender(hostAddress: String, port: Int) {
         sendString(channel, file)
         sendFile(channel, file)
       }
-    } catch {case ex: Exception => ex.printStackTrace}
+    } catch {case ex: Exception =>
+        ex.printStackTrace
+        throw new IOException("Failed to send")
+    }
   }
 
   private def sendInt(channel: SocketChannel, i: Int) {

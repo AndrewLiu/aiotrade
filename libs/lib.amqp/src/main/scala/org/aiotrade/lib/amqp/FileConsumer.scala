@@ -38,7 +38,7 @@ object FileConsumer {
                                       FileProducer.routingKey,
                                       outputDirPath)
       
-      new consumer.DefaultProcessor
+      new consumer.SafeProcessor
       consumer.start
     }
   }
@@ -98,6 +98,37 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
         val out = new FileOutputStream(outputFile)
         out.write(content)
         out.close
+      } catch {
+        case e => e.printStackTrace
+      }
+    }
+  }
+
+  /**
+   * Firstly save the file with a temporary file name.
+   * When finish receiving all the data, then rename to the regular file in the same folder.
+   */
+  class SafeProcessor extends Processor {
+    override protected def process(msg: AMQPMessage) {
+      val headers = msg.props.headers
+      val content = msg.content.asInstanceOf[Array[Byte]]
+
+      try {
+        var fileName = headers.get("filename").toString + "_" + System.currentTimeMillis
+        var outputFile = new File(outputDir, "." + fileName + ".tmp")
+        var i = 1
+        while (outputFile.exists) {
+          fileName = fileName + "_" + i
+          outputFile = new File(outputDir, "." + fileName + ".tmp")
+          i += 1
+        }
+        
+        val out = new FileOutputStream(outputFile)
+        out.write(content)
+        out.close
+
+        outputFile.renameTo(new File(outputDir, fileName))
+        
       } catch {
         case e => e.printStackTrace
       }
