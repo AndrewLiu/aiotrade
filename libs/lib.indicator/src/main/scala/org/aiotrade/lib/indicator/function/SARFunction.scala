@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class SARFunction extends AbstractFunction {
+class SARFunction extends Function {
     
   var initial, step, maximum: Factor = _
     

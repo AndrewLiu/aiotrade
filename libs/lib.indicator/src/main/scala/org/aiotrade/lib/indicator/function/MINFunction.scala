@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class MINFunction extends AbstractFunction {
+class MINFunction extends Function {
   final protected def imin(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
   }

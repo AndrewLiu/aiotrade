@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class MAFunction extends AbstractFunction {
+class MAFunction extends Function {
   final protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }

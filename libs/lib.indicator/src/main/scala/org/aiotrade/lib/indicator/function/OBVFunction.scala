@@ -36,7 +36,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  *
  * @author Caoyuan Deng
  */
-class OBVFunction extends AbstractFunction {
+class OBVFunction extends Function {
     
   val _obv = TVar[Float]()
     

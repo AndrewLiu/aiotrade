@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.indicator
 
 import java.text.DecimalFormat
+import java.util.concurrent.ConcurrentHashMap
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.actors.Event
@@ -40,6 +41,27 @@ import org.aiotrade.lib.util.actors.Event
  * @author Caoyuan Deng
  */
 object Indicator {
+  private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
+
+  final def getInstance[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
+    val id = Id(clazz, baseSer, args: _*)
+    idToIndicator.get(id) match {
+      case null =>
+        /** if got none from functionSet, try to create new one */
+        try {
+          val indicator = clazz.newInstance
+          /** don't forget to call set(baseSer, args) immediatley */
+          indicator.set(baseSer) // @todo, setFactors
+          idToIndicator.putIfAbsent(id, indicator)
+          indicator
+        } catch {
+          case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+          case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+        }
+      case x => x.asInstanceOf[T]
+    }
+  }
+
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
   def displayName(ser: TSer): String = ser match {

@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class CCIFunction extends AbstractFunction {
+class CCIFunction extends Function {
     
   var alpha, period: Factor = _
     

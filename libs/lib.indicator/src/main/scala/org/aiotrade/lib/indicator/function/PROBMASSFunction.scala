@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-case class PROBMASSFunction extends AbstractFunction {
+case class PROBMASSFunction extends Function {
   final protected def probMass(idx: Int, baseVar: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx

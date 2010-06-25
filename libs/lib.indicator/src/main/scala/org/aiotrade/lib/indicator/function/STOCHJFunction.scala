@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class STOCHJFunction extends AbstractFunction {
+class STOCHJFunction extends Function {
     
   var period, periodK, periodD: Factor = _
     

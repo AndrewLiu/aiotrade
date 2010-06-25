@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class BOLLFunction extends AbstractFunction {
+class BOLLFunction extends Function {
     
   var period, alpha: Factor = _
   var baseVar: TVar[Float] = _

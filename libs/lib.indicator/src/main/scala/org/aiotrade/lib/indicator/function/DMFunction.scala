@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  *
  * @author Caoyuan Deng
  */
-class DMFunction extends AbstractFunction {
+class DMFunction extends Function {
     
   val _dmPlus  = TVar[Float]()
   val _dmMinus = TVar[Float]()

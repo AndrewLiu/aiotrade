@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class ROCFunction extends AbstractFunction {
+class ROCFunction extends Function {
     
   var period: Factor = _
   var baseVar: TVar[Float] = _

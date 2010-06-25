@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  *
  * @author Caoyuan Deng
  */
-class TRFunction extends AbstractFunction {
+class TRFunction extends Function {
     
   val _tr = TVar[Float]()
     

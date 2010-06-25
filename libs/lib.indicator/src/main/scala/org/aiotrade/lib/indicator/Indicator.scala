@@ -33,7 +33,7 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
-import org.aiotrade.lib.math.indicator.{Indicator => TIndicator}
+import org.aiotrade.lib.math.indicator.Function
 import org.aiotrade.lib.math.indicator.IndicatorHelper
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TVar, BaseTSer}
 import org.aiotrade.lib.securities.QuoteSer
@@ -54,14 +54,14 @@ object Indicator {
    * a helper function for keeping the same functin form as Function, don't be
    * puzzled by the name, it actully will return funcion instance
    */
-  final protected def getFunction[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    AbstractFunction.getInstance(clazz, baseSer, args: _*)
+  final protected def getFunction[T <: org.aiotrade.lib.math.indicator.Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
+    org.aiotrade.lib.math.indicator.Function.getInstance(clazz, baseSer, args: _*)
   }
 }
 
 import Indicator._
 abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
-                                                with TIndicator
+                                                with org.aiotrade.lib.math.indicator.Indicator
                                                 with IndicatorHelper
                                                 with Ordered[Indicator] {
 

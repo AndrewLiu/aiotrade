@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class STDDEVFunction extends AbstractFunction {
+class STDDEVFunction extends Function {
   final protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
     val begIdx = idx - period.toInt + 1
     val endIdx = idx

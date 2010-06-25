@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class MAXFunction extends AbstractFunction {
+class MAXFunction extends Function {
   final protected def imax(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
   }

@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class ZIGZAGFunction extends AbstractFunction {
+class ZIGZAGFunction extends Function {
     
   var percent: Factor = _
     

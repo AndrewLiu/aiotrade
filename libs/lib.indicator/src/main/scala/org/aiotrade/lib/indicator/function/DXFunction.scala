@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class DXFunction extends AbstractFunction {
+class DXFunction extends Function {
     
   var period: Factor = _
     

@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class WMSFunction extends AbstractFunction {
+class WMSFunction extends Function {
     
   var period: Factor = _
     

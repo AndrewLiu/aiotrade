@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class EMAFunction extends AbstractFunction {
+class EMAFunction extends Function {
   final protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.iema(idx, var1.values, period.toInt, prev)
   }

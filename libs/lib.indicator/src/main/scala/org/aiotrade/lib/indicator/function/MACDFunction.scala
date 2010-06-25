@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class MACDFunction extends AbstractFunction {
+class MACDFunction extends Function {
     
   var periodSlow, periodFast: Factor = _
   var baseVar: TVar[Float] = _

@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.Factor
  *
  * @author Caoyuan Deng
  */
-class SUMFunction extends AbstractFunction {
+class SUMFunction extends Function {
   final protected def isum(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
     StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
   }
