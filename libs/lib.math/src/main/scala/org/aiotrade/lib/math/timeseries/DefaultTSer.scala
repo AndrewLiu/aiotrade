@@ -253,7 +253,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       timestamps.writeLock.unlock
     }
 
-    publish(TSerEvent.Clear(this, shortDescription, fromTime, Long.MaxValue))
+    publish(TSerEvent.Cleared(this, shortDescription, fromTime, Long.MaxValue))
   }
 
   def indexOfOccurredTime(time: Long): Int = {

@@ -133,12 +133,12 @@ abstract class ChartView(protected var _controller: ChartingController,
   reactions += {
     case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
       updateView(evt)
-      callback()
+      if (callback != null) callback()
     case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
       updateView(evt)
-      callback()
+      if (callback != null) callback()
     case TSerEvent(_, _, _, _, _, callback) =>
-      callback()
+      if (callback != null) callback()
   }
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)

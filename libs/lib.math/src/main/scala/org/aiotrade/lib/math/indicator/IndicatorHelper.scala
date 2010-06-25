@@ -62,9 +62,9 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
    */
   private var fromTime: Long = _ // used by postComputeFrom only
 
-  private var baseSerReaction: Reactions.Reaction = _
+  private var baseSerReactions: Reactions.Reaction = _
   // remember event's callback to be forwarded in postCompute()
-  private var baseTSerEventCallBack: () => Unit = _ 
+  private var baseSerEventCallBack: TSerEvent.Callback = _
 
   protected def setBaseSer(baseSer: BaseTSer) {
     self.baseSer = baseSer
@@ -72,10 +72,10 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     // * share same timestamps with baseSer, should be care of ReadWriteLock
     self.attach(baseSer.timestamps)
 
-    addBaseSerReaction
+    addBaseSerReactions
   }
 
-  private def addBaseSerReaction {
+  private def addBaseSerReactions {
     /**
      * The ser is a result computed from baseSer, so should follow the baseSeries' data changing:
      * 1. In case of series is the same as baseSeries, should respond to
@@ -83,59 +83,32 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
      * 2. In case of series is not the same as baseSeries, should respond to
      *    FinishedLoading, RefreshInLoading and Updated event of baseSeries.
      */
-    import TSerEvent._
-    if (self eq baseSer) {
-            
-      baseSerReaction = {
-        case FinishedLoading(_, _, fromTime, toTime, _, callback) =>
-          /**
-           * only responds to those events fired by outside for baseSer,
-           * such as loaded from a data server etc.
-           */
-          // call back
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case Updated(_, _, fromTime, toTime, _, callback) =>
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case TSerEvent(_, _, _, _, _, callback) =>
-          baseTSerEventCallBack = callback
-      }
-            
-    } else {
-
-      baseSerReaction = {
-        case FinishedLoading(_, _, fromTime, toTime, _, callback) =>
-          /**
-           * If the resultSer is the same as baseSer (such as QuoteSer),
-           * the baseSer will fire an event when compute() finished,
-           * then run to here, this may cause a dead loop. So, added
-           * FinishedComputing event to diff from Updated(caused by outside)
-           */
-          // call back
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case Updated(_, _, fromTime, toTime, _, callback) =>
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case FinishedComputing(_, _, fromTime, toTime, _, callback) =>
-          computeFrom(fromTime)
-          baseTSerEventCallBack = callback
-        case Clear(_, _, fromTime, toTime, _, callback) =>
-          self clear fromTime
-          baseTSerEventCallBack = callback
-        case TSerEvent(_, _, _, _, _, callback) =>
-          baseTSerEventCallBack = callback
-      }
+    baseSerReactions = {
+      case TSerEvent.FinishedLoading(_, _, fromTime, toTime, _, callback) =>
+        self.computeFrom(fromTime)
+        baseSerEventCallBack = callback
+      case TSerEvent.RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
+        self.computeFrom(fromTime)
+        baseSerEventCallBack = callback
+      case TSerEvent.Updated(_, _, fromTime, toTime, _, callback) =>
+        self.computeFrom(fromTime)
+        baseSerEventCallBack = callback
+      case TSerEvent.FinishedComputing(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne self) =>
+        /**
+         * If the resultSer is the same as baseSer (such as QuoteSer),
+         * the baseSer will fire an event when compute() finished,
+         * then run to here, this may cause a dead loop. So, FinishedComputing
+         * should not react when self eq baseSer
+         */
+        self.computeFrom(fromTime)
+        baseSerEventCallBack = callback
+      case TSerEvent.Cleared(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne self) =>
+        self.clear(fromTime)
+        baseSerEventCallBack = callback
     }
     
-    baseSer.reactions += baseSerReaction
+    self.reactions += baseSerReactions
+    self.listenTo(baseSer)
   }
         
   def preComputeFrom(fromTime: Long): Int = {
@@ -196,12 +169,13 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
                                              null,
                                              fromTime,
                                              self.computedTime,
-                                             baseTSerEventCallBack))
+                                             null,
+                                             baseSerEventCallBack))
   }
     
   def addFactor(factor: Factor) {
     /** add factor reaction to this factor */
-    addFactorReaction(factor)
+    addFactorReactions(factor)
 
     val old = _factors
     _factors = new Array[Factor](old.length + 1)
@@ -209,7 +183,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     _factors(_factors.length - 1) = factor
   }
     
-  private def addFactorReaction(factor: Factor) {
+  private def addFactorReactions(factor: Factor) {
     reactions += {
       case FactorEvent(source) =>
         /**
@@ -279,15 +253,15 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     }
         
     if (idxOld != -1) {
-      addFactorReaction(newFactor)
+      addFactorReactions(newFactor)
             
       factors(idxOld) = newFactor
     }
   }
 
   def dispose {
-    if (baseSerReaction != null) {
-      baseSer.reactions -= baseSerReaction
+    if (baseSerReactions != null) {
+      baseSer.reactions -= baseSerReactions
     }
   }
     

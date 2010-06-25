@@ -46,7 +46,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
     case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeCont(fromTime)
-    case TSerEvent.Clear(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeCont(fromTime)
   }
   
   listenTo(srcSer)

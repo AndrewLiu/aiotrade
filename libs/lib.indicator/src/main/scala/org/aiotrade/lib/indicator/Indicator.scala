@@ -61,9 +61,9 @@ object Indicator {
 
 import Indicator._
 abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
-                                            with TIndicator
-                                            with IndicatorHelper
-                                            with Ordered[Indicator] {
+                                                with TIndicator
+                                                with IndicatorHelper
+                                                with Ordered[Indicator] {
 
   /**
    * !NOTICE
@@ -410,7 +410,7 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
     getInstance(classOf[ZIGZAGFunction], baseSer, percent).zigzagDirection(sessionId, idx)
   }
     
-  override def dispose: Unit = {
+  override def dispose {
     super.dispose
   }
     

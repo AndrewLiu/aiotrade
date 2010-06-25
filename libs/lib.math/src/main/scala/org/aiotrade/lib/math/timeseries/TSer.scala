@@ -96,64 +96,63 @@ trait TSer extends Publisher {
 }
 
 object TSerEvent {
+  type Callback = () => Unit
+
   case class RefreshInLoading(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
   case class FinishedLoading(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
   case class Updated(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
   case class FinishedComputing(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
-  case class Clear(
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case class Cleared(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
   case class ToBeSet(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
-    callback: Callback = () => {}) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
-  case object None extends TSerEvent(null, null, 0, 0, null, () => {})
-
-  type Callback = () => Unit
+    callback: Callback = null) extends TSerEvent(source, symbol, fromTime, toTime, lastObject, callback)
+  case object None extends TSerEvent(null, null, 0, 0, null, null)
 
   def unapply(e: TSerEvent): Option[(TSer, String, Long, Long, AnyRef, Callback)] = {
     Some((e.source, e.symbol, e.fromTime, e.toTime, e.lastObject, e.callback))
   }
 }
 
-import TSerEvent._
 abstract class TSerEvent(private val source: TSer,
                          private val symbol: String,
                          private val fromTime: Long,
                          private val toTime: Long,
                          private val lastObject: AnyRef, // object the event carries (it can be any thing other than a SerItem)
-                         private val callback: Callback
+                         private val callback: TSerEvent.Callback
 ) extends Event
 
 
