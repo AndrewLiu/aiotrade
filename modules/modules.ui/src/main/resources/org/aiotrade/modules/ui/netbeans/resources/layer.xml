@@ -186,8 +186,10 @@
             <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
         </folder>
         <folder name="Modes">
+            <!-- It's better to always use 'editor' mode as the top one, otherwise, it's difficult to arrange editor type mode -->
             <file name="explorer.wsmode" url="explorer.wsmode"/>
             <file name="editor.wsmode" url="editor.wsmode"/>
+            <file name="info.wsmode" url="info.wsmode"/>
             <file name="realTimeBoard.wsmode" url="realTimeBoard.wsmode"/>
             <folder name="explorer">
                 <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
