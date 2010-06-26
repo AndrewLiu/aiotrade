@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.ListBuffer
+import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 
@@ -173,6 +174,12 @@ class Exchange {
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
     cal.getTimeInMillis
+  }
+
+  lazy val nMinutes: Int = {
+    val openInMillis = open.getTimeInMillis
+    val closeInMills = close.getTimeInMillis
+    ((closeInMills - openInMillis) / TUnit.Minute.interval).toInt + 1
   }
 
   def symbols = _symbols

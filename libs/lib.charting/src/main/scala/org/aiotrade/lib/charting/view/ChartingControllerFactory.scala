@@ -114,6 +114,28 @@ object ChartingControllerFactory {
     private var _isMouseEnteredAnyChartPane: Boolean = _
     private var _isCursorCrossLineVisible = true
 
+    /**
+     * Factory method to create ChartViewContainer instance, got the relations
+     * between ChartViewContainer and Controller ready.
+     */
+    def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T = {
+      try {
+        val instance = clazz.newInstance
+        instance.init(focusableParent, this)
+        /**
+         * @Note
+         * Always call internal_setChartViewContainer(instance) next to
+         * instance.init(focusableParent, this), since the internal_initCursorRow()
+         * procedure needs the children of chartViewContainer ready.
+         */
+        internal_setChartViewContainer(instance)
+        instance
+      } catch {
+        case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+        case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
+      }
+    }
+
     private def internal_setChartViewContainer(viewContainer: ChartViewContainer) {
       this.viewContainer = viewContainer
 
@@ -284,7 +306,7 @@ object ChartingControllerFactory {
 
     def setCursorByRow(referRow: Int, rightRow: Int, willUpdateViews: Boolean) {
       /** set right cursor row first and directly */
-      internal_setRightSideRow(rightRow)
+      internal_setRightSideRow(rightRow, willUpdateViews)
 
       val oldValue = referCursorRow
       scrollReferCursor(referRow - oldValue, willUpdateViews)
@@ -306,14 +328,13 @@ object ChartingControllerFactory {
         val leftRow = rightRow - nBars + 1
         val leftSpacing = referRow - leftRow
         if (leftSpacing < MIN_LEFT_SPACING) {
-          internal_setRightSideRow(rightRow + leftSpacing - MIN_LEFT_SPACING)
+          internal_setRightSideRow(rightRow + leftSpacing - MIN_LEFT_SPACING, willUpdateViews)
         }
       } else {
-        internal_setRightSideRow(rightRow + MIN_RIGHT_SPACING - rightSpacing)
-
+        internal_setRightSideRow(rightRow + MIN_RIGHT_SPACING - rightSpacing, willUpdateViews)
       }
 
-      internal_setReferCursorRow(referRow)
+      internal_setReferCursorRow(referRow, willUpdateViews)
       if (willUpdateViews) {
         updateViews
       }
@@ -352,10 +373,10 @@ object ChartingControllerFactory {
     }
 
     final def referCursorRow: Int = _referCursorRow
-    final def referCursorTime: Long = baseSer.timeOfRow(_referCursorRow)
+    final def referCursorTime: Long = baseSer.timeOfRow(referCursorRow)
 
     final def rightSideRow: Int = _rightSideRow
-    final def rightSideTime: Long = baseSer.timeOfRow(_rightSideRow)
+    final def rightSideTime: Long = baseSer.timeOfRow(rightSideRow)
 
     final def leftSideTime: Long = baseSer.timeOfRow(leftSideRow)
     final def leftSideRow: Int = {
@@ -383,27 +404,27 @@ object ChartingControllerFactory {
       }
     }
 
-    private def internal_setReferCursorRow(row: Int) {
+    private def internal_setReferCursorRow(row: Int, notify: Boolean = true) {
       val oldValue = this._referCursorRow
       this._referCursorRow = row
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
       this._lastOccurredRowOfBaseSer = baseSer.lastOccurredRow
-      if (this._referCursorRow != oldValue) {
+      if (this._referCursorRow != oldValue && notify) {
         notifyChanged(classOf[ReferCursorObserver])
         notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
-    private def internal_setRightSideRow(row: Int) {
+    private def internal_setRightSideRow(row: Int, notify: Boolean = true) {
       val oldValue = this._rightSideRow
       this._rightSideRow = row
-      if (this._rightSideRow != oldValue) {
+      if (this._rightSideRow != oldValue && notify) {
         notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
-    private def internal_setReferCursorByTime(time: Long) {
-      internal_setReferCursorRow(baseSer.rowOfTime(time))
+    private def internal_setReferCursorByTime(time: Long, notify: Boolean = true) {
+      internal_setReferCursorRow(baseSer.rowOfTime(time), notify)
     }
 
     private def internal_setRightCursorByTime(time: Long) {
@@ -450,28 +471,6 @@ object ChartingControllerFactory {
         })
 
       frame.setVisible(true)
-    }
-
-    /**
-     * Factory method to create ChartViewContainer instance, got the relations
-     * between ChartViewContainer and Controller ready.
-     */
-    def createChartViewContainer[T <: ChartViewContainer](clazz: Class[T], focusableParent: Component): T = {
-      try {
-        val instance = clazz.newInstance
-        instance.init(focusableParent, this)
-        /**
-         * @Note
-         * Always call internal_setChartViewContainer(instance) next to
-         * instance.init(focusableParent, this), since the internal_initCursorRow()
-         * procedure needs the children of chartViewContainer ready.
-         */
-        internal_setChartViewContainer(instance)
-        instance
-      } catch {
-        case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
-        case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-      }
     }
 
     @throws(classOf[Throwable])

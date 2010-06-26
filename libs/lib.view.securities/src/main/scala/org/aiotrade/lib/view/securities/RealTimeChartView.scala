@@ -40,7 +40,6 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSerEvent
-import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
@@ -82,14 +81,16 @@ class RealTimeChartView($controller: ChartingController,
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
 
+    exchange = sec.exchange
+
     controller.isAutoScrollToNewData = false
     controller.isOnCalendarMode = true
-    controller.fixedNBars = 241
+    controller.fixedNBars = exchange.nMinutes
+    println("nMinute=" + exchange.nMinutes)
     axisYPane.isSymmetricOnMiddleValue = true
 
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
 
-    exchange = sec.exchange
     rtSer = sec.serOf(TFreq.ONE_MIN).get
     assert(rtSer != null)
     listenTo(rtSer)
@@ -137,6 +138,24 @@ class RealTimeChartView($controller: ChartingController,
     mainChartPane.putChart(prevCloseGrid)
   }
 
+  override protected def prePaintComponent {
+    super.prePaintComponent
+    adjustLeftSideRowToExchangeOpenTime
+  }
+
+  private def adjustLeftSideRowToExchangeOpenTime {
+    val lastOccurredTime = baseSer.lastOccurredTime
+
+    val openTime  = exchange.openTime(lastOccurredTime)
+    val closeTime = exchange.closeTime(lastOccurredTime)
+
+    val frRow = baseSer.rowOfTime(openTime)
+    val toRow = frRow + nBars - 1
+
+    val lastOccurredRow = baseSer.lastOccurredRow
+    controller.setCursorByRow(lastOccurredRow, toRow, false)
+  }
+
   override def computeMaxMin {
     super.computeMaxMin
 
@@ -176,8 +195,6 @@ class RealTimeChartView($controller: ChartingController,
   }
 
   override def updateView(evt: TSerEvent) {
-    var lastOccurredTime = baseSer.lastOccurredTime
-
     evt match {
       case TSerEvent(_, _, _, _, lastObject, _) => lastObject match {
           case ticker: Ticker =>
@@ -187,37 +204,10 @@ class RealTimeChartView($controller: ChartingController,
 
             glassPane.updateInstantValue(strValue, color)
             prevClose = ticker.prevClose
-
-            val time = ticker.time
-            if (time >= lastOccurredTime) {
-              lastOccurredTime = time
-            }
           case _ =>
         }
     }
 
-    adjustLeftSideRowToExchangeOpenTime(lastOccurredTime)
-  }
-
-  private def adjustLeftSideRowToExchangeOpenTime(time: Long) {
-    val openTime  = exchange.openTime(time)
-    val closeTime = exchange.closeTime(time)
-
-    val frRow = baseSer.rowOfTime(openTime)
-    val toRow = frRow + nBars - 1
-
-    if (Null.is(prevClose)) {
-      // @todo get precise prev *day* close
-      val prevTime = baseSer.timeOfRow(frRow - 1)
-      if (baseSer.exists(prevTime)) {
-        prevClose = baseSer.asInstanceOf[QuoteSer].close(prevTime)
-        gridValues(0) = prevClose
-      }
-    }
-
-    val lastOccurredRow = baseSer.lastOccurredRow
-    controller.setCursorByRow(lastOccurredRow, toRow, true)
-    //controller.updateViews();
   }
 }
 
