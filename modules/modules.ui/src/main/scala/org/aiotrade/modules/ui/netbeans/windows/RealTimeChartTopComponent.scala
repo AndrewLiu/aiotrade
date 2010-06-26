@@ -103,7 +103,7 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   private val rtSer = sec.serOf(TFreq.ONE_MIN).get
   private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
-        
+  
   setLayout(new BorderLayout)
         
   add(viewContainer, SwingConstants.CENTER)

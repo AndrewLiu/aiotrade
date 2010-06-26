@@ -111,6 +111,7 @@ abstract class ChartView(protected var _controller: ChartingController,
       }
     }
   }
+
   private var _xControlPane: XControlPane = _
   private var _yControlPane: YControlPane = _
   /** geometry */
@@ -235,13 +236,16 @@ abstract class ChartView(protected var _controller: ChartingController,
    */
   protected def computeGeometry {
     /**
-     * @NOTICE
+     * @Note
      * 1.Should get wBar firstly, then calculator nBars
      * 2.Get this view's width to compute nBars instead of mainChartPane's
      * width, because other panes may be repainted before mainChartPane is
      * properly layouted (the width of mainChartPane is still not good)
      */
-    val newNBars = ((getWidth - AXISY_WIDTH) / _controller.wBar).toInt
+    val newNBars = _controller.fixedNBars match {
+      case 0 => ((getWidth - AXISY_WIDTH) / _controller.wBar).toInt
+      case x => x
+    }
 
     /** avoid nBars == 0 */
     nBars = math.max(newNBars, 1)

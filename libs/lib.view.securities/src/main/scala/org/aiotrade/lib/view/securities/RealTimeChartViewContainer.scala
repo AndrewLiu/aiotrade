@@ -55,6 +55,8 @@ import RealTimeChartViewContainer._
 class RealTimeChartViewContainer extends ChartViewContainer {
 
   override def init(focusableParent: Component, controller: ChartingController) {
+    instanceRefs.put(this, null)
+
     super.init(focusableParent, controller)
 
     //getController().setOnCalendarMode(false);
@@ -64,27 +66,25 @@ class RealTimeChartViewContainer extends ChartViewContainer {
      * if there has been other RealtimeChartViewContainer opened, try to make
      * them having the same isOnCalendarTime and wBar.
      */
-    for (c <- instances) {
-      controller.isOnCalendarMode = c.controller.isOnCalendarMode
+//    for (c <- instances) {
+//      controller.isOnCalendarMode = c.controller.isOnCalendarMode
+//
+//      val othersWBar = c.controller.wBar
+//      /** which idx is this othersWBar?, find it: */
+//      //                int othersWBarIdx = wBarIdx;
+//      //                for (int i = 0; i < BAR_WIDTH_POOL.length; i++) {
+//      //                    if (BAR_WIDTH_POOL[i] == othersWBar) {
+//      //                        othersWBarIdx = i;
+//      //                        break;
+//      //                    }
+//      //                }
+//      //
+//      //                if (othersWBarIdx != wBarIdx) {
+//      //                    growWBar(othersWBarIdx - wBarIdx);
+//      //                }
+//      //break;
+//    }
 
-      val othersWBar = c.controller.wBar
-      /** which idx is this othersWBar?, find it: */
-      //                int othersWBarIdx = wBarIdx;
-      //                for (int i = 0; i < BAR_WIDTH_POOL.length; i++) {
-      //                    if (BAR_WIDTH_POOL[i] == othersWBar) {
-      //                        othersWBarIdx = i;
-      //                        break;
-      //                    }
-      //                }
-      //
-      //                if (othersWBarIdx != wBarIdx) {
-      //                    growWBar(othersWBarIdx - wBarIdx);
-      //                }
-      //break;
-    }
-
-    /** add this to container at last */
-    instanceRefs.put(this, null)
   }
 
   protected def initComponents {

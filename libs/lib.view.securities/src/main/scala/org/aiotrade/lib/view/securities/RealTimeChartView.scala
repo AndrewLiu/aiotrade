@@ -83,8 +83,8 @@ class RealTimeChartView($controller: ChartingController,
     super.init(controller, mainSer)
 
     controller.isAutoScrollToNewData = false
-    controller.isOnCalendarMode = false
-    controller.growWBar(-2)
+    controller.isOnCalendarMode = true
+    controller.fixedNBars = 241
     axisYPane.isSymmetricOnMiddleValue = true
 
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
@@ -140,17 +140,15 @@ class RealTimeChartView($controller: ChartingController,
   override def computeMaxMin {
     super.computeMaxMin
 
-    var min = Float.MaxValue
-    var max = Float.MinValue
+    // adjust max/min according to prevClose
     if (Null.not(prevClose)) {
-      min = minValue
-      max = maxValue
+      var min = minValue
+      var max = maxValue
       val maxDelta = math.max(math.abs(max - prevClose), math.abs(min - prevClose))
       max = prevClose + maxDelta
       min = prevClose - maxDelta
       setMaxMinValue(max, min)
     }
-
   }
 
   def quoteChartType: QuoteChart.Type = RealTimeChartView.quoteChartType

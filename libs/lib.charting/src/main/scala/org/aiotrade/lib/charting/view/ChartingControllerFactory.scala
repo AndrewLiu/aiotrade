@@ -47,7 +47,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import javax.swing.WindowConstants
 import org.aiotrade.lib.util.actors.Reactor
-import scala.collection.mutable.HashSet
+import scala.collection.mutable.WeakHashMap
 
 /**
  * Only DefaultChartingController will be provided in this factory
@@ -97,10 +97,12 @@ object ChartingControllerFactory {
                                                                                               with Reactor {
 
     val baseSer = $baseSer
-    val contents  = $contents
+    val contents = $contents
 
-    private val popupViews = new HashSet[ChartView]
+    private val popupViewRefs = WeakHashMap[ChartView, AnyRef]()
+    private def popupViews = popupViewRefs.keys
     private var viewContainer: ChartViewContainer = _
+    private var _fixedNBars = 0
     private var _wBarIdx = 11
     /** pixels per bar (bar width in pixels) */
     private var _wBar = BAR_WIDTHS_ARRAY(_wBarIdx)
@@ -181,10 +183,25 @@ object ChartingControllerFactory {
     }
 
     def wBar: Float = {
-      _wBar
+      if (_fixedNBars == 0) _wBar else {
+        val masterView = viewContainer.masterView
+        val wViewPort = masterView.getWidth - (masterView.axisYPane match {
+            case null => 0
+            case x => x.getWidth
+          })
+
+        wViewPort.toFloat / fixedNBars.toFloat
+      }
+    }
+    
+    def fixedNBars = _fixedNBars
+    def fixedNBars_=(nBars: Int) {
+      this._fixedNBars = nBars
     }
 
     def growWBar(increment: Int) {
+      if (fixedNBars != 0) return
+      
       _wBarIdx += increment
       if (_wBarIdx < 0) {
         _wBarIdx = 0
@@ -196,10 +213,25 @@ object ChartingControllerFactory {
       updateViews
     }
 
+    def setWBarByNBars(nBars: Int) {
+      if (nBars < 0 || fixedNBars != 0) return
+
+      /** decide wBar according to wViewPort. Do not use integer divide here */
+      val masterView = viewContainer.masterView
+      val wViewPort = masterView.getWidth - (masterView.axisYPane match {
+          case null => 0
+          case x => x.getWidth
+        })
+
+      var newWBar = wViewPort.toFloat / nBars.toFloat
+
+      internal_setWBar(newWBar)
+      updateViews
+    }
+
+
     def setWBarByNBars(wViewPort: Int, nBars: Int) {
-      if (nBars < 0) {
-        return
-      }
+      if (nBars < 0 || fixedNBars != 0) return
 
       /** decide wBar according to wViewPort. Do not use integer divide here */
       var newWBar = wViewPort.toFloat / nBars.toFloat
@@ -316,7 +348,7 @@ object ChartingControllerFactory {
        * as repaint() may be called by awt in instance's initialization, before
        * popupViewSet is created, so, check null.
        */
-      popupViews foreach {view => view.repaint()}
+      popupViews foreach (_.repaint())
     }
 
     final def referCursorRow: Int = _referCursorRow
@@ -397,7 +429,7 @@ object ChartingControllerFactory {
     def popupViewToDesktop(view: ChartView, dim: Dimension, alwaysOnTop: Boolean, joint: Boolean) {
       val popupView = view
 
-      popupViews.add(popupView)
+      popupViewRefs.put(popupView, null)
       addKeyMouseListenersTo(popupView)
 
       val w = dim.width
@@ -413,7 +445,7 @@ object ChartingControllerFactory {
 
           override def windowClosed(e: WindowEvent) {
             removeKeyMouseListenersFrom(popupView)
-            popupViews.remove(popupView)
+            popupViewRefs.remove(popupView)
           }
         })
 
@@ -462,7 +494,7 @@ object ChartingControllerFactory {
       val oldReferRow = referCursorRow
       if (oldReferRow == _lastOccurredRowOfBaseSer || _lastOccurredRowOfBaseSer <= 0) {
         /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
-        val lastTime = Math.max(toTime, baseSer.lastOccurredTime)
+        val lastTime = math.max(toTime, baseSer.lastOccurredTime)
         val rightRow = baseSer.rowOfTime(lastTime)
         val referRow = rightRow
 

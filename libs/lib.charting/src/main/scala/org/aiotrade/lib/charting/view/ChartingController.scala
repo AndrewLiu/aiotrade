@@ -68,6 +68,10 @@ trait ChartingController extends ChangeSubject {
 
   def growWBar(increment: Int)
 
+  def fixedNBars: Int
+  def fixedNBars_=(nBars: Int)
+
+  def setWBarByNBars(nBars: Int)
   def setWBarByNBars(wViewPort: Int, nBars: Int)
 
   def isOnCalendarMode: Boolean
