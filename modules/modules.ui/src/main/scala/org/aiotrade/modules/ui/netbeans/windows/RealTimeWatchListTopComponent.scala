@@ -169,20 +169,26 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
           if (row >= 0 && row < watchListTable.getRowCount) {
             val symbol = watchListPanel.symbolAtRow(row)
             if (symbol != null) {
-              for (node <- symbolToNode.get(symbol);
-                   contents = node.getLookup.lookup(classOf[AnalysisContents]);
-                   sec = contents.serProvider.asInstanceOf[Sec]
-              ) {
-                if (realTimeBoard != null) {
-                  realTimeBoard.unWatch
-                  splitPane.remove(realTimeBoard)
-                }
-                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
-                realTimeBoard.watch
-
-                splitPane.setRightComponent(realTimeBoard)
-                splitPane.revalidate
+              symbolToNode.get(symbol) foreach {x =>
+                val viewAction = x.getLookup.lookup(classOf[ViewAction])
+                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
+                viewAction.execute
               }
+              
+//              for (node <- symbolToNode.get(symbol)) {
+//                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+//                val sec = contents.serProvider.asInstanceOf[Sec]
+//
+//                if (realTimeBoard != null) {
+//                  realTimeBoard.unWatch
+//                  splitPane.remove(realTimeBoard)
+//                }
+//                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+//                realTimeBoard.watch
+//
+//                splitPane.setRightComponent(realTimeBoard)
+//                splitPane.revalidate
+//              }
             }
           }
         }
@@ -317,7 +323,11 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol != null) {
-          symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
+          symbolToNode.get(symbol) foreach {x =>
+            val viewAction = x.getLookup.lookup(classOf[ViewAction])
+            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, true)
+            viewAction.execute
+          }
         }
       }
     }

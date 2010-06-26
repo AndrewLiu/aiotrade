@@ -616,8 +616,12 @@ object SymbolNodes {
           mayNeedsReload = true
           x.asInstanceOf[Sec]
       }
-      
-      var analysisTc = AnalysisChartTopComponent(contents)
+
+      val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
+        case null => false
+        case x => x.asInstanceOf[Boolean]
+      }
+      val analysisTc = AnalysisChartTopComponent(contents, standalone)
       analysisTc.setActivatedNodes(Array(node))
       /**
        * !NOTICE

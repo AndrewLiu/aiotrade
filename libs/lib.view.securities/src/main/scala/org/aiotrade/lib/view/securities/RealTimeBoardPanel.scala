@@ -112,7 +112,6 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   private val chartPane = new JPanel
   private val symbol = new ValueCell
   private val sname = new ValueCell
-  private val currentTime = new ValueCell
   private val dayChange = new ValueCell
   private val dayHigh = new ValueCell
   private val dayLow = new ValueCell
@@ -195,9 +194,10 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     setFocusable(false)
     setPreferredSize(DIM)
 
+    // --- info table
+
     val infoModelData = Array(
-      Array(symbol,                         "",         BUNDLE.getString("time"),      currentTime),
-      Array(sname,                          "",         "",                            ""),
+      Array(symbol,                         "",         "",                            sname),
       Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
       Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
       Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
@@ -212,14 +212,15 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     infoCellAttr = infoModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
     // Code to combine cells
     infoCellAttr.combine(Array(0), Array(0, 1))
-    infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
+    infoCellAttr.combine(Array(0), Array(2, 3))
+    //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
     if (tickerContract != null) {
       sname.value = tickerContract.shortName
     }
 
-    for (cell <- Array(currentTime, lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
+    for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)
     }
 
@@ -233,45 +234,43 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     infoTable.setForeground(Color.WHITE)
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
 
+    // --- execution table
+
     depthModel = AttributiveCellTableModel(
       Array(
-        Array("卖⑤", null, null),
-        Array("卖④", null, null),
-        Array("卖③", null, null),
-        Array("卖②", null, null),
-        Array("卖①", null, null),
-        Array("成交", null, null),
-        Array("买①", null, null),
-        Array("买②", null, null),
-        Array("买③", null, null),
-        Array("买④", null, null),
-        Array("买⑤", null, null)
+        Array("A", null, null, null, null),
+        Array("A", null, null, null, null),
+        Array("A", null, null, null, null),
+        Array("A", null, null, null, null),
+        Array("A", null, null, null, null),
+        Array("B", null, null, null, null),
+        Array("B", null, null, null, null),
+        Array("B", null, null, null, null),
+        Array("B", null, null, null, null),
+        Array("B", null, null, null, null)
       ),
       Array(
-        BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size")
+        BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size"), BUNDLE.getString("price"), BUNDLE.getString("size")
       )
     )
 
-    val depth = 5
-    val lastFillRow = 5
-    depthModel.setValueAt(BUNDLE.getString("deal"), lastFillRow, 0)
-    for (i <- 0 until depth) {
-      val askIdx = depth - 1 - i
-      val askRow = i
-      depthModel.setValueAt(BUNDLE.getString("bid") + numberStrs(askIdx), askRow, 0)
-      val bidIdx = i
-      val bidRow = depth + 1 + i
-      depthModel.setValueAt(BUNDLE.getString("ask") + numberStrs(bidIdx), bidRow, 0)
+    val level = 5
+    for (i <- 0 until level) {
+      val bidIdx = level - 1 - i
+      val bidRow = i
+      depthModel.setValueAt(BUNDLE.getString("bid") + numberStrs(bidIdx), bidRow, 0)
+      val askIdx = i
+      val askRow = level + i
+      depthModel.setValueAt(BUNDLE.getString("ask") + numberStrs(askIdx), askRow, 0)
     }
 
     depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
 
-    for (i <- 0 until 11) {
-      for (j <- 1 until 3) {
+    for (i <- 0 to 9) {
+      for (j <- 1 to 5) {
         depthCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, i, j)
       }
     }
-    depthCellAttr.setHorizontalAlignment(SwingConstants.LEADING, 5, 0)
 //        for (int j = 0; j < 3; j++) {
 //            depthCellAttr.setBackground(Color.gray, 5, j);
 //        }
@@ -291,7 +290,11 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       depthHeader.setForeground(Color.WHITE)
       depthHeader.setBackground(LookFeel().backgroundColor)
     }
+    val depthNameCol = depthTable.getColumnModel.getColumn(0)
+    depthNameCol.setPreferredWidth(50)
 
+    // --- execution table
+    
     executionModel = new AbstractTableModel {
       private val columnNames = Array[String](
         BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
@@ -370,7 +373,6 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     exchgCal.setTimeInMillis(System.currentTimeMillis)
     val now = exchgCal.getTime
 
-    currentTime.value = sdf.format(now)
     lastPrice.value   = "%8.2f"    format ticker.lastPrice
     prevClose.value   = "%8.2f"    format ticker.prevClose
     dayOpen.value     = "%8.2f"    format ticker.dayOpen
@@ -414,15 +416,15 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     val depth = marketDepth.depth
     var i = 0
     while (i < depth) {
-      val askIdx = depth - 1 - i
-      val askRow = i
-      depthModel.setValueAt("%8.2f" format marketDepth.askPrice(askIdx), askRow, 1)
-      depthModel.setValueAt(marketDepth.askSize(askIdx).toInt.toString,  askRow, 2)
+      val bidIdx = depth - 1 - i
+      val bidRow = i
+      depthModel.setValueAt("%8.2f" format marketDepth.askPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(marketDepth.askSize(bidIdx).toInt.toString,  bidRow, 2)
       
-      val bidIdx = i
-      val bidRow = depth + 1 + i
-      depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt(marketDepth.bidSize(bidIdx).toInt.toString,  bidRow, 2)
+      val askIdx = i
+      val askRow = depth + i
+      depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(marketDepth.bidSize(askIdx).toInt.toString,  askRow, 2)
 
       i += 1
     }
@@ -434,19 +436,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     val posColor = LookFeel().getPositiveColor
     val negColor = LookFeel().getNegativeColor
 
-    val lastExecutionRow = 5
-    depthModel.setValueAt("%5.2f"  format execution.price,  lastExecutionRow, 1)
-    depthModel.setValueAt("%10.2f" format execution.volume, lastExecutionRow, 2)
-
     val bgColor = LookFeel().backgroundColor
     val fgColor = (
       if (execution.price > prevClose) posColor
       else if (execution.price < prevClose) negColor
       else neuColor
     )
-
-    depthCellAttr.setForeground(fgColor, lastExecutionRow, 1)
-    depthCellAttr.setBackground(bgColor, lastExecutionRow, 1)
 
     // update execution table
     executions += execution

@@ -85,6 +85,8 @@ object AnalysisChartTopComponent {
   private val instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
+  val STANDALONE = "STANDALONE"
+
   private var singleton: AnalysisChartTopComponent = _
 
   // The Mode this component will live in.
@@ -96,11 +98,7 @@ object AnalysisChartTopComponent {
     instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
   }
 
-  def apply(contents: AnalysisContents): AnalysisChartTopComponent = {
-    apply(contents, false)
-  }
-
-  def apply(contents: AnalysisContents, standalone: Boolean): AnalysisChartTopComponent = {
+  def apply(contents: AnalysisContents, standalone: Boolean = false): AnalysisChartTopComponent = {
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
     if (standalone) {
