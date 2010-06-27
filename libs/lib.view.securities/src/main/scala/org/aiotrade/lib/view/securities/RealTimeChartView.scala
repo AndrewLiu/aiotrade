@@ -86,7 +86,6 @@ class RealTimeChartView($controller: ChartingController,
     controller.isAutoScrollToNewData = false
     controller.isOnCalendarMode = true
     controller.fixedNBars = exchange.nMinutes
-    println("nMinute=" + exchange.nMinutes)
     axisYPane.isSymmetricOnMiddleValue = true
 
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
