@@ -42,7 +42,7 @@ import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.charting.laf.Modern;
 import org.aiotrade.lib.charting.laf.White;
 import org.aiotrade.lib.charting.view.ChartingController;
-import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.ChartingController$;
 import org.aiotrade.lib.charting.view.WithQuoteChart;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer;
 import org.aiotrade.lib.securities.PersistenceManager$;
@@ -123,7 +123,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
             stock.loadSer(quoteContract.freq());
         }
 
-        ChartingController controller = ChartingControllerFactory.createInstance(
+        ChartingController controller = ChartingController$.MODULE$.apply(
                 stock.serOf(quoteContract.freq()).get(), contents);
         previewContainer = controller.createChartViewContainer(AnalysisChartViewContainer.class, this);
 

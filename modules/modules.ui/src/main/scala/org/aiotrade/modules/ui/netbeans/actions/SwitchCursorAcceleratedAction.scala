@@ -35,7 +35,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
-import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.ChartingController
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
 import org.openide.util.actions.CallableSystemAction;
@@ -105,7 +105,7 @@ class SwitchCursorAcceleratedAction extends CallableSystemAction {
         def itemStateChanged(e: ItemEvent) {
           val state = e.getStateChange
                 
-          ChartingControllerFactory.DefaultChartingController.isCursorAccelerated = (state == ItemEvent.SELECTED)
+          ChartingController.DefaultChartingController.isCursorAccelerated = (state == ItemEvent.SELECTED)
         }
       })
         

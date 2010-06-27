@@ -36,7 +36,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
 import org.aiotrade.lib.charting.laf.LookFeel;
-import org.aiotrade.lib.charting.view.ChartingControllerFactory
+import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane;
 import org.aiotrade.lib.charting.view.pane.DrawingPane;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
@@ -200,7 +200,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
         case _ => sec.serOf(freq).getOrElse(null)
       }
 
-      val controller = ChartingControllerFactory.createInstance(ser, contents)
+      val controller = ChartingController(ser, contents)
       val viewContainer = if (freq == TFreq.ONE_SEC) {
         controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
       } else {

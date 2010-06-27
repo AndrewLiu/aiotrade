@@ -60,7 +60,7 @@ import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
-import org.aiotrade.lib.charting.view.ChartingControllerFactory
+import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
@@ -146,7 +146,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   initComponents
 
   private val rtSer = sec.serOf(TFreq.ONE_MIN).get
-  private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
+  private val controller = ChartingController(rtSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)

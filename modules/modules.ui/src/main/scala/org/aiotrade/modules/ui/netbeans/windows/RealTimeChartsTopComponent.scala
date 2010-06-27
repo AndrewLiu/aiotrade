@@ -39,7 +39,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.Timer;
 import org.aiotrade.lib.charting.laf.LookFeel;
 import org.aiotrade.lib.charting.view.ChartViewContainer
-import org.aiotrade.lib.charting.view.ChartingControllerFactory
+import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
@@ -143,7 +143,7 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   def watch(sec: Sec, contents: AnalysisContents) {
     if (!secToViewContainers.contains(sec)) {
       val rtSer = sec.serOf(TFreq.ONE_MIN).get
-      val controller = ChartingControllerFactory.createInstance(rtSer, contents)
+      val controller = ChartingController(rtSer, contents)
       val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
             
       viewContainer.isInteractive = false

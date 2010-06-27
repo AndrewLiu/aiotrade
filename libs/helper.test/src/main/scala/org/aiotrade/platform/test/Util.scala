@@ -21,7 +21,6 @@ import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.CityLights
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartingController
-import org.aiotrade.lib.charting.view.ChartingControllerFactory
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.swing.plaf.AIOTabbedPaneUI
@@ -332,7 +331,7 @@ class Util {
 
     var title = atitle
 
-    val controller = ChartingControllerFactory.createInstance(ser, contents)
+    val controller = ChartingController(ser, contents)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent)
 
     if (title == null) {
@@ -354,7 +353,7 @@ class Util {
 
   private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
     var baseSer = sec.serOf(TFreq.ONE_MIN).get
-    val controller = ChartingControllerFactory.createInstance(baseSer, contents)
+    val controller = ChartingController(baseSer, contents)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer
   }

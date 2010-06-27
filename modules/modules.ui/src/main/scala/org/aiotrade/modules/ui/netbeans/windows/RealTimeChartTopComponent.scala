@@ -36,7 +36,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants
-import org.aiotrade.lib.charting.view.ChartingControllerFactory;
+import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
@@ -101,7 +101,7 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   private val tc_id = sec.name + "_RT"
 
   private val rtSer = sec.serOf(TFreq.ONE_MIN).get
-  private val controller = ChartingControllerFactory.createInstance(rtSer, contents)
+  private val controller = ChartingController(rtSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   
   setLayout(new BorderLayout)
