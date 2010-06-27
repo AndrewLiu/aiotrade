@@ -64,10 +64,10 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  lazy val N  = exchangeWithCode("N")
-  lazy val SS = exchangeWithCode("SS")
-  lazy val SZ = exchangeWithCode("SZ")
-  lazy val L  = exchangeWithCode("L")
+  lazy val N  = withCode("N")
+  lazy val SS = withCode("SS")
+  lazy val SZ = withCode("SZ")
+  lazy val L  = withCode("L")
 
   lazy val allExchanges = Exchanges.all()
 
@@ -77,7 +77,7 @@ object Exchange extends Publisher {
       }
     ).toMap
 
-  def exchangeWithCode(code: String) = allExchanges.find(_.code == code ) getOrElse (throw new Exception("Cannot find exchange of " + code))
+  def withCode(code: String) = allExchanges.find(_.code == code ) getOrElse (throw new Exception("Cannot find exchange of " + code))
 
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
