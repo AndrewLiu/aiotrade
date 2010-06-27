@@ -232,7 +232,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
 
     /** row <- x */
     final def rx(x: Float): Int = {
-      rb(bx(x));
+      rb(bx(x))
     }
     
     final def rb(barIndex: Int): Int = {

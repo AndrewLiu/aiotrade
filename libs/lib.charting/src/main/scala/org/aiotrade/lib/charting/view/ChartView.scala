@@ -59,7 +59,6 @@ import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
-
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
  * but should reference back to a controller. All ChartViews shares the same

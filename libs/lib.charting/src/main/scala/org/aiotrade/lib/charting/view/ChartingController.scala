@@ -154,14 +154,14 @@ object ChartingController {
 
   object DefaultChartingController {
     /**
-     * min spacing between rightRow and left / right edge, if want more, such as:
+     * min spacing in number of bars between referRow and left / right edge, if want more, such as:
      *     minSpacing = (nBars * 0.168).intValue
      */
-    private val MIN_RIGHT_SPACING = 2
-    private val MIN_LEFT_SPACING = 0
+    val REF_PADDING_LEFT  = 0
+    val REF_PADDING_RIGHT = 0
 
     /** BASIC_BAR_WIDTH = 6 */
-    private val BAR_WIDTHS_ARRAY = Array(
+    private val PREFERRED_BAR_WIDTHS = Array(
       0.00025f, 0.0005f, 0.001f, 0.025f, 0.05f, 0.1f, 0.25f, 0.5f, 1f, 2f, 4f, 6f, 10f, 20f
     )
 
@@ -198,7 +198,7 @@ object ChartingController {
     private var _fixedNBars = 0
     private var _wBarIdx = 11
     /** pixels per bar (bar width in pixels) */
-    private var _wBar = BAR_WIDTHS_ARRAY(_wBarIdx)
+    private var _wBar = PREFERRED_BAR_WIDTHS(_wBarIdx)
     private var _referCursorRow: Int = _
     private var _mouseCursorRow: Int = _
     private var _rightSideRow: Int = _
@@ -308,11 +308,11 @@ object ChartingController {
       _wBarIdx += increment
       if (_wBarIdx < 0) {
         _wBarIdx = 0
-      } else if (_wBarIdx > BAR_WIDTHS_ARRAY.length - 1) {
-        _wBarIdx = BAR_WIDTHS_ARRAY.length - 1
+      } else if (_wBarIdx > PREFERRED_BAR_WIDTHS.length - 1) {
+        _wBarIdx = PREFERRED_BAR_WIDTHS.length - 1
       }
 
-      internal_setWBar(BAR_WIDTHS_ARRAY(_wBarIdx))
+      internal_setWBar(PREFERRED_BAR_WIDTHS(_wBarIdx))
       updateViews
     }
 
@@ -344,21 +344,21 @@ object ChartingController {
       var newWBar = wViewPort.toFloat / nBars.toFloat
 
       /** adjust xfactorIdx to nearest */
-      if (newWBar < BAR_WIDTHS_ARRAY(0)) {
+      if (newWBar < PREFERRED_BAR_WIDTHS(0)) {
         /** avoid too small xfactor */
-        newWBar = BAR_WIDTHS_ARRAY(0)
+        newWBar = PREFERRED_BAR_WIDTHS(0)
 
         _wBarIdx = 0
-      } else if (newWBar > BAR_WIDTHS_ARRAY(BAR_WIDTHS_ARRAY.length - 1)) {
-        _wBarIdx = BAR_WIDTHS_ARRAY.length - 1
+      } else if (newWBar > PREFERRED_BAR_WIDTHS(PREFERRED_BAR_WIDTHS.length - 1)) {
+        _wBarIdx = PREFERRED_BAR_WIDTHS.length - 1
       } else {
         var i = 0
-        val n = BAR_WIDTHS_ARRAY.length - 1
+        val n = PREFERRED_BAR_WIDTHS.length - 1
         var break = false
         while (i < n && !break) {
-          if (newWBar > BAR_WIDTHS_ARRAY(i) && newWBar < BAR_WIDTHS_ARRAY(i + 1)) {
+          if (newWBar > PREFERRED_BAR_WIDTHS(i) && newWBar < PREFERRED_BAR_WIDTHS(i + 1)) {
             /** which one is the nearest ? */
-            _wBarIdx = if (Math.abs(BAR_WIDTHS_ARRAY(i) - newWBar) < Math.abs(BAR_WIDTHS_ARRAY(i + 1) - newWBar)) i else i + 1
+            _wBarIdx = if (math.abs(PREFERRED_BAR_WIDTHS(i) - newWBar) < math.abs(PREFERRED_BAR_WIDTHS(i + 1) - newWBar)) i else i + 1
             break = true
           }
           i += 1
@@ -406,17 +406,18 @@ object ChartingController {
       val referRow = referCursorRow + increment
       val rightRow = rightSideRow
 
-      val rightSpacing = rightRow - referRow
-      if (rightSpacing >= MIN_RIGHT_SPACING) {
+      // if refCursor is near left/right side, check if need to scroll chart except referCursur
+      val rightPadding = rightRow - referRow
+      if (rightPadding < REF_PADDING_RIGHT) {
+        internal_setRightSideRow(rightRow + REF_PADDING_RIGHT - rightPadding, willUpdateViews)
+      } else {
         /** right spacing is enough, check left spacing: */
         val nBars = viewContainer.masterView.nBars
         val leftRow = rightRow - nBars + 1
-        val leftSpacing = referRow - leftRow
-        if (leftSpacing < MIN_LEFT_SPACING) {
-          internal_setRightSideRow(rightRow + leftSpacing - MIN_LEFT_SPACING, willUpdateViews)
+        val leftPadding = referRow - leftRow
+        if (leftPadding < REF_PADDING_LEFT) {
+          internal_setRightSideRow(rightRow + leftPadding - REF_PADDING_LEFT, willUpdateViews)
         }
-      } else {
-        internal_setRightSideRow(rightRow + MIN_RIGHT_SPACING - rightSpacing, willUpdateViews)
       }
 
       internal_setReferCursorRow(referRow, willUpdateViews)
@@ -437,7 +438,7 @@ object ChartingController {
       val rightRow = rightSideRow
       val nBars = viewContainer.masterView.nBars
 
-      val leftRow = rightRow - nBars + MIN_LEFT_SPACING
+      val leftRow = rightRow - nBars + REF_PADDING_LEFT
       setReferCursorByRow(leftRow, true)
     }
 
@@ -468,7 +469,7 @@ object ChartingController {
       val rightRow = rightSideRow
       val nBars = viewContainer.masterView.nBars
 
-      rightRow - nBars + MIN_LEFT_SPACING
+      rightRow - nBars + REF_PADDING_LEFT
     }
 
 
