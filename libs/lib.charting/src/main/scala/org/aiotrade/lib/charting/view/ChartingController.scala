@@ -297,18 +297,6 @@ object ChartingController {
       this._isAutoScrollToNewData = autoScrollToNewData
     }
 
-    def wBar: Float = {
-      if (_fixedNBars == 0) _wBar else {
-        val masterView = viewContainer.masterView
-        val wViewPort = masterView.getWidth - (masterView.axisYPane match {
-            case null => 0
-            case x => x.getWidth
-          })
-
-        wViewPort.toFloat / fixedNBars.toFloat
-      }
-    }
-
     def fixedNBars = _fixedNBars
     def fixedNBars_=(nBars: Int) {
       this._fixedNBars = nBars
@@ -328,17 +316,21 @@ object ChartingController {
       updateViews
     }
 
+    def wBar: Float = {
+      if (_fixedNBars == 0) {
+        _wBar
+      } else {
+        val masterView = viewContainer.masterView
+        masterView.wChart.toFloat / fixedNBars.toFloat
+      }
+    }
+
     def setWBarByNBars(nBars: Int) {
       if (nBars < 0 || fixedNBars != 0) return
 
       /** decide wBar according to wViewPort. Do not use integer divide here */
       val masterView = viewContainer.masterView
-      val wViewPort = masterView.getWidth - (masterView.axisYPane match {
-          case null => 0
-          case x => x.getWidth
-        })
-
-      var newWBar = wViewPort.toFloat / nBars.toFloat
+      var newWBar = masterView.wChart.toFloat / nBars.toFloat
 
       internal_setWBar(newWBar)
       updateViews

@@ -228,7 +228,7 @@ object Model {
   val N   = Exchange("N",  "America/New_York", Array(9, 30, 14, 30))  // New York
   val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
   val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  val L   = Exchange("L",  "UTC", Array(7, 30, 15, 00)) // London
+  val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
 
   val SSSymToName = TreeMap(
     "600000" -> "浦发银行",

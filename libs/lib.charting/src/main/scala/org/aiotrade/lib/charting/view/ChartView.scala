@@ -243,7 +243,7 @@ abstract class ChartView(protected var _controller: ChartingController,
      * properly layouted (the width of mainChartPane is still not good)
      */
     val newNBars = _controller.fixedNBars match {
-      case 0 => ((getWidth - AXISY_WIDTH) / _controller.wBar).toInt
+      case 0 => (wChart / _controller.wBar).toInt
       case x => x
     }
 
@@ -260,6 +260,11 @@ abstract class ChartView(protected var _controller: ChartingController,
       _oldMinValue = _minValue
       notifyChanged(classOf[ChartValidityObserver])
     }
+  }
+
+  protected def setMaxMinValue(max: Float, min: Float) {
+    _maxValue = max
+    _minValue = min
   }
 
   protected def postPaintComponent {
@@ -290,6 +295,7 @@ abstract class ChartView(protected var _controller: ChartingController,
 
   }
 
+  final def nBars: Int = _nBars
   private def nBars_=(nBars: Int) {
     val oldValue = this._nBars
     this._nBars = nBars
@@ -298,10 +304,8 @@ abstract class ChartView(protected var _controller: ChartingController,
     }
   }
 
-  protected def setMaxMinValue(max: Float, min: Float) {
-    _maxValue = max
-    _minValue = min
-  }
+  // should decide width by this component's width and constant AXISY_WIDTH, since the width of children may not be decided yet.
+  final def wChart = getWidth - AXISY_WIDTH
 
   def isSelected = glassPane.isSelected
   def isSelected_=(b: Boolean) {
@@ -406,12 +410,10 @@ abstract class ChartView(protected var _controller: ChartingController,
   def maxValue: Float = _maxValue
   def minValue: Float = _minValue
 
-  final def nBars: Int = _nBars
-
-  final def controller: ChartingController = _controller
 
   def baseSer: BaseTSer = _baseSer
   final def mainSer: TSer = _mainSer
+  final def controller: ChartingController = _controller
 
   def chartToVarsOf(ser: TSer): HashMap[Chart, HashSet[TVar[_]]] = {
     assert(ser != null, "Do not pass me a null ser!")
