@@ -123,7 +123,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   //titlePanel.add(pinnedMark)
 
   case object UpdateTitlePanel
-  case object UpdateValues
+  case object UpdateSerValues
   private val updateActor = new scala.actors.Reactor[Any] {
     start
     def act = loop {
@@ -137,7 +137,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
           titlePanel.revalidate
           titlePanel.repaint()
-        case UpdateValues =>
+        case UpdateSerValues =>
           if (!isUsingInstantTitleValue) {
             updateSelectedSerVarValues
             
@@ -156,7 +156,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
   view.controller.addObserver(this, new ReferCursorObserver {
       val updater: Updater = {
-        case _: ChartingController => updateActor ! UpdateValues
+        case _: ChartingController => updateActor ! UpdateSerValues
       }
     })
 

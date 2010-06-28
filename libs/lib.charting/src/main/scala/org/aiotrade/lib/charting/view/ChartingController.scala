@@ -584,8 +584,8 @@ object ChartingController {
 
     private def updateView(toTime: Long): Unit = {
       viewContainer.masterView match {
-        case masterView: WithDrawingPane =>
-          val drawing = masterView.selectedDrawing
+        case view: WithDrawingPane =>
+          val drawing = view.selectedDrawing
           if (drawing != null && drawing.isInDrawing) {
             return
           }
@@ -596,8 +596,8 @@ object ChartingController {
       if (oldReferRow == _lastOccurredRowOfBaseSer || _lastOccurredRowOfBaseSer <= 0) {
         /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
         val lastTime = math.max(toTime, baseSer.lastOccurredTime)
-        val rightRow = baseSer.rowOfTime(lastTime)
-        val referRow = rightRow
+        val referRow = baseSer.rowOfTime(lastTime)
+        val rightRow = if (isFixedLeftSideTime) rightSideRow else referRow
 
         setCursorByRow(referRow, rightRow, true)
       }
