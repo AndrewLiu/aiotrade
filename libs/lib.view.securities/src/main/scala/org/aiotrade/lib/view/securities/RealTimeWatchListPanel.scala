@@ -101,17 +101,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     DAY_OPEN
   )
 
-  private val colNames = {
-    val names = new Array[String](colKeys.length)
-    var i = 0
-    while (i < colKeys.length) {
-      val key = colKeys(i)
-      names(i) = BUNDLE.getString(colKeys(i))
-      i += 1
-    }
-    names
-  }
-
   private val lastTickers = new ArrayList[Ticker]
   
   private val symbolToInWatching = new HashMap[String, Boolean]
@@ -119,7 +108,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val symbolToColColors  = new HashMap[String, HashMap[String, Color]]
 
   val table = new JTable
-  private val model = new WatchListTableModel(colNames)
+  private val model = new WatchListTableModel
   private val df = new SimpleDateFormat("hh:mm", Locale.US)
   private val cal = Calendar.getInstance
   private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
@@ -215,7 +204,18 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     table.setRowSorter(sorter)
   }
 
-  class WatchListTableModel(colNames: Array[String]) extends AbstractTableModel {
+  class WatchListTableModel extends AbstractTableModel {
+    private val colNames = {
+      val names = new Array[String](colKeys.length)
+      var i = 0
+      while (i < colKeys.length) {
+        val key = colKeys(i)
+        names(i) = BUNDLE.getString(colKeys(i))
+        i += 1
+      }
+      names
+    }
+
     private val types = Array(
       classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
@@ -226,7 +226,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     def getValueAt(row: Int, col: Int): Object = {
       val ticker = lastTickers(row)
 
-      colNames(col) match {
+      colKeys(col) match {
         case SYMBOL => ticker.symbol
         case LAST_PRICE => "%5.2f"   format ticker.lastPrice
         case DAY_VOLUME => "%5.2f"   format ticker.dayVolume

@@ -241,15 +241,16 @@ abstract class ChartView(protected var _controller: ChartingController,
      * width, because other panes may be repainted before mainChartPane is
      * properly layouted (the width of mainChartPane is still not good)
      */
-    val newNBars = _controller.fixedNBars match {
-      case 0 => (wChart / _controller.wBar).toInt
-      case x => x
+    val nBars1 = if (_controller.isFixedNBars) {
+      _controller.fixedNBars
+    } else {
+      (wChart / _controller.wBar).toInt
     }
 
     /** avoid nBars == 0 */
-    nBars = math.max(newNBars, 1)
+    nBars = math.max(nBars1, 1)
 
-    if (_controller.fixedLeftSideTime != Long.MinValue) {
+    if (_controller.isFixedLeftSideTime) {
       _controller.setLeftSideRowByTime(_controller.fixedLeftSideTime, false)
     }
 

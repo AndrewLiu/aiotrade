@@ -70,9 +70,11 @@ trait ChartingController extends ChangeSubject {
 
   def growWBar(increment: Int)
 
+  def isFixedNBars: Boolean
   def fixedNBars: Int
   def fixedNBars_=(nBars: Int)
 
+  def isFixedLeftSideTime: Boolean
   def fixedLeftSideTime: Long
   def fixedLeftSideTime_=(time: Long)
 
@@ -199,7 +201,7 @@ object ChartingController {
     private val popupViewRefs = WeakHashMap[ChartView, AnyRef]()
     private def popupViews = popupViewRefs.keys
     private var viewContainer: ChartViewContainer = _
-    private var _fixedLeftSideTime: Long = Long.MinValue
+    private var _fixedLeftSideTime = Long.MinValue
     private var _fixedNBars = 0
     private var _wBarIdx = 11
     /** pixels per bar (bar width in pixels) */
@@ -302,11 +304,13 @@ object ChartingController {
       this._isAutoScrollToNewData = autoScrollToNewData
     }
 
+    def isFixedLeftSideTime = _fixedLeftSideTime != Long.MinValue
     def fixedLeftSideTime = _fixedLeftSideTime
     def fixedLeftSideTime_=(time: Long) {
       this._fixedLeftSideTime = time
     }
 
+    def isFixedNBars = _fixedNBars != 0
     def fixedNBars = _fixedNBars
     def fixedNBars_=(nBars: Int) {
       this._fixedNBars = nBars
@@ -327,12 +331,10 @@ object ChartingController {
     }
 
     def wBar: Float = {
-      if (_fixedNBars == 0) {
-        _wBar
-      } else {
+      if (isFixedNBars) {
         val masterView = viewContainer.masterView
         masterView.wChart.toFloat / fixedNBars.toFloat
-      }
+      } else _wBar
     }
 
     def setWBarByNBars(nBars: Int) {
