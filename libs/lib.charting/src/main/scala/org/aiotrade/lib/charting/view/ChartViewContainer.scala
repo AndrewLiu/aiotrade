@@ -175,9 +175,9 @@ abstract class ChartViewContainer extends JPanel {
     add(masterView, gbc)
   }
 
-  def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, $gbc: GridBagConstraints) {
+  def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, $gbc: GridBagConstraints): ChartView = {
+    var view: ChartView = null
     if (!descriptorToSlaveView.contains(descriptor)) {
-      var view: ChartView = null
       if (indicator.isOverlapping) {
         view = masterView
         view.addOverlappingCharts(indicator)
@@ -191,6 +191,7 @@ abstract class ChartViewContainer extends JPanel {
       descriptorToSlaveView.put(descriptor, view)
       selectedView = view
     }
+    view
   }
 
   def removeSlaveView(descriptor: IndicatorDescriptor) {

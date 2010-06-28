@@ -73,6 +73,9 @@ trait ChartingController extends ChangeSubject {
   def fixedNBars: Int
   def fixedNBars_=(nBars: Int)
 
+  def fixedLeftSideTime: Long
+  def fixedLeftSideTime_=(time: Long)
+
   def setWBarByNBars(nBars: Int)
   def setWBarByNBars(wViewPort: Int, nBars: Int)
 
@@ -89,6 +92,7 @@ trait ChartingController extends ChangeSubject {
   def scrollChartsHorizontallyByBar(increment: Int)
 
   def scrollReferCursorToLeftSide
+  def setLeftSideRowByTime(time: Long, willUpdateViews: Boolean)
 
   def setMouseCursorByRow(row: Int)
 
@@ -195,6 +199,7 @@ object ChartingController {
     private val popupViewRefs = WeakHashMap[ChartView, AnyRef]()
     private def popupViews = popupViewRefs.keys
     private var viewContainer: ChartViewContainer = _
+    private var _fixedLeftSideTime: Long = Long.MinValue
     private var _fixedNBars = 0
     private var _wBarIdx = 11
     /** pixels per bar (bar width in pixels) */
@@ -295,6 +300,11 @@ object ChartingController {
     def isAutoScrollToNewData = _isAutoScrollToNewData
     def isAutoScrollToNewData_=(autoScrollToNewData: Boolean) {
       this._isAutoScrollToNewData = autoScrollToNewData
+    }
+
+    def fixedLeftSideTime = _fixedLeftSideTime
+    def fixedLeftSideTime_=(time: Long) {
+      this._fixedLeftSideTime = time
     }
 
     def fixedNBars = _fixedNBars
@@ -412,7 +422,6 @@ object ChartingController {
         internal_setRightSideRow(rightRow + REF_PADDING_RIGHT - rightPadding, willUpdateViews)
       } else {
         /** right spacing is enough, check left spacing: */
-        val nBars = viewContainer.masterView.nBars
         val leftRow = rightRow - nBars + 1
         val leftPadding = referRow - leftRow
         if (leftPadding < REF_PADDING_LEFT) {
@@ -436,8 +445,6 @@ object ChartingController {
 
     def scrollReferCursorToLeftSide {
       val rightRow = rightSideRow
-      val nBars = viewContainer.masterView.nBars
-
       val leftRow = rightRow - nBars + REF_PADDING_LEFT
       setReferCursorByRow(leftRow, true)
     }
@@ -467,14 +474,21 @@ object ChartingController {
     final def leftSideTime: Long = baseSer.timeOfRow(leftSideRow)
     final def leftSideRow: Int = {
       val rightRow = rightSideRow
-      val nBars = viewContainer.masterView.nBars
-
       rightRow - nBars + REF_PADDING_LEFT
     }
 
+    final def setLeftSideRowByTime(time: Long, willUpdateViews: Boolean = false) {
+      val frRow = baseSer.rowOfTime(time)
+      val toRow = frRow + nBars - 1
+
+      val lastOccurredRow = baseSer.lastOccurredRow
+      setCursorByRow(lastOccurredRow, toRow, willUpdateViews)
+    }
 
     final def mouseCursorRow: Int = _mouseCursorRow
     final def mouseCursorTime: Long = baseSer.timeOfRow(_mouseCursorRow)
+
+    private def nBars = viewContainer.masterView.nBars
 
     /**
      * @NOTICE

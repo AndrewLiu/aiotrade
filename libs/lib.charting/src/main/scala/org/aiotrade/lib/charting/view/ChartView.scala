@@ -249,6 +249,10 @@ abstract class ChartView(protected var _controller: ChartingController,
     /** avoid nBars == 0 */
     nBars = math.max(newNBars, 1)
 
+    if (_controller.fixedLeftSideTime != Long.MinValue) {
+      _controller.setLeftSideRowByTime(_controller.fixedLeftSideTime, false)
+    }
+
     /**
      * We only need computeMaxMin() once when a this should be repainted,
      * so do it here.

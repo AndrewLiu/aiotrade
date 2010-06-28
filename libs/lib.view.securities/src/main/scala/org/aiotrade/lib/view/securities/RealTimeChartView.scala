@@ -86,6 +86,7 @@ class RealTimeChartView($controller: ChartingController,
     controller.isAutoScrollToNewData = false
     controller.isOnCalendarMode = true
     controller.fixedNBars = exchange.nMinutes
+    controller.fixedLeftSideTime = exchange.openTime(System.currentTimeMillis)
     axisYPane.isSymmetricOnMiddleValue = true
 
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
@@ -137,24 +138,6 @@ class RealTimeChartView($controller: ChartingController,
     mainChartPane.putChart(prevCloseGrid)
   }
 
-  override protected def prePaintComponent {
-    super.prePaintComponent
-    adjustLeftSideRowToExchangeOpenTime
-  }
-
-  private def adjustLeftSideRowToExchangeOpenTime {
-    val lastOccurredTime = baseSer.lastOccurredTime
-
-    val openTime  = exchange.openTime(lastOccurredTime)
-    val closeTime = exchange.closeTime(lastOccurredTime)
-
-    val frRow = baseSer.rowOfTime(openTime)
-    val toRow = frRow + nBars - 1
-
-    val lastOccurredRow = baseSer.lastOccurredRow
-    controller.setCursorByRow(lastOccurredRow, toRow, false)
-  }
-
   override def computeMaxMin {
     super.computeMaxMin
 
@@ -195,18 +178,17 @@ class RealTimeChartView($controller: ChartingController,
 
   override def updateView(evt: TSerEvent) {
     evt match {
-      case TSerEvent(_, _, _, _, lastObject, _) => lastObject match {
-          case ticker: Ticker =>
-            val percentValue = ticker.changeInPercent
-            val strValue = ("%+3.2f%% " format percentValue) + ticker.lastPrice
-            val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
+      case TSerEvent(_, _, _, _, ticker: Ticker, _) =>
+        val percentValue = ticker.changeInPercent
+        val strValue = ("%+3.2f%% " format percentValue) + ticker.lastPrice
+        val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
 
-            glassPane.updateInstantValue(strValue, color)
-            prevClose = ticker.prevClose
-          case _ =>
-        }
+        glassPane.updateInstantValue(strValue, color)
+        prevClose = ticker.prevClose
+
+        controller.fixedLeftSideTime = exchange.openTime(ticker.time)
+      case _ =>
     }
-
   }
 }
 
