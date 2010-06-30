@@ -31,7 +31,7 @@
 package org.aiotrade.lib.dataserver.yahoo
 
 import java.io.{BufferedReader, InputStreamReader, InputStream}
-import java.net.{HttpURLConnection, URL}
+import java.net.{HttpURLConnection, URL, SocketTimeoutException}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
@@ -68,7 +68,6 @@ class YahooTickerServer extends TickerServer {
    * Template:
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
-  @throws(classOf[Exception])
   protected def request: Option[InputStream] = {
     val cal = Calendar.getInstance(sourceTimeZone)
 
@@ -91,22 +90,29 @@ class YahooTickerServer extends TickerServer {
     /** s: symbol, n: name, x: stock exchange */
     val urlStrForName = urlStr.append("&d=t&f=snx").toString
 
-    val url = new URL(urlStr.toString)
-    println(url)
 
-    val conn = url.openConnection.asInstanceOf[HttpURLConnection]
-    conn.setRequestProperty("Accept-Encoding", "gzip")
-    conn.setAllowUserInteraction(true)
-    conn.setRequestMethod("GET")
-    conn.setInstanceFollowRedirects(true)
-    conn.connect
+    try {
+      val url = new URL(urlStr.toString)
+      println(url)
 
-    val encoding = conn.getContentEncoding
-    gzipped = if (encoding != null && encoding.indexOf("gzip") != -1) {
-      true
-    } else false
+      val conn = url.openConnection.asInstanceOf[HttpURLConnection]
+      conn.setRequestProperty("Accept-Encoding", "gzip")
+      conn.setAllowUserInteraction(true)
+      conn.setRequestMethod("GET")
+      conn.setInstanceFollowRedirects(true)
+      conn.setConnectTimeout(5000)
+      conn.connect
+
+      val encoding = conn.getContentEncoding
+      gzipped = if (encoding != null && encoding.indexOf("gzip") != -1) {
+        true
+      } else false
         
-    Option(conn.getInputStream)
+      Option(conn.getInputStream)
+    } catch {
+      case e: SocketTimeoutException => None
+      case e => None
+    }
   }
 
   @throws(classOf[Exception])
