@@ -101,6 +101,7 @@ class YahooTickerServer extends TickerServer {
       conn.setRequestMethod("GET")
       conn.setInstanceFollowRedirects(true)
       conn.setConnectTimeout(5000)
+      conn.setReadTimeout(5000)
       conn.connect
 
       val encoding = conn.getContentEncoding
