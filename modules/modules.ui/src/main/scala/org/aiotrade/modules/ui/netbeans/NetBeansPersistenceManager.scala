@@ -1049,9 +1049,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
   // ----- shutdown
 
   def shutdown {
-    if (connPoolMgr == null) {
+    if (connPoolMgr != null) {
       connPoolMgr.dispose
     }
+    
+    if (dbProps == null) return
     
     /**
      * Derby special action:
