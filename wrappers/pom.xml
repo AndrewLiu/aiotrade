@@ -193,6 +193,7 @@
     **************************************************************************************************************** -->
     <modules>
         <module>com.mysql.jdbc</module>
+        <module>com.h2database.h2</module>
         <module>lib.amqp</module>
         <module>lib.charting</module>
         <module>lib.dataserver.ib</module>

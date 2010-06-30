@@ -108,7 +108,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
   private val inSavingProps = new Object
 
   restoreProperties
-  checkAndCreateDatabaseIfNecessary
+  //checkAndCreateDatabaseIfNecessary
 
   def saveContents(contents: AnalysisContents) {
     if (contents.uniSymbol.equalsIgnoreCase("Default")) {
@@ -415,11 +415,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
           DriverManager.getConnection(dbUrl, dbProps)
         case DB_H2 =>
           if (connPoolMgr == null) {
-            val dataSource = new org.h2.jdbcx.JdbcDataSource
-            dataSource.setURL(dbUrl)
-            dataSource.setUser(dbUser)
-            dataSource.setPassword(dbPassword)
-            connPoolMgr = new MiniConnectionPoolManager(dataSource, 5)
+//            val dataSource = new org.h2.jdbcx.JdbcDataSource
+//            dataSource.setURL(dbUrl)
+//            dataSource.setUser(dbUser)
+//            dataSource.setPassword(dbPassword)
+//            connPoolMgr = new MiniConnectionPoolManager(dataSource, 5)
           }
           connPoolMgr.getConnection
         case _ => DriverManager.getConnection(dbUrl, dbProps)

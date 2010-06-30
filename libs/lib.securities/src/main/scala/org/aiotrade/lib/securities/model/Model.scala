@@ -7,7 +7,11 @@ import scala.collection.mutable.HashMap
 import scala.actors.Scheduler
 
 /**
- * mysqldump5 -u root --no-data --database inca > inca.mysql
+ * -- Dump schema
+ * mysqldump5 -u root --no-data --database aiotrade > aiotrade.mysql
+ * -- Create db
+ * mysql> source file_name
+ * mysql> \. file_name
  *
  *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
  *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
@@ -18,11 +22,17 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
+    //simplestTest
     //test
     createSamples
 
     Scheduler.shutdown
     System.exit(0)
+  }
+
+  private def simplestTest {
+    val exes = Exchanges.all()
+    exes foreach (x => println(x.fullName))
   }
 
   private def test {

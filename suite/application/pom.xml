@@ -146,6 +146,12 @@
             <version>${project.version}</version>
             <type>nbm</type>
         </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>com-h2database-h2</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
 
     </dependencies>
 

@@ -92,6 +92,13 @@
             <artifactId>com-mysql-jdbc</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <!-- Since drive class is loaded under this module's classes, we should define
+                 dependency on it here instead of any other places. -->
+            <groupId>org.aiotrade</groupId>
+            <artifactId>com-h2database-h2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         
     </dependencies>
 
