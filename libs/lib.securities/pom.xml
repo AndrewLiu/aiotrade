@@ -1,6 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.aiotrade</groupId>
         <artifactId>libs</artifactId>
@@ -19,18 +20,6 @@
             <artifactId>circumflex-orm</artifactId>
             <version>1.1</version>
         </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.9</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.2.138</version>
-            <scope>runtime</scope>
-        </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -47,7 +36,6 @@
             <artifactId>lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
-
 
     </dependencies>
 
@@ -76,7 +64,100 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- should enable filtering to get properites in active profile to
+                     be substitued in resources file -->
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
     </build>
+
+    <profiles>
+        <profile>
+            <id>postgresql</id>
+            <activation>
+                <property>
+                    <name>db</name>
+                    <value>postgresql</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>org.postgresql.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:postgresql://localhost:5432/aiotrade</orm.connection.url>
+                <orm.connection.username>root</orm.connection.username>
+                <orm.connection.password>aiotrade</orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.PostgreSQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>8.3-603.jdbc4</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>mysql</id>
+            <activation>
+                <property>
+                    <name>db</name>
+                    <value>mysql</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>com.mysql.jdbc.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:mysql://localhost:3306/aiotrade</orm.connection.url>
+                <orm.connection.username>root</orm.connection.username>
+                <orm.connection.password></orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.MySQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.9</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>h2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>db</name>
+                    <value>h2</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>org.h2.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:h2:~/.aiotrade/db</orm.connection.url>
+                <orm.connection.username>sa</orm.connection.username>
+                <orm.connection.password>aiotrade</orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.H2Dialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>1.2.138</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>
 
