@@ -47,6 +47,7 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.actors.Publisher
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
@@ -94,6 +95,8 @@ object Secs extends Table[Sec] {
  */
 
 object Sec {
+  val log = Logger.getLogger(this.getClass.getName)
+
   trait Kind
   object Kind {
     case object Stock extends Kind
@@ -380,7 +383,7 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
 
     // load from persistence
     val loadedTime = loadSerFromPersistence(freq)
-    println("Loaded from persistence, loaded time=" + loadedTime)
+    log.info(uniSymbol + ": loaded from persistence, loaded time=" + loadedTime + ", freq=" + freq)
 
     // try to load from quote server
 
