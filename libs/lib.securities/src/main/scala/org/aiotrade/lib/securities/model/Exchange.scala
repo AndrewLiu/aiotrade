@@ -2,6 +2,7 @@ package org.aiotrade.lib.securities.model
 
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
@@ -23,7 +24,7 @@ object Exchanges extends Table[Exchange] {
   def closeDates = inverse(ExchangeCloseDates.exchange)
   def secs = inverse(Secs.exchange)
 
-  INDEX("code_idx", code.name)
+  INDEX(getClass.getSimpleName + "_code_idx", code.name)
 }
 
 object Exchange extends Publisher {
@@ -146,6 +147,14 @@ class Exchange {
   lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
   private var _symbols = List[String]()
+
+  lazy val lastTickers = {
+    val x = new HashMap[String, LightTicker]
+    for (ticker <- Tickers.lastTickersOf(this)) {
+      x.put(ticker.symbol, ticker)
+    }
+    x
+  }
 
   def open: Calendar = {
     val cal = Calendar.getInstance(timeZone)

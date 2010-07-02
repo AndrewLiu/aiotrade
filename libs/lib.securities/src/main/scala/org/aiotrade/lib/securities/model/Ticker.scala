@@ -41,14 +41,36 @@ object Tickers extends Table[Ticker] {
 
   val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
 
-  INDEX("time_idx", time.name)
+  INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
-  def lastTickerOfDay(dailyQuote: Quote): Option[Ticker] = {
+  def lastTickerOf(dailyQuote: Quote): Option[Ticker] = {
     (SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time DESC, this.id DESC) LIMIT (1) list) headOption
   }
 
-  def tickersOfDay(dailyQuote: Quote): Seq[Ticker] = {
+  def tickersOf(dailyQuote: Quote): Seq[Ticker] = {
     (SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list)
+  }
+
+  def lastTickersOf(exchange: Exchange): Seq[Ticker] = {
+    SELECT (Tickers.*, Quotes1d.*) FROM (Tickers JOIN (Quotes1d JOIN Secs)) WHERE (
+      (Quotes1d.time EQ (
+          SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
+        )
+      ) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+    ) ORDER_BY (Tickers.time ASC, Tickers.id ASC) list match {
+      case xs if xs.isEmpty => Nil
+      case xs => xs map (_._1) groupBy (_.quote) map (_._2.head) toSeq
+    }
+  }
+
+  def lastTickersSql = {
+    /* (SELECT (Tickers.*) FROM (
+     (SELECT (Tickers.quotes_id, MAX(time) AS maxtime) FROM (tickers) GROUP_BY Tickers.quotes_id) AS x INNER_JOIN Tickers ON (
+     (Tickers.quotes_id EQ x.quotes_id) AND (Tickers.time = x.maxtime))
+     ) list
+     ) */
+    val sql =
+      "SELECT a.quotes_id, a.time FROM (SELECT quotes_id, MAX(time) AS maxtime FROM tickers GROUP BY quotes_id) AS x INNER JOIN tickers as a ON a.quotes_id = x.quotes_id AND a.time = x.maxtime;"
   }
 }
 

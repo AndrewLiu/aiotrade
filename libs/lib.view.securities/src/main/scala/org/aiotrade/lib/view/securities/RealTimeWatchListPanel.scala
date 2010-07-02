@@ -56,6 +56,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
@@ -91,6 +92,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   private val colKeys = Array[String](
     SYMBOL,
+    TIME,
     LAST_PRICE,
     DAY_VOLUME,
     PREV_CLOSE,
@@ -222,7 +224,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     private val types = Array(
-      classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
+      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
 
     def getRowCount: Int = lastTickers.size
@@ -233,6 +235,12 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
       colKeys(col) match {
         case SYMBOL => ticker.symbol
+        case TIME =>
+          val tz = Exchange.exchangeOf(ticker.symbol).timeZone
+          val cal = Calendar.getInstance(tz)
+          cal.setTimeInMillis(ticker.time)
+          df.setTimeZone(tz)
+          df format cal.getTime
         case LAST_PRICE => "%5.2f"   format ticker.lastPrice
         case DAY_VOLUME => "%5.2f"   format ticker.dayVolume
         case PREV_CLOSE => "%5.2f"   format ticker.prevClose

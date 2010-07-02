@@ -74,19 +74,12 @@ object Quotes1d extends Quotes {
     ) list
   }
 
-  def lastExistedDailyQuotesOf(exchange: Exchange): Seq[Quote] = {
-    dailyQuotesOf(exchange, System.currentTimeMillis) match {
-      case x if !x.isEmpty => x
-      case _ =>
-        lastExistedDailyTimeOf(exchange) match {
-          case Some(time) => dailyQuotesOf(exchange, time)
-          case None => Nil
-        }
-    }
-  }
-
-  def lastExistedDailyTimeOf(exchange: Exchange): Option[Long] = {
-    (SELECT (Quotes1d.time) FROM (Quotes1d JOIN Secs) WHERE ((Secs.exchange.field EQ Exchanges.idOf(exchange))) ORDER_BY (Quotes1d.time DESC) LIMIT (1) list) headOption
+  def lastDailyQuotesOf(exchange: Exchange): Seq[Quote] = {
+    SELECT (Quotes1d.*) FROM Quotes1d WHERE (
+      Quotes1d.time EQ (
+        SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
+      )
+    ) list
   }
 
 }
@@ -114,7 +107,7 @@ abstract class Quotes extends Table[Quote] {
   def tickers = inverse(Tickers.quote)
   def executions = inverse(Executions.quote)
 
-  INDEX("time_idx", time.name)
+  INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
   def quotesOf(sec: Sec): Seq[Quote] = {
     SELECT (this.*) FROM (this) WHERE (

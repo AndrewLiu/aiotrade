@@ -22,17 +22,18 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
-    //simplestTest
+    temporaryTest
     //test
-    createSamples
+    //createSamples
 
     Scheduler.shutdown
     System.exit(0)
   }
 
-  private def simplestTest {
-    val exes = Exchanges.all()
-    exes foreach (x => println(x.fullName))
+  private def temporaryTest {
+    val xs = Exchanges.all()
+    xs foreach (x => println(Tickers.lastTickersOf(x) map (_.quote.time)))
+    //xs foreach (x => println(Quotes1d.lastDailyQuotesOf(x)))
   }
 
   private def test {

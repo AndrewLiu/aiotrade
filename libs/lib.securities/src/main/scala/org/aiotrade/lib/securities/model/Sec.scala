@@ -609,10 +609,10 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   /**
    * @return (lastTicker of day, day first?)
    */
-  def lastTickerOfDay(dailyQuote: Quote): (Ticker, Boolean) = {
+  def lastTickerOf(dailyQuote: Quote): (Ticker, Boolean) = {
     lastData.prevTicker match {
       case null =>
-        Tickers.lastTickerOfDay(dailyQuote) match  {
+        Tickers.lastTickerOf(dailyQuote) match  {
           case None =>
             val x = new Ticker
             lastData.prevTicker = x

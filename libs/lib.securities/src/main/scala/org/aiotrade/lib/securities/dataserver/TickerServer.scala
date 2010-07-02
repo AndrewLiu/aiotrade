@@ -58,7 +58,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   type C = TickerContract
   type T = QuoteSer
 
-  private val logger = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   refreshable = true
 
@@ -112,7 +112,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       event match {
         case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
           source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-          logger.info(symbol + ": " + count + ", data loaded, load server finished")
+          log.info(symbol + ": " + count + ", data loaded, load server finished")
         case _ =>
       }
     }
@@ -173,13 +173,16 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           val dayQuote = sec.dailyQuoteOf(ticker.time)
           assert(Quotes1d.idOf(dayQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
           ticker.quote = dayQuote
-          allTickers += ticker
 
-          val (prevTicker, dayFirst) = sec.lastTickerOfDay(dayQuote)
+          val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
           val minQuote = sec.minuteQuoteOf(ticker.time)
+          var validTicker = false
           var execution: Execution = null
           if (dayFirst) {
             dayQuote.unjustOpen_!
+
+            validTicker = true
+            allTickers += ticker
 
             /**
              * this is today's first ticker we got when begin update data server,
@@ -207,50 +210,59 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           
           } else {
 
-            if (ticker.dayVolume > prevTicker.dayVolume) {
-              execution = new Execution
-              execution.quote = dayQuote
-              execution.time = ticker.time
-              execution.price  = ticker.lastPrice
-              execution.volume = ticker.dayVolume - prevTicker.dayVolume
-              execution.amount = ticker.dayAmount - prevTicker.dayAmount
-              allExecutions += execution
-            }
+            if (ticker.time >= prevTicker.time) {
+              if (ticker.time == prevTicker.time) {
+                ticker.time = prevTicker.time + 1
+              }
+              
+              validTicker = true
+              allTickers += ticker
+              
+              if (ticker.dayVolume > prevTicker.dayVolume) {
+                execution = new Execution
+                execution.quote = dayQuote
+                execution.time = ticker.time
+                execution.price  = ticker.lastPrice
+                execution.volume = ticker.dayVolume - prevTicker.dayVolume
+                execution.amount = ticker.dayAmount - prevTicker.dayAmount
+                allExecutions += execution
+              }
             
-            if (minQuote.justOpen_?) {
-              minQuote.unjustOpen_!
+              if (minQuote.justOpen_?) {
+                minQuote.unjustOpen_!
 
-              minQuote.open  = ticker.lastPrice
-              minQuote.high  = ticker.lastPrice
-              minQuote.low   = ticker.lastPrice
-              minQuote.close = ticker.lastPrice
+                minQuote.open  = ticker.lastPrice
+                minQuote.high  = ticker.lastPrice
+                minQuote.low   = ticker.lastPrice
+                minQuote.close = ticker.lastPrice
             
-            } else {
+              } else {
 
-              if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
-                if (ticker.dayHigh > prevTicker.dayHigh) {
-                  /** this is a new day high happened during this ticker */
-                  minQuote.high = ticker.dayHigh
+                if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
+                  if (ticker.dayHigh > prevTicker.dayHigh) {
+                    /** this is a new day high happened during this ticker */
+                    minQuote.high = ticker.dayHigh
+                  }
                 }
-              }
-              if (ticker.lastPrice != 0) {
-                minQuote.high = math.max(minQuote.high, ticker.lastPrice)
-              }
-            
-              if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
-                if (ticker.dayLow < prevTicker.dayLow) {
-                  /** this is a new day low happened during this ticker */
-                  minQuote.low = ticker.dayLow
+                if (ticker.lastPrice != 0) {
+                  minQuote.high = math.max(minQuote.high, ticker.lastPrice)
                 }
-              }
-              if (ticker.lastPrice != 0) {
-                minQuote.low = math.min(minQuote.low, ticker.lastPrice)
-              }
+            
+                if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
+                  if (ticker.dayLow < prevTicker.dayLow) {
+                    /** this is a new day low happened during this ticker */
+                    minQuote.low = ticker.dayLow
+                  }
+                }
+                if (ticker.lastPrice != 0) {
+                  minQuote.low = math.min(minQuote.low, ticker.lastPrice)
+                }
 
-              minQuote.close = ticker.lastPrice
-              if (execution != null && execution.volume > 1) {
-                minQuote.volume += execution.volume
-                minQuote.amount += execution.amount
+                minQuote.close = ticker.lastPrice
+                if (execution != null && execution.volume > 1) {
+                  minQuote.volume += execution.volume
+                  minQuote.amount += execution.amount
+                }
               }
             }
           }
@@ -269,8 +281,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
             
             sec.publish(ExecutionEvent(ticker.prevClose, execution))
           }
-          
-          prevTicker.copyFrom(ticker)
+
+          if (validTicker) {
+            prevTicker.copyFrom(ticker)
+          }
 
           i += 1
         }
@@ -289,20 +303,20 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         
       } /* else {
 
-        /**
-         * no new ticker got, but should consider if it's necessary to to update quoteSer
-         * as the quote window may be just opened.
-         */
-        sec.lastData.prevTicker match {
-          case null =>
-          case ticker =>
-            if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
-              val dayQuote = sec.dailyQuoteOf(ticker.time)
-              updateDailyQuote(dayQuote, ticker)
-              chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
-            }
-        }
-      } */
+         /**
+          * no new ticker got, but should consider if it's necessary to to update quoteSer
+          * as the quote window may be just opened.
+          */
+         sec.lastData.prevTicker match {
+         case null =>
+         case ticker =>
+         if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+         val dayQuote = sec.dailyQuoteOf(ticker.time)
+         updateDailyQuote(dayQuote, ticker)
+         chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
+         }
+         }
+         } */
 
 
     }

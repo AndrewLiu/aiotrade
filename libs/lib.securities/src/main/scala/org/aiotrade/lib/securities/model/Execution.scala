@@ -16,7 +16,7 @@ object Executions extends Table[Execution] {
 
   val flag = "flag" TINYINT // @Note jdbc type of TINYINT is Int
 
-  INDEX("time_idx", time.name)
+  INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
   def executionsOfDay(dailyQuote: Quote): Seq[Execution] = {
     SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
