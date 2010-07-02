@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import org.aiotrade.lib.collection.ArrayList
+import scala.collection.mutable.HashMap
 
 /**
  *
@@ -59,7 +59,11 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     _loaded = b
   }
 
-  def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]]) = {
+  /**
+   * Export times and vars to map. Only Var with no-empty name can be exported.
+   * The key of times is always "."
+   */
+  def export(fromTime: Long, toTime: Long): Map[String, Array[_]] = {
     try {
       readLock.lock
       timestamps.readLock.lock
@@ -67,18 +71,18 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
       val len = toIdx - frIdx + 1
-      val times1 = new Array[Long](len)
-      timestamps.copyToArray(times1, frIdx, len)
+      val timesx = new Array[Long](len)
+      timestamps.copyToArray(timesx, frIdx, len)
 
-      val vs = new ArrayList[Array[Any]](vars.length)
-      for (v <- vars) {
-        val values1 = new Array[Any](len)
-        v.values.copyToArray(values1, frIdx, len)
-        vs + values1
+      var vs: HashMap[String, Array[_]] = new HashMap
+      vs.put(".", timesx)
+      for (v <- vars if v.name != "" && v.name != null) {
+        val valuesx = new Array[Any](len)
+        v.values.copyToArray(valuesx, frIdx, len)
+        vs.put(v.name, valuesx)
       }
 
-      (times1, vs.toArray)
-      
+      vs.toMap
     } finally {
       readLock.unlock
       timestamps.readLock.unlock

@@ -49,7 +49,7 @@ object Quotes1d extends Quotes {
     val rounded = TFreq.DAILY.round(time, cal)
 
     (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
+        (this.time EQ rounded) AND (this.sec.field EQ Secs.idOf(sec))
       ) list
     ) headOption match {
       case Some(one) => one
@@ -64,6 +64,31 @@ object Quotes1d extends Quotes {
         newone
     }
   }
+
+  def dailyQuotesOf(exchange: Exchange, time: Long): Seq[Quote] = {
+    val cal = Calendar.getInstance(exchange.timeZone)
+    val rounded = TFreq.DAILY.round(time, cal)
+
+    SELECT (Quotes1d.*) FROM (Quotes1d JOIN Secs) WHERE (
+      (this.time EQ rounded) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+    ) list
+  }
+
+  def lastExistedDailyQuotesOf(exchange: Exchange): Seq[Quote] = {
+    dailyQuotesOf(exchange, System.currentTimeMillis) match {
+      case x if !x.isEmpty => x
+      case _ =>
+        lastExistedDailyTimeOf(exchange) match {
+          case Some(time) => dailyQuotesOf(exchange, time)
+          case None => Nil
+        }
+    }
+  }
+
+  def lastExistedDailyTimeOf(exchange: Exchange): Option[Long] = {
+    (SELECT (Quotes1d.time) FROM (Quotes1d JOIN Secs) WHERE ((Secs.exchange.field EQ Exchanges.idOf(exchange))) ORDER_BY (Quotes1d.time DESC) LIMIT (1) list) headOption
+  }
+
 }
 
 object Quotes1m extends Quotes

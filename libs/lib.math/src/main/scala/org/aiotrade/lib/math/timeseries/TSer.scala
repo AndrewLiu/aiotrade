@@ -61,7 +61,11 @@ trait TSer extends Publisher {
 
   def vars: Seq[TVar[_]]
 
-  def toArrays(fromTime: Long, toTime: Long): (Array[Long], Array[Array[Any]])
+  /**
+   * Export times and vars to map. Only Var with no-empty name can be exported.
+   * The key of times is always "."
+   */
+  def export(fromTime: Long, toTime: Long): Map[String, Array[_]]
 
   def exists(time: Long): Boolean
     
