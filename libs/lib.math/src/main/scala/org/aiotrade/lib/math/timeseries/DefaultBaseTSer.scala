@@ -71,18 +71,17 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
        * Should only get index from timestamps which has the proper
        * position <-> time <-> item mapping
        */
-      if (time > timestamps.lastOccurredTime) {
+      val idx = timestamps.indexOfOccurredTime(time)
+      if (idx >= 0 && idx < holders.size) {
+        // existed, clear it
+        vars foreach {x => x(idx) = x.NullVal}
+        holders(idx) = 0
+      } else {
         // append at the end: create a new one, add placeholder
         val holder = createItem(time)
         internal_addItem_fillTimestamps_InTimeOrder(time, holder)
-      } else {
-        val idx = timestamps.indexOfOccurredTime(time)
-        if (idx >= 0 && idx < holders.size) {
-          // existed, clear it
-          vars foreach {x => x(idx) = x.NullVal}
-          holders(idx) = 0
-        }
       }
+      
     } finally {
       writeLock.unlock
     }
@@ -111,7 +110,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
 
         // (time at idx) > itemTime, insert this new item at the same idx, so the followed elems will be pushed behind
         try {
-          //timestamps.writeLock.lock
+          timestamps.writeLock.lock
 
           // should add timestamps first
           timestamps.insert(idx, time)
@@ -121,13 +120,13 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
           holders.insert(idx, holder)
 
         } finally {
-          //timestamps.writeLock.unlock
+          timestamps.writeLock.unlock
         }
       }
     } else if (time > lastOccurredTime) {
       // time > lastOccurredTime, just append it behind the last:
       try {
-        //timestamps.writeLock.lock
+        timestamps.writeLock.lock
 
         /** should append timestamps first */
         timestamps += time
@@ -137,7 +136,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
         holders += holder
 
       } finally {
-        //timestamps.writeLock.unlock
+        timestamps.writeLock.unlock
       }
     } else {
       // time == lastOccurredTime, keep same time and append vars and holders.
