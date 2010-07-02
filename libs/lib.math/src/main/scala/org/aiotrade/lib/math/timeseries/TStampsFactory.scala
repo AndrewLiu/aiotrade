@@ -297,7 +297,7 @@ object TStampsFactory {
       new ItrOnOccurred(freq)
     }
         
-    def  iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator = {
+    def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator = {
       new ItrOnOccurred(freq, fromTime, toTime, timeZone)
     }
 

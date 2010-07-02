@@ -66,7 +66,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   def export(fromTime: Long, toTime: Long): Map[String, Array[_]] = {
     try {
       readLock.lock
-      timestamps.readLock.lock
+      //timestamps.readLock.lock
 
       val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
@@ -85,7 +85,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       vs.toMap
     } finally {
       readLock.unlock
-      timestamps.readLock.unlock
+      //timestamps.readLock.unlock
     }
   }
 

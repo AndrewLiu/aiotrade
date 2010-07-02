@@ -119,7 +119,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   def exists(time: Long): Boolean = {
     try {
       readLock.lock
-      timestamps.readLock.lock
+      //timestamps.readLock.lock
 
       /**
        * @NOTE:
@@ -140,7 +140,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       }
     } finally {
       readLock.unlock
-      timestamps.readLock.unlock
+      //timestamps.readLock.unlock
     }
   }
 
@@ -168,7 +168,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   def validate {
     try {
       writeLock.lock
-      timestamps.readLock.lock
+      //timestamps.readLock.lock
 
       val tlog = timestamps.log
       val tlogCursor = tlog.logCursor
@@ -244,7 +244,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       case ex => logger.log(Level.WARNING, "exception", ex)
     } finally {
       writeLock.unlock
-      timestamps.readLock.unlock
+      //timestamps.readLock.unlock
     }
 
   }
@@ -252,7 +252,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   def clear(fromTime: Long) {
     try {
       writeLock.lock
-      timestamps.readLock.lock
+      //timestamps.readLock.lock
             
       val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       if (fromIdx < 0) {
@@ -270,7 +270,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
       }
     } finally {
       writeLock.unlock
-      timestamps.readLock.unlock
+      //timestamps.readLock.unlock
     }
 
     publish(TSerEvent.Cleared(this, shortDescription, fromTime, Long.MaxValue))
@@ -278,21 +278,25 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   def indexOfOccurredTime(time: Long): Int = {
     try {
-      timestamps.readLock.lock
+      readLock.lock
+      //timestamps.readLock.lock
 
       timestamps.indexOfOccurredTime(time)
     } finally {
-      timestamps.readLock.unlock
+      readLock.unlock
+      //timestamps.readLock.unlock
     }
   }
 
   def lastOccurredTime: Long = {
     try {
-      timestamps.readLock.lock
+      readLock.lock
+      //timestamps.readLock.lock
 
       timestamps.lastOccurredTime
     } finally {
-      timestamps.readLock.unlock
+      readLock.unlock
+      //timestamps.readLock.unlock
     }
   }
 
