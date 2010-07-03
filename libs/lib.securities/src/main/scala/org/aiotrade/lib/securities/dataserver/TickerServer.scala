@@ -283,6 +283,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           }
 
           if (validTicker) {
+            sec.exchange.uniSymbolToLastTicker.put(ticker.symbol, ticker)
             prevTicker.copyFrom(ticker)
           }
 

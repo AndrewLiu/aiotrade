@@ -78,18 +78,6 @@ object Exchange extends Publisher {
       }
     ).toMap
 
-  lazy val uniSymbolToLastTicker = {
-    val map = new HashMap[String, Ticker]
-    for (ex <- allExchanges;
-         (sec, ticker) <- Tickers.lastTickersOf(ex) if sec != null
-    ) {
-      val symbol = sec.uniSymbol
-      ticker.symbol = symbol
-      map.put(symbol, ticker)
-    }
-    map
-  }
-
   def withCode(code: String) = allExchanges.find(_.code == code ) getOrElse (throw new Exception("Cannot find exchange of " + code))
 
   def exchangeOf(uniSymbol: String): Exchange = {
@@ -159,6 +147,16 @@ class Exchange {
   lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
   private var _symbols = List[String]()
+
+  lazy val uniSymbolToLastTicker = {
+    val map = new HashMap[String, Ticker]
+    for ((sec, ticker) <- Tickers.lastTickersOf(this) if sec != null) {
+      val symbol = sec.uniSymbol
+      ticker.symbol = symbol
+      map.put(symbol, ticker)
+    }
+    map
+  }
 
   def open: Calendar = {
     val cal = Calendar.getInstance(timeZone)

@@ -396,7 +396,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     if (!lastTickers.exists(_.symbol == uniSymbol)) {
-      val lastTicker = Exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(new LightTicker)
+      val lastTicker = sec.exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(new LightTicker)
       lastTicker.symbol = uniSymbol
       updateByTicker(uniSymbol, lastTicker)
     }
