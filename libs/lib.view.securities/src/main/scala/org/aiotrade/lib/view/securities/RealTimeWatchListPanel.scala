@@ -57,6 +57,7 @@ import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
@@ -103,7 +104,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     DAY_OPEN
   )
 
-  private val lastTickers = new ArrayList[Ticker]
+  private val lastTickers = new ArrayList[LightTicker]
   private class Info {
     var inWatching = false
     val prevTicker = new Ticker
@@ -262,7 +263,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
   }
 
-  private def updateByTicker(symbol: String, ticker: Ticker) {
+  private def updateByTicker(symbol: String, ticker: LightTicker) {
     val (info, dayFirst) = symbolToInfo.get(symbol) match {
       case Some(x) => (x, false)
       case None =>
@@ -311,7 +312,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val SWITCH_COLOR_A = LookFeel().nameColor
   private val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
-  private def setColColorsByTicker(info: Info, ticker: Ticker) {
+  private def setColColorsByTicker(info: Info, ticker: LightTicker) {
     val fgColor = if (info.inWatching) LookFeel().nameColor else Color.GRAY.brighter
 
     val colKeyToColor = info.colKeyToColor
@@ -382,8 +383,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   def watch(sec: Sec) {
     listenTo(sec)
 
-    val symbol = sec.uniSymbol
-    symbolToInfo.get(symbol) match {
+    val uniSymbol = sec.uniSymbol
+    symbolToInfo.get(uniSymbol) match {
       case Some(x) =>
         x.inWatching = true
         setColColorsByTicker(x, x.prevTicker)
@@ -391,15 +392,21 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       case None =>
         val x = new Info
         x.inWatching = true
-        symbolToInfo.put(symbol, x)
+        symbolToInfo.put(uniSymbol, x)
+    }
+
+    if (!lastTickers.exists(_.symbol == uniSymbol)) {
+      val lastTicker = Exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(new LightTicker)
+      lastTicker.symbol = uniSymbol
+      updateByTicker(uniSymbol, lastTicker)
     }
   }
 
   def unWatch(sec: Sec) {
     deafTo(sec)
 
-    val symbol = sec.uniSymbol
-    symbolToInfo.get(symbol) match {
+    val uniSymbol = sec.uniSymbol
+    symbolToInfo.get(uniSymbol) match {
       case Some(x) =>
         x.inWatching = false
         setColColorsByTicker(x, x.prevTicker)
@@ -433,26 +440,30 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
        * of tableModel will remain the same.
        */
       val symbol = symbolAtRow(row)
-      val colKeyToColor = symbolToInfo(symbol).colKeyToColor
+      symbolToInfo.get(symbol) match {
+        case Some(info) =>
+          val colKeyToColor = info.colKeyToColor
 
-      val colKey = colKeys(col)
-      if (isSelected) {
-        setBackground(bgColorSelected)
-      } else {
-        setBackground(LookFeel().backgroundColor)
-      }
+          val colKey = colKeys(col)
+          if (isSelected) {
+            setBackground(bgColorSelected)
+          } else {
+            setBackground(LookFeel().backgroundColor)
+          }
 
-      setForeground(colKeyToColor(colKey))
-      
-      setText(null)
+          setForeground(colKeyToColor(colKey))
 
-      if (value != null) {
-        colKey match {
-          case SYMBOL => setHorizontalAlignment(SwingConstants.LEADING)
-          case _      => setHorizontalAlignment(SwingConstants.TRAILING)
-        }
+          if (value != null) {
+            colKey match {
+              case SYMBOL => setHorizontalAlignment(SwingConstants.LEADING)
+              case _      => setHorizontalAlignment(SwingConstants.TRAILING)
+            }
 
-        setText(value.toString)
+            setText(value.toString)
+          } else {
+            setText(null)
+          }
+        case None =>
       }
 
       this

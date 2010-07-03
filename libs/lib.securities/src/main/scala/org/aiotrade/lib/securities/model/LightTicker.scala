@@ -96,6 +96,35 @@ class LightTicker extends TVal with JsonSerializable {
     isChanged
   }
 
+  final def changeInPercent: Float = {
+    if (prevClose == 0) 0f  else (lastPrice - prevClose) / prevClose * 100f
+  }
+
+  final def isDayVolumeGrown(prevTicker: LightTicker): Boolean = {
+    dayVolume > prevTicker.dayVolume // && isSameDay(prevTicker) @todo
+  }
+
+  final def isDayVolumeChanged(prevTicker: LightTicker): Boolean = {
+    dayVolume != prevTicker.dayVolume // && isSameDay(prevTicker) @todo
+  }
+
+  final def isSameDay(prevTicker: LightTicker, cal: Calendar): Boolean = {
+    cal.setTimeInMillis(time)
+    val monthA = cal.get(Calendar.MONTH)
+    val dayA = cal.get(Calendar.DAY_OF_MONTH)
+    cal.setTimeInMillis(prevTicker.time)
+    val monthB = cal.get(Calendar.MONTH)
+    val dayB = cal.get(Calendar.DAY_OF_MONTH)
+
+    monthB == monthB && dayA == dayB
+  }
+
+  final def compareLastPriceTo(prevTicker: LightTicker): Int = {
+    if (lastPrice > prevTicker.lastPrice) 1
+    else if (lastPrice == prevTicker.lastPrice) 0
+    else 1
+  }
+
   def reset {
     time = 0
 

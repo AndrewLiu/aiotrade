@@ -1,9 +1,9 @@
 package org.aiotrade.lib.securities.model
 
-import java.util.Calendar
 import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
+import scala.collection.mutable.HashMap
 
 /**
  * Assume table BidAsk's structure:
@@ -51,15 +51,21 @@ object Tickers extends Table[Ticker] {
     (SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list)
   }
 
-  def lastTickersOf(exchange: Exchange): Seq[Ticker] = {
+  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
     SELECT (Tickers.*, Quotes1d.*) FROM (Tickers JOIN (Quotes1d JOIN Secs)) WHERE (
       (Quotes1d.time EQ (
           SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
         )
       ) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
     ) ORDER_BY (Tickers.time ASC, Tickers.id ASC) list match {
-      case xs if xs.isEmpty => Nil
-      case xs => xs map (_._1) groupBy (_.quote) map (_._2.head) toSeq
+      case xs if xs.isEmpty => new HashMap[Sec, Ticker]
+      case xs =>
+        val map = new HashMap[Sec, Ticker]
+        xs map (_._1) groupBy (_.quote.sec) foreach {case (sec, tickers) =>
+            map.put(sec, tickers.head)
+        }
+        map
     }
   }
 
@@ -152,35 +158,6 @@ class Ticker(val depth: Int) extends LightTicker {
     }
 
     false
-  }
-
-  final def isDayVolumeGrown(prevTicker: Ticker): Boolean = {
-    dayVolume > prevTicker.dayVolume // && isSameDay(prevTicker) @todo
-  }
-
-  final def isDayVolumeChanged(prevTicker: Ticker): Boolean = {
-    dayVolume != prevTicker.dayVolume // && isSameDay(prevTicker) @todo
-  }
-
-  final def isSameDay(prevTicker: Ticker, cal: Calendar): Boolean = {
-    cal.setTimeInMillis(time)
-    val monthA = cal.get(Calendar.MONTH)
-    val dayA = cal.get(Calendar.DAY_OF_MONTH)
-    cal.setTimeInMillis(prevTicker.time)
-    val monthB = cal.get(Calendar.MONTH)
-    val dayB = cal.get(Calendar.DAY_OF_MONTH)
-
-    monthB == monthB && dayA == dayB
-  }
-
-  final def changeInPercent: Float = {
-    if (prevClose == 0) 0f  else (lastPrice - prevClose) / prevClose * 100f
-  }
-
-  final def compareLastPriceTo(prevTicker: Ticker): Int = {
-    if (lastPrice > prevTicker.lastPrice) 1
-    else if (lastPrice == prevTicker.lastPrice) 0
-    else 1
   }
 
   def toLightTicker: LightTicker = {

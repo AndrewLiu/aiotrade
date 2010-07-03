@@ -669,26 +669,24 @@ object SymbolNodes {
       val listName = getListName(node)
 
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      var sec = contents.serProvider match {
-        case null =>
-          contents.lookupActiveDescriptor(classOf[QuoteContract]) map {quoteContract =>
-            //val sec = new Sec(contents.uniSymbol, List(quoteContract))
-            val sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+      Exchange.secOf(contents.uniSymbol) match {
+        case Some(sec) =>
+          contents.serProvider = sec
+          contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
             sec.quoteContracts = List(quoteContract)
-            contents.serProvider = sec
             sec
-          } getOrElse null
-        case x: Sec => x
+          }
+
+          sec.subscribeTickerServer
+
+          val watchListTc = RealTimeWatchListTopComponent.getInstance(listName)
+          watchListTc.requestActive
+          watchListTc.watch(sec, node)
+
+          node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+          this.setEnabled(false)
+        case None =>
       }
-
-      sec.subscribeTickerServer
-
-      val watchListTc = RealTimeWatchListTopComponent.getInstance(listName)
-      watchListTc.requestActive
-      watchListTc.watch(sec, node)
-
-      node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-      this.setEnabled(false)
     }
   }
 
@@ -713,11 +711,16 @@ object SymbolNodes {
 
       /** otherwise, it's an OneSymbolNode, do real things */
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      Exchange.secOf(contents.uniSymbol) match {
+        case Some(sec) =>
+          sec.unSubscribeTickerServer
 
-      val sec = contents.serProvider match {
-        case null => return
-        case x: Sec => x
+          node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
+          this.setEnabled(false)
+        case None =>
       }
+
+
 
 //      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
 //        RealTimeWatchListTopComponent.instanceRefs.head.get.unWatch(sec)
@@ -731,10 +734,6 @@ object SymbolNodes {
 //        rtBoardWin.unWatch
 //      }
 
-      sec.unSubscribeTickerServer
-
-      node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
-      this.setEnabled(false)
     }
   }
 
