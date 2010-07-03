@@ -34,6 +34,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
+import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
@@ -285,6 +286,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           if (validTicker) {
             sec.exchange.uniSymbolToLastTicker.put(ticker.symbol, ticker)
             prevTicker.copyFrom(ticker)
+            sec.publish(TickerEvent(sec, ticker))
           }
 
           i += 1

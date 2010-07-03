@@ -45,7 +45,6 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
-import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.util.actors.Publisher
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
@@ -130,7 +129,7 @@ object Sec {
 }
 
 import Sec._
-class Sec extends SerProvider with Publisher with ChangeObserver {
+class Sec extends SerProvider with Publisher {
   // --- database fields
   var exchange: Exchange = _
 
@@ -211,13 +210,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
    * @TODO, how about tickerServer switched?
    */
   lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-
-  val updater: Updater = {
-    case ts: TickerSnapshot =>
-      val ticker = new Ticker
-      ticker.copyFrom(ts)
-      publish(TickerEvent(this, ticker))
-  }
 
   reactions += {
     case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
@@ -483,7 +475,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
       serOf(TFreq.DAILY) foreach {x => chainSers ::= x}
       
       tickerServer.subscribe(tickerContract, minSer, chainSers)
-      this observe lastData.tickerSnapshot
       //
       //            var break = false
       //            while (!break) {
@@ -503,7 +494,6 @@ class Sec extends SerProvider with Publisher with ChangeObserver {
   def unSubscribeTickerServer {
     if (tickerServer != null && tickerContract != null) {
       tickerServer.unSubscribe(tickerContract)
-      this unObserve lastData.tickerSnapshot
     }
   }
 
