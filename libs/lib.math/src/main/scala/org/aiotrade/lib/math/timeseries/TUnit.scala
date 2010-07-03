@@ -99,7 +99,8 @@ object TUnit {
  * synchronized each method that uses this instance or declare the cal
  * instance as volatile to share this instance by threads.
  */
-    
+
+@serializable
 abstract class TUnit {
   import TUnit._
 

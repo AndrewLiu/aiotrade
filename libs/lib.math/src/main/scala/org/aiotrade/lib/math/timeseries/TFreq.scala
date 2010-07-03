@@ -119,8 +119,11 @@ object TFreq {
  *
  * @author Caoyuan Deng
  */
+@serializable
 class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFreq] {
 
+  def this() = this(TUnit.Day, 1)
+  
   /**
    * interval in milliseconds
    */

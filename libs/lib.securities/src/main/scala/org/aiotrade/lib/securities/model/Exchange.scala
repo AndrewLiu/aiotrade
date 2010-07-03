@@ -65,12 +65,13 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  lazy val N  = withCode("N")
-  lazy val SS = withCode("SS")
-  lazy val SZ = withCode("SZ")
-  lazy val L  = withCode("L")
+  lazy val N  = withCode("N" ).get
+  lazy val SS = withCode("SS").get
+  lazy val SZ = withCode("SZ").get
+  lazy val L  = withCode("L" ).get
 
   lazy val allExchanges = Exchanges.all()
+  lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
 
   lazy val uniSymbolToSec =
     (allExchanges map (x => secsOf(x)) flatMap {secs =>
@@ -78,7 +79,7 @@ object Exchange extends Publisher {
       }
     ).toMap
 
-  def withCode(code: String) = allExchanges.find(_.code == code ) getOrElse (throw new Exception("Cannot find exchange of " + code))
+  def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
@@ -86,7 +87,7 @@ object Exchange extends Publisher {
       case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
-      case _ => N
+      case _ => SZ
     }
   }
 
@@ -149,7 +150,7 @@ class Exchange {
   private var _symbols = List[String]()
 
   lazy val uniSymbolToLastTicker = {
-    val map = new HashMap[String, Ticker]
+    val map = new HashMap[String, LightTicker]
     for ((sec, ticker) <- Tickers.lastTickersOf(this) if sec != null) {
       val symbol = sec.uniSymbol
       ticker.symbol = symbol
