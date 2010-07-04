@@ -487,6 +487,8 @@ object TStampsFactory {
     override def toArray[B >: Long : ClassManifest]: Array[B] = delegateTimestamps.toArray
         
     override def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
+
+    override def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)
         
     override def +(elem:Long) = delegateTimestamps + elem
         
@@ -614,13 +616,9 @@ object TStampsFactory {
         indexOfNearestOccurredTimeBefore(cursorTime)
       }
             
-      def nextRow: Int = {
-        cursorRow
-      }
+      def nextRow: Int = cursorRow
             
-      def previousRow: Int = {
-        cursorRow - 1
-      }
+      def previousRow: Int = {cursorRow - 1}
     }
         
   }

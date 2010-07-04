@@ -167,9 +167,11 @@ class Sec extends SerProvider with Publisher {
 
   var description = ""
   var name = ""
-  var defaultFreq: TFreq = _
+  private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
+
+  def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
   def quoteContracts = _quoteContracts
   def quoteContracts_=(quoteContracts: Seq[QuoteContract]) {
@@ -181,16 +183,16 @@ class Sec extends SerProvider with Publisher {
   private def createFreqSers {
     for (contract <- quoteContracts) {
       val freq = contract.freq
-      if (defaultFreq == null) {
-        defaultFreq = freq
+      if (_defaultFreq == null) {
+        _defaultFreq = freq
       }
-      freqToQuoteContract(freq) = contract
-      freqToQuoteSer(freq) = new QuoteSer(this, freq)
+      freqToQuoteContract.put(freq, contract)
+      freqToQuoteSer.put(freq, new QuoteSer(this, freq))
     }
     
     // basic freqs:
     for (freq <- basicFreqs if !freqToQuoteContract.contains(freq)) {
-      freqToQuoteSer(freq) = new QuoteSer(this, freq)
+      freqToQuoteSer.put(freq, new QuoteSer(this, freq))
     }
   }
 
@@ -369,7 +371,7 @@ class Sec extends SerProvider with Publisher {
 
     val ser = serOf(freq) getOrElse {
       val x = new QuoteSer(this, freq)
-      freqToQuoteSer(freq) = x
+      freqToQuoteSer.put(freq, x)
       x
     }
 
@@ -379,12 +381,8 @@ class Sec extends SerProvider with Publisher {
 
     // try to load from quote server
 
-    val quoteServer = quoteServerOf(freq) getOrElse (return false)
-    val contract = freqToQuoteContract(freq)
-
-    if (!quoteServer.isContractSubsrcribed(contract)) {
-      quoteServer.subscribe(contract, ser)
-    }
+    val (quoteServer, contract) = quoteServerOf(freq) getOrElse (return false)
+    quoteServer.subscribe(contract, ser)
 
     ser.inLoading = true
     quoteServer.loadHistory(loadedTime)
@@ -394,18 +392,29 @@ class Sec extends SerProvider with Publisher {
     true
   }
 
-  private def quoteServerOf(freq: TFreq): Option[QuoteServer] = {
-    freqToQuoteServer get(freq) match {
+  private def quoteServerOf(freq: TFreq): Option[(QuoteServer, QuoteContract)] = {
+    freqToQuoteServer.get(freq) match {
       case None =>
-        val contract = freqToQuoteContract get(freq) getOrElse (return None)
-        // ask contract instead of server
-        if (!contract.isFreqSupported(freq)) return None
+        val contract = freqToQuoteContract.get(freq) match {
+          case Some(x) => x
+          case None => freqToQuoteContract.get(defaultFreq) match {
+              case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
+                val x = new QuoteContract
+                x.freq = freq
+                x.refreshable = false
+                x.symbol = defaultOne.symbol
+                x.serviceClassName = defaultOne.serviceClassName
+                freqToQuoteContract.put(freq, x)
+                x
+              case _ => return None
+            }
+        }
 
         contract.serviceInstance() match {
           case None => None
-          case Some(x) => freqToQuoteServer.put(freq, x); Some(x)
+          case Some(x) => freqToQuoteServer.put(freq, x); Some(x, contract)
         }
-      case some => some
+      case Some(x) => Some(x, freqToQuoteContract(freq))
     }
 
   }
@@ -444,8 +453,7 @@ class Sec extends SerProvider with Publisher {
     "Sec(Company=" + company + ", info=" + secInfo + ")"
   }
 
-  def dataContract: QuoteContract = 
-    freqToQuoteContract(defaultFreq)
+  def dataContract: QuoteContract = freqToQuoteContract(defaultFreq)
   def dataContract_=(quoteContract: QuoteContract) {
     val freq = quoteContract.freq
     freqToQuoteContract += (freq -> quoteContract)
@@ -461,7 +469,7 @@ class Sec extends SerProvider with Publisher {
 
     if (tickerContract.serviceClassName == null) {
       quoteServerOf(defaultFreq) match {
-        case Some(quoteServer) => quoteServer.classOfTickerServer match {
+        case Some((quoteServer, _)) => quoteServer.classOfTickerServer match {
             case Some(clz) => tickerContract.serviceClassName = clz.getName
             case None =>
           }
@@ -469,7 +477,7 @@ class Sec extends SerProvider with Publisher {
       }
     }
 
-    startTickerRefreshIfNecessary
+    //startTickerRefreshIfNecessary
   }
 
   private def startTickerRefreshIfNecessary {

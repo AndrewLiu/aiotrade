@@ -84,7 +84,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     sec.tickerSnapshot
   }
 
-  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer]) {
+  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer] = Nil) {
     super.subscribe(contract, ser, chainSers)
     /**
      * !NOTICE
@@ -96,8 +96,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val symbol = contract.symbol
     val sec = Exchange.secOf(contract.symbol).get
     val tickerSnapshot = sec.tickerSnapshot
-    this observe tickerSnapshot
     tickerSnapshot.symbol = symbol
+    this observe tickerSnapshot
   }
 
   override def unSubscribe(contract: TickerContract) {

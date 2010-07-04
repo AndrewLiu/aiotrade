@@ -188,6 +188,12 @@ class ArrayList[@specialized A](override protected val initialSize: Int)(protect
     Array.copy(array, start, xs, 0, len)
   }
 
+  def sliceToArray(start: Int, len: Int): Array[A] = {
+    val res = makeArray(len)
+    Array.copy(array, start, res, 0, len)
+    res
+  }
+
   // --- overrided methods for performance
 
   override def head: A = {

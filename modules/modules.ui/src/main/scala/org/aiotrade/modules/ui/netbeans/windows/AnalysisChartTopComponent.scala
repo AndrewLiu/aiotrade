@@ -116,8 +116,6 @@ object AnalysisChartTopComponent {
         singleton = new AnalysisChartTopComponent(contents)
       }
 
-      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-      val freq = quoteContract.freq
       if ((singleton.contents ne contents) || (singleton.freq != freq)) {
         singleton.init(contents)
       }

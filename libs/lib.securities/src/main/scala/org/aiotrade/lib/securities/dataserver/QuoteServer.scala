@@ -65,22 +65,22 @@ abstract class QuoteServer extends DataServer[Quote] {
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
   override protected def postLoadHistory {
-    for (contract <- subscribedContracts) {
-      val serToFill = serOf(contract).get
-
+    for (contract <- subscribedContracts;
+         serToFill <- serOf(contract)
+    ) {
       val freq = serToFill.freq
-      val storage = storageOf(contract)
       val sec = Exchange.secOf(contract.symbol).get
+      val storage = storageOf(contract)
       storage synchronized {
         storage foreach {_.sec = sec}
-        if (freq == TFreq.DAILY) {
-          //Quotes1d.insertBatch(storage.toArray)
-          Quotes1d.saveBatch(sec, storage)
-          commit
-        } else if (freq == TFreq.ONE_MIN) {
-          //Quotes1m.insertBatch(storage.toArray)
-          Quotes1m.saveBatch(sec, storage)
-          commit
+        freq match {
+          case TFreq.DAILY =>
+            Quotes1d.saveBatch(sec, storage)
+            commit
+          case TFreq.ONE_MIN =>
+            Quotes1m.saveBatch(sec, storage)
+            commit
+          case _ =>
         }
 
         serToFill ++= storage.toArray
@@ -90,8 +90,9 @@ abstract class QuoteServer extends DataServer[Quote] {
   }
 
   override protected def postRefresh {
-    for (contract <- subscribedContracts) {
-      val serToFill = serOf(contract).get
+    for (contract <- subscribedContracts;
+         serToFill <- serOf(contract)
+    ) {
       val storage = storageOf(contract)
       storage synchronized {
         serToFill ++= storage.toArray

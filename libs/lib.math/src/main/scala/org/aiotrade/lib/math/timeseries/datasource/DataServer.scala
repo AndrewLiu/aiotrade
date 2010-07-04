@@ -120,7 +120,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private case object Refresh
   private case class LoadHistory(afterTime: Long) extends Event
   private var inRefreshing: Boolean = _
-  private val refreshActor = new scala.actors.Reactor[Any] {
+  private val loadActor = new scala.actors.Reactor[Any] {
     start
     def act = loop {
       react {
@@ -139,7 +139,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   reactions += {
     case HeartBeat(interval) if refreshable =>
-      refreshActor ! Refresh
+      loadActor ! Refresh
   }
 
   listenTo(DataServer)
@@ -158,7 +158,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
      */
-    refreshActor ! LoadHistory(afterTime)
+    loadActor ! LoadHistory(afterTime)
   }
 
   protected def postLoadHistory {}
@@ -176,13 +176,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected def postStopRefresh {}
 
   /**
-   * @param contract DataContract which contains all the type, market info for this source
-   * @param ser the Ser that will be filled by this server
-   */
-  def subscribe(contract: C, ser: T): Unit =
-    subscribe(contract, ser, Nil)
-
-  /**
    * first ser is the base one,
    * second one (if available) is that who concerns first one, etc.
    * Example: tickering ser also will compose today's quoteSer
@@ -191,13 +184,13 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: T, chainSers: List[T]): Unit = subscribingMutex synchronized {
-    subscribedContractToSer += (contract -> ser)
-    subscribedSymbolToContract += (contract.symbol -> contract)
+  def subscribe(contract: C, ser: T, chainSers: List[T] = Nil): Unit = subscribingMutex synchronized {
+    subscribedContractToSer.put(contract, ser)
+    subscribedSymbolToContract.put(contract.symbol, contract)
     val chainSersX = chainSers ::: (serToChainSers.get(ser) getOrElse Nil)
-    serToChainSers += (ser -> chainSersX)
+    serToChainSers.put(ser, chainSersX)
   }
-
+  
   def unSubscribe(contract: C) = subscribingMutex synchronized {
     cancelRequest(contract)
     serToChainSers -= subscribedContractToSer.get(contract).get
@@ -206,11 +199,21 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     releaseStorage(contract)
   }
 
-  def isContractSubsrcribed(contract: C): Boolean =
+  def isContractSubsrcribed(contract: C): Boolean = subscribingMutex synchronized {
     subscribedSymbolToContract contains contract.symbol
+  }
 
-  def subscribedContracts: Iterator[C] =
+  def subscribedContracts: Iterator[C] = subscribingMutex synchronized {
     subscribedContractToSer.keysIterator
+  }
+  
+  protected def serOf(contract: C): Option[T] = subscribingMutex synchronized {
+    subscribedContractToSer.get(contract)
+  }
+
+  protected def chainSersOf(ser: T): List[T] = subscribingMutex synchronized {
+    serToChainSers.get(ser) getOrElse Nil
+  }
 
   def createNewInstance: Option[DataServer[V]] = {
     try {
@@ -343,11 +346,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     if (subscribedContracts.isEmpty) None else Some(subscribedContracts.next)
   }
 
-  protected def serOf(contract: C): Option[T] = 
-    subscribedContractToSer.get(contract)
-
-  protected def chainSersOf(ser: T): List[T] = 
-    serToChainSers.get(ser) getOrElse Nil
 
   protected def cancelRequest(contract: C) {}
 
