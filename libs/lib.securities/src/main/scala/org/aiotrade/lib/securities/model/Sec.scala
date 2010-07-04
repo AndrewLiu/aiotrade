@@ -477,7 +477,7 @@ class Sec extends SerProvider with Publisher {
       }
     }
 
-    //startTickerRefreshIfNecessary
+    startTickerRefreshIfNecessary
   }
 
   private def startTickerRefreshIfNecessary {
