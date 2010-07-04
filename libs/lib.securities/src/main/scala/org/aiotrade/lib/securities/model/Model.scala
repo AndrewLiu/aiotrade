@@ -22,9 +22,9 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
-    temporaryTest
+    //temporaryTest
     //test
-    //createSamples
+    createSamples
 
     Scheduler.shutdown
     System.exit(0)

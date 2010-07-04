@@ -606,38 +606,34 @@ object SymbolNodes {
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
       var mayNeedsReload = false
-      val sec = contents.serProvider match {
-        case null =>
-          val x = Exchange.secOf(contents.uniSymbol) getOrElse (return)
-          x.quoteContracts = List(quoteContract)
-          contents.serProvider = x
-          x
-        case x =>
-          mayNeedsReload = true
-          x.asInstanceOf[Sec]
-      }
+      Exchange.secOf(contents.uniSymbol) match {
+        case Some(sec) =>
+          sec.quoteContracts = List(quoteContract)
+          contents.serProvider = sec
+          
+          val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
+            case null => false
+            case x => x.asInstanceOf[Boolean]
+          }
+          val analysisTc = AnalysisChartTopComponent(contents, standalone)
+          analysisTc.setActivatedNodes(Array(node))
+          /**
+           * !NOTICE
+           * close a TopComponent doen's mean this TopComponent is null, it still
+           * exsit, just invsible
+           */
+          /** if TopComponent of this stock has been shown before, should reload quote data, why */
+          /* if (mayNeedsReload) {
+           sec.clearSer(quoteContract.freq)
+           } */
 
-      val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
-        case null => false
-        case x => x.asInstanceOf[Boolean]
-      }
-      val analysisTc = AnalysisChartTopComponent(contents, standalone)
-      analysisTc.setActivatedNodes(Array(node))
-      /**
-       * !NOTICE
-       * close a TopComponent doen's mean this TopComponent is null, it still
-       * exsit, just invsible
-       */
-      /** if TopComponent of this stock has been shown before, should reload quote data, why */
-      /* if (mayNeedsReload) {
-       sec.clearSer(quoteContract.freq)
-       } */
+          if (!analysisTc.isOpened) {
+            analysisTc.open
+          }
 
-      if (!analysisTc.isOpened) {
-        analysisTc.open
+          analysisTc.requestActive
+        case None =>
       }
-
-      analysisTc.requestActive
     }
   }
 

@@ -7,7 +7,7 @@ import com.rabbitmq.client.Consumer
 import java.io.IOException
 import scala.actors.Actor
 
-trait RpcRequest
+case class RpcRequest(args: List[Any]) {def this() = this(Nil)}
 case class RpcResponse(req: RpcRequest, result: Any)
 
 /**

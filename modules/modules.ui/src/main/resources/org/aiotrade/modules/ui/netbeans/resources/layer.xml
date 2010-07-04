@@ -272,7 +272,7 @@
         The files declared like here, will be automatically copied to <userdir>/config/
         only when you modify and save it.
         -->
-        <file name="DefaultContents.xml" url="DefaultContents.xml"/>
+        <!--file name="DefaultContents.xml" url="DefaultContents.xml"/-->
         <file name="aiotrade.properties" url="aiotrade.properties"/>
         <folder name="Template">
             <file name="preview.csv" url="preview.csv"/>

@@ -32,6 +32,7 @@ package org.aiotrade.modules.ui.netbeans.actions;
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent
@@ -72,9 +73,8 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
   }
 
   private def createQuoteContract = {
-    val quoteContract = new QuoteContract
-    quoteContract.active = true
-    quoteContract.serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
+    val contents = PersistenceManager().defaultContents
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
     //quoteContract.beginDate_$eq((Date) fromDateField.getValue());
     //quoteContract.endDate_$eq((Date) toDateField.getValue());
     //quoteContract.urlString_$eq(pathField.getText().trim());

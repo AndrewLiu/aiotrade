@@ -207,6 +207,7 @@
         <module>lib.sevenzip</module>
         <module>lib.util</module>
         <module>lib.view.securities</module>
+        <module>org.apache.commons</module>
         <module>org.scala-lang</module>
         <module>ru.circumflex.orm</module>
     </modules>
