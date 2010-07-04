@@ -375,31 +375,39 @@ class Sec extends SerProvider with Publisher {
 
     // load from persistence
     val loadedTime = loadSerFromPersistence(freq)
-    log.info(uniSymbol + ": loaded from persistence, loaded time=" + loadedTime + ", freq=" + freq)
+    log.info(uniSymbol + ": loaded from persistence, loaded time=" + loadedTime + ", freq=" + freq + ", size=" + ser.size)
 
     // try to load from quote server
 
-    // ask contract instead of server
-    val contract = freqToQuoteContract get(freq) getOrElse (return false)
-    if (!contract.isFreqSupported(freq)) return false
-
-    val quoteServer = freqToQuoteServer get(freq) getOrElse {
-      contract.serviceInstance() match {
-        case None => return false
-        case Some(x) => freqToQuoteServer += (freq -> x); x
-      }
-    }
+    val quoteServer = quoteServerOf(freq) getOrElse (return false)
+    val contract = freqToQuoteContract(freq)
 
     if (!quoteServer.isContractSubsrcribed(contract)) {
       quoteServer.subscribe(contract, ser)
     }
 
-    quoteServer.loadHistory(loadedTime)
     ser.inLoading = true
+    quoteServer.loadHistory(loadedTime)
 
     listenTo(ser)
 
     true
+  }
+
+  private def quoteServerOf(freq: TFreq): Option[QuoteServer] = {
+    freqToQuoteServer get(freq) match {
+      case None =>
+        val contract = freqToQuoteContract get(freq) getOrElse (return None)
+        // ask contract instead of server
+        if (!contract.isFreqSupported(freq)) return None
+
+        contract.serviceInstance() match {
+          case None => None
+          case Some(x) => freqToQuoteServer.put(freq, x); Some(x)
+        }
+      case some => some
+    }
+
   }
 
   def isSerLoaded(freq: TFreq): Boolean = {
@@ -452,9 +460,9 @@ class Sec extends SerProvider with Publisher {
     tickerContract.symbol = uniSymbol
 
     if (tickerContract.serviceClassName == null) {
-      freqToQuoteServer.get(defaultFreq) match {
+      quoteServerOf(defaultFreq) match {
         case Some(quoteServer) => quoteServer.classOfTickerServer match {
-            case Some(clz) => tickerContract.serviceClassName = clz.getClass.getName
+            case Some(clz) => tickerContract.serviceClassName = clz.getName
             case None =>
           }
         case None =>

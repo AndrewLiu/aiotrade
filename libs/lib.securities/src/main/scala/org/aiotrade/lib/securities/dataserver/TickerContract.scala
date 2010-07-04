@@ -31,6 +31,8 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.Calendar
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
 
@@ -45,10 +47,11 @@ object TickerContract {
   val folderName = "TickerServers"
 }
 
+import TickerContract._
 class TickerContract extends SecDataContract[TickerServer] {
-  import TickerContract._
-    
-  serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
+  val log = Logger.getLogger(this.getClass.getName)
+  
+  serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
   urlString = ""
   refreshable = true
@@ -75,11 +78,13 @@ class TickerContract extends SecDataContract[TickerServer] {
     
   def lookupServiceTemplate: Option[TickerServer] = {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[TickerServer], folderName)
-    services find {x => x.getClass.getName.equals(serviceClassName)} match {
+    services find {x => x.getClass.getName == serviceClassName} match {
       case None =>
         try {
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
-        } catch {case ex :Exception => ex.printStackTrace; None}
+        } catch {
+          case ex: Exception => log.log(Level.SEVERE, "Cannot newInstance of class: " + serviceClassName, ex); None
+        }
       case some => some
     }
   }

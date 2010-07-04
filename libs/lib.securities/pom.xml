@@ -109,7 +109,7 @@
         <profile>
             <id>mysql</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+<!--                <activeByDefault>true</activeByDefault>-->
                 <property>
                     <name>db</name>
                     <value>mysql</value>
@@ -161,7 +161,7 @@
         <profile>
             <id>h2</id>
             <activation>
-<!--                <activeByDefault>true</activeByDefault>-->
+                <activeByDefault>true</activeByDefault>
                 <property>
                     <name>db</name>
                     <value>h2</value>

@@ -1,3 +1,4 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -75,8 +76,21 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Have to explicitly depend on lib.securities and lib.math, so the Ticker and TFreq's
+             class.forName can be loaded (during serialization) -->
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-securities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
 
