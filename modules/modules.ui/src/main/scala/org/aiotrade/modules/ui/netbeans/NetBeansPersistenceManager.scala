@@ -93,7 +93,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * use weak reference map here.
    */
   val defaultContents: AnalysisContents = restoreContents("Default")
-  private var userOptionsProps: Properties = _
+  private var propsLoaded = false
+  private var props: Properties = _
   private var dbDriver: String = _
   private var dbUser: String = _
   private var dbPassword: String = _
@@ -230,11 +231,11 @@ class NetBeansPersistenceManager extends PersistenceManager {
           var strDbUrl = ""
           var strDbUser = ""
           var strDbPassword = ""
-          if (userOptionsProps != null) {
-            strDbDriver = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.driver")
-            strDbUrl = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.url")
-            strDbUser = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.user")
-            strDbPassword = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.password")
+          if (props != null) {
+            strDbDriver = props.getProperty("org.aiotrade.platform.jdbc.driver")
+            strDbUrl = props.getProperty("org.aiotrade.platform.jdbc.url")
+            strDbUser = props.getProperty("org.aiotrade.platform.jdbc.user")
+            strDbPassword = props.getProperty("org.aiotrade.platform.jdbc.password")
           }
 
           props.setProperty("org.aiotrade.platform.option.lookfeel", lafStr)
@@ -269,25 +270,24 @@ class NetBeansPersistenceManager extends PersistenceManager {
   def restoreProperties {
     val propsFile = FileUtil.getConfigFile("UserOptions/aiotrade.properties")
     if (propsFile != null) {
-      userOptionsProps = null
       try {
-        userOptionsProps = new Properties
+        props = new Properties
         val is = propsFile.getInputStream
-        userOptionsProps.load(is)
+        props.load(is)
 
         is.close
       } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)}
 
-      if (userOptionsProps != null) {
-        val lafStr = userOptionsProps.getProperty("org.aiotrade.platform.option.lookfeel")
-        val colorReversedStr = userOptionsProps.getProperty("org.aiotrade.platform.option.colorreversed")
-        val thinVolumeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.thinvolume")
-        var quoteChartTypeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.quotecharttype")
-        val antiAliasStr = userOptionsProps.getProperty("org.aiotrade.platform.option.antialias")
-        val autoHideScrollStr = userOptionsProps.getProperty("org.aiotrade.platform.option.autohidescroll")
-        val proxyTypeStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxytype")
-        var proxyHostStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxyhost")
-        val proxyPortStr = userOptionsProps.getProperty("org.aiotrade.platform.option.proxyport", "80")
+      if (props != null) {
+        val lafStr = props.getProperty("org.aiotrade.platform.option.lookfeel")
+        val colorReversedStr = props.getProperty("org.aiotrade.platform.option.colorreversed")
+        val thinVolumeStr = props.getProperty("org.aiotrade.platform.option.thinvolume")
+        var quoteChartTypeStr = props.getProperty("org.aiotrade.platform.option.quotecharttype")
+        val antiAliasStr = props.getProperty("org.aiotrade.platform.option.antialias")
+        val autoHideScrollStr = props.getProperty("org.aiotrade.platform.option.autohidescroll")
+        val proxyTypeStr = props.getProperty("org.aiotrade.platform.option.proxytype")
+        var proxyHostStr = props.getProperty("org.aiotrade.platform.option.proxyhost")
+        val proxyPortStr = props.getProperty("org.aiotrade.platform.option.proxyport", "80")
 
         if (lafStr != null) {
           try {
@@ -347,6 +347,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
+  def properties = {
+    if (!propsLoaded) {
+      restoreProperties
+    }
+    props
+  }
+
   def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Seq[T] = {
     val lookup = Lookups.forPath(folderName)
     val tp = new Lookup.Template(clz)
@@ -357,17 +364,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   private def checkAndCreateDatabaseIfNecessary {
-    dbDriver = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.driver")
+    dbDriver = props.getProperty("org.aiotrade.platform.jdbc.driver")
 
     try {
       Class.forName(dbDriver)
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
 
     val strUserDir = System.getProperty("netbeans.user")
-    dbUrl = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade"
+    dbUrl = props.getProperty("org.aiotrade.platform.jdbc.url") + strUserDir + "/db/" + "aiotrade"
 
-    dbUser = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.user")
-    dbPassword = userOptionsProps.getProperty("org.aiotrade.platform.jdbc.password")
+    dbUser = props.getProperty("org.aiotrade.platform.jdbc.user")
+    dbPassword = props.getProperty("org.aiotrade.platform.jdbc.password")
 
     dbProps = new Properties
     dbProps.put("user", dbUser)

@@ -59,7 +59,7 @@ object UserOptionsManager {
     }
     return optionsLoaded
   }
-    
+
   /** setOptionsLoaded(false) will force reload options */
   def setOptionsLoaded(b: Boolean) {
     optionsLoaded = b

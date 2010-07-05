@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math
 
+import java.util.Properties
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ServiceLoader
 
@@ -49,6 +50,7 @@ object PersistenceManager {
 trait PersistenceManager {
   def restoreProperties
   def saveProperties
+  def properties: Properties
 
   def saveContents(contents: AnalysisContents)
   def restoreContents(uniSymbol: String): AnalysisContents
