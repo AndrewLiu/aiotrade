@@ -10,7 +10,7 @@
     <artifactId>com-mysql-jdbc</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-com-mysql-jdbc</name>
+    <name>com-mysql-jdbc-wrapper</name>
 
     <dependencies>
         <dependency>

@@ -10,7 +10,7 @@
     <artifactId>org-scala-lang</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-org-scala-lang</name>
+    <name>org-scala-lang-wrapper</name>
 
     <dependencies>
         <dependency>

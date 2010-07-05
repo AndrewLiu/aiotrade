@@ -10,7 +10,7 @@
     <artifactId>com-h2database-h2</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-com-h2database-h2</name>
+    <name>com-h2database-h2-wrapper</name>
 
     <dependencies>
         <dependency>

@@ -10,7 +10,7 @@
     <artifactId>org-aiotrade-lib-dataserver-ib</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-dataserver-ib</name>
+    <name>lib-dataserver-ib-wrapper</name>
 
     <dependencies>
         <dependency>

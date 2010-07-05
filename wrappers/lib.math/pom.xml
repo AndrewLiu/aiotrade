@@ -10,7 +10,7 @@
     <artifactId>org-aiotrade-lib-math</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-math</name>
+    <name>lib-math-wrapper</name>
 
     <dependencies>
         <dependency>

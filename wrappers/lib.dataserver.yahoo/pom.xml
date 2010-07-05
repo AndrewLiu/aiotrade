@@ -10,7 +10,7 @@
     <artifactId>org-aiotrade-lib-dataserver-yahoo</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-dataserver-yahoo</name>
+    <name>lib-dataserver-yahoo-wrapper</name>
 
     <dependencies>
         <dependency>

@@ -10,7 +10,7 @@
     <artifactId>org-aiotrade-lib-io</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-io</name>
+    <name>lib-io-wrapper</name>
 
     <dependencies>
         <dependency>

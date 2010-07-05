@@ -11,7 +11,7 @@
     <artifactId>ru-circumflex-orm</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-ru-circumflex-orm</name>
+    <name>ru-circumflex-orm-wrapper</name>
 
     <dependencies>
         <dependency>

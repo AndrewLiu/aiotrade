@@ -10,7 +10,7 @@
     <artifactId>org-aiotrade-lib-util</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-util</name>
+    <name>lib-util-wrapper</name>
 
     <dependencies>
         <dependency>

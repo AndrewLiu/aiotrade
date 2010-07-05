@@ -11,7 +11,7 @@
     <artifactId>org-aiotrade-lib-amqp</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
-    <name>wrapper-lib-amqp</name>
+    <name>lib-amqp-wrapper</name>
 
     <dependencies>
         <dependency>
