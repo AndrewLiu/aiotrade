@@ -51,8 +51,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val volume = TVar[Float]("V", Plot.Volume)
   val amount = TVar[Float]("A", Plot.Volume)
     
+  val close_adj = TVar[Float]("W")
   val close_ori = TVar[Float]()
-  val close_adj = TVar[Float]()
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 

@@ -60,17 +60,18 @@ object LightTicker {
   private val DAY_AMOUNT = 6
   private val DAY_CHANGE = 7
 
-  private val FIELD_LENGTH = 8
+  val FIELD_LENGTH = 8
 }
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker extends TVal with JsonSerializable {
-  @transient var quote: Quote = _
+class LightTicker(val data: Array[Float]) extends TVal with JsonSerializable {
+  @transient final var quote: Quote = _
+  @transient final protected var _isChanged: Boolean = _
+
+  def this() = this(new Array[Float](FIELD_LENGTH))
 
   final var symbol: String = _
-
-  private val data = new Array[Float](FIELD_LENGTH)
 
   final def prevClose = data(PREV_CLOSE)
   final def lastPrice = data(LAST_PRICE)
@@ -90,10 +91,9 @@ class LightTicker extends TVal with JsonSerializable {
   final def dayAmount_=(v: Float) = updateFieldValue(DAY_AMOUNT, v)
   final def dayChange_=(v: Float) = updateFieldValue(DAY_CHANGE, v)
 
-  protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
-    val isChanged = data(fieldIdx) != v
+  protected def updateFieldValue(fieldIdx: Int, v: Float) {
+    _isChanged = data(fieldIdx) != v
     data(fieldIdx) = v
-    isChanged
   }
 
   final def changeInPercent: Float = {
@@ -140,6 +140,9 @@ class LightTicker extends TVal with JsonSerializable {
     this.symbol = another.symbol
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
+
+  /** export to tuple */
+  def export: (Long, List[Array[Float]]) = (time, List(data))
 
   def isValueChanged(another: LightTicker): Boolean = {
     var i = 0

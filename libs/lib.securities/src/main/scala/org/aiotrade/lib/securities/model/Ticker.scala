@@ -78,10 +78,25 @@ object Tickers extends Table[Ticker] {
     val sql =
       "SELECT a.quotes_id, a.time FROM (SELECT quotes_id, MAX(time) AS maxtime FROM tickers GROUP BY quotes_id) AS x INNER JOIN tickers as a ON a.quotes_id = x.quotes_id AND a.time = x.maxtime;"
   }
+
 }
 
 case class TickerEvent (source: Sec, ticker: Ticker) extends Event
 case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
+
+object Ticker {
+  def importFrom(v: (Long, List[Array[Float]])): LightTicker = v match {
+    case (time: Long, List(data, bidAsks)) =>
+      val x = new Ticker(data, new MarketDepth(bidAsks))
+      x.time = time
+      x
+    case (time: Long, List(data)) =>
+      val x = new LightTicker(data)
+      x.time = time
+      x
+    case _ => null
+  }
+}
 
 /**
  *
@@ -96,12 +111,12 @@ case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
  * @author Caoyuan Deng
  */
 @serializable @cloneable
-class Ticker(val depth: Int) extends LightTicker {
-  @transient final protected var _isChanged: Boolean = _
+class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTicker($data) {
 
-  val marketDepth = new MarketDepth(new Array[Float](depth * 4))
-
+  def this(depth: Int) = this(new Array[Float](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Float](depth * 4)))
   def this() = this(5)
+
+  def depth = marketDepth.depth
 
   def bidAsks = marketDepth.bidAsks
   def bidAsks_=(values: Array[Float]) {
@@ -123,11 +138,6 @@ class Ticker(val depth: Int) extends LightTicker {
     _isChanged = b
   }
 
-  override protected def updateFieldValue(fieldIdx: Int, v: Float): Boolean = {
-    _isChanged = super.updateFieldValue(fieldIdx, v)
-    _isChanged
-  }
-
   override def reset {
     super.reset
 
@@ -138,10 +148,12 @@ class Ticker(val depth: Int) extends LightTicker {
     }
   }
 
-  def copyFrom(another: Ticker) = {
+  def copyFrom(another: Ticker) {
     super.copyFrom(another)
     System.arraycopy(another.bidAsks, 0, bidAsks, 0, bidAsks.length)
   }
+
+  override def export = (time, List(data, marketDepth.bidAsks))
 
   final def isValueChanged(another: Ticker): Boolean = {
     if (super.isValueChanged(another)) {
@@ -153,7 +165,6 @@ class Ticker(val depth: Int) extends LightTicker {
       if (bidAsks(i) != another.bidAsks(i)) {
         return true
       }
-
       i += 1
     }
 

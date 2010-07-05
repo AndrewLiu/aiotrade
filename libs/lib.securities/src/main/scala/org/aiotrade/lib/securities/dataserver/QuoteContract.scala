@@ -32,6 +32,8 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.awt.Image
 import java.util.Calendar
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
 
@@ -46,6 +48,8 @@ object QuoteContract {
 
 import QuoteContract._
 class QuoteContract extends SecDataContract[QuoteServer] {
+  val log = Logger.getLogger(this.getClass.getSimpleName)
+
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   active = true
@@ -100,18 +104,21 @@ class QuoteContract extends SecDataContract[QuoteServer] {
    */
   override def createServiceInstance(args: Any*): Option[QuoteServer] = {
     lookupServiceTemplate match {
-      case None => None
       case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
+      case None => None
     }
   }
 
   def lookupServiceTemplate: Option[QuoteServer] =  {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-    services find {x => x.getClass.getName.equals(serviceClassName)} match {
+    services find (x => x.getClass.getName == serviceClassName) match {
       case None =>
         try {
+          log.warning("Cannot find registeredService of QuoteServer in " + services + ", try Class.forName call: serviceClassName=" + serviceClassName)
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
-        } catch {case ex: Exception => ex.printStackTrace; None}
+        } catch {
+          case ex: Exception => log.log(Level.SEVERE, "Cannot class.forName of class: " + serviceClassName, ex); None
+        }
       case some => some
     }
   }
