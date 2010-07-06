@@ -93,8 +93,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
      * of tickerSnapshot may not know there is a new tickerSnapshot for
      * this symbol, the older one won't be updated any more.
      */
-    val symbol = contract.symbol
-    val sec = Exchange.secOf(contract.symbol).get
+    val symbol = contract.srcSymbol
+    val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
     tickerSnapshot.symbol = symbol
     this observe tickerSnapshot
@@ -102,8 +102,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
   override def unSubscribe(contract: TickerContract) {
     super.unSubscribe(contract)
-    val symbol = contract.symbol
-    val sec = Exchange.secOf(contract.symbol).get
+    val symbol = contract.srcSymbol
+    val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
     this unObserve tickerSnapshot
   }
@@ -157,7 +157,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         x
       }
 
-      val symbol = contract.symbol
+      val symbol = contract.srcSymbol
       val sec = Exchange.secOf(symbol).get
       val minSer = serOf(contract).get
 

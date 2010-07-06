@@ -50,21 +50,10 @@ import QuoteContract._
 class QuoteContract extends SecDataContract[QuoteServer] {
   val log = Logger.getLogger(this.getClass.getSimpleName)
 
-
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
-  active = true
   /** default freq */
   freq = TFreq.DAILY
   dateFormatPattern = Some("yyyy-MM-dd")
-  urlString = ""
-  refreshable = false
-  refreshInterval = 60000 // ms
-  inputStream = None
-
-  private val cal = Calendar.getInstance
-  endDate = cal.getTime
-  cal.set(1970, Calendar.JANUARY, 1)
-  beginDate = cal.getTime
 
   def icon: Option[Image] =  {
     val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate

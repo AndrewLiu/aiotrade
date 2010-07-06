@@ -186,7 +186,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    */
   def subscribe(contract: C, ser: T, chainSers: List[T] = Nil): Unit = subscribingMutex synchronized {
     subscribedContractToSer.put(contract, ser)
-    subscribedSymbolToContract.put(contract.symbol, contract)
+    subscribedSymbolToContract.put(contract.srcSymbol, contract)
     val chainSersX = chainSers ::: (serToChainSers.get(ser) getOrElse Nil)
     serToChainSers.put(ser, chainSersX)
   }
@@ -195,12 +195,12 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     cancelRequest(contract)
     serToChainSers -= subscribedContractToSer.get(contract).get
     subscribedContractToSer -= contract
-    subscribedSymbolToContract -= contract.symbol
+    subscribedSymbolToContract -= contract.srcSymbol
     releaseStorage(contract)
   }
 
   def isContractSubsrcribed(contract: C): Boolean = subscribingMutex synchronized {
-    subscribedSymbolToContract contains contract.symbol
+    subscribedSymbolToContract contains contract.srcSymbol
   }
 
   def subscribedContracts: Iterator[C] = subscribingMutex synchronized {

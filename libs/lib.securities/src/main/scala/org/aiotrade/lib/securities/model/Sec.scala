@@ -402,7 +402,7 @@ class Sec extends SerProvider with Publisher {
                 val x = new QuoteContract
                 x.freq = freq
                 x.refreshable = false
-                x.symbol = defaultOne.symbol
+                x.srcSymbol = defaultOne.srcSymbol
                 x.serviceClassName = defaultOne.serviceClassName
                 freqToQuoteContract.put(freq, x)
                 x
@@ -465,7 +465,7 @@ class Sec extends SerProvider with Publisher {
     if (uniSymbol == "") return
 
     // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-    tickerContract.symbol = uniSymbol
+    tickerContract.srcSymbol = uniSymbol
 
     if (tickerContract.serviceClassName == null) {
       quoteServerOf(defaultFreq) match {

@@ -30,10 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
 
@@ -44,40 +41,17 @@ import org.w3c.dom.Element
  */
 abstract class SecDataContract[S] extends DataContract[S] {
   var reqId = 0
-  var secKind: Sec.Kind = Sec.Kind.Stock
-  var primaryExchange = "SUPERSOES"
-  var exchange = "SMART"
-  var currency = "USD"
     
   active = true
-  urlString = ""
-  refreshable = false
-  refreshInterval = 60 // seconds
-  inputStream = None
     
-  private val cal = Calendar.getInstance
-  endDate = cal.getTime
-  cal.set(1970, Calendar.JANUARY, 1)
-  beginDate = cal.getTime
-
   override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)
-        
-    doc.valuePropertyOfBean(bean, "secKind", secKind)
-    doc.valuePropertyOfBean(bean, "primaryExchange", primaryExchange)
-    doc.valuePropertyOfBean(bean, "exchange", exchange)
-    doc.valuePropertyOfBean(bean, "currency", currency)
-        
+                
     bean
   }
     
   override def writeToJava(id: String): String = {
-    ""
-    super.writeToJava(id) +
-    JavaDocument.set(id, "setSecType", classOf[Sec.Kind].getName + "." + secKind) +
-    JavaDocument.set(id, "setPrimaryExchange", "" + primaryExchange) +
-    JavaDocument.set(id, "setExchange", "" + exchange) +
-    JavaDocument.set(id, "setCurrency", "" + currency)
+    super.writeToJava(id)
   }
     
 }

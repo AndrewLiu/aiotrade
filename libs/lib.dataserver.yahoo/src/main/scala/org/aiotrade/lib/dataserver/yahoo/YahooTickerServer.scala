@@ -81,7 +81,7 @@ class YahooTickerServer extends TickerServer {
     }
 
     while (contracts.hasNext) {
-      urlStr.append(contracts.next.symbol)
+      urlStr.append(contracts.next.srcSymbol)
       if (contracts.hasNext) urlStr.append("+")
     }
 

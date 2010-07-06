@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.timeseries.datasource
 
-import java.io.InputStream
 import java.util.Calendar
 import java.util.Date
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
@@ -51,27 +50,23 @@ import org.w3c.dom.Element
  */
 abstract class DataContract[S] extends AnalysisDescriptor[S] {
 
-  var symbol: String = _ // symbol in source
-  var category: String = _
-  var shortName: String = _
-  var longName: String = _
+  var srcSymbol: String = _ // symbol in source
   var dateFormatPattern: Option[String] = None
   var urlString: String = ""
   var refreshable: Boolean = false
   var refreshInterval: Int = 5000 // ms
-  var inputStream: Option[InputStream] = None
 
   private val cal = Calendar.getInstance
-  cal.set(1990, Calendar.JANUARY, 1)
-  var beginDate: Date = cal.getTime
-  var endDate: Date = cal.getTime
+  var endDate = cal.getTime
+  cal.set(1970, Calendar.JANUARY, 1)
+  var beginDate = cal.getTime
     
   override def toString: String = displayName
 
   override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)
 
-    doc.valuePropertyOfBean(bean, "symbol", symbol)
+    doc.valuePropertyOfBean(bean, "symbol", srcSymbol)
     doc.valuePropertyOfBean(bean, "dateFormatPattern", dateFormatPattern)
 
     val begDateBean = doc.createBean(beginDate)
@@ -91,7 +86,7 @@ abstract class DataContract[S] extends AnalysisDescriptor[S] {
 
   override def writeToJava(id: String): String = {
     super.writeToJava(id) +
-    JavaDocument.set(id, "setSymbol", "" + symbol) +
+    JavaDocument.set(id, "setSymbol", "" + srcSymbol) +
     JavaDocument.set(id, "setDateFormatPattern", "" + dateFormatPattern) +
     JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
     JavaDocument.set(id, "setBegDate", "begDate") +

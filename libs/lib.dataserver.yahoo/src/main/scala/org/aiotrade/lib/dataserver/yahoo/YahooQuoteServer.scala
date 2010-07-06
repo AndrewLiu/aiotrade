@@ -109,7 +109,7 @@ class YahooQuoteServer extends QuoteServer {
 
     val urlStr = new StringBuilder(50)
     urlStr.append(BaseUrl).append(UrlPath)
-    urlStr.append("?s=").append(contract.symbol)
+    urlStr.append("?s=").append(contract.srcSymbol)
 
     /** a, d is month, which from 0 to 11 */
     urlStr.append("&a=" + a + "&b=" + b + "&c=" + c +
@@ -151,25 +151,26 @@ class YahooQuoteServer extends QuoteServer {
     resetCount
     val storage = storageOf(contract)
     val freq = contract.freq
-    val symbol = contract.symbol
-    val exchange = exchangeOf(contract.symbol)
+    val symbol = contract.srcSymbol
+    val exchange = exchangeOf(symbol)
     val timeZone = exchange.timeZone
     // * for daily quote, yahoo returns exchange's local date, so use exchange time zone
     val cal = Calendar.getInstance(timeZone)
-    val dateFormat = dateFormatOf(timeZone)
+    val dateFormat = new SimpleDateFormat(defaultDateFormatPattern) //dateFormatOf(timeZone)
+    dateFormat.setTimeZone(timeZone)
     
     @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break now
       case line => line.split(",") match {
-          case Array(dateTimeX, openX, highX, lowX, closeX, volumeX, adjCloseX, _*) =>
+          case Array(dateX, openX, highX, lowX, closeX, volumeX, adjCloseX, _*) =>
             /**
              * !NOTICE
              * must catch the date parse exception, other wise, it's dangerous
              * for build a calendarTimes in BaseSer
              */
             try {
-              val date = dateFormat.parse(dateTimeX.trim)
+              val date = dateFormat.parse(dateX.trim)
               cal.clear
               cal.setTime(date)
             } catch {case _: ParseException => loop(newestTime)}
@@ -181,7 +182,7 @@ class YahooQuoteServer extends QuoteServer {
             }
 
             val quote = new Quote
-
+            println("time=" + time)
             quote.time   = time
             quote.open   = openX.trim.toFloat
             quote.high   = highX.trim.toFloat

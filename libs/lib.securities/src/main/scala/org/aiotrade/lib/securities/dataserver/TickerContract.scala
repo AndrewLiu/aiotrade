@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.Calendar
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -53,17 +52,10 @@ class TickerContract extends SecDataContract[TickerServer] {
   
   serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
-  urlString = ""
   refreshable = true
-  refreshInterval = 5000 // ms
-
-  private val cal = Calendar.getInstance
-  endDate = cal.getTime
-  cal.set(1990, Calendar.JANUARY, 1)
-  beginDate = cal.getTime
 
   override def displayName = {
-    "Ticker Data Contract[" + symbol + "]"
+    "Ticker Data Contract[" + srcSymbol + "]"
   }
     
   /**

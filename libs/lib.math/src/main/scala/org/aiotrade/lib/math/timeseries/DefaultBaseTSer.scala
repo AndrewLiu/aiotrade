@@ -167,11 +167,11 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
       var frTime = Long.MaxValue
       var toTime = Long.MinValue
 
+      val lenth = values.length
       val shouldReverse = !isAscending(values)
-
-      val size = values.length
-      var i = if (shouldReverse) size - 1 else 0
-      while (i >= 0 && i < size) {
+      println(" ++= of tbaseser: to process=" + lenth + ", orgin size=" + this.size)
+      var i = if (shouldReverse) lenth - 1 else 0
+      while (i >= 0 && i < lenth) {
         val value = values(i)
         val time = value.time
         createOrClear(time)
@@ -180,15 +180,12 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
         frTime = math.min(frTime, time)
         toTime = math.max(toTime, time)
 
-        if (shouldReverse) {
-          /** the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
-          i -= 1
-        } else {
-          /** the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
-          i += 1
-        }
+        /** shoudReverse: the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
+        /** otherwise:    the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
+        i += (if (shouldReverse) -1 else 1)
       }
 
+      println(" ++= of tbaseser: after size=" + this.size + " fr=" + frTime + " to=" + toTime)
       publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
 
     } finally {

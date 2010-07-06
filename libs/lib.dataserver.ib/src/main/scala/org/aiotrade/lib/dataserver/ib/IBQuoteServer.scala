@@ -42,6 +42,8 @@ import javax.imageio.ImageIO;
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Sec
 
 /**
  * TWS demo user/password
@@ -110,8 +112,10 @@ class IBQuoteServer extends QuoteServer {
     try {
             
       // set contract fields
-      m_contract.m_symbol = contract.symbol
-      m_contract.m_secType = IBWrapper.getSecKind(contract.secKind).get
+      m_contract.m_symbol = contract.srcSymbol
+      val sec = Exchange.secOf(contract.srcSymbol)
+      val kind = Sec.Kind.Stock // @TODO
+      m_contract.m_secType = IBWrapper.getSecKind(kind).get
       m_contract.m_expiry = ""
       m_contract.m_strike = 0
       m_contract.m_right = ""
@@ -133,7 +137,7 @@ class IBQuoteServer extends QuoteServer {
             
       /** set historical data fields: */
             
-      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate);
+      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate)
             
       val freq = serOf(contract).get.freq
             

@@ -34,6 +34,8 @@ import com.ib.client.Contract
 import java.util.TimeZone
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Sec
 
 
 /**
@@ -69,8 +71,10 @@ object IBTickerServer extends IBTickerServer {
       try {
                 
         // set contract fields
-        m_contract.m_symbol = contract.symbol
-        m_contract.m_secType = IBWrapper.getSecKind(contract.secKind).get
+        m_contract.m_symbol = contract.srcSymbol
+        val sec = Exchange.secOf(contract.srcSymbol)
+        val kind = Sec.Kind.Stock // @TODO
+        m_contract.m_secType = IBWrapper.getSecKind(kind).get
         m_contract.m_expiry = ""
         m_contract.m_strike = 0
         m_contract.m_right = ""
@@ -85,7 +89,7 @@ object IBTickerServer extends IBTickerServer {
       } catch {case ex: Exception => ex.printStackTrace; return}
       m_rc = true
             
-      val tickerSnapshot = tickerSnapshotOf(contract.symbol)
+      val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
       val reqId = ibWrapper.reqMktData(this, m_contract, tickerSnapshot)
       contract.reqId = reqId
     }
@@ -96,7 +100,7 @@ object IBTickerServer extends IBTickerServer {
     var newestTime  = Long.MinValue
     resetCount
     for (contract <- subscribedContracts) {
-      val tickerSnapshot = tickerSnapshotOf(contract.symbol)
+      val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
       newestTime = math.max(newestTime, tickerSnapshot.time)
       countOne
     }
@@ -116,7 +120,7 @@ object IBTickerServer extends IBTickerServer {
   }
     
   override protected def cancelRequest(contract: TickerContract) {
-    val tickerSnapshot = tickerSnapshotOf(contract.symbol)
+    val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
     tickerSnapshot.removeObservers
     ibWrapper.cancelMktDataRequest(contract.reqId)
   }
