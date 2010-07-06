@@ -166,8 +166,9 @@
     </reporting>
 
     <modules>
-        <module>modules.ui</module>
+        <module>modules.custom</module>
         <module>modules.quicksearch</module>
+        <module>modules.ui</module>
     </modules>
 
 </project>

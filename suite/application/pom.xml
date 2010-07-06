@@ -35,6 +35,13 @@
 
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-modules-custom</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>nbm</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-modules-ui</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>nbm</type>
