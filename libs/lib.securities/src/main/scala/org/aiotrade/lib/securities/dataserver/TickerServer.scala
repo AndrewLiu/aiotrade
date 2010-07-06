@@ -210,9 +210,10 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           
           } else {
 
-            if (ticker.time >= prevTicker.time) {
+            if (ticker.time - prevTicker.time > -1000) { // 1000ms, @Note: we add +1 to ticker.time later
+              // some datasource only counts on seconds, but we may truly have a new ticker
               if (ticker.time == prevTicker.time) {
-                ticker.time = prevTicker.time + 1
+                ticker.time = prevTicker.time + 1 
               }
               
               validTicker = true
