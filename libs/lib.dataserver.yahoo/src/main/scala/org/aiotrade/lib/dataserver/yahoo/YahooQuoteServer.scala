@@ -149,7 +149,7 @@ class YahooQuoteServer extends QuoteServer {
     val s = reader.readLine
 
     resetCount
-    val storage = storageOf(contract)
+    val storage = contract.storage
     val freq = contract.freq
     val symbol = contract.srcSymbol
     val exchange = exchangeOf(symbol)

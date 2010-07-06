@@ -40,12 +40,11 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import scala.actors.Actor
 import scala.actors.Actor._
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.{HashMap, HashSet}
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -88,16 +87,14 @@ object DataServer extends Publisher {
  */
 import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
-
-  type C <: DataContract[_]
-  type T <: TSer
+  type C <: DataContract[V, _]
 
   val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
-  private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  private val subscribedContractToSer = new HashMap[C, T]
+  //private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
+  val subscribedContracts = new HashSet[C]
   /** a quick seaching map */
   private val subscribedSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
@@ -107,7 +104,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * values (if available) are that who concern key ser.
    * Example: ticker ser also will compose today's quoteSer
    */
-  private val serToChainSers = new HashMap[T, List[T]]
+  //private val serToChainSers = new HashMap[T, List[T]]
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _
@@ -147,13 +144,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   // --- public interfaces
 
   def loadHistory(afterTime: Long) {
-    if (currentContract == None) {
-      assert(false, "dataContract not set!")
-    }
-
-    if (subscribedContractToSer.size == 0) {
-      assert(false, "none ser subscribed!")
-    }
+    assert(currentContract.isDefined, "dataContract not set!")
+    assert(!subscribedContracts.isEmpty, "none ser subscribed!")
 
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
@@ -184,35 +176,19 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * @param ser the Ser that will be filled by this server
    * @param chairSers
    */
-  def subscribe(contract: C, ser: T, chainSers: List[T] = Nil): Unit = subscribingMutex synchronized {
-    subscribedContractToSer.put(contract, ser)
+  def subscribe(contract: C): Unit = subscribingMutex synchronized {
+    subscribedContracts.add(contract)
     subscribedSymbolToContract.put(contract.srcSymbol, contract)
-    val chainSersX = chainSers ::: (serToChainSers.get(ser) getOrElse Nil)
-    serToChainSers.put(ser, chainSersX)
   }
   
-  def unSubscribe(contract: C) = subscribingMutex synchronized {
+  def unSubscribe(contract: C): Unit = subscribingMutex synchronized {
     cancelRequest(contract)
-    serToChainSers -= subscribedContractToSer.get(contract).get
-    subscribedContractToSer -= contract
+    subscribedContracts -= contract
     subscribedSymbolToContract -= contract.srcSymbol
-    releaseStorage(contract)
   }
 
   def isContractSubsrcribed(contract: C): Boolean = subscribingMutex synchronized {
-    subscribedSymbolToContract contains contract.srcSymbol
-  }
-
-  def subscribedContracts: Iterator[C] = subscribingMutex synchronized {
-    subscribedContractToSer.keysIterator
-  }
-  
-  protected def serOf(contract: C): Option[T] = subscribingMutex synchronized {
-    subscribedContractToSer.get(contract)
-  }
-
-  protected def chainSersOf(ser: T): List[T] = subscribingMutex synchronized {
-    serToChainSers.get(ser) getOrElse Nil
+    subscribedContracts contains contract
   }
 
   def createNewInstance: Option[DataServer[V]] = {
@@ -291,16 +267,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
      */
   }
 
-  protected def storageOf(contract: C): ArrayList[V] = {
-    contractToStorage.get(contract) match {
-      case None =>
-        val x = new ArrayList[V]
-        contractToStorage synchronized {contractToStorage(contract) = x}
-        x
-      case Some(x) => x
-    }
-  }
-
   /**
    * @TODO
    * temporary method? As in some data feed, the symbol is not unique,
@@ -308,14 +274,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    */
   protected def contractOf(symbol: String): Option[C] = {
     subscribedSymbolToContract.get(symbol)
-  }
-
-  private def releaseStorage(contract: C) {
-    /** don't get storage via getStorage(contract), which will create a new one if none */
-    for (storage <- contractToStorage.get(contract)) {
-      storage synchronized {storage.clear}
-    }
-    contractToStorage synchronized {contractToStorage.remove(contract)}
   }
 
   protected def isAscending(values: Array[V]): Boolean = {
@@ -343,7 +301,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
      * Till now, only QuoteDataServer call this method, and they all use the
      * per server per contract approach.
      */
-    if (subscribedContracts.isEmpty) None else Some(subscribedContracts.next)
+    subscribedContracts.headOption
   }
 
 

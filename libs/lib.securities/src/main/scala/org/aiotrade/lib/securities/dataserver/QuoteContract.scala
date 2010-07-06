@@ -35,7 +35,10 @@ import java.util.Calendar
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.model.Quote
 
 /**
  * most fields' default value should be OK.
@@ -47,7 +50,9 @@ object QuoteContract {
 }
 
 import QuoteContract._
-class QuoteContract extends SecDataContract[QuoteServer] {
+class QuoteContract extends DataContract[Quote, QuoteServer] {
+  type T = QuoteSer
+
   val log = Logger.getLogger(this.getClass.getSimpleName)
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
@@ -74,11 +79,6 @@ class QuoteContract extends SecDataContract[QuoteServer] {
   }
 
   def isFreqSupported(freq: TFreq): Boolean = {
-    //        /** check if is my default freq, if true at least support default freq */
-    //        if (freq.equals(getFreq())) {
-    //            return true;
-    //        }
-
     val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
     server match {
       case None => false

@@ -21,13 +21,7 @@ trait TestHelper {
     dataContract.active = true
     dataContract.serviceClassName = server.getName
 
-    dataContract.symbol = symbol
-    dataContract.category = category
-    dataContract.shortName = sname
-    dataContract.secKind = Sec.Kind.Stock
-    dataContract.exchange = "SSH"
-    dataContract.primaryExchange = "SSH"
-    dataContract.currency = "USD"
+    dataContract.srcSymbol = symbol
 
     dataContract.freq = freq
     dataContract.refreshable = refreshable
@@ -42,13 +36,7 @@ trait TestHelper {
     dataContract.active = true
     dataContract.serviceClassName = server.getName
 
-    dataContract.symbol = symbol
-    dataContract.category = category
-    dataContract.shortName = sname
-    dataContract.secKind = Sec.Kind.Stock
-    dataContract.exchange = "SSH"
-    dataContract.primaryExchange = "SSH"
-    dataContract.currency = "USD"
+    dataContract.srcSymbol = symbol
 
     dataContract.freq = freq
     dataContract.refreshable = true

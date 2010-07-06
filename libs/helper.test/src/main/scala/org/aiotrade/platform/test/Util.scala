@@ -225,13 +225,7 @@ class Util {
     dataContract.active = true
     dataContract.serviceClassName = server.getName
 
-    dataContract.symbol = symbol
-    dataContract.category = category
-    dataContract.shortName = sname
-    dataContract.secKind = Sec.Kind.Stock
-    dataContract.exchange= "SSH"
-    dataContract.primaryExchange = "SSH"
-    dataContract.currency = "USD"
+    dataContract.srcSymbol = symbol
 
     dataContract.dateFormatPattern = Some("yyyy-MM-dd")
 
@@ -249,13 +243,7 @@ class Util {
     dataContract.active = true
     dataContract.serviceClassName = server.getName
 
-    dataContract.symbol = symbol
-    dataContract.category = category
-    dataContract.shortName = sname
-    dataContract.secKind = Sec.Kind.Stock
-    dataContract.exchange = "SSH"
-    dataContract.primaryExchange = "SSH"
-    dataContract.currency = "USD"
+    dataContract.srcSymbol = symbol
 
     dataContract.dateFormatPattern = Some("yyyy-MM-dd-HH-mm-ss")
     dataContract.freq = freq

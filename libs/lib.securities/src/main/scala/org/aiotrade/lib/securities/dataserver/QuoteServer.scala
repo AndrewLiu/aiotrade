@@ -32,7 +32,6 @@ package org.aiotrade.lib.securities.dataserver
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -52,7 +51,6 @@ object QuoteServer {
 import QuoteServer._
 abstract class QuoteServer extends DataServer[Quote] {
   type C = QuoteContract
-  type T = QuoteSer
 
   reactions += {
     case Exchange.Opened(exchange: Exchange) =>
@@ -65,12 +63,11 @@ abstract class QuoteServer extends DataServer[Quote] {
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
   override protected def postLoadHistory {
-    for (contract <- subscribedContracts;
-         ser <- serOf(contract)
-    ) {
+    for (contract <- subscribedContracts) {
+      val ser = contract.ser
       val freq = ser.freq
       val sec = Exchange.secOf(contract.srcSymbol).get
-      val quotes = storageOf(contract)
+      val quotes = contract.storage
       quotes synchronized {
         quotes foreach {_.sec = sec}
         freq match {
@@ -90,10 +87,9 @@ abstract class QuoteServer extends DataServer[Quote] {
   }
 
   override protected def postRefresh {
-    for (contract <- subscribedContracts;
-         ser <- serOf(contract)
-    ) {
-      val quotes = storageOf(contract)
+    for (contract <- subscribedContracts) {
+      val ser = contract.ser
+      val quotes = contract.storage
       quotes synchronized {
         ser ++= quotes.toArray
         quotes.clear
@@ -107,18 +103,7 @@ abstract class QuoteServer extends DataServer[Quote] {
    */
   def supportedFreqs: Array[TFreq] = Array()
 
-  def isFreqSupported(freq: TFreq): Boolean = {
-    if (supportedFreqs exists (_ == freq)) return true
-
-    /**
-     * means supporting customed freqs (such as csv etc.), should ask
-     * contract if it has been set, so what ever:
-     */
-    currentContract match {
-      case None => false
-      case Some(x) => x.freq == freq
-    }
-  }
+  def isFreqSupported(freq: TFreq): Boolean = supportedFreqs exists (_ == freq)
 
   def classOfTickerServer: Option[Class[_ <: TickerServer]]
 

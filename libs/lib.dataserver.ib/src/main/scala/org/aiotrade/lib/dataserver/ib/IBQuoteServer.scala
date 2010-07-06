@@ -82,7 +82,7 @@ class IBQuoteServer extends QuoteServer {
   protected def request {
     val cal = Calendar.getInstance
         
-    val storage = storageOf(contract)
+    val storage = contract.storage
         
     var bDate = new Date
     var eDate = new Date
@@ -139,7 +139,7 @@ class IBQuoteServer extends QuoteServer {
             
       m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate)
             
-      val freq = serOf(contract).get.freq
+      val freq = contract.ser.freq
             
       /**
        * An integer followed by a space, followed by one of these units:
@@ -237,7 +237,7 @@ class IBQuoteServer extends QuoteServer {
         
     var newestTime = Long.MinValue
     resetCount
-    val storage = storageOf(contract)
+    val storage = contract.storage
     storage synchronized {
       for (quote <- storage) {
         newestTime = math.max(newestTime, quote.time)

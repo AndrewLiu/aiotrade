@@ -69,21 +69,15 @@ class YahooTickerServer extends TickerServer {
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
   protected def request: Option[InputStream] = {
+    if (subscribedContracts.isEmpty) return None
+
     val cal = Calendar.getInstance(sourceTimeZone)
 
     val urlStr = new StringBuilder(90)
     urlStr.append(BaseUrl).append(UrlPath)
     urlStr.append("?s=")
 
-    val contracts = subscribedContracts
-    if (!contracts.hasNext) {
-      return None
-    }
-
-    while (contracts.hasNext) {
-      urlStr.append(contracts.next.srcSymbol)
-      if (contracts.hasNext) urlStr.append("+")
-    }
+    urlStr.append(subscribedContracts map (_.srcSymbol) mkString("+"))
 
     urlStr.append("&d=t&f=sl1d1t1c1ohgvbap")
 

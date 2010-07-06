@@ -64,7 +64,7 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
                exchangefolder = DataFolder.create(rootFolder, exchange.code);
                symbol <- Exchange.symbolsOf(exchange)
           ) {
-            dailyQuoteContract.symbol = symbol
+            dailyQuoteContract.srcSymbol = symbol
             SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, dailyQuoteContract)
           }
         }

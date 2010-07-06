@@ -42,7 +42,6 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
@@ -158,10 +157,8 @@ class Sec extends SerProvider with Publisher {
   type C = QuoteContract
   type T = QuoteSer
 
+  val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
-  /** each freq may have a standalone quoteDataServer for easy control and thread safe */
-  private val freqToQuoteServer = HashMap[TFreq, QuoteServer]()
-  private val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
 
@@ -186,12 +183,15 @@ class Sec extends SerProvider with Publisher {
       if (_defaultFreq == null) {
         _defaultFreq = freq
       }
+
       freqToQuoteContract.put(freq, contract)
-      freqToQuoteSer.put(freq, new QuoteSer(this, freq))
+      if (!freqToQuoteSer.contains(freq)) {
+        freqToQuoteSer.put(freq, new QuoteSer(this, freq))
+      }
     }
     
     // basic freqs:
-    for (freq <- basicFreqs if !freqToQuoteContract.contains(freq)) {
+    for (freq <- basicFreqs if !freqToQuoteSer.contains(freq)) {
       freqToQuoteSer.put(freq, new QuoteSer(this, freq))
     }
   }
@@ -217,17 +217,18 @@ class Sec extends SerProvider with Publisher {
     case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
       // contract quoteServer of freq centernly still exists only under this type of event
       val freq = srcSer.freq
-      val contract = freqToQuoteContract(freq)
-      val quoteServer = freqToQuoteServer(freq)
-      srcSer.loaded = true
-      if (contract.refreshable) {
-        quoteServer.startRefresh(contract.refreshInterval)
-      } else {
-        quoteServer.unSubscribe(contract)
-        freqToQuoteServer -= freq
-      }
+      for (quoteContract <- quoteContractOf(defaultFreq);
+           quoteServer <- quoteContract.serviceInstance()
+      ) {
+        srcSer.loaded = true
+        if (quoteContract.refreshable) {
+          quoteServer.startRefresh(quoteContract.refreshInterval)
+        } else {
+          quoteServer.unSubscribe(quoteContract)
+        }
 
-      deafTo(srcSer)
+        deafTo(srcSer)
+      }
     case _ =>
   }
 
@@ -381,42 +382,39 @@ class Sec extends SerProvider with Publisher {
 
     // try to load from quote server
 
-    val (quoteServer, contract) = quoteServerOf(freq) getOrElse (return false)
-    quoteServer.subscribe(contract, ser)
+    for (contract <- quoteContractOf(freq);
+         quoteServer <- contract.serviceInstance()
+    ) {
+      contract.freq = freq
+      contract.ser = ser
+      quoteServer.subscribe(contract)
 
-    ser.inLoading = true
-    quoteServer.loadHistory(loadedTime)
+      ser.inLoading = true
+      quoteServer.loadHistory(loadedTime)
 
-    listenTo(ser)
-
-    true
+      listenTo(ser)
+      return true
+    }
+    
+    false
   }
 
-  private def quoteServerOf(freq: TFreq): Option[(QuoteServer, QuoteContract)] = {
-    freqToQuoteServer.get(freq) match {
-      case None =>
-        val contract = freqToQuoteContract.get(freq) match {
-          case Some(x) => x
-          case None => freqToQuoteContract.get(defaultFreq) match {
-              case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
-                val x = new QuoteContract
-                x.freq = freq
-                x.refreshable = false
-                x.srcSymbol = defaultOne.srcSymbol
-                x.serviceClassName = defaultOne.serviceClassName
-                freqToQuoteContract.put(freq, x)
-                x
-              case _ => return None
-            }
+  private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {
+    freqToQuoteContract.get(freq) match {
+      case None => freqToQuoteContract.get(defaultFreq) match {
+          case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
+            val x = new QuoteContract
+            x.freq = freq
+            x.refreshable = false
+            x.srcSymbol = defaultOne.srcSymbol
+            x.serviceClassName = defaultOne.serviceClassName
+            x.dateFormatPattern =(defaultOne.dateFormatPattern)
+            freqToQuoteContract.put(freq, x)
+            Some(x)
+          case _ => return None
         }
-
-        contract.serviceInstance() match {
-          case None => None
-          case Some(x) => freqToQuoteServer.put(freq, x); Some(x, contract)
-        }
-      case Some(x) => Some(x, freqToQuoteContract(freq))
+      case some => some
     }
-
   }
 
   def isSerLoaded(freq: TFreq): Boolean = {
@@ -436,10 +434,11 @@ class Sec extends SerProvider with Publisher {
   }
 
   def stopAllDataServer {
-    for (server <- freqToQuoteServer.valuesIterator) {
+    for ((freq, contract) <- freqToQuoteContract;
+         server <- contract.serviceInstance()
+    ) {
       server.stopRefresh
     }
-    freqToQuoteServer.clear
   }
 
   def clearSer(freq: TFreq) {
@@ -457,8 +456,6 @@ class Sec extends SerProvider with Publisher {
   def dataContract_=(quoteContract: QuoteContract) {
     val freq = quoteContract.freq
     freqToQuoteContract += (freq -> quoteContract)
-    /** may need a new dataServer now: */
-    freqToQuoteServer -= freq
   }
 
   def subscribeTickerServer {
@@ -468,16 +465,17 @@ class Sec extends SerProvider with Publisher {
     tickerContract.srcSymbol = uniSymbol
 
     if (tickerContract.serviceClassName == null) {
-      quoteServerOf(defaultFreq) match {
-        case Some((quoteServer, _)) => quoteServer.classOfTickerServer match {
-            case Some(clz) => tickerContract.serviceClassName = clz.getName
-            case None =>
-          }
-        case None =>
+      for (quoteContract <- quoteContractOf(defaultFreq);
+           quoteServer <- quoteContract.serviceInstance();
+           clz <- quoteServer.classOfTickerServer
+      ) {
+        tickerContract.serviceClassName = clz.getName
       }
     }
 
-    startTickerRefreshIfNecessary
+    if (tickerContract.serviceClassName != null) {
+      startTickerRefreshIfNecessary
+    }
   }
 
   private def startTickerRefreshIfNecessary {
@@ -486,11 +484,11 @@ class Sec extends SerProvider with Publisher {
       if (isSerLoaded(TFreq.ONE_MIN)) {
         loadSerFromPersistence(TFreq.ONE_MIN)
       }
-      var chainSers: List[QuoteSer] = Nil
       // Only dailySer and minuteSre needs to chainly follow ticker change.
-      serOf(TFreq.DAILY) foreach {x => chainSers ::= x}
-      
-      tickerServer.subscribe(tickerContract, minSer, chainSers)
+      val chainSers = List(serOf(TFreq.DAILY).get)
+      tickerContract.ser = minSer
+      tickerContract.chainSers = chainSers
+      tickerServer.subscribe(tickerContract)
       //
       //            var break = false
       //            while (!break) {
@@ -518,7 +516,7 @@ class Sec extends SerProvider with Publisher {
   }
 
   
-  // --- helper methods for realtime composing
+// --- helper methods for realtime composing
 
   /**
    * store latest helper info

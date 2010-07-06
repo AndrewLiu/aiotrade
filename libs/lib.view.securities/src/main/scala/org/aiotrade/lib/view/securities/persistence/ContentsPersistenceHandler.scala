@@ -63,11 +63,7 @@ object ContentsPersistenceHandler {
         buffer.append("        <source ")
         buffer.append("active=\"" + dataContract.active + "\" ")
         buffer.append("class=\"" + dataContract.serviceClassName + "\" ")
-        buffer.append("symbol=\"" + dataContract.symbol + "\" ")
-        buffer.append("seckind=\"" + dataContract.secKind + "\" ")
-        buffer.append("exchange=\"" + dataContract.exchange + "\" ")
-        buffer.append("primaryexchange=\"" + dataContract.primaryExchange + "\" ")
-        buffer.append("currency=\"" + dataContract.currency + "\" ")
+        buffer.append("symbol=\"" + dataContract.srcSymbol + "\" ")
         dataContract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
         // always store daily freq for datacontract
         buffer.append("nunits=\"" + TFreq.DAILY.nUnits + "\" ")

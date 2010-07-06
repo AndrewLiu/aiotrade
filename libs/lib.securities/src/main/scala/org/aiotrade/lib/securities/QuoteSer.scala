@@ -106,7 +106,6 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     close_ori(time) = quote.close
     close_adj(time) = quote.close
 
-    println("size of: " + this.size)
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
   }

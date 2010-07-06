@@ -43,7 +43,6 @@ import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
@@ -282,13 +281,7 @@ class ContentsParseHandler extends DefaultHandler {
         
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
-        
-    dataContract.symbol = meta.getValue("symbol")
-    dataContract.secKind = Sec.Kind.withName(meta.getValue("seckind"))
-    dataContract.exchange = meta.getValue("exchange")
-    dataContract.primaryExchange = meta.getValue("primaryexchange")
-    dataContract.currency = meta.getValue("currency")
-
+    dataContract.srcSymbol = meta.getValue("symbol")
     dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
         
     val freq = new TFreq(

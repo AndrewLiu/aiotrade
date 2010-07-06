@@ -216,9 +216,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
-    if (tickerContract != null) {
-      sname.value = tickerContract.shortName
-    }
+    sname.value = sec.uniSymbol
 
     for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)

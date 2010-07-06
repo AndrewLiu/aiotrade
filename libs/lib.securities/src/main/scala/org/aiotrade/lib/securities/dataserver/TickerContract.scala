@@ -33,7 +33,10 @@ package org.aiotrade.lib.securities.dataserver
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.model.Ticker
 
 
 /**
@@ -47,7 +50,9 @@ object TickerContract {
 }
 
 import TickerContract._
-class TickerContract extends SecDataContract[TickerServer] {
+class TickerContract extends DataContract[Ticker, TickerServer] {
+  type T = QuoteSer
+
   val log = Logger.getLogger(this.getClass.getName)
   
   serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"

@@ -33,7 +33,7 @@ package org.aiotrade.lib.securities.dataserver
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
-import org.aiotrade.lib.securities.{QuoteSer, TickerSnapshot}
+import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
@@ -57,7 +57,6 @@ import ru.circumflex.orm._
  */
 abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
   type C = TickerContract
-  type T = QuoteSer
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -68,7 +67,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
       val ticker = new Ticker
       ticker.copyFrom(ts)
       // store ticker first, will batch process when got Refreshed event
-      val storage = storageOf(contractOf(ts.symbol).get)
+      val storage = contractOf(ts.symbol).get.storage
       storage synchronized {storage += ticker}
   }
 
@@ -84,8 +83,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     sec.tickerSnapshot
   }
 
-  override def subscribe(contract: TickerContract, ser: QuoteSer, chainSers: List[QuoteSer] = Nil) {
-    super.subscribe(contract, ser, chainSers)
+  override def subscribe(contract: TickerContract) {
+    super.subscribe(contract)
     /**
      * !NOTICE
      * the symbol-tickerSnapshot pair must be immutable, other wise, if
@@ -150,7 +149,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val allSnapDepths = new ArrayList[SnapDepth]
 
     for (contract <- subscribedContracts) {
-      val storage = storageOf(contract)
+      val storage = contract.storage
       val tickers = storage synchronized {
         val x = storage.toArray
         storage.clear
@@ -159,7 +158,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
       val symbol = contract.srcSymbol
       val sec = Exchange.secOf(symbol).get
-      val minSer = serOf(contract).get
+      val minSer = contract.ser
 
       var frTime = Long.MaxValue
       var toTime = Long.MinValue
@@ -295,8 +294,8 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
         // update daily quote and ser
         if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
           val dayQuote = sec.dailyQuoteOf(ticker.time)
-          updateDailyQuote(dayQuote, ticker)
-          chainSersOf(minSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
+          updateDailyQuoteByTicker(dayQuote, ticker)
+          contract.chainSers find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
         }
 
         /**
@@ -345,7 +344,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     events
   }
 
-  private def updateDailyQuote(dailyQuote: Quote, ticker: Ticker) {
+  private def updateDailyQuoteByTicker(dailyQuote: Quote, ticker: Ticker) {
     dailyQuote.open   = ticker.dayOpen
     dailyQuote.high   = ticker.dayHigh
     dailyQuote.low    = ticker.dayLow

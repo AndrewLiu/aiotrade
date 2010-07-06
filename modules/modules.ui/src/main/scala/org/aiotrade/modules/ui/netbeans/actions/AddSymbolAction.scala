@@ -79,11 +79,11 @@ class AddSymbolAction extends CallableSystemAction {
           }
                 
           /** quoteContract may bring in more than one symbol, should process it later */
-          for (symbol <- quoteContract.symbol.split(",")) {
+          for (symbol <- quoteContract.srcSymbol.split(",")) {
             val symbol1 = symbol.trim
                     
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
-            quoteContract.symbol = symbol1
+            quoteContract.srcSymbol = symbol1
                     
             val fo = SymbolNodes.createSymbolXmlFile(currentFolder, symbol1, quoteContract)
             

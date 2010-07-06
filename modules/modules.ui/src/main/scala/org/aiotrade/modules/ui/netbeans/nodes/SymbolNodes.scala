@@ -182,7 +182,7 @@ object SymbolNodes {
 
       val contents = PersistenceManager().defaultContents
       /** clear default dataSourceContract */
-      contents.clearDescriptors(classOf[DataContract[_]])
+      contents.clearDescriptors(classOf[DataContract[_, _]])
 
       contents.uniSymbol = symbol
       for (quoteContract <- quoteContracts) {

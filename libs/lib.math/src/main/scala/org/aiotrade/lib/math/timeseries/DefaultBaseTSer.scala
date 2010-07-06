@@ -169,7 +169,6 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
 
       val lenth = values.length
       val shouldReverse = !isAscending(values)
-      println(" ++= of tbaseser: to process=" + lenth + ", orgin size=" + this.size)
       var i = if (shouldReverse) lenth - 1 else 0
       while (i >= 0 && i < lenth) {
         val value = values(i)
@@ -185,7 +184,6 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
         i += (if (shouldReverse) -1 else 1)
       }
 
-      println(" ++= of tbaseser: after size=" + this.size + " fr=" + frTime + " to=" + toTime)
       publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
 
     } finally {

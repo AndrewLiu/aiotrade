@@ -97,7 +97,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         refreshInterval.setValue(quoteContractTemplate.refreshInterval());
 
         pathField.setText(quoteContractTemplate.urlString());
-        stockSymbolsField.setText(quoteContractTemplate.symbol());
+        stockSymbolsField.setText(quoteContractTemplate.srcSymbol());
 
         fromDateField.setValue(quoteContractTemplate.beginDate());
         toDateField.setValue(Calendar.getInstance().getTime());
@@ -150,7 +150,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         QuoteServer selectedServer = (QuoteServer) dataSourceComboBox.getSelectedItem();
         quoteContract.active_$eq(true);
         quoteContract.serviceClassName_$eq(selectedServer.getClass().getName());
-        quoteContract.symbol_$eq(stockSymbolsField.getText().trim().toUpperCase());
+        quoteContract.srcSymbol_$eq(stockSymbolsField.getText().trim().toUpperCase());
         quoteContract.beginDate_$eq((Date) fromDateField.getValue());
         quoteContract.endDate_$eq((Date) toDateField.getValue());
         quoteContract.urlString_$eq(pathField.getText().trim());

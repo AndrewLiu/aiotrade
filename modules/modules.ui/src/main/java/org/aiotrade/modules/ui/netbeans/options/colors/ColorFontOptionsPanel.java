@@ -98,14 +98,14 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         }
         quoteContract.active_$eq(true);
         quoteContract.serviceClassName_$eq(previewQuoteServer.getClass().getName());
-        quoteContract.symbol_$eq(symbol);
+        quoteContract.srcSymbol_$eq(symbol);
         quoteContract.dateFormatPattern_$eq(Option.apply(previewQuoteServer.defaultDateFormatPattern()));
 
         FileObject previewFile = FileUtil.getConfigFile("UserOptions/Template/preview.csv");
         if (previewFile != null) {
             try {
                 InputStream is = previewFile.getInputStream();
-                quoteContract.inputStream_$eq(new scala.Some(is));
+                //quoteContract.inputStream_$eq(new scala.Some(is));
             } catch (Exception ex) {
                 ErrorManager.getDefault().notify(ex);
             }
