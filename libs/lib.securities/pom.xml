@@ -157,6 +157,31 @@
             </dependencies>
         </profile>
         <profile>
+            <id>mysql-fd</id>
+            <activation>
+                <property>
+                    <name>db</name>
+                    <value>mysql-fd</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>com.mysql.jdbc.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:mysql://192.168.132.234:3306/faster</orm.connection.url>
+                <orm.connection.username>faster</orm.connection.username>
+                <orm.connection.password>faster</orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.MySQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.9</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>h2</id>
             <activation>
 <!--                <activeByDefault>true</activeByDefault>-->

@@ -182,7 +182,6 @@ class YahooQuoteServer extends QuoteServer {
             }
 
             val quote = new Quote
-            println("time=" + time)
             quote.time   = time
             quote.open   = openX.trim.toFloat
             quote.high   = highX.trim.toFloat

@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Exchange
@@ -51,6 +52,8 @@ object QuoteServer {
 import QuoteServer._
 abstract class QuoteServer extends DataServer[Quote] {
   type C = QuoteContract
+
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 
   reactions += {
     case Exchange.Opened(exchange: Exchange) =>
@@ -81,6 +84,7 @@ abstract class QuoteServer extends DataServer[Quote] {
         }
 
         ser ++= quotes.toArray
+        log.info(sec.uniSymbol + "(" + contract.freq + "): loaded history from datasource, got quotes=" + quotes.length +", loaded time=" + ser.lastOccurredTime + ", freq=" + ser.freq + ", size=" + ser.size)
         quotes.clear
       }
     }

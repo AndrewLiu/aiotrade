@@ -44,13 +44,6 @@ class TickerSnapshot extends Ticker with ChangeSubject {
 
   var fullName: String = _
   
-  override def copyFrom(another: Ticker): Unit = {
-    if (isValueChanged(another)) {
-      copyFrom(another)
-      isChanged = true
-    }
-  }
-
   override def notifyChanged[T <: ChangeObserver](observerType: Class[T]) {
     if (isChanged) {
       super.notifyChanged(observerType)

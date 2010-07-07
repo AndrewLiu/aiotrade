@@ -324,6 +324,7 @@ class Sec extends SerProvider with Publisher {
     val ser = serOf(freq).get
     ser ++= quotes.toArray
 
+    val uniSymbol = secInfo.uniSymbol
     /**
      * get the newest time which DataServer will load quotes after this time
      * if quotes is empty, means no data in db, so, let newestTime = 0, which
@@ -331,10 +332,14 @@ class Sec extends SerProvider with Publisher {
      */
     if (!quotes.isEmpty) {
       val loadedTime = math.max(quotes.head.time, quotes.last.time)
-      val uniSymbol = secInfo.uniSymbol
       ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
+      
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + loadedTime + ", freq=" + ser.freq + ", size=" + ser.size)
       loadedTime
-    } else 0L
+    } else {
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + 0L + ", freq=" + ser.freq + ", size=" + ser.size)
+      0L
+    }
   }
 
   /**
@@ -370,15 +375,10 @@ class Sec extends SerProvider with Publisher {
    */
   def loadSer(freq: TFreq): Boolean = synchronized {
 
-    val ser = serOf(freq) getOrElse {
-      val x = new QuoteSer(this, freq)
-      freqToQuoteSer.put(freq, x)
-      x
-    }
+    val ser = serOf(freq) getOrElse (return false)
 
     // load from persistence
     val loadedTime = loadSerFromPersistence(freq)
-    log.info(uniSymbol + ": loaded from persistence, loaded time=" + loadedTime + ", freq=" + freq + ", size=" + ser.size)
 
     // try to load from quote server
 

@@ -31,7 +31,6 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.awt.Image
-import java.util.Calendar
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq

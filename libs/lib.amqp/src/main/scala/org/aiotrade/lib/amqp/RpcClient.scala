@@ -84,7 +84,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = null, timeout: Long = -1): Any = {
+  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = reqRoutingKey, timeout: Long = -1): Any = {
     checkConsumer
     val props = if ($props == null) new AMQP.BasicProperties else $props
 
@@ -98,7 +98,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
       continuationMap.put(replyId, syncVar)
     }
 
-    publish(reqExchange, if (routingKey == null) reqRoutingKey else routingKey, props, req)
+    publish(reqExchange, routingKey, props, req)
 
     val res = if (timeout == -1) {
       syncVar.get

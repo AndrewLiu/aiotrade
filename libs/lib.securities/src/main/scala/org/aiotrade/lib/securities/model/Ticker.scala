@@ -148,9 +148,12 @@ class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTic
     }
   }
 
-  def copyFrom(another: Ticker) {
+  override def copyFrom(another: LightTicker) {
     super.copyFrom(another)
-    System.arraycopy(another.bidAsks, 0, bidAsks, 0, bidAsks.length)
+    another match {
+      case x: Ticker => System.arraycopy(x.bidAsks, 0, bidAsks, 0, bidAsks.length)
+      case _ =>
+    }
   }
 
   override def export = (time, List(data, marketDepth.bidAsks))
