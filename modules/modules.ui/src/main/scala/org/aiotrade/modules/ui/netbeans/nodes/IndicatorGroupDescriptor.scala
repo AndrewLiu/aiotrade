@@ -39,6 +39,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
@@ -103,7 +104,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
       }
 
       try {
-        val selectedIndicator = keyToResult("selectedIndicator").asInstanceOf[Indicator]
+        val selectedIndicator = keyToResult("selectedIndicator").asInstanceOf[String]
         val multipleEnable    = keyToResult("multipleEnable").asInstanceOf[Boolean]
         val nUnits            = keyToResult("nUnits").asInstanceOf[Int]
         val unit              = keyToResult("unit").asInstanceOf[TUnit]
@@ -114,21 +115,21 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
          */
         LookFeel().setAllowMultipleIndicatorOnQuoteChartView(multipleEnable)
 
-        val className = selectedIndicator.getClass.getName
+        val indicators = PersistenceManager().lookupAllRegisteredServices(classOf[Indicator], "Indicators")
+        val indicator = indicators find (x => x.displayName == selectedIndicator) getOrElse (return)
+        val className = indicator.getClass.getName
 
-        (contents.lookupDescriptor(
-            classOf[IndicatorDescriptor],
-            className,
-            new TFreq(unit, nUnits)
+        (contents.lookupDescriptor(classOf[IndicatorDescriptor],
+                                   className,
+                                   new TFreq(unit, nUnits)
           ) match {
             case None =>
-              contents.createDescriptor(
-                classOf[IndicatorDescriptor],
-                className,
-                new TFreq(unit, nUnits)
-              )
+              contents.createDescriptor(classOf[IndicatorDescriptor],
+                                        className,
+                                        new TFreq(unit, nUnits))
             case some => some
-          }) foreach {descriptor =>
+          }
+        ) foreach {descriptor =>
           contents.  lookupAction(classOf[SaveAction]) foreach {_.execute}
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         }

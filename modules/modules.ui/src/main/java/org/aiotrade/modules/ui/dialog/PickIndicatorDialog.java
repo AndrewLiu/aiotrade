@@ -65,9 +65,10 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
         this.nameMapResult = nameMapResult;
 
         scala.collection.Iterator<Indicator> indicators = PersistenceManager$.MODULE$.apply().lookupAllRegisteredServices(Indicator.class, "Indicators").iterator();
-        List<Indicator> inds = new ArrayList<Indicator>();
+        List<String> inds = new ArrayList<String>();
         while (indicators.hasNext()) {
-            inds.add(indicators.next());
+            Indicator ind = indicators.next();
+            inds.add(ind.displayName());
         }
         indicatorList.setListData(inds.toArray());
 

@@ -304,7 +304,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
     val sb = new StringBuilder(20)
     val len = size
     sb.append(shortDescription).append("(").append(freq).append("): size=").append(size).append(", ")
-    if (timestamps.length > 0) {
+    if (timestamps != null && timestamps.length > 0) {
 
       val first = timestamps(0)
       val last = timestamps(len - 1)

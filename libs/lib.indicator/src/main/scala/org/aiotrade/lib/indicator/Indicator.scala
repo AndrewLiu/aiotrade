@@ -175,6 +175,8 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
   override def shortDescription_=(description: String) {
     this.sname = description
   }
+
+  def displayName = shortDescription + " - (" + longDescription + ")"
     
   def compare(another: Indicator): Int = {
     if (this.shortDescription.equalsIgnoreCase(another.shortDescription)) {
