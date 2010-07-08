@@ -38,7 +38,7 @@ import java.awt.Font
  * @author Caoyuan Deng
  */
 class CityLights extends LookFeel {
-
+  val redColor = new Color(255, 84, 84)
 
   val monthColors = Array(
     Color.cyan.darker.darker.darker,
@@ -108,14 +108,16 @@ class CityLights extends LookFeel {
   val stickChartColor = Color.BLUE
 
   val positiveColor = Color.GREEN
-  val negativeColor = Color.RED
+  private val positiveColor2 = new Color(84, 255, 255)
+  val negativeColor = redColor
 
   val positiveBgColor = Color.GREEN
-  val negativeBgColor = Color.RED
+  private val positiveBgColor2 = new Color(84, 255, 255)
+  val negativeBgColor = redColor
   val neutralBgColor = neutralColor
 
 
-  val borderColor = Color.RED
+  val borderColor = redColor
 
   /** same as new Color(0.0f, 0.0f, 1.0f, 0.382f) */
   val referCursorColor = new Color(0.0f, 1.0f, 1.0f, 0.382f) //new Color(0.5f, 0.0f, 0.5f, 0.618f); //new Color(0.0f, 0.0f, 1.0f, 0.618f);
@@ -136,9 +138,24 @@ class CityLights extends LookFeel {
 
   val astrologyColor = Color.YELLOW
 
-  override val axisColor = Color.RED
+  override val axisColor = redColor
   override val trackColor = Color.BLACK
-  override val thumbColor = Color.RED
+  override val thumbColor = redColor
 
+  override def getPositiveColor: Color = {
+    if (isPositiveNegativeColorReversed) negativeColor else positiveColor
+  }
+
+  override def getNegativeColor: Color = {
+    if (isPositiveNegativeColorReversed) positiveColor2 else negativeColor
+  }
+
+  override def getPositiveBgColor: Color = {
+    if (isPositiveNegativeColorReversed) negativeBgColor else positiveBgColor
+  }
+
+  override def getNegativeBgColor: Color = {
+    if (isPositiveNegativeColorReversed) positiveBgColor2 else negativeBgColor
+  }
     
 }

@@ -69,7 +69,7 @@ object LookFeel {
     val G2 = c2.getGreen
     val B2 = c2.getBlue
 
-    Math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
+    math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
   }
 }
 
@@ -91,7 +91,7 @@ abstract class LookFeel {
 
   var isFillBar = false
   val axisFont: Font
-  val defaultFont = new Font("Dialog Input", Font.PLAIN, 9)
+  val defaultFont = new Font("Arial", Font.PLAIN, 10)
   val systemBackgroundColor: Color
   val nameColor: Color
   val backgroundColor: Color
