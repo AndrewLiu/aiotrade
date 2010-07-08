@@ -160,7 +160,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
   reactions += {
     case TickerEvent(src: Sec, ticker: Ticker) =>
-      symbol.value = src.name
+      // symbol.value = if (src.secInfo != null) src.secInfo.uniSymbol else ticker.symbol
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
         updateInfoTable(ticker)

@@ -66,6 +66,8 @@ object Data {
     println("Current user workind dir: " + System.getProperties.getProperty("user.dir"))
     createData
 
+    companyRecords map (_.shortName) foreach println
+
     Scheduler.shutdown
     System.exit(0)
   }
@@ -79,6 +81,7 @@ object Data {
     readFromCompanies(new File(dataFileDir, "companies.txt"))
     readFromIndustries(new File(dataFileDir, "industries.txt"))
     readFromCompanyIndustries(new File(dataFileDir, "company_industries.txt"))
+    Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
     commit
   }
 
@@ -132,7 +135,6 @@ object Data {
     }
     Secs.insertBatch_!(secRecords.toArray)
     SecInfos.insertBatch_!(secInfoRecords.toArray)
-    Secs.updateBatch_!(secRecords.toArray, Secs.secInfo)
   }
 
   def readFromCompanies(file: File) {
@@ -158,7 +160,6 @@ object Data {
       }
     }
     Companies.insertBatch_!(companyRecords.toArray)
-    Secs.updateBatch_!(secRecords.toArray, Secs.company)
   }
 
   def readFromIndustries(file: File) {
