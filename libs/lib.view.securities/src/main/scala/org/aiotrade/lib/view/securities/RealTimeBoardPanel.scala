@@ -70,6 +70,7 @@ import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
@@ -99,13 +100,13 @@ object RealTimeBoardPanel {
     instances find {_.sec eq sec} getOrElse new RealTimeBoardPanel(sec, contents)
   }
 
-  val logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 }
 
 import RealTimeBoardPanel._
 class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) extends JPanel with Reactor {
   instanceRefs.put(this, null)
-  logger.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
+  log.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -216,7 +217,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
-    sname.value = sec.uniSymbol
+    sname.value = Secs.company(sec) map (_.shortName) getOrElse ""
 
     for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)

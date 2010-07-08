@@ -46,7 +46,7 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
                     <launchers>
-                        <!-- mvn scala:run -Dlauncher=yahoo -->
+                        <!-- mvn scala:run -Dlauncher=model -->
                         <launcher>
                             <id>model</id>
                             <mainClass>org.aiotrade.lib.securities.model.Model</mainClass>
@@ -55,6 +55,14 @@
                             <arg>arg1</arg>
                         </args-->
                         <!-- jvmArgs are optional -->
+                            <jvmArgs>
+                                <jvmArg>-Xmx512m</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <!-- mvn scala:run -Dlauncher=data -->
+                        <launcher>
+                            <id>data</id>
+                            <mainClass>org.aiotrade.lib.securities.model.data.Data</mainClass>
                             <jvmArgs>
                                 <jvmArg>-Xmx512m</jvmArg>
                             </jvmArgs>
