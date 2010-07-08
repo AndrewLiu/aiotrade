@@ -196,25 +196,25 @@ object Model {
   }
 
   def sampleSecs = {
-    assert(Exchanges.idOf(Exchange.N ).isDefined, Exchange.N  + " with none id")
-    assert(Exchanges.idOf(Exchange.L ).isDefined, Exchange.L  + " with none id")
-    assert(Exchanges.idOf(Exchange.SS).isDefined, Exchange.SS + " with none id")
-    assert(Exchanges.idOf(Exchange.SZ).isDefined, Exchange.SZ + " with none id")
+    assert(Exchanges.idOf(N ).isDefined, N  + " with none id")
+    assert(Exchanges.idOf(L ).isDefined, L  + " with none id")
+    assert(Exchanges.idOf(SS).isDefined, SS + " with none id")
+    assert(Exchanges.idOf(SZ).isDefined, SZ + " with none id")
     
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      createSec(symbol, symbol, Exchange.N)
+      createSec(symbol, symbol, N)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      createSec(symbol, symbol, Exchange.L)
+      createSec(symbol, symbol, L)
     }
 
     for ((symbol, name) <- SSSymToName) {
-      createSec(symbol + ".SS", name, Exchange.SS)
+      createSec(symbol + ".SS", name, SS)
     }
 
     for (symbol <- List("000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ")) {
-      createSec(symbol, symbol, Exchange.SZ)
+      createSec(symbol, symbol, SZ)
     }
   }
 

@@ -93,7 +93,7 @@ class CityLights extends LookFeel {
     Color.DARK_GRAY // MOON
   )
 
-  val axisFont = new Font("Dialog Input", Font.PLAIN, 9)
+  val axisFont = new Font("Dialog Input", Font.PLAIN, 10)
 
   val systemBackgroundColor = new Color(212, 208, 200)
 

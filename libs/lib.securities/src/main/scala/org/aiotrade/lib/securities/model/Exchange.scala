@@ -31,8 +31,9 @@ object Exchanges extends Table[Exchange] {
 
   // --- helper methods
   def secsOf(exchange: Exchange): Seq[Sec] = {
-    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) map (_._1)
-    log.info("Secs number of " + exchange.code + " is " + secs.size)
+    val exchangeId = Exchanges.idOf(exchange)
+    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list) map (_._1)
+    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size)
     secs
   }
 }
@@ -83,16 +84,16 @@ object Exchange extends Publisher {
   lazy val allExchanges = Exchanges.all()
   lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
 
-  lazy val uniSymbolToSec =
-    (allExchanges map (x => Exchanges.secsOf(x)) flatMap {secs =>
-        secs filter (_.secInfo != null) map (sec => sec.secInfo.uniSymbol -> sec)
-      }
-    ) toMap
-
   lazy val exchangeToSecs = {
     allExchanges map (x => (x -> Exchanges.secsOf(x))) toMap
   }
 
+  lazy val uniSymbolToSec = {
+    exchangeToSecs map (_._2) flatMap {secs =>
+      secs filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
+    } toMap
+  }
+  
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {

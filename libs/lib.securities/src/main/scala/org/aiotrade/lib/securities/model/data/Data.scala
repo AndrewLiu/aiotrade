@@ -64,6 +64,7 @@ object Data {
 
   def main(args: Array[String]) {
     println("Current user workind dir: " + System.getProperties.getProperty("user.dir"))
+
     createData
 
     companyRecords map (_.shortName) foreach println
@@ -99,11 +100,11 @@ object Data {
   }
 
   def createExchanges = {
-    exchanges = Array(N, SS, SZ, L)
-    exchanges foreach println
-    Exchanges.insertBatch(exchanges)
-
+    exchanges = Array(SS, SZ, N, L)
+    Exchanges.insertBatch_!(exchanges)
+  
     exchanges foreach {x => assert(Exchanges.idOf(x).isDefined, x + " with none id")}
+    exchanges foreach {x => println("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
   }
 
   def readFromSecInfos(file: File) {
@@ -212,11 +213,11 @@ object Data {
     val secInfosFile = new File(dataFileDir, "sec_infos.txt")
 
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      createSimpleSec(symbol, symbol, Exchange.N)
+      createSimpleSec(symbol, symbol, N)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      createSimpleSec(symbol, symbol, Exchange.L)
+      createSimpleSec(symbol, symbol, L)
     }
   }
 
@@ -235,6 +236,5 @@ object Data {
 
     secInfo.sec = sec
     SecInfos.update(secInfo)
-    //commit
   }
 }

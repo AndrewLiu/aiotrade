@@ -91,7 +91,7 @@ abstract class LookFeel {
 
   var isFillBar = false
   val axisFont: Font
-  val defaultFont = new Font("Arial", Font.PLAIN, 10)
+  val defaultFont = new Font("Dialog Input", Font.PLAIN, 10)
   val systemBackgroundColor: Color
   val nameColor: Color
   val backgroundColor: Color

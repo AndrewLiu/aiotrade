@@ -211,9 +211,9 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     )
 
     infoCellAttr = infoModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
-    // Code to combine cells
+    // combine cells
     infoCellAttr.combine(Array(0), Array(0, 1))
-    infoCellAttr.combine(Array(0), Array(2, 3))
+    //infoCellAttr.combine(Array(0), Array(2, 3))
     //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
