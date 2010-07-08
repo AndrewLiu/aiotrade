@@ -8,7 +8,7 @@ object Companies extends Table[Company] {
   val validFrom = "validFrom" BIGINT
   val validTo = "validTo" BIGINT //DEFAULT("-1")
   val shortName = "shortName" VARCHAR(30) DEFAULT("''")
-  val fullName = "fullName" VARCHAR(30) DEFAULT("''")
+  val fullName = "fullName" VARCHAR(100) DEFAULT("''")
   val listDate = "listDate" BIGINT
   
   def industries = inverse(CompanyIndustries.company)

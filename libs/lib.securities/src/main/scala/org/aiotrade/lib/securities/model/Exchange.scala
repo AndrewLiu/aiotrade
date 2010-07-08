@@ -15,6 +15,8 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 object Exchanges extends Table[Exchange] {
+  val log = Logger.getLogger(this.getClass.getSimpleName)
+
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
   val fullName = "fullName" VARCHAR(30)
@@ -25,6 +27,14 @@ object Exchanges extends Table[Exchange] {
   def secs = inverse(Secs.exchange)
 
   INDEX(getClass.getSimpleName + "_code_idx", code.name)
+
+
+  // --- helper methods
+  def secsOf(exchange: Exchange): Seq[Sec] = {
+    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) map (_._1)
+    log.info("Secs number of " + exchange.code + " is " + secs.size)
+    secs
+  }
 }
 
 object Exchange extends Publisher {
@@ -74,10 +84,14 @@ object Exchange extends Publisher {
   lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
 
   lazy val uniSymbolToSec =
-    (allExchanges map (x => secsOf(x)) flatMap {secs =>
+    (allExchanges map (x => Exchanges.secsOf(x)) flatMap {secs =>
         secs filter (_.secInfo != null) map (sec => sec.secInfo.uniSymbol -> sec)
       }
-    ).toMap
+    ) toMap
+
+  lazy val exchangeToSecs = {
+    allExchanges map (x => (x -> Exchanges.secsOf(x))) toMap
+  }
 
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
@@ -91,11 +105,7 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): Seq[Sec] = {
-    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) map (_._1)
-    logger.info("Secs number of " + exchange.code + " is " + secs.size)
-    secs
-  }
+  def secsOf(exchange: Exchange): Seq[Sec] = exchangeToSecs.get(exchange) getOrElse Nil
 
   def symbolsOf(exchange: Exchange): Seq[String] = {
     val syms = ListBuffer[String]()

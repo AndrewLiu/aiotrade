@@ -6,7 +6,7 @@ object Industries extends Table[Industry] {
   val category = "category" VARCHAR(30) DEFAULT("''")
   val level = "level" INTEGER
   val code = "code" VARCHAR(10) DEFAULT("''")
-  val name = "name" VARCHAR(30) DEFAULT("''")
+  val name = "name" VARCHAR(60) DEFAULT("''")
 
   def companies = inverse(CompanyIndustries.industry)
 }
