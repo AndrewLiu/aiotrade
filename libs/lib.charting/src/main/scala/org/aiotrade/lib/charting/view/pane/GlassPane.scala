@@ -112,6 +112,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
   private val closeButton = createCloseButton(view.mainSer)
   private val nameLabel = createNameLabel(view.mainSer)
+  private val deltaLabel = createDeltaLable
 
   /** Container should be JComponent instead of JPanel to show selectedMark ? */
   private val pinnedMark = new PinnedMark
@@ -224,6 +225,14 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     label.addMouseListener(mouseListener)
     label.addMouseMotionListener(mouseListener)
 
+    label
+  }
+
+  private def createDeltaLable: JLabel = {
+    val label = new JLabel
+    label.setOpaque(false)
+    label.setHorizontalAlignment(SwingConstants.RIGHT)
+    label.setVisible(false)
     label
   }
 
@@ -420,6 +429,63 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         valueLabel.setText(vStr)
       }
 
+    }
+  }
+
+  def updateDeltaToRefer {
+    val controller = view.controller
+    view match {
+      case qView: WithQuoteChart =>
+        val referRow = controller.referCursorRow
+        val quoteSer = qView.quoteSer
+
+        val mouseRow = controller.mouseCursorRow
+        var y, v: Float = 0f
+        if (view.mainChartPane.isMouseEntered) {
+          y = datumPlane.yMouse
+          v = datumPlane.vy(y)
+        } else {
+          val time = quoteSer.timeOfRow(mouseRow)
+          v = if (quoteSer.exists(time)) quoteSer.close(time) else 0
+          y = datumPlane.yv(v)
+        }
+        val str =
+          if (isAutoReferCursorValue) { // normal QuoteChartView
+            val time = quoteSer.timeOfRow(referRow)
+            val vRefer = if (quoteSer.exists(time)) quoteSer.close(time) else 0
+
+            val period = datumPlane.br(mouseRow) - datumPlane.br(referRow)
+            val percent = if (vRefer == 0) 0f else 100 * (datumPlane.vy(y) - vRefer) / vRefer
+
+            var volumeSum = 0f
+            val rowBeg = math.min(referRow, mouseRow)
+            val rowEnd = math.max(referRow, mouseRow)
+            var i = rowBeg
+            while (i <= rowEnd) {
+              val time = quoteSer.timeOfRow(i)
+              if (quoteSer.exists(time)) {
+                volumeSum += quoteSer.volume(time)
+              }
+              i += 1
+            }
+
+            new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
+          } else { // else, usually RealtimeQuoteChartView
+            val vRefer = GlassPane.this.referCursorValue
+            val vYMouse = datumPlane.vy(y)
+            val percent = if (vRefer == 0) 0f else 100 * (vYMouse - vRefer) / vRefer
+
+            new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vYMouse)).append("  ").append("%+3.2f".format(percent)).append("%").toString
+          }
+
+        deltaLabel.setForeground(LookFeel().nameColor)
+        deltaLabel.setFont(LookFeel().axisFont)
+        deltaLabel.setText(str)
+
+        //val fm = getFontMetrics(deltaLabel.getFont)
+        //label.model.set(w - fm.stringWidth(str) - (BUTTON_SIZE + 1), view.TITLE_HEIGHT_PER_LINE - 2, str)
+        //label.plot
+      case _ =>
     }
   }
 
@@ -689,8 +755,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
 
           val vDisplay = mainChartPane.vy(y)
 
-          val str = /** normal QuoteChartView ? */
-            if (isAutoReferCursorValue) {
+          val str = 
+            if (isAutoReferCursorValue) { // normal QuoteChartView
               val time = quoteSer.timeOfRow(referRow)
               val vRefer = if (quoteSer.exists(time)) quoteSer.close(time) else 0
 
@@ -710,7 +776,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
               }
 
               new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
-            } else { /** else, usually RealtimeQuoteChartView */
+            } else { // else, usually RealtimeQuoteChartView
               val vRefer = GlassPane.this.referCursorValue
               val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
@@ -725,7 +791,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           label.model.set(w - fm.stringWidth(str) - (BUTTON_SIZE + 1), view.TITLE_HEIGHT_PER_LINE - 2, str)
           label.plot
           
-        case _ => /** indicator view */
+        case _ => // indicator view
           if (mainChartPane.isMouseEntered) {
             y = mainChartPane.yMouse
 

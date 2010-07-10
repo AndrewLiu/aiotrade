@@ -22,9 +22,10 @@ object DirWatcher {
   }
 }
 
-class DirWatcher(path: String, filter: FileFilter) extends TimerTask with scala.swing.Publisher {
-  private val dirs = new HashMap ++ (new File(path) listFiles filter map (x => x -> x.lastModified))
+class DirWatcher(path: File, filter: FileFilter) extends TimerTask with scala.swing.Publisher {
+  private val dirs = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
 
+  def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
   def this(path: String) = this(path, "")
 
@@ -34,7 +35,7 @@ class DirWatcher(path: String, filter: FileFilter) extends TimerTask with scala.
 
   /** always add () for empty apply method */
   final def apply() {
-    val files = new File(path) listFiles filter
+    val files = path listFiles filter
     val checkedFiles = new HashSet[File]
 
     var i = 0

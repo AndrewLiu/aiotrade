@@ -80,16 +80,16 @@ class CityLights extends LookFeel {
 //                    Color.GREEN.darker,
 //        };
   val chartColors = Array(
-    Color.YELLOW, // Sun
-    Color.BLUE, // Mercury
     Color.WHITE.darker, // Venus
+    Color.YELLOW, // Sun
+    Color.MAGENTA, // Pluto
     Color.GREEN, // Earth
+    Color.BLUE, // Mercury
     Color.RED, // Mars
     Color.CYAN, // Jupiter
-    Color.YELLOW.darker, // Saturn
     Color.PINK, // Uranus
+    Color.YELLOW.darker, // Saturn
     Color.LIGHT_GRAY, // Neptune
-    Color.MAGENTA, // Pluto
     Color.DARK_GRAY // MOON
   )
 

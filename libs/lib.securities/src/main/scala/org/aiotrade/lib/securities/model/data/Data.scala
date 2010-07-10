@@ -36,7 +36,28 @@ import scala.collection.mutable.HashMap
  * mkdir tmp
  * chmod 777 tmp
  * cd tmp
- * mysqldump -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies industries company_industries --fields-terminated-by=,
+ * mysqldump --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies industries company_industries --fields-terminated-by=,
+ *
+ * Don't forget to set (in /etc/my.cnf):
+ * [mysqld]
+ * character-set-server=utf8
+ * collation-server=utf8_general_ci
+ * init-connect='SET NAMES utf8'
+ * [mysql]
+ * default-character-set=utf8
+ *
+ * and check:
+ *   mysql> SHOW VARIABLES LIKE 'character%';
+ *   mysql> SHOW VARIABLES LIKE 'collation_%';
+ *
+ * and under mysql client console:
+ *   mysql> SET NAMES utf8;
+ *
+ * and under mysql command line tools:
+ *   --default-character-set=utf8
+ *
+ * and under mysql jdbc url:
+ *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
  */
 object Data {
   var prefixPath = "src/main/resources/"
