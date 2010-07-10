@@ -16,25 +16,25 @@ import com.rabbitmq.client.AMQP.BasicProperties
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 object FileProducer {
-  private val queue = "filequeue"
-  val exchange = "market.file"
-  val routingKey = "faster.server.dbffile"
-  val port = 5672
-
-  private val params = new ConnectionParameters
-  params.setUsername("guest")
-  params.setPassword("guest")
-  params.setVirtualHost("/")
-  params.setRequestedHeartbeat(0)
-
-  val factory = new ConnectionFactory(params)
-
-  def queueName(i: Int) = queue + i
 
   // --- simple test
   def main(args: Array[String]) {
-    val host = "localhost"
     val nConsumers = 5
+
+    val host = "localhost"
+    val port = 5672
+
+    val exchange = "market.file"
+    val queue = "filequeue"
+    val routingKey = "faster.server.dbffile"
+
+    val params = new ConnectionParameters
+    params.setUsername("guest")
+    params.setPassword("guest")
+    params.setVirtualHost("/")
+    params.setRequestedHeartbeat(0)
+
+    val factory = new ConnectionFactory(params)
 
     val producer = new FileProducer(factory, host, port, exchange, queue, routingKey, nConsumers)
     producer.start
@@ -55,7 +55,8 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
     // we'll create these queues here whatever, so, even the consumer starts
     // later than producer, they won't miss messages that were previously sent.
     for (i <- 0 until nConsumers) {
-      val queuei = FileProducer.queueName(i)
+      // count from 1, (i + 1) should be enclosed, otherwise will be 01 instead of 1
+      val queuei = queue + (i + 1) 
       channel.queueDeclare(queuei, true)
       channel.queueBind(queuei, exchange, routingKey)
     }
@@ -65,21 +66,29 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
 
   @throws(classOf[IOException])
   def sendFiles(files: List[File]) {
-    for (file <- files) {
-      val is = new FileInputStream(file)
-      val length = file.length.toInt
-      val body = new Array[Byte](length)
-      is.read(body)
-      is.close
-
-      val headers: java.util.Map[String, AnyRef] = new HashMap
-      headers.put("filename", file.getName)
-      headers.put("length", length.asInstanceOf[AnyRef])
-      val props = new BasicProperties
-      props.headers = headers
-      props.contentType = ContentType.OCTET_STREAM.mimeType
-      props.deliveryMode = 2 // persistent
-      publish(exchange, routingKey, props, body)
-    }
+    files foreach (sendFile(_))
   }
+
+  @throws(classOf[IOException])
+  def sendFile(file: File, toName: Option[String] = None) {
+    val is = new FileInputStream(file)
+    val length = file.length.toInt
+    val body = new Array[Byte](length)
+    is.read(body)
+    is.close
+
+    sendFile(body, toName.getOrElse(file.getName))
+  }
+
+  def sendFile(body: Array[Byte], toName: String) {
+    val headers: java.util.Map[String, AnyRef] = new HashMap
+    headers.put("filename", toName)
+    headers.put("length", body.length.asInstanceOf[AnyRef])
+    val props = new BasicProperties
+    props.headers = headers
+    props.contentType = ContentType.OCTET_STREAM.mimeType
+    props.deliveryMode = 2 // persistent
+    publish(exchange, routingKey, props, body)
+  }
+
 }

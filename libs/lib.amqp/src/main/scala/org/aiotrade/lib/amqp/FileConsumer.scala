@@ -16,6 +16,11 @@ object FileConsumer {
 
   // --- simple test
   def main(args: Array[String]) {
+    val queue = "filequeue"
+    val exchange = "market.file"
+    val routingKey = "faster.server.dbffile"
+    val port = 5672
+
     val host = "localhost"
 
     val params = new ConnectionParameters
@@ -29,13 +34,13 @@ object FileConsumer {
     val factory = new ConnectionFactory(params)
 
     for (i <- 0 until 5) {
-      val queuei = FileProducer.queueName(i)
-      val consumer = new FileConsumer(FileProducer.factory,
+      val queuei = queue + i
+      val consumer = new FileConsumer(factory,
                                       host,
-                                      FileProducer.port,
-                                      FileProducer.exchange,
+                                      port,
+                                      exchange,
                                       queuei,
-                                      FileProducer.routingKey,
+                                      routingKey,
                                       outputDirPath)
       
       new consumer.SafeProcessor
