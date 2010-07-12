@@ -18,7 +18,7 @@ object DirWatcher {
     }
 
     val timer = new Timer
-    timer.schedule(task , new Date, 1000 )
+    timer.schedule(task , new Date, 1000)
   }
 }
 

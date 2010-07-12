@@ -91,7 +91,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
       val content = msg.content.asInstanceOf[Array[Byte]]
 
       try {
-        var fileName = headers.get("filename").toString + "_" + System.currentTimeMillis
+        var fileName = headers.get("filename").toString
         var outputFile = new File(outputDir, fileName)
         var i = 1
         while (outputFile.exists) {
@@ -119,7 +119,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
       val content = msg.content.asInstanceOf[Array[Byte]]
 
       try {
-        var fileName = headers.get("filename").toString + "_" + System.currentTimeMillis
+        var fileName = headers.get("filename").toString
         var outputFile = new File(outputDir, "." + fileName + ".tmp")
         var i = 1
         while (outputFile.exists) {

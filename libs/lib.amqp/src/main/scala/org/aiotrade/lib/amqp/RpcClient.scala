@@ -26,10 +26,10 @@ case object RpcTimeOut
  * @see #setupReplyQueue
  */
 @throws(classOf[IOException])
-class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange: String, reqRoutingKey: String
+class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExchange: String, $reqRoutingKey: String
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
-} with AMQPDispatcher(factory, host, port, reqExchange) {
+} with AMQPDispatcher($factory, $host, $port, $reqExchange) {
 
   /** Map from request correlation ID to continuation BlockingCell */
   val continuationMap = new HashMap[String, SyncVar[Any]]
@@ -84,7 +84,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = reqRoutingKey, timeout: Long = -1): Any = {
+  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey, timeout: Long = -1): Any = {
     checkConsumer
     val props = if ($props == null) new AMQP.BasicProperties else $props
 
@@ -98,7 +98,7 @@ class RpcClient(factory: ConnectionFactory, host: String, port: Int, reqExchange
       continuationMap.put(replyId, syncVar)
     }
 
-    publish(reqExchange, routingKey, props, req)
+    publish($reqExchange, routingKey, props, req)
 
     val res = if (timeout == -1) {
       syncVar.get

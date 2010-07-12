@@ -16,8 +16,8 @@ case class RpcResponse(req: RpcRequest, result: Any)
  * @param Channel we are communicating on
  * @param Queue to receive requests from
  */
-class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: String, val requestQueue: String
-) extends AMQPDispatcher(factory, host, port, exchange) {
+class RpcServer($factory: ConnectionFactory, $host: String, $port: Int, $exchange: String, val requestQueue: String
+) extends AMQPDispatcher($factory, $host, $port, $exchange) {
   assert(requestQueue != null && requestQueue != "", "We need explicitly named requestQueue")
 
   /**
@@ -31,13 +31,13 @@ class RpcServer(factory: ConnectionFactory, host: String, port: Int, exchange: S
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
-    if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
+    if ($exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare($exchange, "direct")
 
     channel.queueDeclare(requestQueue)
 
     // use routingKey identical to queue name
     val routingKey = requestQueue
-    channel.queueBind(requestQueue, exchange, routingKey)
+    channel.queueBind(requestQueue, $exchange, routingKey)
 
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(requestQueue, consumer)

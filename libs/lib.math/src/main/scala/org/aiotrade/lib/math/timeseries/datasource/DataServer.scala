@@ -94,9 +94,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
   //private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  val subscribedContracts = new HashSet[C]
+  val _subscribedContracts = new HashSet[C]
   /** a quick seaching map */
-  private val subscribedSymbolToContract = new HashMap[String, C]
+  private val _subscribedSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
 
   /**
@@ -145,7 +145,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   def loadHistory(afterTime: Long) {
     assert(currentContract.isDefined, "dataContract not set!")
-    assert(!subscribedContracts.isEmpty, "none ser subscribed!")
+    assert(!_subscribedContracts.isEmpty, "none ser subscribed!")
 
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
@@ -177,18 +177,25 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * @param chairSers
    */
   def subscribe(contract: C): Unit = subscribingMutex synchronized {
-    subscribedContracts.add(contract)
-    subscribedSymbolToContract.put(contract.srcSymbol, contract)
+    _subscribedContracts.add(contract)
+    _subscribedSymbolToContract.put(contract.srcSymbol, contract)
   }
   
   def unSubscribe(contract: C): Unit = subscribingMutex synchronized {
     cancelRequest(contract)
-    subscribedContracts -= contract
-    subscribedSymbolToContract -= contract.srcSymbol
+    _subscribedContracts -= contract
+    _subscribedSymbolToContract -= contract.srcSymbol
   }
 
+  def subscribedContracts  = subscribingMutex synchronized {_subscribedContracts}
+  def subscribedSrcSymbols = subscribingMutex synchronized {_subscribedSymbolToContract}
+
   def isContractSubsrcribed(contract: C): Boolean = subscribingMutex synchronized {
-    subscribedContracts contains contract
+    _subscribedContracts contains contract
+  }
+
+  def isSymbolSubscribed(srcSymbol: String): Boolean = subscribingMutex synchronized {
+    _subscribedSymbolToContract contains srcSymbol
   }
 
   def createNewInstance: Option[DataServer[V]] = {
@@ -273,7 +280,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * it may be same in different exchanges with different secType.
    */
   protected def contractOf(symbol: String): Option[C] = {
-    subscribedSymbolToContract.get(symbol)
+    _subscribedSymbolToContract.get(symbol)
   }
 
   protected def isAscending(values: Array[V]): Boolean = {
@@ -301,7 +308,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
      * Till now, only QuoteDataServer call this method, and they all use the
      * per server per contract approach.
      */
-    subscribedContracts.headOption
+    _subscribedContracts.headOption
   }
 
 
