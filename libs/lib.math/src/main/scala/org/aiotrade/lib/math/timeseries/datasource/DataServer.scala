@@ -40,6 +40,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import scala.actors.Actor
@@ -74,7 +75,6 @@ object DataServer extends Publisher {
     //    if (timer != null) {
     //      timer.cancel
     //    }
-    //    timer = new Timer("DataServer Heart Beat Timer")
     val timer = new Timer("DataServer Heart Beat Timer")
     timer.schedule(new TimerTask {
         def run = publish(HeartBeat(heartBeatInterval))
@@ -89,6 +89,8 @@ import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
   type C <: DataContract[V, _]
 
+  private val logger = Logger.getLogger(this.getClass.getSimpleName)
+  
   val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
@@ -111,17 +113,18 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   var refreshable = false
 
-  // --- a proxy actor to detect the speed refreshing requests, if consumer can
-  // not catch up the producer, will drop some requests.
-  // We here also avoid concurent racing risk of Refresh/LoadHistory requests
-  private case object Refresh
+  // --- a proxy actor for HeartBeat event etc, which will detect the speed of
+  // refreshing requests, if consumer can not catch up the producer, will drop some requests.
+  // We here also avoid concurent racing risk of Refresh/LoadHistory requests @see reactions += {...
+  private case object Stop extends Event
+  private case object Refresh extends Event
   private case class LoadHistory(afterTime: Long) extends Event
   private var inRefreshing: Boolean = _
-  private val loadActor = new scala.actors.Reactor[Any] {
+  private val loadActor = new scala.actors.Reactor[Event] {
     start
     def act = loop {
       react {
-        case Refresh if !inRefreshing =>
+        case Refresh =>
           inRefreshing = true
           loadedTime = loadFromSource(loadedTime)
           postRefresh
@@ -129,14 +132,15 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
         case LoadHistory(afterTime) =>
           loadedTime = loadFromSource(afterTime)
           postLoadHistory
+        case Stop => exit
+        case _ =>
       }
     }
   }
 
-
   reactions += {
     case HeartBeat(interval) if refreshable =>
-      loadActor ! Refresh
+      if (!inRefreshing) loadActor ! Refresh
   }
 
   listenTo(DataServer)
@@ -187,14 +191,14 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     _subscribedSymbolToContract -= contract.srcSymbol
   }
 
-  def subscribedContracts  = subscribingMutex synchronized {_subscribedContracts}
-  def subscribedSrcSymbols = subscribingMutex synchronized {_subscribedSymbolToContract}
+  def subscribedContracts  = _subscribedContracts
+  def subscribedSrcSymbols = _subscribedSymbolToContract
 
-  def isContractSubsrcribed(contract: C): Boolean = subscribingMutex synchronized {
+  def isContractSubsrcribed(contract: C): Boolean = {
     _subscribedContracts contains contract
   }
 
-  def isSymbolSubscribed(srcSymbol: String): Boolean = subscribingMutex synchronized {
+  def isSymbolSubscribed(srcSymbol: String): Boolean = {
     _subscribedSymbolToContract contains srcSymbol
   }
 
@@ -279,7 +283,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * temporary method? As in some data feed, the symbol is not unique,
    * it may be same in different exchanges with different secType.
    */
-  protected def contractOf(symbol: String): Option[C] = {
+  def contractOf(symbol: String): Option[C] = {
     _subscribedSymbolToContract.get(symbol)
   }
 
