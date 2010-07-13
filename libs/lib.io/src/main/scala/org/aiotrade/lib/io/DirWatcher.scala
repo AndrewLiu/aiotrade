@@ -22,7 +22,7 @@ object DirWatcher {
   }
 }
 
-class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
+abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
   private val fileToLastModified = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
 
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
