@@ -46,7 +46,6 @@ import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.util.ChangeObserver
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 
@@ -55,21 +54,12 @@ import ru.circumflex.orm._
  *
  * @author Caoyuan Deng
  */
-abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
+abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
-  private val log = Logger.getLogger(this.getClass.getName)
+  private val logger = Logger.getLogger(this.getClass.getName)
 
   refreshable = true
-
-  val updater: Updater = {
-    case ts: TickerSnapshot =>
-      val ticker = new Ticker
-      ticker.copyFrom(ts)
-      // store ticker first, will batch process when got Refreshed event
-      val storage = contractOf(ts.symbol).get.storage
-      storage synchronized {storage += ticker}
-  }
 
   reactions += {
     case Exchange.Opened(exchange: Exchange) =>
@@ -96,7 +86,6 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
     tickerSnapshot.symbol = symbol
-    this observe tickerSnapshot
   }
 
   override def unSubscribe(contract: TickerContract) {
@@ -104,29 +93,25 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val symbol = contract.srcSymbol
     val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
-    this unObserve tickerSnapshot
   }
 
   override protected def postLoadHistory {
-    composeSer foreach {event =>
-      event match {
-        case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-          source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-          log.info(symbol + ": " + count + ", data loaded, load server finished")
-        case _ =>
-      }
+    val events = composeSer
+    events foreach {
+      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
+        source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
+        logger.info(symbol + ": " + count + ", data loaded, load server finished")
+      case _ =>
     }
   }
 
   override protected def postRefresh {
-    composeSer foreach {event =>
-      event match {
-        case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-          source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
-        case _ =>
-      }
+    val events = composeSer
+    events foreach {
+      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
+        source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
+      case _ =>
     }
-
   }
 
   override protected def postStopRefresh {
@@ -148,13 +133,11 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
     val allExecutions = new ArrayList[Execution]
     val allSnapDepths = new ArrayList[SnapDepth]
 
-    for (contract <- subscribedContracts) {
-      val storage = contract.storage
-      val tickers = storage synchronized {
-        val x = storage.toArray
-        storage.clear
-        x
-      }
+    for (contract <- subscribedContracts;
+         storage = contract.storage if storage.size > 0
+    ) {
+      val tickers = storage.toArray
+      storage.clear
 
       val symbol = contract.srcSymbol
       val sec = Exchange.secOf(symbol).get
@@ -171,7 +154,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           ticker = tickers(i)
 
           val dayQuote = sec.dailyQuoteOf(ticker.time)
-          assert(Quotes1d.idOf(dayQuote) != None, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
+          assert(Quotes1d.idOf(dayQuote).isDefined, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
           ticker.quote = dayQuote
 
           val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
@@ -284,7 +267,7 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
           }
 
           if (validTicker) {
-            sec.exchange.uniSymbolToLastTicker.put(ticker.symbol, ticker)
+            sec.exchange.uniSymbolToLastTicker.put(sec.uniSymbol, ticker)
             prevTicker.copyFrom(ticker)
             sec.publish(TickerEvent(sec, ticker))
           }
@@ -326,22 +309,33 @@ abstract class TickerServer extends DataServer[Ticker] with ChangeObserver {
 
     // batch save to db
 
-    Tickers.insertBatch(allTickers.toArray)
-
-    val executions = allExecutions.toArray
-    Executions.insertBatch(executions)
-
-    val toClose = Sec.minuteQuotesToClose.toArray
-    if (toClose.length > 0) {
-      Quotes1m.insertBatch(toClose)
-      Sec.minuteQuotesToClose.clear
+    var willCommit = false
+    if (allTickers.size > 0) {
+      Tickers.insertBatch(allTickers.toArray)
+      willCommit = true
     }
 
-    commit
+    if (allExecutions.size > 0) {
+      val executions = allExecutions.toArray
+      Executions.insertBatch(executions)
+      willCommit = true
+    }
+
+    if (Sec.minuteQuotesToClose.size > 0) {
+      val toClose = Sec.minuteQuotesToClose.toArray
+      Quotes1m.insertBatch(toClose)
+      Sec.minuteQuotesToClose.clear
+      willCommit = true
+    }
+
+    // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
+    if (willCommit) commit
 
     // process events
+    if (allSnapDepths.size > 0) {
+      DataServer.publish(SnapDepthsEvent(this, allSnapDepths.toArray))
+    }
 
-    DataServer.publish(SnapDepthsEvent(this, allSnapDepths.toArray))
     events
   }
 
