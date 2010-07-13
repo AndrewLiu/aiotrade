@@ -42,6 +42,7 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.securities.model.Ticker
 import scala.collection.immutable.TreeMap
 
 
@@ -127,6 +128,13 @@ object IBWrapper extends IBWrapper {
     }
   }
     
+  private def tickerStorageOf(reqId: Int): ArrayList[Ticker] = {
+    reqIdToMktDataReq.get(reqId) match {
+      case None => null
+      case Some(mktReq) => mktReq.storage
+    }
+  }
+
   private def hisDataRequestorOf(reqId: Int): DataServer[Quote] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
@@ -210,6 +218,7 @@ object IBWrapper extends IBWrapper {
         
     val mktReq = MarketDataRequest(
       contract,
+      new ArrayList[Ticker](),
       tickerSnapshot,
       reqId
     )
@@ -354,7 +363,17 @@ object IBWrapper extends IBWrapper {
         case _ =>
       }
     }
-        
+
+    if (snapshot.isChanged) {
+      val storage = tickerStorageOf(tickerId)
+      if (storage != null) {
+        val ticker = new Ticker
+        ticker.copyFrom(snapshot)
+        storage += ticker
+      }
+    }
+
+    // @todo who is observe it
     snapshot.notifyChanged
         
     //System.out.println("id=" + tickerId + "  " + TickType.getField( field) + "=" + price + " " +
@@ -470,6 +489,7 @@ object IBWrapper extends IBWrapper {
 
   private case class MarketDataRequest(
     contract: Contract,
+    storage: ArrayList[Ticker],
     snapshotTicker: TickerSnapshot,
     reqId: Int
   )

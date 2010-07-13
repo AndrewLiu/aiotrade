@@ -36,6 +36,7 @@ import java.text.ParseException
 import java.util.{Calendar, TimeZone}
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
 
 /**
@@ -160,8 +161,14 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toFloat)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
 
-            tickerSnapshot.fullName = nameX
-            tickerSnapshot.notifyChanged
+            if (tickerSnapshot.isChanged) {
+              contractOf(symbol) foreach {x =>
+                val ticker = new Ticker
+                ticker.copyFrom(tickerSnapshot)
+                val storage = x.storage
+                storage synchronized {storage += ticker}
+              }
+            }
 
             countOne
             loop(math.max(newestTime, time))

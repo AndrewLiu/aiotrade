@@ -104,7 +104,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     DAY_OPEN
   )
 
-  private val lastTickers = new ArrayList[LightTicker]
+  private val uniSymbols = new ArrayList[String]
+
   private class Info {
     var inWatching = false
     val prevTicker = new Ticker
@@ -228,30 +229,49 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
 
-    def getRowCount: Int = lastTickers.size
+    def getRowCount: Int = uniSymbols.size
     def getColumnCount: Int = colNames.length
 
     def getValueAt(row: Int, col: Int): Object = {
-      val ticker = lastTickers(row)
-
-      colKeys(col) match {
-        case SYMBOL => ticker.symbol
-        case TIME =>
-          val tz = Exchange.exchangeOf(ticker.symbol).timeZone
-          val cal = Calendar.getInstance(tz)
-          cal.setTimeInMillis(ticker.time)
-          df.setTimeZone(tz)
-          df format cal.getTime
-        case LAST_PRICE => "%5.2f"   format ticker.lastPrice
-        case DAY_VOLUME => "%5.2f"   format ticker.dayVolume
-        case PREV_CLOSE => "%5.2f"   format ticker.prevClose
-        case DAY_CHANGE => "%5.2f"   format ticker.dayChange
-        case PERCENT    => "%3.2f%%" format ticker.changeInPercent
-        case DAY_HIGH   => "%5.2f"   format ticker.dayHigh
-        case DAY_LOW    => "%5.2f"   format ticker.dayLow
-        case DAY_OPEN   => "%5.2f"   format ticker.dayOpen
-        case _ => null
+      val symbol = uniSymbols(row)
+      val exchange = Exchange.exchangeOf(symbol)
+      
+      exchange.uniSymbolToLastTicker.get(symbol) match {
+        case Some(ticker) =>
+          colKeys(col) match {
+            case SYMBOL => symbol
+            case TIME =>
+              val tz = exchange.timeZone
+              val cal = Calendar.getInstance(tz)
+              cal.setTimeInMillis(ticker.time)
+              df.setTimeZone(tz)
+              df format cal.getTime
+            case LAST_PRICE => "%5.2f"   format ticker.lastPrice
+            case DAY_VOLUME => "%5.2f"   format ticker.dayVolume
+            case PREV_CLOSE => "%5.2f"   format ticker.prevClose
+            case DAY_CHANGE => "%5.2f"   format ticker.dayChange
+            case PERCENT    => "%3.2f%%" format ticker.changeInPercent
+            case DAY_HIGH   => "%5.2f"   format ticker.dayHigh
+            case DAY_LOW    => "%5.2f"   format ticker.dayLow
+            case DAY_OPEN   => "%5.2f"   format ticker.dayOpen
+            case _ => null
+          }
+        case None =>
+          colKeys(col) match {
+            case SYMBOL => symbol
+            case TIME => "_"
+            case LAST_PRICE => "_"
+            case DAY_VOLUME => "_"
+            case PREV_CLOSE => "_"
+            case DAY_CHANGE => "_"
+            case PERCENT    => "_"
+            case DAY_HIGH   => "_"
+            case DAY_LOW    => "_"
+            case DAY_OPEN   => "_"
+            case _ => null
+          }
       }
+
     }
 
     override def getColumnName(col: Int) = colNames(col)
@@ -264,6 +284,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
 
   private def updateByTicker(symbol: String, ticker: LightTicker) {
+    if (!uniSymbols.contains(symbol)) {
+      uniSymbols += symbol
+    }
+
     val (info, dayFirst) = symbolToInfo.get(symbol) match {
       case Some(x) => (x, false)
       case None =>
@@ -271,19 +295,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         symbolToInfo.put(symbol, x)
         (x, true)
     }
-    
-    val inWatching = info.inWatching
-    if (!inWatching) {
-      return
-    }
 
-    val idx = lastTickers.findIndexOf(_.symbol == symbol)
-    if (idx < 0) {
-      lastTickers += ticker
-    } else {
-      lastTickers(idx) = ticker
-    }
-    
+    if (ticker == null) return
+    if (!info.inWatching) return
+
     val prevTicker = info.prevTicker
     /**
      * @Note
@@ -395,9 +410,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         symbolToInfo.put(uniSymbol, x)
     }
 
-    if (!lastTickers.exists(_.symbol == uniSymbol)) {
-      val lastTicker = sec.exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(new LightTicker)
-      lastTicker.symbol = uniSymbol
+    if (!uniSymbols.contains(uniSymbol)) {
+      val lastTicker = sec.exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(null)
       updateByTicker(uniSymbol, lastTicker)
     }
   }

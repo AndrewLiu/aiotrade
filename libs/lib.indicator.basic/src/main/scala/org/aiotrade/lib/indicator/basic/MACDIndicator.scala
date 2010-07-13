@@ -51,7 +51,7 @@ class MACDIndicator extends Indicator {
   protected def computeCont(begIdx: Int, size: Int) = {
     var i = begIdx
     while (i < size) {
-
+    
       macd(i)   = macd(i, C, periodSlow, periodFast)
       signal(i) = ema (i, macd, periodSignal)
       osc(i)    = macd(i) - signal(i)

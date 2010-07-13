@@ -539,13 +539,13 @@ class Sec extends SerProvider with Publisher {
    * by listening to exchange's timer event
    */
   def dailyQuoteOf(time: Long): Quote = {
-    assert(Secs.idOf(this) != None, "Sec: " + this + " is transient")
+    assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
     val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastData.dailyQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOne => // day changes or null
+      case prevOneOrNull => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(this, rounded)
         lastData.dailyQuote = newone
         newone
@@ -553,13 +553,13 @@ class Sec extends SerProvider with Publisher {
   }
 
   def dailyMoneyFlowOf(time: Long): MoneyFlow = {
-    assert(Secs.idOf(this) != None, "Sec: " + this + " is transient")
+    assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
     val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastData.dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOne => // day changes or null
+      case prevOneOrNull => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(this, rounded)
         lastData.dailyMoneyFlow = newone
         newone
@@ -572,10 +572,10 @@ class Sec extends SerProvider with Publisher {
     lastData.minuteQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOne => // minute changes or null
-        if (prevOne != null) {
-          prevOne.closed_!
-          minuteQuotesToClose += prevOne
+      case prevOneOrNull => // minute changes or null
+        if (prevOneOrNull != null) {
+          prevOneOrNull.closed_!
+          minuteQuotesToClose += prevOneOrNull
         }
 
         val newone = new Quote
@@ -594,10 +594,10 @@ class Sec extends SerProvider with Publisher {
     lastData.minuteMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOne => // minute changes or null
-        if (prevOne != null) {
-          prevOne.closed_!
-          minuteMoneyFlowsToClose += prevOne
+      case prevOneOrNull => // minute changes or null
+        if (prevOneOrNull != null) {
+          prevOneOrNull.closed_!
+          minuteMoneyFlowsToClose += prevOneOrNull
         }
 
         val newone = new MoneyFlow

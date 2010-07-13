@@ -34,12 +34,15 @@ package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
 import ru.circumflex.orm._
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import scala.collection.mutable.HashMap
 
 object Quotes1d extends Quotes {
+  private val logger = Logger.getLogger(this.getClass.getSimpleName)
+
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
     (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
   }
@@ -59,6 +62,7 @@ object Quotes1d extends Quotes {
         newone.sec = sec
         newone.unclosed_! // @todo when to close it and update to db?
         newone.justOpen_!
+        logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
         Quotes1d.save(newone)
         commit
         newone

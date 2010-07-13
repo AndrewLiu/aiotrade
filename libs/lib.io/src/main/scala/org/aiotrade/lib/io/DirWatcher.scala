@@ -22,8 +22,8 @@ object DirWatcher {
   }
 }
 
-class DirWatcher(path: File, filter: FileFilter) extends TimerTask with scala.swing.Publisher {
-  private val dirs = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
+class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
+  private val fileToLastModified = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
 
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
@@ -43,14 +43,14 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask with scala.sw
       val file = files(i)
       checkedFiles += file
       
-      dirs.get(file) match {
+      fileToLastModified.get(file) match {
         case None =>
           // new file
-          dirs += (file -> file.lastModified)
+          fileToLastModified.put(file, file.lastModified)
           onChange(FileAdded(file))
         case Some(lastModified) if lastModified != file.lastModified =>
           // modified file
-          dirs += (file -> file.lastModified)
+          fileToLastModified.put(file, file.lastModified)
           onChange(FileModified(file))
         case _ =>
       }
@@ -59,9 +59,9 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask with scala.sw
     }
 
     // deleted files
-    val deletedfiles = dirs.clone.keySet -- checkedFiles
+    val deletedfiles = fileToLastModified.clone.keySet -- checkedFiles
     deletedfiles foreach {file =>
-      dirs -= file
+      fileToLastModified -= file
       onChange(FileDeleted(file))
     }
   }
@@ -69,9 +69,7 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask with scala.sw
   /**
    * Override it if you want sync processing
    */
-  protected def onChange(event: FileEvent) {
-    publish(event)
-  }
+  protected def onChange(event: FileEvent)
 }
 
 class DirWatcherFilter(filter: String) extends FileFilter {
