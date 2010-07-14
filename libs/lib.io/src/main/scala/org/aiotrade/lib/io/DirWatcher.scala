@@ -69,7 +69,7 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
   /**
    * Override it if you want sync processing
    */
-  protected def onChange(event: FileEvent)
+  protected def onChange(event: FileEvent){}
 }
 
 class DirWatcherFilter(filter: String) extends FileFilter {
