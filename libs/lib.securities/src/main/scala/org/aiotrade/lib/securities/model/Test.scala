@@ -12,10 +12,11 @@ object Test {
 
 
     val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-    SS.name = "???"
-    SS.fullName = "???????"
+    SS.name = "上交所"
+    SS.fullName = "上海证券交易所"
     val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-    
+    SZ.name = "深交所"
+    SZ.name = "深圳证券交易所"
     Exchanges.save(SS)
     Exchanges.save(SZ)
   }
