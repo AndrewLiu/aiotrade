@@ -65,16 +65,16 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
 
     UserOptionsManager.assertLoaded
 
-    /**
-     * Wrap in EDT to avoid:
-     java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
-     http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
-     Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
-     at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
-     at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
-     at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
-     */
     SwingUtilities.invokeLater(new Runnable {
+        /**
+         * Wrap in EDT to avoid:
+         java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
+         http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
+         Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
+         at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
+         at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
+         at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
+         */
         def run {
           UIManager.put("ScrollBar.width", 12)
 

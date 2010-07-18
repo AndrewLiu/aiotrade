@@ -81,19 +81,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Have to explicitly depend on lib.securities and lib.math, so the Ticker and TFreq's
-             class.forName can be loaded (during serialization) -->
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-aiotrade-lib-securities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-aiotrade-lib-math</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-scala-lang</artifactId>

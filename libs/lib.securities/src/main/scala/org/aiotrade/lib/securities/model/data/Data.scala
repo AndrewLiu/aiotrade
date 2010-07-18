@@ -4,6 +4,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Companies
 import org.aiotrade.lib.securities.model.Company
@@ -60,6 +61,8 @@ import scala.collection.mutable.HashMap
  *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
  */
 object Data {
+  private val logger = Logger.getLogger(this.getClass.getName)
+
   var prefixPath = "src/main/resources/"
   lazy val dataFileDir = prefixPath + "data"
 
@@ -125,7 +128,7 @@ object Data {
     Exchanges.insertBatch_!(exchanges)
   
     exchanges foreach {x => assert(Exchanges.idOf(x).isDefined, x + " with none id")}
-    exchanges foreach {x => println("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
+    exchanges foreach {x => logger.info("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
   }
 
   def readFromSecInfos(file: File) {

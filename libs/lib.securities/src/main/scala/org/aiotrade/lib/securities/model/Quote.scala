@@ -95,15 +95,15 @@ abstract class Quotes extends Table[Quote] {
 
   val time = "time" BIGINT
 
-  val open   = "open"   FLOAT(12, 2)
-  val high   = "high"   FLOAT(12, 2)
-  val low    = "low"    FLOAT(12, 2)
-  val close  = "close"  FLOAT(12, 2)
-  val volume = "volume" FLOAT(12, 2)
-  val amount = "amount" FLOAT(12, 2)
-  val vwap   = "vwap"   FLOAT(12, 2)
+  val open   = "open"   FLOAT(12, 3)
+  val high   = "high"   FLOAT(12, 3)
+  val low    = "low"    FLOAT(12, 3)
+  val close  = "close"  FLOAT(12, 3)
+  val volume = "volume" FLOAT(12, 3)
+  val amount = "amount" FLOAT(12, 3)
+  val vwap   = "vwap"   FLOAT(12, 3)
 
-  val adjWeight = "adjWeight" FLOAT(12, 2)
+  val adjWeight = "adjWeight" FLOAT(12, 3)
 
   val flag = "flag" INTEGER
 

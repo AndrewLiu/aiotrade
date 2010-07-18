@@ -31,15 +31,17 @@ object Exchanges extends Table[Exchange] {
 
   // --- helper methods
   def secsOf(exchange: Exchange): Seq[Sec] = {
+    val t0 = System.currentTimeMillis
     val exchangeId = Exchanges.idOf(exchange)
     val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list) map (_._1)
-    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size)
+    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size +
+             ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     secs
   }
 }
 
 object Exchange extends Publisher {
-  val logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
@@ -88,6 +90,20 @@ object Exchange extends Publisher {
     allExchanges map (x => (x -> Exchanges.secsOf(x))) toMap
   }
 
+  lazy val exchangeToUniSymbols = {
+    exchangeToSecs map {x =>
+      val syms = ListBuffer[String]()
+      x._2 foreach {sec =>
+        if (sec.secInfo == null)
+          log.warning("secInfo of sec " + sec + " is null")
+        else
+          syms += sec.secInfo.uniSymbol
+      }
+      log.info("Syms number of " + x._1.code + " is " + syms.size)
+      x._1 -> syms.toList
+    } toMap
+  }
+
   lazy val uniSymbolToSec = {
     exchangeToSecs map (_._2) flatMap {secs =>
       secs filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
@@ -109,15 +125,7 @@ object Exchange extends Publisher {
   def secsOf(exchange: Exchange): Seq[Sec] = exchangeToSecs.get(exchange) getOrElse Nil
 
   def symbolsOf(exchange: Exchange): Seq[String] = {
-    val syms = ListBuffer[String]()
-    secsOf(exchange) foreach {sec =>
-      if (sec.secInfo == null)
-        logger.warning("secInfo of sec " + sec + " is null")
-      else
-        syms += sec.secInfo.uniSymbol
-    }
-    logger.info("Syms number of " + exchange.code + " is " + syms.size)
-    syms
+    exchangeToUniSymbols.get(exchange) getOrElse Nil
   }
 
   def secOf(uniSymbol: String): Option[Sec] =

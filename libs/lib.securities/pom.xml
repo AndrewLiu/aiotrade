@@ -80,6 +80,7 @@
                      be substitued in resources file -->
                 <filtering>true</filtering>
                 <includes>
+                    <include>**/*.conf</include>
                     <include>**/*.properties</include>
                     <include>**/*.xml</include>
                     <include>**/data/**</include>
