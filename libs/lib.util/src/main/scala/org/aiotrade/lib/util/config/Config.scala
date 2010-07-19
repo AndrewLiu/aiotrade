@@ -16,9 +16,9 @@ class ConfigurationException(message: String) extends RuntimeException(message)
  * Loads up the configuration (from the app.conf file).
  */
 object Config {
-  val logger = Logger.get(this.getClass.getName)
+  val log = Logger.get(this.getClass.getName)
 
-  val app = "aiotrade"
+  lazy val app = System.getProperty("run.mode", "development")
   val version = "0.10"
 
   lazy val configDir: Option[String] = List("./conf", "./etc") find {x =>
@@ -33,7 +33,7 @@ object Config {
       val configFile = System.getProperty(app + ".config", "")
       try {
         Configgy.configure(configFile)
-        logger.info("Config loaded from -D" + app + ".config=%s", configFile)
+        log.info("Config loaded from -D" + app + ".config=%s", configFile)
       } catch {
         case e: ParseException => throw new ConfigurationException(
             "Config could not be loaded from -D" + app + ".config=" + configFile +
@@ -44,7 +44,7 @@ object Config {
       try {
         val configFile = configDir.get + "/" + app + ".conf"
         Configgy.configure(configFile)
-        logger.info("configDir is defined as [%s], config loaded from [%s].", configDir.get, configFile)
+        log.info("configDir is defined as [%s], config loaded from [%s].", configDir.get, configFile)
       } catch {
         case e: ParseException => throw new ConfigurationException(
             "configDir is defined as [" + configDir.get + "] " +
@@ -55,7 +55,7 @@ object Config {
     } else if (classLoader.getResource(app + ".conf") != null) {
       try {
         Configgy.configureFromResource(app + ".conf", classLoader)
-        logger.info("Config loaded from the application classpath.")
+        log.info("Config loaded from the application classpath.")
       } catch {
         case e: ParseException => throw new ConfigurationException(
             "Can't load '" + app + ".conf' config file from application classpath," +
@@ -63,7 +63,7 @@ object Config {
       }
       Configgy.config
     } else {
-      logger.warning(
+      log.warning(
         "\nCan't load '" + app + ".conf'." +
         "\nOne of the three ways of locating the '" + app + ".conf' file needs to be defined:" +
         "\n\t1. Define the '-D" + app + ".config=...' system property option." +
