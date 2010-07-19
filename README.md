@@ -9,7 +9,7 @@ AIOTrade
     > cd aiotrade.git
     > git clone git://github.com/dcaoyuan/aiotrade.git
     > git clone git://github.com/dcaoyuan/circumflex.git
-    > git://github.com/dcaoyuan/configgy.git
+    > git clone git://github.com/dcaoyuan/configgy.git
 
 ## Directory Structure:
     +-- aiotrade.git
