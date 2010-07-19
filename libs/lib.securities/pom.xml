@@ -126,7 +126,7 @@
             </activation>
             <properties>
                 <orm.connection.driver>com.mysql.jdbc.Driver</orm.connection.driver>
-                <orm.connection.url>jdbc:mysql://localhost:3306/aiotrade?useUnicode=true</orm.connection.url>
+                <orm.connection.url>jdbc:mysql://127.0.0.1:3306/aiotrade?useUnicode=true</orm.connection.url>
                 <orm.connection.username>root</orm.connection.username>
                 <orm.connection.password></orm.connection.password>
                 <orm.dialect>ru.circumflex.orm.MySQLDialect</orm.dialect>

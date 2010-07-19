@@ -28,16 +28,16 @@ object Tickers extends Table[Ticker] {
 
   val time = "time" BIGINT
 
-  val prevClose = "prevClose" FLOAT(12, 3)
-  val lastPrice = "lastPrice" FLOAT(12, 3)
+  val prevClose = "prevClose" FLOAT()
+  val lastPrice = "lastPrice" FLOAT()
 
-  val dayOpen   = "dayOprn"   FLOAT(12, 3)
-  val dayHigh   = "dayHigh"   FLOAT(12, 3)
-  val dayLow    = "dayLow"    FLOAT(12, 3)
-  val dayVolume = "dayVolume" FLOAT(12, 3)
-  val dayAmount = "dayAmount" FLOAT(12, 3)
+  val dayOpen   = "dayOprn"   FLOAT()
+  val dayHigh   = "dayHigh"   FLOAT()
+  val dayLow    = "dayLow"    FLOAT()
+  val dayVolume = "dayVolume" FLOAT()
+  val dayAmount = "dayAmount" FLOAT()
 
-  val dayChange = "dayChange" FLOAT(12, 3)
+  val dayChange = "dayChange" FLOAT()
 
   val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
 

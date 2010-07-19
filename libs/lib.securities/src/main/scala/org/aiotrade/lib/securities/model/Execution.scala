@@ -10,9 +10,9 @@ object Executions extends Table[Execution] {
 
   val time = "time" BIGINT
 
-  val price  = "price"  FLOAT(12, 2)
-  val volume = "volume" FLOAT(12, 2)
-  val amount = "amount" FLOAT(12, 2)
+  val price  = "price"  FLOAT()
+  val volume = "volume" FLOAT()
+  val amount = "amount" FLOAT()
 
   val flag = "flag" TINYINT // @Note jdbc type of TINYINT is Int
 

@@ -16,8 +16,8 @@ object SecInfos extends Table[SecInfo] {
   val totalShare = "totalShare" BIGINT
   val freeFloat = "freeFloat" BIGINT
   val tradingUnit = "tradingUnit" INTEGER 
-  val upperLimit = "upperLimit" FLOAT(12, 2)
-  val lowerLimit = "lowerLimit" FLOAT(12, 2)
+  val upperLimit = "upperLimit" FLOAT()
+  val lowerLimit = "lowerLimit" FLOAT()
 }
 
 class SecInfo {

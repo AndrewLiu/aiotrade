@@ -38,17 +38,17 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val time = "time" BIGINT
 
-  val totalVolume = "totalVolume" FLOAT(18, 2)
-  val totalAmount = "totalAmount" FLOAT(18, 2)
+  val totalVolume = "totalVolume" FLOAT()
+  val totalAmount = "totalAmount" FLOAT()
 
-  val superVolume = "superVolume" FLOAT(18, 2)
-  val superAmount = "superAmount" FLOAT(18, 2)
+  val superVolume = "superVolume" FLOAT()
+  val superAmount = "superAmount" FLOAT()
 
-  val largeVolume = "largeVolume" FLOAT(18, 2)
-  val largeAmount = "largeAmount" FLOAT(18, 2)
+  val largeVolume = "largeVolume" FLOAT()
+  val largeAmount = "largeAmount" FLOAT()
 
-  val smallVolume = "smallVolume" FLOAT(18, 2)
-  val smallAmount = "smallAmount" FLOAT(18, 2)
+  val smallVolume = "smallVolume" FLOAT()
+  val smallAmount = "smallAmount" FLOAT()
   
   val flag = "flag" INTEGER
 
