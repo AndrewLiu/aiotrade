@@ -61,7 +61,7 @@ import scala.collection.mutable.HashMap
  *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
  */
 object Data {
-  private val logger = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   var prefixPath = "src/main/resources/"
   lazy val dataFileDir = prefixPath + "data"
@@ -120,7 +120,7 @@ object Data {
     )
 
     val ddl = new DDLUnit(tables: _*)
-    ddl.dropCreate.messages.foreach(msg => println(msg.body))
+    ddl.dropCreate.messages.foreach(msg => log.info(msg.body))
   }
 
   def createExchanges = {
@@ -128,7 +128,7 @@ object Data {
     Exchanges.insertBatch_!(exchanges)
   
     exchanges foreach {x => assert(Exchanges.idOf(x).isDefined, x + " with none id")}
-    exchanges foreach {x => logger.info("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
+    exchanges foreach {x => log.info("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
   }
 
   def readFromSecInfos(file: File) {
