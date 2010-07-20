@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model.data
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
@@ -63,7 +64,8 @@ import scala.collection.mutable.HashMap
 object Data {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  var prefixPath = "src/main/resources/"
+  private lazy val classLoader = Thread.currentThread.getContextClassLoader
+  private var prefixPath = "src/main/resources/"
   lazy val dataFileDir = prefixPath + "data"
 
   // holding strong reference of exchange
@@ -87,7 +89,8 @@ object Data {
   private val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
 
   def main(args: Array[String]) {
-    println("Current user workind dir: " + System.getProperties.getProperty("user.dir"))
+    log.info("Current user workind dir: " + System.getProperty("user.dir"))
+    log.info("Table of exchanges exists: " + Exchanges.exists)
 
     createData
 
@@ -102,10 +105,10 @@ object Data {
     schema
     createExchanges
     createSimpleSecs
-    readFromSecInfos(new File(dataFileDir, "sec_infos.txt"))
-    readFromCompanies(new File(dataFileDir, "companies.txt"))
-    readFromIndustries(new File(dataFileDir, "industries.txt"))
-    readFromCompanyIndustries(new File(dataFileDir, "company_industries.txt"))
+    readFromSecInfos(inputStreamOf("sec_infos.txt"))
+    readFromCompanies(inputStreamOf("companies.txt"))
+    readFromIndustries(inputStreamOf("industries.txt"))
+    readFromCompanyIndustries(inputStreamOf("company_industries.txt"))
     Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
     commit
   }
@@ -131,8 +134,12 @@ object Data {
     exchanges foreach {x => log.info("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
   }
 
-  def readFromSecInfos(file: File) {
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
+  def inputStreamOf(fileName: String) = {
+    classLoader.getResourceAsStream("data/" + fileName)
+  }
+
+  def readFromSecInfos(is: InputStream) {
+    val reader = new BufferedReader(new InputStreamReader(is))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -162,8 +169,8 @@ object Data {
     SecInfos.insertBatch_!(secInfoRecords.toArray)
   }
 
-  def readFromCompanies(file: File) {
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
+  def readFromCompanies(is: InputStream) {
+    val reader = new BufferedReader(new InputStreamReader(is))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -187,8 +194,8 @@ object Data {
     Companies.insertBatch_!(companyRecords.toArray)
   }
 
-  def readFromIndustries(file: File) {
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
+  def readFromIndustries(is: InputStream) {
+    val reader = new BufferedReader(new InputStreamReader(is))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -204,8 +211,8 @@ object Data {
     Industries.insertBatch_!(industryRecords.toArray)
   }
 
-  def readFromCompanyIndustries(file: File) {
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
+  def readFromCompanyIndustries(is: InputStream) {
+    val reader = new BufferedReader(new InputStreamReader(is))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {

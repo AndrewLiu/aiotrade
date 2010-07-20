@@ -87,6 +87,11 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>net-lag-configgy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>ru-circumflex-orm</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -30,9 +30,12 @@
  */
 package org.aiotrade.modules.ui.netbeans
 
+import java.util.logging.Logger
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.model.Exchanges
+import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
 
 /**
@@ -59,9 +62,16 @@ import org.aiotrade.lib.securities.util.UserOptionsManager
  */
 
 class ModuleInstall extends org.openide.modules.ModuleInstall {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   override def restored {
     super.restored
+
+    org.aiotrade.lib.util.config.Config.config // load config
+    if (!Exchanges.exists) {
+      log.info("Database does not exist yer, will create it ...")
+      Data.createData
+    }
 
     UserOptionsManager.assertLoaded
 
