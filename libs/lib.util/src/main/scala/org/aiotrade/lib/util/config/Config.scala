@@ -29,14 +29,14 @@ object Config {
   val config = {
     val classLoader = Thread.currentThread.getContextClassLoader
     
-    if (System.getProperty(mode + ".config", "") != "") {
-      val configFile = System.getProperty(mode + ".config", "")
+    if (System.getProperty("run.config", "") != "") {
+      val configFile = System.getProperty("run.config", "")
       try {
         Configgy.configure(configFile)
-        log.info("Config loaded from -D" + mode + ".config=%s", configFile)
+        log.info("Config loaded from -D" + "run.config=%s", configFile)
       } catch {
         case e: ParseException => throw new ConfigurationException(
-            "Config could not be loaded from -D" + mode + ".config=" + configFile +
+            "Config could not be loaded from -D" + "run.config=" + configFile +
             "\n\tdue to: " + e.toString)
       }
       Configgy.config
