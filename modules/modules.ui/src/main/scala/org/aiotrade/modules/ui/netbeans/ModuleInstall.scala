@@ -30,6 +30,10 @@
  */
 package org.aiotrade.modules.ui.netbeans
 
+import java.io.File
+import java.io.IOException
+import java.io.OutputStream
+import java.util.logging.Level
 import java.util.logging.Logger
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
@@ -37,6 +41,8 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
+import org.openide.filesystems.FileLock
+import org.openide.filesystems.FileUtil
 
 /**
  * How do i change the closing action of the MainWindow?
@@ -67,9 +73,33 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
   override def restored {
     super.restored
 
-    org.aiotrade.lib.util.config.Config.config // load config
+    // load config as soon as possible
+    val configFo = FileUtil.getConfigFile("aiotrade.conf")
+    var configFile = FileUtil.toFile(configFo)
+    if (configFile == null) {
+      // extract it from archive to disk
+      var out: OutputStream = null
+      var lock: FileLock = null
+      try {
+        lock = configFo.lock
+        val body = configFo.asBytes
+        out = configFo.getOutputStream(lock)
+        out.write(body)
+      } catch {
+        case ex: IOException => log.log(Level.WARNING, ex.getMessage, ex)
+      } finally {
+        /** should remember to do out.close() here */
+        if (out  != null) out.close
+        if (lock != null) lock.releaseLock
+      }
+      configFile = FileUtil.toFile(configFo)
+    }
+    log.info("Config file is " + configFile.getCanonicalPath)
+    org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
+    
+    // create database if does not exist
     if (!Exchanges.exists) {
-      log.info("Database does not exist yer, will create it ...")
+      log.info("Database does not exist yet, will create it ...")
       Data.createData
     }
 

@@ -64,6 +64,7 @@ import org.openide.ErrorManager;
 import org.openide.actions.DeleteAction;
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject
@@ -265,13 +266,13 @@ object SymbolNodes {
 
   /**
    * The root node of SymbolNode
-   *  It will be 'Symbols' folder in default file system, usually the 'config' dir in userdir
-   *  Physical folder "Symbols" is defined in layer.xml
+   *  It will be 'symbols' folder in default file system, usually the 'config' dir in userdir
+   *  Physical folder "symbols" is defined in layer.xml
    */
   @throws(classOf[DataObjectNotFoundException])
   @throws(classOf[IntrospectionException])
   object rootSymbolNode extends SymbolNode(
-    DataObject.find(Repository.getDefault.getDefaultFileSystem.getRoot.getFileObject("Symbols")).getNodeDelegate
+    DataObject.find(FileUtil.getConfigFile("symbols")).getNodeDelegate
   ) {
 
     override def getDisplayName = {
