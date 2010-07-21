@@ -129,54 +129,61 @@
     </folder>
 
     <!--
-    http://www.netbeans.org/project/www/download/dev/javadoc/org-openide-util/org/openide/util/Utilities.html#stringToKey(java.lang.String)
+    http://bits.netbeans.org/dev/javadoc/org-openide-util/org/openide/util/Utilities.html#stringToKey(java.lang.String)
     http://java.sun.com/j2se/1.5.0/docs/api/java/awt/event/KeyEvent.html
 
+    Construct a new key description from a given universal string description. Provides mapping between Emacs-like textual key descriptions and the KeyStroke object used in Swing.
     This format has following form:
+
     [C][A][S][M]-identifier
 
     Where:
 
-    * C stands for the Control key
-    * A stands for the Alt key
-    * S stands for the Shift key
-    * M stands for the Meta key
-
-    identifier can be any text constant from KeyEvent but without the leading VK_ characters.
-    So KeyEvent.VK_ENTER is described as ENTER
+        C stands for the Control key
+        A stands for the Alt key
+        S stands for the Shift key
+        M stands for the Meta key
+    
+    The format also supports two wildcard codes, to support differences in platforms. These are the preferred choices for registering keystrokes, since platform conflicts will automatically be handled:
+        D stands for the default menu accelerator - the Control key on most platforms, the Command (meta) key on Macintosh
+        O stands for the alternate accelerator - the Alt key on most platforms, the Ctrl key on Macintosh (Macintosh uses Alt as a secondary shift key for composing international characters 
+        - if you bind Alt-8 to an action, a mac user with a French keyboard will not be able to type the [ character, which is a significant handicap
+    
+    If you use the wildcard characters, and specify a key which will conflict with keys the operating system consumes, it will be mapped to whichever choice can work - for example, on Macintosh, Command-Q is always consumed by the operating system, so D-Q will always map to Control-Q.
+    Every modifier before the hyphen must be pressed. identifier can be any text constant from KeyEvent but without the leading VK_ characters. So KeyEvent.VK_ENTER is described as ENTER.
     -->
     <folder name="Shortcuts">
-        <file name="C-A.shadow">
+        <file name="O-A.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddExchangeSymbolsAction.instance"/>
         </file>
-        <file name="C-N.shadow">
+        <file name="O-N.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.instance"/>
         </file>
-        <file name="C-B.shadow">
+        <file name="O-B.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchCandleOhlcAction.instance"/>
         </file>
         <file name="ESCAPE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowCursorCrossAction.instance"/>
         </file>
-        <file name="C-L.shadow">
+        <file name="O-L.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-PickDrawingLineAction.instance"/>
         </file>
-        <file name="C-D.shadow">
+        <file name="O-D.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
         </file>
         <file name="DELETE.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-RemoveDrawingLineAction.instance"/>
         </file>
-        <file name="C-I.shadow">
+        <file name="O-I.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-PickIndicatorAction.instance"/>
         </file>
-        <file name="C-P.shadow">
+        <file name="O-P.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-ChangeOptsAction.instance"/>
         </file>
-        <file name="C-T.shadow">
+        <file name="O-T.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchCalendarTradingTimeViewAction.instance"/>
         </file>
-        <file name="C-S.shadow">
+        <file name="O-S.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
         </file>
     </folder>
@@ -379,7 +386,7 @@
             <file name="org-aiotrade-modules-ui-netbeans-quicksearch-FreqSearchProvider.instance">
                 <attr name="displayName" bundlevalue="org.aiotrade.modules.ui.netbeans.Bundle#QuickSearch/Freqs/org-aiotrade-modules-ui-netbeans-quicksearch-FreqSearchProvider.instance"/>
             </file>
-        </folder>        
+        </folder>
     </folder>
 
 </filesystem>
