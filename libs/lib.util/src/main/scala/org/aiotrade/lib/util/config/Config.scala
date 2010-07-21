@@ -16,7 +16,7 @@ class ConfigurationException(message: String) extends RuntimeException(message)
  * Loads up the configuration (from the app.conf file).
  */
 object Config {
-  val log = Logger.get(this.getClass.getName)
+  private val log = Logger.get(this.getClass.getName)
 
   val mode = System.getProperty("run.mode", "development")
   val version = "0.10"
@@ -26,58 +26,77 @@ object Config {
     f.exists && f.isDirectory
   }
 
-  val config = {
-    val classLoader = Thread.currentThread.getContextClassLoader
-    
-    if (System.getProperty("run.config", "") != "") {
-      val configFile = System.getProperty("run.config", "")
-      try {
-        Configgy.configure(configFile)
-        log.info("Config loaded from -D" + "run.config=%s", configFile)
-      } catch {
-        case e: ParseException => throw new ConfigurationException(
-            "Config could not be loaded from -D" + "run.config=" + configFile +
-            "\n\tdue to: " + e.toString)
-      }
-      Configgy.config
-    } else if (configDir.isDefined) {
-      try {
-        val configFile = configDir.get + "/" + mode + ".conf"
-        Configgy.configure(configFile)
-        log.info("configDir is defined as [%s], config loaded from [%s].", configDir.get, configFile)
-      } catch {
-        case e: ParseException => throw new ConfigurationException(
-            "configDir is defined as [" + configDir.get + "] " +
-            "\n\tbut the '" + mode + ".conf' config file can not be found at [" + configDir.get + "/" + mode + ".conf]," +
-            "\n\tdue to: " + e.toString)
-      }
-      Configgy.config
-    } else if (classLoader.getResource(mode + ".conf") != null) {
-      try {
-        Configgy.configureFromResource(mode + ".conf", classLoader)
-        log.info("Config loaded from the application classpath.")
-      } catch {
-        case e: ParseException => throw new ConfigurationException(
-            "Can't load '" + mode + ".conf' config file from application classpath," +
-            "\n\tdue to: " + e.toString)
-      }
-      Configgy.config
-    } else {
-      log.warning(
-        "\nCan't load '" + mode + ".conf'." +
-        "\nOne of the three ways of locating the '" + mode + ".conf' file needs to be defined:" +
-        "\n\t1. Define the '-D" + mode + ".config=...' system property option." +
-        "\n\t2. Define './conf' directory." +
-        "\n\t3. Put the '" + mode + ".conf' file on the classpath." +
-        "\nI have no way of finding the '" + mode + ".conf' configuration file." +
-        "\nUsing default values everywhere.")
-      net.lag.configgy.Config.fromString("<" + mode + "></" + mode + ">") // default empty config
-    }
-  }
+  private var _config: net.lag.configgy.Config = _
 
-  val configVersion = config.getString(mode + ".version", version)
-  if (version != configVersion) throw new ConfigurationException(
-    mode + " version [" + version + "] is different than the provided config ('" + mode + ".conf') version [" + configVersion + "]")
+  def apply(fileName: String = null): net.lag.configgy.Config = {
+    if (_config == null) {
+      val classLoader = Thread.currentThread.getContextClassLoader
+
+      _config = if (fileName != null) {
+        try {
+          val nbUserPath = System.getProperty("netbeans.user")
+          Configgy.configure(fileName)
+          log.info("Config loaded directly from [%s].", fileName)
+          log.info("netbeans.user=" + nbUserPath)
+        } catch {
+          case e: ParseException => throw new ConfigurationException(
+              "The '" + fileName + " config file can not be found" +
+              "\n\tdue to: " + e.toString)
+        }
+        Configgy.config
+      } else if (System.getProperty("run.config", "") != "") {
+        val configFile = System.getProperty("run.config", "")
+        try {
+          Configgy.configure(configFile)
+          log.info("Config loaded from -D" + "run.config=%s", configFile)
+        } catch {
+          case e: ParseException => throw new ConfigurationException(
+              "Config could not be loaded from -D" + "run.config=" + configFile +
+              "\n\tdue to: " + e.toString)
+        }
+        Configgy.config
+      } else if (configDir.isDefined) {
+        try {
+          val configFile = configDir.get + "/" + mode + ".conf"
+          Configgy.configure(configFile)
+          log.info("configDir is defined as [%s], config loaded from [%s].", configDir.get, configFile)
+        } catch {
+          case e: ParseException => throw new ConfigurationException(
+              "configDir is defined as [" + configDir.get + "] " +
+              "\n\tbut the '" + mode + ".conf' config file can not be found at [" + configDir.get + "/" + mode + ".conf]," +
+              "\n\tdue to: " + e.toString)
+        }
+        Configgy.config
+      } else if (classLoader.getResource(mode + ".conf") != null) {
+        try {
+          Configgy.configureFromResource(mode + ".conf", classLoader)
+          log.info("Config loaded from the application classpath [%s].", mode + ".conf")
+        } catch {
+          case e: ParseException => throw new ConfigurationException(
+              "Can't load '" + mode + ".conf' config file from application classpath," +
+              "\n\tdue to: " + e.toString)
+        }
+        Configgy.config
+      } else {
+        log.warning(
+          "\nCan't load '" + mode + ".conf'." +
+          "\nOne of the three ways of locating the '" + mode + ".conf' file needs to be defined:" +
+          "\n\t1. Define the '-D" + mode + ".config=...' system property option." +
+          "\n\t2. Define './conf' directory." +
+          "\n\t3. Put the '" + mode + ".conf' file on the classpath." +
+          "\nI have no way of finding the '" + mode + ".conf' configuration file." +
+          "\nUsing default values everywhere.")
+        net.lag.configgy.Config.fromString("<" + mode + "></" + mode + ">") // default empty config
+      }
+    }
+
+    val configVersion = _config.getString(mode + ".version", version)
+    if (version != configVersion)
+      throw new ConfigurationException(
+        mode + " version [" + version + "] is different than the provided config ('" + mode + ".conf') version [" + configVersion + "]")
+
+    _config
+  }
 
   val startTime = System.currentTimeMillis
   def uptime = (System.currentTimeMillis - startTime) / 1000
@@ -130,14 +149,20 @@ object Config {
 
   // ### Classloading
 
-  def classLoader: ClassLoader = config.getString(mode + ".classLoader") match {
-    //case Some(cld: ClassLoader) => cld
-    case _ => Thread.currentThread.getContextClassLoader
-  }
+  def classLoader: ClassLoader =
+    if (_config != null ) {
+      _config.getString(mode + ".classLoader") match {
+        //case Some(cld: ClassLoader) => cld
+        case _ => Thread.currentThread.getContextClassLoader
+      }
+    } else Thread.currentThread.getContextClassLoader
   def loadClass[C](name: String): Class[C] =
     Class.forName(name, true, classLoader).asInstanceOf[Class[C]]
-  def newObject[C](name: String, default: => C): C = config.getString(name) match {
-    case Some(s: String) => loadClass[C](s).newInstance
-    case _ => default
-  }
+  def newObject[C](name: String, default: => C): C =
+    if (_config != null) {
+      _config.getString(name) match {
+        case Some(s: String) => loadClass[C](s).newInstance
+        case _ => default
+      }
+    } else default
 }
