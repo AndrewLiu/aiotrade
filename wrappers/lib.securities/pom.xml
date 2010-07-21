@@ -103,6 +103,7 @@
                         <publicPackage>org.aiotrade.lib.securities</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.dataserver</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.model</publicPackage>
+                        <publicPackage>org.aiotrade.lib.securities.model.data</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.util</publicPackage>
                     </publicPackages>
                 </configuration>
