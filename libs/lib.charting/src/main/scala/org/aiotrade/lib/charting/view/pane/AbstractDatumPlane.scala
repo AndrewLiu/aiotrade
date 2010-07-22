@@ -60,19 +60,19 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
     private var _hSpaceUpper: Int = _ // height of spare space at upper side
     private var _yCanvasLower: Int = _ // y of canvas' lower side
     private var _yChartLower: Int = _ // y of chart's lower side
-    private var _wBar: Float = _ // fetched from viewContainer, pixels per bar
-    private var _hOne: Float = _ // pixels per 1.0 value
-    private var _maxValue: Float = _ // fetched from view
-    private var _minValue: Float = _ // fetched from view
-    private var _maxScaledValue: Float = _
-    private var _minScaledValue: Float = _
+    private var _wBar: Double = _ // fetched from viewContainer, pixels per bar
+    private var _hOne: Double = _ // pixels per 1.0 value
+    private var _maxValue: Double = _ // fetched from view
+    private var _minValue: Double = _ // fetched from view
+    private var _maxScaledValue: Double = _
+    private var _minScaledValue: Double = _
     
     private var _valueScalar: Scalar = new LinearScalar
     
     /**
      * the percent of hCanvas to be used to render charty, is can be used to scale the chart
      */
-    private var _yChartScale = 1.0F
+    private var _yChartScale = 1.0
     
     /** the pixels used to record the chart vertically moving */
     private var _hChartScrolled: Int = _
@@ -127,10 +127,10 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
        * the chart height corresponds to value range.
        * (not canvas height, which may contain values exceed max/min)
        */
-      _hOne = _hChart.toFloat / (_maxScaledValue - _minScaledValue)
+      _hOne = _hChart.toDouble / (_maxScaledValue - _minScaledValue)
         
       /** avoid hOne == 0 */
-      this._hOne = math.max(_hOne, 0.0000000001F)
+      this._hOne = math.max(_hOne, 0.0000000001)
         
       isGeometryValid = true
     }
@@ -145,8 +145,8 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
       this._valueScalar = valueScalar
     }
     
-    def yChartScale: Float = _yChartScale
-    def yChartScale_=(yChartScale: Float) {
+    def yChartScale: Double = _yChartScale
+    def yChartScale_=(yChartScale: Double) {
       val oldValue = this._yChartScale
       this._yChartScale = yChartScale
         
@@ -156,13 +156,13 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
       }
     }
     
-    def growYChartScale(increment: Float) {
+    def growYChartScale(increment: Double) {
       yChartScale = yChartScale + increment
     }
     
     def yChartScaleByCanvasValueRange_=(canvasValueRange: Double) {
       val oldCanvasValueRange = vy(yCanvasUpper) - vy(yCanvasLower)
-      val scale = oldCanvasValueRange / canvasValueRange.toFloat
+      val scale = oldCanvasValueRange / canvasValueRange
       val newYChartScale = _yChartScale * scale
         
       yChartScale = newYChartScale
@@ -183,11 +183,11 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
      * @param i index of bars, start from 1 to nBars
      * @return x
      */
-    final def xb(barIndex: Int): Float = {
+    final def xb(barIndex: Int): Double = {
       _wBar * (barIndex - 1)
     }
     
-    final def xr(row: Int): Float = {
+    final def xr(row: Int): Double = {
       xb(br(row))
     }
     
@@ -197,7 +197,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
      * @param value
      * @return y on the pane
      */
-    final def yv(value: Float): Float = {
+    final def yv(value: Double): Double = {
       val scaledValue = _valueScalar.doScale(value)
       GeomUtil.yv(scaledValue, _hOne, _minScaledValue, _yChartLower)
     }
@@ -207,7 +207,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
      * @param y y on the pane
      * @return value
      */
-    final def vy(y: Float): Float = {
+    final def vy(y: Double): Double = {
       val scaledValue = GeomUtil.vy(y, _hOne, _minScaledValue, _yChartLower)
       _valueScalar.unScale(scaledValue)
     }
@@ -218,20 +218,20 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
      * @param x x on the pane
      * @return index of bars, start from 1 to nBars
      */
-    final def bx(x: Float): Int = {
-      math.round(x / _wBar + 1)
+    final def bx(x: Double): Int = {
+      math.round(x / _wBar + 1).toInt
     }
     
     
     /**
      * time <- x
      */
-    final def tx(x: Float): Long = {
+    final def tx(x: Double): Long = {
       tb(bx(x))
     }
 
     /** row <- x */
-    final def rx(x: Float): Int = {
+    final def rx(x: Double): Int = {
       rb(bx(x))
     }
     
@@ -266,12 +266,12 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
     
     def nBars: Int = _nBars
     
-    def wBar: Float = _wBar
+    def wBar: Double = _wBar
     
     /**
      * @return height of 1.0 value in pixels
      */
-    def hOne: Float = _hOne
+    def hOne: Double = _hOne
     
     def hCanvas: Int = _hCanvas
     
@@ -288,9 +288,9 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
     
     def yChartUpper: Int = yChartLower - _hChart
     
-    def maxValue: Float = _maxValue
+    def maxValue: Double = _maxValue
     
-    def minValue: Float = _minValue
+    def minValue: Double = _minValue
 
     @throws(classOf[Throwable])
     override protected def finalize {

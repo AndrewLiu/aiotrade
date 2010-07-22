@@ -151,15 +151,15 @@ class YahooTickerServer extends TickerServer {
             val tickerSnapshot = tickerSnapshotOf(symbol)
             tickerSnapshot.time = time
 
-            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toFloat
-            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toFloat
-            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toFloat
-            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toFloat
-            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toFloat
-            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toFloat
-            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toFloat / 100f
-            tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toFloat)
-            tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
+            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
+            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
+            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble
+            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toDouble
+            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toDouble
+            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toDouble
+            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
+            tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
+            tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
 
             if (tickerSnapshot.isChanged) {
               contractOf(symbol) foreach {x =>

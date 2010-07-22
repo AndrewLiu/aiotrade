@@ -42,11 +42,11 @@ import org.aiotrade.lib.charting.widget.PathWidget
 class StraightLineChart extends AbstractChart {
   final class Model extends WidgetModel {
     var t1: Long = _
-    var v1: Float = _
+    var v1: Double = _
     var t2: Long = _
-    var v2: Float = _
+    var v2: Double = _
         
-    def set(t1: Long, v1: Float, t2: Long, v2: Float) {
+    def set(t1: Long, v1: Double, t2: Long, v2: Double) {
       this.t1 = t1
       this.v1 = v1
       this.t2 = t2
@@ -64,12 +64,8 @@ class StraightLineChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[Float](2)
-    val ys = new Array[Float](2)
-    xs(0) = xb(bt(model.t1))
-    xs(1) = xb(bt(model.t2))
-    ys(0) = yv(model.v1)
-    ys(1) = yv(model.v2)
+    val xs = Array(xb(bt(model.t1)), xb(bt(model.t2)))
+    val ys = Array(yv(model.v1), yv(model.v2))
         
     val dx = xs(1) - xs(0)
     val dy = ys(1) - ys(0)

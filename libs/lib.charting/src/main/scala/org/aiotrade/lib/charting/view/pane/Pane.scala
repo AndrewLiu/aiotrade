@@ -75,7 +75,7 @@ import Pane._
 abstract class Pane(val view: ChartView, $datumPlane: DatumPlane) extends JComponent {
 
   private val widgets = new ArrayBuffer[Widget]
-  private var _referCursorValue: Float = _
+  private var _referCursorValue: Double = _
   private var _isAutoReferCursorValue: Boolean = true
   private var _charts = new TreeSet[Chart]
   private var referCursorChart: CursorChart = _
@@ -308,8 +308,8 @@ abstract class Pane(val view: ChartView, $datumPlane: DatumPlane) extends JCompo
     widget
   }
 
-  def referCursorValue: Float = _referCursorValue
-  def referCursorValue_=(referCursorValue: Float) {
+  def referCursorValue: Double = _referCursorValue
+  def referCursorValue_=(referCursorValue: Double) {
     this._referCursorValue = referCursorValue
   }
 

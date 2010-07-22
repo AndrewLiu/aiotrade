@@ -40,17 +40,17 @@ import org.aiotrade.lib.charting.widget.Label
  * @author Caoyuan Deng
  */
 class TextChart extends AbstractChart {
-  final class Model(var t1: Long, var v1: Float, var text: String) extends WidgetModel {
+  final class Model(var t1: Long, var v1: Double, var text: String) extends WidgetModel {
 
     def this() = this(0L, 0f, null)
 
-    def set(t1: Long, v1: Float, text: String) {
+    def set(t1: Long, v1: Double, text: String) {
       this.t1 = t1
       this.v1 = v1
       this.text = text
     }
 
-    def set(t1: Long, v1: Float) {
+    def set(t1: Long, v1: Double) {
       this.t1 = t1
       this.v1 = v1
     }

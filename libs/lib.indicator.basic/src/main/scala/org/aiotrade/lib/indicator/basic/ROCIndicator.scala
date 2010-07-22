@@ -43,8 +43,8 @@ class ROCIndicator extends Indicator {
   val period1 = Factor("Period Short", 12)
   val period2 = Factor("Period Long",  25)
     
-  val roc1 = TVar[Float]("ROC1", Plot.Line)
-  val roc2 = TVar[Float]("ROC2", Plot.Line)
+  val roc1 = TVar[Double]("ROC1", Plot.Line)
+  val roc2 = TVar[Double]("ROC2", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

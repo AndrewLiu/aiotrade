@@ -42,21 +42,21 @@ import org.aiotrade.lib.math.indicator.Factor
 class ROCFunction extends Function {
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _roc = TVar[Float]()
+  val _roc = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _roc(i) = Null.Float
+      _roc(i) = Null.Double
             
     } else {
             
@@ -69,7 +69,7 @@ class ROCFunction extends Function {
     }
   }
     
-  def roc(sessionId: Long, idx: Int): Float = {
+  def roc(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _roc(idx)

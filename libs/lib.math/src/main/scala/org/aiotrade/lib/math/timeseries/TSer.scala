@@ -96,7 +96,7 @@ trait TSer extends Publisher {
   /**
    * horizonal _grids of this indicator used to draw grid
    */
-  def grids: Array[Float]
+  def grids: Array[Double]
 }
 
 object TSerEvent {

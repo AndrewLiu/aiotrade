@@ -44,9 +44,9 @@ class MACDIndicator extends Indicator {
   val periodSlow   = Factor("Period EMA Slow", 26)
   val periodSignal = Factor("Period Signal",    9)
     
-  val macd   = TVar[Float]("MACD",   Plot.Line)
-  val signal = TVar[Float]("SIGNAL", Plot.Line)
-  val osc    = TVar[Float]("OSC",    Plot.Stick)
+  val macd   = TVar[Double]("MACD",   Plot.Line)
+  val signal = TVar[Double]("SIGNAL", Plot.Line)
+  val osc    = TVar[Double]("OSC",    Plot.Stick)
     
   protected def computeCont(begIdx: Int, size: Int) = {
     var i = begIdx

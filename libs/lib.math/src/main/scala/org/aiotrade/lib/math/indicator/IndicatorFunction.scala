@@ -39,10 +39,10 @@ import org.aiotrade.lib.collection.ArrayList
  */
 object IndicatorFunction {
     
-  final def dmPlus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
+  final def dmPlus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
     if (idx == 0) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
@@ -71,10 +71,10 @@ object IndicatorFunction {
     }
   }
     
-  final def dmMinus(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float]): Float = {
+  final def dmMinus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
     if (idx == 0) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
@@ -103,10 +103,10 @@ object IndicatorFunction {
     }
   }
     
-  final def tr(idx: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def tr(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx == 0) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
@@ -116,15 +116,15 @@ object IndicatorFunction {
     }
   }
     
-  final def diPlus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def diPlus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
-      val dms = new ArrayList[Float]
-      val trs = new ArrayList[Float]
+      val dms = new ArrayList[Double]
+      val trs = new ArrayList[Double]
             
       val fromIdx = idx - (period - 1)
       val toIdx   = idx
@@ -146,15 +146,15 @@ object IndicatorFunction {
     }
   }
     
-  final def diMinus(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def diMinus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
-      val dms = new ArrayList[Float]
-      val trs = new ArrayList[Float]
+      val dms = new ArrayList[Double]
+      val trs = new ArrayList[Double]
             
       val fromIdx = idx - (period - 1)
       val toIdx   = idx
@@ -176,10 +176,10 @@ object IndicatorFunction {
     }
   }
     
-  final def dx(idx: Int, period: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def dx(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
@@ -191,14 +191,14 @@ object IndicatorFunction {
     }
   }
     
-  final def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-      Null.Float
+      Null.Double
             
     } else {
             
-      val dxes = new ArrayList[Float]
+      val dxes = new ArrayList[Double]
             
       val fromIdx = idx - (periodADX - 1)
       val toIdx   = idx
@@ -216,10 +216,10 @@ object IndicatorFunction {
     }
   }
     
-  final def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Float], lows: ArrayList[Float], closes: ArrayList[Float]): Float = {
+  final def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
-      Null.Float
+      Null.Double
             
     } else {
             

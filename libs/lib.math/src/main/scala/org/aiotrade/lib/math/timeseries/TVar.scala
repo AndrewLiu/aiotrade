@@ -55,6 +55,8 @@ trait TVar[V] extends Plottable {
 
   def float(time: Long): Float
   def float(idx: Int): Float
+  def double(time: Long): Double
+  def double(idx: Int): Double
   
   def clear(fromIdx: Int)
     

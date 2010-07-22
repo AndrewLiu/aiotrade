@@ -40,12 +40,12 @@ package org.aiotrade.lib.charting.widget
  */
 class Arrow extends PathWidget {
   final class Model extends WidgetModel {
-    var x: Float = _
-    var y: Float = _
+    var x: Double = _
+    var y: Double = _
     var up: Boolean = _
     var filled: Boolean = _
         
-    def set(x: Float, y: Float, up: Boolean, filled: Boolean) {
+    def set(x: Double, y: Double, up: Boolean, filled: Boolean) {
       this.x = x
       this.y = y
       this.up = up

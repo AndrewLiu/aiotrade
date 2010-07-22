@@ -93,8 +93,8 @@ class ZigzagChart extends AbstractChart {
             
       /** now we've got two good positions, go on to draw a line between them */
 
-      val value1 = model.v.float(tb(bar1))
-      val value2 = model.v.float(tb(bar2))
+      val value1 = model.v.double(tb(bar1))
+      val value2 = model.v.double(tb(bar2))
             
       /** now try to draw line between these two points */
       val x1 = xb(bar1)
@@ -115,15 +115,15 @@ class ZigzagChart extends AbstractChart {
     loop
   }
     
-  private def getFirstIndexOfEffectiveValue(fromIndex: Int): Int = {
+  private def getFirstIndexOfEffectiveValue(fromIdx: Int): Int = {
     var index = -1
         
     val values = model.v.values
-    var i = fromIndex
+    var i = fromIdx
     val n = values.size
     var break = false
     while (i < n && !break) {
-      val value = values(i).asInstanceOf[Float]
+      val value = values(i).asInstanceOf[Double]
       if (Null.not(value)) {
         index = i
         break = true

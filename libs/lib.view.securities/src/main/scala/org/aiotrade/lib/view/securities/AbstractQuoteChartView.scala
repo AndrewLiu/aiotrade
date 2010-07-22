@@ -75,7 +75,7 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
                                       empty: Boolean
 ) extends {
   private var _quoteChart: QuoteChart = _
-  protected var maxVolume, minVolume: Float = _
+  protected var maxVolume, minVolume: Double = _
   protected var sec: Sec = _
 } with ChartView(acontroller, aquoteSer, empty) with WithQuoteChart {
 
@@ -113,12 +113,12 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
   }
 
   override def computeMaxMin {
-    var min = Float.MaxValue
-    var max = Float.MinValue
+    var min = Double.MaxValue
+    var max = Double.MinValue
 
     /** minimum volume should be 0 */
     minVolume = 0
-    maxVolume = Float.MinValue
+    maxVolume = Double.MinValue
     val qSer = mainSer.asInstanceOf[QuoteSer]
     var i = 1
     while (i <= nBars) {
@@ -148,11 +148,11 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
     setMaxMinValue(max, min)
   }
 
-  def getMaxVolume: Float = {
+  def getMaxVolume: Double = {
     maxVolume
   }
 
-  def getMinVolume: Float = {
+  def getMinVolume: Double = {
     minVolume
   }
 

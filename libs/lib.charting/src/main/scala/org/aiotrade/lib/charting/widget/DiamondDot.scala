@@ -39,12 +39,12 @@ package org.aiotrade.lib.charting.widget
  */
 class DiamondDot extends PathWidget {
   final class Model extends WidgetModel {
-    var x: Float = _
-    var y: Float = _
-    var width: Float = _
+    var x: Double = _
+    var y: Double = _
+    var width: Double = _
     var filled: Boolean = _
         
-    def set(x: Float, y: Float, width: Float, filled: Boolean) {
+    def set(x: Double, y: Double, width: Double, filled: Boolean) {
       this.x = x
       this.y = y
       this.width = width

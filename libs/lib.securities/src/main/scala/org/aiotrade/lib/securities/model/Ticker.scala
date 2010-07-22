@@ -28,18 +28,18 @@ object Tickers extends Table[Ticker] {
 
   val time = "time" BIGINT
 
-  val prevClose = "prevClose" FLOAT()
-  val lastPrice = "lastPrice" FLOAT()
+  val prevClose = "prevClose" DOUBLE()
+  val lastPrice = "lastPrice" DOUBLE()
 
-  val dayOpen   = "dayOprn"   FLOAT()
-  val dayHigh   = "dayHigh"   FLOAT()
-  val dayLow    = "dayLow"    FLOAT()
-  val dayVolume = "dayVolume" FLOAT()
-  val dayAmount = "dayAmount" FLOAT()
+  val dayOpen   = "dayOprn"   DOUBLE()
+  val dayHigh   = "dayHigh"   DOUBLE()
+  val dayLow    = "dayLow"    DOUBLE()
+  val dayVolume = "dayVolume" DOUBLE()
+  val dayAmount = "dayAmount" DOUBLE()
 
-  val dayChange = "dayChange" FLOAT()
+  val dayChange = "dayChange" DOUBLE()
 
-  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
+  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 200)
 
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
@@ -85,7 +85,7 @@ case class TickerEvent (source: Sec, ticker: Ticker) extends Event
 case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
 
 object Ticker {
-  def importFrom(v: (Long, List[Array[Float]])): LightTicker = v match {
+  def importFrom(v: (Long, List[Array[Double]])): LightTicker = v match {
     case (time: Long, List(data, bidAsks)) =>
       val x = new Ticker(data, new MarketDepth(bidAsks))
       x.time = time
@@ -111,15 +111,15 @@ object Ticker {
  * @author Caoyuan Deng
  */
 @serializable @cloneable
-class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTicker($data) {
+class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTicker($data) {
 
-  def this(depth: Int) = this(new Array[Float](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Float](depth * 4)))
+  def this(depth: Int) = this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](depth * 4)))
   def this() = this(5)
 
   def depth = marketDepth.depth
 
   def bidAsks = marketDepth.bidAsks
-  def bidAsks_=(values: Array[Float]) {
+  def bidAsks_=(values: Array[Double]) {
     marketDepth.bidAsks = values
   }
 
@@ -128,10 +128,10 @@ class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTic
   final def askPrice(idx: Int) = marketDepth.askPrice(idx)
   final def askSize (idx: Int) = marketDepth.askSize (idx)
 
-  final def setBidPrice(idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
-  final def setBidSize (idx: Int, v: Float) = marketDepth.setBidSize (idx, v)
-  final def setAskPrice(idx: Int, v: Float) = marketDepth.setAskPrice(idx, v)
-  final def setAskSize (idx: Int, v: Float) = marketDepth.setAskSize (idx, v)
+  final def setBidPrice(idx: Int, v: Double) = marketDepth.setBidPrice(idx, v)
+  final def setBidSize (idx: Int, v: Double) = marketDepth.setBidSize (idx, v)
+  final def setAskPrice(idx: Int, v: Double) = marketDepth.setAskPrice(idx, v)
+  final def setAskSize (idx: Int, v: Double) = marketDepth.setAskSize (idx, v)
 
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {

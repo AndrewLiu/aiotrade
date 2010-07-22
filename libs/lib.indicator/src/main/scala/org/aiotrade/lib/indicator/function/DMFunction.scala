@@ -39,8 +39,8 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  */
 class DMFunction extends Function {
     
-  val _dmPlus  = TVar[Float]()
-  val _dmMinus = TVar[Float]()
+  val _dmPlus  = TVar[Double]()
+  val _dmMinus = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -49,8 +49,8 @@ class DMFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _dmPlus (i) = Null.Float
-      _dmMinus(i) = Null.Float
+      _dmPlus (i) = Null.Double
+      _dmMinus(i) = Null.Double
             
     } else {
             
@@ -88,13 +88,13 @@ class DMFunction extends Function {
     }
   }
     
-  def dmPlus(sessionId: Long, idx: Int): Float = {
+  def dmPlus(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _dmPlus(idx)
   }
     
-  def dmMinus(sessionId: Long, idx: Int): Float = {
+  def dmMinus(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _dmMinus(idx)

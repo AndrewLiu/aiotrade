@@ -42,16 +42,16 @@ import org.aiotrade.lib.math.indicator.Factor
 class BOLLFunction extends Function {
     
   var period, alpha: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _bollMiddle = TVar[Float]()
-  val _bollUpper  = TVar[Float]()
-  val _bollLower  = TVar[Float]()
+  val _bollMiddle = TVar[Double]()
+  val _bollUpper  = TVar[Double]()
+  val _bollLower  = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period = args(1).asInstanceOf[Factor]
     this.alpha = args(2).asInstanceOf[Factor]
   }
@@ -59,9 +59,9 @@ class BOLLFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _bollMiddle(i) = Null.Float
-      _bollUpper(i)  = Null.Float
-      _bollLower(i)  = Null.Float
+      _bollMiddle(i) = Null.Double
+      _bollUpper(i)  = Null.Double
+      _bollLower(i)  = Null.Double
             
     } else {
             
@@ -76,19 +76,19 @@ class BOLLFunction extends Function {
   }
     
     
-  def bollMiddle(sessionId: Long, idx: Int): Float = {
+  def bollMiddle(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _bollMiddle(idx)
   }
     
-  def bollUpper(sessionId: Long, idx: Int): Float = {
+  def bollUpper(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _bollUpper(idx)
   }
     
-  def bollLower(sessionId: Long, idx: Int): Float = {
+  def bollLower(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _bollLower(idx)

@@ -39,14 +39,14 @@ import org.aiotrade.lib.indicator.Indicator
 class CCIIndicator extends Indicator {
   sname = "CCI"
   lname = "Commodity Channel Index"
-  grids = Array(100f, -100f)
+  grids = Array(100, -100)
 
   val alpha    = Factor("Alpha",     0.015)
   val period   = Factor("Period",    20)
   val periodMa = Factor("Period MA", 3)
     
-  val cci    = TVar[Float]("CCI",   Plot.Line)
-  val cci_ma = TVar[Float]("MACCI", Plot.Line)
+  val cci    = TVar[Double]("CCI",   Plot.Line)
+  val cci_ma = TVar[Double]("MACCI", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

@@ -196,7 +196,7 @@ abstract class AbstractWidget extends Widget {
     return false
   }
     
-  def intersects(rect:Rectangle): Boolean = {
+  def intersects(rect: Rectangle): Boolean = {
     intersects(rect.x, rect.y, rect.width, rect.height)
   }
     

@@ -44,19 +44,19 @@ import org.aiotrade.lib.util.actors.Event
 trait Factor extends Publisher {
     
   def name: String
-  def name_=(name: String): Unit
+  def name_=(name: String)
     
-  def value: Float
-  def value_=(value: Number): Unit
+  def value: Double
+  def value_=(value: Number)
     
-  def step: Float
+  def step: Double
   def step_=(step: Number)
     
-  def maxValue: Float
-  def maxValue_=(maxValue: Number): Unit
+  def maxValue: Double
+  def maxValue_=(maxValue: Number)
     
-  def minValue: Float
-  def minValue_=(minValue: Number): Unit
+  def minValue: Double
+  def minValue_=(minValue: Number)
 
   @inline final override def equals(a: Any): Boolean = a match {
     case x: Factor => this.value.equals(x.value)

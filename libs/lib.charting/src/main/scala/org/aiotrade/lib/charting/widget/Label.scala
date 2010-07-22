@@ -52,19 +52,19 @@ import org.aiotrade.lib.util.swing.action.EditAction
  */
 class Label extends AbstractWidget {
   final class Model extends WidgetModel {
-    var x: Float = _
-    var y: Float = _
+    var x: Double = _
+    var y: Double = _
     var text = "Click me to edit"
     var editable = false
         
-    def set(x: Float, y: Float, text: String, editable: Boolean = false) {
+    def set(x: Double, y: Double, text: String, editable: Boolean = false) {
       this.x = x
       this.y = y
       this.text = text
       setEditable(editable)
     }
         
-    def set(x: Float, y: Float) {
+    def set(x: Double, y: Double) {
       this.x = x
       this.y = y
     }
@@ -143,9 +143,9 @@ class Label extends AbstractWidget {
         
     g.setColor(getForeground)
     g.setFont(getFont)
-    val backupRendingHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    val backupRendingHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
     val m = model
-    g.drawString(m.text, m.x, m.y)
+    g.drawString(m.text, m.x.toFloat, m.y.toFloat)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, backupRendingHint)
   }
       

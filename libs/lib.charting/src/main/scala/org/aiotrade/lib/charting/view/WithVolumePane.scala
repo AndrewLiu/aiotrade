@@ -38,9 +38,9 @@ import org.aiotrade.lib.charting.view.pane.ChartPane
  */
 trait WithVolumePane {
     
-  def maxVolume: Float
+  def maxVolume: Double
     
-  def minVolume: Float
+  def minVolume: Double
     
   def volumeChartPane: ChartPane
 }

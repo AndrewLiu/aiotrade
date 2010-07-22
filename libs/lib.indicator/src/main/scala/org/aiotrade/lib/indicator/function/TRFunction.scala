@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  */
 class TRFunction extends Function {
     
-  val _tr = TVar[Float]()
+  val _tr = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -48,7 +48,7 @@ class TRFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _tr(i) = Null.Float
+      _tr(i) = Null.Double
             
     } else {
             
@@ -58,7 +58,7 @@ class TRFunction extends Function {
     }
   }
     
-  def tr(sessionId: Long, idx: Int): Float = {
+  def tr(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _tr(idx)

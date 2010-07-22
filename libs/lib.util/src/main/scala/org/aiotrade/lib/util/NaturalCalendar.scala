@@ -58,11 +58,11 @@ object NaturalCalendar {
 
   def getTimeBaseDate: NaturalCalendar = timeBaseDate
 
-  def calcJulianDate(y: Int, m: Int, d: Float): Float ={
+  def calcJulianDate(y: Int, m: Int, d: Double): Double ={
     var year = y
     var month = m
-    val float_day = d
-    val day = float_day.toInt
+    val double_day = d
+    val day = double_day.toInt
 
     if (m == 1 | m == 2) {
       year -= 1
@@ -170,12 +170,12 @@ object NaturalCalendar {
 
 }
 
-class NaturalCalendar(y: Int, m: Int, d: Float) {
+class NaturalCalendar(y: Int, m: Int, d: Double) {
   import NaturalCalendar._
   
   var YEAR: Int = _
   var MONTH: Int = _
-  var FLOAT_DAY: Float = _
+  var DOUBLE_DAY: Double = _
   var DAY: Int = _
   var HOUR: Int = _
   var MINUTE: Int = _
@@ -201,11 +201,11 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
   }
     
     
-  def set(y: Int, m: Int, d: Float): NaturalCalendar ={
+  def set(y: Int, m: Int, d: Double): NaturalCalendar ={
     YEAR = y
     MONTH = m
-    FLOAT_DAY = d
-    DAY = FLOAT_DAY.toInt
+    DOUBLE_DAY = d
+    DAY = DOUBLE_DAY.toInt
 
     var y1 = y
     var m1 = m
@@ -227,8 +227,8 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
     YEAR = y
     MONTH = m
         
-    FLOAT_DAY = dayOfMonth + (hours * ONE_HOUR + minutes * ONE_MINUTE + seconds).toFloat / ONE_DAY.toFloat
-    DAY = FLOAT_DAY.toInt
+    DOUBLE_DAY = dayOfMonth + (hours * ONE_HOUR + minutes * ONE_MINUTE + seconds).toDouble / ONE_DAY.toDouble
+    DAY = DOUBLE_DAY.toInt
         
     HOUR = hours
     MINUTE = minutes
@@ -256,7 +256,7 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
         
     julianDate1 += 0.5
     val I = (julianDate1).toInt
-    val F = (I - julianDate1).toFloat
+    val F = (I - julianDate1).toDouble
     val (aA, aB) = if (I > 2299160) {
       val A1 = ((I - 1867216.25) / 36524.25).toInt
       val B1 = I + 1 + A1 - (A1 / 4).toInt
@@ -270,10 +270,10 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
     val E = (365.25 * D).toInt
     val G = ((C - E) / 30.6001).toInt
         
-    FLOAT_DAY = C - E - F - (30.6001 * G).toInt
+    DOUBLE_DAY = C - E - F - (30.6001 * G).toInt
     MONTH = if (G < 13.5) G - 1 else G - 13
     YEAR = if (MONTH > 2.5) D - 4716 else D - 4715
-    DAY = FLOAT_DAY.toInt
+    DAY = DOUBLE_DAY.toInt
         
     this
   }
@@ -283,7 +283,7 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
     return this;
   }
     
-  def add(i: Float): NaturalCalendar = {
+  def add(i: Double): NaturalCalendar = {
     JULIAN_DATE += i
     set(JULIAN_DATE)
         
@@ -308,55 +308,55 @@ class NaturalCalendar(y: Int, m: Int, d: Float) {
   }
     
   def toDateString: String = {
-    if (MONTH < 10 & FLOAT_DAY < 10) {
-      "0" + MONTH + "-" + "0" + FLOAT_DAY.toInt + "-" + YEAR
-    } else if (MONTH < 10 & FLOAT_DAY >= 10) {
-      "0" + MONTH + "-" + FLOAT_DAY.toInt + "-" + YEAR
-    } else if (MONTH >= 10 & FLOAT_DAY < 10) {
-      MONTH + "-" + "0" + FLOAT_DAY.toInt + "-" + YEAR
+    if (MONTH < 10 & DOUBLE_DAY < 10) {
+      "0" + MONTH + "-" + "0" + DOUBLE_DAY.toInt + "-" + YEAR
+    } else if (MONTH < 10 & DOUBLE_DAY >= 10) {
+      "0" + MONTH + "-" + DOUBLE_DAY.toInt + "-" + YEAR
+    } else if (MONTH >= 10 & DOUBLE_DAY < 10) {
+      MONTH + "-" + "0" + DOUBLE_DAY.toInt + "-" + YEAR
     } else {
-      MONTH + "-" + FLOAT_DAY.toInt + "-" + YEAR
+      MONTH + "-" + DOUBLE_DAY.toInt + "-" + YEAR
     }
   }
     
   def toMonthDayString: String = {
-    if (MONTH < 10 & FLOAT_DAY < 10) {
-      "0" + MONTH + "-" + "0" + FLOAT_DAY.toInt
-    } else if (MONTH < 10 & FLOAT_DAY >= 10) {
-      "0" + MONTH + "-" + FLOAT_DAY.toInt
-    } else if (MONTH >= 10 & FLOAT_DAY < 10) {
-      MONTH + "-" + "0" + FLOAT_DAY.toInt
+    if (MONTH < 10 & DOUBLE_DAY < 10) {
+      "0" + MONTH + "-" + "0" + DOUBLE_DAY.toInt
+    } else if (MONTH < 10 & DOUBLE_DAY >= 10) {
+      "0" + MONTH + "-" + DOUBLE_DAY.toInt
+    } else if (MONTH >= 10 & DOUBLE_DAY < 10) {
+      MONTH + "-" + "0" + DOUBLE_DAY.toInt
     } else {
-      MONTH + "-" + FLOAT_DAY.toInt
+      MONTH + "-" + DOUBLE_DAY.toInt
     }
   }
     
   /** Calculate Chinese Month
    */
   def getChineseMonth: Int = {
-    if (MONTH == 2 && FLOAT_DAY == 3) {
+    if (MONTH == 2 && DOUBLE_DAY == 3) {
       1
-    } else if (MONTH == 3 && FLOAT_DAY == 6) {
+    } else if (MONTH == 3 && DOUBLE_DAY == 6) {
       2
-    } else if (MONTH == 4 && FLOAT_DAY == 5) {
+    } else if (MONTH == 4 && DOUBLE_DAY == 5) {
       3
-    } else if (MONTH == 5 && FLOAT_DAY == 5) {
+    } else if (MONTH == 5 && DOUBLE_DAY == 5) {
       4
-    } else if (MONTH == 6 && FLOAT_DAY == 6) {
+    } else if (MONTH == 6 && DOUBLE_DAY == 6) {
       5
-    } else if (MONTH == 7 && FLOAT_DAY == 7) {
+    } else if (MONTH == 7 && DOUBLE_DAY == 7) {
       6
-    } else if (MONTH == 8 && FLOAT_DAY == 7) {
+    } else if (MONTH == 8 && DOUBLE_DAY == 7) {
       7
-    } else if (MONTH == 9 && FLOAT_DAY == 8) {
+    } else if (MONTH == 9 && DOUBLE_DAY == 8) {
       8
-    } else if (MONTH == 10 && FLOAT_DAY == 8) {
+    } else if (MONTH == 10 && DOUBLE_DAY == 8) {
       9
-    } else if (MONTH == 11 && FLOAT_DAY == 7) {
+    } else if (MONTH == 11 && DOUBLE_DAY == 7) {
       10
-    } else if (MONTH == 12 && FLOAT_DAY == 7) {
+    } else if (MONTH == 12 && DOUBLE_DAY == 7) {
       11
-    } else if (MONTH == 1 && FLOAT_DAY == 6) {
+    } else if (MONTH == 1 && DOUBLE_DAY == 6) {
       12
     } else {
       -1

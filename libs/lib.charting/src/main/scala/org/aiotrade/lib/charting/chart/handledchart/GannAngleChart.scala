@@ -45,11 +45,11 @@ import org.aiotrade.lib.charting.widget.Label
 class GannAngleChart extends AbstractChart {
   final class Model extends WidgetModel {
     var t1: Long = _
-    var v1: Float = _
+    var v1: Double = _
     var t2: Long = _
-    var v2: Float = _
+    var v2: Double = _
         
-    def set(t1: Long, v1: Float, t2: Long, v2: Float) {
+    def set(t1: Long, v1: Double, t2: Long, v2: Double) {
       this.t1 = t1
       this.v1 = v1
       this.t2 = t2
@@ -67,8 +67,8 @@ class GannAngleChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[Float](2)
-    val ys = new Array[Float](2)
+    val xs = Array(xb(bt(model.t1)), xb(bt(model.t2)))
+    val ys = Array(yv(model.v1), yv(model.v2))
         
     val b1 = bt(m.t1)
     val b2 = bt(m.t2)
@@ -77,12 +77,7 @@ class GannAngleChart extends AbstractChart {
     dBar = if (dBar == 0) 1 else dBar
         
     val rate = (model.v2 - model.v1) / dBar
-        
-    xs(0) = xb(bt(model.t1))
-    xs(1) = xb(bt(model.t2))
-    ys(0) = yv(model.v1)
-    ys(1) = yv(model.v2)
-        
+                
     val label1 = addChild(new Label)
     label1.setFont(LookFeel().axisFont)
     label1.setForeground(color)
@@ -117,7 +112,7 @@ class GannAngleChart extends AbstractChart {
   /**
    * should avoid dupliacte line
    */
-  private def plotOneDirection(xs: Array[Float], ys: Array[Float], drawMain: Boolean, drawHorizontal: Boolean, drawVertical: Boolean, path: GeneralPath) {
+  private def plotOneDirection(xs: Array[Double], ys: Array[Double], drawMain: Boolean, drawHorizontal: Boolean, drawVertical: Boolean, path: GeneralPath) {
     val m = model
         
     val k = if (xs(1) - xs(0) == 0) 1f else (ys(1) - ys(0)) / (xs(1) - xs(0))
@@ -150,8 +145,8 @@ class GannAngleChart extends AbstractChart {
       val x1 = xlast
       val x2 = xb(bar)
       if (x1 >= xmin && x1 <= xmax && x2 >= xmin && x2 <= xmax) {
-        var y1 = 0f
-        var y2 = 0f
+        var y1 = 0.0
+        var y2 = 0.0
         var j = 2
         while (j <= 3) {
           y1 = GeomUtil.yOfLine(x1, xs(0), ys(0), k * j)

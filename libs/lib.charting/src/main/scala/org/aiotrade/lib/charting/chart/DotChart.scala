@@ -68,7 +68,7 @@ class DotChart extends AbstractChart {
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
-          val value = model.v.float(time)
+          val value = model.v.double(time)
                     
           if (Null.not(value)) {
             template.model.set(xb(bar), yv(value), wBar, false)

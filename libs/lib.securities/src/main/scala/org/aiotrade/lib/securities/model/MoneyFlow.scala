@@ -38,17 +38,17 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val time = "time" BIGINT
 
-  val totalVolume = "totalVolume" FLOAT()
-  val totalAmount = "totalAmount" FLOAT()
+  val totalVolume = "totalVolume" DOUBLE()
+  val totalAmount = "totalAmount" DOUBLE()
 
-  val superVolume = "superVolume" FLOAT()
-  val superAmount = "superAmount" FLOAT()
+  val superVolume = "superVolume" DOUBLE()
+  val superAmount = "superAmount" DOUBLE()
 
-  val largeVolume = "largeVolume" FLOAT()
-  val largeAmount = "largeAmount" FLOAT()
+  val largeVolume = "largeVolume" DOUBLE()
+  val largeAmount = "largeAmount" DOUBLE()
 
-  val smallVolume = "smallVolume" FLOAT()
-  val smallAmount = "smallAmount" FLOAT()
+  val smallVolume = "smallVolume" DOUBLE()
+  val smallAmount = "smallAmount" DOUBLE()
   
   val flag = "flag" INTEGER
 
@@ -82,15 +82,15 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 class MoneyFlow extends TVal with Flag {
   var sec: Sec = _
   
-  var totalVolume: Float = _
-  var totalAmount: Float = _
+  var totalVolume: Double = _
+  var totalAmount: Double = _
 
-  var superVolume: Float = _
-  var superAmount: Float = _
+  var superVolume: Double = _
+  var superAmount: Double = _
 
-  var largeVolume: Float = _
-  var largeAmount: Float = _
+  var largeVolume: Double = _
+  var largeAmount: Double = _
 
-  var smallVolume: Float = _
-  var smallAmount: Float = _
+  var smallVolume: Double = _
+  var smallAmount: Double = _
 }

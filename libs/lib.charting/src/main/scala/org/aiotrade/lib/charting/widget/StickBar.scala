@@ -40,14 +40,14 @@ package org.aiotrade.lib.charting.widget
 class StickBar extends PathWidget {
   
   final class Model extends WidgetModel {
-    var xCenter: Float = _
-    var y1: Float = _
-    var y2: Float = _
-    var width: Float = _
+    var xCenter: Double = _
+    var y1: Double = _
+    var y2: Double = _
+    var width: Double = _
     var thin: Boolean = _
     var filled: Boolean = _
         
-    def set(xCenter: Float, y1: Float, y2: Float, width: Float, thin: Boolean, filled: Boolean) {
+    def set(xCenter: Double, y1: Double, y2: Double, width: Double, thin: Boolean, filled: Boolean) {
       this.xCenter = xCenter
       this.y1 = y1
       this.y2 = y2
@@ -66,7 +66,7 @@ class StickBar extends PathWidget {
     val path = getPath
     path.reset
     
-    val xRadius = (if (m.width < 2) 0F else (m.width - 2) / 2)
+    val xRadius = (if (m.width < 2) 0 else (m.width - 2) / 2)
         
     if (m.thin || m.width <= 2) {
       path.moveTo(m.xCenter, m.y1)

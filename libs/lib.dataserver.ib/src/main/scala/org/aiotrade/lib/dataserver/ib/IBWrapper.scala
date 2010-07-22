@@ -307,14 +307,14 @@ object IBWrapper extends IBWrapper {
                     
           val quote = new Quote
                     
-          quote.time = time
-          quote.open = open.toFloat
-          quote.high = high.toFloat
-          quote.low = low.toFloat
-          quote.close = close.toFloat
+          quote.time   = time
+          quote.open   = open
+          quote.high   = high
+          quote.low    = low
+          quote.close  = close
           quote.volume = volume
                     
-          quote.vwap = WAP.toFloat
+          quote.vwap = WAP
           quote.hasGaps = hasGaps
                     
           storage += quote
@@ -338,7 +338,7 @@ object IBWrapper extends IBWrapper {
     }
         
     snapshot synchronized {
-      val value = price.toFloat
+      val value = price
       snapshot.time = System.currentTimeMillis
       field match {
         case TickType.ASK =>

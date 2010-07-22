@@ -39,15 +39,15 @@ import org.aiotrade.lib.indicator.Indicator
 class RSIIndicator extends Indicator {
   sname = "RSI"
   lname = "Relative Strength Index"
-  grids = Array(20f, 80f)
+  grids = Array(20, 80)
 
   val periodS = Factor("Period Short",   6.)
   val periodM = Factor("Period Mediaum", 12)
   val periodL = Factor("Period Long",    24)
     
-  val rsi1 = TVar[Float]("RSI1", Plot.Line)
-  val rsi2 = TVar[Float]("RSI2", Plot.Line)
-  val rsi3 = TVar[Float]("RSI3", Plot.Line)
+  val rsi1 = TVar[Double]("RSI1", Plot.Line)
+  val rsi2 = TVar[Double]("RSI2", Plot.Line)
+  val rsi3 = TVar[Double]("RSI3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

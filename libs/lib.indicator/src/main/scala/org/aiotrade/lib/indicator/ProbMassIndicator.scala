@@ -42,7 +42,7 @@ class ProbMassIndicator($baseSer: BaseTSer) extends SpotIndicator($baseSer) {
   lname = "Probability Mass"
   isOverlapping = true
     
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
 
   val nIntervals = Factor("Number of Intervals", 30.0, 1.0, 1.0, 100.0)
   val period1    = Factor("Period1", 50.0)
@@ -50,9 +50,9 @@ class ProbMassIndicator($baseSer: BaseTSer) extends SpotIndicator($baseSer) {
   val period3    = Factor("Period3", 200.0)
     
     
-  val MASS1 = TVar[Array[Array[Float]]]("MASS1", Plot.Profile)
-  val MASS2 = TVar[Array[Array[Float]]]("MASS2", Plot.Profile)
-  val MASS3 = TVar[Array[Array[Float]]]("MASS3", Plot.Profile)
+  val MASS1 = TVar[Array[Array[Double]]]("MASS1", Plot.Profile)
+  val MASS2 = TVar[Array[Array[Double]]]("MASS2", Plot.Profile)
+  val MASS3 = TVar[Array[Array[Double]]]("MASS3", Plot.Profile)
 
 
   def computeSpot(time: Long, baseIdx: Int) {

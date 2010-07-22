@@ -108,7 +108,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         NumberFormatter nf = new NumberFormatter(df) {
             @Override
             public String valueToString(Object iv) throws ParseException {
-                if ((iv == null) || (((Float)iv).floatValue() == -1)) {
+                if ((iv == null) || (((Double)iv).doubleValue() == -1)) {
                     return "";
                 } else {
                     return super.valueToString(iv);
@@ -124,7 +124,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         };
         nf.setMinimum(0);
         nf.setMaximum(65534);
-        nf.setValueClass(Float.class);
+        nf.setValueClass(Double.class);
         
         
         gbc.gridx = 0;

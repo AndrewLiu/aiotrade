@@ -125,7 +125,7 @@ object Model {
       ticker.quote = quote1d
       ticker.time = System.currentTimeMillis
       val bidAskDepth = 10
-      val bidAsks = new Array[Float](bidAskDepth * 4)
+      val bidAsks = new Array[Double](bidAskDepth * 4)
       ticker.bidAsks = bidAsks
       Tickers.save(ticker)
     }

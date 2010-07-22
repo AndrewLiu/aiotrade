@@ -39,15 +39,15 @@ import org.aiotrade.lib.indicator.Indicator
 class KDIndicator extends Indicator {
   sname = "KD"
   lname = "Stochastics"
-  grids = Array(20f, 80f)
+  grids = Array(20, 80)
     
   val period  = Factor("Period K",           9)
   val periodK = Factor("Period K Smoothing", 3)
   val periodD = Factor("Period D Smoothing", 3)
     
-  val k = TVar[Float]("K", Plot.Line)
-  val d = TVar[Float]("D", Plot.Line)
-  val j = TVar[Float]("J", Plot.Line)
+  val k = TVar[Double]("K", Plot.Line)
+  val d = TVar[Double]("D", Plot.Line)
+  val j = TVar[Double]("J", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

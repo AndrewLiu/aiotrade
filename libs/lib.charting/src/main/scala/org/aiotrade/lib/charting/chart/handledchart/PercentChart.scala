@@ -44,11 +44,11 @@ import org.aiotrade.lib.charting.widget.PathWidget
 class PercentChart extends AbstractChart {
   final class Model extends WidgetModel {
     var t1: Long = _
-    var v1: Float = _
+    var v1: Double = _
     var t2: Long = _
-    var v2: Float = _
+    var v2: Double = _
         
-    def set(t1: Long, v1: Float, t2: Long, v2: Float) {
+    def set(t1: Long, v1: Double, t2: Long, v2: Double) {
       this.t1 = t1
       this.v1 = v1
       this.t2 = t2
@@ -66,23 +66,20 @@ class PercentChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[Float](2)
-    val ys = new Array[Float](2)
-    xs(0) = xb(bt(m.t1))
-    xs(1) = xb(bt(m.t2))
-    ys(0) = yv(m.v1)
-    ys(1) = yv(m.v2)
+    val xs = Array(xb(bt(m.t1)), xb(bt(m.t2)))
+    val ys = Array(yv(m.v1), yv(m.v2))
+
     val k = if (xs(1) - xs(0) == 0) 1F else (ys(1) - ys(0)) / (xs(1) - xs(0))
     val interval = ys(1) - ys(0)
     val xmin = math.min(xs(0), xs(1))
     val xmax = math.max(xs(0), xs(1))
         
     val y0 = ys(0);
-    val y1 = ys(0) + interval * 0.25f
-    val y2 = ys(0) + interval * 0.333333f
-    val y3 = ys(0) + interval * 0.5f
-    val y4 = ys(0) + interval * 0.666667f
-    val y5 = ys(0) + interval * 0.75f
+    val y1 = ys(0) + interval * 0.25
+    val y2 = ys(0) + interval * 0.333333
+    val y3 = ys(0) + interval * 0.5
+    val y4 = ys(0) + interval * 0.666667
+    val y5 = ys(0) + interval * 0.75
     val y6 = ys(1)
         
     val label1 = addChild(new Label)

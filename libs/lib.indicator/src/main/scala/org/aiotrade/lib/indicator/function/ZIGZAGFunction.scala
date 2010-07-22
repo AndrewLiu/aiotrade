@@ -42,14 +42,14 @@ class ZIGZAGFunction extends Function {
     
   var percent: Factor = _
     
-  val _peakHi    = TVar[Float]()
-  val _peakLo    = TVar[Float]()
+  val _peakHi    = TVar[Double]()
+  val _peakLo    = TVar[Double]()
   val _peakHiIdx = TVar[Int]()
   val _peakLoIdx = TVar[Int]()
   val _direction = TVar[Direction]()
     
-  val _zigzag       = TVar[Float]()
-  val _pseudoZigzag = TVar[Float]()
+  val _zigzag       = TVar[Double]()
+  val _pseudoZigzag = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -69,7 +69,7 @@ class ZIGZAGFunction extends Function {
      */
     //        int lastPeakIdx = indexOfLastValidValue(pseudoZigzag);
     //        if (lastPeakIdx >= 0) {
-    //            pseudoZigzag.set(lastPeakIdx, Null.Float);
+    //            pseudoZigzag.set(lastPeakIdx, Null.Double);
     //
     //            setComputedIdx(math.min(getComputedIdx(), lastPeakIdx));
     //        }
@@ -111,8 +111,8 @@ class ZIGZAGFunction extends Function {
     if (i == 0) {
             
       _direction(i) = Direction.Long
-      _zigzag(i) = Null.Float
-      _pseudoZigzag(i) = Null.Float
+      _zigzag(i) = Null.Double
+      _pseudoZigzag(i) = Null.Double
       _peakHi(i) = H(i)
       _peakLo(i) = L(i)
       _peakHiIdx(i) = i
@@ -183,7 +183,7 @@ class ZIGZAGFunction extends Function {
         
   }
     
-  def zigzag(sessionId: Long, idx: Int): Float = {
+  def zigzag(sessionId: Long, idx: Int): Double = {
     /**
      * @NOTICE
      * as zigzag's value is decided by future (+n step) idx, we should
@@ -204,7 +204,7 @@ class ZIGZAGFunction extends Function {
     _zigzag(idx)
   }
     
-  def pseudoZigzag(sessionId: Long, idx:Int): Float = {
+  def pseudoZigzag(sessionId: Long, idx:Int): Double = {
     /**
      * @NOTICE
      * as pseudo zigzag's value is decided by future (+n step) idx, we should

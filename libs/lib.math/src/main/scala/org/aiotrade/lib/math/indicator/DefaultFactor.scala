@@ -49,10 +49,10 @@ class DefaultFactor($name: String,
 ) extends Factor {
 
   private var _name = $name
-  private var _value = $value.floatValue
-  private var _step = if ($step == null) 1.0f else $step.floatValue
-  private var _minValue = if ($minValue == null) -Float.MaxValue else $minValue.floatValue
-  private var _maxValue = if ($maxValue == null) +Float.MaxValue else $maxValue.floatValue
+  private var _value = $value.doubleValue
+  private var _step = if ($step == null) 1.0 else $step.doubleValue
+  private var _minValue = if ($minValue == null) Double.MinValue else $minValue.doubleValue
+  private var _maxValue = if ($maxValue == null) Double.MaxValue else $maxValue.doubleValue
     
   def this(name: String, value: Number) = {
     this(name, value, null, null, null)
@@ -69,22 +69,22 @@ class DefaultFactor($name: String,
   
   def value = _value
   def value_=(value: Number) = {
-    this._value = value.floatValue
+    this._value = value.doubleValue
   }
 
   def step = _step
   def step_=(step: Number) = {
-    this._step = step.floatValue
+    this._step = step.doubleValue
   }
     
   def maxValue = _maxValue
-  def maxValue_=(maxValue: Number): Unit = {
-    this._maxValue = maxValue.floatValue
+  def maxValue_=(maxValue: Number) {
+    this._maxValue = maxValue.doubleValue
   }
     
   def minValue = _minValue
   def minValue_=(minValue: Number) = {
-    this._minValue = minValue.floatValue
+    this._minValue = minValue.doubleValue
   }
     
   def writeToJava(id: String): String = {

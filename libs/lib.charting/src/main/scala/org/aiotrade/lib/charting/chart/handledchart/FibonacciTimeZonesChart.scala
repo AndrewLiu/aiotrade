@@ -60,11 +60,11 @@ class FibonacciTimeZonesChart extends AbstractChart {
         
     val numFn = 40
         
-    val bs = new Array[Float](numFn * 2 + 1)
+    val bs = new Array[Double](numFn * 2 + 1)
     bs(0) = bt(m.t1)
         
     /** calculate Fibonacci serials */
-    val Fn = new Array[Float](numFn)
+    val Fn = new Array[Double](numFn)
     Fn(0) = 5
     Fn(1) = 8
         

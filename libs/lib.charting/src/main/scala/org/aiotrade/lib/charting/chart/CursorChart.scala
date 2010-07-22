@@ -63,7 +63,7 @@ abstract class CursorChart extends AbstractChart {
   protected var mouseRow: Int = _
   protected var referTime: Long = _
   protected var mouseTime: Long = _
-  protected var x: Float = _
+  protected var x: Double = _
     
   protected var cursorPath: GeneralPath = _
     

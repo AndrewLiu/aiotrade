@@ -40,7 +40,7 @@ class OBVIndicator extends Indicator {
   sname = "OBV"
   lname = "On Balance Volume"
 
-  val obv1 = TVar[Float]("OBV", Plot.Line)
+  val obv1 = TVar[Double]("OBV", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

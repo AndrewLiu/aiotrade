@@ -42,10 +42,10 @@ class DXFunction extends Function {
     
   var period: Factor = _
     
-  val _diPlus  = TVar[Float]()
-  val _diMinus = TVar[Float]()
+  val _diPlus  = TVar[Double]()
+  val _diMinus = TVar[Double]()
     
-  val _dx = TVar[Float]()
+  val _dx = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -59,7 +59,7 @@ class DXFunction extends Function {
       _diPlus (i) = diPlus( i, period)
       _diMinus(i) = diMinus(i, period)
             
-      _dx(i) = Null.Float
+      _dx(i) = Null.Double
             
     } else {
             
@@ -75,7 +75,7 @@ class DXFunction extends Function {
     }
   }
     
-  def dx(sessionId: Long, idx: Int): Float = {
+  def dx(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _dx(idx)

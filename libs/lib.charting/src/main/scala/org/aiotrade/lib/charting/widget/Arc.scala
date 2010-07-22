@@ -39,11 +39,11 @@ import java.awt.geom.Arc2D
  * @since   1.0.4
  */
 class Arc extends ShapeWidget {
-  class Model(var x: Float, var y: Float, var width: Float, var height: Float, var angSt: Float, var angExt: Float, var closure: Int) extends WidgetModel {
+  class Model(var x: Double, var y: Double, var width: Double, var height: Double, var angSt: Double, var angExt: Double, var closure: Int) extends WidgetModel {
 
-    def this() = this(0f, 0f, 0f, 0f, 0f, 0f, 0)
+    def this() = this(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)
         
-    def set(x: Float, y: Float, w: Float, h: Float, angSt: Float, angExt: Float, closure: Int) {
+    def set(x: Double, y: Double, w: Double, h: Double, angSt: Double, angExt: Double, closure: Int) {
       this.x = x
       this.y = y
       this.width = w
@@ -60,14 +60,14 @@ class Arc extends ShapeWidget {
   def createModel = new Model
     
   protected def createShape: Arc2D = {
-    new Arc2D.Float
+    new Arc2D.Double
   }
     
   override protected def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
     val arc = getShape
     if (arc.intersects(x, y, width, height)) {
       val backupClosure = arc.getArcType
-      arc.setArcType(Arc2D.CHORD);
+      arc.setArcType(Arc2D.CHORD)
       val result = if (arc.contains(x, y, width, height)) false else true
       arc.setArcType(backupClosure)
             

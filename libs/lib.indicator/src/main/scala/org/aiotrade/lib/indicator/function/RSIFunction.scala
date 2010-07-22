@@ -42,10 +42,10 @@ class RSIFunction extends Function {
     
   var period: Factor = _
     
-  val _up = TVar[Float]()
-  val _dn = TVar[Float]()
+  val _up = TVar[Double]()
+  val _dn = TVar[Double]()
     
-  val _rsi = TVar[Float]()
+  val _rsi = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -56,10 +56,10 @@ class RSIFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _up(i) = Null.Float
-      _dn(i) = Null.Float
+      _up(i) = Null.Double
+      _dn(i) = Null.Double
             
-      _rsi(i) = Null.Float
+      _rsi(i) = Null.Double
             
     } else {
             
@@ -74,7 +74,7 @@ class RSIFunction extends Function {
             
       if (i < period.value - 1) {
                 
-        _rsi(i) = Null.Float
+        _rsi(i) = Null.Double
             
       } else {
             
@@ -86,7 +86,7 @@ class RSIFunction extends Function {
     }
   }
     
-  def rsi(sessionId: Long, idx: Int): Float = {
+  def rsi(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _rsi(idx)

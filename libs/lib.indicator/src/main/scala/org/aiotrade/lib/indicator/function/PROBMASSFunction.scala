@@ -40,14 +40,14 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 case class PROBMASSFunction extends Function {
-  final protected def probMass(idx: Int, baseVar: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+  final protected def probMass(idx: Int, baseVar: TVar[Double], period: Double, nInterval: Double): Array[Array[Double]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
     StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
   }
 
-  protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float], period: Float, nInterval: Float): Array[Array[Float]] = {
+  protected def probMass(idx: Int, baseVar: TVar[Double], weight: TVar[Double], period: Double, nInterval: Double): Array[Array[Double]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
@@ -57,18 +57,18 @@ case class PROBMASSFunction extends Function {
   var period: Factor = _
   var nInterval: Factor = _
 
-  var baseVar: TVar[Float] = _
-  var weight:  TVar[Float] = _
+  var baseVar: TVar[Double] = _
+  var weight:  TVar[Double] = _
     
   /**
    * as this function do not remember previous valus, do not need a Var as probMass
    */
-  var _probMass: Array[Array[Float]] = _
+  var _probMass: Array[Array[Double]] = _
     
   override def set(baseSer: BaseTSer, args: Any*) : Unit = {
     super.set(baseSer)
     args match {
-      case Seq(a0: TVar[Float], a1: TVar[Float], a2: Factor, a3: Factor) =>
+      case Seq(a0: TVar[Double], a1: TVar[Double], a2: Factor, a3: Factor) =>
         baseVar = a0
         weight.equals(a1)
         period.equals(a2)
@@ -95,7 +95,7 @@ case class PROBMASSFunction extends Function {
     computeSpot(idx)
   }
     
-  def probMass(sessionId: Long, idx: Int): Array[Array[Float]] = {
+  def probMass(sessionId: Long, idx: Int): Array[Array[Double]] = {
     compute(idx)
         
     _probMass

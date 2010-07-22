@@ -381,7 +381,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
     dayVolume.value   = ticker.dayVolume.toString
 
-    def setInfoCellColorByPrevCls(value: Float, cell: ValueCell) {
+    def setInfoCellColorByPrevCls(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
       val fgColor = (
         if (value > ticker.prevClose) posColor
@@ -392,7 +392,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
 
-    def setInfoCellColorByZero(value: Float, cell: ValueCell) {
+    def setInfoCellColorByZero(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
       val fgColor = (
         if (value > 0) posColor
@@ -429,7 +429,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     }
   }
 
-  private def updateExecutionTable(prevClose: Float, execution: Execution) {
+  private def updateExecutionTable(prevClose: Double, execution: Execution) {
     // update last execution row in depth table
     val neuColor = LookFeel().getNeutralColor
     val posColor = LookFeel().getPositiveColor
@@ -521,14 +521,14 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
             setHorizontalAlignment(SwingConstants.TRAILING)
             if (row - 1 >= 0) {
               try {
-                var floatValue = NUMBER_FORMAT.parse(value.toString.trim).floatValue
+                var dValue = NUMBER_FORMAT.parse(value.toString.trim).doubleValue
                 val prevValue = table.getValueAt(row - 1, column)
                 if (prevValue != null) {
-                  val prevFloatValue = NUMBER_FORMAT.parse(prevValue.toString.trim).floatValue
-                  if (floatValue > prevFloatValue) {
+                  val prevDValue = NUMBER_FORMAT.parse(prevValue.toString.trim).doubleValue
+                  if (dValue > prevDValue) {
                     setForeground(LookFeel().getPositiveBgColor)
                     setBackground(LookFeel().backgroundColor)
-                  } else if (floatValue < prevFloatValue) {
+                  } else if (dValue < prevDValue) {
                     setForeground(LookFeel().getNegativeBgColor)
                     setBackground(LookFeel().backgroundColor)
                   } else {

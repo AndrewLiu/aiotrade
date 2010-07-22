@@ -41,26 +41,26 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class MAXFunction extends Function {
-  final protected def imax(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def imax(idx: Int, baseVar: TVar[Double], period: Double, prev: Double): Double = {
     StatisticFunction.imax(idx, baseVar.values, period.toInt, prev)
   }
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _max = TVar[Float]()
+  val _max = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _max(i) = Null.Float
+      _max(i) = Null.Double
             
     } else {
             
@@ -69,7 +69,7 @@ class MAXFunction extends Function {
     }
   }
     
-  def max(sessionId: Long, idx: Int): Float = {
+  def max(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _max(idx)

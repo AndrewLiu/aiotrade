@@ -38,12 +38,12 @@ import org.aiotrade.lib.charting.view.scalar.Scalar.Type
  */
 final class LnScalar extends Scalar {
     
-  final def doScale(v: Float): Float = {
-    math.log(v).toFloat
+  final def doScale(v: Double): Double = {
+    math.log(v)
   }
     
-  final def unScale(v: Float): Float = {
-    math.pow(math.E, v).toFloat
+  final def unScale(v: Double): Double = {
+    math.pow(math.E, v)
   }
     
   final def getType: Type = {

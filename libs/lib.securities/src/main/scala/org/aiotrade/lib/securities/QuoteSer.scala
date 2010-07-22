@@ -44,15 +44,15 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
     
-  val open   = TVar[Float]("O", Plot.Quote)
-  val high   = TVar[Float]("H", Plot.Quote)
-  val low    = TVar[Float]("L", Plot.Quote)
-  val close  = TVar[Float]("C", Plot.Quote)
-  val volume = TVar[Float]("V", Plot.Volume)
-  val amount = TVar[Float]("A", Plot.Volume)
+  val open   = TVar[Double]("O", Plot.Quote)
+  val high   = TVar[Double]("H", Plot.Quote)
+  val low    = TVar[Double]("L", Plot.Quote)
+  val close  = TVar[Double]("C", Plot.Quote)
+  val volume = TVar[Double]("V", Plot.Volume)
+  val amount = TVar[Double]("A", Plot.Volume)
     
-  val close_adj = TVar[Float]("W")
-  val close_ori = TVar[Float]()
+  val close_adj = TVar[Double]("W")
+  val close_ori = TVar[Double]()
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -69,7 +69,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
         close_ori(time) = quote.close
 
-        val adjuestedClose = if (quote.adjWeight != 0 ) quote.adjWeight else quote.close
+        val adjuestedClose = /* if (quote.adjWeight != 0 ) quote.adjWeight else */ quote.close
         close_adj(time) = adjuestedClose
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
@@ -144,11 +144,11 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   /**
    * This function adjusts linear according to a norm
    */
-  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
+  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 
-  override def shortDescription_=(symbol: String): Unit = {
+  override def shortDescription_=(symbol: String) {
     this._shortDescription = symbol
   }
     

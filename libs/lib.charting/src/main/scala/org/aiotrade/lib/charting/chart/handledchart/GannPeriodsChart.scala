@@ -60,7 +60,7 @@ class GannPeriodsChart extends AbstractChart {
         
     val numPn = 67
         
-    val bs = new Array[Float](numPn * 2 + 1)
+    val bs = new Array[Double](numPn * 2 + 1)
     bs(0) = bt(m.t1)
         
     val Pn = Array(7, 8, 9, 10, 11, 12,

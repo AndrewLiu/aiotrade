@@ -42,10 +42,10 @@ class CCIFunction extends Function {
     
   var alpha, period: Factor = _
     
-  val _tp        = TVar[Float]()
-  val _deviation = TVar[Float]()
+  val _tp        = TVar[Double]()
+  val _deviation = TVar[Double]()
     
-  val _cci = TVar[Float]()
+  val _cci = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -59,9 +59,9 @@ class CCIFunction extends Function {
         
     if (i < period.value - 1) {
             
-      _deviation(i) = Null.Float
+      _deviation(i) = Null.Double
             
-      _cci(i) = Null.Float
+      _cci(i) = Null.Double
             
     } else {
             
@@ -75,7 +75,7 @@ class CCIFunction extends Function {
     }
   }
     
-  def cci(sessionId: Long, idx: Int): Float = {
+  def cci(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _cci(idx)

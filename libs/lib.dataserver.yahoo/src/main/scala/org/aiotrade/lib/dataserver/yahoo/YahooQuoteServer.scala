@@ -183,13 +183,13 @@ class YahooQuoteServer extends QuoteServer {
 
             val quote = new Quote
             quote.time   = time
-            quote.open   = openX.trim.toFloat
-            quote.high   = highX.trim.toFloat
-            quote.low    = lowX.trim.toFloat
-            quote.close  = closeX.trim.toFloat
-            quote.volume = volumeX.trim.toFloat / 100f
+            quote.open   = openX.trim.toDouble
+            quote.high   = highX.trim.toDouble
+            quote.low    = lowX.trim.toDouble
+            quote.close  = closeX.trim.toDouble
+            quote.volume = volumeX.trim.toDouble
             quote.amount = -1
-            quote.adjWeight = adjCloseX.trim.toFloat
+            //quote.adjWeight = adjCloseX.trim
 
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime

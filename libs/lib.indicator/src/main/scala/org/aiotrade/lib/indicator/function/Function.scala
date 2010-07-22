@@ -68,11 +68,11 @@ abstract class Function extends DefaultTSer
   protected var baseSer: BaseTSer = _
     
   /** To store values of open, high, low, close, volume: */
-  protected var O: TVar[Float] = _
-  protected var H: TVar[Float] = _
-  protected var L: TVar[Float] = _
-  protected var C: TVar[Float] = _
-  protected var V: TVar[Float] = _
+  protected var O: TVar[Double] = _
+  protected var H: TVar[Double] = _
+  protected var L: TVar[Double] = _
+  protected var C: TVar[Double] = _
+  protected var V: TVar[Double] = _
 
   def set(baseSer: BaseTSer, args: Any*) {
     super.set(baseSer.freq)
@@ -183,7 +183,7 @@ abstract class Function extends DefaultTSer
     var i = values.size - 1
     while (i > 0) {
       val value = values(i)
-      if (value != null && !(value.isInstanceOf[Float] && Null.is(value.asInstanceOf[Float]))) {
+      if (value != null && !(value.isInstanceOf[Double] && Null.is(value.asInstanceOf[Double]))) {
         return baseSer.indexOfOccurredTime(timestamps(i))
       }
 
@@ -205,111 +205,111 @@ abstract class Function extends DefaultTSer
    * ----------------------------------------------------------------------
    */
     
-  final protected def sum(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def sum(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[SUMFunction], baseSer, baseVar, period).sum(sessionId, idx)
   }
     
-  final protected def max(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def max(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[MAXFunction], baseSer, baseVar, period).max(sessionId, idx)
   }
     
-  final protected def min(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def min(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[MINFunction], baseSer, baseVar, period).min(sessionId, idx)
   }
     
-  final protected def ma(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def ma(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[MAFunction], baseSer, baseVar, period).ma(sessionId, idx)
   }
     
-  final protected def ema(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def ema(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[EMAFunction], baseSer, baseVar, period).ema(sessionId, idx)
   }
     
-  final protected def stdDev(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def stdDev(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[STDDEVFunction], baseSer, baseVar, period).stdDev(sessionId, idx)
   }
     
-  final protected def probMass(idx: Int, baseVar: TVar[Float], period: Factor, nInterval: Factor): Array[Array[Float]] = {
+  final protected def probMass(idx: Int, baseVar: TVar[Double], period: Factor, nInterval: Factor): Array[Array[Double]] = {
     getFunction(classOf[PROBMASSFunction], baseSer, baseVar, null, period, nInterval).probMass(sessionId, idx)
   }
     
-  final protected def probMass(idx: Int, baseVar: TVar[Float], weight: TVar[Float] , period: Factor, nInterval: Factor): Array[Array[Float]] = {
+  final protected def probMass(idx: Int, baseVar: TVar[Double], weight: TVar[Double] , period: Factor, nInterval: Factor): Array[Array[Double]] = {
     getFunction(classOf[PROBMASSFunction], baseSer, baseVar, weight, period, nInterval).probMass(sessionId, idx)
   }
     
-  final protected def tr(idx: Int): Float = {
+  final protected def tr(idx: Int): Double = {
     getFunction(classOf[TRFunction], baseSer).tr(sessionId, idx)
   }
     
-  final protected def dmPlus(idx: Int): Float = {
+  final protected def dmPlus(idx: Int): Double = {
     getFunction(classOf[DMFunction], baseSer).dmPlus(sessionId, idx)
   }
     
-  final protected def dmMinus(idx: Int): Float = {
+  final protected def dmMinus(idx: Int): Double = {
     getFunction(classOf[DMFunction], baseSer).dmMinus(sessionId, idx)
   }
     
-  final protected def diPlus(idx: Int, period: Factor): Float = {
+  final protected def diPlus(idx: Int, period: Factor): Double = {
     getFunction(classOf[DIFunction], baseSer, period).diPlus(sessionId, idx)
   }
     
-  final protected def diMinus(idx: Int, period: Factor): Float = {
+  final protected def diMinus(idx: Int, period: Factor): Double = {
     getFunction(classOf[DIFunction], baseSer, period).diMinus(sessionId, idx)
   }
     
-  final protected def dx(idx: Int, period: Factor): Float = {
+  final protected def dx(idx: Int, period: Factor): Double = {
     getFunction(classOf[DXFunction], baseSer, period).dx(sessionId, idx)
   }
     
-  final protected def adx(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
+  final protected def adx(idx: Int, periodDi: Factor, periodAdx: Factor): Double = {
     getFunction(classOf[ADXFunction], baseSer, periodDi, periodAdx).adx(sessionId, idx)
   }
     
-  final protected def adxr(idx: Int, periodDi: Factor, periodAdx: Factor): Float = {
+  final protected def adxr(idx: Int, periodDi: Factor, periodAdx: Factor): Double = {
     getFunction(classOf[ADXRFunction], baseSer, periodDi, periodAdx).adxr(sessionId, idx)
   }
     
-  final protected def bollMiddle(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
+  final protected def bollMiddle(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Double = {
     getFunction(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollMiddle(sessionId, idx)
   }
     
-  final protected def bollUpper(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
+  final protected def bollUpper(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Double = {
     getFunction(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollUpper(sessionId, idx)
   }
     
-  final protected def bollLower(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Float = {
+  final protected def bollLower(idx: Int, baseVar: TVar[_], period: Factor, alpha: Factor): Double = {
     getFunction(classOf[BOLLFunction], baseSer, baseVar, period, alpha).bollLower(sessionId, idx)
   }
     
-  final protected def cci(idx: Int, period: Factor, alpha: Factor): Float = {
+  final protected def cci(idx: Int, period: Factor, alpha: Factor): Double = {
     getFunction(classOf[CCIFunction], baseSer, period, alpha).cci(sessionId, idx)
   }
     
-  final protected def macd(idx: Int, baseVar: TVar[_], periodSlow: Factor, periodFast: Factor): Float = {
+  final protected def macd(idx: Int, baseVar: TVar[_], periodSlow: Factor, periodFast: Factor): Double = {
     getFunction(classOf[MACDFunction], baseSer, baseVar, periodSlow, periodFast).macd(sessionId, idx)
   }
     
-  final protected def mfi(idx: Int, period: Factor): Float = {
+  final protected def mfi(idx: Int, period: Factor): Double = {
     getFunction(classOf[MFIFunction], baseSer, period).mfi(sessionId, idx)
   }
     
-  final protected def mtm(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def mtm(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[MTMFunction], baseSer, baseVar, period).mtm(sessionId, idx)
   }
     
-  final protected def obv(idx: Int): Float = {
+  final protected def obv(idx: Int): Double = {
     getFunction(classOf[OBVFunction], baseSer).obv(sessionId, idx)
   }
     
-  final protected def roc(idx: Int, baseVar: TVar[_], period: Factor): Float = {
+  final protected def roc(idx: Int, baseVar: TVar[_], period: Factor): Double = {
     getFunction(classOf[ROCFunction], baseSer, baseVar, period).roc(sessionId, idx)
   }
     
-  final protected def rsi(idx: Int, period: Factor): Float = {
+  final protected def rsi(idx: Int, period: Factor): Double = {
     getFunction(classOf[RSIFunction], baseSer, period).rsi(sessionId, idx)
   }
     
-  final protected def sar(idx: Int, initial: Factor, step: Factor, maximum: Factor): Float = {
+  final protected def sar(idx: Int, initial: Factor, step: Factor, maximum: Factor): Double = {
     getFunction(classOf[SARFunction], baseSer, initial, step, maximum).sar(sessionId, idx)
   }
     
@@ -317,27 +317,27 @@ abstract class Function extends DefaultTSer
     getFunction(classOf[SARFunction], baseSer, initial, step, maximum).sarDirection(sessionId, idx)
   }
     
-  final protected def stochK(idx: Int, period: Factor, periodK: Factor): Float = {
+  final protected def stochK(idx: Int, period: Factor, periodK: Factor): Double = {
     getFunction(classOf[STOCHKFunction], baseSer, period, periodK).stochK(sessionId, idx)
   }
     
-  final protected def stochD(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
+  final protected def stochD(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Double = {
     getFunction(classOf[STOCHDFunction], baseSer, period, periodK, periodD).stochD(sessionId, idx)
   }
     
-  final protected def stochJ(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Float = {
+  final protected def stochJ(idx: Int, period: Factor, periodK: Factor, periodD: Factor): Double = {
     getFunction(classOf[STOCHJFunction], baseSer, period, periodK, periodD).stochJ(sessionId, idx)
   }
     
-  final protected def wms(idx: Int, period: Factor): Float = {
+  final protected def wms(idx: Int, period: Factor): Double = {
     getFunction(classOf[WMSFunction], baseSer, period).wms(sessionId, idx)
   }
     
-  final protected def zigzag(idx: Int, percent: Factor): Float = {
+  final protected def zigzag(idx: Int, percent: Factor): Double = {
     getFunction(classOf[ZIGZAGFunction], baseSer, percent).zigzag(sessionId, idx)
   }
     
-  final protected def pseudoZigzag(idx: Int, percent: Factor): Float = {
+  final protected def pseudoZigzag(idx: Int, percent: Factor): Double = {
     getFunction(classOf[ZIGZAGFunction], baseSer, percent).pseudoZigzag(sessionId, idx)
   }
     

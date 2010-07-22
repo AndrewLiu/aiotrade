@@ -43,12 +43,12 @@ import org.aiotrade.lib.securities.QuoteSer
 class DiagonalChart extends AbstractChart {
   final class Model extends WidgetModel {
     var originTime: Long = _
-    var b0: Float = _
-    var step: Float = _
-    var k: Float = _
+    var b0: Double = _
+    var step: Double = _
+    var k: Double = _
     var color: Color = _
         
-    def set(originTime: Long, b0: Float, step: Float, k: Float, color: Color) {
+    def set(originTime: Long, b0: Double, step: Double, k: Double, color: Color) {
       this.originTime = originTime
       this.b0 = b0
       this.step = step
@@ -77,8 +77,8 @@ class DiagonalChart extends AbstractChart {
     val a2 = nBars - 1
     var i = 0
     while (i < 10) {
-      val b1 = (a1 - a0 + i * m.step) * 365.25F / 365 * m.k + m.b0
-      val b2 = (a2 - a0 + i * m.step) * 365.25F / 365 * m.k + m.b0
+      val b1 = (a1 - a0 + i * m.step) * 365.25 / 365 * m.k + m.b0
+      val b2 = (a2 - a0 + i * m.step) * 365.25 / 365 * m.k + m.b0
       path.moveTo(xb(a1), yv(b1))
       path.lineTo(xb(a2), yv(b2))
 

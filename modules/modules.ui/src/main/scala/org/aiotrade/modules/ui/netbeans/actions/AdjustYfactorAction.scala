@@ -113,7 +113,7 @@ class AdjustYfactorAction extends CallableSystemAction {
         def stateChanged(e: ChangeEvent) {
           val s = e.getSource.asInstanceOf[JSlider]
           if (!s.getValueIsAdjusting) { //done adjusting
-            val yfactorControl = s.getValue.toFloat / 100.0f;
+            val yfactorControl = s.getValue.toDouble / 100.0;
             adjustYChartPercentInCanvas(yfactorControl);
           }
         }
@@ -122,7 +122,7 @@ class AdjustYfactorAction extends CallableSystemAction {
     yslider;
   }
     
-  private def adjustYChartPercentInCanvas(yChartPercentInCanvas: Float) {
+  private def adjustYChartPercentInCanvas(yChartPercentInCanvas: Double) {
     val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
         
     analysisTc.viewContainer.masterView.yChartScale = yChartPercentInCanvas

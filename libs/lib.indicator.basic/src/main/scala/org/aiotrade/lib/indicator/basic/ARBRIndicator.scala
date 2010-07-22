@@ -38,17 +38,17 @@ import org.aiotrade.lib.indicator.Indicator
  */
 class ARBRIndicator extends Indicator {
   sname = "AR/BR"
-  grids = Array(50f, 200f)
+  grids = Array(50, 200)
     
   val period = Factor("Period", 10)
     
-  val up = TVar[Float]("up")
-  val dn = TVar[Float]("dn")
-  val bs = TVar[Float]("bs")
-  val ss = TVar[Float]("ss")
+  val up = TVar[Double]("up")
+  val dn = TVar[Double]("dn")
+  val bs = TVar[Double]("bs")
+  val ss = TVar[Double]("ss")
     
-  val ar = TVar[Float]("AR", Plot.Line)
-  val br = TVar[Float]("BR", Plot.Line)
+  val ar = TVar[Double]("AR", Plot.Line)
+  val br = TVar[Double]("BR", Plot.Line)
     
     
   protected def computeCont(begIdx: Int, size: Int) {

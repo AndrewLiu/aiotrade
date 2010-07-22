@@ -34,10 +34,10 @@ package org.aiotrade.lib.charting.chart.segment
  *
  * @author Caoyuan Deng
  */
-final class ValuePoint(var t: Long, var v: Float) {
+final class ValuePoint(var t: Long, var v: Double) {
   def this() = this(0, 0)
     
-  final def set(time: Long, value: Float) {
+  final def set(time: Long, value: Double) {
     this.t = time
     this.v = value
   }

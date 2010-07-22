@@ -48,7 +48,7 @@ trait Handle {
    * to avoid too many ValuePoint instances being created. Instead, we define
    *   copyPoint(..)
    */
-  def copyPoint(src: ValuePoint): Unit
+  def copyPoint(src: ValuePoint)
     
   def getPoint: ValuePoint
     
@@ -56,6 +56,6 @@ trait Handle {
     
   def contains(x: Int, y: Int): Boolean
     
-  def render(g: Graphics): Unit
+  def render(g: Graphics)
 }
 

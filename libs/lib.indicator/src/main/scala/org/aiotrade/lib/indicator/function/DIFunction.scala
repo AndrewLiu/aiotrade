@@ -42,12 +42,12 @@ class DIFunction extends Function {
     
   var period: Factor = _
     
-  val _dmPlus  = TVar[Float]()
-  val _dmMinus = TVar[Float]()
-  val _tr      = TVar[Float]()
+  val _dmPlus  = TVar[Double]()
+  val _dmMinus = TVar[Double]()
+  val _tr      = TVar[Double]()
     
-  val _diPlus  = TVar[Float]()
-  val _diMinus = TVar[Float]()
+  val _diPlus  = TVar[Double]()
+  val _diMinus = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -62,8 +62,8 @@ class DIFunction extends Function {
         
     if (i < period.value - 1) {
             
-      _diPlus(i)  = Null.Float
-      _diMinus(i) = Null.Float
+      _diPlus(i)  = Null.Double
+      _diMinus(i) = Null.Double
             
     } else {
             
@@ -80,13 +80,13 @@ class DIFunction extends Function {
     }
   }
     
-  def diPlus(sessionId: Long, idx: Int): Float = {
+  def diPlus(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _diPlus(idx)
   }
     
-  def diMinus(sessionId: Long, idx: Int): Float = {
+  def diMinus(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _diMinus(idx)

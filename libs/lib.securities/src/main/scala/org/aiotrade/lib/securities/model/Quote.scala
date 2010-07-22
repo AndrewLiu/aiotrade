@@ -95,15 +95,13 @@ abstract class Quotes extends Table[Quote] {
 
   val time = "time" BIGINT
 
-  val open   = "open"   FLOAT()
-  val high   = "high"   FLOAT()
-  val low    = "low"    FLOAT()
-  val close  = "close"  FLOAT()
-  val volume = "volume" FLOAT()
-  val amount = "amount" FLOAT()
-  val vwap   = "vwap"   FLOAT()
-
-  val adjWeight = "adjWeight" FLOAT()
+  val open   = "open"   DOUBLE()
+  val high   = "high"   DOUBLE()
+  val low    = "low"    DOUBLE()
+  val close  = "close"  DOUBLE()
+  val volume = "volume" DOUBLE()
+  val amount = "amount" DOUBLE()
+  val vwap   = "vwap"   DOUBLE()
 
   val flag = "flag" INTEGER
 
@@ -170,7 +168,6 @@ object Quote {
   private val VOLUME    = 4
   private val AMOUNT    = 5
   private val VWAP      = 6
-  private val ADJWEIGHT = 7
 }
 
 import Quote._
@@ -178,7 +175,7 @@ import Quote._
 class Quote extends TVal with Flag {
   var sec: Sec = _
   
-  private val data = new Array[Float](8)
+  private val data = new Array[Double](7)
 
   @transient var sourceId = 0L
 
@@ -191,16 +188,14 @@ class Quote extends TVal with Flag {
   def volume    = data(VOLUME)
   def amount    = data(AMOUNT)
   def vwap      = data(VWAP)
-  def adjWeight = data(ADJWEIGHT)
 
-  def open_=     (v: Float) {data(OPEN)      = v}
-  def high_=     (v: Float) {data(HIGH)      = v}
-  def low_=      (v: Float) {data(LOW)       = v}
-  def close_=    (v: Float) {data(CLOSE)     = v}
-  def volume_=   (v: Float) {data(VOLUME)    = v}
-  def amount_=   (v: Float) {data(AMOUNT)    = v}
-  def vwap_=     (v: Float) {data(VWAP)      = v}
-  def adjWeight_=(v: Float) {data(ADJWEIGHT) = v}
+  def open_=     (v: Double) {data(OPEN)      = v}
+  def high_=     (v: Double) {data(HIGH)      = v}
+  def low_=      (v: Double) {data(LOW)       = v}
+  def close_=    (v: Double) {data(CLOSE)     = v}
+  def volume_=   (v: Double) {data(VOLUME)    = v}
+  def amount_=   (v: Double) {data(AMOUNT)    = v}
+  def vwap_=     (v: Double) {data(VWAP)      = v}
 
   // Foreign keys
   var tickers: List[Ticker] = Nil

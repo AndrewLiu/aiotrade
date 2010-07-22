@@ -112,7 +112,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * shield the changes from datumPane.
    */
   protected var nBars: Int = _
-  protected var wBar: Float = _
+  protected var wBar: Double = _
     
 
   protected var wSeg = MIN_SEGMENT_WIDTH
@@ -238,7 +238,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @return width of chart. not width of canvas!
    */
-  def strockWidth: Float = _strockWidth
+  def strockWidth: Double = _strockWidth
   def strockType: StrockType = _strockType
     
   def ser: TSer = _ser
@@ -252,7 +252,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    *
    * @param barIndex: index of bars, start from 1 to nBars
    */
-  final protected def xb(barIndex: Int): Float = {
+  final protected def xb(barIndex: Int): Double = {
     this.datumPlane.xb(barIndex)
   }
 
@@ -260,15 +260,15 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * Translate value to Y point for drawing
    * @param value
    */
-  final protected def yv(value: Float): Float = {
+  final protected def yv(value: Double): Double = {
     this.datumPlane.yv(value)
   }
 
-  final protected def bx(x: Float): Int = {
+  final protected def bx(x: Double): Int = {
     this.datumPlane.bx(x)
   }
 
-  final protected def vy(y: Float): Float = {
+  final protected def vy(y: Double): Double = {
     this.datumPlane.vy(y)
   }
 
@@ -305,7 +305,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     this.datumPlane.bt(time)
   }
 
-  protected def plotLine(xBase: Float, yBase: Float, k: Float,  path: GeneralPath) {
+  protected def plotLine(xBase: Double, yBase: Double, k: Double,  path: GeneralPath) {
     val xBeg = 0
     val yBeg = GeomUtil.yOfLine(xBeg, xBase, yBase, k)
     val xEnd = datumPlane.getWidth
@@ -322,12 +322,12 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     path.lineTo(x, yEnd)
   }
 
-  protected def plotLineSegment(xBeg: Float, yBeg: Float, xEnd: Float, yEnd: Float, path: GeneralPath) {
+  protected def plotLineSegment(xBeg: Double, yBeg: Double, xEnd: Double, yEnd: Double, path: GeneralPath) {
     path.moveTo(xBeg, yBeg)
     path.lineTo(xEnd, yEnd)
   }
 
-  protected def plotVerticalLineSegment(bar: Int, yBeg: Float, yEnd: Float, path: GeneralPath) {
+  protected def plotVerticalLineSegment(bar: Int, yBeg: Double, yEnd: Double, path: GeneralPath) {
     val x = xb(bar)
     path.moveTo(x, yBeg)
     path.lineTo(x, yEnd)
@@ -351,9 +351,9 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @deprecated
    */
-  @deprecated private def plotLine_seg(xCenter: Float, yCenter: Float, k: Float, path: GeneralPath) {
+  @deprecated private def plotLine_seg(xCenter: Double, yCenter: Double, k: Double, path: GeneralPath) {
     var xlast = xb(0) // bar 0
-    var ylast = Null.Float
+    var ylast = Null.Double
     var bar = 1
     while (bar <= nBars) {
             
@@ -393,18 +393,18 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @deprecated
    */
-  @deprecated private def plotLineSegment_seg(xBeg: Float, yBeg: Float, xEnd: Float, yEnd: Float, path: GeneralPath) {
+  @deprecated private def plotLineSegment_seg(xBeg: Double, yBeg: Double, xEnd: Double, yEnd: Double, path: GeneralPath) {
     val dx = xEnd - xBeg
     val dy = yEnd - yBeg
         
-    val k: Float = if (dx == 0) 1 else dy / dx
+    val k: Double = if (dx == 0) 1 else dy / dx
     val xmin = Math.min(xBeg, xEnd)
     val xmax = Math.max(xBeg, xEnd)
     val ymin = Math.min(yBeg, yEnd)
     val ymax = Math.max(yBeg, yEnd)
         
     var xlast = xb(0) // bar 0
-    var ylast = Null.Float
+    var ylast = Null.Double
     var bar = 1
     while (bar <= nBars) {
             
@@ -467,7 +467,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @deprecated
    */
-  @deprecated private def plotVerticalLineSegment_seg(bar: Int, yBeg: Float, yEnd: Float, path: GeneralPath) {
+  @deprecated private def plotVerticalLineSegment_seg(bar: Int, yBeg: Double, yEnd: Double, path: GeneralPath) {
     if (bar >= 1 && bar <= nBars) {
             
       val x = xb(bar)
@@ -481,7 +481,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @deprecated
    */
-  @deprecated private def plotArc_seg(xCenter: Float, yCenter: Float, radius: Double, path: GeneralPath) {
+  @deprecated private def plotArc_seg(xCenter: Double, yCenter: Double, radius: Double, path: GeneralPath) {
     plotHalfArc_seg(xCenter, yCenter, radius, true, path)
     plotHalfArc_seg(xCenter, yCenter, radius, false, path)
   }
@@ -489,9 +489,9 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   /**
    * @deprecated
    */
-  @deprecated private def plotHalfArc_seg(xCenter: Float, yCenter: Float, radius: Double, positiveSide: Boolean, path: GeneralPath) {
+  @deprecated private def plotHalfArc_seg(xCenter: Double, yCenter: Double, radius: Double, positiveSide: Boolean, path: GeneralPath) {
     var xlast = xb(0) // bar 0
-    var ylast = Null.Float
+    var ylast = Null.Double
     var bar = 1
     while (bar <= nBars) {
             

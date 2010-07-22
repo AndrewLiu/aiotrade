@@ -67,12 +67,12 @@ class QuoteChart extends AbstractChart {
   import QuoteChart._
 
   class Model extends WidgetModel {
-    var openVar:  TVar[Float] = _
-    var highVar:  TVar[Float] = _
-    var lowVar:   TVar[Float] = _
-    var closeVar: TVar[Float] = _
+    var openVar:  TVar[Double] = _
+    var highVar:  TVar[Double] = _
+    var lowVar:   TVar[Double] = _
+    var closeVar: TVar[Double] = _
         
-    def set(openVar: TVar[Float], highVar: TVar[Float], lowVar: TVar[Float], closeVar: TVar[Float]) {
+    def set(openVar: TVar[Double], highVar: TVar[Double], lowVar: TVar[Double], closeVar: TVar[Double]) {
       this.openVar  = openVar
       this.highVar  = highVar
       this.lowVar   = lowVar
@@ -129,12 +129,12 @@ class QuoteChart extends AbstractChart {
             
       /**
        * @TIPS:
-       * use Null.Float to test if value has been set at least one time
+       * use Null.Double to test if value has been set at least one time
        */
-      var open  = Null.Float
-      var close = Null.Float
-      var high  = Float.MinValue
-      var low   = Float.MaxValue
+      var open  = Null.Double
+      var close = Null.Double
+      var high  = Double.MinValue
+      var low   = Double.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
@@ -182,19 +182,19 @@ class QuoteChart extends AbstractChart {
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
     val tp = new LineSegment
-    var y1 = Null.Float   // for prev
-    var y2 = Null.Float   // for curr
+    var y1 = Null.Double   // for prev
+    var y2 = Null.Double   // for curr
     var bar = 1
     while (bar <= nBars) {
             
       /**
        * @TIPS:
-       * use Null.Float to test if value has been set at least one time
+       * use Null.Double to test if value has been set at least one time
        */
-      var open  = Null.Float
-      var close = Null.Float
-      var max   = -Float.MaxValue
-      var min   = +Float.MaxValue
+      var open  = Null.Double
+      var close = Null.Double
+      var max   = -Double.MaxValue
+      var min   = +Double.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val time = tb(bar + i)

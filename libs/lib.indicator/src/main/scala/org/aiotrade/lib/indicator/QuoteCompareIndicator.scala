@@ -45,14 +45,14 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
     
   val begPosition = Factor("Begin of Time Frame", 0L)
   val endPosition = Factor("End of Time Frame",   0L)
-  val maxValue    = Factor("Max Value", Float.MinValue)
-  val minValue    = Factor("Min Value", Float.MaxValue)
+  val maxValue    = Factor("Max Value", Double.MinValue)
+  val minValue    = Factor("Min Value", Double.MaxValue)
     
-  var open   = TVar[Float]("O", Plot.Quote)
-  var high   = TVar[Float]("H", Plot.Quote)
-  var low    = TVar[Float]("L", Plot.Quote)
-  var close  = TVar[Float]("C", Plot.Quote)
-  var volume = TVar[Float]("V", Plot.Quote)
+  var open   = TVar[Double]("O", Plot.Quote)
+  var high   = TVar[Double]("H", Plot.Quote)
+  var low    = TVar[Double]("L", Plot.Quote)
+  var close  = TVar[Double]("C", Plot.Quote)
+  var volume = TVar[Double]("V", Plot.Quote)
     
   protected def computeCont(begIdx: Int, size: Int) {
     /** camparing base point is the value of begin time (the most left on screen */
@@ -63,7 +63,7 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
 
     val baseQSer = baseSer.asInstanceOf[QuoteSer]
     /** get first value of baseSer in time frame, it will be the comparing base point */
-    var baseNorm = Null.Float
+    var baseNorm = Null.Double
     var row = begPosition.value.toInt
     var end = endPosition.value.toInt
     var break = false
@@ -91,7 +91,7 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       }
     }
         
-    var compareNorm = Null.Float
+    var compareNorm = Null.Double
     /**
      * !NOTICE
      * we only calculate this indicator's value for a timeSet showing in screen,
@@ -140,7 +140,7 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
   /**
    * This function keeps the adjusting linear according to a norm
    */
-  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
+  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 

@@ -39,13 +39,13 @@ import org.aiotrade.lib.indicator.Indicator
 class WMSIndicator extends Indicator {
   sname = "WMS"
   lname = "Williams' %R"
-  grids = Array(10f, 90f)
+  grids = Array(10, 90)
     
   val period1 = Factor("Period Short",  6)
   val period2 = Factor("Period Long",  10)
     
-  val wms1 = TVar[Float]("WMS1", Plot.Line)
-  val wms2 = TVar[Float]("WMS2", Plot.Line)
+  val wms1 = TVar[Double]("WMS1", Plot.Line)
+  val wms2 = TVar[Double]("WMS2", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

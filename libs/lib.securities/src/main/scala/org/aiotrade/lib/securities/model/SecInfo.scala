@@ -16,8 +16,8 @@ object SecInfos extends Table[SecInfo] {
   val totalShare = "totalShare" BIGINT
   val freeFloat = "freeFloat" BIGINT
   val tradingUnit = "tradingUnit" INTEGER 
-  val upperLimit = "upperLimit" FLOAT()
-  val lowerLimit = "lowerLimit" FLOAT()
+  val upperLimit = "upperLimit" DOUBLE()
+  val lowerLimit = "lowerLimit" DOUBLE()
 }
 
 class SecInfo {
@@ -33,8 +33,8 @@ class SecInfo {
   var totalShare: Long = _
   var freeFloat: Long = _
   var tradingUnit: Int = 100
-  var upperLimit: Float = -1
-  var lowerLimit: Float = -1
+  var upperLimit: Double = -1
+  var lowerLimit: Double = -1
 
   override def toString = {
     "SecInfo(uniSymbol=" + uniSymbol + ")"

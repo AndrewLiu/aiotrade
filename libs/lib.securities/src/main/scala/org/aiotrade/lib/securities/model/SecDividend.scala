@@ -5,12 +5,12 @@ import ru.circumflex.orm.Table
 object SecDividends extends Table[SecDividend] {
   val sec = "secs_id" REFERENCES(Secs)
 
-  val prevClose = "prevClose" FLOAT() 
-  val adjWeight =  "adjWeight" FLOAT()
-  val cashBonus = "cashBonus" FLOAT()
-  val shareBobus = "shareBonus" FLOAT()
-  val shareRight =  "shareRight" FLOAT() 
-  val shareRightPrice = "shareRightPrice" FLOAT()
+  val prevClose = "prevClose" DOUBLE()
+  val adjWeight =  "adjWeight" DOUBLE()
+  val cashBonus = "cashBonus" DOUBLE()
+  val shareBobus = "shareBonus" DOUBLE()
+  val shareRight =  "shareRight" DOUBLE()
+  val shareRightPrice = "shareRightPrice" DOUBLE()
   val registerDate = "registerDate" BIGINT
   val dividendDate = "dividendDate" BIGINT
 }
@@ -18,12 +18,12 @@ object SecDividends extends Table[SecDividend] {
 class SecDividend {
   var sec: Sec = _
 
-  var prevClose: Float = _
-  var adjWeight: Float = _
-  var cashBonus: Float = _
-  var shareBobus: Float = _
-  var shareRight: Float = _
-  var shareRightPrice: Float = _
+  var prevClose: Double = _
+  var adjWeight: Double = _
+  var cashBonus: Double = _
+  var shareBobus: Double = _
+  var shareRight: Double = _
+  var shareRightPrice: Double = _
   var registerDate: Long = _
   var dividendDate: Long = _
 }

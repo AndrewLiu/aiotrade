@@ -60,11 +60,11 @@ abstract class ShapeWidget extends AbstractWidget {
     shape.contains(x, y, width, height)
   }
     
-  override def reset: Unit = {
+  override def reset {
     super.reset
   }
     
-  def renderWidget(g0: Graphics): Unit = {
+  def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
     g.setColor(getForeground)

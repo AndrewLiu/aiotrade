@@ -356,7 +356,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         colKeyToColor(PERCENT)    = neutralColor
       }
 
-      def setColorByPrevClose(value: Float, columnName: String) {
+      def setColorByPrevClose(value: Double, columnName: String) {
         if (value > ticker.prevClose) {
           colKeyToColor(columnName) = positiveColor
         } else if (value < ticker.prevClose) {

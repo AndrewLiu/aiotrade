@@ -45,9 +45,9 @@ class EMAIndicator extends Indicator {
   val period2 = Factor("Period Mediaum", 10)
   val period3 = Factor("Period Long",    20)
     
-  val ema1 = TVar[Float]("EMA1", Plot.Line)
-  val ema2 = TVar[Float]("EMA2", Plot.Line)
-  val ema3 = TVar[Float]("EMA3", Plot.Line)
+  val ema1 = TVar[Double]("EMA1", Plot.Line)
+  val ema2 = TVar[Double]("EMA2", Plot.Line)
+  val ema3 = TVar[Double]("EMA3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

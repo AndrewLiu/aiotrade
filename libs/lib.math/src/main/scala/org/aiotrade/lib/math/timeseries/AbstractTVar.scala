@@ -95,13 +95,11 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     result
   }
 
-  def float(time: Long): Float = {
-    toFloat(apply(time))
-  }
+  def float(time: Long): Float = toFloat(apply(time))
+  def float(idx: Int): Float = toFloat(apply(idx))
 
-  def float(idx: Int): Float = {
-    toFloat(apply(idx))
-  }
+  def double(time: Long): Double = toDouble(apply(time))
+  def double(idx: Int): Double = toDouble(apply(idx))
 
   private def toFloat(v: V): Float = {
     v match {
@@ -112,6 +110,18 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
                v + " Check your code and give me Float instead of float: " +
                o.asInstanceOf[AnyRef].getClass.getCanonicalName)
         Null.Float
+    }
+  }
+
+  private def toDouble(v: V): Double = {
+    v match {
+      case null => Null.Double
+      case n: Number => n.doubleValue
+      case o: AnyRef =>
+        assert(false, "Why you get here(TVar.double) ? " +
+               v + " Check your code and give me Double instead of double: " +
+               o.asInstanceOf[AnyRef].getClass.getCanonicalName)
+        Null.Double
     }
   }
 

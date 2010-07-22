@@ -68,8 +68,8 @@ class RealTimeChartView($controller: ChartingController,
                         $quoteSer: QuoteSer,
                         $empty: Boolean
 ) extends {
-  private var _prevClose = Null.Float
-  private var gridValues: Array[Float] = _
+  private var _prevClose = Null.Double
+  private var gridValues: Array[Double] = _
   private var rtSer: QuoteSer = _
   private val cal = Calendar.getInstance
   private var exchange: Exchange = _
@@ -160,7 +160,7 @@ class RealTimeChartView($controller: ChartingController,
   }
 
   def prevClose = _prevClose
-  def prevClose_=(prevClose: Float) {
+  def prevClose_=(prevClose: Double) {
     this._prevClose = prevClose
     gridValues(0) = prevClose
     mainChartPane.referCursorValue = prevClose

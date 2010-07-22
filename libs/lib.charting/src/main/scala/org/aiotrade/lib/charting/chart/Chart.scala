@@ -71,7 +71,7 @@ trait Chart extends Widget with Ordered[Chart] {
   def ser_=(ser: TSer): Unit
     
   def setStrock(strockWidth: Int, strockType: StrockType): Unit
-  def strockWidth: Float
+  def strockWidth: Double
   def strockType: StrockType
     
   def isSelected: Boolean

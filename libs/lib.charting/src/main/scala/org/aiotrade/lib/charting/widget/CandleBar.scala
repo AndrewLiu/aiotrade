@@ -39,15 +39,15 @@ package org.aiotrade.lib.charting.widget
  */
 class CandleBar extends PathWidget {
   final class Model extends WidgetModel {
-    var xCenter: Float = _
-    var yOpen:   Float = _
-    var yHigh:   Float = _
-    var yLow:    Float = _
-    var yClose:  Float = _
-    var width:   Float = _
+    var xCenter: Double = _
+    var yOpen:   Double = _
+    var yHigh:   Double = _
+    var yLow:    Double = _
+    var yClose:  Double = _
+    var width:   Double = _
     var filled:  Boolean = _
         
-    def set(xCenter: Float, yOpen: Float, yHigh: Float, yLow: Float, yClose: Float, width: Float, filled: Boolean) {
+    def set(xCenter: Double, yOpen: Double, yHigh: Double, yLow: Double, yClose: Double, width: Double, filled: Boolean) {
       this.xCenter = xCenter
       this.yOpen = yOpen
       this.yHigh = yHigh
@@ -82,7 +82,7 @@ class CandleBar extends PathWidget {
     path.reset
 
     /** why - 2 ? 1 for centre, 1 for space */
-    val xRadius = (if (m.width < 2) 0F else (m.width - 2) / 2)
+    val xRadius = (if (m.width < 2) 0 else (m.width - 2) / 2)
     /** upper and lower of candle's rectangle */
     val yUpper = math.min(m.yOpen, m.yClose)
     val yLower = math.max(m.yOpen, m.yClose)

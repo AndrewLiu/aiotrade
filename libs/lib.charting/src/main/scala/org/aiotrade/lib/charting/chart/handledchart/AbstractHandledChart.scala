@@ -709,8 +709,8 @@ abstract class AbstractHandledChart(drawing: DrawingPane, points: ArrayBuffer[Va
     private def plot {
       val location = getLocation
             
-      val x = location.getX.toFloat
-      val y = location.getY.toFloat
+      val x = location.getX
+      val y = location.getY
             
       bufPath.reset
       bufPath.moveTo(x - RADIUS, y - RADIUS)

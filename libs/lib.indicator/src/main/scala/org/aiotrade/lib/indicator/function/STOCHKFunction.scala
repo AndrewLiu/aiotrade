@@ -42,9 +42,9 @@ class STOCHKFunction extends Function {
     
   var period, periodK: Factor = _
     
-  val _elementK = TVar[Float]()
+  val _elementK = TVar[Double]()
     
-  val _stochK = TVar[Float]()
+  val _stochK = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -56,9 +56,9 @@ class STOCHKFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _elementK(i) = Null.Float
+      _elementK(i) = Null.Double
 
-      _stochK(i) = Null.Float
+      _stochK(i) = Null.Double
             
     } else {
             
@@ -73,7 +73,7 @@ class STOCHKFunction extends Function {
     }
   }
     
-  def stochK(sessionId: Long, idx: Int): Float = {
+  def stochK(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _stochK(idx)

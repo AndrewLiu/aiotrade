@@ -70,11 +70,11 @@ class VolumeChart extends AbstractChart {
     var bar = 1
     while (bar <= nBars) {
 
-      var open   = Null.Float
-      var close  = Null.Float
-      var high   = -Float.MaxValue
-      var low    = +Float.MaxValue
-      var volume = -Float.MaxValue // we are going to get max of volume during nBarsCompressed
+      var open   = Null.Double
+      var close  = Null.Double
+      var high   = -Double.MaxValue
+      var low    = +Double.MaxValue
+      var volume = -Double.MaxValue // we are going to get max of volume during nBarsCompressed
       var i = 0
       val quoteSer = baseSer.asInstanceOf[QuoteSer]
       while (i < nBarsCompressed) {
@@ -85,9 +85,9 @@ class VolumeChart extends AbstractChart {
             open = quoteSer.open(time)
           }
           close  = quoteSer.close(time)
-          high   = Math.max(high,   quoteSer.high(time))
-          low    = Math.min(low,    quoteSer.low(time))
-          volume = Math.max(volume, quoteSer.volume(time))
+          high   = math.max(high,   quoteSer.high(time))
+          low    = math.min(low,    quoteSer.low(time))
+          volume = math.max(volume, quoteSer.volume(time))
         }
 
         i += 1

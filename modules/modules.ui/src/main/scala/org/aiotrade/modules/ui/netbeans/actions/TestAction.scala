@@ -78,13 +78,13 @@ class TestAction extends CallableSystemAction {
         "quote_id IDENTITY not null, " +
         "symbol CHAR(12) not null, " +
         "longtime BIGINT not null, " +
-        "open FLOAT, " +
-        "high FLOAT, " +
-        "low FLOAT, " +
-        "close FLOAT, " +
-        "close_adj FLOAT, " +
+        "open DOUBLE, " +
+        "high DOUBLE, " +
+        "low DOUBLE, " +
+        "close DOUBLE, " +
+        "close_adj DOUBLE, " +
         "volume INTEGER, " +
-        "amount FLOAT, " +
+        "amount DOUBLE, " +
         "CONSTRAINT pk_quote PRIMARY KEY (quote_id)" +
         ")";
                 
