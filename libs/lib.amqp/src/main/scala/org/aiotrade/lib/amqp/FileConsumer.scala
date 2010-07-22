@@ -3,7 +3,7 @@ package org.aiotrade.lib.amqp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-
+import java.util.logging.{Level, Logger}
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConnectionParameters
@@ -114,6 +114,8 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
    * When finish receiving all the data, then rename to the regular file in the same folder.
    */
   class SafeProcessor extends Processor {
+    private val log = Logger.getLogger(this.getClass.getName)
+    
     override protected def process(msg: AMQPMessage) {
       val headers = msg.props.headers
       val content = msg.content.asInstanceOf[Array[Byte]]
@@ -133,7 +135,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
         out.close
 
         outputFile.renameTo(new File(outputDir, fileName))
-        
+        log.info("Received " + fileName)
       } catch {
         case e => e.printStackTrace
       }
