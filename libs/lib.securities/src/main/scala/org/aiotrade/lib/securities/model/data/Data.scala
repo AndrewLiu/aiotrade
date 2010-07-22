@@ -2,7 +2,6 @@ package org.aiotrade.lib.securities.model.data
 
 import java.io.BufferedReader
 import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.logging.Logger
@@ -163,6 +162,8 @@ object Data {
           secInfo.sec = sec
 
           sec.secInfo = secInfo
+          
+        case xs => log.warning("sec_infos data file error at line: " + xs.mkString(","))
       }
     }
     Secs.insertBatch_!(secRecords.toArray)
@@ -189,6 +190,8 @@ object Data {
           }
           companyRecords += company
           idToCompany.put(id, company)
+
+        case xs => log.warning("companies data file error at line: " + xs.mkString(","))
       }
     }
     Companies.insertBatch_!(companyRecords.toArray)
@@ -206,6 +209,8 @@ object Data {
           industry.name = name
           industryRecords += industry
           idToIndustry.put(id, industry)
+
+        case xs => log.warning("industries data file error at line: " + xs.mkString(","))
       }
     }
     Industries.insertBatch_!(industryRecords.toArray)
@@ -225,6 +230,8 @@ object Data {
             com_ind.industry = ind
             comIndRecords += com_ind
           }
+
+        case xs => log.warning("company_industries data file error at line: " + xs.mkString(","))
       }
     }
     CompanyIndustries.insertBatch_!(comIndRecords.toArray)
