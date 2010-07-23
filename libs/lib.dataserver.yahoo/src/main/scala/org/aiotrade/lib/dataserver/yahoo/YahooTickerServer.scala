@@ -34,10 +34,13 @@ import java.io.{BufferedReader, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL, SocketTimeoutException}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -60,16 +63,15 @@ object YahooTickerServer {
 
 import YahooTickerServer._
 class YahooTickerServer extends TickerServer {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private var gzipped = false
-
-  protected def connect: Boolean = true
 
   /**
    * Template:
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
-  protected def request: Option[InputStream] = {
+  protected def request(srcSymbol: Seq[String]): Option[InputStream] = {
     if (subscribedContracts.isEmpty) return None
 
     val cal = Calendar.getInstance(sourceTimeZone)
@@ -88,7 +90,7 @@ class YahooTickerServer extends TickerServer {
 
     try {
       val url = new URL(urlStr.toString)
-      println(url)
+      log.info(url.toString)
 
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
       conn.setRequestProperty("Accept-Encoding", "gzip")
@@ -203,17 +205,26 @@ class YahooTickerServer extends TickerServer {
     fromTime = afterThisTime + 1
 
     var loadedTime1 = loadedTime
-    if (!connect) {
-      return loadedTime
-    }
-        
-    try {
-      request match {
-        case Some(is) => loadedTime1 = read(is)
-        case None => loadedTime1 = loadedTime
-      }
-    } catch {case ex: Exception => ex.printStackTrace}
 
+    val symbols = subscribedContracts map (_.srcSymbol) toArray
+    var i = 0
+    while (i < symbols.length) {
+      val toProcess = new ListBuffer[String]
+      var j = 0
+      while (j < 50 && i < symbols.length) { // 50: num of symbols per time
+        toProcess += symbols(i)
+        j += 1
+        i += 1
+      }
+      if (!toProcess.isEmpty) {
+        try {
+          request(toProcess) match {
+            case Some(is) => loadedTime1 = read(is)
+            case None => loadedTime1 = loadedTime
+          }
+        } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
+      }
+    }
     loadedTime1
   }
 
