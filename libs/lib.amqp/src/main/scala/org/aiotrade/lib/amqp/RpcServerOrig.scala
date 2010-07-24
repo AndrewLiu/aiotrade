@@ -140,11 +140,11 @@ class RpcServerOrig(val channel: Channel, $queue: String) {
   @throws(classOf[IOException])
   def processRequest(request: QueueingConsumer.Delivery) {
     val requestProps = request.getProperties
-    if (requestProps.correlationId != null && requestProps.replyTo != null) {
+    if (requestProps.getCorrelationId != null && requestProps.getReplyTo != null) {
       val replyProps = new AMQP.BasicProperties
       val replyBody = handleCall(request, replyProps)
-      replyProps.correlationId = requestProps.correlationId
-      channel.basicPublish("", requestProps.replyTo,  replyProps, replyBody)
+      replyProps.setCorrelationId(requestProps.getCorrelationId)
+      channel.basicPublish("", requestProps.getReplyTo,  replyProps, replyBody)
     } else {
       handleCast(request)
     }

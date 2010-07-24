@@ -38,13 +38,9 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 import java.util.Timer
 import java.util.TimerTask
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
-import scala.actors.Actor
-import scala.actors.Actor._
 import scala.collection.mutable.{HashMap, HashSet}
 
 /**
@@ -58,18 +54,9 @@ object DataServer extends Publisher {
     if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
   }
 
-  private var _executorService: ExecutorService = _
-  protected def executorService : ExecutorService = {
-    if (_executorService == null) {
-      _executorService = Executors.newFixedThreadPool(5)
-    }
-
-    _executorService
-  }
-
   case class HeartBeat(interval: Long) extends Event
   val heartBeatInterval = 3000
-  actor {
+  scala.actors.Actor.actor {
     // in context of applet, a page refresh may cause timer into a unpredict status,
     // so it's always better to restart this timer? , if so, cancel it first.
     //    if (timer != null) {
@@ -89,7 +76,7 @@ import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
   type C <: DataContract[V, _]
 
-  private val logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getName)
   
   val ANCIENT_TIME: Long = Long.MinValue
 
@@ -120,16 +107,17 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private case object Refresh extends Event
   private case class LoadHistory(afterTime: Long) extends Event
   private var inRefreshing: Boolean = _
-  private val loadActor = new scala.actors.Reactor[Event] {
+  private val loadActor = new scala.actors.Actor {
     start
     def act = loop {
-      react {
+      receive {
         case Refresh =>
           inRefreshing = true
           loadedTime = loadFromSource(loadedTime)
           postRefresh
           inRefreshing = false
         case LoadHistory(afterTime) =>
+          log.info("loadActor Received LoadHistory message")
           loadedTime = loadFromSource(afterTime)
           postLoadHistory
         case Stop => exit
@@ -151,6 +139,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     assert(currentContract.isDefined, "dataContract not set!")
     assert(!_subscribedContracts.isEmpty, "none ser subscribed!")
 
+    log.info("Fired LoadHistory message to loadActor")
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
      */

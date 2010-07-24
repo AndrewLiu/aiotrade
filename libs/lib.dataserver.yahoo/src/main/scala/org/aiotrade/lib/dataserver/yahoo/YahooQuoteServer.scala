@@ -35,6 +35,7 @@ import java.io.{BufferedReader, File, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
+import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
@@ -223,7 +224,7 @@ class YahooQuoteServer extends QuoteServer {
         case None => loadedTime1 = 0
       }
     } catch {
-      case ex: Exception => ex.printStackTrace
+      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
 
     loadedTime1

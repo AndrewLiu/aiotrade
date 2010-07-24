@@ -34,7 +34,6 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.TickerSnapshot
-import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
@@ -46,6 +45,8 @@ import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 
@@ -54,10 +55,14 @@ import ru.circumflex.orm._
  *
  * @author Caoyuan Deng
  */
+case class TickerEvent(source: Sec, ticker: Ticker) extends Event
+case class TickersEvent(ticker: Array[Ticker]) extends Event
+
+object TickerServer extends Publisher
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
-  private val logger = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   refreshable = true
 
@@ -100,7 +105,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     events foreach {
       case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-        logger.info(symbol + ": " + count + ", data loaded, load server finished")
+        log.info(symbol + ": " + count + ", data loaded, load server finished")
       case _ =>
     }
   }
@@ -152,6 +157,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         var i = 0
         while (i < size) {
           ticker = tickers(i)
+          ticker.symbol = symbol
 
           val dayQuote = sec.dailyQuoteOf(ticker.time)
           assert(Quotes1d.idOf(dayQuote).isDefined, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
@@ -159,13 +165,12 @@ abstract class TickerServer extends DataServer[Ticker] {
 
           val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
           val minQuote = sec.minuteQuoteOf(ticker.time)
-          var validTicker = false
+          var tickerValid = false
           var execution: Execution = null
           if (dayFirst) {
             dayQuote.unjustOpen_!
 
-            validTicker = true
-            allTickers += ticker
+            tickerValid = true
 
             /**
              * this is today's first ticker we got when begin update data server,
@@ -193,14 +198,13 @@ abstract class TickerServer extends DataServer[Ticker] {
           
           } else {
 
-            if (ticker.time - prevTicker.time > -1000) { // 1000ms, @Note: we add +1 to ticker.time later
+            if (ticker.time + 1000 > prevTicker.time) { // 1000ms, @Note: we add +1 to ticker.time later
               // some datasource only counts on seconds, but we may truly have a new ticker
               if (ticker.time == prevTicker.time) {
-                ticker.time = prevTicker.time + 1 
+                ticker.time = prevTicker.time + 1
               }
               
-              validTicker = true
-              allTickers += ticker
+              tickerValid = true
               
               if (ticker.dayVolume > prevTicker.dayVolume) {
                 execution = new Execution
@@ -266,7 +270,8 @@ abstract class TickerServer extends DataServer[Ticker] {
             sec.publish(ExecutionEvent(ticker.prevClose, execution))
           }
 
-          if (validTicker) {
+          if (tickerValid) {
+            allTickers += ticker
             sec.exchange.uniSymbolToLastTicker.put(sec.uniSymbol, ticker)
             prevTicker.copyFrom(ticker)
             sec.publish(TickerEvent(sec, ticker))
@@ -310,20 +315,19 @@ abstract class TickerServer extends DataServer[Ticker] {
     // batch save to db
 
     var willCommit = false
-    if (allTickers.size > 0) {
-      Tickers.insertBatch(allTickers.toArray)
+    val tickers = allTickers.toArray
+    if (!allTickers.isEmpty) {
+      Tickers.insertBatch(tickers)
       willCommit = true
     }
 
-    if (allExecutions.size > 0) {
-      val executions = allExecutions.toArray
-      Executions.insertBatch(executions)
+    if (!allExecutions.isEmpty) {
+      Executions.insertBatch(allExecutions.toArray)
       willCommit = true
     }
 
-    if (Sec.minuteQuotesToClose.size > 0) {
-      val toClose = Sec.minuteQuotesToClose.toArray
-      Quotes1m.insertBatch(toClose)
+    if (!Sec.minuteQuotesToClose.isEmpty) {
+      Quotes1m.insertBatch(Sec.minuteQuotesToClose.toArray)
       Sec.minuteQuotesToClose.clear
       willCommit = true
     }
@@ -331,8 +335,11 @@ abstract class TickerServer extends DataServer[Ticker] {
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) commit
 
-    // process events
-    if (allSnapDepths.size > 0) {
+    // fire events
+    if (!allTickers.isEmpty) {
+      TickerServer.publish(TickersEvent(tickers))
+    }
+    if (!allSnapDepths.isEmpty) {
       DataServer.publish(SnapDepthsEvent(this, allSnapDepths.toArray))
     }
 

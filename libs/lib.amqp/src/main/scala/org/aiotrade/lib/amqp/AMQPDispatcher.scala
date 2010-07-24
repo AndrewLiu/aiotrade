@@ -68,6 +68,7 @@ case class AMQPPublish(routingKey: String, props: AMQP.BasicProperties, content:
  */
 case class AMQPAddListener(a: Actor)
 
+case object AMQPConnect
 /**
  * Reconnect to the AMQP Server after a delay of {@code delay} milliseconds.
  */
@@ -96,12 +97,12 @@ object AMQPExchange {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: Int, val exchange: String) extends Actor with Serializer {
+abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Actor with Serializer {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   private lazy val reconnectTimer = new Timer("AMQPReconnectTimer")
-  private var as: List[Actor] = Nil
+  private var listeners: List[Actor] = Nil
 
   case class State(conn: Connection, channel: Channel, consumer: Option[Consumer])
   private var state: State = _
@@ -122,9 +123,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
   protected def channel = state.channel
   protected def consumer = state.consumer
 
+  /** Pending ... or, is it necessary? */
+  @throws(classOf[IOException])
+  private def asyncConnet {
+    (this !? AMQPConnect) match {
+      case x: State => state = x
+      case x: Throwable => log.log(Level.SEVERE, x.getMessage, x); throw x
+      case x => log.severe("Error during amqp connect: " + x); throw new Exception(x.toString)
+    }
+  }
+
   @throws(classOf[IOException])
   private def connect: State = {
-    val conn = factory.newConnection(host, port)
+    val conn = factory.newConnection
     val channel = conn.createChannel
     val consumer = configure(channel)
     State(conn, channel, consumer)
@@ -140,17 +151,22 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
 
   def act = loop {
     react {
-      case msg: AMQPMessage =>
-        as foreach (_ ! msg)
-      case AMQPAddListener(a) =>
-        as ::= a
-      case AMQPPublish(routingKey, props, content) => publish(exchange, routingKey, props, content)
+      case AMQPConnect => reply(connect)
       case AMQPReconnect(delay) => reconnect(delay)
+      case msg: AMQPMessage =>
+        listeners foreach (_ ! msg)
+      case AMQPAddListener(l) =>
+        listeners ::= l
+      case AMQPPublish(routingKey, props, content) => publish(exchange, routingKey, props, content)
       case AMQPStop =>
         disconnect
-        as foreach (_ ! AMQPStop)
+        listeners foreach (_ ! AMQPStop)
         exit
     }
+  }
+
+  def addListener(l: Actor) {
+    listeners ::= l
   }
 
   @throws(classOf[IOException])
@@ -159,7 +175,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
 
     val props = if ($props == null) new AMQP.BasicProperties else $props
 
-    val contentType = props.contentType match {
+    val contentType = props.getContentType match {
       case null | "" => JAVA_SERIALIZED_OBJECT
       case x => ContentType(x)
     }
@@ -171,7 +187,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
       case _ => encodeJava(content)
     }
 
-    val body1 = props.contentEncoding match {
+    val body1 = props.getContentEncoding match {
       case "gzip" => gzip(body)
       case "lzma" => lzma(body)
       case _ => body
@@ -188,14 +204,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
     try {
       channel.close
     } catch {
-      case e: IOException => log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(host, port, this))
+      case e: IOException => log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       case _ => ()
     }
     try {
       conn.close
-      log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(host, port, this))
+      log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
-      case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(host, port, this))
+      case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       case _ => ()
     }
   }
@@ -203,8 +219,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
   protected def reconnect(delay: Long) {
     disconnect
     try {
-      connect
-      log.log(Level.FINEST, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(host, port, this))
+      state = connect
+      log.log(Level.FINEST, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
       case e: Exception =>
         val waitInMillis = delay * 2
@@ -224,13 +240,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
       import ContentType._
 
-      val body1 = props.contentEncoding match {
+      val body1 = props.getContentEncoding match {
         case "gzip" => ungzip(body)
         case "lzma" => unlzma(body)
         case _ => body
       }
 
-      val contentType = props.contentType match {
+      val contentType = props.getContentType match {
         case null | "" => JAVA_SERIALIZED_OBJECT
         case x => ContentType(x)
       }
@@ -244,7 +260,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, host: String, port: In
 
       // send back to interested observers for further relay
       val msg = AMQPMessage(content, props)
-      as foreach (_ ! msg)
+      listeners foreach (_ ! msg)
 
       // if noAck is set false, messages will be blocked until an ack to broker,
       // so it's better always ack it. (Although prefetch may deliver more than

@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>1.6.0</version>
+            <version>1.8.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-cli</groupId>

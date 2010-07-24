@@ -64,6 +64,8 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.securities.dataserver.TickerEvent
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
@@ -72,9 +74,7 @@ import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
-import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder

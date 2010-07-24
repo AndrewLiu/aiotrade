@@ -56,11 +56,11 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.securities.dataserver.TickerEvent
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
 

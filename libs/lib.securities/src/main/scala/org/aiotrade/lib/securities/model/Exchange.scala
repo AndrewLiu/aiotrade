@@ -12,7 +12,6 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 import scala.actors.Actor
-import scala.actors.Actor._
 
 object Exchanges extends Table[Exchange] {
   val log = Logger.getLogger(this.getClass.getSimpleName)

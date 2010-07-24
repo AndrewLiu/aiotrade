@@ -1,6 +1,5 @@
 package org.aiotrade.lib.securities.model
 
-import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
@@ -80,9 +79,6 @@ object Tickers extends Table[Ticker] {
   }
 
 }
-
-case class TickerEvent (source: Sec, ticker: Ticker) extends Event
-case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
 
 object Ticker {
   def importFrom(v: (Long, List[Array[Double]])): LightTicker = v match {
