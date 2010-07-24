@@ -35,7 +35,9 @@ abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
 
   /** always add () for empty apply method */
   final def apply() {
-    val files = path listFiles filter
+    //It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
+    val files = path listFiles filter sortWith(_.compareTo(_) < 0)
+
     val checkedFiles = new HashSet[File]
 
     var i = 0
