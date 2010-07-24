@@ -35,6 +35,7 @@ import java.io.{BufferedReader, File, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -71,6 +72,7 @@ object YahooQuoteServer {
 
 import YahooQuoteServer._
 class YahooQuoteServer extends QuoteServer {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private var contract: QuoteContract = _
   private var gzipped = false
@@ -119,7 +121,7 @@ class YahooQuoteServer extends QuoteServer {
 
     val url = new URL(urlStr.toString)
 
-    println(url)
+    log.info(url.toString)
 
     if (url != null) {
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
