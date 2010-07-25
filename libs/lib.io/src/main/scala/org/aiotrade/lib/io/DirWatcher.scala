@@ -2,6 +2,7 @@ package org.aiotrade.lib.io
 
 import java.io.File
 import java.io.FileFilter
+import java.io.IOException
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
@@ -22,8 +23,15 @@ object DirWatcher {
   }
 }
 
+@throws(classOf[IOException])
 abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
-  private val fileToLastModified = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
+  
+  private val fileToLastModified = new HashMap ++ (
+    (path listFiles filter) match {
+      case null => throw new IOException(path + "does not exist")
+      case fs => fs map (x => x -> x.lastModified)
+    }
+  )
 
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
@@ -36,6 +44,8 @@ abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
   /** always add () for empty apply method */
   final def apply() {
     val files = path listFiles filter
+    if (files == null) return
+    
     val checkedFiles = new HashSet[File]
 
     var i = 0
