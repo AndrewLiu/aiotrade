@@ -115,7 +115,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   @throws(classOf[IOException])
   override def start: this.type = {
     super.start
-    state = connect
+    asyncConnet
+    //state = connect
     this
   }
 

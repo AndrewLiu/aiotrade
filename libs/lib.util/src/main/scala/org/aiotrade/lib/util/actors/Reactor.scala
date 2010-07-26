@@ -10,11 +10,12 @@
 
 package org.aiotrade.lib.util.actors
 
+
 /**
  * The counterpart to publishers. Listens to events from registered publishers.
  */
 trait Reactor extends scala.actors.Reactor[Event] {
-
+  
   /**
    * All reactions of this reactor.
    */

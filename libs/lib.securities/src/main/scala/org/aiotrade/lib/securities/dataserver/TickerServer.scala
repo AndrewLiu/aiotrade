@@ -336,11 +336,12 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (willCommit) commit
 
     // fire events
-    if (!allTickers.isEmpty) {
+    if (tickers.length > 0) {
       TickerServer.publish(TickersEvent(tickers))
     }
-    if (!allSnapDepths.isEmpty) {
-      DataServer.publish(SnapDepthsEvent(this, allSnapDepths.toArray))
+    val snapDepths = allSnapDepths.toArray
+    if (snapDepths.length > 0) {
+      DataServer.publish(SnapDepthsEvent(this, snapDepths))
     }
 
     events
