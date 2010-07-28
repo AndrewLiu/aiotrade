@@ -38,7 +38,7 @@ object Tickers extends Table[Ticker] {
 
   val dayChange = "dayChange" DOUBLE()
 
-  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 200)
+  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 400)
 
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
