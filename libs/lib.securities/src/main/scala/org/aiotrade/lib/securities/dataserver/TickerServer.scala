@@ -316,18 +316,20 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     var willCommit = false
     val tickers = allTickers.toArray
-    if (!allTickers.isEmpty) {
+    if (tickers.length > 0) {
       Tickers.insertBatch(tickers)
       willCommit = true
     }
 
-    if (!allExecutions.isEmpty) {
-      Executions.insertBatch(allExecutions.toArray)
+    val executions = allExecutions.toArray
+    if (executions.length > 0) {
+      Executions.insertBatch(executions)
       willCommit = true
     }
 
-    if (!Sec.minuteQuotesToClose.isEmpty) {
-      Quotes1m.insertBatch(Sec.minuteQuotesToClose.toArray)
+    val minuteQuotes = Sec.minuteQuotesToClose.toArray
+    if (minuteQuotes.length > 0) {
+      Quotes1m.insertBatch(minuteQuotes)
       Sec.minuteQuotesToClose.clear
       willCommit = true
     }
@@ -343,6 +345,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (snapDepths.length > 0) {
       DataServer.publish(SnapDepthsEvent(this, snapDepths))
     }
+
+    log.info("Processed: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
 
     events
   }
