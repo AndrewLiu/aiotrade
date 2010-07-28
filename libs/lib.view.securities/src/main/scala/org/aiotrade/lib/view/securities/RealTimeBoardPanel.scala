@@ -379,7 +379,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     dayLow.value      = "%8.2f"    format ticker.dayLow
     dayChange.value   = "%+8.2f"   format ticker.dayChange
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
-    dayVolume.value   = ticker.dayVolume.toString
+    dayVolume.value   = "%10.0f"    format ticker.dayVolume / 100.0
 
     def setInfoCellColorByPrevCls(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor

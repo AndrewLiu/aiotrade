@@ -217,14 +217,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   }
 
   override protected def componentClosed {
-    stopAllWatch
-        
-    for (x <- instances) {
-      x.setReallyClosed(true)
-      x.close
-    }
-    instanceRefs.clear
-    
+    setReallyClosed(true)
     super.componentClosed
   }
 

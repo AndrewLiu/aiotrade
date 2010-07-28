@@ -112,13 +112,13 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     def act = loop {
       react {
         case Refresh =>
-          log.info("loadActor Received Refresh message")
+          //log.info("loadActor Received Refresh message")
           inRefreshing = true
           loadedTime = loadFromSource(loadedTime)
           postRefresh
           inRefreshing = false
         case LoadHistory(afterTime) =>
-          log.info("loadActor Received LoadHistory message")
+          //log.info("loadActor Received LoadHistory message")
           loadedTime = loadFromSource(afterTime)
           postLoadHistory
         case Stop => exit

@@ -349,8 +349,10 @@ abstract class TickerServer extends DataServer[Ticker] {
       DataServer.publish(SnapDepthsEvent(this, snapDepths))
     }
 
-    log.info("Processed: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
-
+    if (willCommit) {
+      log.info("Processed: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
+    }
+    
     events
   }
 

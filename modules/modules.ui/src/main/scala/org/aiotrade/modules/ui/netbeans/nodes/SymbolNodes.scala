@@ -654,16 +654,16 @@ object SymbolNodes {
       }
     }
 
-    private def getListName(node: Node): String = {
+    private def getFolderName(node: Node): String = {
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         displayNameOf(node)
       } else {
-        getListName(node.getParentNode)
+        getFolderName(node.getParentNode)
       }
     }
 
     private def watchOneSymbol(node: Node) {
-      val listName = getListName(node)
+      val folderName = getFolderName(node)
 
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
       Exchange.secOf(contents.uniSymbol) match {
@@ -676,7 +676,7 @@ object SymbolNodes {
 
           sec.subscribeTickerServer
 
-          val watchListTc = RealTimeWatchListTopComponent.getInstance(listName)
+          val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
           watchListTc.requestActive
           watchListTc.watch(sec, node)
 
