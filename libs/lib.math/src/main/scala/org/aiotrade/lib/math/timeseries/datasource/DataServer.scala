@@ -55,7 +55,7 @@ object DataServer extends Publisher {
   }
 
   case class HeartBeat(interval: Long) extends Event
-  val heartBeatInterval = 3000
+  val heartBeatInterval = 50
   scala.actors.Actor.actor {
     // in context of applet, a page refresh may cause timer into a unpredict status,
     // so it's always better to restart this timer? , if so, cancel it first.

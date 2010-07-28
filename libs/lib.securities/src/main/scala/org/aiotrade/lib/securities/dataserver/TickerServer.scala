@@ -253,6 +253,9 @@ abstract class TickerServer extends DataServer[Ticker] {
                 }
               }
             }
+            else{
+              logger.warning("Discard ticker " + ticker.toString)
+            }
           }
 
 
