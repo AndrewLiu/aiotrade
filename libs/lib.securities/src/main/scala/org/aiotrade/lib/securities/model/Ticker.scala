@@ -30,7 +30,7 @@ object Tickers extends Table[Ticker] {
   val prevClose = "prevClose" DOUBLE()
   val lastPrice = "lastPrice" DOUBLE()
 
-  val dayOpen   = "dayOprn"   DOUBLE()
+  val dayOpen   = "dayOpen"   DOUBLE()
   val dayHigh   = "dayHigh"   DOUBLE()
   val dayLow    = "dayLow"    DOUBLE()
   val dayVolume = "dayVolume" DOUBLE()

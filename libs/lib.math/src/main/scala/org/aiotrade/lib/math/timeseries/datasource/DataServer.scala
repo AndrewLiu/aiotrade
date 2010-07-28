@@ -110,8 +110,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private val loadActor = new scala.actors.Actor {
     start
     def act = loop {
-      receive {
+      react {
         case Refresh =>
+          log.info("loadActor Received Refresh message")
           inRefreshing = true
           loadedTime = loadFromSource(loadedTime)
           postRefresh
