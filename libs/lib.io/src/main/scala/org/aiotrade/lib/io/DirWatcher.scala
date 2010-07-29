@@ -29,7 +29,7 @@ abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
   private val fileToLastModified = new HashMap ++ (
     (path listFiles filter) match {
       case null => throw new IOException(path + "does not exist")
-      case fs => fs map (x => x -> x.lastModified)
+      case fs => fs map (x => x -> lastModified(x))
     }
   )
 
@@ -57,11 +57,11 @@ abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
       fileToLastModified.get(file) match {
         case None =>
           // new file
-          fileToLastModified.put(file, file.lastModified)
+          fileToLastModified.put(file, lastModified(file))
           onChange(FileAdded(file))
-        case Some(lastModified) if lastModified != file.lastModified =>
+        case Some(last) if last != lastModified(file) =>
           // modified file
-          fileToLastModified.put(file, file.lastModified)
+          fileToLastModified.put(file, lastModified(file))
           onChange(FileModified(file))
         case _ =>
       }
@@ -81,6 +81,14 @@ abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
    * Override it if you want sync processing
    */
   protected def onChange(event: FileEvent){}
+
+  /**
+   * Override it if you want to get the timestamp by other way,
+   * such as by some the content of the file
+   */
+  protected def lastModified(file: File): Long = {
+    file.lastModified
+  }
 }
 
 class DirWatcherFilter(filter: String) extends FileFilter {
