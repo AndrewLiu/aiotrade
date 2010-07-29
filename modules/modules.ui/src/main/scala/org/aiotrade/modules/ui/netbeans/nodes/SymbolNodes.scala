@@ -90,7 +90,8 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.WindowManager;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;import scala.collection.mutable.HashSet
+import org.xml.sax.SAXException
+import scala.collection.mutable.HashSet
 
 
 
@@ -213,26 +214,28 @@ object SymbolNodes {
   }
 
   /** Deserialize a Symbol from xml file */
-  private def readContents(node: Node): AnalysisContents = {
+  private def readContents(node: Node): Option[AnalysisContents] = {
     val xdo = node.getLookup.lookup(classOf[XMLDataObject])
     if (xdo == null) {
       throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
     }
-    val readFrom = xdo.getPrimaryFile
+    val fo = xdo.getPrimaryFile
+    readContents(fo)
+  }
+
+  private def readContents(fo: FileObject): Option[AnalysisContents] = {
     try {
-      val is = readFrom.getInputStream
+      val is = fo.getInputStream
       val xmlReader = XMLUtil.createXMLReader
       val handler = new ContentsParseHandler
       xmlReader.setContentHandler(handler)
       xmlReader.parse(new InputSource(is))
 
-      return handler.getContents
+      Some(handler.getContents)
     } catch {
-      case ex: IOException  => ErrorManager.getDefault.notify(ex)
-      case ex: SAXException => ErrorManager.getDefault.notify(ex)
+      case ex: IOException  => ErrorManager.getDefault.notify(ex); None
+      case ex: SAXException => ErrorManager.getDefault.notify(ex); None
     }
-
-    null
   }
 
   def findSymbolNode(symbol: String): Option[Node] = {
@@ -287,15 +290,15 @@ object SymbolNodes {
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
-  class OneSymbolNode(symbolFileNode: Node, contents: AnalysisContents, content: InstanceContent
-  ) extends FilterNode(symbolFileNode, new SymbolChildren(contents), new AbstractLookup(content)) {
-    putNode(contents, this)
+  class OneSymbolNode(symbolFileNode: Node, anaContents: AnalysisContents, content: InstanceContent
+  ) extends FilterNode(symbolFileNode, new SymbolChildren(anaContents), new AbstractLookup(content)) {
+    putNode(anaContents, this)
 
     /* add the node to our own lookup */
     content.add(this)
 
     /* add additional items to the lookup */
-    content.add(contents)
+    content.add(anaContents)
     content.add(new SymbolViewAction(this))
     content.add(new SymbolReimportDataAction(this))
     content.add(new SymbolRefreshDataAction(this))
@@ -429,36 +432,32 @@ object SymbolNodes {
            * else, deserilize a contents instance from the sec xml file,
            * and create a sec node for it
            */
-          var contents = readContents(symbolFileNode)
-          if (contents != null) {
-            /**
-             * check if has existed in application context, if true,
-             * use the existed one
-             */
-            contentsOf(contents.uniSymbol) foreach {existedOne => contents = existedOne}
+          readContents(symbolFileNode) match {
+            case Some(contents) =>
+              // check if has existed in application context, if true, use the existed one
+              val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
+              val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents1)
+              val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
-            val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents)
-            val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
+              // with "open" hint ?
+              fo.getAttribute("open") match {
+                case attr: java.lang.Boolean if attr.booleanValue =>
+                  fo.setAttribute("open", null)
 
-            // with "open" hint ?
-            fo.getAttribute("open") match {
-              case attr: java.lang.Boolean if attr.booleanValue =>
-                fo.setAttribute("open", null)
+                  // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
+                  // open it
+                  SwingUtilities.invokeLater(new Runnable {
+                      def run {
+                        oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
+                      }
+                    })
+                case _ =>
+              }
 
-                // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
-                // open it
-                SwingUtilities.invokeLater(new Runnable {
-                    def run {
-                      oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
-                    }
-                  })
-              case _ =>
-            }
-
-            return Array(oneSymbolNode)
-          } else {
-            // best effort
-            return Array(new FilterNode(symbolFileNode))
+              return Array(oneSymbolNode)
+            case None =>
+              // best effort
+              return Array(new FilterNode(symbolFileNode))
           }
 
         }
@@ -650,11 +649,35 @@ object SymbolNodes {
 
     def execute {
       val folderName = getFolderName(node)
-      val symbolNodes = new ArrayList[Node]
-      collectSymbolNodes(node, symbolNodes)
+      val symbolNodes = new ArrayList[AnalysisContents]
+      val folder = node.getLookup.lookup(classOf[DataFolder])
+      if (folder == null) {
+        // it's an OneSymbolNode, do real things
+        readContents(node) foreach (symbolNodes += _)
+      } else {
+        log.info("Start to collect node children")
+        collectSymbolContents(folder, symbolNodes)
+        log.info("Finished to collect node children")
+      }
+      
       watchSymbols(folderName, symbolNodes)
     }
 
+    private def collectSymbolContents(dob: DataObject, symbolContents: ArrayList[AnalysisContents]) {
+      dob match {
+        case x: DataFolder =>
+          /** it's a folder, go recursively */
+          for (child <- x.getChildren) {
+            collectSymbolContents(child, symbolContents)
+          }
+        case x: XMLDataObject =>
+          val fo = x.getPrimaryFile
+          readContents(fo) foreach (symbolContents += _)
+        case x => log.warning("Unknown DataObject: " + x)
+      }
+    }
+
+    /** not as efficient as collectSymbolContents */
     private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node]) {
       if (node.getLookup.lookup(classOf[DataFolder]) == null) {
         // it's an OneSymbolNode, do real things
@@ -670,6 +693,7 @@ object SymbolNodes {
       }
     }
 
+
     private def getFolderName(node: Node): String = {
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         displayNameOf(node)
@@ -678,10 +702,9 @@ object SymbolNodes {
       }
     }
 
-    private def watchSymbols(folderName: String, nodes: ArrayList[Node]) {
+    private def watchSymbols(folderName: String, symbolContents: ArrayList[AnalysisContents]) {
       val tickerServers = new HashSet[TickerServer]
-      for (node <- nodes) {
-        val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      for (contents <- symbolContents) {
         Exchange.secOf(contents.uniSymbol) match {
           case Some(sec) =>
             contents.serProvider = sec
@@ -711,6 +734,40 @@ object SymbolNodes {
       }
     }
 
+
+//    private def watchSymbols(folderName: String, nodes: ArrayList[Node]) {
+//      val tickerServers = new HashSet[TickerServer]
+//      for (node <- nodes) {
+//        val contents = node.getLookup.lookup(classOf[AnalysisContents])
+//        Exchange.secOf(contents.uniSymbol) match {
+//          case Some(sec) =>
+//            contents.serProvider = sec
+//            contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
+//              sec.quoteContracts = List(quoteContract)
+//            }
+//
+//            sec.subscribeTickerServer(false) match {
+//              case Some(tickerServer) =>
+//                tickerServers += tickerServer
+//
+//                val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
+//                watchListTc.requestActive
+//                watchListTc.watch(sec, node)
+//
+//                node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+//                this.setEnabled(false)
+//              case _ =>
+//            }
+//
+//          case None =>
+//        }
+//      }
+//
+//      for (tickerServer <- tickerServers if tickerServer != null) {
+//        tickerServer.startRefresh(50)
+//      }
+//    }
+//
   }
 
   class SymbolStopWatchAction(node: Node) extends GeneralAction {
