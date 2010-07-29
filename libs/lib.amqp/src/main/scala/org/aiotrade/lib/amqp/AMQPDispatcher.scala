@@ -105,7 +105,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   private var listeners: List[Actor] = Nil
 
   case class State(conn: Connection, channel: Channel, consumer: Option[Consumer])
-  private var state: State = _
+  var state: State = _
 
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,

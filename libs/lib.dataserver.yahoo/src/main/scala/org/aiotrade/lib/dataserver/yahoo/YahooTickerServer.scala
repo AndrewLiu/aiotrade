@@ -43,27 +43,24 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 /**
- * This class will load the quote datas from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
- *
+ * @NOTICE
+ * If the remote datafeed keeps only one inputstream for all subscriiebed
+ * symbols, one singleton instance is enough. If each symbol need a separate
+ * session, you may create new data server instance for each symbol.
+ * 
  * @author Caoyuan Deng
  */
-object YahooTickerServer {
-  /**
-   * @NOTICE
-   * If the remote datafeed keeps only one inputstream for all subscriiebed
-   * symbols, one singleton instance is enough. If each symbol need a separate
-   * session, you may create new data server instance for each symbol.
-   */
-  protected var singletonInstance: Option[YahooTickerServer] = None
-  // * "http://download.finance.yahoo.com/d/quotes.csv"
-  protected val BaseUrl = "http://quote.yahoo.com"
-  protected val UrlPath = "/download/javasoft.beans"
+object YahooTickerServer extends YahooTickerServer {
+  override protected val isTheSingleton = true
 }
-
-import YahooTickerServer._
 class YahooTickerServer extends TickerServer {
   private val log = Logger.getLogger(this.getClass.getName)
+
+  protected val isTheSingleton = false
+
+  // * "http://download.finance.yahoo.com/d/quotes.csv"
+  private  val BaseUrl = "http://quote.yahoo.com"
+  private  val UrlPath = "/download/javasoft.beans"
 
   private var gzipped = false
 
@@ -178,7 +175,8 @@ class YahooTickerServer extends TickerServer {
         }
     }
 
-    val newestTime = loop(-Long.MaxValue)
+    val newestTime = loop(Long.MinValue)
+    log.info("Got tickers: " + count)
 
     if (count > 0) {
       /**
@@ -202,6 +200,10 @@ class YahooTickerServer extends TickerServer {
    * @param afterThisTime from time
    */
   protected def loadFromSource(afterThisTime: Long): Long = {
+    if (!isTheSingleton) return Long.MinValue
+
+    log.info("Loading from source ...")
+
     fromTime = afterThisTime + 1
 
     var loadedTime1 = loadedTime
@@ -225,18 +227,13 @@ class YahooTickerServer extends TickerServer {
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
       }
     }
+
+    log.info("Finished loading from source")
+
     loadedTime1
   }
 
-  override def createNewInstance: Option[YahooTickerServer] = {
-    if (singletonInstance == None) {
-      super.createNewInstance match {
-        case None =>
-        case Some(x: YahooTickerServer) => x.init; singletonInstance = Some(x)
-      }
-    }
-    singletonInstance
-  }
+  override def createNewInstance: Option[YahooTickerServer] = Some(YahooTickerServer)
 
   override def displayName: String = "Yahoo! Finance Internet"
 
