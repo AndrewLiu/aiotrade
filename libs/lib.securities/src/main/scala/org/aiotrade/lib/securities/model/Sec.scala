@@ -211,7 +211,7 @@ class Sec extends SerProvider with Publisher {
   /**
    * @TODO, how about tickerServer switched?
    */
-  lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
+  private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
   reactions += {
     case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
@@ -458,8 +458,8 @@ class Sec extends SerProvider with Publisher {
     freqToQuoteContract += (freq -> quoteContract)
   }
 
-  def subscribeTickerServer {
-    if (uniSymbol == "") return
+  def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
+    if (uniSymbol == "") return None
 
     // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
     tickerContract.srcSymbol = uniSymbol
@@ -474,35 +474,28 @@ class Sec extends SerProvider with Publisher {
     }
 
     if (tickerContract.serviceClassName != null) {
-      startTickerRefreshIfNecessary
-    }
-  }
-
-  private def startTickerRefreshIfNecessary {
-    if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-      val minSer = serOf(TFreq.ONE_MIN).get
-      if (isSerLoaded(TFreq.ONE_MIN)) {
-        loadSerFromPersistence(TFreq.ONE_MIN)
+      if (!startRefresh) {
+        tickerServer.stopRefresh
       }
-      // Only dailySer and minuteSre needs to chainly follow ticker change.
-      val chainSers = List(serOf(TFreq.DAILY).get)
-      tickerContract.ser = minSer
-      tickerContract.chainSers = chainSers
-      tickerServer.subscribe(tickerContract)
-      //
-      //            var break = false
-      //            while (!break) {
-      //                val allChainSersLoaded = (true /: chainSers) {_ && _.loaded}
-      //                if (allChainSersLoaded) {
-      //                    tickerServer.subscribe(tickerContract, tickerSer, chainSers)
-      //                    break = true
-      //                }
-      //                Thread.sleep(1000)
-      //            }
 
+      if (!tickerServer.isContractSubsrcribed(tickerContract)) {
+        val minSer = serOf(TFreq.ONE_MIN).get
+        if (!isSerLoaded(TFreq.ONE_MIN)) {
+          loadSerFromPersistence(TFreq.ONE_MIN)
+        }
+        // Only dailySer and minuteSre needs to chainly follow ticker change.
+        val chainSers = List(serOf(TFreq.DAILY).get)
+        tickerContract.ser = minSer
+        tickerContract.chainSers = chainSers
+        tickerServer.subscribe(tickerContract)
+      }
+
+      if (startRefresh) {
+        tickerServer.startRefresh(tickerContract.refreshInterval)
+      }
     }
 
-    tickerServer.startRefresh(tickerContract.refreshInterval)
+    Some(tickerServer)
   }
 
   def unSubscribeTickerServer {

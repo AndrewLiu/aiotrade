@@ -278,10 +278,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     }
         
     for (sec <- watchingSecs) {
-      val tickerServer = sec.tickerServer
-      if (tickerServer != null) {
-        tickerServer.stopRefresh
-      }
+      sec.unSubscribeTickerServer
     }
         
     /** should clear tickerWatchListPanel */

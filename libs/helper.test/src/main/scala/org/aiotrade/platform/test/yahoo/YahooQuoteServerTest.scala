@@ -104,7 +104,7 @@ object YahooQuoteServerTest extends TestHelper {
     oneMinInds foreach {x => computeAsync(x)}
     weeklyInds foreach {x => computeAsync(x)}
 
-    sec.subscribeTickerServer
+    sec.subscribeTickerServer()
   }
 
 }

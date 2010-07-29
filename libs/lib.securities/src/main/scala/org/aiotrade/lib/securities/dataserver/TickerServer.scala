@@ -119,11 +119,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     }
   }
 
-  override protected def postStopRefresh {
-    for (contract <- subscribedContracts) {
-      unSubscribe(contract)
-    }
-  }
+  override protected def postStopRefresh {}
 
   /**
    * compose ser using data from TVal(s)

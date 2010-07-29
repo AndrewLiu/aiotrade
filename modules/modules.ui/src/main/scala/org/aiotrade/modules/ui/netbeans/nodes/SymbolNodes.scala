@@ -37,6 +37,7 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.PrintStream
 import java.util.Calendar;
+import java.util.logging.Logger
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
@@ -48,10 +49,12 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.util.swing.action.GeneralAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction
@@ -87,7 +90,9 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.WindowManager;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import org.xml.sax.SAXException;import scala.collection.mutable.HashSet
+
+
 
 
 /**
@@ -117,6 +122,7 @@ import org.xml.sax.SAXException;
  * @author Caoyuan Deng
  */
 object SymbolNodes {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif")
 
@@ -643,13 +649,23 @@ object SymbolNodes {
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
+      val folderName = getFolderName(node)
+      val symbolNodes = new ArrayList[Node]
+      collectSymbolNodes(node, symbolNodes)
+      watchSymbols(folderName, symbolNodes)
+    }
+
+    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node]) {
       if (node.getLookup.lookup(classOf[DataFolder]) == null) {
         // it's an OneSymbolNode, do real things
-        watchOneSymbol(node)
+        symbolNodes += node
       } else {
         /** it's a folder, go recursively */
-        for (child <- node.getChildren.getNodes) {
-          child.getLookup.lookup(classOf[SymbolStartWatchAction]).execute
+        log.info("Start to get node children")
+        val children = node.getChildren.getNodes
+        log.info("Finished to get node children")
+        for (child <- children) {
+          collectSymbolNodes(child, symbolNodes)
         }
       }
     }
@@ -662,29 +678,39 @@ object SymbolNodes {
       }
     }
 
-    private def watchOneSymbol(node: Node) {
-      val folderName = getFolderName(node)
+    private def watchSymbols(folderName: String, nodes: ArrayList[Node]) {
+      val tickerServers = new HashSet[TickerServer]
+      for (node <- nodes) {
+        val contents = node.getLookup.lookup(classOf[AnalysisContents])
+        Exchange.secOf(contents.uniSymbol) match {
+          case Some(sec) =>
+            contents.serProvider = sec
+            contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
+              sec.quoteContracts = List(quoteContract)
+            }
 
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      Exchange.secOf(contents.uniSymbol) match {
-        case Some(sec) =>
-          contents.serProvider = sec
-          contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-            sec.quoteContracts = List(quoteContract)
-            sec
-          }
+            sec.subscribeTickerServer(false) match {
+              case Some(tickerServer) =>
+                tickerServers += tickerServer
 
-          sec.subscribeTickerServer
+                val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
+                watchListTc.requestActive
+                watchListTc.watch(sec, node)
 
-          val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
-          watchListTc.requestActive
-          watchListTc.watch(sec, node)
+                node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+                this.setEnabled(false)
+              case _ =>
+            }
 
-          node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-          this.setEnabled(false)
-        case None =>
+          case None =>
+        }
+      }
+
+      for (tickerServer <- tickerServers if tickerServer != null) {
+        tickerServer.startRefresh(50)
       }
     }
+
   }
 
   class SymbolStopWatchAction(node: Node) extends GeneralAction {

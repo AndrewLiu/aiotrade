@@ -232,7 +232,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       if (!sec.isSerLoaded(quoteContract.freq)) {
         sec.loadSer(quoteContract.freq)
       }
-      sec.subscribeTickerServer
+      sec.subscribeTickerServer(true)
     }
 
   }
