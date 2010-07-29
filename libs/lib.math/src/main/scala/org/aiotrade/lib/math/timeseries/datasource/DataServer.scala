@@ -107,7 +107,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private case object Refresh extends Event
   private case class LoadHistory(afterTime: Long) extends Event
   private var inRefreshing: Boolean = _
-  private val loadActor = new scala.actors.Reactor[Event] {
+  private lazy val loadActor = new scala.actors.Reactor[Event] {
     start
     
     def act = loop {
@@ -115,14 +115,14 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
         case Refresh =>
           //log.info("loadActor Received Refresh message")
           inRefreshing = true
-          loadedTime = loadFromSource(loadedTime)
-          postRefresh
+          val values = loadFromSource(loadedTime)
+          loadedTime = postRefresh(values)
           //log.info("loadActor Finished Refresh")
           inRefreshing = false
         case LoadHistory(afterTime) =>
           //log.info("loadActor Received LoadHistory message")
-          loadedTime = loadFromSource(afterTime)
-          postLoadHistory
+          val values = loadFromSource(afterTime)
+          loadedTime = postLoadHistory(values)
         case Stop => exit
         case _ =>
       }
@@ -148,8 +148,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     loadActor ! LoadHistory(afterTime)
   }
 
-  protected def postLoadHistory {}
-  protected def postRefresh {}
+  protected def postLoadHistory(values: Array[V]): Long = loadedTime
+  protected def postRefresh(values: Array[V]): Long = loadedTime
 
   def startRefresh(refreshInterval: Int) {
     refreshable = true
@@ -312,9 +312,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   /**
    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
    *        process this condition.
-   * @return loadedTime
+   * @return TVals
    */
-  protected def loadFromSource(afterThisTime: Long): Long
+  protected def loadFromSource(afterThisTime: Long): Array[V]
 
   override def compare(another: DataServer[V]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {

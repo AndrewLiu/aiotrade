@@ -65,40 +65,49 @@ abstract class QuoteServer extends DataServer[Quote] {
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
-  override protected def postLoadHistory {
-    for (contract <- subscribedContracts) {
-      val ser = contract.ser
-      val freq = ser.freq
-      val sec = Exchange.secOf(contract.srcSymbol).get
-      val quotes = contract.storage
-      quotes synchronized {
-        quotes foreach {_.sec = sec}
-        freq match {
-          case TFreq.DAILY =>
-            Quotes1d.saveBatch(sec, quotes)
-            commit
-          case TFreq.ONE_MIN =>
-            Quotes1m.saveBatch(sec, quotes)
-            commit
-          case _ =>
-        }
-
-        ser ++= quotes.toArray
-        log.info(sec.uniSymbol + "(" + contract.freq + "): loaded history from datasource, got quotes=" + quotes.length +", loaded time=" + ser.lastOccurredTime + ", freq=" + ser.freq + ", size=" + ser.size)
-        quotes.clear
-      }
+  override protected def postLoadHistory(quotes: Array[Quote]): Long = {
+    var lastTime = loadedTime
+    val contract = currentContract.get
+    val ser = contract.ser
+    val freq = ser.freq
+    val sec = Exchange.secOf(contract.srcSymbol).get
+    var i = 0
+    while (i < quotes.length) {
+      val quote = quotes(i)
+      quote.sec = sec
+      lastTime = math.max(quote.time, lastTime)
+      i += 1
     }
+    freq match {
+      case TFreq.DAILY =>
+        Quotes1d.saveBatch(sec, quotes)
+        commit
+      case TFreq.ONE_MIN =>
+        Quotes1m.saveBatch(sec, quotes)
+        commit
+      case _ =>
+    }
+
+    ser ++= quotes
+    log.info(sec.uniSymbol + "(" + contract.freq + "): loaded history from datasource, got quotes=" +
+             quotes.length +", loaded time=" + ser.lastOccurredTime + ", freq=" + ser.freq + ", size=" + ser.size)
+    lastTime
   }
 
-  override protected def postRefresh {
-    for (contract <- subscribedContracts) {
-      val ser = contract.ser
-      val quotes = contract.storage
-      quotes synchronized {
-        ser ++= quotes.toArray
-        quotes.clear
-      }
+  override protected def postRefresh(quotes: Array[Quote]): Long = {
+    var lastTime = loadedTime
+    val contract = currentContract.get
+    val ser = contract.ser
+    val sec = Exchange.secOf(contract.srcSymbol).get
+    var i = 0
+    while (i < quotes.length) {
+      val quote = quotes(i)
+      quote.sec = sec
+      lastTime = math.max(quote.time, lastTime)
+      i += 1
     }
+    ser ++= quotes
+    lastTime
   }
 
   /**

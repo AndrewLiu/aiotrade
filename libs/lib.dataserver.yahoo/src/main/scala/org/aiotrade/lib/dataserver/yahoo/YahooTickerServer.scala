@@ -37,6 +37,7 @@ import java.util.{Calendar, TimeZone}
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
@@ -55,14 +56,11 @@ object YahooTickerServer extends YahooTickerServer {
 }
 class YahooTickerServer extends TickerServer {
   private val log = Logger.getLogger(this.getClass.getName)
-
   protected val isTheSingleton = false
 
   // * "http://download.finance.yahoo.com/d/quotes.csv"
   private  val BaseUrl = "http://quote.yahoo.com"
   private  val UrlPath = "/download/javasoft.beans"
-
-  private var gzipped = false
 
   /**
    * Template:
@@ -99,11 +97,10 @@ class YahooTickerServer extends TickerServer {
       conn.connect
 
       val encoding = conn.getContentEncoding
-      gzipped = if (encoding != null && encoding.indexOf("gzip") != -1) {
-        true
-      } else false
-        
-      Option(conn.getInputStream)
+      val gzipped = encoding != null && encoding.indexOf("gzip") != -1
+
+      val is = conn.getInputStream
+      if (is == null) None else Some(if (gzipped) new GZIPInputStream(is) else is)
     } catch {
       case e: SocketTimeoutException => None
       case e => None
@@ -111,10 +108,12 @@ class YahooTickerServer extends TickerServer {
   }
 
   @throws(classOf[Exception])
-  protected def read(is: InputStream): Long = {
-    val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
+  protected def read(is: InputStream): Array[Ticker] = {
+    val reader = new BufferedReader(new InputStreamReader(is))
 
     resetCount
+    
+    val tickers = new ArrayList[Ticker]
     // time in Yahoo! tickers is in Yahoo! Inc's local time instead of exchange place, we need to convert to UTC time
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
@@ -144,7 +143,7 @@ class YahooTickerServer extends TickerServer {
             val time = cal.getTimeInMillis
             if (time == 0) {
               /** for test and finding issues */
-              println("time of ticker: " + symbol + " is 0!")
+              log.warning("time of ticker: " + symbol + " is 0!")
             }
 
             val tickerSnapshot = tickerSnapshotOf(symbol)
@@ -160,13 +159,11 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
 
-            if (tickerSnapshot.isChanged) {
-              contractOf(symbol) foreach {x =>
-                val ticker = new Ticker
-                ticker.copyFrom(tickerSnapshot)
-                val storage = x.storage
-                storage synchronized {storage += ticker}
-              }
+            if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
+              val ticker = new Ticker
+              ticker.symbol = symbol
+              ticker.copyFrom(tickerSnapshot)
+              tickers += ticker
             }
 
             countOne
@@ -177,19 +174,8 @@ class YahooTickerServer extends TickerServer {
 
     val newestTime = loop(Long.MinValue)
     log.info("Got tickers: " + count)
-
-    if (count > 0) {
-      /**
-       * Tickers may have the same time stamp even for a new one,
-       * but here means there is at least one new ticker, so always return
-       * afterThisTime + 1, this will cause fireDataUpdatedEvent, even only
-       * one symbol's ticker renewed. But that is good, because it will
-       * tell all symbols that at least one new time tick has happened.
-       */
-      fromTime
-    } else {
-      newestTime
-    }
+    
+    tickers.toArray
   }
 
   /**
@@ -199,15 +185,12 @@ class YahooTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long): Long = {
-    if (!isTheSingleton) return Long.MinValue
+  protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
+    if (!isTheSingleton) return Array()
 
     log.info("Loading from source ...")
 
-    fromTime = afterThisTime + 1
-
-    var loadedTime1 = loadedTime
-
+    val allTickers = new ArrayList[Ticker]
     val symbols = subscribedContracts map (_.srcSymbol) toArray
     var i = 0
     while (i < symbols.length) {
@@ -221,8 +204,8 @@ class YahooTickerServer extends TickerServer {
       if (!toProcess.isEmpty) {
         try {
           request(toProcess) match {
-            case Some(is) => loadedTime1 = read(is)
-            case None => loadedTime1 = loadedTime
+            case Some(is) => allTickers ++= read(is)
+            case None =>
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
       }
@@ -230,7 +213,7 @@ class YahooTickerServer extends TickerServer {
 
     log.info("Finished loading from source")
 
-    loadedTime1
+    allTickers.toArray
   }
 
   override def createNewInstance: Option[YahooTickerServer] = Some(YahooTickerServer)

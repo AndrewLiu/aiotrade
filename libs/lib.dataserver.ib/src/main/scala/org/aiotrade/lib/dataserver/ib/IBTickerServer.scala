@@ -36,6 +36,7 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.model.Ticker
 
 
 /**
@@ -96,29 +97,15 @@ object IBTickerServer extends IBTickerServer {
   }
 
   @throws(classOf[Exception])
-  protected def read: Long = {
-    var newestTime  = Long.MinValue
-    resetCount
-    for (contract <- subscribedContracts) {
-      val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
-      newestTime = math.max(newestTime, tickerSnapshot.time)
-      countOne
-    }
-        
-    if (count > 0) {
-      /**
-       * Tickers may have the same time stamp even for a new one,
-       * but here means there is at least one new ticker, so always return
-       * afterThisTime + 1, this will cause fireDataUpdatedEvent, even only
-       * one symbol's ticker renewed. But that is good, because it will
-       * tell all symbols that at least one new time tick has happened.
-       */
-      fromTime
-    } else {
-      newestTime
+  protected def read: Array[Ticker] = {
+    val storage = ibWrapper.tickers
+    storage synchronized {
+      val res = storage.toArray
+      storage.clear
+      res
     }
   }
-    
+
   override protected def cancelRequest(contract: TickerContract) {
     val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
     tickerSnapshot.removeObservers
@@ -132,20 +119,20 @@ object IBTickerServer extends IBTickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long): Long = {
+  protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
     fromTime = afterThisTime + 1
         
     var loadedTime1 = loadedTime
     if (!connect) {
-      return loadedTime1
+      return Array()
     }
     try {
       request
-      loadedTime1 = read
+      return read
     } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)
     }
         
-    loadedTime1
+    Array()
   }
     
   override def createNewInstance: Option[IBTickerServer] = {

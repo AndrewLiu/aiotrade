@@ -38,11 +38,13 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-import javax.imageio.ImageIO;
+import javax.imageio.ImageIO
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
 
 /**
@@ -82,7 +84,7 @@ class IBQuoteServer extends QuoteServer {
   protected def request {
     val cal = Calendar.getInstance
         
-    val storage = contract.storage
+    val storage = new ArrayList[Quote]
         
     var bDate = new Date
     var eDate = new Date
@@ -212,7 +214,7 @@ class IBQuoteServer extends QuoteServer {
   }
 
   @throws(classOf[Exception])
-  protected def read: Long = {
+  protected def read: Array[Quote] = {
     /**
      * Don't try <code>synchronized (storage) {}<code>, synchronized (this)
      * instead. Otherwise, the ibWrapper can not process storage during the
@@ -230,41 +232,36 @@ class IBQuoteServer extends QuoteServer {
             if (ibWrapper.isHisDataReqPending(contract.reqId)) {
               ibWrapper.cancelHisDataRequest(contract.reqId)
             }
-            return loadedTime
+            return Array()
         }
       }
     }
         
-    var newestTime = Long.MinValue
-    resetCount
-    val storage = contract.storage
+    val storage = ibWrapper.quoteStorageOf(contract.reqId)
     storage synchronized {
-      for (quote <- storage) {
-        newestTime = math.max(newestTime, quote.time)
-        countOne
-      }
+      val res = storage.toArray
+      storage.clear
+      res
     }
-        
-    newestTime
   }
     
   override protected def cancelRequest(contract: QuoteContract) {
     ibWrapper.cancelHisDataRequest(contract.reqId)
   }
     
-  protected def loadFromSource(afterThisTime: Long): Long = {
+  protected def loadFromSource(afterThisTime: Long): Array[Quote] = {
     fromTime = afterThisTime + 1
         
     var loadedTime1 = loadedTime
     if (!connect) {
-      return loadedTime1
+      return Array()
     }
     try {
       request
-      loadedTime1 = read
+      return read
     } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)}
         
-    loadedTime1
+    Array()
   }
     
   def displayName = {

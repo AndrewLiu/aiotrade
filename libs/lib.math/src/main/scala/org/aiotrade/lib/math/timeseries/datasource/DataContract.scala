@@ -32,7 +32,6 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import java.util.Calendar
 import java.util.Date
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
@@ -61,7 +60,6 @@ abstract class DataContract[V <: TVal: Manifest, S] extends AnalysisDescriptor[S
   /** ser to be filled */
   var ser: T = _
   var chainSers: List[T] = Nil
-  lazy val storage = new ArrayList[V]()
    
   var dateFormatPattern: Option[String] = None
   var urlString: String = ""
