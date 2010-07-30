@@ -74,7 +74,6 @@ import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.loaders.XMLDataObject;
 import org.openide.nodes.AbstractNode;
-import org.openide.nodes.ChildFactory
 import org.openide.nodes.Children
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;

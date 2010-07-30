@@ -76,6 +76,8 @@ import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
   type C <: DataContract[V, _]
 
+  protected val EmptyValues = Array[V]()
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   val ANCIENT_TIME: Long = Long.MinValue
@@ -116,7 +118,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
           //log.info("loadActor Received Refresh message")
           inRefreshing = true
           val values = loadFromSource(loadedTime)
-          loadedTime = postRefresh(values)
+          if (values.length > 0) {
+            loadedTime = postRefresh(values)
+          }
           //log.info("loadActor Finished Refresh")
           inRefreshing = false
         case LoadHistory(afterTime) =>
@@ -312,7 +316,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   /**
    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
    *        process this condition.
-   * @return TVals
+   * @return TVals, if you want to manually call postRefresh during loadFromSource, just return an empty Array
    */
   protected def loadFromSource(afterThisTime: Long): Array[V]
 

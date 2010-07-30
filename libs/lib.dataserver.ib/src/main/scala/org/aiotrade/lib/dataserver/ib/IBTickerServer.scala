@@ -97,13 +97,14 @@ object IBTickerServer extends IBTickerServer {
   }
 
   @throws(classOf[Exception])
-  protected def read: Array[Ticker] = {
-    val storage = ibWrapper.tickers
-    storage synchronized {
-      val res = storage.toArray
-      storage.clear
-      res
+  protected def read {
+    val tickers = ibWrapper.tickers
+    var res: Array[Ticker] = null
+    tickers synchronized {
+      res = tickers.toArray
+      tickers.clear
     }
+    loadedTime = postRefresh(res)
   }
 
   override protected def cancelRequest(contract: TickerContract) {
@@ -122,17 +123,17 @@ object IBTickerServer extends IBTickerServer {
   protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
     fromTime = afterThisTime + 1
         
-    var loadedTime1 = loadedTime
     if (!connect) {
-      return Array()
+      return EmptyValues
     }
+    
     try {
       request
-      return read
+      read
     } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)
     }
         
-    Array()
+    EmptyValues
   }
     
   override def createNewInstance: Option[IBTickerServer] = {

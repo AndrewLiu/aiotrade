@@ -186,11 +186,10 @@ class YahooTickerServer extends TickerServer {
    * @param afterThisTime from time
    */
   protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
-    if (!isTheSingleton) return Array()
+    if (!isTheSingleton) return EmptyValues
 
     log.info("Loading from source ...")
 
-    val allTickers = new ArrayList[Ticker]
     val symbols = subscribedContracts map (_.srcSymbol) toArray
     var i = 0
     while (i < symbols.length) {
@@ -204,7 +203,9 @@ class YahooTickerServer extends TickerServer {
       if (!toProcess.isEmpty) {
         try {
           request(toProcess) match {
-            case Some(is) => allTickers ++= read(is)
+            case Some(is) => 
+              val tickers = read(is)
+              loadedTime = postRefresh(tickers)
             case None =>
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
@@ -213,7 +214,7 @@ class YahooTickerServer extends TickerServer {
 
     log.info("Finished loading from source")
 
-    allTickers.toArray
+    EmptyValues
   }
 
   override def createNewInstance: Option[YahooTickerServer] = Some(YahooTickerServer)
