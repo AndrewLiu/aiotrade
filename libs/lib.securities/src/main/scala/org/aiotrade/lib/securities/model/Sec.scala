@@ -123,6 +123,8 @@ object Sec {
 
   val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
 
+  val dailyQuotesToClose = new ArrayList[Quote]()
+  val dailyMoneyFlowsToClose = new ArrayList[MoneyFlow]()
   val minuteQuotesToClose = new ArrayList[Quote]()
   val minuteMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 }

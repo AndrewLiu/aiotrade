@@ -91,6 +91,7 @@ import org.openide.windows.WindowManager;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 
@@ -127,7 +128,16 @@ object SymbolNodes {
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif")
 
-  private var contentToOccuptantNode = Map[AnalysisContents, Node]()
+  private val contentToOccuptantNode = new HashMap[AnalysisContents, Node]
+
+  private var isInited = false
+
+  scala.actors.Actor.actor {
+    log.info("Start init symbol nodes")
+    SymbolNodes.initSymbolNodes
+    isInited = true
+    log.info("Finished init symbol nodes")
+  }
 
   def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
     contentToOccuptantNode.get(contents)
@@ -152,8 +162,8 @@ object SymbolNodes {
   /**
    * Remove node will not remove the contents, we prefer contents instances
    * long lives in application context, so if node is moved to other place, we
-   * can just pick a contents from here (if exists) instead of read from xml
-   * file, and thus makes the opened topcomponent needn't to referencr to a new
+   * can just pick a contents from here (if exists) instead of reading from xml
+   * file, and thus makes the opened topcomponent needn't to refer to a new
    * created contents instance.
    * So, just do
    * <code>putNode(contents, null)</code>
@@ -239,7 +249,7 @@ object SymbolNodes {
   }
 
   def findSymbolNode(symbol: String): Option[Node] = {
-    findSymbolNode(rootSymbolNode, symbol)
+    findSymbolNode(RootSymbolNode, symbol)
   }
 
   private def findSymbolNode(node: Node, symbol: String): Option[Node] = {
@@ -256,6 +266,18 @@ object SymbolNodes {
         }
       }
       None
+    }
+  }
+
+  def initSymbolNodes {
+    initSymbolNode(RootSymbolNode)
+  }
+
+  private def initSymbolNode(node: Node) {
+    if (node.getLookup.lookup(classOf[DataFolder]) != null) { // is a folder
+      for (child <- node.getChildren.getNodes) {
+        initSymbolNode(child)
+      }
     }
   }
 
@@ -280,7 +302,7 @@ object SymbolNodes {
    */
   @throws(classOf[DataObjectNotFoundException])
   @throws(classOf[IntrospectionException])
-  object rootSymbolNode extends SymbolNode(
+  object RootSymbolNode extends SymbolNode(
     DataObject.find(FileUtil.getConfigFile("symbols")).getNodeDelegate
   ) {
 
@@ -649,18 +671,30 @@ object SymbolNodes {
 
     def execute {
       val folderName = getFolderName(node)
-      val symbolNodes = new ArrayList[AnalysisContents]
+      log.info("Start collecting node children")
+      val symbolContents = getSymbolContentsViaNode(node)
+      log.info("Finished collecting node children")
+      watchSymbols(folderName, symbolContents)
+    }
+
+    /** Not as efficient as getSymbolContentsViaFolder if nodes were not inited previously */
+    private def getSymbolContentsViaNode(node: Node) = {
+      val symbolNodes = new ArrayList[Node]
+      collectSymbolNodes(node, symbolNodes)
+      symbolNodes map (_.getLookup.lookup(classOf[AnalysisContents]))
+    }
+
+    private def getSymbolContentsViaFolder(node: Node) = {
+      val symbolContents = new ArrayList[AnalysisContents]
+
       val folder = node.getLookup.lookup(classOf[DataFolder])
       if (folder == null) {
         // it's an OneSymbolNode, do real things
-        readContents(node) foreach (symbolNodes += _)
+        readContents(node) foreach (symbolContents += _)
       } else {
-        log.info("Start to collect node children")
-        collectSymbolContents(folder, symbolNodes)
-        log.info("Finished to collect node children")
+        collectSymbolContents(folder, symbolContents)
       }
-      
-      watchSymbols(folderName, symbolNodes)
+      symbolContents
     }
 
     private def collectSymbolContents(dob: DataObject, symbolContents: ArrayList[AnalysisContents]) {
@@ -677,7 +711,7 @@ object SymbolNodes {
       }
     }
 
-    /** not as efficient as collectSymbolContents */
+
     private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node]) {
       if (node.getLookup.lookup(classOf[DataFolder]) == null) {
         // it's an OneSymbolNode, do real things

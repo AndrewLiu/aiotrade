@@ -25,6 +25,7 @@ object MoneyFlows1d extends MoneyFlows {
         newone.justOpen_!
         MoneyFlows1d.save(newone)
         commit
+        Sec.dailyMoneyFlowsToClose += newone
         newone
     }
   }

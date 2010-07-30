@@ -30,7 +30,6 @@
  */
 package org.aiotrade.modules.ui.netbeans
 
-import java.io.File
 import java.io.IOException
 import java.io.OutputStream
 import java.util.logging.Level
@@ -105,6 +104,7 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
 
     UserOptionsManager.assertLoaded
 
+    // run some task in background
     SwingUtilities.invokeLater(new Runnable {
         /**
          * Wrap in EDT to avoid:
