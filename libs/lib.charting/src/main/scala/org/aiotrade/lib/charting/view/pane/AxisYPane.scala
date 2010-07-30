@@ -50,7 +50,7 @@ import org.aiotrade.lib.charting.widget.Label
  */
 object AxisYPane {
   val CURRENCY_DECIMAL_FORMAT = new DecimalFormat("0.###")
-  val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.00")
+  val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.###")
 }
 
 import AxisYPane._
