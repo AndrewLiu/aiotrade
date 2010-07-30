@@ -80,19 +80,20 @@ object WeakIdentityBiHashMapTest {
   }
 
   def testLots {
-    val size = 60
+    val size = 10000
     val map = new WeakIdentityBiHashMap[String, Long]
-    var keys = (0 until size) map {i =>
+    var keys = for (i <- 0 until size) yield {
       val k = new String("String" + i)
       map.put(k, i)
       k
     }
 
-    map foreach println
+    //map foreach println
 
-    (0 until size) foreach {i =>
+    for (i <- 0 until size) {
+      //println(i)
       assert(map.getByValue(i).get == ("String" + i), "Value " + i + " lost entry")
-      assert(map.get("String" + i).isEmpty, "Identity Map error at " + i)
+      assert(map.get("String" + i).isEmpty, "Identity Map error at " + i + ": new String does not identity equal")
       assert(map.get(keys(i)).get == i, "Key " + keys(i) + " value should be: " + i + ", but it's: " + map.get(keys(i)))
     }
 

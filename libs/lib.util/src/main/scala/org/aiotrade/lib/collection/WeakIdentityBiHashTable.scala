@@ -362,8 +362,8 @@ trait WeakIdentityBiHashTable[K, V] {
     // since table is getting cleared.
     while (queue.poll != null) {}
 
-    var i = table.length - 1
-    while (i >= 0) {table(i) = null; i += 1}
+    var i = 0
+    while (i < table.length) {table(i) = null; i += 1}
     tableSize = 0
 
     valueToEntry.clear
@@ -397,9 +397,9 @@ trait WeakIdentityBiHashTable[K, V] {
   }
 
   /** Transfers all entries from src to dest tables */
-  private def transfer(src: Array[WeakEntry[K, V]], dst: Array[WeakEntry[K, V]]) {
-    var i = src.length - 1
-    while (i >= 0) {
+  private def transfer(src: Array[WeakEntry[K, V]], dest: Array[WeakEntry[K, V]]) {
+    var i = 0
+    while (i < src.length) {
       var e = src(i)
       src(i) = null
       while (e != null) {
@@ -411,13 +411,13 @@ trait WeakIdentityBiHashTable[K, V] {
           e.value = null.asInstanceOf[V] //  "   "
           tableSize -= 1
         } else {
-          val h = index(elemHashCode(e.key))
-          e.nextEntry = dst(h)
-          dst(h) = e
+          val h = index(e.hash)
+          e.nextEntry = dest(h)
+          dest(h) = e
         }
         e = next
       }
-      i -= 1
+      i += 1
     }
   }
 
