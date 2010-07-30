@@ -93,8 +93,8 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
       }
       configFile = FileUtil.toFile(configFo)
     }
-    log.info("Config file is " + configFile.getCanonicalPath)
     org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
+    log.info("Config file is " + configFile.getCanonicalPath)
     
     // create database if does not exist
     if (!Exchanges.exists) {

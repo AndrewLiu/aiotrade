@@ -74,6 +74,7 @@ import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.loaders.XMLDataObject;
 import org.openide.nodes.AbstractNode;
+import org.openide.nodes.ChildFactory
 import org.openide.nodes.Children
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
@@ -87,6 +88,7 @@ import org.openide.util.NbBundle;
 import org.openide.util.actions.SystemAction;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
+import org.openide.util.lookup.ProxyLookup
 import org.openide.windows.WindowManager;
 import org.openide.xml.XMLUtil;
 import org.xml.sax.InputSource;
@@ -132,12 +134,12 @@ object SymbolNodes {
 
   private var isInited = false
 
-  scala.actors.Actor.actor {
-    log.info("Start init symbol nodes")
-    SymbolNodes.initSymbolNodes
-    isInited = true
-    log.info("Finished init symbol nodes")
-  }
+  /* scala.actors.Actor.actor {
+   log.info("Start init symbol nodes")
+   SymbolNodes.initSymbolNodes
+   isInited = true
+   log.info("Finished init symbol nodes")
+   } */
 
   def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
     contentToOccuptantNode.get(contents)
@@ -182,19 +184,20 @@ object SymbolNodes {
     }
   }
 
-  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContracts: QuoteContract*): FileObject =  {
+  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContracts: QuoteContract*): Option[FileObject] =  {
     val folderObject = folder.getPrimaryFile
-    val baseName = symbol
-    var ix = 1
-    while (folderObject.getFileObject(baseName + ix, "xml") != null) {
-      ix += 1
+    val fileName = symbol
+    
+    if (folderObject.getFileObject(fileName, "xml") != null) {
+      log.warning("Symbol :" + symbol + " under " + folder + " has existed.")
+      return None
     }
 
     var lock: FileLock = null
     var out: PrintStream = null
     var fo: FileObject = null
     try {
-      fo = folderObject.createData(baseName + ix, "xml")
+      fo = folderObject.createData(fileName, "xml")
       lock = fo.lock
       out = new PrintStream(fo.getOutputStream(lock))
 
@@ -209,18 +212,15 @@ object SymbolNodes {
 
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
-    } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)
+    } catch {
+      case ex: IOException => ErrorManager.getDefault.notify(ex)
     } finally {
       /** should remember to out.close() here */
-      if (out != null) {
-        out.close
-      }
-      if (lock != null) {
-        lock.releaseLock
-      }
+      if (out != null) out.close
+      if (lock != null) lock.releaseLock
     }
 
-    fo
+    Some(fo)
   }
 
   /** Deserialize a Symbol from xml file */
@@ -249,7 +249,7 @@ object SymbolNodes {
   }
 
   def findSymbolNode(symbol: String): Option[Node] = {
-    findSymbolNode(RootSymbolNode, symbol)
+    findSymbolNode(RootSymbolsNode, symbol)
   }
 
   private def findSymbolNode(node: Node, symbol: String): Option[Node] = {
@@ -270,7 +270,7 @@ object SymbolNodes {
   }
 
   def initSymbolNodes {
-    initSymbolNode(RootSymbolNode)
+    initSymbolNode(RootSymbolsNode)
   }
 
   private def initSymbolNode(node: Node) {
@@ -297,23 +297,25 @@ object SymbolNodes {
 
   /**
    * The root node of SymbolNode
-   *  It will be 'symbols' folder in default file system, usually the 'config' dir in userdir
-   *  Physical folder "symbols" is defined in layer.xml
+   * It will be 'symbols' folder in default file system, usually the 'config' dir in userdir
+   * Physical folder "symbols" is defined in layer.xml
    */
   @throws(classOf[DataObjectNotFoundException])
   @throws(classOf[IntrospectionException])
-  object RootSymbolNode extends SymbolNode(
+  object RootSymbolsNode extends SymbolFolderNode(
     DataObject.find(FileUtil.getConfigFile("symbols")).getNodeDelegate
   ) {
 
     override def getDisplayName = {
-      NbBundle.getMessage(classOf[SymbolNode], "SN_title")
+      NbBundle.getMessage(classOf[SymbolFolderNode], "SN_title")
     }
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
-  class OneSymbolNode(symbolFileNode: Node, anaContents: AnalysisContents, content: InstanceContent
-  ) extends FilterNode(symbolFileNode, new SymbolChildren(anaContents), new AbstractLookup(content)) {
+  class OneSymbolNode private (symbolFileNode: Node, anaContents: AnalysisContents, content: InstanceContent
+  ) extends FilterNode(symbolFileNode, new SymbolChildren(anaContents), new ProxyLookup(symbolFileNode.getLookup,
+                                                                                        new AbstractLookup(content))
+  ) {
     putNode(anaContents, this)
 
     /* add the node to our own lookup */
@@ -329,12 +331,6 @@ object SymbolNodes {
     content.add(new SymbolStopWatchAction(this))
     content.add(new SymbolCompareToAction(this))
     content.add(new SymbolClearDataAction(this))
-
-    /** add delegate's all lookup contents */
-    private val result = symbolFileNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
-    while (result.hasNext) {
-      content.add(result.next)
-    }
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -435,7 +431,9 @@ object SymbolNodes {
     }
   }
   
-  /** The child of the folder node, it may be a folder or Symbol ser file */
+  /**
+   * The child of the folder node, it may be a folder or Symbol ser file
+   */
   private class SymbolFolderChildren(symbolFolderNode: Node) extends FilterNode.Children(symbolFolderNode) {
 
     /**
@@ -445,10 +443,9 @@ object SymbolNodes {
       val symbolFileNode = key
 
       try {
-
         if (symbolFileNode.getLookup.lookup(classOf[DataFolder]) != null) {
           /** it's a folder, so creat a folder node */
-          return Array(new SymbolNode(symbolFileNode))
+          return Array(new SymbolFolderNode(symbolFileNode))
         } else {
           /**
            * else, deserilize a contents instance from the sec xml file,
@@ -479,7 +476,7 @@ object SymbolNodes {
               return Array(oneSymbolNode)
             case None =>
               // best effort
-              return Array(new FilterNode(symbolFileNode))
+              return Array(symbolFileNode)
           }
 
         }
@@ -489,7 +486,7 @@ object SymbolNodes {
       }
 
       // Some other type of Node (gotta do something)
-      Array(new FilterNode(symbolFileNode))
+      Array(symbolFileNode)
     }
   }
 
@@ -528,10 +525,11 @@ object SymbolNodes {
 
     @unchecked
     override protected def addNotify {
-      val groups = PersistenceManager().lookupAllRegisteredServices(classOf[GroupDescriptor[AnalysisDescriptor[_]]], "DescriptorGroups")
+      val groups = PersistenceManager().lookupAllRegisteredServices(classOf[GroupDescriptor[AnalysisDescriptor[_]]],
+                                                                    "DescriptorGroups")
 
       bufChildrenKeys.clear
-      /** each symbol should create new NodeInfo instances that belong to itself */
+      /** each symbol should create new NodeInfo instances that belongs to itself */
       for (nodeInfo <- groups) {
         bufChildrenKeys add nodeInfo.clone.asInstanceOf[GroupDescriptor[AnalysisDescriptor[_]]]
       }
@@ -557,17 +555,13 @@ object SymbolNodes {
   }
   
   @throws(classOf[IntrospectionException])
-  class SymbolNode(symbolFolderNode: Node, content: InstanceContent
-  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new AbstractLookup(content)) {
+  class SymbolFolderNode(symbolFolderNode: Node, content: InstanceContent
+  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new ProxyLookup(symbolFolderNode.getLookup,
+                                                                                                     new AbstractLookup(content))
+  ) {
 
     /* add the node to our own lookup */
     content.add(this)
-
-    /** add delegate's all lookup contents */
-    val result = symbolFolderNode.getLookup.lookup(new Lookup.Template[Object](classOf[Object])).allInstances.iterator
-    while (result.hasNext) {
-      content.add(result.next)
-    }
 
     /* add additional items to the lookup */
     content.add(SystemAction.get(classOf[AddSymbolAction]))
@@ -718,9 +712,7 @@ object SymbolNodes {
         symbolNodes += node
       } else {
         /** it's a folder, go recursively */
-        log.info("Start to get node children")
         val children = node.getChildren.getNodes
-        log.info("Finished to get node children")
         for (child <- children) {
           collectSymbolNodes(child, symbolNodes)
         }
@@ -767,41 +759,6 @@ object SymbolNodes {
         tickerServer.startRefresh(50)
       }
     }
-
-
-//    private def watchSymbols(folderName: String, nodes: ArrayList[Node]) {
-//      val tickerServers = new HashSet[TickerServer]
-//      for (node <- nodes) {
-//        val contents = node.getLookup.lookup(classOf[AnalysisContents])
-//        Exchange.secOf(contents.uniSymbol) match {
-//          case Some(sec) =>
-//            contents.serProvider = sec
-//            contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-//              sec.quoteContracts = List(quoteContract)
-//            }
-//
-//            sec.subscribeTickerServer(false) match {
-//              case Some(tickerServer) =>
-//                tickerServers += tickerServer
-//
-//                val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
-//                watchListTc.requestActive
-//                watchListTc.watch(sec, node)
-//
-//                node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-//                this.setEnabled(false)
-//              case _ =>
-//            }
-//
-//          case None =>
-//        }
-//      }
-//
-//      for (tickerServer <- tickerServers if tickerServer != null) {
-//        tickerServer.startRefresh(50)
-//      }
-//    }
-//
   }
 
   class SymbolStopWatchAction(node: Node) extends GeneralAction {
@@ -944,7 +901,7 @@ object SymbolNodes {
     def execute {
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-        for (child <- node.getChildren().getNodes()) {
+        for (child <- node.getChildren.getNodes) {
           child.getLookup.lookup(classOf[SymbolRefreshDataAction]).execute
         }
         return
@@ -1029,7 +986,7 @@ object SymbolNodes {
 
   /** Creating an action for adding a folder to organize stocks into groups */
   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
-    putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolNode], "SN_addfolderbutton"))
+    putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolFolderNode], "SN_addfolderbutton"))
 
     def actionPerformed(ae: ActionEvent) {
       var floderName = JOptionPane.showInputDialog(

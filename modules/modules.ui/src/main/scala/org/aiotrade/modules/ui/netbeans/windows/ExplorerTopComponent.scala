@@ -79,7 +79,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   private val manager = new ExplorerManager
   private val treeView = new BeanTreeView
 
-  val rootNode = SymbolNodes.RootSymbolNode
+  val rootNode = SymbolNodes.RootSymbolsNode
   manager.setRootContext(rootNode)
     
   private var watchListNode: Node = _
