@@ -39,6 +39,7 @@ import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -118,15 +119,18 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   private val dayLow = new ValueCell
   private val dayOpen = new ValueCell
   private val dayVolume = new ValueCell
+  private val dayAmount = new ValueCell
   private val lastPrice = new ValueCell
   private val dayPercent = new ValueCell
   private val prevClose = new ValueCell
 
   private val numberStrs = Array("①", "②", "③", "④", "⑤")
   private val timeZone = sec.exchange.timeZone
-  private val exchgCal = Calendar.getInstance(timeZone)
-  private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
-  sdf.setTimeZone(timeZone)
+  private val cal = Calendar.getInstance(timeZone)
+  private val df = new SimpleDateFormat("HH:mm:ss")
+  df.setTimeZone(timeZone)
+
+  private val priceDf = new DecimalFormat("0.000")
 
   private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
     case Some(lastDailyQuote) =>
@@ -160,7 +164,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   viewContainer.setFocusable(false)
 
   reactions += {
-    case TickerEvent(src: Sec, ticker: Ticker) =>
+    case TickerEvent(ticker: Ticker) =>
       // symbol.value = if (src.secInfo != null) src.secInfo.uniSymbol else ticker.symbol
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
@@ -305,9 +309,11 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       def getValueAt(row: Int, col: Int): Object = {
         val execution = executions(row)
         col match {
-          case 0 => sdf.format(execution.time)
+          case 0 => 
+            cal.setTimeInMillis(execution.time)
+            df format cal.getTime
           case 1 => "%5.2f"  format execution.price
-          case 2 => "%10.2f" format execution.volume
+          case 2 => "%10.2f" format execution.volume / 100.0
           case _ => null
         }
       }
@@ -369,17 +375,17 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     val posColor = LookFeel().getPositiveColor
     val negColor = LookFeel().getNegativeColor
 
-    exchgCal.setTimeInMillis(System.currentTimeMillis)
-    val now = exchgCal.getTime
+    cal.setTimeInMillis(System.currentTimeMillis)
+    val now = cal.getTime
 
-    lastPrice.value   = "%8.2f"    format ticker.lastPrice
-    prevClose.value   = "%8.2f"    format ticker.prevClose
-    dayOpen.value     = "%8.2f"    format ticker.dayOpen
-    dayHigh.value     = "%8.2f"    format ticker.dayHigh
-    dayLow.value      = "%8.2f"    format ticker.dayLow
-    dayChange.value   = "%+8.2f"   format ticker.dayChange
+    lastPrice.value   = priceDf    format ticker.lastPrice
+    prevClose.value   = priceDf    format ticker.prevClose
+    dayOpen.value     = priceDf    format ticker.dayOpen
+    dayHigh.value     = priceDf    format ticker.dayHigh
+    dayLow.value      = priceDf    format ticker.dayLow
+    dayChange.value   = priceDf    format ticker.dayChange
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
-    dayVolume.value   = "%10.0f"    format ticker.dayVolume / 100.0
+    dayVolume.value   = "%10.2f"   format ticker.dayVolume / 100.0
 
     def setInfoCellColorByPrevCls(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
@@ -417,12 +423,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     while (i < depth) {
       val bidIdx = depth - 1 - i
       val bidRow = i
-      depthModel.setValueAt("%8.2f" format marketDepth.askPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(priceDf format marketDepth.askPrice(bidIdx), bidRow, 1)
       depthModel.setValueAt(marketDepth.askSize(bidIdx).toInt.toString,  bidRow, 2)
       
       val askIdx = i
       val askRow = depth + i
-      depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(priceDf format marketDepth.bidPrice(askIdx), askRow, 1)
       depthModel.setValueAt(marketDepth.bidSize(askIdx).toInt.toString,  askRow, 2)
 
       i += 1

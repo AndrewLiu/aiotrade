@@ -35,10 +35,10 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Comparator
-import java.util.Locale
 import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.JComponent
@@ -88,6 +88,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val TIME       = "Time"
   private val LAST_PRICE = "Last"
   private val DAY_VOLUME = "Volume"
+  private val DAY_AMOUNT = "Amount"
   private val PREV_CLOSE = "PrevCls"
   private val DAY_CHANGE = "Change"
   private val PERCENT    = "Percent"
@@ -100,6 +101,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     TIME,
     LAST_PRICE,
     DAY_VOLUME,
+    DAY_AMOUNT,
     PREV_CLOSE,
     DAY_CHANGE,
     PERCENT,
@@ -122,8 +124,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   val table = new JTable
   private val model = new WatchListTableModel
-  private val df = new SimpleDateFormat("hh:mm", Locale.US)
+  private val df = new SimpleDateFormat("HH:mm:ss")
   private val cal = Calendar.getInstance
+  private val priceDf = new DecimalFormat("0.000")
+
   private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
 
   initTable
@@ -142,30 +146,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   add(BorderLayout.CENTER, scrollPane)
 
   reactions += {
-    case TickersEvent(tickers) =>
-      //case TickerEvent(sec: Sec, ticker: Ticker) =>
-      /*
-       * To avoid:
-       java.lang.NullPointerException
-       at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
-       at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
-       at javax.swing.JTable.getValueAt(JTable.java:2695)
-       at javax.swing.JTable.prepareRenderer(JTable.java:5712)
-       at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
-       * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
-       */
-      SwingUtilities.invokeLater(new Runnable {
-          def run {
-            var updated = false
-            for (ticker <- tickers if watchingSymbols.contains(ticker.symbol)) {
-              updated = updateByTicker(ticker) | updated // don't use shortcut one: "||"
-            }
-
-            if (updated) {
-              table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
-            }
-          }
-        })
+    case TickersEvent(tickers) => updateByTickers(tickers)
   }
 
   listenTo(TickerServer)
@@ -245,7 +226,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     private val types = Array(
-      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
+      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
 
     def getRowCount: Int = uniSymbols.size
@@ -255,7 +236,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       val symbol = uniSymbols(row)
       val exchange = Exchange.exchangeOf(symbol)
       
-      exchange.uniSymbolToLastTicker.get(symbol) match {
+      TickerServer.uniSymbolToLastTicker.get(symbol) match {
         case Some(ticker) =>
           colKeys(col) match {
             case SYMBOL => symbol
@@ -265,14 +246,15 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
               cal.setTimeInMillis(ticker.time)
               df.setTimeZone(tz)
               df format cal.getTime
-            case LAST_PRICE => "%5.2f"   format ticker.lastPrice
-            case DAY_VOLUME => "%8.0f"   format ticker.dayVolume / 100.0
-            case PREV_CLOSE => "%5.2f"   format ticker.prevClose
-            case DAY_CHANGE => "%5.2f"   format ticker.dayChange
+            case LAST_PRICE => priceDf   format ticker.lastPrice
+            case DAY_VOLUME => "%10.2f"  format ticker.dayVolume / 100.0
+            case DAY_AMOUNT => "%10.2f"  format ticker.dayAmount / 10000.0
+            case PREV_CLOSE => priceDf   format ticker.prevClose
+            case DAY_CHANGE => priceDf   format ticker.dayChange
             case PERCENT    => "%3.2f%%" format ticker.changeInPercent
-            case DAY_HIGH   => "%5.2f"   format ticker.dayHigh
-            case DAY_LOW    => "%5.2f"   format ticker.dayLow
-            case DAY_OPEN   => "%5.2f"   format ticker.dayOpen
+            case DAY_HIGH   => priceDf   format ticker.dayHigh
+            case DAY_LOW    => priceDf   format ticker.dayLow
+            case DAY_OPEN   => priceDf   format ticker.dayOpen
             case _ => null
           }
         case None =>
@@ -281,6 +263,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
             case TIME => "_"
             case LAST_PRICE => "_"
             case DAY_VOLUME => "_"
+            case DAY_AMOUNT => "_"
             case PREV_CLOSE => "_"
             case DAY_CHANGE => "_"
             case PERCENT    => "_"
@@ -300,6 +283,36 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
+  }
+
+  def updateByTickers(tickers: Array[LightTicker]) {
+    /*
+     * To avoid:
+     java.lang.NullPointerException
+     at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
+     at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
+     at javax.swing.JTable.getValueAt(JTable.java:2695)
+     at javax.swing.JTable.prepareRenderer(JTable.java:5712)
+     at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
+     * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
+     */
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          var updated = false
+          var i = 0
+          while (i < tickers.length) {
+            val ticker = tickers(i)
+            if (watchingSymbols.contains(ticker.symbol)) {
+              updated = updateByTicker(ticker) | updated // don't use shortcut one: "||"
+            }
+            i += 1
+          }
+
+          if (updated) {
+            table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
+          }
+        }
+      })
   }
 
   private def updateByTicker(ticker: LightTicker): Boolean = {
@@ -406,7 +419,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         }
       }
     }
-
   }
 
 

@@ -32,7 +32,7 @@ object Model {
 
   private def temporaryTest {
     val xs = Exchanges.all()
-    xs foreach (x => println(x.uniSymbolToLastTicker))
+    xs foreach (x => println(Exchanges.uniSymbolToLastTickerOf(x)))
     //xs foreach (x => println(Quotes1d.lastDailyQuotesOf(x)))
   }
 

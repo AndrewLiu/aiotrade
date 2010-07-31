@@ -37,6 +37,16 @@ object Exchanges extends Table[Exchange] {
              ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     secs
   }
+
+  def uniSymbolToLastTickerOf(exchange: Exchange) = {
+    val symbolToTicker = new HashMap[String, LightTicker]
+    for ((sec, ticker) <- Tickers.lastTickersOf(exchange) if sec != null) {
+      val symbol = sec.uniSymbol
+      ticker.symbol = symbol
+      symbolToTicker.put(symbol, ticker)
+    }
+    symbolToTicker
+  }
 }
 
 object Exchange extends Publisher {
@@ -166,16 +176,6 @@ class Exchange {
   lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
   private var _symbols = List[String]()
-
-  lazy val uniSymbolToLastTicker = {
-    val map = new HashMap[String, LightTicker]
-    for ((sec, ticker) <- Tickers.lastTickersOf(this) if sec != null) {
-      val symbol = sec.uniSymbol
-      ticker.symbol = symbol
-      map.put(symbol, ticker)
-    }
-    map
-  }
 
   def open: Calendar = {
     val cal = Calendar.getInstance(timeZone)

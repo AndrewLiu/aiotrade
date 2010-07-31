@@ -37,9 +37,11 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
+import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -57,10 +59,22 @@ import scala.collection.mutable.HashMap
  *
  * @author Caoyuan Deng
  */
-case class TickerEvent(source: Sec, ticker: Ticker) extends Event
-case class TickersEvent(ticker: Array[Ticker]) extends Event
+case class TickerEvent(ticker: Ticker) extends Event // TickerEvent only accept Ticker
+case class TickersEvent(ticker: Array[LightTicker]) extends Event // TickersEvent accect LightTicker
 
-object TickerServer extends Publisher
+object TickerServer extends Publisher {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  val uniSymbolToLastTicker = new HashMap[String, LightTicker]
+  // load all last tickers
+  Exchange.allExchanges foreach {x =>
+    val start = System.currentTimeMillis
+    log.info("Loading last tickers of " + x.code)
+    uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)
+    log.info("Loading last tickers of " + x.code + " used " + (System.currentTimeMillis - start) / 1000.0 + "s")
+  }
+}
+
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
@@ -147,8 +161,10 @@ abstract class TickerServer extends DataServer[Ticker] {
     var i = 0
     while (i < values.length) {
       val ticker = values(i)
-      
+
       val symbol = ticker.symbol
+      TickerServer.uniSymbolToLastTicker.put(ticker.symbol, ticker)
+
       if (subscribedSrcSymbols.contains(symbol)) {
         val contract = subscribedSrcSymbols.get(symbol).get
         val sec = Exchange.secOf(symbol).get
@@ -272,9 +288,8 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         if (tickerValid) {
           allTickers += ticker
-          sec.exchange.uniSymbolToLastTicker.put(sec.uniSymbol, ticker)
           prevTicker.copyFrom(ticker)
-          sec.publish(TickerEvent(sec, ticker))
+          sec.publish(TickerEvent(ticker))
         }
 
 
@@ -339,7 +354,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     
     // publish events
     if (tickers.length > 0) {
-      TickerServer.publish(TickersEvent(tickers))
+      TickerServer.publish(TickersEvent(tickers.asInstanceOf[Array[LightTicker]]))
     }
     val snapDepths = allSnapDepths.toArray
     if (snapDepths.length > 0) {

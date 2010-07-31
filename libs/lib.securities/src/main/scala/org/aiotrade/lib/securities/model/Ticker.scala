@@ -67,7 +67,7 @@ object Tickers extends Table[Ticker] {
         map
     }
   }
-
+  
   def lastTickersSql = {
     /* (SELECT (Tickers.*) FROM (
      (SELECT (Tickers.quotes_id, MAX(time) AS maxtime) FROM (tickers) GROUP_BY Tickers.quotes_id) AS x INNER_JOIN Tickers ON (

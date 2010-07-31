@@ -30,14 +30,14 @@
  */
 package org.aiotrade.modules.ui.netbeans.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent;
+import java.awt.event.MouseEvent
 import javax.swing.AbstractAction
-import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
+import javax.swing.JComponent
+import javax.swing.JPopupMenu
 import javax.swing.JSplitPane
 import javax.swing.JTable;
 import javax.swing.KeyStroke
@@ -47,7 +47,6 @@ import javax.swing.event.ListSelectionListener
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
@@ -110,7 +109,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   instanceRefs.put(this, null)
     
   private val tc_id = "RealTimeWatchList"
-  private val watchListPanel = new RealTimeWatchListPanel
+  val watchListPanel = new RealTimeWatchListPanel
   private var realTimeBoard: RealTimeBoardPanel = _
 
   private var updateServerRegistered = false

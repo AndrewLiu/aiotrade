@@ -30,67 +30,68 @@
  */
 package org.aiotrade.modules.ui.netbeans.nodes
 
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.beans.IntrospectionException;
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
+import java.awt.Image
+import java.awt.event.ActionEvent
+import java.beans.IntrospectionException
+import java.beans.PropertyChangeEvent
+import java.io.IOException
 import java.io.PrintStream
-import java.util.Calendar;
+import java.util.Calendar
 import java.util.logging.Logger
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JOptionPane;
+import javax.swing.AbstractAction
+import javax.swing.Action
+import javax.swing.JOptionPane
 import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
 import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
 import javax.swing.SwingUtilities
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.util.swing.action.GeneralAction;
-import org.aiotrade.lib.util.swing.action.SaveAction;
+import org.aiotrade.lib.util.swing.action.GeneralAction
+import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
-import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
+import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
 import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
-import org.aiotrade.modules.ui.dialog.ImportSymbolDialog;
-import org.openide.ErrorManager;
-import org.openide.actions.DeleteAction;
+import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
+import org.openide.ErrorManager
+import org.openide.actions.DeleteAction
 import org.openide.filesystems.FileLock
-import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil
-import org.openide.filesystems.Repository;
-import org.openide.loaders.DataFolder;
+import org.openide.filesystems.Repository
+import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject
-import org.openide.loaders.DataObjectNotFoundException;
-import org.openide.loaders.XMLDataObject;
-import org.openide.nodes.AbstractNode;
+import org.openide.loaders.DataObjectNotFoundException
+import org.openide.loaders.XMLDataObject
+import org.openide.nodes.AbstractNode
 import org.openide.nodes.Children
-import org.openide.nodes.FilterNode;
-import org.openide.nodes.Node;
-import org.openide.nodes.NodeEvent;
-import org.openide.nodes.NodeListener;
-import org.openide.nodes.NodeMemberEvent;
-import org.openide.nodes.NodeReorderEvent;
+import org.openide.nodes.FilterNode
+import org.openide.nodes.Node
+import org.openide.nodes.NodeEvent
+import org.openide.nodes.NodeListener
+import org.openide.nodes.NodeMemberEvent
+import org.openide.nodes.NodeReorderEvent
 import org.openide.util.ImageUtilities
 import org.openide.util.Lookup
 import org.openide.util.NbBundle;
-import org.openide.util.actions.SystemAction;
-import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
+import org.openide.util.actions.SystemAction
+import org.openide.util.lookup.AbstractLookup
+import org.openide.util.lookup.InstanceContent
 import org.openide.util.lookup.ProxyLookup
-import org.openide.windows.WindowManager;
-import org.openide.xml.XMLUtil;
-import org.xml.sax.InputSource;
+import org.openide.windows.WindowManager
+import org.openide.xml.XMLUtil
+import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
@@ -728,9 +729,14 @@ object SymbolNodes {
     }
 
     private def watchSymbols(folderName: String, symbolContents: ArrayList[AnalysisContents]) {
+      val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
+      watchListTc.requestActive
+
+      val lastTickers = new ArrayList[LightTicker]
       val tickerServers = new HashSet[TickerServer]
       for (contents <- symbolContents) {
-        Exchange.secOf(contents.uniSymbol) match {
+        val uniSymbol = contents.uniSymbol
+        Exchange.secOf(uniSymbol) match {
           case Some(sec) =>
             contents.serProvider = sec
             contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
@@ -741,9 +747,8 @@ object SymbolNodes {
               case Some(tickerServer) =>
                 tickerServers += tickerServer
 
-                val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
-                watchListTc.requestActive
                 watchListTc.watch(sec, node)
+                TickerServer.uniSymbolToLastTicker.get(uniSymbol) foreach (lastTickers += _)
 
                 node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
                 this.setEnabled(false)
@@ -753,6 +758,8 @@ object SymbolNodes {
           case None =>
         }
       }
+
+      watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
 
       for (tickerServer <- tickerServers if tickerServer != null) {
         tickerServer.startRefresh(50)
