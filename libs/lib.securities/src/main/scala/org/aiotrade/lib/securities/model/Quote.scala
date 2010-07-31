@@ -62,6 +62,7 @@ object Quotes1d extends Quotes {
         newone.sec = sec
         newone.unclosed_! // @todo when to close it and update to db?
         newone.justOpen_!
+        newone.fromMe_!
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
         Quotes1d.save(newone)
         commit

@@ -52,7 +52,6 @@ import javax.swing.RowSorter
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter

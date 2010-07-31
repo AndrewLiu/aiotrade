@@ -322,7 +322,7 @@ class Sec extends SerProvider with Publisher {
       case TFreq.ONE_MIN => Quotes1m.closedQuotesOf(this)
       case _ => return 0L
     }
-    
+
     val ser = serOf(freq).get
     ser ++= quotes.toArray
 
@@ -333,11 +333,20 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!quotes.isEmpty) {
-      val loadedTime = math.max(quotes.head.time, quotes.last.time)
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
+      val (first, last) = if (quotes.head.time < quotes.last.time)
+        (quotes.head, quotes.last)
+      else
+        (quotes.last, quotes.head)
+
+      // should load earlier quotes from data source? first.fromMe_? may means never load from data server
+      val wantTime = if (first.fromMe_?) 0 else last.time
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length +
+               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
       
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + loadedTime + ", freq=" + ser.freq + ", size=" + ser.size)
-      loadedTime
+      wantTime
     } else {
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + 0L + ", freq=" + ser.freq + ", size=" + ser.size)
       0L
@@ -363,24 +372,33 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!mfs.isEmpty) {
-      val loadedTime = math.max(mfs.head.time, mfs.last.time)
-      val uniSymbol = secInfo.uniSymbol
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
-      loadedTime
+      val (first, last) = if (mfs.head.time < mfs.last.time)
+        (mfs.head, mfs.last)
+      else
+        (mfs.last, mfs.head)
+
+      // should load earlier quotes from data source?
+      val wantTime = if (first.fromMe_?) 0 else last.time
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + mfs.length +
+               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
+
+      wantTime
     } else 0L
   }
 
 
   /**
    * synchronized this method to avoid conflict on variable: loadBeginning and
-   * concurrent accessing to those maps.
+   * concurrent accessing to varies maps.
    */
   def loadSer(freq: TFreq): Boolean = synchronized {
-
     val ser = serOf(freq) getOrElse (return false)
 
     // load from persistence
-    val loadedTime = loadSerFromPersistence(freq)
+    val wantTime = loadSerFromPersistence(freq)
 
     // try to load from quote server
 
@@ -392,7 +410,7 @@ class Sec extends SerProvider with Publisher {
       quoteServer.subscribe(contract)
 
       ser.inLoading = true
-      quoteServer.loadHistory(loadedTime)
+      quoteServer.loadHistory(wantTime)
 
       listenTo(ser)
       return true
@@ -413,7 +431,7 @@ class Sec extends SerProvider with Publisher {
             x.dateFormatPattern =(defaultOne.dateFormatPattern)
             freqToQuoteContract.put(freq, x)
             Some(x)
-          case _ => return None
+          case _ => None
         }
       case some => some
     }
@@ -578,6 +596,7 @@ class Sec extends SerProvider with Publisher {
         newone.sec = this
         newone.unclosed_!
         newone.justOpen_!
+        newone.fromMe_!
         lastData.minuteQuote = newone
         newone
     }
