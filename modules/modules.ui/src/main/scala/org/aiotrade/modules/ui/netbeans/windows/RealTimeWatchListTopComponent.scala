@@ -158,6 +158,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
   watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      private var prevSelected: String = _
       def valueChanged(e: ListSelectionEvent) {
         val lsm = e.getSource.asInstanceOf[ListSelectionModel]
         if (lsm.isSelectionEmpty) {
@@ -166,7 +167,8 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
           val row = watchListTable.getSelectedRow
           if (row >= 0 && row < watchListTable.getRowCount) {
             val symbol = watchListPanel.symbolAtRow(row)
-            if (symbol != null) {
+            if (symbol != null && prevSelected != symbol) {
+              prevSelected = symbol
               SymbolNodes.findSymbolNode(symbol) foreach {x =>
                 val viewAction = x.getLookup.lookup(classOf[ViewAction])
                 viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
