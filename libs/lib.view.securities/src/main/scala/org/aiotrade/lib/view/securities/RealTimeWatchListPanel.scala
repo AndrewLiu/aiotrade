@@ -33,6 +33,7 @@ package org.aiotrade.lib.view.securities
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Font
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.text.DecimalFormat
@@ -170,10 +171,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     table.setGridColor(LookFeel().backgroundColor)
     table.setFillsViewportHeight(true)
     val header = table.getTableHeader
-    header.setForeground(Color.WHITE)
-    header.setBackground(LookFeel().backgroundColor)
+    header.setDefaultRenderer(new TableHeaderRenderer)
     header.setReorderingAllowed(true)
-    header.getDefaultRenderer.asInstanceOf[DefaultTableCellRenderer].setHorizontalAlignment(SwingConstants.CENTER)
 
     // --- sorter
     table.setAutoCreateRowSorter(false)
@@ -440,14 +439,15 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     val symbol = table.getValueAt(row, colKeys.findIndexOf(_ == SYMBOL)).asInstanceOf[String]
     symbol
   }
-
+  
   class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {
-
+    private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
     setOpaque(true)
-
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
                                       hasFocus: Boolean, row: Int, col: Int): Component = {
 
+      setFont(defaultFont)
+      
       /**
        * @Note
        * Here we should use table.getColumeName(column) which is

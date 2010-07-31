@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -35,6 +35,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -280,7 +281,6 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
     depthTable = new MultiSpanCellTable(depthModel)
     depthTable.setDefaultRenderer(classOf[Object], new AttributiveCellRenderer)
-    depthTable.setTableHeader(null)
     depthTable.setFocusable(false)
     depthTable.setCellSelectionEnabled(false)
     depthTable.setShowHorizontalLines(false)
@@ -288,11 +288,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
-    val depthHeader = depthTable.getTableHeader
-    if (depthHeader != null) {
-      depthHeader.setForeground(Color.WHITE)
-      depthHeader.setBackground(LookFeel().backgroundColor)
-    }
+    depthTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
     val depthNameCol = depthTable.getColumnModel.getColumn(0)
     depthNameCol.setPreferredWidth(50)
 
@@ -506,6 +502,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   }
   
   class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
+    private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
 
     setForeground(Color.WHITE)
     setBackground(LookFeel().backgroundColor)
@@ -515,6 +512,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
                                                hasFocus: Boolean, row: Int, column: Int): Component = {
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
+      setFont(defaultFont)
       setForeground(Color.WHITE)
       setBackground(LookFeel().backgroundColor)
       setText(null)
