@@ -667,7 +667,7 @@ object SymbolNodes {
       val folderName = getFolderName(node)
       log.info("Start collecting node children")
       val symbolContents = getSymbolContentsViaNode(node)
-      log.info("Finished collecting node children")
+      log.info("Finished collecting node children: " + symbolContents.length)
       watchSymbols(folderName, symbolContents)
     }
 

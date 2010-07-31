@@ -296,6 +296,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
      */
     SwingUtilities.invokeLater(new Runnable {
         def run {
+          log.info("Batch updating, tickers: " + tickers.length)
           var updated = false
           var i = 0
           while (i < tickers.length) {

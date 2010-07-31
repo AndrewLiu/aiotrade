@@ -318,8 +318,8 @@ class Sec extends SerProvider with Publisher {
    */
   def loadSerFromPersistence(freq: TFreq): Long = {
     val quotes = freq match {
-      case TFreq.DAILY   => Quotes1d.closedQuotesOf(this)
-      case TFreq.ONE_MIN => Quotes1m.closedQuotesOf(this)
+      case TFreq.DAILY   => Quotes1d.quotesOf(this)
+      case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
       case _ => return 0L
     }
 
@@ -333,22 +333,35 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!quotes.isEmpty) {
-      val (first, last) = if (quotes.head.time < quotes.last.time)
-        (quotes.head, quotes.last)
+      val (first, last, isAscending) = if (quotes.head.time <= quotes.last.time)
+        (quotes.head, quotes.last, true)
       else
-        (quotes.last, quotes.head)
+        (quotes.last, quotes.head, false)
+
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
 
       // should load earlier quotes from data source? first.fromMe_? may means never load from data server
-      val wantTime = if (first.fromMe_?) 0 else last.time
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: Quote = null
+        var i = if (isAscending) 0 else quotes.length - 1
+        while (i < quotes.length && i >= 0 && quotes(i).fromMe_?) {
+          lastFromMe = quotes(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length +
-               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+               ", loaded: time=" + last.time + ", ser size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
       
       wantTime
     } else {
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + 0L + ", freq=" + ser.freq + ", size=" + ser.size)
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
+               + ", will try to load fro data source from beginning")
       0L
     }
   }
@@ -372,14 +385,26 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!mfs.isEmpty) {
-      val (first, last) = if (mfs.head.time < mfs.last.time)
-        (mfs.head, mfs.last)
+      val (first, last, isAscending) = if (mfs.head.time < mfs.last.time)
+        (mfs.head, mfs.last, true)
       else
-        (mfs.last, mfs.head)
+        (mfs.last, mfs.head, false)
+
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
 
       // should load earlier quotes from data source?
-      val wantTime = if (first.fromMe_?) 0 else last.time
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: MoneyFlow = null
+        var i = if (isAscending) 0 else mfs.length - 1
+        while (i < mfs.length && i >= 0 && mfs(i).fromMe_?) {
+          lastFromMe = mfs(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + mfs.length +
                ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
@@ -619,6 +644,7 @@ class Sec extends SerProvider with Publisher {
         newone.sec = this
         newone.unclosed_!
         newone.justOpen_!
+        newone.fromMe_!
         lastData.minuteMoneyFlow = newone
         newone
     }

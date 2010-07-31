@@ -75,6 +75,7 @@ abstract class QuoteServer extends DataServer[Quote] {
     while (i < quotes.length) {
       val quote = quotes(i)
       quote.sec = sec
+      quote.unfromMe_!
       lastTime = math.max(quote.time, lastTime)
       i += 1
     }
@@ -89,8 +90,7 @@ abstract class QuoteServer extends DataServer[Quote] {
     }
 
     ser ++= quotes
-    log.info(sec.uniSymbol + "(" + contract.freq + "): loaded history from datasource, got quotes=" +
-             quotes.length +", loaded time=" + ser.lastOccurredTime + ", freq=" + ser.freq + ", size=" + ser.size)
+    
     lastTime
   }
 

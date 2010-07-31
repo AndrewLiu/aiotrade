@@ -23,6 +23,7 @@ object MoneyFlows1d extends MoneyFlows {
         newone.sec = sec
         newone.unclosed_! // @todo when to close it and update to db?
         newone.justOpen_!
+        newone.fromMe_!
         MoneyFlows1d.save(newone)
         commit
         Sec.dailyMoneyFlowsToClose += newone
