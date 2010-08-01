@@ -2,7 +2,6 @@ package org.aiotrade.lib.securities.model.data
 
 import java.io.BufferedReader
 import java.io.File
-import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
@@ -104,10 +103,10 @@ object Data {
     schema
     createExchanges
     createSimpleSecs
-    readFromSecInfos(inputStreamOf("sec_infos.txt"))
-    readFromCompanies(inputStreamOf("companies.txt"))
-    readFromIndustries(inputStreamOf("industries.txt"))
-    readFromCompanyIndustries(inputStreamOf("company_industries.txt"))
+    readFromSecInfos(readerOf("sec_infos.txt"))
+    readFromCompanies(readerOf("companies.txt"))
+    readFromIndustries(readerOf("industries.txt"))
+    readFromCompanyIndustries(readerOf("company_industries.txt"))
     Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
     commit
   }
@@ -133,12 +132,12 @@ object Data {
     exchanges foreach {x => log.info("Exchange: " + x + ", id=" + Exchanges.idOf(x).get)}
   }
 
-  def inputStreamOf(fileName: String) = {
-    classLoader.getResourceAsStream("data/" + fileName)
+  def readerOf(fileName: String) = {
+    val is = classLoader.getResourceAsStream("data/" + fileName)
+    new BufferedReader(new InputStreamReader(is, "UTF-8"))
   }
 
-  def readFromSecInfos(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
+  def readFromSecInfos(reader: BufferedReader) {
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -170,8 +169,7 @@ object Data {
     SecInfos.insertBatch_!(secInfoRecords.toArray)
   }
 
-  def readFromCompanies(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
+  def readFromCompanies(reader: BufferedReader) {
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -197,8 +195,7 @@ object Data {
     Companies.insertBatch_!(companyRecords.toArray)
   }
 
-  def readFromIndustries(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
+  def readFromIndustries(reader: BufferedReader) {
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -216,8 +213,7 @@ object Data {
     Industries.insertBatch_!(industryRecords.toArray)
   }
 
-  def readFromCompanyIndustries(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
+  def readFromCompanyIndustries(reader: BufferedReader) {
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
