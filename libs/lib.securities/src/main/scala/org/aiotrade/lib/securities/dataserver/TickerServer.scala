@@ -30,8 +30,6 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.Timer
-import java.util.TimerTask
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -45,7 +43,6 @@ import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MarketDepth
-import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
