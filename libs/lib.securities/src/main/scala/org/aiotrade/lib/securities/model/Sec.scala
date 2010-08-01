@@ -123,8 +123,6 @@ object Sec {
 
   val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
 
-  val dailyQuotesToClose = new ArrayList[Quote]()
-  val dailyMoneyFlowsToClose = new ArrayList[MoneyFlow]()
   val minuteQuotesToClose = new ArrayList[Quote]()
   val minuteMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 }
@@ -572,10 +570,6 @@ class Sec extends SerProvider with Publisher {
     var minuteMoneyFlow: MoneyFlow = _
   }
 
-  /**
-   * @Note when day changes, should do LastData.dailyQuote to null, this can be done
-   * by listening to exchange's timer event
-   */
   def dailyQuoteOf(time: Long): Quote = {
     assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
     val cal = Calendar.getInstance(exchange.timeZone)

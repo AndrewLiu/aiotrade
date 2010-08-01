@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
+import java.util.Timer
+import java.util.TimerTask
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -43,6 +45,7 @@ import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MarketDepth
+import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
@@ -73,6 +76,7 @@ object TickerServer extends Publisher {
     uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)
     log.info("Loading last tickers of " + x.code + " used " + (System.currentTimeMillis - start) / 1000.0 + "s")
   }
+
 }
 
 abstract class TickerServer extends DataServer[Ticker] {
@@ -81,13 +85,6 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val log = Logger.getLogger(this.getClass.getName)
 
   refreshable = true
-
-  reactions += {
-    case Exchange.Opened(exchange: Exchange) =>
-    case Exchange.Closed(exchange: Exchange) =>
-  }
-
-  listenTo(Exchange)
 
   def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = {
     val sec = Exchange.secOf(uniSymbol).get
@@ -275,7 +272,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         }
 
 
-        // update 1m quoteSer with minuteQuote
+        // update 1m quoteSer from minuteQuote
         minSer.updateFrom(minQuote)
 
         if (execution != null) {
@@ -295,7 +292,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         // update daily quote and ser
         if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
-          val dayQuote = sec.dailyQuoteOf(ticker.time)
           updateDailyQuoteByTicker(dayQuote, ticker)
           contract.chainSers find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
         }
@@ -373,6 +369,9 @@ abstract class TickerServer extends DataServer[Ticker] {
     dailyQuote.close  = ticker.lastPrice
     dailyQuote.volume = ticker.dayVolume
     dailyQuote.amount = ticker.dayAmount
+    // In case of dailyQuote is updated, should mark it as unclosed
+    dailyQuote.unclosed_!
+    dailyQuote.sec.exchange.addUnClosedDailyQuote(dailyQuote)
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol

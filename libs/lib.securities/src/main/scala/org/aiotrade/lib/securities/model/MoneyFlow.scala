@@ -9,7 +9,8 @@ import ru.circumflex.orm._
 
 object MoneyFlows1d extends MoneyFlows {
   def dailyMoneyFlowOf(sec: Sec, time: Long): MoneyFlow = synchronized {
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val exchange = sec.exchange
+    val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
     (SELECT (this.*) FROM (this) WHERE (
@@ -26,7 +27,7 @@ object MoneyFlows1d extends MoneyFlows {
         newone.fromMe_!
         MoneyFlows1d.save(newone)
         commit
-        Sec.dailyMoneyFlowsToClose += newone
+        exchange.addUnClosedDailyMoneyFlow(newone)
         newone
     }
   }

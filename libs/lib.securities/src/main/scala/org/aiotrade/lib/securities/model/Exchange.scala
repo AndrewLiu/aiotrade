@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
@@ -147,6 +148,42 @@ object Exchange extends Publisher {
     exchange.openCloseHMs = openCloseHMs
     exchange
   }
+
+
+  private val heartBeatInterval = 15 * 60 * 1000 // 15 minutes
+  private val timer = new Timer("Exchange Heart Beat Timer")
+  timer.schedule(new TimerTask {
+      /**
+       * Save unclosed daily quotes/moneyflows periodically.
+       * @Todo But, when to close it, it's another story
+       */
+      def run {
+        var willCommit = false
+        for (exchange <- allExchanges) {
+          if (!exchange.dailyQuotesUnclosed.isEmpty) {
+            val quotesToUpdate = exchange.dailyQuotesUnclosed synchronized {
+              val x = exchange.dailyQuotesUnclosed.toArray
+              exchange.dailyQuotesUnclosed.clear
+              x
+            }
+            Quotes1d.updateBatch_!(quotesToUpdate)
+            willCommit = true
+          }
+
+          if (!exchange.dailyMoneyFlowsUnclosed.isEmpty) {
+            val mfsToUpdate = exchange.dailyMoneyFlowsUnclosed synchronized {
+              val x = exchange.dailyMoneyFlowsUnclosed.toArray
+              exchange.dailyMoneyFlowsUnclosed.clear
+              x
+            }
+            MoneyFlows1d.updateBatch_!(mfsToUpdate)
+            willCommit = true
+          }
+        }
+        
+        if (willCommit) commit
+      }
+    }, 1000, heartBeatInterval)
 }
 
 
@@ -176,6 +213,17 @@ class Exchange {
   lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
   private var _symbols = List[String]()
+
+  private val dailyQuotesUnclosed = new HashSet[Quote]()
+  private val dailyMoneyFlowsUnclosed = new HashSet[MoneyFlow]()
+
+  def addUnClosedDailyQuote(quote: Quote) = dailyQuotesUnclosed synchronized {
+    dailyQuotesUnclosed += quote
+  }
+
+  def addUnClosedDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsUnclosed synchronized {
+    dailyMoneyFlowsUnclosed += mf
+  }
 
   def open: Calendar = {
     val cal = Calendar.getInstance(timeZone)

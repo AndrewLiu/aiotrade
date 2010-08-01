@@ -48,7 +48,8 @@ object Quotes1d extends Quotes {
   }
 
   def dailyQuoteOf(sec: Sec, time: Long): Quote = synchronized {
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val exchange = sec.exchange
+    val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
     (SELECT (this.*) FROM (this) WHERE (
@@ -66,7 +67,7 @@ object Quotes1d extends Quotes {
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
         Quotes1d.save(newone)
         commit
-        Sec.dailyQuotesToClose += newone
+        exchange.addUnClosedDailyQuote(newone)
         newone
     }
   }

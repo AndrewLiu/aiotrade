@@ -55,13 +55,6 @@ abstract class QuoteServer extends DataServer[Quote] {
 
   private val log = Logger.getLogger(this.getClass.getSimpleName)
 
-  reactions += {
-    case Exchange.Opened(exchange: Exchange) =>
-    case Exchange.Closed(exchange: Exchange) =>
-  }
-
-  listenTo(Exchange)
-
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
