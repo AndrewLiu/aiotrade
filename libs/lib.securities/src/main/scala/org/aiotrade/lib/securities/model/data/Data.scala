@@ -138,7 +138,7 @@ object Data {
   }
 
   def readFromSecInfos(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is))
+    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -171,7 +171,7 @@ object Data {
   }
 
   def readFromCompanies(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is))
+    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -198,7 +198,7 @@ object Data {
   }
 
   def readFromIndustries(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is))
+    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
@@ -217,7 +217,7 @@ object Data {
   }
 
   def readFromCompanyIndustries(is: InputStream) {
-    val reader = new BufferedReader(new InputStreamReader(is))
+    val reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))
     var line: String = null
     while ({line = reader.readLine; line != null}) {
       line.split(',') match {
