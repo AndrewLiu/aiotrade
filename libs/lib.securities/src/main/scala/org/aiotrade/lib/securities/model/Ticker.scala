@@ -67,6 +67,25 @@ object Tickers extends Table[Ticker] {
         map
     }
   }
+
+//  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+//    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+//    SELECT (Tickers.*) FROM (Tickers JOIN Secs) WHERE (
+//      (Tickers.time GE (
+//          SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
+//        )
+//      ) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+//    ) ORDER_BY (Tickers.time ASC, Tickers.id ASC) list match {
+//      case xs if xs.isEmpty => new HashMap[Sec, Ticker]
+//      case xs =>
+//        val map = new HashMap[Sec, Ticker]
+//        xs groupBy (_.sec) foreach {case (sec, tickers) =>
+//            map.put(sec, tickers.head)
+//        }
+//        map
+//    }
+//  }
+
   
   def lastTickersSql = {
     /* (SELECT (Tickers.*) FROM (

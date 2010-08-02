@@ -92,7 +92,12 @@ object Data {
 
     createData
 
-    companyRecords map (_.shortName) foreach println
+    ((SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos)
+      ) list) foreach {x =>
+      log.info("secs: id=" + x._1 + ", uniSymbol=" + x._2.uniSymbol + ", name=" + x._2.name)
+    }
+
+    //companyRecords map (_.shortName) foreach println
 
     Scheduler.shutdown
     System.exit(0)

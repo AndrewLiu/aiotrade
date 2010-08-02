@@ -74,7 +74,6 @@ import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.util.actors.Reactor
@@ -222,7 +221,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
-    sname.value = Secs.company(sec) map (_.shortName) getOrElse ""
+    sname.value = sec.secInfo.name
 
     for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)
