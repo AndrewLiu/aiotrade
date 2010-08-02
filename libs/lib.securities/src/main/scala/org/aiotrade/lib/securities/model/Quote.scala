@@ -67,7 +67,7 @@ object Quotes1d extends Quotes {
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
         Quotes1d.save(newone)
         commit
-        exchange.addUnClosedDailyQuote(newone)
+        exchange.addUnclosedDailyQuote(newone)
         newone
     }
   }

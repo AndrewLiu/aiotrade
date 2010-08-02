@@ -27,7 +27,7 @@ object MoneyFlows1d extends MoneyFlows {
         newone.fromMe_!
         MoneyFlows1d.save(newone)
         commit
-        exchange.addUnClosedDailyMoneyFlow(newone)
+        exchange.addUnclosedDailyMoneyFlow(newone)
         newone
     }
   }

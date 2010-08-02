@@ -144,6 +144,7 @@ abstract class TickerServer extends DataServer[Ticker] {
    * @param TVal(s)
    */
   def composeSer(values: Array[Ticker]): Iterable[TSerEvent] = {
+    log.info("Composing ser from tickers: " + values.length)
     if (values.length == 0) return Nil
 
     val allTickers = new ArrayList[Ticker]
@@ -366,9 +367,9 @@ abstract class TickerServer extends DataServer[Ticker] {
     dailyQuote.close  = ticker.lastPrice
     dailyQuote.volume = ticker.dayVolume
     dailyQuote.amount = ticker.dayAmount
-    // In case of dailyQuote is updated, should mark it as unclosed
+    // In case of dailyQuote being updated, should mark it as unclosed
     dailyQuote.unclosed_!
-    dailyQuote.sec.exchange.addUnClosedDailyQuote(dailyQuote)
+    dailyQuote.sec.exchange.addUnclosedDailyQuote(dailyQuote)
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol

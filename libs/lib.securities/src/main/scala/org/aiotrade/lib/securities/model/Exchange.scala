@@ -158,6 +158,7 @@ object Exchange extends Publisher {
        * @Todo But, when to close it, it's another story
        */
       def run {
+        log.info("Exchange heartbeat: ")
         var willCommit = false
         for (exchange <- allExchanges) {
           if (!exchange.dailyQuotesUnclosed.isEmpty) {
@@ -166,6 +167,7 @@ object Exchange extends Publisher {
               exchange.dailyQuotesUnclosed.clear
               x
             }
+            log.info("Exchange heartbeat to update daily quotes: " + quotesToUpdate.length)
             Quotes1d.updateBatch_!(quotesToUpdate)
             willCommit = true
           }
@@ -176,12 +178,16 @@ object Exchange extends Publisher {
               exchange.dailyMoneyFlowsUnclosed.clear
               x
             }
+            log.info("Exchange heartbeat to update daily moneyflows=" + mfsToUpdate.length)
             MoneyFlows1d.updateBatch_!(mfsToUpdate)
             willCommit = true
           }
         }
-        
-        if (willCommit) commit
+
+        if (willCommit) {
+          commit
+          log.info("Exchange heartbeat: committed")
+        }
       }
     }, 1000, heartBeatInterval)
 }
@@ -217,11 +223,11 @@ class Exchange {
   private val dailyQuotesUnclosed = new HashSet[Quote]()
   private val dailyMoneyFlowsUnclosed = new HashSet[MoneyFlow]()
 
-  def addUnClosedDailyQuote(quote: Quote) = dailyQuotesUnclosed synchronized {
+  def addUnclosedDailyQuote(quote: Quote) = dailyQuotesUnclosed synchronized {
     dailyQuotesUnclosed += quote
   }
 
-  def addUnClosedDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsUnclosed synchronized {
+  def addUnclosedDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsUnclosed synchronized {
     dailyMoneyFlowsUnclosed += mf
   }
 
