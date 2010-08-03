@@ -150,46 +150,46 @@ object Exchange extends Publisher {
   }
 
 
-  private val heartBeatInterval = 15 * 60 * 1000 // 15 minutes
-  private val timer = new Timer("Exchange Heart Beat Timer")
-  timer.schedule(new TimerTask {
-      /**
-       * Save unclosed daily quotes/moneyflows periodically.
-       * @Todo But, when to close it, it's another story
-       */
-      def run {
-        log.info("Exchange heartbeat: ")
-        var willCommit = false
-        for (exchange <- allExchanges) {
-          if (!exchange.dailyQuotesUnclosed.isEmpty) {
-            val quotesToUpdate = exchange.dailyQuotesUnclosed synchronized {
-              val x = exchange.dailyQuotesUnclosed.toArray
-              exchange.dailyQuotesUnclosed.clear
-              x
-            }
-            log.info("Exchange heartbeat to update daily quotes: " + quotesToUpdate.length)
-            Quotes1d.updateBatch_!(quotesToUpdate)
-            willCommit = true
-          }
-
-          if (!exchange.dailyMoneyFlowsUnclosed.isEmpty) {
-            val mfsToUpdate = exchange.dailyMoneyFlowsUnclosed synchronized {
-              val x = exchange.dailyMoneyFlowsUnclosed.toArray
-              exchange.dailyMoneyFlowsUnclosed.clear
-              x
-            }
-            log.info("Exchange heartbeat to update daily moneyflows=" + mfsToUpdate.length)
-            MoneyFlows1d.updateBatch_!(mfsToUpdate)
-            willCommit = true
-          }
-        }
-
-        if (willCommit) {
-          commit
-          log.info("Exchange heartbeat: committed")
-        }
-      }
-    }, 1000, heartBeatInterval)
+//  private val heartBeatInterval = 15 * 60 * 1000 // 15 minutes
+//  private val timer = new Timer("Exchange Heart Beat Timer")
+//  timer.schedule(new TimerTask {
+//      /**
+//       * Save unclosed daily quotes/moneyflows periodically.
+//       * @Todo But, when to close it, it's another story
+//       */
+//      def run {
+//        log.info("Exchange heartbeat: ")
+//        var willCommit = false
+//        for (exchange <- allExchanges) {
+//          if (!exchange.dailyQuotesUnclosed.isEmpty) {
+//            val quotesToUpdate = exchange.dailyQuotesUnclosed synchronized {
+//              val x = exchange.dailyQuotesUnclosed.toArray
+//              exchange.dailyQuotesUnclosed.clear
+//              x
+//            }
+//            log.info("Exchange heartbeat to update daily quotes: " + quotesToUpdate.length)
+//            Quotes1d.updateBatch_!(quotesToUpdate)
+//            willCommit = true
+//          }
+//
+//          if (!exchange.dailyMoneyFlowsUnclosed.isEmpty) {
+//            val mfsToUpdate = exchange.dailyMoneyFlowsUnclosed synchronized {
+//              val x = exchange.dailyMoneyFlowsUnclosed.toArray
+//              exchange.dailyMoneyFlowsUnclosed.clear
+//              x
+//            }
+//            log.info("Exchange heartbeat to update daily moneyflows=" + mfsToUpdate.length)
+//            MoneyFlows1d.updateBatch_!(mfsToUpdate)
+//            willCommit = true
+//          }
+//        }
+//
+//        if (willCommit) {
+//          commit
+//          log.info("Exchange heartbeat: committed")
+//        }
+//      }
+//    }, 1000, heartBeatInterval)
 }
 
 

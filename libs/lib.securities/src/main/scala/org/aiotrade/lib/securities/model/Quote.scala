@@ -53,7 +53,7 @@ object Quotes1d extends Quotes {
     val rounded = TFreq.DAILY.round(time, cal)
 
     (SELECT (this.*) FROM (this) WHERE (
-        (this.time EQ rounded) AND (this.sec.field EQ Secs.idOf(sec))
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
       ) list
     ) headOption match {
       case Some(one) => one

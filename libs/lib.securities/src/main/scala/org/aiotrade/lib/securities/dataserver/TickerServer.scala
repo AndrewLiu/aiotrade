@@ -150,6 +150,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     val allTickers = new ArrayList[Ticker]
     val allExecutions = new ArrayList[Execution]
     val allSnapDepths = new ArrayList[SnapDepth]
+    val updatedDailyQuotes = new ArrayList[Quote]
 
     val symbolToTickerInfo = new HashMap[String, TickerInfo]
 
@@ -290,6 +291,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         // update daily quote and ser
         if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
+          updatedDailyQuotes += dayQuote
           updateDailyQuoteByTicker(dayQuote, ticker)
           contract.chainSers find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
         }
@@ -339,9 +341,15 @@ abstract class TickerServer extends DataServer[Ticker] {
       willCommit = true
     }
 
+    val dailyQuotes = updatedDailyQuotes.toArray
+    if (dailyQuotes.length > 0) {
+      Quotes1d.updateBatch(dailyQuotes)
+      willCommit = true
+    }
+
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) {
-      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
+      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length + ", dailyQuotes=" + dailyQuotes.length)
       commit
       log.info("Committed")
     }
@@ -369,7 +377,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     dailyQuote.amount = ticker.dayAmount
     // In case of dailyQuote being updated, should mark it as unclosed
     dailyQuote.unclosed_!
-    dailyQuote.sec.exchange.addUnclosedDailyQuote(dailyQuote)
+    //dailyQuote.sec.exchange.addUnclosedDailyQuote(dailyQuote)
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
