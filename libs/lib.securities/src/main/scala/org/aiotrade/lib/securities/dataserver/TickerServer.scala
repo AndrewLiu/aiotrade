@@ -283,19 +283,17 @@ abstract class TickerServer extends DataServer[Ticker] {
           sec.publish(ExecutionEvent(ticker.prevClose, execution))
         }
 
-        if (tickerValid) {
+        if (tickerValid && (ticker.dayHigh != 0 && ticker.dayLow != 0)) {
           allTickers += ticker
           prevTicker.copyFrom(ticker)
           sec.publish(TickerEvent(ticker))
-        }
 
-
-        // update daily quote and ser
-        if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
+          // update daily quote and ser
           updatedDailyQuotes += dayQuote
           updateDailyQuoteByTicker(dayQuote, ticker)
           contract.chainSers find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
         }
+
       }
 
       i += 1
