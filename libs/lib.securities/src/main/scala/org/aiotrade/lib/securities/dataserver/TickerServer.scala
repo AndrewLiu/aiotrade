@@ -31,7 +31,8 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent}
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.TickerSnapshot

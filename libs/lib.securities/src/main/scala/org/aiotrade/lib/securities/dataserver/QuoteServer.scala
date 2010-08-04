@@ -32,6 +32,7 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
@@ -59,7 +60,8 @@ abstract class QuoteServer extends DataServer[Quote] {
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
   override protected def postLoadHistory(quotes: Array[Quote]): Long = {
-    var lastTime = loadedTime
+    var frTime = loadedTime
+    var toTime = loadedTime
     val contract = currentContract.get
     val ser = contract.ser
     val freq = ser.freq
@@ -69,7 +71,8 @@ abstract class QuoteServer extends DataServer[Quote] {
       val quote = quotes(i)
       quote.sec = sec
       quote.unfromMe_!
-      lastTime = math.max(quote.time, lastTime)
+      frTime = math.min(quote.time, frTime)
+      toTime = math.max(quote.time, toTime)
       i += 1
     }
     freq match {
@@ -83,8 +86,17 @@ abstract class QuoteServer extends DataServer[Quote] {
     }
 
     ser ++= quotes
+
+    ser.loaded = true
+    ser.publish(TSerEvent.FinishedLoading(ser, sec.uniSymbol, frTime, toTime))
+
+    if (contract.refreshable) {
+      startRefresh(contract.refreshInterval)
+    } else {
+      unSubscribe(contract)
+    }
     
-    lastTime
+    toTime
   }
 
   override protected def postRefresh(quotes: Array[Quote]): Long = {

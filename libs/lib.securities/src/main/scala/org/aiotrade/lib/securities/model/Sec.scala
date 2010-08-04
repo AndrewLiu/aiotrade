@@ -213,25 +213,6 @@ class Sec extends SerProvider with Publisher {
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
-  reactions += {
-    case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
-      // contract quoteServer of freq centernly still exists only under this type of event
-      val freq = srcSer.freq
-      for (quoteContract <- quoteContractOf(defaultFreq);
-           quoteServer <- quoteContract.serviceInstance()
-      ) {
-        srcSer.loaded = true
-        if (quoteContract.refreshable) {
-          quoteServer.startRefresh(quoteContract.refreshInterval)
-        } else {
-          quoteServer.unSubscribe(quoteContract)
-        }
-
-        deafTo(srcSer)
-      }
-    case _ =>
-  }
-
   def serOf(freq: TFreq): Option[QuoteSer] = freq match {
     case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
     case _ => freqToQuoteSer.get(freq) match {
@@ -435,7 +416,6 @@ class Sec extends SerProvider with Publisher {
       ser.inLoading = true
       quoteServer.loadHistory(wantTime)
 
-      listenTo(ser)
       return true
     }
     
