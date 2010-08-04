@@ -3,16 +3,16 @@ package org.aiotrade.lib.securities.model
 import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm._
 
-case class ExecutionEvent(prevClose: Float, execution: Execution) extends Event
+case class ExecutionEvent(prevClose: Double, execution: Execution) extends Event
 
 object Executions extends Table[Execution] {
   val quote = "quotes_id" REFERENCES(Quotes1d)
 
   val time = "time" BIGINT
 
-  val price  = "price"  FLOAT(12, 2)
-  val volume = "volume" FLOAT(12, 2)
-  val amount = "amount" FLOAT(12, 2)
+  val price  = "price"  DOUBLE()
+  val volume = "volume" DOUBLE()
+  val amount = "amount" DOUBLE()
 
   val flag = "flag" TINYINT // @Note jdbc type of TINYINT is Int
 
@@ -42,9 +42,9 @@ class Execution {
   
   var time: Long = -1
 
-  var price:  Float = _
-  var volume: Float = _
-  var amount: Float = _
+  var price:  Double = _
+  var volume: Double = _
+  var amount: Double = _
 
   var flag: Int = _ // @Note jdbc type of TINYINT is Int
 

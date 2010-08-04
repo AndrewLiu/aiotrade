@@ -46,11 +46,11 @@ class BOLLIndicator extends Indicator {
   val alpha1 = Factor("Alpha1", 2.0, 0.1)
   val alpha2 = Factor("Alpha2", 2.0, 0.1)
     
-  val boll_m  = TVar[Float]("MA",    Plot.Line)
-  val boll_u1 = TVar[Float]("UPPER", Plot.Line)
-  val boll_l1 = TVar[Float]("LOWER", Plot.Line)
-  val boll_u2 = TVar[Float]("UPPER", Plot.Line)
-  val boll_l2 = TVar[Float]("LOWER", Plot.Line)
+  val boll_m  = TVar[Double]("MA",    Plot.Line)
+  val boll_u1 = TVar[Double]("UPPER", Plot.Line)
+  val boll_l1 = TVar[Double]("LOWER", Plot.Line)
+  val boll_u2 = TVar[Double]("UPPER", Plot.Line)
+  val boll_l2 = TVar[Double]("LOWER", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

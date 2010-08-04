@@ -38,11 +38,11 @@ import org.aiotrade.lib.charting.view.scalar.Scalar.Type
 
 final class LinearScalar extends Scalar {
     
-  final def doScale(v: Float): Float = {
+  final def doScale(v: Double): Double = {
     v
   }
     
-  final def unScale(v: Float): Float = {
+  final def unScale(v: Double): Double = {
     v
   }
     

@@ -39,7 +39,7 @@ import org.aiotrade.lib.util.actors.Event
 case class SnapDepthsEvent(src: DataServer[_ <: TVal], snapDepths: Array[SnapDepth]) extends Event
 
 case class SnapDepth (
-  prevPrice: Float,
+  prevPrice: Double,
   prevDepth: MarketDepth,
   execution: Execution
 )

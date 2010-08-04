@@ -87,7 +87,7 @@ class ProfileChart extends AbstractChart {
         
     if (ser.exists(time)) {
       m.v(time) match {
-        case mass: Array[Array[Float]] =>
+        case mass: Array[Array[Double]] =>
           plotProfileChart(mass, xorigin, width, path)
           g.setColor(color)
           g.asInstanceOf[Graphics2D].fill(path)
@@ -100,7 +100,7 @@ class ProfileChart extends AbstractChart {
   }
     
     
-  private def plotProfileChart(profile: Array[Array[Float]], xorigin: Float, width: Float, path: GeneralPath) {
+  private def plotProfileChart(profile: Array[Array[Double]], xorigin: Double, width: Double, path: GeneralPath) {
     val nIntervals = profile(StatisticFunction.VALUE).length - 1
         
     val halfInterval = if (nIntervals < 1) 0f else
@@ -108,7 +108,7 @@ class ProfileChart extends AbstractChart {
         
     var firstValueGot = false
         
-    var y = Null.Float
+    var y = Null.Double
     var i = 0
     while (i <= nIntervals) {
             

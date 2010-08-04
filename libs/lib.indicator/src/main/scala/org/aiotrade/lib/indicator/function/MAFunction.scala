@@ -41,19 +41,19 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class MAFunction extends Function {
-  final protected def ima(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def ima(idx: Int, baseVar: TVar[Double], period: Double, prev: Double): Double = {
     return StatisticFunction.ima(idx, baseVar.values, period.toInt, prev)
   }
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _ma = TVar[Float]()
+  val _ma = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
     args match {
-      case Seq(a0: TVar[Float], a1: Factor) =>
+      case Seq(a0: TVar[Double], a1: Factor) =>
         this.baseVar = a0
         this.period = a1
     }
@@ -62,7 +62,7 @@ class MAFunction extends Function {
   protected def computeSpot(i: Int) : Unit = {
     if (i < period.value - 1) {
             
-      _ma(i) = Null.Float
+      _ma(i) = Null.Double
             
     } else {
             
@@ -71,7 +71,7 @@ class MAFunction extends Function {
     }
   }
     
-  def ma(sessionId: Long, idx: Int): Float = {
+  def ma(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _ma(idx)

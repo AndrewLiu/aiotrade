@@ -11,4 +11,12 @@
     <version>1.0-SNAPSHOT</version>
     <name>lib-util</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>net.lag</groupId>
+            <artifactId>configgy</artifactId>
+            <version>1.5.5</version>
+        </dependency>
+    </dependencies>
+
 </project>

@@ -30,14 +30,14 @@
  */
 package org.aiotrade.modules.ui.netbeans.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent;
+import java.awt.event.MouseEvent
 import javax.swing.AbstractAction
-import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
+import javax.swing.JComponent
+import javax.swing.JPopupMenu
 import javax.swing.JSplitPane
 import javax.swing.JTable;
 import javax.swing.KeyStroke
@@ -47,19 +47,18 @@ import javax.swing.event.ListSelectionListener
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
 import org.aiotrade.modules.ui.netbeans.actions.StopSelectedWatchAction
+import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager
-import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.WeakHashMap
 
@@ -110,8 +109,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   instanceRefs.put(this, null)
     
   private val tc_id = "RealTimeWatchList"
-  private val symbolToNode = HashMap[String, Node]()
-  private val watchListPanel = new RealTimeWatchListPanel
+  val watchListPanel = new RealTimeWatchListPanel
   private var realTimeBoard: RealTimeBoardPanel = _
 
   private var updateServerRegistered = false
@@ -149,7 +147,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
       if (row >= 0 && row < watchListTable.getRowCount) {
         val symbol = watchListPanel.symbolAtRow(row)
         if (symbol != null) {
-          symbolToNode.get(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
+          SymbolNodes.findSymbolNode(symbol) foreach {_.getLookup.lookup(classOf[ViewAction]).execute}
         }
       }
     }
@@ -160,6 +158,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
   watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      private var prevSelected: String = _
       def valueChanged(e: ListSelectionEvent) {
         val lsm = e.getSource.asInstanceOf[ListSelectionModel]
         if (lsm.isSelectionEmpty) {
@@ -168,8 +167,9 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
           val row = watchListTable.getSelectedRow
           if (row >= 0 && row < watchListTable.getRowCount) {
             val symbol = watchListPanel.symbolAtRow(row)
-            if (symbol != null) {
-              symbolToNode.get(symbol) foreach {x =>
+            if (symbol != null && prevSelected != symbol) {
+              prevSelected = symbol
+              SymbolNodes.findSymbolNode(symbol) foreach {x =>
                 val viewAction = x.getLookup.lookup(classOf[ViewAction])
                 viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
                 viewAction.execute
@@ -217,14 +217,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   }
 
   override protected def componentClosed {
-    stopAllWatch
-        
-    for (x <- instances) {
-      x.setReallyClosed(true)
-      x.close
-    }
-    instanceRefs.clear
-    
+    setReallyClosed(true)
     super.componentClosed
   }
 
@@ -235,18 +228,11 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
 
   def watch(sec: Sec, node: Node) {
     watchListPanel.watch(sec)
-    symbolToNode.put(sec.uniSymbol, node)
     watchingSecs.add(sec)
   }
     
   def unWatch(sec: Sec) {
     watchListPanel.unWatch(sec)
-                
-    /**
-     * @Note
-     * don't remove from symbolToNode, because you may need to restart it
-     *    symbolToNode.remove(sec.uniSymbol))
-     */
   }
     
   def getSelectedSymbolNodes: List[Node] = {
@@ -254,7 +240,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     for (row <- watchListTable.getSelectedRows) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
-        symbolToNode.get(symbol) foreach {node =>
+        SymbolNodes.findSymbolNode(symbol) foreach {node =>
           selectedNodes ::= node
         }
       }
@@ -267,7 +253,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     for (row <- 0 until watchListTable.getRowCount) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
-        symbolToNode.get(symbol) foreach {node =>
+        SymbolNodes.findSymbolNode(symbol) foreach {node =>
           nodes ::= node
         }
       }
@@ -285,16 +271,12 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     }
         
     for (sec <- watchingSecs) {
-      val tickerServer = sec.tickerServer
-      if (tickerServer != null) {
-        tickerServer.stopRefresh
-      }
+      sec.unSubscribeTickerServer
     }
         
     /** should clear tickerWatchListPanel */
     watchListPanel.clearAllWatch
     watchingSecs.clear
-    symbolToNode.clear
   }
 
   private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseAdapter {
@@ -323,7 +305,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol != null) {
-          symbolToNode.get(symbol) foreach {x =>
+          SymbolNodes.findSymbolNode(symbol) foreach {x =>
             val viewAction = x.getLookup.lookup(classOf[ViewAction])
             viewAction.putValue(AnalysisChartTopComponent.STANDALONE, true)
             viewAction.execute

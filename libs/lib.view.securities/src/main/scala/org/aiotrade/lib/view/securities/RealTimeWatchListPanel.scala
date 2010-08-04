@@ -33,13 +33,15 @@ package org.aiotrade.lib.view.securities
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Font
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Comparator
-import java.util.Locale
 import java.util.ResourceBundle
+import java.util.logging.Logger
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -50,19 +52,20 @@ import javax.swing.RowSorter
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.dataserver.TickersEvent
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 
 /**
  *
@@ -79,11 +82,13 @@ object RealTimeWatchListPanel {
 
 import RealTimeWatchListPanel._
 class RealTimeWatchListPanel extends JPanel with Reactor {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private val SYMBOL     = "Symbol"
   private val TIME       = "Time"
   private val LAST_PRICE = "Last"
   private val DAY_VOLUME = "Volume"
+  private val DAY_AMOUNT = "Amount"
   private val PREV_CLOSE = "PrevCls"
   private val DAY_CHANGE = "Change"
   private val PERCENT    = "Percent"
@@ -96,6 +101,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     TIME,
     LAST_PRICE,
     DAY_VOLUME,
+    DAY_AMOUNT,
     PREV_CLOSE,
     DAY_CHANGE,
     PERCENT,
@@ -105,9 +111,9 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   )
 
   private val uniSymbols = new ArrayList[String]
+  private val watchingSymbols = new HashSet[String] // symbols will list in this pael
 
   private class Info {
-    var inWatching = false
     val prevTicker = new Ticker
     val colKeyToColor = HashMap[String, Color]()
     for (key <- colKeys) {
@@ -118,8 +124,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   val table = new JTable
   private val model = new WatchListTableModel
-  private val df = new SimpleDateFormat("hh:mm", Locale.US)
+  private val df = new SimpleDateFormat("HH:mm:ss")
   private val cal = Calendar.getInstance
+  private val priceDf = new DecimalFormat("0.000")
+
   private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
 
   initTable
@@ -138,23 +146,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   add(BorderLayout.CENTER, scrollPane)
 
   reactions += {
-    case TickerEvent(sec: Sec, ticker: Ticker) =>
-      /*
-       * To avoid:
-       java.lang.NullPointerException
-       at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
-       at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
-       at javax.swing.JTable.getValueAt(JTable.java:2695)
-       at javax.swing.JTable.prepareRenderer(JTable.java:5712)
-       at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
-       * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
-       */
-      SwingUtilities.invokeLater(new Runnable {
-          def run {
-            updateByTicker(sec.uniSymbol, ticker)
-          }
-        })
+    case TickersEvent(tickers) => updateByTickers(tickers)
   }
+
+  listenTo(TickerServer)
 
   /** forward focus to scrollPane, so it can response UP/DOWN key event etc */
   override def requestFocusInWindow: Boolean = {
@@ -175,10 +170,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     table.setGridColor(LookFeel().backgroundColor)
     table.setFillsViewportHeight(true)
     val header = table.getTableHeader
-    header.setForeground(Color.WHITE)
-    header.setBackground(LookFeel().backgroundColor)
+    header.setDefaultRenderer(new TableHeaderRenderer)
     header.setReorderingAllowed(true)
-    header.getDefaultRenderer.asInstanceOf[DefaultTableCellRenderer].setHorizontalAlignment(SwingConstants.CENTER)
 
     // --- sorter
     table.setAutoCreateRowSorter(false)
@@ -187,15 +180,20 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       def compare(o1: Object, o2: Object): Int = {
         (o1, o2) match {
           case (s1: String, s2: String) =>
-            val idx1 = s1.indexOf('%')
-            val s11 = if (idx1 > 0) s1.substring(0, idx1) else s1
-            val idx2 = s2.indexOf('%')
-            val s12 = if (idx2 > 0) s2.substring(0, idx2) else s2
-            try {
-              val d1 = s11.toDouble
-              val d2 = s12.toDouble
-              if (d1 > d2) 1 else if (d1 < d2) -1 else 0
-            } catch {case _ => s1 compareTo s2}
+            if (s1 == "-" && s2 == "-") 0
+            else if (s1 == "-") -1
+            else if (s2 == "-") 1
+            else {
+              val idx1 = s1.indexOf('%')
+              val s11 = if (idx1 > 0) s1.substring(0, idx1) else s1
+              val idx2 = s2.indexOf('%')
+              val s12 = if (idx2 > 0) s2.substring(0, idx2) else s2
+              try {
+                val d1 = s11.toDouble
+                val d2 = s12.toDouble
+                if (d1 > d2) 1 else if (d1 < d2) -1 else 0
+              } catch {case _ => s1 compareTo s2}
+            }
           case _ => 0
         }
       }
@@ -226,7 +224,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     private val types = Array(
-      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
+      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
 
     def getRowCount: Int = uniSymbols.size
@@ -236,7 +234,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       val symbol = uniSymbols(row)
       val exchange = Exchange.exchangeOf(symbol)
       
-      exchange.uniSymbolToLastTicker.get(symbol) match {
+      TickerServer.uniSymbolToLastTicker.get(symbol) match {
         case Some(ticker) =>
           colKeys(col) match {
             case SYMBOL => symbol
@@ -246,14 +244,15 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
               cal.setTimeInMillis(ticker.time)
               df.setTimeZone(tz)
               df format cal.getTime
-            case LAST_PRICE => "%5.2f"   format ticker.lastPrice
-            case DAY_VOLUME => "%5.2f"   format ticker.dayVolume
-            case PREV_CLOSE => "%5.2f"   format ticker.prevClose
-            case DAY_CHANGE => "%5.2f"   format ticker.dayChange
+            case LAST_PRICE => priceDf   format ticker.lastPrice
+            case DAY_VOLUME => "%10.2f"  format ticker.dayVolume / 100.0
+            case DAY_AMOUNT => "%10.2f"  format ticker.dayAmount / 10000.0
+            case PREV_CLOSE => priceDf   format ticker.prevClose
+            case DAY_CHANGE => priceDf   format ticker.dayChange
             case PERCENT    => "%3.2f%%" format ticker.changeInPercent
-            case DAY_HIGH   => "%5.2f"   format ticker.dayHigh
-            case DAY_LOW    => "%5.2f"   format ticker.dayLow
-            case DAY_OPEN   => "%5.2f"   format ticker.dayOpen
+            case DAY_HIGH   => priceDf   format ticker.dayHigh
+            case DAY_LOW    => priceDf   format ticker.dayLow
+            case DAY_OPEN   => priceDf   format ticker.dayOpen
             case _ => null
           }
         case None =>
@@ -262,6 +261,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
             case TIME => "_"
             case LAST_PRICE => "_"
             case DAY_VOLUME => "_"
+            case DAY_AMOUNT => "_"
             case PREV_CLOSE => "_"
             case DAY_CHANGE => "_"
             case PERCENT    => "_"
@@ -283,7 +283,39 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
   }
 
-  private def updateByTicker(symbol: String, ticker: LightTicker) {
+  def updateByTickers(tickers: Array[LightTicker]) {
+    /*
+     * To avoid:
+     java.lang.NullPointerException
+     at javax.swing.DefaultRowSorter.convertRowIndexToModel(DefaultRowSorter.java:501)
+     at javax.swing.JTable.convertRowIndexToModel(JTable.java:2620)
+     at javax.swing.JTable.getValueAt(JTable.java:2695)
+     at javax.swing.JTable.prepareRenderer(JTable.java:5712)
+     at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
+     * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
+     */
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          log.info("Batch updating, tickers: " + tickers.length)
+          var updated = false
+          var i = 0
+          while (i < tickers.length) {
+            val ticker = tickers(i)
+            if (watchingSymbols.contains(ticker.symbol)) {
+              updated = updateByTicker(ticker) | updated // don't use shortcut one: "||"
+            }
+            i += 1
+          }
+
+          if (updated) {
+            table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
+          }
+        }
+      })
+  }
+
+  private def updateByTicker(ticker: LightTicker): Boolean = {
+    val symbol = ticker.symbol
     if (!uniSymbols.contains(symbol)) {
       uniSymbols += symbol
     }
@@ -296,8 +328,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         (x, true)
     }
 
-    if (ticker == null) return
-    if (!info.inWatching) return
+    if (ticker == null) return false
 
     val prevTicker = info.prevTicker
     /**
@@ -319,16 +350,14 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
     prevTicker.copyFrom(ticker)
     
-    if (updated) {
-      table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
-    }
+    updated
   }
 
   private val SWITCH_COLOR_A = LookFeel().nameColor
   private val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
   private def setColColorsByTicker(info: Info, ticker: LightTicker) {
-    val fgColor = if (info.inWatching) LookFeel().nameColor else Color.GRAY.brighter
+    val fgColor = LookFeel().nameColor
 
     val colKeyToColor = info.colKeyToColor
     for (key <- colKeyToColor.keysIterator) {
@@ -339,10 +368,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     val positiveColor = LookFeel().getPositiveBgColor
     val negativeColor = LookFeel().getNegativeBgColor
 
-    if (info.inWatching) {
-      /** color of volume should be recorded for switching between two colors */
-      colKeyToColor(DAY_VOLUME) = fgColor
-    }
+    /** color of volume should be recorded for switching between two colors */
+    colKeyToColor(DAY_VOLUME) = fgColor
 
     if (ticker != null) {
       if (ticker.dayChange > 0) {
@@ -356,7 +383,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         colKeyToColor(PERCENT)    = neutralColor
       }
 
-      def setColorByPrevClose(value: Float, columnName: String) {
+      def setColorByPrevClose(value: Double, columnName: String) {
         if (value > ticker.prevClose) {
           colKeyToColor(columnName) = positiveColor
         } else if (value < ticker.prevClose) {
@@ -391,42 +418,17 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         }
       }
     }
-
   }
 
 
   def watch(sec: Sec) {
-    listenTo(sec)
-
     val uniSymbol = sec.uniSymbol
-    symbolToInfo.get(uniSymbol) match {
-      case Some(x) =>
-        x.inWatching = true
-        setColColorsByTicker(x, x.prevTicker)
-        repaint()
-      case None =>
-        val x = new Info
-        x.inWatching = true
-        symbolToInfo.put(uniSymbol, x)
-    }
-
-    if (!uniSymbols.contains(uniSymbol)) {
-      val lastTicker = sec.exchange.uniSymbolToLastTicker.get(uniSymbol).getOrElse(null)
-      updateByTicker(uniSymbol, lastTicker)
-    }
+    watchingSymbols += uniSymbol
   }
 
   def unWatch(sec: Sec) {
-    deafTo(sec)
-
     val uniSymbol = sec.uniSymbol
-    symbolToInfo.get(uniSymbol) match {
-      case Some(x) =>
-        x.inWatching = false
-        setColColorsByTicker(x, x.prevTicker)
-        repaint()
-      case None =>
-    }
+    watchingSymbols -= uniSymbol
   }
 
   def clearAllWatch {
@@ -437,14 +439,15 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     val symbol = table.getValueAt(row, colKeys.findIndexOf(_ == SYMBOL)).asInstanceOf[String]
     symbol
   }
-
+  
   class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {
-
+    private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
     setOpaque(true)
-
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
                                       hasFocus: Boolean, row: Int, col: Int): Component = {
 
+      setFont(defaultFont)
+      
       /**
        * @Note
        * Here we should use table.getColumeName(column) which is

@@ -80,7 +80,7 @@ class YControlPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview
     
   class MyScrollControl extends AbstractScrollControl {
     protected def viewScrolledByUnit(nUnitsWithDirection: Double) {
-      val yChartScale = scrollControl.getValueShownEnd.asInstanceOf[Float]
+      val yChartScale = scrollControl.getValueShownEnd.asInstanceOf[Double]
       
       view.yChartScale = yChartScale
     }
@@ -106,7 +106,7 @@ class YControlPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview
     val modelRange = modelValueRange
         
     /** now try to find the modelBeg and modelEnd, we can decide the middle is at canvas center: */
-    val modelCenter = mainChartPane.vy(yCanvasCenter.toFloat)
+    val modelCenter = mainChartPane.vy(yCanvasCenter)
     val modelEnd = modelCenter + modelRange * 0.5
     val modelBeg = modelEnd - modelRange
         

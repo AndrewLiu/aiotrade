@@ -105,7 +105,7 @@ class RpcClientOrig(channel: Channel, exchange: String, routingKey: String) {
    */
   @throws(classOf[IOException])
   private def setupReplyQueue: String = {
-    channel.queueDeclare("", false, false, true, true, null).getQueue
+    channel.queueDeclare.getQueue
   }
 
   /**
@@ -129,7 +129,7 @@ class RpcClientOrig(channel: Channel, exchange: String, routingKey: String) {
       @throws(classOf[IOException])
       override def handleDelivery(consumerTag: String, env: Envelope, prop: AMQP.BasicProperties, body: Array[Byte]) {
         continuationMap synchronized  {
-          val replyId = prop.correlationId
+          val replyId = prop.getCorrelationId
           val blocker = continuationMap.get(replyId)
           continuationMap.remove(replyId)
           blocker.set(body)
@@ -173,8 +173,8 @@ class RpcClientOrig(channel: Channel, exchange: String, routingKey: String) {
     continuationMap synchronized {
       correlationId += 1
       val replyId = correlationId.toString
-      props.correlationId = replyId
-      props.replyTo = replyQueue
+      props.setCorrelationId(replyId)
+      props.setReplyTo(replyQueue)
       
       continuationMap.put(replyId, k)
     }

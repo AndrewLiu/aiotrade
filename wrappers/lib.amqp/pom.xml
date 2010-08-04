@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>1.6.0</version>
+            <version>1.8.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-cli</groupId>
@@ -78,19 +78,6 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-json</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Have to explicitly depend on lib.securities and lib.math, so the Ticker and TFreq's
-             class.forName can be loaded (during serialization) -->
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-aiotrade-lib-securities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-aiotrade-lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
 

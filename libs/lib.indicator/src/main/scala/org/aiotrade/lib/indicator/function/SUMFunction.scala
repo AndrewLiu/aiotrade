@@ -41,26 +41,26 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class SUMFunction extends Function {
-  final protected def isum(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def isum(idx: Int, baseVar: TVar[Double], period: Double, prev: Double): Double = {
     StatisticFunction.isum(idx, baseVar.values, period.toInt, prev)
   }
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _sum = TVar[Float]()
+  val _sum = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _sum(i) = Null.Float
+      _sum(i) = Null.Double
             
     } else {
             
@@ -69,7 +69,7 @@ class SUMFunction extends Function {
     }
   }
     
-  def sum(sessionId: Long, idx: Int): Float = {
+  def sum(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _sum(idx)

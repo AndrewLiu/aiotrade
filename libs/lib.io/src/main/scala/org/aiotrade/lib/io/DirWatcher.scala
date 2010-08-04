@@ -2,6 +2,7 @@ package org.aiotrade.lib.io
 
 import java.io.File
 import java.io.FileFilter
+import java.io.IOException
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
@@ -22,8 +23,24 @@ object DirWatcher {
   }
 }
 
-class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
-  private val fileToLastModified = new HashMap ++ (path listFiles filter map (x => x -> x.lastModified))
+@throws(classOf[IOException])
+abstract class DirWatcher(path: File, filter: FileFilter, includingExistingFiles: Boolean = false) extends TimerTask {
+  private val fileToLastModified = new HashMap[File, Long]
+
+  path.listFiles(filter) match {
+    case null =>
+    case existed => 
+      var i = 0
+      while (i < existed.length) {
+        val x = existed(i)
+        fileToLastModified.put(x, lastModified(x))
+        i += 1
+      }
+      if (includingExistingFiles) {
+        existed.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
+      }
+  }
+
 
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
@@ -35,7 +52,10 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
 
   /** always add () for empty apply method */
   final def apply() {
-    val files = path listFiles filter
+    //It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
+    val files = path listFiles filter sortWith(_.compareTo(_) < 0)
+    if (files == null) return
+
     val checkedFiles = new HashSet[File]
 
     var i = 0
@@ -46,11 +66,11 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
       fileToLastModified.get(file) match {
         case None =>
           // new file
-          fileToLastModified.put(file, file.lastModified)
+          fileToLastModified.put(file, lastModified(file))
           onChange(FileAdded(file))
-        case Some(lastModified) if lastModified != file.lastModified =>
+        case Some(last) if last != lastModified(file) =>
           // modified file
-          fileToLastModified.put(file, file.lastModified)
+          fileToLastModified.put(file, lastModified(file))
           onChange(FileModified(file))
         case _ =>
       }
@@ -70,6 +90,14 @@ class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
    * Override it if you want sync processing
    */
   protected def onChange(event: FileEvent){}
+
+  /**
+   * Override it if you want to get the timestamp by other way,
+   * such as by some the content of the file
+   */
+  protected def lastModified(file: File): Long = {
+    file.lastModified
+  }
 }
 
 class DirWatcherFilter(filter: String) extends FileFilter {

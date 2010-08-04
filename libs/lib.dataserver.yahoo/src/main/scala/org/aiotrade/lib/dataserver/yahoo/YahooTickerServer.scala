@@ -34,43 +34,40 @@ import java.io.{BufferedReader, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL, SocketTimeoutException}
 import java.text.ParseException
 import java.util.{Calendar, TimeZone}
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 /**
- * This class will load the quote datas from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
- *
+ * @NOTICE
+ * If the remote datafeed keeps only one inputstream for all subscriiebed
+ * symbols, one singleton instance is enough. If each symbol need a separate
+ * session, you may create new data server instance for each symbol.
+ * 
  * @author Caoyuan Deng
  */
-object YahooTickerServer {
-  /**
-   * @NOTICE
-   * If the remote datafeed keeps only one inputstream for all subscriiebed
-   * symbols, one singleton instance is enough. If each symbol need a separate
-   * session, you may create new data server instance for each symbol.
-   */
-  protected var singletonInstance: Option[YahooTickerServer] = None
-  // * "http://download.finance.yahoo.com/d/quotes.csv"
-  protected val BaseUrl = "http://quote.yahoo.com"
-  protected val UrlPath = "/download/javasoft.beans"
+object YahooTickerServer extends YahooTickerServer {
+  override protected val isTheSingleton = true
 }
-
-import YahooTickerServer._
 class YahooTickerServer extends TickerServer {
+  private val log = Logger.getLogger(this.getClass.getName)
+  protected val isTheSingleton = false
 
-  private var gzipped = false
-
-  protected def connect: Boolean = true
+  // * "http://download.finance.yahoo.com/d/quotes.csv"
+  private  val BaseUrl = "http://quote.yahoo.com"
+  private  val UrlPath = "/download/javasoft.beans"
 
   /**
    * Template:
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
    */
-  protected def request: Option[InputStream] = {
-    if (subscribedContracts.isEmpty) return None
+  protected def request(srcSymbol: Seq[String]): Option[InputStream] = {
+    if (srcSymbol.isEmpty) return None
 
     val cal = Calendar.getInstance(sourceTimeZone)
 
@@ -78,7 +75,7 @@ class YahooTickerServer extends TickerServer {
     urlStr.append(BaseUrl).append(UrlPath)
     urlStr.append("?s=")
 
-    urlStr.append(subscribedContracts map (_.srcSymbol) mkString("+"))
+    urlStr.append(srcSymbol mkString("+"))
 
     urlStr.append("&d=t&f=sl1d1t1c1ohgvbap")
 
@@ -88,7 +85,7 @@ class YahooTickerServer extends TickerServer {
 
     try {
       val url = new URL(urlStr.toString)
-      println(url)
+      log.info(url.toString)
 
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
       conn.setRequestProperty("Accept-Encoding", "gzip")
@@ -100,11 +97,10 @@ class YahooTickerServer extends TickerServer {
       conn.connect
 
       val encoding = conn.getContentEncoding
-      gzipped = if (encoding != null && encoding.indexOf("gzip") != -1) {
-        true
-      } else false
-        
-      Option(conn.getInputStream)
+      val gzipped = encoding != null && encoding.indexOf("gzip") != -1
+
+      val is = conn.getInputStream
+      if (is == null) None else Some(if (gzipped) new GZIPInputStream(is) else is)
     } catch {
       case e: SocketTimeoutException => None
       case e => None
@@ -112,10 +108,12 @@ class YahooTickerServer extends TickerServer {
   }
 
   @throws(classOf[Exception])
-  protected def read(is: InputStream): Long = {
-    val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
+  protected def read(is: InputStream): Array[Ticker] = {
+    val reader = new BufferedReader(new InputStreamReader(is))
 
     resetCount
+    
+    val tickers = new ArrayList[Ticker]
     // time in Yahoo! tickers is in Yahoo! Inc's local time instead of exchange place, we need to convert to UTC time
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
@@ -145,29 +143,27 @@ class YahooTickerServer extends TickerServer {
             val time = cal.getTimeInMillis
             if (time == 0) {
               /** for test and finding issues */
-              println("time of ticker: " + symbol + " is 0!")
+              log.warning("time of ticker: " + symbol + " is 0!")
             }
 
             val tickerSnapshot = tickerSnapshotOf(symbol)
             tickerSnapshot.time = time
 
-            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toFloat
-            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toFloat
-            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toFloat
-            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toFloat
-            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toFloat
-            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toFloat
-            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toFloat / 100f
-            tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toFloat)
-            tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toFloat)
+            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
+            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
+            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble
+            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toDouble
+            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toDouble
+            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toDouble
+            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
+            tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
+            tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
 
-            if (tickerSnapshot.isChanged) {
-              contractOf(symbol) foreach {x =>
-                val ticker = new Ticker
-                ticker.copyFrom(tickerSnapshot)
-                val storage = x.storage
-                storage synchronized {storage += ticker}
-              }
+            if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
+              val ticker = new Ticker
+              ticker.symbol = symbol
+              ticker.copyFrom(tickerSnapshot)
+              tickers += ticker
             }
 
             countOne
@@ -176,20 +172,10 @@ class YahooTickerServer extends TickerServer {
         }
     }
 
-    val newestTime = loop(-Long.MaxValue)
-
-    if (count > 0) {
-      /**
-       * Tickers may have the same time stamp even for a new one,
-       * but here means there is at least one new ticker, so always return
-       * afterThisTime + 1, this will cause fireDataUpdatedEvent, even only
-       * one symbol's ticker renewed. But that is good, because it will
-       * tell all symbols that at least one new time tick has happened.
-       */
-      fromTime
-    } else {
-      newestTime
-    }
+    val newestTime = loop(Long.MinValue)
+    log.info("Got tickers: " + count)
+    
+    tickers.toArray
   }
 
   /**
@@ -199,33 +185,39 @@ class YahooTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long): Long = {
-    fromTime = afterThisTime + 1
+  protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
+    if (!isTheSingleton) return EmptyValues
 
-    var loadedTime1 = loadedTime
-    if (!connect) {
-      return loadedTime
-    }
-        
-    try {
-      request match {
-        case Some(is) => loadedTime1 = read(is)
-        case None => loadedTime1 = loadedTime
+    log.info("Loading from source ...")
+
+    val symbols = subscribedContracts map (_.srcSymbol) toArray
+    var i = 0
+    while (i < symbols.length) {
+      val toProcess = new ListBuffer[String]
+      var j = 0
+      while (j < 50 && i < symbols.length) { // 50: num of symbols per time
+        toProcess += symbols(i)
+        j += 1
+        i += 1
       }
-    } catch {case ex: Exception => ex.printStackTrace}
+      if (!toProcess.isEmpty) {
+        try {
+          request(toProcess) match {
+            case Some(is) => 
+              val tickers = read(is)
+              loadedTime = postRefresh(tickers)
+            case None =>
+          }
+        } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
+      }
+    }
 
-    loadedTime1
+    log.info("Finished loading from source")
+
+    EmptyValues
   }
 
-  override def createNewInstance: Option[YahooTickerServer] = {
-    if (singletonInstance == None) {
-      super.createNewInstance match {
-        case None =>
-        case Some(x: YahooTickerServer) => x.init; singletonInstance = Some(x)
-      }
-    }
-    singletonInstance
-  }
+  override def createNewInstance: Option[YahooTickerServer] = Some(YahooTickerServer)
 
   override def displayName: String = "Yahoo! Finance Internet"
 

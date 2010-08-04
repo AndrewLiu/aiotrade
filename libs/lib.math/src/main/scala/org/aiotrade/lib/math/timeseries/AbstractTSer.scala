@@ -50,7 +50,6 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   def set(freq: TFreq) {
     this.freq = freq.clone
-    start
   }
     
   def loaded = _loaded
@@ -115,7 +114,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     }
   }
 
-  var grids: Array[Float] = Array()
+  var grids: Array[Double] = Array()
   var isOverlapping = false
 
   override def toString: String = {

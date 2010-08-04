@@ -149,6 +149,12 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>net-lag-configgy</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>ru-circumflex-orm</artifactId>
             <version>${project.version}</version>
             <type>nbm</type>
@@ -174,7 +180,8 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <additionalArguments>-J-Xmx512m</additionalArguments>
+                    <additionalArguments>-J-Xmx512m -J-Drun.mode=netbeans</additionalArguments>
+                    <etcConfFile>app.conf</etcConfFile>
                 </configuration>
             </plugin>
         </plugins>

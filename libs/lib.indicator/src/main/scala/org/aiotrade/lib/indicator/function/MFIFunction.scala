@@ -41,11 +41,11 @@ class MFIFunction extends Function {
     
   var period: Factor = _
     
-  val _tp    = TVar[Float]()
-  val _mfPos = TVar[Float]()
-  val _mfNeg = TVar[Float]()
+  val _tp    = TVar[Double]()
+  val _mfPos = TVar[Double]()
+  val _mfNeg = TVar[Double]()
 
-  val _mfi = TVar[Float]
+  val _mfi = TVar[Double]
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -88,7 +88,7 @@ class MFIFunction extends Function {
     }
   }
     
-  def mfi(sessionId: Long, idx: Int): Float = {
+  def mfi(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _mfi(idx)

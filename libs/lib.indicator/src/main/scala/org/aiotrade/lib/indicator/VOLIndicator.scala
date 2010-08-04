@@ -41,9 +41,9 @@ class VOLIndicator extends Indicator {
   val period1 = Factor("Period Short",    5)
   val period2 = Factor("Period Mediaum", 10)
     
-  val vol = TVar[Float]("VOL", Plot.Volume)
-  val ma1 = TVar[Float]("MA1", Plot.Line)
-  val ma2 = TVar[Float]("MA2", Plot.Line)
+  val vol = TVar[Double]("VOL", Plot.Volume)
+  val ma1 = TVar[Double]("MA1", Plot.Line)
+  val ma2 = TVar[Double]("MA2", Plot.Line)
     
     
   protected def computeCont(fromIdx: Int, size: Int) {

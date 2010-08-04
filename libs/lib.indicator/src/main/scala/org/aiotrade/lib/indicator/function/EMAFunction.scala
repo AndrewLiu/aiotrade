@@ -40,19 +40,19 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class EMAFunction extends Function {
-  final protected def iema(idx: Int, var1: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def iema(idx: Int, var1: TVar[Double], period: Double, prev: Double): Double = {
     StatisticFunction.iema(idx, var1.values, period.toInt, prev)
   }
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _ema = TVar[Float]()
+  val _ema = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
@@ -68,7 +68,7 @@ class EMAFunction extends Function {
     }
   }
     
-  def ema(sessionId: Long, idx: Int): Float = {
+  def ema(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _ema(idx)

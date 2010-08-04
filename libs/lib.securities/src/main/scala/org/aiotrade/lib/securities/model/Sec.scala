@@ -211,26 +211,7 @@ class Sec extends SerProvider with Publisher {
   /**
    * @TODO, how about tickerServer switched?
    */
-  lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-
-  reactions += {
-    case TSerEvent.FinishedLoading(srcSer, _, fromTime, endTime, _, _) =>
-      // contract quoteServer of freq centernly still exists only under this type of event
-      val freq = srcSer.freq
-      for (quoteContract <- quoteContractOf(defaultFreq);
-           quoteServer <- quoteContract.serviceInstance()
-      ) {
-        srcSer.loaded = true
-        if (quoteContract.refreshable) {
-          quoteServer.startRefresh(quoteContract.refreshInterval)
-        } else {
-          quoteServer.unSubscribe(quoteContract)
-        }
-
-        deafTo(srcSer)
-      }
-    case _ =>
-  }
+  private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
   def serOf(freq: TFreq): Option[QuoteSer] = freq match {
     case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
@@ -316,11 +297,11 @@ class Sec extends SerProvider with Publisher {
    */
   def loadSerFromPersistence(freq: TFreq): Long = {
     val quotes = freq match {
-      case TFreq.DAILY   => Quotes1d.closedQuotesOf(this)
-      case TFreq.ONE_MIN => Quotes1m.closedQuotesOf(this)
+      case TFreq.DAILY   => Quotes1d.quotesOf(this)
+      case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
       case _ => return 0L
     }
-    
+
     val ser = serOf(freq).get
     ser ++= quotes.toArray
 
@@ -331,13 +312,35 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!quotes.isEmpty) {
-      val loadedTime = math.max(quotes.head.time, quotes.last.time)
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
+      val (first, last, isAscending) = if (quotes.head.time <= quotes.last.time)
+        (quotes.head, quotes.last, true)
+      else
+        (quotes.last, quotes.head, false)
+
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+
+      // should load earlier quotes from data source? first.fromMe_? may means never load from data server
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: Quote = null
+        var i = if (isAscending) 0 else quotes.length - 1
+        while (i < quotes.length && i >= 0 && quotes(i).fromMe_?) {
+          lastFromMe = quotes(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length +
+               ", loaded: time=" + last.time + ", ser size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
       
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + loadedTime + ", freq=" + ser.freq + ", size=" + ser.size)
-      loadedTime
+      wantTime
     } else {
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length + ", loaded: time=" + 0L + ", freq=" + ser.freq + ", size=" + ser.size)
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
+               + ", will try to load fro data source from beginning")
       0L
     }
   }
@@ -361,24 +364,45 @@ class Sec extends SerProvider with Publisher {
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
     if (!mfs.isEmpty) {
-      val loadedTime = math.max(mfs.head.time, mfs.last.time)
-      val uniSymbol = secInfo.uniSymbol
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, 0, loadedTime))
-      loadedTime
+      val (first, last, isAscending) = if (mfs.head.time < mfs.last.time)
+        (mfs.head, mfs.last, true)
+      else
+        (mfs.last, mfs.head, false)
+
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+
+      // should load earlier quotes from data source?
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: MoneyFlow = null
+        var i = if (isAscending) 0 else mfs.length - 1
+        while (i < mfs.length && i >= 0 && mfs(i).fromMe_?) {
+          lastFromMe = mfs(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + mfs.length +
+               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
+
+      wantTime
     } else 0L
   }
 
 
   /**
    * synchronized this method to avoid conflict on variable: loadBeginning and
-   * concurrent accessing to those maps.
+   * concurrent accessing to varies maps.
    */
   def loadSer(freq: TFreq): Boolean = synchronized {
-
     val ser = serOf(freq) getOrElse (return false)
 
     // load from persistence
-    val loadedTime = loadSerFromPersistence(freq)
+    val wantTime = loadSerFromPersistence(freq)
 
     // try to load from quote server
 
@@ -390,9 +414,8 @@ class Sec extends SerProvider with Publisher {
       quoteServer.subscribe(contract)
 
       ser.inLoading = true
-      quoteServer.loadHistory(loadedTime)
+      quoteServer.loadHistory(wantTime)
 
-      listenTo(ser)
       return true
     }
     
@@ -411,7 +434,7 @@ class Sec extends SerProvider with Publisher {
             x.dateFormatPattern =(defaultOne.dateFormatPattern)
             freqToQuoteContract.put(freq, x)
             Some(x)
-          case _ => return None
+          case _ => None
         }
       case some => some
     }
@@ -458,8 +481,8 @@ class Sec extends SerProvider with Publisher {
     freqToQuoteContract += (freq -> quoteContract)
   }
 
-  def subscribeTickerServer {
-    if (uniSymbol == "") return
+  def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
+    if (uniSymbol == "") return None
 
     // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
     tickerContract.srcSymbol = uniSymbol
@@ -474,35 +497,28 @@ class Sec extends SerProvider with Publisher {
     }
 
     if (tickerContract.serviceClassName != null) {
-      startTickerRefreshIfNecessary
-    }
-  }
-
-  private def startTickerRefreshIfNecessary {
-    if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-      val minSer = serOf(TFreq.ONE_MIN).get
-      if (isSerLoaded(TFreq.ONE_MIN)) {
-        loadSerFromPersistence(TFreq.ONE_MIN)
+      if (!startRefresh) {
+        tickerServer.stopRefresh
       }
-      // Only dailySer and minuteSre needs to chainly follow ticker change.
-      val chainSers = List(serOf(TFreq.DAILY).get)
-      tickerContract.ser = minSer
-      tickerContract.chainSers = chainSers
-      tickerServer.subscribe(tickerContract)
-      //
-      //            var break = false
-      //            while (!break) {
-      //                val allChainSersLoaded = (true /: chainSers) {_ && _.loaded}
-      //                if (allChainSersLoaded) {
-      //                    tickerServer.subscribe(tickerContract, tickerSer, chainSers)
-      //                    break = true
-      //                }
-      //                Thread.sleep(1000)
-      //            }
 
+      if (!tickerServer.isContractSubsrcribed(tickerContract)) {
+        val minSer = serOf(TFreq.ONE_MIN).get
+        if (!isSerLoaded(TFreq.ONE_MIN)) {
+          loadSerFromPersistence(TFreq.ONE_MIN)
+        }
+        // Only dailySer and minuteSre needs to chainly follow ticker change.
+        val chainSers = List(serOf(TFreq.DAILY).get)
+        tickerContract.ser = minSer
+        tickerContract.chainSers = chainSers
+        tickerServer.subscribe(tickerContract)
+      }
+
+      if (startRefresh) {
+        tickerServer.startRefresh(tickerContract.refreshInterval)
+      }
     }
 
-    tickerServer.startRefresh(tickerContract.refreshInterval)
+    Some(tickerServer)
   }
 
   def unSubscribeTickerServer {
@@ -534,10 +550,6 @@ class Sec extends SerProvider with Publisher {
     var minuteMoneyFlow: MoneyFlow = _
   }
 
-  /**
-   * @Note when day changes, should do LastData.dailyQuote to null, this can be done
-   * by listening to exchange's timer event
-   */
   def dailyQuoteOf(time: Long): Quote = {
     assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
     val cal = Calendar.getInstance(exchange.timeZone)
@@ -583,6 +595,7 @@ class Sec extends SerProvider with Publisher {
         newone.sec = this
         newone.unclosed_!
         newone.justOpen_!
+        newone.fromMe_!
         lastData.minuteQuote = newone
         newone
     }
@@ -605,6 +618,7 @@ class Sec extends SerProvider with Publisher {
         newone.sec = this
         newone.unclosed_!
         newone.justOpen_!
+        newone.fromMe_!
         lastData.minuteMoneyFlow = newone
         newone
     }

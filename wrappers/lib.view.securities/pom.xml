@@ -52,30 +52,6 @@
                     <artifactId>lib-indicator</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-beanutils</groupId>
-                    <artifactId>commons-beanutils</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ru.circumflex</groupId>
-                    <artifactId>circumflex-core</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>ru.circumflex</groupId>
                     <artifactId>circumflex-orm</artifactId>
                 </exclusion>

@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
  */
 class OBVFunction extends Function {
     
-  val _obv = TVar[Float]()
+  val _obv = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -63,7 +63,7 @@ class OBVFunction extends Function {
     }
   }
     
-  def obv(sessionId: Long, idx: Int): Float = {
+  def obv(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _obv(idx)

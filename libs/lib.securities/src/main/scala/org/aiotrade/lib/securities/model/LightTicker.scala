@@ -65,11 +65,11 @@ object LightTicker {
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val data: Array[Float]) extends TVal with JsonSerializable {
+class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   @transient final var quote: Quote = _
   @transient final protected var _isChanged: Boolean = _
 
-  def this() = this(new Array[Float](FIELD_LENGTH))
+  def this() = this(new Array[Double](FIELD_LENGTH))
 
   final var symbol: String = _
 
@@ -82,21 +82,21 @@ class LightTicker(val data: Array[Float]) extends TVal with JsonSerializable {
   final def dayAmount = data(DAY_AMOUNT)
   final def dayChange = data(DAY_CHANGE)
 
-  final def prevClose_=(v: Float) = updateFieldValue(PREV_CLOSE, v)
-  final def lastPrice_=(v: Float) = updateFieldValue(LAST_PRICE, v)
-  final def dayOpen_=  (v: Float) = updateFieldValue(DAY_OPEN,   v)
-  final def dayHigh_=  (v: Float) = updateFieldValue(DAY_HIGH,   v)
-  final def dayLow_=   (v: Float) = updateFieldValue(DAY_LOW,    v)
-  final def dayVolume_=(v: Float) = updateFieldValue(DAY_VOLUME, v)
-  final def dayAmount_=(v: Float) = updateFieldValue(DAY_AMOUNT, v)
-  final def dayChange_=(v: Float) = updateFieldValue(DAY_CHANGE, v)
+  final def prevClose_=(v: Double) = updateFieldValue(PREV_CLOSE, v)
+  final def lastPrice_=(v: Double) = updateFieldValue(LAST_PRICE, v)
+  final def dayOpen_=  (v: Double) = updateFieldValue(DAY_OPEN,   v)
+  final def dayHigh_=  (v: Double) = updateFieldValue(DAY_HIGH,   v)
+  final def dayLow_=   (v: Double) = updateFieldValue(DAY_LOW,    v)
+  final def dayVolume_=(v: Double) = updateFieldValue(DAY_VOLUME, v)
+  final def dayAmount_=(v: Double) = updateFieldValue(DAY_AMOUNT, v)
+  final def dayChange_=(v: Double) = updateFieldValue(DAY_CHANGE, v)
 
-  protected def updateFieldValue(fieldIdx: Int, v: Float) {
+  protected def updateFieldValue(fieldIdx: Int, v: Double) {
     _isChanged = data(fieldIdx) != v
     data(fieldIdx) = v
   }
 
-  final def changeInPercent: Float = {
+  final def changeInPercent: Double = {
     if (prevClose == 0) 0f  else (lastPrice - prevClose) / prevClose * 100f
   }
 
@@ -142,7 +142,7 @@ class LightTicker(val data: Array[Float]) extends TVal with JsonSerializable {
   }
 
   /** export to tuple */
-  def export: (Long, List[Array[Float]]) = (time, List(data))
+  def export: (Long, List[Array[Double]]) = (time, List(data))
 
   def isValueChanged(another: LightTicker): Boolean = {
     var i = 0
@@ -178,7 +178,7 @@ class LightTicker(val data: Array[Float]) extends TVal with JsonSerializable {
     var vs  = fields("v").asInstanceOf[List[Number]]
     var i = 0
     while (!vs.isEmpty) {
-      data(i) = vs.head.floatValue
+      data(i) = vs.head.doubleValue
       vs = vs.tail
       i += 1
     }

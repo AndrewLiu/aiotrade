@@ -35,8 +35,11 @@ import java.io.{BufferedReader, File, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
 import java.util.{Calendar, Date, Locale, TimeZone}
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
@@ -71,18 +74,16 @@ object YahooQuoteServer {
 
 import YahooQuoteServer._
 class YahooQuoteServer extends QuoteServer {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private var contract: QuoteContract = _
-  private var gzipped = false
-
-  protected def connect: Boolean = true
 
   /**
    * Template:
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request: Option[InputStream] = {
+  protected def request(fromTime: Long): Option[InputStream] = {
     val cal = Calendar.getInstance
 
     contract = currentContract match {
@@ -119,7 +120,7 @@ class YahooQuoteServer extends QuoteServer {
 
     val url = new URL(urlStr.toString)
 
-    println(url)
+    log.info(url.toString)
 
     if (url != null) {
       val conn = url.openConnection.asInstanceOf[HttpURLConnection]
@@ -130,11 +131,10 @@ class YahooQuoteServer extends QuoteServer {
       conn.connect
 
       val encoding = conn.getContentEncoding
-      gzipped = if (encoding != null && encoding.indexOf("gzip") != -1) {
-        true
-      } else false
-            
-      Option(conn.getInputStream)
+      val gzipped = encoding != null && encoding.indexOf("gzip") != -1
+
+      val is = conn.getInputStream
+      if (is == null) None else Some(if (gzipped) new GZIPInputStream(is) else is)
     } else None
   }
 
@@ -142,14 +142,13 @@ class YahooQuoteServer extends QuoteServer {
    * @return readed time
    */
   @throws(classOf[Exception])
-  protected def read(is: InputStream): Long =  {
-    val reader = new BufferedReader(new InputStreamReader(if (gzipped) new GZIPInputStream(is) else is))
-
+  protected def read(is: InputStream): Array[Quote] = {
+    val reader = new BufferedReader(new InputStreamReader(is))
     /** skip first line */
     val s = reader.readLine
 
     resetCount
-    val storage = contract.storage
+    val quotes = new ArrayList[Quote]
     val freq = contract.freq
     val symbol = contract.srcSymbol
     val exchange = exchangeOf(symbol)
@@ -183,18 +182,18 @@ class YahooQuoteServer extends QuoteServer {
 
             val quote = new Quote
             quote.time   = time
-            quote.open   = openX.trim.toFloat
-            quote.high   = highX.trim.toFloat
-            quote.low    = lowX.trim.toFloat
-            quote.close  = closeX.trim.toFloat
-            quote.volume = volumeX.trim.toFloat / 100f
+            quote.open   = openX.trim.toDouble
+            quote.high   = highX.trim.toDouble
+            quote.low    = lowX.trim.toDouble
+            quote.close  = closeX.trim.toDouble
+            quote.volume = volumeX.trim.toDouble
             quote.amount = -1
-            quote.adjWeight = adjCloseX.trim.toFloat
+            //quote.adjWeight = adjCloseX.trim
 
             val newestTime1 = if (quote.high * quote.low * quote.close == 0) {
               newestTime
             } else {
-              storage += quote
+              quotes += quote
               countOne
               math.max(newestTime, time)
             }
@@ -205,26 +204,23 @@ class YahooQuoteServer extends QuoteServer {
     }
 
     loop(Long.MinValue)
+
+    quotes.toArray
   }
 
-  protected def loadFromSource(afterThisTime: Long): Long = {
+  protected def loadFromSource(afterThisTime: Long): Array[Quote] = {
     fromTime = afterThisTime + 1
 
-    var loadedTime1 = loadedTime
-    if (!connect) {
-      return loadedTime1
-    }
-        
     try {
-      request match {
-        case Some(is) => loadedTime1 = read(is)
-        case None => loadedTime1 = 0
+      request(fromTime) match {
+        case Some(is) => return read(is)
+        case None =>
       }
     } catch {
-      case ex: Exception => ex.printStackTrace
+      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
 
-    loadedTime1
+    Array()
   }
 
   override def displayName: String = "Yahoo! Finance Internet"

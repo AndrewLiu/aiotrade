@@ -44,7 +44,7 @@ trait Mat {
    * As we treat this method as a function, We name it column() instead
    * of column()
    */
-  def column(column: Int, length: Int): Array[Float]
+  def column(column: Int, length: Int): Array[Double]
 
   /**
    *
@@ -53,8 +53,8 @@ trait Mat {
    * As we treat this method as a function (in Matrix Maths, diag() is a
    * operation symbol), We name it diag() instead of diag()
    */
-  def diag: Array[Float]
+  def diag: Array[Double]
     
-  def swapColumn(i: Int, j: Int): Unit
+  def swapColumn(i: Int, j: Int)
 }
 

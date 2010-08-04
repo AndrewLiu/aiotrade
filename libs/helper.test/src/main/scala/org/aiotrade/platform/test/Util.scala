@@ -416,7 +416,7 @@ class Util {
   }
 
   def watchRealTime(contents: AnalysisContents, rtBoard: RealTimeBoardPanel) {
-    sec.subscribeTickerServer
+    sec.subscribeTickerServer()
     rtBoard.watch
   }
 

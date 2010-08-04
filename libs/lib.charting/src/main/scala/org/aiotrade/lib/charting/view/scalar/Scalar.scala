@@ -49,10 +49,10 @@ object Scalar {
 trait Scalar {
   import Scalar._
 
-  def doScale(v: Float): Float
+  def doScale(v: Double): Double
     
   /** reverse */
-  def unScale(v: Float): Float
+  def unScale(v: Double): Double
     
   def getType: Type
 }

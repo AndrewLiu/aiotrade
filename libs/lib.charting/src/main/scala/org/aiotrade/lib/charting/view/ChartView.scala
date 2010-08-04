@@ -115,8 +115,8 @@ abstract class ChartView(protected var _controller: ChartingController,
   private var _yControlPane: YControlPane = _
   /** geometry */
   private var _nBars: Int = _ // number of bars
-  private var _maxValue = 1F
-  private var _minValue = 0F
+  private var _maxValue = 1.0
+  private var _minValue = 0.0
   private var _oldMaxValue = _maxValue
   private var _oldMinValue = _minValue
 
@@ -266,7 +266,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     }
   }
 
-  protected def setMaxMinValue(max: Float, min: Float) {
+  protected def setMaxMinValue(max: Double, min: Double) {
     _maxValue = max
     _minValue = min
   }
@@ -337,7 +337,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   }
 
   def yChartScale = mainChartPane.yChartScale
-  def yChartScale_=(yChartScale: Float) {
+  def yChartScale_=(yChartScale: Double) {
     if (mainChartPane != null) {
       val datumPane = mainChartPane
       datumPane.yChartScale = yChartScale
@@ -355,7 +355,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     repaint()
   }
 
-  def adjustYChartScale(increment: Float) {
+  def adjustYChartScale(increment: Double) {
     if (mainChartPane != null) {
       val datumPane = mainChartPane
       datumPane.growYChartScale(increment)
@@ -411,8 +411,8 @@ abstract class ChartView(protected var _controller: ChartingController,
     row - controller.rightSideRow + _nBars
   }
 
-  def maxValue: Float = _maxValue
-  def minValue: Float = _minValue
+  def maxValue: Double = _maxValue
+  def minValue: Double = _minValue
 
 
   def baseSer: BaseTSer = _baseSer

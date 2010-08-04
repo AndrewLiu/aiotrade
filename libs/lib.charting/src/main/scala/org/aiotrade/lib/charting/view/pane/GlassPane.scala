@@ -386,7 +386,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       }
 
       for (v <- vars if v.plot != Plot.None;
-           value = v.float(referTime) if Null.not(value)
+           value = v.double(referTime) if Null.not(value)
       ) {
         val vStr = " " + v.name + ": " + MONEY_DECIMAL_FORMAT.format(value)
 
@@ -440,7 +440,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         val quoteSer = qView.quoteSer
 
         val mouseRow = controller.mouseCursorRow
-        var y, v: Float = 0f
+        var y, v = 0.0
         if (view.mainChartPane.isMouseEntered) {
           y = datumPlane.yMouse
           v = datumPlane.vy(y)
@@ -455,9 +455,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
             val vRefer = if (quoteSer.exists(time)) quoteSer.close(time) else 0
 
             val period = datumPlane.br(mouseRow) - datumPlane.br(referRow)
-            val percent = if (vRefer == 0) 0f else 100 * (datumPlane.vy(y) - vRefer) / vRefer
+            val percent = if (vRefer == 0) 0.0 else 100 * (datumPlane.vy(y) - vRefer) / vRefer
 
-            var volumeSum = 0f
+            var volumeSum = 0.0
             val rowBeg = math.min(referRow, mouseRow)
             val rowEnd = math.max(referRow, mouseRow)
             var i = rowBeg
@@ -473,7 +473,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           } else { // else, usually RealtimeQuoteChartView
             val vRefer = GlassPane.this.referCursorValue
             val vYMouse = datumPlane.vy(y)
-            val percent = if (vRefer == 0) 0f else 100 * (vYMouse - vRefer) / vRefer
+            val percent = if (vRefer == 0) 0.0 else 100 * (vYMouse - vRefer) / vRefer
 
             new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vYMouse)).append("  ").append("%+3.2f".format(percent)).append("%").toString
           }
@@ -731,7 +731,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
         cursorPath.lineTo(x, h)
       }
 
-      var y: Float = 0f
+      var y = 0.0
       GlassPane.this.view match {
         case x: WithQuoteChart =>
           val quoteSer = x.quoteSer
@@ -761,9 +761,9 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
               val vRefer = if (quoteSer.exists(time)) quoteSer.close(time) else 0
 
               val period = br(mouseRow) - br(referRow)
-              val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
+              val percent = if (vRefer == 0) 0.0 else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
-              var volumeSum = 0f
+              var volumeSum = 0.0
               val rowBeg = math.min(referRow, mouseRow)
               val rowEnd = math.max(referRow, mouseRow)
               var i = rowBeg
@@ -778,7 +778,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
               new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
             } else { // else, usually RealtimeQuoteChartView
               val vRefer = GlassPane.this.referCursorValue
-              val percent = if (vRefer == 0) 0f else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
+              val percent = if (vRefer == 0) 0.0 else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
               new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vDisplay)).append("  ").append("%+3.2f".format(percent)).append("%").toString
             }

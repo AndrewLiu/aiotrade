@@ -149,8 +149,8 @@ class ContentsParseHandler extends DefaultHandler {
     try {
       val point = new ValuePoint
       point.t = NUMBER_FORMAT.parse(meta.getValue("t").trim).longValue
-      point.v = NUMBER_FORMAT.parse(meta.getValue("v").trim).floatValue
-      points += point;
+      point.v = NUMBER_FORMAT.parse(meta.getValue("v").trim).doubleValue
+      points += point
     } catch {case ex: ParseException => ex.printStackTrace}
   }
     

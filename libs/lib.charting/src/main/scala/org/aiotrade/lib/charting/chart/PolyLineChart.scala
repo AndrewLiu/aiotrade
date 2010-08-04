@@ -43,9 +43,9 @@ import org.aiotrade.lib.charting.laf.LookFeel
  */
 class PolyLineChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: TVar[Float] = _
+    var v: TVar[Double] = _
         
-    def set(v: TVar[Float]) {
+    def set(v: TVar[Double]) {
       this.v = v
     }
   }
@@ -61,13 +61,13 @@ class PolyLineChart extends AbstractChart {
         
     val heavyPathWidget = addChild(new HeavyPathWidget)
     val template = new LineSegment
-    var y1 = Null.Float   // for prev
-    var y2 = Null.Float   // for curr
+    var y1 = Null.Double   // for prev
+    var y2 = Null.Double   // for curr
     var bar = 1
     while (bar <= nBars) {
-      var value = Null.Float
-      var max = Float.MinValue
-      var min = Float.MaxValue
+      var value = Null.Double
+      var max = Double.MinValue
+      var min = Double.MaxValue
       var i = 0
       while (i < nBarsCompressed) {
         val  time = tb(bar + i)

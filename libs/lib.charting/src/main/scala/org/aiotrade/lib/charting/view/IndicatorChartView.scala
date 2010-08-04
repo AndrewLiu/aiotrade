@@ -148,8 +148,8 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
   }
     
   override def computeMaxMin {
-    var min = Float.MaxValue
-    var max = Float.MinValue
+    var min = Double.MaxValue
+    var max = Double.MinValue
 
     var shouldMinBeZero = false
     var i = 1
@@ -157,7 +157,7 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
       val time = tb(i)
       if (mainSer.exists(time)) {
         for (v <- mainSer.vars if v.plot != Plot.None;
-             value = v.float(time) if Null.not(value)
+             value = v.double(time) if Null.not(value)
         ) {
           if (v.plot == Plot.Volume) {
             shouldMinBeZero = true

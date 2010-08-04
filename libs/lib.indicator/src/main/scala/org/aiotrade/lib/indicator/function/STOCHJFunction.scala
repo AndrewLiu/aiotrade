@@ -41,10 +41,10 @@ class STOCHJFunction extends Function {
     
   var period, periodK, periodD: Factor = _
     
-  val _stochK = TVar[Float]()
-  val _stochD = TVar[Float]()
+  val _stochK = TVar[Double]()
+  val _stochD = TVar[Double]()
     
-  val _stochJ = TVar[Float]()
+  val _stochJ = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -61,7 +61,7 @@ class STOCHJFunction extends Function {
     _stochJ(i) = _stochD(i) + 2 * (_stochD(i) - _stochK(i))
   }
         
-  def stochJ(sessionId: Long, idx: Int): Float = {
+  def stochJ(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _stochJ(idx)

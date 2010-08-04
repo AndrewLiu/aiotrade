@@ -39,11 +39,11 @@ import org.aiotrade.lib.indicator.Indicator
 class MFIIndicator extends Indicator {
   sname = "MFI"
   lname = "Money Flow Index"
-  grids = Array(30f, 70f)
+  grids = Array(30, 70)
 
   val period = Factor("Period", 10)
     
-  val mfi = TVar[Float]("MFI", Plot.Line)
+  val mfi = TVar[Double]("MFI", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

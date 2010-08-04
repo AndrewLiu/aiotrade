@@ -67,15 +67,15 @@ class PathWidget extends AbstractWidget {
     path.intersects(x, y, width, height)
   }
     
-  protected def plotWidget :Unit = {
+  protected def plotWidget {
   }
     
-  override def reset :Unit = {
+  override def reset {
     super.reset
     path.reset
   }
     
-  def renderWidget(g0: Graphics): Unit = {
+  def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
     g.setColor(getForeground)

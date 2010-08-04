@@ -38,13 +38,9 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 import java.util.Timer
 import java.util.TimerTask
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
-import scala.actors.Actor
-import scala.actors.Actor._
 import scala.collection.mutable.{HashMap, HashSet}
 
 /**
@@ -53,33 +49,24 @@ import scala.collection.mutable.{HashMap, HashSet}
  * @author Caoyuan Deng
  */
 object DataServer extends Publisher {
-  lazy val DEFAULT_ICON: Option[Image] = {
+  private lazy val DEFAULT_ICON: Option[Image] = {
     val url = classOf[DataServer[_]].getResource("defaultIcon.gif")
     if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
   }
 
-  private var _executorService: ExecutorService = _
-  protected def executorService : ExecutorService = {
-    if (_executorService == null) {
-      _executorService = Executors.newFixedThreadPool(5)
-    }
-
-    _executorService
-  }
+  private val config = org.aiotrade.lib.util.config.Config()
 
   case class HeartBeat(interval: Long) extends Event
-  val heartBeatInterval = 3000
-  actor {
-    // in context of applet, a page refresh may cause timer into a unpredict status,
-    // so it's always better to restart this timer? , if so, cancel it first.
-    //    if (timer != null) {
-    //      timer.cancel
-    //    }
-    val timer = new Timer("DataServer Heart Beat Timer")
-    timer.schedule(new TimerTask {
-        def run = publish(HeartBeat(heartBeatInterval))
-      }, 1000, heartBeatInterval)
-  }
+  val heartBeatInterval = config.getInt("dataserver.heartbeat", 50)
+  // in context of applet, a page refresh may cause timer into a unpredict status,
+  // so it's always better to restart this timer? , if so, cancel it first.
+  //    if (timer != null) {
+  //      timer.cancel
+  //    }
+  private val timer = new Timer("DataServer Heart Beat Timer")
+  timer.schedule(new TimerTask {
+      def run = publish(HeartBeat(heartBeatInterval))
+    }, 1000, heartBeatInterval)
 }
 
 /**
@@ -89,8 +76,10 @@ import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
   type C <: DataContract[V, _]
 
-  private val logger = Logger.getLogger(this.getClass.getSimpleName)
-  
+  protected val EmptyValues = Array[V]()
+
+  private val log = Logger.getLogger(this.getClass.getName)
+
   val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
@@ -120,18 +109,24 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private case object Refresh extends Event
   private case class LoadHistory(afterTime: Long) extends Event
   private var inRefreshing: Boolean = _
-  private val loadActor = new scala.actors.Reactor[Event] {
+  private lazy val loadActor = new scala.actors.Reactor[Event] {
     start
+    
     def act = loop {
       react {
         case Refresh =>
+          //log.info("loadActor Received Refresh message")
           inRefreshing = true
-          loadedTime = loadFromSource(loadedTime)
-          postRefresh
+          val values = loadFromSource(loadedTime)
+          if (values.length > 0) {
+            loadedTime = postRefresh(values)
+          }
+          //log.info("loadActor Finished Refresh")
           inRefreshing = false
         case LoadHistory(afterTime) =>
-          loadedTime = loadFromSource(afterTime)
-          postLoadHistory
+          //log.info("loadActor Received LoadHistory message")
+          val values = loadFromSource(afterTime)
+          loadedTime = postLoadHistory(values)
         case Stop => exit
         case _ =>
       }
@@ -139,8 +134,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   }
 
   reactions += {
-    case HeartBeat(interval) if refreshable =>
-      if (!inRefreshing) loadActor ! Refresh
+    case HeartBeat(interval) if refreshable && !inRefreshing => loadActor ! Refresh
   }
 
   listenTo(DataServer)
@@ -151,14 +145,15 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     assert(currentContract.isDefined, "dataContract not set!")
     assert(!_subscribedContracts.isEmpty, "none ser subscribed!")
 
+    log.info("Fired LoadHistory message to loadActor")
     /**
      * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
      */
     loadActor ! LoadHistory(afterTime)
   }
 
-  protected def postLoadHistory {}
-  protected def postRefresh {}
+  protected def postLoadHistory(values: Array[V]): Long = loadedTime
+  protected def postRefresh(values: Array[V]): Long = loadedTime
 
   def startRefresh(refreshInterval: Int) {
     refreshable = true
@@ -321,9 +316,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   /**
    * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
    *        process this condition.
-   * @return loadedTime
+   * @return TVals, if you want to manually call postRefresh during loadFromSource, just return an empty Array
    */
-  protected def loadFromSource(afterThisTime: Long): Long
+  protected def loadFromSource(afterThisTime: Long): Array[V]
 
   override def compare(another: DataServer[V]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {

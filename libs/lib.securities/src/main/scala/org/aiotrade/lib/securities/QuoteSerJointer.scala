@@ -39,7 +39,7 @@ import org.aiotrade.lib.util.actors.Reactor
  *
  * @author Caoyuan Deng
  */
-class QuoteSerJointer(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+class QuoteSerJointer(srcSers: Map[QuoteSer, Double], targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   reactions += {
     case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
@@ -96,7 +96,7 @@ class QuoteSerJointer(srcSers: Map[QuoteSer, Float], targetSer: QuoteSer, timeZo
   /**
    * This function keeps the adjusting linear according to a norm
    */
-  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
+  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
     

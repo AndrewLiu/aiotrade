@@ -42,13 +42,13 @@ import org.aiotrade.lib.charting.widget.PathWidget
 class ParallelLinesChart extends AbstractChart {
   final class Model extends WidgetModel {
     var t1: Long = _
-    var v1: Float = _
+    var v1: Double = _
     var t2: Long = _
-    var v2: Float = _
+    var v2: Double = _
     var t3: Long = _
-    var v3: Float = _
+    var v3: Double = _
         
-    def set(t1: Long, v1: Float, t2: Long, v2: Float, t3: Long, v3: Float) {
+    def set(t1: Long, v1: Double, t2: Long, v2: Double, t3: Long, v3: Double) {
       this.t1 = t1
       this.v1 = v1
       this.t2 = t2
@@ -68,19 +68,13 @@ class ParallelLinesChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[Float](3)
-    val ys = new Array[Float](3)
-    xs(0) = xb(bt(m.t1))
-    xs(1) = xb(bt(m.t2))
-    xs(2) = xb(bt(m.t3))
-    ys(0) = yv(m.v1)
-    ys(1) = yv(m.v2)
-    ys(2) = yv(m.v3)
+    val xs = Array(xb(bt(m.t1)), xb(bt(m.t2)), xb(bt(m.t3)))
+    val ys = Array(yv(m.v1), yv(m.v2), yv(m.v3))
         
     val dx = xs(1) - xs(0)
     val dy = ys(1) - ys(0)
         
-    val k = if (dx == 0) 1F else dy / dx
+    val k = if (dx == 0) 1 else dy / dx
         
     val distance = math.abs(k * xs(2) - ys(2) + ys(0) - k * xs(0)) / math.sqrt(k * k + 1)
         

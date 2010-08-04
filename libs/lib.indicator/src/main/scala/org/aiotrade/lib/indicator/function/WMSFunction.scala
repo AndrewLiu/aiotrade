@@ -41,7 +41,7 @@ class WMSFunction extends Function {
     
   var period: Factor = _
     
-  val _wms = TVar[Float]()
+  val _wms = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -56,7 +56,7 @@ class WMSFunction extends Function {
     _wms(i) = 100 - (C(i) - l_min_i) / (h_max_i - l_min_i) * 100f
   }
     
-  def wms(sessionId: Long, idx: Int): Float = {
+  def wms(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _wms(idx)

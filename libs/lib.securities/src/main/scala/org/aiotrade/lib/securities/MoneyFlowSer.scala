@@ -44,17 +44,17 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
 
-  val totalVolume = TVar[Float]("V", Plot.Stick)
-  val totalAmount = TVar[Float]("A", Plot.None)
+  val totalVolume = TVar[Double]("V", Plot.Stick)
+  val totalAmount = TVar[Double]("A", Plot.None)
 
-  val superVolume = TVar[Float]("V", Plot.None)
-  val superAmount = TVar[Float]("A", Plot.None)
+  val superVolume = TVar[Double]("V", Plot.None)
+  val superAmount = TVar[Double]("A", Plot.None)
 
-  val largeVolume = TVar[Float]("V", Plot.None)
-  val largeAmount = TVar[Float]("A", Plot.None)
+  val largeVolume = TVar[Double]("V", Plot.None)
+  val largeAmount = TVar[Double]("A", Plot.None)
 
-  val smallVolume = TVar[Float]("V", Plot.None)
-  val smallAmount = TVar[Float]("A", Plot.None)
+  val smallVolume = TVar[Double]("V", Plot.None)
+  val smallAmount = TVar[Double]("A", Plot.None)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
@@ -141,7 +141,7 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   /**
    * This function adjusts linear according to a norm
    */
-  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
+  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 

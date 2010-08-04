@@ -45,9 +45,9 @@ class MAIndicator extends Indicator {
   val period2 = Factor("Period 2", 10)
   val period3 = Factor("Period 3", 20)
     
-  val ma1 = TVar[Float]("MA1", Plot.Line)
-  val ma2 = TVar[Float]("MA2", Plot.Line)
-  val ma3 = TVar[Float]("MA3", Plot.Line)
+  val ma1 = TVar[Double]("MA1", Plot.Line)
+  val ma2 = TVar[Double]("MA2", Plot.Line)
+  val ma3 = TVar[Double]("MA3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int): Unit = {
     var i = begIdx

@@ -49,6 +49,12 @@
             <artifactId>org-scala-lang</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>net-lag-configgy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

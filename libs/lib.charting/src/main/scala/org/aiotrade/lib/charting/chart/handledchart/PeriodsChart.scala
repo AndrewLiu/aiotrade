@@ -63,7 +63,7 @@ class PeriodsChart extends AbstractChart {
         
     val numPn = 40;
         
-    val bs = new Array[Float](numPn * 2 + 1)
+    val bs = new Array[Double](numPn * 2 + 1)
     bs(0) = bt(m.t1)
     bs(1) = bt(m.t2)
     val interval = bs(1) - bs(0)

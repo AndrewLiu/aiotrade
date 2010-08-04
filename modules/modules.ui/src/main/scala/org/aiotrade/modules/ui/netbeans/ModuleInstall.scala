@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -30,10 +30,18 @@
  */
 package org.aiotrade.modules.ui.netbeans
 
+import java.io.IOException
+import java.io.OutputStream
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.model.Exchanges
+import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
+import org.openide.filesystems.FileLock
+import org.openide.filesystems.FileUtil
 
 /**
  * How do i change the closing action of the MainWindow?
@@ -59,22 +67,54 @@ import org.aiotrade.lib.securities.util.UserOptionsManager
  */
 
 class ModuleInstall extends org.openide.modules.ModuleInstall {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   override def restored {
     super.restored
 
+    // load config as soon as possible
+    val configFo = FileUtil.getConfigFile("aiotrade.conf")
+    var configFile = FileUtil.toFile(configFo)
+    if (configFile == null) {
+      // extract it from archive to disk
+      var out: OutputStream = null
+      var lock: FileLock = null
+      try {
+        lock = configFo.lock
+        val body = configFo.asBytes
+        out = configFo.getOutputStream(lock)
+        out.write(body)
+      } catch {
+        case ex: IOException => log.log(Level.WARNING, ex.getMessage, ex)
+      } finally {
+        /** should remember to do out.close() here */
+        if (out  != null) out.close
+        if (lock != null) lock.releaseLock
+      }
+      configFile = FileUtil.toFile(configFo)
+    }
+    org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
+    log.info("Config file is " + configFile.getCanonicalPath)
+    
+    // create database if does not exist
+    if (!Exchanges.exists) {
+      log.info("Database does not exist yet, will create it ...")
+      Data.createData
+    }
+
     UserOptionsManager.assertLoaded
 
-    /**
-     * Wrap in EDT to avoid:
-     java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
-     http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
-     Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
-     at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
-     at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
-     at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
-     */
+    // run some task in background
     SwingUtilities.invokeLater(new Runnable {
+        /**
+         * Wrap in EDT to avoid:
+         java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
+         http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
+         Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
+         at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
+         at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
+         at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
+         */
         def run {
           UIManager.put("ScrollBar.width", 12)
 

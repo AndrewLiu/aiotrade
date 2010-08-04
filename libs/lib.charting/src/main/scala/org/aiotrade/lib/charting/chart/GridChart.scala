@@ -53,10 +53,10 @@ class GridChart extends AbstractChart {
 
   final class Model extends WidgetModel {
 
-    var values: Array[Float] = _
+    var values: Array[Double] = _
     var direction: Direction = _
 
-    def set(values: Array[Float], direction: Direction) {
+    def set(values: Array[Double], direction: Direction) {
       this.values = values
       this.direction = direction
     }

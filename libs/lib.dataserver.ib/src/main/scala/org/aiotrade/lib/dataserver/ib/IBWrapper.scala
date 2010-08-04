@@ -58,6 +58,8 @@ object IBWrapper extends IBWrapper {
   private val HISTORICAL_DATA_END = "finished"
   private val HIS_REQ_PROC_SPEED_THROTTLE = 1000 * 20 // 20 seconds
 
+  val tickers = new ArrayList[Ticker]
+
   private val freqToBarSize = Map[TFreq, Int](
     TFreq.ONE_SEC      ->  1,
     TFreq.FIVE_SECS    ->  2,
@@ -121,7 +123,7 @@ object IBWrapper extends IBWrapper {
     reqId
   }
     
-  private def quoteStorageOf(reqId: Int): ArrayList[Quote] = {
+  def quoteStorageOf(reqId: Int): ArrayList[Quote] = {
     reqIdToHisDataReq.get(reqId) match {
       case None => null
       case Some(hisReq) => hisReq.storage
@@ -307,14 +309,14 @@ object IBWrapper extends IBWrapper {
                     
           val quote = new Quote
                     
-          quote.time = time
-          quote.open = open.toFloat
-          quote.high = high.toFloat
-          quote.low = low.toFloat
-          quote.close = close.toFloat
+          quote.time   = time
+          quote.open   = open
+          quote.high   = high
+          quote.low    = low
+          quote.close  = close
           quote.volume = volume
                     
-          quote.vwap = WAP.toFloat
+          quote.vwap = WAP
           quote.hasGaps = hasGaps
                     
           storage += quote
@@ -338,7 +340,7 @@ object IBWrapper extends IBWrapper {
     }
         
     snapshot synchronized {
-      val value = price.toFloat
+      val value = price
       snapshot.time = System.currentTimeMillis
       field match {
         case TickType.ASK =>
@@ -365,12 +367,10 @@ object IBWrapper extends IBWrapper {
     }
 
     if (snapshot.isChanged) {
-      val storage = tickerStorageOf(tickerId)
-      if (storage != null) {
-        val ticker = new Ticker
-        ticker.copyFrom(snapshot)
-        storage += ticker
-      }
+      val ticker = new Ticker
+      ticker.symbol = tickerId.toString // @TODO
+      ticker.copyFrom(snapshot)
+      tickers += ticker
     }
 
     // @todo who is observe it

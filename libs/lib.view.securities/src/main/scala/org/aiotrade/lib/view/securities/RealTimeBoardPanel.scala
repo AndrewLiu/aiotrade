@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -35,10 +35,12 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -64,17 +66,16 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.securities.dataserver.TickerEvent
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.model.TickerEvent
 import org.aiotrade.lib.securities.model.Tickers
-import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
@@ -118,15 +119,18 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   private val dayLow = new ValueCell
   private val dayOpen = new ValueCell
   private val dayVolume = new ValueCell
+  private val dayAmount = new ValueCell
   private val lastPrice = new ValueCell
   private val dayPercent = new ValueCell
   private val prevClose = new ValueCell
 
   private val numberStrs = Array("①", "②", "③", "④", "⑤")
   private val timeZone = sec.exchange.timeZone
-  private val exchgCal = Calendar.getInstance(timeZone)
-  private val sdf: SimpleDateFormat = new SimpleDateFormat("HH:mm:ss")
-  sdf.setTimeZone(timeZone)
+  private val cal = Calendar.getInstance(timeZone)
+  private val df = new SimpleDateFormat("HH:mm:ss")
+  df.setTimeZone(timeZone)
+
+  private val priceDf = new DecimalFormat("0.000")
 
   private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
     case Some(lastDailyQuote) =>
@@ -160,7 +164,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   viewContainer.setFocusable(false)
 
   reactions += {
-    case TickerEvent(src: Sec, ticker: Ticker) =>
+    case TickerEvent(ticker: Ticker) =>
       // symbol.value = if (src.secInfo != null) src.secInfo.uniSymbol else ticker.symbol
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
@@ -217,7 +221,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     //infoCellAttr.combine(Array(1), Array(0, 1, 2, 3))
     
     symbol.value = sec.uniSymbol
-    sname.value = Secs.company(sec) map (_.shortName) getOrElse ""
+    sname.value = sec.secInfo.name
 
     for (cell <- Array(lastPrice, dayChange, dayPercent, prevClose, dayVolume, dayHigh, dayLow, dayOpen)) {
       infoCellAttr.setHorizontalAlignment(SwingConstants.TRAILING, cell.row, cell.col)
@@ -276,7 +280,6 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
     depthTable = new MultiSpanCellTable(depthModel)
     depthTable.setDefaultRenderer(classOf[Object], new AttributiveCellRenderer)
-    depthTable.setTableHeader(null)
     depthTable.setFocusable(false)
     depthTable.setCellSelectionEnabled(false)
     depthTable.setShowHorizontalLines(false)
@@ -284,11 +287,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
-    val depthHeader = depthTable.getTableHeader
-    if (depthHeader != null) {
-      depthHeader.setForeground(Color.WHITE)
-      depthHeader.setBackground(LookFeel().backgroundColor)
-    }
+    depthTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
     val depthNameCol = depthTable.getColumnModel.getColumn(0)
     depthNameCol.setPreferredWidth(50)
 
@@ -305,9 +304,11 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       def getValueAt(row: Int, col: Int): Object = {
         val execution = executions(row)
         col match {
-          case 0 => sdf.format(execution.time)
+          case 0 => 
+            cal.setTimeInMillis(execution.time)
+            df format cal.getTime
           case 1 => "%5.2f"  format execution.price
-          case 2 => "%10.2f" format execution.volume
+          case 2 => "%10.2f" format execution.volume / 100.0
           case _ => null
         }
       }
@@ -369,19 +370,19 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     val posColor = LookFeel().getPositiveColor
     val negColor = LookFeel().getNegativeColor
 
-    exchgCal.setTimeInMillis(System.currentTimeMillis)
-    val now = exchgCal.getTime
+    cal.setTimeInMillis(System.currentTimeMillis)
+    val now = cal.getTime
 
-    lastPrice.value   = "%8.2f"    format ticker.lastPrice
-    prevClose.value   = "%8.2f"    format ticker.prevClose
-    dayOpen.value     = "%8.2f"    format ticker.dayOpen
-    dayHigh.value     = "%8.2f"    format ticker.dayHigh
-    dayLow.value      = "%8.2f"    format ticker.dayLow
-    dayChange.value   = "%+8.2f"   format ticker.dayChange
+    lastPrice.value   = priceDf    format ticker.lastPrice
+    prevClose.value   = priceDf    format ticker.prevClose
+    dayOpen.value     = priceDf    format ticker.dayOpen
+    dayHigh.value     = priceDf    format ticker.dayHigh
+    dayLow.value      = priceDf    format ticker.dayLow
+    dayChange.value   = priceDf    format ticker.dayChange
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
-    dayVolume.value   = ticker.dayVolume.toString
+    dayVolume.value   = "%10.2f"   format ticker.dayVolume / 100.0
 
-    def setInfoCellColorByPrevCls(value: Float, cell: ValueCell) {
+    def setInfoCellColorByPrevCls(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
       val fgColor = (
         if (value > ticker.prevClose) posColor
@@ -392,7 +393,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       infoCellAttr.setBackground(bgColor, cell.row, cell.col)
     }
 
-    def setInfoCellColorByZero(value: Float, cell: ValueCell) {
+    def setInfoCellColorByZero(value: Double, cell: ValueCell) {
       val bgColor = LookFeel().backgroundColor
       val fgColor = (
         if (value > 0) posColor
@@ -417,19 +418,19 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     while (i < depth) {
       val bidIdx = depth - 1 - i
       val bidRow = i
-      depthModel.setValueAt("%8.2f" format marketDepth.askPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt(priceDf format marketDepth.askPrice(bidIdx), bidRow, 1)
       depthModel.setValueAt(marketDepth.askSize(bidIdx).toInt.toString,  bidRow, 2)
       
       val askIdx = i
       val askRow = depth + i
-      depthModel.setValueAt("%8.2f" format marketDepth.bidPrice(askIdx), askRow, 1)
+      depthModel.setValueAt(priceDf format marketDepth.bidPrice(askIdx), askRow, 1)
       depthModel.setValueAt(marketDepth.bidSize(askIdx).toInt.toString,  askRow, 2)
 
       i += 1
     }
   }
 
-  private def updateExecutionTable(prevClose: Float, execution: Execution) {
+  private def updateExecutionTable(prevClose: Double, execution: Execution) {
     // update last execution row in depth table
     val neuColor = LookFeel().getNeutralColor
     val posColor = LookFeel().getPositiveColor
@@ -500,6 +501,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   }
   
   class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
+    private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
 
     setForeground(Color.WHITE)
     setBackground(LookFeel().backgroundColor)
@@ -509,6 +511,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
                                                hasFocus: Boolean, row: Int, column: Int): Component = {
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
+      setFont(defaultFont)
       setForeground(Color.WHITE)
       setBackground(LookFeel().backgroundColor)
       setText(null)
@@ -521,14 +524,14 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
             setHorizontalAlignment(SwingConstants.TRAILING)
             if (row - 1 >= 0) {
               try {
-                var floatValue = NUMBER_FORMAT.parse(value.toString.trim).floatValue
+                var dValue = NUMBER_FORMAT.parse(value.toString.trim).doubleValue
                 val prevValue = table.getValueAt(row - 1, column)
                 if (prevValue != null) {
-                  val prevFloatValue = NUMBER_FORMAT.parse(prevValue.toString.trim).floatValue
-                  if (floatValue > prevFloatValue) {
+                  val prevDValue = NUMBER_FORMAT.parse(prevValue.toString.trim).doubleValue
+                  if (dValue > prevDValue) {
                     setForeground(LookFeel().getPositiveBgColor)
                     setBackground(LookFeel().backgroundColor)
-                  } else if (floatValue < prevFloatValue) {
+                  } else if (dValue < prevDValue) {
                     setForeground(LookFeel().getNegativeBgColor)
                     setBackground(LookFeel().backgroundColor)
                   } else {

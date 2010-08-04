@@ -45,11 +45,11 @@ import org.aiotrade.lib.charting.laf.LookFeel
 class FibonacciArcsChart extends AbstractChart {
   final class Model extends WidgetModel {
     var t1: Long = _
-    var v1: Float = _
+    var v1: Double = _
     var t2: Long = _
-    var v2: Float = _
+    var v2: Double = _
         
-    def set(t1: Long, v1: Float, t2: Long, v2: Float) {
+    def set(t1: Long, v1: Double, t2: Long, v2: Double) {
       this.t1 = t1
       this.v1 = v1
       this.t2 = t2
@@ -67,12 +67,8 @@ class FibonacciArcsChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val xs = new Array[Float](2)
-    val ys = new Array[Float](2)
-    xs(0) = xb(bt(model.t1))
-    xs(1) = xb(bt(model.t2))
-    ys(0) = yv(model.v1)
-    ys(1) = yv(model.v2)
+    val xs = Array(xb(bt(model.t1)), xb(bt(model.t2)))
+    val ys = Array(yv(model.v1), yv(model.v2))
         
     val line = addChild(new LineSegment)
     line.setForeground(color)
@@ -81,36 +77,36 @@ class FibonacciArcsChart extends AbstractChart {
         
     val dx = xs(1) - xs(0)
     val dy = ys(1) - ys(0)
-    val radius = math.sqrt(dx * dx + dy * dy).toFloat
+    val radius = math.sqrt(dx * dx + dy * dy)
         
-    val radius1 = radius * 0.382f
-    val radius2 = radius * 0.500f
-    val radius3 = radius * 0.618f
-    val radius4 = radius * 0.763f
+    val radius1 = radius * 0.382
+    val radius2 = radius * 0.500
+    val radius3 = radius * 0.618
+    val radius4 = radius * 0.763
         
     val arc1 = addChild(new Arc)
     arc1.setForeground(color)
-    arc1.model.set(xs(1) - radius1, ys(1) - radius1, radius1 * 2f, radius1 * 2f, 0f, 360f, 0)
+    arc1.model.set(xs(1) - radius1, ys(1) - radius1, radius1 * 2, radius1 * 2, 0, 360, 0)
     arc1.plot
         
     val arc2 = addChild(new Arc)
     arc2.setForeground(color)
-    arc2.model.set(xs(1) - radius2, ys(1) - radius2, radius2 * 2f, radius2 * 2f, 0f, 360f, 0)
+    arc2.model.set(xs(1) - radius2, ys(1) - radius2, radius2 * 2, radius2 * 2, 0, 360, 0)
     arc2.plot
         
     val arc3 = addChild(new Arc)
     arc3.setForeground(color)
-    arc3.model.set(xs(1) - radius3, ys(1) - radius3, radius3 * 2f, radius3 * 2f, 0f, 360f, 0)
+    arc3.model.set(xs(1) - radius3, ys(1) - radius3, radius3 * 2, radius3 * 2, 0, 360, 0)
     arc3.plot
         
     val arc4 = addChild(new Arc)
     arc4.setForeground(color)
-    arc4.model.set(xs(1) - radius4, ys(1) - radius4, radius4 * 2f, radius4 * 2f, 0f, 360f, 0)
+    arc4.model.set(xs(1) - radius4, ys(1) - radius4, radius4 * 2, radius4 * 2, 0, 360, 0)
     arc4.plot
         
     val k = if (dx == 0) 1f else dy / dx
         
-    var xText = xs(1) - dx * 0.382f + 2
+    var xText = xs(1) - dx * 0.382 + 2
     var yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label1 = addChild(new Label)
     label1.setFont(LookFeel().axisFont)
@@ -118,7 +114,7 @@ class FibonacciArcsChart extends AbstractChart {
     label1.model.set(2 * xs(1) - xText, yText, "0.382")
     label1.plot
         
-    xText = xs(1) - dx * 0.500f + 2
+    xText = xs(1) - dx * 0.500 + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val  label2 = addChild(new Label)
     label2.setFont(LookFeel().axisFont)
@@ -126,15 +122,15 @@ class FibonacciArcsChart extends AbstractChart {
     label2.model.set(2 * xs(1) - xText, yText, "0.5")
     label2.plot
         
-    xText = xs(1) - dx * 0.618f + 2
+    xText = xs(1) - dx * 0.618 + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label3 = addChild(new Label)
-    label3.setFont(LookFeel().axisFont);
+    label3.setFont(LookFeel().axisFont)
     label3.setForeground(color)
     label3.model.set(2 * xs(1) - xText, yText, "0.618")
     label3.plot
         
-    xText = xs(1) - dx * 0.763f + 2
+    xText = xs(1) - dx * 0.763 + 2
     yText = GeomUtil.yOfLine(xText, xs(0), ys(0), k)
     val label4 = addChild(new Label)
     label4.setFont(LookFeel().axisFont)

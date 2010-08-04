@@ -91,7 +91,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     /** now add slaveViews, the size has excluded those indicators not showing */
     val size = indicatorDescriptorsToBeShowing.size
     for (i <- 0 until size) {
-      gbc.weighty = 382f / size.toFloat
+      gbc.weighty = 382.0 / size
       addSlaveView(indicatorDescriptorsToBeShowing(i), indicatorsToBeShowing(i), gbc)
     }
         

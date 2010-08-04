@@ -41,26 +41,26 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class MINFunction extends Function {
-  final protected def imin(idx: Int, baseVar: TVar[Float], period: Float, prev: Float): Float = {
+  final protected def imin(idx: Int, baseVar: TVar[Double], period: Double, prev: Double): Double = {
     StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
   }
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _min = TVar[Float]()
+  val _min = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _min(i) = Null.Float
+      _min(i) = Null.Double
             
     } else {
             
@@ -69,7 +69,7 @@ class MINFunction extends Function {
     }
   }
     
-  def min(sessionId: Long, idx: Int): Float = {
+  def min(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _min(idx)

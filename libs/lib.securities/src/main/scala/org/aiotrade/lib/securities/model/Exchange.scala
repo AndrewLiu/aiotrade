@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
@@ -12,7 +13,6 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 import scala.actors.Actor
-import scala.actors.Actor._
 
 object Exchanges extends Table[Exchange] {
   val log = Logger.getLogger(this.getClass.getSimpleName)
@@ -31,15 +31,27 @@ object Exchanges extends Table[Exchange] {
 
   // --- helper methods
   def secsOf(exchange: Exchange): Seq[Sec] = {
+    val t0 = System.currentTimeMillis
     val exchangeId = Exchanges.idOf(exchange)
     val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list) map (_._1)
-    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size)
+    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size +
+             ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     secs
+  }
+
+  def uniSymbolToLastTickerOf(exchange: Exchange) = {
+    val symbolToTicker = new HashMap[String, LightTicker]
+    for ((sec, ticker) <- Tickers.lastTickersOf(exchange) if sec != null) {
+      val symbol = sec.uniSymbol
+      ticker.symbol = symbol
+      symbolToTicker.put(symbol, ticker)
+    }
+    symbolToTicker
   }
 }
 
 object Exchange extends Publisher {
-  val logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
@@ -88,6 +100,20 @@ object Exchange extends Publisher {
     allExchanges map (x => (x -> Exchanges.secsOf(x))) toMap
   }
 
+  lazy val exchangeToUniSymbols = {
+    exchangeToSecs map {x =>
+      val syms = ListBuffer[String]()
+      x._2 foreach {sec =>
+        if (sec.secInfo == null)
+          log.warning("secInfo of sec " + sec + " is null")
+        else
+          syms += sec.secInfo.uniSymbol
+      }
+      log.info("Syms number of " + x._1.code + " is " + syms.size)
+      x._1 -> syms.toList
+    } toMap
+  }
+
   lazy val uniSymbolToSec = {
     exchangeToSecs map (_._2) flatMap {secs =>
       secs filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
@@ -109,15 +135,7 @@ object Exchange extends Publisher {
   def secsOf(exchange: Exchange): Seq[Sec] = exchangeToSecs.get(exchange) getOrElse Nil
 
   def symbolsOf(exchange: Exchange): Seq[String] = {
-    val syms = ListBuffer[String]()
-    secsOf(exchange) foreach {sec =>
-      if (sec.secInfo == null)
-        logger.warning("secInfo of sec " + sec + " is null")
-      else
-        syms += sec.secInfo.uniSymbol
-    }
-    logger.info("Syms number of " + exchange.code + " is " + syms.size)
-    syms
+    exchangeToUniSymbols.get(exchange) getOrElse Nil
   }
 
   def secOf(uniSymbol: String): Option[Sec] =
@@ -130,6 +148,48 @@ object Exchange extends Publisher {
     exchange.openCloseHMs = openCloseHMs
     exchange
   }
+
+
+//  private val heartBeatInterval = 15 * 60 * 1000 // 15 minutes
+//  private val timer = new Timer("Exchange Heart Beat Timer")
+//  timer.schedule(new TimerTask {
+//      /**
+//       * Save unclosed daily quotes/moneyflows periodically.
+//       * @Todo But, when to close it, it's another story
+//       */
+//      def run {
+//        log.info("Exchange heartbeat: ")
+//        var willCommit = false
+//        for (exchange <- allExchanges) {
+//          if (!exchange.dailyQuotesUnclosed.isEmpty) {
+//            val quotesToUpdate = exchange.dailyQuotesUnclosed synchronized {
+//              val x = exchange.dailyQuotesUnclosed.toArray
+//              exchange.dailyQuotesUnclosed.clear
+//              x
+//            }
+//            log.info("Exchange heartbeat to update daily quotes: " + quotesToUpdate.length)
+//            Quotes1d.updateBatch_!(quotesToUpdate)
+//            willCommit = true
+//          }
+//
+//          if (!exchange.dailyMoneyFlowsUnclosed.isEmpty) {
+//            val mfsToUpdate = exchange.dailyMoneyFlowsUnclosed synchronized {
+//              val x = exchange.dailyMoneyFlowsUnclosed.toArray
+//              exchange.dailyMoneyFlowsUnclosed.clear
+//              x
+//            }
+//            log.info("Exchange heartbeat to update daily moneyflows=" + mfsToUpdate.length)
+//            MoneyFlows1d.updateBatch_!(mfsToUpdate)
+//            willCommit = true
+//          }
+//        }
+//
+//        if (willCommit) {
+//          commit
+//          log.info("Exchange heartbeat: committed")
+//        }
+//      }
+//    }, 1000, heartBeatInterval)
 }
 
 
@@ -160,14 +220,15 @@ class Exchange {
 
   private var _symbols = List[String]()
 
-  lazy val uniSymbolToLastTicker = {
-    val map = new HashMap[String, LightTicker]
-    for ((sec, ticker) <- Tickers.lastTickersOf(this) if sec != null) {
-      val symbol = sec.uniSymbol
-      ticker.symbol = symbol
-      map.put(symbol, ticker)
-    }
-    map
+  private val dailyQuotesUnclosed = new HashSet[Quote]()
+  private val dailyMoneyFlowsUnclosed = new HashSet[MoneyFlow]()
+
+  def addUnclosedDailyQuote(quote: Quote) = dailyQuotesUnclosed synchronized {
+    dailyQuotesUnclosed += quote
+  }
+
+  def addUnclosedDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsUnclosed synchronized {
+    dailyMoneyFlowsUnclosed += mf
   }
 
   def open: Calendar = {

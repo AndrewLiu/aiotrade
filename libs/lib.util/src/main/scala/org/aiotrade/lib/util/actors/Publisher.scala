@@ -30,7 +30,7 @@ import scala.collection.mutable.{Buffer, HashSet, Set}
 trait Publisher extends Reactor {
   import Reactions._
   
-  protected val listeners = new RefSet[Reactor] {
+  val listeners = new RefSet[Reactor] {
     import scala.ref._
     val underlying = new HashSet[Reference[Reactor]]
     protected def Ref(a: Reactor) = a match {
@@ -39,14 +39,14 @@ trait Publisher extends Reactor {
     }
   }
 
-  private[actors] def subscribe(listener: Reactor) { listeners += listener }
+  private[actors] def subscribe(listener: Reactor)   { listeners += listener }
   private[actors] def unsubscribe(listener: Reactor) { listeners -= listener }
   
   /**
    * Notify all registered reactions.
    */
   def publish(e: Event) { for (l <- listeners) l ! e }
-  
+
   listenTo(this)
 }
 

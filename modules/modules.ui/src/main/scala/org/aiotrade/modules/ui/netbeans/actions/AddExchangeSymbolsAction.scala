@@ -51,14 +51,14 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
         def run {
           val explorerTc = ExplorerTopComponent()
           explorerTc.requestActive
-          
+
           val rootNode = explorerTc.getExplorerManager.getRootContext
           val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
 
           // expand root node
           explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
-          // add symbols in exchange folder
+          // add symbols to exchange folder
           val dailyQuoteContract  = createQuoteContract
           for (exchange <- Exchange.allExchanges;
                exchangefolder = DataFolder.create(rootFolder, exchange.code);

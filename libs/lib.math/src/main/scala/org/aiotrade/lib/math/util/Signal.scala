@@ -36,10 +36,10 @@ package org.aiotrade.lib.math.util
  */
 import java.awt.Color
 
-case class Signal(idx: Int, time: Long, value: Float, sign: Sign, text: String = null, color: Color = null) {
+case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
   def isTextSignal = text != null
-  def floatValue: Float = value
-  def doubleValue: Double = value.toDouble
+  def floatValue: Float = value.toFloat
+  def doubleValue: Double = value
   def intValue: Int = value.toInt
   def longValue: Long = value.toLong
 }

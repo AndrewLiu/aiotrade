@@ -16,8 +16,8 @@ case class RpcResponse(req: RpcRequest, result: Any)
  * @param Channel we are communicating on
  * @param Queue to receive requests from
  */
-class RpcServer($factory: ConnectionFactory, $host: String, $port: Int, $exchange: String, val requestQueue: String
-) extends AMQPDispatcher($factory, $host, $port, $exchange) {
+class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue: String
+) extends AMQPDispatcher($factory, $exchange) {
   assert(requestQueue != null && requestQueue != "", "We need explicitly named requestQueue")
 
   /**
@@ -25,19 +25,18 @@ class RpcServer($factory: ConnectionFactory, $host: String, $port: Int, $exchang
    * autodelete queue.
    */
   @throws(classOf[IOException])
-  def this(factory: ConnectionFactory, host: String, port: Int) = {
-    this(factory, host, port, "", null)
-  }
+  def this(factory: ConnectionFactory) = this(factory, "", null)
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
-    if ($exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare($exchange, "direct")
+    if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
 
-    channel.queueDeclare(requestQueue)
+    // durable = false, exclusive = false, autoDelete = true
+    channel.queueDeclare(requestQueue, false, false, true, null)
 
     // use routingKey identical to queue name
     val routingKey = requestQueue
-    channel.queueBind(requestQueue, $exchange, routingKey)
+    channel.queueBind(requestQueue, exchange, routingKey)
 
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(requestQueue, consumer)
@@ -50,7 +49,7 @@ class RpcServer($factory: ConnectionFactory, $host: String, $port: Int, $exchang
    */
   abstract class Processor extends Actor {
     start
-    RpcServer.this ! AMQPAddListener(this)
+    RpcServer.this.addListener(this)
 
     /**
      *
@@ -62,14 +61,14 @@ class RpcServer($factory: ConnectionFactory, $host: String, $port: Int, $exchang
       react {
         case msg: AMQPMessage =>
           val reqProps = msg.props
-          if (reqProps.correlationId != null && reqProps.replyTo != null) {
+          if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
             val (replyContent, replyProps) = process(msg) match {
               case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
               case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
             }
               
-            replyProps.correlationId = reqProps.correlationId
-            publish("", reqProps.replyTo, replyProps, replyContent)
+            replyProps.setCorrelationId(reqProps.getCorrelationId)
+            publish("", reqProps.getReplyTo, replyProps, replyContent)
           }
         case AMQPStop => exit
       }

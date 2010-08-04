@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.indicator.Factor
  * @author Caoyuan Deng
  */
 class STDDEVFunction extends Function {
-  final protected def stdDev(idx: Int, baseVar: TVar[Float], period: Float): Float = {
+  final protected def stdDev(idx: Int, baseVar: TVar[Double], period: Double): Double = {
     val begIdx = idx - period.toInt + 1
     val endIdx = idx
 
@@ -50,21 +50,21 @@ class STDDEVFunction extends Function {
 
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _stdDev = TVar[Float]()
+  val _stdDev = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _stdDev(i) = Null.Float
+      _stdDev(i) = Null.Double
             
     } else {
             
@@ -73,7 +73,7 @@ class STDDEVFunction extends Function {
     }
   }
     
-  def stdDev(sessionId: Long, idx: Int): Float = {
+  def stdDev(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _stdDev(idx)

@@ -36,13 +36,13 @@ package org.aiotrade.lib.charting.chart.segment
  */
 trait Shading {
   /** upper bound */
-  def getUpperBound: Float
+  def getUpperBound: Double
     
   /** lower bound */
-  def getLowerBound: Float
+  def getLowerBound: Double
 
   /** return number of intervals between upper bound and lower bound */
-  def getNIntervals: Float
+  def getNIntervals: Double
     
   /** the time interval between different slice */
   def getSlice: Int

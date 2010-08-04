@@ -61,30 +61,28 @@ class FibonacciVerticalRetracementsChart extends AbstractChart {
     val color = LookFeel().drawingColor
     setForeground(color)
         
-    val bs = new Array[Float](2)
-    bs(0) = bt(m.t1)
-    bs(1) = bt(m.t2)
+    val bs = Array(bt(m.t1), bt(m.t2))
     val interval = bs(1) - bs(0)
         
     /** calculate Fibonacci serials */
     val Fn = Array(
-      0.000f,
-      0.382f,
-      0.500f,
-      0.618f,
-      1.000f,
-      1.236f,
-      1.618f,
-      2.000f,
-      2.618f,
-      3.000f
+      0.000,
+      0.382,
+      0.500,
+      0.618,
+      1.000,
+      1.236,
+      1.618,
+      2.000,
+      2.618,
+      3.000
     )
         
         
     val ymin = yv(datumPlane.minValue)
     var n = 0
     while (n < Fn.length) {
-      val b = math.round(bs(0) + interval * Fn(n))
+      val b = math.round(bs(0) + interval * Fn(n)).toInt
       if (b >= 1 && b <= nBars) {
         val pathWidget = addChild(new PathWidget)
         pathWidget.setForeground(color)

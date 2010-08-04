@@ -3,20 +3,20 @@ package org.aiotrade.lib.securities.model
 import ru.circumflex.orm.Table
 
 object SecIssues extends Table[SecIssue] {
-  val sec = "secs_id" REFERENCES(Secs) //oneToOne(Sec.secIssue)
+  val sec = "secs_id" REFERENCES(Secs)
 
-  val par = "par" FLOAT(12, 2) //field(SecIssue.par)
-  val price = "price" FLOAT(12, 2) //field(SecIssue.price)
-  val totalShare = "totalShare" BIGINT //field(SecIssue.totalShares)
-  val issueDate = "issueDate" BIGINT //field(SecIssue.issueDate)
-  val listDate = "listDate" BIGINT //field(SecIssue.listDate)
+  val par = "par" DOUBLE()
+  val price = "price" DOUBLE()
+  val totalShare = "totalShare" BIGINT
+  val issueDate = "issueDate" BIGINT
+  val listDate = "listDate" BIGINT
 }
 
 class SecIssue {
   var sec: Sec = _
 
-  var par: Float = _
-  var price: Float = _
+  var par: Double = _
+  var price: Double = _
   var totalShare: Long = _
   var issueDate: Long = _
   var listDate: Long = _

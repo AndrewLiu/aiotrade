@@ -229,7 +229,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
           val myFactor = _factors(i)
           val inValue = facValues(i)
           /** check if changed happens before set myFactor */
-          if (myFactor.value != inValue.floatValue) {
+          if (myFactor.value != inValue.doubleValue) {
             valueChanged = true
           }
           myFactor.value = inValue

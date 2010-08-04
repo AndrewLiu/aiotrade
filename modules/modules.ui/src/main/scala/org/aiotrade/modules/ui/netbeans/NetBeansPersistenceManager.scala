@@ -554,28 +554,28 @@ class NetBeansPersistenceManager extends PersistenceManager {
       val creatTableSql_derby = "CREATE TABLE " + tb + "(" +
       "qid        INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
       "qtime      BIGINT  NOT NULL, " +
-      "qopen      FLOAT, " +
-      "qhigh      FLOAT, " +
-      "qlow       FLOAT, " +
-      "qclose     FLOAT, " +
-      "qclose_adj FLOAT, " +
-      "qvolume    FLOAT, " +
-      "qamount    FLOAT, " +
-      "qvwap      FLOAT, " +
+      "qopen      DOUBLE, " +
+      "qhigh      DOUBLE, " +
+      "qlow       DOUBLE, " +
+      "qclose     DOUBLE, " +
+      "qclose_adj DOUBLE, " +
+      "qvolume    DOUBLE, " +
+      "qamount    DOUBLE, " +
+      "qvwap      DOUBLE, " +
       "qhasgaps   SMALLINT, " +
       "qsourceid  BIGINT)"
 
       val creatTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tb + "(" +
       "qid        INTEGER NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
       "qtime      BIGINT  NOT NULL, " +
-      "qopen      FLOAT, " +
-      "qhigh      FLOAT, " +
-      "qlow       FLOAT, " +
-      "qclose     FLOAT, " +
-      "qclose_adj FLOAT, " +
-      "qvolume    FLOAT, " +
-      "qamount    FLOAT, " +
-      "qvwap      FLOAT, " +
+      "qopen      DOUBLE, " +
+      "qhigh      DOUBLE, " +
+      "qlow       DOUBLE, " +
+      "qclose     DOUBLE, " +
+      "qclose_adj DOUBLE, " +
+      "qvolume    DOUBLE, " +
+      "qamount    DOUBLE, " +
+      "qvwap      DOUBLE, " +
       "qhasgaps   SMALLINT, " +
       "qsourceid  BIGINT)"
 
@@ -616,14 +616,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
       stmt = conn.prepareStatement(sql)
       for (quote <- quotes) {
         stmt setLong  (1, quote.time)
-        stmt setFloat (2, quote.open)
-        stmt setFloat (3, quote.high)
-        stmt setFloat (4, quote.low)
-        stmt setFloat (5, quote.close)
-        stmt setFloat (6, quote.volume)
-        stmt setFloat (7, quote.amount)
-        stmt setFloat (8, quote.adjWeight)
-        stmt setFloat (9, quote.vwap)
+        stmt setDouble (2, quote.open)
+        stmt setDouble (3, quote.high)
+        stmt setDouble (4, quote.low)
+        stmt setDouble (5, quote.close)
+        stmt setDouble (6, quote.volume)
+        stmt setDouble (7, quote.amount)
+        stmt setDouble (9, quote.vwap)
         stmt setByte  (10, if (quote.hasGaps) -1 else 1)
         stmt setLong  (11, sourceId)
 
@@ -655,14 +654,13 @@ class NetBeansPersistenceManager extends PersistenceManager {
           val quote = new Quote
 
           quote.time      = rs.getLong("qtime")
-          quote.open      = rs.getFloat("qopen")
-          quote.high      = rs.getFloat("qhigh")
-          quote.low       = rs.getFloat("qlow")
-          quote.close     = rs.getFloat("qclose")
-          quote.volume    = rs.getFloat("qvolume")
-          quote.amount    = rs.getFloat("qamount")
-          quote.adjWeight = rs.getFloat("qclose_adj")
-          quote.vwap      = rs.getFloat("qvwap")
+          quote.open      = rs.getDouble("qopen")
+          quote.high      = rs.getDouble("qhigh")
+          quote.low       = rs.getDouble("qlow")
+          quote.close     = rs.getDouble("qclose")
+          quote.volume    = rs.getDouble("qvolume")
+          quote.amount    = rs.getDouble("qamount")
+          quote.vwap      = rs.getDouble("qvwap")
           quote.hasGaps   = (if (rs.getByte("qhasgaps") < 0) true else false)
           quote.sourceId  = rs.getLong("qsourceid")
 
@@ -770,28 +768,28 @@ class NetBeansPersistenceManager extends PersistenceManager {
       "tid       INTEGER  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY, " +
       "ttime     BIGINT   NOT NULL, " +
       "tsymbol   CHAR(30) NOT NULL, " +
-      "prevclose FLOAT, " +
-      "lastprice FLOAT, " +
-      "dayopen   FLOAT, " +
-      "dayhigh   FLOAT, " +
-      "daylow    FLOAT, " +
-      "dayvolume FLOAT, " +
-      "dayamount FLOAT, " +
-      "daychange FLOAT, " +
+      "prevclose DOUBLE, " +
+      "lastprice DOUBLE, " +
+      "dayopen   DOUBLE, " +
+      "dayhigh   DOUBLE, " +
+      "daylow    DOUBLE, " +
+      "dayvolume DOUBLE, " +
+      "dayamount DOUBLE, " +
+      "daychange DOUBLE, " +
       "tsourceid BIGINT)"
 
       val createTableSql_h2_hsqldb = "CREATE CACHED TABLE " + tickerTb + "(" +
       "tid       INTEGER  NOT NULL IDENTITY(1, 1) PRIMARY KEY, " +
       "ttime     BIGINT   NOT NULL, " +
       "tsymbol   CHAR(30) NOT NULL, " +
-      "prevclose FLOAT, " +
-      "lastprice FLOAT, " +
-      "dayopen   FLOAT, " +
-      "dayhigh   FLOAT, " +
-      "daylow    FLOAT, " +
-      "dayvolume FLOAT, " +
-      "dayamount FLOAT, " +
-      "daychange FLOAT, " +
+      "prevclose DOUBLE, " +
+      "lastprice DOUBLE, " +
+      "dayopen   DOUBLE, " +
+      "dayhigh   DOUBLE, " +
+      "daylow    DOUBLE, " +
+      "dayvolume DOUBLE, " +
+      "dayamount DOUBLE, " +
+      "daychange DOUBLE, " +
       "tsourceid BIGINT)"
 
       var sql = if (dbDriver.contains("derby")) createTableSql_derby else createTableSql_h2_hsqldb
@@ -814,8 +812,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
       "tid        INTEGER NOT NULL, " +
       "dlevel     SMALLINT, " +
       "ddirection SMALLINT, " + // bid = -1, ask = 1
-      "dprice     FLOAT, " +
-      "dsize      FLOAT, " +
+      "dprice     DOUBLE, " +
+      "dsize      DOUBLE, " +
       "dopid      CHAR(30))"
 
       val stmtCreateDepthTableStr_h2_hsqldb = "CREATE CACHED TABLE " + depthTb + "(" +
@@ -823,8 +821,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
       "tid        INTEGER NOT NULL, " +
       "dlevel     SMALLINT, " +
       "ddirection SMALLINT, " + // bid = -1, ask = 1
-      "dprice     FLOAT, " +
-      "dsize      FLOAT, " +
+      "dprice     DOUBLE, " +
+      "dsize      DOUBLE, " +
       "dopid      CHAR(30))"
 
       sql = if (dbDriver.contains("derby")) stmtCreateDepthTableStr_derby else stmtCreateDepthTableStr_h2_hsqldb
@@ -887,14 +885,14 @@ class NetBeansPersistenceManager extends PersistenceManager {
       for (ticker <- tickers) {
         stmt1 setLong   (1, ticker.time)
         stmt1 setString (2, ticker.symbol)
-        stmt1 setFloat  (3, ticker.prevClose)
-        stmt1 setFloat  (4, ticker.lastPrice)
-        stmt1 setFloat  (5, ticker.dayOpen)
-        stmt1 setFloat  (6, ticker.dayHigh)
-        stmt1 setFloat  (7, ticker.dayLow)
-        stmt1 setFloat  (8, ticker.dayVolume)
-        stmt1 setFloat  (9, ticker.dayAmount)
-        stmt1 setFloat  (10, ticker.dayChange)
+        stmt1 setDouble (3, ticker.prevClose)
+        stmt1 setDouble (4, ticker.lastPrice)
+        stmt1 setDouble (5, ticker.dayOpen)
+        stmt1 setDouble (6, ticker.dayHigh)
+        stmt1 setDouble (7, ticker.dayLow)
+        stmt1 setDouble (8, ticker.dayVolume)
+        stmt1 setDouble (9, ticker.dayAmount)
+        stmt1 setDouble (10, ticker.dayChange)
         stmt1 setLong   (11, sourceId)
 
         stmt1.execute
@@ -908,8 +906,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
             stmt2 setInt    (1, tickerId)
             stmt2 setInt    (2, level)
             stmt2 setInt    (3, -1)
-            stmt2 setFloat  (4, ticker.bidPrice(level))
-            stmt2 setFloat  (5, ticker.bidSize(level))
+            stmt2 setDouble (4, ticker.bidPrice(level))
+            stmt2 setDouble (5, ticker.bidSize(level))
             stmt2 setString (6, "")
 
             stmt2.addBatch
@@ -922,8 +920,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
             stmt2 setInt    (1, tickerId)
             stmt2 setInt    (2, level)
             stmt2 setInt    (3, 1)
-            stmt2 setFloat  (4, ticker.askPrice(level))
-            stmt2 setFloat  (5, ticker.askSize(level))
+            stmt2 setDouble (4, ticker.askPrice(level))
+            stmt2 setDouble (5, ticker.askSize(level))
             stmt2 setString (6, "")
 
             stmt2.addBatch
@@ -963,21 +961,21 @@ class NetBeansPersistenceManager extends PersistenceManager {
           ticker = new Ticker
           ticker.symbol    = symbol
           ticker.time      = rs getLong  ("ttime")
-          ticker.prevClose = rs getFloat ("prevclose")
-          ticker.lastPrice = rs getFloat ("lastprice")
-          ticker.dayOpen   = rs getFloat ("dayopen")
-          ticker.dayHigh   = rs getFloat ("dayhigh")
-          ticker.dayLow    = rs getFloat ("daylow")
-          ticker.dayVolume = rs getFloat ("dayvolume")
-          ticker.dayAmount = rs getFloat ("dayamount")
-          ticker.dayChange = rs getFloat ("daychange")
+          ticker.prevClose = rs getDouble ("prevclose")
+          ticker.lastPrice = rs getDouble ("lastprice")
+          ticker.dayOpen   = rs getDouble ("dayopen")
+          ticker.dayHigh   = rs getDouble ("dayhigh")
+          ticker.dayLow    = rs getDouble ("daylow")
+          ticker.dayVolume = rs getDouble ("dayvolume")
+          ticker.dayAmount = rs getDouble ("dayamount")
+          ticker.dayChange = rs getDouble ("daychange")
         } else {
           // (tid, dlevel, ddirection, dprice, dsize, dopid)
           val level     = rs getInt   ("dlevel")
           val direction = rs getInt   ("ddirection")
-          val price     = rs getFloat ("dprice")
-          val size      = rs getFloat ("dsize")
-          val opid      = rs getFloat ("dopid")
+          val price     = rs getDouble ("dprice")
+          val size      = rs getDouble ("dsize")
+          val opid      = rs getDouble ("dopid")
           if (direction == -1) {
             ticker.setBidPrice(level, price)
             ticker.setBidSize (level, size)
@@ -1024,15 +1022,15 @@ class NetBeansPersistenceManager extends PersistenceManager {
           // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
           ticker = new Ticker
           ticker.symbol    = symbol
-          ticker.time      = rs getLong  ("ttime")
-          ticker.prevClose = rs getFloat ("prevclose")
-          ticker.lastPrice = rs getFloat ("lastprice")
-          ticker.dayOpen   = rs getFloat ("dayopen")
-          ticker.dayHigh   = rs getFloat ("dayhigh")
-          ticker.dayLow    = rs getFloat ("daylow")
-          ticker.dayVolume = rs getFloat ("dayvolume")
-          ticker.dayAmount = rs getFloat ("dayamount")
-          ticker.dayChange = rs getFloat ("daychange")
+          ticker.time      = rs getLong   ("ttime")
+          ticker.prevClose = rs getDouble ("prevclose")
+          ticker.lastPrice = rs getDouble ("lastprice")
+          ticker.dayOpen   = rs getDouble ("dayopen")
+          ticker.dayHigh   = rs getDouble ("dayhigh")
+          ticker.dayLow    = rs getDouble ("daylow")
+          ticker.dayVolume = rs getDouble ("dayvolume")
+          ticker.dayAmount = rs getDouble ("dayamount")
+          ticker.dayChange = rs getDouble ("daychange")
         } else {
           // do not need depth
         }

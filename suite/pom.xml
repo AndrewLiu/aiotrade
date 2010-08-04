@@ -10,7 +10,16 @@
     <properties>
         <netbeans.version>RELEASE69</netbeans.version>
         <brandingToken>aiotrade</brandingToken>
+        <deploy.version>snapshots</deploy.version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>repo.qa</id>
+            <name>Nyapc ${deploy.version} repository</name>
+            <url>http://repo.qa/content/repositories/${deploy.version}</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <!-- this is a remote repository hosting the netbeans api artifacts.
@@ -41,7 +50,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>nbm-maven-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.2</version>
                     <extensions>true</extensions>
                     <configuration>
                         <descriptor>src/main/nbm/module.xml</descriptor>

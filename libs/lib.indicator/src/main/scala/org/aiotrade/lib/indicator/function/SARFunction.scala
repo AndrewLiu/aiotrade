@@ -42,10 +42,10 @@ class SARFunction extends Function {
   var initial, step, maximum: Factor = _
     
   val _direction = TVar[Direction]()
-  val _ep        = TVar[Float]()
-  val _af        = TVar[Float]()
+  val _ep        = TVar[Double]()
+  val _af        = TVar[Double]()
     
-  val _sar = TVar[Float]()
+  val _sar = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -138,7 +138,7 @@ class SARFunction extends Function {
     }
   }
     
-  def sar(sessionId: Long, idx: Int): Float = {
+  def sar(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _sar(idx)

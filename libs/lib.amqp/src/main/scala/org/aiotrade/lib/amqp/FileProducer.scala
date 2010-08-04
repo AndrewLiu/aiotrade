@@ -7,7 +7,6 @@ import java.io.IOException
 import java.util.HashMap
 import java.util.Map
 
-import com.rabbitmq.client.ConnectionParameters
 import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
@@ -28,15 +27,15 @@ object FileProducer {
     val queue = "filequeue"
     val routingKey = "faster.server.dbffile"
 
-    val params = new ConnectionParameters
-    params.setUsername("guest")
-    params.setPassword("guest")
-    params.setVirtualHost("/")
-    params.setRequestedHeartbeat(0)
+    val factory = new ConnectionFactory
+    factory.setHost(host)
+    factory.setPort(port)
+    factory.setUsername("guest")
+    factory.setPassword("guest")
+    factory.setVirtualHost("/")
+    factory.setRequestedHeartbeat(0)
 
-    val factory = new ConnectionFactory(params)
-
-    val producer = new FileProducer(factory, host, port, exchange, queue, routingKey, nConsumers)
+    val producer = new FileProducer(factory, exchange, queue, routingKey, nConsumers)
     producer.start
     val files = List(new File("pom.xml"), new File("src/test/resources/testfile.txt"))
 
@@ -45,8 +44,8 @@ object FileProducer {
   }
 }
 
-class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: String, queue: String, routingKey: String, nConsumers: Int
-) extends AMQPDispatcher(cf, host, port, exchange) {
+class FileProducer(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, nConsumers: Int
+) extends AMQPDispatcher(factory, exchange) {
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
@@ -57,7 +56,7 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
     for (i <- 0 until nConsumers) {
       // count from 1, (i + 1) should be enclosed, otherwise will be 01 instead of 1
       val queuei = queue + (i + 1) 
-      channel.queueDeclare(queuei, true)
+      channel.queueDeclare(queuei, true, false, false, null)
       channel.queueBind(queuei, exchange, routingKey)
     }
     
@@ -85,9 +84,9 @@ class FileProducer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
     headers.put("filename", toName)
     headers.put("length", body.length.asInstanceOf[AnyRef])
     val props = new BasicProperties
-    props.headers = headers
-    props.contentType = ContentType.OCTET_STREAM.mimeType
-    props.deliveryMode = 2 // persistent
+    props.setHeaders(headers)
+    props.setContentType(ContentType.OCTET_STREAM.mimeType)
+    props.setDeliveryMode(2) // persistent
     publish(exchange, routingKey, props, body)
   }
 

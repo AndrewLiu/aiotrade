@@ -50,7 +50,7 @@ import org.aiotrade.lib.charting.widget.Label
  */
 object AxisYPane {
   val CURRENCY_DECIMAL_FORMAT = new DecimalFormat("0.###")
-  val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.00")
+  val COMMON_DECIMAL_FORMAT = new DecimalFormat("0.###")
 }
 
 import AxisYPane._
@@ -100,7 +100,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     datumPlane.computeGeometry
     val controller = view.controller
     if (controller.isMouseEnteredAnyChartPane) {
-      var y, v: Float = 0f
+      var y, v = 0.0
       if (datumPlane.view.isInstanceOf[WithQuoteChart]) {
         if (datumPlane.isMouseEntered) {
           y = datumPlane.yMouse
@@ -120,7 +120,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
         mouseCursorLabel.setText(valueStr)
         val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
         mouseCursorLabel.setBounds(
-          3, math.round(y) - fm.getHeight + 1,
+          3, math.round(y).toInt - fm.getHeight + 1,
           fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
 
         mouseCursorLabel.setVisible(true)
@@ -135,7 +135,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
           mouseCursorLabel.setFont(LookFeel().axisFont)
           mouseCursorLabel.setText(valueStr)
           val fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
-          mouseCursorLabel.setBounds(3, math.round(y) - fm.getHeight + 1,
+          mouseCursorLabel.setBounds(3, math.round(y).toInt - fm.getHeight + 1,
                                      fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
 
           mouseCursorLabel.setVisible(true)
@@ -158,7 +158,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
     datumPlane.computeGeometry
     val controller = view.controller
 
-    var y, v: Float = 0f
+    var y, v = 0.0
     if (datumPlane.view.isInstanceOf[WithQuoteChart]) {
       val referRow = controller.referCursorRow
       val quoteSer = datumPlane.view.asInstanceOf[WithQuoteChart].quoteSer
@@ -172,7 +172,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
       referCursorLabel.setFont(LookFeel().axisFont)
       referCursorLabel.setText(valueStr)
       val fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
-      referCursorLabel.setBounds(3, math.round(y) - fm.getHeight + 1,
+      referCursorLabel.setBounds(3, math.round(y).toInt - fm.getHeight + 1,
                                  fm.stringWidth(referCursorLabel.getText) + 2, fm.getHeight)
 
       referCursorLabel.setVisible(true)
@@ -239,7 +239,7 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
         path.lineTo(2, yTick)
 
         if (math.abs(vTick) >= 100000) {
-          vTick = math.abs(vTick / 100000.0f)
+          vTick = math.abs(vTick / 100000.0)
           shouldScale = true
         } else {
           vTick = math.abs(vTick)
@@ -271,29 +271,29 @@ class AxisYPane(aview: ChartView, adatumPlane: DatumPlane) extends Pane(aview, a
   /**
    * Try to round tickUnit
    */
-  private def roundTickUnit(avTickUnit: Float): Float = {
+  private def roundTickUnit(avTickUnit: Double): Double = {
     /** sample : 0.032 */
     var vTickUnit = avTickUnit
     val roundedExponent = math.round(math.log10(vTickUnit)).toInt - 1   // -2
     val adjustFactor = math.pow(10, -roundedExponent)               // 100
     val adjustedValue = (vTickUnit * adjustFactor).toInt       // 3.2 -> 3
-    vTickUnit = adjustedValue.toFloat / adjustFactor.toFloat     // 0.03
+    vTickUnit = adjustedValue.toDouble / adjustFactor     // 0.03
 
-    /** following DecimalFormat <-> float converts are try to round the decimal */
+    /** following DecimalFormat <-> double converts are try to round the decimal */
     if (vTickUnit <= 0.001) {
       /** for currency */
-      vTickUnit = 0.001f
+      vTickUnit = 0.001
     } else if (vTickUnit > 0.001 && vTickUnit < 0.005) {
       /** for currency */
       val unitStr = CURRENCY_DECIMAL_FORMAT.format(vTickUnit)
       try {
-        vTickUnit = CURRENCY_DECIMAL_FORMAT.parse(unitStr.trim).floatValue
+        vTickUnit = CURRENCY_DECIMAL_FORMAT.parse(unitStr.trim).doubleValue
       } catch {case ex: ParseException => ex.printStackTrace}
     } else if (vTickUnit > 0.005 && vTickUnit < 1) {
       /** for stock */
       val unitStr = COMMON_DECIMAL_FORMAT.format(vTickUnit)
       try {
-        vTickUnit = COMMON_DECIMAL_FORMAT.parse(unitStr.trim).floatValue
+        vTickUnit = COMMON_DECIMAL_FORMAT.parse(unitStr.trim).doubleValue
       } catch {case ex: ParseException => ex.printStackTrace}
     }
 

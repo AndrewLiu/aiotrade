@@ -9,7 +9,8 @@ import ru.circumflex.orm._
 
 object MoneyFlows1d extends MoneyFlows {
   def dailyMoneyFlowOf(sec: Sec, time: Long): MoneyFlow = synchronized {
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val exchange = sec.exchange
+    val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
     (SELECT (this.*) FROM (this) WHERE (
@@ -23,8 +24,10 @@ object MoneyFlows1d extends MoneyFlows {
         newone.sec = sec
         newone.unclosed_! // @todo when to close it and update to db?
         newone.justOpen_!
+        newone.fromMe_!
         MoneyFlows1d.save(newone)
         commit
+        //exchange.addUnclosedDailyMoneyFlow(newone)
         newone
     }
   }
@@ -38,17 +41,17 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val time = "time" BIGINT
 
-  val totalVolume = "totalVolume" FLOAT(18, 2)
-  val totalAmount = "totalAmount" FLOAT(18, 2)
+  val totalVolume = "totalVolume" DOUBLE()
+  val totalAmount = "totalAmount" DOUBLE()
 
-  val superVolume = "superVolume" FLOAT(18, 2)
-  val superAmount = "superAmount" FLOAT(18, 2)
+  val superVolume = "superVolume" DOUBLE()
+  val superAmount = "superAmount" DOUBLE()
 
-  val largeVolume = "largeVolume" FLOAT(18, 2)
-  val largeAmount = "largeAmount" FLOAT(18, 2)
+  val largeVolume = "largeVolume" DOUBLE()
+  val largeAmount = "largeAmount" DOUBLE()
 
-  val smallVolume = "smallVolume" FLOAT(18, 2)
-  val smallAmount = "smallAmount" FLOAT(18, 2)
+  val smallVolume = "smallVolume" DOUBLE()
+  val smallAmount = "smallAmount" DOUBLE()
   
   val flag = "flag" INTEGER
 
@@ -82,15 +85,15 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 class MoneyFlow extends TVal with Flag {
   var sec: Sec = _
   
-  var totalVolume: Float = _
-  var totalAmount: Float = _
+  var totalVolume: Double = _
+  var totalAmount: Double = _
 
-  var superVolume: Float = _
-  var superAmount: Float = _
+  var superVolume: Double = _
+  var superAmount: Double = _
 
-  var largeVolume: Float = _
-  var largeAmount: Float = _
+  var largeVolume: Double = _
+  var largeAmount: Double = _
 
-  var smallVolume: Float = _
-  var smallAmount: Float = _
+  var smallVolume: Double = _
+  var smallAmount: Double = _
 }

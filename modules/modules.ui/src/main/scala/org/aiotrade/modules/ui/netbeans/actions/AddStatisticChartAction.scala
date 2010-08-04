@@ -93,7 +93,7 @@ class AddStatisticChartAction extends CallableSystemAction {
                     
             val baseSer = analysisWin.viewContainer.controller.baseSer
             val statIndicator = new ProbMassIndicator(baseSer)
-            statIndicator.baseVar = selectedVar.asInstanceOf[TVar[Float]]
+            statIndicator.baseVar = selectedVar.asInstanceOf[TVar[Double]]
             statIndicator.computeFrom(0)
                     
             selectedView.addOverlappingCharts(statIndicator)

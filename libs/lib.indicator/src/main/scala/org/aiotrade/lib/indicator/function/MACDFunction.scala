@@ -41,17 +41,17 @@ import org.aiotrade.lib.math.indicator.Factor
 class MACDFunction extends Function {
     
   var periodSlow, periodFast: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _emaFast = TVar[Float]()
-  val _emaSlow = TVar[Float]()
+  val _emaFast = TVar[Double]()
+  val _emaSlow = TVar[Double]()
     
-  val _macd = TVar[Float]()
+  val _macd = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.periodSlow = args(1).asInstanceOf[Factor]
     this.periodFast = args(2).asInstanceOf[Factor]
   }
@@ -63,7 +63,7 @@ class MACDFunction extends Function {
     _macd(i) = _emaFast(i) - _emaSlow(i)
   }
     
-  def macd(sessionId: Long, idx: Int): Float = {
+  def macd(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _macd(idx)

@@ -44,30 +44,6 @@
                     <artifactId>lib-math</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-beanutils</groupId>
-                    <artifactId>commons-beanutils</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ru.circumflex</groupId>
-                    <artifactId>circumflex-core</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>ru.circumflex</groupId>
                     <artifactId>circumflex-orm</artifactId>
                 </exclusion>
@@ -108,6 +84,11 @@
             <artifactId>ru-circumflex-orm</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>net-lag-configgy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 
@@ -122,6 +103,7 @@
                         <publicPackage>org.aiotrade.lib.securities</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.dataserver</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.model</publicPackage>
+                        <publicPackage>org.aiotrade.lib.securities.model.data</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.util</publicPackage>
                     </publicPackages>
                 </configuration>

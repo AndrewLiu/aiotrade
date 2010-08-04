@@ -3,10 +3,9 @@ package org.aiotrade.lib.amqp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-
+import java.util.logging.Logger
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.ConnectionParameters
 import com.rabbitmq.client.Consumer
 
 import scala.actors.Actor
@@ -23,21 +22,19 @@ object FileConsumer {
 
     val host = "localhost"
 
-    val params = new ConnectionParameters
-    params.setUsername("guest")
-    params.setPassword("guest")
-    params.setVirtualHost("/")
-    params.setRequestedHeartbeat(0)
-
     val outputDirPath = System.getProperty("user.home") + File.separator + "storage"
 
-    val factory = new ConnectionFactory(params)
+    val factory = new ConnectionFactory
+    factory.setHost(host)
+    factory.setPort(port)
+    factory.setUsername("guest")
+    factory.setPassword("guest")
+    factory.setVirtualHost("/")
+    factory.setRequestedHeartbeat(0)
 
     for (i <- 0 until 5) {
       val queuei = queue + i
       val consumer = new FileConsumer(factory,
-                                      host,
-                                      port,
                                       exchange,
                                       queuei,
                                       routingKey,
@@ -50,8 +47,8 @@ object FileConsumer {
 
 }
 
-class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: String, queue: String, routingKey: String, outputDirPath: String
-) extends AMQPDispatcher(cf, host, port, exchange) {
+class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, outputDirPath: String
+) extends AMQPDispatcher(factory, exchange) {
   val outputDir = new File(outputDirPath)
   if (!outputDir.exists) {
     outputDir.mkdirs
@@ -62,7 +59,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     channel.exchangeDeclare(exchange, "direct", true)
-    channel.queueDeclare(queue, true)
+    channel.queueDeclare(queue, true, false, false, null)
     channel.queueBind(queue, exchange, routingKey)
     
     val consumer = new AMQPConsumer(channel)
@@ -72,7 +69,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
 
   abstract class Processor extends Actor {
     start
-    FileConsumer.this ! AMQPAddListener(this)
+    FileConsumer.this.addListener(this)
 
     protected def process(msg: AMQPMessage)
 
@@ -87,7 +84,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
   class DefaultProcessor extends Processor {
     
     override protected def process(msg: AMQPMessage) {
-      val headers = msg.props.headers
+      val headers = msg.props.getHeaders
       val content = msg.content.asInstanceOf[Array[Byte]]
 
       try {
@@ -114,8 +111,10 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
    * When finish receiving all the data, then rename to the regular file in the same folder.
    */
   class SafeProcessor extends Processor {
+    private val log = Logger.getLogger(this.getClass.getName)
+    
     override protected def process(msg: AMQPMessage) {
-      val headers = msg.props.headers
+      val headers = msg.props.getHeaders
       val content = msg.content.asInstanceOf[Array[Byte]]
 
       try {
@@ -133,7 +132,7 @@ class FileConsumer(cf: ConnectionFactory, host: String, port: Int, exchange: Str
         out.close
 
         outputFile.renameTo(new File(outputDir, fileName))
-        
+        log.info("Received " + fileName)
       } catch {
         case e => e.printStackTrace
       }

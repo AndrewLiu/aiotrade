@@ -44,9 +44,9 @@ class BIASIndicator extends Indicator {
   val period2 = Factor("Period Mediaum", 12)
   val period3 = Factor("Period Long",    24)
     
-  val bias1 = TVar[Float]("BIAS1", Plot.Line)
-  val bias2 = TVar[Float]("BIAS2", Plot.Line)
-  val bias3 = TVar[Float]("BIAS3", Plot.Line)
+  val bias1 = TVar[Double]("BIAS1", Plot.Line)
+  val bias2 = TVar[Double]("BIAS2", Plot.Line)
+  val bias3 = TVar[Double]("BIAS3", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
@@ -56,9 +56,9 @@ class BIASIndicator extends Indicator {
       val ma2 = ma(i, C, period2)
       val ma3 = ma(i, C, period3)
             
-      bias1(i) = (C(i) - ma1) / ma1 * 100f
-      bias2(i) = (C(i) - ma2) / ma2 * 100f
-      bias3(i) = (C(i) - ma3) / ma3 * 100f
+      bias1(i) = (C(i) - ma1) / ma1 * 100
+      bias2(i) = (C(i) - ma2) / ma2 * 100
+      bias3(i) = (C(i) - ma3) / ma3 * 100
 
       i += 1
     }

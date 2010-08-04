@@ -66,7 +66,7 @@ trait ChartingController extends ChangeSubject {
   def isMouseEnteredAnyChartPane: Boolean
   def isMouseEnteredAnyChartPane_=(b: Boolean)
 
-  def wBar: Float
+  def wBar: Double
 
   def growWBar(increment: Int)
 
@@ -168,7 +168,7 @@ object ChartingController {
 
     /** BASIC_BAR_WIDTH = 6 */
     private val PREFERRED_BAR_WIDTHS = Array(
-      0.00025f, 0.0005f, 0.001f, 0.025f, 0.05f, 0.1f, 0.25f, 0.5f, 1f, 2f, 4f, 6f, 10f, 20f
+      0.00025, 0.0005, 0.001, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10, 20
     )
 
     private var _isCursorAccelerated = false
@@ -330,10 +330,10 @@ object ChartingController {
       updateViews
     }
 
-    def wBar: Float = {
+    def wBar: Double = {
       if (isFixedNBars) {
         val masterView = viewContainer.masterView
-        masterView.wChart.toFloat / fixedNBars.toFloat
+        masterView.wChart.toDouble / fixedNBars.toDouble
       } else _wBar
     }
 
@@ -342,7 +342,7 @@ object ChartingController {
 
       /** decide wBar according to wViewPort. Do not use integer divide here */
       val masterView = viewContainer.masterView
-      var newWBar = masterView.wChart.toFloat / nBars.toFloat
+      var newWBar = masterView.wChart.toDouble / nBars.toDouble
 
       internal_setWBar(newWBar)
       updateViews
@@ -353,7 +353,7 @@ object ChartingController {
       if (nBars < 0 || fixedNBars != 0) return
 
       /** decide wBar according to wViewPort. Do not use integer divide here */
-      var newWBar = wViewPort.toFloat / nBars.toFloat
+      var newWBar = wViewPort.toDouble / nBars.toDouble
 
       /** adjust xfactorIdx to nearest */
       if (newWBar < PREFERRED_BAR_WIDTHS(0)) {
@@ -498,7 +498,7 @@ object ChartingController {
      * as we don't like referCursor and rightCursor being set directly by others,
      * the following setter methods are named internal_setXXX, and are private.
      */
-    private def internal_setWBar(wBar: Float) {
+    private def internal_setWBar(wBar: Double) {
       val oldValue = _wBar
       _wBar = wBar
       if (_wBar != oldValue) {

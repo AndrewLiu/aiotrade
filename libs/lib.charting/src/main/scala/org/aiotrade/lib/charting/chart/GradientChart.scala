@@ -79,18 +79,18 @@ class GradientChart extends AbstractChart {
             
       val time = tb(bar)
       if (ser.exists(time)) {
-        val shades = m.v(time).asInstanceOf[Array[Float]]
+        val shades = m.v(time).asInstanceOf[Array[Double]]
         if (shades != null) {
           val centre = xb(bar)
-          var prevRange = 0f
+          var prevRange = 0.0
           var j = 0
           while (j < shades.length) {
             val range = j * step + lower
                         
             var shade = shades(j)
             if (Null.not(shade)) {
-              shade = (math.pow(shade, 1d / 3d)).toFloat
-              color = new Color(shade, shade, shade)
+              shade = (math.pow(shade, 1.0 / 3.0))
+              color = new Color(shade.toFloat, shade.toFloat, shade.toFloat)
               g.setColor(color)
               g.fillRect((centre - radius - 1).toInt, yv(range).toInt, (2 * (radius + 1)).toInt, yv(prevRange).toInt - yv(range).toInt)
               //g.drawLine((int)barCentre, (int)yv(prevRange), (int)barCentre, (int)yv(range));

@@ -91,8 +91,8 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
       var postNorm = srcSer.close_adj(time_i)
             
       targetSer.open(intervalBegin)   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
-      targetSer.high(intervalBegin)   = Float.MinValue
-      targetSer.low(intervalBegin)    = Float.MaxValue
+      targetSer.high(intervalBegin)   = Double.MinValue
+      targetSer.low(intervalBegin)    = Double.MaxValue
       targetSer.volume(intervalBegin) = 0
       targetSer.amount(intervalBegin) = 0
             
@@ -164,7 +164,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
   /**
    * This function keeps the adjusting linear according to a norm
    */
-  private def linearAdjust(value: Float, prevNorm: Float, postNorm: Float): Float = {
+  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
     

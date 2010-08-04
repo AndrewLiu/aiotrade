@@ -45,7 +45,7 @@ class SARIndicator extends Indicator {
   val step    = Factor("AF step",    0.02, 0.01)
   val maximum = Factor("Maximum AF", 0.20, 0.10)
     
-  val sar = TVar[Float]("SAR", Plot.Dot)
+  val sar = TVar[Double]("SAR", Plot.Dot)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx

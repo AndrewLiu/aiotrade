@@ -8,7 +8,6 @@ import java.util.Timer
 import java.util.TimerTask
 import org.aiotrade.lib.dataserver.yahoo._
 import org.aiotrade.platform.test.TestHelper
-import scala.actors.Actor._
 import scala.collection.mutable.ArrayBuffer
 
 object YahooQuoteServerTest extends TestHelper {
@@ -31,7 +30,7 @@ object YahooQuoteServerTest extends TestHelper {
       i += 1
     }
 
-    actor {
+    scala.actors.Actor.actor {
       val timer = new Timer
       timer.schedule(new TimerTask {
           def run {
@@ -105,7 +104,7 @@ object YahooQuoteServerTest extends TestHelper {
     oneMinInds foreach {x => computeAsync(x)}
     weeklyInds foreach {x => computeAsync(x)}
 
-    sec.subscribeTickerServer
+    sec.subscribeTickerServer()
   }
 
 }

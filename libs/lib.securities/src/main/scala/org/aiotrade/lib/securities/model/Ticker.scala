@@ -1,6 +1,5 @@
 package org.aiotrade.lib.securities.model
 
-import org.aiotrade.lib.util.actors.Event
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
@@ -28,18 +27,18 @@ object Tickers extends Table[Ticker] {
 
   val time = "time" BIGINT
 
-  val prevClose = "prevClose" FLOAT(12, 2)
-  val lastPrice = "lastPrice" FLOAT(12, 2)
+  val prevClose = "prevClose" DOUBLE()
+  val lastPrice = "lastPrice" DOUBLE()
 
-  val dayOpen   = "dayOprn"   FLOAT(12, 2)
-  val dayHigh   = "dayHigh"   FLOAT(12, 2)
-  val dayLow    = "dayLow"    FLOAT(12, 2)
-  val dayVolume = "dayVolume" FLOAT(12, 2)
-  val dayAmount = "dayAmount" FLOAT(12, 2)
+  val dayOpen   = "dayOpen"   DOUBLE()
+  val dayHigh   = "dayHigh"   DOUBLE()
+  val dayLow    = "dayLow"    DOUBLE()
+  val dayVolume = "dayVolume" DOUBLE()
+  val dayAmount = "dayAmount" DOUBLE()
 
-  val dayChange = "dayChange" FLOAT(12, 2)
+  val dayChange = "dayChange" DOUBLE()
 
-  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Float]], 200)
+  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 400)
 
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
@@ -69,6 +68,25 @@ object Tickers extends Table[Ticker] {
     }
   }
 
+//  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+//    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+//    SELECT (Tickers.*) FROM (Tickers JOIN Secs) WHERE (
+//      (Tickers.time GE (
+//          SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
+//        )
+//      ) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+//    ) ORDER_BY (Tickers.time ASC, Tickers.id ASC) list match {
+//      case xs if xs.isEmpty => new HashMap[Sec, Ticker]
+//      case xs =>
+//        val map = new HashMap[Sec, Ticker]
+//        xs groupBy (_.sec) foreach {case (sec, tickers) =>
+//            map.put(sec, tickers.head)
+//        }
+//        map
+//    }
+//  }
+
+  
   def lastTickersSql = {
     /* (SELECT (Tickers.*) FROM (
      (SELECT (Tickers.quotes_id, MAX(time) AS maxtime) FROM (tickers) GROUP_BY Tickers.quotes_id) AS x INNER_JOIN Tickers ON (
@@ -81,11 +99,8 @@ object Tickers extends Table[Ticker] {
 
 }
 
-case class TickerEvent (source: Sec, ticker: Ticker) extends Event
-case class TickersEvent(source: Sec, ticker: List[Ticker]) extends Event
-
 object Ticker {
-  def importFrom(v: (Long, List[Array[Float]])): LightTicker = v match {
+  def importFrom(v: (Long, List[Array[Double]])): LightTicker = v match {
     case (time: Long, List(data, bidAsks)) =>
       val x = new Ticker(data, new MarketDepth(bidAsks))
       x.time = time
@@ -111,15 +126,15 @@ object Ticker {
  * @author Caoyuan Deng
  */
 @serializable @cloneable
-class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTicker($data) {
+class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTicker($data) {
 
-  def this(depth: Int) = this(new Array[Float](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Float](depth * 4)))
+  def this(depth: Int) = this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](depth * 4)))
   def this() = this(5)
 
   def depth = marketDepth.depth
 
   def bidAsks = marketDepth.bidAsks
-  def bidAsks_=(values: Array[Float]) {
+  def bidAsks_=(values: Array[Double]) {
     marketDepth.bidAsks = values
   }
 
@@ -128,10 +143,10 @@ class Ticker($data: Array[Float], val marketDepth: MarketDepth) extends LightTic
   final def askPrice(idx: Int) = marketDepth.askPrice(idx)
   final def askSize (idx: Int) = marketDepth.askSize (idx)
 
-  final def setBidPrice(idx: Int, v: Float) = marketDepth.setBidPrice(idx, v)
-  final def setBidSize (idx: Int, v: Float) = marketDepth.setBidSize (idx, v)
-  final def setAskPrice(idx: Int, v: Float) = marketDepth.setAskPrice(idx, v)
-  final def setAskSize (idx: Int, v: Float) = marketDepth.setAskSize (idx, v)
+  final def setBidPrice(idx: Int, v: Double) = marketDepth.setBidPrice(idx, v)
+  final def setBidSize (idx: Int, v: Double) = marketDepth.setBidSize (idx, v)
+  final def setAskPrice(idx: Int, v: Double) = marketDepth.setAskPrice(idx, v)
+  final def setAskSize (idx: Int, v: Double) = marketDepth.setAskSize (idx, v)
 
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {

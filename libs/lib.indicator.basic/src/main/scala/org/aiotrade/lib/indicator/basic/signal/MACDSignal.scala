@@ -45,9 +45,9 @@ class MACDSignal extends SignalIndicator {
   val periodSlow   = Factor("Period EMA Slow", 26.0)
   val periodSignal = Factor("Period Signal",    9.0)
 
-  val _macd   = TVar[Float]()
-  val _signal = TVar[Float]()
-  val _osc    = TVar[Float]()
+  val _macd   = TVar[Double]()
+  val _signal = TVar[Double]()
+  val _osc    = TVar[Double]()
 
 
   protected def computeCont(begIdx: Int, size: Int) {

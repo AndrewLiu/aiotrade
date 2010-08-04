@@ -78,18 +78,19 @@ class AddSymbolAction extends CallableSystemAction {
             return
           }
                 
-          /** quoteContract may bring in more than one symbol, should process it later */
+          /** quoteContract may bring in more than one symbol, should process it here */
           for (symbol <- quoteContract.srcSymbol.split(",")) {
             val symbol1 = symbol.trim
                     
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
             quoteContract.srcSymbol = symbol1
                     
-            val fo = SymbolNodes.createSymbolXmlFile(currentFolder, symbol1, quoteContract)
+            SymbolNodes.createSymbolXmlFile(currentFolder, symbol1, quoteContract) foreach {
+              // set attr to "open" to give a hint to SymbolNode.SymbolFolderChildren.creatNodes(Node)
+              // so as to to open it automatically
+              _.setAttribute("open", true)
+            }
             
-            // set attr to "open" to give a hint to SymbolNode.SymbolFolderChildren.creatNodes(Node)
-            // so as to to open it automatically
-            fo.setAttribute("open", true)
           }
         }
       })

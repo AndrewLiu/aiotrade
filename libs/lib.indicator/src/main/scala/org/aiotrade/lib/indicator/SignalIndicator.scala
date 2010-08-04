@@ -74,7 +74,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       case Sign.ExitLong   => H(idx)
       case Sign.EnterShort => H(idx)
       case Sign.ExitShort  => L(idx)
-      case _ => Null.Float
+      case _ => Null.Double
     }
 
     val signal = Signal(idx, time, value, sign, text, color)

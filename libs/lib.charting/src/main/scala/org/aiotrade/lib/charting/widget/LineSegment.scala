@@ -38,12 +38,12 @@ package org.aiotrade.lib.charting.widget
  */
 class LineSegment extends PathWidget {
   final class Model extends WidgetModel {
-    var x1: Float = _
-    var y1: Float = _
-    var x2: Float = _
-    var y2: Float = _
+    var x1: Double = _
+    var y1: Double = _
+    var x2: Double = _
+    var y2: Double = _
         
-    def set(x1: Float, y1: Float, x2: Float, y2: Float) {
+    def set(x1: Double, y1: Double, x2: Double, y2: Double) {
       this.x1 = x1
       this.y1 = y1
       this.x2 = x2

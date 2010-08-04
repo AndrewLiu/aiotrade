@@ -3,13 +3,13 @@ package org.aiotrade.lib.securities.model
 import ru.circumflex.orm.Table
 
 object SecStatuses extends Table[SecStatus] {
-  val sec = "secs_id" REFERENCES(Secs) // manyToOne(SecStatus.sec)
+  val sec = "secs_id" REFERENCES(Secs)
 
-  val validFrom = "validFrom" BIGINT // field(SecStatus.validFrom)
-  val validTo = "validTo" BIGINT //field(SecStatus.validTo)
-  val suspension = "suspension" INTEGER //field(SecStatus.suspension)
-  val loanDirection = "loanDirection" INTEGER //field(SecStatus.loanDirection)
-  val dividStatus = "dividStatus" INTEGER //field(SecStatus.dividStatus)
+  val validFrom = "validFrom" BIGINT
+  val validTo = "validTo" BIGINT
+  val suspension = "suspension" INTEGER
+  val loanDirection = "loanDirection" INTEGER
+  val dividStatus = "dividStatus" INTEGER
 }
 
 class SecStatus {

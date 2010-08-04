@@ -42,21 +42,21 @@ import org.aiotrade.lib.math.indicator.Factor
 class MTMFunction extends Function {
     
   var period: Factor = _
-  var baseVar: TVar[Float] = _
+  var baseVar: TVar[Double] = _
     
-  val _mtm = TVar[Float]()
+  val _mtm = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
         
-    this.baseVar = args(0).asInstanceOf[TVar[Float]]
+    this.baseVar = args(0).asInstanceOf[TVar[Double]]
     this.period  = args(1).asInstanceOf[Factor]
   }
     
   protected def computeSpot(i: Int): Unit = {
     if (i < period.value - 1) {
             
-      _mtm(i) = Null.Float
+      _mtm(i) = Null.Double
             
     } else {
             
@@ -65,7 +65,7 @@ class MTMFunction extends Function {
     }
   }
     
-  def mtm(sessionId: Long, idx: Int): Float = {
+  def mtm(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _mtm(idx)

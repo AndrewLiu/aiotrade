@@ -49,7 +49,7 @@ trait DatumPlane {
     
   def isMouseEntered: Boolean
   def yMouse: Int
-  def referCursorValue: Float
+  def referCursorValue: Double
   def isAutoReferCursorValue: Boolean
     
   def view: ChartView
@@ -61,27 +61,27 @@ trait DatumPlane {
    * of being painted earlier than DatumPlane, for example: AxisXPane and AxisYPane.
    * @see Pane#prePaintComponent()
    */
-  def computeGeometry: Unit
+  def computeGeometry
   def isGeometryValid: Boolean
     
   def nBars: Int
     
-  def wBar: Float
+  def wBar: Double
     
-  def hOne: Float
+  def hOne: Double
     
-  def maxValue: Float
+  def maxValue: Double
     
-  def minValue: Float
+  def minValue: Double
     
-  def xb(barIndex: Int): Float
-  def bx(x: Float): Int
+  def xb(barIndex: Int): Double
+  def bx(x: Double): Int
     
-  def xr(row: Int): Float
-  def rx(x: Float): Int
+  def xr(row: Int): Double
+  def rx(x: Double): Int
     
-  def yv(value: Float): Float
-  def vy(y: Float): Float
+  def yv(value: Double): Double
+  def vy(y: Double): Double
     
   def rb(barIndex: Int): Int
   def br(row: Int): Int
@@ -89,7 +89,7 @@ trait DatumPlane {
   def tb(barIdx :Int): Long
   def bt(time: Long): Int
     
-  def tx(x: Float): Long
+  def tx(x: Double): Long
         
   def hCanvas: Int
     
@@ -107,16 +107,16 @@ trait DatumPlane {
   def yChartUpper: Int
     
   def valueScalar: Scalar
-  def valueScalar_=(valueScalar: Scalar): Unit
+  def valueScalar_=(valueScalar: Scalar)
     
-  def yChartScale: Float
-  def yChartScale_=(yChartScale: Float): Unit
+  def yChartScale: Double
+  def yChartScale_=(yChartScale: Double)
     
-  def growYChartScale(increment: Float): Unit
+  def growYChartScale(increment: Double)
     
-  def yChartScaleByCanvasValueRange_=(canvasValueRange: Double): Unit
+  def yChartScaleByCanvasValueRange_=(canvasValueRange: Double)
     
-  def scrollChartsVerticallyByPixel(increment: Int): Unit
+  def scrollChartsVerticallyByPixel(increment: Int)
     
 }
 

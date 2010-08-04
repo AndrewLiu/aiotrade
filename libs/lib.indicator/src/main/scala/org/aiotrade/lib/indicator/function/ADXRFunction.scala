@@ -42,8 +42,8 @@ class ADXRFunction extends Function {
     
   var periodDi, periodAdx: Factor = _
     
-  val _adx  = TVar[Float]()
-  val _adxr = TVar[Float]()
+  val _adx  = TVar[Double]()
+  val _adxr = TVar[Double]()
     
   override def set(baseSer: BaseTSer, args: Any*): Unit = {
     super.set(baseSer)
@@ -52,12 +52,12 @@ class ADXRFunction extends Function {
     this.periodAdx = args(1).asInstanceOf[Factor]
   }
     
-  protected def computeSpot(i: Int): Unit = {
+  protected def computeSpot(i: Int) {
     _adx(i) = adx(i, periodDi, periodAdx)
         
     if (i < periodDi.value - 1 || i < periodAdx.value - 1) {
             
-      _adxr(i) = Null.Float
+      _adxr(i) = Null.Double
             
     } else {
             
@@ -70,7 +70,7 @@ class ADXRFunction extends Function {
   }
     
     
-  def adxr(sessionId: Long, idx: Int): Float = {
+  def adxr(sessionId: Long, idx: Int): Double = {
     computeTo(sessionId, idx)
         
     _adxr(idx)

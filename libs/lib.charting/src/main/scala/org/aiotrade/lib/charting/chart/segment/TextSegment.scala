@@ -39,14 +39,14 @@ import java.awt.Rectangle
  *
  * @author Caoyuan Deng
  */
-class TextSegment(var text: String, var x: Float, var y: Float, $color: Color, var bgColor: Color) extends AbstractSegment($color) {
+class TextSegment(var text: String, var x: Double, var y: Double, $color: Color, var bgColor: Color) extends AbstractSegment($color) {
     
   private var valid: Boolean = _
   private val bounds = new Rectangle
     
   def this() = this(null, 0f, 0f, null, null)
         
-  def this(text: String, x: Float, y: Float, color: Color) = {
+  def this(text: String, x: Double, y: Double, color: Color) = {
     this(text, x, y, color, null)
   }
     
@@ -57,7 +57,7 @@ class TextSegment(var text: String, var x: Float, var y: Float, $color: Color, v
     
   private def computeBounds(g: Graphics) {
     val fm = g.getFontMetrics
-    bounds.setBounds(math.round(x), math.round(y) - fm.getHeight + 1,
+    bounds.setBounds(math.round(x).toInt, math.round(y).toInt - fm.getHeight + 1,
                      fm.stringWidth(text) + 1, fm.getHeight)
   }
     
@@ -77,6 +77,6 @@ class TextSegment(var text: String, var x: Float, var y: Float, $color: Color, v
     }
         
     g.setColor(color)
-    g.asInstanceOf[Graphics2D].drawString(text, x, y)
+    g.asInstanceOf[Graphics2D].drawString(text, x.toFloat, y.toFloat)
   }
 }

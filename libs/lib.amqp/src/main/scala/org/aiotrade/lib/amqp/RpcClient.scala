@@ -26,10 +26,10 @@ case object RpcTimeOut
  * @see #setupReplyQueue
  */
 @throws(classOf[IOException])
-class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExchange: String, $reqRoutingKey: String
+class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKey: String
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
-} with AMQPDispatcher($factory, $host, $port, $reqExchange) {
+} with AMQPDispatcher($factory, $reqExchange) {
 
   /** Map from request correlation ID to continuation BlockingCell */
   val continuationMap = new HashMap[String, SyncVar[Any]]
@@ -47,7 +47,9 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
   override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
     val consumer = new AMQPConsumer(channel)
-    channel.basicConsume(replyQueue, true, consumer)
+    // since AMQPConsumer will call channel.basicAck(env.getDeliveryTag, false) always,
+    // we need to set 'noAck' to false
+    channel.basicConsume(replyQueue, false, consumer)
     Some(consumer)
   }
 
@@ -59,7 +61,7 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
    */
   @throws(classOf[IOException])
   private def setupReplyQueue(channel: Channel): String = {
-    channel.queueDeclare("", false, false, true, true, null).getQueue
+    channel.queueDeclare("", false, true, true, null).getQueue
   }
 
   /**
@@ -68,7 +70,7 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
    */
   @throws(classOf[IOException])
   protected def checkConsumer {
-    if (consumer == None) {
+    if (consumer.isEmpty) {
       throw new EOFException("RpcClient is closed")
     }
   }
@@ -92,13 +94,13 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
     continuationMap synchronized {
       correlationId += 1
       val replyId = correlationId.toString
-      props.correlationId = replyId
-      props.replyTo = replyQueue
+      props.setCorrelationId(replyId)
+      props.setReplyTo(replyQueue)
 
       continuationMap.put(replyId, syncVar)
     }
 
-    publish($reqExchange, routingKey, props, req)
+    publish(exchange, routingKey, props, req)
 
     val res = if (timeout == -1) {
       syncVar.get
@@ -124,7 +126,7 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
    */
   abstract class Processor extends Actor {
     start
-    RpcClient.this ! AMQPAddListener(this)
+    RpcClient.this.addListener(this)
 
     protected def process(msg: AMQPMessage)
 
@@ -140,7 +142,7 @@ class RpcClient($factory: ConnectionFactory, $host: String, $port: Int, $reqExch
 
     protected def process(msg: AMQPMessage) {
       continuationMap synchronized  {
-        val replyId = msg.props.correlationId
+        val replyId = msg.props.getCorrelationId
         val syncVar = continuationMap.get(replyId).get
         continuationMap.remove(replyId)
         syncVar.set(msg.content)

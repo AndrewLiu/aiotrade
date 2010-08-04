@@ -39,15 +39,15 @@ import org.aiotrade.lib.indicator.Indicator
 class DMIIndicator extends Indicator {
   sname = "DMI"
   lname = "Directional Movement Index"
-  grids = Array(20f, 80f)
+  grids = Array(20, 80)
 
   val periodDi  = Factor("Period DI",  6)
   val periodAdx = Factor("Period ADX", 14)
     
-  val diPlus  = TVar[Float]("+DI",  Plot.Line)
-  val diMinus = TVar[Float]("-DI",  Plot.Line)
-  val adx     = TVar[Float]("ADX",  Plot.Line)
-  val adxr    = TVar[Float]("ADXR", Plot.Line)
+  val diPlus  = TVar[Double]("+DI",  Plot.Line)
+  val diMinus = TVar[Double]("-DI",  Plot.Line)
+  val adx     = TVar[Double]("ADX",  Plot.Line)
+  val adxr    = TVar[Double]("ADXR", Plot.Line)
     
   protected def computeCont(begIdx: Int, size: Int) {
     var i = begIdx
