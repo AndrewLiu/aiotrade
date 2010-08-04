@@ -24,14 +24,23 @@ object DirWatcher {
 }
 
 @throws(classOf[IOException])
-abstract class DirWatcher(path: File, filter: FileFilter) extends TimerTask {
-  
-  private val fileToLastModified = new HashMap ++ (
-    (path listFiles filter) match {
-      case null => throw new IOException(path + "does not exist")
-      case fs => fs map (x => x -> lastModified(x))
-    }
-  )
+abstract class DirWatcher(path: File, filter: FileFilter, includingExistingFiles: Boolean = false) extends TimerTask {
+  private val fileToLastModified = new HashMap[File, Long]
+
+  path.listFiles(filter) match {
+    case null =>
+    case existed => 
+      var i = 0
+      while (i < existed.length) {
+        val x = existed(i)
+        fileToLastModified.put(x, lastModified(x))
+        i += 1
+      }
+      if (includingExistingFiles) {
+        existed.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
+      }
+  }
+
 
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, filterStr: String) = this(path, new DirWatcherFilter(filterStr))
