@@ -66,7 +66,7 @@ object LightTicker {
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
 class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
-  @transient final var quote: Quote = _
+  @transient final var sec: Sec = _
   @transient final protected var _isChanged: Boolean = _
 
   def this() = this(new Array[Double](FIELD_LENGTH))

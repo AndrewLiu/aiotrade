@@ -122,7 +122,7 @@ object Model {
 
     def makeTicker = {
       val ticker = new Ticker
-      ticker.quote = quote1d
+      ticker.sec = sec
       ticker.time = System.currentTimeMillis
       val bidAskDepth = 10
       val bidAsks = new Array[Double](bidAskDepth * 4)
@@ -140,8 +140,6 @@ object Model {
     println("Depth of bid ask: " + depth)
     
     val quote1d = Quotes1d.get(1).get
-
-    println("tickers of quote: " + (Quotes1d.tickers(quote1d) map (x => x.time) mkString(", ")))
 
     val co = Companies
     val ci = CompanyIndustries

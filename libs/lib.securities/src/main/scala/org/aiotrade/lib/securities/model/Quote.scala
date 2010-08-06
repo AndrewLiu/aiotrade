@@ -108,10 +108,6 @@ abstract class Quotes extends Table[Quote] {
 
   val flag = "flag" INTEGER
 
-  // Foreign keys
-  def tickers = inverse(Tickers.quote)
-  def executions = inverse(Executions.quote)
-
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
   def quotesOf(sec: Sec): Seq[Quote] = {

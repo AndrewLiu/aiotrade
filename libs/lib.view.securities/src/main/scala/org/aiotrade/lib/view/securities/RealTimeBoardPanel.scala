@@ -134,7 +134,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
   private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
     case Some(lastDailyQuote) =>
-      (Tickers.tickersOf(lastDailyQuote), new ArrayList[Execution] ++ Executions.executionsOfDay(lastDailyQuote))
+      (Tickers.tickersOf(sec, lastDailyQuote.time), new ArrayList[Execution] ++ Executions.executionsOf(sec, lastDailyQuote.time))
     case None =>
       (Nil, new ArrayList[Execution])
   }

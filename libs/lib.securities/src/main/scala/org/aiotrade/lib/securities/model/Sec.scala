@@ -74,6 +74,9 @@ object Secs extends Table[Sec] {
 
   def minuteQuotes = inverse(Quotes1m.sec)
   def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
+
+  def tickers = inverse(Tickers.sec)
+  def executions = inverse(Executions.sec)
 }
 
 
@@ -627,10 +630,10 @@ class Sec extends SerProvider with Publisher {
   /**
    * @return (lastTicker of day, day first?)
    */
-  def lastTickerOf(dailyQuote: Quote): (Ticker, Boolean) = {
+  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): (Ticker, Boolean) = {
     lastData.prevTicker match {
       case null =>
-        Tickers.lastTickerOf(dailyQuote) match  {
+        Tickers.lastTickerOf(sec, dailyRoundedTime) match  {
           case None =>
             val x = new Ticker
             lastData.prevTicker = x

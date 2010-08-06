@@ -174,9 +174,9 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         val dayQuote = sec.dailyQuoteOf(ticker.time)
         assert(Quotes1d.idOf(dayQuote).isDefined, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
-        ticker.quote = dayQuote
+        ticker.sec = sec
 
-        val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
+        val (prevTicker, dayFirst) = sec.lastTickerOf(sec, dayQuote.time)
         val minQuote = sec.minuteQuoteOf(ticker.time)
 
         var tickerValid = false
