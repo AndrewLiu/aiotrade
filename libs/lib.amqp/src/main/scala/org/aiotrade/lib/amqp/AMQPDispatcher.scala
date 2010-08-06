@@ -188,7 +188,12 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       case _ => encodeJava(content)
     }
 
-    val body1 = props.getContentEncoding match {
+    val contentEncoding = props.getContentEncoding match {
+      case null | "" => props.setContentEncoding("gzip"); "gzip"
+      case x => x
+    }
+    
+    val body1 = contentEncoding match {
       case "gzip" => gzip(body)
       case "lzma" => lzma(body)
       case _ => body
@@ -242,7 +247,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
       import ContentType._
 
-      log.info("Got amqp message: " + body.length)
+      log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       val body1 = props.getContentEncoding match {
         case "gzip" => ungzip(body)
