@@ -188,7 +188,12 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       case _ => encodeJava(content)
     }
 
-    val body1 = props.getContentEncoding match {
+    val contentEncoding = props.getContentEncoding match {
+      case null | "" => props.setContentEncoding("gzip"); "gzip"
+      case x => x
+    }
+    
+    val body1 = contentEncoding match {
       case "gzip" => gzip(body)
       case "lzma" => lzma(body)
       case _ => body
@@ -236,10 +241,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   }
 
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
-    
+    private val log = Logger.getLogger(this.getClass.getName)
+
     @throws(classOf[IOException])
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
       import ContentType._
+
+      log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       val body1 = props.getContentEncoding match {
         case "gzip" => ungzip(body)
@@ -258,6 +266,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case JSON.mimeType => decodeJson(body1)
         case _ => decodeJava(body1)
       }
+
+      log.info("Decoded amqp message.")
 
       // send back to interested observers for further relay
       val msg = AMQPMessage(content, props)

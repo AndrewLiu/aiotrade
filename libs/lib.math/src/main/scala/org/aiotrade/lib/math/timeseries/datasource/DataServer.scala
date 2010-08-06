@@ -135,6 +135,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   reactions += {
     case HeartBeat(interval) if refreshable && !inRefreshing => loadActor ! Refresh
+    case HeartBeat(_) => // should match this to avoid MatchError
   }
 
   listenTo(DataServer)

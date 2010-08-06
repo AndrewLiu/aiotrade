@@ -287,7 +287,6 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
-    depthTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
     val depthNameCol = depthTable.getColumnModel.getColumn(0)
     depthNameCol.setPreferredWidth(50)
 
@@ -307,7 +306,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
           case 0 => 
             cal.setTimeInMillis(execution.time)
             df format cal.getTime
-          case 1 => "%5.2f"  format execution.price
+          case 1 => priceDf  format execution.price
           case 2 => "%10.2f" format execution.volume / 100.0
           case _ => null
         }
@@ -325,11 +324,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     executionTable.setForeground(Color.WHITE)
     executionTable.setBackground(LookFeel().backgroundColor)
     executionTable.setFillsViewportHeight(true)
-    val tickerHeader = executionTable.getTableHeader
-    if (tickerHeader != null) {
-      tickerHeader.setForeground(Color.WHITE)
-      tickerHeader.setBackground(LookFeel().backgroundColor)
-    }
+    executionTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
 
     // --- set column width
     var columnModel = infoTable.getColumnModel
@@ -418,13 +413,13 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     while (i < depth) {
       val bidIdx = depth - 1 - i
       val bidRow = i
-      depthModel.setValueAt(priceDf format marketDepth.askPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt(marketDepth.askSize(bidIdx).toInt.toString,  bidRow, 2)
+      depthModel.setValueAt(priceDf  format marketDepth.askPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt("%10.2f" format marketDepth.askSize(bidIdx) / 100.0,  bidRow, 2)
       
       val askIdx = i
       val askRow = depth + i
-      depthModel.setValueAt(priceDf format marketDepth.bidPrice(askIdx), askRow, 1)
-      depthModel.setValueAt(marketDepth.bidSize(askIdx).toInt.toString,  askRow, 2)
+      depthModel.setValueAt(priceDf  format marketDepth.bidPrice(askIdx), askRow, 1)
+      depthModel.setValueAt("%10.2f" format marketDepth.bidSize(askIdx) / 100.0,  askRow, 2)
 
       i += 1
     }
