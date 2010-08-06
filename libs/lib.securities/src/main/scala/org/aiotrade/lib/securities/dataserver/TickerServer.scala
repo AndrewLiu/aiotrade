@@ -69,12 +69,8 @@ object TickerServer extends Publisher {
   val uniSymbolToLastTicker = new HashMap[String, LightTicker]
   // load all last tickers
   Exchange.allExchanges foreach {x =>
-    val start = System.currentTimeMillis
-    log.info("Loading last tickers of " + x.code)
     uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)
-    log.info("Loading last tickers of " + x.code + " used " + (System.currentTimeMillis - start) / 1000.0 + "s")
   }
-
 }
 
 abstract class TickerServer extends DataServer[Ticker] {

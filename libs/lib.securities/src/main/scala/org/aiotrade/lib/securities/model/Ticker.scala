@@ -1,6 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
@@ -25,6 +26,8 @@ import scala.collection.mutable.HashMap
  */
 
 object Tickers extends Table[Ticker] {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   val sec = "secs_id" REFERENCES(Secs)
 
   val time = "time" BIGINT
@@ -88,22 +91,22 @@ object Tickers extends Table[Ticker] {
   private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
+    val start = System.currentTimeMillis
+    val map = new HashMap[Sec, Ticker]
     lastTradingTimeOf(exchange) match {
       case Some(time) =>
         val cal = Calendar.getInstance(exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
 
-        SELECT (Tickers.*) FROM (Tickers JOIN Secs) WHERE (
-          (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
-        ) ORDER_BY (Tickers.time ASC) list match {
-          case xs if xs.isEmpty => new HashMap[Sec, Ticker]
-          case xs =>
-            val map = new HashMap[Sec, Ticker]
-            xs groupBy (_.sec) foreach (xt => map.put(xt._1, xt._2.head)) // xt: (Sec, Seq[Ticker])
-            map
-        }
-      case None => new HashMap[Sec, Ticker]
+        (SELECT (Tickers.*) FROM (Tickers JOIN Secs) WHERE (
+            (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+          ) ORDER_BY (Tickers.time ASC) list
+        ) groupBy (_.sec) foreach (xt => map.put(xt._1, xt._2.head)) // xt: (Sec, Seq[Ticker])
+      case None => 
     }
+
+    log.info("Loaded last tickers of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+    map
   }
 
   private[securities] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
