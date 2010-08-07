@@ -192,7 +192,7 @@ abstract class TickerServer extends DataServer[Ticker] {
            * in calcMaxMin() of ChartView)
            */
           execution = new Execution
-          execution.quote = dayQuote
+          execution.sec = sec
           execution.time = ticker.time
           execution.price  = ticker.lastPrice
           execution.volume = ticker.dayVolume
@@ -218,7 +218,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
             if (ticker.dayVolume > prevTicker.dayVolume) {
               execution = new Execution
-              execution.quote = dayQuote
+              execution.sec = sec
               execution.time = ticker.time
               execution.price  = ticker.lastPrice
               execution.volume = ticker.dayVolume - prevTicker.dayVolume

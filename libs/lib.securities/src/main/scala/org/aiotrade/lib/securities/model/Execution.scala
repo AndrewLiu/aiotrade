@@ -41,7 +41,7 @@ object Execution {
 
 import Execution._
 class Execution {
-  var quote: Quote = _
+  var sec: Sec = _
   
   var time: Long = -1
 
