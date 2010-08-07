@@ -64,6 +64,23 @@ object Tickers extends Table[Ticker] {
     )
   }
 
+  def lastTraingDayTickersOf(sec: Sec): Seq[Ticker] = {
+    (SELECT (Tickers.time) FROM (Tickers) WHERE (
+        Tickers.sec.field EQ Secs.idOf(sec)
+      ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
+    ) headOption match {
+      case Some(time) =>
+        val cal = Calendar.getInstance(sec.exchange.timeZone)
+        val rounded = TFreq.DAILY.round(time, cal)
+        
+        (SELECT (Tickers.*) FROM (Tickers) WHERE (
+            (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1))
+          ) ORDER_BY (Tickers.time) list
+        )
+      case None => Nil
+    }
+  }
+
 //  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
 //    Exchange.uniSymbolToSec // force loaded all secs and secInfos
 //    SELECT (Tickers.*, Quotes1d.*) FROM (Tickers JOIN (Quotes1d JOIN Secs)) WHERE (
@@ -102,10 +119,12 @@ object Tickers extends Table[Ticker] {
             (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
           ) ORDER_BY (Tickers.time ASC) list
         ) groupBy (_.sec) foreach (xt => map.put(xt._1, xt._2.head)) // xt: (Sec, Seq[Ticker])
+
+        log.info("Loaded last tickers between " + rounded + " to " + (rounded + ONE_DAY - 1) +
+                 " of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
       case None => 
     }
 
-    log.info("Loaded last tickers of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
     map
   }
 

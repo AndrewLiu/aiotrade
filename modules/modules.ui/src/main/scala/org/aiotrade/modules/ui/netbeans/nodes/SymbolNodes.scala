@@ -73,7 +73,6 @@ import org.openide.filesystems.Repository
 import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException
-import org.openide.loaders.XMLDataObject
 import org.openide.nodes.AbstractNode
 import org.openide.nodes.Children
 import org.openide.nodes.FilterNode
@@ -84,7 +83,7 @@ import org.openide.nodes.NodeMemberEvent
 import org.openide.nodes.NodeReorderEvent
 import org.openide.util.ImageUtilities
 import org.openide.util.Lookup
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle
 import org.openide.util.actions.SystemAction
 import org.openide.util.lookup.AbstractLookup
 import org.openide.util.lookup.InstanceContent
@@ -188,7 +187,7 @@ object SymbolNodes {
     val folderObject = folder.getPrimaryFile
     val fileName = symbol
     
-    if (folderObject.getFileObject(fileName, "xml") != null) {
+    if (folderObject.getFileObject(fileName, "sec") != null) {
       log.warning("Symbol :" + symbol + " under " + folder + " has existed.")
       return None
     }
@@ -197,7 +196,7 @@ object SymbolNodes {
     var out: PrintStream = null
     var fo: FileObject = null
     try {
-      fo = folderObject.createData(fileName, "xml")
+      fo = folderObject.createData(fileName, "sec")
       lock = fo.lock
       out = new PrintStream(fo.getOutputStream(lock))
 
@@ -225,17 +224,17 @@ object SymbolNodes {
 
   /** Deserialize a Symbol from xml file */
   private def readContents(node: Node): Option[AnalysisContents] = {
-    val xdo = node.getLookup.lookup(classOf[XMLDataObject])
-    if (xdo == null) {
+    val dobj = node.getLookup.lookup(classOf[DataObject])
+    if (dobj == null) {
       throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
     }
-    val fo = xdo.getPrimaryFile
+    val fo = dobj.getPrimaryFile
     readContents(fo)
   }
 
   private def readContents(fo: FileObject): Option[AnalysisContents] = {
+    var is = fo.getInputStream
     try {
-      val is = fo.getInputStream
       val xmlReader = XMLUtil.createXMLReader
       val handler = new ContentsParseHandler
       xmlReader.setContentHandler(handler)
@@ -245,6 +244,8 @@ object SymbolNodes {
     } catch {
       case ex: IOException  => ErrorManager.getDefault.notify(ex); None
       case ex: SAXException => ErrorManager.getDefault.notify(ex); None
+    } finally {
+      if (is != null) is.close
     }
   }
 
@@ -666,41 +667,41 @@ object SymbolNodes {
     def execute {
       val folderName = getFolderName(node)
       log.info("Start collecting node children")
-      val symbolContents = getSymbolContentsViaNode(node)
-      log.info("Finished collecting node children: " + symbolContents.length)
-      watchSymbols(folderName, symbolContents)
+      val analysisContents = getAnalysisContentsViaNode(node)
+      log.info("Finished collecting node children: " + analysisContents.length)
+      watchSymbols(folderName, analysisContents)
     }
 
     /** Not as efficient as getSymbolContentsViaFolder if nodes were not inited previously */
-    private def getSymbolContentsViaNode(node: Node) = {
+    private def getAnalysisContentsViaNode(node: Node) = {
       val symbolNodes = new ArrayList[Node]
       collectSymbolNodes(node, symbolNodes)
       symbolNodes map (_.getLookup.lookup(classOf[AnalysisContents]))
     }
 
-    private def getSymbolContentsViaFolder(node: Node) = {
-      val symbolContents = new ArrayList[AnalysisContents]
+    private def getAnalysisContentsViaFolder(node: Node) = {
+      val analysisContents = new ArrayList[AnalysisContents]
 
       val folder = node.getLookup.lookup(classOf[DataFolder])
       if (folder == null) {
         // it's an OneSymbolNode, do real things
-        readContents(node) foreach (symbolContents += _)
+        readContents(node) foreach (analysisContents += _)
       } else {
-        collectSymbolContents(folder, symbolContents)
+        collectSymbolContents(folder, analysisContents)
       }
-      symbolContents
+      analysisContents
     }
 
-    private def collectSymbolContents(dob: DataObject, symbolContents: ArrayList[AnalysisContents]) {
+    private def collectSymbolContents(dob: DataObject, analysisContents: ArrayList[AnalysisContents]) {
       dob match {
         case x: DataFolder =>
           /** it's a folder, go recursively */
           for (child <- x.getChildren) {
-            collectSymbolContents(child, symbolContents)
+            collectSymbolContents(child, analysisContents)
           }
-        case x: XMLDataObject =>
+        case x: DataObject =>
           val fo = x.getPrimaryFile
-          readContents(fo) foreach (symbolContents += _)
+          readContents(fo) foreach (analysisContents += _)
         case x => log.warning("Unknown DataObject: " + x)
       }
     }

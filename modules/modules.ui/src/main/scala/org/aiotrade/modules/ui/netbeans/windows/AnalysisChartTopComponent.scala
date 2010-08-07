@@ -176,7 +176,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val sec = contents.serProvider.asInstanceOf[Sec]
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
     val freq = quoteContract.freq
-    val tcId = sec.name
+    val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
 
     val viewContainer = createViewContainer(sec, freq, contents)
@@ -186,7 +186,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     splitPane.setRightComponent(realTimeBoard)
     splitPane.revalidate
 
-    setName(sec.name + " - " + freq)
+    setName(sec.secInfo.name + " - " + freq)
 
     injectActionsToDescriptors
 

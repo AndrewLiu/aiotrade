@@ -224,6 +224,8 @@ class Sec extends SerProvider with Publisher {
       }
   }
 
+  lazy val realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
+
   def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = {
     freqToIndicators.get(freq) match {
       case None => Nil
@@ -434,7 +436,7 @@ class Sec extends SerProvider with Publisher {
             x.refreshable = false
             x.srcSymbol = defaultOne.srcSymbol
             x.serviceClassName = defaultOne.serviceClassName
-            x.dateFormatPattern =(defaultOne.dateFormatPattern)
+            x.dateFormatPattern = defaultOne.dateFormatPattern
             freqToQuoteContract.put(freq, x)
             Some(x)
           case _ => None
@@ -505,13 +507,9 @@ class Sec extends SerProvider with Publisher {
       }
 
       if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-        val minSer = serOf(TFreq.ONE_MIN).get
-        if (!isSerLoaded(TFreq.ONE_MIN)) {
-          loadSerFromPersistence(TFreq.ONE_MIN)
-        }
-        // Only dailySer and minuteSre needs to chainly follow ticker change.
-        val chainSers = List(serOf(TFreq.DAILY).get)
-        tickerContract.ser = minSer
+        // Only dailySer and minuteSer needs to chainly follow ticker change.
+        val chainSers = List(serOf(TFreq.DAILY).get, serOf(TFreq.ONE_MIN).get)
+        tickerContract.ser = realtimeSer
         tickerContract.chainSers = chainSers
         tickerServer.subscribe(tickerContract)
       }

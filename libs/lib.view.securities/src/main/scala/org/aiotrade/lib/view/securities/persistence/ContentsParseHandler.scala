@@ -348,7 +348,7 @@ class ContentsParseHandler extends DefaultHandler {
   }
     
   def getContents: AnalysisContents = {
-    contents;
+    contents
   }
         
 }
