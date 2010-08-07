@@ -64,7 +64,6 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerEvent
@@ -92,7 +91,7 @@ import scala.collection.mutable.WeakHashMap
 object RealTimeBoardPanel {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
-  private val DIM = new Dimension(230, 100000)
+  val DIM = new Dimension(230, 100000)
 
   private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
   def instances = instanceRefs.keys
@@ -171,11 +170,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
         updateInfoTable(ticker)
         updateDepthTable(ticker.marketDepth)
         prevTicker.copyFrom(ticker)
-        repaint()
+        infoTable.repaint()
+        depthTable.repaint()
       }
     case ExecutionEvent(prevClose, execution) =>
       updateExecutionTable(prevClose, execution)
-      repaint()
+      executionTable.repaint()
   }
 
   // use last ticker to update info/depth table

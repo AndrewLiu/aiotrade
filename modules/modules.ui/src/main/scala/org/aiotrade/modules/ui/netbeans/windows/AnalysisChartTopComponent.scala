@@ -165,6 +165,11 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
   // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
   splitPane.setResizeWeight(1.0)
+  // to make the right component pixels wide
+  splitPane.setDividerLocation(splitPane.getSize().width -
+                               splitPane.getInsets.right -
+                               splitPane.getDividerSize -
+                               RealTimeBoardPanel.DIM.width)
 
   setLayout(new BorderLayout)
   add(splitPane, BorderLayout.CENTER)
