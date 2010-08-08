@@ -64,6 +64,7 @@ import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
+import org.netbeans.api.progress.ProgressUtils
 import org.openide.ErrorManager
 import org.openide.actions.DeleteAction
 import org.openide.filesystems.FileLock
@@ -133,12 +134,20 @@ object SymbolNodes {
 
   private var isInited = false
 
-  /* scala.actors.Actor.actor {
-   log.info("Start init symbol nodes")
-   SymbolNodes.initSymbolNodes
-   isInited = true
-   log.info("Finished init symbol nodes")
-   } */
+  def initSymbolNodes {
+    log.info("Start init symbol nodes")
+    initSymbolNode(RootSymbolsNode)
+    isInited = true
+    log.info("Finished init symbol nodes")
+  }
+
+  private def initSymbolNode(node: Node) {
+    if (node.getLookup.lookup(classOf[DataFolder]) != null) { // is a folder
+      for (child <- node.getChildren.getNodes) {
+        initSymbolNode(child)
+      }
+    }
+  }
 
   def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
     contentToOccuptantNode.get(contents)
@@ -270,18 +279,6 @@ object SymbolNodes {
     }
   }
 
-  def initSymbolNodes {
-    initSymbolNode(RootSymbolsNode)
-  }
-
-  private def initSymbolNode(node: Node) {
-    if (node.getLookup.lookup(classOf[DataFolder]) != null) { // is a folder
-      for (child <- node.getChildren.getNodes) {
-        initSymbolNode(child)
-      }
-    }
-  }
-
   private def displayNameOf(node: Node): String = {
     if (node.getLookup.lookup(classOf[DataFolder]) != null) {
       Exchange.allExchanges find (_.code == node.getName) match {
@@ -345,13 +342,11 @@ object SymbolNodes {
     }
 
     override def getDisplayName = {
-      val contents = getLookup.lookup(classOf[AnalysisContents])
-      contents.uniSymbol
+      anaContents.uniSymbol
     }
 
     override def getIcon(tpe: Int): Image = {
-      val contents = getLookup.lookup(classOf[AnalysisContents])
-      val icon_? = contents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
+      val icon_? = anaContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
 
       icon_? getOrElse DEFAUTL_SOURCE_ICON
     }
@@ -666,10 +661,14 @@ object SymbolNodes {
 
     def execute {
       val folderName = getFolderName(node)
-      log.info("Start collecting node children")
-      val analysisContents = getAnalysisContentsViaNode(node)
-      log.info("Finished collecting node children: " + analysisContents.length)
-      watchSymbols(folderName, analysisContents)
+      ProgressUtils.showProgressDialogAndRun(new Runnable {
+          def run {
+            log.info("Start collecting node children")
+            val analysisContents = getAnalysisContentsViaNode(node)
+            log.info("Finished collecting node children: " + analysisContents.length)
+            watchSymbols(folderName, analysisContents)
+          }
+        }, "Initing symbols of " + folderName + " ...")
     }
 
     /** Not as efficient as getSymbolContentsViaFolder if nodes were not inited previously */

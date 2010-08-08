@@ -162,7 +162,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
       def valueChanged(e: ListSelectionEvent) {
         val lsm = e.getSource.asInstanceOf[ListSelectionModel]
         if (lsm.isSelectionEmpty) {
-          //no rows are selected
+          // no rows are selected
         } else {
           val row = watchListTable.getSelectedRow
           if (row >= 0 && row < watchListTable.getRowCount) {
@@ -301,7 +301,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     override def mousePressed(e: MouseEvent) {
       showPopup(e)
             
-      // when double click on a row, active this stock's realtime chart view
+      // when double click on a row, active this stock's realtime chart view in a standalone window
       if (e.getClickCount == 2) {
         val symbol = watchListPanel.symbolAtRow(rowAtY(e))
         if (symbol != null) {
