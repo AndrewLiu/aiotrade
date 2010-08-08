@@ -64,6 +64,8 @@ import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
+import org.netbeans.api.progress.ProgressHandle
+import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.ErrorManager
 import org.openide.actions.DeleteAction
@@ -661,20 +663,22 @@ object SymbolNodes {
 
     def execute {
       val folderName = getFolderName(node)
+      val handle = ProgressHandleFactory.createHandle("Initing symbols of " + folderName + " ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
-            val analysisContents = getAnalysisContentsViaNode(node)
+            val analysisContents = getAnalysisContentsViaNode(node, handle)
+            handle.finish
             log.info("Finished collecting node children: " + analysisContents.length)
             watchSymbols(folderName, analysisContents)
           }
-        }, "Initing symbols of " + folderName + " ...")
+        }, handle, false)
     }
 
     /** Not as efficient as getSymbolContentsViaFolder if nodes were not inited previously */
-    private def getAnalysisContentsViaNode(node: Node) = {
+    private def getAnalysisContentsViaNode(node: Node, handle: ProgressHandle) = {
       val symbolNodes = new ArrayList[Node]
-      collectSymbolNodes(node, symbolNodes)
+      collectSymbolNodes(node, symbolNodes, handle)
       symbolNodes map (_.getLookup.lookup(classOf[AnalysisContents]))
     }
 
@@ -705,20 +709,24 @@ object SymbolNodes {
       }
     }
 
-
-    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node]) {
+    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
       if (node.getLookup.lookup(classOf[DataFolder]) == null) {
         // it's an OneSymbolNode, do real things
         symbolNodes += node
       } else {
         /** it's a folder, go recursively */
-        val children = node.getChildren.getNodes
-        for (child <- children) {
-          collectSymbolNodes(child, symbolNodes)
+        val children = node.getChildren
+        val nodesCount = children.getNodesCount
+        handle.switchToDeterminate(nodesCount)
+        var i = 0
+        while (i < nodesCount) {
+          handle.progress(i)
+          val node_i = children.getNodeAt(i)
+          collectSymbolNodes(node_i, symbolNodes, handle)
+          i += 1
         }
       }
     }
-
 
     private def getFolderName(node: Node): String = {
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {

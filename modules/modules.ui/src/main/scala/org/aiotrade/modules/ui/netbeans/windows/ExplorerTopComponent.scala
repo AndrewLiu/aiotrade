@@ -30,13 +30,15 @@
  */
 package org.aiotrade.modules.ui.netbeans.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
+import org.netbeans.api.progress.ProgressHandle
+import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.explorer.ExplorerManager
 import org.openide.explorer.ExplorerUtils;
@@ -45,7 +47,8 @@ import org.openide.loaders.DataFolder
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor
-import org.openide.windows.TopComponent;
+import org.openide.windows.TopComponent;import scala.collection.mutable.HashMap
+
 
 /** 
  * Top component which displays explorer tree.
@@ -109,12 +112,12 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
     super.componentOpened
 
     if (!isSymbolNodesAdded) {
-
+      val handle = ProgressHandleFactory.createHandle("Creating symbols ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
-            addSymbolsFromDB
+            addSymbolsFromDB(handle)
           }
-        }, "Please wait for creating symbols ...")
+        }, handle, false)
     }
   }
 
@@ -135,29 +138,38 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
     rootNode.getChildren.getNodesCount > 0
   }
 
-  private def addSymbolsFromDB {
-    java.awt.EventQueue.invokeLater(new Runnable {
-        def run {
-          val rootNode = getExplorerManager.getRootContext
-          val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
-          // expand root node
-          getExplorerManager.setExploredContext(rootNode)
+  private def addSymbolsFromDB(handle: ProgressHandle) {
+    val rootNode = getExplorerManager.getRootContext
+    val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+    // expand root node
+    getExplorerManager.setExploredContext(rootNode)
 
-          val start = System.currentTimeMillis
-          log.info("Create symbols node files from db ...")
-          // add symbols to exchange folder
-          val dailyQuoteContract = createQuoteContract
-          for (exchange <- Exchange.allExchanges;
-               exchangeFolder = DataFolder.create(rootFolder, exchange.code);
-               symbol <- Exchange.symbolsOf(exchange)
-          ) {
-            dailyQuoteContract.srcSymbol = symbol
-            SymbolNodes.createSymbolXmlFile(exchangeFolder, symbol, dailyQuoteContract)
-          }
-          log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
-        }
-      })
+    val start = System.currentTimeMillis
+    log.info("Create symbols node files from db ...")
+    
+    // add symbols to exchange folder
+    val dailyQuoteContract = createQuoteContract
+    val symbolsToFolder = new HashMap[String, DataFolder]
+    for (exchange <- Exchange.allExchanges;
+         exchangeFolder = DataFolder.create(rootFolder, exchange.code);
+         symbol <- Exchange.symbolsOf(exchange)
+    ) {
+      symbolsToFolder.put(symbol, exchangeFolder)
+    }
+    
+    handle.switchToDeterminate(symbolsToFolder.size)
+    var i = 0
+    val allSymbols = symbolsToFolder.iterator
+    while (allSymbols.hasNext) {
+      handle.progress(i)
+      val (symbol, folder) = allSymbols.next
+      dailyQuoteContract.srcSymbol = symbol
+      SymbolNodes.createSymbolXmlFile(folder, symbol, dailyQuoteContract)
+      i += 1
+    }
 
+    handle.finish
+    log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
   }
 
   private def createQuoteContract = {
