@@ -46,6 +46,8 @@ object Exchanges extends Table[Exchange] {
       ticker.symbol = symbol
       symbolToTicker.put(symbol, ticker)
     }
+
+
     symbolToTicker
   }
 }

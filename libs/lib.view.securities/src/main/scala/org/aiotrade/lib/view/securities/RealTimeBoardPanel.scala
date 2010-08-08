@@ -64,7 +64,6 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerEvent
@@ -92,7 +91,7 @@ import scala.collection.mutable.WeakHashMap
 object RealTimeBoardPanel {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
-  private val DIM = new Dimension(230, 100000)
+  val DIM = new Dimension(230, 100000)
 
   private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
   def instances = instanceRefs.keys
@@ -134,7 +133,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
   private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
     case Some(lastDailyQuote) =>
-      (Tickers.tickersOf(lastDailyQuote), new ArrayList[Execution] ++ Executions.executionsOfDay(lastDailyQuote))
+      (Tickers.tickersOf(sec, lastDailyQuote.time), new ArrayList[Execution] ++ Executions.executionsOf(sec, lastDailyQuote.time))
     case None =>
       (Nil, new ArrayList[Execution])
   }
@@ -150,7 +149,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   private var executionModel: AbstractTableModel = _
   initComponents
 
-  private val rtSer = sec.serOf(TFreq.ONE_MIN).get
+  private val rtSer = sec.realtimeSer
   private val controller = ChartingController(rtSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
@@ -171,11 +170,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
         updateInfoTable(ticker)
         updateDepthTable(ticker.marketDepth)
         prevTicker.copyFrom(ticker)
-        repaint()
+        infoTable.repaint()
+        depthTable.repaint()
       }
     case ExecutionEvent(prevClose, execution) =>
       updateExecutionTable(prevClose, execution)
-      repaint()
+      executionTable.repaint()
   }
 
   // use last ticker to update info/depth table

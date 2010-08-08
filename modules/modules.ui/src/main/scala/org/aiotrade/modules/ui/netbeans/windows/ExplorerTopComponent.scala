@@ -30,13 +30,16 @@
  */
 package org.aiotrade.modules.ui.netbeans.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
+import org.netbeans.api.progress.ProgressHandle
+import org.netbeans.api.progress.ProgressHandleFactory
+import org.netbeans.api.progress.ProgressUtils
 import org.openide.explorer.ExplorerManager
 import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
@@ -44,7 +47,8 @@ import org.openide.loaders.DataFolder
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor
-import org.openide.windows.TopComponent;
+import org.openide.windows.TopComponent;import scala.collection.mutable.HashMap
+
 
 /** 
  * Top component which displays explorer tree.
@@ -98,6 +102,8 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   // --- to enable focus owner checking
   //org.aiotrade.lib.util.awt.focusOwnerChecker
 
+  private var isSymbolNodesInited = false
+
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_ALWAYS
   }
@@ -105,9 +111,13 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   override def componentOpened {
     super.componentOpened
 
-    if (!isSymbolNodesInited) {
-      log.info("Create symbols nodes from db ...")
-      addSymbolsFromDB
+    if (!isSymbolNodesAdded) {
+      val handle = ProgressHandleFactory.createHandle("Creating symbols ...")
+      ProgressUtils.showProgressDialogAndRun(new Runnable {
+          def run {
+            addSymbolsFromDB(handle)
+          }
+        }, handle, false)
     }
   }
 
@@ -123,32 +133,43 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
     manager
   }
 
-  private def isSymbolNodesInited = {
+  private def isSymbolNodesAdded = {
     val rootNode = getExplorerManager.getRootContext
     rootNode.getChildren.getNodesCount > 0
   }
 
-  private def addSymbolsFromDB {
-    java.awt.EventQueue.invokeLater(new Runnable {
-        def run {
-          val rootNode = getExplorerManager.getRootContext
-          val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
-          rootFolder.files.isEmpty
-          // expand root node
-          getExplorerManager.setExploredContext(rootNode)
+  private def addSymbolsFromDB(handle: ProgressHandle) {
+    val rootNode = getExplorerManager.getRootContext
+    val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+    // expand root node
+    getExplorerManager.setExploredContext(rootNode)
 
-          // add symbols to exchange folder
-          val dailyQuoteContract  = createQuoteContract
-          for (exchange <- Exchange.allExchanges;
-               exchangefolder = DataFolder.create(rootFolder, exchange.code);
-               symbol <- Exchange.symbolsOf(exchange)
-          ) {
-            dailyQuoteContract.srcSymbol = symbol
-            SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, dailyQuoteContract)
-          }
-        }
-      })
+    val start = System.currentTimeMillis
+    log.info("Create symbols node files from db ...")
+    
+    // add symbols to exchange folder
+    val dailyQuoteContract = createQuoteContract
+    val symbolsToFolder = new HashMap[String, DataFolder]
+    for (exchange <- Exchange.allExchanges;
+         exchangeFolder = DataFolder.create(rootFolder, exchange.code);
+         symbol <- Exchange.symbolsOf(exchange)
+    ) {
+      symbolsToFolder.put(symbol, exchangeFolder)
+    }
+    
+    handle.switchToDeterminate(symbolsToFolder.size)
+    var i = 0
+    val allSymbols = symbolsToFolder.iterator
+    while (allSymbols.hasNext) {
+      handle.progress(i)
+      val (symbol, folder) = allSymbols.next
+      dailyQuoteContract.srcSymbol = symbol
+      SymbolNodes.createSymbolXmlFile(folder, symbol, dailyQuoteContract)
+      i += 1
+    }
 
+    handle.finish
+    log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
   }
 
   private def createQuoteContract = {

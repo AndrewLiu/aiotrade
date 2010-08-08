@@ -25,6 +25,12 @@ AIOTrade
     > cd ../aiotrade/suite  
     > mvn clean install  
 
+## Code -> Build -> Run Cycle
+
+    > cd ../aiotrade/suite  
+    > mvn install  
+    > application/target/aiotrade/bin/aiotrade
+
 ## Zipped application package:
 
     ..../aiotrade.git/aiotrade/suite/application/target/platform-application-1.0-SNAPSHOT.zip

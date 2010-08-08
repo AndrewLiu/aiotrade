@@ -165,6 +165,11 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
   // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
   splitPane.setResizeWeight(1.0)
+  // to make the right component pixels wide
+  splitPane.setDividerLocation(splitPane.getSize().width -
+                               splitPane.getInsets.right -
+                               splitPane.getDividerSize -
+                               RealTimeBoardPanel.DIM.width)
 
   setLayout(new BorderLayout)
   add(splitPane, BorderLayout.CENTER)
@@ -176,7 +181,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     val sec = contents.serProvider.asInstanceOf[Sec]
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
     val freq = quoteContract.freq
-    val tcId = sec.name
+    val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
 
     val viewContainer = createViewContainer(sec, freq, contents)
@@ -186,7 +191,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     splitPane.setRightComponent(realTimeBoard)
     splitPane.revalidate
 
-    setName(sec.name + " - " + freq)
+    setName(sec.secInfo.name + " - " + freq)
 
     injectActionsToDescriptors
 

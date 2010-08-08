@@ -6,7 +6,7 @@ import ru.circumflex.orm._
 case class ExecutionEvent(prevClose: Double, execution: Execution) extends Event
 
 object Executions extends Table[Execution] {
-  val quote = "quotes_id" REFERENCES(Quotes1d)
+  val sec = "secs_id" REFERENCES(Secs)
 
   val time = "time" BIGINT
 
@@ -18,10 +18,13 @@ object Executions extends Table[Execution] {
 
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
-  def executionsOfDay(dailyQuote: Quote): Seq[Execution] = {
-    SELECT (this.*) FROM (this) WHERE (this.quote.field EQ Quotes1d.idOf(dailyQuote)) ORDER_BY (this.time) list
-  }
+  private val ONE_DAY = 24 * 60 * 60 * 1000
 
+  def executionsOf(sec: Sec, dailyRoundedTime: Long): Seq[Execution] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+    ) ORDER_BY (this.time) list
+  }
 }
 
 object Execution {
@@ -38,7 +41,7 @@ object Execution {
 
 import Execution._
 class Execution {
-  var quote: Quote = _
+  var sec: Sec = _
   
   var time: Long = -1
 

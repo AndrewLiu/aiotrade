@@ -69,12 +69,8 @@ object TickerServer extends Publisher {
   val uniSymbolToLastTicker = new HashMap[String, LightTicker]
   // load all last tickers
   Exchange.allExchanges foreach {x =>
-    val start = System.currentTimeMillis
-    log.info("Loading last tickers of " + x.code)
     uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)
-    log.info("Loading last tickers of " + x.code + " used " + (System.currentTimeMillis - start) / 1000.0 + "s")
   }
-
 }
 
 abstract class TickerServer extends DataServer[Ticker] {
@@ -166,17 +162,17 @@ abstract class TickerServer extends DataServer[Ticker] {
         val contract = subscribedSrcSymbols.get(symbol).get
         val sec = Exchange.secOf(symbol).get
 
-        val minSer = contract.ser
+        val rtSer = sec.realtimeSer
         symbolToTickerInfo.get(symbol) match {
           case Some(x) => x.lastTicker = ticker
-          case None => symbolToTickerInfo.put(symbol, new TickerInfo(ticker, minSer))
+          case None => symbolToTickerInfo.put(symbol, new TickerInfo(ticker, rtSer))
         }
 
         val dayQuote = sec.dailyQuoteOf(ticker.time)
         assert(Quotes1d.idOf(dayQuote).isDefined, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
-        ticker.quote = dayQuote
+        ticker.sec = sec
 
-        val (prevTicker, dayFirst) = sec.lastTickerOf(dayQuote)
+        val (prevTicker, dayFirst) = sec.lastTickerOf(sec, dayQuote.time)
         val minQuote = sec.minuteQuoteOf(ticker.time)
 
         var tickerValid = false
@@ -196,7 +192,7 @@ abstract class TickerServer extends DataServer[Ticker] {
            * in calcMaxMin() of ChartView)
            */
           execution = new Execution
-          execution.quote = dayQuote
+          execution.sec = sec
           execution.time = ticker.time
           execution.price  = ticker.lastPrice
           execution.volume = ticker.dayVolume
@@ -222,7 +218,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
             if (ticker.dayVolume > prevTicker.dayVolume) {
               execution = new Execution
-              execution.quote = dayQuote
+              execution.sec = sec
               execution.time = ticker.time
               execution.price  = ticker.lastPrice
               execution.volume = ticker.dayVolume - prevTicker.dayVolume
@@ -272,8 +268,8 @@ abstract class TickerServer extends DataServer[Ticker] {
         }
 
 
-        // update 1m quoteSer from minuteQuote
-        minSer.updateFrom(minQuote)
+        // update realtime quoteSer from minuteQuote
+        rtSer.updateFrom(minQuote)
 
         if (execution != null) {
           val prevPrice = if (dayFirst) ticker.prevClose else prevTicker.lastPrice
@@ -291,7 +287,15 @@ abstract class TickerServer extends DataServer[Ticker] {
           // update daily quote and ser
           updatedDailyQuotes += dayQuote
           updateDailyQuoteByTicker(dayQuote, ticker)
-          contract.chainSers find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
+
+          // update **loaded** chainSers
+          for (ser <- contract.chainSers if ser.loaded) {
+            ser.freq match {
+              case TFreq.DAILY   => ser.updateFrom(dayQuote)
+              case TFreq.ONE_MIN => ser.updateFrom(minQuote)
+              case _ =>
+            }
+          }
         }
 
       }
