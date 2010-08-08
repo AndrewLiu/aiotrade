@@ -312,33 +312,33 @@ object SymbolNodes {
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
-  class OneSymbolNode private (symbolFileNode: Node, content: InstanceContent
+  class OneSymbolNode private (symbolFileNode: Node, ic: InstanceContent
   ) extends FilterNode(symbolFileNode, new SymbolChildren, new ProxyLookup(symbolFileNode.getLookup,
-                                                                           new AbstractLookup(content))
+                                                                           new AbstractLookup(ic))
   ) {
-    private var analysisContents: AnalysisContents = _
 
-    readContents(symbolFileNode) match {
+    private val analysisContents = readContents(symbolFileNode) match {
       case Some(contents) =>
         // check if has existed in application context, if true, use the existed one
-        analysisContents = contentsOf(contents.uniSymbol).getOrElse(contents)
-        putNode(analysisContents, this)
-        content.add(analysisContents)
-      case None =>
+        val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
+        putNode(contents1, this)
+        ic.add(contents1)
+        contents1
+      case None => null
     }
 
     /* add the node to our own lookup */
-    content.add(this)
+    ic.add(this)
 
     /* add additional items to the lookup */
-    content.add(new SymbolViewAction(this))
-    content.add(new SymbolReimportDataAction(this))
-    content.add(new SymbolRefreshDataAction(this))
-    content.add(new SymbolSetDataSourceAction(this))
-    content.add(new SymbolStartWatchAction(this))
-    content.add(new SymbolStopWatchAction(this))
-    content.add(new SymbolCompareToAction(this))
-    content.add(new SymbolClearDataAction(this))
+    ic.add(new SymbolViewAction(this))
+    ic.add(new SymbolReimportDataAction(this))
+    ic.add(new SymbolRefreshDataAction(this))
+    ic.add(new SymbolSetDataSourceAction(this))
+    ic.add(new SymbolStartWatchAction(this))
+    ic.add(new SymbolStopWatchAction(this))
+    ic.add(new SymbolCompareToAction(this))
+    ic.add(new SymbolClearDataAction(this))
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -554,21 +554,21 @@ object SymbolNodes {
   }
   
   @throws(classOf[IntrospectionException])
-  class SymbolFolderNode(symbolFolderNode: Node, content: InstanceContent
+  class SymbolFolderNode(symbolFolderNode: Node, ic: InstanceContent
   ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new ProxyLookup(symbolFolderNode.getLookup,
-                                                                                                     new AbstractLookup(content))
+                                                                                                     new AbstractLookup(ic))
   ) {
 
     /* add the node to our own lookup */
-    content.add(this)
+    ic.add(this)
 
     /* add additional items to the lookup */
-    content.add(SystemAction.get(classOf[AddSymbolAction]))
-    content.add(new SymbolStartWatchAction(this))
-    content.add(new SymbolStopWatchAction(this))
-    content.add(new SymbolRefreshDataAction(this))
-    content.add(new SymbolReimportDataAction(this))
-    content.add(new SymbolViewAction(this))
+    ic.add(SystemAction.get(classOf[AddSymbolAction]))
+    ic.add(new SymbolStartWatchAction(this))
+    ic.add(new SymbolStopWatchAction(this))
+    ic.add(new SymbolRefreshDataAction(this))
+    ic.add(new SymbolReimportDataAction(this))
+    ic.add(new SymbolViewAction(this))
 
     /**
      * Declaring the children of the root sec node
