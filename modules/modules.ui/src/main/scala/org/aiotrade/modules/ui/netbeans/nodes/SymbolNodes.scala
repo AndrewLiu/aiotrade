@@ -312,17 +312,25 @@ object SymbolNodes {
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
-  class OneSymbolNode private (symbolFileNode: Node, anaContents: AnalysisContents, content: InstanceContent
-  ) extends FilterNode(symbolFileNode, new SymbolChildren(anaContents), new ProxyLookup(symbolFileNode.getLookup,
-                                                                                        new AbstractLookup(content))
+  class OneSymbolNode private (symbolFileNode: Node, content: InstanceContent
+  ) extends FilterNode(symbolFileNode, new SymbolChildren, new ProxyLookup(symbolFileNode.getLookup,
+                                                                           new AbstractLookup(content))
   ) {
-    putNode(anaContents, this)
+    private var analysisContents: AnalysisContents = _
+
+    readContents(symbolFileNode) match {
+      case Some(contents) =>
+        // check if has existed in application context, if true, use the existed one
+        analysisContents = contentsOf(contents.uniSymbol).getOrElse(contents)
+        putNode(analysisContents, this)
+        content.add(analysisContents)
+      case None =>
+    }
 
     /* add the node to our own lookup */
     content.add(this)
 
     /* add additional items to the lookup */
-    content.add(anaContents)
     content.add(new SymbolViewAction(this))
     content.add(new SymbolReimportDataAction(this))
     content.add(new SymbolRefreshDataAction(this))
@@ -339,16 +347,16 @@ object SymbolNodes {
      */
     @throws(classOf[IOException])
     @throws(classOf[IntrospectionException])
-    def this(symbolFileNode: Node, contents: AnalysisContents) = {
-      this(symbolFileNode, contents, new InstanceContent)
+    def this(symbolFileNode: Node) = {
+      this(symbolFileNode, new InstanceContent)
     }
 
     override def getDisplayName = {
-      anaContents.uniSymbol
+      analysisContents.uniSymbol
     }
 
     override def getIcon(tpe: Int): Image = {
-      val icon_? = anaContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
+      val icon_? = analysisContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
 
       icon_? getOrElse DEFAUTL_SOURCE_ICON
     }
@@ -446,36 +454,27 @@ object SymbolNodes {
           return Array(new SymbolFolderNode(symbolFileNode))
         } else {
           /**
-           * else, deserilize a contents instance from the sec xml file,
-           * and create a sec node for it
+           * else, create a sec node for it, which will deserilize a contents instance from the sec xml file,
            */
-          readContents(symbolFileNode) match {
-            case Some(contents) =>
-              // check if has existed in application context, if true, use the existed one
-              val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
-              val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents1)
-              val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
+          val oneSymbolNode = new OneSymbolNode(symbolFileNode)
+          val fo = symbolFileNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
-              // with "open" hint ?
-              fo.getAttribute("open") match {
-                case attr: java.lang.Boolean if attr.booleanValue =>
-                  fo.setAttribute("open", null)
+          // with "open" hint ?
+          fo.getAttribute("open") match {
+            case attr: java.lang.Boolean if attr.booleanValue =>
+              fo.setAttribute("open", null)
 
-                  // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
-                  // open it
-                  SwingUtilities.invokeLater(new Runnable {
-                      def run {
-                        oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
-                      }
-                    })
-                case _ =>
-              }
-
-              return Array(oneSymbolNode)
-            case None =>
-              // best effort
-              return Array(symbolFileNode)
+              // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
+              // open it
+              SwingUtilities.invokeLater(new Runnable {
+                  def run {
+                    oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
+                  }
+                })
+            case _ =>
           }
+
+          return Array(oneSymbolNode)
 
         }
       } catch {
@@ -507,7 +506,7 @@ object SymbolNodes {
    *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
    *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
    */
-  private class SymbolChildren(contents: AnalysisContents) extends Children.Keys[GroupDescriptor[AnalysisDescriptor[_]]] {
+  private class SymbolChildren extends Children.Keys[GroupDescriptor[AnalysisDescriptor[_]]] {
 
     /**
      * Called when children are first asked for nodes. Typical implementations at this time
@@ -536,7 +535,9 @@ object SymbolNodes {
 
     def createNodes(key: GroupDescriptor[AnalysisDescriptor[_]]): Array[Node] = {
       try {
-        Array(new GroupNode(key, contents))
+        // lookup AnalysisContents in parent node
+        val analysisContents = this.getNode.getLookup.lookup(classOf[AnalysisContents])
+        Array(new GroupNode(key, analysisContents))
       } catch {
         case ex: IntrospectionException =>
           ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
