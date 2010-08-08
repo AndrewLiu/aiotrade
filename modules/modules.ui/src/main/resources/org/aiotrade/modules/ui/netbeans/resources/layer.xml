@@ -53,7 +53,11 @@
     </folder>
 
     <folder name="Toolbars">
+        <file name="File_hidden"/>
+        <file name="UndoRedo_hidden"/>
+
         <folder name="View">
+            <attr name="position" intvalue="318"/>
             <file name="org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.instance"/>
             </file>
@@ -89,8 +93,8 @@
             </file-->
         </folder>
 
-        <attr name="Stock/Indicator" boolvalue="true"/>
         <folder name="Indicator">
+            <attr name="position" intvalue="328"/>
             <file name="org-aiotrade-modules-ui-netbeans-actions-PickIndicatorAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-PickIndicatorAction.instance"/>
             </file>
@@ -102,8 +106,8 @@
             </file>
         </folder>
 
-        <attr name="Indicator/Draw" boolvalue="true"/>
         <folder name="Draw">
+            <attr name="position" intvalue="338"/>
             <file name="org-aiotrade-modules-ui-netbeans-actions-PickDrawingLineAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-PickDrawingLineAction.instance"/>
             </file>
@@ -114,8 +118,6 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
             </file>
         </folder>
-
-        <attr name="Draw/Memory" boolvalue="true"/>
 
         <folder name="QuickSearch">
             <attr name="position" intvalue="700"/>
