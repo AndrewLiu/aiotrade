@@ -35,6 +35,9 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import java.util.logging.Logger
+import javax.swing.JComponent
+import javax.swing.KeyStroke
+import javax.swing.text.DefaultEditorKit
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.netbeans.api.progress.ProgressHandle
@@ -45,6 +48,7 @@ import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
 import org.openide.loaders.DataFolder
 import org.openide.nodes.Node;
+import org.openide.util.Lookup
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor
 import org.openide.windows.TopComponent;import scala.collection.mutable.HashMap
@@ -67,7 +71,7 @@ object ExplorerTopComponent {
 import ExplorerTopComponent._
 @serializable
 @SerialVersionUID(1L)
-class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
+class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider with Lookup.Provider {
   private val log = Logger.getLogger(this.getClass.getName)
 
   instance = Some(this)
@@ -97,12 +101,31 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
   treeView.setRootVisible(true)
 
   private val actionMap = getActionMap
-  actionMap.put("delete", ExplorerUtils.actionDelete(manager, true))
+  actionMap.put(DefaultEditorKit.copyAction, ExplorerUtils.actionCopy(manager))
+  actionMap.put(DefaultEditorKit.cutAction, ExplorerUtils.actionCut(manager))
+  actionMap.put(DefaultEditorKit.pasteAction, ExplorerUtils.actionPaste(manager))
+  actionMap.put("delete", ExplorerUtils.actionDelete(manager, true)) // or false
+
+  // following line tells the top component which lookup should be associated with it
   associateLookup(ExplorerUtils.createLookup(manager, actionMap))
+  
   // --- to enable focus owner checking
   //org.aiotrade.lib.util.awt.focusOwnerChecker
 
   private var isSymbolNodesInited = false
+
+  def getExplorerManager: ExplorerManager = manager
+
+  // It is good idea to switch all listeners on and off when the
+  // component is shown or hidden. In the case of TopComponent use:
+  override def componentActivated {
+    super.componentActivated
+    ExplorerUtils.activateActions(manager, true)
+  }
+  override def componentDeactivated {
+    ExplorerUtils.activateActions(manager, false)
+    super.componentDeactivated
+  }
 
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_ALWAYS
@@ -127,10 +150,6 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider {
     
   override protected def preferredID: String = {
     tc_id
-  }
-
-  def getExplorerManager: ExplorerManager = {
-    manager
   }
 
   private def isSymbolNodesAdded = {

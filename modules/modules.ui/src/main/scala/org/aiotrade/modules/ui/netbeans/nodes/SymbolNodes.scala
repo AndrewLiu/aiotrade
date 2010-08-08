@@ -60,7 +60,7 @@ import org.aiotrade.lib.util.swing.action.GeneralAction
 import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
-import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
+import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
@@ -68,7 +68,9 @@ import org.netbeans.api.progress.ProgressHandle
 import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.ErrorManager
+import org.openide.actions.CopyAction
 import org.openide.actions.DeleteAction
+import org.openide.actions.PasteAction
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil
@@ -76,6 +78,7 @@ import org.openide.filesystems.Repository
 import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException
+import org.openide.loaders.DataShadow
 import org.openide.nodes.AbstractNode
 import org.openide.nodes.Children
 import org.openide.nodes.FilterNode
@@ -205,9 +208,8 @@ object SymbolNodes {
 
     var lock: FileLock = null
     var out: PrintStream = null
-    var fo: FileObject = null
     try {
-      fo = folderObject.createData(fileName, "sec")
+      val fo = folderObject.createData(fileName, "sec")
       lock = fo.lock
       out = new PrintStream(fo.getOutputStream(lock))
 
@@ -222,24 +224,24 @@ object SymbolNodes {
 
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
+      Option(fo)
     } catch {
-      case ex: IOException => ErrorManager.getDefault.notify(ex)
+      case ex: IOException => ErrorManager.getDefault.notify(ex); None
     } finally {
       /** should remember to out.close() here */
       if (out != null) out.close
       if (lock != null) lock.releaseLock
     }
 
-    Some(fo)
   }
 
   /** Deserialize a Symbol from xml file */
   private def readContents(node: Node): Option[AnalysisContents] = {
-    val dobj = node.getLookup.lookup(classOf[DataObject])
-    if (dobj == null) {
-      throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
+    val fo = node.getLookup.lookup(classOf[DataObject]) match {
+      case null => throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
+      case shadow: DataShadow => shadow.getOriginal.getPrimaryFile
+      case dobj: DataObject => dobj.getPrimaryFile
     }
-    val fo = dobj.getPrimaryFile
     readContents(fo)
   }
 
@@ -379,6 +381,8 @@ object SymbolNodes {
         getLookup.lookup(classOf[SymbolSetDataSourceAction]),
         null,
         getLookup.lookup(classOf[SymbolClearDataAction]),
+        null,
+        SystemAction.get(classOf[CopyAction]),
         SystemAction.get(classOf[DeleteAction])
       )
     }
@@ -597,6 +601,7 @@ object SymbolNodes {
         getLookup.lookup(classOf[SymbolRefreshDataAction]),
         getLookup.lookup(classOf[SymbolReimportDataAction]),
         null,
+        SystemAction.get(classOf[PasteAction]),
         SystemAction.get(classOf[DeleteAction])
       )
     }
