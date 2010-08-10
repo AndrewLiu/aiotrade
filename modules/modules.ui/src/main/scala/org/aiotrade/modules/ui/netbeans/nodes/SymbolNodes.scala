@@ -60,7 +60,7 @@ import org.aiotrade.lib.util.swing.action.GeneralAction
 import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
-import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction;
+import org.aiotrade.modules.ui.netbeans.actions.AddSymbolAction
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
@@ -68,7 +68,9 @@ import org.netbeans.api.progress.ProgressHandle
 import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.ErrorManager
+import org.openide.actions.CopyAction
 import org.openide.actions.DeleteAction
+import org.openide.actions.PasteAction
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil
@@ -76,6 +78,7 @@ import org.openide.filesystems.Repository
 import org.openide.loaders.DataFolder
 import org.openide.loaders.DataObject
 import org.openide.loaders.DataObjectNotFoundException
+import org.openide.loaders.DataShadow
 import org.openide.nodes.AbstractNode
 import org.openide.nodes.Children
 import org.openide.nodes.FilterNode
@@ -205,9 +208,8 @@ object SymbolNodes {
 
     var lock: FileLock = null
     var out: PrintStream = null
-    var fo: FileObject = null
     try {
-      fo = folderObject.createData(fileName, "sec")
+      val fo = folderObject.createData(fileName, "sec")
       lock = fo.lock
       out = new PrintStream(fo.getOutputStream(lock))
 
@@ -222,24 +224,24 @@ object SymbolNodes {
 
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
+      Option(fo)
     } catch {
-      case ex: IOException => ErrorManager.getDefault.notify(ex)
+      case ex: IOException => ErrorManager.getDefault.notify(ex); None
     } finally {
       /** should remember to out.close() here */
       if (out != null) out.close
       if (lock != null) lock.releaseLock
     }
 
-    Some(fo)
   }
 
   /** Deserialize a Symbol from xml file */
   private def readContents(node: Node): Option[AnalysisContents] = {
-    val dobj = node.getLookup.lookup(classOf[DataObject])
-    if (dobj == null) {
-      throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
+    val fo = node.getLookup.lookup(classOf[DataObject]) match {
+      case null => throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
+      case shadow: DataShadow => shadow.getOriginal.getPrimaryFile
+      case dobj: DataObject => dobj.getPrimaryFile
     }
-    val fo = dobj.getPrimaryFile
     readContents(fo)
   }
 
@@ -312,25 +314,33 @@ object SymbolNodes {
   }
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
-  class OneSymbolNode private (symbolFileNode: Node, anaContents: AnalysisContents, content: InstanceContent
-  ) extends FilterNode(symbolFileNode, new SymbolChildren(anaContents), new ProxyLookup(symbolFileNode.getLookup,
-                                                                                        new AbstractLookup(content))
+  class OneSymbolNode private (symbolFileNode: Node, ic: InstanceContent
+  ) extends FilterNode(symbolFileNode, new SymbolChildren, new ProxyLookup(symbolFileNode.getLookup,
+                                                                           new AbstractLookup(ic))
   ) {
-    putNode(anaContents, this)
+
+    private val analysisContents = readContents(symbolFileNode) match {
+      case Some(contents) =>
+        // check if has existed in application context, if true, use the existed one
+        val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
+        putNode(contents1, this)
+        ic.add(contents1)
+        contents1
+      case None => null
+    }
 
     /* add the node to our own lookup */
-    content.add(this)
+    ic.add(this)
 
     /* add additional items to the lookup */
-    content.add(anaContents)
-    content.add(new SymbolViewAction(this))
-    content.add(new SymbolReimportDataAction(this))
-    content.add(new SymbolRefreshDataAction(this))
-    content.add(new SymbolSetDataSourceAction(this))
-    content.add(new SymbolStartWatchAction(this))
-    content.add(new SymbolStopWatchAction(this))
-    content.add(new SymbolCompareToAction(this))
-    content.add(new SymbolClearDataAction(this))
+    ic.add(new SymbolViewAction(this))
+    ic.add(new SymbolReimportDataAction(this))
+    ic.add(new SymbolRefreshDataAction(this))
+    ic.add(new SymbolSetDataSourceAction(this))
+    ic.add(new SymbolStartWatchAction(this))
+    ic.add(new SymbolStopWatchAction(this))
+    ic.add(new SymbolCompareToAction(this))
+    ic.add(new SymbolClearDataAction(this))
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -339,16 +349,16 @@ object SymbolNodes {
      */
     @throws(classOf[IOException])
     @throws(classOf[IntrospectionException])
-    def this(symbolFileNode: Node, contents: AnalysisContents) = {
-      this(symbolFileNode, contents, new InstanceContent)
+    def this(symbolFileNode: Node) = {
+      this(symbolFileNode, new InstanceContent)
     }
 
     override def getDisplayName = {
-      anaContents.uniSymbol
+      analysisContents.uniSymbol
     }
 
     override def getIcon(tpe: Int): Image = {
-      val icon_? = anaContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
+      val icon_? = analysisContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
 
       icon_? getOrElse DEFAUTL_SOURCE_ICON
     }
@@ -371,6 +381,8 @@ object SymbolNodes {
         getLookup.lookup(classOf[SymbolSetDataSourceAction]),
         null,
         getLookup.lookup(classOf[SymbolClearDataAction]),
+        null,
+        SystemAction.get(classOf[CopyAction]),
         SystemAction.get(classOf[DeleteAction])
       )
     }
@@ -446,36 +458,27 @@ object SymbolNodes {
           return Array(new SymbolFolderNode(symbolFileNode))
         } else {
           /**
-           * else, deserilize a contents instance from the sec xml file,
-           * and create a sec node for it
+           * else, create a sec node for it, which will deserilize a contents instance from the sec xml file,
            */
-          readContents(symbolFileNode) match {
-            case Some(contents) =>
-              // check if has existed in application context, if true, use the existed one
-              val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
-              val oneSymbolNode = new OneSymbolNode(symbolFileNode, contents1)
-              val fo = oneSymbolNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
+          val oneSymbolNode = new OneSymbolNode(symbolFileNode)
+          val fo = symbolFileNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
 
-              // with "open" hint ?
-              fo.getAttribute("open") match {
-                case attr: java.lang.Boolean if attr.booleanValue =>
-                  fo.setAttribute("open", null)
+          // with "open" hint ?
+          fo.getAttribute("open") match {
+            case attr: java.lang.Boolean if attr.booleanValue =>
+              fo.setAttribute("open", null)
 
-                  // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
-                  // open it
-                  SwingUtilities.invokeLater(new Runnable {
-                      def run {
-                        oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
-                      }
-                    })
-                case _ =>
-              }
-
-              return Array(oneSymbolNode)
-            case None =>
-              // best effort
-              return Array(symbolFileNode)
+              // @Error when a /** */ at there, causes syntax highlighting disappear, but /* */ is ok
+              // open it
+              SwingUtilities.invokeLater(new Runnable {
+                  def run {
+                    oneSymbolNode.getLookup.lookup(classOf[ViewAction]).execute
+                  }
+                })
+            case _ =>
           }
+
+          return Array(oneSymbolNode)
 
         }
       } catch {
@@ -507,7 +510,7 @@ object SymbolNodes {
    *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
    *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
    */
-  private class SymbolChildren(contents: AnalysisContents) extends Children.Keys[GroupDescriptor[AnalysisDescriptor[_]]] {
+  private class SymbolChildren extends Children.Keys[GroupDescriptor[AnalysisDescriptor[_]]] {
 
     /**
      * Called when children are first asked for nodes. Typical implementations at this time
@@ -536,7 +539,9 @@ object SymbolNodes {
 
     def createNodes(key: GroupDescriptor[AnalysisDescriptor[_]]): Array[Node] = {
       try {
-        Array(new GroupNode(key, contents))
+        // lookup AnalysisContents in parent node
+        val analysisContents = this.getNode.getLookup.lookup(classOf[AnalysisContents])
+        Array(new GroupNode(key, analysisContents))
       } catch {
         case ex: IntrospectionException =>
           ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
@@ -553,21 +558,21 @@ object SymbolNodes {
   }
   
   @throws(classOf[IntrospectionException])
-  class SymbolFolderNode(symbolFolderNode: Node, content: InstanceContent
+  class SymbolFolderNode(symbolFolderNode: Node, ic: InstanceContent
   ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new ProxyLookup(symbolFolderNode.getLookup,
-                                                                                                     new AbstractLookup(content))
+                                                                                                     new AbstractLookup(ic))
   ) {
 
     /* add the node to our own lookup */
-    content.add(this)
+    ic.add(this)
 
     /* add additional items to the lookup */
-    content.add(SystemAction.get(classOf[AddSymbolAction]))
-    content.add(new SymbolStartWatchAction(this))
-    content.add(new SymbolStopWatchAction(this))
-    content.add(new SymbolRefreshDataAction(this))
-    content.add(new SymbolReimportDataAction(this))
-    content.add(new SymbolViewAction(this))
+    ic.add(SystemAction.get(classOf[AddSymbolAction]))
+    ic.add(new SymbolStartWatchAction(this))
+    ic.add(new SymbolStopWatchAction(this))
+    ic.add(new SymbolRefreshDataAction(this))
+    ic.add(new SymbolReimportDataAction(this))
+    ic.add(new SymbolViewAction(this))
 
     /**
      * Declaring the children of the root sec node
@@ -596,6 +601,7 @@ object SymbolNodes {
         getLookup.lookup(classOf[SymbolRefreshDataAction]),
         getLookup.lookup(classOf[SymbolReimportDataAction]),
         null,
+        SystemAction.get(classOf[PasteAction]),
         SystemAction.get(classOf[DeleteAction])
       )
     }
