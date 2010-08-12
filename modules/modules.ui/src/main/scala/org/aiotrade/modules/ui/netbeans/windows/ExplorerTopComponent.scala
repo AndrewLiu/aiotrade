@@ -35,8 +35,6 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import java.util.logging.Logger
-import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.text.DefaultEditorKit
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
@@ -110,7 +108,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   associateLookup(ExplorerUtils.createLookup(manager, actionMap))
   
   // --- to enable focus owner checking
-  //org.aiotrade.lib.util.awt.focusOwnerChecker
+  org.aiotrade.lib.util.awt.focusOwnerChecker
 
   private var isSymbolNodesInited = false
 

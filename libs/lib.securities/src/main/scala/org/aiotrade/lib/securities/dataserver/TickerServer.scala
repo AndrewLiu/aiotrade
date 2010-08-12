@@ -61,7 +61,13 @@ import scala.collection.mutable.HashMap
  * @author Caoyuan Deng
  */
 case class TickerEvent(ticker: Ticker) extends Event // TickerEvent only accept Ticker
-case class TickersEvent(ticker: Array[LightTicker]) extends Event // TickersEvent accect LightTicker
+case class TickersEvent(ticker: Array[LightTicker]) extends Event // TickersEvent accept LightTicker
+
+case class SnapDepth (
+  prevPrice: Double,
+  prevDepth: MarketDepth,
+  execution: Execution
+)
 
 object TickerServer extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
@@ -357,19 +363,22 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Committed")
     }
     
+    val snapDepths = allSnapDepths.toArray
+    if (snapDepths.length > 0) {
+      processSnapDepths(snapDepths)
+    }
+
     // publish events
     if (tickers.length > 0) {
       TickerServer.publish(TickersEvent(tickers.asInstanceOf[Array[LightTicker]]))
-    }
-    val snapDepths = allSnapDepths.toArray
-    if (snapDepths.length > 0) {
-      DataServer.publish(SnapDepthsEvent(this, snapDepths))
     }
 
     for ((symbol, tickerInfo) <- symbolToTickerInfo) yield {
       TSerEvent.ToBeSet(tickerInfo.minSer, symbol, tickerInfo.frTime, tickerInfo.toTime, tickerInfo.lastTicker)
     }
   }
+
+  protected def processSnapDepths(snapDepths: Array[SnapDepth]) = ()
 
   private def updateDailyQuoteByTicker(dailyQuote: Quote, ticker: Ticker) {
     dailyQuote.open   = ticker.dayOpen
