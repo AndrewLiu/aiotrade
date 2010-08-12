@@ -45,7 +45,6 @@ import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
-import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
@@ -55,13 +54,12 @@ import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
 
-/** This class will load the quote data from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
+/**
  *
  * @author Caoyuan Deng
  */
 case class TickerEvent(ticker: Ticker) extends Event // TickerEvent only accept Ticker
-case class TickersEvent(ticker: Array[LightTicker]) extends Event // TickersEvent accept LightTicker
+case class TickersEvent(tickers: Array[LightTicker]) extends Event // TickersEvent accept LightTicker
 
 case class SnapDepth (
   prevPrice: Double,
@@ -74,9 +72,7 @@ object TickerServer extends Publisher {
 
   val uniSymbolToLastTicker = new HashMap[String, LightTicker]
   // load all last tickers
-  Exchange.allExchanges foreach {x =>
-    uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)
-  }
+  Exchange.allExchanges foreach {x => uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)}
 }
 
 abstract class TickerServer extends DataServer[Ticker] {
@@ -156,6 +152,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     val updatedDailyQuotes = new ArrayList[Quote]
 
     val symbolToTickerInfo = new HashMap[String, TickerInfo]
+    val exchangeToLastTime = new HashMap[Exchange, Long]
 
     var i = 0
     while (i < values.length) {
@@ -175,7 +172,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         }
 
         val dayQuote = sec.dailyQuoteOf(ticker.time)
-        assert(Quotes1d.idOf(dayQuote).isDefined, "dailyQuote of " + sec.secInfo.uniSymbol + " is transient")
         ticker.sec = sec
 
         val (prevTicker, dayFirst) = sec.lastTickerOf(sec, dayQuote.time)
@@ -291,7 +287,6 @@ abstract class TickerServer extends DataServer[Ticker] {
           sec.publish(TickerEvent(ticker))
 
           // update daily quote and ser
-          updatedDailyQuotes += dayQuote
           updateDailyQuoteByTicker(dayQuote, ticker)
 
           // update **loaded** chainSers
@@ -302,6 +297,8 @@ abstract class TickerServer extends DataServer[Ticker] {
               case _ =>
             }
           }
+
+          exchangeToLastTime.put(sec.exchange, ticker.time)
         }
 
       }
@@ -350,15 +347,9 @@ abstract class TickerServer extends DataServer[Ticker] {
       willCommit = true
     }
 
-    val dailyQuotes = updatedDailyQuotes.toArray
-    if (dailyQuotes.length > 0) {
-      Quotes1d.updateBatch(dailyQuotes)
-      willCommit = true
-    }
-
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) {
-      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length + ", dailyQuotes=" + dailyQuotes.length)
+      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
       commit
       log.info("Committed")
     }
@@ -366,6 +357,12 @@ abstract class TickerServer extends DataServer[Ticker] {
     val snapDepths = allSnapDepths.toArray
     if (snapDepths.length > 0) {
       processSnapDepths(snapDepths)
+    }
+
+    for ((exchange, lastTime) <- exchangeToLastTime) {
+      val status = exchange.tradingStatusOf(lastTime)
+      log.info("Trading status of " + exchange + ": " + status)
+      exchange.tradingStatus = status
     }
 
     // publish events
@@ -387,9 +384,6 @@ abstract class TickerServer extends DataServer[Ticker] {
     dailyQuote.close  = ticker.lastPrice
     dailyQuote.volume = ticker.dayVolume
     dailyQuote.amount = ticker.dayAmount
-    // In case of dailyQuote being updated, should mark it as unclosed
-    dailyQuote.unclosed_!
-    //dailyQuote.sec.exchange.addUnclosedDailyQuote(dailyQuote)
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol

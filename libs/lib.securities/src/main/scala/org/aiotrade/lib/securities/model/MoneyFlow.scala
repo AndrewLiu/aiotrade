@@ -22,12 +22,10 @@ object MoneyFlows1d extends MoneyFlows {
         val newone = new MoneyFlow
         newone.time = rounded
         newone.sec = sec
-        newone.unclosed_! // @todo when to close it and update to db?
+        newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        MoneyFlows1d.save(newone)
-        commit
-        //exchange.addUnclosedDailyMoneyFlow(newone)
+        exchange.addNewDailyMoneyFlow(newone)
         newone
     }
   }

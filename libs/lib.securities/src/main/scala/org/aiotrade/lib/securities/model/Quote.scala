@@ -61,13 +61,11 @@ object Quotes1d extends Quotes {
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
-        newone.unclosed_! // @todo when to close it and update to db?
+        newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
-        Quotes1d.save(newone)
-        commit
-        exchange.addUnclosedDailyQuote(newone)
+        exchange.addNewDailyQuote(newone)
         newone
     }
   }

@@ -3,16 +3,14 @@ package org.aiotrade.lib.securities.model
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
 import scala.collection.mutable.ListBuffer
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
-
-import scala.actors.Actor
 
 object Exchanges extends Table[Exchange] {
   val log = Logger.getLogger(this.getClass.getSimpleName)
@@ -27,7 +25,6 @@ object Exchanges extends Table[Exchange] {
   def secs = inverse(Secs.exchange)
 
   INDEX(getClass.getSimpleName + "_code_idx", code.name)
-
 
   // --- helper methods
   def secsOf(exchange: Exchange): Seq[Sec] = {
@@ -47,7 +44,6 @@ object Exchanges extends Table[Exchange] {
       symbolToTicker.put(symbol, ticker)
     }
 
-
     symbolToTicker
   }
 }
@@ -55,45 +51,43 @@ object Exchanges extends Table[Exchange] {
 object Exchange extends Publisher {
   private val log = Logger.getLogger(this.getClass.getSimpleName)
 
-  case class Opened(exchange: Exchange) extends Event
-  case class Closed(exchange: Exchange) extends Event
-  /**
-   * @Note should lazy call allExchanges during model running, so, don't start timer actor automatically
-   */
-  object exchangesActor extends Actor {
-    def act {
-      val timer = new Timer("Exchange Open/Close Timer")
-      for (exchange <- allExchanges) {
-        val preOpen = exchange.open
-        preOpen.add(Calendar.MINUTE, -15)
-        timer.schedule(new TimerTask {
-            def run {
-              // @todo process vacation here
-              publish(Opened(exchange))
-            }
-          }, preOpen.getTime, ONE_DAY)
-
-        val postClose = exchange.close
-        postClose.add(Calendar.MINUTE, +15)
-        timer.schedule(new TimerTask {
-            def run {
-              // @todo process vacation here
-              publish(Closed(exchange))
-            }
-          }, postClose.getTime, ONE_DAY)
-      }
-    }
-  }
-
-  def startTimer = exchangesActor.start
-
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  lazy val N  = withCode("N" ).get
-  lazy val SS = withCode("SS").get
-  lazy val SZ = withCode("SZ").get
-  lazy val L  = withCode("L" ).get
+  case class Opened(exchange: Exchange) extends Event
+  case class Closed(exchange: Exchange) extends Event
+
+  /**
+   * @Note should lazily call allExchanges during model running, so, don't start timer actor automatically
+   */
+  private val timer = new Timer("Exchange Open/Close Timer")
+  private var timerStarted = false
+  def startTimer {
+    if (timerStarted) return
+
+    for (exchange <- allExchanges) {
+      val preOpen = exchange.open
+      preOpen.add(Calendar.MINUTE, -15)
+      timer.scheduleAtFixedRate(new TimerTask {
+          def run {
+            // @todo process vacation here
+            publish(Opened(exchange))
+          }
+        }, preOpen.getTime, ONE_DAY)
+
+      val postClose = exchange.close
+      postClose.add(Calendar.MINUTE, +15)
+      timer.schedule(new TimerTask {
+          def run {
+            // @todo process vacation here
+            exchange.scheduleDoClosing(-1)
+            publish(Closed(exchange))
+          }
+        }, postClose.getTime, ONE_DAY)
+    }
+    
+    timerStarted = true
+  }
 
   lazy val allExchanges = Exchanges.all()
   lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
@@ -121,7 +115,12 @@ object Exchange extends Publisher {
       secs filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
     } toMap
   }
-  
+
+  lazy val N  = withCode("N" ).get
+  lazy val SS = withCode("SS").get
+  lazy val SZ = withCode("SZ").get
+  lazy val L  = withCode("L" ).get
+
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
@@ -150,50 +149,19 @@ object Exchange extends Publisher {
     exchange.openCloseHMs = openCloseHMs
     exchange
   }
-
-
-//  private val heartBeatInterval = 15 * 60 * 1000 // 15 minutes
-//  private val timer = new Timer("Exchange Heart Beat Timer")
-//  timer.schedule(new TimerTask {
-//      /**
-//       * Save unclosed daily quotes/moneyflows periodically.
-//       * @Todo But, when to close it, it's another story
-//       */
-//      def run {
-//        log.info("Exchange heartbeat: ")
-//        var willCommit = false
-//        for (exchange <- allExchanges) {
-//          if (!exchange.dailyQuotesUnclosed.isEmpty) {
-//            val quotesToUpdate = exchange.dailyQuotesUnclosed synchronized {
-//              val x = exchange.dailyQuotesUnclosed.toArray
-//              exchange.dailyQuotesUnclosed.clear
-//              x
-//            }
-//            log.info("Exchange heartbeat to update daily quotes: " + quotesToUpdate.length)
-//            Quotes1d.updateBatch_!(quotesToUpdate)
-//            willCommit = true
-//          }
-//
-//          if (!exchange.dailyMoneyFlowsUnclosed.isEmpty) {
-//            val mfsToUpdate = exchange.dailyMoneyFlowsUnclosed synchronized {
-//              val x = exchange.dailyMoneyFlowsUnclosed.toArray
-//              exchange.dailyMoneyFlowsUnclosed.clear
-//              x
-//            }
-//            log.info("Exchange heartbeat to update daily moneyflows=" + mfsToUpdate.length)
-//            MoneyFlows1d.updateBatch_!(mfsToUpdate)
-//            willCommit = true
-//          }
-//        }
-//
-//        if (willCommit) {
-//          commit
-//          log.info("Exchange heartbeat: committed")
-//        }
-//      }
-//    }, 1000, heartBeatInterval)
 }
 
+trait TradingStatus
+object TradingStatus {
+  case class PreOpen(time: Long) extends TradingStatus
+  case class OpeningCallAcution(time: Long) extends TradingStatus
+  case class Open(time: Long) extends TradingStatus
+  case class Opening(time: Long) extends TradingStatus
+  case class Break(time: Long) extends TradingStatus
+  case class Close(time: Long) extends TradingStatus
+  case class Closed(time: Long) extends TradingStatus
+  case class Unknown(time: Long) extends TradingStatus
+}
 
 import Exchange._
 class Exchange {
@@ -209,28 +177,70 @@ class Exchange {
   var secs: List[Sec] = Nil
   // --- end database fields
 
+  log.info("New exchange: " + System.identityHashCode(this))
+
+  private var _tradingStatus: TradingStatus = TradingStatus.Unknown(-1)
+
   lazy val longDescription:  String = BUNDLE.getString(code + "_Long")
   lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
 
-  private lazy val openHour = openCloseHMs(0)
-  private lazy val openMin = openCloseHMs(1)
+  private lazy val openHour  = openCloseHMs(0)
+  private lazy val openMin   = openCloseHMs(1)
   private lazy val closeHour = openCloseHMs(openCloseHMs.length - 2)
-  private lazy val closeMin = openCloseHMs(openCloseHMs.length - 1)
+  private lazy val closeMin  = openCloseHMs(openCloseHMs.length - 1)
+
+  lazy val openingPeriods = {
+    val periods = new Array[(Int, Int)](openCloseHMs.length / 4)
+    
+    var i = 0
+    while (i < openCloseHMs.length) {
+      val fr = openCloseHMs(i) * 60 + openCloseHMs(i + 1)
+      i += 2
+
+      val to = openCloseHMs(i) * 60 + openCloseHMs(i + 1)
+      i += 2
+
+      periods(i / 4 - 1) = (fr, to)
+    }
+
+    periods
+  }
+
+  lazy val firstOpen: Int = openingPeriods(0)._1
+  lazy val lastClose: Int = openingPeriods(openingPeriods.length - 1)._2
 
   lazy val openTimeOfDay: Long = (openHour * 60 + openMin) * 60 * 1000
 
-  private var _symbols = List[String]()
-
-  private val dailyQuotesUnclosed = new HashSet[Quote]()
-  private val dailyMoneyFlowsUnclosed = new HashSet[MoneyFlow]()
-
-  def addUnclosedDailyQuote(quote: Quote) = dailyQuotesUnclosed synchronized {
-    dailyQuotesUnclosed += quote
+  lazy val nMinutes: Int = {
+    val openInMillis = open.getTimeInMillis
+    val closeInMills = close.getTimeInMillis
+    ((closeInMills - openInMillis) / TUnit.Minute.interval).toInt + 1
   }
 
-  def addUnclosedDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsUnclosed synchronized {
-    dailyMoneyFlowsUnclosed += mf
+  private var _symbols = List[String]()
+
+  private val dailyQuotesToClose = new ArrayList[Quote]()
+  private val dailyMoneyFlowsToClose = new ArrayList[MoneyFlow]()
+
+  def addNewDailyQuote(quote: Quote) = dailyQuotesToClose synchronized {
+    dailyQuotesToClose += quote
+  }
+
+  def addNewDailyMoneyFlow(mf: MoneyFlow) = dailyMoneyFlowsToClose synchronized {
+    dailyMoneyFlowsToClose += mf
+  }
+
+  def tradingStatus = _tradingStatus
+  def tradingStatus_=(status: TradingStatus) {
+    import TradingStatus._
+
+    _tradingStatus = status
+    status match {
+      case Close(time)  => scheduleDoClosing(5)
+      case Closed(time) => scheduleDoClosing(5)
+      case _ =>
+    }
   }
 
   def open: Calendar = {
@@ -264,19 +274,132 @@ class Exchange {
     cal.getTimeInMillis
   }
 
-  lazy val nMinutes: Int = {
-    val openInMillis = open.getTimeInMillis
-    val closeInMills = close.getTimeInMillis
-    ((closeInMills - openInMillis) / TUnit.Minute.interval).toInt + 1
-  }
-
   def symbols = _symbols
   def symbols_=(symbols: List[String]) {
     _symbols = symbols
   }
 
+  def tradingStatusOf(time: Long): TradingStatus = {
+    import TradingStatus._
+    
+    var status: TradingStatus = null
+    if (time == 0) {
+      status = Closed(time)
+    } else {
+      val cal = Calendar.getInstance
+      cal.setTimeInMillis(time)
+      val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+
+      if (timeInMinutes == firstOpen) {
+        status = Open(time)
+      } else if (timeInMinutes == lastClose) {
+        status = Close(time)
+      } else {
+        var i = 0
+        while (i < openingPeriods.length && status == null) {
+          val openingPeriod = openingPeriods(i)
+          if (timeInMinutes >= openingPeriod._1 && timeInMinutes <= openingPeriod._2) {
+            status = Opening(time)
+          }
+          i += 1
+        }
+
+        if (status == null) {
+          status = if (timeInMinutes > firstOpen && timeInMinutes < lastClose) {
+            Break(time)
+          } else if (timeInMinutes <  firstOpen - 15) {
+            PreOpen(time)
+          } else if (timeInMinutes >= firstOpen - 15 && timeInMinutes < firstOpen - 5) {
+            OpeningCallAcution(time)
+          } else if (timeInMinutes >= firstOpen - 5  && timeInMinutes < firstOpen) {
+            Open(time)
+          } else if (timeInMinutes <= lastClose + 5) {
+            Close(time)
+          } else {
+            Closed(time)
+          }
+        }
+      }
+    }
+    
+    status
+  }
+
+  /**
+   * Do closing in delay minutes. If quotesToClose/mfsToClose is empty, will do
+   * nothing and return at once.
+   */
+  def scheduleDoClosing(delay: Int) {
+    val quotesToClose = dailyQuotesToClose synchronized {
+      val x = dailyQuotesToClose.toArray
+      dailyQuotesToClose.clear
+      x
+    }
+
+    val mfsToClose = dailyMoneyFlowsToClose synchronized {
+      val x = dailyMoneyFlowsToClose.toArray
+      dailyMoneyFlowsToClose.clear
+      x
+    }
+
+    if (delay > 0) {
+      log.info(this + " will do closing in " + delay + " minutes for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
+    } else {
+      log.info(this + " do closing right now for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
+    }
+
+    if (quotesToClose.length == 0 && mfsToClose.length == 0) return
+
+    if (delay > 0) {
+      (new Timer).schedule(new TimerTask {
+          def run {
+            doClosing(quotesToClose, mfsToClose)
+          }
+        }, delay * 60 * 1000)
+    } else {
+      doClosing(quotesToClose, mfsToClose)
+    }
+  }
+
+  /**
+   * Close and insert daily quotes/moneyflows
+   */
+  private def doClosing(quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow]) {
+    var willCommit = false
+
+    if (quotesToClose.length > 0) {
+      var i = 0
+      while (i < quotesToClose.length) {
+        quotesToClose(i).closed_!
+        i += 1
+      }
+
+      log.info(this + " closed, inserting daily quotes: " + quotesToClose.length)
+      Quotes1d.insertBatch_!(quotesToClose)
+      willCommit = true
+    }
+
+    if (mfsToClose.length > 0) {
+      var i = 0
+      while (i < mfsToClose.length) {
+        mfsToClose(i).closed_!
+        i += 1
+      }
+
+      log.info(this + " closed, inserting daily moneyflows=" + mfsToClose.length)
+      MoneyFlows1d.insertBatch_!(mfsToClose)
+      willCommit = true
+    }
+
+    if (willCommit) {
+      commit
+      log.info(this + " closed, committed.")
+    }
+  }
+
+
   override def toString: String = {
-    code + " -> " + timeZone.getDisplayName
+    code + "(" + timeZone.getDisplayName + ")"
   }
 
 }

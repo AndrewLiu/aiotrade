@@ -234,10 +234,10 @@ object Model {
     commit
   }
 
-  val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
-  val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-  val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
+  lazy val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
+  lazy val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  lazy val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  lazy val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
 
   val SSSymToName = TreeMap(
     "600000" -> "浦发银行",
