@@ -45,6 +45,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
@@ -410,21 +411,35 @@ class Sec extends SerProvider with Publisher {
     val wantTime = loadSerFromPersistence(freq)
 
     // try to load from quote server
+    quoteContractOf(freq) match {
+      case Some(contract) =>
+        contract.serviceInstance() match {
+          case Some(quoteServer) =>
+            contract.freq = freq
+            contract.ser = ser
+            quoteServer.subscribe(contract)
 
-    for (contract <- quoteContractOf(freq);
-         quoteServer <- contract.serviceInstance()
-    ) {
-      contract.freq = freq
-      contract.ser = ser
-      quoteServer.subscribe(contract)
+            // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+            var reaction: PartialFunction[Event, Unit] = null
+            reaction = {
+              case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
+                reactions -= reaction
+                deafTo(ser)
+                ser.loaded = true
+            }
+            reactions += reaction
+            listenTo(ser)
 
-      ser.inLoading = true
-      quoteServer.loadHistory(wantTime)
-
-      return true
+            ser.inLoading = true
+            quoteServer.loadHistory(wantTime) 
+            
+          case _ => ser.loaded = true
+        }
+        
+      case _ => ser.loaded = true
     }
-    
-    false
+
+    true
   }
 
   private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {

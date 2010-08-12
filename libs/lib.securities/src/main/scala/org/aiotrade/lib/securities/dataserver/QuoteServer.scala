@@ -87,7 +87,6 @@ abstract class QuoteServer extends DataServer[Quote] {
 
     ser ++= quotes
 
-    ser.loaded = true
     ser.publish(TSerEvent.FinishedLoading(ser, sec.uniSymbol, frTime, toTime))
 
     if (contract.refreshable) {

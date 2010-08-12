@@ -289,8 +289,8 @@ abstract class TickerServer extends DataServer[Ticker] {
           // update daily quote and ser
           updateDailyQuoteByTicker(dayQuote, ticker)
 
-          // update **loaded** chainSers
-          for (ser <- contract.chainSers if ser.loaded) {
+          // update chainSers
+          for (ser <- contract.chainSers) {
             ser.freq match {
               case TFreq.DAILY   => ser.updateFrom(dayQuote)
               case TFreq.ONE_MIN => ser.updateFrom(minQuote)
