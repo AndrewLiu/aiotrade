@@ -27,11 +27,10 @@ class XDot extends PathWidget {
       path.moveTo(m.x, m.y)
       path.lineTo(m.x, m.y)
     } else {
-      path.moveTo(m.x - radius, m.y)
-      path.lineTo(m.x, m.y - radius)
-      path.lineTo(m.x + radius, m.y)
-      path.lineTo(m.x, m.y + radius)
-      path.lineTo(m.x - radius, m.y)
+      path.moveTo(m.x - radius, m.y - radius)
+      path.lineTo(m.x + radius, m.y + radius)
+      path.moveTo(m.x + radius, m.y - radius)
+      path.lineTo(m.x - radius, m.y + radius)
     }
   }
 
