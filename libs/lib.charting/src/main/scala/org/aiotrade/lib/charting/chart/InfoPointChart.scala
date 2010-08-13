@@ -28,7 +28,7 @@ class InfoPointChart extends AbstractChart {
 
     val heavyPathWidget = addChild(new HeavyPathWidget)
 
-    val y = datumPlane.yChartUpper
+    val y = datumPlane.yChartUpper + 2
 
     val template = new XDot
     var bar = 1
