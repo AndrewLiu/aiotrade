@@ -47,6 +47,7 @@ object Plot {
   case object Volume  extends Plot
   case object Signal  extends Plot
   case object Zigzag  extends Plot
+  case object Info    extends Plot
 }
 
 

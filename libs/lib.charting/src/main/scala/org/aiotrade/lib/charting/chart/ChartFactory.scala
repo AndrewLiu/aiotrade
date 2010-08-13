@@ -70,6 +70,9 @@ object ChartFactory {
       case Plot.Signal =>
         chart = new SignalChart
         chart.asInstanceOf[SignalChart].model.set(v.asInstanceOf[TVar[List[Signal]]])
+      case Plot.Info =>
+        chart = new InfoPointChart
+        chart.asInstanceOf[InfoPointChart].model.set(v)
       case _ =>
     }
         
