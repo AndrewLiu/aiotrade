@@ -97,8 +97,6 @@ object Secs extends Table[Sec] {
  */
 
 object Sec {
-  val log = Logger.getLogger(this.getClass.getName)
-
   trait Kind
   object Kind {
     case object Stock extends Kind
@@ -133,6 +131,8 @@ object Sec {
 
 import Sec._
 class Sec extends SerProvider with Publisher {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   // --- database fields
   var exchange: Exchange = _
 
@@ -200,6 +200,12 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
+  lazy val realtimeSer = {
+    val x = new QuoteSer(this, TFreq.ONE_MIN)
+    freqToQuoteSer.put(TFreq.ONE_SEC, x)
+    x
+  }
+
   /** tickerContract will always be built according to quoteContrat ? */
   def tickerContract = {
     if (_tickerContract == null) {
@@ -216,8 +222,6 @@ class Sec extends SerProvider with Publisher {
    * @TODO, how about tickerServer switched?
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-
-  lazy val realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
 
   def serOf(freq: TFreq): Option[QuoteSer] = {
     freq match {
@@ -331,6 +335,9 @@ class Sec extends SerProvider with Publisher {
           case Some(x) => x
           case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
         }
+        log.info("Loading realtime ser from persistence of " + {
+            val cal = Calendar.getInstance(exchange.timeZone); cal.setTimeInMillis(dailyRoundedTime); cal.getTime
+          })
         Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
       case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
       case TFreq.DAILY   => Quotes1d.quotesOf(this)
