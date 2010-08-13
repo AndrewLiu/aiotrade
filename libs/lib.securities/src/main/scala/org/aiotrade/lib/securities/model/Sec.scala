@@ -375,7 +375,7 @@ class Sec extends SerProvider with Publisher {
       wantTime
     } else {
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
-               + ", will try to load fro data source from beginning")
+               + ", will try to load from data source from beginning")
       0L
     }
   }
