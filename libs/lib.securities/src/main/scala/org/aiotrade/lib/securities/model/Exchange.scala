@@ -230,7 +230,10 @@ class Exchange {
     val cal = Calendar.getInstance(timeZone)
     val dailyRoundedTimeOfToday = TFreq.DAILY.round(System.currentTimeMillis, cal)
     if (_lastDailyRoundedTradingTime.isEmpty || _lastDailyRoundedTradingTime.get != dailyRoundedTimeOfToday) {
-      _lastDailyRoundedTradingTime = Tickers.lastTradingTimeOf(this)
+      Tickers.lastTradingTimeOf(this) match {
+        case Some(x) => _lastDailyRoundedTradingTime = Some(TFreq.DAILY.round(x, cal))
+        case _ =>
+      }
     }
     _lastDailyRoundedTradingTime
   }
