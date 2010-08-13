@@ -286,7 +286,7 @@ class Exchange {
     if (time == 0) {
       status = Closed(time)
     } else {
-      val cal = Calendar.getInstance
+      val cal = Calendar.getInstance(timeZone)
       cal.setTimeInMillis(time)
       val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
 
