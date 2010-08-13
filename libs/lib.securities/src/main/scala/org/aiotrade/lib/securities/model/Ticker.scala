@@ -128,13 +128,12 @@ object Tickers extends Table[Ticker] {
     map
   }
 
-  private[securities] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
+  private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     (SELECT (Tickers.time) FROM (Tickers JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) ORDER_BY (Tickers.time DESC) LIMIT (1) list) headOption
   }
 
-  
   def lastTickersSql = {
     /* (SELECT (Tickers.*) FROM (
      (SELECT (Tickers.quotes_id, MAX(time) AS maxtime) FROM (tickers) GROUP_BY Tickers.quotes_id) AS x INNER_JOIN Tickers ON (

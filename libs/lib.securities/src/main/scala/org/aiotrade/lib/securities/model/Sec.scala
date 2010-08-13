@@ -217,15 +217,18 @@ class Sec extends SerProvider with Publisher {
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
-  def serOf(freq: TFreq): Option[QuoteSer] = freq match {
-    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
-    case _ => freqToQuoteSer.get(freq) match {
-        case None => createCombinedSer(freq)
-        case x => x
-      }
-  }
-
   lazy val realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
+
+  def serOf(freq: TFreq): Option[QuoteSer] = {
+    freq match {
+      case TFreq.ONE_SEC => Some(realtimeSer)
+      case TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
+      case _ => freqToQuoteSer.get(freq) match {
+          case None => createCombinedSer(freq)
+          case x => x
+        }
+    }
+  }
 
   def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = {
     freqToIndicators.get(freq) match {
@@ -299,12 +302,38 @@ class Sec extends SerProvider with Publisher {
   }
 
   /**
+   * synchronized this method to avoid conflict on variable: loadBeginning and
+   * concurrent accessing to varies maps.
+   */
+  def loadSer(freq: TFreq): Boolean = synchronized {
+    val ser = serOf(freq) getOrElse (return false)
+
+    // load from persistence
+    val wantTime = loadSerFromPersistence(freq)
+
+    // try to load from quote server
+    loadFromQuoteServer(ser, wantTime)
+
+    true
+  }
+
+  def loadRealtimeSer {
+    loadSer(TFreq.ONE_SEC)
+  }
+
+  /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  def loadSerFromPersistence(freq: TFreq): Long = {
+  private def loadSerFromPersistence(freq: TFreq): Long = {
     val quotes = freq match {
-      case TFreq.DAILY   => Quotes1d.quotesOf(this)
+      case TFreq.ONE_SEC => // realtime ser
+        val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {
+          case Some(x) => x
+          case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
+        }
+        Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
       case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
+      case TFreq.DAILY   => Quotes1d.quotesOf(this)
       case _ => return 0L
     }
 
@@ -400,17 +429,9 @@ class Sec extends SerProvider with Publisher {
   }
 
 
-  /**
-   * synchronized this method to avoid conflict on variable: loadBeginning and
-   * concurrent accessing to varies maps.
-   */
-  def loadSer(freq: TFreq): Boolean = synchronized {
-    val ser = serOf(freq) getOrElse (return false)
-
-    // load from persistence
-    val wantTime = loadSerFromPersistence(freq)
-
-    // try to load from quote server
+  private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long) {
+    val freq = ser.freq
+    
     quoteContractOf(freq) match {
       case Some(contract) =>
         contract.serviceInstance() match {
@@ -431,15 +452,13 @@ class Sec extends SerProvider with Publisher {
             listenTo(ser)
 
             ser.inLoading = true
-            quoteServer.loadHistory(wantTime) 
-            
+            quoteServer.loadHistory(fromTime)
+
           case _ => ser.loaded = true
         }
-        
+
       case _ => ser.loaded = true
     }
-
-    true
   }
 
   private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {
@@ -510,9 +529,9 @@ class Sec extends SerProvider with Publisher {
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
-           clz <- quoteServer.classOfTickerServer
+           klass <- quoteServer.classOfTickerServer
       ) {
-        tickerContract.serviceClassName = clz.getName
+        tickerContract.serviceClassName = klass.getName
       }
     }
 

@@ -89,7 +89,15 @@ object Quotes1d extends Quotes {
 
 }
 
-object Quotes1m extends Quotes
+object Quotes1m extends Quotes {
+  private val ONE_DAY = 24 * 60 * 60 * 1000
+
+  def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
+    SELECT (this.*) FROM (this) WHERE (
+      this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+    ) ORDER_BY (this.time DESC) list
+  }
+}
 
 abstract class Quotes extends Table[Quote] {
   val sec = "secs_id" REFERENCES(Secs)

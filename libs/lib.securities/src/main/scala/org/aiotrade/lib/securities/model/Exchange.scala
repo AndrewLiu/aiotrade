@@ -5,6 +5,7 @@ import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
@@ -222,6 +223,17 @@ class Exchange {
 
   private val dailyQuotesToClose = new ArrayList[Quote]()
   private val dailyMoneyFlowsToClose = new ArrayList[MoneyFlow]()
+
+  private var _lastDailyRoundedTradingTime: Option[Long] = None
+
+  def lastDailyRoundedTradingTime: Option[Long] = {
+    val cal = Calendar.getInstance(timeZone)
+    val dailyRoundedTimeOfToday = TFreq.DAILY.round(System.currentTimeMillis, cal)
+    if (_lastDailyRoundedTradingTime.isEmpty || _lastDailyRoundedTradingTime.get != dailyRoundedTimeOfToday) {
+      _lastDailyRoundedTradingTime = Tickers.lastTradingTimeOf(this)
+    }
+    _lastDailyRoundedTradingTime
+  }
 
   def addNewDailyQuote(quote: Quote) = dailyQuotesToClose synchronized {
     dailyQuotesToClose += quote

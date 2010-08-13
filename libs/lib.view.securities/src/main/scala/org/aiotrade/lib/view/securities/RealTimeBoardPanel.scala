@@ -150,6 +150,9 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   initComponents
 
   private val rtSer = sec.realtimeSer
+  if (!rtSer.loaded) {
+    sec.loadRealtimeSer
+  }
   private val controller = ChartingController(rtSer, contents)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
