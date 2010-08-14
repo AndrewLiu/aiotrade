@@ -81,7 +81,41 @@ object Tickers extends Table[Ticker] {
     }
   }
 
-//  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  /**
+   * Plan A:
+   * select a.time, a.quotes_id from tickers as a left join quotes1d on a.quotes_id = quotes1d.id where a.time = (select max(time) from tickers as b where b.time between 0 and 2278918088001 and b.quotes_id = a.quotes_id);
+   * Plan B:
+   * SELECT a.quotes_id, a.time FROM (SELECT quotes_id, MAX(time) AS maxtime FROM tickers where tickers.time between 0 and 2278918088001 GROUP BY quotes_id) AS x INNER JOIN tickers as a ON a.quotes_id = x.quotes_id AND a.time = x.maxtime;
+   */
+  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+
+    val start = System.currentTimeMillis
+    val map = new HashMap[Sec, Ticker]
+    lastTradingTimeOf(exchange) match {
+      case Some(time) =>
+        val cal = Calendar.getInstance(exchange.timeZone)
+        val rounded = TFreq.DAILY.round(time, cal)
+
+        val sql = "SELECT tickers.id AS this_1, tickers.bidAsks AS this_2, tickers.dayChange AS this_3, tickers.dayAmount AS this_4, tickers.dayVolume AS this_5, tickers.dayLow AS this_6, tickers.dayHigh AS this_7, tickers.dayOpen AS this_8, tickers.lastPrice AS this_9, tickers.prevClose AS this_10, tickers.time AS this_11, tickers.secs_id AS this_12" +
+        " FROM (SELECT tickers.secs_id as secs_id, MAX(tickers.time) AS maxtime FROM orm.tickers AS tickers LEFT JOIN orm.secs AS secs ON tickers.secs_id = secs.id" +
+        " WHERE tickers.time >= " + rounded + " AND tickers.time < " + (rounded + ONE_DAY) + " AND secs.exchanges_id = " + Exchanges.idOf(exchange).get +
+        " GROUP BY tickers.secs_id) AS x INNER JOIN orm.tickers AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
+        
+        (new Select(Tickers.*) {
+            override def toSql = sql
+          } list
+        ) foreach {x => map.put(x.sec, x)}
+
+        log.info("Loaded last tickers between " + rounded + " to " + (rounded + ONE_DAY - 1) +
+                 " of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+      case None =>
+    }
+
+    map
+  }
+
+  //  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
 //    Exchange.uniSymbolToSec // force loaded all secs and secInfos
 //    SELECT (Tickers.*, Quotes1d.*) FROM (Tickers JOIN (Quotes1d JOIN Secs)) WHERE (
 //      (Quotes1d.time EQ (
@@ -99,13 +133,7 @@ object Tickers extends Table[Ticker] {
 //    }
 //  }
 
-  /**
-   * Plan A:
-   * select a.time, a.quotes_id from tickers as a left join quotes1d on a.quotes_id = quotes1d.id where a.time = (select max(time) from tickers as b where b.time between 0 and 2278918088001 and b.quotes_id = a.quotes_id);
-   * Plan B:
-   * SELECT a.quotes_id, a.time FROM (SELECT quotes_id, MAX(time) AS maxtime FROM tickers where tickers.time between 0 and 2278918088001 GROUP BY quotes_id) AS x INNER JOIN tickers as a ON a.quotes_id = x.quotes_id AND a.time = x.maxtime;
-   */
-  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  @deprecated private[securities] def lastTickersOf_depreacted(exchange: Exchange): HashMap[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     val start = System.currentTimeMillis
@@ -122,7 +150,7 @@ object Tickers extends Table[Ticker] {
 
         log.info("Loaded last tickers between " + rounded + " to " + (rounded + ONE_DAY - 1) +
                  " of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
-      case None => 
+      case None =>
     }
 
     map

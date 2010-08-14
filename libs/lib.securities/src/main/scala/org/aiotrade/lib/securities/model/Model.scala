@@ -22,9 +22,9 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
-    //temporaryTest
+    temporaryTest
     //test
-    createSamples
+    //createSamples
 
     Scheduler.shutdown
     System.exit(0)
@@ -33,7 +33,7 @@ object Model {
   private def temporaryTest {
     val xs = Exchanges.all()
     xs foreach (x => println(Exchanges.uniSymbolToLastTickerOf(x)))
-    //xs foreach (x => println(Quotes1d.lastDailyQuotesOf(x)))
+    xs foreach (x => println(Tickers.lastTickersOf(x)))
   }
 
   private def test {
