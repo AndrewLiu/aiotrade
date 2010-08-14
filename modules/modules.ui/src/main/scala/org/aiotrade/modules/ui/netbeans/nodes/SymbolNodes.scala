@@ -137,6 +137,9 @@ object SymbolNodes {
 
   private val contentToOccuptantNode = new HashMap[AnalysisContents, Node]
 
+  private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
+  private val stockIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
+
   private var isInited = false
 
   def initSymbolNodes {
@@ -358,9 +361,7 @@ object SymbolNodes {
     }
 
     override def getIcon(tpe: Int): Image = {
-      val icon_? = analysisContents.lookupActiveDescriptor(classOf[QuoteContract]) map (_.icon) get
-
-      icon_? getOrElse DEFAUTL_SOURCE_ICON
+      stockIcon
     }
 
     override def getOpenedIcon(tpe: Int): Image = {
@@ -604,6 +605,10 @@ object SymbolNodes {
         SystemAction.get(classOf[PasteAction]),
         SystemAction.get(classOf[DeleteAction])
       )
+    }
+
+    override def getIcon(tpe: Int): Image = {
+      folderIcon
     }
 
     override def getDisplayName: String = {
