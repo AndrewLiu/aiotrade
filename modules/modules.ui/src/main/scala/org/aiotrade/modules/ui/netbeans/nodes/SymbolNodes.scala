@@ -641,6 +641,8 @@ object SymbolNodes {
             case null => false
             case x => x.asInstanceOf[Boolean]
           }
+          
+          log.info("Open standalone AnalysisChartTopComponent: " + standalone)
           val analysisTc = AnalysisChartTopComponent(contents, standalone)
           analysisTc.setActivatedNodes(Array(node))
           /**

@@ -35,6 +35,7 @@ import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.logging.Logger
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -107,6 +108,8 @@ object RealTimeWatchListTopComponent {
 import RealTimeWatchListTopComponent._
 class RealTimeWatchListTopComponent private (val name: String) extends TopComponent {
   instanceRefs.put(this, null)
+
+  private val log = Logger.getLogger(this.getClass.getName)
     
   private val tc_id = "RealTimeWatchList"
   val watchListPanel = new RealTimeWatchListPanel
@@ -169,11 +172,11 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
             val symbol = watchListPanel.symbolAtRow(row)
             if (symbol != null && prevSelected != symbol) {
               prevSelected = symbol
-              SymbolNodes.findSymbolNode(symbol) foreach {x =>
-                val viewAction = x.getLookup.lookup(classOf[ViewAction])
-                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
-                viewAction.execute
-              }
+//              SymbolNodes.findSymbolNode(symbol) foreach {x =>
+//                val viewAction = x.getLookup.lookup(classOf[ViewAction])
+//                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
+//                viewAction.execute
+//              }
               
 //              for (node <- symbolToNode.get(symbol)) {
 //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
@@ -280,6 +283,8 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   }
 
   private class WatchListTableMouseListener(table: JTable, receiver: JComponent) extends MouseAdapter {
+    private var prevSelected: String = _
+
     private def showPopup(e: MouseEvent) {
       if (e.isPopupTrigger) {
         popup.show(RealTimeWatchListTopComponent.this, e.getX, e.getY)
@@ -287,31 +292,32 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     }
 
     private def rowAtY(e: MouseEvent): Int = {
-      val colModel = table.getColumnModel
-      val col = colModel.getColumnIndexAtX(e.getX)
-      val row = e.getY / table.getRowHeight
-            
-      row
+      if (e.getY < 0) {
+        -1 // @see http://bugs.sun.com/view_bug.do?bug_id=6291631
+      } else table.rowAtPoint(e.getPoint)
     }
-        
+
     override def mouseClicked(e: MouseEvent) {
       showPopup(e)
+      
+      val symbol = watchListPanel.symbolAtRow(rowAtY(e))
+      if (symbol != null && prevSelected != symbol) {
+        prevSelected = symbol
+        SymbolNodes.findSymbolNode(symbol) foreach {x =>
+          val viewAction = x.getLookup.lookup(classOf[ViewAction])
+          if (e.isAltDown || e.getClickCount == 2) {
+            // when double click on a row, active this stock's chart view in a standalone window
+            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, true)
+          } else {
+            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
+          }
+          viewAction.execute
+        }
+      }
     }
         
     override def mousePressed(e: MouseEvent) {
       showPopup(e)
-            
-      // when double click on a row, active this stock's realtime chart view in a standalone window
-      if (e.getClickCount == 2) {
-        val symbol = watchListPanel.symbolAtRow(rowAtY(e))
-        if (symbol != null) {
-          SymbolNodes.findSymbolNode(symbol) foreach {x =>
-            val viewAction = x.getLookup.lookup(classOf[ViewAction])
-            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, true)
-            viewAction.execute
-          }
-        }
-      }
     }
         
     override def mouseReleased(e: MouseEvent) {

@@ -284,9 +284,9 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others in "editor" mode
-    for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
-      tc.close
-    }
+    /* for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
+     tc.close
+     } */
 
     /**
      * !NOTICE
