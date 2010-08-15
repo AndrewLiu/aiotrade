@@ -10,6 +10,7 @@ import java.io.IOException
 import scala.actors.Actor
 import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
+import java.util.logging.Logger
 
 case object RpcTimeOut
 
@@ -30,6 +31,8 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
 ) extends {
   var replyQueue: String = _ // The name of our private reply queue
 } with AMQPDispatcher($factory, $reqExchange) {
+
+  private val log = Logger.getLogger(this.getClass.getName)
 
   /** Map from request correlation ID to continuation BlockingCell */
   val continuationMap = new HashMap[String, SyncVar[Any]]
@@ -61,7 +64,9 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   private def setupReplyQueue(channel: Channel): String = {
-    channel.queueDeclare("", false, true, true, null).getQueue
+    val queueName = channel.queueDeclare("", false, true, true, null).getQueue
+    log.fine("declared queue " + queueName)
+    queueName
   }
 
   /**
