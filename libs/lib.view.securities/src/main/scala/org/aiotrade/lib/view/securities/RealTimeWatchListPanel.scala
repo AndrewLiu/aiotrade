@@ -436,8 +436,9 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
 
   def symbolAtRow(row: Int): String = {
-    val symbol = table.getValueAt(row, colKeys.findIndexOf(_ == SYMBOL)).asInstanceOf[String]
-    symbol
+    if (row >= 0 && row < model.getRowCount) {
+      table.getValueAt(row, colKeys.findIndexOf(_ == SYMBOL)).asInstanceOf[String]
+    } else null
   }
   
   class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {

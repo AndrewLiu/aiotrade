@@ -28,25 +28,24 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans.windows;
+package org.aiotrade.modules.ui.netbeans.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent;
-import javax.swing.Action;
-import javax.swing.JPopupMenu;
+import java.awt.event.MouseEvent
+import javax.swing.Action
+import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
-import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
-import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
-import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
-import org.openide.util.actions.SystemAction;
-import org.openide.windows.TopComponent;
+import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction
+import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction
+import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction
+import org.openide.util.actions.SystemAction
+import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
 import scala.collection.mutable.WeakHashMap
 
@@ -100,7 +99,10 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"
 
-  private val rtSer = sec.serOf(TFreq.ONE_MIN).get
+  private val rtSer = sec.realtimeSer
+  if (!rtSer.loaded) {
+    sec.loadRealtimeSer
+  }
   private val controller = ChartingController(rtSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   

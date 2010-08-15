@@ -123,10 +123,12 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
           }
           //log.info("loadActor Finished Refresh")
           inRefreshing = false
+
         case LoadHistory(afterTime) =>
           //log.info("loadActor Received LoadHistory message")
           val values = loadFromSource(afterTime)
           loadedTime = postLoadHistory(values)
+          
         case Stop => exit
         case _ =>
       }

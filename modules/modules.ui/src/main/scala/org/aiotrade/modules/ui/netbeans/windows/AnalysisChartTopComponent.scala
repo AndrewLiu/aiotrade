@@ -199,7 +199,12 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = freq match {
-        case TFreq.ONE_SEC => sec.serOf(TFreq.ONE_MIN).get
+        case TFreq.ONE_SEC =>
+          val rtSer = sec.realtimeSer
+          if (!rtSer.loaded) {
+            sec.loadRealtimeSer
+          }
+          rtSer
         case _ => sec.serOf(freq).getOrElse(null)
       }
 
@@ -279,9 +284,9 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   override def open {
     val mode = WindowManager.getDefault.findMode(MODE)
     // hidden others in "editor" mode
-    for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
-      tc.close
-    }
+    /* for (tc <- mode.getTopComponents if (tc ne this) && tc.isInstanceOf[AnalysisChartTopComponent]) {
+     tc.close
+     } */
 
     /**
      * !NOTICE

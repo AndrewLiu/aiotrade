@@ -27,6 +27,7 @@ import org.aiotrade.lib.securities.model.SecInfo
 import org.aiotrade.lib.securities.model.SecInfos
 import org.aiotrade.lib.securities.model.SecStatuses
 import org.aiotrade.lib.securities.model.Tickers
+import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
 import scala.actors.Scheduler
 import scala.collection.mutable.HashMap
@@ -81,10 +82,10 @@ object Data {
   val industryRecords = new ArrayList[Industry]()
   val comIndRecords = new ArrayList[CompanyIndustry]()
 
-  private val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
-  private val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-  private val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  private val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
+  private lazy val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
+  private lazy val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  private lazy val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  private lazy val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
 
   def main(args: Array[String]) {
     log.info("Current user workind dir: " + System.getProperty("user.dir"))
@@ -122,7 +123,7 @@ object Data {
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, Executions
+      Tickers, TickersLast, Executions
     )
 
     val ddl = new DDLUnit(tables: _*)

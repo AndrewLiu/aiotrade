@@ -45,6 +45,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
@@ -96,8 +97,6 @@ object Secs extends Table[Sec] {
  */
 
 object Sec {
-  val log = Logger.getLogger(this.getClass.getName)
-
   trait Kind
   object Kind {
     case object Stock extends Kind
@@ -132,6 +131,8 @@ object Sec {
 
 import Sec._
 class Sec extends SerProvider with Publisher {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   // --- database fields
   var exchange: Exchange = _
 
@@ -199,6 +200,12 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
+  lazy val realtimeSer = {
+    val x = new QuoteSer(this, TFreq.ONE_MIN)
+    freqToQuoteSer.put(TFreq.ONE_SEC, x)
+    x
+  }
+
   /** tickerContract will always be built according to quoteContrat ? */
   def tickerContract = {
     if (_tickerContract == null) {
@@ -216,15 +223,16 @@ class Sec extends SerProvider with Publisher {
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
-  def serOf(freq: TFreq): Option[QuoteSer] = freq match {
-    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
-    case _ => freqToQuoteSer.get(freq) match {
-        case None => createCombinedSer(freq)
-        case x => x
-      }
+  def serOf(freq: TFreq): Option[QuoteSer] = {
+    freq match {
+      case TFreq.ONE_SEC => Some(realtimeSer)
+      case TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
+      case _ => freqToQuoteSer.get(freq) match {
+          case None => createCombinedSer(freq)
+          case x => x
+        }
+    }
   }
-
-  lazy val realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
 
   def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = {
     freqToIndicators.get(freq) match {
@@ -298,12 +306,41 @@ class Sec extends SerProvider with Publisher {
   }
 
   /**
+   * synchronized this method to avoid conflict on variable: loadBeginning and
+   * concurrent accessing to varies maps.
+   */
+  def loadSer(freq: TFreq): Boolean = synchronized {
+    val ser = serOf(freq) getOrElse (return false)
+
+    // load from persistence
+    val wantTime = loadSerFromPersistence(freq)
+
+    // try to load from quote server
+    loadFromQuoteServer(ser, wantTime)
+
+    true
+  }
+
+  def loadRealtimeSer {
+    loadSer(TFreq.ONE_SEC)
+  }
+
+  /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  def loadSerFromPersistence(freq: TFreq): Long = {
+  private def loadSerFromPersistence(freq: TFreq): Long = {
     val quotes = freq match {
-      case TFreq.DAILY   => Quotes1d.quotesOf(this)
+      case TFreq.ONE_SEC => // realtime ser
+        val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {
+          case Some(x) => x
+          case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
+        }
+        log.info("Loading realtime ser from persistence of " + {
+            val cal = Calendar.getInstance(exchange.timeZone); cal.setTimeInMillis(dailyRoundedTime); cal.getTime
+          })
+        Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
       case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
+      case TFreq.DAILY   => Quotes1d.quotesOf(this)
       case _ => return 0L
     }
 
@@ -345,7 +382,7 @@ class Sec extends SerProvider with Publisher {
       wantTime
     } else {
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
-               + ", will try to load fro data source from beginning")
+               + ", will try to load from data source from beginning")
       0L
     }
   }
@@ -399,32 +436,36 @@ class Sec extends SerProvider with Publisher {
   }
 
 
-  /**
-   * synchronized this method to avoid conflict on variable: loadBeginning and
-   * concurrent accessing to varies maps.
-   */
-  def loadSer(freq: TFreq): Boolean = synchronized {
-    val ser = serOf(freq) getOrElse (return false)
-
-    // load from persistence
-    val wantTime = loadSerFromPersistence(freq)
-
-    // try to load from quote server
-
-    for (contract <- quoteContractOf(freq);
-         quoteServer <- contract.serviceInstance()
-    ) {
-      contract.freq = freq
-      contract.ser = ser
-      quoteServer.subscribe(contract)
-
-      ser.inLoading = true
-      quoteServer.loadHistory(wantTime)
-
-      return true
-    }
+  private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long) {
+    val freq = ser.freq
     
-    false
+    quoteContractOf(freq) match {
+      case Some(contract) =>
+        contract.serviceInstance() match {
+          case Some(quoteServer) =>
+            contract.freq = freq
+            contract.ser = ser
+            quoteServer.subscribe(contract)
+
+            // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+            var reaction: PartialFunction[Event, Unit] = null
+            reaction = {
+              case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
+                reactions -= reaction
+                deafTo(ser)
+                ser.loaded = true
+            }
+            reactions += reaction
+            listenTo(ser)
+
+            ser.inLoading = true
+            quoteServer.loadHistory(fromTime)
+
+          case _ => ser.loaded = true
+        }
+
+      case _ => ser.loaded = true
+    }
   }
 
   private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {
@@ -495,9 +536,9 @@ class Sec extends SerProvider with Publisher {
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
-           clz <- quoteServer.classOfTickerServer
+           klass <- quoteServer.classOfTickerServer
       ) {
-        tickerContract.serviceClassName = clz.getName
+        tickerContract.serviceClassName = klass.getName
       }
     }
 

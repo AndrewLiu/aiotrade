@@ -303,6 +303,9 @@
         <file name="VOL.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.VOLIndicator"/>
         </file>
+        <file name="INFO.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.InfoPointIndicator"/>
+        </file>
         <file name="MA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.MAIndicator"/>
         </file>

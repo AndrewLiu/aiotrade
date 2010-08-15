@@ -8,7 +8,7 @@ import scala.actors.Scheduler
 
 /**
  * -- Dump schema
- * mysqldump5 -u root --no-data --database aiotrade > aiotrade.mysql
+ * mysqldump5 -uroot --no-data --database aiotrade > aiotrade.mysql
  * -- Create db
  * mysql> source file_name
  * mysql> \. file_name
@@ -24,7 +24,7 @@ object Model {
   def main(args: Array[String]) {
     //temporaryTest
     //test
-    createSamples
+    //createSamples
 
     Scheduler.shutdown
     System.exit(0)
@@ -33,7 +33,7 @@ object Model {
   private def temporaryTest {
     val xs = Exchanges.all()
     xs foreach (x => println(Exchanges.uniSymbolToLastTickerOf(x)))
-    //xs foreach (x => println(Quotes1d.lastDailyQuotesOf(x)))
+    xs foreach (x => println(Tickers.lastTickersOf(x)))
   }
 
   private def test {
@@ -234,10 +234,10 @@ object Model {
     commit
   }
 
-  val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
-  val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-  val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
+  lazy val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
+  lazy val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  lazy val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  lazy val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
 
   val SSSymToName = TreeMap(
     "600000" -> "浦发银行",

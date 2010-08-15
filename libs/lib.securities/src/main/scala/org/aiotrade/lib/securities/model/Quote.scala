@@ -61,13 +61,11 @@ object Quotes1d extends Quotes {
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
-        newone.unclosed_! // @todo when to close it and update to db?
+        newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
-        Quotes1d.save(newone)
-        commit
-        exchange.addUnclosedDailyQuote(newone)
+        exchange.addNewDailyQuote(newone)
         newone
     }
   }
@@ -91,7 +89,15 @@ object Quotes1d extends Quotes {
 
 }
 
-object Quotes1m extends Quotes
+object Quotes1m extends Quotes {
+  private val ONE_DAY = 24 * 60 * 60 * 1000
+
+  def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
+    SELECT (this.*) FROM (this) WHERE (
+      this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+    ) ORDER_BY (this.time DESC) list
+  }
+}
 
 abstract class Quotes extends Table[Quote] {
   val sec = "secs_id" REFERENCES(Secs)
