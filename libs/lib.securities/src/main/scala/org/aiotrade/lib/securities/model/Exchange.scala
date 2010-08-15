@@ -36,17 +36,6 @@ object Exchanges extends Table[Exchange] {
              ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     secs
   }
-
-  def uniSymbolToLastTickerOf(exchange: Exchange) = {
-    val symbolToTicker = new HashMap[String, LightTicker]
-    for ((sec, ticker) <- Tickers.lastTickersOf(exchange) if sec != null) {
-      val symbol = sec.uniSymbol
-      ticker.symbol = symbol
-      symbolToTicker.put(symbol, ticker)
-    }
-
-    symbolToTicker
-  }
 }
 
 object Exchange extends Publisher {
@@ -221,16 +210,63 @@ class Exchange {
 
   private var _symbols = List[String]()
 
+  lazy val uniSymbolToLastTicker = {
+    val symbolToTicker = new HashMap[String, Ticker]
+
+    for ((sec, ticker) <- TickersLast.lastTickersOf(this) if sec != null) {
+      val symbol = sec.uniSymbol
+      ticker.symbol = symbol
+      symbolToTicker.put(symbol, ticker)
+    }
+
+    symbolToTicker
+  }
+  
+  lazy val uniSymbolToLastTradingDayTicker = {
+    val symbolToTicker = new HashMap[String, Ticker]
+
+    for ((sec, ticker) <- TickersLast.lastTradingDayTickersOf(this) if sec != null) {
+      val symbol = sec.uniSymbol
+      ticker.symbol = symbol
+      symbolToTicker.put(symbol, ticker)
+    }
+
+    symbolToTicker
+  }
+
   private val dailyQuotesToClose = new ArrayList[Quote]()
   private val dailyMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
+  /**
+   * @return (the ticker should be updated/saved to TickersLast, existed)
+   */
+  def gotLastTicker(ticker: Ticker): (Ticker, Boolean) = {
+    val uniSymbol = ticker.symbol
+
+    uniSymbolToLastTicker synchronized {
+      uniSymbolToLastTicker.get(uniSymbol) match {
+        case Some(existOne) =>
+          existOne.copyFrom(ticker)
+          (existOne, true)
+        case None =>
+          val newOne = new Ticker
+          newOne.copyFrom(ticker)
+          uniSymbolToLastTicker.put(uniSymbol, newOne)
+          uniSymbolToLastTradingDayTicker synchronized {
+            uniSymbolToLastTradingDayTicker.put(uniSymbol, newOne)
+          }
+          (newOne, false)
+      }
+    }
+  }
+
   def lastDailyRoundedTradingTime: Option[Long] = {
     val cal = Calendar.getInstance(timeZone)
     val dailyRoundedTimeOfToday = TFreq.DAILY.round(System.currentTimeMillis, cal)
     if (_lastDailyRoundedTradingTime.isEmpty || _lastDailyRoundedTradingTime.get != dailyRoundedTimeOfToday) {
-      Tickers.lastTradingTimeOf(this) match {
+      TickersLast.lastTradingTimeOf(this) match {
         case Some(x) => _lastDailyRoundedTradingTime = Some(TFreq.DAILY.round(x, cal))
         case _ =>
       }

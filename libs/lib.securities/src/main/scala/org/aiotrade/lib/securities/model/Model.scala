@@ -32,8 +32,8 @@ object Model {
 
   private def temporaryTest {
     val xs = Exchanges.all()
-    xs foreach (x => println(Exchanges.uniSymbolToLastTickerOf(x)))
-    xs foreach (x => println(Tickers.lastTickersOf(x)))
+    xs foreach (x => println(x.uniSymbolToLastTicker))
+    xs foreach (x => println(TickersLast.lastTickersOf(x)))
   }
 
   private def test {

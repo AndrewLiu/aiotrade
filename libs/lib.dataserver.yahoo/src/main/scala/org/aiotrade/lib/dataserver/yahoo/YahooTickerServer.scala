@@ -39,6 +39,7 @@ import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -116,7 +117,9 @@ class YahooTickerServer extends TickerServer {
     resetCount
     
     val tickers = new ArrayList[Ticker]
-    // time in Yahoo! tickers is in Yahoo! Inc's local time instead of exchange place, we need to convert to UTC time
+
+    // time in Yahoo! tickers is in Yahoo! Inc's local time instead of exchange place
+    // we need to convert them to UTC time
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
 
@@ -131,6 +134,8 @@ class YahooTickerServer extends TickerServer {
             val dateStr = dateX.replace('"', ' ').trim
             val timeStr = timeX.replace('"', ' ').trim
 
+            val exchange = Exchange.exchangeOf(symbol)
+            
             /**
              * !NOTICE
              * must catch the date parse exception, other wise, it's dangerous
@@ -140,6 +145,14 @@ class YahooTickerServer extends TickerServer {
               val date = dateFormat.parse(dateStr + " " + timeStr)
               cal.clear
               cal.setTime(date)
+
+              // filter tickers that have incorrect time
+              val h = cal.get(Calendar.HOUR_OF_DAY)
+              val m = cal.get(Calendar.MINUTE)
+              val minutesOfDay = h * 60 + m
+              if (minutesOfDay < exchange.firstOpen - 30 || minutesOfDay > exchange.lastClose + 30) {
+                loop(newestTime)
+              }
             } catch {case _: ParseException => loop(newestTime)}
 
             val time = cal.getTimeInMillis

@@ -136,6 +136,7 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   }
 
   def copyFrom(another: LightTicker) {
+    this.sec    = another.sec
     this.time   = another.time
     this.symbol = another.symbol
     System.arraycopy(another.data, 0, data, 0, data.length)
