@@ -58,9 +58,11 @@ class YahooTickerServer extends TickerServer {
   private val log = Logger.getLogger(this.getClass.getName)
   protected val isTheSingleton = false
 
+  private val nSymbolsPerReq = 100
+
   // * "http://download.finance.yahoo.com/d/quotes.csv"
-  private  val BaseUrl = "http://quote.yahoo.com"
-  private  val UrlPath = "/download/javasoft.beans"
+  private val BaseUrl = "http://quote.yahoo.com"
+  private val UrlPath = "/download/javasoft.beans"
 
   /**
    * Template:
@@ -195,7 +197,7 @@ class YahooTickerServer extends TickerServer {
     while (i < symbols.length) {
       val toProcess = new ListBuffer[String]
       var j = 0
-      while (j < 50 && i < symbols.length) { // 50: num of symbols per time
+      while (j < nSymbolsPerReq && i < symbols.length) { // 1000: num of symbols per time
         toProcess += symbols(i)
         j += 1
         i += 1

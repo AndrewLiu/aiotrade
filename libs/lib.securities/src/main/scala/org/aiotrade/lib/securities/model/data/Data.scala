@@ -27,6 +27,7 @@ import org.aiotrade.lib.securities.model.SecInfo
 import org.aiotrade.lib.securities.model.SecInfos
 import org.aiotrade.lib.securities.model.SecStatuses
 import org.aiotrade.lib.securities.model.Tickers
+import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
 import scala.actors.Scheduler
 import scala.collection.mutable.HashMap
@@ -122,7 +123,7 @@ object Data {
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, Executions
+      Tickers, TickersLast, Executions
     )
 
     val ddl = new DDLUnit(tables: _*)
