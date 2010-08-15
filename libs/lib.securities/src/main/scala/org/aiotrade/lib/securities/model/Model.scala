@@ -8,7 +8,7 @@ import scala.actors.Scheduler
 
 /**
  * -- Dump schema
- * mysqldump5 -u root --no-data --database aiotrade > aiotrade.mysql
+ * mysqldump5 -uroot --no-data --database aiotrade > aiotrade.mysql
  * -- Create db
  * mysql> source file_name
  * mysql> \. file_name

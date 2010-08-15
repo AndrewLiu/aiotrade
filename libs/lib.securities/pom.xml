@@ -209,7 +209,7 @@
             </activation>
             <properties>
                 <orm.connection.driver>org.h2.Driver</orm.connection.driver>
-                <orm.connection.url>jdbc:h2:~/.aiotrade/db</orm.connection.url>
+                <orm.connection.url>jdbc:h2:~/.aiotrade/dev/db/aiotrade</orm.connection.url>
                 <orm.connection.username>sa</orm.connection.username>
                 <orm.connection.password></orm.connection.password>
                 <orm.dialect>ru.circumflex.orm.H2Dialect</orm.dialect>
