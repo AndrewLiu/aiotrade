@@ -179,22 +179,22 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     val comparator = new Comparator[Object] {
       def compare(o1: Object, o2: Object): Int = {
         (o1, o2) match {
+          case ("-", "-") => 0
+          case ("-",  _ ) => -1
+          case (_  , "-") => 1
           case (s1: String, s2: String) =>
-            if (s1 == "-" && s2 == "-") 0
-            else if (s1 == "-") -1
-            else if (s2 == "-") 1
-            else {
-              val idx1 = s1.indexOf('%')
-              val s11 = if (idx1 > 0) s1.substring(0, idx1) else s1
-              val idx2 = s2.indexOf('%')
-              val s12 = if (idx2 > 0) s2.substring(0, idx2) else s2
-              try {
-                val d1 = s11.toDouble
-                val d2 = s12.toDouble
-                if (d1 > d2) 1 else if (d1 < d2) -1 else 0
-              } catch {case _ => s1 compareTo s2}
+            val s11 = if (s1.endsWith("%")) s1.substring(0, s1.length - 1) else s1
+            val s12 = if (s2.endsWith("%")) s2.substring(0, s2.length - 1) else s2
+            try {
+              val d1 = s11.toDouble
+              val d2 = s12.toDouble
+              if (d1 > d2) 1 else if (d1 < d2) -1 else 0
+            } catch {
+              case _ => s1 compareTo s2
             }
-          case _ => 0
+          case _ => 
+            log.warning("Comparing: " + o1.getClass.getName + ", " + o2.getClass.getName)
+            0
         }
       }
     }
@@ -234,7 +234,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       val symbol = uniSymbols(row)
       val exchange = Exchange.exchangeOf(symbol)
       
-      TickerServer.uniSymbolToLastTicker.get(symbol) match {
+      exchange.uniSymbolToLastTradingDayTicker.get(symbol) match {
         case Some(ticker) =>
           colKeys(col) match {
             case SYMBOL => symbol
@@ -258,16 +258,16 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         case None =>
           colKeys(col) match {
             case SYMBOL => symbol
-            case TIME => "_"
-            case LAST_PRICE => "_"
-            case DAY_VOLUME => "_"
-            case DAY_AMOUNT => "_"
-            case PREV_CLOSE => "_"
-            case DAY_CHANGE => "_"
-            case PERCENT    => "_"
-            case DAY_HIGH   => "_"
-            case DAY_LOW    => "_"
-            case DAY_OPEN   => "_"
+            case TIME       => "-"
+            case LAST_PRICE => "-"
+            case DAY_VOLUME => "-"
+            case DAY_AMOUNT => "-"
+            case PREV_CLOSE => "-"
+            case DAY_CHANGE => "-"
+            case PERCENT    => "-"
+            case DAY_HIGH   => "-"
+            case DAY_LOW    => "-"
+            case DAY_OPEN   => "-"
             case _ => null
           }
       }

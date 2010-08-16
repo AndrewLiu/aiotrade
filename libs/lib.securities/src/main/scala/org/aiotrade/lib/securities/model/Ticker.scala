@@ -26,33 +26,59 @@ import scala.collection.mutable.HashMap
  */
 
 
-object TickersLast extends TickersTable
-object Tickers extends TickersTable
+object TickersLast extends TickersTable {
 
-abstract class TickersTable extends Table[Ticker] {
-  private val log = Logger.getLogger(this.getClass.getName)
+  private[model] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
-  val sec = "secs_id" REFERENCES(Secs)
+    val start = System.currentTimeMillis
+    val map = new HashMap[Sec, Ticker]
+    (SELECT(this.*) FROM (this JOIN Secs) WHERE (
+        (Secs.exchange.field EQ Exchanges.idOf(exchange))
+      ) list
+    ) foreach {x => map.put(x.sec, x)}
 
-  val time = "time" BIGINT
+    log.info(exchange.code + ": Loaded all last tickers" +
+             ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+    map
+  }
 
-  val prevClose = "prevClose" DOUBLE()
-  val lastPrice = "lastPrice" DOUBLE()
+  private[model] def lastTradingDayTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
-  val dayOpen   = "dayOpen"   DOUBLE()
-  val dayHigh   = "dayHigh"   DOUBLE()
-  val dayLow    = "dayLow"    DOUBLE()
-  val dayVolume = "dayVolume" DOUBLE()
-  val dayAmount = "dayAmount" DOUBLE()
+    val start = System.currentTimeMillis
+    val map = new HashMap[Sec, Ticker]
 
-  val dayChange = "dayChange" DOUBLE()
+    lastTradingTimeOf(exchange) match {
+      case Some(time) =>
+        log.info(exchange.code + ": Last trading time is " + time)
+        val cal = Calendar.getInstance(exchange.timeZone)
+        val rounded = TFreq.DAILY.round(time, cal)
 
-  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 400)
+        (SELECT(this.*) FROM (this JOIN Secs) WHERE (
+            (this.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+          ) list
+        ) foreach {x => map.put(x.sec, x)}
 
-  INDEX(getClass.getSimpleName + "_time_idx", time.name)
+        log.info(exchange.code + ": Loaded last tickers between " + rounded + " AND " + (rounded + ONE_DAY - 1) +
+                 ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+      case None =>
+    }
 
+    map
+  }
 
-  private val ONE_DAY = 24 * 60 * 60 * 1000
+  private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+
+    (SELECT (MAX(this.time)) FROM (this JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) match {
+      case xs if xs.isEmpty => None
+      case xs => Some(xs.head.asInstanceOf[Long])
+    }
+  }
+}
+
+object Tickers extends TickersTable {
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
     (SELECT (this.*) FROM (this) WHERE (
@@ -76,7 +102,7 @@ abstract class TickersTable extends Table[Ticker] {
       case Some(time) =>
         val cal = Calendar.getInstance(sec.exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
-        
+
         (SELECT (Tickers.*) FROM (Tickers) WHERE (
             (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1))
           ) ORDER_BY (Tickers.time) list
@@ -91,7 +117,7 @@ abstract class TickersTable extends Table[Ticker] {
    * Plan B:
    * SELECT tickers.* FROM (SELECT tickers.secs_id as secs_id, MAX(tickers.time) AS maxtime FROM orm.tickers AS tickers LEFT JOIN orm.secs AS secs ON tickers.secs_id = secs.id WHERE tickers.time >= 1281715200000 AND tickers.time < 1281801600000 AND secs.exchanges_id = 1 GROUP BY tickers.secs_id) AS x INNER JOIN orm.tickers AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;
    */
-  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  private[securities] def lastTradingDayTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     val start = System.currentTimeMillis
@@ -105,14 +131,14 @@ abstract class TickersTable extends Table[Ticker] {
         " FROM (SELECT tickers.secs_id AS secs_id, MAX(tickers.time) AS maxtime FROM orm.tickers AS tickers LEFT JOIN orm.secs AS secs ON tickers.secs_id = secs.id" +
         " WHERE tickers.time >= " + rounded + " AND tickers.time < " + (rounded + ONE_DAY) + " AND secs.exchanges_id = " + Exchanges.idOf(exchange).get +
         " GROUP BY tickers.secs_id) AS x INNER JOIN orm.tickers AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
-        
+
         (new Select(Tickers.*) {
             override def toSql = sql
           } list
         ) foreach {x => map.put(x.sec, x)}
 
-        log.info("Loaded last tickers between " + rounded + " - " + (rounded + ONE_DAY - 1) +
-                 " of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+        log.info(exchange.code + ": Loaded last tickers between " + rounded + " - " + (rounded + ONE_DAY - 1) +
+                 ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
       case None =>
     }
 
@@ -137,7 +163,7 @@ abstract class TickersTable extends Table[Ticker] {
 //    }
 //  }
 
-  @deprecated private[securities] def lastTickersOf_depreacted(exchange: Exchange): HashMap[Sec, Ticker] = {
+  @deprecated private[securities] def lastTradingDayTickersOf_depreacted(exchange: Exchange): HashMap[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     val start = System.currentTimeMillis
@@ -152,8 +178,8 @@ abstract class TickersTable extends Table[Ticker] {
           ) ORDER_BY (Tickers.time ASC) list
         ) groupBy (_.sec) foreach (xt => map.put(xt._1, xt._2.head)) // xt: (Sec, Seq[Ticker])
 
-        log.info("Loaded last tickers between " + rounded + " to " + (rounded + ONE_DAY - 1) +
-                 " of " + exchange.code + ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+        log.info(exchange.code + ": Loaded last tickers between " + rounded + " - " + (rounded + ONE_DAY - 1) +
+                 ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
       case None =>
     }
 
@@ -165,6 +191,30 @@ abstract class TickersTable extends Table[Ticker] {
 
     (SELECT (Tickers.time) FROM (Tickers JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) ORDER_BY (Tickers.time DESC) LIMIT (1) list) headOption
   }
+}
+
+abstract class TickersTable extends Table[Ticker] {
+  protected val log = Logger.getLogger(this.getClass.getName)
+  protected val ONE_DAY = 24 * 60 * 60 * 1000
+
+  val sec = "secs_id" REFERENCES(Secs)
+
+  val time = "time" BIGINT
+
+  val prevClose = "prevClose" DOUBLE()
+  val lastPrice = "lastPrice" DOUBLE()
+
+  val dayOpen   = "dayOpen"   DOUBLE()
+  val dayHigh   = "dayHigh"   DOUBLE()
+  val dayLow    = "dayLow"    DOUBLE()
+  val dayVolume = "dayVolume" DOUBLE()
+  val dayAmount = "dayAmount" DOUBLE()
+
+  val dayChange = "dayChange" DOUBLE()
+
+  val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 400)
+
+  INDEX(getClass.getSimpleName + "_time_idx", time.name)
 
 }
 

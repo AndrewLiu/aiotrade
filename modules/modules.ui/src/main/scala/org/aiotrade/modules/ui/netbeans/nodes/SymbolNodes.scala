@@ -769,7 +769,7 @@ object SymbolNodes {
                 tickerServers += tickerServer
 
                 watchListTc.watch(sec, node)
-                TickerServer.uniSymbolToLastTicker.get(uniSymbol) foreach (lastTickers += _)
+                sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
 
                 node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
                 this.setEnabled(false)

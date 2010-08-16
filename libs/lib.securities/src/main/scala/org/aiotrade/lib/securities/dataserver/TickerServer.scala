@@ -38,7 +38,6 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
@@ -48,6 +47,7 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
+import org.aiotrade.lib.securities.model.TickersLast
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
@@ -67,14 +67,7 @@ case class SnapDepth (
   execution: Execution
 )
 
-object TickerServer extends Publisher {
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  val uniSymbolToLastTicker = new HashMap[String, LightTicker]
-  // load all last tickers
-  Exchange.allExchanges foreach {x => uniSymbolToLastTicker ++= Exchanges.uniSymbolToLastTickerOf(x)}
-}
-
+object TickerServer extends Publisher
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
@@ -136,6 +129,17 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   override protected def postStopRefresh {}
 
+  private val allTickers = new ArrayList[Ticker]
+  private val allExecutions = new ArrayList[Execution]
+  private val allSnapDepths = new ArrayList[SnapDepth]
+  private val updatedDailyQuotes = new ArrayList[Quote]
+
+  private val tickersLastToUpdate = new ArrayList[Ticker]
+  private val tickersLastToInsert = new ArrayList[Ticker]
+
+  private val symbolToTickerInfo = new HashMap[String, TickerInfo]
+  private val exchangeToLastTime = new HashMap[Exchange, Long]
+
   /**
    * compose ser using data from TVal(s)
    * @param symbol
@@ -146,24 +150,35 @@ abstract class TickerServer extends DataServer[Ticker] {
     log.info("Composing ser from tickers: " + values.length)
     if (values.length == 0) return Nil
 
-    val allTickers = new ArrayList[Ticker]
-    val allExecutions = new ArrayList[Execution]
-    val allSnapDepths = new ArrayList[SnapDepth]
-    val updatedDailyQuotes = new ArrayList[Quote]
+    allTickers.clear
+    allExecutions.clear
+    allSnapDepths.clear
+    updatedDailyQuotes.clear
 
-    val symbolToTickerInfo = new HashMap[String, TickerInfo]
-    val exchangeToLastTime = new HashMap[Exchange, Long]
+    tickersLastToUpdate.clear
+    tickersLastToInsert.clear
+
+    symbolToTickerInfo.clear
+    exchangeToLastTime.clear
 
     var i = 0
     while (i < values.length) {
       val ticker = values(i)
 
       val symbol = ticker.symbol
-      TickerServer.uniSymbolToLastTicker.put(ticker.symbol, ticker)
+      val sec = Exchange.secOf(symbol).get
+      val exchange = sec.exchange
+      
+      ticker.sec = sec
+      val (tickerx, existed) = exchange.gotLastTicker(ticker)
+      if (existed) {
+        tickersLastToUpdate += tickerx
+      } else {
+        tickersLastToInsert += tickerx
+      }
 
       if (subscribedSrcSymbols.contains(symbol)) {
         val contract = subscribedSrcSymbols.get(symbol).get
-        val sec = Exchange.secOf(symbol).get
 
         val rtSer = sec.realtimeSer
         symbolToTickerInfo.get(symbol) match {
@@ -172,7 +187,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         }
 
         val dayQuote = sec.dailyQuoteOf(ticker.time)
-        ticker.sec = sec
 
         val (prevTicker, dayFirst) = sec.lastTickerOf(sec, dayQuote.time)
         val minQuote = sec.minuteQuoteOf(ticker.time)
@@ -298,7 +312,7 @@ abstract class TickerServer extends DataServer[Ticker] {
             }
           }
 
-          exchangeToLastTime.put(sec.exchange, ticker.time)
+          exchangeToLastTime.put(exchange, ticker.time)
         }
 
       }
@@ -344,6 +358,16 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (minuteQuotes.length > 0) {
       Quotes1m.insertBatch(minuteQuotes)
       Sec.minuteQuotesToClose.clear
+      willCommit = true
+    }
+
+    if (!tickersLastToUpdate.isEmpty) {
+      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
+      willCommit = true
+    }
+
+    if (!tickersLastToInsert.isEmpty) {
+      TickersLast.insertBatch_!(tickersLastToInsert.toArray)
       willCommit = true
     }
 
