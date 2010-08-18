@@ -393,21 +393,17 @@ class Exchange {
       x
     }
 
-    if (delay > 0) {
-      log.info(this + " will do closing in " + delay + " minutes for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
-    } else {
-      log.info(this + " do closing right now for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
-    }
-
     if (quotesToClose.length == 0 && mfsToClose.length == 0) return
 
     if (delay > 0) {
+      log.info(this + " will do closing in " + delay + " minutes for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
       (new Timer).schedule(new TimerTask {
           def run {
             doClosing(quotesToClose, mfsToClose)
           }
         }, delay * 60 * 1000)
     } else {
+      log.info(this + " do closing right now for quotes: " + quotesToClose.length + ", mfs: " + mfsToClose.length)
       doClosing(quotesToClose, mfsToClose)
     }
   }

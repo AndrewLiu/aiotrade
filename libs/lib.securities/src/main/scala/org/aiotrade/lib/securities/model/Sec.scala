@@ -37,6 +37,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
@@ -165,6 +166,7 @@ class Sec extends SerProvider with Publisher {
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
+  private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
 
   var description = ""
   var name = ""
@@ -276,6 +278,23 @@ class Sec extends SerProvider with Publisher {
       }
   }
   
+  def infoSerOf(freq: TFreq): Option[InfoSer] = freq match {
+    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoSer.get(freq) match {
+        case None => serOf(freq) match {
+            case Some(quoteSer) =>
+              val x = new InfoSer(this, freq)
+              freqToInfoSer.put(freq, x)
+              Some(x)
+            case None => None
+          }
+        case some => some
+      }
+    case _ => freqToInfoSer.get(freq) match {
+        case None => None // @todo createCombinedSer(freq)
+        case some => some
+      }
+  }
+
   /**
    * @Note
    * here should be aware that if sec's ser has been loaded, no more
@@ -427,6 +446,51 @@ class Sec extends SerProvider with Publisher {
       }
 
       log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + mfs.length +
+               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
+
+      wantTime
+    } else 0L
+  }
+
+  def loadInfoSerFromPersistence(freq: TFreq): Long = {
+    val infos = freq match {
+      case TFreq.DAILY   => Infos1d.all()
+      case TFreq.ONE_MIN => Infos1m.all()
+      case _ => return 0L
+    }
+
+    val ser = infoSerOf(freq).get
+    ser ++= infos.toArray
+
+    /**
+     * get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    if (!infos.isEmpty) {
+      val (first, last, isAscending) = if (infos.head.time < infos.last.time)
+        (infos.head, infos.last, true)
+      else
+        (infos.last, infos.head, false)
+
+      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+
+      // should load earlier quotes from data source?
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: org.aiotrade.lib.securities.model.Info = null
+        var i = if (isAscending) 0 else infos.length - 1
+        while (i < infos.length && i >= 0 && infos(i).fromMe_?) {
+          lastFromMe = infos(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
+      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + infos.length +
                ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
