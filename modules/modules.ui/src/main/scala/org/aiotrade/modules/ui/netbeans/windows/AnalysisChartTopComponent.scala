@@ -32,6 +32,8 @@ package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout;
 import java.awt.Image
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -176,6 +178,16 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
   // component should setFocusable(true) to have the ability to gain the focus
   setFocusable(true)
+  // Should forward focus to sub-component viewContainer
+  this.addFocusListener(new FocusListener {
+      def focusGained(e: FocusEvent) {
+        if (viewContainer != null) {
+          viewContainer.requestFocusInWindow
+        }
+      }
+
+      def focusLost(e: FocusEvent) {}
+    })
 
   class State(val contents: AnalysisContents) {
     val sec = contents.serProvider.asInstanceOf[Sec]
@@ -257,28 +269,16 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   private def tcId = state.tcId
 
   def init(contents: AnalysisContents): State = {
-    var ownFocus = false
     if (state != null) {
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
-      if (viewContainer.isFocusOwner || this.isFocusOwner) {
-        ownFocus = true
-      }
       splitPane.remove(viewContainer)
     }
 
     state = new State(contents)
     realTimeBoard.watch
-    if (ownFocus) {
-      viewContainer.requestFocusInWindow
-    }
 
     state
-  }
-
-  /** Should forward focus to sub-component viewContainer */
-  override def requestFocusInWindow: Boolean = {
-    viewContainer.requestFocusInWindow
   }
 
   override def open {

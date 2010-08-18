@@ -78,8 +78,8 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = true
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
-           viewContainer = analysisWin.viewContainer;
+      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
+           viewContainer = analysisTc.viewContainer;
            indicator <- descriptor.serviceInstance(viewContainer.controller.baseSer)
       ) {
         viewContainer.lookupChartView(descriptor) match {
@@ -103,7 +103,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
             }
         }
 
-        analysisWin.requestActive
+        analysisTc.requestActive
       }
       
     }
@@ -116,12 +116,12 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = false
       descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol)
+      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol)
       ) {
-        val viewContainer = analysisWin.viewContainer
+        val viewContainer = analysisTc.viewContainer
         viewContainer.removeSlaveView(descriptor)
                 
-        analysisWin.requestActive
+        analysisTc.requestActive
       }
         
     }

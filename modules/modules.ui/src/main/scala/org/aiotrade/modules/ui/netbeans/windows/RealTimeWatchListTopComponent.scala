@@ -39,7 +39,6 @@ import java.util.logging.Logger
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
-import javax.swing.JSplitPane
 import javax.swing.JTable;
 import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
@@ -123,17 +122,7 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
   popup.add(SystemAction.get(classOf[StartSelectedWatchAction]))
   popup.add(SystemAction.get(classOf[StopSelectedWatchAction]))
 
-  private val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
-  splitPane.setFocusable(false)
-  //splitPane.setBorder(BorderFactory.createEmptyBorder)
-  splitPane.setOneTouchExpandable(true)
-  splitPane.setDividerSize(3)
-
-  // setting the resize weight to 1.0 makes the right or bottom component's size remain fixed
-  splitPane.setResizeWeight(1.0)
-
   setLayout(new BorderLayout)
-  add(splitPane, BorderLayout.CENTER)
 
   setName(name)
   setBackground(LookFeel().backgroundColor)
@@ -172,11 +161,11 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
             val symbol = watchListPanel.symbolAtRow(row)
             if (symbol != null && prevSelected != symbol) {
               prevSelected = symbol
-//              SymbolNodes.findSymbolNode(symbol) foreach {x =>
-//                val viewAction = x.getLookup.lookup(classOf[ViewAction])
-//                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
-//                viewAction.execute
-//              }
+              SymbolNodes.findSymbolNode(symbol) foreach {x =>
+                val viewAction = x.getLookup.lookup(classOf[ViewAction])
+                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
+                viewAction.execute
+              }
               
 //              for (node <- symbolToNode.get(symbol)) {
 //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
@@ -198,11 +187,16 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
       }
     })
 
-  splitPane.setLeftComponent(watchListPanel)
+  add(watchListPanel, BorderLayout.CENTER)
 
   /** Should forward focus to sub-component watchListPanel */
   override def requestFocusInWindow: Boolean = {
-    watchListPanel.requestFocusInWindow
+    watchListTable.requestFocusInWindow
+  }
+
+  override protected def componentActivated {
+    super.componentActivated
+    watchListTable.requestFocusInWindow
   }
 
   override def open {
@@ -210,7 +204,8 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
     mode.dockInto(this)
     super.open
   }
-    
+
+
   override protected def componentShowing {
     super.componentShowing
   }

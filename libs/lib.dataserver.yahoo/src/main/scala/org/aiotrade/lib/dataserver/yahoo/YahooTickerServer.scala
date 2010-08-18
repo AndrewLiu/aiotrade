@@ -146,12 +146,20 @@ class YahooTickerServer extends TickerServer {
               cal.clear
               cal.setTime(date)
 
-              // filter tickers that have incorrect time
-              val h = cal.get(Calendar.HOUR_OF_DAY)
-              val m = cal.get(Calendar.MINUTE)
-              val minutesOfDay = h * 60 + m
-              if (minutesOfDay < exchange.firstOpen - 30 || minutesOfDay > exchange.lastClose + 30) {
-                loop(newestTime)
+              // fix dateStr bug for ".SS" and ".SZ" from yahoo ticker. The bug is like:
+              // When apply: http://quote.yahoo.com/download/javasoft.beans?s=ORCL+BP.L+600000.SS+000002.SZ&d=t&f=sl1d1t1c1ohgvbap&d=t&f=snx
+              // 1. At 8/17/2010 12:10pm CST, we got:
+              // "ORCL",22.72,"8/16/2010","4:00pm",+0.06,22.50,23.00,22.35,19511716,19.00,N/A,22.66,"ORCL","ORCL","ORCL","Oracle Corporatio","NasdaqNM"
+              // "BP.L",409.75,"8/16/2010","11:35am",-6.65,416.30,416.65,406.15,24275120,409.70,409.80,409.75,"BP.L","BP.L","BP.L","BP","London"
+              // "600000.SS",14.39,"8/17/2010","11:30pm",+0.09,14.31,14.47,14.18,34159084,14.38,14.39,14.30,"600000.SS","600000.SS","600000.SS","S/PUDONG DEV BANK","Shanghai"
+              // "000002.SZ",9.01,"8/17/2010","11:30pm",+0.12,8.85,9.01,8.81,61219112,9.00,9.01,8.89,"000002.SZ","000002.SZ","000002.SZ","VANKE-A","Shenzhen"
+              // 2. Then at 8/17/2010 1:35pm CST, we got:
+              // "ORCL",22.72,"8/16/2010","4:00pm",+0.06,22.50,23.00,22.35,19511716,19.00,N/A,22.66,"ORCL","ORCL","ORCL","Oracle Corporatio","NasdaqNM"
+              // "BP.L",409.75,"8/16/2010","11:35am",-6.65,416.30,416.65,406.15,24275120,409.70,409.80,409.75,"BP.L","BP.L","BP.L","BP","London"
+              // "600000.SS",14.36,"8/17/2010","1:20am",+0.06,14.31,14.47,14.18,36886816,14.36,14.37,14.30,"600000.SS","600000.SS","600000.SS","S/PUDONG DEV BANK","Shanghai"
+              // "000002.SZ",8.96,"8/17/2010","1:20am",+0.07,8.85,9.02,8.81,68111120,8.96,8.97,8.89,"000002.SZ","000002.SZ","000002.SZ","VANKE-A","Shenzhen"
+              if ((symbol.endsWith(".SS") || symbol.endsWith(".SZ")) && timeStr.endsWith("pm")) {
+                cal.add(Calendar.DAY_OF_YEAR, -1)
               }
             } catch {case _: ParseException => loop(newestTime)}
 

@@ -12,6 +12,13 @@
     <packaging>nbm</packaging>
     <name>org-apache-commons-wrapper</name>
 
+    <repositories>
+        <repository>
+            <id>maven.repo1</id>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -32,6 +39,11 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>1.5.4</version>
         </dependency>
     </dependencies>
 
@@ -57,6 +69,8 @@
                         <publicPackage>org.apache.commons.io.output</publicPackage>
                         <publicPackage>org.apache.commons.logging</publicPackage>
                         <publicPackage>org.apache.commons.logging.impl</publicPackage>
+                        <publicPackage>org.apache.commons.pool</publicPackage>
+                        <publicPackage>org.apache.commons.pool.impl</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>
