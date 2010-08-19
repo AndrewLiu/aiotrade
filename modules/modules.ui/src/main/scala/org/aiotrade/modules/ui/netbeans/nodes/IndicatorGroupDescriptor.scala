@@ -88,7 +88,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     putValue(Action.NAME, "Add Indicator")
 
     def execute {
-      val analysisWin = AnalysisChartTopComponent.selected getOrElse {return}
+      val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
             
       var keyToResult = HashMap[String, Object]()
             

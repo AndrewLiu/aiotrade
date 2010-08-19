@@ -4,13 +4,9 @@ import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
+import org.aiotrade.lib.securities.model.Info
 import org.aiotrade.lib.securities.model.Sec
 
-
-
-class Info extends TVal {
-  var infos = List[String]()
-}
 
 object InfoSer {
   def main(args: Array[String]) {
