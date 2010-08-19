@@ -25,6 +25,12 @@
             <version>${netbeans.version}</version>
             <type>pom</type>
         </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-modules-platform-i10n</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>nbm</type>
+        </dependency>
 
         <dependency>
             <groupId>org.aiotrade</groupId>
