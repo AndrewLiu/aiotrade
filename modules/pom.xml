@@ -177,6 +177,7 @@
 
     <modules>
         <module>modules.custom</module>
+        <module>modules.platform.i10n</module>
         <module>modules.quicksearch</module>
         <module>modules.ui</module>
     </modules>
