@@ -760,7 +760,7 @@ object SymbolNodes {
 
     private def getFolderName(node: Node): String = {
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-        displayNameOf(node)
+        node.getDisplayName
       } else {
         getFolderName(node.getParentNode)
       }
@@ -1031,9 +1031,9 @@ object SymbolNodes {
 
     def execute {
       val dobj = node.getLookup.lookup(classOf[DataObject])
-      val favDobj = favoriteNode.getLookup.lookup(classOf[DataFolder])
-      if (!favDobj.getChildren.exists(_.getName == node.getName)) {
-        dobj.createShadow(favDobj)
+      val favFolder = favoriteNode.getLookup.lookup(classOf[DataFolder])
+      if (!favFolder.getChildren.exists(_.getName == node.getName)) {
+        dobj.createShadow(favFolder)
       }
     }
   }
