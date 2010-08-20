@@ -37,6 +37,7 @@ import java.beans.PropertyChangeEvent
 import java.io.IOException
 import java.io.PrintStream
 import java.util.Calendar
+import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -132,6 +133,8 @@ import scala.collection.mutable.HashSet
  */
 object SymbolNodes {
   private val log = Logger.getLogger(this.getClass.getName)
+
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.nodes.Bundle")
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif")
 
@@ -312,7 +315,7 @@ object SymbolNodes {
   ) {
 
     override def getDisplayName = {
-      NbBundle.getMessage(classOf[SymbolFolderNode], "SN_title")
+      Bundle.getString("SN_title")
     }
   }
 
@@ -611,8 +614,12 @@ object SymbolNodes {
       folderIcon
     }
 
+    override def getOpenedIcon(tpe: Int): Image = {
+      getIcon(0)
+    }
+
     override def getDisplayName: String = {
-      displayNameOf(this)
+      Bundle.getString(getName)
     }
   }
 
