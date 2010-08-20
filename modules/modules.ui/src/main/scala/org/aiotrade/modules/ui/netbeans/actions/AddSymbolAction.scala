@@ -28,8 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui.netbeans.actions;
+package org.aiotrade.modules.ui.netbeans.actions
 
+import java.util.ResourceBundle
 import javax.swing.JOptionPane
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
@@ -45,6 +46,7 @@ import org.openide.windows.WindowManager
  * @author Caoyuan Deng
  */
 class AddSymbolAction extends CallableSystemAction {
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.actions.Bundle")
     
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
@@ -98,7 +100,7 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Add Symbol"
+    Bundle.getString("AC_add_symbol")
   }
     
   def getHelpCtx: HelpCtx = {

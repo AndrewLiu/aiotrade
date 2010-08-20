@@ -67,7 +67,7 @@ class AdjustYfactorAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Adjust Scale Factor";
+    "Adjust Scale Factor"
   }
     
   def getHelpCtx: HelpCtx = {

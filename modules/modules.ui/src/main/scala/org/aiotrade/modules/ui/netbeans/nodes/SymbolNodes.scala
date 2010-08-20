@@ -594,13 +594,13 @@ object SymbolNodes {
     override def getActions(popup: Boolean): Array[Action] = {
       val df = getLookup.lookup(classOf[DataFolder])
       Array(
+        getLookup.lookup(classOf[SymbolStartWatchAction]),
+        getLookup.lookup(classOf[SymbolStopWatchAction]),
+        null,
         getLookup.lookup(classOf[AddSymbolAction]),
         new AddFolderAction(df),
         null,
         getLookup.lookup(classOf[SymbolViewAction]),
-        null,
-        getLookup.lookup(classOf[SymbolStartWatchAction]),
-        getLookup.lookup(classOf[SymbolStopWatchAction]),
         null,
         getLookup.lookup(classOf[SymbolRefreshDataAction]),
         getLookup.lookup(classOf[SymbolReimportDataAction]),
@@ -619,16 +619,14 @@ object SymbolNodes {
     }
 
     override def getDisplayName: String = {
-      Bundle.getString(getName)
+      if (Bundle.containsKey(getName)) Bundle.getString(getName) else getName
     }
   }
-
-
 
   // ----- node actions
 
   private class SymbolViewAction(node: Node) extends ViewAction {
-    putValue(Action.NAME, "View")
+    putValue(Action.NAME, Bundle.getString("AC_view"))
 
     def execute {
       /** is this a folder ? if true, go recursively */
@@ -678,12 +676,12 @@ object SymbolNodes {
   }
 
   class SymbolStartWatchAction(node: Node) extends GeneralAction {
-    putValue(Action.NAME, "Start Watching")
+    putValue(Action.NAME, Bundle.getString("AC_start_watching"))
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
       val folderName = getFolderName(node)
-      val handle = ProgressHandleFactory.createHandle("Initing symbols of " + folderName + " ...")
+      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + node.getDisplayName + " ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
@@ -796,9 +794,9 @@ object SymbolNodes {
   }
 
   class SymbolStopWatchAction(node: Node) extends GeneralAction {
-
-    putValue(Action.NAME, "Stop Watching")
+    putValue(Action.NAME, Bundle.getString("AC_stop_watching"))
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/stopWatch.gif")
+
     if (node.getLookup.lookup(classOf[DataFolder]) != null) {
       this.setEnabled(true)
     } else {
@@ -850,9 +848,7 @@ object SymbolNodes {
    * @TODO
    */
   class SymbolClearDataAction(node: OneSymbolNode) extends GeneralAction {
-
-    private val CLEAR = "Clear data in database"
-    putValue(Action.NAME, CLEAR)
+    putValue(Action.NAME, Bundle.getString("AC_clear_data"))
 
     def perform(shouldConfirm: Boolean) {
       /**
@@ -884,7 +880,7 @@ object SymbolNodes {
   }
 
   class SymbolReimportDataAction(node: Node) extends GeneralAction {
-    putValue(Action.NAME, "Reimport Data")
+    putValue(Action.NAME, Bundle.getString("AC_reimport_data"))
 
     def execute {
       /** is this a folder ? if true, go recursively */
@@ -930,7 +926,7 @@ object SymbolNodes {
   }
 
   private class SymbolRefreshDataAction(node: Node) extends GeneralAction {
-    putValue(Action.NAME, "Refresh Data")
+    putValue(Action.NAME, Bundle.getString("AC_refresh_data"))
 
     def execute {
       /** is this a folder ? if true, go recursively */
@@ -962,7 +958,7 @@ object SymbolNodes {
   }
 
   private class SymbolSetDataSourceAction(node: Node) extends GeneralAction {
-    putValue(Action.NAME, "Set Data Source")
+    putValue(Action.NAME, Bundle.getString("AC_set_data_source"))
 
     def execute {
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
@@ -981,7 +977,7 @@ object SymbolNodes {
   }
 
   private class SymbolCompareToAction(node: Node) extends GeneralAction {
-    putValue(Action.NAME, "Compare to Current")
+    putValue(Action.NAME, Bundle.getString("AC_compare_to_current"))
 
     def execute {
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
@@ -1020,13 +1016,13 @@ object SymbolNodes {
 
   /** Creating an action for adding a folder to organize stocks into groups */
   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
-    putValue(Action.NAME, NbBundle.getMessage(classOf[SymbolFolderNode], "SN_addfolderbutton"))
+    putValue(Action.NAME, Bundle.getString("AC_add_folder"))
 
     def actionPerformed(ae: ActionEvent) {
       var floderName = JOptionPane.showInputDialog(
         WindowManager.getDefault.getMainWindow,
-        "Please Input Folder Name",
-        "Add Folder",
+        Bundle.getString("SN_askfolder_msg"),
+        Bundle.getString("AC_add_folder"),
         JOptionPane.OK_CANCEL_OPTION
       )
 

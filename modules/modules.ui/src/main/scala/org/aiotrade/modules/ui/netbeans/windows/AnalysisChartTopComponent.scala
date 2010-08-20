@@ -87,6 +87,7 @@ object AnalysisChartTopComponent {
   private val instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
+
   val STANDALONE = "STANDALONE"
 
   private var singleton: AnalysisChartTopComponent = _
@@ -325,7 +326,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   override protected def preferredID: String = {
     tcId
   }
-    
+
   override def getPersistenceType: Int = {
     TopComponent.PERSISTENCE_NEVER
   }

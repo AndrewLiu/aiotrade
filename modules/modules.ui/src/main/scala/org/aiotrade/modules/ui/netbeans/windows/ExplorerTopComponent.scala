@@ -34,6 +34,7 @@ import java.awt.BorderLayout
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
+import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.text.DefaultEditorKit
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -73,6 +74,9 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   private val log = Logger.getLogger(this.getClass.getName)
 
   instance = Some(this)
+
+
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.windows.Bundle")
 
   /** holds currently scheduled/running task for set of activated node */
   private val tc_id = "ExplorerTopComponent"
@@ -133,7 +137,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     super.componentOpened
 
     if (!isSymbolNodesAdded) {
-      val handle = ProgressHandleFactory.createHandle("Creating symbols ...")
+      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             addSymbolsFromDB(handle)
@@ -150,6 +154,8 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     tc_id
   }
 
+  override def getDisplayName: String = Bundle.getString("CTL_ExplorerTopComponent")
+
   private def isSymbolNodesAdded = {
     val rootNode = getExplorerManager.getRootContext
     rootNode.getChildren.getNodesCount > 0
@@ -158,8 +164,12 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   private def addSymbolsFromDB(handle: ProgressHandle) {
     val rootNode = getExplorerManager.getRootContext
     val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+
     // expand root node
     getExplorerManager.setExploredContext(rootNode)
+
+    val favoriteFolder = "Favorite"
+    DataFolder.create(rootFolder, favoriteFolder)
 
     val start = System.currentTimeMillis
     log.info("Create symbols node files from db ...")
