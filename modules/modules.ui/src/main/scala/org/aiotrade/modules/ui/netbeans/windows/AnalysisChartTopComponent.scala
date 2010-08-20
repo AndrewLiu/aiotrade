@@ -34,7 +34,8 @@ import java.awt.BorderLayout;
 import java.awt.Image
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
-import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
 import javax.swing.JSplitPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
 import org.aiotrade.lib.charting.laf.LookFeel;
@@ -50,18 +51,19 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction;
-import org.aiotrade.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction;
-import org.aiotrade.modules.ui.netbeans.actions.PickIndicatorAction;
-import org.aiotrade.modules.ui.netbeans.actions.RemoveCompareQuoteChartsAction;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchAdjustQuoteAction;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchLinearLogScaleAction;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction;
-import org.aiotrade.modules.ui.netbeans.actions.SwitchHideShowDrawingLineAction;
-import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction;
-import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction;
+import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction
+import org.aiotrade.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction
+import org.aiotrade.modules.ui.netbeans.actions.PickIndicatorAction
+import org.aiotrade.modules.ui.netbeans.actions.RemoveCompareQuoteChartsAction
+import org.aiotrade.modules.ui.netbeans.actions.SwitchAdjustQuoteAction
+import org.aiotrade.modules.ui.netbeans.actions.SwitchCandleOhlcAction
+import org.aiotrade.modules.ui.netbeans.actions.SwitchLinearLogScaleAction
+import org.aiotrade.modules.ui.netbeans.actions.SwitchCalendarTradingTimeViewAction
+import org.aiotrade.modules.ui.netbeans.actions.SwitchHideShowDrawingLineAction
+import org.aiotrade.modules.ui.netbeans.actions.ZoomInAction
+import org.aiotrade.modules.ui.netbeans.actions.ZoomOutAction
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
+import org.aiotrade.modules.ui.netbeans.nodes.AddToFavoriteAction
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
@@ -139,24 +141,7 @@ import AnalysisChartTopComponent._
 class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
   instanceRefs.put(this, null)
 
-  private val popupMenuForViewContainer = {
-    val x = new JPopupMenu
-    x.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
-    x.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
-    x.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
-    x.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
-    x.add(SystemAction.get(classOf[ZoomInAction]))
-    x.add(SystemAction.get(classOf[ZoomOutAction]))
-    x.addSeparator
-    x.add(SystemAction.get(classOf[PickIndicatorAction]))
-    x.add(SystemAction.get(classOf[ChangeOptsAction]))
-    x.addSeparator
-    x.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
-    x.addSeparator
-    x.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
-
-    x
-  }
+  private var addToFavActionMenuItem: JMenuItem = _
 
   setFont(LookFeel().axisFont)
 
@@ -206,7 +191,29 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     setName(sec.secInfo.name + " - " + freq)
 
-    injectActionsToDescriptors
+    private val popupMenu = new JPopupMenu
+    popupMenu.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
+    popupMenu.add(SystemAction.get(classOf[ZoomInAction]))
+    popupMenu.add(SystemAction.get(classOf[ZoomOutAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[PickIndicatorAction]))
+    popupMenu.add(SystemAction.get(classOf[ChangeOptsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
+
+    SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
+      AnalysisChartTopComponent.this.setActivatedNodes(Array(node))
+      popupMenu.add(node.getLookup.lookup(classOf[AddToFavoriteAction]))
+      injectActionsToDescriptors(node)
+    }
+
+    /** inject popup menu from this TopComponent */
+    viewContainer.setComponentPopupMenu(popupMenu)
 
     loadSec
 
@@ -228,17 +235,14 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
         controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
       }
 
-      /** inject popup menu from this TopComponent */
-      viewContainer.setComponentPopupMenu(popupMenuForViewContainer)
-
       viewContainer
     }
 
-    private def injectActionsToDescriptors {
+    private def injectActionsToDescriptors(node: Node) {
       /** we choose here to lazily create actions instances */
 
       /** init all children of node to create the actions that will be injected to descriptor */
-      SymbolNodes.findSymbolNode(contents.uniSymbol) foreach (initNodeChildrenRecursively(_))
+      initNodeChildrenRecursively(node)
     }
 
     private def initNodeChildrenRecursively(node: Node) {

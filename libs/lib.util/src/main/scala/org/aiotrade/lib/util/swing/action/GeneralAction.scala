@@ -33,8 +33,7 @@ package org.aiotrade.lib.util.swing.action
  *
  * @author Caoyuan Deng
  */
-abstract class GeneralAction extends CallableAction {
-}
+abstract class GeneralAction extends CallableAction
 
 
 

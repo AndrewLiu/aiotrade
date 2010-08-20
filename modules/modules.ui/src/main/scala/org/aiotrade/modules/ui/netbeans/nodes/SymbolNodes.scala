@@ -143,6 +143,11 @@ object SymbolNodes {
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
   private val stockIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
 
+  val favoriteFolderName = "Favorite"
+
+  private var _favoriteNode: SymbolFolderNode = _
+  def favoriteNode = _favoriteNode
+
   private var isInited = false
 
   def initSymbolNodes {
@@ -347,6 +352,7 @@ object SymbolNodes {
     ic.add(new SymbolStopWatchAction(this))
     ic.add(new SymbolCompareToAction(this))
     ic.add(new SymbolClearDataAction(this))
+    ic.add(new SymbolAddToFavoriteAction(this))
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -387,7 +393,9 @@ object SymbolNodes {
         getLookup.lookup(classOf[SymbolClearDataAction]),
         null,
         SystemAction.get(classOf[CopyAction]),
-        SystemAction.get(classOf[DeleteAction])
+        SystemAction.get(classOf[DeleteAction]),
+        null,
+        getLookup.lookup(classOf[SymbolAddToFavoriteAction])
       )
     }
 
@@ -566,6 +574,10 @@ object SymbolNodes {
   ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new ProxyLookup(symbolFolderNode.getLookup,
                                                                                                      new AbstractLookup(ic))
   ) {
+
+    if (symbolFolderNode.getName == favoriteFolderName) {
+      _favoriteNode = this
+    }
 
     /* add the node to our own lookup */
     ic.add(this)
@@ -1014,6 +1026,18 @@ object SymbolNodes {
 
   }
 
+  private class SymbolAddToFavoriteAction(node: Node) extends AddToFavoriteAction {
+    putValue(Action.NAME, Bundle.getString("AC_add_to_favorite"))
+
+    def execute {
+      val dobj = node.getLookup.lookup(classOf[DataObject])
+      val favDobj = favoriteNode.getLookup.lookup(classOf[DataFolder])
+      if (!favDobj.getChildren.exists(_.getName == node.getName)) {
+        dobj.createShadow(favDobj)
+      }
+    }
+  }
+
   /** Creating an action for adding a folder to organize stocks into groups */
   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
     putValue(Action.NAME, Bundle.getString("AC_add_folder"))
@@ -1039,3 +1063,5 @@ object SymbolNodes {
   }
 
 }
+
+abstract class AddToFavoriteAction extends GeneralAction

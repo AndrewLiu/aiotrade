@@ -50,7 +50,8 @@ import org.openide.nodes.Node;
 import org.openide.util.Lookup
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor
-import org.openide.windows.TopComponent;import scala.collection.mutable.HashMap
+import org.openide.windows.TopComponent
+import scala.collection.mutable.HashMap
 
 
 /** 
@@ -168,8 +169,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     // expand root node
     getExplorerManager.setExploredContext(rootNode)
 
-    val favoriteFolder = "Favorite"
-    DataFolder.create(rootFolder, favoriteFolder)
+    DataFolder.create(rootFolder, SymbolNodes.favoriteFolderName)
 
     val start = System.currentTimeMillis
     log.info("Create symbols node files from db ...")
