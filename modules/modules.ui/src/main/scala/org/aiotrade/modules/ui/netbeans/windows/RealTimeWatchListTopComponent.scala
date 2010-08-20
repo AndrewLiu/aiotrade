@@ -44,10 +44,16 @@ import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.netbeans.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.StartSelectedWatchAction
@@ -56,8 +62,8 @@ import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities
-import org.openide.util.actions.SystemAction;
-import org.openide.windows.TopComponent;
+import org.openide.util.actions.SystemAction
+import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.WeakHashMap
@@ -85,14 +91,20 @@ object RealTimeWatchListTopComponent {
 
   private val watchingSecs = HashSet[Sec]()
 
-  def getInstance(name: String): RealTimeWatchListTopComponent = {
-    val instance = instances find (_.name == name) getOrElse new RealTimeWatchListTopComponent(name)
+  def getInstance(node: Node): RealTimeWatchListTopComponent = {
+    val instance = instances find (_.getActivatedNodes.contains(node)) getOrElse {
+      new RealTimeWatchListTopComponent(node)
+    }
 
     if (!instance.isOpened) {
       instance.open
     }
 
     instance
+  }
+
+  def instanceOf(node: Node): Option[RealTimeWatchListTopComponent] = {
+    instances find (_.getActivatedNodes.contains(node))
   }
 
   def selected: Option[RealTimeWatchListTopComponent] = {
@@ -105,7 +117,7 @@ object RealTimeWatchListTopComponent {
 }
 
 import RealTimeWatchListTopComponent._
-class RealTimeWatchListTopComponent private (val name: String) extends TopComponent {
+class RealTimeWatchListTopComponent private (val node: Node) extends TopComponent {
   instanceRefs.put(this, null)
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -124,7 +136,9 @@ class RealTimeWatchListTopComponent private (val name: String) extends TopCompon
 
   setLayout(new BorderLayout)
 
-  setName(name)
+  setActivatedNodes(Array(node))
+
+  setName(node.getDisplayName)
   setBackground(LookFeel().backgroundColor)
 
   // component should setFocusable(true) to have the ability to gain the focus

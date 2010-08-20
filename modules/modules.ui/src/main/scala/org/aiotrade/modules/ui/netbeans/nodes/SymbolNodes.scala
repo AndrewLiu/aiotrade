@@ -305,7 +305,18 @@ object SymbolNodes {
       node.getName
     }
   }
-  
+
+  private def getFolderNode(node: Node): Node = {
+    if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+      node
+    } else {
+      val parent = node.getParentNode
+      if (parent != null) {
+        getFolderNode(parent)
+      } else null
+    }
+  }
+
   // ----- Node classes
 
   /**
@@ -361,9 +372,7 @@ object SymbolNodes {
      */
     @throws(classOf[IOException])
     @throws(classOf[IntrospectionException])
-    def this(symbolFileNode: Node) = {
-      this(symbolFileNode, new InstanceContent)
-    }
+    def this(symbolFileNode: Node) = this(symbolFileNode, new InstanceContent)
 
     override def getDisplayName = {
       analysisContents.uniSymbol
@@ -491,7 +500,6 @@ object SymbolNodes {
           }
 
           return Array(oneSymbolNode)
-
         }
       } catch {
         case ioe: IOException => ErrorManager.getDefault.notify(ioe)
@@ -590,6 +598,62 @@ object SymbolNodes {
     ic.add(new SymbolReimportDataAction(this))
     ic.add(new SymbolViewAction(this))
 
+    this.addNodeListener(new NodeListener {
+        def childrenAdded(nodeMemberEvent: NodeMemberEvent) {
+          // Is this node added to a folder that has an opened corresponding watchlist tc ?
+          RealTimeWatchListTopComponent.instanceOf(SymbolFolderNode.this) match {
+            case Some(listTc) if listTc.isOpened =>
+              nodeMemberEvent.getDelta foreach {
+                case node: OneSymbolNode =>
+                  val contents = node.getLookup.lookup(classOf[AnalysisContents])
+                  Exchange.secOf(contents.uniSymbol) foreach {sec =>
+                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
+                      sec.quoteContracts = List(quoteContract)
+                    }
+                    contents.serProvider = sec
+                    
+                    sec.subscribeTickerServer(true)
+                    listTc.watch(sec, node)
+                    node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(false)
+                    node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+                  }
+                case _ =>
+              }
+            case _ =>
+          }
+        }
+
+        def childrenRemoved(nodeMemberEvent: NodeMemberEvent) {
+          // Is this node added to a folder that has an opened corresponding watchlist tc ?
+          RealTimeWatchListTopComponent.instanceOf(SymbolFolderNode.this) match {
+            case Some(listTc) if listTc.isOpened =>
+              nodeMemberEvent.getDelta foreach {
+                case node: OneSymbolNode =>
+                  val contents = node.getLookup.lookup(classOf[AnalysisContents])
+                  Exchange.secOf(contents.uniSymbol) foreach {sec =>
+                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
+                      sec.quoteContracts = List(quoteContract)
+                    }
+                    contents.serProvider = sec
+
+                    sec.unSubscribeTickerServer
+                    listTc.unWatch(sec)
+                    node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
+                    node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(false)
+                  }
+                case _ =>
+              }
+            case _ =>
+          }
+        }
+
+        def childrenReordered(nodeReorderEvent: NodeReorderEvent) {}
+
+        def nodeDestroyed(nodeEvent: NodeEvent) {}
+
+        def propertyChange(evt: PropertyChangeEvent) {}
+      })
+
     /**
      * Declaring the children of the root sec node
      *
@@ -598,9 +662,7 @@ object SymbolNodes {
      */
     @throws(classOf[DataObjectNotFoundException])
     @throws(classOf[IntrospectionException])
-    def this(symbolFolderNode: Node) = {
-      this(symbolFolderNode, new InstanceContent)
-    }
+    def this(symbolFolderNode: Node) = this(symbolFolderNode, new InstanceContent)
 
     /** Declaring the actions that can be applied to this node */
     override def getActions(popup: Boolean): Array[Action] = {
@@ -692,15 +754,15 @@ object SymbolNodes {
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
-      val folderName = getFolderName(node)
-      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + node.getDisplayName + " ...")
+      val folderNode = getFolderNode(node)
+      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + " " + node.getDisplayName + " ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
             val analysisContents = getAnalysisContentsViaNode(node, handle)
             handle.finish
             log.info("Finished collecting node children: " + analysisContents.length)
-            watchSymbols(folderName, analysisContents)
+            watchSymbols(folderNode, analysisContents)
           }
         }, handle, false)
     }
@@ -758,16 +820,8 @@ object SymbolNodes {
       }
     }
 
-    private def getFolderName(node: Node): String = {
-      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-        node.getDisplayName
-      } else {
-        getFolderName(node.getParentNode)
-      }
-    }
-
-    private def watchSymbols(folderName: String, symbolContents: ArrayList[AnalysisContents]) {
-      val watchListTc = RealTimeWatchListTopComponent.getInstance(folderName)
+    private def watchSymbols(folderNode: Node, symbolContents: ArrayList[AnalysisContents]) {
+      val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
       watchListTc.requestActive
 
       val lastTickers = new ArrayList[LightTicker]
