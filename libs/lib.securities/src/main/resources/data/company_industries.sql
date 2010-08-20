@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.5.4-m3, for portbld-freebsd8.1 (amd64)
 --
--- Host: localhost    Database: faster
+-- Host: localhost    Database: fasternew
 -- ------------------------------------------------------
 -- Server version	5.5.4-m3-log
 
@@ -29,7 +29,7 @@ CREATE TABLE `company_industries` (
   KEY `company_industries_industries_id_fkey` (`industries_id`),
   CONSTRAINT `company_industries_companies_id_fkey` FOREIGN KEY (`companies_id`) REFERENCES `companies` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `company_industries_industries_id_fkey` FOREIGN KEY (`industries_id`) REFERENCES `industries` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=39659 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8357 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -40,4 +40,4 @@ CREATE TABLE `company_industries` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-07-08 14:56:24
+-- Dump completed on 2010-08-19  9:23:17
