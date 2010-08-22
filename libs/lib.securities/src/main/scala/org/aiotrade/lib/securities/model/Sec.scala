@@ -32,6 +32,8 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import org.aiotrade.lib.info.model.Infos1m
+import org.aiotrade.lib.info.model.Infos1d
 import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
@@ -480,7 +482,7 @@ class Sec extends SerProvider with Publisher {
       // should load earlier quotes from data source?
       val wantTime = if (first.fromMe_?) 0 else {
         // search the lastFromMe one, if exist, should re-load quotes from data source to override them
-        var lastFromMe: org.aiotrade.lib.securities.model.Info = null
+        var lastFromMe: org.aiotrade.lib.info.model.Info = null
         var i = if (isAscending) 0 else infos.length - 1
         while (i < infos.length && i >= 0 && infos(i).fromMe_?) {
           lastFromMe = infos(i)

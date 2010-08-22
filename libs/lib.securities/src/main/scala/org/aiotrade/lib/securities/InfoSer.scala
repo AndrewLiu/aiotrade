@@ -4,8 +4,11 @@ import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
-import org.aiotrade.lib.securities.model.Info
+import org.aiotrade.lib.info.model.Info
+import org.aiotrade.lib.info.model.InfoContent
 import org.aiotrade.lib.securities.model.Sec
+import scala.collection.mutable.Map
+import scala.collection.JavaConversions._
 
 
 object InfoSer {
@@ -22,7 +25,13 @@ object InfoSer {
       cal.add(Calendar.DAY_OF_YEAR, 1)
       val info = new Info
       info.time = cal.getTimeInMillis
-      info.infos = List("ABC", "DEF")
+      
+//      info.infos = List(TestInfoContent("title01", info.time, 0.1F, "link"),
+//                        TestInfoContent("title02", info.time, 0.1F, "link"))
+                        
+      info ++= List(TestInfoContent("title01", info.time, 0.1F, "link"),
+                        TestInfoContent("title02", info.time, 0.1F, "link"))
+
       values += info
       i += 1
     }
@@ -33,12 +42,24 @@ object InfoSer {
     println(ser)
 
   }
+
+  case class TestInfoContent(title: String, publishTime: Long, weight: Float, link: String) extends InfoContent{
+
+    def exportToMap: Map[String, String] = {
+      val map = Map[String, String]()
+      if(title != null ) map += ("title" -> title)
+      map += ("publishTime" -> publishTime.toString)
+      
+      map
+    }
+
+    def exportToJavaMap: java.util.Map[String, String] = exportToMap
+  }
 }
 
 class InfoSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
-  val infos = TVar[List[String]]("I", Plot.Info)
-
+  val infos = TVar[List[InfoContent]]("I", Plot.Info)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
