@@ -30,9 +30,9 @@
  */
 package org.aiotrade.lib.indicator
 
-import org.aiotrade.lib.math.timeseries.Null
 import java.awt.Color
 import org.aiotrade.lib.math.timeseries.BaseTSer
+import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.util.Sign
 import org.aiotrade.lib.math.util.Signal
 
@@ -50,19 +50,19 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
     
   def this() = this(null)
 
-  protected def signal(idx: Int, sign: Sign) {
+  protected def signal(idx: Int, sign: Sign): Signal = {
     signal(idx, sign, null, null)
   }
 
-  protected def signal(idx: Int, sign: Sign, color: Color) {
+  protected def signal(idx: Int, sign: Sign, color: Color): Signal = {
     signal(idx, sign, null, color)
   }
 
-  protected def signal(idx: Int, sign: Sign, text: String) {
+  protected def signal(idx: Int, sign: Sign, text: String): Signal = {
     signal(idx, sign, text, null)
   }
 
-  protected def signal(idx: Int, sign: Sign, text: String, color: Color) {
+  protected def signal(idx: Int, sign: Sign, text: String, color: Color): Signal = {
     // remove posible duplicte signals
     removeSignals(idx, sign, text, color)
     
@@ -82,6 +82,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       case null => List(signal)
       case xs => signal :: xs
     }
+    signal
   }
 
   protected def removeSignals(idx: Int) {

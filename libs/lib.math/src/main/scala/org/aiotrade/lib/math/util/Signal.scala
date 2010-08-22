@@ -30,11 +30,18 @@
  */
 package org.aiotrade.lib.math.util
 
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Publisher
+import java.awt.Color
+
 /**
  *
  * @author Caoyuan Deng
  */
-import java.awt.Color
+case class SignalEvent(source: SerProvider, signal: Signal) extends Event
+
+object Signal extends Publisher
 
 case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
   def isTextSignal = text != null
@@ -43,9 +50,6 @@ case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String 
   def intValue: Int = value.toInt
   def longValue: Long = value.toLong
 }
-
-
-
 
 
 
