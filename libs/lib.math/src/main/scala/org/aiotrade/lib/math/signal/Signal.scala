@@ -39,7 +39,7 @@ import java.awt.Color
  *
  * @author Caoyuan Deng
  */
-case class SignalEvent(ser: SignalIndicator, signal: Signal) extends Event
+case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
 
 object Signal extends Publisher
 
@@ -49,7 +49,22 @@ case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String 
   def doubleValue: Double = value
   def intValue: Int = value.toInt
   def longValue: Long = value.toLong
+
+  def export: List[_] = {
+    if (text == null) {
+      List(idx: Int, time, value, sign.id)
+    } else {
+      List(idx: Int, time, value, sign.id, text)
+    }
+  }
+
+  def importFrom(vs: List[_]): Signal = {
+    vs match {
+      case List(idx: Int, time: Long, value: Double, id: Byte) =>
+        Signal(idx, time, value, Sign.withId(id))
+      case List(idx: Int, time: Long, value: Double, id: Byte, text: String) =>
+        Signal(idx, time, value, Sign.withId(id), text)
+      case _ => null
+    }
+  }
 }
-
-
-
