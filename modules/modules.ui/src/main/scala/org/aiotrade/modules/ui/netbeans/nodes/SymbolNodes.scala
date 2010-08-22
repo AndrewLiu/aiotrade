@@ -151,10 +151,11 @@ object SymbolNodes {
   private var isInited = false
 
   def initSymbolNodes {
-    log.info("Start init symbol nodes")
+    val start = System.currentTimeMillis
+    log.info("Start initing symbol nodes")
     initSymbolNode(RootSymbolsNode)
     isInited = true
-    log.info("Finished init symbol nodes")
+    log.info("Finished initing symbol nodes in " + (System.currentTimeMillis - start) + " ms")
   }
 
   private def initSymbolNode(node: Node) {
@@ -613,7 +614,7 @@ object SymbolNodes {
                     contents.serProvider = sec
                     
                     sec.subscribeTickerServer(true)
-                    listTc.watch(sec, node)
+                    listTc.watch(sec)
                     node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(false)
                     node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
                   }
@@ -759,7 +760,7 @@ object SymbolNodes {
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
-            val analysisContents = getAnalysisContentsViaNode(node, handle)
+            val analysisContents = getAnalysisContentsViaFolder(node, handle)
             handle.finish
             log.info("Finished collecting node children: " + analysisContents.length)
             watchSymbols(folderNode, analysisContents)
@@ -774,7 +775,26 @@ object SymbolNodes {
       symbolNodes map (_.getLookup.lookup(classOf[AnalysisContents]))
     }
 
-    private def getAnalysisContentsViaFolder(node: Node) = {
+    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
+      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+        /** it's a folder, go recursively */
+        val children = node.getChildren
+        val count = children.getNodesCount
+        handle.switchToDeterminate(count)
+        var i = 0
+        while (i < count) {
+          handle.progress(i)
+          val node_i = children.getNodeAt(i)
+          collectSymbolNodes(node_i, symbolNodes, handle)
+          i += 1
+        }
+      } else {
+        // it's an OneSymbolNode, do real things
+        symbolNodes += node
+      }
+    }
+
+    private def getAnalysisContentsViaFolder(node: Node, handle: ProgressHandle) = {
       val analysisContents = new ArrayList[AnalysisContents]
 
       val folder = node.getLookup.lookup(classOf[DataFolder])
@@ -782,41 +802,29 @@ object SymbolNodes {
         // it's an OneSymbolNode, do real things
         readContents(node) foreach (analysisContents += _)
       } else {
-        collectSymbolContents(folder, analysisContents)
+        collectSymbolContents(folder, analysisContents, handle)
       }
       analysisContents
     }
 
-    private def collectSymbolContents(dob: DataObject, analysisContents: ArrayList[AnalysisContents]) {
+    private def collectSymbolContents(dob: DataObject, analysisContents: ArrayList[AnalysisContents], handle: ProgressHandle) {
       dob match {
         case x: DataFolder =>
           /** it's a folder, go recursively */
-          for (child <- x.getChildren) {
-            collectSymbolContents(child, analysisContents)
+          val children = x.getChildren
+          val count = children.length
+          handle.switchToDeterminate(count)
+          var i = 0
+          while (i < count) {
+            handle.progress(i)
+            val child = children(i)
+            collectSymbolContents(child, analysisContents, handle)
+            i += 1
           }
         case x: DataObject =>
           val fo = x.getPrimaryFile
           readContents(fo) foreach (analysisContents += _)
         case x => log.warning("Unknown DataObject: " + x)
-      }
-    }
-
-    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
-      if (node.getLookup.lookup(classOf[DataFolder]) == null) {
-        // it's an OneSymbolNode, do real things
-        symbolNodes += node
-      } else {
-        /** it's a folder, go recursively */
-        val children = node.getChildren
-        val nodesCount = children.getNodesCount
-        handle.switchToDeterminate(nodesCount)
-        var i = 0
-        while (i < nodesCount) {
-          handle.progress(i)
-          val node_i = children.getNodeAt(i)
-          collectSymbolNodes(node_i, symbolNodes, handle)
-          i += 1
-        }
       }
     }
 
@@ -839,7 +847,7 @@ object SymbolNodes {
               case Some(tickerServer) =>
                 tickerServers += tickerServer
 
-                watchListTc.watch(sec, node)
+                watchListTc.watch(sec)
                 sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
 
                 node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)

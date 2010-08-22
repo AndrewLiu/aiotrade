@@ -238,7 +238,7 @@ class RealTimeWatchListTopComponent private (val node: Node) extends TopComponen
     iconImage
   }
 
-  def watch(sec: Sec, node: Node) {
+  def watch(sec: Sec) {
     watchListPanel.watch(sec)
     watchingSecs.add(sec)
   }

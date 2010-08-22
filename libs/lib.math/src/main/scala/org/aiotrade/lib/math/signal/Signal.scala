@@ -28,21 +28,28 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.util
+package org.aiotrade.lib.math.signal
+
+import org.aiotrade.lib.math.indicator.SignalIndicator
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Publisher
+import java.awt.Color
 
 /**
  *
  * @author Caoyuan Deng
  */
-abstract class Sign
-object Sign {
-  case object EnterLong  extends Sign
-  case object ExitLong   extends Sign
-  case object EnterShort extends Sign
-  case object ExitShort  extends Sign
+case class SignalEvent(ser: SignalIndicator, signal: Signal) extends Event
+
+object Signal extends Publisher
+
+case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
+  def isTextSignal = text != null
+  def floatValue: Float = value.toFloat
+  def doubleValue: Double = value
+  def intValue: Int = value.toInt
+  def longValue: Long = value.toLong
 }
-
-
 
 
 

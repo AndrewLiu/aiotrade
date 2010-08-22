@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,14 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.indicator.basic.signal
+package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.indicator.SignalIndicator
-import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.signal.Signal
 
 /**
- *
  * @author Caoyuan Deng
  */
-class MACDSignal extends SignalIndicator {
-  sname = "MACD Signal"
-  lname = "Moving Average Convergence/Divergence Signal"
-
-  val periodFast   = Factor("Period EMA Fast", 12.0)
-  val periodSlow   = Factor("Period EMA Slow", 26.0)
-  val periodSignal = Factor("Period Signal",    9.0)
-
-  val _macd   = TVar[Double]()
-  val _signal = TVar[Double]()
-  val _osc    = TVar[Double]()
-
-
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
-    while (i < size) {
-      _macd(i) = macd(i, C, periodSlow, periodFast)
-      _signal(i) = ema(i, _macd, periodSignal)
-      _osc(i) = _macd(i) - _signal(i)
-
-      if (crossOver(i, _macd, _signal)) {
-        signal(i, Sign.EnterLong)
-      }
-
-      if (crossUnder(i, _macd, _signal)) {
-        signal(i, Sign.ExitLong)
-      }
-
-      i += 1
-    }
-  }
-
+trait SignalIndicator extends Indicator {
+  def signalVar: TVar[List[Signal]]
 }
-

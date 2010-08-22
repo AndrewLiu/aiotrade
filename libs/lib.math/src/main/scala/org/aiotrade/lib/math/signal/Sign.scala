@@ -28,24 +28,25 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.util
+package org.aiotrade.lib.math.signal
 
 /**
  *
  * @author Caoyuan Deng
  */
-import java.awt.Color
+abstract class Sign(val id: Byte)
+object Sign {
+  case object EnterLong  extends Sign(1)
+  case object ExitLong   extends Sign(2)
+  case object EnterShort extends Sign(3)
+  case object ExitShort  extends Sign(4)
 
-case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
-  def isTextSignal = text != null
-  def floatValue: Float = value.toFloat
-  def doubleValue: Double = value
-  def intValue: Int = value.toInt
-  def longValue: Long = value.toLong
+  def withId(id: Byte) = id match {
+    case 1 => EnterLong
+    case 2 => ExitLong
+    case 3 => EnterShort
+    case 4 => ExitShort
+  }
 }
-
-
-
-
 
 
