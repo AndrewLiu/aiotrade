@@ -151,10 +151,11 @@ object SymbolNodes {
   private var isInited = false
 
   def initSymbolNodes {
-    log.info("Start init symbol nodes")
+    val start = System.currentTimeMillis
+    log.info("Start initing symbol nodes")
     initSymbolNode(RootSymbolsNode)
     isInited = true
-    log.info("Finished init symbol nodes")
+    log.info("Finished initing symbol nodes in " + (System.currentTimeMillis - start) + " ms")
   }
 
   private def initSymbolNode(node: Node) {

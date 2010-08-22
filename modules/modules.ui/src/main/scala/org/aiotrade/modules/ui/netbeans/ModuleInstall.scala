@@ -40,6 +40,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
+import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileUtil
 
@@ -103,6 +104,8 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
     }
 
     UserOptionsManager.assertLoaded
+
+    scala.actors.Actor.actor {SymbolNodes.initSymbolNodes}
 
     // run some task in background
     SwingUtilities.invokeLater(new Runnable {
