@@ -89,7 +89,7 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object RealTimeBoardPanel {
-  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
   val DIM = new Dimension(230, 100000)
 
@@ -206,10 +206,10 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
     val infoModelData = Array(
       Array(symbol,                         "",         "",                            sname),
-      Array(BUNDLE.getString("lastPrice"),  lastPrice,  BUNDLE.getString("dayVolume"), dayVolume),
-      Array(BUNDLE.getString("dayChange"),  dayChange,  BUNDLE.getString("dayHigh"),   dayHigh),
-      Array(BUNDLE.getString("dayPercent"), dayPercent, BUNDLE.getString("dayLow"),    dayLow),
-      Array(BUNDLE.getString("prevClose"),  prevClose,  BUNDLE.getString("dayOpen"),   dayOpen)
+      Array(Bundle.getString("lastPrice"),  lastPrice,  Bundle.getString("dayVolume"), dayVolume),
+      Array(Bundle.getString("dayChange"),  dayChange,  Bundle.getString("dayHigh"),   dayHigh),
+      Array(Bundle.getString("dayPercent"), dayPercent, Bundle.getString("dayLow"),    dayLow),
+      Array(Bundle.getString("prevClose"),  prevClose,  Bundle.getString("dayOpen"),   dayOpen)
     )
     ValueCell.setRowCol(infoModelData)
     infoModel = AttributiveCellTableModel(
@@ -256,7 +256,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
         Array("B", null, null, null, null)
       ),
       Array(
-        BUNDLE.getString("askBid"), BUNDLE.getString("price"), BUNDLE.getString("size"), BUNDLE.getString("price"), BUNDLE.getString("size")
+        Bundle.getString("askBid"), Bundle.getString("price"), Bundle.getString("size"), Bundle.getString("price"), Bundle.getString("size")
       )
     )
 
@@ -264,10 +264,10 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     for (i <- 0 until level) {
       val bidIdx = level - 1 - i
       val bidRow = i
-      depthModel.setValueAt(BUNDLE.getString("bid") + numberStrs(bidIdx), bidRow, 0)
+      depthModel.setValueAt(Bundle.getString("bid") + numberStrs(bidIdx), bidRow, 0)
       val askIdx = i
       val askRow = level + i
-      depthModel.setValueAt(BUNDLE.getString("ask") + numberStrs(askIdx), askRow, 0)
+      depthModel.setValueAt(Bundle.getString("ask") + numberStrs(askIdx), askRow, 0)
     }
 
     depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -297,7 +297,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     
     executionModel = new AbstractTableModel {
       private val columnNames = Array[String](
-        BUNDLE.getString("time"), BUNDLE.getString("price"), BUNDLE.getString("size")
+        Bundle.getString("time"), Bundle.getString("price"), Bundle.getString("size")
       )
 
       def getRowCount: Int = executions.size

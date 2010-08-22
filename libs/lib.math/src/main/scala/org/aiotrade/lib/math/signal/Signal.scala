@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math.signal
 
+import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
@@ -41,7 +42,23 @@ import java.awt.Color
  */
 case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
 
-object Signal extends Publisher
+case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
+
+object Signal extends Publisher {
+  private lazy val log = Logger.getLogger(this.getClass.getName)
+  
+  def importFrom(vs: List[Any]): Signal = {
+    vs match {
+      case List(idx: Int, time: Long, value: Double, id: Byte, text: String) =>
+        Signal(idx, time, value, Sign.withId(id), text)
+      case List(idx: Int, time: Long, value: Double, id: Byte) =>
+        Signal(idx, time, value, Sign.withId(id))
+      case List(idx: Double, time: Double, value: Double, id: Double) =>
+        Signal(idx.toInt, time.toLong, value, Sign.withId(id.toByte))
+      case _ => null
+    }
+  }
+}
 
 case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
   def isTextSignal = text != null
@@ -50,21 +67,11 @@ case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String 
   def intValue: Int = value.toInt
   def longValue: Long = value.toLong
 
-  def export: List[_] = {
-    if (text == null) {
-      List(idx: Int, time, value, sign.id)
+  def export: List[Any] = {
+    if (text != null) {
+      List[Any](idx, time, value, sign.id, text)
     } else {
-      List(idx: Int, time, value, sign.id, text)
-    }
-  }
-
-  def importFrom(vs: List[_]): Signal = {
-    vs match {
-      case List(idx: Int, time: Long, value: Double, id: Byte) =>
-        Signal(idx, time, value, Sign.withId(id))
-      case List(idx: Int, time: Long, value: Double, id: Byte, text: String) =>
-        Signal(idx, time, value, Sign.withId(id), text)
-      case _ => null
+      List[Any](idx, time, value, sign.id)
     }
   }
 }

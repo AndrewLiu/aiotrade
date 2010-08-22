@@ -155,7 +155,7 @@ object SymbolNodes {
     log.info("Start initing symbol nodes")
     initSymbolNode(RootSymbolsNode)
     isInited = true
-    log.info("Finished initing symbol nodes in " + (System.currentTimeMillis - start) + " ms")
+    log.info("Finished initing symbol nodes in " + ((System.currentTimeMillis - start) / 1000 )+ " s")
   }
 
   private def initSymbolNode(node: Node) {

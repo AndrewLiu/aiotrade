@@ -30,44 +30,31 @@
  */
 package org.aiotrade.lib.indicator.basic.signal
 
+
 import org.aiotrade.lib.indicator.SignalIndicator
-import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.signal.Signal
+import org.aiotrade.lib.math.timeseries.TSerEvent
 
 /**
- *
  * @author Caoyuan Deng
  */
-class MACDSignal extends SignalIndicator {
-  sname = "MACD Signal"
-  lname = "Moving Average Convergence/Divergence Signal"
+class SubscribedSingal extends SignalIndicator {
+  sname = "Subscribed Signal"
+  lname = "Subscribed Signal"
 
-  val periodFast   = Factor("Period EMA Fast", 12.0)
-  val periodSlow   = Factor("Period EMA Slow", 26.0)
-  val periodSignal = Factor("Period Signal",    9.0)
+  isOverlapping = true
 
-  val _macd   = TVar[Double]()
-  val _signal = TVar[Double]()
-  val _osc    = TVar[Double]()
-
-
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
-    while (i < size) {
-      _macd(i) = macd(i, C, periodSlow, periodFast)
-      _signal(i) = ema(i, _macd, periodSignal)
-      _osc(i) = _macd(i) - _signal(i)
-
-      if (crossOver(i, _macd, _signal)) {
-        signal(i, Sign.EnterLong)
+  def addSignal(signal: Signal) {
+    val time = signal.time
+    if (exists(time)) {
+      signalVar(time) = signalVar(time) match {
+        case null => List(signal)
+        case xs => signal :: xs
       }
-
-      if (crossUnder(i, _macd, _signal)) {
-        signal(i, Sign.ExitLong)
-      }
-
-      i += 1
     }
+
+    publish(TSerEvent.FinishedComputing(this, null, time, time, null, null))
   }
 
+  protected def computeCont(fromIdx: Int, size: Int) {}
 }
-

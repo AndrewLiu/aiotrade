@@ -76,10 +76,8 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
 
   instance = Some(this)
 
-
   private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.windows.Bundle")
 
-  /** holds currently scheduled/running task for set of activated node */
   private val tc_id = "ExplorerTopComponent"
   
   private var nodeSetterTask: RequestProcessor#Task = _
@@ -144,6 +142,9 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
             addSymbolsFromDB(handle)
           }
         }, handle, false)
+    } else {
+      // @Note do not call initSymbolNodes before isSymbolNodesAdded
+      scala.actors.Actor.actor {SymbolNodes.initSymbolNodes}
     }
   }
 

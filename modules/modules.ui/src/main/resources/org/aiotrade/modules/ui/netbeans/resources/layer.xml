@@ -193,6 +193,7 @@
     <folder name="Windows2">
         <folder name="Components">
             <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
+            <file name="SignalTopComponent.settings" url="SignalTopComponent.xml"/>
         </folder>
         <folder name="Modes">
             <!-- It's better to always use 'editor' mode as the top one, otherwise, it's difficult to arrange editor type mode -->
@@ -200,8 +201,12 @@
             <file name="editor.wsmode" url="editor.wsmode"/>
             <file name="info.wsmode" url="info.wsmode"/>
             <file name="realTimeBoard.wsmode" url="realTimeBoard.wsmode"/>
+            <file name="signal.wsmode" url="signal.wsmode"/>
             <folder name="explorer">
                 <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
+            </folder>
+            <folder name="signal">
+                <file name="SignalTopComponent.wstcref" url="SignalTopComponent_1.xml"/>
             </folder>
         </folder>
     </folder>
@@ -366,9 +371,13 @@
         <!--file name="ZIGZAGFA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGFAIndicator"/>
         </file-->
+        <file name="SUBEDSignal.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.SubscribedSingal"/>
+        </file>
         <file name="MACDSignal.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.MACDSignal"/>
         </file>
+
     </folder>
 
     <folder name="QuickSearch">

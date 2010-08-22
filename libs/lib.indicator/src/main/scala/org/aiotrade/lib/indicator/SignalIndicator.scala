@@ -81,10 +81,12 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     }
 
     val x = Signal(idx, time, value, sign, text, color)
+    
     signalVar(idx) = signalVar(idx) match {
       case null => List(x)
       case xs => x :: xs
     }
+    
     x
   }
 
