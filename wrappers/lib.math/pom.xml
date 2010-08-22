@@ -67,10 +67,10 @@
                     <publicPackages>
                         <publicPackage>org.aiotrade.lib.math</publicPackage>
                         <publicPackage>org.aiotrade.lib.math.indicator</publicPackage>
+                        <publicPackage>org.aiotrade.lib.math.signal</publicPackage>
                         <publicPackage>org.aiotrade.lib.math.timeseries</publicPackage>
                         <publicPackage>org.aiotrade.lib.math.timeseries.datasource</publicPackage>
                         <publicPackage>org.aiotrade.lib.math.timeseries.descriptor</publicPackage>
-                        <publicPackage>org.aiotrade.lib.math.util</publicPackage>
                         <publicPackage>org.aiotrade.lib.math.vector</publicPackage>
                     </publicPackages>
                 </configuration>

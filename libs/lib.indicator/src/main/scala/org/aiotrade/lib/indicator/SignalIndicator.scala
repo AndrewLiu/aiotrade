@@ -31,24 +31,62 @@
 package org.aiotrade.lib.indicator
 
 import java.awt.Color
+import java.util.logging.Logger
+import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.signal.Signal
+import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.Null
-import org.aiotrade.lib.math.util.Sign
-import org.aiotrade.lib.math.util.Signal
 
 /**
  * Abstract Signal Indicator
  *
  * @author Caoyuan Deng
  */
-abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
-    
+abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) with org.aiotrade.lib.math.indicator.SignalIndicator {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   isOverlapping = true
 
   //val signalVar = new SparseTVar[Signal]("Signal", Plot.Signal)
   val signalVar = TVar[List[Signal]]("Signal", Plot.Signal)
     
   def this() = this(null)
+
+  protected def mark(idx: Int, sign: Sign): Signal = {
+    mark(idx, sign, null, null)
+  }
+
+  protected def mark(idx: Int, sign: Sign, color: Color): Signal = {
+    mark(idx, sign, null, color)
+  }
+
+  protected def mark(idx: Int, sign: Sign, text: String): Signal = {
+    mark(idx, sign, text, null)
+  }
+
+  protected def mark(idx: Int, sign: Sign, text: String, color: Color): Signal = {
+    // remove possible duplicte signals
+    removeMarks(idx, sign, text, color)
+    
+    val time = baseSer.timestamps(idx)
+        
+    // appoint a value for this sign as the drawing position
+    val value = sign match {
+      case Sign.EnterLong  => L(idx)
+      case Sign.ExitLong   => H(idx)
+      case Sign.EnterShort => H(idx)
+      case Sign.ExitShort  => L(idx)
+      case _ => Null.Double
+    }
+
+    val x = Signal(idx, time, value, sign, text, color)
+    signalVar(idx) = signalVar(idx) match {
+      case null => List(x)
+      case xs => x :: xs
+    }
+    x
+  }
 
   protected def signal(idx: Int, sign: Sign): Signal = {
     signal(idx, sign, null, null)
@@ -63,45 +101,29 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
   }
 
   protected def signal(idx: Int, sign: Sign, text: String, color: Color): Signal = {
-    // remove posible duplicte signals
-    removeSignals(idx, sign, text, color)
-    
-    val time = baseSer.timestamps(idx)
-        
-    // appoint a value for this sign as the drawing position
-    val value = sign match {
-      case Sign.EnterLong  => L(idx)
-      case Sign.ExitLong   => H(idx)
-      case Sign.EnterShort => H(idx)
-      case Sign.ExitShort  => L(idx)
-      case _ => Null.Double
-    }
-
-    val signal = Signal(idx, time, value, sign, text, color)
-    signalVar(idx) = signalVar(idx) match {
-      case null => List(signal)
-      case xs => signal :: xs
-    }
-    signal
+    val x = mark(idx, sign, text, color)
+    log.info("Signal: " + x)
+    Signal.publish(SignalEvent(this, x))
+    x
   }
 
-  protected def removeSignals(idx: Int) {
+  protected def removeMarks(idx: Int) {
     signalVar(idx) = null
   }
     
-  protected def removeSignals(idx: Int, sign: Sign) {
-    removeSignals(idx, sign, null, null)
+  protected def removeMarks(idx: Int, sign: Sign) {
+    removeMarks(idx, sign, null, null)
   }
 
-  protected def removeSignals(idx: Int, sign: Sign, text: String) {
-    removeSignals(idx, sign, text, null)
+  protected def removeMarks(idx: Int, sign: Sign, text: String) {
+    removeMarks(idx, sign, text, null)
   }
 
-  protected def removeSignals(idx: Int, sign: Sign, color: Color) {
-    removeSignals(idx, sign, null, color)
+  protected def removeMarks(idx: Int, sign: Sign, color: Color) {
+    removeMarks(idx, sign, null, color)
   }
 
-  protected def removeSignals(idx: Int, sign: Sign, text: String, color: Color) {
+  protected def removeMarks(idx: Int, sign: Sign, text: String, color: Color) {
     signalVar(idx) match {
       case null =>
       case xs => signalVar(idx) = xs filterNot (x=> x.sign == sign && x.text == text && x.color == color)

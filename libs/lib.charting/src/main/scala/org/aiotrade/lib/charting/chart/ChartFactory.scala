@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.util.Signal
+import org.aiotrade.lib.math.signal.Signal
 
 
 /**

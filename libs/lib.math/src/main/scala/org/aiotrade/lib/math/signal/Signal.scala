@@ -28,9 +28,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.util
+package org.aiotrade.lib.math.signal
 
-import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import java.awt.Color
@@ -39,7 +39,7 @@ import java.awt.Color
  *
  * @author Caoyuan Deng
  */
-case class SignalEvent(source: SerProvider, signal: Signal) extends Event
+case class SignalEvent(ser: SignalIndicator, signal: Signal) extends Event
 
 object Signal extends Publisher
 

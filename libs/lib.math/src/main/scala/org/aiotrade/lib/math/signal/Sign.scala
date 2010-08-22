@@ -28,21 +28,25 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.util
+package org.aiotrade.lib.math.signal
 
 /**
  *
  * @author Caoyuan Deng
  */
-abstract class Sign
+abstract class Sign(val id: Byte)
 object Sign {
-  case object EnterLong  extends Sign
-  case object ExitLong   extends Sign
-  case object EnterShort extends Sign
-  case object ExitShort  extends Sign
+  case object EnterLong  extends Sign(1)
+  case object ExitLong   extends Sign(2)
+  case object EnterShort extends Sign(3)
+  case object ExitShort  extends Sign(4)
+
+  def withId(id: Byte) = id match {
+    case 1 => EnterLong
+    case 2 => ExitLong
+    case 3 => EnterShort
+    case 4 => ExitShort
+  }
 }
-
-
-
 
 
