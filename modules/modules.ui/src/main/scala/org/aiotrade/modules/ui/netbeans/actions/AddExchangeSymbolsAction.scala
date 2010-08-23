@@ -38,6 +38,7 @@ import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.openide.loaders.DataFolder
 import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 
 /**
@@ -87,7 +88,9 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Add Exchange Symbols"
+    //"Add Exchange Symbols"
+    val name = NbBundle.getMessage(this.getClass,"CTL_AddExchangeSymbolsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

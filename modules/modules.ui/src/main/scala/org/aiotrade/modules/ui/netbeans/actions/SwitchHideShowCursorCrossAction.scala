@@ -32,6 +32,7 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -72,7 +73,9 @@ class SwitchHideShowCursorCrossAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Hide/Show Cross Cursor"
+    //"Hide/Show Cross Cursor"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchHideShowCursorCrossAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

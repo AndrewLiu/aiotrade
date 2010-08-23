@@ -33,6 +33,7 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -54,7 +55,9 @@ class SwitchLinearLogScaleAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Linear/Log"
+    //"Linear/Log"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchLinearLogScaleAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

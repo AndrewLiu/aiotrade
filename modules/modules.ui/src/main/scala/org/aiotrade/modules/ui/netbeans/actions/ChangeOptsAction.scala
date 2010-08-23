@@ -35,6 +35,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.util.swing.action.EditAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -84,7 +85,9 @@ class ChangeOptsAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Change Current Indicator's Options"
+    //"Change Current Indicator's Options"
+    val name = NbBundle.getMessage(this.getClass,"CTL_ChangeOptsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

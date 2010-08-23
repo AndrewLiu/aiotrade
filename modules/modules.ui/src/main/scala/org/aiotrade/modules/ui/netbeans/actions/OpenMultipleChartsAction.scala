@@ -35,6 +35,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent
 import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 
 /**
@@ -66,7 +67,9 @@ class OpenMultipleChartsAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Open Multiple Charts"
+    //"Open Multiple Charts"
+    val name = NbBundle.getMessage(this.getClass,"CTL_OpenMultipleChartsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

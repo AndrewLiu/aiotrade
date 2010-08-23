@@ -37,6 +37,7 @@ import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent;
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -74,7 +75,9 @@ class PickIndicatorAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Pick Indicator"
+    //"Pick Indicator"
+    val name = NbBundle.getMessage(this.getClass,"CTL_PickIndicatorAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

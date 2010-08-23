@@ -36,6 +36,7 @@ import org.aiotrade.modules.ui.dialog.SaveToImageDialog;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.ErrorManager;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -135,7 +136,9 @@ class SaveToImageAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Save to Image"
+    //"Save to Image"
+    val name = NbBundle.getMessage(this.getClass,"CTL_AddExchangeSymbolsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

@@ -43,6 +43,7 @@ import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -82,7 +83,9 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Hide or Show Drawing Line"
+    //"Hide or Show Drawing Line"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchHideShowDrawingLineAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {
@@ -100,10 +103,11 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
   override def getToolbarPresenter: Component = {
     val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/hideDrawingLine.gif");
     val icon = new ImageIcon(iconImage);
-        
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchHideShowDrawingLineAction")
+
     toggleButton = new JToggleButton();
     toggleButton.setIcon(icon);
-    toggleButton.setToolTipText("Show Drawing");
+    toggleButton.setToolTipText(name);
         
     toggleButton.addItemListener(new ItemListener() {
         def itemStateChanged(e: ItemEvent) {

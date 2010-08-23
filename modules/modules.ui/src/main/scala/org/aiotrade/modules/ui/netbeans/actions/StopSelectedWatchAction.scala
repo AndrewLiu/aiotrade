@@ -33,6 +33,7 @@ import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes.SymbolStopWatchAction
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeWatchListTopComponent;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -60,7 +61,9 @@ class StopSelectedWatchAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Stop Selected Watch"
+    //"Stop Selected Watch"
+    val name = NbBundle.getMessage(this.getClass,"CTL_StopSelectedWatchAction")
+    name
   }
     
     

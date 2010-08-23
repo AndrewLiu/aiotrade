@@ -34,6 +34,7 @@ import org.aiotrade.lib.view.securities.AnalysisChartView
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -62,7 +63,9 @@ class RemoveCompareQuoteChartsAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    return "Remove Comparing Chart";
+    // "Remove Comparing Chart";
+    val name = NbBundle.getMessage(this.getClass,"CTL_RemoveCompareQuoteChartsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

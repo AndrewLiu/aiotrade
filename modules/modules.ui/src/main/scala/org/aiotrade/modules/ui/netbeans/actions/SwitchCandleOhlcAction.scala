@@ -36,6 +36,7 @@ import org.aiotrade.lib.view.securities.RealTimeChartView
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -74,7 +75,9 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Candle/Bar/Line"
+    //"Candle/Bar/Line"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchCandleOhlcAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

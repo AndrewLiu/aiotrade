@@ -35,6 +35,7 @@ import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeBoardTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent
 import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 import org.openide.windows.WindowManager
 
@@ -66,7 +67,9 @@ class ZoomOutAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Zoom Out"
+    //"Zoom Out"
+    val name = NbBundle.getMessage(this.getClass,"CTL_ZoomOutAction")
+    name
   }
     
     

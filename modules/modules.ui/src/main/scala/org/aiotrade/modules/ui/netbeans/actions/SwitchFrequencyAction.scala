@@ -49,6 +49,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -94,7 +95,9 @@ class SwitchFrequencyAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    return "Switch Frequency";
+    //"Switch Frequency"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchFrequencyAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {
@@ -108,6 +111,7 @@ class SwitchFrequencyAction extends CallableSystemAction {
   override def getToolbarPresenter: Component = {
     val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/dropdown.png");
     val icon = new ImageIcon(iconImage);
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchFrequencyAction")
         
     toggleButton = new JToggleButton
         
@@ -116,7 +120,7 @@ class SwitchFrequencyAction extends CallableSystemAction {
     toggleButton.setHorizontalTextPosition(SwingConstants.LEFT);
     toggleButton.setText("1d");
     toggleButton.setIcon(icon);
-    toggleButton.setToolTipText("Switch Frequency")
+    toggleButton.setToolTipText(name)
         
     popup = new JPopupMenu
     menuItemListener = new MenuItemListener

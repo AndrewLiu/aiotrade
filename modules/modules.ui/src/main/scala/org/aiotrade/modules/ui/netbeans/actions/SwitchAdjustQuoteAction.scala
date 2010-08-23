@@ -41,6 +41,7 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -97,9 +98,10 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
     val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/switchAdjust.png")
     val icon = new ImageIcon(iconImage)
         
+    val adjustquote = NbBundle.getMessage(this.getClass,"CTL_SwitchAdjustQuoteAction")
     toggleButton = new JToggleButton
     toggleButton.setIcon(icon)
-    toggleButton.setToolTipText("Adjust Quote")
+    toggleButton.setToolTipText(adjustquote)
         
     toggleButton.addItemListener(new ItemListener {
         def itemStateChanged(e: ItemEvent) {

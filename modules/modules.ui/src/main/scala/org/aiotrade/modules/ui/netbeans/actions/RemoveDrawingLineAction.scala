@@ -33,6 +33,7 @@ package org.aiotrade.modules.ui.netbeans.actions;
 import org.aiotrade.lib.charting.view.WithDrawingPane;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -56,7 +57,9 @@ class RemoveDrawingLineAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Remove Line"
+    //"Remove Line"
+    val name = NbBundle.getMessage(this.getClass,"CTL_RemoveDrawingLineAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

@@ -40,6 +40,7 @@ import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -96,10 +97,11 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
   override def getToolbarPresenter: Component = {
     val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/naturalTrading.gif");
     val icon = new ImageIcon(iconImage);
-        
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchCalendarTradingTimeViewAction")
+
     toggleButton = new JToggleButton();
     toggleButton.setIcon(icon);
-    toggleButton.setToolTipText("Calendar/Trading date View");
+    toggleButton.setToolTipText(name);
         
     toggleButton.addItemListener(new ItemListener() {
         def itemStateChanged(e: ItemEvent) {

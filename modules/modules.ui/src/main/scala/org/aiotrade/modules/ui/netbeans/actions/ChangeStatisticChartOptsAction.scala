@@ -38,6 +38,7 @@ import org.aiotrade.lib.indicator.ProbMassIndicator
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -94,7 +95,9 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    return "Change Statistic Chart's Options";
+    //"Change Statistic Chart's Options";
+    val name = NbBundle.getMessage(this.getClass,"CTL_ChangeStatisticChartOptsAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

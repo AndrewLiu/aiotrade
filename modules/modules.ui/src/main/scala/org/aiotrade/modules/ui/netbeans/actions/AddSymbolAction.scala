@@ -38,6 +38,7 @@ import org.aiotrade.modules.ui.netbeans.windows.ExplorerTopComponent
 import org.aiotrade.modules.ui.dialog.ImportSymbolDialog
 import org.openide.loaders.DataFolder
 import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 import org.openide.windows.WindowManager
 
@@ -100,7 +101,9 @@ class AddSymbolAction extends CallableSystemAction {
   }
     
   def getName = {
-    Bundle.getString("AC_add_symbol")
+    //"Add Symbol"
+    val name = NbBundle.getMessage(this.getClass,"CTL_AddSymbolAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

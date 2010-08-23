@@ -40,6 +40,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -67,7 +68,9 @@ class AdjustYfactorAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Adjust Scale Factor"
+    //"Adjust Scale Factor";
+    val name = NbBundle.getMessage(this.getClass,"CTL_AdjustYfactorAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {
@@ -83,6 +86,9 @@ class AdjustYfactorAction extends CallableSystemAction {
   }
     
   override def getToolbarPresenter: Component = {
+
+    val name = NbBundle.getMessage(this.getClass,"CTL_AdjustYfactorAction")
+    name
         
     yslider = new JSlider(SwingConstants.VERTICAL);
     yslider.setPaintTrack(true);
@@ -90,7 +96,7 @@ class AdjustYfactorAction extends CallableSystemAction {
     yslider.setMinimum(10);  // 0.1 multiple
     yslider.setMaximum(100); // 1.0 multiple
     yslider.setValue(100);
-    yslider.setToolTipText("Adjust Scale Factor");
+    yslider.setToolTipText(name);
         
     yslider.setMajorTickSpacing(90);
     yslider.setPaintTicks(true);

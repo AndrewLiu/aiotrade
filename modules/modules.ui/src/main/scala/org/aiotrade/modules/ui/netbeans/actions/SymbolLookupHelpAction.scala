@@ -34,6 +34,7 @@ import java.net.URL;
 import org.openide.ErrorManager;
 import org.openide.awt.HtmlBrowser.URLDisplayer;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -57,7 +58,9 @@ class SymbolLookupHelpAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Yahoo! Symbol Lookup"
+    //"Yahoo! Symbol Lookup"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SymbolLookupHelpAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

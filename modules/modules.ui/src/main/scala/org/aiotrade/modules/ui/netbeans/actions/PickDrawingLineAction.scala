@@ -50,6 +50,7 @@ import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -61,7 +62,10 @@ object PickDrawingLineAction {
 
   private val handledCharts = PersistenceManager().lookupAllRegisteredServices(classOf[HandledChart], "HandledCharts")
   private val toolbarPresenter: JToggleButton = createToolbarPresenter
-
+  val name = NbBundle.getMessage(this.getClass,"CTL_PickDrawingLineAction")
+  val pleaseaddalayer = NbBundle.getMessage(this.getClass,"Please_add_a_layer_before_pick_drawing_line")
+  val pickline = NbBundle.getMessage(this.getClass,"Pick_Drawing_Line")
+  
   private def createToolbarPresenter: JToggleButton = {
     val menuItemListener: MyMenuItemListener = new MyMenuItemListener
 
@@ -70,7 +74,8 @@ object PickDrawingLineAction {
 
     val toggleButton = new JToggleButton
     toggleButton.setIcon(icon)
-    toggleButton.setToolTipText("Pick Drawing Line")
+/*     toggleButton.setToolTipText("Pick Drawing Line") */
+    toggleButton.setToolTipText(name)
 
     val popupMenu = new JPopupMenu
     popupMenu.setSelectionModel(new DefaultSingleSelectionModel)
@@ -132,9 +137,9 @@ object PickDrawingLineAction {
       val drawingPane = masterView.asInstanceOf[WithDrawingPane].selectedDrawing
       if (drawingPane == null) {
         JOptionPane.showMessageDialog(
-          WindowManager.getDefault.getMainWindow,
-          "Please add a layer before pick drawing line",
-          "Pick drawing line",
+          WindowManager.getDefault.getMainWindow,pleaseaddalayer,pickline,
+//          "Please add a layer before pick drawing line",
+//          "Pick drawing line",
           JOptionPane.OK_OPTION,
           null
         )
@@ -181,7 +186,8 @@ class PickDrawingLineAction extends CallableSystemAction {
   }
 
   def getName: String = {
-    "Pick Drawing Line"
+//    "Pick Drawing Line"
+    name
   }
 
   def getHelpCtx: HelpCtx = {

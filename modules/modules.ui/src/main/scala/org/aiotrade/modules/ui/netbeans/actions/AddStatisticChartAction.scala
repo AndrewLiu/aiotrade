@@ -36,6 +36,7 @@ import org.aiotrade.lib.indicator.ProbMassIndicator
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
 
@@ -106,7 +107,9 @@ class AddStatisticChartAction extends CallableSystemAction {
   }
     
   def getName = {
-    "Add Statistic Chart"
+    //"Add Statistic Chart"
+    val name = NbBundle.getMessage(this.getClass,"CTL_AddStatisticChartAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

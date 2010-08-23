@@ -34,6 +34,7 @@ import java.net.URL;
 import org.openide.ErrorManager;
 import org.openide.awt.HtmlBrowser.URLDisplayer;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
 
 /**
@@ -57,7 +58,9 @@ class OnlineHelpAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Online Help"
+    //"Online Help"
+    val name = NbBundle.getMessage(this.getClass,"CTL_OnlineHelpAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {

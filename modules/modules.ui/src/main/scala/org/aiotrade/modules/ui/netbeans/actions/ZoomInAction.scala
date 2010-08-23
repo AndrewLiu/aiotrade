@@ -35,6 +35,7 @@ import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeBoardTopComponent
 import org.aiotrade.modules.ui.netbeans.windows.RealTimeChartsTopComponent
 import org.openide.util.HelpCtx
+import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 import org.openide.windows.WindowManager
 
@@ -67,7 +68,9 @@ class ZoomInAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Zoom In"
+    //"Zoom In"
+    val name = NbBundle.getMessage(this.getClass,"CTL_ZoomInAction")
+    name
   }
     
   def getHelpCtx: HelpCtx = {
