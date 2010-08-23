@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
+import java.util.ResourceBundle
 import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 
@@ -55,7 +56,10 @@ class PeriodsHandledChart extends AbstractHandledChart {
   }
     
   override def toString = {
-    "Periods"
+    //"Periods"
+    val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.charting.chart.handledchart.Bundle")
+    val name = Bundle.getString("periods")
+    name
   }
     
 }

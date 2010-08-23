@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
+import java.util.ResourceBundle
 import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 
@@ -56,7 +57,10 @@ class FibonacciFanLinesHandledChart extends AbstractHandledChart {
   }
     
   override def toString = {
-    "Fibonacci Fan Lines"
+    //"Fibonacci Fan Lines"
+    val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.charting.chart.handledchart.Bundle")
+    val name = Bundle.getString("fibonacci_fan_lines")
+    name
   }
     
 }

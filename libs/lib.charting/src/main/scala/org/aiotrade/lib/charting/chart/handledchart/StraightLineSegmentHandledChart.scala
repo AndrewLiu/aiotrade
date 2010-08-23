@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
+import java.util.ResourceBundle
 import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayBuffer
@@ -53,7 +54,10 @@ class StraightLineSegmentHandledChart extends AbstractHandledChart {
   }
     
   override def toString = {
-    "Line Segment"
+    //"Line Segment"
+    val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.charting.chart.handledchart.Bundle")
+    val name = Bundle.getString("line_segment")
+    name
   }
     
 }

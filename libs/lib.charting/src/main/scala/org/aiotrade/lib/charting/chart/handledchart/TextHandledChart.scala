@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
+import java.util.ResourceBundle
 import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 
@@ -54,7 +55,10 @@ class TextHandledChart extends AbstractHandledChart {
   }
     
   override def toString = {
-    "Text"
+    //"Text"
+    val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.charting.chart.handledchart.Bundle")
+    val name = Bundle.getString("text")
+    name
   }
     
 }

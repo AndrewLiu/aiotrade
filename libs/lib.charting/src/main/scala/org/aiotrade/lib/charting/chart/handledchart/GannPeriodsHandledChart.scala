@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart.handledchart
 
+import java.util.ResourceBundle
 import org.aiotrade.lib.charting.chart.segment.Handle
 import scala.collection.mutable.ArrayBuffer
 
@@ -52,7 +53,10 @@ class GannPeriodsHandledChart extends AbstractHandledChart {
   }
     
   override def toString = {
-    "Gann's Periods"
+    //"Gann's Periods"
+    val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.charting.chart.handledchart.Bundle")
+    val name = Bundle.getString("ganns_periods")
+    name
   }
     
 }
