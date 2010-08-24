@@ -65,20 +65,10 @@ object InfoSer {
     ser ++= values.toArray
     println(ser)
 
+    println("ser.newses.values=" + ser.newses.values)
+
   }
 
-  case class TestInfoContent(title: String, publishTime: Long, weight: Float, link: String) extends InfoContent{
-
-    def exportToMap: Map[String, String] = {
-      val map = Map[String, String]()
-      if(title != null ) map += ("title" -> title)
-      map += ("publishTime" -> publishTime.toString)
-      
-      map
-    }
-
-    def exportToJavaMap: java.util.Map[String, String] = exportToMap
-  }
 }
 
 class InfoSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {

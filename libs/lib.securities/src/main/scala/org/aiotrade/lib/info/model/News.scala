@@ -28,9 +28,6 @@ class News extends TVal with Flag {
   def newses = _newses
 
   def += [News](value: org.aiotrade.lib.info.model.News){
-    println("value:" + value)
-    println("value.generalInfo:" + value.generalInfo)
-    println("value.generalInfo.publishTime:" + value.generalInfo.publishTime)
     assert(value.generalInfo.publishTime == this.time,
            value + " is appended to a different TVal with time=" + this.time)
 
@@ -45,9 +42,6 @@ class News extends TVal with Flag {
   }
 
   override def toString: String = {
-    println("title:" + this.generalInfo.title)
-    println("publishTime:" + this.generalInfo.publishTime)
-    println("author:" + this.author)
     this.generalInfo.title + "|" + this.generalInfo.publishTime + "|" + this.author
   }
 }
