@@ -161,10 +161,11 @@ class Sec extends SerProvider with Publisher {
 
   // --- end of database fields
 
-  type C = QuoteContract
   type T = QuoteSer
+  type C = QuoteContract
 
-  val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
+  private var _realtimeSer: QuoteSer = _
+  private val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
@@ -204,10 +205,12 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-  lazy val realtimeSer = {
-    val x = new QuoteSer(this, TFreq.ONE_MIN)
-    freqToQuoteSer.put(TFreq.ONE_SEC, x)
-    x
+  def realtimeSer = {
+    if (_realtimeSer == null) {
+      _realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
+      freqToQuoteSer.put(TFreq.ONE_SEC, _realtimeSer)
+    }
+    _realtimeSer
   }
 
   /** tickerContract will always be built according to quoteContrat ? */
@@ -330,11 +333,9 @@ class Sec extends SerProvider with Publisher {
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to varies maps.
    */
-  def loadSer(freq: TFreq): Boolean = synchronized {
-    val ser = serOf(freq) getOrElse (return false)
-
+  def loadSer(ser: QuoteSer): Boolean = synchronized {
     // load from persistence
-    val wantTime = loadSerFromPersistence(freq)
+    val wantTime = loadSerFromPersistence(ser)
 
     // try to load from quote server
     loadFromQuoteServer(ser, wantTime)
@@ -342,30 +343,32 @@ class Sec extends SerProvider with Publisher {
     true
   }
 
-  def loadRealtimeSer {
-    loadSer(TFreq.ONE_SEC)
+  def clearSer(ser: QuoteSer) {
+    ser.clear(0)
+    ser.isLoaded = false
   }
 
   /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  private def loadSerFromPersistence(freq: TFreq): Long = {
-    val quotes = freq match {
-      case TFreq.ONE_SEC => // realtime ser
-        val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {
-          case Some(x) => x
-          case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
-        }
-        log.info("Loading realtime ser from persistence of " + {
-            val cal = Calendar.getInstance(exchange.timeZone); cal.setTimeInMillis(dailyRoundedTime); cal.getTime
-          })
-        Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
-      case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
-      case TFreq.DAILY   => Quotes1d.quotesOf(this)
-      case _ => return 0L
+  private def loadSerFromPersistence(ser: QuoteSer): Long = {
+    val quotes = if (ser eq realtimeSer) {
+      val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {
+        case Some(x) => x
+        case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
+      }
+      log.info("Loading realtime ser from persistence of " + {
+          val cal = Calendar.getInstance(exchange.timeZone); cal.setTimeInMillis(dailyRoundedTime); cal.getTime
+        })
+      Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
+    } else {
+      ser.freq match {
+        case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
+        case TFreq.DAILY   => Quotes1d.quotesOf(this)
+        case _ => return 0L
+      }
     }
 
-    val ser = serOf(freq).get
     ser ++= quotes.toArray
 
     val uniSymbol = secInfo.uniSymbol
@@ -395,14 +398,14 @@ class Sec extends SerProvider with Publisher {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + quotes.length +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + quotes.length +
                ", loaded: time=" + last.time + ", ser size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
       
       wantTime
     } else {
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
                + ", will try to load from data source from beginning")
       0L
     }
@@ -411,14 +414,13 @@ class Sec extends SerProvider with Publisher {
   /**
    * All values in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  def loadMoneyFlowSerFromPersistence(freq: TFreq): Long = {
-    val mfs = freq match {
+  def loadMoneyFlowSerFromPersistence(ser: MoneyFlowSer): Long = {
+    val mfs = ser.freq match {
       case TFreq.DAILY   => MoneyFlows1d.closedMoneyFlowOf(this)
       case TFreq.ONE_MIN => MoneyFlows1m.closedMoneyFlowOf(this)
       case _ => return 0L
     }
 
-    val ser = moneyFlowSerOf(freq).get
     ser ++= mfs.toArray
     
     /**
@@ -447,8 +449,8 @@ class Sec extends SerProvider with Publisher {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + mfs.length +
-               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + mfs.length +
+               ", loaded: time=" + last.time + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
 
@@ -456,14 +458,13 @@ class Sec extends SerProvider with Publisher {
     } else 0L
   }
 
-  def loadInfoSerFromPersistence(freq: TFreq): Long = {
-    val infos = freq match {
+  def loadInfoSerFromPersistence(ser: InfoSer): Long = {
+    val infos = ser.freq match {
       case TFreq.DAILY   => Infos1d.all()
       case TFreq.ONE_MIN => Infos1m.all()
       case _ => return 0L
     }
 
-    val ser = infoSerOf(freq).get
     ser ++= infos.toArray
 
     /**
@@ -492,8 +493,8 @@ class Sec extends SerProvider with Publisher {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + freq + "): loaded from persistence, got quotes=" + infos.length +
-               ", loaded: time=" + last.time + ", freq=" + ser.freq + ", size=" + ser.size +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + infos.length +
+               ", loaded: time=" + last.time + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
 
@@ -509,8 +510,7 @@ class Sec extends SerProvider with Publisher {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(quoteServer) =>
-            contract.freq = freq
-            contract.ser = ser
+            contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
             quoteServer.subscribe(contract)
 
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
@@ -519,18 +519,18 @@ class Sec extends SerProvider with Publisher {
               case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
                 reactions -= reaction
                 deafTo(ser)
-                ser.loaded = true
+                ser.isLoaded = true
             }
             reactions += reaction
             listenTo(ser)
 
-            ser.inLoading = true
+            ser.isInLoading = true
             quoteServer.loadHistory(fromTime)
 
-          case _ => ser.loaded = true
+          case _ => ser.isLoaded = true
         }
 
-      case _ => ser.loaded = true
+      case _ => ser.isLoaded = true
     }
   }
 
@@ -552,14 +552,6 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-  def isSerLoaded(freq: TFreq): Boolean = {
-    freqToQuoteSer.get(freq) map (_.loaded) getOrElse false
-  }
-
-  def isSerInLoading(freq: TFreq): Boolean = {
-    freqToQuoteSer.get(freq) map (_.inLoading) getOrElse false
-  }
-
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else ""
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {
@@ -573,13 +565,6 @@ class Sec extends SerProvider with Publisher {
          server <- contract.serviceInstance()
     ) {
       server.stopRefresh
-    }
-  }
-
-  def clearSer(freq: TFreq) {
-    serOf(freq) foreach {ser =>
-      ser.clear(0)
-      ser.loaded = false
     }
   }
 
@@ -614,10 +599,6 @@ class Sec extends SerProvider with Publisher {
       }
 
       if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-        // Only dailySer and minuteSer needs to chainly follow ticker change.
-        val chainSers = List(serOf(TFreq.DAILY).get, serOf(TFreq.ONE_MIN).get)
-        tickerContract.ser = realtimeSer
-        tickerContract.chainSers = chainSers
         tickerServer.subscribe(tickerContract)
       }
 

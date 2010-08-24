@@ -291,12 +291,13 @@ class Util {
       mayNeedsReload = true
     }
 
+    val ser = sec.serOf(freq).get
     if (mayNeedsReload) {
-      sec.clearSer(freq)
+      sec.clearSer(ser)
     }
 
-    if (!sec.isSerLoaded(freq) && !sec.isSerInLoading(freq)) {
-      sec.loadSer(freq)
+    if (!ser.isLoaded && !ser.isInLoading) {
+      sec.loadSer(ser)
     }
 		
   }
@@ -319,6 +320,7 @@ class Util {
 
     var title = atitle
 
+    if (!ser.isLoaded) contents.serProvider.asInstanceOf[Sec].loadSer(ser)
     val controller = ChartingController(ser, contents)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent)
 

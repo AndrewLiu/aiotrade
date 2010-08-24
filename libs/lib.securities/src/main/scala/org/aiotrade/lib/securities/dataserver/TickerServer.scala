@@ -181,9 +181,15 @@ abstract class TickerServer extends DataServer[Ticker] {
         val contract = subscribedSrcSymbols.get(symbol).get
 
         val rtSer = sec.realtimeSer
-        symbolToTickerInfo.get(symbol) match {
-          case Some(x) => x.lastTicker = ticker
-          case None => symbolToTickerInfo.put(symbol, new TickerInfo(ticker, rtSer))
+        val tickerInfo = symbolToTickerInfo.get(symbol) match {
+          case Some(x) =>
+            x.lastTicker = ticker
+            x.updatedSers = Nil
+            x
+          case None =>
+            val x = new TickerInfo(ticker)
+            symbolToTickerInfo.put(symbol, x)
+            x
         }
 
         val dayQuote = sec.dailyQuoteOf(ticker.time)
@@ -284,9 +290,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         }
 
 
-        // update realtime quoteSer from minuteQuote
-        rtSer.updateFrom(minQuote)
-
         if (execution != null) {
           val prevPrice = if (dayFirst) ticker.prevClose else prevTicker.lastPrice
           val prevDepth = if (dayFirst) MarketDepth.Empty else MarketDepth(prevTicker.bidAsks, copy = true)
@@ -304,17 +307,26 @@ abstract class TickerServer extends DataServer[Ticker] {
           updateDailyQuoteByTicker(dayQuote, ticker)
 
           // update chainSers
-          for (ser <- contract.chainSers) {
-            ser.freq match {
-              case TFreq.DAILY   => ser.updateFrom(dayQuote)
-              case TFreq.ONE_MIN => ser.updateFrom(minQuote)
-              case _ =>
-            }
+          // 
+          if (rtSer.isLoaded) {
+            rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
+            tickerInfo.updatedSers ::= rtSer
+          }
+          sec.serOf(TFreq.DAILY) match {
+            case Some(x) if x.isLoaded =>
+              x.updateFrom(dayQuote)
+              tickerInfo.updatedSers ::= x
+            case _ =>
+          }
+          sec.serOf(TFreq.ONE_MIN) match {
+            case Some(x) if x.isLoaded =>
+              x.updateFrom(minQuote)
+              tickerInfo.updatedSers ::= x
+            case _ =>
           }
 
           exchangeToLastTime.put(exchange, ticker.time)
         }
-
       }
 
       i += 1
@@ -334,7 +346,15 @@ abstract class TickerServer extends DataServer[Ticker] {
      if (ticker != null && ticker.dayHigh != 0 && ticker.dayLow != 0) {
      val dayQuote = sec.dailyQuoteOf(ticker.time)
      updateDailyQuote(dayQuote, ticker)
-     chainSersOf(tickerSer) find (_.freq == TFreq.DAILY) foreach (_.updateFrom(dayQuote))
+     // update chainSers
+     sec.serOf(TFreq.DAILY) match {
+     case Some(x) if x.loaded => x.updateFrom(dayQuote)
+     case _ =>
+     }
+     sec.serOf(TFreq.ONE_MIN) match {
+     case Some(x) if x.loaded => x.updateFrom(minQuote)
+     case _ =>
+     }
      }
      }
      } */
@@ -394,9 +414,10 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickerServer.publish(TickersEvent(tickers.asInstanceOf[Array[LightTicker]]))
     }
 
-    for ((symbol, tickerInfo) <- symbolToTickerInfo) yield {
-      TSerEvent.ToBeSet(tickerInfo.minSer, symbol, tickerInfo.frTime, tickerInfo.toTime, tickerInfo.lastTicker)
-    }
+    for ((symbol, tickerInfo) <- symbolToTickerInfo;
+         updatedSer <- tickerInfo.updatedSers
+    ) yield TSerEvent.ToBeSet(updatedSer, symbol, tickerInfo.frTime, tickerInfo.toTime, tickerInfo.lastTicker)
+    
   }
 
   protected def processSnapDepths(snapDepths: Array[SnapDepth]) = ()
@@ -413,9 +434,11 @@ abstract class TickerServer extends DataServer[Ticker] {
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol
 
-  final class TickerInfo(_lastTicker: Ticker, var minSer: QuoteSer) {
+  final class TickerInfo(_lastTicker: Ticker) {
     var frTime: Long = _lastTicker.time
     var toTime: Long = _lastTicker.time
+
+    var updatedSers: List[QuoteSer] = Nil
 
     def lastTicker = _lastTicker
     def lastTicker_=(ticker: Ticker) {

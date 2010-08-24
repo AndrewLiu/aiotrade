@@ -63,9 +63,8 @@ abstract class QuoteServer extends DataServer[Quote] {
     var frTime = loadedTime
     var toTime = loadedTime
     val contract = currentContract.get
-    val ser = contract.ser
-    val freq = ser.freq
-    val sec = Exchange.secOf(contract.srcSymbol).get
+    val uniSymbol = toUniSymbol(contract.srcSymbol)
+    val sec = Exchange.secOf(uniSymbol).get
     var i = 0
     while (i < quotes.length) {
       val quote = quotes(i)
@@ -75,7 +74,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       toTime = math.max(quote.time, toTime)
       i += 1
     }
-    freq match {
+    contract.freq match {
       case TFreq.DAILY =>
         Quotes1d.saveBatch(sec, quotes)
         commit
@@ -85,9 +84,13 @@ abstract class QuoteServer extends DataServer[Quote] {
       case _ =>
     }
 
+    val ser = contract.freq match {
+      case TFreq.ONE_MIN => sec.realtimeSer
+      case x => sec.serOf(x).get
+    }
     ser ++= quotes
 
-    ser.publish(TSerEvent.FinishedLoading(ser, sec.uniSymbol, frTime, toTime))
+    ser.publish(TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime))
 
     if (contract.refreshable) {
       startRefresh(contract.refreshInterval)
@@ -101,14 +104,19 @@ abstract class QuoteServer extends DataServer[Quote] {
   override protected def postRefresh(quotes: Array[Quote]): Long = {
     var lastTime = loadedTime
     val contract = currentContract.get
-    val ser = contract.ser
-    val sec = Exchange.secOf(contract.srcSymbol).get
+    val uniSymbol = toUniSymbol(contract.srcSymbol)
+    val sec = Exchange.secOf(uniSymbol).get
     var i = 0
     while (i < quotes.length) {
       val quote = quotes(i)
       quote.sec = sec
       lastTime = math.max(quote.time, lastTime)
       i += 1
+    }
+
+    val ser = contract.freq match {
+      case TFreq.ONE_MIN => sec.realtimeSer
+      case x => sec.serOf(x).get
     }
     ser ++= quotes
     lastTime

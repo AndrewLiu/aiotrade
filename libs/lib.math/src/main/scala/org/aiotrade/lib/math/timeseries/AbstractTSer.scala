@@ -39,8 +39,8 @@ import scala.collection.mutable.HashMap
  */
 abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
-  var inLoading: Boolean = false
-  private var _loaded: Boolean = false
+  private var _isInLoading: Boolean = false
+  private var _isLoaded: Boolean = false
 
   private val readWriteLock = new ReentrantReadWriteLock
   protected val readLock  = readWriteLock.readLock
@@ -49,13 +49,18 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   def this() = this(TFreq.DAILY)
     
   def set(freq: TFreq) {
-    this.freq = freq.clone
+    this.freq = freq
   }
     
-  def loaded = _loaded
-  def loaded_=(b: Boolean) {
-    inLoading = if (b) false else inLoading
-    _loaded = b
+  def isLoaded = _isLoaded
+  def isLoaded_=(b: Boolean) {
+    _isInLoading = if (b) false else _isInLoading
+    _isLoaded = b
+  }
+
+  def isInLoading = _isInLoading
+  def isInLoading_=(b: Boolean) {
+    _isInLoading = b
   }
 
   /**

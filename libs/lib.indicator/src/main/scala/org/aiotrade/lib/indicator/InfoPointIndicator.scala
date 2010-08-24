@@ -19,8 +19,8 @@ class InfoPointIndicator extends Indicator {
     val sec = baseSer.serProvider.asInstanceOf[Sec]
     val freq = baseSer.freq
     val infoSer = sec.infoSerOf(freq).get
-    if (!infoSer.loaded) {
-      sec.loadInfoSerFromPersistence(freq)
+    if (!infoSer.isLoaded) {
+      sec.loadInfoSerFromPersistence(infoSer)
     }
     this.infoSer = infoSer
 

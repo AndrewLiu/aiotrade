@@ -95,7 +95,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * values (if available) are that who concern key ser.
    * Example: ticker ser also will compose today's quoteSer
    */
-  //private val serToChainSers = new HashMap[T, List[T]]
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _

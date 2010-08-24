@@ -43,12 +43,14 @@ trait SerProvider {
   type C <: DataContract[_, _]
     
   /**
-   * Load quotes, can be called to load quotes whenever
+   * Load sers, can be called to load ser whenever
    * If there is already a dataServer is running and not finished, don't load again.
    * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
    */
-  def loadSer(freq: TFreq): Boolean
-    
+  def loadSer(ser: T): Boolean
+  def clearSer(ser: T)
+  def putSer(ser: T)
+
   def uniSymbol: String
   def uniSymbol_=(symbol: String)
     
@@ -56,18 +58,11 @@ trait SerProvider {
     
   def stopAllDataServer
     
-  def isSerInLoading(freq: TFreq): Boolean
-  def isSerLoaded(freq: TFreq): Boolean
-    
   def serOf(freq: TFreq): Option[T]
 
   def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A]
   def addIndicator(indicator: Indicator)
   def removeIndicator(indicator: Indicator)
-    
-  def clearSer(freq: TFreq)
-    
-  def putSer(ser: T)
     
   def description: String
   def description_=(description: String)

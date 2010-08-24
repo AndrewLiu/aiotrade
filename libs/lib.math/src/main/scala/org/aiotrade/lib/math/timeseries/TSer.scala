@@ -81,10 +81,10 @@ trait TSer extends Publisher {
   def shortDescription: String
   def shortDescription_=(description: String)
     
-  def inLoading: Boolean
-  def inLoading_=(b: Boolean)
-  def loaded: Boolean
-  def loaded_=(b: Boolean)
+  def isInLoading: Boolean
+  def isInLoading_=(b: Boolean)
+  def isLoaded: Boolean
+  def isLoaded_=(b: Boolean)
 
   def validate
 

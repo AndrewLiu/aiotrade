@@ -80,7 +80,7 @@ abstract class ChartViewContainer extends JPanel {
     super.paint(g)
   }
 
-  protected def initComponents: Unit
+  protected def initComponents
 
   def controller: ChartingController = {
     _controller
