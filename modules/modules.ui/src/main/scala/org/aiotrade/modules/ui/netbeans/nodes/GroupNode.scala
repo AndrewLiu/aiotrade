@@ -149,13 +149,13 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
 
 
   /* add this node to our own lookup */
-  content.add(this);
+  content.add(this)
 
   /* add aditional items to the lookup */
-  content.add(contents);
+  content.add(contents)
 
-  content.add(new GroupRefreshAction(this));
-  content.add(new GroupUpdateAction(this));
+  content.add(new GroupRefreshAction(this))
+  content.add(new GroupUpdateAction(this))
 
   /**
    * add actions carried with nodeInfo

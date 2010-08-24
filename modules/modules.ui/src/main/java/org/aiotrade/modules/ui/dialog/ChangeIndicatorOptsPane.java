@@ -277,7 +277,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
     private void transferValues() {
         for (int i = 0; i < length; i++) {
             Number optValue = (Number)optValueSpinners[i].getValue();
-            opts[i].value_$eq(optValue);
+            opts[i].value_$eq(optValue.doubleValue());
         }
         
         saveAsDefault = saveAsDefaultCheckBox.isSelected();

@@ -31,28 +31,23 @@
 package org.aiotrade.lib.math.indicator
 
 import javax.swing.Action
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
-import org.aiotrade.lib.util.serialization.BeansDocument
-import org.w3c.dom.Element
-import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author Caoyuan Deng
  */
-class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Array[Factor], $active: Boolean
+class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factors: => Array[Factor], $active: => Boolean
 ) extends AnalysisDescriptor[Indicator]($serviceClassName, $freq, $active) {
   val folderName = "Indicators"
 
-  private var _factors: ArrayBuffer[Factor] = new ArrayBuffer ++= $factors
+  private var _factors = new ArrayList[Factor] ++= $factors
 
-  def this() {
-    this(null, TFreq.DAILY, Array[Factor](), false)
-
-  }
+  def this() = this(null, TFreq.DAILY, Array[Factor](), false)
 
   override def set(serviceClassName: String, freq: TFreq): Unit = {
     super.set(serviceClassName, freq)
@@ -68,15 +63,17 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
      * and that transfered in (we don't know who transfer it in, so, be more
      * carefule is always good)
      */
-    val mySize = this._factors.size
+    val mySize = this._factors.length
     if (factors != null) {
-      for (i <- 0 until factors.size) {
+      var i = 0
+      while (i < factors.length) {
         val newFac = factors(i).clone
         if (i < mySize) {
           this._factors(i) = newFac
         } else {
           this._factors += newFac
         }
+        i += 1
       }
     } else {
       this._factors.clear
@@ -84,13 +81,12 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
   }
 
   override def displayName: String = {
-    val indicator = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
-    val displayStr = indicator match {
+    val description = lookupServiceTemplate match {
+      case Some(tpInstance) => tpInstance.shortDescription
       case None => serviceClassName
-      case Some(x) => x.shortDescription
     }
         
-    org.aiotrade.lib.math.indicator.Indicator.displayName(displayStr, factors)
+    org.aiotrade.lib.math.indicator.Indicator.displayName(description, factors)
   }
 
   /**
@@ -106,7 +102,7 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)
                 
-          if (factors.isEmpty) {
+          if (factors.length == 0) {
             /** this means this indicatorDescritor's factors may not be set yet, so set a default one now */
             factors = instance.factors
           } else {
@@ -148,15 +144,5 @@ class IndicatorDescriptor($serviceClassName: String, $freq: TFreq, $factors: Arr
     IndicatorDescriptorActionFactory().createActions(this)
   }
 
-  override def writeToBean(doc: BeansDocument): Element = {
-    val bean = super.writeToBean(doc)
-
-    val list = doc.listPropertyOfBean(bean, "facs")
-    for (factor <- factors) {
-      doc.innerElementOfList(list, factor.writeToBean(doc))
-    }
-
-    bean
-  }
 }
 

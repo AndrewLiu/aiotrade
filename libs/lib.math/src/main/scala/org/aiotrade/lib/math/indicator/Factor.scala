@@ -30,8 +30,6 @@
  */
 package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.util.serialization.BeansDocument
-import org.w3c.dom.Element
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 
@@ -47,16 +45,16 @@ trait Factor extends Publisher {
   def name_=(name: String)
     
   def value: Double
-  def value_=(value: Number)
+  def value_=(value: Double)
     
   def step: Double
-  def step_=(step: Number)
+  def step_=(step: Double)
     
   def maxValue: Double
-  def maxValue_=(maxValue: Number)
+  def maxValue_=(maxValue: Double)
     
   def minValue: Double
-  def minValue_=(minValue: Number)
+  def minValue_=(minValue: Double)
 
   @inline final override def equals(a: Any): Boolean = a match {
     case x: Factor => this.value.equals(x.value)
@@ -80,18 +78,6 @@ trait Factor extends Publisher {
     } catch {case ex: CloneNotSupportedException => throw new InternalError(ex.toString)}
   }
 
-  def writeToBean(doc: BeansDocument): Element = {
-    val bean = doc.createBean(this)
-
-    doc.valuePropertyOfBean(bean, "name", name)
-    doc.valuePropertyOfBean(bean, "value", value)
-    doc.valuePropertyOfBean(bean, "step", step)
-    doc.valuePropertyOfBean(bean, "minValue", minValue)
-    doc.valuePropertyOfBean(bean, "maxValue", maxValue)
-
-    bean
-  }
-    
     
   //    public static class Float extends AbstractOpt implements Opt {
   //        private float value;
