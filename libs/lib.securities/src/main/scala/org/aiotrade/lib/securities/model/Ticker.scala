@@ -29,7 +29,7 @@ import scala.collection.mutable.HashMap
 object TickersLast extends TickersTable {
 
   private[model] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
-    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+    Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
     val start = System.currentTimeMillis
     val map = new HashMap[Sec, Ticker]
@@ -44,7 +44,7 @@ object TickersLast extends TickersTable {
   }
 
   private[model] def lastTradingDayTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
-    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+    Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
     val start = System.currentTimeMillis
     val map = new HashMap[Sec, Ticker]
@@ -69,12 +69,12 @@ object TickersLast extends TickersTable {
   }
 
   private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
-    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+    Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
-    (SELECT (MAX(this.time)) FROM (this JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) list) match {
-      case xs if xs.isEmpty => None
-      case xs => Some(xs.head.asInstanceOf[Long])
-    }
+    (SELECT (this.time) FROM (this JOIN Secs) WHERE (
+        Secs.exchange.field EQ Exchanges.idOf(exchange)
+      ) ORDER_BY (this.time DESC) LIMIT (1) list
+    ) headOption
   }
 }
 

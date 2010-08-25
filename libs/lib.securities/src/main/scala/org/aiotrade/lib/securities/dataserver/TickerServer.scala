@@ -170,11 +170,11 @@ abstract class TickerServer extends DataServer[Ticker] {
       val exchange = sec.exchange
       
       ticker.sec = sec
-      val (tickerx, existed) = exchange.gotLastTicker(ticker)
-      if (existed) {
-        tickersLastToUpdate += tickerx
-      } else {
+      val (tickerx, transient) = exchange.gotLastTicker(ticker)
+      if (transient) {
         tickersLastToInsert += tickerx
+      } else {
+        tickersLastToUpdate += tickerx
       }
 
       if (subscribedSrcSymbols.contains(symbol)) {

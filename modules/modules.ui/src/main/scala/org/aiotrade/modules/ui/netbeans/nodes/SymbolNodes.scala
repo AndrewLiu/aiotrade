@@ -90,7 +90,6 @@ import org.openide.nodes.NodeMemberEvent
 import org.openide.nodes.NodeReorderEvent
 import org.openide.util.ImageUtilities
 import org.openide.util.Lookup
-import org.openide.util.NbBundle
 import org.openide.util.actions.SystemAction
 import org.openide.util.lookup.AbstractLookup
 import org.openide.util.lookup.InstanceContent
@@ -147,24 +146,6 @@ object SymbolNodes {
 
   private var _favoriteNode: SymbolFolderNode = _
   def favoriteNode = _favoriteNode
-
-  private var isInited = false
-
-  def initSymbolNodes {
-    val start = System.currentTimeMillis
-    log.info("Start initing symbol nodes")
-    initSymbolNode(RootSymbolsNode)
-    isInited = true
-    log.info("Finished initing symbol nodes in " + ((System.currentTimeMillis - start) / 1000 )+ " s")
-  }
-
-  private def initSymbolNode(node: Node) {
-    if (node.getLookup.lookup(classOf[DataFolder]) != null) { // is a folder
-      for (child <- node.getChildren.getNodes) {
-        initSymbolNode(child)
-      }
-    }
-  }
 
   def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
     contentToOccuptantNode.get(contents)

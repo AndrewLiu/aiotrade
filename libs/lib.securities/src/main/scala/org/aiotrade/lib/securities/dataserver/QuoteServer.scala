@@ -65,6 +65,7 @@ abstract class QuoteServer extends DataServer[Quote] {
     val contract = currentContract.get
     val uniSymbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(uniSymbol).get
+    log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
     var i = 0
     while (i < quotes.length) {
       val quote = quotes(i)
@@ -82,10 +83,12 @@ abstract class QuoteServer extends DataServer[Quote] {
         Quotes1m.saveBatch(sec, quotes)
         commit
       case _ =>
+        // we won't save quote to quotes1m when contract.freq is ONE_SEC, so we can always keep
+        // quoteSer of 1min after loaded from db will not be blocked by this period of time.
     }
 
     val ser = contract.freq match {
-      case TFreq.ONE_MIN => sec.realtimeSer
+      case TFreq.ONE_SEC => sec.realtimeSer
       case x => sec.serOf(x).get
     }
     ser ++= quotes
