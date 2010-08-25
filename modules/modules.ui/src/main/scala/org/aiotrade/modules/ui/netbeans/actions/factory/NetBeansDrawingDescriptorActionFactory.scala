@@ -30,6 +30,7 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions.factory
 
+import java.util.ResourceBundle
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
@@ -49,7 +50,7 @@ import org.openide.windows.WindowManager;
  * @since   1.0.4
  */
 class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFactory {
-    
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.actions.Bundle")
   def createActions(descriptor: DrawingDescriptor): Array[Action] = {
     Array(
       new DrawingViewAction(descriptor),
@@ -60,7 +61,9 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     
     
   private class DrawingViewAction(descriptor: DrawingDescriptor) extends ViewAction {
-    putValue(Action.NAME, "Show")
+    val show = Bundle.getString("Show")
+//    putValue(Action.NAME, "Show")
+    putValue(Action.NAME, show)
         
     def execute {
       AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
@@ -103,7 +106,9 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
   }
     
   private class DrawingHideAction(descriptor: DrawingDescriptor) extends HideAction {
-    putValue(Action.NAME, "Hide")
+    val Hide = Bundle.getString("Hide")
+//    putValue(Action.NAME, "Hide")
+    putValue(Action.NAME, Hide)
         
     def execute {
       descriptor.active = false
@@ -125,13 +130,20 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     
   private class DrawingDeleteAction(descriptor: DrawingDescriptor) extends DeleteAction {
             
-    putValue(Action.NAME, "Delete")
+    val Delete = Bundle.getString("Delete")
+    val Are_you_sure = Bundle.getString("Are_You_Sure")
+    val Deleting = Bundle.getString("Deleting_Drawing")
+//    putValue(Action.NAME, "Delete")
+    putValue(Action.NAME, Delete)
         
     def execute {
       JOptionPane.showConfirmDialog(
         WindowManager.getDefault.getMainWindow,
-        "Are you sure you want to delete drawing: " + descriptor.displayName + " ?",
-        "Deleting drawing ...",
+//        "Are you sure you want to delete drawing: " + descriptor.displayName + " ?",
+//        "Deleting drawing ...",
+
+        Are_you_sure + descriptor.displayName + " ?",
+        Deleting,
         JOptionPane.YES_NO_OPTION
       ) match {
         case JOptionPane.YES_OPTION =>
