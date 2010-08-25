@@ -89,7 +89,7 @@ object Model {
 
 
     val filingdemo = new Filing()
-    filingdemo.format = filingdemo.Format.pdf
+    filingdemo.format = filingdemo.Format.PDF
     filingdemo.generalInfo = info
     filingdemo.publisher = "万科"
     filingdemo.size = 30000
