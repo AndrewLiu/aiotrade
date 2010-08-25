@@ -30,7 +30,7 @@ class InfoPointIndicator extends Indicator {
   protected def computeCont(fromIdx: Int, size: Int) {
     var i = fromIdx
     while (i < size) {
-      val info = infoSer.infos(i)
+      val info = infoSer.newses(i)
       if (info != null && !info.isEmpty) {
         exists(i) = 0
       }
