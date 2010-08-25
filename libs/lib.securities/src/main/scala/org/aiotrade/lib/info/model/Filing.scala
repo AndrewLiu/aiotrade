@@ -19,10 +19,10 @@ class Filing {
   var size : Long = _
 
   object Format {
-    val pdf = 1
-    val txt = 2
-    val word = 3
-    val others = 99
+    val PDF = 1
+    val TEXT = 2
+    val WORD = 3
+    val OTHERS = 99
   }
 }
 
