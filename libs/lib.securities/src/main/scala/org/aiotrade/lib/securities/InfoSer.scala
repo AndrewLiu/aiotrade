@@ -66,6 +66,7 @@ object InfoSer {
     println(ser)
 
     println("ser.newses.values=" + ser.newses.values)
+    println("ser.vars=" + ser.vars)
 
   }
 
