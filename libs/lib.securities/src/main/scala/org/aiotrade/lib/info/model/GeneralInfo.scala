@@ -2,8 +2,13 @@ package org.aiotrade.lib.info.model
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
+import org.aiotrade.lib.securities.model.Flag
+import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.securities.model.Sec
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.Map
+import scala.collection.JavaConversions._
+
 
 
 object GeneralInfos extends Table[GeneralInfo]{
@@ -38,8 +43,7 @@ object GeneralInfos extends Table[GeneralInfo]{
   INDEX(getClass.getSimpleName + "_time_idx", publishTime.name)
 }
 
-
-class GeneralInfo {
+class GeneralInfo extends TVal with Flag with InfoContent {
   var publishTime: Long = _
   var title: String = ""
   var infoClass : Int = _
@@ -49,6 +53,25 @@ class GeneralInfo {
   var infoSecs : List[Sec] = _
   var infoContents : List[Content] = _
   var infoAbstract : List[ContentAbstract] = _
+
+  def weight: Float = 0F
+  def link: String = url
+
+  def exportToMap: Map[String, String] = {
+    val map = Map[String, String]()
+    map += ("title" -> title)
+    
+    if(infoAbstract != null) map += ("content" -> infoAbstract(0).content)
+    if(infoCategorys != null) map += ("category" -> infoCategorys(0).name)
+    map += ("publishTime" -> publishTime.toString)
+    if(link != null) map += ("link" -> link)
+
+    map
+  }
+
+  def exportToJavaMap: java.util.Map[String, String] = {
+    exportToMap
+  }
 
   object InfoClass
   {

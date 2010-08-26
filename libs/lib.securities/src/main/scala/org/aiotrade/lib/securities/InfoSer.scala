@@ -66,7 +66,9 @@ object InfoSer {
     println(ser)
 
     println("ser.newses.values=" + ser.newses.values)
+    println(ser.newses.values.getClass)
     println("ser.vars=" + ser.vars)
+    println(ser.vars.getClass)
 
   }
 
@@ -85,7 +87,7 @@ class InfoSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       case news: News => newses(time) = news.newses
       case filing: Filing => filings(time) = filing.filings
       case analysisReport : AnalysisReport => analysisReports(time) = analysisReport.analysisReports
-        
+
       case _ => assert(false, "Should pass a Info type TimeValue")
     }
   }
