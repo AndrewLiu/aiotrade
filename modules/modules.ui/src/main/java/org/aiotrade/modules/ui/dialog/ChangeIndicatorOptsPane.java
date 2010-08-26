@@ -41,6 +41,7 @@ import java.awt.GridBagLayout;
 import java.awt.LayoutManager;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
@@ -50,6 +51,7 @@ import javax.swing.event.EventListenerList;
 import javax.swing.text.NumberFormatter;
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor;
 import org.aiotrade.lib.math.indicator.Factor;
+import org.openide.util.NbBundle;
 
 /**
  * 
@@ -77,6 +79,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
     private boolean applyToAll = false;
     
     private EventListenerList spinnerChangelistenerList = new EventListenerList();
+    private ResourceBundle bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.dialog.Bundle");
     
     public ChangeIndicatorOptsPane(Frame owner, IndicatorDescriptor descriptor) {
         this.owner = owner;
@@ -133,7 +136,8 @@ public class ChangeIndicatorOptsPane extends JComponent {
         gbc.gridheight = 1;
         gbc.fill = gbc.HORIZONTAL;
         JPanel optsPanel = new JPanel();
-        optsPanel.setBorder(BorderFactory.createTitledBorder(" Indicator Options "));
+        //optsPanel.setBorder(BorderFactory.createTitledBorder(" Indicator Options "));
+        optsPanel.setBorder(BorderFactory.createTitledBorder(bundle.getString("Indicator_Options")));
         add(optsPanel, gbc);
         
         optsPanel.setLayout(new GridBagLayout());
@@ -143,7 +147,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         gbc.gridwidth = 1;
         gbc.gridheight = 1;
         gbc.fill = gbc.HORIZONTAL;
-        JLabel previewLabel = new JLabel("Preview:");
+        JLabel previewLabel = new JLabel(bundle.getString("Preview"));
         previewLabel.setHorizontalAlignment(JLabel.RIGHT);
         optsPanel.add(previewLabel, gbc);
         
@@ -206,7 +210,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         gbc.gridwidth = 1;
         gbc.gridheight = 1;
         JPanel additionalDecisionsPanel = new JPanel();
-        additionalDecisionsPanel.setBorder(BorderFactory.createTitledBorder(" Additional "));
+        additionalDecisionsPanel.setBorder(BorderFactory.createTitledBorder(bundle.getString("Additional")));
         add(additionalDecisionsPanel, gbc);
         
         additionalDecisionsPanel.setLayout(new GridBagLayout());
@@ -215,7 +219,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         gbc.gridy = gbc.RELATIVE;
         gbc.gridwidth = 1;
         gbc.gridheight = 1;
-        JLabel saveAsDefaultLabel = new JLabel("Save As Default:");
+        JLabel saveAsDefaultLabel = new JLabel(bundle.getString("Save_As_Default"));
         saveAsDefaultLabel.setHorizontalAlignment(JLabel.RIGHT);
         additionalDecisionsPanel.add(saveAsDefaultLabel, gbc);
         
@@ -231,7 +235,7 @@ public class ChangeIndicatorOptsPane extends JComponent {
         gbc.gridy = gbc.RELATIVE;
         gbc.gridwidth = 1;
         gbc.gridheight = 1;
-        JLabel applyToAllLabel = new JLabel("Apply to All:");
+        JLabel applyToAllLabel = new JLabel(bundle.getString("Apply_to_All"));
         applyToAllLabel.setHorizontalAlignment(JLabel.RIGHT);
         additionalDecisionsPanel.add(applyToAllLabel, gbc);
         
@@ -247,14 +251,16 @@ public class ChangeIndicatorOptsPane extends JComponent {
     }
     
     public int showDialog() {
-        Object[] message = {"Please input new options of " + descriptor.displayName() + ":",
+
+        Object[] message = {bundle.getString("Please_input_new_options") + descriptor.displayName() + ":",
         this
         };
         
         int retValue = JOptionPane.showConfirmDialog(
                 owner,
                 message,
-                "Change options",
+               // "Change options",
+                bundle.getString("Change_Options"),
                 JOptionPane.OK_CANCEL_OPTION
                 );
         

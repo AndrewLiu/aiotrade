@@ -88,6 +88,8 @@
             <file name="org-aiotrade-modules-ui-netbeans-actions-SaveToImageAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SaveToImageAction.instance"/>
             </file>
+            <attr name = "SystemFileSystem.localizingBundle"
+                stringvalue="org.aiotrade.modules.ui.netbeans.resources.Bundle"/>
             <!--file name="org-aiotrade-modules-ui-netbeans-actions-SaveToCustomSizeImageAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SaveToCustomSizeImageAction.instance"/>
             </file-->
@@ -104,6 +106,8 @@
             <file name="org-aiotrade-modules-ui-netbeans-actions-AddStatChartAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>
             </file>
+            <attr name = "SystemFileSystem.localizingBundle"
+                stringvalue="org.aiotrade.modules.ui.netbeans.resources.Bundle"/>
         </folder>
 
         <folder name="Draw">
@@ -117,6 +121,8 @@
             <file name="org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowDrawingLineAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-netbeans-actions-SwitchHideShowDrawingLineAction.instance"/>
             </file>
+            <attr name = "SystemFileSystem.localizingBundle"
+                stringvalue="org.aiotrade.modules.ui.netbeans.resources.Bundle"/>
         </folder>
 
         <folder name="QuickSearch">

@@ -78,7 +78,9 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    "Calendar/Trading date View"
+    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchCalendarTradingTimeViewAction")
+    //"Calendar/Trading date View"
+    name
   }
     
     
@@ -98,7 +100,7 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
     val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/naturalTrading.gif");
     val icon = new ImageIcon(iconImage);
     val name = NbBundle.getMessage(this.getClass,"CTL_SwitchCalendarTradingTimeViewAction")
-
+    val addlayer = NbBundle.getMessage(this.getClass,"Please_add_a_layer_before_pick_drawing_line")
     toggleButton = new JToggleButton();
     toggleButton.setIcon(icon);
     toggleButton.setToolTipText(name);
@@ -113,7 +115,9 @@ class SwitchCalendarTradingTimeViewAction extends CallableSystemAction {
             case x: RealTimeChartTopComponent => x.viewContainer
             case null => null
             case _ =>
-              JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")
+//              JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")
+             JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, addlayer)
+
               null
           }
                 

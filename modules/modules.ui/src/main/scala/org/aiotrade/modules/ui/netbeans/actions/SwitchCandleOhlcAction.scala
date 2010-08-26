@@ -65,7 +65,8 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
               case _ =>
                 JOptionPane.showMessageDialog(
                   WindowManager.getDefault.getMainWindow,
-                  "Please select a view by clicking on it first!"
+                  NbBundle.getMessage(this .getClass, "Please_select_a_view")
+                  //"Please select a view by clicking on it first!"
                 )
             }
           }

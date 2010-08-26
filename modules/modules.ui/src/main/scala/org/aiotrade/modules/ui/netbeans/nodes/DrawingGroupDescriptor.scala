@@ -43,6 +43,7 @@ import org.aiotrade.lib.util.swing.action.ViewAction;
 import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.windows.WindowManager;
 
 /**
@@ -50,7 +51,9 @@ import org.openide.windows.WindowManager;
  * @author Caoyuan Deng
  */
 object DrawingGroupDescriptor {
-  val NAME = "Drawings";
+
+  //val NAME = "Drawings";
+  val NAME = NbBundle.getMessage(this .getClass,"Drawings")
   private val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/drawings.gif");
 }
 
@@ -78,14 +81,16 @@ class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {
   }
     
   private class AddDrawingAction(contents: AnalysisContents) extends AddAction {
-    putValue(Action.NAME, "Add Layer")
+    putValue(Action.NAME, NbBundle.getMessage(this .getClass,"Add_Layer"))
         
     def execute {
             
       var layerName = JOptionPane.showInputDialog(
         WindowManager.getDefault.getMainWindow,
-        "Please Input Layer Name:",
-        "Add Drawing Layer",
+//        "Please Input Layer Name:",
+//        "Add Drawing Layer",
+        NbBundle.getMessage(this .getClass,"Please_Input_Layer_Name"),
+        NbBundle.getMessage(this .getClass,"Add_Drawing_Layer"),
         JOptionPane.OK_CANCEL_OPTION
       )
             

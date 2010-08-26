@@ -25,7 +25,6 @@ object Model {
     //temporaryTest
     //test
     //createSamples
-
     Scheduler.shutdown
     System.exit(0)
   }
