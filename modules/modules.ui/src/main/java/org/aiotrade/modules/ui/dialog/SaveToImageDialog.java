@@ -35,6 +35,7 @@ import java.awt.Frame;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.ResourceBundle;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
@@ -57,7 +58,7 @@ public class SaveToImageDialog extends javax.swing.JDialog {
     
     private Calendar calendar = Calendar.getInstance();
     private DateFormat dateFormat = DateFormat.getInstance();
-    
+    private ResourceBundle bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.dialog.Bundle");
     /**
      * Creates new form SaveToImageDialog
      */
@@ -67,7 +68,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
         this.baseSer = viewContainer.controller().baseSer();
         initComponents();
         
-        setTitle("Save image to ...");
+//        setTitle("Save image to ...");
+        setTitle(bundle.getString("Save_Image_to"));
         
         buttonGroup.add(currentRadio);
         buttonGroup.add(customRadio);
@@ -90,7 +92,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
         
         
         fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        fileChooser.setDialogTitle("Select Export png File");
+//        fileChooser.setDialogTitle("Select Export png File");
+        fileChooser.setDialogTitle(bundle.getString("Select_Export_Png_File"));
         
         FileFilter pngFileFilter = new FileFilter() {
             public boolean accept(File f) {
@@ -107,7 +110,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
             }
             
             public String getDescription() {
-                return "Image files (*.png)";
+//                return "Image files (*.png)";
+                return bundle.getString("Image_File");
             }
         };
         
@@ -138,12 +142,13 @@ public class SaveToImageDialog extends javax.swing.JDialog {
         widthLable.setText(String.valueOf(imageWidth));
         if (imageWidth * imageHeight > 1024 * 768 * 20) {
             warningLable.setForeground(Color.RED);
-            warningLable.setText("Too big time scope that may exceed memory!");
-            
+//            warningLable.setText("Too big time scope that may exceed memory!");
+            warningLable.setText(bundle.getString("Too_Big_Time_Scope"));
             return false;
         } else {
             warningLable.setForeground(Color.BLACK);
-            warningLable.setText("Image size is Ok.");
+//            warningLable.setText("Image size is Ok.");
+            warningLable.setText(bundle.getString("Image_Size_Is_Ok"));
             
             return true;
         }
@@ -162,7 +167,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
             file = fileChooser.getSelectedFile();
             if (file == null) {
                 warningLable.setForeground(Color.RED);
-                warningLable.setText("Should choose a file!");
+//                warningLable.setText("Should choose a file!");
+                warningLable.setText(bundle.getString("Should_Choose_A_File"));
                 return false;
             } else {
                 String suffix = suffixOf(file);
@@ -387,7 +393,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
             calendar.setTime(dateFormat.parse(toDateField.getText()));
             toTime = calendar.getTimeInMillis();
         } catch (Exception ex) {
-            warningLable.setText("Invalid 'to date' format!");
+//            warningLable.setText("Invalid 'to date' format!");
+            warningLable.setText(bundle.getString("Invalid_To_Date_Format"));
             return;
         }
         variableFieldChanged();
@@ -398,7 +405,8 @@ public class SaveToImageDialog extends javax.swing.JDialog {
             calendar.setTime(dateFormat.parse(fromDateField.getText()));
             fromTime = calendar.getTimeInMillis();
         } catch (Exception ex) {
-            warningLable.setText("Invalid 'from date' format!");
+//            warningLable.setText("Invalid 'from date' format!");
+            warningLable.setText(bundle.getString("Invalid_From_Date_Format"));
             return;
         }
         variableFieldChanged();

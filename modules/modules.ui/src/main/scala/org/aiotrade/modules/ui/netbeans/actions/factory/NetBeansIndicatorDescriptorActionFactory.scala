@@ -30,6 +30,7 @@
  */
 package org.aiotrade.modules.ui.netbeans.actions.factory
 
+import java.util.ResourceBundle
 import javax.swing.Action
 import javax.swing.JOptionPane
 import javax.swing.event.ChangeEvent
@@ -61,7 +62,7 @@ import org.openide.windows.WindowManager
  * @since   1.0.4
  */
 class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorActionFactory {
-    
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.actions.Bundle")
   def createActions(descriptor: IndicatorDescriptor): Array[Action] = {
     Array(
       new IndicatorViewAction(descriptor),
@@ -72,7 +73,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
   }
     
   private class IndicatorViewAction(descriptor: IndicatorDescriptor) extends ViewAction {
-    putValue(Action.NAME, "Show")
+    val show = Bundle.getString("Show")
+//    putValue(Action.NAME, "Show")
+    putValue(Action.NAME, show)
         
     def execute {
       descriptor.active = true
@@ -110,7 +113,10 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
   }
     
   private class IndicatorHideAction(descriptor: IndicatorDescriptor) extends HideAction {
-    putValue(Action.NAME, "Hide")
+    //putValue(Action.NAME, "Hide")
+    val Hide = Bundle.getString("Hide")
+//    putValue(Action.NAME, "Hide")
+    putValue(Action.NAME, Hide)
         
     def execute {
       descriptor.active = false
@@ -128,13 +134,17 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
   }
     
   private class IndicatorDeleteAction(descriptor: IndicatorDescriptor) extends DeleteAction {
-    putValue(Action.NAME, "Delete")
+    val delete = Bundle.getString("Delete")
+//    putValue(Action.NAME, "Delete")
+    putValue(Action.NAME, delete)
         
     def execute {
+      val Are_you_sure = Bundle.getString("Are_You_Sure_Delete_indicator")
+      val deleting = Bundle.getString("Deleting_Indicator")
       val confirm = JOptionPane.showConfirmDialog(
-        WindowManager.getDefault.getMainWindow,
-        "Are you sure you want to delete indicator: " + descriptor.displayName + " ?",
-        "Deleting indicator ...",
+        WindowManager.getDefault.getMainWindow,Are_you_sure,deleting,
+//        "Are you sure you want to delete indicator: " + descriptor.displayName + " ?",
+//        "Deleting indicator ...",
         JOptionPane.YES_NO_OPTION
       )
             
@@ -151,8 +161,8 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
     
   /** Action to change options */
   private class IndicatorEditAction(descriptor: IndicatorDescriptor) extends EditAction {
-            
-    putValue(Action.NAME, "Change Options")
+    val options = Bundle.getString("Change_Options")
+    putValue(Action.NAME,options)
         
     def execute {
       val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor)

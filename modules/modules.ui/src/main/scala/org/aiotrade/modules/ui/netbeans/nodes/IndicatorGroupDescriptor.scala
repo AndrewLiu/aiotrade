@@ -47,6 +47,7 @@ import org.aiotrade.modules.ui.netbeans.GroupDescriptor
 import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
 import org.aiotrade.modules.ui.dialog.PickIndicatorDialog;
 import org.openide.util.ImageUtilities
+import org.openide.util.NbBundle
 import org.openide.windows.WindowManager
 import scala.collection.mutable.HashMap
 
@@ -58,7 +59,8 @@ import scala.collection.mutable.HashMap
  * @author Caoyuan Deng
  */
 object IndicatorGroupDescriptor {
-  val NAME = "Indicators"
+//  val NAME = "Indicators"
+  val NAME = NbBundle.getMessage(this .getClass,"Indicators")
   val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/indicators.gif")
 }
 class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
@@ -85,7 +87,8 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
   }
     
   private class AddIndicatorAction(contents: AnalysisContents) extends AddAction {
-    putValue(Action.NAME, "Add Indicator")
+//    putValue(Action.NAME, "Add Indicator")
+    putValue(Action.NAME,NbBundle.getMessage(this .getClass,"Add_Indicator"))
 
     def execute {
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
