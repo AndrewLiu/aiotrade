@@ -142,9 +142,6 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
             addSymbolsFromDB(handle)
           }
         }, handle, false)
-    } else {
-      // @Note do not call initSymbolNodes before isSymbolNodesAdded
-      scala.actors.Actor.actor {SymbolNodes.initSymbolNodes}
     }
   }
 

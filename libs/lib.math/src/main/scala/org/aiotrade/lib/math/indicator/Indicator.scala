@@ -98,7 +98,7 @@ trait Indicator extends TSer {
 
   def factors: Array[Factor]
   def factors_=(factors: Array[Factor])
-  def factorValues_=(values: Array[Number])
+  def factorValues_=(values: Array[Double])
 
   def dispose
 

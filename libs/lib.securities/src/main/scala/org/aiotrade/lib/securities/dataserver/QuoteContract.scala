@@ -36,7 +36,6 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Quote
 
 /**
@@ -50,8 +49,6 @@ object QuoteContract {
 
 import QuoteContract._
 class QuoteContract extends DataContract[Quote, QuoteServer] {
-  type T = QuoteSer
-
   val log = Logger.getLogger(this.getClass.getSimpleName)
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"

@@ -141,7 +141,7 @@ class IBQuoteServer extends QuoteServer {
             
       m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate)
             
-      val freq = contract.ser.freq
+      val freq = contract.freq
             
       /**
        * An integer followed by a space, followed by one of these units:

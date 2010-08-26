@@ -30,8 +30,6 @@
  */
 package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.util.serialization.JavaDocument
-
 /**
  * Class for defining indicator's DefaultFactor
  *
@@ -41,25 +39,19 @@ import org.aiotrade.lib.util.serialization.JavaDocument
  * If you use Factor in indicator, please considerate AbstractIndicator#InnerFactor first
  * which will be added to Indicator's factors automatically when new it.
  */
-class DefaultFactor($name: String,
-                    $value: Number,
-                    $step: Number,
-                    $minValue: Number,
-                    $maxValue: Number
+class DefaultFactor(private var _name: String,
+                    private var _value: Double,
+                    private var _step: Double,
+                    private var _minValue: Double,
+                    private var _maxValue: Double
 ) extends Factor {
 
-  private var _name = $name
-  private var _value = $value.doubleValue
-  private var _step = if ($step == null) 1.0 else $step.doubleValue
-  private var _minValue = if ($minValue == null) Double.MinValue else $minValue.doubleValue
-  private var _maxValue = if ($maxValue == null) Double.MaxValue else $maxValue.doubleValue
-    
-  def this(name: String, value: Number) = {
-    this(name, value, null, null, null)
+  def this(name: String, value: Double) = {
+    this(name, value, 1.0, Double.MinValue, Double.MaxValue)
   }
     
-  def this(name: String, value: Number, step: Number) = {
-    this(name, value, step, null, null)
+  def this(name: String, value: Double, step: Double) = {
+    this(name, value, step, Double.MinValue, Double.MaxValue)
   }
 
   def name = _name
@@ -68,33 +60,24 @@ class DefaultFactor($name: String,
   }
   
   def value = _value
-  def value_=(value: Number) = {
-    this._value = value.doubleValue
+  def value_=(value: Double) = {
+    this._value = value
   }
 
   def step = _step
-  def step_=(step: Number) = {
-    this._step = step.doubleValue
+  def step_=(step: Double) = {
+    this._step = step
   }
     
   def maxValue = _maxValue
-  def maxValue_=(maxValue: Number) {
-    this._maxValue = maxValue.doubleValue
+  def maxValue_=(maxValue: Double) {
+    this._maxValue = maxValue
   }
     
   def minValue = _minValue
-  def minValue_=(minValue: Number) = {
-    this._minValue = minValue.doubleValue
+  def minValue_=(minValue: Double) = {
+    this._minValue = minValue
   }
-    
-  def writeToJava(id: String): String = {
-    JavaDocument.set(id, "setName", name) +
-    JavaDocument.set(id, "setValue", value) +
-    JavaDocument.set(id, "setStep", step) +
-    JavaDocument.set(id, "setMinValue", minValue) +
-    JavaDocument.set(id, "setMaxValue", maxValue)
-  }
-    
 }
 
 

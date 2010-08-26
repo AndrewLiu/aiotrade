@@ -142,7 +142,8 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     
   def watch(sec: Sec, contents: AnalysisContents) {
     if (!secToViewContainers.contains(sec)) {
-      val rtSer = sec.serOf(TFreq.ONE_MIN).get
+      val rtSer = sec.realtimeSer
+      if (!rtSer.isLoaded) sec.loadSer(rtSer)
       val controller = ChartingController(rtSer, contents)
       val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
             

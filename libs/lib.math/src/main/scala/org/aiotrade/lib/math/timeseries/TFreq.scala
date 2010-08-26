@@ -63,7 +63,7 @@ object TFreq {
   case object ONE_MIN      extends TFreq(TUnit.Minute, 1)
   case object TWO_MINS     extends TFreq(TUnit.Minute, 2)
   case object THREE_MINS   extends TFreq(TUnit.Minute, 3)
-  case object FOUR_MINS    extends TFreq(TUnit.Minute, 3)
+  case object FOUR_MINS    extends TFreq(TUnit.Minute, 4)
   case object FIVE_MINS    extends TFreq(TUnit.Minute, 5)
   case object FIFTEEN_MINS extends TFreq(TUnit.Minute, 15)
   case object THIRTY_MINS  extends TFreq(TUnit.Minute, 30)

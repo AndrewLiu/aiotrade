@@ -107,7 +107,7 @@ class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisCo
   ).get
 
   /* adds aditional items to the lookup */
-  content.add(contents);
+  content.add(contents)
     
   def this(descriptor: AnalysisDescriptor[_], contents: AnalysisContents) = {
     this(descriptor, contents, new InstanceContent)
