@@ -47,39 +47,11 @@ object Exchange extends Publisher {
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
 
-  /**
-   * @Note should lazily call allExchanges during model running, so, don't start timer actor automatically
-   */
-  private val timer = new Timer("Exchange Open/Close Timer")
-  private var timerStarted = false
-  def startTimer {
-    if (timerStarted) return
-
-    for (exchange <- allExchanges) {
-      val preOpen = exchange.open
-      preOpen.add(Calendar.MINUTE, -15)
-      timer.scheduleAtFixedRate(new TimerTask {
-          def run {
-            // @todo process vacation here
-            publish(Opened(exchange))
-          }
-        }, preOpen.getTime, ONE_DAY)
-
-      val postClose = exchange.close
-      postClose.add(Calendar.MINUTE, +15)
-      timer.schedule(new TimerTask {
-          def run {
-            // @todo process vacation here
-            exchange.scheduleDoClosing(-1)
-            publish(Closed(exchange))
-          }
-        }, postClose.getTime, ONE_DAY)
-    }
-    
-    timerStarted = true
+  lazy val allExchanges = {
+    val xs = Exchanges.all()
+    xs foreach {x => log.info("Exchange: " + x)}
+    xs
   }
-
-  lazy val allExchanges = Exchanges.all()
   lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
 
   lazy val exchangeToSecs = {
@@ -167,7 +139,7 @@ class Exchange {
   var secs: List[Sec] = Nil
   // --- end database fields
 
-  log.info("New exchange: " + System.identityHashCode(this))
+  log.info("Create exchange: " + System.identityHashCode(this))
 
   private var _tradingStatus: TradingStatus = TradingStatus.Unknown(-1)
 
@@ -240,16 +212,16 @@ class Exchange {
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
   /**
-   * @return (the ticker should be updated/saved to TickersLast, existed)
+   * @return (the ticker should be updated/saved to TickersLast, transient in TickersLast)
    */
   def gotLastTicker(ticker: Ticker): (Ticker, Boolean) = {
     val uniSymbol = ticker.symbol
 
-    uniSymbolToLastTicker synchronized {
+    val tickerx = uniSymbolToLastTicker synchronized {
       uniSymbolToLastTicker.get(uniSymbol) match {
         case Some(existOne) =>
           existOne.copyFrom(ticker)
-          (existOne, true)
+          existOne
         case None =>
           val newOne = new Ticker
           newOne.copyFrom(ticker)
@@ -257,9 +229,11 @@ class Exchange {
           uniSymbolToLastTradingDayTicker synchronized {
             uniSymbolToLastTradingDayTicker.put(uniSymbol, newOne)
           }
-          (newOne, false)
+          newOne
       }
     }
+    
+    (tickerx, TickersLast.transient_?(tickerx))
   }
 
   def lastDailyRoundedTradingTime: Option[Long] = {
@@ -446,7 +420,7 @@ class Exchange {
 
 
   override def toString: String = {
-    code + "(" + timeZone.getDisplayName + ")"
+    code + "(" + timeZone.getDisplayName + ")" + ", open/close: " + openCloseHMs.mkString("(", ",", ")")
   }
 
 }

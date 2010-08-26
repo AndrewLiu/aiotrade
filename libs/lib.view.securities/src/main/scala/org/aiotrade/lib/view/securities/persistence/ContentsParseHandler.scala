@@ -217,10 +217,10 @@ class ContentsParseHandler extends DefaultHandler {
     val minValueStr = meta.getValue("minvalue")
         
     try {
-      val value    = NUMBER_FORMAT.parse(valueStr.trim)
-      val step     = if (stepStr     == null) null else NUMBER_FORMAT.parse(stepStr.trim)
-      val maxValue = if (maxValueStr == null) null else NUMBER_FORMAT.parse(maxValueStr.trim)
-      val minValue = if (minValueStr == null) null else NUMBER_FORMAT.parse(minValueStr.trim)
+      val value    = NUMBER_FORMAT.parse(valueStr.trim).doubleValue
+      val step     = if (stepStr     == null) 1.0 else NUMBER_FORMAT.parse(stepStr.trim).doubleValue
+      val maxValue = if (maxValueStr == null) Double.MinValue else NUMBER_FORMAT.parse(maxValueStr.trim).doubleValue
+      val minValue = if (minValueStr == null) Double.MaxValue else NUMBER_FORMAT.parse(minValueStr.trim).doubleValue
             
       val factor = new DefaultFactor(nameStr, value, step, minValue, maxValue)
       factors += factor

@@ -100,9 +100,7 @@ class RealTimeChartTopComponent private (val contents: AnalysisContents) extends
   private val tc_id = sec.name + "_RT"
 
   private val rtSer = sec.realtimeSer
-  if (!rtSer.loaded) {
-    sec.loadRealtimeSer
-  }
+  if (!rtSer.isLoaded) sec.loadSer(rtSer)
   private val controller = ChartingController(rtSer, contents)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   

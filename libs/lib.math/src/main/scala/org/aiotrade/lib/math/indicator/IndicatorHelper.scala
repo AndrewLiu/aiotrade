@@ -209,7 +209,7 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
    */
   def factors_=(factors: Array[Factor]) {
     if (factors != null) {
-      val values = new Array[Number](factors.length)
+      val values = new Array[Double](factors.length)
       for (i <- 0 until factors.length) {
         values(i) = _factors(i).value
       }
@@ -221,18 +221,20 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
    *
    * @return if any value of factors changed, return true, else return false
    */
-  def factorValues_=(facValues: Array[Number]) {
+  def factorValues_=(facValues: Array[Double]) {
     var valueChanged = false
     if (facValues != null) {
       if (factors.length == facValues.length) {
-        for (i <- 0 until facValues.length) {
+        var i = 0
+        while (i < facValues.length) {
           val myFactor = _factors(i)
           val inValue = facValues(i)
           /** check if changed happens before set myFactor */
-          if (myFactor.value != inValue.doubleValue) {
+          if (myFactor.value != inValue) {
             valueChanged = true
           }
           myFactor.value = inValue
+          i += 1
         }
       }
     }

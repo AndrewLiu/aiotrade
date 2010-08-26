@@ -212,7 +212,6 @@ object IndicatorFunction {
       }
             
       StatisticFunction.ma(dxes, 0, periodADX - 1)
-            
     }
   }
     

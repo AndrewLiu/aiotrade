@@ -215,18 +215,10 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     /** inject popup menu from this TopComponent */
     viewContainer.setComponentPopupMenu(popupMenu)
 
-    loadSec
-
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
-      val ser = freq match {
-        case TFreq.ONE_SEC =>
-          val rtSer = sec.realtimeSer
-          if (!rtSer.loaded) {
-            sec.loadRealtimeSer
-          }
-          rtSer
-        case _ => sec.serOf(freq).getOrElse(null)
-      }
+      val ser = sec.serOf(freq).getOrElse(null)
+      if (ser != null && !ser.isLoaded) sec.loadSer(ser)
+      sec.subscribeTickerServer(true)
 
       val controller = ChartingController(ser, contents)
       val viewContainer = if (freq == TFreq.ONE_SEC) {
@@ -253,13 +245,6 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
           initNodeChildrenRecursively(child)
         }
       }
-    }
-
-    private def loadSec {
-      if (!sec.isSerLoaded(quoteContract.freq)) {
-        sec.loadSer(quoteContract.freq)
-      }
-      sec.subscribeTickerServer(true)
     }
 
   }

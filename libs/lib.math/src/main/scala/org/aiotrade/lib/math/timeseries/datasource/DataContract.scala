@@ -32,7 +32,6 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import java.util.Calendar
 import java.util.Date
-import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
 import org.aiotrade.lib.util.serialization.BeansDocument
@@ -51,15 +50,10 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class DataContract[V <: TVal: Manifest, S] extends AnalysisDescriptor[S] {
-  type T <: TSer
-
   @transient var reqId = 0
 
   /** symbol in source */
   var srcSymbol: String = _
-  /** ser to be filled */
-  var ser: T = _
-  var chainSers: List[T] = Nil
    
   var dateFormatPattern: Option[String] = None
   var urlString: String = ""

@@ -430,19 +430,19 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
    * --------------------------------------------------------------------
    */
   object Factor {
-    def apply(name: String, value: Number) =
-      new InnerFactor(name, value, null, null, null)
-    def apply(name: String, value: Number, step: Number) =
-      new InnerFactor(name, value, step, null, null)
-    def apply(name: String, value: Number, step: Number, minValue: Number, maxValue: Number) =
+    def apply(name: String, value: Double) =
+      new InnerFactor(name, value, 1.0, Double.MinValue, Double.MaxValue)
+    def apply(name: String, value: Double, step: Double) =
+      new InnerFactor(name, value, step, Double.MinValue, Double.MaxValue)
+    def apply(name: String, value: Double, step: Double, minValue: Double, maxValue: Double) =
       new InnerFactor(name, value, step, minValue, maxValue)
   }
     
-  protected class InnerFactor(name: String,
-                              value: Number,
-                              step: Number,
-                              minValue: Number,
-                              maxValue: Number
+  protected class InnerFactor(name: => String,
+                              value: => Double,
+                              step: => Double,
+                              minValue: => Double,
+                              maxValue: => Double
   ) extends DefaultFactor(name, value, step, minValue, maxValue) {
 
     addFactor(this)
