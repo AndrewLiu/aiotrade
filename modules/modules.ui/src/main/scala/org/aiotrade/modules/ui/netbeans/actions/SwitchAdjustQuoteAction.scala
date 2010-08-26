@@ -79,7 +79,9 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
   }
     
   def getName: String = {
-    return "Adjust Quote";
+    //return "Adjust Quote";
+    val adjustquote = NbBundle.getMessage(this.getClass,"CTL_SwitchAdjustQuoteAction")
+    adjustquote
   }
     
   def getHelpCtx: HelpCtx = {

@@ -55,7 +55,7 @@ class AddStatisticChartAction extends CallableSystemAction {
             val viewContainer = analysisWin.viewContainer
             val selectedChart = viewContainer.selectedChart
             if (selectedChart == null) {
-              JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a chart first, by Ctrl + clicking on it!");
+              JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, NbBundle.getMessage(this .getClass,"Please_Select_A_Chart"));
               return
             }
                     

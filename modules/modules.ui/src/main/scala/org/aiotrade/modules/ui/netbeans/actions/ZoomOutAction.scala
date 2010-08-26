@@ -58,7 +58,7 @@ class ZoomOutAction extends CallableSystemAction {
               case x: RealTimeBoardTopComponent =>
                 x.realTimeChartViewContainer foreach (_.controller.growWBar(-1))
               case _ =>
-                JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, "Please select a view by clicking on it first!")
+                JOptionPane.showMessageDialog(WindowManager.getDefault.getMainWindow, NbBundle.getMessage(this .getClass, "Please_select_a_view"))
             }
           }
         })
