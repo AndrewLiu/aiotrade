@@ -679,12 +679,7 @@ class Sec extends SerProvider with Publisher {
           minuteQuotesToClose += prevOneOrNull
         }
 
-        val newone = new Quote
-        newone.time = rounded
-        newone.sec = this
-        newone.unclosed_!
-        newone.justOpen_!
-        newone.fromMe_!
+        val newone = Quotes1m.minuteQuoteOf(this, rounded)
         lastData.minuteQuote = newone
         newone
     }
@@ -702,12 +697,7 @@ class Sec extends SerProvider with Publisher {
           minuteMoneyFlowsToClose += prevOneOrNull
         }
 
-        val newone = new MoneyFlow
-        newone.time = rounded
-        newone.sec = this
-        newone.unclosed_!
-        newone.justOpen_!
-        newone.fromMe_!
+        val newone = MoneyFlows1m.minuteMoneyFlowOf(this, rounded)
         lastData.minuteMoneyFlow = newone
         newone
     }

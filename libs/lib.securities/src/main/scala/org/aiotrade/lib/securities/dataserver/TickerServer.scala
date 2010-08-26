@@ -307,19 +307,18 @@ abstract class TickerServer extends DataServer[Ticker] {
           updateDailyQuoteByTicker(dayQuote, ticker)
 
           // update chainSers
-          // 
           if (rtSer.isLoaded) {
             rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
             tickerInfo.updatedSers ::= rtSer
           }
           sec.serOf(TFreq.DAILY) match {
-            case Some(x) if x.isLoaded =>
+            case Some(x) /* if x.isLoaded */ =>
               x.updateFrom(dayQuote)
               tickerInfo.updatedSers ::= x
             case _ =>
           }
           sec.serOf(TFreq.ONE_MIN) match {
-            case Some(x) if x.isLoaded =>
+            case Some(x) /* if x.isLoaded */ =>
               x.updateFrom(minQuote)
               tickerInfo.updatedSers ::= x
             case _ =>
@@ -364,36 +363,42 @@ abstract class TickerServer extends DataServer[Ticker] {
     var willCommit = false
     val tickers = allTickers.toArray
     if (tickers.length > 0) {
-      Tickers.insertBatch(tickers)
+      Tickers.insertBatch_!(tickers)
       willCommit = true
     }
 
     val executions = allExecutions.toArray
     if (executions.length > 0) {
-      Executions.insertBatch(executions)
+      Executions.insertBatch_!(executions)
       willCommit = true
     }
 
-    val minuteQuotes = Sec.minuteQuotesToClose.toArray
-    if (minuteQuotes.length > 0) {
-      Quotes1m.insertBatch(minuteQuotes)
-      Sec.minuteQuotesToClose.clear
+    val (minuteQuotesToInsert, minuteQuotesToUpdate) = Sec.minuteQuotesToClose.partition(_.transient)
+    Sec.minuteQuotesToClose.clear
+    if (minuteQuotesToInsert.length > 0) {
+      Quotes1m.insertBatch_!(minuteQuotesToInsert.toArray)
+      willCommit = true
+    }
+    if (minuteQuotesToUpdate.length > 0) {
+      Quotes1m.updateBatch_!(minuteQuotesToUpdate.toArray)
       willCommit = true
     }
 
-    if (!tickersLastToUpdate.isEmpty) {
-      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
-      willCommit = true
-    }
-
-    if (!tickersLastToInsert.isEmpty) {
+    if (tickersLastToInsert.length > 0) {
       TickersLast.insertBatch_!(tickersLastToInsert.toArray)
+      willCommit = true
+    }
+    if (tickersLastToUpdate.length > 0) {
+      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
       willCommit = true
     }
 
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) {
-      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + ", minuteQuotes=" + minuteQuotes.length)
+      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length + 
+               ", minuteQuotesToInsert=" + minuteQuotesToInsert.length +
+               ", minuteQuotesToUpdate=" + minuteQuotesToUpdate.length
+      )
       commit
       log.info("Committed")
     }

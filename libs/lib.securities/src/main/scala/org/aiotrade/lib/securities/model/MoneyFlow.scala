@@ -1,38 +1,59 @@
 package org.aiotrade.lib.securities.model
 
-import java.util.Calendar
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 object MoneyFlows1d extends MoneyFlows {
-  def dailyMoneyFlowOf(sec: Sec, time: Long): MoneyFlow = synchronized {
-    val exchange = sec.exchange
-    val cal = Calendar.getInstance(exchange.timeZone)
-    val rounded = TFreq.DAILY.round(time, cal)
-
+  
+  def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
     (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
     ) headOption match {
-      case Some(one) => one
+      case Some(one) =>
+        one.transient = false
+        one
       case None =>
         val newone = new MoneyFlow
-        newone.time = rounded
+        newone.time = dailyRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        exchange.addNewDailyMoneyFlow(newone)
+        newone.transient = true
+        sec.exchange.addNewDailyMoneyFlow(newone)
         newone
     }
   }
 
 }
 
-object MoneyFlows1m extends MoneyFlows
+object MoneyFlows1m extends MoneyFlows {
+
+  def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = synchronized {
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
+      ) list
+    ) headOption match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new MoneyFlow
+        newone.time = minuteRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone
+    }
+  }
+
+}
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
   val sec = "secs_id" REFERENCES(Secs)
@@ -94,4 +115,7 @@ class MoneyFlow extends TVal with Flag {
 
   var smallVolume: Double = _
   var smallAmount: Double = _
+
+  // --- no db fields
+  var transient = true
 }
