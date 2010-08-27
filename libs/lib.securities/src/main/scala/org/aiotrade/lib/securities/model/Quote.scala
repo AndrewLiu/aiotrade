@@ -47,25 +47,24 @@ object Quotes1d extends Quotes {
     (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
   }
 
-  def dailyQuoteOf(sec: Sec, time: Long): Quote = synchronized {
-    val exchange = sec.exchange
-    val cal = Calendar.getInstance(exchange.timeZone)
-    val rounded = TFreq.DAILY.round(time, cal)
-
+  def dailyQuoteOf(sec: Sec, dailyRoundedTime: Long): Quote = synchronized {
     (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ rounded)
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
     ) headOption match {
-      case Some(one) => one
+      case Some(one) =>
+        one.transient = false
+        one
       case None =>
         val newone = new Quote
-        newone.time = rounded
+        newone.time = dailyRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + rounded)
-        exchange.addNewDailyQuote(newone)
+        newone.transient = true
+        logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
+        sec.exchange.addNewDailyQuote(newone)
         newone
     }
   }
@@ -97,6 +96,27 @@ object Quotes1m extends Quotes {
       this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
     ) ORDER_BY (this.time DESC) list
   }
+
+  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = synchronized {
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
+      ) list
+    ) headOption match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new Quote
+        newone.time = minuteRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        newone
+    }
+  }
+
 }
 
 abstract class Quotes extends Table[Quote] {
@@ -156,7 +176,7 @@ abstract class Quotes extends Table[Quote] {
       this.update_!(existOne)
     }
 
-    this.insertBatch(inserts.toArray)
+    this.insertBatch_!(inserts.toArray)
   }
 }
 
@@ -206,6 +226,10 @@ class Quote extends TVal with Flag {
   var tickers: List[Ticker] = Nil
   var executions: List[Execution] = Nil
 
+  
+  // --- no db fields:
+  var transient: Boolean = true
+  
   def copyFrom(another: Quote) {
     var i = 0
     while (i < data.length) {
