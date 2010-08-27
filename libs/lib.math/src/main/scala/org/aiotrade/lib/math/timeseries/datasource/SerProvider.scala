@@ -48,8 +48,8 @@ trait SerProvider {
    * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
    */
   def loadSer(ser: T): Boolean
-  def clearSer(ser: T)
   def putSer(ser: T)
+  def resetSers
 
   def uniSymbol: String
   def uniSymbol_=(symbol: String)

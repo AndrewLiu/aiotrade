@@ -291,10 +291,10 @@ class Util {
       mayNeedsReload = true
     }
 
-    val ser = sec.serOf(freq).get
     if (mayNeedsReload) {
-      sec.clearSer(ser)
+      sec.resetSers
     }
+    val ser = sec.serOf(freq).get
 
     if (!ser.isLoaded && !ser.isInLoading) {
       sec.loadSer(ser)

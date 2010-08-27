@@ -263,6 +263,8 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
       splitPane.remove(viewContainer)
+      val sec = viewContainer.controller.baseSer.serProvider.asInstanceOf[Sec]
+      sec.resetSers
     }
 
     state = new State(contents)

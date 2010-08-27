@@ -974,8 +974,8 @@ object SymbolNodes {
        * @TODO
        * need more works, the clear(long) in default implement of Ser doesn't work good!
        */
+      sec.resetSers
       val ser = sec.serOf(freq).get
-      sec.clearSer(ser)
 
       node.getLookup.lookup(classOf[ViewAction]).execute
     }
@@ -1007,8 +1007,8 @@ object SymbolNodes {
         sec.dataContract = quoteContract
       }
 
+      sec.resetSers
       val ser = sec.serOf(quoteContract.freq).get
-      sec.clearSer(ser)
 
       node.getLookup.lookup(classOf[ViewAction]).execute
     }

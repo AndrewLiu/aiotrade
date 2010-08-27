@@ -126,8 +126,6 @@ object Sec {
     }
   }
 
-  val basicFreqs = List(TFreq.DAILY, TFreq.ONE_MIN)
-
   val minuteQuotesToClose = new ArrayList[Quote]()
   val minuteMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 }
@@ -164,9 +162,10 @@ class Sec extends SerProvider with Publisher {
   type T = QuoteSer
   type C = QuoteContract
 
-  private var _realtimeSer: QuoteSer = _
-  private val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
+  private val mutex = new AnyRef
+  private var _realtimeSer: QuoteSer = _
+  private lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
@@ -182,11 +181,6 @@ class Sec extends SerProvider with Publisher {
   def quoteContracts = _quoteContracts
   def quoteContracts_=(quoteContracts: Seq[QuoteContract]) {
     _quoteContracts = quoteContracts
-    createFreqSers
-  }
-
-  /** create freq sers */
-  private def createFreqSers {
     for (contract <- quoteContracts) {
       val freq = contract.freq
       if (_defaultFreq == null) {
@@ -194,18 +188,10 @@ class Sec extends SerProvider with Publisher {
       }
 
       freqToQuoteContract.put(freq, contract)
-      if (!freqToQuoteSer.contains(freq)) {
-        freqToQuoteSer.put(freq, new QuoteSer(this, freq))
-      }
-    }
-    
-    // basic freqs:
-    for (freq <- basicFreqs if !freqToQuoteSer.contains(freq)) {
-      freqToQuoteSer.put(freq, new QuoteSer(this, freq))
     }
   }
 
-  def realtimeSer = {
+  def realtimeSer = mutex synchronized {
     if (_realtimeSer == null) {
       _realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
       freqToQuoteSer.put(TFreq.ONE_SEC, _realtimeSer)
@@ -230,25 +216,31 @@ class Sec extends SerProvider with Publisher {
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
 
-  def serOf(freq: TFreq): Option[QuoteSer] = {
+  def serOf(freq: TFreq): Option[QuoteSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC => Some(realtimeSer)
-      case TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq)
+      case TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq) match {
+          case None =>
+            val x = new QuoteSer(this, freq)
+            freqToQuoteSer.put(freq, x)
+            Some(x)
+          case some => some
+        }
       case _ => freqToQuoteSer.get(freq) match {
           case None => createCombinedSer(freq)
-          case x => x
+          case some => some
         }
     }
   }
 
-  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = {
+  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = mutex synchronized {
     freqToIndicators.get(freq) match {
       case None => Nil
       case Some(inds) => (inds filter (clazz.isInstance(_))).asInstanceOf[Seq[A]]
     }
   }
 
-  def addIndicator(indicator: Indicator) {
+  def addIndicator(indicator: Indicator): Unit = mutex synchronized {
     val freq = indicator.freq
     val indicators = freqToIndicators.get(freq) getOrElse {
       val x = new ListBuffer[Indicator]
@@ -258,7 +250,7 @@ class Sec extends SerProvider with Publisher {
     indicators += indicator
   }
 
-  def removeIndicator(indicator: Indicator) {
+  def removeIndicator(indicator: Indicator): Unit = mutex synchronized  {
     val freq = indicator.freq
     freqToIndicators.get(freq) match {
       case Some(indicators) => indicators -= indicator
@@ -266,40 +258,44 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-  def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = freq match {
-    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
-        case None => serOf(freq) match {
-            case Some(quoteSer) => 
-              val x = new MoneyFlowSer(this, freq)
-              freqToMoneyFlowSer.put(freq, x)
-              Some(x)
-            case None => None
-          }
-        case some => some
-      }
-    case _ => freqToMoneyFlowSer.get(freq) match {
-        case None => None // @todo createCombinedSer(freq)
-        case some => some
-      }
-  }
-  
-  def infoSerOf(freq: TFreq): Option[InfoSer] = freq match {
-    case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoSer.get(freq) match {
-        case None => serOf(freq) match {
-            case Some(quoteSer) =>
-              val x = new InfoSer(this, freq)
-              freqToInfoSer.put(freq, x)
-              Some(x)
-            case None => None
-          }
-        case some => some
-      }
-    case _ => freqToInfoSer.get(freq) match {
-        case None => None // @todo createCombinedSer(freq)
-        case some => some
-      }
+  def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = mutex synchronized {
+    freq match {
+      case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToMoneyFlowSer.get(freq) match {
+          case None => serOf(freq) match {
+              case Some(quoteSer) =>
+                val x = new MoneyFlowSer(this, freq)
+                freqToMoneyFlowSer.put(freq, x)
+                Some(x)
+              case None => None
+            }
+          case some => some
+        }
+      case _ => freqToMoneyFlowSer.get(freq) match {
+          case None => None // @todo createCombinedSer(freq)
+          case some => some
+        }
+    }
   }
 
+  def infoSerOf(freq: TFreq): Option[InfoSer] = mutex synchronized {
+    freq match {
+      case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoSer.get(freq) match {
+          case None => serOf(freq) match {
+              case Some(quoteSer) =>
+                val x = new InfoSer(this, freq)
+                freqToInfoSer.put(freq, x)
+                Some(x)
+              case None => None
+            }
+          case some => some
+        }
+      case _ => freqToInfoSer.get(freq) match {
+          case None => None // @todo createCombinedSer(freq)
+          case some => some
+        }
+    }
+  }
+  
   /**
    * @Note
    * here should be aware that if sec's ser has been loaded, no more
@@ -325,7 +321,7 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-  def putSer(ser: QuoteSer) {
+  def putSer(ser: QuoteSer): Unit = mutex synchronized {
     freqToQuoteSer.put(ser.freq, ser)
   }
 
@@ -343,9 +339,12 @@ class Sec extends SerProvider with Publisher {
     true
   }
 
-  def clearSer(ser: QuoteSer) {
-    ser.clear(0)
-    ser.isLoaded = false
+  def resetSers: Unit = mutex synchronized {
+    _realtimeSer = null
+    freqToQuoteSer.clear
+    freqToMoneyFlowSer.clear
+    freqToIndicators.clear
+    freqToInfoSer.clear
   }
 
   /**
@@ -357,9 +356,10 @@ class Sec extends SerProvider with Publisher {
         case Some(x) => x
         case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
       }
-      log.info("Loading realtime ser from persistence of " + {
-          val cal = Calendar.getInstance(exchange.timeZone); cal.setTimeInMillis(dailyRoundedTime); cal.getTime
-        })
+
+      val cal = Calendar.getInstance(exchange.timeZone)
+      cal.setTimeInMillis(dailyRoundedTime)
+      log.info("Loading realtime ser from persistence of " + cal.getTime)
       Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
     } else {
       ser.freq match {
@@ -501,7 +501,6 @@ class Sec extends SerProvider with Publisher {
       wantTime
     } else 0L
   }
-
 
   private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long) {
     val freq = ser.freq
