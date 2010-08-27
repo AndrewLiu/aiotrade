@@ -8,19 +8,41 @@ import org.aiotrade.lib.collection.ArrayList
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 
-object Filings extends Table[Filing]{
-  val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+object Filing {
+
+    val PDF = 1
+    val TXT = 2
+    val WORD = 3
+    val OTHERS = 99
+
   
-  val publisher = "publisher" VARCHAR(30) DEFAULT("''")
-  val format = "format" TINYINT
-  val size = "size" BIGINT
+  def formatFromExtName(ext : String) = {
+    ext.toUpperCase match {
+      case "PDF" => PDF
+      case "TXT" => TXT
+      case "DOC" => WORD
+      case "DOCX" =>WORD
+      case _ =>   OTHERS
+    }
+  }
+
+  def extNameFromFormat(format : Int) = {
+    format match {
+      case 1 => "PDF"
+      case 2 => "TXT"
+      case 3 => "DOC"
+      case 4 => "DOCX"
+      case _ =>   "OTHERS"
+    }
+  }
+
 }
 
 class Filing extends TVal with Flag with InfoContent{
   var generalInfo : GeneralInfo = _
 
   var publisher : String = ""
-  var format : Int = _ 
+  var format : Int = _
   var size : Long = 0L
 
   private var _filings: ArrayList[Filing] = ArrayList[Filing]()
@@ -63,13 +85,16 @@ class Filing extends TVal with Flag with InfoContent{
   def exportToJavaMap: java.util.Map[String, String] = {
     exportToMap
   }
-
-  object Format {
-    val PDF = 1
-    val TXT = 2
-    val WORD = 3
-    val OTHERS = 99
-  }
 }
+
+object Filings extends Table[Filing]{
+  val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+  
+  val publisher = "publisher" VARCHAR(30) DEFAULT("''")
+  val format = "format" TINYINT
+  val size = "size" BIGINT
+
+}
+
 
 

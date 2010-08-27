@@ -75,6 +75,16 @@
                             </jvmArgs>
                         </launcher>
                         <!-- you could define other launcher -->
+                        <launcher>
+                            <id>sectormodel</id>
+                            <mainClass>org.aiotrade.lib.info.model.Model</mainClass>
+                            <args>
+                                <arg>src/main/resources/development.conf</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-Xmx512m</jvmArg>
+                            </jvmArgs>
+                        </launcher>
                     </launchers>
                 </configuration>
             </plugin>

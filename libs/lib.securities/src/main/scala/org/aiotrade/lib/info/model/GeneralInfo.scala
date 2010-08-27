@@ -17,6 +17,7 @@ object GeneralInfos extends Table[GeneralInfo]{
   val title = "title" VARCHAR(80) DEFAULT("''")
   val url = "url" VARCHAR(100)  DEFAULT("''")
   val infoClass = "infoClass" TINYINT
+  val combinValue = "combineValue" BIGINT //for excluding repeated news
 
   def infoCategorys = inverse(InfoContentCategories.generalInfo)
   def infoSecs = inverse(InfoSecs.generalInfo)
@@ -48,6 +49,7 @@ class GeneralInfo extends TVal with Flag with InfoContent {
   var title: String = ""
   var infoClass : Int = _
   var url : String = ""
+  var combinValue : Long = _
   
   var infoCategorys : List[ContentCategory] = _
   var infoSecs : List[Sec] = _
