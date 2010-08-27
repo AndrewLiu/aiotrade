@@ -87,11 +87,8 @@ object DescriptorNode {
 
 import DescriptorNode._
 @throws(classOf[IntrospectionException])
-class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisContents, content: InstanceContent
-) extends FilterNode(new BeanNode[AnalysisDescriptor[_]](descriptorInfo), Children.LEAF, new AbstractLookup(content)) {
-
-  /* adds the node to our own lookup */
-  content.add(this)
+class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisContents, ic: InstanceContent
+) extends FilterNode(new BeanNode[AnalysisDescriptor[_]](descriptorInfo), Children.LEAF, new AbstractLookup(ic)) {
 
   /**
    * the descriptor param may be a clone of descritor in contents, so we
@@ -106,8 +103,8 @@ class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisCo
     descriptorInfo.freq
   ).get
 
-  /* adds aditional items to the lookup */
-  content.add(contents)
+  /* adds additional items to the lookup */
+  ic.add(contents)
     
   def this(descriptor: AnalysisDescriptor[_], contents: AnalysisContents) = {
     this(descriptor, contents, new InstanceContent)
@@ -142,9 +139,7 @@ class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisCo
   /**
    * Providing the Open action on a stock descriptorInfo
    */
-  override def getActions(popup: Boolean): Array[Action] = {
-    val contents = getLookup.lookup(classOf[AnalysisContents])
-        
+  override def getActions(popup: Boolean): Array[Action] = {        
     /** Use SystemAction to find instance of those actions registered in layer.xml */
     Array(
       descriptor.lookupAction(classOf[ViewAction]).getOrElse(null),

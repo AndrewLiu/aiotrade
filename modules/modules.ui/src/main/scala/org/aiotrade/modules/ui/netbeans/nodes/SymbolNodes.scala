@@ -255,24 +255,31 @@ object SymbolNodes {
     }
   }
 
-  def findSymbolNode(symbol: String): Option[Node] = {
+  def findSymbolNode(symbol: String): Option[OneSymbolNode] = {
     findSymbolNode(RootSymbolsNode, symbol)
   }
 
-  private def findSymbolNode(node: Node, symbol: String): Option[Node] = {
-    if (node.getLookup.lookup(classOf[DataFolder]) == null) { // not a folder
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      if (contents != null && contents.uniSymbol == symbol) {
-        Some(node)
-      } else None
-    } else {
-      for (child <- node.getChildren.getNodes) {
-        findSymbolNode(child, symbol) match {
-          case None =>
-          case some => return some
+  private def findSymbolNode(node: Node, symbol: String): Option[OneSymbolNode] = {
+    node match {
+      case x: OneSymbolNode =>
+        val contents = x.analysisContents
+        if (contents != null && contents.uniSymbol == symbol) {
+          Some(x)
+        } else None
+      case x: SymbolFolderNode =>
+        val children = x.getChildren
+        val count = children.getNodesCount
+        var i = 0
+        while (i < count) {
+          val node_i = children.getNodeAt(i)
+          findSymbolNode(node_i, symbol) match {
+            case None =>
+            case some => return some
+          }
+          i += 1
         }
-      }
-      None
+        None
+      case _ => None
     }
   }
 
@@ -323,7 +330,7 @@ object SymbolNodes {
                                                                            new AbstractLookup(ic))
   ) {
 
-    private val analysisContents = readContents(symbolFileNode) match {
+    val analysisContents = readContents(symbolFileNode) match {
       case Some(contents) =>
         // check if has existed in application context, if true, use the existed one
         val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
@@ -332,9 +339,6 @@ object SymbolNodes {
         contents1
       case None => null
     }
-
-    /* add the node to our own lookup */
-    ic.add(this)
 
     /* add additional items to the lookup */
     ic.add(new SymbolViewAction(this))
@@ -346,6 +350,8 @@ object SymbolNodes {
     ic.add(new SymbolCompareToAction(this))
     ic.add(new SymbolClearDataAction(this))
     ic.add(new SymbolAddToFavoriteAction(this))
+
+    log.info("OneSymbolsNode(" + analysisContents.uniSymbol + ") created.")
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -569,9 +575,6 @@ object SymbolNodes {
       _favoriteNode = this
     }
 
-    /* add the node to our own lookup */
-    ic.add(this)
-
     /* add additional items to the lookup */
     ic.add(SystemAction.get(classOf[AddSymbolAction]))
     ic.add(new SymbolStartWatchAction(this))
@@ -741,7 +744,7 @@ object SymbolNodes {
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
-            val analysisContents = getAnalysisContentsViaFolder(node, handle)
+            val analysisContents = getAnalysisContentsViaNode(node, handle)
             handle.finish
             log.info("Finished collecting node children: " + analysisContents.length)
             watchSymbols(folderNode, analysisContents)
@@ -757,21 +760,21 @@ object SymbolNodes {
     }
 
     private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
-      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-        /** it's a folder, go recursively */
-        val children = node.getChildren
-        val count = children.getNodesCount
-        handle.switchToDeterminate(count)
-        var i = 0
-        while (i < count) {
-          handle.progress(i)
-          val node_i = children.getNodeAt(i)
-          collectSymbolNodes(node_i, symbolNodes, handle)
-          i += 1
-        }
-      } else {
-        // it's an OneSymbolNode, do real things
-        symbolNodes += node
+      node match {
+        case x: OneSymbolNode => symbolNodes += node
+        case x: SymbolFolderNode =>
+          /** it's a folder, go recursively */
+          val children = node.getChildren
+          val count = children.getNodesCount
+          handle.switchToDeterminate(count)
+          var i = 0
+          while (i < count) {
+            handle.progress(i)
+            val node_i = children.getNodeAt(i)
+            collectSymbolNodes(node_i, symbolNodes, handle)
+            i += 1
+          }
+        case _ =>
       }
     }
 

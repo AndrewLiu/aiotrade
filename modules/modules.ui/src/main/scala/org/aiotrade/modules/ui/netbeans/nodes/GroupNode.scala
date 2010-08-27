@@ -120,7 +120,7 @@ object GroupNode {
       val children = node.getChildren.asInstanceOf[GroupChildren]
       /** if new descriptor is added, this will add it to children */
       children.addNotify
-      for (child <- children.getNodes()) {
+      for (child <- children.getNodes) {
         child.asInstanceOf[DescriptorNode].refreshIcon
         child.asInstanceOf[DescriptorNode].refreshDisplayName
       }
@@ -141,21 +141,17 @@ object GroupNode {
 }
 
 @throws(classOf[IntrospectionException])
-class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: AnalysisContents, content: InstanceContent
-) extends FilterNode(new BeanNode[GroupDescriptor[_]](group), new GroupNode.GroupChildren(contents, group.getBindClass), new AbstractLookup(content)) {
+class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: AnalysisContents, ic: InstanceContent
+) extends FilterNode(new BeanNode[GroupDescriptor[_]](group), new GroupNode.GroupChildren(contents, group.getBindClass), new AbstractLookup(ic)) {
   import GroupNode._
 
   private var _freq: TFreq = TFreq.DAILY
 
-
-  /* add this node to our own lookup */
-  content.add(this)
-
   /* add aditional items to the lookup */
-  content.add(contents)
+  ic.add(contents)
 
-  content.add(new GroupRefreshAction(this))
-  content.add(new GroupUpdateAction(this))
+  ic.add(new GroupRefreshAction(this))
+  ic.add(new GroupUpdateAction(this))
 
   /**
    * add actions carried with nodeInfo
@@ -166,7 +162,7 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
      * instead of adding an array, otherwise this.getLookup().loopup
      * can only search an array.
      */
-    content.add(action)
+    ic.add(action)
   }
 
 
