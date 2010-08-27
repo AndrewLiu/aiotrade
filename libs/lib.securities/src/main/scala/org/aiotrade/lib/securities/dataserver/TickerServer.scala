@@ -177,10 +177,9 @@ abstract class TickerServer extends DataServer[Ticker] {
         tickersLastToUpdate += tickerx
       }
 
-      if (subscribedSrcSymbols.contains(symbol)) {
+      if (subscribedSrcSymbols.contains(symbol) && (ticker.dayHigh != 0 && ticker.dayLow != 0)) {
         val contract = subscribedSrcSymbols.get(symbol).get
 
-        val rtSer = sec.realtimeSer
         val tickerInfo = symbolToTickerInfo.get(symbol) match {
           case Some(x) =>
             x.lastTicker = ticker
@@ -230,10 +229,10 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         } else {
 
-          if (ticker.time + 1000 > prevTicker.time) { // 1000ms, @Note: we add +1 to ticker.time later
-            // some datasource only counts on seconds, but we may truly have a new ticker
-            if (ticker.time == prevTicker.time) {
-              ticker.time = prevTicker.time + 1
+          if (ticker.time - prevTicker.time < 1000) { // 1000ms, @Note: we add +1 to ticker.time later
+            // some datasources only count on second, but we may truly have a new ticker
+            if (ticker.time <= prevTicker.time) {
+              ticker.time = prevTicker.time + 1 // avoid duplicate key
             }
 
             tickerValid = true
@@ -298,7 +297,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           sec.publish(ExecutionEvent(ticker.prevClose, execution))
         }
 
-        if (tickerValid && (ticker.dayHigh != 0 && ticker.dayLow != 0)) {
+        if (tickerValid) {
           allTickers += ticker
           prevTicker.copyFrom(ticker)
           sec.publish(TickerEvent(ticker))
@@ -307,6 +306,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           updateDailyQuoteByTicker(dayQuote, ticker)
 
           // update chainSers
+          val rtSer = sec.realtimeSer
           if (rtSer.isLoaded) {
             rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
             tickerInfo.updatedSers ::= rtSer
