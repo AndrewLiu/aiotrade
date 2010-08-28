@@ -4,10 +4,45 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
+import scala.collection.mutable.HashMap
 
 object MoneyFlows1d extends MoneyFlows {
-  
-  def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
+  private val dailyCache = new HashMap[Long, HashMap[Sec, MoneyFlow]]
+
+  def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
+    val cached = dailyCache.get(dailyRoundedTime) match {
+      case Some(map) => map
+      case None =>
+        dailyCache.clear
+        val map = new HashMap[Sec, MoneyFlow]
+        dailyCache.put(dailyRoundedTime, map)
+
+        (SELECT (this.*) FROM (this) WHERE (
+            (this.time EQ dailyRoundedTime)
+          ) list
+        ) foreach {x => map.put(x.sec, x)}
+
+        map
+    }
+
+    cached.get(sec) match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new MoneyFlow
+        newone.time = dailyRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone
+    }
+  }
+
+  def dailyMoneyFlowOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
@@ -27,12 +62,45 @@ object MoneyFlows1d extends MoneyFlows {
         newone
     }
   }
-
 }
 
 object MoneyFlows1m extends MoneyFlows {
+  private val minuteCache = new HashMap[Long, HashMap[Sec, MoneyFlow]]
 
-  def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = synchronized {
+  def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
+    val cached = minuteCache.get(minuteRoundedTime) match {
+      case Some(map) => map
+      case None =>
+        minuteCache.clear
+        val map = new HashMap[Sec, MoneyFlow]
+        minuteCache.put(minuteRoundedTime, map)
+
+        (SELECT (this.*) FROM (this) WHERE (
+            (this.time EQ minuteRoundedTime)
+          ) list
+        ) foreach {x => map.put(x.sec, x)}
+
+        map
+    }
+
+    cached.get(sec) match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new MoneyFlow
+        newone.time = minuteRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone
+    }
+  }
+
+  def minuteMoneyFlowOf_ignoreCache(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
@@ -52,7 +120,6 @@ object MoneyFlows1m extends MoneyFlows {
         newone
     }
   }
-
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {

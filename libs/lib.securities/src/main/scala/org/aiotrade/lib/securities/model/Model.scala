@@ -1,6 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import org.aiotrade.lib.math.timeseries.TFreq
 import ru.circumflex.orm._
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.HashMap
@@ -32,7 +33,13 @@ object Model {
   private def temporaryTest {
     val xs = Exchanges.all()
     xs foreach (x => println(x.uniSymbolToLastTicker))
-    xs foreach (x => println(TickersLast.lastTickersOf(x)))
+
+    xs foreach {x =>
+      val cal = Calendar.getInstance(x.timeZone)
+      val rounded = TFreq.DAILY.round(System.currentTimeMillis, cal)
+
+      println(Tickers.lastTickersOf(rounded))
+    }
   }
 
   private def test {

@@ -590,7 +590,7 @@ object SymbolNodes {
             case Some(listTc) if listTc.isOpened =>
               nodeMemberEvent.getDelta foreach {
                 case node: OneSymbolNode =>
-                  val contents = node.getLookup.lookup(classOf[AnalysisContents])
+                  val contents = node.analysisContents
                   Exchange.secOf(contents.uniSymbol) foreach {sec =>
                     contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
                       sec.quoteContracts = List(quoteContract)
@@ -614,7 +614,7 @@ object SymbolNodes {
             case Some(listTc) if listTc.isOpened =>
               nodeMemberEvent.getDelta foreach {
                 case node: OneSymbolNode =>
-                  val contents = node.getLookup.lookup(classOf[AnalysisContents])
+                  val contents = node.analysisContents
                   Exchange.secOf(contents.uniSymbol) foreach {sec =>
                     contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
                       sec.quoteContracts = List(quoteContract)

@@ -619,57 +619,84 @@ class Sec extends SerProvider with Publisher {
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
   }
 
-  
-// --- helper methods for realtime composing
-
   /**
-   * store latest helper info
+   * store latest snap info
    */
-  private lazy val lastData = new LastData
+  lazy val secSnap = new SecSnap(this)
 
-  private class LastData {
-    val tickerSnapshot: TickerSnapshot = new TickerSnapshot
-    var prevTicker: Ticker = _
-    
-    var dailyQuote: Quote = _
-    var minuteQuote: Quote = _
-    
-    var dailyMoneyFlow: MoneyFlow = _
-    var minuteMoneyFlow: MoneyFlow = _
+  lazy val tickerSnapshot = new TickerSnapshot
+}
+
+class SecSnap(val sec: Sec) {
+  var currTicker: Ticker = _
+  var prevTicker: Ticker = _
+  var isDayFirstTicker: Boolean = _
+
+  var dailyQuote: Quote = _
+  var minuteQuote: Quote = _
+
+  var dailyMoneyFlow: MoneyFlow = _
+  var minuteMoneyFlow: MoneyFlow = _
+  
+  val updateInfo: UpdateInfo = new UpdateInfo
+
+  private val timeZone = sec.exchange.timeZone
+
+  final class UpdateInfo {
+    var frTime: Long = Long.MaxValue
+    var toTime: Long = Long.MinValue
+
+    var updatedSers: List[QuoteSer] = Nil
   }
 
-  def dailyQuoteOf(time: Long): Quote = {
-    assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
-    val cal = Calendar.getInstance(exchange.timeZone)
+  def setByTicker(ticker: Ticker): SecSnap = {
+    this.currTicker = ticker
+    
+    val time = ticker.time
+    updateInfo.frTime = math.min(updateInfo.frTime, time)
+    updateInfo.toTime = math.max(updateInfo.toTime, time)
+    updateInfo.updatedSers = Nil
+
+    checkLastTickerOf(time)
+    checkDailyQuoteOf(time)
+    checkMinuteQuoteOf(time)
+    checkDailyMoneyFlowOf(time)
+    checkMinuteMoneyFlowOf(time)
+    this
+  }
+
+  def checkDailyQuoteOf(time: Long): Quote = {
+    assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
+    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
-    lastData.dailyQuote match {
+    dailyQuote match {
       case one: Quote if one.time == rounded =>
         one
       case prevOneOrNull => // day changes or null
-        val newone = Quotes1d.dailyQuoteOf(this, rounded)
-        lastData.dailyQuote = newone
+        val newone = Quotes1d.dailyQuoteOf(sec, rounded)
+        dailyQuote = newone
         newone
     }
   }
 
-  def dailyMoneyFlowOf(time: Long): MoneyFlow = {
-    assert(Secs.idOf(this).isDefined, "Sec: " + this + " is transient")
-    val cal = Calendar.getInstance(exchange.timeZone)
+  def checkDailyMoneyFlowOf(time: Long): MoneyFlow = {
+    assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
+    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
-    lastData.dailyMoneyFlow match {
+    dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
       case prevOneOrNull => // day changes or null
-        val newone = MoneyFlows1d.dailyMoneyFlowOf(this, rounded)
-        lastData.dailyMoneyFlow = newone
+        val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
+        dailyMoneyFlow = newone
         newone
     }
   }
 
-  def minuteQuoteOf(time: Long): Quote = {
-    val cal = Calendar.getInstance(exchange.timeZone)
+  def checkMinuteQuoteOf(time: Long): Quote = {
+    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
-    lastData.minuteQuote match {
+    minuteQuote match {
       case one: Quote if one.time == rounded =>
         one
       case prevOneOrNull => // minute changes or null
@@ -678,16 +705,16 @@ class Sec extends SerProvider with Publisher {
           minuteQuotesToClose += prevOneOrNull
         }
 
-        val newone = Quotes1m.minuteQuoteOf(this, rounded)
-        lastData.minuteQuote = newone
+        val newone = Quotes1m.minuteQuoteOf(sec, rounded)
+        minuteQuote = newone
         newone
     }
   }
 
-  def minuteMoneyFlowOf(time: Long): MoneyFlow = {
-    val cal = Calendar.getInstance(exchange.timeZone)
+  def checkMinuteMoneyFlowOf(time: Long): MoneyFlow = {
+    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
-    lastData.minuteMoneyFlow match {
+    minuteMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
       case prevOneOrNull => // minute changes or null
@@ -696,30 +723,32 @@ class Sec extends SerProvider with Publisher {
           minuteMoneyFlowsToClose += prevOneOrNull
         }
 
-        val newone = MoneyFlows1m.minuteMoneyFlowOf(this, rounded)
-        lastData.minuteMoneyFlow = newone
+        val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
+        minuteMoneyFlow = newone
         newone
     }
   }
 
   /**
-   * @return (lastTicker of day, day first?)
+   * @return lastTicker of this day
    */
-  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): (Ticker, Boolean) = {
-    lastData.prevTicker match {
+  def checkLastTickerOf(time: Long): (Ticker, Boolean) = {
+    val cal = Calendar.getInstance(timeZone)
+    val rounded = TFreq.DAILY.round(time, cal)
+    prevTicker match {
       case null =>
-        Tickers.lastTickerOf(sec, dailyRoundedTime) match  {
+        Tickers.lastTickerOf(sec, rounded) match  {
           case None =>
-            val x = new Ticker
-            lastData.prevTicker = x
-            (x, true)
+            prevTicker = new Ticker
+            isDayFirstTicker = true
           case Some(x) =>
-            lastData.prevTicker = x
-            (x, false)
+            prevTicker = x
+            isDayFirstTicker = false
         }
-      case x => (x, false)
+      case _ => isDayFirstTicker = false
     }
-  }
 
-  def tickerSnapshot: TickerSnapshot = lastData.tickerSnapshot
+    (prevTicker, isDayFirstTicker)
+  }
 }
+

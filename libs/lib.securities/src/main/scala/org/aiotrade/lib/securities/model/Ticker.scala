@@ -79,18 +79,32 @@ object TickersLast extends TickersTable {
 }
 
 object Tickers extends TickersTable {
+  private val lastTickersCache = new HashMap[Long, HashMap[Sec, Ticker]]
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
-    (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
-      ) ORDER_BY (this.time DESC) LIMIT (1) list
+    val cached = lastTickersCache.get(dailyRoundedTime) match {
+      case Some(map) => map
+      case None =>
+        lastTickersCache.clear
+        val map = lastTickersOf(dailyRoundedTime)
+        lastTickersCache.put(dailyRoundedTime, map)
+        map
+    }
+
+    cached.get(sec)
+  }
+
+  def lastTickersOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
+    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+        (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+      ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
     ) headOption
   }
 
   def tickersOf(sec: Sec, dailyRoundedTime: Long): Seq[Ticker] = {
-    (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
-      ) ORDER_BY (this.time) list
+    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+        (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+      ) ORDER_BY (Tickers.time) list
     )
   }
 
@@ -127,13 +141,15 @@ object Tickers extends TickersTable {
         val cal = Calendar.getInstance(exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
 
-        val sql = "SELECT tickers.id AS this_1, tickers.bidAsks AS this_2, tickers.dayChange AS this_3, tickers.dayAmount AS this_4, tickers.dayVolume AS this_5, tickers.dayLow AS this_6, tickers.dayHigh AS this_7, tickers.dayOpen AS this_8, tickers.lastPrice AS this_9, tickers.prevClose AS this_10, tickers.time AS this_11, tickers.secs_id AS this_12" +
-        " FROM (SELECT tickers.secs_id AS secs_id, MAX(tickers.time) AS maxtime FROM orm.tickers AS tickers LEFT JOIN orm.secs AS secs ON tickers.secs_id = secs.id" +
-        " WHERE tickers.time >= " + rounded + " AND tickers.time < " + (rounded + ONE_DAY) + " AND secs.exchanges_id = " + Exchanges.idOf(exchange).get +
-        " GROUP BY tickers.secs_id) AS x INNER JOIN orm.tickers AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
-
         (new Select(Tickers.*) {
-            override def toSql = sql
+            private val sqlTickersTab = ORM.dialect.relationQualifiedName(Tickers)
+            private val sqlSecsTab = ORM.dialect.relationQualifiedName(Secs)
+
+            override def toSql = "SELECT tickers.id AS this_1, tickers.bidAsks AS this_2, tickers.dayChange AS this_3, tickers.dayAmount AS this_4, tickers.dayVolume AS this_5, tickers.dayLow AS this_6, tickers.dayHigh AS this_7, tickers.dayOpen AS this_8, tickers.lastPrice AS this_9, tickers.prevClose AS this_10, tickers.time AS this_11, tickers.secs_id AS this_12" +
+            " FROM (SELECT tickers.secs_id AS secs_id, MAX(tickers.time) AS maxtime FROM " + sqlTickersTab + " AS tickers LEFT JOIN " + sqlSecsTab + " AS secs ON tickers.secs_id = secs.id" +
+            " WHERE tickers.time >= " + rounded + " AND tickers.time < " + (rounded + ONE_DAY) + " AND secs.exchanges_id = " + Exchanges.idOf(exchange).get +
+            " GROUP BY tickers.secs_id) AS x INNER JOIN + " + sqlTickersTab + " AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
+
           } list
         ) foreach {x => map.put(x.sec, x)}
 
@@ -145,7 +161,30 @@ object Tickers extends TickersTable {
     map
   }
 
-  //  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  private[securities] def lastTickersOf(dailyRoundedTime: Long): HashMap[Sec, Ticker] = {
+    Exchange.uniSymbolToSec // force loaded all secs and secInfos
+
+    val start = System.currentTimeMillis
+    val map = new HashMap[Sec, Ticker]
+
+    (new Select(Tickers.*) {
+        private val sqlTickersTab = ORM.dialect.relationQualifiedName(Tickers)
+
+        override def toSql = "SELECT tickers.id AS this_1, tickers.bidAsks AS this_2, tickers.dayChange AS this_3, tickers.dayAmount AS this_4, tickers.dayVolume AS this_5, tickers.dayLow AS this_6, tickers.dayHigh AS this_7, tickers.dayOpen AS this_8, tickers.lastPrice AS this_9, tickers.prevClose AS this_10, tickers.time AS this_11, tickers.secs_id AS this_12" +
+        " FROM (SELECT tickers.secs_id AS secs_id, MAX(tickers.time) AS maxtime FROM " + sqlTickersTab + " AS tickers" +
+        " WHERE tickers.time >= " + dailyRoundedTime + " AND tickers.time < " + (dailyRoundedTime + ONE_DAY) +
+        " GROUP BY tickers.secs_id) AS x INNER JOIN " + sqlTickersTab + " AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
+
+      } list
+    ) foreach {x => map.put(x.sec, x)}
+
+    log.info("Loaded last tickers between " + dailyRoundedTime + " - " + (dailyRoundedTime + ONE_DAY - 1) +
+             ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+    map
+  }
+
+
+//  private[securities] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
 //    Exchange.uniSymbolToSec // force loaded all secs and secInfos
 //    SELECT (Tickers.*, Quotes1d.*) FROM (Tickers JOIN (Quotes1d JOIN Secs)) WHERE (
 //      (Quotes1d.time EQ (
@@ -162,29 +201,6 @@ object Tickers extends TickersTable {
 //        map
 //    }
 //  }
-
-  @deprecated private[securities] def lastTradingDayTickersOf_depreacted(exchange: Exchange): HashMap[Sec, Ticker] = {
-    Exchange.uniSymbolToSec // force loaded all secs and secInfos
-
-    val start = System.currentTimeMillis
-    val map = new HashMap[Sec, Ticker]
-    lastTradingTimeOf(exchange) match {
-      case Some(time) =>
-        val cal = Calendar.getInstance(exchange.timeZone)
-        val rounded = TFreq.DAILY.round(time, cal)
-
-        (SELECT (Tickers.*) FROM (Tickers JOIN Secs) WHERE (
-            (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
-          ) ORDER_BY (Tickers.time ASC) list
-        ) groupBy (_.sec) foreach (xt => map.put(xt._1, xt._2.head)) // xt: (Sec, Seq[Ticker])
-
-        log.info(exchange.code + ": Loaded last tickers between " + rounded + " - " + (rounded + ONE_DAY - 1) +
-                 ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
-      case None =>
-    }
-
-    map
-  }
 
   private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos

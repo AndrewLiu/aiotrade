@@ -43,11 +43,47 @@ import scala.collection.mutable.HashMap
 object Quotes1d extends Quotes {
   private val logger = Logger.getLogger(this.getClass.getSimpleName)
 
+  private val dailyCache = new HashMap[Long, HashMap[Sec, Quote]]
+
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
     (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
   }
 
-  def dailyQuoteOf(sec: Sec, dailyRoundedTime: Long): Quote = synchronized {
+  def dailyQuoteOf(sec: Sec, dailyRoundedTime: Long): Quote = {
+    val cached = dailyCache.get(dailyRoundedTime) match {
+      case Some(map) => map
+      case None =>
+        dailyCache.clear
+        val map = new HashMap[Sec, Quote]
+        dailyCache.put(dailyRoundedTime, map)
+
+        (SELECT (this.*) FROM (this) WHERE (
+            (this.time EQ dailyRoundedTime)
+          ) list
+        ) foreach {x => map.put(x.sec, x)}
+
+        map
+    }
+
+    cached.get(sec) match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new Quote
+        newone.time = dailyRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
+        sec.exchange.addNewDailyQuote(newone)
+        newone
+    }
+  }
+
+  def dailyQuoteOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
@@ -68,6 +104,7 @@ object Quotes1d extends Quotes {
         newone
     }
   }
+
 
   def dailyQuotesOf(exchange: Exchange, time: Long): Seq[Quote] = {
     val cal = Calendar.getInstance(exchange.timeZone)
@@ -91,13 +128,47 @@ object Quotes1d extends Quotes {
 object Quotes1m extends Quotes {
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
+  private val minuteCache = new HashMap[Long, HashMap[Sec, Quote]]
+
   def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
     SELECT (this.*) FROM (this) WHERE (
       this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
     ) ORDER_BY (this.time DESC) list
   }
 
-  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = synchronized {
+  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
+    val cached = minuteCache.get(minuteRoundedTime) match {
+      case Some(map) => map
+      case None =>
+        minuteCache.clear
+        val map = new HashMap[Sec, Quote]
+        minuteCache.put(minuteRoundedTime, map)
+
+        (SELECT (this.*) FROM (this) WHERE (
+            (this.time EQ minuteRoundedTime)
+          ) list
+        ) foreach {x => map.put(x.sec, x)}
+
+        map
+    }
+
+    cached.get(sec) match {
+      case Some(one) =>
+        one.transient = false
+        one
+      case None =>
+        val newone = new Quote
+        newone.time = minuteRoundedTime
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.transient = true
+        newone
+    }
+  }
+
+  def minuteQuoteOf_ignoreCache(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
@@ -116,7 +187,6 @@ object Quotes1m extends Quotes {
         newone
     }
   }
-
 }
 
 abstract class Quotes extends Table[Quote] {

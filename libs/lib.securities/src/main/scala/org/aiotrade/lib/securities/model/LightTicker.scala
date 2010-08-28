@@ -31,7 +31,6 @@
 package org.aiotrade.lib.securities.model
 
 import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.json.JsonOutputStreamWriter
@@ -190,10 +189,7 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   }
 
   override def toString = {
-    val df = new SimpleDateFormat("hh:mm:ss")
-    val cal = Calendar.getInstance
-    cal.setTimeInMillis(time)
-    symbol + ", " + df.format(cal.getTime) + ", " + data.mkString("[", ",", "]")
+    symbol + ", " + time + ", " + data.mkString("[", ",", "]")
   }
 }
 
