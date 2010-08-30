@@ -164,23 +164,34 @@ object Model {
     ContentCategories.save(parentfiling)
 
 
-    val period = new ContentCategory()
-    period.parent = parentfiling
-    period.name = "定期报告"
-    period.code = "filing.period"
+    ContentCategories.idOf(parentfiling) match {
+      case Some(id) =>
+        val period = new ContentCategory()
+        period.parent = id
+        period.name = "定期报告"
+        period.code = "filing.period"
 
-    ContentCategories.save(period)
+        ContentCategories.save(period)
+      case None => Unit
+    }
 
     val reportroot = new ContentCategory()
     reportroot.name = "研究报告"
     reportroot.code = "report"
     ContentCategories.save(reportroot)
 
-    val industryAna = new ContentCategory()
-    industryAna.name = "行业研究"
-    industryAna.parent = reportroot
-    industryAna.code = "report.industry"
-    ContentCategories.save(industryAna)
+    ContentCategories.idOf(reportroot) match {
+      case Some(id) =>
+        val industryAna = new ContentCategory()
+        industryAna.name = "行业研究"
+        industryAna.parent = id
+        industryAna.code = "report.industry"
+        ContentCategories.save(industryAna)
+      case None => Unit
+    }
+
+
+
 
     val info = new GeneralInfo()
     info.title = "研究报告测试"
@@ -215,7 +226,7 @@ object Model {
       case None => Unit
     }
 
-    ContentCategories.cateOf("行业研究") match
+    ContentCategories.cateOf("report.industry") match
     {
       case Some(x) =>     val infocate1 = new InfoContentCategory()
         infocate1.generalInfo = info
