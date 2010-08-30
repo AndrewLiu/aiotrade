@@ -67,7 +67,7 @@ object MoneyFlows1d extends MoneyFlows {
 object MoneyFlows1m extends MoneyFlows {
   private val minuteCache = new HashMap[Long, HashMap[Sec, MoneyFlow]]
 
-  def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
+  @deprecated def minuteMoneyFlowOf_cached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
       case None =>
@@ -100,7 +100,7 @@ object MoneyFlows1m extends MoneyFlows {
     }
   }
 
-  def minuteMoneyFlowOf_ignoreCache(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
+  def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
