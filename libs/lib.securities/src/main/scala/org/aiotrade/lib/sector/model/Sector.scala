@@ -13,7 +13,8 @@ object Sectors extends Table[Sector] {
   val name = "name" VARCHAR(30)
   val code = "code" VARCHAR(30)
   var portfolio = "portfolios_id" REFERENCES(Portfolios)
-  var isLoad : Boolean = false
+
+  private var isLoad : Boolean = false
   private val codetoSector   = new HashMap[String, Sector]()
 
   def sectorOf(code : String) : Option[Sector] = {
