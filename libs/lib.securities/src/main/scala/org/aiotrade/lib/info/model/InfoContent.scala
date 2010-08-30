@@ -8,7 +8,7 @@ trait InfoContent{
   /**
    * relative weight of the InfoContent
    */
-  def weight: Float
+  //def weight: Float
 
   /**
    * link is the unique identifier of each piece of InfoContent
