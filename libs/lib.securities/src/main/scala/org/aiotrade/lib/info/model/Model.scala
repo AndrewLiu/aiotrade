@@ -4,10 +4,12 @@ import ru.circumflex.orm._
 import org.aiotrade.lib.util.config
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.sector.model._
+import org.aiotrade.lib.util.config.Config
 
 object Model {
 
   def main(args: Array[String]) {
+    Config(args(0))
     createSamples
     System.exit(0)
   }
@@ -17,6 +19,7 @@ object Model {
     schemaSector
     testSaveSector
     testSelectSector
+    COMMIT
   }
 
   def schemaSector {
