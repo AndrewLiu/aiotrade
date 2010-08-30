@@ -50,16 +50,17 @@ class Sector extends TVal with Flag with InfoContent{
 
   def exportToJavaMap: java.util.Map[String, String] = exportToMap
 
-  def exportToList: Buffer[Map[String, String]] = {
+  def exportToList: List[Map[String, String]] = {
 
-    val list = Buffer[Map[String, String]]()
+    var list = List[Map[String, String]]()
 
     if(portfolio != null && portfolio.breakouts != null){
       for(portfolio <- portfolio.breakouts){
         val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)
         map += ("SECURITY_NAME" -> portfolio.sec.secInfo.name)
         map += ("ENTER_TIME" -> this.time.toString)
-        list += map
+        //list += map
+        list = list:+map
       }
     }
     list

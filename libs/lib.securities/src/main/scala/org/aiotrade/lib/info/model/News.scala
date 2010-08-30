@@ -44,7 +44,7 @@ class News extends TVal with Flag with InfoContent{
   }
 
   def publishTime: Long = this.time
-  def weight: Float = 0F
+  //def weight: Float = 0F
   def link: String = if(generalInfo != null ) generalInfo.url else ""
   
   def exportToMap: Map[String, String] = {
@@ -57,9 +57,9 @@ class News extends TVal with Flag with InfoContent{
     if(link != null) map += ("link" -> link)
     if(orgPublisher != null) map += ("sourceName" -> orgPublisher)
     map += ("conbineCount" -> hotness.toString)
-    map += ("weight" -> weight.toString)
+    //map += ("weight" -> weight.toString)
 
-    if(generalInfo.infoSecs != null) map += ("radarName" -> generalInfo.infoSecs(0).uniSymbol)
+    if(generalInfo.infoSecs != null) map += ("securityCode" -> generalInfo.infoSecs(0).uniSymbol)
     if(generalInfo.infoCategorys != null) map += ("subject" -> generalInfo.infoCategorys(0).name)
 
     map

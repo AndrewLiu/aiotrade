@@ -40,7 +40,7 @@ class AnalysisReport extends TVal with Flag with InfoContent{
   }
 
   def publishTime: Long = this.time
-  def weight: Float = 0F
+  //def weight: Float = 0F
   def link: String = if(generalInfo != null ) generalInfo.url else ""
 
   def exportToMap: Map[String, String] = {
@@ -49,7 +49,7 @@ class AnalysisReport extends TVal with Flag with InfoContent{
     if(generalInfo.infoAbstract != null) map += ("summary" -> generalInfo.infoAbstract(0).content)
     
     map += ("publishTime" -> publishTime.toString)
-    map += ("weight" -> weight.toString)
+    //map += ("weight" -> weight.toString)
     if(link != null) map += ("link" -> link)
     if(author != null) map +=("publisher" -> author)
     if(publisher != null) map += ("sourceName" -> publisher)
