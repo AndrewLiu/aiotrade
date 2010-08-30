@@ -136,7 +136,8 @@ object Quotes1m extends Quotes {
     ) ORDER_BY (this.time DESC) list
   }
 
-  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
+  // Since Quotes1m is partitioned into secs_id, don't query it only on time
+  @deprecated def minuteQuoteOf_cached(sec: Sec, minuteRoundedTime: Long): Quote = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
       case None =>
@@ -168,7 +169,7 @@ object Quotes1m extends Quotes {
     }
   }
 
-  def minuteQuoteOf_ignoreCache(sec: Sec, minuteRoundedTime: Long): Quote = {
+  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
