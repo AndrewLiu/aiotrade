@@ -7,24 +7,29 @@ import scala.collection.mutable.HashMap
 object ContentCategories extends Table[ContentCategory]{
   val parent = "parent" REFERENCES (ContentCategories)
   val name = "name" VARCHAR(30)
-  private val nametocate   = new HashMap[String, ContentCategory]()
+  val code = "code" VARCHAR(30)
+  
+  private val codetocate   = new HashMap[String, ContentCategory]()
   private var isLoad : Boolean = false
 
-  def cateOf(name : String) : Option[ContentCategory] = {
-    if(!isLoad)
+  def cateOf(code : String) : Option[ContentCategory] = {
+    synchronized {
+      if(!isLoad)
       {
         load
         isLoad = true
       }
-    nametocate.get(name)
+      codetocate.get(name)
+      
+    }
   }
 
   
   private def load() = {
     val categories = (select (ContentCategories.*) from ContentCategories list)
-    categories map { case x => nametocate.put(x.name, x)
+    categories map { case x => codetocate.put(x.code, x)
     }
-    nametocate
+    codetocate
   }
 
 }
@@ -32,4 +37,5 @@ object ContentCategories extends Table[ContentCategory]{
 class ContentCategory {
   var parent : ContentCategory = _
   var name : String = ""
+  var code : String = ""
 }
