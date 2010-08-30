@@ -351,7 +351,7 @@ object SymbolNodes {
     ic.add(new SymbolClearDataAction(this))
     ic.add(new SymbolAddToFavoriteAction(this))
 
-    log.info("OneSymbolsNode(" + analysisContents.uniSymbol + ") created.")
+    log.info("OneSymbolNode(" + analysisContents.uniSymbol + ") created.")
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
