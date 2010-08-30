@@ -81,20 +81,23 @@ object TickersLast extends TickersTable {
 object Tickers extends TickersTable {
   private val lastTickersCache = new HashMap[Long, HashMap[Sec, Ticker]]
 
-  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
+  def lastTickerOf_cached(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
     val cached = lastTickersCache.get(dailyRoundedTime) match {
-      case Some(map) => map
+      case Some(m) => m
       case None =>
-        lastTickersCache.clear
-        val map = lastTickersOf(dailyRoundedTime)
-        lastTickersCache.put(dailyRoundedTime, map)
-        map
+        if (lastTickersCache.size >= 4) {
+          val earliest = lastTickersCache.map(_._1).min
+          lastTickersCache.remove(earliest)
+        }
+        val m = lastTickersOf(dailyRoundedTime)
+        lastTickersCache.put(dailyRoundedTime, m)
+        m
     }
 
     cached.get(sec)
   }
 
-  def lastTickersOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
+  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
