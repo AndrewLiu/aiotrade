@@ -370,9 +370,9 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends JPa
     val fm = command.getFontMetrics(command.getFont)
     var maxWidth = 0
     for (cat <- ProviderModel.categories if cat.name != CommandEvaluator.RECENT) { // skip recent category
-        maxWidth = Math.max(maxWidth, fm.stringWidth(getHintText(cat)))
+        maxWidth = math.max(maxWidth, fm.stringWidth(getHintText(cat)))
     }
     // don't allow width grow too much
-    Math.min(350, maxWidth)
+    math.min(350, maxWidth)
   }
 }

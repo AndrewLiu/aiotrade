@@ -38,6 +38,7 @@ import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.text.DefaultEditorKit
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.modules.ui.netbeans.actions.LoginAction
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.netbeans.api.progress.ProgressHandle
 import org.netbeans.api.progress.ProgressHandleFactory
@@ -50,6 +51,7 @@ import org.openide.nodes.Node;
 import org.openide.util.Lookup
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor
+import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import scala.collection.mutable.HashMap
 
@@ -134,17 +136,20 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     
   override def componentOpened {
     super.componentOpened
-
-    if (!isSymbolNodesAdded) {
-      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
-      ProgressUtils.showProgressDialogAndRun(new Runnable {
-          def run {
-            addSymbolsFromDB(handle)
-          }
-        }, handle, false)
+    
+    scala.actors.Actor.actor {
+      if (!isSymbolNodesAdded) {
+        val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
+        ProgressUtils.showProgressDialogAndRun(new Runnable {
+            def run {
+              addSymbolsFromDB(handle)
+              SymbolNodes.openAllSymbolFolders
+            }
+          }, handle, true)
+      } else {
+        SymbolNodes.openAllSymbolFolders
+      }
     }
-
-    scala.actors.Actor.actor {SymbolNodes.openAllSymbolFolders}
   }
 
   override def componentClosed {
