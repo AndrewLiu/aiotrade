@@ -107,7 +107,6 @@
                         <publicPackage>org.aiotrade.lib.securities.model</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.model.data</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.util</publicPackage>
-                        <publicPackage>org.aiotrade.lib.sector.model</publicPackage>
                     </publicPackages>
 					                </configuration>
             </plugin>
