@@ -32,6 +32,7 @@ package org.aiotrade.lib.charting.view
 
 import java.awt.Component
 import java.awt.Dimension
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ChangeSubject
@@ -194,6 +195,8 @@ object ChartingController {
   import DefaultChartingController._
   private class DefaultChartingController($baseSer: BaseTSer, $contents: AnalysisContents) extends ChartingController
                                                                                               with Reactor {
+
+    private val log = Logger.getLogger(this.getClass.getName)
 
     val baseSer = $baseSer
     val contents = $contents
@@ -606,17 +609,11 @@ object ChartingController {
     }
 
     private def internal_getCorrespondingChartView(e: InputEvent): ChartView = {
-      var correspondingChartView: ChartView = null
-
       e.getSource match {
-        case source: ChartViewContainer =>
-          correspondingChartView = source.masterView
-        case source: ChartView =>
-          correspondingChartView = source
-        case _ => null
+        case source: ChartViewContainer => source.masterView
+        case source: ChartView => source
+        case x => null
       }
-
-      correspondingChartView
     }
 
     /**

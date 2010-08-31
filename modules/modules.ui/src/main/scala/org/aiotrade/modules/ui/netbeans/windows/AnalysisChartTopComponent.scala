@@ -289,7 +289,15 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     mode.dockInto(this)
     super.open
   }
-    
+
+  /**
+   * Although we have added a FocusListener to transfer the focuse to viewContainer,
+   * it seems that we still need to write the following code. Don't ask me why.
+   */
+  override def requestFocusInWindow: Boolean = {
+    viewContainer.requestFocusInWindow
+  }
+  
   override protected def componentActivated {
     super.componentActivated
     //updateToolbar

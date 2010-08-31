@@ -103,5 +103,4 @@ class AnalysisChartViewContainer extends ChartViewContainer {
       }
     }
   }
-    
 }
