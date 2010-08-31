@@ -81,6 +81,7 @@ class GeneralInfo extends TVal with Flag with InfoContent {
     val FILING = 2
     val ANALYSIS_REPORT = 3
     val SYS_NOTIFICATION = 4
+    val QUOTE_INFO = 5
   }
 }
 

@@ -5,7 +5,7 @@ import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
 
 object ContentCategories extends Table[ContentCategory]{
-  val parent = "parent" REFERENCES (ContentCategories)
+  val parent = "parent" BIGINT
   val name = "name" VARCHAR(30)
   val code = "code" VARCHAR(30)
   
@@ -35,7 +35,7 @@ object ContentCategories extends Table[ContentCategory]{
 }
 
 class ContentCategory {
-  var parent : ContentCategory = _
+  var parent : Long = _
   var name : String = ""
   var code : String = ""
 }
