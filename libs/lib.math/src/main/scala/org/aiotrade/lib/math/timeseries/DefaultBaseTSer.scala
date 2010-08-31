@@ -87,6 +87,26 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     }
   }
 
+    def createWhenNonExist(time: Long) {
+    try {
+      writeLock.lock
+      /**
+       * @NOTE:
+       * Should only get index from timestamps which has the proper
+       * position <-> time <-> item mapping
+       */
+      val idx = timestamps.indexOfOccurredTime(time)
+      if (!(idx >= 0 && idx < holders.size)) {
+        // append at the end: create a new one, add placeholder
+        val holder = createItem(time)
+        internal_addItem_fillTimestamps_InTimeOrder(time, holder)
+      }
+
+    } finally {
+      writeLock.unlock
+    }
+  }
+
   /**
    * Add a clear item and corresponding time in time order,
    * should process time position (add time to timestamps orderly).

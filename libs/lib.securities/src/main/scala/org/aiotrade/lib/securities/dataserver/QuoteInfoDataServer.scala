@@ -16,6 +16,7 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.collection.ArrayList
 
 class QuoteInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
@@ -27,9 +28,9 @@ class QuoteInfo extends TVal {
 
 case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
                              combinValue : Long, content : String, summery : String,
-                             category : ContentCategory, secs : List[Sec] ) extends Event
+                             category : List[ContentCategory], secs : List[Sec] ) extends Event
 
-case class QuoteInfoSnapshots(events : Array[QuoteInfoSnapshot]) extends Event
+case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) extends Event
 
 object QuoteInfoDataServer extends Publisher
 
@@ -37,29 +38,53 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
   type C = QuoteInfoContract
   private val log = Logger.getLogger(this.getClass.getName)
 
+  private val updatedEvents = new ArrayList[TSerEvent]
+  private val allQuoteInfo = new ArrayList[QuoteInfoSnapshot]
+
   refreshable = true
   
   protected def composeSer(values: Array[QuoteInfo]) : Seq[TSerEvent] = {
+    updatedEvents.clear
+    allQuoteInfo.clear
+    count = 0
+
     for (info <- values ; sec <- info.secs) {
       sec.infoPointSerOf(TFreq.ONE_MIN) match {
-        case Some(minuteSer) =>
+        case Some(minuteSer) => val event = minuteSer.updateFromNoFire(info)
+          updatedEvents += event
+          count = count + 1
         case _ =>
       }
       sec.infoPointSerOf(TFreq.DAILY) match {
-        case Some(minuteSer) =>
+        case Some(dailyeSer) => val event = dailyeSer.updateFromNoFire(info)
+          updatedEvents += event
+          count = count + 1
         case _ =>
       }
+      val category = info.categories.headOption match {
+        case Some(x) => x
+        case None => null
+      }
+      val quoteInfo = QuoteInfoSnapshot(info.generalInfo.publishTime, info.generalInfo.title,
+                                    info.generalInfo.url, info.generalInfo.combinValue,
+                                    info.content, info.summery,info.categories.toList,
+                                    info.secs.toList)
+      allQuoteInfo += quoteInfo
     }
-    null
+
+    if (allQuoteInfo.length > 0) {
+      QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
+    }
+    updatedEvents
   }
 
   override protected def postLoadHistory(values: Array[QuoteInfo]): Long = {
     val events = composeSer(values)
     var lastTime = Long.MinValue
     events foreach {
-      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-        source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-        log.info(symbol + ": " + count + ", data loaded, load server finished")
+      case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
+        source.publish(event)
+        log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
         lastTime = toTime
       case _ =>
     }
@@ -70,8 +95,8 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     val events = composeSer(values)
     var lastTime = Long.MinValue
     events foreach {
-      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-        source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
+      case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
+        source.publish(event)
         lastTime = toTime
       case _ =>
     }
