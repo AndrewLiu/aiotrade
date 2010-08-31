@@ -40,11 +40,8 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
-import org.aiotrade.modules.ui.netbeans.actions.LoginAction
-import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileUtil
-import org.openide.util.actions.SystemAction
 
 /**
  * How do i change the closing action of the MainWindow?

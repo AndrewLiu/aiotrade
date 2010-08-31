@@ -38,20 +38,18 @@ import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.text.DefaultEditorKit
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.modules.ui.netbeans.actions.LoginAction
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.netbeans.api.progress.ProgressHandle
 import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.explorer.ExplorerManager
-import org.openide.explorer.ExplorerUtils;
-import org.openide.explorer.view.BeanTreeView;
+import org.openide.explorer.ExplorerUtils
+import org.openide.explorer.view.BeanTreeView
 import org.openide.loaders.DataFolder
-import org.openide.nodes.Node;
+import org.openide.nodes.Node
 import org.openide.util.Lookup
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle
 import org.openide.util.RequestProcessor
-import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import scala.collection.mutable.HashMap
 
