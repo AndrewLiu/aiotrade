@@ -143,6 +143,8 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
           }
         }, handle, false)
     }
+
+    SymbolNodes.openAllSymbolFolders
   }
 
   override def componentClosed {

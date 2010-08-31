@@ -212,18 +212,20 @@ class Exchange {
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
   /**
-   * @return (the ticker should be updated/saved to TickersLast, transient in TickersLast)
+   * @return the ticker should be updated/saved to TickersLast
    */
-  def gotLastTicker(ticker: Ticker): (Ticker, Boolean) = {
+  def gotLastTicker(ticker: Ticker): Ticker = {
     val uniSymbol = ticker.symbol
 
-    val tickerx = uniSymbolToLastTicker synchronized {
+    uniSymbolToLastTicker synchronized {
       uniSymbolToLastTicker.get(uniSymbol) match {
         case Some(existOne) =>
           existOne.copyFrom(ticker)
+          existOne.isTransient = TickersLast.transient_?(existOne)
           existOne
         case None =>
           val newOne = new Ticker
+          newOne.isTransient = true
           newOne.copyFrom(ticker)
           uniSymbolToLastTicker.put(uniSymbol, newOne)
           uniSymbolToLastTradingDayTicker synchronized {
@@ -232,8 +234,6 @@ class Exchange {
           newOne
       }
     }
-    
-    (tickerx, TickersLast.transient_?(tickerx))
   }
 
   def lastDailyRoundedTradingTime: Option[Long] = {

@@ -72,6 +72,10 @@ abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
   private val log = Logger.getLogger(this.getClass.getName)
+  private val config = org.aiotrade.lib.util.config.Config()
+
+  protected val isServer = !config.getBool("dataserver.client", false)
+  log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
 
   refreshable = true
 
@@ -134,39 +138,32 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allDepthSnaps = new ArrayList[DepthSnap]
   private val updatedDailyQuotes = new ArrayList[Quote]
 
-  private val tickersLastToUpdate = new ArrayList[Ticker]
-  private val tickersLastToInsert = new ArrayList[Ticker]
+  private val tickersLast = new ArrayList[Ticker]
 
   private val exchangeToLastTime = new HashMap[Exchange, Long]
 
   private val updatedEvents = new ArrayList[TSerEvent]
 
   private def getSecSnaps(values: Array[Ticker]): Seq[SecSnap] = {
-    tickersLastToUpdate.clear
-    tickersLastToInsert.clear
-
     val secSnaps = new ArrayList[SecSnap]
     var i = 0
     while (i < values.length) {
       val ticker = values(i)
 
-      val symbol = ticker.symbol
-      if (subscribedSrcSymbols.contains(symbol) && (ticker.dayHigh != 0 && ticker.dayLow != 0)) {
-        val sec = Exchange.secOf(symbol).get
-        val exchange = sec.exchange
+      if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
+        val symbol = ticker.symbol
+        Exchange.secOf(symbol) match {
+          case Some(sec) => sec
+            ticker.sec = sec
 
-        ticker.sec = sec
-        val (tickerx, transient) = exchange.gotLastTicker(ticker)
-        if (transient) {
-          tickersLastToInsert += tickerx
-        } else {
-          tickersLastToUpdate += tickerx
+            val exchange = sec.exchange
+            val tickerx = exchange.gotLastTicker(ticker)
+            if (subscribedSrcSymbols.contains(symbol)) {
+              tickersLast += tickerx
+              secSnaps += sec.secSnap.setByTicker(ticker)
+            }
+          case None =>
         }
-
-        val contract = subscribedSrcSymbols.get(symbol).get
-
-        val secSnap = sec.secSnap.setByTicker(ticker)
-        secSnaps += secSnap
       }
 
       i += 1
@@ -183,6 +180,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (values.length == 0) return Nil
 
     val secSnaps = getSecSnaps(values)
+    log.info("Compsing ser from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return Nil
 
     allTickers.clear
@@ -320,19 +318,22 @@ abstract class TickerServer extends DataServer[Ticker] {
         updateDailyQuoteByTicker(dayQuote, ticker)
 
         // update chainSers
-        val rtSer = sec.realtimeSer
-        if (rtSer.isLoaded) {
-          rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
-          updateInfo.updatedSers ::= rtSer
+        if (!isServer) {
+          val rtSer = sec.realtimeSer
+          if (rtSer.isLoaded) {
+            rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
+            updateInfo.updatedSers ::= rtSer
+          }
         }
+        
         sec.serOf(TFreq.DAILY) match {
-          case Some(x) /* if x.isLoaded */ =>
+          case Some(x) if isServer || x.isLoaded =>
             x.updateFrom(dayQuote)
             updateInfo.updatedSers ::= x
           case _ =>
         }
         sec.serOf(TFreq.ONE_MIN) match {
-          case Some(x) /* if x.isLoaded */ =>
+          case Some(x) if isServer || x.isLoaded =>
             x.updateFrom(minQuote)
             updateInfo.updatedSers ::= x
           case _ =>
@@ -376,29 +377,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     // batch save to db
 
     var willCommit = false
-    val tickers = allTickers.toArray
-    if (tickers.length > 0) {
-      Tickers.insertBatch_!(tickers)
-      willCommit = true
-    }
-
-    val executions = allExecutions.toArray
-    if (executions.length > 0) {
-      Executions.insertBatch_!(executions)
-      willCommit = true
-    }
-
-    val (minuteQuotesToInsert, minuteQuotesToUpdate) = Sec.minuteQuotesToClose.partition(_.transient)
-    Sec.minuteQuotesToClose.clear
-    if (minuteQuotesToInsert.length > 0) {
-      Quotes1m.insertBatch_!(minuteQuotesToInsert.toArray)
-      willCommit = true
-    }
-    if (minuteQuotesToUpdate.length > 0) {
-      Quotes1m.updateBatch_!(minuteQuotesToUpdate.toArray)
-      willCommit = true
-    }
-
+    val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
+    tickersLast.clear
     if (tickersLastToInsert.length > 0) {
       TickersLast.insertBatch_!(tickersLastToInsert.toArray)
       willCommit = true
@@ -408,19 +388,48 @@ abstract class TickerServer extends DataServer[Ticker] {
       willCommit = true
     }
 
+    if (willCommit) {
+      log.info("Committing: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
+    }
+
+    if (isServer) {
+      if (allTickers.length > 0) {
+        Tickers.insertBatch_!(allTickers.toArray)
+        willCommit = true
+      }
+
+      if (allExecutions.length > 0) {
+        Executions.insertBatch_!(allExecutions.toArray)
+        willCommit = true
+      }
+
+      val (minuteQuotesToInsert, minuteQuotesToUpdate) = Sec.minuteQuotesToClose.partition(_.isTransient)
+      Sec.minuteQuotesToClose.clear
+      if (minuteQuotesToInsert.length > 0) {
+        Quotes1m.insertBatch_!(minuteQuotesToInsert.toArray)
+        willCommit = true
+      }
+      if (minuteQuotesToUpdate.length > 0) {
+        Quotes1m.updateBatch_!(minuteQuotesToUpdate.toArray)
+        willCommit = true
+      }
+
+      if (willCommit) {
+        log.info("Committing: tickers=" + allTickers.length + ", executions=" + allExecutions.length +
+                 ", minuteQuotesToInsert=" + minuteQuotesToInsert.length +
+                 ", minuteQuotesToUpdate=" + minuteQuotesToUpdate.length
+        )
+      }
+    }
+
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) {
-      log.info("Committing: tickers=" + tickers.length + ", executions=" + executions.length +
-               ", minuteQuotesToInsert=" + minuteQuotesToInsert.length +
-               ", minuteQuotesToUpdate=" + minuteQuotesToUpdate.length
-      )
       commit
       log.info("Committed")
     }
-    
-    val depthSnaps = allDepthSnaps.toArray
-    if (depthSnaps.length > 0) {
-      processDepthSnaps(depthSnaps)
+
+    if (allDepthSnaps.length > 0) {
+      processDepthSnaps(allDepthSnaps.toArray)
     }
 
     for ((exchange, lastTime) <- exchangeToLastTime) {
@@ -430,8 +439,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     }
 
     // publish events
-    if (tickers.length > 0) {
-      TickerServer.publish(TickersEvent(tickers.asInstanceOf[Array[LightTicker]]))
+    if (allTickers.length > 0) {
+      TickerServer.publish(TickersEvent(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
     }
 
     updatedEvents

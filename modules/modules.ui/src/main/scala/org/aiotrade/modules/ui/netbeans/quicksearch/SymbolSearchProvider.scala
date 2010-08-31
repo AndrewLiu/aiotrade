@@ -17,8 +17,9 @@ import org.openide.awt.HtmlBrowser.URLDisplayer
 
 
 class SymbolSearchProvider extends SearchProvider {
+  private val url = "http://finance.yahoo.com/q?s="
 
-  val symbols = Exchange.allExchanges map (Exchange.symbolsOf(_)) flatten
+  private val nameToSymbol = Exchange.uniSymbolToSec map (x => x._1.toUpperCase -> x._1)
 
   /**
    * Method is called by infrastructure when search operation was requested.
@@ -31,23 +32,18 @@ class SymbolSearchProvider extends SearchProvider {
    *    and stop computation if false value is returned.
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
-
-    for (symbol <- symbols if symbol.toLowerCase.startsWith(request.text.toLowerCase)) {
-      if (!response.addResult(new FoundResult(symbol), symbol)) {
-        return
-      }
+    val input = request.text.toUpperCase
+    for ((name, symbol) <- nameToSymbol if name.startsWith(input)) {
+      if (!response.addResult(new FoundResult(symbol), symbol)) return
     }
   }
 
   private class FoundResult(symbol: String) extends Runnable {
-
-    private val url = "http://finance.yahoo.com/q?s=" + symbol
-
     def run {
       try {
         SymbolNodes.findSymbolNode(symbol) match {
           case Some(x) => x.getLookup.lookup(classOf[ViewAction]).execute
-          case None => URLDisplayer.getDefault.showURL(new URL(url))
+          case None => URLDisplayer.getDefault.showURL(new URL(url + symbol))
         }
       } catch {case ex: MalformedURLException =>}
     }
