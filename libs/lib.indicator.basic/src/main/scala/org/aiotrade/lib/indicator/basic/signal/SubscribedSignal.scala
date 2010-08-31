@@ -38,7 +38,7 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 /**
  * @author Caoyuan Deng
  */
-class SubscribedSingal extends SignalIndicator {
+class SubscribedSignal extends SignalIndicator {
   sname = "Subscribed Signal"
   lname = "Subscribed Signal"
 
