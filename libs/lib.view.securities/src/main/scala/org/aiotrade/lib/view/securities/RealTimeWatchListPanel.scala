@@ -249,7 +249,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
               df.setTimeZone(tz)
               df format cal.getTime
             case LAST_PRICE => priceDf   format ticker.lastPrice
-            case DAY_VOLUME => "%10.2f"  format ticker.dayVolume / 100.0
+            case DAY_VOLUME => "%10.0f"  format ticker.dayVolume / 100.0
             case DAY_AMOUNT => "%10.2f"  format ticker.dayAmount / 10000.0
             case PREV_CLOSE => priceDf   format ticker.prevClose
             case DAY_CHANGE => priceDf   format ticker.dayChange
