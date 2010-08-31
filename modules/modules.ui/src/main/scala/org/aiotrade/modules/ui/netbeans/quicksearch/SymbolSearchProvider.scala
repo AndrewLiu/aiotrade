@@ -19,7 +19,7 @@ import org.openide.awt.HtmlBrowser.URLDisplayer
 class SymbolSearchProvider extends SearchProvider {
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val nameToSymbol = Exchange.uniSymbolToSec map (x => x._1.toUpperCase -> x._1)
+  private val textToSymbol = Exchange.uniSymbolToSec map (x => x._1.toUpperCase -> x._1)
 
   /**
    * Method is called by infrastructure when search operation was requested.
@@ -33,8 +33,12 @@ class SymbolSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
     val input = request.text.toUpperCase
-    for ((name, symbol) <- nameToSymbol if name.startsWith(input)) {
-      if (!response.addResult(new FoundResult(symbol), symbol)) return
+    for ((text, symbol) <- textToSymbol if text.startsWith(input)) {
+      val name = Exchange.secOf(symbol) match {
+        case Some(x) => symbol + " (" + x.name + ")"
+        case _ => symbol
+      }
+      if (!response.addResult(new FoundResult(symbol), name)) return
     }
   }
 

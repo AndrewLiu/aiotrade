@@ -171,7 +171,6 @@ class Sec extends SerProvider with Publisher {
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
 
   var description = ""
-  var name = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
@@ -556,7 +555,12 @@ class Sec extends SerProvider with Publisher {
     if (secInfo != null) {
       secInfo.uniSymbol = uniSymbol
     }
-    name = uniSymbol.replace('.', '_')
+  }
+
+  override def name: String = {
+    if (secInfo != null) {
+      secInfo.name
+    } else uniSymbol
   }
 
   def stopAllDataServer {
