@@ -61,12 +61,12 @@ class GeneralInfo extends TVal with Flag with InfoContent {
 
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    map += ("title" -> title)
+    map += ("TITLE" -> title)
     
-    if(infoAbstract != null) map += ("content" -> infoAbstract(0).content)
-    if(infoCategorys != null) map += ("category" -> infoCategorys(0).name)
-    map += ("publishTime" -> publishTime.toString)
-    if(link != null) map += ("link" -> link)
+    if(infoAbstract != null) map += ("CONTENT" -> infoAbstract(0).content)
+    if(infoCategorys != null) map += ("CATEGORY" -> infoCategorys(0).name)
+    map += ("PUBLISH_TIME" -> publishTime.toString)
+    if(link != null) map += ("LINK" -> link)
 
     map
   }
