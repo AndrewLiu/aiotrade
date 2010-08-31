@@ -39,6 +39,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.QuoteSer
@@ -169,6 +170,7 @@ class Sec extends SerProvider with Publisher {
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
+  private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
 
   var description = ""
   var name = ""
@@ -276,6 +278,27 @@ class Sec extends SerProvider with Publisher {
         }
     }
   }
+
+  def infoPointSerOf(freq: TFreq): Option[InfoPointSer] = mutex synchronized {
+    freq match {
+      case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoPointSer.get(freq) match {
+          case None => serOf(freq) match {
+              case Some(quoteSer) =>
+                val x = new InfoPointSer(this, freq)
+                freqToInfoPointSer.put(freq, x)
+                Some(x)
+              case None => None
+            }
+          case some => some
+        }
+      case _ => freqToInfoPointSer.get(freq) match {
+          case None => None // @todo createCombinedSer(freq)
+          case some => some
+        }
+    }
+  }
+
+
 
   def infoSerOf(freq: TFreq): Option[InfoSer] = mutex synchronized {
     freq match {
