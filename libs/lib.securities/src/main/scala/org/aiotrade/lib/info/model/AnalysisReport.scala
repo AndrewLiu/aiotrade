@@ -45,17 +45,17 @@ class AnalysisReport extends TVal with Flag with InfoContent{
 
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    if(generalInfo.title != null ) map += ("title" -> generalInfo.title)
-    if(generalInfo.infoAbstract != null) map += ("summary" -> generalInfo.infoAbstract(0).content)
+    if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+    if(generalInfo.infoAbstract != null) map += ("SUMMARY" -> generalInfo.infoAbstract(0).content)
     
-    map += ("publishTime" -> publishTime.toString)
+    map += ("PUBLISH_TIME" -> publishTime.toString)
     //map += ("weight" -> weight.toString)
-    if(link != null) map += ("link" -> link)
-    if(author != null) map +=("publisher" -> author)
-    if(publisher != null) map += ("sourceName" -> publisher)
+    if(link != null) map += ("LINK" -> link)
+    if(author != null) map +=("PUBLISHER" -> author)
+    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
     
-    if(generalInfo.infoSecs != null) map += ("securityCode" -> generalInfo.infoSecs(0).uniSymbol)
-    if(generalInfo.infoCategorys != null) map += ("subject" -> generalInfo.infoCategorys(0).name)
+    if(generalInfo.infoSecs != null) map += ("SECURITY_CODE" -> generalInfo.infoSecs(0).uniSymbol)
+    if(generalInfo.infoCategorys != null) map += ("SUBJECT" -> generalInfo.infoCategorys(0).name)
 
     map
   }

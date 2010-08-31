@@ -32,7 +32,7 @@ class BullVSBear extends TVal with Flag with InfoContent{
     val map = Map[String, String]()
     map += ("PREDICT_TIME" -> time.toString)
     map += ("OPTIMISM" -> ratio.toString)
-    map += ("PESSIMISM" -> (1 - ratio).toString)
+    map += ("PESSIMISM" -> (100 - ratio).toString)
     map += ("ANALYSIS" -> summary)
 
     map
