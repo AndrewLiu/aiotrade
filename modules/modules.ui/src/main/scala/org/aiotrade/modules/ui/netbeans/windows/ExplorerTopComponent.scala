@@ -144,7 +144,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
         }, handle, false)
     }
 
-    SymbolNodes.openAllSymbolFolders
+    scala.actors.Actor.actor {SymbolNodes.openAllSymbolFolders}
   }
 
   override def componentClosed {
