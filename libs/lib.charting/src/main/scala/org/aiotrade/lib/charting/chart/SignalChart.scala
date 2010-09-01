@@ -47,10 +47,14 @@ import org.aiotrade.lib.math.signal.Signal
  */
 class SignalChart extends AbstractChart {
   final class Model extends WidgetModel {
-    var v: TVar[List[Signal]] = _
-        
-    def set(v: TVar[List[Signal]]) {
-      this.v = v
+    var signalVar: TVar[List[Signal]] = _
+    var highVar:   TVar[Double] = _
+    var lowVar:    TVar[Double] = _
+
+    def set(signalVar: TVar[List[Signal]], highVar: TVar[Double], lowVar: TVar[Double]) {
+      this.signalVar = signalVar
+      this.highVar   = highVar
+      this.lowVar    = lowVar
     }
   }
 
@@ -76,7 +80,7 @@ class SignalChart extends AbstractChart {
       while (i < nBarsCompressed) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
-          var signals = m.v(time)
+          var signals = m.signalVar(time)
           var j = 0
           var dyUp = 3
           var dyDn = 3
@@ -88,10 +92,21 @@ class SignalChart extends AbstractChart {
                 case null => Color.YELLOW
                 case x => x
               }
-              val value = signal.value
-              if (Null.not(value)) {
+              
+              // appoint a reference value for this sign as the drawing position
+              val refValue = if (m.lowVar != null && m.highVar != null) {
+                signal.sign match {
+                  case Sign.EnterLong  => m.lowVar(time)
+                  case Sign.ExitLong   => m.highVar(time)
+                  case Sign.EnterShort => m.highVar(time)
+                  case Sign.ExitShort  => m.lowVar(time)
+                  case _ => Null.Double
+                }
+              } else 0.0
+                
+              if (Null.not(refValue)) {
                 val x = xb(bar)
-                val y = yv(value)
+                val y = yv(refValue)
                 val text = signal.text
 
                 signal.sign match {
