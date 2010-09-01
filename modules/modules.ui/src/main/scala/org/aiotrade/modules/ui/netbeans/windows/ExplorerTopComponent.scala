@@ -43,12 +43,12 @@ import org.netbeans.api.progress.ProgressHandle
 import org.netbeans.api.progress.ProgressHandleFactory
 import org.netbeans.api.progress.ProgressUtils
 import org.openide.explorer.ExplorerManager
-import org.openide.explorer.ExplorerUtils;
-import org.openide.explorer.view.BeanTreeView;
+import org.openide.explorer.ExplorerUtils
+import org.openide.explorer.view.BeanTreeView
 import org.openide.loaders.DataFolder
-import org.openide.nodes.Node;
+import org.openide.nodes.Node
 import org.openide.util.Lookup
-import org.openide.util.NbBundle;
+import org.openide.util.NbBundle
 import org.openide.util.RequestProcessor
 import org.openide.windows.TopComponent
 import scala.collection.mutable.HashMap
@@ -134,14 +134,19 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     
   override def componentOpened {
     super.componentOpened
-
-    if (!isSymbolNodesAdded) {
-      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
-      ProgressUtils.showProgressDialogAndRun(new Runnable {
-          def run {
-            addSymbolsFromDB(handle)
-          }
-        }, handle, false)
+    
+    scala.actors.Actor.actor {
+      if (!isSymbolNodesAdded) {
+        val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
+        ProgressUtils.showProgressDialogAndRun(new Runnable {
+            def run {
+              addSymbolsFromDB(handle)
+              SymbolNodes.openAllSymbolFolders
+            }
+          }, handle, true)
+      } else {
+        SymbolNodes.openAllSymbolFolders
+      }
     }
   }
 

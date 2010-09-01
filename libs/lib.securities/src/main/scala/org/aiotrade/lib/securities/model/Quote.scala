@@ -67,7 +67,7 @@ object Quotes1d extends Quotes {
 
     cached.get(sec) match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new Quote
@@ -76,7 +76,7 @@ object Quotes1d extends Quotes {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
+        newone.isTransient = true
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
         sec.exchange.addNewDailyQuote(newone)
         newone
@@ -89,7 +89,7 @@ object Quotes1d extends Quotes {
       ) list
     ) headOption match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new Quote
@@ -98,7 +98,7 @@ object Quotes1d extends Quotes {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
+        newone.isTransient = true
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
         sec.exchange.addNewDailyQuote(newone)
         newone
@@ -155,7 +155,7 @@ object Quotes1m extends Quotes {
 
     cached.get(sec) match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new Quote
@@ -164,7 +164,7 @@ object Quotes1m extends Quotes {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
+        newone.isTransient = true
         newone
     }
   }
@@ -175,7 +175,7 @@ object Quotes1m extends Quotes {
       ) list
     ) headOption match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new Quote
@@ -184,7 +184,7 @@ object Quotes1m extends Quotes {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
+        newone.isTransient = true
         newone
     }
   }
@@ -299,7 +299,7 @@ class Quote extends TVal with Flag {
 
   
   // --- no db fields:
-  var transient: Boolean = true
+  var isTransient: Boolean = true
   
   def copyFrom(another: Quote) {
     var i = 0

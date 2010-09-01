@@ -15,19 +15,23 @@ import org.aiotrade.spi.quicksearch.SearchResponse
 
 class FreqSearchProvider extends SearchProvider {
 
-  private val freqs = Array(TFreq.ONE_MIN,
-                            TFreq.THREE_MINS,
-                            TFreq.FIVE_MINS,
-                            TFreq.FIFTEEN_MINS,
-                            TFreq.THIRTY_MINS,
-                            TFreq.DAILY,
-                            TFreq.THREE_DAYS,
-                            TFreq.FIVE_DAYS,
-                            TFreq.WEEKLY,
-                            TFreq.MONTHLY,
-                            TFreq.ONE_YEAR
+  private val freqs = Map(TFreq.ONE_MIN -> "1分钟",
+                          TFreq.THREE_MINS -> "3分钟",
+                          TFreq.FIVE_MINS -> "5分钟",
+                          TFreq.FIFTEEN_MINS -> "15分钟",
+                          TFreq.THIRTY_MINS -> "30分钟",
+                          TFreq.DAILY -> "日线",
+                          TFreq.THREE_DAYS -> "3日线",
+                          TFreq.FIVE_DAYS -> "5日线",
+                          TFreq.WEEKLY -> "周线",
+                          TFreq.MONTHLY -> "月线",
+                          TFreq.ONE_YEAR -> "年线",
+                          TFreq.ONE_SEC -> "分时"
   )
-  private val nameToFreq = (freqs map (x => (x.shortDescription -> x)) toMap) + ("rt" -> TFreq.ONE_SEC)
+  private val textToFreq = (freqs map (x => (x._1.shortDescription -> x._1))) ++ Map(
+    "rt" -> TFreq.ONE_SEC,
+    "fs" -> TFreq.ONE_SEC
+  )
 
   /**
    * Method is called by infrastructure when search operation was requested.
@@ -40,16 +44,17 @@ class FreqSearchProvider extends SearchProvider {
    *    and stop computation if false value is returned.
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
-
-    for ((name, freq) <- nameToFreq if name.toLowerCase.startsWith(request.text.toLowerCase)) {
-      if (!response.addResult(new FoundResult(freq), name)) {
-        return
+    val input = request.text.toUpperCase
+    for ((text, freq) <- textToFreq if text.toUpperCase.startsWith(input)) {
+      val name = freqs.get(freq) match {
+        case Some(x) => text + " (" + x + ")"
+        case None => text
       }
+      if (!response.addResult(new FoundResult(freq), name)) return
     }
   }
 
   private class FoundResult(freq: TFreq) extends Runnable {
-
     def run {
       for (tc <- AnalysisChartTopComponent.selected;
            contents = tc.contents;
