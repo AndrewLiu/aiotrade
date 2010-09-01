@@ -18,5 +18,6 @@ class Portfolio {
   var validFrom: Long = _
   var validTo: Long = _
 
-  var breakouts :List[PortfolioBreakout] = Nil
+  def breakouts :Seq[PortfolioBreakout] = Portfolios.breakouts(this)
+  def breakouts_= (v : Seq[PortfolioBreakout]) {}
 }

@@ -19,7 +19,7 @@ object ContentCategories extends Table[ContentCategory]{
         load
         isLoad = true
       }
-      codetocate.get(name)
+      codetocate.get(code)
       
     }
   }

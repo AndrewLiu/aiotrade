@@ -22,7 +22,7 @@ object GeneralInfos extends Table[GeneralInfo]{
   def infoCategorys = inverse(InfoContentCategories.generalInfo)
   def infoSecs = inverse(InfoSecs.generalInfo)
   def infoContents = inverse(Contents.generalInfo)
-  def infoAbstract = inverse(ContentAbstracts.generalInfo)
+  def infoAbstracts = inverse(ContentAbstracts.generalInfo)
   
   private val urlToInfo   = new HashMap[String, GeneralInfo]()
   private var isLoad = false
@@ -51,10 +51,17 @@ class GeneralInfo extends TVal with Flag with InfoContent {
   var url : String = ""
   var combinValue : Long = _
   
-  var infoCategorys : List[ContentCategory] = _
-  var infoSecs : List[Sec] = _
-  var infoContents : List[Content] = _
-  var infoAbstract : List[ContentAbstract] = _
+  def infoCategorys : Seq[InfoContentCategory] = GeneralInfos.infoCategorys(this)
+  def infoSecs : Seq[InfoSec] = GeneralInfos.infoSecs(this)
+  def infoContents : Seq[Content] = GeneralInfos.infoContents(this)
+  def infoAbstracts : Seq[ContentAbstract] = GeneralInfos.infoAbstracts(this)
+
+
+  def infoCategorys_= (v : Seq[InfoContentCategory]) {}
+  def infoSecs_= (v : Seq[InfoSec]) {}
+  def infoContents_= (v : Seq[Content]) {}
+  def infoAbstracts_= (v : Seq[ContentAbstract]) {}
+
 
   def weight: Float = 0F
   def link: String = url
@@ -63,8 +70,8 @@ class GeneralInfo extends TVal with Flag with InfoContent {
     val map = Map[String, String]()
     map += ("TITLE" -> title)
     
-    if(infoAbstract != null) map += ("CONTENT" -> infoAbstract(0).content)
-    if(infoCategorys != null) map += ("CATEGORY" -> infoCategorys(0).name)
+    if(infoAbstracts != null) map += ("CONTENT" -> infoAbstracts(0).content)
+    if(infoCategorys != null) map += ("CATEGORY" -> infoCategorys(0).category.name)
     map += ("PUBLISH_TIME" -> publishTime.toString)
     if(link != null) map += ("LINK" -> link)
 
