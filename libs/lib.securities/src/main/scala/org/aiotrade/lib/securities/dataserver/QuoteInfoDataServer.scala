@@ -22,7 +22,7 @@ import org.aiotrade.lib.collection.ArrayList
 class QuoteInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
   var content : String = _
-  var summery : String = _
+  var summary : String = _
   var categories : ListBuffer[ContentCategory] = new ListBuffer[ContentCategory]()
   var secs : ListBuffer[Sec] = new ListBuffer[Sec]()
 }
@@ -82,11 +82,13 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
       }
       val quoteInfo = QuoteInfoSnapshot(info.generalInfo.publishTime, info.generalInfo.title,
                                         info.generalInfo.url, info.generalInfo.combinValue,
-                                        info.content, info.summery,info.categories.toList,
+                                        info.content, info.summary,info.categories.toList,
                                         info.secs.toList)
       allQuoteInfo += quoteInfo
     }
 
+    values foreach (value => GeneralInfo.save(value))
+    
     if (allQuoteInfo.length > 0) {
       QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
     }

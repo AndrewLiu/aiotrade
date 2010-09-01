@@ -42,8 +42,8 @@ object Model {
 
     val infos = (SELECT (GeneralInfos.*) FROM GeneralInfos list)
     for(info <- infos) {
-      for(category <- info.infoCategorys) {
-        println("category:"+category.category.code + ":" + category.category.name)
+      for(category <- info.categories) {
+        println("category:"+category.code + ":" + category.name)
       }
        for(abstract_ <- info.infoAbstracts) {
          println("abstract:" + abstract_.content)
@@ -51,8 +51,8 @@ object Model {
        for(content <- info.infoContents) {
          println("content:" + content.content)
        }
-       for(sec <- info.infoSecs) {
-         println("sec:" + sec.sec.secInfo.uniSymbol)
+       for(sec <- info.secs) {
+         println("sec:" + sec.secInfo.uniSymbol)
        }
     }
   }
@@ -210,7 +210,7 @@ object Model {
     val info = new GeneralInfo()
     info.title = "研究报告测试"
     info.publishTime = 1;
-    info.infoClass = info.InfoClass.ANALYSIS_REPORT
+    info.infoClass = GeneralInfo.ANALYSIS_REPORT
     info.combinValue = 1L
 
     GeneralInfos.save(info)
