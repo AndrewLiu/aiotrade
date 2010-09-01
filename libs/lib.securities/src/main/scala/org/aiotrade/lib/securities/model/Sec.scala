@@ -48,6 +48,8 @@ import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
@@ -55,6 +57,7 @@ import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 import scala.collection.mutable.ListBuffer
+
 
 
 object Secs extends Table[Sec] {
@@ -172,11 +175,14 @@ class Sec extends SerProvider with Publisher {
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
 
+
   var description = ""
   var name = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
+  private var _quoteInfoContract : QuoteInfoContract = _
+
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
@@ -193,6 +199,19 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
+  def quoteInfoContract = {
+    if (_quoteInfoContract == null){
+      _quoteInfoContract = new QuoteInfoContract()
+    }
+    _quoteInfoContract
+  }
+
+  def quoteInfoContract_= (contract : QuoteInfoContract) {
+    _quoteInfoContract = contract
+  }
+
+
+  
   def realtimeSer = mutex synchronized {
     if (_realtimeSer == null) {
       _realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
@@ -217,7 +236,8 @@ class Sec extends SerProvider with Publisher {
    * @TODO, how about tickerServer switched?
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-
+  private lazy val quoteInfoServer : QuoteInfoDataServer = quoteInfoContract.serviceInstance().get
+  
   def serOf(freq: TFreq): Option[QuoteSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC => Some(realtimeSer)
@@ -433,7 +453,19 @@ class Sec extends SerProvider with Publisher {
       0L
     }
   }
+  def loadInfoPointSer(ser : InfoPointSer) : Boolean = synchronized {
+    val wantTime = loadInfoPointSerFromPersistence(ser)
+    loadInfoPointSerFromDataServer(ser,wantTime)
+    true
+  }
 
+   private def loadInfoPointSerFromPersistence(ser: InfoPointSer): Long = {
+     0L
+   }
+
+  private def loadInfoPointSerFromDataServer(ser: InfoPointSer, fromTime: Long) : Long = {
+    0L
+  }
   /**
    * All values in persistence should have been properly rounded to 00:00 of exchange's local time
    */
@@ -640,6 +672,39 @@ class Sec extends SerProvider with Publisher {
 
   def isTickerServerSubscribed: Boolean = {
     tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
+  }
+
+  def subscribeQuoteInfoDataServer(startRefresh: Boolean = true) : Option[QuoteInfoDataServer] = {
+    if (uniSymbol == "") return None
+
+    // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+    quoteInfoContract.srcSymbol = uniSymbol
+
+    if (quoteInfoContract.serviceClassName != null) {
+      if (!startRefresh) {
+        quoteInfoServer.stopRefresh
+      }
+
+      if (!quoteInfoServer.isContractSubsrcribed(quoteInfoContract)) {
+        quoteInfoServer.subscribe(quoteInfoContract)
+      }
+
+      if (startRefresh) {
+        quoteInfoServer.startRefresh(quoteInfoContract.refreshInterval)
+      }
+    }
+
+    Some(quoteInfoServer)
+  }
+
+  def unSubscribeQuoteInfoDataServer {
+    if(quoteInfoServer != null & quoteInfoContract != null){
+      quoteInfoServer.unSubscribe(quoteInfoContract)
+    }
+  }
+
+  def isQuoteInfoDataServerSubcribed : Boolean = {
+    quoteInfoServer != null && quoteInfoServer.isContractSubsrcribed(quoteInfoContract)
   }
 
   /**
