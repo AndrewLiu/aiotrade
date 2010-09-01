@@ -5,11 +5,13 @@ import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Map
 import org.aiotrade.lib.securities.model.Flag
+import java.util.logging.Logger
 import org.aiotrade.lib.info.model.InfoContent
 import org.aiotrade.lib.math.timeseries.TVal
 import scala.collection.JavaConversions._
 
 object Sectors extends Table[Sector] {
+  private val log = Logger.getLogger(this.getClass.getName)
   val name = "name" VARCHAR(30)
   val code = "code" VARCHAR(30)
   var portfolio = "portfolios_id" REFERENCES(Portfolios)
@@ -37,6 +39,7 @@ object Sectors extends Table[Sector] {
 }
 
 class Sector extends TVal with Flag with InfoContent{
+  private val log = Logger.getLogger(this.getClass.getName)
   var name : String = ""
   var code : String = ""
   var portfolio : Portfolio = _
@@ -51,9 +54,7 @@ class Sector extends TVal with Flag with InfoContent{
   def exportToJavaMap: java.util.Map[String, String] = exportToMap
 
   def exportToList: List[Map[String, String]] = {
-
     var list = List[Map[String, String]]()
-
     if(portfolio != null && portfolio.breakouts != null){
       for(portfolio <- portfolio.breakouts){
         val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)

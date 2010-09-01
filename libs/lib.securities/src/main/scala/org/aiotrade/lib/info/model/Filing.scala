@@ -69,15 +69,15 @@ class Filing extends TVal with Flag with InfoContent{
 
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    if(generalInfo.title != null ) map += ("title" -> generalInfo.title)
-    map += ("publishTime" -> publishTime.toString)
+    if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+    map += ("PUBLISH_TIME" -> publishTime.toString)
     //map += ("weight" -> weight.toString)
-    if(link != null) map += ("link" -> link)
-    if(publisher != null) map += ("sourceName" -> publisher)
-    map += ("fileSize" -> size.toString)
-    map += ("fileType" -> Filing.extNameFromFormat(format))
-    if(generalInfo.infoSecs != null) map += ("securityCode" -> generalInfo.infoSecs(0).uniSymbol)
-    if(generalInfo.infoCategorys != null) map += ("subject" -> generalInfo.infoCategorys(0).name)
+    if(link != null) map += ("LINK" -> link)
+    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
+    map += ("FILE_SIZE" -> size.toString)
+    map += ("FILE_TYPE" -> Filing.extNameFromFormat(format))
+    if(generalInfo.infoSecs != null) map += ("SECURITY_CODE" -> generalInfo.infoSecs(0).uniSymbol)
+    if(generalInfo.infoCategorys != null) map += ("SUBJECT" -> generalInfo.infoCategorys(0).name)
 
     map
   }
