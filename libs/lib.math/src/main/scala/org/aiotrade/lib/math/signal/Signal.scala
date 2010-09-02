@@ -47,24 +47,44 @@ object Signal extends Publisher {
   def importFrom(vs: List[Any]): Signal = {
     vs match {
       case List(time: Long, id: Byte, text: String) =>
-        Signal(time, Sign.withId(id), text)
+        if (Kind.isSign(id)) {
+          Sign(time, Direction.withId(id), text)
+        } else {
+          Mark(time, Position.withId(id), text)
+        }
       case List(time: Long, id: Byte) =>
-        Signal(time, Sign.withId(id))
+        if (Kind.isSign(id)) {
+          Sign(time, Direction.withId(id))
+        } else {
+          Mark(time, Position.withId(id))
+        }
       case List(time: Double, id: Double) =>
-        Signal(time.toLong, Sign.withId(id.toByte))
+        if (Kind.isSign(id.toByte)) {
+          Sign(time.toLong, Direction.withId(id.toByte))
+        } else {
+          Mark(time.toLong, Position.withId(id.toByte))
+        }
       case _ => null
     }
   }
 }
 
-case class Signal(time: Long, sign: Sign, text: String = null, color: Color = null) {
+case class Sign(time: Long, kind: Direction, text: String = null, color: Color = null) extends Signal
+case class Mark(time: Long, kind: Position,  text: String = null, color: Color = null) extends Signal
+
+abstract class Signal {
+  def time: Long
+  def kind: Kind
+  def text: String
+  def color: Color
+
   def isTextSignal = text != null
 
   def export: List[Any] = {
     if (text != null) {
-      List[Any](time, sign.id, text)
+      List[Any](time, kind.id, text)
     } else {
-      List[Any](time, sign.id)
+      List[Any](time, kind.id)
     }
   }
 
@@ -72,14 +92,14 @@ case class Signal(time: Long, sign: Sign, text: String = null, color: Color = nu
     var h = 17
     if (text  != null) h = 37 * h + text.hashCode
     if (color != null) h = 37 * h + color.hashCode
-    h = 37 * h + sign.hashCode
+    h = 37 * h + kind.hashCode
     h = 37 * h + (time ^ (time >>> 32)).toInt
     h
   }
   
   override def equals(o: Any): Boolean = {
     o match {
-      case x: Signal => time == x.time && sign == x.sign && text == x.text && color == x.color
+      case x: Signal => time == x.time && kind == x.kind && text == x.text && color == x.color
       case _ => false
     }
   }

@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
  * @author Caoyuan Deng
  */
 class SubscribedSignal extends SignalIndicator {
-  sname = "Subscribed Signal"
+  sname = "Subed Signal"
   lname = "Subscribed Signal"
 
   isOverlapping = true
