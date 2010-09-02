@@ -71,10 +71,8 @@ import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
-import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
 import org.aiotrade.lib.util.swing.plaf.AIOScrollPaneStyleBorder
@@ -131,11 +129,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
 
   private val priceDf = new DecimalFormat("0.000")
 
-  private val (tickers, executions) = Quotes1d.lastDailyQuoteOf(sec) match {
-    case Some(lastDailyQuote) =>
-      (Tickers.tickersOf(sec, lastDailyQuote.time), new ArrayList[Execution] ++ Executions.executionsOf(sec, lastDailyQuote.time))
+  private val lastTicker = sec.exchange.uniSymbolToLastTradingDayTicker.get(sec.uniSymbol)
+  private val executions = sec.exchange.lastDailyRoundedTradingTime match {
+    case Some(time) =>
+      new ArrayList[Execution] ++ Executions.executionsOf(sec, time)
     case None =>
-      (Nil, new ArrayList[Execution])
+      new ArrayList[Execution]
   }
 
   private val prevTicker: Ticker = new Ticker
@@ -180,8 +179,7 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
   }
 
   // use last ticker to update info/depth table
-  if (!tickers.isEmpty) {
-    val ticker = tickers.last
+  lastTicker foreach {ticker =>
     updateInfoTable(ticker)
     updateDepthTable(ticker.marketDepth)
     prevTicker.copyFrom(ticker)
@@ -237,6 +235,9 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     infoTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().heavyBackgroundColor))
     infoTable.setForeground(Color.WHITE)
     infoTable.setBackground(LookFeel().heavyBackgroundColor)
+    val infoColModel = infoTable.getColumnModel
+    infoColModel.getColumn(0).setMaxWidth(35)
+    infoColModel.getColumn(2).setMaxWidth(35)
 
     // --- execution table
 
@@ -259,13 +260,15 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     )
 
     val level = 5
-    for (i <- 0 until level) {
+    var i = 0
+    while (i < level) {
       val bidIdx = level - 1 - i
       val bidRow = i
       depthModel.setValueAt(Bundle.getString("bid") + numberStrs(bidIdx), bidRow, 0)
       val askIdx = i
       val askRow = level + i
       depthModel.setValueAt(Bundle.getString("ask") + numberStrs(askIdx), askRow, 0)
+      i += 1
     }
 
     depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -288,8 +291,10 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     depthTable.setBorder(new AIOScrollPaneStyleBorder(LookFeel().borderColor))
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
-    val depthNameCol = depthTable.getColumnModel.getColumn(0)
-    depthNameCol.setPreferredWidth(50)
+    val depthColModel = depthTable.getColumnModel
+    depthColModel.getColumn(0).setPreferredWidth(40)
+    depthColModel.getColumn(1).setPreferredWidth(100)
+    depthColModel.getColumn(2).setPreferredWidth(100)
 
     // --- execution table
     
@@ -326,19 +331,9 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     executionTable.setBackground(LookFeel().backgroundColor)
     executionTable.setFillsViewportHeight(true)
     executionTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
-
-    // --- set column width
-    var columnModel = infoTable.getColumnModel
-    columnModel.getColumn(0).setMaxWidth(35)
-    columnModel.getColumn(2).setMaxWidth(35)
-
-    columnModel = depthTable.getColumnModel
-    columnModel.getColumn(0).setMinWidth(12)
-    columnModel.getColumn(1).setMinWidth(35)
-
-    columnModel = executionTable.getColumnModel
-    columnModel.getColumn(0).setMinWidth(22)
-    columnModel.getColumn(1).setMinWidth(30)
+    val executionColModel = executionTable.getColumnModel
+    executionColModel.getColumn(0).setMinWidth(22)
+    executionColModel.getColumn(1).setMinWidth(30)
 
     /* @Note Border of JScrollPane may not be set by #setBorder, at least in Metal L&F: */
     UIManager.put("ScrollPane.border", classOf[AIOScrollPaneStyleBorder].getName)
@@ -415,12 +410,12 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
       val bidIdx = depth - 1 - i
       val bidRow = i
       depthModel.setValueAt(priceDf  format marketDepth.askPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt("%10.2f" format marketDepth.askSize(bidIdx) / 100.0,  bidRow, 2)
+      depthModel.setValueAt("%10.0f" format marketDepth.askSize(bidIdx) / 100.0,  bidRow, 2)
       
       val askIdx = i
       val askRow = depth + i
       depthModel.setValueAt(priceDf  format marketDepth.bidPrice(askIdx), askRow, 1)
-      depthModel.setValueAt("%10.2f" format marketDepth.bidSize(askIdx) / 100.0,  askRow, 2)
+      depthModel.setValueAt("%10.0f" format marketDepth.bidSize(askIdx) / 100.0,  askRow, 2)
 
       i += 1
     }

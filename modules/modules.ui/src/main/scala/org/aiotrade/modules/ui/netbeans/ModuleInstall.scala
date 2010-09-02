@@ -40,7 +40,6 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
-import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileUtil
 
@@ -71,8 +70,6 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
   private val log = Logger.getLogger(this.getClass.getName)
 
   override def restored {
-    super.restored
-
     // load config as soon as possible
     val configFo = FileUtil.getConfigFile("aiotrade.conf")
     var configFile = FileUtil.toFile(configFo)

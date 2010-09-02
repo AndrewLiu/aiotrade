@@ -36,7 +36,7 @@ object InfoSer {
       val gInfo01 = new GeneralInfo
       gInfo01.publishTime = curTime
       gInfo01.title = "Title" + i
-      gInfo01.infoClass = gInfo01.InfoClass.NEWS
+      gInfo01.infoClass = GeneralInfo.NEWS
       news01.generalInfo = gInfo01
 
       val news02 = new News
@@ -47,7 +47,7 @@ object InfoSer {
       val gInfo02 = new GeneralInfo
       gInfo02.publishTime = curTime
       gInfo02.title = "@Title" + i
-      gInfo02.infoClass = gInfo01.InfoClass.NEWS
+      gInfo02.infoClass = GeneralInfo.NEWS
       news02.generalInfo = gInfo02
       
       val newsAtSameTime = new News

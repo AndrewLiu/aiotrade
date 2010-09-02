@@ -286,6 +286,11 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
   final def setAskPrice(idx: Int, v: Double) = marketDepth.setAskPrice(idx, v)
   final def setAskSize (idx: Int, v: Double) = marketDepth.setAskSize (idx, v)
 
+
+  // --- no db fields:
+
+  var tansient = true
+
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {
     _isChanged = b

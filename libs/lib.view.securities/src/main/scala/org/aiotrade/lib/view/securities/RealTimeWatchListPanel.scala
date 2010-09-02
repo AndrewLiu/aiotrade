@@ -85,6 +85,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val SYMBOL     = "Symbol"
+  private val NAME       = "Name"
   private val TIME       = "Time"
   private val LAST_PRICE = "Last"
   private val DAY_VOLUME = "Volume"
@@ -98,6 +99,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   private val colKeys = Array[String](
     SYMBOL,
+    NAME,
     TIME,
     LAST_PRICE,
     DAY_VOLUME,
@@ -224,7 +226,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
 
     private val types = Array(
-      classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
+      classOf[String], classOf[String], classOf[String], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object], classOf[Object]
     )
 
     def getRowCount: Int = uniSymbols.size
@@ -232,12 +234,14 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
     def getValueAt(row: Int, col: Int): Object = {
       val symbol = uniSymbols(row)
-      val exchange = Exchange.exchangeOf(symbol)
+      val sec = Exchange.secOf(symbol) getOrElse {return null}
+      val exchange = sec.exchange
       
       exchange.uniSymbolToLastTradingDayTicker.get(symbol) match {
         case Some(ticker) =>
           colKeys(col) match {
             case SYMBOL => symbol
+            case NAME => sec.name
             case TIME =>
               val tz = exchange.timeZone
               val cal = Calendar.getInstance(tz)
@@ -245,7 +249,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
               df.setTimeZone(tz)
               df format cal.getTime
             case LAST_PRICE => priceDf   format ticker.lastPrice
-            case DAY_VOLUME => "%10.2f"  format ticker.dayVolume / 100.0
+            case DAY_VOLUME => "%10.0f"  format ticker.dayVolume / 100.0
             case DAY_AMOUNT => "%10.2f"  format ticker.dayAmount / 10000.0
             case PREV_CLOSE => priceDf   format ticker.prevClose
             case DAY_CHANGE => priceDf   format ticker.dayChange
@@ -258,6 +262,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         case None =>
           colKeys(col) match {
             case SYMBOL => symbol
+            case NAME => sec.name
             case TIME       => "-"
             case LAST_PRICE => "-"
             case DAY_VOLUME => "-"

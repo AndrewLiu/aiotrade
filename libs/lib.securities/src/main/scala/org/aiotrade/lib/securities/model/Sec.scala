@@ -48,6 +48,7 @@ import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
 import org.aiotrade.lib.util.actors.Publisher
@@ -57,7 +58,11 @@ import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 import scala.collection.mutable.ListBuffer
-
+import org.aiotrade.lib.info.model.GeneralInfo
+import org.aiotrade.lib.info.model.GeneralInfos
+import org.aiotrade.lib.info.model.GeneralInfo
+import org.aiotrade.lib.info.model.InfoSecs
+import ru.circumflex.orm._
 
 
 object Secs extends Table[Sec] {
@@ -177,7 +182,6 @@ class Sec extends SerProvider with Publisher {
 
 
   var description = ""
-  var name = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
@@ -459,11 +463,55 @@ class Sec extends SerProvider with Publisher {
     true
   }
 
-   private def loadInfoPointSerFromPersistence(ser: InfoPointSer): Long = {
-     0L
-   }
+  private def loadInfoPointSerFromPersistence(ser: InfoPointSer): Long = {
+    val id = Secs.idOf(this)
+    val GI = GeneralInfos
+    val IS = InfoSecs
+    var time : Long = 0
+    val infos = (SELECT (GI.*) FROM (GI JOIN IS) WHERE ( (GI.infoClass EQ GeneralInfo.QUOTE_INFO) AND (IS.sec.field EQ id) ) ORDER_BY (GI.publishTime DESC) list)
+    infos map {
+      info =>
+      val quoteInfo = new QuoteInfo
+      quoteInfo.time = info.publishTime
+      quoteInfo.generalInfo = info
+      quoteInfo.content = info.infoContents.headOption match {
+        case Some(x) => x.content
+        case None => null
+      }
+      quoteInfo.summary = info.summary
+      quoteInfo.content = info.content
+      info.categories foreach ( cate => quoteInfo.categories.append(cate))
+      info.secs foreach (sec => quoteInfo.secs.append(sec))
+      ser.updateFrom(quoteInfo)
+      time = info.publishTime
+    }
+    time
+  }
 
   private def loadInfoPointSerFromDataServer(ser: InfoPointSer, fromTime: Long) : Long = {
+    val freq = ser.freq
+
+    quoteInfoContract.serviceInstance() match {
+      case Some(quoteInfoServer) =>
+        quoteInfoContract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
+        quoteInfoServer.subscribe(quoteInfoContract)
+
+        // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+        var reaction: PartialFunction[Event, Unit] = null
+        reaction = {
+          case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
+            reactions -= reaction
+            deafTo(ser)
+            ser.isLoaded = true
+        }
+        reactions += reaction
+        listenTo(ser)
+
+        ser.isInLoading = true
+        quoteInfoServer.loadHistory(fromTime)
+
+      case _ => ser.isLoaded = true
+    }
     0L
   }
   /**
@@ -611,7 +659,12 @@ class Sec extends SerProvider with Publisher {
     if (secInfo != null) {
       secInfo.uniSymbol = uniSymbol
     }
-    name = uniSymbol.replace('.', '_')
+  }
+
+  override def name: String = {
+    if (secInfo != null) {
+      secInfo.name
+    } else uniSymbol
   }
 
   def stopAllDataServer {

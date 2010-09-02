@@ -50,7 +50,6 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
-import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.LightTicker
@@ -87,6 +86,7 @@ import org.openide.nodes.Node
 import org.openide.nodes.NodeEvent
 import org.openide.nodes.NodeListener
 import org.openide.nodes.NodeMemberEvent
+import org.openide.nodes.NodeOp
 import org.openide.nodes.NodeReorderEvent
 import org.openide.util.ImageUtilities
 import org.openide.util.Lookup
@@ -99,7 +99,7 @@ import org.openide.xml.XMLUtil
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable.WeakHashMap
 
 
 
@@ -138,6 +138,8 @@ object SymbolNodes {
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/symbol.gif")
 
   private val contentToOccuptantNode = new HashMap[AnalysisContents, Node]
+
+  private val symbolNodeToSymbol = new WeakHashMap[OneSymbolNode, String]
 
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
   private val stockIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/stock.png")
@@ -256,30 +258,50 @@ object SymbolNodes {
   }
 
   def findSymbolNode(symbol: String): Option[OneSymbolNode] = {
-    findSymbolNode(RootSymbolsNode, symbol)
+    val rootFolder = RootSymbolsNode.getLookup.lookup(classOf[DataFolder])
+    if (rootFolder != null) {
+      val children = rootFolder.getChildren
+      var i = 0
+      while (i < children.length) {
+        children(i) match {
+          case x: DataFolder =>
+            findSymbolNode(x, symbol) match {
+              case None =>
+              case some => return some
+            }
+          case _ =>
+        }
+        i += 1
+      }
+      None
+    } else None
   }
 
-  private def findSymbolNode(node: Node, symbol: String): Option[OneSymbolNode] = {
-    node match {
-      case x: OneSymbolNode =>
-        val contents = x.analysisContents
-        if (contents != null && contents.uniSymbol == symbol) {
-          Some(x)
-        } else None
-      case x: SymbolFolderNode =>
-        val children = x.getChildren
-        val count = children.getNodesCount
+  def findSymbolNode(folderNode: SymbolFolderNode, symbol: String): Option[OneSymbolNode] = {
+    folderNode.getLookup.lookup(classOf[DataFolder]) match {
+      case null => None
+      case folder: DataFolder => findSymbolNode(folder, symbol)
+    }
+  }
+
+  def findSymbolNode(folder: DataFolder, symbol: String): Option[OneSymbolNode] = {
+    symbolNodeToSymbol find (_._2 == symbol) match {
+      case None =>
+        val children = folder.getChildren
         var i = 0
-        while (i < count) {
-          val node_i = children.getNodeAt(i)
-          findSymbolNode(node_i, symbol) match {
-            case None =>
-            case some => return some
+        while (i < children.length) {
+          children(i) match {
+            case x: DataFolder =>
+            case x: DataObject =>
+              if (symbolOf(x.getPrimaryFile) == symbol) {
+                return Some(new OneSymbolNode(x.getNodeDelegate))
+              }
           }
           i += 1
         }
+        
         None
-      case _ => None
+      case Some(x) => Some(x._1)
     }
   }
 
@@ -295,16 +317,94 @@ object SymbolNodes {
     }
   }
 
-  private def getFolderNode(node: Node): Node = {
-    if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-      node
-    } else {
-      val parent = node.getParentNode
-      if (parent != null) {
-        getFolderNode(parent)
-      } else null
+  private def getFolderNode(node: Node): Option[SymbolFolderNode] = {
+    node match {
+      case x: SymbolFolderNode => Some(x)
+      case x: OneSymbolNode =>
+        val parent = node.getParentNode
+        if (parent != null) {
+          getFolderNode(parent)
+        } else None
     }
   }
+
+  def openAllSymbolFolders {
+    val rootFolder = RootSymbolsNode.getLookup.lookup(classOf[DataFolder])
+    if (rootFolder != null) {
+      val children = rootFolder.getChildren
+      var i = 0
+      while (i < children.length) {
+        children(i) match {
+          case x: DataFolder => openSymbolFolder(x)
+          case _ =>
+        }
+        i += 1
+      }
+    }
+  }
+
+  def openSymbolFolder(folder: DataFolder) {
+    val symbolFolderNode = try {
+      NodeOp.findPath(RootSymbolsNode, Array(folder.getName)) match {
+        case x: SymbolFolderNode => x
+        case _ => return
+      }
+    } catch {
+      case _ => return
+    }
+
+    val start = System.currentTimeMillis
+    log.info("Opening folder: " + folder)
+    val uniSymbols = symbolsOf(folder)
+    log.info("Symbols under folder: " + folder + " were collected: " + uniSymbols)
+    watchSymbols(symbolFolderNode, uniSymbols)
+    log.info("Opened folder: " + folder + " in " + (System.currentTimeMillis - start) + " ms")
+  }
+
+  private def symbolOf(fo: FileObject): String = {
+    val name = fo.getName
+    val extIdx = name.indexOf(".sec")
+    if (extIdx > 0) {
+      name.substring(0, extIdx)
+    } else name
+  }
+
+  private def symbolsOf(folder: DataFolder): Array[String] = {
+    val children = folder.getChildren
+    val uniSymbols = new ArrayList[String]
+    var i = 0
+    while (i < children.length) {
+      children(i) match {
+        case x: DataFolder =>
+        case x: DataObject =>
+          uniSymbols += symbolOf(x.getPrimaryFile)
+      }
+      i += 1
+    }
+
+    uniSymbols.toArray
+  }
+
+  private def watchSymbols(folderNode: SymbolFolderNode, uniSymbols: Array[String]) {
+    val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
+    watchListTc.requestActive
+
+    val lastTickers = new ArrayList[LightTicker]
+    var i = 0
+    while (i < uniSymbols.length) {
+      val uniSymbol = uniSymbols(i)
+      Exchange.secOf(uniSymbol) match {
+        case Some(sec) =>
+          watchListTc.watch(sec)
+          sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
+        case None =>
+      }
+      i += 1
+    }
+
+    watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
+  }
+
 
   // ----- Node classes
 
@@ -340,6 +440,8 @@ object SymbolNodes {
       case None => null
     }
 
+    symbolNodeToSymbol.put(this, analysisContents.uniSymbol)
+
     /* add additional items to the lookup */
     ic.add(new SymbolViewAction(this))
     ic.add(new SymbolReimportDataAction(this))
@@ -373,6 +475,8 @@ object SymbolNodes {
     override def getOpenedIcon(tpe: Int): Image = {
       getIcon(0)
     }
+
+    override def canRename = false
 
     override def getActions(context: Boolean): Array[Action] = {
       Array(
@@ -469,8 +573,12 @@ object SymbolNodes {
           /**
            * else, create a sec node for it, which will deserilize a contents instance from the sec xml file,
            */
-          val oneSymbolNode = new OneSymbolNode(symbolFileNode)
           val fo = symbolFileNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
+          val uniSymbol = symbolOf(fo)
+          val oneSymbolNode = symbolNodeToSymbol find (_._2 == uniSymbol) match {
+            case Some(x) => x._1
+            case None => new OneSymbolNode(symbolFileNode)
+          }
 
           // with "open" hint ?
           fo.getAttribute("open") match {
@@ -566,12 +674,12 @@ object SymbolNodes {
   }
   
   @throws(classOf[IntrospectionException])
-  class SymbolFolderNode(symbolFolderNode: Node, ic: InstanceContent
-  ) extends FilterNode(symbolFolderNode, new SymbolFolderChildren(symbolFolderNode), new ProxyLookup(symbolFolderNode.getLookup,
-                                                                                                     new AbstractLookup(ic))
+  class SymbolFolderNode(folderNode: Node, ic: InstanceContent
+  ) extends FilterNode(folderNode, new SymbolFolderChildren(folderNode), new ProxyLookup(folderNode.getLookup,
+                                                                                         new AbstractLookup(ic))
   ) {
 
-    if (symbolFolderNode.getName == favoriteFolderName) {
+    if (folderNode.getName == favoriteFolderName) {
       _favoriteNode = this
     }
 
@@ -739,7 +847,7 @@ object SymbolNodes {
     putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/netbeans/resources/startWatch.gif")
 
     def execute {
-      val folderNode = getFolderNode(node)
+      val folderNode = getFolderNode(node) getOrElse (return)
       val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + " " + node.getDisplayName + " ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
@@ -812,42 +920,25 @@ object SymbolNodes {
       }
     }
 
-    private def watchSymbols(folderNode: Node, symbolContents: ArrayList[AnalysisContents]) {
+    private def watchSymbols(folderNode: SymbolFolderNode, symbolContents: ArrayList[AnalysisContents]) {
+      node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+      this.setEnabled(false)
+
       val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
       watchListTc.requestActive
 
       val lastTickers = new ArrayList[LightTicker]
-      val tickerServers = new HashSet[TickerServer]
       for (contents <- symbolContents) {
         val uniSymbol = contents.uniSymbol
         Exchange.secOf(uniSymbol) match {
           case Some(sec) =>
-            contents.serProvider = sec
-            contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-              sec.quoteContracts = List(quoteContract)
-            }
-
-            sec.subscribeTickerServer(false) match {
-              case Some(tickerServer) =>
-                tickerServers += tickerServer
-
-                watchListTc.watch(sec)
-                sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
-
-                node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-                this.setEnabled(false)
-              case _ =>
-            }
-
+            watchListTc.watch(sec)
+            sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
           case None =>
         }
       }
 
       watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
-
-      for (tickerServer <- tickerServers if tickerServer != null) {
-        tickerServer.startRefresh(50)
-      }
     }
   }
 
@@ -862,6 +953,9 @@ object SymbolNodes {
     }
 
     def execute {
+      node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
+      this.setEnabled(false)
+
       /** is this a folder ? if true, go recursively */
       if (node.getLookup.lookup(classOf[DataFolder]) != null) {
         for (child <- node.getChildren.getNodes) {
@@ -876,11 +970,8 @@ object SymbolNodes {
         case Some(sec) =>
           sec.unSubscribeTickerServer
 
-          node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
-          this.setEnabled(false)
         case None =>
       }
-
 
 
 //      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {

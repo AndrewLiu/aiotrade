@@ -43,7 +43,8 @@ class Sector extends TVal with Flag with InfoContent{
   var name : String = ""
   var code : String = ""
   var portfolio : Portfolio = _
-  var portfolios : List[Portfolio] = Nil
+
+  def portfolios  = Sectors.portfolio(this)
 
   def publishTime: Long = this.time
   def weight: Float = 0F

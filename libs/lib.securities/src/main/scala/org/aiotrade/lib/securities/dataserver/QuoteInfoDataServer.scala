@@ -10,6 +10,7 @@ import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.ContentCategory
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Sec
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
@@ -21,16 +22,30 @@ import org.aiotrade.lib.collection.ArrayList
 class QuoteInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
   var content : String = _
-  var summery : String = _
+  var summary : String = _
   var categories : ListBuffer[ContentCategory] = new ListBuffer[ContentCategory]()
   var secs : ListBuffer[Sec] = new ListBuffer[Sec]()
 }
 
 case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
-                             combinValue : Long, content : String, summery : String,
-                             category : List[ContentCategory], secs : List[Sec] ) extends Event
+                             combinValue : Long, content : String, summary : String,
+                             category : List[ContentCategory], secs : List[Sec] ) extends Event{
 
-case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) extends Event
+  def export: HashMap[String, Any]= {
+    HashMap[String, Any] ("publishTime" -> publishTime,
+                          "title" -> title,
+                          "url" -> url,
+                          "combinValue" -> combinValue,
+                          "content" -> content,
+                          "summary" -> summary,
+                          "category" -> {for(cate <- category) yield cate.code},
+                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol})
+  }
+}
+
+case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) extends Event {
+  def export: List[HashMap[String, Any]] = for(event <- events) yield event.export
+}
 
 object QuoteInfoDataServer extends Publisher
 
@@ -66,12 +81,14 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
         case None => null
       }
       val quoteInfo = QuoteInfoSnapshot(info.generalInfo.publishTime, info.generalInfo.title,
-                                    info.generalInfo.url, info.generalInfo.combinValue,
-                                    info.content, info.summery,info.categories.toList,
-                                    info.secs.toList)
+                                        info.generalInfo.url, info.generalInfo.combinValue,
+                                        info.content, info.summary,info.categories.toList,
+                                        info.secs.toList)
       allQuoteInfo += quoteInfo
     }
 
+    values foreach (value => GeneralInfo.save(value))
+    
     if (allQuoteInfo.length > 0) {
       QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
     }

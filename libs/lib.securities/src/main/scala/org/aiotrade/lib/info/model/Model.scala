@@ -33,14 +33,28 @@ object Model {
   def testSelectSector {
     Sectors.sectorOf("LONG_TERM") match {
       case Some(sector) =>
-        val breakouts = (SELECT (PortfolioBreakouts.*) FROM PortfolioBreakouts WHERE (PortfolioBreakouts.portfolio.field EQ Portfolios.idOf(sector.portfolio)) list)
-        for(breakout <- breakouts){
+        /* val breakouts = (SELECT (PortfolioBreakouts.*) FROM PortfolioBreakouts WHERE (PortfolioBreakouts.portfolio.field EQ Portfolios.idOf(sector.portfolio)) list) */
+        for(breakout <- sector.portfolio.breakouts){
           println("long-term:" + breakout.sec.secInfo.uniSymbol)
         }
       case None => Unit
     }
 
-
+    val infos = (SELECT (GeneralInfos.*) FROM GeneralInfos list)
+    for(info <- infos) {
+      for(category <- info.categories) {
+        println("category:"+category.code + ":" + category.name)
+      }
+       for(abstract_ <- info.infoAbstracts) {
+         println("abstract:" + abstract_.content)
+       }
+       for(content <- info.infoContents) {
+         println("content:" + content.content)
+       }
+       for(sec <- info.secs) {
+         println("sec:" + sec.secInfo.uniSymbol)
+       }
+    }
   }
 
   def testSaveSector {
@@ -196,7 +210,7 @@ object Model {
     val info = new GeneralInfo()
     info.title = "研究报告测试"
     info.publishTime = 1;
-    info.infoClass = info.InfoClass.ANALYSIS_REPORT
+    info.infoClass = GeneralInfo.ANALYSIS_REPORT
     info.combinValue = 1L
 
     GeneralInfos.save(info)

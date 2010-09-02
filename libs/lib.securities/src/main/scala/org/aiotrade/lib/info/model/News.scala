@@ -50,7 +50,7 @@ class News extends TVal with Flag with InfoContent{
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
     if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-    if(generalInfo.infoAbstract != null) map += ("SUMMARY" -> generalInfo.infoAbstract(0).content)
+    if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
     
     map += ("PUBLISH_TIME" -> publishTime.toString)
     if(author != null) map += ("PUBLISHER" -> author)
@@ -59,8 +59,8 @@ class News extends TVal with Flag with InfoContent{
     map += ("COMBINE_COUNT" -> hotness.toString)
     //map += ("weight" -> weight.toString)
 
-    if(generalInfo.infoSecs != null) map += ("SECURITY_CODE" -> generalInfo.infoSecs(0).uniSymbol)
-    if(generalInfo.infoCategorys != null) map += ("SUBJECT" -> generalInfo.infoCategorys(0).name)
+    if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+    if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
 
     map
   }
