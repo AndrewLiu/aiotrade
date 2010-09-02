@@ -172,6 +172,7 @@ class Sec extends SerProvider with Publisher {
   type C = QuoteContract
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
+  private val freqToQuoteInfoHisContract = HashMap[TFreq, QuoteInfoContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
   private lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
@@ -186,7 +187,7 @@ class Sec extends SerProvider with Publisher {
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
   private var _quoteInfoContract : QuoteInfoContract = _
-
+  private var _quoteInfoHisContractc : Seq[QuoteInfoContract] = _
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
@@ -200,6 +201,15 @@ class Sec extends SerProvider with Publisher {
       }
 
       freqToQuoteContract.put(freq, contract)
+    }
+  }
+
+  def quoteInfoHisContracts = _quoteInfoHisContractc
+
+  def quoteInfoHisContracts_= (consracts : Seq[QuoteInfoContract]) {
+    _quoteInfoHisContractc = consracts
+    for(contract <- _quoteInfoHisContractc){
+      freqToQuoteInfoHisContract.put(contract.freq, contract)
     }
   }
 
@@ -490,11 +500,11 @@ class Sec extends SerProvider with Publisher {
 
   private def loadInfoPointSerFromDataServer(ser: InfoPointSer, fromTime: Long) : Long = {
     val freq = ser.freq
-
-    quoteInfoContract.serviceInstance() match {
-      case Some(quoteInfoServer) =>
-        quoteInfoContract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
-        quoteInfoServer.subscribe(quoteInfoContract)
+    quoteInfoHisContractOf(freq) match {
+      case Some(contract) =>  contract.serviceInstance() match {
+      case Some(quoteInfoHisServer) =>
+        contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
+        quoteInfoHisServer.subscribe(contract)
 
         // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
         var reaction: PartialFunction[Event, Unit] = null
@@ -508,10 +518,13 @@ class Sec extends SerProvider with Publisher {
         listenTo(ser)
 
         ser.isInLoading = true
-        quoteInfoServer.loadHistory(fromTime)
+        quoteInfoHisServer.loadHistory(fromTime)
 
       case _ => ser.isLoaded = true
     }
+      case None => 
+    }
+
     0L
   }
   /**
@@ -652,6 +665,10 @@ class Sec extends SerProvider with Publisher {
         }
       case some => some
     }
+  }
+
+   private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoContract] = {
+    freqToQuoteInfoHisContract.get(freq)
   }
 
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else ""
