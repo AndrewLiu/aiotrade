@@ -75,6 +75,16 @@ abstract class QuoteServer extends DataServer[Quote] {
       toTime = math.max(quote.time, toTime)
       i += 1
     }
+
+    val ser = contract.freq match {
+      case TFreq.ONE_SEC => sec.realtimeSer
+      case x => sec.serOf(x).get
+    }
+    ser ++= quotes
+
+    ser.publish(TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime))
+
+    // save to db after published TSerEvent, so the chart showing won't be blocked'
     contract.freq match {
       case TFreq.DAILY =>
         Quotes1d.saveBatch(sec, quotes)
@@ -86,14 +96,6 @@ abstract class QuoteServer extends DataServer[Quote] {
         // we won't save quote to quotes1m when contract.freq is ONE_SEC, so we can always keep
         // quoteSer of 1min after loaded from db will not be blocked by this period of time.
     }
-
-    val ser = contract.freq match {
-      case TFreq.ONE_SEC => sec.realtimeSer
-      case x => sec.serOf(x).get
-    }
-    ser ++= quotes
-
-    ser.publish(TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime))
 
     if (contract.refreshable) {
       startRefresh(contract.refreshInterval)
