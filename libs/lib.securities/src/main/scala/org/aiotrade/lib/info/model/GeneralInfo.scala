@@ -102,7 +102,7 @@ class GeneralInfo extends TVal with Flag with InfoContent {
     map += ("TITLE" -> title)
     
     if(content != null) map += ("CONTENT" -> content)
-    if(categories(0) != null) map += ("CATEGORY" -> categories(0).name)
+    //if(categories(0) != null) map += ("CATEGORY" -> categories(0).name)
     map += ("PUBLISH_TIME" -> publishTime.toString)
     if(link != null) map += ("LINK" -> link)
 
