@@ -43,7 +43,7 @@ import org.aiotrade.lib.math.signal.Signal
  */
 object ChartFactory {
     
-  def createVarChart(v: TVar[_]): Chart = {
+  def createVarChart(v: TVar[_], additionalVars: TVar[_]*): Chart = {
     var chart: Chart = null
     v.plot match  {
       case Plot.Volume =>
@@ -69,7 +69,15 @@ object ChartFactory {
         chart.asInstanceOf[ZigzagChart].model.set(v)
       case Plot.Signal =>
         chart = new SignalChart
-        chart.asInstanceOf[SignalChart].model.set(v.asInstanceOf[TVar[List[Signal]]])
+        additionalVars.toList match {
+          case List(var1: TVar[Double], var2: TVar[Double]) =>
+            chart.asInstanceOf[SignalChart].model.set(
+              v.asInstanceOf[TVar[List[Signal]]], var1, var2
+            )
+          case _ => chart.asInstanceOf[SignalChart].model.set(
+              v.asInstanceOf[TVar[List[Signal]]], null, null
+            )
+        }
       case Plot.Info =>
         chart = new InfoPointChart
         chart.asInstanceOf[InfoPointChart].model.set(v)

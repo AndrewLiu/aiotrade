@@ -36,7 +36,6 @@ import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.math.timeseries.Null
 
 /**
  * Abstract Signal Indicator
@@ -66,28 +65,26 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   }
 
   protected def mark(idx: Int, sign: Sign, text: String, color: Color): Signal = {
-    // remove possible duplicte signals
-    removeMarks(idx, sign, text, color)
-    
+    internal_mark(idx, sign, text, color)._1
+  }
+
+  /**
+   * @return (signal, is new one)
+   */
+  protected def internal_mark(idx: Int, sign: Sign, text: String, color: Color): (Signal, Boolean) = {
     val time = baseSer.timestamps(idx)
         
-    // appoint a value for this sign as the drawing position
-    val value = sign match {
-      case Sign.EnterLong  => L(idx)
-      case Sign.ExitLong   => H(idx)
-      case Sign.EnterShort => H(idx)
-      case Sign.ExitShort  => L(idx)
-      case _ => Null.Double
-    }
-
-    val x = Signal(idx, time, value, sign, text, color)
+    val signal = Signal(time, sign, text, color)
     
-    signalVar(idx) = signalVar(idx) match {
-      case null => List(x)
-      case xs => x :: xs
+    signalVar(idx) match {
+      case null => 
+        signalVar(idx) = List(signal)
+        (signal, true)
+      case xs =>
+        val (existOnes, others) = xs partition (_ == signal)
+        signalVar(idx) = signal :: others
+        (signal, existOnes.isEmpty)
     }
-    
-    x
   }
 
   protected def signal(idx: Int, sign: Sign): Signal = {
@@ -103,10 +100,12 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   }
 
   protected def signal(idx: Int, sign: Sign, text: String, color: Color): Signal = {
-    val x = mark(idx, sign, text, color)
-    log.info("Signal: " + x)
-    Signal.publish(SignalEvent(this, x))
-    x
+    val (signal, isNewOne) = internal_mark(idx, sign, text, color)
+    if (isNewOne) {
+      log.info("Signal: " + signal)
+      Signal.publish(SignalEvent(this, signal))
+    }
+    signal
   }
 
   protected def removeMarks(idx: Int) {
@@ -128,7 +127,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   protected def removeMarks(idx: Int, sign: Sign, text: String, color: Color) {
     signalVar(idx) match {
       case null =>
-      case xs => signalVar(idx) = xs filterNot (x=> x.sign == sign && x.text == text && x.color == color)
+      case xs => signalVar(idx) = xs filterNot (x => x.sign == sign && x.text == text && x.color == color)
     }
   }
 

@@ -68,6 +68,7 @@ final case class Id[T <: TSer](clazz: Class[T], baseSer: BaseTSer, args: Any*) {
         case x: Short   => x
         case x: Char    => x
         case x: Byte    => x
+        case x: Int     => x
         case x: Boolean => if (x) 0 else 1
         case x: Long    => (x ^ (x >>> 32)).toInt
         case x: Float   => java.lang.Float.floatToIntBits(x)

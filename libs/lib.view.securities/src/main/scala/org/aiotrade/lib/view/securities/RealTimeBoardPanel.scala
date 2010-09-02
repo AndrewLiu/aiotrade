@@ -292,9 +292,9 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     depthTable.setForeground(Color.WHITE)
     depthTable.setBackground(LookFeel().infoBackgroundColor)
     val depthColModel = depthTable.getColumnModel
-    depthColModel.getColumn(0).setPreferredWidth(40)
-    depthColModel.getColumn(1).setPreferredWidth(100)
-    depthColModel.getColumn(2).setPreferredWidth(100)
+    depthColModel.getColumn(0).setMinWidth(30)
+    depthColModel.getColumn(1).setMinWidth(80)
+    depthColModel.getColumn(2).setMinWidth(80)
 
     // --- execution table
     

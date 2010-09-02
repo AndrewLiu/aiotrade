@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.math.signal
 
-import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
@@ -44,34 +43,44 @@ case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
 
 case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
 
-object Signal extends Publisher {
-  private lazy val log = Logger.getLogger(this.getClass.getName)
-  
+object Signal extends Publisher {  
   def importFrom(vs: List[Any]): Signal = {
     vs match {
-      case List(idx: Int, time: Long, value: Double, id: Byte, text: String) =>
-        Signal(idx, time, value, Sign.withId(id), text)
-      case List(idx: Int, time: Long, value: Double, id: Byte) =>
-        Signal(idx, time, value, Sign.withId(id))
-      case List(idx: Double, time: Double, value: Double, id: Double) =>
-        Signal(idx.toInt, time.toLong, value, Sign.withId(id.toByte))
+      case List(time: Long, id: Byte, text: String) =>
+        Signal(time, Sign.withId(id), text)
+      case List(time: Long, id: Byte) =>
+        Signal(time, Sign.withId(id))
+      case List(time: Double, id: Double) =>
+        Signal(time.toLong, Sign.withId(id.toByte))
       case _ => null
     }
   }
 }
 
-case class Signal(idx: Int, time: Long, value: Double, sign: Sign, text: String = null, color: Color = null) {
+case class Signal(time: Long, sign: Sign, text: String = null, color: Color = null) {
   def isTextSignal = text != null
-  def floatValue: Float = value.toFloat
-  def doubleValue: Double = value
-  def intValue: Int = value.toInt
-  def longValue: Long = value.toLong
 
   def export: List[Any] = {
     if (text != null) {
-      List[Any](idx, time, value, sign.id, text)
+      List[Any](time, sign.id, text)
     } else {
-      List[Any](idx, time, value, sign.id)
+      List[Any](time, sign.id)
+    }
+  }
+
+  override def hashCode: Int = {
+    var h = 17
+    if (text  != null) h = 37 * h + text.hashCode
+    if (color != null) h = 37 * h + color.hashCode
+    h = 37 * h + sign.hashCode
+    h = 37 * h + (time ^ (time >>> 32)).toInt
+    h
+  }
+  
+  override def equals(o: Any): Boolean = {
+    o match {
+      case x: Signal => time == x.time && sign == x.sign && text == x.text && color == x.color
+      case _ => false
     }
   }
 }
