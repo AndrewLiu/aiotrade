@@ -18,6 +18,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
+import ru.circumflex.orm._
 
 class QuoteInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
@@ -98,6 +99,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     }
 
     values foreach (value => GeneralInfo.save(value))
+    COMMIT
     
     if (allQuoteInfo.length > 0) {
       QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))

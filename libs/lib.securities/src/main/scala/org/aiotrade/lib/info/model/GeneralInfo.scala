@@ -54,7 +54,8 @@ object GeneralInfo {
     GeneralInfos.save(info.generalInfo)
     val content = new Content()
     content.generalInfo = info.generalInfo
-    content.content = info.content
+    if(info.content.length < 1000) content.content = info.content else content.content = info.content.substring(0,1000)
+    Contents.save(content)
     info.secs foreach { sec =>
       val infosec = new InfoSec()
       infosec.generalInfo = info.generalInfo
@@ -66,6 +67,7 @@ object GeneralInfo {
       val infocate = new InfoContentCategory()
       infocate.generalInfo = info.generalInfo
       infocate.category = cate
+      InfoContentCategories.save(infocate)
     }
   }
 
