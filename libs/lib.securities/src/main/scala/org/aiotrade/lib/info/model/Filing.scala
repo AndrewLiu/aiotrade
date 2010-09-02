@@ -76,7 +76,7 @@ class Filing extends TVal with Flag with InfoContent{
     if(publisher != null) map += ("SOURCE_NAME" -> publisher)
     map += ("FILE_SIZE" -> size.toString)
     map += ("FILE_TYPE" -> Filing.extNameFromFormat(format))
-    if(generalInfo.infoSecs != null) map += ("SECURITY_CODE" -> generalInfo.infoSecs(0).uniSymbol)
+    if(generalInfo.infoSecs != null) map += ("SECURITY_CODE" -> generalInfo.infoSecs(0).name)
     if(generalInfo.infoCategorys != null) map += ("SUBJECT" -> generalInfo.infoCategorys(0).name)
 
     map
