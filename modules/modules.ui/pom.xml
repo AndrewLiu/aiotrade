@@ -165,6 +165,7 @@
                     <publicPackages>
                         <publicPackage>org.aiotrade.modules.ui.netbeans.actions</publicPackage>
                         <publicPackage>org.aiotrade.modules.ui.netbeans.nodes</publicPackage>
+                        <publicPackage>org.aiotrade.modules.ui.netbeans</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>

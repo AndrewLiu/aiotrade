@@ -53,6 +53,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.netbeans.actions.ChangeOptsAction
 import org.aiotrade.modules.ui.netbeans.actions.ChangeStatisticChartOptsAction
+import org.aiotrade.modules.ui.netbeans.actions.MarketNewsAction
 import org.aiotrade.modules.ui.netbeans.actions.PickIndicatorAction
 import org.aiotrade.modules.ui.netbeans.actions.RemoveCompareQuoteChartsAction
 import org.aiotrade.modules.ui.netbeans.actions.SwitchAdjustQuoteAction
@@ -203,6 +204,8 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     popupMenu.add(SystemAction.get(classOf[ChangeOptsAction]))
     popupMenu.addSeparator
     popupMenu.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[MarketNewsAction]))
     popupMenu.addSeparator
     popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
 
