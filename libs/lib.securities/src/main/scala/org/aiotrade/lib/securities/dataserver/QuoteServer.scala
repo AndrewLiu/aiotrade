@@ -84,7 +84,7 @@ abstract class QuoteServer extends DataServer[Quote] {
 
     ser.publish(TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime))
 
-    // save to db after published TSerEvent, so the chart showing won't be blocked'
+    // save to db after published TSerEvent, so the chart showing won't be blocked
     contract.freq match {
       case TFreq.DAILY =>
         Quotes1d.saveBatch(sec, quotes)
