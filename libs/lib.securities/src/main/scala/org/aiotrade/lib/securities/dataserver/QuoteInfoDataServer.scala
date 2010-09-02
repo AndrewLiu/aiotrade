@@ -25,6 +25,16 @@ class QuoteInfo extends TVal {
   var summary : String = _
   var categories : ListBuffer[ContentCategory] = new ListBuffer[ContentCategory]()
   var secs : ListBuffer[Sec] = new ListBuffer[Sec]()
+  def export: HashMap[String, Any]= {
+    HashMap[String, Any] ("publishTime" -> generalInfo.publishTime,
+                          "title" -> generalInfo.title,
+                          "url" -> generalInfo.url,
+                          "combinValue" -> generalInfo.combinValue,
+                          "content" -> content,
+                          "summary" -> summary,
+                          "category" -> {for(cate <- categories) yield cate.code},
+                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol})
+  }
 }
 
 case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
