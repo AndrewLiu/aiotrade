@@ -103,9 +103,9 @@ class SignalTopComponent extends TopComponent with Reactor {
 
     // --- set column width
     var columnModel = signalTable.getColumnModel
-    columnModel.getColumn(0).setPreferredWidth(20)
-    columnModel.getColumn(1).setPreferredWidth(35)
-    columnModel.getColumn(2).setPreferredWidth(20)
+    columnModel.getColumn(0).setMinWidth(20)
+    columnModel.getColumn(1).setMinWidth(70)
+    columnModel.getColumn(2).setMinWidth(10)
 
     val scrollPane = new JScrollPane
     scrollPane.setViewportView(signalTable)

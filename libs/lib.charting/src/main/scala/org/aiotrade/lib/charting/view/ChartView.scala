@@ -54,6 +54,7 @@ import org.aiotrade.lib.charting.view.pane.XControlPane
 import org.aiotrade.lib.charting.view.pane.YControlPane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.scalar.Scalar
+import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.ChangeSubject
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable.HashMap
@@ -450,7 +451,11 @@ abstract class ChartView(protected var _controller: ChartingController,
     var depthGradient = Pane.DEPTH_GRADIENT_BEGIN
 
     for (v <- ser.vars if v.plot != Plot.None) {
-      val chart = ChartFactory.createVarChart(v)
+      val chart = if (v.plot == Plot.Signal && baseSer.isInstanceOf[QuoteSer]) {
+        val qser = baseSer.asInstanceOf[QuoteSer]
+        ChartFactory.createVarChart(v, qser.high, qser.low)
+      } else ChartFactory.createVarChart(v)
+      
       if (chart != null) {
         val vars = chartToVars.get(chart) getOrElse {
           val x = HashSet[TVar[_]]()
