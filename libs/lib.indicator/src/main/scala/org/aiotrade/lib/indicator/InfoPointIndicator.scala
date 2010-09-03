@@ -31,7 +31,6 @@ class InfoPointIndicator extends Indicator {
   }
 
   protected def computeCont(fromIdx: Int, size: Int) {
-    log.info("InfoPointIndicator compute from " + fromIdx)
     var i = fromIdx
     while (i < size) {
       val info = infos(i)
