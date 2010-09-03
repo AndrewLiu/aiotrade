@@ -20,7 +20,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SubSignalEvent
 import org.aiotrade.lib.securities.model.Exchange
@@ -76,11 +76,11 @@ class SignalTopComponent extends TopComponent with Reactor {
             cal.setTimeInMillis(event.signal.time)
             df format cal.getTime
           case 1 => event.uniSymbol
-          case 2 => event.signal.sign match {
-              case Sign.EnterLong  => Bundle.getString("enterLong")
-              case Sign.ExitLong   => Bundle.getString("exitLong")
-              case Sign.EnterShort => Bundle.getString("enterShort")
-              case Sign.ExitShort  => Bundle.getString("exitShort")
+          case 2 => event.signal.kind match {
+              case Direction.EnterLong  => Bundle.getString("enterLong")
+              case Direction.ExitLong   => Bundle.getString("exitLong")
+              case Direction.EnterShort => Bundle.getString("enterShort")
+              case Direction.ExitShort  => Bundle.getString("exitShort")
             }
           case 3 => event.name
           case _ => null

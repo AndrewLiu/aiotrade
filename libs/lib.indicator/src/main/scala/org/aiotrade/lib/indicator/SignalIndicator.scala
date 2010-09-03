@@ -32,6 +32,10 @@ package org.aiotrade.lib.indicator
 
 import java.awt.Color
 import java.util.logging.Logger
+import org.aiotrade.lib.math.signal.Kind
+import org.aiotrade.lib.math.signal.Direction
+import org.aiotrade.lib.math.signal.Position
+import org.aiotrade.lib.math.signal.Mark
 import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
@@ -47,87 +51,92 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   
   isOverlapping = true
 
-  //val signalVar = new SparseTVar[Signal]("Signal", Plot.Signal)
-  val signalVar = TVar[List[Signal]]("Signal", Plot.Signal)
+  //val signalVar = new SparseTVar[Signal]("S", Plot.Signal)
+  val signalVar = TVar[List[Signal]]("S", Plot.Signal)
     
   def this() = this(null)
-
-  protected def mark(idx: Int, sign: Sign): Signal = {
-    mark(idx, sign, null, null)
-  }
-
-  protected def mark(idx: Int, sign: Sign, color: Color): Signal = {
-    mark(idx, sign, null, color)
-  }
-
-  protected def mark(idx: Int, sign: Sign, text: String): Signal = {
-    mark(idx, sign, text, null)
-  }
-
-  protected def mark(idx: Int, sign: Sign, text: String, color: Color): Signal = {
-    internal_mark(idx, sign, text, color)._1
-  }
-
+  
   /**
    * @return (signal, is new one)
    */
-  protected def internal_mark(idx: Int, sign: Sign, text: String, color: Color): (Signal, Boolean) = {
+  private def signal[T <: Signal](idx: Int, kind: Kind, text: String, color: Color): (T, Boolean) = {
     val time = baseSer.timestamps(idx)
-        
-    val signal = Signal(time, sign, text, color)
-    
+
+    val signal = kind match {
+      case x: Direction => Sign(time, x, text, color)
+      case x: Position  => Mark(time, x, text, color)
+    }
+
     signalVar(idx) match {
-      case null => 
+      case null =>
         signalVar(idx) = List(signal)
-        (signal, true)
+
+        (signal.asInstanceOf[T], true)
       case xs =>
         val (existOnes, others) = xs partition (_ == signal)
         signalVar(idx) = signal :: others
-        (signal, existOnes.isEmpty)
+
+        (signal.asInstanceOf[T], existOnes.isEmpty)
     }
   }
 
-  protected def signal(idx: Int, sign: Sign): Signal = {
-    signal(idx, sign, null, null)
+  protected def mark(idx: Int, position: Position): Mark = {
+    mark(idx, position, null, null)
   }
 
-  protected def signal(idx: Int, sign: Sign, color: Color): Signal = {
-    signal(idx, sign, null, color)
+  protected def mark(idx: Int, position: Position, color: Color): Mark = {
+    mark(idx, position, null, color)
   }
 
-  protected def signal(idx: Int, sign: Sign, text: String): Signal = {
-    signal(idx, sign, text, null)
+  protected def mark(idx: Int, position: Position, text: String): Mark = {
+    mark(idx, position, text, null)
   }
 
-  protected def signal(idx: Int, sign: Sign, text: String, color: Color): Signal = {
-    val (signal, isNewOne) = internal_mark(idx, sign, text, color)
+  protected def mark(idx: Int, position: Position, text: String, color: Color): Mark = {
+    signal[Mark](idx, position, text, color)._1
+  }
+
+  protected def sign(idx: Int, direction: Direction): Sign = {
+    sign(idx, direction, null, null)
+  }
+
+  protected def sign(idx: Int, direction: Direction, color: Color): Sign = {
+    sign(idx, direction, null, color)
+  }
+
+  protected def sign(idx: Int, direction: Direction, text: String): Sign = {
+    sign(idx, direction, text, null)
+  }
+
+  protected def sign(idx: Int, direction: Direction, text: String, color: Color): Sign = {
+    val (sign, isNewOne) = signal[Sign](idx, direction, text, color)
     if (isNewOne) {
-      log.info("Signal: " + signal)
-      Signal.publish(SignalEvent(this, signal))
+      log.info("Signal sign: " + sign)
+      Signal.publish(SignalEvent(this, sign))
     }
-    signal
+    sign
   }
 
-  protected def removeMarks(idx: Int) {
+  protected def remove(idx: Int) {
     signalVar(idx) = null
   }
     
-  protected def removeMarks(idx: Int, sign: Sign) {
-    removeMarks(idx, sign, null, null)
+  protected def remove(idx: Int, direction: Kind) {
+    remove(idx, direction, null, null)
   }
 
-  protected def removeMarks(idx: Int, sign: Sign, text: String) {
-    removeMarks(idx, sign, text, null)
+  protected def remove(idx: Int, direction: Kind, text: String) {
+    remove(idx, direction, text, null)
   }
 
-  protected def removeMarks(idx: Int, sign: Sign, color: Color) {
-    removeMarks(idx, sign, null, color)
+  protected def remove(idx: Int, direction: Kind, color: Color) {
+    remove(idx, direction, null, color)
   }
 
-  protected def removeMarks(idx: Int, sign: Sign, text: String, color: Color) {
+  protected def remove(idx: Int, kind: Kind, text: String, color: Color) {
     signalVar(idx) match {
       case null =>
-      case xs => signalVar(idx) = xs filterNot (x => x.sign == sign && x.text == text && x.color == color)
+      case xs => signalVar(idx) = xs filterNot (x => x.kind == kind && x.text == text && x.color == color)
     }
   }
 

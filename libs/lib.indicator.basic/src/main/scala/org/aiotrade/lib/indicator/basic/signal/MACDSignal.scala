@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.basic.signal
 
 import org.aiotrade.lib.indicator.SignalIndicator
-import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.signal.Direction
 
 /**
  *
@@ -50,19 +50,19 @@ class MACDSignal extends SignalIndicator {
   val _osc    = TVar[Double]()
 
 
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def computeCont(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
       _macd(i) = macd(i, C, periodSlow, periodFast)
       _signal(i) = ema(i, _macd, periodSignal)
       _osc(i) = _macd(i) - _signal(i)
 
       if (crossOver(i, _macd, _signal)) {
-        signal(i, Sign.EnterLong)
+        sign(i, Direction.EnterLong)
       }
 
       if (crossUnder(i, _macd, _signal)) {
-        signal(i, Sign.ExitLong)
+        sign(i, Direction.ExitLong)
       }
 
       i += 1
