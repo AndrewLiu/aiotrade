@@ -5,8 +5,11 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.securities.InfoPointSer
+import java.util.logging.Logger
 
 class InfoPointIndicator extends Indicator {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   sname = "INFO"
   lname = "INFO"
   isOverlapping = true
@@ -28,6 +31,7 @@ class InfoPointIndicator extends Indicator {
   }
 
   protected def computeCont(fromIdx: Int, size: Int) {
+    log.info("InfoPointIndicator compute from " + fromIdx)
     var i = fromIdx
     while (i < size) {
       val info = infos(i)
