@@ -11,10 +11,11 @@ import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.math.indicator.Plot
 import scala.collection.mutable.HashMap
+import java.util.logging.Logger
 
 class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val infos   = TVar[ArrayList[QuoteInfo]]("I", Plot.None)
-
+  private val log = Logger.getLogger(this.getClass.getName)
 
   def updateFromNoFire(info : QuoteInfo) : TSerEvent = {
     val cal = Calendar.getInstance($sec.exchange.timeZone)
@@ -47,7 +48,6 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
     }
   }
   def updateFrom(info : QuoteInfo) {
-
     publish(updateFromNoFire(info))
   }
 

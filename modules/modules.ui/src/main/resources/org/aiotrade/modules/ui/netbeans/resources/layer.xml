@@ -2,6 +2,7 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
     <folder name="Actions">
+        <file name="org-aiotrade-modules-ui-netbeans-options-general-MarketNewsAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-AddExchangeSymbolsAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-AddSymbolAction.instance"/>
         <file name="org-aiotrade-modules-ui-netbeans-actions-AddStatisticChartAction.instance"/>

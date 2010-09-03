@@ -10,7 +10,8 @@ object Model {
 
   def main(args: Array[String]) {
     Config(args(0))
-    createSamples
+    testCategory
+    //createSamples
     System.exit(0)
   }
   def createSamples = {
@@ -30,6 +31,9 @@ object Model {
     
   }
 
+  def testCategory {
+    println (ContentCategories.cateOf("quoteinfo.filing"))
+  }
   def testSelectSector {
     Sectors.sectorOf("LONG_TERM") match {
       case Some(sector) =>
