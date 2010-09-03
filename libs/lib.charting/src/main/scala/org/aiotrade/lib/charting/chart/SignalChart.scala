@@ -38,7 +38,8 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.signal.Sign
+import org.aiotrade.lib.math.signal.Direction
+import org.aiotrade.lib.math.signal.Position
 import org.aiotrade.lib.math.signal.Signal
 
 /**
@@ -95,11 +96,9 @@ class SignalChart extends AbstractChart {
               
               // appoint a reference value for this sign as the drawing position
               val refValue = if (m.lowVar != null && m.highVar != null) {
-                signal.sign match {
-                  case Sign.EnterLong  => m.lowVar(time)
-                  case Sign.ExitLong   => m.highVar(time)
-                  case Sign.EnterShort => m.highVar(time)
-                  case Sign.ExitShort  => m.lowVar(time)
+                signal.kind match {
+                  case Direction.EnterLong | Direction.ExitShort  | Position.Lower => m.lowVar(time)
+                  case Direction.ExitLong  | Direction.EnterShort | Position.Upper => m.highVar(time)
                   case _ => Null.Double
                 }
               } else 0.0
@@ -109,8 +108,8 @@ class SignalChart extends AbstractChart {
                 val y = yv(refValue)
                 val text = signal.text
 
-                signal.sign match {
-                  case Sign.EnterLong =>
+                signal.kind match {
+                  case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
                     if (signal.isTextSignal) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
@@ -123,7 +122,7 @@ class SignalChart extends AbstractChart {
                       arrowTp.model.set(x, y + dyUp, true, false)
                       dyUp += (3 + 12)
                     }
-                  case Sign.ExitLong =>
+                  case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
                     if (signal.isTextSignal) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
@@ -134,32 +133,6 @@ class SignalChart extends AbstractChart {
                     } else {
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y - dyDn, false, false)
-                      dyDn += (3 + 12)
-                    }
-                  case Sign.EnterShort =>
-                    if (signal.isTextSignal) {
-                      val labelTp = addChild(new Label)
-                      labelTp.setForeground(color)
-                      labelTp.model.setText(text)
-                      val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp)
-                      dyUp += (3 + bounds.height)
-                    } else {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y + dyUp, false, false)
-                      dyUp += (3 + 12)
-                    }
-                  case Sign.ExitShort =>
-                    if (signal.isTextSignal) {
-                      val labelTp = addChild(new Label)
-                      labelTp.setForeground(color)
-                      labelTp.model.setText(text)
-                      val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
-                      dyDn += (3 + bounds.height)
-                    } else {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y - dyDn, true, false)
                       dyDn += (3 + 12)
                     }
                   case _ =>

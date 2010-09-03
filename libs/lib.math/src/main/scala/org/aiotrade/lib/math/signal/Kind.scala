@@ -34,18 +34,39 @@ package org.aiotrade.lib.math.signal
  *
  * @author Caoyuan Deng
  */
-abstract class Sign(val id: Byte)
-object Sign {
-  case object EnterLong  extends Sign(1)
-  case object ExitLong   extends Sign(2)
-  case object EnterShort extends Sign(3)
-  case object ExitShort  extends Sign(4)
+object Kind {
+  def withId(id: Byte): Kind = {
+    if (isSign(id)) Direction.withId(id) else Position.withId(id)
+  }
 
-  def withId(id: Byte) = id match {
-    case 1 => EnterLong
-    case 2 => ExitLong
-    case 3 => EnterShort
-    case 4 => ExitShort
+  def isSign(id: Byte): Boolean = id > 0
+}
+
+abstract class Kind {def id: Byte}
+
+abstract class Direction(val id: Byte) extends Kind
+object Direction {
+  case object EnterLong  extends Direction(1)
+  case object ExitLong   extends Direction(2)
+  case object EnterShort extends Direction(3)
+  case object ExitShort  extends Direction(4)
+
+  def withId(id: Byte): Direction = id match {
+    case 1 => Direction.EnterLong
+    case 2 => Direction.ExitLong
+    case 3 => Direction.EnterShort
+    case 4 => Direction.ExitShort
+  }
+}
+
+abstract class Position(val id: Byte) extends Kind
+object Position {
+  case object Upper extends Position(-1)
+  case object Lower extends Position(-2)
+
+  def withId(id: Byte): Position = id match {
+    case -1 => Position.Upper
+    case -2 => Position.Lower
   }
 }
 
