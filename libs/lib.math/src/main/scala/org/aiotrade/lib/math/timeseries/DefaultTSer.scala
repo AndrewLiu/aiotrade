@@ -65,7 +65,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   /**
    * a place holder plus flags
    */
-  protected type Holder = Byte
+  protected type Holder = Boolean
   val holders = new ArrayBuffer[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
@@ -152,7 +152,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   /**
    * return a holder with flag != 0
    */
-  protected def createItem(time: Long): Holder = 1
+  protected def createItem(time: Long): Holder = true
 
   def shortDescription :String = description
   def shortDescription_=(description: String): Unit = {
@@ -265,9 +265,8 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 //        timestamps.remove(i)
 //      }
 
-      for (i <- holders.size - 1 to fromIdx) {
-        holders.remove(i)
-      }
+      val count = holders.size - fromIdx
+      holders.remove(fromIdx, count)
     } finally {
       writeLock.unlock
       //timestamps.readLock.unlock

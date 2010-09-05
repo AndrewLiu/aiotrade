@@ -1,6 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
@@ -27,7 +28,7 @@ object MoneyFlows1d extends MoneyFlows {
 
     cached.get(sec) match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new MoneyFlow
@@ -36,8 +37,8 @@ object MoneyFlows1d extends MoneyFlows {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
-        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.DAILY, newone)
         newone
     }
   }
@@ -48,7 +49,7 @@ object MoneyFlows1d extends MoneyFlows {
       ) list
     ) headOption match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new MoneyFlow
@@ -57,8 +58,8 @@ object MoneyFlows1d extends MoneyFlows {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
-        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.DAILY, newone)
         newone
     }
   }
@@ -85,7 +86,7 @@ object MoneyFlows1m extends MoneyFlows {
 
     cached.get(sec) match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new MoneyFlow
@@ -94,8 +95,8 @@ object MoneyFlows1m extends MoneyFlows {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
-        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
         newone
     }
   }
@@ -106,7 +107,7 @@ object MoneyFlows1m extends MoneyFlows {
       ) list
     ) headOption match {
       case Some(one) =>
-        one.transient = false
+        one.isTransient = false
         one
       case None =>
         val newone = new MoneyFlow
@@ -115,8 +116,8 @@ object MoneyFlows1m extends MoneyFlows {
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
-        newone.transient = true
-        sec.exchange.addNewDailyMoneyFlow(newone)
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
         newone
     }
   }
@@ -184,5 +185,5 @@ class MoneyFlow extends TVal with Flag {
   var smallAmount: Double = _
 
   // --- no db fields
-  var transient = true
+  var isTransient = true
 }

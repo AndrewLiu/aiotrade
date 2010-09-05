@@ -75,7 +75,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
       if (idx >= 0 && idx < holders.size) {
         // existed, clear it
         vars foreach {x => x(idx) = x.NullVal}
-        holders(idx) = 0
+        holders(idx) = false
       } else {
         // append at the end: create a new one, add placeholder
         val holder = createItem(time)

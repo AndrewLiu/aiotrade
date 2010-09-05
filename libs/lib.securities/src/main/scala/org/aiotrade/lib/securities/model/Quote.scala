@@ -78,7 +78,7 @@ object Quotes1d extends Quotes {
         newone.fromMe_!
         newone.isTransient = true
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
-        sec.exchange.addNewDailyQuote(newone)
+        sec.exchange.addNewQuote(TFreq.DAILY, newone)
         newone
     }
   }
@@ -100,7 +100,7 @@ object Quotes1d extends Quotes {
         newone.fromMe_!
         newone.isTransient = true
         logger.info("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
-        sec.exchange.addNewDailyQuote(newone)
+        sec.exchange.addNewQuote(TFreq.DAILY, newone)
         newone
     }
   }
@@ -165,6 +165,7 @@ object Quotes1m extends Quotes {
         newone.justOpen_!
         newone.fromMe_!
         newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.ONE_MIN, newone)
         newone
     }
   }
@@ -185,6 +186,7 @@ object Quotes1m extends Quotes {
         newone.justOpen_!
         newone.fromMe_!
         newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.ONE_MIN, newone)
         newone
     }
   }
