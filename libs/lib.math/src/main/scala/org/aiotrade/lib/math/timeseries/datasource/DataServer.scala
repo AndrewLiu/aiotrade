@@ -269,7 +269,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
      * if (count % 500 == 0 && System.currentTimeMillis() - startTime > 2000) {
      *     startTime = System.currentTimeMillis();
      *     preRefresh();
-     *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.RefreshInLoading, newestTime));
+     *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.Refresh, newestTime));
      *     System.out.println("refreshed: count " + count);
      * }
      */

@@ -32,7 +32,6 @@ package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
@@ -43,8 +42,6 @@ import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
-import org.aiotrade.lib.securities.model.Quotes1m
-import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
@@ -107,28 +104,11 @@ abstract class TickerServer extends DataServer[Ticker] {
   }
 
   override protected def postLoadHistory(values: Array[Ticker]): Long = {
-    val events = composeSer(values)
-    var lastTime = Long.MinValue
-    events foreach {
-      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-        source.publish(TSerEvent.FinishedLoading(source, symbol, fromTime, toTime, lastObject, callback))
-        log.info(symbol + ": " + count + ", data loaded, load server finished")
-        lastTime = toTime
-      case _ =>
-    }
-    lastTime
+    composeSer(values)
   }
 
   override protected def postRefresh(values: Array[Ticker]): Long = {
-    val events = composeSer(values)
-    var lastTime = Long.MinValue
-    events foreach {
-      case TSerEvent.ToBeSet(source, symbol, fromTime, toTime, lastObject, callback) =>
-        source.publish(TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback))
-        lastTime = toTime
-      case _ =>
-    }
-    lastTime
+    composeSer(values)
   }
 
   override protected def postStopRefresh {}
@@ -141,8 +121,6 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val tickersLast = new ArrayList[Ticker]
 
   private val exchangeToLastTime = new HashMap[Exchange, Long]
-
-  private val updatedEvents = new ArrayList[TSerEvent]
 
   private def getSecSnaps(values: Array[Ticker]): Seq[SecSnap] = {
     val secSnaps = new ArrayList[SecSnap]
@@ -175,13 +153,14 @@ abstract class TickerServer extends DataServer[Ticker] {
    * compose ser using data from Tickers
    * @param Tickers
    */
-  def composeSer(values: Array[Ticker]): Seq[TSerEvent] = {
+  def composeSer(values: Array[Ticker]): Long = {
+    var lastTime = Long.MinValue
     log.info("Composing ser from tickers: " + values.length)
-    if (values.length == 0) return Nil
+    if (values.length == 0) return lastTime
 
     val secSnaps = getSecSnaps(values)
     log.info("Compsing ser from secSnaps: " + secSnaps.length)
-    if (secSnaps.length == 0) return Nil
+    if (secSnaps.length == 0) return lastTime
 
     allTickers.clear
     allExecutions.clear
@@ -189,7 +168,6 @@ abstract class TickerServer extends DataServer[Ticker] {
     updatedDailyQuotes.clear
 
     exchangeToLastTime.clear
-    updatedEvents.clear
 
     var i = 0
     while (i < secSnaps.length) {
@@ -199,7 +177,6 @@ abstract class TickerServer extends DataServer[Ticker] {
       val isDayFirst = secSnap.isDayFirstTicker
       val ticker = secSnap.currTicker
       val prevTicker = secSnap.prevTicker
-      val updateInfo = secSnap.updateInfo
       val dayQuote = secSnap.dailyQuote
       val minQuote = secSnap.minuteQuote
 
@@ -322,28 +299,21 @@ abstract class TickerServer extends DataServer[Ticker] {
           val rtSer = sec.realtimeSer
           if (rtSer.isLoaded) {
             rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
-            updateInfo.updatedSers ::= rtSer
           }
         }
-        
-        sec.serOf(TFreq.DAILY) match {
-          case Some(x) if isServer || x.isLoaded =>
-            x.updateFrom(dayQuote)
-            updateInfo.updatedSers ::= x
-          case _ =>
+
+        if (isServer || sec.isSerLoaded(TFreq.DAILY)) {
+          val ser = sec.serOf(TFreq.DAILY).get
+          ser.updateFrom(dayQuote)
         }
-        sec.serOf(TFreq.ONE_MIN) match {
-          case Some(x) if isServer || x.isLoaded =>
-            x.updateFrom(minQuote)
-            updateInfo.updatedSers ::= x
-          case _ =>
+        if (isServer || sec.isSerLoaded(TFreq.ONE_MIN)) {
+          val ser = sec.serOf(TFreq.ONE_MIN).get
+          ser.updateFrom(minQuote)
         }
 
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
-        for (updatedSer <- updateInfo.updatedSers) {
-          updatedEvents += TSerEvent.ToBeSet(updatedSer, ticker.symbol, updateInfo.frTime, updateInfo.toTime, ticker)
-        }
+        lastTime = math.max(lastTime, ticker.time)
       }
 
       i += 1
@@ -403,22 +373,8 @@ abstract class TickerServer extends DataServer[Ticker] {
         willCommit = true
       }
 
-      val (minuteQuotesToInsert, minuteQuotesToUpdate) = Sec.minuteQuotesToClose.partition(_.isTransient)
-      Sec.minuteQuotesToClose.clear
-      if (minuteQuotesToInsert.length > 0) {
-        Quotes1m.insertBatch_!(minuteQuotesToInsert.toArray)
-        willCommit = true
-      }
-      if (minuteQuotesToUpdate.length > 0) {
-        Quotes1m.updateBatch_!(minuteQuotesToUpdate.toArray)
-        willCommit = true
-      }
-
       if (willCommit) {
-        log.info("Committing: tickers=" + allTickers.length + ", executions=" + allExecutions.length +
-                 ", minuteQuotesToInsert=" + minuteQuotesToInsert.length +
-                 ", minuteQuotesToUpdate=" + minuteQuotesToUpdate.length
-        )
+        log.info("Committing: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
       }
     }
 
@@ -434,8 +390,9 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     for ((exchange, lastTime) <- exchangeToLastTime) {
       val status = exchange.tradingStatusOf(lastTime)
-      log.info("Trading status of " + exchange + ": " + status)
+      log.info("Trading status of " + exchange.code + ": " + status)
       exchange.tradingStatus = status
+      exchange.tryClosing(isServer)
     }
 
     // publish events
@@ -443,7 +400,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickerServer.publish(TickersEvent(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
     }
 
-    updatedEvents
+    lastTime
   }
 
   protected def processDepthSnaps(depthSnaps: Array[DepthSnap]) = ()
