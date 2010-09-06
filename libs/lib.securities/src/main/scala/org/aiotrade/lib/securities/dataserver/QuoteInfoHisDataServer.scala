@@ -17,7 +17,7 @@ import org.aiotrade.lib.collection.ArrayList
  * QuoteInfoDataServer      yes               no                  incremental quote info only
  */
 abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
-  type C = QuoteInfoContract
+  type C = QuoteInfoHisContract
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val updatedEvents = new ArrayList[TSerEvent]

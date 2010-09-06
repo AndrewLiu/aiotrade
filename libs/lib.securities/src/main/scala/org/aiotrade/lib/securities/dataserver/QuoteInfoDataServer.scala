@@ -126,6 +126,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     events foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
+        log.info(source + " publish event " + event)
         lastTime = toTime
       case _ =>
     }
