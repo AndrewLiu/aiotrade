@@ -83,7 +83,7 @@ object YahooQuoteServerTest extends TestHelper {
     val daySer  = sec.serOf(dailyFreq).get
     val minSer = sec.serOf(oneMinFreq).get
 
-    // * init indicators before loadSer, so, they can receive the FinishedLoading evt
+    // * init indicators before loadSer, so, they can receive the Loaded evt
     val dailyInds  = initIndicators(dailyContents, daySer)
     val oneMinInds = initIndicators(rtContents, minSer)
 

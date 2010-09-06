@@ -132,7 +132,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   }
 
   reactions += {
-    case evt@TSerEvent.FinishedComputing(_, _, _, _, _, callback) =>
+    case evt@TSerEvent.Computed(_, _, _, _, _, callback) =>
       updateView(evt)
       if (callback != null) callback()
     case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
@@ -515,7 +515,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   /** this method only process FinishedComputing event, if you want more, do it in subclass */
   protected def updateView(evt: TSerEvent) {
     evt match {
-      case TSerEvent.FinishedComputing(_, _, _, _, _, _) =>
+      case TSerEvent.Computed(_, _, _, _, _, _) =>
         ChartView.this match {
           case drawPane: WithDrawingPane =>
             val drawing = drawPane.selectedDrawing

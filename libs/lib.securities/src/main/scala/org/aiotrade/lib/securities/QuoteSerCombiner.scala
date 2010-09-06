@@ -43,8 +43,8 @@ import scala.annotation.tailrec
 class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   reactions += {
-    case TSerEvent.FinishedLoading(_, _, fromTime, _, _, _) => computeCont(fromTime)
-    case TSerEvent.FinishedComputing(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeCont(fromTime)
     case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeCont(fromTime)
   }

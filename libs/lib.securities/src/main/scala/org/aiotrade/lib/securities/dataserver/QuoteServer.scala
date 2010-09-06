@@ -82,7 +82,7 @@ abstract class QuoteServer extends DataServer[Quote] {
     }
     ser ++= quotes
 
-    ser.publish(TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime))
+    ser.publish(TSerEvent.Loaded(ser, uniSymbol, frTime, toTime))
 
     // save to db after published TSerEvent, so the chart showing won't be blocked
     contract.freq match {

@@ -54,7 +54,6 @@ import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
 import scala.collection.mutable.ListBuffer
@@ -134,9 +133,6 @@ object Sec {
       }
     }
   }
-
-  val minuteQuotesToClose = new ArrayList[Quote]()
-  val minuteMoneyFlowsToClose = new ArrayList[MoneyFlow]()
 }
 
 import Sec._
@@ -175,7 +171,7 @@ class Sec extends SerProvider with Publisher {
   private val freqToQuoteInfoHisContract = HashMap[TFreq, QuoteInfoContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
-  private lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
+  private[securities] lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
@@ -208,7 +204,7 @@ class Sec extends SerProvider with Publisher {
 
   def quoteInfoHisContracts_= (consracts : Seq[QuoteInfoContract]) {
     _quoteInfoHisContractc = consracts
-    for(contract <- _quoteInfoHisContractc){
+    for (contract <- _quoteInfoHisContractc){
       freqToQuoteInfoHisContract.put(contract.freq, contract)
     }
   }
@@ -332,8 +328,6 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-
-
   def infoSerOf(freq: TFreq): Option[InfoSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoSer.get(freq) match {
@@ -405,6 +399,16 @@ class Sec extends SerProvider with Publisher {
   }
 
   /**
+   * @return quoteSer created and is loaded
+   */
+  def isSerLoaded(freq: TFreq) = {
+    freqToQuoteSer.get(freq) match {
+      case Some(x) => x.isLoaded
+      case None => false
+    }
+  }
+
+  /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
   private def loadSerFromPersistence(ser: QuoteSer): Long = {
@@ -440,7 +444,7 @@ class Sec extends SerProvider with Publisher {
       else
         (quotes.last, quotes.head, false)
 
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
 
       // should load earlier quotes from data source? first.fromMe_? may means never load from data server
       val wantTime = if (first.fromMe_?) 0 else {
@@ -509,7 +513,7 @@ class Sec extends SerProvider with Publisher {
         // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
         var reaction: PartialFunction[Event, Unit] = null
         reaction = {
-          case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
+          case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
             reactions -= reaction
             deafTo(ser)
             ser.isLoaded = true
@@ -550,7 +554,7 @@ class Sec extends SerProvider with Publisher {
       else
         (mfs.last, mfs.head, false)
 
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
 
       // should load earlier quotes from data source?
       val wantTime = if (first.fromMe_?) 0 else {
@@ -594,7 +598,7 @@ class Sec extends SerProvider with Publisher {
       else
         (infos.last, infos.head, false)
 
-      ser.publish(TSerEvent.RefreshInLoading(ser, uniSymbol, first.time, last.time))
+      ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
 
       // should load earlier quotes from data source?
       val wantTime = if (first.fromMe_?) 0 else {
@@ -631,7 +635,7 @@ class Sec extends SerProvider with Publisher {
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: PartialFunction[Event, Unit] = null
             reaction = {
-              case TSerEvent.FinishedLoading(ser, uniSymbol, frTime, toTime, _, _) =>
+              case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
                 reactions -= reaction
                 deafTo(ser)
                 ser.isLoaded = true
@@ -796,25 +800,12 @@ class SecSnap(val sec: Sec) {
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
   
-  val updateInfo: UpdateInfo = new UpdateInfo
-
   private val timeZone = sec.exchange.timeZone
-
-  final class UpdateInfo {
-    var frTime: Long = Long.MaxValue
-    var toTime: Long = Long.MinValue
-
-    var updatedSers: List[QuoteSer] = Nil
-  }
 
   def setByTicker(ticker: Ticker): SecSnap = {
     this.currTicker = ticker
     
     val time = ticker.time
-    updateInfo.frTime = math.min(updateInfo.frTime, time)
-    updateInfo.toTime = math.max(updateInfo.toTime, time)
-    updateInfo.updatedSers = Nil
-
     checkLastTickerOf(time)
     checkDailyQuoteOf(time)
     checkMinuteQuoteOf(time)
@@ -858,11 +849,6 @@ class SecSnap(val sec: Sec) {
       case one: Quote if one.time == rounded =>
         one
       case prevOneOrNull => // minute changes or null
-        if (prevOneOrNull != null) {
-          prevOneOrNull.closed_!
-          minuteQuotesToClose += prevOneOrNull
-        }
-
         val newone = Quotes1m.minuteQuoteOf(sec, rounded)
         minuteQuote = newone
         newone
@@ -876,11 +862,6 @@ class SecSnap(val sec: Sec) {
       case one: MoneyFlow if one.time == rounded =>
         one
       case prevOneOrNull => // minute changes or null
-        if (prevOneOrNull != null) {
-          prevOneOrNull.closed_!
-          minuteMoneyFlowsToClose += prevOneOrNull
-        }
-
         val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
         minuteMoneyFlow = newone
         newone

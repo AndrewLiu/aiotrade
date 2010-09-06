@@ -79,21 +79,21 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
     /**
      * The ser is a result computed from baseSer, so should follow the baseSeries' data changing:
      * 1. In case of series is the same as baseSeries, should respond to
-     *    FinishingComputing event of baseSeries.
+     *    Computed event of baseSeries.
      * 2. In case of series is not the same as baseSeries, should respond to
-     *    FinishedLoading, RefreshInLoading and Updated event of baseSeries.
+     *    Loaded, Refresh and Updated event of baseSeries.
      */
     baseSerReactions = {
-      case TSerEvent.FinishedLoading(_, _, fromTime, toTime, _, callback) =>
+      case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) =>
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
-      case TSerEvent.RefreshInLoading(_, _, fromTime, toTime, _, callback) =>
+      case TSerEvent.Refresh(_, _, fromTime, toTime, _, callback) =>
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
       case TSerEvent.Updated(_, _, fromTime, toTime, _, callback) =>
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
-      case TSerEvent.FinishedComputing(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne this) =>
+      case TSerEvent.Computed(src, _, fromTime, toTime, _, callback) if (src eq baseSer) && (src ne this) =>
         /**
          * If the resultSer is the same as baseSer (such as QuoteSer),
          * the baseSer will fire an event when compute() finished,
@@ -167,12 +167,12 @@ trait IndicatorHelper extends Reactor {self: Indicator =>
 
   def postComputeFrom {
     // construct resultSer's change event, forward baseTSerEventCallBack
-    self.publish(TSerEvent.FinishedComputing(self,
-                                             null,
-                                             fromTime,
-                                             self.computedTime,
-                                             null,
-                                             baseSerEventCallBack))
+    self.publish(TSerEvent.Computed(self,
+                                    null,
+                                    fromTime,
+                                    self.computedTime,
+                                    null,
+                                    baseSerEventCallBack))
   }
     
   def addFactor(factor: Factor) {

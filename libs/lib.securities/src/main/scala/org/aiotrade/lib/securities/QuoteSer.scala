@@ -54,6 +54,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val close_adj = TVar[Double]("W")
   val close_ori = TVar[Double]()
 
+  val isClosed = TVar[Boolean]()
+
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
   override protected def assignValue(tval: TVal) {
@@ -71,6 +73,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
         val adjuestedClose = /* if (quote.adjWeight != 0 ) quote.adjWeight else */ quote.close
         close_adj(time) = adjuestedClose
+        
+        isClosed(time) = quote.closed_?
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
   }
@@ -105,6 +109,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
     close_ori(time) = quote.close
     close_adj(time) = quote.close
+
+    isClosed(time) = quote.closed_?
 
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))

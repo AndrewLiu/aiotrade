@@ -53,7 +53,7 @@ class SubscribedSignal extends SignalIndicator {
       }
     }
 
-    publish(TSerEvent.FinishedComputing(this, null, time, time, null, null))
+    publish(TSerEvent.Computed(this, null, time, time, null, null))
   }
 
   protected def computeCont(fromIdx: Int, size: Int) {}
