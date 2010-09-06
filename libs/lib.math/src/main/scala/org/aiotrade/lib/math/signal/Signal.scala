@@ -44,25 +44,25 @@ case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
 case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
 
 object Signal extends Publisher {  
-  def importFrom(vs: List[Any]): Signal = {
-    vs match {
-      case List(time: Long, id: Byte, text: String) =>
+  def importFrom(v: (Long, List[Any])): Signal = {
+    v match {
+      case (time: Long, List(id: Byte, text: String)) =>
         if (Kind.isSign(id)) {
           Sign(time, Direction.withId(id), text)
         } else {
           Mark(time, Position.withId(id), text)
         }
-      case List(time: Long, id: Byte) =>
+      case (time: Long, List(id: Byte)) =>
         if (Kind.isSign(id)) {
           Sign(time, Direction.withId(id))
         } else {
           Mark(time, Position.withId(id))
         }
-      case List(time: Double, id: Double) =>
+      case (time: Long, List(id: Double)) =>
         if (Kind.isSign(id.toByte)) {
-          Sign(time.toLong, Direction.withId(id.toByte))
+          Sign(time, Direction.withId(id.toByte))
         } else {
-          Mark(time.toLong, Position.withId(id.toByte))
+          Mark(time, Position.withId(id.toByte))
         }
       case _ => null
     }
@@ -80,11 +80,11 @@ abstract class Signal {
 
   def isTextSignal = text != null
 
-  def export: List[Any] = {
+  def export: (Long, List[Any]) = {
     if (text != null) {
-      List[Any](time, kind.id, text)
+      (time, List[Any](kind.id, text))
     } else {
-      List[Any](time, kind.id)
+      (time, List[Any](kind.id))
     }
   }
 
