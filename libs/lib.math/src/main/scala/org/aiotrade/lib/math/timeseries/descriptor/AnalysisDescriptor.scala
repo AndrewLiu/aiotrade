@@ -72,34 +72,40 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
    * init and return a server instance
    * @param args args to init server instance
    */
-  def createdServerInstance(args: Any*): Option[S] =  {
-    assert(_serviceInstance != None, "This method should only be called after serviceInstance created!")
-    // * @Note to pass a variable args to another function, should use type "_*" to extract it as a plain seq,
-    // other wise, it will be treated as one arg:Seq[_], and the accepting function will compose it as
-    // Seq(Seq(arg1, arg2, ...)) instead of Seq(arg1, arg2, ...)
-    serviceInstance(args: _*)
+  def createdServerInstance: S = {
+    assert(isServiceInstanceCreated, "This method should only be called after serviceInstance created!")
+    serviceInstance().get
   }
     
   def serviceInstance(args: Any*): Option[S] = {
-    if (_serviceInstance == None) {
+    if (_serviceInstance.isEmpty) {
+      // @Note to pass a variable args to another function, should use type "_*" to extract it as a plain seq,
+      // other wise, it will be treated as one arg:Seq[_], and the accepting function will compose it as
+      // Seq(Seq(arg1, arg2, ...)) instead of Seq(arg1, arg2, ...)
       _serviceInstance = createServiceInstance(args: _*)
     }
     _serviceInstance.asInstanceOf[Option[S]]
   }
     
-  protected def isServiceInstanceCreated: Boolean = {
-    _serviceInstance != None
+  def isServiceInstanceCreated: Boolean = {
+    _serviceInstance.isDefined
   }
 
-  def serviceClassName_=(serviceClassName: String) = this._serviceClassName = serviceClassName
   def serviceClassName = _serviceClassName
+  def serviceClassName_=(serviceClassName: String) = {
+    this._serviceClassName = serviceClassName
+  }
 
-  def freq_=(freq: TFreq) = this._freq = freq
   def freq = _freq
+  def freq_=(freq: TFreq) = {
+    this._freq = freq
+  }
 
-  def active_=(active: Boolean) = this._active = active
   def active = _active
-
+  def active_=(active: Boolean) = {
+    this._active = active
+  }
+  
   def displayName: String
     
   def idEquals(serviceClassName: String, freq: TFreq): Boolean = {

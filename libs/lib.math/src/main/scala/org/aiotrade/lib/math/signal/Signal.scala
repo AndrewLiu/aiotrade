@@ -40,8 +40,10 @@ import java.awt.Color
  * @author Caoyuan Deng
  */
 case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
+case class SignalEvents(source: SignalIndicator, signals: Array[Signal]) extends Event
 
 case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
+case class SubSignalEvents(uniSymbol: String, name: String, freq: String, signals: Array[Signal]) extends Event
 
 object Signal extends Publisher {  
   def importFrom(v: (Long, List[Any])): Signal = {
