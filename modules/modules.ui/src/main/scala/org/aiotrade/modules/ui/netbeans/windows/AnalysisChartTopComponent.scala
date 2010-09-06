@@ -223,6 +223,10 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       if (ser != null && !ser.isLoaded) sec.loadSer(ser)
       sec.subscribeTickerServer(true)
 
+      val quoteInfoSer = sec.infoPointSerOf(freq).getOrElse(null)
+      if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
+      sec.subscribeQuoteInfoDataServer(true)
+
       val controller = ChartingController(ser, contents)
       val viewContainer = if (freq == TFreq.ONE_SEC) {
         controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
