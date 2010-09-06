@@ -58,10 +58,12 @@ class News extends TVal with Flag with InfoContent{
     if(orgPublisher != null) map += ("SOURCE_NAME" -> orgPublisher)
     map += ("COMBINE_COUNT" -> hotness.toString)
     //map += ("weight" -> weight.toString)
-
-    if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
-    if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
-
+    if(generalInfo.secs.size > 0){
+      if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+    }
+    if(generalInfo.categories.size > 0){
+      if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+    }
     map
   }
 

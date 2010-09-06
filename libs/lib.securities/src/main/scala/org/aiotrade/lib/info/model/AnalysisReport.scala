@@ -53,10 +53,13 @@ class AnalysisReport extends TVal with Flag with InfoContent{
     if(link != null) map += ("LINK" -> link)
     if(author != null) map +=("PUBLISHER" -> author)
     if(publisher != null) map += ("SOURCE_NAME" -> publisher)
+    if(generalInfo.secs.size > 0){
+      if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+    }
+    if(generalInfo.categories.size > 0){
+      if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+    }
     
-    if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
-    if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
-
     map
   }
 
