@@ -46,6 +46,7 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
@@ -168,7 +169,7 @@ class Sec extends SerProvider with Publisher {
   type C = QuoteContract
 
   private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
-  private val freqToQuoteInfoHisContract = HashMap[TFreq, QuoteInfoContract]()
+  private val freqToQuoteInfoHisContract = HashMap[TFreq, QuoteInfoHisContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
   private[securities] lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
@@ -183,7 +184,7 @@ class Sec extends SerProvider with Publisher {
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _tickerContract: TickerContract = _
   private var _quoteInfoContract : QuoteInfoContract = _
-  private var _quoteInfoHisContractc : Seq[QuoteInfoContract] = _
+  private var _quoteInfoHisContractc : Seq[QuoteInfoHisContract] = _
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
@@ -202,7 +203,7 @@ class Sec extends SerProvider with Publisher {
 
   def quoteInfoHisContracts = _quoteInfoHisContractc
 
-  def quoteInfoHisContracts_= (consracts : Seq[QuoteInfoContract]) {
+  def quoteInfoHisContracts_= (consracts : Seq[QuoteInfoHisContract]) {
     _quoteInfoHisContractc = consracts
     for (contract <- _quoteInfoHisContractc){
       freqToQuoteInfoHisContract.put(contract.freq, contract)
@@ -488,12 +489,9 @@ class Sec extends SerProvider with Publisher {
       val quoteInfo = new QuoteInfo
       quoteInfo.time = info.publishTime
       quoteInfo.generalInfo = info
-      quoteInfo.content = info.infoContents.headOption match {
-        case Some(x) => x.content
-        case None => null
-      }
-      quoteInfo.summary = info.summary
-      quoteInfo.content = info.content
+      quoteInfo.summary = "info.summary"
+      quoteInfo.content = "info.content"
+//      quoteInfo.content = info.content
       info.categories foreach ( cate => quoteInfo.categories.append(cate))
       info.secs foreach (sec => quoteInfo.secs.append(sec))
       ser.updateFrom(quoteInfo)
@@ -671,7 +669,7 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-   private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoContract] = {
+   private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoHisContract] = {
     freqToQuoteInfoHisContract.get(freq)
   }
 
