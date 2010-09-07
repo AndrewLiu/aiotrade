@@ -50,6 +50,8 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.LightTicker
@@ -210,13 +212,18 @@ object SymbolNodes {
 
       val contents = PersistenceManager().defaultContents
       /** clear default dataSourceContract */
-      contents.clearDescriptors(classOf[DataContract[_, _]])
+      contents.clearDescriptors(classOf[QuoteContract])
 
       contents.uniSymbol = symbol
       for (quoteContract <- quoteContracts) {
         contents.addDescriptor(quoteContract)
       }
-
+      contents.lookupDescriptors(classOf[QuoteInfoContract]) foreach {
+        contract => contract.srcSymbol = symbol
+      }
+      contents.lookupDescriptors(classOf[QuoteInfoHisContract])foreach {
+        contract => contract.srcSymbol = symbol
+      }
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
       Option(fo)
@@ -807,11 +814,14 @@ object SymbolNodes {
       /** otherwise, it's an OneSymbolNode, do real things */
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
       val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-
+      val quoteInfoContract = contents.lookupActiveDescriptor(classOf[QuoteInfoContract]).get
+      val quoteInfoHisContract = contents.lookupActiveDescriptor(classOf[QuoteInfoHisContract]).get
       var mayNeedsReload = false
       Exchange.secOf(contents.uniSymbol) match {
         case Some(sec) =>
           sec.quoteContracts = List(quoteContract)
+          sec.quoteInfoContract = quoteInfoContract
+          sec.quoteInfoHisContracts = List(quoteInfoHisContract)
           contents.serProvider = sec
           
           val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
