@@ -378,9 +378,6 @@
         <!--file name="ZIGZAGFA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGFAIndicator"/>
         </file-->
-        <file name="SUBEDSignal.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.SubscribedSignal"/>
-        </file>
         <file name="MACDSignal.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.MACDSignal"/>
         </file>
