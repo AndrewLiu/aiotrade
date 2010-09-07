@@ -56,28 +56,34 @@ object GeneralInfo {
     content.generalInfo = info.generalInfo
     if(info.content.length < 1000) content.content = info.content else content.content = info.content.substring(0,1000)
     Contents.save(content)
-    info.secs foreach { sec =>
+    val infosecs = info.secs map { sec =>
       val infosec = new InfoSec()
       infosec.generalInfo = info.generalInfo
       infosec.sec =sec
-      InfoSecs.save(infosec)
+      infosec
     }
+    InfoSecs.insertBatch(infosecs.toArray)
 
-    info.categories foreach { cate =>
+    val infocates = info.categories map { cate =>
       val infocate = new InfoContentCategory()
       infocate.generalInfo = info.generalInfo
       infocate.category = cate
-      InfoContentCategories.save(infocate)
+      infocate
+      
     }
+    InfoContentCategories.insertBatch(infocates.toArray)
+
   }
 
 }
+
+import GeneralInfo._
 class GeneralInfo extends TVal with Flag with InfoContent {
-  var publishTime: Long = _
+  var publishTime: Long = -1
   var title: String = ""
-  var infoClass : Int = _
+  var infoClass : Int = NEWS
   var url : String = ""
-  var combinValue : Long = _
+  var combinValue : Long = -1
 
   def summary = infoAbstracts.headOption match {
     case Some(x) => x.content

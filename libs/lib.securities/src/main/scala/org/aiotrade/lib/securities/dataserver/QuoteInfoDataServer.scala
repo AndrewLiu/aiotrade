@@ -22,8 +22,8 @@ import ru.circumflex.orm._
 
 class QuoteInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
-  var content : String = _
-  var summary : String = _
+  var content : String = ""
+  var summary : String = ""
   var categories : ListBuffer[ContentCategory] = new ListBuffer[ContentCategory]()
   var secs : ListBuffer[Sec] = new ListBuffer[Sec]()
   def export: HashMap[String, Any]= {
@@ -33,8 +33,8 @@ class QuoteInfo extends TVal {
                           "combinValue" -> generalInfo.combinValue,
                           "content" -> content,
                           "summary" -> summary,
-                          "category" -> {for(cate <- categories) yield cate.code},
-                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol})
+                          "category" -> {for(cate <- categories) yield cate.code}.toList,
+                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol}.toList)
   }
 }
 
