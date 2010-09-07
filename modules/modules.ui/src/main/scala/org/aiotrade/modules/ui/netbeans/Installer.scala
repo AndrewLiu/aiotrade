@@ -66,7 +66,7 @@ import org.openide.filesystems.FileUtil
  * @author Caoyuan Deng
  */
 
-class ModuleInstall extends org.openide.modules.ModuleInstall {
+class Installer extends org.openide.modules.ModuleInstall {
   private val log = Logger.getLogger(this.getClass.getName)
 
   override def restored {
