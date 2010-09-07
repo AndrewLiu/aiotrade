@@ -197,7 +197,7 @@ abstract class ChartViewContainer extends JPanel {
   def removeSlaveView(descriptor: IndicatorDescriptor) {
     val view = lookupChartView(descriptor) match {
       case Some(view) if view eq masterView =>
-        view.removeOverlappingCharts(descriptor.createdServerInstance().get)
+        view.removeOverlappingCharts(descriptor.createdServerInstance)
       case Some(view) =>
         remove(view)
         adjustViewsHeight(0)

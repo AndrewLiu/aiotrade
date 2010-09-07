@@ -60,7 +60,7 @@ trait SerProvider {
     
   def serOf(freq: TFreq): Option[T]
 
-  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A]
+  def indicatorOf(clazzName: String, freq: TFreq): Option[Indicator]
   def addIndicator(indicator: Indicator)
   def removeIndicator(indicator: Indicator)
     

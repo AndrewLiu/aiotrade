@@ -57,12 +57,12 @@ import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
-import scala.collection.mutable.ListBuffer
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.GeneralInfos
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.InfoSecs
 import ru.circumflex.orm._
+import scala.collection.mutable.ListBuffer
 
 
 object Secs extends Table[Sec] {
@@ -266,21 +266,21 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-  def indicatorsOf[A <: Indicator](clazz: Class[A], freq: TFreq): Seq[A] = mutex synchronized {
+  def indicatorOf(clazzName: String, freq: TFreq): Option[Indicator] = mutex synchronized {
     freqToIndicators.get(freq) match {
-      case None => Nil
-      case Some(inds) => (inds filter (clazz.isInstance(_))).asInstanceOf[Seq[A]]
+      case Some(inds) => inds find (_.getClass.getName == clazzName)
+      case None => None
     }
   }
 
   def addIndicator(indicator: Indicator): Unit = mutex synchronized {
     val freq = indicator.freq
-    val indicators = freqToIndicators.get(freq) getOrElse {
-      val x = new ListBuffer[Indicator]
-      freqToIndicators += (freq -> x)
-      x
+    val indicators = freqToIndicators.get(freq) match {
+      case Some(xs) => xs += indicator
+      case None =>
+        val xs = ListBuffer[Indicator](indicator)
+        freqToIndicators.put(freq, xs)
     }
-    indicators += indicator
   }
 
   def removeIndicator(indicator: Indicator): Unit = mutex synchronized  {
@@ -506,26 +506,26 @@ class Sec extends SerProvider with Publisher {
     val freq = ser.freq
     quoteInfoHisContractOf(freq) match {
       case Some(contract) =>  contract.serviceInstance() match {
-      case Some(quoteInfoHisServer) =>
-        contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
-        quoteInfoHisServer.subscribe(contract)
+          case Some(quoteInfoHisServer) =>
+            contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
+            quoteInfoHisServer.subscribe(contract)
 
-        // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
-        var reaction: PartialFunction[Event, Unit] = null
-        reaction = {
-          case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
-            reactions -= reaction
-            deafTo(ser)
-            ser.isLoaded = true
+            // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+            var reaction: PartialFunction[Event, Unit] = null
+            reaction = {
+              case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
+                reactions -= reaction
+                deafTo(ser)
+                ser.isLoaded = true
+            }
+            reactions += reaction
+            listenTo(ser)
+
+            ser.isInLoading = true
+            quoteInfoHisServer.loadHistory(fromTime)
+
+          case _ => ser.isLoaded = true
         }
-        reactions += reaction
-        listenTo(ser)
-
-        ser.isInLoading = true
-        quoteInfoHisServer.loadHistory(fromTime)
-
-      case _ => ser.isLoaded = true
-    }
       case None => 
     }
 
@@ -671,7 +671,7 @@ class Sec extends SerProvider with Publisher {
     }
   }
 
-   private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoHisContract] = {
+  private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoHisContract] = {
     freqToQuoteInfoHisContract.get(freq)
   }
 
