@@ -31,27 +31,20 @@
 package org.aiotrade.modules.ui.netbeans.windows
 
 import java.awt.BorderLayout
-import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.model.Exchange
 import java.util.ResourceBundle
 import java.util.logging.Logger
+import javax.swing.SwingUtilities
 import javax.swing.text.DefaultEditorKit
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
-import org.netbeans.api.progress.ProgressHandle
-import org.netbeans.api.progress.ProgressHandleFactory
-import org.netbeans.api.progress.ProgressUtils
 import org.openide.explorer.ExplorerManager
 import org.openide.explorer.ExplorerUtils
 import org.openide.explorer.view.BeanTreeView
-import org.openide.loaders.DataFolder
 import org.openide.nodes.Node
 import org.openide.util.Lookup
 import org.openide.util.NbBundle
 import org.openide.util.RequestProcessor
 import org.openide.windows.TopComponent
-import scala.collection.mutable.HashMap
+import org.openide.windows.WindowManager
 
 
 /** 
@@ -111,7 +104,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   associateLookup(ExplorerUtils.createLookup(manager, actionMap))
   
   // --- to enable focus owner checking
-  org.aiotrade.lib.util.awt.focusOwnerChecker
+  //org.aiotrade.lib.util.awt.focusOwnerChecker
 
   private var isSymbolNodesInited = false
 
@@ -134,20 +127,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     
   override def componentOpened {
     super.componentOpened
-    
-    scala.actors.Actor.actor {
-      if (!isSymbolNodesAdded) {
-        val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
-        ProgressUtils.showProgressDialogAndRun(new Runnable {
-            def run {
-              addSymbolsFromDB(handle)
-              SymbolNodes.openAllSymbolFolders
-            }
-          }, handle, true)
-      } else {
-        SymbolNodes.openAllSymbolFolders
-      }
-    }
+    openFolders
   }
 
   override def componentClosed {
@@ -160,59 +140,24 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
 
   override def getDisplayName: String = Bundle.getString("CTL_ExplorerTopComponent")
 
-  private def isSymbolNodesAdded = {
-    val rootNode = getExplorerManager.getRootContext
-    rootNode.getChildren.getNodesCount > 0
+
+  private def openFolders {
+    WindowManager.getDefault.invokeWhenUIReady(new Runnable {
+        def run {
+          RequestProcessor.getDefault.post(doOpenFolders)
+        }
+      })
   }
 
-  private def addSymbolsFromDB(handle: ProgressHandle) {
-    val rootNode = getExplorerManager.getRootContext
-    val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+  private def doOpenFolders: Runnable = new Runnable  {
+    def run {
+      if (SwingUtilities.isEventDispatchThread) {
+        RequestProcessor.getDefault.post(doOpenFolders)
+        return
+      }
 
-    // expand root node
-    getExplorerManager.setExploredContext(rootNode)
-
-    DataFolder.create(rootFolder, SymbolNodes.favoriteFolderName)
-
-    val start = System.currentTimeMillis
-    log.info("Create symbols node files from db ...")
-    
-    // add symbols to exchange folder
-    val dailyQuoteContract = createQuoteContract
-    val symbolsToFolder = new HashMap[String, DataFolder]
-    for (exchange <- Exchange.allExchanges;
-         exchangeFolder = DataFolder.create(rootFolder, exchange.code);
-         symbol <- Exchange.symbolsOf(exchange)
-    ) {
-      symbolsToFolder.put(symbol, exchangeFolder)
+      SymbolNodes.openAllSymbolFolders
     }
-    
-    handle.switchToDeterminate(symbolsToFolder.size)
-    var i = 0
-    val allSymbols = symbolsToFolder.iterator
-    while (allSymbols.hasNext) {
-      handle.progress(i)
-      val (symbol, folder) = allSymbols.next
-      dailyQuoteContract.srcSymbol = symbol
-      SymbolNodes.createSymbolXmlFile(folder, symbol, dailyQuoteContract)
-      i += 1
-    }
-
-    handle.finish
-    log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
   }
 
-  private def createQuoteContract = {
-    val contents = PersistenceManager().defaultContents
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-    //quoteContract.beginDate_$eq((Date) fromDateField.getValue());
-    //quoteContract.endDate_$eq((Date) toDateField.getValue());
-    //quoteContract.urlString_$eq(pathField.getText().trim());
-
-    quoteContract.freq = TFreq.DAILY
-
-    quoteContract.refreshable = false
-
-    quoteContract
-  }
 }

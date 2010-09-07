@@ -291,7 +291,6 @@
     <!-- Tell the loader to create "symbols" folder at ../config/ -->
     <folder name="symbols"/>
     <folder name="UserOptions">
-        <!--file name="DefaultContents.xml" url="DefaultContents.xml"/-->
         <file name="aiotrade.properties" url="aiotrade.properties"/>
         <folder name="Template">
             <file name="preview.csv" url="preview.csv"/>
