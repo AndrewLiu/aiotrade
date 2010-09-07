@@ -102,6 +102,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     COMMIT
     
     if (allQuoteInfo.length > 0) {
+      log.info("Publish QuoteInfoSnapshots :" + allQuoteInfo.size)
       QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
     }
     updatedEvents
@@ -113,7 +114,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     events foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
-        log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
+        //log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
         lastTime = toTime
       case _ =>
     }
@@ -126,7 +127,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     events foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
-        log.info(source + " publish event " + event)
+        //log.info(source + " publish event " + event)
         lastTime = toTime
       case _ =>
     }
