@@ -52,7 +52,6 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
-import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Event
 import java.util.logging.Logger
 import scala.collection.mutable.HashMap
@@ -137,7 +136,7 @@ object Sec {
 }
 
 import Sec._
-class Sec extends SerProvider with Publisher {
+class Sec extends SerProvider {
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
