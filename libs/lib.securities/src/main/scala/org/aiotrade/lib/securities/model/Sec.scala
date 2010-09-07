@@ -473,7 +473,9 @@ class Sec extends SerProvider with Publisher {
     }
   }
   def loadInfoPointSer(ser : InfoPointSer) : Boolean = synchronized {
-    val wantTime = loadInfoPointSerFromPersistence(ser)
+    //after resolve orm problem
+    //val wantTime = loadInfoPointSerFromPersistence(ser)
+    val wantTime = 0L
     loadInfoPointSerFromDataServer(ser,wantTime)
     true
   }

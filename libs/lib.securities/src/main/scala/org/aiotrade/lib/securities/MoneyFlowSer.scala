@@ -44,17 +44,17 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
 
-  val totalVolume = TVar[Double]("V", Plot.Stick)
-  val totalAmount = TVar[Double]("A", Plot.None)
+  val totalVolume = TVar[Double]("TV", Plot.Stick)
+  val totalAmount = TVar[Double]("TA", Plot.None)
+  
+  val superVolume = TVar[Double]("SV", Plot.None)
+  val superAmount = TVar[Double]("SA", Plot.None)
 
-  val superVolume = TVar[Double]("V", Plot.None)
-  val superAmount = TVar[Double]("A", Plot.None)
+  val largeVolume = TVar[Double]("LV", Plot.None)
+  val largeAmount = TVar[Double]("LA", Plot.None)
 
-  val largeVolume = TVar[Double]("V", Plot.None)
-  val largeAmount = TVar[Double]("A", Plot.None)
-
-  val smallVolume = TVar[Double]("V", Plot.None)
-  val smallAmount = TVar[Double]("A", Plot.None)
+  val smallVolume = TVar[Double]("sV", Plot.None)
+  val smallAmount = TVar[Double]("sA", Plot.None)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time

@@ -44,6 +44,8 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
@@ -100,7 +102,16 @@ class ContentsParseHandler extends DefaultHandler {
       start_sources(attrs)
     } else if ("source".equals(qname)) {
       start_source(attrs)
+    }else if ("quoteinfosources".equals(qname)) {
+      start_QuoteInfosources(attrs)
+    }else if ("quoteinfosource".equals(qname)) {
+      start_QuoteInfosource(attrs)
+    }else if ("quoteinfohissources".equals(qname)) {
+      start_QuoteInfoHissources(attrs)
+    }else if ("quoteinfohissource".equals(qname)) {
+      start_QuoteInfoHissource(attrs)
     }
+
   }
     
   /**
@@ -125,6 +136,10 @@ class ContentsParseHandler extends DefaultHandler {
       end_layer()
     } else if ("sources".equals(qname)) {
       end_sources()
+    }else if ("sources_quoteinfo".equals(qname)) {
+      end_QuoteInfosources()
+    }else if ("sources_quoteinfohis".equals(qname)) {
+      end_QuoteInfoHissources()
     }
   }
     
@@ -322,7 +337,111 @@ class ContentsParseHandler extends DefaultHandler {
     }
         
   }
-    
+  @throws(classOf[SAXException])
+  def start_QuoteInfosource(meta: Attributes)  {
+    if (DEBUG) {
+      System.err.println("start_QuoteInfosource: " + meta)
+    }
+
+    val dataContract = new QuoteInfoContract
+
+    dataContract.active = meta.getValue("active").trim.toBoolean
+    dataContract.serviceClassName = meta.getValue("class")
+    dataContract.srcSymbol = meta.getValue("symbol")
+    dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
+
+    val freq = new TFreq(
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
+      meta.getValue("nunits").trim.toInt
+    )
+    dataContract.freq = freq
+
+    dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
+
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+
+    try {
+      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
+      dataContract.beginDate = calendar.getTime
+
+      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
+      dataContract.endDate = calendar.getTime
+    } catch {case ex: ParseException => ex.printStackTrace}
+
+    dataContract.urlString = meta.getValue("url")
+
+    contents.addDescriptor(dataContract)
+  }
+
+  @throws(classOf[SAXException])
+  def start_QuoteInfosources(meta: Attributes) {
+    if (DEBUG) {
+      System.err.println("start_QuoteInfosources: " + meta)
+    }
+  }
+
+  @throws(classOf[SAXException])
+  def end_QuoteInfosources() {
+    if (DEBUG) {
+      System.err.println("end_QuoteInfosources()")
+    }
+
+  }
+
+  @throws(classOf[SAXException])
+  def start_QuoteInfoHissource(meta: Attributes)  {
+    if (DEBUG) {
+      System.err.println("start_QuoteInfoHissource: " + meta)
+    }
+
+    val dataContract = new QuoteInfoHisContract
+
+    dataContract.active = meta.getValue("active").trim.toBoolean
+    dataContract.serviceClassName = meta.getValue("class")
+    dataContract.srcSymbol = meta.getValue("symbol")
+    dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
+
+    val freq = new TFreq(
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
+      meta.getValue("nunits").trim.toInt
+    )
+    dataContract.freq = freq
+
+    dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
+
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+
+    try {
+      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
+      dataContract.beginDate = calendar.getTime
+
+      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
+      dataContract.endDate = calendar.getTime
+    } catch {case ex: ParseException => ex.printStackTrace}
+
+    dataContract.urlString = meta.getValue("url")
+
+    contents.addDescriptor(dataContract)
+  }
+
+  @throws(classOf[SAXException])
+  def start_QuoteInfoHissources(meta: Attributes) {
+    if (DEBUG) {
+      System.err.println("start_QuoteInfoHissources: " + meta)
+    }
+  }
+
+  @throws(classOf[SAXException])
+  def end_QuoteInfoHissources() {
+    if (DEBUG) {
+      System.err.println("end_QuoteInfoHissources")
+    }
+
+  }
+
+
   @throws(classOf[SAXException])
   def start_layer(meta: Attributes) {
     if (DEBUG) {
