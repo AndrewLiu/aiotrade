@@ -38,6 +38,8 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
+import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.aiotrade.lib.util.serialization.BeansDocument
 
 /**
@@ -56,30 +58,36 @@ object ContentsPersistenceHandler {
     buffer.append("<sec unisymbol=\"" + contents.uniSymbol + "\">\n")
 
     val df = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd"))
-    val dataContracts = contents.lookupDescriptors(classOf[QuoteContract])
-    if (dataContracts.size > 0) {
-      buffer.append("    <sources>\n")
-      for (dataContract <- dataContracts) {
-        buffer.append("        <source ")
-        buffer.append("active=\"" + dataContract.active + "\" ")
-        buffer.append("class=\"" + dataContract.serviceClassName + "\" ")
-        buffer.append("symbol=\"" + dataContract.srcSymbol + "\" ")
-        dataContract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
-        // always store daily freq for datacontract
-        buffer.append("nunits=\"" + TFreq.DAILY.nUnits + "\" ")
-        buffer.append("unit=\"" + TFreq.DAILY.unit + "\" ")
-        buffer.append("refreshable=\"" + dataContract.refreshable + "\" ")
-        buffer.append("refreshinterval=\"" + dataContract.refreshInterval + "\" ")
-        try {
-          buffer.append("begdate=\"" + df.valueToString(dataContract.beginDate.getTime) + "\" ")
-          buffer.append("enddate=\"" + df.valueToString(dataContract.endDate.getTime) + "\" ")
-        } catch {case ex: ParseException => ex.printStackTrace}
-        buffer.append("url=\"" + dataContract.urlString + "\"")
-        buffer.append(">\n")
-        buffer.append("        </source>\n")
+  
+    val dataContracts = ("sources", "source", contents.lookupDescriptors(classOf[QuoteContract]))
+    val infoContracts = ("quoteinfosources", "quoteinfosource", contents.lookupDescriptors(classOf[QuoteInfoContract]))
+    val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", contents.lookupDescriptors(classOf[QuoteInfoHisContract]))
+
+    for ((sources, source, contracts) <- List(dataContracts, infoContracts, infoHisContracts)) {
+      if (contracts.size > 0) {
+        buffer.append("    <").append(sources).append(">\n")
+        for (contract <- contracts) {
+          buffer.append("        <").append(source).append(" ")
+          buffer.append("active=\"" + contract.active + "\" ")
+          buffer.append("class=\"" + contract.serviceClassName + "\" ")
+          buffer.append("symbol=\"" + contract.srcSymbol + "\" ")
+          contract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
+          // always store daily freq for datacontract
+          buffer.append("nunits=\"" + TFreq.DAILY.nUnits + "\" ")
+          buffer.append("unit=\"" + TFreq.DAILY.unit + "\" ")
+          buffer.append("refreshable=\"" + contract.refreshable + "\" ")
+          buffer.append("refreshinterval=\"" + contract.refreshInterval + "\" ")
+          try {
+            buffer.append("begdate=\"" + df.valueToString(contract.beginDate.getTime) + "\" ")
+            buffer.append("enddate=\"" + df.valueToString(contract.endDate.getTime) + "\" ")
+          } catch {case ex: ParseException => ex.printStackTrace}
+          buffer.append("url=\"" + contract.urlString + "\"")
+          buffer.append(">\n")
+          buffer.append("        </").append(source).append(">\n")
+        }
+        buffer.append("    </").append(sources).append(">\n")
       }
-      buffer.append("    </sources>\n")
-    }
+  }
         
     val indicatorDescriptors = contents.lookupDescriptors(classOf[IndicatorDescriptor])
     if (indicatorDescriptors.size > 0) {
