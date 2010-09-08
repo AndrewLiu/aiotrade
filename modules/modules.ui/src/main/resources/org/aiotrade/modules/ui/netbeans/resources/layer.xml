@@ -291,7 +291,6 @@
     <!-- Tell the loader to create "symbols" folder at ../config/ -->
     <folder name="symbols"/>
     <folder name="UserOptions">
-        <!--file name="DefaultContents.xml" url="DefaultContents.xml"/-->
         <file name="aiotrade.properties" url="aiotrade.properties"/>
         <folder name="Template">
             <file name="preview.csv" url="preview.csv"/>
@@ -378,9 +377,6 @@
         <!--file name="ZIGZAGFA.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.ZIGZAGFAIndicator"/>
         </file-->
-        <file name="SUBEDSignal.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.SubscribedSignal"/>
-        </file>
         <file name="MACDSignal.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.basic.signal.MACDSignal"/>
         </file>

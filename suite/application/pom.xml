@@ -212,7 +212,7 @@
                                     <!--distBase>central::default::http://repo1.maven.org/maven2</distBase-->
                                 </configuration>
                             </execution>
-                            <execution>
+                            <!--<execution>
                                 <id>webstart</id>
                                 <phase>package</phase>
                                 <goals>
@@ -221,7 +221,7 @@
                                 <configuration>
                                     <codebase>${project.build.directory}/webstart/${brandingToken}</codebase>
                                 </configuration>
-                            </execution>
+                            </execution>-->
                         </executions>
                     </plugin>
                 </plugins>

@@ -33,12 +33,13 @@ package org.aiotrade.lib.math.timeseries.datasource
 import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.util.actors.Publisher
 
 /**
  *
  * @author Caoyuan Deng
  */
-trait SerProvider {
+trait SerProvider extends Publisher {
   type T <: TSer
   type C <: DataContract[_, _]
     
