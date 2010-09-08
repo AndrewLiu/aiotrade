@@ -473,8 +473,7 @@ class Sec extends SerProvider {
   }
   def loadInfoPointSer(ser : InfoPointSer) : Boolean = synchronized {
     //after resolve orm problem
-    //val wantTime = loadInfoPointSerFromPersistence(ser)
-    val wantTime = 0L
+    val wantTime = loadInfoPointSerFromPersistence(ser)
     loadInfoPointSerFromDataServer(ser,wantTime)
     true
   }
@@ -490,8 +489,8 @@ class Sec extends SerProvider {
       val quoteInfo = new QuoteInfo
       quoteInfo.time = info.publishTime
       quoteInfo.generalInfo = info
-      quoteInfo.summary = "info.summary"
-      quoteInfo.content = "info.content"
+//      quoteInfo.summary = "info.summary"
+//      quoteInfo.content = "info.content"
 //      quoteInfo.content = info.content
       info.categories foreach ( cate => quoteInfo.categories.append(cate))
       info.secs foreach (sec => quoteInfo.secs.append(sec))

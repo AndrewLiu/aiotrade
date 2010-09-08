@@ -1,6 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import org.aiotrade.lib.info.model.ContentCategories
 import org.aiotrade.lib.math.timeseries.TFreq
 import ru.circumflex.orm._
 import scala.collection.immutable.TreeMap
@@ -18,6 +19,14 @@ import scala.actors.Scheduler
  *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
  */
 object Model {
+
+  def warmUp {
+    val companies = (SELECT (Companies.*) FROM Companies list)
+    val exchanges = (SELECT (Exchanges.*) FROM Exchanges list)
+    val categories = (SELECT (ContentCategories.*) FROM ContentCategories list)
+    val secinfos = (SELECT (SecInfos.*,Secs.*) FROM (SecInfos JOIN Secs) list)
+  }
+
   val secs = new HashMap[String, Sec]
   // holding strong reference of exchange
   var exchanges: Seq[Exchange] = Nil
@@ -451,4 +460,6 @@ object Model {
     "ZA"  -> "Zagreb Stock Exchange",
     "ZI"  -> "Zimbabwe Stock Exchange"
   )
+
+
 }
