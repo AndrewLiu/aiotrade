@@ -58,7 +58,7 @@ object ContentsPersistenceHandler {
     buffer.append("<sec unisymbol=\"" + contents.uniSymbol + "\">\n")
 
     val df = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd"))
-
+  
     val dataContracts = ("sources", "source", contents.lookupDescriptors(classOf[QuoteContract]))
     val infoContracts = ("quoteinfosources", "quoteinfosource", contents.lookupDescriptors(classOf[QuoteInfoContract]))
     val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", contents.lookupDescriptors(classOf[QuoteInfoHisContract]))
@@ -87,8 +87,8 @@ object ContentsPersistenceHandler {
         }
         buffer.append("    </").append(sources).append(">\n")
       }
-    }
-
+  }
+        
     val indicatorDescriptors = contents.lookupDescriptors(classOf[IndicatorDescriptor])
     if (indicatorDescriptors.size > 0) {
       buffer.append("    <indicators>\n")
