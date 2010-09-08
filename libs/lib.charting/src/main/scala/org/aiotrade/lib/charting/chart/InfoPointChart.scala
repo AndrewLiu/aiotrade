@@ -11,9 +11,10 @@ import org.aiotrade.lib.charting.widget.HeavyPathWidget
 class InfoPointChart extends AbstractChart {
   final class Model extends WidgetModel {
     var v: TVar[_] = _
-
-    def set(v: TVar[_]) {
+    var infos : TVar[_] = _
+    def set(v: TVar[_], infos : TVar[_]) {
       this.v = v
+      this.infos = infos
     }
   }
 

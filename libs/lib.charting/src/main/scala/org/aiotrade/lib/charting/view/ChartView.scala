@@ -454,7 +454,9 @@ abstract class ChartView(protected var _controller: ChartingController,
       val chart = if (v.plot == Plot.Signal && baseSer.isInstanceOf[QuoteSer]) {
         val qser = baseSer.asInstanceOf[QuoteSer]
         ChartFactory.createVarChart(v, qser.high, qser.low)
-      } else ChartFactory.createVarChart(v)
+      } else if (v.plot == Plot.Info) {
+        ChartFactory.createVarChart(v,ser.vars : _*)
+      }else ChartFactory.createVarChart(v)
       
       if (chart != null) {
         val vars = chartToVars.get(chart) getOrElse {

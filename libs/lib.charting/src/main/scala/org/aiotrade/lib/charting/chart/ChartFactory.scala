@@ -80,7 +80,7 @@ object ChartFactory {
         }
       case Plot.Info =>
         chart = new InfoPointChart
-        chart.asInstanceOf[InfoPointChart].model.set(v)
+        chart.asInstanceOf[InfoPointChart].model.set(v,additionalVars(1))
       case _ =>
     }
         
