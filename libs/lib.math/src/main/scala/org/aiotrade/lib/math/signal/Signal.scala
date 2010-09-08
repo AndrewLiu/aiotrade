@@ -40,43 +40,44 @@ import java.awt.Color
  * @author Caoyuan Deng
  */
 case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
-case class SignalEvents(source: SignalIndicator, signals: Array[Signal]) extends Event
+case class SignalsEvent(source: SignalIndicator, signals: Array[Signal]) extends Event
 
 case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
-case class SubSignalEvents(uniSymbol: String, name: String, freq: String, signals: Array[Signal]) extends Event
+case class SubSignalsEvent(uniSymbol: String, name: String, freq: String, signals: Array[Signal]) extends Event
 
 object Signal extends Publisher {  
   def importFrom(v: (Long, List[Any])): Signal = {
     v match {
-      case (time: Long, List(id: Byte, text: String)) =>
-        if (Kind.isSign(id)) {
-          Sign(time, Direction.withId(id), text)
+      case (time: Long, List(kindId: Byte, text: String, id: Int)) =>
+        if (Kind.isSign(kindId)) {
+          Sign(time, Direction.withId(kindId), id, text)
         } else {
-          Mark(time, Position.withId(id), text)
+          Mark(time, Position.withId(kindId), id, text)
         }
-      case (time: Long, List(id: Byte)) =>
-        if (Kind.isSign(id)) {
-          Sign(time, Direction.withId(id))
+      case (time: Long, List(kindId: Byte, id: Int)) =>
+        if (Kind.isSign(kindId)) {
+          Sign(time, Direction.withId(kindId), id)
         } else {
-          Mark(time, Position.withId(id))
+          Mark(time, Position.withId(kindId), id)
         }
-      case (time: Long, List(id: Double)) =>
-        if (Kind.isSign(id.toByte)) {
-          Sign(time, Direction.withId(id.toByte))
+      case (time: Long, List(kindId: Double, id: Double)) =>
+        if (Kind.isSign(kindId.toByte)) {
+          Sign(time, Direction.withId(kindId.toByte), id.toInt)
         } else {
-          Mark(time, Position.withId(id.toByte))
+          Mark(time, Position.withId(kindId.toByte), id.toInt)
         }
       case _ => null
     }
   }
 }
 
-case class Sign(time: Long, kind: Direction, text: String = null, color: Color = null) extends Signal
-case class Mark(time: Long, kind: Position,  text: String = null, color: Color = null) extends Signal
+case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) extends Signal
+case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, color: Color = null) extends Signal
 
 abstract class Signal {
   def time: Long
   def kind: Kind
+  def id: Int
   def text: String
   def color: Color
 
@@ -84,24 +85,25 @@ abstract class Signal {
 
   def export: (Long, List[Any]) = {
     if (text != null) {
-      (time, List[Any](kind.id, text))
+      (time, List[Any](kind.id, text, id))
     } else {
-      (time, List[Any](kind.id))
+      (time, List[Any](kind.id, id))
     }
   }
 
   override def hashCode: Int = {
     var h = 17
+    h = 37 * h + (time ^ (time >>> 32)).toInt
+    h = 37 * h + kind.hashCode
+    h = 37 * h + id
     if (text  != null) h = 37 * h + text.hashCode
     if (color != null) h = 37 * h + color.hashCode
-    h = 37 * h + kind.hashCode
-    h = 37 * h + (time ^ (time >>> 32)).toInt
     h
   }
   
   override def equals(o: Any): Boolean = {
     o match {
-      case x: Signal => time == x.time && kind == x.kind && text == x.text && color == x.color
+      case x: Signal => x.time == time && x.kind == kind && x.id == id && x.text == text && x.color == color
       case _ => false
     }
   }

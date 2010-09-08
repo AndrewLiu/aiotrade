@@ -59,12 +59,12 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   /**
    * @return (signal, is new one)
    */
-  private def signal[T <: Signal](idx: Int, kind: Kind, text: String, color: Color): (T, Boolean) = {
+  private def signal[T <: Signal](idx: Int, kind: Kind, id: Int, text: String, color: Color): (T, Boolean) = {
     val time = baseSer.timestamps(idx)
 
     val signal = kind match {
-      case x: Direction => Sign(time, x, text, color)
-      case x: Position  => Mark(time, x, text, color)
+      case x: Direction => Sign(time, x, id, text, color)
+      case x: Position  => Mark(time, x, id, text, color)
     }
 
     signalVar(idx) match {
@@ -81,35 +81,67 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   }
 
   protected def mark(idx: Int, position: Position): Mark = {
-    mark(idx, position, null, null)
+    mark(idx, position, 0, null, null)
+  }
+
+  protected def mark(idx: Int, position: Position, id: Int): Mark = {
+    mark(idx, position, id, null, null)
   }
 
   protected def mark(idx: Int, position: Position, color: Color): Mark = {
-    mark(idx, position, null, color)
+    mark(idx, position, 0, null, color)
+  }
+
+  protected def mark(idx: Int, position: Position, id: Int, color: Color): Mark = {
+    mark(idx, position, id, null, color)
   }
 
   protected def mark(idx: Int, position: Position, text: String): Mark = {
-    mark(idx, position, text, null)
+    mark(idx, position, 0, text, null)
+  }
+
+  protected def mark(idx: Int, position: Position, id: Int, text: String): Mark = {
+    mark(idx, position, id, text, null)
   }
 
   protected def mark(idx: Int, position: Position, text: String, color: Color): Mark = {
-    signal[Mark](idx, position, text, color)._1
+    signal[Mark](idx, position, 0, text, color)._1
+  }
+
+  protected def mark(idx: Int, position: Position, id: Int = 0, text: String = null, color: Color = null): Mark = {
+    signal[Mark](idx, position, id, text, color)._1
   }
 
   protected def sign(idx: Int, direction: Direction): Sign = {
-    sign(idx, direction, null, null)
+    sign(idx, direction)
+  }
+
+  protected def sign(idx: Int, direction: Direction, id: Int): Sign = {
+    sign(idx, direction, id)
   }
 
   protected def sign(idx: Int, direction: Direction, color: Color): Sign = {
-    sign(idx, direction, null, color)
+    sign(idx, direction, 0, null, color)
+  }
+
+  protected def sign(idx: Int, direction: Direction, id: Int, color: Color): Sign = {
+    sign(idx, direction, id, null, color)
   }
 
   protected def sign(idx: Int, direction: Direction, text: String): Sign = {
-    sign(idx, direction, text, null)
+    sign(idx, direction, 0, text, null)
+  }
+
+  protected def sign(idx: Int, direction: Direction, id: Int, text: String): Sign = {
+    sign(idx, direction, id, text, null)
   }
 
   protected def sign(idx: Int, direction: Direction, text: String, color: Color): Sign = {
-    val (sign, isNewOne) = signal[Sign](idx, direction, text, color)
+    sign(idx, direction, 0, text, color)
+  }
+
+  protected def sign(idx: Int, direction: Direction, id: Int = 0, text: String = null, color: Color = null): Sign = {
+    val (sign, isNewOne) = signal[Sign](idx, direction, id, text, color)
     if (isNewOne) {
       log.info("Signal sign: " + sign)
       Signal.publish(SignalEvent(this, sign))
@@ -122,21 +154,54 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   }
     
   protected def remove(idx: Int, direction: Kind) {
-    remove(idx, direction, null, null)
+    remove(idx, direction, 0, null, null)
+  }
+
+  protected def remove(idx: Int, id: Int) {
+    remove(idx, null, 0, null, null)
+  }
+
+  protected def remove(idx: Int, text: String) {
+    remove(idx, null, 0, text, null)
+  }
+
+  protected def remove(idx: Int, color: Color) {
+    remove(idx, null, 0, null, color)
+  }
+
+  protected def remove(idx: Int, direction: Kind, id: Int) {
+    remove(idx, direction, id, null, null)
   }
 
   protected def remove(idx: Int, direction: Kind, text: String) {
-    remove(idx, direction, text, null)
+    remove(idx, direction, 0, text, null)
   }
 
   protected def remove(idx: Int, direction: Kind, color: Color) {
-    remove(idx, direction, null, color)
+    remove(idx, direction, 0, null, color)
   }
 
-  protected def remove(idx: Int, kind: Kind, text: String, color: Color) {
+  protected def remove(idx: Int, direction: Kind, id: Int, text: String) {
+    remove(idx, direction, id, text, null)
+  }
+
+  protected def remove(idx: Int, direction: Kind, id: Int, color: Color) {
+    remove(idx, direction, id, null, color)
+  }
+
+  protected def remove(idx: Int, direction: Kind, text: String, color: Color) {
+    remove(idx, direction, 0, text, color)
+  }
+
+  protected def remove(idx: Int, kind: Kind = null, id: Int = 0, text: String = null, color: Color = null) {
     signalVar(idx) match {
       case null =>
-      case xs => signalVar(idx) = xs filterNot (x => x.kind == kind && x.text == text && x.color == color)
+      case xs => signalVar(idx) = xs filterNot {x =>
+          x.id == id &&
+          (if (kind  == null) true else x.kind  == kind) &&
+          (if (text  == null) true else x.text  == text) &&
+          (if (color == null) true else x.color == color)
+        }
     }
   }
 

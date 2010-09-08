@@ -32,16 +32,28 @@ package org.aiotrade.modules.ui.netbeans
 
 import java.io.IOException
 import java.io.OutputStream
+import java.util.ResourceBundle
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.swing.SwingUtilities
-import javax.swing.UIManager
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.data.Data
 import org.aiotrade.lib.securities.util.UserOptionsManager
+import org.aiotrade.modules.ui.netbeans.nodes.SymbolNodes
+import org.netbeans.api.progress.ProgressHandle
+import org.netbeans.api.progress.ProgressHandleFactory
+import org.netbeans.api.progress.ProgressUtils
 import org.openide.filesystems.FileLock
 import org.openide.filesystems.FileUtil
+import org.openide.loaders.DataFolder
+import org.openide.modules.ModuleInstall
+import org.openide.util.RequestProcessor
+import org.openide.windows.WindowManager
+import scala.collection.mutable.HashMap
 
 /**
  * How do i change the closing action of the MainWindow?
@@ -66,10 +78,39 @@ import org.openide.filesystems.FileUtil
  * @author Caoyuan Deng
  */
 
-class ModuleInstall extends org.openide.modules.ModuleInstall {
+class Installer extends ModuleInstall {
   private val log = Logger.getLogger(this.getClass.getName)
 
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.netbeans.windows.Bundle")
+
   override def restored {
+    doRealCheck
+    //doCheckWhenUIReady
+  }
+
+  /**
+   * @Todo, won't work
+   */
+  private def doCheckWhenUIReady {
+    WindowManager.getDefault.invokeWhenUIReady(new Runnable {
+        def run {
+          RequestProcessor.getDefault.post(doCheck, 100)
+        }
+      })
+  }
+
+  private def doCheck: Runnable = new Runnable  {
+    def run {
+      if (SwingUtilities.isEventDispatchThread) {
+        RequestProcessor.getDefault.post(doCheck)
+        return
+      }
+
+      doRealCheck
+    }
+  }
+
+  def doRealCheck {
     // load config as soon as possible
     val configFo = FileUtil.getConfigFile("aiotrade.conf")
     var configFile = FileUtil.toFile(configFo)
@@ -91,9 +132,10 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
       }
       configFile = FileUtil.toFile(configFo)
     }
+    
     org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
     log.info("Config file is " + configFile.getCanonicalPath)
-    
+
     // create database if does not exist
     if (!Exchanges.exists) {
       log.info("Database does not exist yet, will create it ...")
@@ -102,20 +144,33 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
 
     UserOptionsManager.assertLoaded
 
-    // run some task in background
-    SwingUtilities.invokeLater(new Runnable {
-        /**
-         * Wrap in EDT to avoid:
-         java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
-         http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
-         Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
-         at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
-         at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
-         at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
-         */
-        def run {
-          UIManager.put("ScrollBar.width", 12)
+    if (!isSymbolNodesAdded) {
+      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
+      ProgressUtils.showProgressDialogAndRun(new Runnable {
+          def run {
+            addSymbolsFromDB(handle)
+            SymbolNodes.openAllSymbolFolders
+          }
+        }, handle, true)
+    } else {
+      SymbolNodes.openAllSymbolFolders
+    }
 
+
+    // run some task in background
+//    SwingUtilities.invokeLater(new Runnable {
+//        /**
+//         * Wrap in EDT to avoid:
+//         java.lang.IllegalStateException: Known problem in JDK occurred. If you are interested, vote and report at:
+//         http://bugs.sun.com/view_bug.do?bug_id=6424157, http://bugs.sun.com/view_bug.do?bug_id=6553239
+//         Also see related discussion at http://www.netbeans.org/issues/show_bug.cgi?id=90590
+//         at org.netbeans.core.windows.WindowManagerImpl.warnIfNotInEDT(WindowManagerImpl.java:1523)
+//         at org.netbeans.core.windows.WindowManagerImpl.getMainWindow(WindowManagerImpl.java:157)
+//         at org.netbeans.core.TimableEventQueue.tick(TimableEventQueue.java:174)
+//         */
+//        def run {
+//          UIManager.put("ScrollBar.width", 12)
+//
 //          UIManager.put("ScrollBar.foreground", LookFeel().backgroundColor)
 //          UIManager.put("ScrollBar.background", LookFeel().backgroundColor)
 //          UIManager.put("ScrollBar.track", LookFeel().getTrackColor)
@@ -126,8 +181,57 @@ class ModuleInstall extends org.openide.modules.ModuleInstall {
 //          UIManager.put("ScrollBar.thumbDarkShadow", LookFeel().getThumbColor)
 //          UIManager.put("ScrollBar.thumbHighlight", LookFeel().getThumbColor)
 //          UIManager.put("ScrollBar.thumbShadow", LookFeel().getThumbColor)
-        }
-      })
+//        }
+//      })
+  }
+
+
+  private def isSymbolNodesAdded = {
+    val rootNode = SymbolNodes.RootSymbolsNode
+    rootNode.getChildren.getNodesCount > 0
+  }
+
+  private def addSymbolsFromDB(handle: ProgressHandle) {
+    val rootNode = SymbolNodes.RootSymbolsNode
+    val rootFolder = rootNode.getLookup.lookup(classOf[DataFolder])
+
+    DataFolder.create(rootFolder, SymbolNodes.favoriteFolderName)
+
+    val start = System.currentTimeMillis
+    log.info("Create symbols node files from db ...")
+
+    // add symbols to exchange folder
+    val dailyQuoteContract = createQuoteContract
+    val symbolsToFolder = new HashMap[String, DataFolder]
+    for (exchange <- Exchange.allExchanges;
+         exchangeFolder = DataFolder.create(rootFolder, exchange.code);
+         symbol <- Exchange.symbolsOf(exchange)
+    ) {
+      symbolsToFolder.put(symbol, exchangeFolder)
+    }
+
+    handle.switchToDeterminate(symbolsToFolder.size)
+    var i = 0
+    val allSymbols = symbolsToFolder.iterator
+    while (allSymbols.hasNext) {
+      handle.progress(i)
+      val (symbol, folder) = allSymbols.next
+      dailyQuoteContract.srcSymbol = symbol
+      SymbolNodes.createSymbolXmlFile(folder, symbol, dailyQuoteContract)
+      i += 1
+    }
+
+    handle.finish
+    log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
+  }
+
+  private def createQuoteContract = {
+    val contents = PersistenceManager().defaultContents
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+
+    quoteContract.freq = TFreq.DAILY
+    quoteContract.refreshable = false
+    quoteContract
   }
 
   override def closing: Boolean = {
