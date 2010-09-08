@@ -33,6 +33,8 @@ package org.aiotrade.lib.indicator.basic.signal
 
 import org.aiotrade.lib.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Signal
+import org.aiotrade.lib.math.signal.SubSignalEvent
+import org.aiotrade.lib.math.signal.SubSignalEvents
 import org.aiotrade.lib.math.timeseries.TSerEvent
 
 /**
@@ -44,7 +46,14 @@ class SubscribedSignal extends SignalIndicator {
 
   isOverlapping = true
 
-  def addSignal(signal: Signal) {
+  reactions += {
+    case SubSignalEvent(symbol, desc, freqx, signal) if (freqx == this.freq.shortDescription) =>
+      addSignal(signal)
+    case SubSignalEvents(symbol, desc, freqx, signals) if (freqx == this.freq.shortDescription) =>
+      addSignals(signals)
+  }
+
+  private def addSignal(signal: Signal) {
     val time = signal.time
     if (exists(time)) {
       signalVar(time) = signalVar(time) match {
@@ -54,6 +63,31 @@ class SubscribedSignal extends SignalIndicator {
     }
 
     publish(TSerEvent.Computed(this, null, time, time, null, null))
+  }
+
+  private def addSignals(signals: Array[Signal]) {
+    var frTime = Long.MaxValue
+    var toTime = Long.MinValue
+    var i = 0
+    while (i < signals.length) {
+      val signal = signals(i)
+      val time = signal.time
+      if (exists(time)) {
+        signalVar(time) = signalVar(time) match {
+          case null => List(signal)
+          case xs => signal :: xs
+        }
+      }
+
+      frTime = math.min(frTime, time)
+      toTime = math.max(toTime, time)
+      
+      i += 1
+    }
+    
+    if (signals.length > 0) {
+      publish(TSerEvent.Computed(this, null, frTime, toTime, null, null))
+    }
   }
 
   protected def computeCont(fromIdx: Int, size: Int) {}

@@ -49,7 +49,7 @@ object QuoteContract {
 
 import QuoteContract._
 class QuoteContract extends DataContract[Quote, QuoteServer] {
-  val log = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   /** default freq */
@@ -57,28 +57,35 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
   dateFormatPattern = Some("yyyy-MM-dd")
 
   def icon: Option[Image] =  {
-    val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
-
-    server match {
-      case None => None
-      case Some(x) => x.icon
+    if (isServiceInstanceCreated) {
+      createdServerInstance.icon
+    } else {
+      lookupServiceTemplate match {
+        case Some(x) => x.icon
+        case None => None
+      }
     }
   }
 
   def supportedFreqs: Array[TFreq] = {
-    val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
-
-    server match {
-      case None => Array()
-      case Some(x) => x.supportedFreqs
+    if (isServiceInstanceCreated) {
+      createdServerInstance.supportedFreqs
+    } else {
+      lookupServiceTemplate match {
+        case None => Array()
+        case Some(x) => x.supportedFreqs
+      }
     }
   }
 
   def isFreqSupported(freq: TFreq): Boolean = {
-    val server = if (isServiceInstanceCreated) createdServerInstance() else lookupServiceTemplate
-    server match {
-      case None => false
-      case Some(x) => x.isFreqSupported(freq)
+    if (isServiceInstanceCreated) {
+      createdServerInstance.isFreqSupported(freq)
+    } else {
+      lookupServiceTemplate match {
+        case None => false
+        case Some(x) => x.isFreqSupported(freq)
+      }
     }
   }
 

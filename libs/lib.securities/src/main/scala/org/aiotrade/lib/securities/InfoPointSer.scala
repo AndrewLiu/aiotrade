@@ -18,16 +18,24 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
   private val log = Logger.getLogger(this.getClass.getName)
 
   def updateFromNoFire(info : QuoteInfo) : TSerEvent = {
-    val cal = Calendar.getInstance($sec.exchange.timeZone)
+    try {
+      writeLock.lock
+      val cal = Calendar.getInstance($sec.exchange.timeZone)
+      //log.info(("publishtime:" + info.generalInfo.publishTime + " title : " + info.generalInfo.title))
+      val time = $freq.round(info.generalInfo.publishTime, cal)
+      createWhenNonExist(time)
+      Option(infos(time)) match {
+        case Some(x) => x += info
+        case None =>
+          val ifs = ArrayList[QuoteInfo]()
+          ifs.append(info)
+          infos(time) = ifs
 
-    val time = $freq.round(info.generalInfo.publishTime, cal)
-    createWhenNonExist(time)
-    infos(time) match {
-      case null => val ifs = ArrayList[QuoteInfo]()
-        ifs.append(info)
-      case ifs => ifs.append(info)
+      }
+      TSerEvent.Updated(this, "", time, time)
+    } finally {
+      writeLock.unlock
     }
-    TSerEvent.Updated(this, "", time, time)
   }
 
   def exportTo(fromTime : Long, toTime : Long) : List[HashMap[String, Any]] =  {
@@ -39,8 +47,14 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
       val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
       toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
-      val quoteInfos = for(i : Int <- frIdx to toIdx; quoteInfo <- infos(i)) yield quoteInfo.export
-
+      val quoteInfos = ArrayList[HashMap[String, Any]]()
+      for(i : Int <- 0 to infos.size) {
+        if(infos(i) != null ){
+          for (quoteInfo <- infos(i)) {
+            if(quoteInfo != null) quoteInfos.append(quoteInfo.export)
+          }
+        }
+      }
       quoteInfos.toList   
     } finally {
       timestamps.readLock.unlock
