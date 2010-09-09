@@ -150,7 +150,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   private def doOpenFolders: Runnable = new Runnable {
     def run {
       if (SwingUtilities.isEventDispatchThread || 
-          WindowManager.getDefault.findMode(AnalysisChartTopComponent.MODE) == null
+          WindowManager.getDefault.findMode(RealTimeWatchListTopComponent.MODE) == null
       ) {
         RequestProcessor.getDefault.post(doOpenFolders)
       } else {

@@ -85,7 +85,7 @@ object RealTimeWatchListTopComponent {
   def instances = instanceRefs.keys
 
   // The Mode this component will live in.
-  private val MODE = "info"
+  val MODE = "info"
 
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/netbeans/resources/market.png")
 
