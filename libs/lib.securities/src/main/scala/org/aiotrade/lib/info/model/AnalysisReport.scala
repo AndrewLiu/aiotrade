@@ -7,6 +7,7 @@ import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
+import java.util.logging.Logger
 
 object AnalysisReports extends Table[AnalysisReport]{
   val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
@@ -16,6 +17,7 @@ object AnalysisReports extends Table[AnalysisReport]{
 }
 
 class AnalysisReport extends TVal with Flag with InfoContent{
+  private val log = Logger.getLogger(this.getClass.getName)
   var generalInfo : GeneralInfo = _
   
   var author : String = ""
@@ -45,21 +47,24 @@ class AnalysisReport extends TVal with Flag with InfoContent{
 
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-    if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
-    
     map += ("PUBLISH_TIME" -> publishTime.toString)
     //map += ("weight" -> weight.toString)
     if(link != null) map += ("LINK" -> link)
     if(author != null) map +=("PUBLISHER" -> author)
     if(publisher != null) map += ("SOURCE_NAME" -> publisher)
-    if(generalInfo.secs.size > 0){
-      if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+    try{
+      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
+      if(generalInfo.secs.size > 0){
+        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+      }
+      if(generalInfo.categories.size > 0){
+        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+      }
     }
-    if(generalInfo.categories.size > 0){
-      if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+    catch{
+      case _ => log.info("AnalysisReport export to Map exception")
     }
-    
     map
   }
 

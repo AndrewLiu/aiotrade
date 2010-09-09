@@ -7,6 +7,7 @@ import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
+import java.util.logging.Logger
 
 object Newses extends Table[News]{
 
@@ -18,7 +19,7 @@ object Newses extends Table[News]{
 }
 
 class News extends TVal with Flag with InfoContent{
-
+  private val log = Logger.getLogger(this.getClass.getName)
   var generalInfo : GeneralInfo = _
   var author : String = ""
   var orgPublisher : String = ""
@@ -49,20 +50,24 @@ class News extends TVal with Flag with InfoContent{
   
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-    if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
-    
     map += ("PUBLISH_TIME" -> publishTime.toString)
     if(author != null) map += ("PUBLISHER" -> author)
     if(link != null) map += ("LINK" -> link)
     if(orgPublisher != null) map += ("SOURCE_NAME" -> orgPublisher)
     map += ("COMBINE_COUNT" -> hotness.toString)
     //map += ("weight" -> weight.toString)
-    if(generalInfo.secs.size > 0){
-      if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+    try{
+      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
+      if(generalInfo.secs.size > 0){
+        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+      }
+      if(generalInfo.categories.size > 0){
+        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+      }
     }
-    if(generalInfo.categories.size > 0){
-      if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+    catch{
+      case _ => log.info("News export to Map exception")
     }
     map
   }

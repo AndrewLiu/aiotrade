@@ -7,6 +7,7 @@ import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
+import java.util.logging.Logger
 
 object Filing {
 
@@ -39,6 +40,9 @@ object Filing {
 }
 
 class Filing extends TVal with Flag with InfoContent{
+
+  private val log = Logger.getLogger(this.getClass.getName)
+
   var generalInfo : GeneralInfo = _
 
   var publisher : String = ""
@@ -69,19 +73,25 @@ class Filing extends TVal with Flag with InfoContent{
 
   def exportToMap: Map[String, String] = {
     val map = Map[String, String]()
-    if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
     map += ("PUBLISH_TIME" -> publishTime.toString)
     //map += ("weight" -> weight.toString)
     if(link != null) map += ("LINK" -> link)
     if(publisher != null) map += ("SOURCE_NAME" -> publisher)
     map += ("FILE_SIZE" -> size.toString)
     map += ("FILE_TYPE" -> Filing.extNameFromFormat(format))
-    if(generalInfo.secs.size > 0){
-      if(generalInfo.secs(0) != null) map += ("SECURITY_NAME" -> generalInfo.secs(0).secInfo.name)
+    try{
+      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+      if(generalInfo.secs.size > 0){
+        if(generalInfo.secs(0) != null) map += ("SECURITY_NAME" -> generalInfo.secs(0).secInfo.name)
+      }
+      if(generalInfo.categories.size > 0){
+        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+      }
     }
-    if(generalInfo.categories.size > 0){
-      if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+    catch{
+      case _ => log.info("Filing export to Map exception")
     }
+
     map
   }
 
