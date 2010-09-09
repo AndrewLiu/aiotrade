@@ -84,6 +84,7 @@ object Data {
   var exchanges = Array[Exchange]()
 
   // holding temporary id for secs, companies, industries etc
+  val idToExchange = HashMap[String, Exchange]()
   val idToSec = HashMap[String, Sec]()
   val idToSecInfo = HashMap[String, SecInfo]()
   val idToCompany = HashMap[String, Company]()
@@ -95,14 +96,22 @@ object Data {
   val industryRecords = new ArrayList[Industry]()
   val comIndRecords = new ArrayList[CompanyIndustry]()
 
-  private lazy val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York
-  private lazy val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
-  private lazy val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
-  private lazy val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
-  private lazy val HK   = Exchange("HK",  "Asia/Shanghai", Array(10, 0, 12, 30, 14,30,16,0)) // HongKong
-  private lazy val OQ   = Exchange("OQ",  "America/New_York", Array(9, 30, 16, 00)) // NASDAQ
+  private lazy val N   = Exchange("N",  "NY", "", "America/New_York", Array(9, 30, 16, 00))  // New York
+  private lazy val SS  = Exchange("SS", "SS", "", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
+  private lazy val SZ  = Exchange("SZ", "SZ", "", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
+  private lazy val L   = Exchange("L",  "L", "", "UTC", Array(8, 00, 15, 30)) // London
+  private lazy val HK  = Exchange("HK", "HK", "", "Asia/Shanghai", Array(10, 0, 12, 30, 14,30,16,0)) // HongKong
+  private lazy val OQ  = Exchange("OQ", "OQ", "", "America/New_York", Array(9, 30, 16, 00)) // NASDAQ
 
   def main(args: Array[String]) {
+    if (args.length == 0) {
+      println("You must give the config file name!")
+      return
+    } else {
+      println("Will load config from " + args(0))
+    }
+
+    org.aiotrade.lib.util.config.Config(args(0))
     log.info("Current user workind dir: " + System.getProperty("user.dir"))
     log.info("Table of exchanges exists: " + Exchanges.exists)
 
@@ -129,12 +138,12 @@ object Data {
     schema
 
     createExchanges
-    createSimpleSecs
     
     readFromSecInfos(readerOf("sec_infos.txt"))
     readFromCompanies(readerOf("companies.txt"))
     readFromIndustries(readerOf("industries.txt"))
     readFromCompanyIndustries(readerOf("company_industries.txt"))
+    
     Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
     commit
   }
@@ -165,7 +174,7 @@ object Data {
   }
 
   def createExchanges = {
-    exchanges = Array(SS, SZ, N, L,HK,OQ)
+    exchanges = Array(SS, SZ, N, L, HK, OQ)
     Exchanges.insertBatch_!(exchanges)
   
     exchanges foreach {x => assert(Exchanges.idOf(x).isDefined, x + " with none id")}
@@ -273,7 +282,6 @@ object Data {
     CompanyIndustries.insertBatch_!(comIndRecords.toArray)
   }
 
-  //temparory solve this problem
   def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {
     uniSymbol match {
       case "^DJI" => Some(N)

@@ -73,6 +73,9 @@
                             <jvmArgs>
                                 <jvmArg>-Xmx512m</jvmArg>
                             </jvmArgs>
+                            <args>
+                                <arg>src/main/resources/mysql.conf</arg>
+                            </args>
                         </launcher>
                         <!-- you could define other launcher -->
                         <launcher>

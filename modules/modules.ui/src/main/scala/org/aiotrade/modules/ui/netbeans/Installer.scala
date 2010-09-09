@@ -132,7 +132,8 @@ class Installer extends ModuleInstall {
       }
       configFile = FileUtil.toFile(configFo)
     }
-    
+
+    println("Config file is " + configFile.getCanonicalPath)
     org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
     log.info("Config file is " + configFile.getCanonicalPath)
 

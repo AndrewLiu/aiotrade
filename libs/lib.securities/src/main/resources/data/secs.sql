@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.5.4-m3, for portbld-freebsd8.1 (amd64)
 --
--- Host: localhost    Database: fasternew
+-- Host: localhost    Database: faster
 -- ------------------------------------------------------
 -- Server version	5.5.4-m3-log
 
@@ -40,7 +40,7 @@ CREATE TABLE `secs` (
   CONSTRAINT `secs_secInfos_id_fkey` FOREIGN KEY (`secInfos_id`) REFERENCES `sec_infos` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `secs_secIssues_id_fkey` FOREIGN KEY (`secIssues_id`) REFERENCES `sec_issues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `secs_secStatuses_id_fkey` FOREIGN KEY (`secStatuses_id`) REFERENCES `sec_statuses` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=5130 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6185 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +51,4 @@ CREATE TABLE `secs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-08-19  9:23:17
+-- Dump completed on 2010-09-09 12:09:07

@@ -111,6 +111,16 @@ object Exchange extends Publisher {
     exchange.openCloseHMs = openCloseHMs
     exchange
   }
+
+  def apply(code: String, name: String, fullName: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
+    val exchange = new Exchange
+    exchange.code = code
+    exchange.name = name
+    exchange.fullName = fullName
+    exchange.timeZoneStr = timeZoneStr
+    exchange.openCloseHMs = openCloseHMs
+    exchange
+  }
 }
 
 abstract class TradingStatus {
@@ -133,8 +143,8 @@ class Exchange {
 
   // --- database fields
   var code: String = "SS"
-  var name: String = "??"
-  var fullName: String = "???????"
+  var name: String = ""
+  var fullName: String = ""
   var timeZoneStr: String = "Asia/Shanghai"
   var openCloseHMs: Array[Int] = Array(9, 30, 11, 30, 13, 0, 15, 0)
 
