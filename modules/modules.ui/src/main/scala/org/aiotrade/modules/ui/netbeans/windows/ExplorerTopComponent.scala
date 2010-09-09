@@ -142,7 +142,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   private def openFolders {
     WindowManager.getDefault.invokeWhenUIReady(new Runnable {
         def run {
-          RequestProcessor.getDefault.post(doOpenFolders, 50)
+          RequestProcessor.getDefault.post(doOpenFolders)
         }
       })
   }

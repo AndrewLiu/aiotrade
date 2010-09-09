@@ -149,13 +149,9 @@ class Installer extends ModuleInstall {
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             addSymbolsFromDB(handle)
-            SymbolNodes.openAllSymbolFolders
           }
         }, handle, true)
-    } else {
-      SymbolNodes.openAllSymbolFolders
     }
-
 
     // run some task in background
 //    SwingUtilities.invokeLater(new Runnable {
