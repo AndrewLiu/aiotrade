@@ -99,6 +99,8 @@ object Data {
   private lazy val SS  = Exchange("SS", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
   private lazy val SZ  = Exchange("SZ", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shenzhen
   private lazy val L   = Exchange("L",  "UTC", Array(8, 00, 15, 30)) // London
+  private lazy val HK   = Exchange("HK",  "Asia/Shanghai", Array(10, 0, 12, 30, 14,30,16,0)) // HongKong
+  private lazy val OQ   = Exchange("OQ",  "America/New_York", Array(9, 30, 16, 00)) // NASDAQ
 
   def main(args: Array[String]) {
     log.info("Current user workind dir: " + System.getProperty("user.dir"))
@@ -125,7 +127,7 @@ object Data {
 
   def createData {
     schema
-    
+
     createExchanges
     createSimpleSecs
     
@@ -163,7 +165,7 @@ object Data {
   }
 
   def createExchanges = {
-    exchanges = Array(SS, SZ, N, L)
+    exchanges = Array(SS, SZ, N, L,HK,OQ)
     Exchanges.insertBatch_!(exchanges)
   
     exchanges foreach {x => assert(Exchanges.idOf(x).isDefined, x + " with none id")}
@@ -271,12 +273,26 @@ object Data {
     CompanyIndustries.insertBatch_!(comIndRecords.toArray)
   }
 
+  //temparory solve this problem
+  def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {
+    uniSymbol match {
+      case "^DJI" => Some(N)
+      case "^HSI" => Some(HK)
+      case _=> None     
+    }
+  }
+
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
-      case Array(symbol) => N
+      case Array(symbol) => 
+        exchangeOfIndex(symbol) match {
+          case Some(exchg) => exchg
+          case None => N  
+        }
       case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
+      case Array(symbol, "HK") => HK
       case _ => SZ
     }
   }
