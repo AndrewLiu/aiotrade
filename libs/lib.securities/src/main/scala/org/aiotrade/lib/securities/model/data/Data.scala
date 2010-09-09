@@ -104,6 +104,11 @@ object Data {
     log.info("Current user workind dir: " + System.getProperty("user.dir"))
     log.info("Table of exchanges exists: " + Exchanges.exists)
 
+    if (Exchanges.exists) {
+      log.info("!!! Table 'exchanges' existed, cannot create data unless you delete table 'exchanges' first !!!")
+      return
+    }
+
     createData
 
     ((SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos)
@@ -120,10 +125,10 @@ object Data {
 
   def createData {
     schema
-    schemaInfo
-    schemaSector
+    
     createExchanges
     createSimpleSecs
+    
     readFromSecInfos(readerOf("sec_infos.txt"))
     readFromCompanies(readerOf("companies.txt"))
     readFromIndustries(readerOf("industries.txt"))
@@ -132,34 +137,29 @@ object Data {
     commit
   }
 
+  /**
+   * @Note All tables should be ddl.dropCreate together, since schema will be
+   * droped before create tables each time.
+   */
   def schema {
     val tables = List(
+      // -- basic tables
       Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, TickersLast, Executions
+      Tickers, TickersLast, Executions,
+
+      // -- info tables
+      ContentCategories, GeneralInfos, ContentAbstracts,
+      Contents, Newses, Filings, AnalysisReports, InfoSecs, InfoContentCategories,
+
+      // -- sector tables
+      BullVSBears, Sectors, Portfolios, PortfolioBreakouts
     )
 
     val ddl = new DDLUnit(tables: _*)
     ddl.dropCreate.messages.foreach(msg => log.info(msg.body))
-  }
-
-  def schemaSector {
-    val tables = List(BullVSBears,Sectors, Portfolios, PortfolioBreakouts)
-
-    val ddl = new DDLUnit(tables: _*)
-    ddl.dropCreate.messages.foreach(msg => println(msg.body))
-
-  }
-
-  def schemaInfo {
-    val tables = List(ContentCategories,GeneralInfos,ContentAbstracts,
-                      Contents,Newses,Filings,AnalysisReports,InfoSecs,InfoContentCategories)
-
-    val ddl = new DDLUnit(tables: _*)
-    ddl.dropCreate.messages.foreach(msg => println(msg.body))
-
   }
 
   def createExchanges = {
