@@ -2,11 +2,12 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
 
+    <!-- The files and folders that are declared here, will be copied from archive
+         to disk under <userdir>/config/ only when they are modified and saved. -->
+    <!-- Register aiotrade.conf file under ../config/ -->
+    <file name="aiotrade.conf" url="aiotrade.conf"/>
+    
     <folder name="UserOptions">
-        <!--
-        The files declared like here, will be automatically copied to <userdir>/config/
-        only when you modify and save it.
-        -->
         <file name="DefaultContents.xml" url="DefaultContents.xml"/>
     </folder>
 

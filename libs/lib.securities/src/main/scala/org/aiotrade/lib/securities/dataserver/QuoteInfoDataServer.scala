@@ -33,8 +33,8 @@ class QuoteInfo extends TVal {
                           "combinValue" -> generalInfo.combinValue,
                           "content" -> content,
                           "summary" -> summary,
-                          "category" -> {for(cate <- categories) yield cate.code}.toList,
-                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol}.toList)
+                          "category" -> {for(cate <- categories if cate != null) yield cate.code}.toList,
+                          "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol}.toList)
   }
 }
 

@@ -286,10 +286,9 @@
 
     <!-- The files and folders that are declared here, will be copied from archive
          to disk under <userdir>/config/ only when they are modified and saved. -->
-    <!-- Register aiotrade.conf file under ../config/ -->
-    <file name="aiotrade.conf" url="aiotrade.conf"/>
     <!-- Tell the loader to create "symbols" folder at ../config/ -->
     <folder name="symbols"/>
+    
     <folder name="UserOptions">
         <file name="aiotrade.properties" url="aiotrade.properties"/>
         <folder name="Template">
