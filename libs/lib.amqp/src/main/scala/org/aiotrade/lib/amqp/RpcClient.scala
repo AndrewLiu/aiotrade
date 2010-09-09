@@ -35,9 +35,9 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   private val log = Logger.getLogger(this.getClass.getName)
 
   /** Map from request correlation ID to continuation BlockingCell */
-  val continuationMap = new HashMap[String, SyncVar[Any]]
+  private val continuationMap = new HashMap[String, SyncVar[Any]]
   /** Contains the most recently-used request correlation ID */
-  var correlationId = 0L
+  private var correlationId = 0L
 
   @throws(classOf[IOException])
   override def start: this.type = {
@@ -92,20 +92,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey, timeout: Long = -1): Any = {
-    checkConsumer
-    val props = if ($props == null) new AMQP.BasicProperties else $props
-
-    val syncVar = new SyncVar[Any]
-    continuationMap synchronized {
-      correlationId += 1
-      val replyId = correlationId.toString
-      props.setCorrelationId(replyId)
-      props.setReplyTo(replyQueue)
-
-      continuationMap.put(replyId, syncVar)
-    }
-
-    publish(exchange, routingKey, props, req)
+    val syncVar = arpcCall(req, $props, routingKey)
 
     val res = if (timeout == -1) {
       syncVar.get
@@ -125,6 +112,34 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     }
   }
 
+  /**
+   * Perform a async simple byte-array-based RPC roundtrip.
+   * @param req the rpc request message to send
+   * @param props for request message, default null
+   * @return a SyncVar that wrapps response received
+   * @throws ShutdownSignalException if the connection dies during our wait
+   * @throws IOException if an error is encountered
+   */
+  @throws(classOf[IOException])
+  @throws(classOf[ShutdownSignalException])
+  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[Any] = {
+    checkConsumer
+    val props = if ($props == null) new AMQP.BasicProperties else $props
+
+    val syncVar = new SyncVar[Any]
+    val replyId = continuationMap synchronized {
+      correlationId += 1
+      val replyId = correlationId.toString
+      continuationMap.put(replyId, syncVar)
+      replyId
+    }
+
+    props.setCorrelationId(replyId)
+    props.setReplyTo(replyQueue)
+    publish(exchange, routingKey, props, req)
+    
+    syncVar
+  }
   /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
@@ -146,12 +161,11 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   class SyncProcessor extends Processor {
 
     protected def process(msg: AMQPMessage) {
-      continuationMap synchronized  {
-        val replyId = msg.props.getCorrelationId
-        val syncVar = continuationMap.get(replyId).get
-        continuationMap.remove(replyId)
-        syncVar.set(msg.content)
+      val replyId = msg.props.getCorrelationId
+      val syncVar = continuationMap synchronized  {
+        continuationMap.remove(replyId).get
       }
+      syncVar.set(msg.content)
     }
   }
 
