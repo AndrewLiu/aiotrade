@@ -5,6 +5,19 @@ import java.io.File
 import java.io.InputStreamReader
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.info.model.AnalysisReports
+import org.aiotrade.lib.info.model.ContentCategories
+import org.aiotrade.lib.info.model.GeneralInfos
+import org.aiotrade.lib.info.model.InfoContentCategories
+import org.aiotrade.lib.info.model.InfoSecs
+import org.aiotrade.lib.info.model.ContentAbstracts
+import org.aiotrade.lib.info.model.Contents
+import org.aiotrade.lib.info.model.Filings
+import org.aiotrade.lib.info.model.Newses
+import org.aiotrade.lib.sector.model.PortfolioBreakouts
+import org.aiotrade.lib.sector.model.Sectors
+import org.aiotrade.lib.sector.model.BullVSBears
+import org.aiotrade.lib.sector.model.Portfolios
 import org.aiotrade.lib.securities.model.Companies
 import org.aiotrade.lib.securities.model.Company
 import org.aiotrade.lib.securities.model.CompanyIndustries
@@ -107,6 +120,8 @@ object Data {
 
   def createData {
     schema
+    schemaInfo
+    schemaSector
     createExchanges
     createSimpleSecs
     readFromSecInfos(readerOf("sec_infos.txt"))
@@ -128,6 +143,23 @@ object Data {
 
     val ddl = new DDLUnit(tables: _*)
     ddl.dropCreate.messages.foreach(msg => log.info(msg.body))
+  }
+
+  def schemaSector {
+    val tables = List(BullVSBears,Sectors, Portfolios, PortfolioBreakouts)
+
+    val ddl = new DDLUnit(tables: _*)
+    ddl.dropCreate.messages.foreach(msg => println(msg.body))
+
+  }
+
+  def schemaInfo {
+    val tables = List(ContentCategories,GeneralInfos,ContentAbstracts,
+                      Contents,Newses,Filings,AnalysisReports,InfoSecs,InfoContentCategories)
+
+    val ddl = new DDLUnit(tables: _*)
+    ddl.dropCreate.messages.foreach(msg => println(msg.body))
+
   }
 
   def createExchanges = {
