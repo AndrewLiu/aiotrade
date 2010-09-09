@@ -122,8 +122,6 @@ object Data {
 
   def createData {
     schema
-    schemaInfo
-    schemaSector
     createExchanges
     createSimpleSecs
     readFromSecInfos(readerOf("sec_infos.txt"))
@@ -140,7 +138,9 @@ object Data {
       Companies, CompanyIndustries, Industries,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
-      Tickers, TickersLast, Executions
+      Tickers, TickersLast, Executions,ContentCategories,GeneralInfos,ContentAbstracts,
+      Contents,Newses,Filings,AnalysisReports,InfoSecs,InfoContentCategories,
+      BullVSBears,Sectors, Portfolios, PortfolioBreakouts
     )
 
     val ddl = new DDLUnit(tables: _*)
