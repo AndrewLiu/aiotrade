@@ -103,10 +103,13 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
 
   def lookupServiceTemplate: Option[QuoteServer] =  {
     val services = PersistenceManager().lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-    services find (x => x.getClass.getName == serviceClassName) match {
+    services find {x =>
+      val className = x.getClass.getName
+      className == serviceClassName || (className + "$") == serviceClassName
+    } match {
       case None =>
         try {
-          log.warning("Cannot find registeredService of QuoteServer in " + services + ", try Class.forName call: serviceClassName=" + serviceClassName)
+          log.warning("Cannot find registeredService of QuoteServer in " + (services map (_.getClass.getName)) + ", try Class.forName call: serviceClassName=" + serviceClassName)
           Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
         } catch {
           case ex: Exception => log.log(Level.SEVERE, "Cannot class.forName of class: " + serviceClassName, ex); None

@@ -105,7 +105,7 @@ object Data {
     log.info("Table of exchanges exists: " + Exchanges.exists)
 
     if (Exchanges.exists) {
-      log.info("!!! Table 'exchanges' existed, cannot create data unless you delete table 'exchanges' first !!!")
+      log.info("!!! Table 'exchanges' existed, cannot create data unless you drop table 'exchanges' first !!!")
       return
     }
 

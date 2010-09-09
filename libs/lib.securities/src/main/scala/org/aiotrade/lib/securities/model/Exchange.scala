@@ -14,7 +14,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 object Exchanges extends Table[Exchange] {
-  val log = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
