@@ -273,12 +273,26 @@ object Data {
     CompanyIndustries.insertBatch_!(comIndRecords.toArray)
   }
 
+  //temparory solve this problem
+  def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {
+    uniSymbol match {
+      case "^DJI" => Some(N)
+      case "^HSI" => Some(HK)
+      case _=> None     
+    }
+  }
+
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
-      case Array(symbol) => N
+      case Array(symbol) => 
+        exchangeOfIndex(symbol) match {
+          case Some(exchg) => exchg
+          case None => N  
+        }
       case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
+      case Array(symbol, "HK") => HK
       case _ => SZ
     }
   }
