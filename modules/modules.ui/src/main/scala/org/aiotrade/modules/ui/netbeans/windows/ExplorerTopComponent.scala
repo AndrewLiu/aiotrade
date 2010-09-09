@@ -134,9 +134,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
     super.componentClosed
   }
     
-  override protected def preferredID: String = {
-    tc_id
-  }
+  override protected def preferredID: String = tc_id
 
   override def getDisplayName: String = Bundle.getString("CTL_ExplorerTopComponent")
 
@@ -144,19 +142,20 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   private def openFolders {
     WindowManager.getDefault.invokeWhenUIReady(new Runnable {
         def run {
-          RequestProcessor.getDefault.post(doOpenFolders)
+          RequestProcessor.getDefault.post(doOpenFolders, 50)
         }
       })
   }
 
-  private def doOpenFolders: Runnable = new Runnable  {
+  private def doOpenFolders: Runnable = new Runnable {
     def run {
-      if (SwingUtilities.isEventDispatchThread) {
+      if (SwingUtilities.isEventDispatchThread || 
+          WindowManager.getDefault.findMode(AnalysisChartTopComponent.MODE) == null
+      ) {
         RequestProcessor.getDefault.post(doOpenFolders)
-        return
+      } else {
+        SymbolNodes.openAllSymbolFolders
       }
-
-      SymbolNodes.openAllSymbolFolders
     }
   }
 

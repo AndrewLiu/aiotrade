@@ -363,7 +363,7 @@ object SymbolNodes {
     val start = System.currentTimeMillis
     log.info("Opening folder: " + folder)
     val uniSymbols = symbolsOf(folder)
-    log.info("Symbols under folder: " + folder + " were collected: " + uniSymbols)
+    log.info("Symbols under folder: " + folder + " were collected: " + uniSymbols.length)
     watchSymbols(symbolFolderNode, uniSymbols)
     log.info("Opened folder: " + folder + " in " + (System.currentTimeMillis - start) + " ms")
   }
