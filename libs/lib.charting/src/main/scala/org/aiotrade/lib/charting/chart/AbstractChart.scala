@@ -44,7 +44,6 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.AbstractWidget
-import org.aiotrade.lib.math.timeseries.TVar
 import scala.collection.mutable.ArrayBuffer
 
 

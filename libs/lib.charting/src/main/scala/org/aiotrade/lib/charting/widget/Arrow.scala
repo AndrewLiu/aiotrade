@@ -59,7 +59,7 @@ class Arrow extends PathWidget {
 
   private val wTrunk = 2 // half width
   private val wArrow = 3 // half width
-  private val hTop = 3 //
+  private val hTop = 3
   private val hTrunk = 14 - hTop
 
   override protected def plotWidget {

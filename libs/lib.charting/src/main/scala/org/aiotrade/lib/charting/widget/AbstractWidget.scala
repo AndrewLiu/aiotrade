@@ -83,8 +83,8 @@ abstract class AbstractWidget extends Widget {
   private var _model: M = _
     
   private var _children: ArrayList[Widget] = _
-  private var colorToPath: HashMap[Color, GeneralPath] = _
   private var _actions: ArrayList[Action] = _
+  private var colorToPathPair: HashMap[Color, (GeneralPath, GeneralPath)] = _
     
   def children = _children
 
@@ -287,34 +287,43 @@ abstract class AbstractWidget extends Widget {
       if (child.intersects(clipBounds) || clipBounds.contains(child.getBounds) || child.getBounds.height == 1 || child.getBounds.width == 1) {
         child match {
           case x: PathWidget =>
+            if (colorToPathPair == null) colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
+
             val color = child.getForeground
-            if (colorToPath == null) colorToPath = new HashMap[Color, GeneralPath]
-            val pathBuf = colorToPath.get(color) getOrElse {
+            val (pathBuf, pathFilledBuf) = colorToPathPair.get(color) getOrElse {
               val pathBufx = borrowPath
-              colorToPath.put(color, pathBufx)
-              pathBufx
+              val pathFilledBufx = borrowPath
+              colorToPathPair.put(color, (pathBufx, pathFilledBufx))
+              (pathBufx, pathFilledBufx)
             }
                 
             val path = x.getPath                
             val location = child.getLocation
-            val shape = if ((location.x == 0 && location.y == 0)) {
+            val shape = if (location.x == 0 && location.y == 0) {
               val transform = AffineTransform.getTranslateInstance(location.x, location.y)
               path.createTransformedShape(transform)
             } else path
-                
-            pathBuf.append(shape, false)
+
+            if (x.isFilled) {
+              pathFilledBuf.append(shape, false)
+            } else {
+              pathBuf.append(shape, false)
+            }
           case _ => child.render(g)
         }
       }
     }
 
-    if (colorToPath != null) {
-      for ((color, path) <- colorToPath) {
+    if (colorToPathPair != null) {
+      for ((color, (path, pathFilled)) <- colorToPathPair) {
         g.setColor(color)
         g.draw(path)
+        g.fill(path)
         returnPath(path)
+        returnPath(pathFilled)
       }
-      colorToPath.clear
+      
+      colorToPathPair.clear
     }
   }
     

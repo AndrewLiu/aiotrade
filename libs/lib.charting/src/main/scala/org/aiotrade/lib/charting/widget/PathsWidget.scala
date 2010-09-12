@@ -106,7 +106,7 @@ class PathsWidget extends AbstractWidget {
     for ((color, (path, pathFill)) <- colorToPathPair) {
       g.setColor(color)
       g.draw(path)
-      g.draw(pathFill)
+      g.fill(pathFill)
     }
   }
     
