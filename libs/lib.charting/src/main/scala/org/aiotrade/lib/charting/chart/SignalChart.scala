@@ -35,6 +35,7 @@ import org.aiotrade.lib.charting.widget.Arrow
 import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.Label
 import org.aiotrade.lib.charting.widget.WidgetModel
+import java.awt.Font
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
@@ -72,6 +73,8 @@ class SignalChart extends AbstractChart {
         
     val color = Color.YELLOW
     setForeground(color)
+
+    val font = new Font(Font.DIALOG, Font.PLAIN, 9)
 
     val pathsWidget = addChild(new PathsWidget)
     val arrowTp = new Arrow
@@ -120,6 +123,7 @@ class SignalChart extends AbstractChart {
 
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
+                      labelTp.setFont(font)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
@@ -127,7 +131,7 @@ class SignalChart extends AbstractChart {
                       height = bounds.height
                     }
 
-                    dyUp += (3 + height)
+                    dyUp += (1 + height)
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
                     var height = 12
                     if (signal.isInstanceOf[Sign]) {
@@ -138,6 +142,7 @@ class SignalChart extends AbstractChart {
 
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
+                      labelTp.setFont(font)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
@@ -145,7 +150,7 @@ class SignalChart extends AbstractChart {
                       height = bounds.height
                     }
                     
-                    dyDn += (3 + height)
+                    dyDn += (1 + height)
                   case _ =>
                 }
                 
