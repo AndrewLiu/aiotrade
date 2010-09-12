@@ -40,6 +40,7 @@ import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Position
+import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 
 /**
@@ -110,40 +111,51 @@ class SignalChart extends AbstractChart {
 
                 signal.kind match {
                   case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
-                    if (signal.isTextSignal) {
+                    var height = 12
+                    if (signal.hasText) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
                       labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height)
-                      dyUp += (3 + bounds.height)
-                    } else {
+                      height = bounds.height
+                    }
+
+                    if (signal.isInstanceOf[Sign]) {
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y + dyUp, true, false)
-                      dyUp += (3 + 12)
+                      height = math.max(height, 12)
                     }
+
+                    dyUp += (3 + height)
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
-                    if (signal.isTextSignal) {
+                    var height = 12
+                    if (signal.hasText) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
                       labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
-                      dyDn += (3 + bounds.height)
-                    } else {
+                      height = bounds.height
+                    }
+                    
+                    if (signal.isInstanceOf[Sign]) {
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y - dyDn, false, false)
-                      dyDn += (3 + 12)
+                      height = math.max(height, 12)
                     }
+
+                    dyDn += (3 + height)
                   case _ =>
                 }
                 
-                if (!signal.isTextSignal) {
+                if (signal.isInstanceOf[Sign]) {
                   arrowTp.plot
                   heavyPathWidget.appendFrom(arrowTp)
                 }
               }
             }
+            
             signals = signals.tail
             j += 1
           }

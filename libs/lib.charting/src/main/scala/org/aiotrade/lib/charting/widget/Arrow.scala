@@ -56,7 +56,11 @@ class Arrow extends PathWidget {
   type M = Model
     
   override protected def createModel = new Model
-    
+
+  private val wTrunk = 3 // half width
+  private val hTop = 3 //
+  private val hTrunk = 14 - hTop
+
   override protected def plotWidget {
     val m = model
     val path = getPath
@@ -64,21 +68,21 @@ class Arrow extends PathWidget {
         
     if (m.up) {
       path.moveTo(m.x, m.y)
-      path.lineTo(m.x - 3, m.y + 2)
-      path.lineTo(m.x - 2, m.y + 2)
-      path.lineTo(m.x - 2, m.y + 10)
-      path.lineTo(m.x + 2, m.y + 10)
-      path.lineTo(m.x + 2, m.y + 2)
-      path.lineTo(m.x + 3, m.y + 2)
+      path.lineTo(m.x - wTrunk - 1, m.y + hTop)
+      path.lineTo(m.x - wTrunk, m.y + hTop)
+      path.lineTo(m.x - wTrunk, m.y + hTrunk)
+      path.lineTo(m.x + wTrunk, m.y + hTrunk)
+      path.lineTo(m.x + wTrunk, m.y + hTop)
+      path.lineTo(m.x + wTrunk + 1, m.y + hTop)
       path.closePath
     } else {
-      path.moveTo(m.x, m.y);
-      path.lineTo(m.x - 3, m.y - 2)
-      path.lineTo(m.x - 2, m.y - 2)
-      path.lineTo(m.x - 2, m.y - 10)
-      path.lineTo(m.x + 2, m.y - 10)
-      path.lineTo(m.x + 2, m.y - 2)
-      path.lineTo(m.x + 3, m.y - 2)
+      path.moveTo(m.x, m.y)
+      path.lineTo(m.x - wTrunk - 1, m.y - hTop)
+      path.lineTo(m.x - wTrunk, m.y - hTop)
+      path.lineTo(m.x - wTrunk, m.y - hTrunk)
+      path.lineTo(m.x + wTrunk, m.y - hTrunk)
+      path.lineTo(m.x + wTrunk, m.y - hTop)
+      path.lineTo(m.x + wTrunk + 1, m.y - hTop)
       path.closePath
     }
         

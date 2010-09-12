@@ -567,7 +567,7 @@ class Sec extends SerProvider {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + mfs.length +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got MoneyFlows=" + mfs.length +
                ", loaded: time=" + last.time + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
@@ -611,7 +611,7 @@ class Sec extends SerProvider {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + infos.length +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got Infos=" + infos.length +
                ", loaded: time=" + last.time + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
