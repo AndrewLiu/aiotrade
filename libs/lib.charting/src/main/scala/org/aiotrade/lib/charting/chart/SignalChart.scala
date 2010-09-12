@@ -73,7 +73,7 @@ class SignalChart extends AbstractChart {
     val color = Color.YELLOW
     setForeground(color)
 
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new HeavyPathWidget)
     val arrowTp = new Arrow
     var bar = 1
     while (bar <= nBars) {
@@ -112,6 +112,12 @@ class SignalChart extends AbstractChart {
                 signal.kind match {
                   case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
                     var height = 12
+                    if (signal.isInstanceOf[Sign]) {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y + dyUp, true, true)
+                      height = math.max(height, 12)
+                    }
+
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
@@ -121,15 +127,15 @@ class SignalChart extends AbstractChart {
                       height = bounds.height
                     }
 
-                    if (signal.isInstanceOf[Sign]) {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y + dyUp, true, false)
-                      height = math.max(height, 12)
-                    }
-
                     dyUp += (3 + height)
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
                     var height = 12
+                    if (signal.isInstanceOf[Sign]) {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y - dyDn, false, true)
+                      height = math.max(height, 12)
+                    }
+
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
                       labelTp.setForeground(color)
@@ -139,19 +145,13 @@ class SignalChart extends AbstractChart {
                       height = bounds.height
                     }
                     
-                    if (signal.isInstanceOf[Sign]) {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y - dyDn, false, false)
-                      height = math.max(height, 12)
-                    }
-
                     dyDn += (3 + height)
                   case _ =>
                 }
                 
                 if (signal.isInstanceOf[Sign]) {
                   arrowTp.plot
-                  heavyPathWidget.appendFrom(arrowTp)
+                  pathsWidget.appendFrom(arrowTp)
                 }
               }
             }

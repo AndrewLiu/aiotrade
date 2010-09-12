@@ -49,9 +49,7 @@ class PathWidget extends AbstractWidget {
     
   protected def createModel: M = null
     
-  def getPath: GeneralPath = {
-    path
-  }
+  def getPath: GeneralPath = path
     
   override protected def makePreferredBounds: Rectangle = {
     val pathBounds = path.getBounds
@@ -67,8 +65,7 @@ class PathWidget extends AbstractWidget {
     path.intersects(x, y, width, height)
   }
     
-  protected def plotWidget {
-  }
+  protected def plotWidget {}
     
   override def reset {
     super.reset

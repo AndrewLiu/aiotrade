@@ -102,8 +102,8 @@ class VolumeChart extends AbstractChart {
         val y2 = yv(volume)
 
         template.setForeground(color)
-        val fillBar = LookFeel().isFillBar
-        template.model.set(xCenter, y1, y2, wBar, thin, fillBar || close < open)
+        val isFilled = LookFeel().isFillBar
+        template.model.set(xCenter, y1, y2, wBar, thin, isFilled || close < open)
         template.plot
         heavyPathWidget.appendFrom(template)
       }

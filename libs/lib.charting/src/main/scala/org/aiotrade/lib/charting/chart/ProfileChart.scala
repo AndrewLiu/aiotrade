@@ -83,7 +83,7 @@ class ProfileChart extends AbstractChart {
         
     val xorigin = xb(bt(time))
         
-    val path = heavyPathWidget.getPath(color)
+    val (path, pathFilled) = heavyPathWidget.pathOf(color)
         
     if (ser.exists(time)) {
       m.v(time) match {

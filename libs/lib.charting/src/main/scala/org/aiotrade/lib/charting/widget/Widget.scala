@@ -75,6 +75,9 @@ trait Widget {
 
   def setOpaque(opaque: Boolean)
   def isOpaque: Boolean
+
+  def isFilled: Boolean
+  def isFilled_=(isFilled: Boolean)
     
   def setBackground(paint: Paint)
   def getBackground: Paint

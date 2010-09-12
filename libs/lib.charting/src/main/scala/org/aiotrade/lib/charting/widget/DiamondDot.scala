@@ -42,13 +42,13 @@ class DiamondDot extends PathWidget {
     var x: Double = _
     var y: Double = _
     var width: Double = _
-    var filled: Boolean = _
+    var isFilled: Boolean = _
         
-    def set(x: Double, y: Double, width: Double, filled: Boolean) {
+    def set(x: Double, y: Double, width: Double, isFilled: Boolean) {
       this.x = x
       this.y = y
       this.width = width
-      this.filled = filled
+      this.isFilled = isFilled
     }
   }
 

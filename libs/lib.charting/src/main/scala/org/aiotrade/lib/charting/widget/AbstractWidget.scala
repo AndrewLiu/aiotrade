@@ -74,7 +74,8 @@ abstract class AbstractWidget extends Widget {
     }
   }
     
-  private var opaque: Boolean = _
+  private var _isOpaque: Boolean = _
+  private var _isFilled = false
   private var foreground: Color = Color.WHITE
   private var background: Paint = _
     
@@ -89,11 +90,16 @@ abstract class AbstractWidget extends Widget {
   var children: ArrayBuffer[Widget] = _
 
   def isOpaque: Boolean = {
-    opaque
+    _isOpaque
   }
     
   def setOpaque(opaque: Boolean): Unit = {
-    this.opaque = opaque
+    this._isOpaque = opaque
+  }
+
+  def isFilled = _isFilled
+  def isFilled_=(isFilled: Boolean) {
+    this._isFilled = isFilled
   }
     
   def setBackground(paint:Paint): Unit = {
@@ -280,7 +286,7 @@ abstract class AbstractWidget extends Widget {
     g.setTransform(backupTransform)
   }
     
-  protected def renderWidget(g: Graphics)
+  protected def renderWidget(g0: Graphics)
     
   protected def renderChildren(g0: Graphics) {
     if (children == null) {

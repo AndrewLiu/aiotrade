@@ -46,7 +46,7 @@ import scala.collection.mutable.HashMap
  */
 class HeavyPathWidget extends AbstractWidget {
     
-  private val colorToPath = new HashMap[Color, GeneralPath]
+  private val colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
     
   protected def createModel: M = null
     
@@ -56,7 +56,7 @@ class HeavyPathWidget extends AbstractWidget {
     
   override protected def makePreferredBounds: Rectangle = {
     val pathBounds = new Rectangle
-    for (path <- colorToPath.valuesIterator) {
+    for ((path, pathFilled) <- colorToPathPair.valuesIterator) {
       pathBounds.add(path.getBounds)
     }
         
@@ -65,62 +65,66 @@ class HeavyPathWidget extends AbstractWidget {
       pathBounds.width + 1, pathBounds.height + 1)
   }
     
-  def getPath(color: Color): GeneralPath = {
-    colorToPath.get(color) match {
+  def pathOf(color: Color): (GeneralPath, GeneralPath) = {
+    colorToPathPair.get(color) match {
       case None =>
         val pathx = borrowPath
-        colorToPath.put(color, pathx)
-        pathx
+        val pathFilled = borrowPath
+        colorToPathPair.put(color, (pathx, pathFilled))
+        (pathx, pathFilled)
       case Some(x) => x  
     }
   }
     
   def appendFrom(pathWidget: PathWidget) {
     val color = pathWidget.getForeground
-    getPath(color).append(pathWidget.getPath, false)
+    pathOf(color) match {
+      case (path, pathFilled) =>
+        if (pathWidget.isFilled) {
+          pathFilled.append(pathWidget.getPath, false)
+        } else {
+          path.append(pathWidget.getPath, false)
+        }
+    }
   }
     
   override protected def widgetContains(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    for (path <- colorToPath.valuesIterator) {
-      if (path.contains(x, y, width, height)) {
-        return true
-      }
+    colorToPathPair.valuesIterator exists {pathPair =>
+      pathPair._1.contains(x, y, width, height) || pathPair._2.contains(x, y, width, height)
     }
-    false
   }
     
   override def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    for (path <- colorToPath.valuesIterator) {
-      if (path.intersects(x, y, width, height)) {
-        return true
-      }
+    colorToPathPair.valuesIterator exists {pathPair =>
+      pathPair._1.intersects(x, y, width, height) || pathPair._2.intersects(x, y, width, height)
     }
-    false
   }
     
   override def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
-    for (color <- colorToPath.keySet) {
+    for ((color, (path, pathFill)) <- colorToPathPair) {
       g.setColor(color)
-      g.draw(colorToPath(color))
+      g.draw(path)
+      g.draw(pathFill)
     }
   }
     
   override def reset {
     super.reset
-    for (path <- colorToPath.valuesIterator) {
+    for ((path, pathFill) <- colorToPathPair.valuesIterator) {
       path.reset
+      pathFill.reset
     }
   }
     
-  override protected def plotWidget {
-  }
+  override protected def plotWidget {}
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    for (path <- colorToPath.valuesIterator) {
+    for ((path, pathFill) <- colorToPathPair.valuesIterator) {
       returnPath(path)
+      returnPath(pathFill)
     }
         
     super.finalize

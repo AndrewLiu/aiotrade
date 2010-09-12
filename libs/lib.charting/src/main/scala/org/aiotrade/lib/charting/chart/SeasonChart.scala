@@ -48,7 +48,7 @@ class SeasonChart extends AbstractChart {
             
       /** @TODO */
       val pathWidget = addChild(new HeavyPathWidget)
-      val path = pathWidget.getPath(getForeground)
+      val (path, pathFilled) = pathWidget.pathOf(getForeground)
             
       var i = 0
       while (i < nBarsCompressed) {

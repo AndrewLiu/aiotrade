@@ -161,8 +161,8 @@ class QuoteChart extends AbstractChart {
                 
         tpe match {
           case Type.Candle =>
-            val fillBar = LookFeel().isFillBar
-            tp.asInstanceOf[CandleBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar, fillBar || close < open)
+            val isFilled = LookFeel().isFillBar
+            tp.asInstanceOf[CandleBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar, isFilled || close < open)
           case Type.Ohlc =>
             tp.asInstanceOf[OhlcBar].model.set(xb(bar), yOpen, yHigh, yLow, yClose, wBar)
           case _ =>
