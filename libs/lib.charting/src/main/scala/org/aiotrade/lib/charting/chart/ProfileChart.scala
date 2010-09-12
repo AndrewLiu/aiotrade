@@ -34,7 +34,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.geom.GeneralPath
 import java.util.Calendar
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.indicator.StatisticFunction
 import org.aiotrade.lib.math.timeseries.Null
@@ -56,7 +56,7 @@ class ProfileChart extends AbstractChart {
 
   type M = Model
 
-  private val heavyPathWidget = new HeavyPathWidget
+  private val pathsWidget = new PathsWidget
   private val cal = Calendar.getInstance
     
   protected def createModel = new Model
@@ -83,7 +83,7 @@ class ProfileChart extends AbstractChart {
         
     val xorigin = xb(bt(time))
         
-    val (path, pathFilled) = heavyPathWidget.pathOf(color)
+    val (path, pathFilled) = pathsWidget.pathOf(color)
         
     if (ser.exists(time)) {
       m.v(time) match {

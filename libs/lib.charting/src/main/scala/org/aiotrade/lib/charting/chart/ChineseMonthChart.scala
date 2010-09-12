@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import java.awt.Color
 import java.util.Calendar
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.PathWidget
 
 
@@ -51,8 +51,8 @@ class ChineseMonthChart extends AbstractChart {
     val color = Color.RED.darker
     setForeground(color)
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new PathWidget
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new PathWidget
     var bar = 1
     while (bar <= nBars) {
             
@@ -68,11 +68,11 @@ class ChineseMonthChart extends AbstractChart {
       }
             
       if (chineseMonth > 0) {
-        template.setForeground(color)
-        val path = template.getPath
+        tp.setForeground(color)
+        val path = tp.getPath
         path.moveTo(xb(bar), yv(datumPlane.minValue))
         path.lineTo(xb(bar), yv(datumPlane.maxValue))
-        heavyPathWidget.appendFrom(template)
+        pathsWidget.appendFrom(tp)
       }
 
       bar += nBarsCompressed

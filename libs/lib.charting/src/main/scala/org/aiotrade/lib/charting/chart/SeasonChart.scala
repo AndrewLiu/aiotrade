@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart
 
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 
 /**
  *
@@ -47,7 +47,7 @@ class SeasonChart extends AbstractChart {
     while (bar <= nBars) {
             
       /** @TODO */
-      val pathWidget = addChild(new HeavyPathWidget)
+      val pathWidget = addChild(new PathsWidget)
       val (path, pathFilled) = pathWidget.pathOf(getForeground)
             
       var i = 0

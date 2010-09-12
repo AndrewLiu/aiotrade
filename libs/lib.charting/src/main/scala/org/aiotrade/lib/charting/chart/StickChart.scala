@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart
 
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.StickBar
 import org.aiotrade.lib.math.timeseries.TVar
@@ -62,7 +62,7 @@ class StickChart extends AbstractChart {
     var color = posColor
     setForeground(color)
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new PathsWidget)
     val tp = new StickBar
     var bar = 1
     while (bar <= nBars) {
@@ -101,7 +101,7 @@ class StickChart extends AbstractChart {
         tp.setForeground(color)
         tp.model.set(x, yDatum, yValue, wBar, true, false)
         tp.plot
-        heavyPathWidget.appendFrom(tp)
+        pathsWidget.appendFrom(tp)
 
         if (x % AbstractChart.MARK_INTERVAL == 0) {
           addMarkPoint(x.toInt, yValue.toInt)

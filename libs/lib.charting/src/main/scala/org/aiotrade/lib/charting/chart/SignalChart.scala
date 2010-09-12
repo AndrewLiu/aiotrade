@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.chart
 
 import java.awt.Color
 import org.aiotrade.lib.charting.widget.Arrow
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.Label
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -73,7 +73,7 @@ class SignalChart extends AbstractChart {
     val color = Color.YELLOW
     setForeground(color)
 
-    val pathsWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new PathsWidget)
     val arrowTp = new Arrow
     var bar = 1
     while (bar <= nBars) {

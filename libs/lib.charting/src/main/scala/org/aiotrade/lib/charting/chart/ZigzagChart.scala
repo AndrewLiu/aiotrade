@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 
 /**
  *
@@ -60,10 +60,11 @@ class ZigzagChart extends AbstractChart {
     val color = LookFeel().getChartColor(depth)
     setForeground(color)
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new LineSegment
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new LineSegment
     var index1 = getFirstIndexOfEffectiveValue(0)
     var break = false
+    
     def loop: Unit = {
       if (index1 < 0) {
         /** found none */
@@ -102,10 +103,10 @@ class ZigzagChart extends AbstractChart {
       val y1 = yv(value1)
       val y2 = yv(value2)
             
-      template.setForeground(color)
-      template.model.set(x1, y1, x2, y2)
-      template.plot
-      heavyPathWidget.appendFrom(template)
+      tp.setForeground(color)
+      tp.model.set(x1, y1, x2, y2)
+      tp.plot
+      pathsWidget.appendFrom(tp)
             
       /** set new position1 for next while loop */
       index1 = index2

@@ -44,7 +44,7 @@ import scala.collection.mutable.HashMap
  * @version 1.0, November 27, 2006, 7:38 AM
  * @since   1.0.4
  */
-class HeavyPathWidget extends AbstractWidget {
+class PathsWidget extends AbstractWidget {
     
   private val colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
     

@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.chart
 import java.awt.Color
 import org.aiotrade.lib.charting.widget.CandleBar
 import org.aiotrade.lib.charting.widget.LineSegment
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.OhlcBar
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -122,7 +122,7 @@ class QuoteChart extends AbstractChart {
      * re-create and re-add children each time, so the children will release
      * its resource when reset();
      */
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new PathsWidget)
     val tp = if (tpe == Type.Candle) new CandleBar else new OhlcBar
     var bar = 1
     while (bar <= nBars) {
@@ -169,7 +169,7 @@ class QuoteChart extends AbstractChart {
         }
         tp.setForeground(color)
         tp.plot
-        heavyPathWidget.appendFrom(tp)
+        pathsWidget.appendFrom(tp)
       }
 
       bar += nBarsCompressed
@@ -180,7 +180,7 @@ class QuoteChart extends AbstractChart {
   private def plotLineChart {
     val m = model
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new PathsWidget)
     val tp = new LineSegment
     var y1 = Null.Double   // for prev
     var y2 = Null.Double   // for curr
@@ -234,7 +234,7 @@ class QuoteChart extends AbstractChart {
                 
         tp.setForeground(color)
         tp.plot
-        heavyPathWidget.appendFrom(tp)
+        pathsWidget.appendFrom(tp)
       }
 
       bar += 1

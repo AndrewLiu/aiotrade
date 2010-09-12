@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart
 
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.LineSegment
 import org.aiotrade.lib.math.timeseries.Null
@@ -59,8 +59,8 @@ class PolyLineChart extends AbstractChart {
     val color = LookFeel().getChartColor(depth)
     setForeground(color)
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new LineSegment
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new LineSegment
     var y1 = Null.Double   // for prev
     var y2 = Null.Double   // for curr
     var bar = 1
@@ -81,13 +81,13 @@ class PolyLineChart extends AbstractChart {
       }
             
       if (Null.not(value)) {
-        template.setForeground(color)
+        tp.setForeground(color)
                 
         y2 = yv(value)
         if (nBarsCompressed > 1) {
           /** draw a vertical line to cover the min to max */
           val x = xb(bar)
-          template.model.set(x, yv(min), x, yv(max))
+          tp.model.set(x, yv(min), x, yv(max))
         } else {
           if (Null.not(y1)) {
             /**
@@ -96,7 +96,7 @@ class PolyLineChart extends AbstractChart {
              */
             val x1 = xb(bar - nBarsCompressed)
             val x2 = xb(bar)
-            template.model.set(x1, y1, x2, y2)
+            tp.model.set(x1, y1, x2, y2)
                         
             if (x2 % AbstractChart.MARK_INTERVAL == 0) {
               addMarkPoint(x2.toInt, y2.toInt)
@@ -106,8 +106,8 @@ class PolyLineChart extends AbstractChart {
         }
         y1 = y2
                 
-        template.plot
-        heavyPathWidget.appendFrom(template)
+        tp.plot
+        pathsWidget.appendFrom(tp)
       }
 
       bar += nBarsCompressed
