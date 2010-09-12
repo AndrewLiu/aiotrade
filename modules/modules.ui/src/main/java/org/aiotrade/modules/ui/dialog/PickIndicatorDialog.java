@@ -42,7 +42,7 @@ import org.aiotrade.lib.math.timeseries.BaseTSer;
 import org.aiotrade.lib.math.timeseries.TUnit$Day$;
 import org.aiotrade.lib.indicator.Indicator;
 import org.aiotrade.lib.securities.PersistenceManager$;
-import org.aiotrade.modules.ui.netbeans.windows.AnalysisChartTopComponent;
+import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent;
 import scala.collection.mutable.Map;
 
 /**
