@@ -32,14 +32,16 @@ package org.aiotrade.lib.charting.chart
 
 import java.awt.Color
 import org.aiotrade.lib.charting.widget.Arrow
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.Label
 import org.aiotrade.lib.charting.widget.WidgetModel
+import java.awt.Font
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Position
+import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 
 /**
@@ -72,7 +74,9 @@ class SignalChart extends AbstractChart {
     val color = Color.YELLOW
     setForeground(color)
 
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val font = new Font(Font.DIALOG, Font.PLAIN, 9)
+
+    val pathsWidget = addChild(new PathsWidget)
     val arrowTp = new Arrow
     var bar = 1
     while (bar <= nBars) {
@@ -110,40 +114,53 @@ class SignalChart extends AbstractChart {
 
                 signal.kind match {
                   case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
-                    if (signal.isTextSignal) {
+                    var height = 12
+                    if (signal.isInstanceOf[Sign]) {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y + dyUp, true, true)
+                      height = math.max(height, 12)
+                    }
+
+                    if (signal.hasText) {
                       val labelTp = addChild(new Label)
+                      labelTp.setFont(font)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
                       labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height)
-                      dyUp += (3 + bounds.height)
-                    } else {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y + dyUp, true, false)
-                      dyUp += (3 + 12)
+                      height = bounds.height
                     }
+
+                    dyUp += (1 + height)
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
-                    if (signal.isTextSignal) {
+                    var height = 12
+                    if (signal.isInstanceOf[Sign]) {
+                      arrowTp.setForeground(color)
+                      arrowTp.model.set(x, y - dyDn, false, true)
+                      height = math.max(height, 12)
+                    }
+
+                    if (signal.hasText) {
                       val labelTp = addChild(new Label)
+                      labelTp.setFont(font)
                       labelTp.setForeground(color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
                       labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
-                      dyDn += (3 + bounds.height)
-                    } else {
-                      arrowTp.setForeground(color)
-                      arrowTp.model.set(x, y - dyDn, false, false)
-                      dyDn += (3 + 12)
+                      height = bounds.height
                     }
+                    
+                    dyDn += (1 + height)
                   case _ =>
                 }
                 
-                if (!signal.isTextSignal) {
+                if (signal.isInstanceOf[Sign]) {
                   arrowTp.plot
-                  heavyPathWidget.appendFrom(arrowTp)
+                  pathsWidget.appendFrom(arrowTp)
                 }
               }
             }
+            
             signals = signals.tail
             j += 1
           }

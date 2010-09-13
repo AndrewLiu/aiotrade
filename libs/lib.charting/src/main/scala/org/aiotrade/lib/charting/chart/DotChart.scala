@@ -35,7 +35,7 @@ import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 
 /**
  *
@@ -59,8 +59,8 @@ class DotChart extends AbstractChart {
     val color = LookFeel().getChartColor(depth)
     setForeground(color)
         
-    val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new DiamondDot
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new DiamondDot
     var bar = 1
     while (bar <= nBars) {
             
@@ -71,10 +71,10 @@ class DotChart extends AbstractChart {
           val value = model.v.double(time)
                     
           if (Null.not(value)) {
-            template.model.set(xb(bar), yv(value), wBar, false)
-            template.setForeground(color)
-            template.plot;
-            heavyPathWidget.appendFrom(template)
+            tp.model.set(xb(bar), yv(value), wBar, false)
+            tp.setForeground(color)
+            tp.plot
+            pathsWidget.appendFrom(tp)
           }
         }
 

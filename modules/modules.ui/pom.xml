@@ -163,9 +163,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <publicPackages>
-                        <publicPackage>org.aiotrade.modules.ui.netbeans.actions</publicPackage>
-                        <publicPackage>org.aiotrade.modules.ui.netbeans.nodes</publicPackage>
-                        <publicPackage>org.aiotrade.modules.ui.netbeans</publicPackage>
+                        <publicPackage>org.aiotrade.modules.ui.actions</publicPackage>
+                        <publicPackage>org.aiotrade.modules.ui.nodes</publicPackage>
+                        <publicPackage>org.aiotrade.modules.ui</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>

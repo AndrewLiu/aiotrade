@@ -43,42 +43,49 @@ class Arrow extends PathWidget {
     var x: Double = _
     var y: Double = _
     var up: Boolean = _
-    var filled: Boolean = _
+    var isFilled: Boolean = _
         
-    def set(x: Double, y: Double, up: Boolean, filled: Boolean) {
+    def set(x: Double, y: Double, up: Boolean, isFilled: Boolean) {
       this.x = x
       this.y = y
       this.up = up
-      this.filled = filled
+      this.isFilled = isFilled
     }
   }
 
   type M = Model
     
   override protected def createModel = new Model
-    
+
+  private val wTrunk = 2 // half width
+  private val wArrow = 3 // half width
+  private val hTop = 3
+  private val hTrunk = 14 - hTop
+
   override protected def plotWidget {
     val m = model
     val path = getPath
     path.reset
+    
+    //isFilled = m.isFilled
         
     if (m.up) {
       path.moveTo(m.x, m.y)
-      path.lineTo(m.x - 3, m.y + 2)
-      path.lineTo(m.x - 2, m.y + 2)
-      path.lineTo(m.x - 2, m.y + 10)
-      path.lineTo(m.x + 2, m.y + 10)
-      path.lineTo(m.x + 2, m.y + 2)
-      path.lineTo(m.x + 3, m.y + 2)
+      path.lineTo(m.x - wArrow, m.y + hTop)
+      path.lineTo(m.x - wTrunk, m.y + hTop)
+      path.lineTo(m.x - wTrunk, m.y + hTrunk)
+      path.lineTo(m.x + wTrunk, m.y + hTrunk)
+      path.lineTo(m.x + wTrunk, m.y + hTop)
+      path.lineTo(m.x + wArrow, m.y + hTop)
       path.closePath
     } else {
-      path.moveTo(m.x, m.y);
-      path.lineTo(m.x - 3, m.y - 2)
-      path.lineTo(m.x - 2, m.y - 2)
-      path.lineTo(m.x - 2, m.y - 10)
-      path.lineTo(m.x + 2, m.y - 10)
-      path.lineTo(m.x + 2, m.y - 2)
-      path.lineTo(m.x + 3, m.y - 2)
+      path.moveTo(m.x, m.y)
+      path.lineTo(m.x - wArrow, m.y - hTop)
+      path.lineTo(m.x - wTrunk, m.y - hTop)
+      path.lineTo(m.x - wTrunk, m.y - hTrunk)
+      path.lineTo(m.x + wTrunk, m.y - hTrunk)
+      path.lineTo(m.x + wTrunk, m.y - hTop)
+      path.lineTo(m.x + wArrow, m.y - hTop)
       path.closePath
     }
         

@@ -45,16 +45,16 @@ class CandleBar extends PathWidget {
     var yLow:    Double = _
     var yClose:  Double = _
     var width:   Double = _
-    var filled:  Boolean = _
+    var isFilled:  Boolean = _
         
-    def set(xCenter: Double, yOpen: Double, yHigh: Double, yLow: Double, yClose: Double, width: Double, filled: Boolean) {
+    def set(xCenter: Double, yOpen: Double, yHigh: Double, yLow: Double, yClose: Double, width: Double, isFilled: Boolean) {
       this.xCenter = xCenter
       this.yOpen = yOpen
       this.yHigh = yHigh
       this.yLow = yLow
       this.yClose = yClose
       this.width = width
-      this.filled = filled
+      this.isFilled = isFilled
     }
   }
 
@@ -103,7 +103,7 @@ class CandleBar extends PathWidget {
       path.moveTo(m.xCenter, yLower)
       path.lineTo(m.xCenter, m.yLow)
             
-      if (m.filled) {
+      if (m.isFilled) {
         var i = 1
         while (i < m.width - 2) {
           path.moveTo(m.xCenter - xRadius + i, yUpper)

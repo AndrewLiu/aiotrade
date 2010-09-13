@@ -6,7 +6,7 @@ import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import java.awt.Color
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 
 class InfoPointChart extends AbstractChart {
   final class Model extends WidgetModel {
@@ -27,11 +27,11 @@ class InfoPointChart extends AbstractChart {
     val color = Color.YELLOW
     setForeground(color)
 
-    val heavyPathWidget = addChild(new HeavyPathWidget)
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new XDot
 
     val y = datumPlane.yChartUpper + 2
 
-    val template = new XDot
     var bar = 1
     while (bar <= nBars) {
 
@@ -42,10 +42,10 @@ class InfoPointChart extends AbstractChart {
           val value = model.v.double(time)
 
           if (Null.not(value)) {
-            template.model.set(xb(bar), y, wBar)
-            template.setForeground(color)
-            template.plot
-            heavyPathWidget.appendFrom(template)
+            tp.model.set(xb(bar), y, wBar)
+            tp.setForeground(color)
+            tp.plot
+            pathsWidget.appendFrom(tp)
           }
         }
 

@@ -72,9 +72,9 @@ object AbstractScrollControl {
 import AbstractScrollControl._
 abstract class AbstractScrollControl extends JComponent {
 
-  private val arrowComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)
-  private val thumbComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)
-  private val trackComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f)
+  private val arrowComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f)
+  private val thumbComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f)
+  private val trackComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f)
   private var readyToDragThumb, readyToDragThumbBegSide, readyToDragThumbEndSide: Boolean = _
   private var mousePressedThumbBeg, mousePressedThumbEnd: Double = _
   private var xMousePressed, yMousePressed: Int = _
@@ -511,7 +511,7 @@ abstract class AbstractScrollControl extends JComponent {
       setForeground(LookFeel().getTrackColor)
       g.setColor(getForeground)
       g.setComposite(trackComposite)
-      g.fill(bufRect)
+      g.draw(bufRect)
 
       if (backupComposite != null) {
         g.setComposite(backupComposite)

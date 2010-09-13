@@ -36,12 +36,10 @@ import java.awt.Graphics2D
 import java.awt.Paint
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.Shape
 import java.awt.geom.AffineTransform
 import java.awt.geom.GeneralPath
-import java.util.Collection
 import javax.swing.Action
-import scala.collection.mutable.ArrayBuffer
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.util.PathPool
 import scala.collection.mutable.{HashMap}
 
@@ -56,25 +54,26 @@ object AbstractWidget {
   protected val HIT_TEST_SQUARE_RADIUS = 2
 }
 
+import AbstractWidget._
 abstract class AbstractWidget extends Widget {
-  import AbstractWidget._
     
   protected def borrowPath: GeneralPath = {
     pathPool.borrowObject
   }
     
-  protected def returnPath(path: GeneralPath): Unit = {
+  protected def returnPath(path: GeneralPath) {
     pathPool.returnObject(path)
   }
     
-  protected def returnBorrowedPaths(paths: Collection[GeneralPath]): Unit = {
+  protected def returnBorrowedPaths(paths: java.util.Collection[GeneralPath]) {
     val itr = paths.iterator
     while (itr.hasNext) {
       pathPool.returnObject(itr.next)
     }
   }
     
-  private var opaque: Boolean = _
+  private var _isOpaque: Boolean = _
+  private var _isFilled = false
   private var foreground: Color = Color.WHITE
   private var background: Paint = _
     
@@ -83,20 +82,26 @@ abstract class AbstractWidget extends Widget {
     
   private var _model: M = _
     
-  private var renderColorsWithPathBuf: HashMap[Color, GeneralPath] = _
-  private var actions: ArrayBuffer[Action] = _
+  private var _children: ArrayList[Widget] = _
+  private var _actions: ArrayList[Action] = _
+  private var colorToPathPair: HashMap[Color, (GeneralPath, GeneralPath)] = _
     
-  var children: ArrayBuffer[Widget] = _
+  def children = _children
 
   def isOpaque: Boolean = {
-    opaque
+    _isOpaque
   }
     
-  def setOpaque(opaque: Boolean): Unit = {
-    this.opaque = opaque
+  def setOpaque(opaque: Boolean) {
+    this._isOpaque = opaque
+  }
+
+  def isFilled = _isFilled
+  def isFilled_=(isFilled: Boolean) {
+    this._isFilled = isFilled
   }
     
-  def setBackground(paint:Paint): Unit = {
+  def setBackground(paint:Paint) {
     this.background = paint
   }
     
@@ -104,7 +109,7 @@ abstract class AbstractWidget extends Widget {
     background
   }
     
-  def setForeground(color: Color): Unit = {
+  def setForeground(color: Color) {
     this.foreground = color
   }
     
@@ -112,15 +117,15 @@ abstract class AbstractWidget extends Widget {
     foreground
   }
     
-  def setLocation(point: Point): Unit = {
+  def setLocation(point: Point) {
     setLocation(point.x, point.y)
   }
     
-  def setLocation(x: Double, y: Double): Unit = {
-    if (this.location == null) {
-      this.location = new Point(x.toInt, y.toInt)
+  def setLocation(x: Double, y: Double) {
+    if (location == null) {
+      location = new Point(x.toInt, y.toInt)
     } else {
-      this.location.setLocation(x, y)
+      location.setLocation(x, y)
     }
   }
     
@@ -128,15 +133,15 @@ abstract class AbstractWidget extends Widget {
     if (location == null) new Point(0, 0) else new Point(location)
   }
     
-  def setBounds(rect:Rectangle): Unit = {
+  def setBounds(rect:Rectangle) {
     setBounds(rect.x, rect.y, rect.width, rect.height)
   }
     
-  def setBounds(x: Double, y: Double, width: Double, height: Double): Unit = {
-    if (this.bounds == null) {
-      this.bounds = new Rectangle(x.toInt, y.toInt, width.toInt, height.toInt)
+  def setBounds(x: Double, y: Double, width: Double, height: Double) {
+    if (bounds == null) {
+      bounds = new Rectangle(x.toInt, y.toInt, width.toInt, height.toInt)
     } else {
-      this.bounds.setRect(x, y, width, height)
+      bounds.setRect(x, y, width, height)
     }
   }
     
@@ -146,8 +151,8 @@ abstract class AbstractWidget extends Widget {
     
   protected def makePreferredBounds: Rectangle = {
     val childrenBounds = new Rectangle
-    if (children != null) {
-      for (child <- children) {
+    if (_children != null) {
+      for (child <- _children) {
         childrenBounds.add(child.getBounds)
       }
     }
@@ -157,7 +162,7 @@ abstract class AbstractWidget extends Widget {
     /** @TODO */
   }
     
-  def contains(point:Point): Boolean = {
+  def contains(point: Point): Boolean = {
     contains(point.x, point.y)
   }
     
@@ -165,7 +170,7 @@ abstract class AbstractWidget extends Widget {
     contains(x, y, 1, 1)
   }
     
-  def contains(rect:Rectangle): Boolean = {
+  def contains(rect: Rectangle): Boolean = {
     contains(rect.x, rect.y, rect.width, rect.height)
   }
     
@@ -182,18 +187,13 @@ abstract class AbstractWidget extends Widget {
   }
     
   protected def widgetContains(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    return getBounds.contains(x, y, width, height);
+    getBounds.contains(x, y, width, height);
   }
     
   protected def childrenContain(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    if (children != null) {
-      for (child <- children) {
-        if (child.contains(x, y, width, height) ) {
-          return true
-        }
-      }
-    }
-    return false
+    if (_children == null) return false
+
+    _children exists (_.contains(x, y, width, height))
   }
     
   def intersects(rect: Rectangle): Boolean = {
@@ -215,14 +215,9 @@ abstract class AbstractWidget extends Widget {
   protected def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean
     
   protected def childrenIntersect(x: Double, y: Double, width: Double, height: Double): Boolean = {
-    if (children != null) {
-      for (child <- children) {
-        if (child.intersects(x, y, width, height) ) {
-          return true
-        }
-      }
-    }
-    return false
+    if (_children == null) return false
+
+    _children exists (_.intersects(x, y, width, height))
   }
     
   def hits(point: Point): Boolean = {
@@ -280,56 +275,55 @@ abstract class AbstractWidget extends Widget {
     g.setTransform(backupTransform)
   }
     
-  protected def renderWidget(g: Graphics)
+  protected def renderWidget(g0: Graphics)
     
   protected def renderChildren(g0: Graphics) {
-    if (children == null) {
-      return
-    }
+    if (_children == null) return
         
     val g = g0.asInstanceOf[Graphics2D]
         
     val clipBounds = g.getClipBounds
-    for (child <- children) {
+    for (child <- _children) {
       if (child.intersects(clipBounds) || clipBounds.contains(child.getBounds) || child.getBounds.height == 1 || child.getBounds.width == 1) {
         child match {
           case x: PathWidget =>
-            if (renderColorsWithPathBuf == null) {
-              renderColorsWithPathBuf = new HashMap[Color, GeneralPath]
-            }
+            if (colorToPathPair == null) colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
+
             val color = child.getForeground
-            val renderPathBuf = renderColorsWithPathBuf.get(color) getOrElse {
-              val renderPathBufx = borrowPath
-              renderColorsWithPathBuf.put(color, renderPathBufx)
-              renderPathBufx
+            val (pathBuf, pathFilledBuf) = colorToPathPair.get(color) getOrElse {
+              val pathBufx = borrowPath
+              val pathFilledBufx = borrowPath
+              colorToPathPair.put(color, (pathBufx, pathFilledBufx))
+              (pathBufx, pathFilledBufx)
             }
                 
-            val path = x.getPath
-            var shape :Shape = path
-                
+            val path = x.getPath                
             val location = child.getLocation
-            if ( (location.x == 0 && location.y == 0)) {
+            val shape = if (location.x == 0 && location.y == 0) {
               val transform = AffineTransform.getTranslateInstance(location.x, location.y)
-              shape = path.createTransformedShape(transform)
+              path.createTransformedShape(transform)
+            } else path
+
+            if (x.isFilled) {
+              pathFilledBuf.append(shape, false)
+            } else {
+              pathBuf.append(shape, false)
             }
-                
-            renderPathBuf.append(shape, false)
           case _ => child.render(g)
         }
       }
     }
-        
-    if (renderColorsWithPathBuf != null) {
-      for (color <- renderColorsWithPathBuf.keysIterator) {
-        renderColorsWithPathBuf.get(color) match {
-          case None =>
-          case Some(path) =>
-            g.setColor(color)
-            g.draw(path)
-            returnPath(path)
-        }
+
+    if (colorToPathPair != null) {
+      for ((color, (path, pathFilled)) <- colorToPathPair) {
+        g.setColor(color)
+        g.draw(path)
+        g.fill(path)
+        returnPath(path)
+        returnPath(pathFilled)
       }
-      renderColorsWithPathBuf.clear
+      
+      colorToPathPair.clear
     }
   }
     
@@ -338,111 +332,97 @@ abstract class AbstractWidget extends Widget {
     false
   }
     
-  def addChild[T <: Widget](child: T) :T = {
-    if (children == null) {
-      children = new ArrayBuffer[Widget]
-    }
-        
-    children += child
+  def addChild[T <: Widget](child: T): T = {
+    if (_children == null) _children = new ArrayList[Widget]
+    
+    _children += child
     child
   }
     
   def removeChild(child: Widget) {
-    if (children != null) {
-      children.remove(children.indexOf(child))
-    }
+    if (_children == null) return
+
+    _children.remove(_children.indexOf(child))
   }
     
-  def getChildren: ArrayBuffer[Widget] = {
-    if (children != null) {
-      children
-    } else new ArrayBuffer[Widget]
+  def getChildren: Seq[Widget] = {
+    if (_children == null) return Nil
+    
+    _children
   }
     
   def resetChildren {
-    if (children != null) {
-      for (child <- children) {
-        child.reset
-      }
+    if (_children == null) return
+    
+    for (child <- _children) {
+      child.reset
     }
   }
     
   def clearChildren {
-    if (children != null) {
-      children.clear
-    }
+    if (_children == null) return
+    
+    _children.clear
   }
     
-  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): ArrayBuffer[T] = {
-    val result = new ArrayBuffer[T]
-    if (children != null) {
-      for (child <- children) {
-        if (widgetType.isInstance(child) && child.getForeground.equals(foreground)) {
-          result += child.asInstanceOf[T]
-        }
+  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): Seq[T] = {
+    if (_children == null) return Nil
+
+    val result = new ArrayList[Widget]
+
+    for (child <- _children) {
+      if (widgetType.isInstance(child) && child.getForeground.equals(foreground)) {
+        result += child
       }
     }
-    result
+    
+    result.asInstanceOf[Seq[T]]
   }
     
   def lookupFirstChild[T <: Widget](widgetType: Class[T], foreground: Color): Option[T] = {
-    if (children != null) {
-      for (child <- children) {
-        if (widgetType.isInstance(child) && child.getForeground.equals(foreground)) {
-          return Some(child.asInstanceOf[T])
-        }
-      }
-    }
-    None
+    if (_children == null) return None
+
+    _children.find{x => widgetType.isInstance(x) && x.getForeground.equals(foreground)}.asInstanceOf[Option[T]]
   }
     
   def addAction(action: Action): Action = {
-    if (actions == null) {
-      actions = new ArrayBuffer[Action]
-    }
+    if (_actions == null) _actions = new ArrayList[Action]
         
-    actions += action
+    _actions += action
     action
   }
     
   def removeAction(action: Action) {
-    if (actions != null) {
-      actions -= action
-    }
+    if (_actions == null) return
+
+    _actions -= action
   }
 
   def lookupAction[T <: Action](tpe: Class[T]): Option[T] = {
-    if (actions != null) {
-      for (action <- actions) {
-        if (tpe.isInstance(action)) {
-          return Some(action.asInstanceOf[T])
-        }
-      }
-    }
-    None
+    if (_actions == null) return None
+
+    _actions.find(tpe.isInstance(_)).asInstanceOf[Option[T]]
   }
     
   def lookupActionAt[T <: Action](tpe: Class[T], point: Point): Option[T] = {
+    if (_children == null) return None
+    
     /** lookup children first */
-    if (children != null) {
-      for (child <- children) {
-        if (child.contains(point)) {
-          return child.lookupAction(tpe)
-        }
-      }
+    _children find (_.contains(point)) match {
+      case Some(x) => x.lookupAction(tpe)
+      case None =>
+        /** then lookup this */
+        if (getBounds.contains(point)) lookupAction(tpe) else None
     }
-
-    /** then lookup this */
-    if (getBounds.contains(point)) lookupAction(tpe) else None
   }
     
   def reset {
-    if (children != null) {
-      for (child <- children) {
-        child.reset
-      }
-      children.clear
+    if (_children == null) return
+    
+    for (child <- _children) {
+      child.reset
     }
+    _children.clear
   }
 
 }

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.charting.chart
 
-import org.aiotrade.lib.charting.widget.HeavyPathWidget
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.charting.widget.StickBar
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -64,8 +64,8 @@ class VolumeChart extends AbstractChart {
 
     val thin = LookFeel().isThinVolumeBar || m.thin
 
-    val heavyPathWidget = addChild(new HeavyPathWidget)
-    val template = new StickBar
+    val pathsWidget = addChild(new PathsWidget)
+    val tp = new StickBar
     var y1 = yv(0)
     var bar = 1
     while (bar <= nBars) {
@@ -101,11 +101,11 @@ class VolumeChart extends AbstractChart {
         val xCenter = xb(bar)
         val y2 = yv(volume)
 
-        template.setForeground(color)
-        val fillBar = LookFeel().isFillBar
-        template.model.set(xCenter, y1, y2, wBar, thin, fillBar || close < open)
-        template.plot
-        heavyPathWidget.appendFrom(template)
+        tp.setForeground(color)
+        val isFilled = LookFeel().isFillBar
+        tp.model.set(xCenter, y1, y2, wBar, thin, isFilled || close < open)
+        tp.plot
+        pathsWidget.appendFrom(tp)
       }
 
       bar += nBarsCompressed

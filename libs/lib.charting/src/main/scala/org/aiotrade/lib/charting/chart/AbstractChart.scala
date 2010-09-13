@@ -44,7 +44,6 @@ import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.AbstractWidget
-import org.aiotrade.lib.math.timeseries.TVar
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -196,7 +195,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     val g = g0.asInstanceOf[Graphics2D]
         
     val w = strockWidth.toInt
-    var stroke: Stroke = strockType match {
+    val stroke = strockType match {
       case StrockType.Base =>
         if (w <= BASE_STROKES.length) BASE_STROKES(w - 1)
         else new BasicStroke(w)
@@ -219,13 +218,13 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     g.fillRect(point.x - 2, point.y - 2, 5, 5)
   }
     
-  def depth: Int = _depth
+  def depth = _depth
   def depth_=(depth: Int) {
     this._depth = depth
   }
     
     
-  def isSelected: Boolean = _isSelected
+  def isSelected = _isSelected
   def isSelected_=(b: Boolean) {
     this._isSelected = b
   }
@@ -241,7 +240,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   def strockWidth: Double = _strockWidth
   def strockType: StrockType = _strockType
     
-  def ser: TSer = _ser
+  def ser = _ser
   def ser_=(ser: TSer) {
     this._ser = ser
   }

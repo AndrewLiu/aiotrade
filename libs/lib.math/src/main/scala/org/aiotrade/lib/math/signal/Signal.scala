@@ -81,7 +81,7 @@ abstract class Signal {
   def text: String
   def color: Color
 
-  def isTextSignal = text != null
+  def hasText = text != null
 
   def export: (Long, List[Any]) = {
     if (text != null) {

@@ -45,15 +45,15 @@ class StickBar extends PathWidget {
     var y2: Double = _
     var width: Double = _
     var thin: Boolean = _
-    var filled: Boolean = _
+    var isFilled: Boolean = _
         
-    def set(xCenter: Double, y1: Double, y2: Double, width: Double, thin: Boolean, filled: Boolean) {
+    def set(xCenter: Double, y1: Double, y2: Double, width: Double, thin: Boolean, isFilled: Boolean) {
       this.xCenter = xCenter
       this.y1 = y1
       this.y2 = y2
       this.width = width
       this.thin = thin
-      this.filled = filled
+      this.isFilled = isFilled
     }
   }
 
@@ -78,7 +78,7 @@ class StickBar extends PathWidget {
       path.lineTo(m.xCenter + xRadius, m.y1)
       path.closePath
 
-      if (m.filled) {
+      if (m.isFilled) {
         var i = 1
         while (i < m.width - 2) {
           path.moveTo(m.xCenter - xRadius + i, m.y1)

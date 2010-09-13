@@ -36,7 +36,6 @@ import java.awt.Paint
 import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.Action
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * bounds(x, y, width, height) is relative to location(lx, ly), so the final
@@ -75,6 +74,9 @@ trait Widget {
 
   def setOpaque(opaque: Boolean)
   def isOpaque: Boolean
+
+  def isFilled: Boolean
+  def isFilled_=(isFilled: Boolean)
     
   def setBackground(paint: Paint)
   def getBackground: Paint
@@ -109,9 +111,9 @@ trait Widget {
     
   def addChild[T <: Widget](child: T): T
   def removeChild(child: Widget)
-  def children: ArrayBuffer[Widget]
+  def children: Seq[Widget]
   def clearChildren
-  def lookupChildren[T <: Widget: Manifest](widgetType: Class[T], foreground: Color): Seq[T]
+  def lookupChildren[T <: Widget](widgetType: Class[T], foreground: Color): Seq[T]
   def lookupFirstChild[T <: Widget](widgetType: Class[T], foreground: Color): Option[T]
     
   def addAction(action: Action): Action
