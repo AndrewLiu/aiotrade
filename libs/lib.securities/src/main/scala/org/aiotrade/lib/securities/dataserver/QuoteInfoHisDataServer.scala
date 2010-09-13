@@ -44,9 +44,6 @@ abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
         case _ =>
       }
     }
-
-    values foreach (value => GeneralInfo.save(value))
-
     updatedEvents
   }
 

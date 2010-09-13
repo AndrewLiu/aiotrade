@@ -49,8 +49,8 @@ case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
                           "combinValue" -> combinValue,
                           "content" -> content,
                           "summary" -> summary,
-                          "category" -> {for(cate <- category) yield cate.code},
-                          "symbol" -> {for(sec <- secs) yield sec.uniSymbol})
+                          "category" -> {for(cate <- category if cate != null) yield cate.code},
+                          "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol})
   }
 }
 
