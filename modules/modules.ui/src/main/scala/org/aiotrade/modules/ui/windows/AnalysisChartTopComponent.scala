@@ -34,6 +34,7 @@ import java.awt.BorderLayout;
 import java.awt.Image
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.util.logging.Logger
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.JSplitPane
@@ -87,6 +88,8 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object AnalysisChartTopComponent {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   private val instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
@@ -107,9 +110,11 @@ object AnalysisChartTopComponent {
   def apply(contents: AnalysisContents, standalone: Boolean = false): AnalysisChartTopComponent = {
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
+    log.info("Calling apply(...) on " + freq)
+    
     if (standalone) {
       val instance = instances find {x =>
-        (x.contents == contents) && x.freq == freq
+        x.contents == contents && x.freq == freq
       } getOrElse new AnalysisChartTopComponent(contents)
 
       if (!instance.isOpened) {

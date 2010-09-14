@@ -32,6 +32,7 @@ package org.aiotrade.lib.securities
 
 import java.util.Calendar
 import java.util.TimeZone
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.util.actors.Reactor
 import scala.annotation.tailrec
@@ -40,7 +41,8 @@ import scala.annotation.tailrec
  *
  * @author Caoyuan Deng
  */
-class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   reactions += {
     case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeCont(fromTime)
@@ -59,21 +61,22 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
   protected def computeCont(fromTime: Long) {
-    val targetFreq = targetSer.freq
-    val targetUnit = targetFreq.unit
+    val tarFreq = tarSer.freq
+    val tarUnit = tarFreq.unit
 
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
-    val masterFromTime = targetUnit.round(cal)
+    val masterFromTime = tarUnit.round(cal)
     val masterFromIdx1 = srcSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
-        
-    //System.out.println("myFromIdx: " + myFromIdx + " materFromIdx: " + masterFromIdx);
+
+    log.info(" masterFromIdx: " + masterFromIdx)
     //targetQuoteSer.clear(myFromTime);
         
-    /** begin combining: */
+    // --- begin combining:
                 
     val l = srcSer.size
+    
     @tailrec
     def loop(i: Int): Unit = {
       if (i >= l) return
@@ -83,18 +86,18 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
         loop(i + 1)
       }
             
-      val intervalBegin = targetUnit.beginTimeOfUnitThatInclude(time_i, cal)
+      val intervalBegin = tarUnit.beginTimeOfUnitThatInclude(time_i, cal)
             
-      targetSer.createOrClear(intervalBegin)
+      tarSer.createOrClear(intervalBegin)
             
       var prevNorm = srcSer.close(time_i)
       var postNorm = srcSer.close_adj(time_i)
             
-      targetSer.open(intervalBegin)   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
-      targetSer.high(intervalBegin)   = Double.MinValue
-      targetSer.low(intervalBegin)    = Double.MaxValue
-      targetSer.volume(intervalBegin) = 0
-      targetSer.amount(intervalBegin) = 0
+      tarSer.open(intervalBegin)   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
+      tarSer.high(intervalBegin)   = Double.MinValue
+      tarSer.low(intervalBegin)    = Double.MaxValue
+      tarSer.volume(intervalBegin) = 0
+      tarSer.amount(intervalBegin) = 0
             
       /** compose followed source data of this interval to targetData */
       var j = 0
@@ -109,7 +112,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
          * if j == 0, because jdata is the same data as idata in this case:
          */
         val inSameInterval = if (j == 0) true else {
-          targetFreq.sameInterval(time_i, time_j, cal)
+          tarFreq.sameInterval(time_i, time_j, cal)
         }
         
         if (inSameInterval) {
@@ -126,15 +129,15 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
           prevNorm = srcSer.close(time_j)
           postNorm = srcSer.close_adj(time_j)
 
-          targetSer.high(intervalBegin)  = math.max(targetSer.high(intervalBegin), linearAdjust(srcSer.high(time_j),  prevNorm, postNorm))
-          targetSer.low(intervalBegin)   = math.min(targetSer.low(intervalBegin),  linearAdjust(srcSer.low(time_j),   prevNorm, postNorm))
-          targetSer.close(intervalBegin) = linearAdjust(srcSer.close(time_j),   prevNorm, postNorm)
+          tarSer.high(intervalBegin)  = math.max(tarSer.high(intervalBegin), linearAdjust(srcSer.high(time_j),  prevNorm, postNorm))
+          tarSer.low(intervalBegin)   = math.min(tarSer.low(intervalBegin),  linearAdjust(srcSer.low(time_j),   prevNorm, postNorm))
+          tarSer.close(intervalBegin) = linearAdjust(srcSer.close(time_j),   prevNorm, postNorm)
 
-          targetSer.volume(intervalBegin) = targetSer.volume(intervalBegin) + srcSer.volume(time_j)
-          targetSer.amount(intervalBegin) = targetSer.amount(intervalBegin) + srcSer.amount(time_j)
+          tarSer.volume(intervalBegin) = tarSer.volume(intervalBegin) + srcSer.volume(time_j)
+          tarSer.amount(intervalBegin) = tarSer.amount(intervalBegin) + srcSer.amount(time_j)
 
-          targetSer.close_ori(intervalBegin) = srcSer.close_ori(time_j)
-          targetSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
+          tarSer.close_ori(intervalBegin) = srcSer.close_ori(time_j)
+          tarSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
 
           j += 1
         } else {
@@ -144,21 +147,22 @@ class QuoteSerCombiner(srcSer: QuoteSer, targetSer: QuoteSer, timeZone: TimeZone
             
       /** de adjust on combined quote data */
             
-      prevNorm = targetSer.close(intervalBegin)
-      postNorm = targetSer.close_ori(intervalBegin)
+      prevNorm = tarSer.close(intervalBegin)
+      postNorm = tarSer.close_ori(intervalBegin)
             
-      targetSer.high(intervalBegin)  = linearAdjust(targetSer.high(intervalBegin),  prevNorm, postNorm)
-      targetSer.low(intervalBegin)   = linearAdjust(targetSer.low(intervalBegin),   prevNorm, postNorm)
-      targetSer.open(intervalBegin)  = linearAdjust(targetSer.open(intervalBegin),  prevNorm, postNorm)
-      targetSer.close(intervalBegin) = linearAdjust(targetSer.close(intervalBegin), prevNorm, postNorm)
+      tarSer.high(intervalBegin)  = linearAdjust(tarSer.high(intervalBegin),  prevNorm, postNorm)
+      tarSer.low(intervalBegin)   = linearAdjust(tarSer.low(intervalBegin),   prevNorm, postNorm)
+      tarSer.open(intervalBegin)  = linearAdjust(tarSer.open(intervalBegin),  prevNorm, postNorm)
+      tarSer.close(intervalBegin) = linearAdjust(tarSer.close(intervalBegin), prevNorm, postNorm)
             
       loop(i + j)
     }
 
     loop(masterFromIdx)
         
-    val evt = TSerEvent.Updated(targetSer, null, masterFromTime, targetSer.lastOccurredTime)
-    targetSer.publish(evt)
+    val evt = TSerEvent.Updated(tarSer, null, masterFromTime, tarSer.lastOccurredTime)
+    log.info("Publishing " + evt)
+    tarSer.publish(evt)
   }
     
   /**
