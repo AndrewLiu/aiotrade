@@ -409,13 +409,13 @@ class RealTimeBoardPanel private (val sec: Sec, contents: AnalysisContents) exte
     while (i < depth) {
       val bidIdx = depth - 1 - i
       val bidRow = i
-      depthModel.setValueAt(priceDf  format marketDepth.askPrice(bidIdx), bidRow, 1)
-      depthModel.setValueAt("%10.0f" format marketDepth.askSize(bidIdx) / 100.0,  bidRow, 2)
-      
+      depthModel.setValueAt(priceDf  format marketDepth.bidPrice(bidIdx), bidRow, 1)
+      depthModel.setValueAt("%10.0f" format marketDepth.bidSize(bidIdx) / 100.0,  bidRow, 2)
+
       val askIdx = i
       val askRow = depth + i
-      depthModel.setValueAt(priceDf  format marketDepth.bidPrice(askIdx), askRow, 1)
-      depthModel.setValueAt("%10.0f" format marketDepth.bidSize(askIdx) / 100.0,  askRow, 2)
+      depthModel.setValueAt(priceDf  format marketDepth.askPrice(askIdx), askRow, 1)
+      depthModel.setValueAt("%10.0f" format marketDepth.askSize(askIdx) / 100.0,  askRow, 2)
 
       i += 1
     }
