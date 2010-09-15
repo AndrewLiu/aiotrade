@@ -37,7 +37,21 @@ final class MarketDepth(var bidAsks: Array[Double]) {
   def setAskSize (idx: Int, v: Double) = updateDepthValue(idx * 4 + 3, v)
 
   private def updateDepthValue(idx: Int, v: Double) {
-    isChanged = bidAsks(idx) != v
+    if(bidAsks(idx) != v) {
+      isChanged = true
+    }
     bidAsks(idx) = v
   }
+
+  def  setbidAsks(that : Array[Double]) {
+    if(that.length != bidAsks.length) {
+      return
+    }
+    var i =0
+    val length = that.length
+    while(i < length) {
+      updateDepthValue(i, that(i))
+      i+=1
+    }
+  }         
 }

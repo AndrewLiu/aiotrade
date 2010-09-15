@@ -342,6 +342,8 @@ object IBWrapper extends IBWrapper {
     snapshot synchronized {
       val value = price
       snapshot.time = System.currentTimeMillis
+      snapshot.isChanged = false
+      snapshot.marketDepth.isChanged = false
       field match {
         case TickType.ASK =>
           snapshot.setAskPrice(0, value)
