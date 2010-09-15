@@ -34,6 +34,8 @@ import java.util.Calendar
 import java.util.TimeZone
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.util.actors.Reactor
 
 /**
@@ -42,7 +44,8 @@ import org.aiotrade.lib.util.actors.Reactor
  */
 class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {
   private val log = Logger.getLogger(this.getClass.getName)
-
+  val sec = srcSer.serProvider.asInstanceOf[Sec]
+  log.info("ser of sec: " + sec.freqToQuoteSer)
   reactions += {
     case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeFrom(fromTime)
@@ -51,18 +54,22 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
   }
   
   listenTo(srcSer)
-    
+
+  private val freq = tarSer.freq
+  private var quote: Quote = _
+
   /**
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
-  def computeFrom(fromTime: Long) {
-    val tarFreq = tarSer.freq
-    val tarUnit = tarFreq.unit
+  def computeFrom_old(fromTime: Long) {
+    val tarUnit = freq.unit
 
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
-    val masterFromTime = tarUnit.round(cal)
+    log.info("Computing from: " + cal.getTime)
+    val masterFromTime = freq.round(fromTime, cal)
     val masterFromIdx1 = srcSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
+    log.info("Computing from: " + cal.getTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
 
     //targetQuoteSer.clear(myFromTime);
@@ -100,7 +107,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
            * if j == 0, because jdata is the same data as idata in this case:
            */
           val inSameInterval = if (j == 0) true else {
-            tarFreq.sameInterval(time_i, time_j, cal)
+            freq.sameInterval(time_i, time_j, cal)
           }
         
           if (inSameInterval) {
@@ -152,7 +159,85 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     val evt = TSerEvent.Updated(tarSer, null, masterFromTime, tarSer.lastOccurredTime)
     tarSer.publish(evt)
   }
-    
+
+  def computeFrom(fromTime: Long) {
+    val cal = Calendar.getInstance(timeZone)
+    cal.setTimeInMillis(fromTime)
+    log.info("Computing from: " + cal.getTime)
+    val roundedFromTime = freq.round(fromTime, cal)
+    cal.setTimeInMillis(roundedFromTime)
+    log.info("Computing from: " + cal.getTime)
+    val srcFromIdx = math.max(0, srcSer.timestamps.indexOfNearestOccurredTimeBehind(roundedFromTime))
+    log.info("Computing from: " + srcFromIdx)
+
+    // --- begin combining
+
+    val n = srcSer.size
+    var i = srcFromIdx
+    while (i < n) {
+      val time_i = srcSer.timeOfIndex(i)
+      if (time_i >= roundedFromTime) {
+        val quote = quoteOf(time_i)
+
+        var prevNorm = srcSer.close(time_i)
+        var postNorm = srcSer.close_adj(time_i)
+        
+        /**
+         * @TIPS
+         * when combine, do adjust on source's value, then de adjust on combined quote data.
+         * this will prevent bad high, open, and low into combined quote data:
+         *
+         * Duaring the combining period, an adjust may happened, but we only record last
+         * close_adj, the high, low, and open of the data before adjusted acutally may has
+         * different scale close_adj, so must do adjust with its own close_adj firstly. then
+         * use the last close_orj to de-adjust it.
+         */
+        if (quote.justOpen_?) {
+          quote.unjustOpen_!
+          quote.open   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
+          quote.high   = linearAdjust(srcSer.high(time_i),  prevNorm, postNorm)
+          quote.low    = linearAdjust(srcSer.low(time_i),   prevNorm, postNorm)
+          quote.close  = linearAdjust(srcSer.close(time_i), prevNorm, postNorm)
+          quote.volume += srcSer.volume(time_i)
+          quote.amount += srcSer.amount(time_i)
+        } else {
+          quote.high   = math.max(quote.high, linearAdjust(srcSer.high(time_i),  prevNorm, postNorm))
+          quote.low    = math.min(quote.low,  linearAdjust(srcSer.low(time_i),   prevNorm, postNorm))
+          quote.close  = linearAdjust(srcSer.close(time_i), prevNorm, postNorm)
+          quote.volume += srcSer.volume(time_i)
+          quote.amount += srcSer.amount(time_i)
+        }
+        
+        tarSer.updateFrom(quote)
+      }
+      
+      i += 1
+    }
+
+//    val evt = TSerEvent.Updated(tarSer, null, baseFromTime, tarSer.lastOccurredTime)
+//    tarSer.publish(evt)
+  }
+
+  def quoteOf(time: Long): Quote = {
+    val cal = Calendar.getInstance(timeZone)
+    val rounded = freq.round(time, cal)
+    quote match {
+      case one: Quote if one.time == rounded =>
+        one
+      case prevOneOrNull => // interval changes or null
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+
+        quote = newone
+        newone
+    }
+  }
+
   /**
    * This function keeps the adjusting linear according to a norm
    */

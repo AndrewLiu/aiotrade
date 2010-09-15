@@ -281,7 +281,7 @@ class Sec extends SerProvider {
     }
   }
 
-  def removeIndicator(indicator: Indicator): Unit = mutex synchronized  {
+  def removeIndicator(indicator: Indicator): Unit = mutex synchronized {
     val freq = indicator.freq
     freqToIndicators.get(freq) match {
       case Some(indicators) => indicators -= indicator
@@ -355,12 +355,11 @@ class Sec extends SerProvider {
    * sec's ser and computeFrom(0) at once.
    */
   private def createCombinedSer(freq: TFreq): Option[QuoteSer] = {
-    val srcSer_? = freq.unit match {
-      case TUnit.Day | TUnit.Week | TUnit.Month | TUnit.Year => serOf(TFreq.DAILY)
-      case _ => serOf(TFreq.ONE_MIN)
-    }
-
-    srcSer_? match {
+    (freq.unit match {
+        case TUnit.Day | TUnit.Week | TUnit.Month | TUnit.Year => serOf(TFreq.DAILY)
+        case _ => serOf(TFreq.ONE_MIN)
+      }
+    ) match {
       case Some(srcSer) =>
         if (!srcSer.isLoaded) loadSer(srcSer)
 
