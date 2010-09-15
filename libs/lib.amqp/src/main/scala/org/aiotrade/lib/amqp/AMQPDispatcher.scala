@@ -15,7 +15,7 @@ import java.util.TimerTask
 import java.util.logging.Logger
 import java.util.logging.Level
 import org.aiotrade.lib.amqp.datatype.ContentType
-import scala.actors.Actor
+import scala.actors.Reactor
 
 /*_ rabbitmqctl common usages:
  sudo rabbitmq-server -n rabbit@localhost &
@@ -68,7 +68,7 @@ case class AMQPPublish(routingKey: String, props: AMQP.BasicProperties, content:
 /**
  * @param a The actor to add as a Listener to this Dispatcher.
  */
-case class AMQPAddListener(a: Actor)
+case class AMQPAddListener(a: Reactor[Any])
 
 case object AMQPConnect
 /**
@@ -99,11 +99,11 @@ object AMQPExchange {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Actor with Serializer {
+abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Reactor[Any] with Serializer {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private var listeners: List[Actor] = Nil
+  private var listeners: List[Reactor[Any]] = Nil
 
   case class State(conn: Connection, channel: Channel, consumer: Option[Consumer])
   var state: State = _
@@ -140,14 +140,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def consumer = state.consumer
 
   /** Pending ... or, is it necessary? */
-  @throws(classOf[IOException])
-  private def asyncConnet {
-    (this !? AMQPConnect) match {
-      case x: State => state = x
-      case x: Throwable => log.log(Level.SEVERE, x.getMessage, x); throw x
-      case x => log.severe("Error during amqp connect: " + x); throw new Exception(x.toString)
-    }
-  }
+//  @throws(classOf[IOException])
+//  private def asyncConnet {
+//    (this !? AMQPConnect) match {
+//      case x: State => state = x
+//      case x: Throwable => log.log(Level.SEVERE, x.getMessage, x); throw x
+//      case x => log.severe("Error during amqp connect: " + x); throw new Exception(x.toString)
+//    }
+//  }
 
   @throws(classOf[IOException])
   private def connect: State = {
@@ -167,13 +167,16 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   def act = loop {
     react {
-      case AMQPConnect => reply(connect)
-      case AMQPReconnect(delay) => reconnect(delay)
+      case AMQPConnect =>
+        connect
+      case AMQPReconnect(delay) =>
+        reconnect(delay)
       case msg: AMQPMessage =>
         listeners foreach (_ ! msg)
       case AMQPAddListener(l) =>
         listeners ::= l
-      case AMQPPublish(routingKey, props, content) => publish(exchange, routingKey, props, content)
+      case AMQPPublish(routingKey, props, content) =>
+        publish(exchange, routingKey, props, content)
       case AMQPStop =>
         disconnect
         listeners foreach (_ ! AMQPStop)
@@ -181,7 +184,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  def addListener(l: Actor) {
+  def addListener(l: Reactor[Any]) {
     listeners ::= l
   }
 

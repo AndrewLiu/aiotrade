@@ -7,7 +7,7 @@ import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
-import scala.actors.Actor
+import scala.actors.Reactor
 import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
 import java.util.logging.Logger
@@ -144,7 +144,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
    */
-  abstract class Processor extends Actor {
+  abstract class Processor extends Reactor[Any] {
     start
     RpcClient.this.addListener(this)
 

@@ -8,7 +8,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 
-import scala.actors.Actor
+import scala.actors.Reactor
 
 
 object FileConsumer {
@@ -67,7 +67,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
     Some(consumer)
   }
 
-  abstract class Processor extends Actor {
+  abstract class Processor extends Reactor[Any] {
     start
     FileConsumer.this.addListener(this)
 

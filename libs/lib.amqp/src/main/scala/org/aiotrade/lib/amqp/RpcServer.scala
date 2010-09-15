@@ -5,7 +5,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
-import scala.actors.Actor
+import scala.actors.Reactor
 
 case class RpcRequest(args: List[Any]) {def this() = this(Nil)}
 case class RpcResponse(req: RpcRequest, result: Any)
@@ -47,7 +47,7 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage and reply to client via process(msg).
    */
-  abstract class Processor extends Actor {
+  abstract class Processor extends Reactor[Any] {
     start
     RpcServer.this.addListener(this)
 
