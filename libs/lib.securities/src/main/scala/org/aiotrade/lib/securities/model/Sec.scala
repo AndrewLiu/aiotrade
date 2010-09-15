@@ -251,15 +251,14 @@ class Sec extends SerProvider {
   def serOf(freq: TFreq): Option[QuoteSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC => Some(realtimeSer)
-      case TFreq.ONE_MIN | TFreq.DAILY => freqToQuoteSer.get(freq) match {
-          case None =>
-            val x = new QuoteSer(this, freq)
-            freqToQuoteSer.put(freq, x)
-            Some(x)
-          case some => some
-        }
       case _ => freqToQuoteSer.get(freq) match {
-          case None => createCombinedSer(freq)
+          case None => freq match {
+              case TFreq.ONE_MIN | TFreq.DAILY =>
+                val x = new QuoteSer(this, freq)
+                freqToQuoteSer.put(freq, x)
+                Some(x)
+              case _ => createCombinedSer(freq)
+            }
           case some => some
         }
     }
@@ -363,10 +362,12 @@ class Sec extends SerProvider {
 
     srcSer_? match {
       case Some(srcSer) =>
+        if (!srcSer.isLoaded) loadSer(srcSer)
+
         val tarSer = new QuoteSer(this, freq)
         val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
         combiner.computeFrom(0) // don't remove me, see notice above.
-        putSer(tarSer)
+        freqToQuoteSer.put(tarSer.freq, tarSer)
         Some(tarSer)
       case None => None
     }
