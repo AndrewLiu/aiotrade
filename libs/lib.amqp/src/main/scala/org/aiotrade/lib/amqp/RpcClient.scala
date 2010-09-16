@@ -141,21 +141,6 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     syncVar
   }
 
-  /**
-   * Processor that will automatically added as listener of this AMQPDispatcher
-   * and process AMQPMessage via process(msg)
-   */
-  abstract class Processor extends AMQPReactor {
-    reactions += {
-      case msg: AMQPMessage =>
-        log.info("Got AMQPMessage.")
-        process(msg)
-    }
-    listenTo(RpcClient.this)
-
-    protected def process(msg: AMQPMessage)
-  }
-
   class SyncVarSetterProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
       val replyId = msg.props.getCorrelationId

@@ -69,8 +69,6 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  */
 case class AMQPMessage(content: Any, props: AMQP.BasicProperties) extends Event
 
-trait AMQPReactor extends Reactor
-
 object AMQPExchange {
   /**
    * Each AMQP broker declares one instance of each supported exchange type on it's
@@ -390,5 +388,24 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
+  /**
+   * Hold strong refs of processors to avoid them to be GCed
+   */
+  var processors: List[Processor] = Nil
+  
+  /**
+   * Processor that will automatically added as listener of this AMQPDispatcher
+   * and process AMQPMessage via process(msg)
+   */
+  abstract class Processor extends Reactor {
+    processors ::= this
+    
+    reactions += {
+      case msg: AMQPMessage => process(msg)
+    }
+    listenTo(AMQPDispatcher.this)
+
+    protected def process(msg: AMQPMessage)
+  }
 
 }

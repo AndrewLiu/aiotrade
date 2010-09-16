@@ -5,6 +5,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
+import org.aiotrade.lib.util.Reactor
 
 case class RpcRequest(args: List[Any]) {def this() = this(Nil)}
 case class RpcResponse(req: RpcRequest, result: Any)
@@ -43,10 +44,22 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
   }
 
   /**
+   * Hidden super's Processor, we'll use Handler for RpcServer instead
+   */
+  private class Processor
+
+  /**
+   * Hold strong refs of processors to avoid them to be GCed
+   */
+  var handlers: List[Handler] = Nil
+
+  /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage and reply to client via process(msg).
    */
-  abstract class Processor extends AMQPReactor {
+  abstract class Handler extends Reactor {
+    handlers ::= this
+
     reactions += {
       case msg: AMQPMessage =>
         val reqProps = msg.props
@@ -63,7 +76,6 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
     listenTo(RpcServer.this)
 
     /**
-     *
      * @return AMQPMessage that will be send back to caller
      */
     protected def process(msg: AMQPMessage): AMQPMessage

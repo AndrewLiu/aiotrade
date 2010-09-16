@@ -67,7 +67,7 @@ object Exchange extends Publisher {
         else
           syms += sec.secInfo.uniSymbol
       }
-      log.info("Syms number of " + x._1.code + " is " + syms.size)
+      log.info("Symbols number of " + x._1.code + " is " + syms.size)
       x._1 -> syms.toList
     } toMap
   }

@@ -64,18 +64,8 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
     Some(consumer)
   }
 
-  abstract class Processor extends AMQPReactor {
-    reactions += {
-      case msg: AMQPMessage => process(msg)
-    }
-    listenTo(FileConsumer.this)
-
-    protected def process(msg: AMQPMessage)
-  }
-
   class DefaultProcessor extends Processor {
-    
-    override protected def process(msg: AMQPMessage) {
+    protected def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
       val content = msg.content.asInstanceOf[Array[Byte]]
 
@@ -105,7 +95,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
   class SafeProcessor extends Processor {
     private val log = Logger.getLogger(this.getClass.getName)
     
-    override protected def process(msg: AMQPMessage) {
+    protected def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
       val content = msg.content.asInstanceOf[Array[Byte]]
 
