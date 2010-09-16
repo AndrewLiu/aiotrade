@@ -82,16 +82,30 @@ object Exchange extends Publisher {
   lazy val SS = withCode("SS").get
   lazy val SZ = withCode("SZ").get
   lazy val L  = withCode("L" ).get
+  lazy val HK  = withCode("HK" ).get
+  lazy val OQ  = withCode("OQ" ).get
 
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
     uniSymbol.toUpperCase.split('.') match {
-      case Array(symbol) => N
+      case Array(symbol) =>
+        exchangeOfIndex(symbol) match {
+          case Some(exchg) => exchg
+          case None => N
+        }
       case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
       case _ => SZ
+    }
+  }
+
+  def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {
+    uniSymbol match {
+      case "^DJI" => Some(N)
+      case "^HSI" => Some(HK)
+      case _=> None
     }
   }
 
@@ -121,6 +135,10 @@ object Exchange extends Publisher {
     exchange.openCloseHMs = openCloseHMs
     exchange
   }
+
+  val CN_OPENING_CALL_AUCTION_MINUTES = 10
+  val CN_PREOPEN_BREAK_MINUTES = 5
+  val CLOSE_QUOTE_DELAY_MINUTES = 2
 }
 
 abstract class TradingStatus {
@@ -317,22 +335,53 @@ class Exchange {
     _symbols = symbols
   }
 
+  protected def tradingStatusCN(timeInMinutes : Int, time : Long) : Option[TradingStatus]  = {
+    import TradingStatus._
+    if(timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
+      Some(PreOpen(time, timeInMinutes))
+    } else if(timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
+    timeInMinutes <= firstOpen - CN_PREOPEN_BREAK_MINUTES) {
+      Some(OpeningCallAcution(time, timeInMinutes))
+    }else if(timeInMinutes > firstOpen - CN_PREOPEN_BREAK_MINUTES &&
+    timeInMinutes < firstOpen){
+      Some(Break(time, timeInMinutes))
+    } else if(timeInMinutes > lastClose && timeInMinutes <= lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
+      Some(Close(time, timeInMinutes))
+    } else if (timeInMinutes > lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
+      Some(Closed(time, timeInMinutes))
+    } else {
+      None
+    }
+  }
+  
   def tradingStatusOf(time: Long): TradingStatus = {
     import TradingStatus._
-    
+
     var status: TradingStatus = null
 
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+    if(this == SZ || this == SS) {
+      val cnStatus = tradingStatusCN(timeInMinutes,time)
+      cnStatus match {
+        case Some(s) => return s
+        case None =>
+      }
+    }
+    
 
     if (time == 0) {
       status = Closed(time, timeInMinutes)
     } else {
-      if (timeInMinutes == firstOpen) {
+      if(timeInMinutes < firstOpen) {
+        status = PreOpen(time, timeInMinutes)
+      } else if (timeInMinutes == firstOpen) {
         status = Open(time, timeInMinutes)
       } else if (timeInMinutes == lastClose) {
         status = Close(time, timeInMinutes)
+      } else if (timeInMinutes > lastClose) {
+        status = Closed(time, timeInMinutes)
       } else {
         var i = 0
         while (i < openingPeriods.length && status == null) {
@@ -344,20 +393,7 @@ class Exchange {
         }
 
         if (status == null) {
-          status = if (timeInMinutes > firstOpen && timeInMinutes < lastClose) {
-            Break(time, timeInMinutes)
-          } else if (timeInMinutes <  firstOpen - 15) {
-            PreOpen(time, timeInMinutes)
-          } else if (timeInMinutes >= firstOpen - 15 && timeInMinutes < firstOpen - 5) {
-            OpeningCallAcution(time, timeInMinutes)
-          } else if (timeInMinutes >= firstOpen - 5  && timeInMinutes < firstOpen) {
-            val minuteRoundedTime = TFreq.ONE_MIN.round(time, cal)
-            Open(time, timeInMinutes)
-          } else if (timeInMinutes <= lastClose + 5) {
-            Close(time, timeInMinutes)
-          } else {
-            Closed(time, timeInMinutes)
-          }
+            status = Unknown(time, timeInMinutes)
         }
       }
     }

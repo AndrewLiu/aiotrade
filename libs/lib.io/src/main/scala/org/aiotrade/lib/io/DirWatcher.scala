@@ -68,12 +68,16 @@ abstract class DirWatcher(path: File, filter: FileFilter, includingExistingFiles
       fileToLastModified.get(file) match {
         case None =>
           // new file
-          fileToLastModified.put(file, lastModified(file))
-          onChange(FileAdded(file))
+          if(file.canRead){
+            fileToLastModified.put(file, lastModified(file))
+            onChange(FileAdded(file))
+          }
         case Some(last) if last != lastModified(file) =>
           // modified file
-          fileToLastModified.put(file, lastModified(file))
-          onChange(FileModified(file))
+          if(file.canRead){
+            fileToLastModified.put(file, lastModified(file))
+            onChange(FileModified(file))
+          }
         case _ =>
       }
       

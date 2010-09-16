@@ -40,6 +40,7 @@ import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -171,7 +172,8 @@ class YahooTickerServer extends TickerServer {
 
             val tickerSnapshot = tickerSnapshotOf(symbol)
             tickerSnapshot.time = time
-
+            tickerSnapshot.isChanged = false
+            tickerSnapshot.marketDepth.isChanged = false
             tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
             tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
             tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble
@@ -181,7 +183,6 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
-
             if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
               val ticker = new Ticker
               ticker.symbol = symbol
@@ -229,7 +230,7 @@ class YahooTickerServer extends TickerServer {
             case Some(is) => 
               val tickers = read(is)
               loadedTime = postRefresh(tickers)
-            case None =>
+            case None => log.info("no reponse for :" +toProcess.mkString(","))
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
       }
