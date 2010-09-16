@@ -95,7 +95,7 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   var isTransient: Boolean = true
 
   protected def updateFieldValue(fieldIdx: Int, v: Double) {
-    if(data(fieldIdx) != v) {
+    if (data(fieldIdx) != v) {
       _isChanged = true
     }
     data(fieldIdx) = v

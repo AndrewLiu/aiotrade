@@ -40,7 +40,6 @@ import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Ticker
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
@@ -173,7 +172,6 @@ class YahooTickerServer extends TickerServer {
             val tickerSnapshot = tickerSnapshotOf(symbol)
             tickerSnapshot.time = time
             tickerSnapshot.isChanged = false
-            tickerSnapshot.marketDepth.isChanged = false
             tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
             tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
             tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble

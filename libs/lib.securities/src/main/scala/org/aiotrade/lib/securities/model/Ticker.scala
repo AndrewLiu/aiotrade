@@ -294,6 +294,9 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {
     _isChanged = b
+    if (b == false) {
+      marketDepth.isChanged = false
+    }
   }
 
   override def reset {

@@ -82,8 +82,8 @@ object Exchange extends Publisher {
   lazy val SS = withCode("SS").get
   lazy val SZ = withCode("SZ").get
   lazy val L  = withCode("L" ).get
-  lazy val HK  = withCode("HK" ).get
-  lazy val OQ  = withCode("OQ" ).get
+  lazy val HK = withCode("HK").get
+  lazy val OQ = withCode("OQ").get
 
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
@@ -97,6 +97,7 @@ object Exchange extends Publisher {
       case Array(symbol, "L" ) => L
       case Array(symbol, "SS") => SS
       case Array(symbol, "SZ") => SZ
+      case Array(symbol, "HK") => HK
       case _ => SZ
     }
   }
@@ -335,17 +336,18 @@ class Exchange {
     _symbols = symbols
   }
 
-  protected def tradingStatusCN(timeInMinutes : Int, time : Long) : Option[TradingStatus]  = {
+  protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
     import TradingStatus._
-    if(timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
+
+    if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
       Some(PreOpen(time, timeInMinutes))
-    } else if(timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
-    timeInMinutes <= firstOpen - CN_PREOPEN_BREAK_MINUTES) {
+    } else if (timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
+               timeInMinutes <= firstOpen - CN_PREOPEN_BREAK_MINUTES) {
       Some(OpeningCallAcution(time, timeInMinutes))
-    }else if(timeInMinutes > firstOpen - CN_PREOPEN_BREAK_MINUTES &&
-    timeInMinutes < firstOpen){
+    } else if (timeInMinutes > firstOpen - CN_PREOPEN_BREAK_MINUTES &&
+               timeInMinutes < firstOpen) {
       Some(Break(time, timeInMinutes))
-    } else if(timeInMinutes > lastClose && timeInMinutes <= lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
+    } else if (timeInMinutes > lastClose && timeInMinutes <= lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
       Some(Close(time, timeInMinutes))
     } else if (timeInMinutes > lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
       Some(Closed(time, timeInMinutes))
@@ -362,8 +364,8 @@ class Exchange {
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
-    if(this == SZ || this == SS) {
-      val cnStatus = tradingStatusCN(timeInMinutes,time)
+    if (this == SZ || this == SS) {
+      val cnStatus = tradingStatusCN(timeInMinutes, time)
       cnStatus match {
         case Some(s) => return s
         case None =>
@@ -374,7 +376,7 @@ class Exchange {
     if (time == 0) {
       status = Closed(time, timeInMinutes)
     } else {
-      if(timeInMinutes < firstOpen) {
+      if (timeInMinutes < firstOpen) {
         status = PreOpen(time, timeInMinutes)
       } else if (timeInMinutes == firstOpen) {
         status = Open(time, timeInMinutes)
@@ -393,7 +395,7 @@ class Exchange {
         }
 
         if (status == null) {
-            status = Unknown(time, timeInMinutes)
+          status = Unknown(time, timeInMinutes)
         }
       }
     }
