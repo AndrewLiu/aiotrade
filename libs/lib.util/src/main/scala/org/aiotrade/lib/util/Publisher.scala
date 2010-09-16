@@ -1,14 +1,14 @@
 /*                     __                                               *\
- **     ________ ___   / /  ___     Scala API                            **
- **    / __/ __// _ | / /  / _ |    (c) 2007-2010, LAMP/EPFL             **
- **  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
- ** /____/\___/_/ |_/____/_/ | |                                         **
- **                          |/                                          **
- \*                                                                      */
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2007-2010, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 
 
-package org.aiotrade.lib.util.actors
+package org.aiotrade.lib.util
 
 import scala.collection._
 import scala.collection.mutable.{Buffer, HashSet, Set}
@@ -28,25 +28,25 @@ import scala.collection.mutable.{Buffer, HashSet, Set}
  *  </p>
  */
 trait Publisher extends Reactor {
+  import Reactions._
   
-  val listeners = new RefSet[Reactor] {
-    import Reactions._
+  protected val listeners = new RefSet[Reaction] {
     import scala.ref._
-    val underlying = new HashSet[Reference[Reactor]]
-    protected def Ref(a: Reactor) = a match {
-      case a: StronglyReferenced => new StrongReference[Reactor](a) with super.Ref[Reactor]
-      case _ => new WeakReference[Reactor](a, referenceQueue) with super.Ref[Reactor]
+    val underlying = new HashSet[Reference[Reaction]]
+    protected def Ref(a: Reaction) = a match {
+      case a: StronglyReferenced => new StrongReference[Reaction](a) with super.Ref[Reaction]
+      case _ => new WeakReference[Reaction](a, referenceQueue) with super.Ref[Reaction]
     }
   }
-  
-  private[actors] def subscribe(listener: Reactor)   { listeners += listener }
-  private[actors] def unsubscribe(listener: Reactor) { listeners -= listener }
+
+  private[util] def subscribe(listener: Reaction) { listeners += listener }
+  private[util] def unsubscribe(listener: Reaction) { listeners -= listener }
   
   /**
    * Notify all registered reactions.
    */
-  def publish(e: Event) { for (l <- listeners) l ! e }
-
+  def publish(e: Event) { for (l <- listeners) l(e) }
+  
   listenTo(this)
 }
 
@@ -54,19 +54,19 @@ trait Publisher extends Reactor {
  * A publisher that subscribes itself to an underlying event source not before the first 
  * reaction is installed. Can unsubscribe itself when the last reaction is uninstalled.
  */
-private[actors] trait LazyPublisher extends Publisher {
+private[util] trait LazyPublisher extends Publisher {
   import Reactions._
   
   protected def onFirstSubscribe()
   protected def onLastUnsubscribe()
   
-  override def subscribe(listener: Reactor) {
-    if (listeners.size == 1) onFirstSubscribe()
+  override def subscribe(listener: Reaction) { 
+    if(listeners.size == 1) onFirstSubscribe() 
     super.subscribe(listener) 
   }
-  override def unsubscribe(listener: Reactor) {
+  override def unsubscribe(listener: Reaction) { 
     super.unsubscribe(listener) 
-    if (listeners.size == 1) onLastUnsubscribe()
+    if(listeners.size == 1) onLastUnsubscribe()
   }
 }
 
@@ -74,7 +74,7 @@ private[actors] trait LazyPublisher extends Publisher {
 
 import scala.ref._
 
-private[actors] trait SingleRefCollection[+A <: AnyRef] extends Iterable[A] { self =>
+private[util] trait SingleRefCollection[+A <: AnyRef] extends Iterable[A] { self =>
 
   trait Ref[+A <: AnyRef] extends Reference[A] {
     override def hashCode() = {
@@ -121,20 +121,20 @@ private[actors] trait SingleRefCollection[+A <: AnyRef] extends Iterable[A] { se
     def hasNext: Boolean = { skip; ahead }
     def next(): A =
       if (hasNext) { ahead = false; hd }
-    else throw new NoSuchElementException("next on empty iterator")
+      else throw new NoSuchElementException("next on empty iterator")
   }
 }
 
-private[actors] class StrongReference[+T <: AnyRef](value: T) extends Reference[T] {
-  private[this] var ref: Option[T] = Some(value)
-  def isValid: Boolean = ref != None
-  def apply(): T = ref.get
-  def get : Option[T] = ref
-  override def toString = get.map(_.toString).getOrElse("<deleted>")
-  def clear() { ref = None }
-  def enqueue(): Boolean = false
-  def isEnqueued(): Boolean = false
-}
+private[util] class StrongReference[+T <: AnyRef](value: T) extends Reference[T] {
+    private[this] var ref: Option[T] = Some(value)
+    def isValid: Boolean = ref != None
+    def apply(): T = ref.get
+    def get : Option[T] = ref
+    override def toString = get.map(_.toString).getOrElse("<deleted>")
+    def clear() { ref = None }
+    def enqueue(): Boolean = false
+    def isEnqueued(): Boolean = false
+  }
   
 abstract class RefBuffer[A <: AnyRef] extends Buffer[A] with SingleRefCollection[A] { self =>
   protected val underlying: Buffer[Reference[A]]
@@ -163,7 +163,7 @@ abstract class RefBuffer[A <: AnyRef] extends Buffer[A] with SingleRefCollection
   protected[this] def removeReference(ref: Reference[A]) { underlying -= ref }
 }
  
-private[actors] abstract class RefSet[A <: AnyRef] extends Set[A] with SingleRefCollection[A] { self =>
+private[util] abstract class RefSet[A <: AnyRef] extends Set[A] with SingleRefCollection[A] { self =>
   protected val underlying: Set[Reference[A]]
   
   def -=(el: A): this.type = { underlying -= Ref(el); purgeReferences(); this }
