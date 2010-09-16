@@ -9,10 +9,14 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownListener
 import com.rabbitmq.client.ShutdownSignalException
+import com.rabbitmq.utility.Utility
 import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import org.aiotrade.lib.util.Event
 import org.aiotrade.lib.util.Publisher
@@ -128,6 +132,21 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     val connection = factory.newConnection
     val channel = connection.createChannel
     val consumer = configure(channel)
+    
+    consumer match {
+      case Some(qconsumer: QueueingConsumer) =>
+        val consumerRun = new Runnable {
+          def run {
+            while (true) {
+              val delivery = qconsumer.nextDelivery // blocked here
+              qconsumer.relay(delivery)
+            }
+          }
+        }
+        (new Thread(consumerRun)).start
+      case _ =>
+    }
+    
     State(connection, channel, consumer)
   }
 
@@ -251,5 +270,125 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       channel.basicAck(env.getDeliveryTag, false)
     }
   }
+
+  object QueueingConsumer {
+    // Marker object used to signal the queue is in shutdown mode.
+    // It is only there to wake up consumers. The canonical representation
+    // of shutting down is the presence of _shutdown.
+    // Invariant: This is never on _queue unless _shutdown != null.
+    private val POISON = Delivery(null, null, null)
+
+    /**
+     * Encapsulates an arbitrary message - simple "bean" holder structure.
+     */
+    case class Delivery(envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte])
+  }
+  
+  class QueueingConsumer(channle: Channel) extends DefaultConsumer(channle) {
+    import QueueingConsumer._
+
+    private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
+
+    // When this is non-null the queue is in shutdown mode and nextDelivery should
+    // throw a shutdown signal exception.
+    @volatile private var _shutdown: ShutdownSignalException = _
+
+    override def handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException ) {
+      _shutdown = sig
+      _queue.add(POISON)
+    }
+
+    @throws(classOf[IOException])
+    override def handleDelivery(consumerTag: String,
+                                envelope: Envelope ,
+                                props: AMQP.BasicProperties,
+                                body: Array[Byte]
+    ) {
+      checkShutdown
+      log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
+
+      this._queue.add(Delivery(envelope, props, body))
+    }
+
+    /**
+     * Check if we are in shutdown mode and if so throw an exception.
+     */
+    private def checkShutdown {
+      if (_shutdown != null) throw Utility.fixStackTrace(_shutdown)
+    }
+
+    /**
+     * If this is a non-POISON non-null delivery simply return it.
+     * If this is POISON we are in shutdown mode, throw _shutdown
+     * If this is null, we may be in shutdown mode. Check and see.
+     */
+    private def handle(delivery: Delivery): Delivery = {
+      if (delivery == POISON || delivery == null && _shutdown != null) {
+        if (delivery == POISON) {
+          _queue.add(POISON)
+          if (_shutdown == null) {
+            throw new IllegalStateException(
+              "POISON in queue, but null _shutdown. " +
+              "This should never happen, please report as a BUG")
+          }
+        }
+        throw Utility.fixStackTrace(_shutdown)
+      }
+      delivery
+    }
+
+    /**
+     * Main application-side API: wait for the next message delivery and return it.
+     * @return the next message
+     * @throws InterruptedException if an interrupt is received while waiting
+     * @throws ShutdownSignalException if the connection is shut down while waiting
+     */
+    @throws(classOf[InterruptedException])
+    @throws(classOf[ShutdownSignalException])
+    def nextDelivery: Delivery = {
+      handle(_queue.take)
+    }
+
+    /**
+     * Main application-side API: wait for the next message delivery and return it.
+     * @param timeout timeout in millisecond
+     * @return the next message or null if timed out
+     * @throws InterruptedException if an interrupt is received while waiting
+     * @throws ShutdownSignalException if the connection is shut down while waiting
+     */
+    @throws(classOf[InterruptedException])
+    @throws(classOf[ShutdownSignalException])
+    def nextDelivery(timeout: Long): Delivery = {
+      handle(_queue.poll(timeout, TimeUnit.MILLISECONDS))
+    }
+
+    def relay(delivery: Delivery) {
+      delivery match {
+        case Delivery(env, props, body) =>
+          val body1 = props.getContentEncoding match {
+            case "gzip" => ungzip(body)
+            case "lzma" => unlzma(body)
+            case _ => body
+          }
+
+          import ContentType._
+          val contentType = props.getContentType match {
+            case null | "" => JAVA_SERIALIZED_OBJECT
+            case x => ContentType(x)
+          }
+
+          val content = contentType.mimeType match {
+            case OCTET_STREAM.mimeType => body1
+            case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
+            case JSON.mimeType => decodeJson(body1)
+            case _ => decodeJava(body1)
+          }
+
+          publish(AMQPMessage(content, props))
+        case _ =>
+      }
+    }
+  }
+
 
 }
