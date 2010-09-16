@@ -1,17 +1,16 @@
 
 package org.aiotrade.lib.amqp
 
+import com.rabbitmq.client.AMQP
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.AMQP.BasicProperties
+import com.rabbitmq.client.Consumer
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.HashMap
 import java.util.Map
-
-import com.rabbitmq.client.Consumer
-import com.rabbitmq.client.AMQP
-import com.rabbitmq.client.Channel
-import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.AMQP.BasicProperties
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 object FileProducer {
@@ -36,7 +35,7 @@ object FileProducer {
     factory.setRequestedHeartbeat(0)
 
     val producer = new FileProducer(factory, exchange, queue, routingKey, nConsumers)
-    producer.start
+    producer.connect
     val files = List(new File("pom.xml"), new File("src/test/resources/testfile.txt"))
 
     producer.sendFiles(files)

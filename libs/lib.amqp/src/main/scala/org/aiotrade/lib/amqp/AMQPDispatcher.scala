@@ -14,8 +14,10 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
 import java.util.logging.Level
+import org.aiotrade.lib.util.Event
+import org.aiotrade.lib.util.Publisher
+import org.aiotrade.lib.util.Reactor
 import org.aiotrade.lib.amqp.datatype.ContentType
-import scala.actors.Reactor
 
 /*_ rabbitmqctl common usages:
  sudo rabbitmq-server -n rabbit@localhost &
@@ -61,22 +63,9 @@ import scala.actors.Reactor
  * Messages received from AMQP are wrapped in this case class. When you
  * register a listener, this is the case class that you will be matching on.
  */
-case class AMQPMessage(content: Any, props: AMQP.BasicProperties)
+case class AMQPMessage(content: Any, props: AMQP.BasicProperties) extends Event
 
-case class AMQPPublish(routingKey: String, props: AMQP.BasicProperties, content: Any)
-
-/**
- * @param a The actor to add as a Listener to this Dispatcher.
- */
-case class AMQPAddListener(a: Reactor[Any])
-
-case object AMQPConnect
-/**
- * Reconnect to the AMQP Server after a delay of {@code delay} milliseconds.
- */
-case class AMQPReconnect(delay: Long)
-
-case object AMQPStop
+trait AMQPReactor extends Reactor
 
 object AMQPExchange {
   /**
@@ -99,14 +88,11 @@ object AMQPExchange {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Reactor[Any] with Serializer {
+abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher with Serializer {
+  private val log = Logger.getLogger(getClass.getName)
 
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private var listeners: List[Reactor[Any]] = Nil
-
-  case class State(conn: Connection, channel: Channel, consumer: Option[Consumer])
-  var state: State = _
+  case class State(connection: Connection, channel: Channel, consumer: Option[Consumer])
+  private var state: State = _
 
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,
@@ -114,11 +100,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
    * consumered before processors ready.
    */
   @throws(classOf[IOException])
-  override def start: this.type = {
-    super.start
-    //asyncConnet
+  def connect: this.type = {
     try {
-      state = connect
+      state = doConnect
     } catch {
       case ex => 
         log.log(Level.WARNING, ex.getMessage, ex)
@@ -135,26 +119,16 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     this
   }
 
-  protected def conn = state.conn
-  protected def channel = state.channel
-  protected def consumer = state.consumer
-
-  /** Pending ... or, is it necessary? */
-//  @throws(classOf[IOException])
-//  private def asyncConnet {
-//    (this !? AMQPConnect) match {
-//      case x: State => state = x
-//      case x: Throwable => log.log(Level.SEVERE, x.getMessage, x); throw x
-//      case x => log.severe("Error during amqp connect: " + x); throw new Exception(x.toString)
-//    }
-//  }
+  def connection = state.connection
+  def channel = state.channel
+  def consumer = state.consumer
 
   @throws(classOf[IOException])
-  private def connect: State = {
-    val conn = factory.newConnection
-    val channel = conn.createChannel
+  private def doConnect: State = {
+    val connection = factory.newConnection
+    val channel = connection.createChannel
     val consumer = configure(channel)
-    State(conn, channel, consumer)
+    State(connection, channel, consumer)
   }
 
   /**
@@ -165,31 +139,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   @throws(classOf[IOException])
   protected def configure(channel: Channel): Option[Consumer]
 
-  def act = loop {
-    react {
-      case AMQPConnect =>
-        connect
-      case AMQPReconnect(delay) =>
-        reconnect(delay)
-      case msg: AMQPMessage =>
-        listeners foreach (_ ! msg)
-      case AMQPAddListener(l) =>
-        listeners ::= l
-      case AMQPPublish(routingKey, props, content) =>
-        publish(exchange, routingKey, props, content)
-      case AMQPStop =>
-        disconnect
-        listeners foreach (_ ! AMQPStop)
-        exit
-    }
-  }
-
-  def addListener(l: Reactor[Any]) {
-    listeners ::= l
-  }
-
   @throws(classOf[IOException])
-  protected def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
+  def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
     import ContentType._
 
     val props = if ($props == null) new AMQP.BasicProperties else $props
@@ -221,7 +172,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     channel.basicPublish(exchange, routingKey, props, body1)
   }
 
-  protected def disconnect {
+  def disconnect {
     if (consumer.isDefined && channel != null) {
       channel.basicCancel(consumer.get.asInstanceOf[DefaultConsumer].getConsumerTag)
     }
@@ -235,9 +186,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       }
     }
 
-    if (conn != null) {
+    if (connection != null) {
       try {
-        conn.close
+        connection.close
         log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       } catch {
         case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
@@ -246,10 +197,10 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  protected def reconnect(delay: Long) {
+  def reconnect(delay: Long) {
     disconnect
     try {
-      state = connect
+      state = doConnect
       log.log(Level.FINEST, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
       case e: Exception =>
@@ -258,7 +209,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         log.log(Level.FINEST, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
         new Timer("AMQPReconnectTimer").schedule(new TimerTask {
             def run {
-              self ! AMQPReconnect(waitInMillis)
+              reconnect(waitInMillis)
             }
           }, delay)
     }
@@ -291,11 +242,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case _ => decodeJava(body1)
       }
 
-      log.info("Decoded amqp message.")
-
       // send back to interested observers for further relay
-      val msg = AMQPMessage(content, props)
-      listeners foreach (_ ! msg)
+      publish(AMQPMessage(content, props))
 
       // if noAck is set false, messages will be blocked until an ack to broker,
       // so it's better always ack it. (Although prefetch may deliver more than
@@ -303,4 +251,5 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       channel.basicAck(env.getDeliveryTag, false)
     }
   }
+
 }

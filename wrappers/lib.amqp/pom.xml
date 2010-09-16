@@ -52,6 +52,14 @@
                     <groupId>org.aiotrade</groupId>
                     <artifactId>lib-sevenzip</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.aiotrade</groupId>
+                    <artifactId>lib-util</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.lag</groupId>
+                    <artifactId>configgy</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -78,6 +86,16 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>net-lag-configgy</artifactId>
             <version>${project.version}</version>
         </dependency>
 

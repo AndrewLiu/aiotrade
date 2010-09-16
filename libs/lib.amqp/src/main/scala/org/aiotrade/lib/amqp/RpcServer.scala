@@ -5,7 +5,6 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
-import scala.actors.Reactor
 
 case class RpcRequest(args: List[Any]) {def this() = this(Nil)}
 case class RpcResponse(req: RpcRequest, result: Any)
@@ -47,33 +46,27 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage and reply to client via process(msg).
    */
-  abstract class Processor extends Reactor[Any] {
-    start
-    RpcServer.this.addListener(this)
+  abstract class Processor extends AMQPReactor {
+    reactions += {
+      case msg: AMQPMessage =>
+        val reqProps = msg.props
+        if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
+          val (replyContent, replyProps) = process(msg) match {
+            case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
+            case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
+          }
+              
+          replyProps.setCorrelationId(reqProps.getCorrelationId)
+          publish("", reqProps.getReplyTo, replyProps, replyContent)
+        }
+    }
+    listenTo(RpcServer.this)
 
     /**
      *
      * @return AMQPMessage that will be send back to caller
      */
     protected def process(msg: AMQPMessage): AMQPMessage
-
-    def act = loop {
-      react {
-        case msg: AMQPMessage =>
-          val reqProps = msg.props
-          if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
-            val (replyContent, replyProps) = process(msg) match {
-              case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
-              case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
-            }
-              
-            replyProps.setCorrelationId(reqProps.getCorrelationId)
-            publish("", reqProps.getReplyTo, replyProps, replyContent)
-          }
-        case AMQPStop => exit
-      }
-    }
-    
   }
 }
 

@@ -7,7 +7,6 @@ import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
-import scala.actors.Reactor
 import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
 import java.util.logging.Logger
@@ -28,21 +27,22 @@ case object RpcTimeOut
  */
 @throws(classOf[IOException])
 class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKey: String
-) extends {
-  var replyQueue: String = _ // The name of our private reply queue
-} with AMQPDispatcher($factory, $reqExchange) {
+) extends AMQPDispatcher($factory, $reqExchange) {
 
-  private val log = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(getClass.getName)
+
+  var replyQueue: String = _ // The name of our private reply queue
 
   /** Map from request correlation ID to continuation BlockingCell */
   private val continuationMap = new HashMap[String, SyncVar[Any]]
   /** Contains the most recently-used request correlation ID */
   private var correlationId = 0L
+  /** Should hold strong ref for SyncVarSetterProcessor */
+  private val processor = new SyncVarSetterProcessor
 
   @throws(classOf[IOException])
-  override def start: this.type = {
-    super.start
-    new SyncProcessor
+  override def connect: this.type = {
+    super.connect
     this
   }
 
@@ -140,26 +140,23 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     
     syncVar
   }
+
   /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
    */
-  abstract class Processor extends Reactor[Any] {
-    start
-    RpcClient.this.addListener(this)
+  abstract class Processor extends AMQPReactor {
+    reactions += {
+      case msg: AMQPMessage =>
+        log.info("Got AMQPMessage.")
+        process(msg)
+    }
+    listenTo(RpcClient.this)
 
     protected def process(msg: AMQPMessage)
-
-    def act = loop {
-      react {
-        case msg: AMQPMessage => process(msg)
-        case AMQPStop => exit
-      }
-    }
   }
 
-  class SyncProcessor extends Processor {
-
+  class SyncVarSetterProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
       val replyId = msg.props.getCorrelationId
       val syncVar = continuationMap synchronized  {

@@ -1,15 +1,12 @@
 package org.aiotrade.lib.amqp
 
+import com.rabbitmq.client.Consumer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.logging.Logger
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.Consumer
-
-import scala.actors.Reactor
-
 
 object FileConsumer {
 
@@ -41,7 +38,7 @@ object FileConsumer {
                                       outputDirPath)
       
       new consumer.SafeProcessor
-      consumer.start
+      consumer.connect
     }
   }
 
@@ -67,18 +64,13 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
     Some(consumer)
   }
 
-  abstract class Processor extends Reactor[Any] {
-    start
-    FileConsumer.this.addListener(this)
+  abstract class Processor extends AMQPReactor {
+    reactions += {
+      case msg: AMQPMessage => process(msg)
+    }
+    listenTo(FileConsumer.this)
 
     protected def process(msg: AMQPMessage)
-
-    def act = loop {
-      react {
-        case msg: AMQPMessage => process(msg)
-        case AMQPStop => exit
-      }
-    }
   }
 
   class DefaultProcessor extends Processor {
