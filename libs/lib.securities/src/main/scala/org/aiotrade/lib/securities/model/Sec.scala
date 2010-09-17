@@ -790,7 +790,8 @@ class Sec extends SerProvider {
 
 class SecSnap(val sec: Sec) {
   var currTicker: Ticker = _
-  var prevTicker: Ticker = _
+  var prevTicker$: Ticker = _
+    
   var isDayFirstTicker: Boolean = _
 
   var dailyQuote: Quote = _
@@ -798,15 +799,16 @@ class SecSnap(val sec: Sec) {
 
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
+
+  def prevTicker : Ticker = prevTicker$
   
   private val timeZone = sec.exchange.timeZone
 
   def setByTicker(ticker: Ticker): SecSnap = {
-    var oldTicker = this.currTicker
     this.currTicker = ticker
     
     val time = ticker.time
-    checkLastTickerOf(time,oldTicker)
+    checkLastTickerOf(time)
     checkDailyQuoteOf(time)
     checkMinuteQuoteOf(time)
     checkDailyMoneyFlowOf(time)
@@ -871,25 +873,24 @@ class SecSnap(val sec: Sec) {
   /**
    * @return lastTicker of this day
    */
-  def checkLastTickerOf(time: Long,oldTicker : Ticker): (Ticker, Boolean) = {
+  def checkLastTickerOf(time: Long): (Ticker, Boolean) = {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     prevTicker match {
       case null =>
         Tickers.lastTickerOf(sec, rounded) match  {
           case None =>
-            prevTicker = new Ticker
+            prevTicker$ = new Ticker
             isDayFirstTicker = true
           case Some(x) =>
-            prevTicker = x
+            prevTicker$ = x
             isDayFirstTicker = false
         }
       case _ =>
-        prevTicker = oldTicker
         isDayFirstTicker = false
     }
 
-    (prevTicker, isDayFirstTicker)
+    (prevTicker$, isDayFirstTicker)
   }
 }
 

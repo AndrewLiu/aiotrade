@@ -204,12 +204,14 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.amount = ticker.dayAmount
         allExecutions += execution
 
-        minQuote.open   = ticker.lastPrice
-        minQuote.high   = ticker.lastPrice
-        minQuote.low    = ticker.lastPrice
+        minQuote.open   = ticker.dayOpen
+        minQuote.high   = ticker.dayHigh
+        minQuote.low    = ticker.dayLow
         minQuote.close  = ticker.lastPrice
-        minQuote.volume = 0.00001
-        minQuote.amount = 0.00001
+        minQuote.volume = ticker.dayVolume
+        minQuote.amount = ticker.dayAmount
+
+        dayQuote.open = ticker.dayOpen
 
       } else {
 
@@ -239,10 +241,31 @@ abstract class TickerServer extends DataServer[Ticker] {
           if (minQuote.justOpen_?) {
             minQuote.unjustOpen_!
 
-            minQuote.open  = ticker.lastPrice
-            minQuote.high  = ticker.lastPrice
-            minQuote.low   = ticker.lastPrice
+            minQuote.open = prevTicker.lastPrice
+            if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
+              if (ticker.dayHigh > prevTicker.dayHigh) {
+                /** this is a new day high happened during this ticker */
+                minQuote.high = ticker.dayHigh
+              }
+            }
+            if (ticker.lastPrice != 0) {
+              minQuote.high = math.max(minQuote.high, ticker.lastPrice)
+            }
+
+            if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
+              if (ticker.dayLow < prevTicker.dayLow) {
+                /** this is a new day low happened during this ticker */
+                minQuote.low = ticker.dayLow
+              }
+            }
+            if (ticker.lastPrice != 0) {
+              minQuote.low = math.min(minQuote.low, ticker.lastPrice)
+            }
             minQuote.close = ticker.lastPrice
+            if (execution != null && execution.volume > 1) {
+              minQuote.volume = execution.volume
+              minQuote.amount = execution.amount
+            }
 
           } else {
 
