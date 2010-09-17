@@ -104,6 +104,27 @@ object Tickers extends TickersTable {
     ) headOption
   }
 
+  def lastTickerOf(sec: Sec, dailyRoundedTime: Long, tillTime: Long): Ticker = {
+    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+        (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, tillTime))
+      ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
+    ) match {
+      case Seq() =>
+        val newone = new Ticker
+        newone.isDayFirst = true
+        newone.isTransient = true
+        newone
+      case Seq(one) =>
+        one.isDayFirst = true
+        one.isTransient = false
+        one
+      case Seq(one, _*) =>
+        one.isDayFirst = false
+        one.isTransient = false
+        one
+    }
+  }
+
   def tickersOf(sec: Sec, dailyRoundedTime: Long): Seq[Ticker] = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
@@ -288,8 +309,6 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
 
 
   // --- no db fields:
-
-  var tansient = true
 
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(b: Boolean) = {

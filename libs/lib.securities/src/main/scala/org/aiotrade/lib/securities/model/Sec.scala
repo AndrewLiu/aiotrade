@@ -788,10 +788,8 @@ class Sec extends SerProvider {
 }
 
 class SecSnap(val sec: Sec) {
-  var currTicker: Ticker = _
-  var prevTicker$: Ticker = _
-    
-  var isDayFirstTicker: Boolean = _
+  var newTicker: Ticker = _
+  var lastTicker: Ticker = _
 
   var dailyQuote: Quote = _
   var minuteQuote: Quote = _
@@ -799,12 +797,10 @@ class SecSnap(val sec: Sec) {
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
 
-  def prevTicker : Ticker = prevTicker$
-  
   private val timeZone = sec.exchange.timeZone
 
   def setByTicker(ticker: Ticker): SecSnap = {
-    this.currTicker = ticker
+    this.newTicker = ticker
     
     val time = ticker.time
     checkLastTickerOf(time)
@@ -822,7 +818,7 @@ class SecSnap(val sec: Sec) {
     dailyQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOneOrNull => // day changes or null
+      case _ => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(sec, rounded)
         dailyQuote = newone
         newone
@@ -836,7 +832,7 @@ class SecSnap(val sec: Sec) {
     dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOneOrNull => // day changes or null
+      case _ => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
         dailyMoneyFlow = newone
         newone
@@ -849,7 +845,7 @@ class SecSnap(val sec: Sec) {
     minuteQuote match {
       case one: Quote if one.time == rounded =>
         one
-      case prevOneOrNull => // minute changes or null
+      case _ => // minute changes or null
         val newone = Quotes1m.minuteQuoteOf(sec, rounded)
         minuteQuote = newone
         newone
@@ -862,7 +858,7 @@ class SecSnap(val sec: Sec) {
     minuteMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
         one
-      case prevOneOrNull => // minute changes or null
+      case _ => // minute changes or null
         val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
         minuteMoneyFlow = newone
         newone
@@ -872,24 +868,19 @@ class SecSnap(val sec: Sec) {
   /**
    * @return lastTicker of this day
    */
-  def checkLastTickerOf(time: Long): (Ticker, Boolean) = {
+  def checkLastTickerOf(time: Long): Ticker = {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
-    prevTicker match {
-      case null =>
-        Tickers.lastTickerOf(sec, rounded) match  {
-          case None =>
-            prevTicker$ = new Ticker
-            isDayFirstTicker = true
-          case Some(x) =>
-            prevTicker$ = x
-            isDayFirstTicker = false
+    lastTicker match {
+      case one: Ticker if one.time > rounded && one.time <= time =>
+        if (one.isDayFirst) {
+          one.isDayFirst = false
         }
-      case _ =>
-        isDayFirstTicker = false
+        one
+      case _ => // not today's one or null
+        val newone = Tickers.lastTickerOf(sec, rounded, time)
+        lastTicker = newone
+        newone
     }
-
-    (prevTicker$, isDayFirstTicker)
   }
 }
-

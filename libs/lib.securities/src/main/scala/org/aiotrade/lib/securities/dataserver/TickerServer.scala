@@ -182,20 +182,17 @@ abstract class TickerServer extends DataServer[Ticker] {
       val secSnap = secSnaps(i)
 
       val sec = secSnap.sec
-      val isDayFirst = secSnap.isDayFirstTicker
-      val ticker = secSnap.currTicker
-      val prevTicker = secSnap.prevTicker
+      val ticker = secSnap.newTicker
+      val lastTicker = secSnap.lastTicker
+      val isDayFirst = lastTicker.isDayFirst
       val dayQuote = secSnap.dailyQuote
       val minQuote = secSnap.minuteQuote
 
-      log.fine("Composing " + ticker.symbol + ", prevTicker: " + prevTicker)
+      log.fine("Composing from ticker: " + ticker + ", lasticker: " + lastTicker)
 
       var tickerValid = false
       var execution: Execution = null
       if (isDayFirst) {
-        secSnap.dailyQuote.unjustOpen_!
-
-        tickerValid = true
 
         /**
          * this is today's first ticker we got when begin update data server,
@@ -206,6 +203,19 @@ abstract class TickerServer extends DataServer[Ticker] {
          * so give it a small 0.0001 (if give it a 0, it will won't be calculated
          * in calcMaxMin() of ChartView)
          */
+
+        tickerValid = true
+        
+        dayQuote.unjustOpen_!
+
+        minQuote.unjustOpen_!
+        minQuote.open   = ticker.dayOpen
+        minQuote.high   = ticker.dayHigh
+        minQuote.low    = ticker.dayLow
+        minQuote.close  = ticker.lastPrice
+        minQuote.volume = ticker.dayVolume
+        minQuote.amount = ticker.dayAmount
+
         execution = new Execution
         execution.sec = sec
         execution.time = ticker.time
@@ -214,14 +224,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.amount = ticker.dayAmount
         allExecutions += execution
 
-        minQuote.open   = ticker.dayOpen
-        minQuote.high   = ticker.dayHigh
-        minQuote.low    = ticker.dayLow
-        minQuote.close  = ticker.lastPrice
-        minQuote.volume = ticker.dayVolume
-        minQuote.amount = ticker.dayAmount
-
-        dayQuote.open = ticker.dayOpen
 
       } else {
 
@@ -230,84 +232,63 @@ abstract class TickerServer extends DataServer[Ticker] {
          *          |------------------|------------------->
          *          |<----- 1000 ----->|
          */
-        if (ticker.time + 1000 > prevTicker.time) { // 1000ms, @Note: we may add +1 to ticker.time later
+        if (ticker.time + 1000 > lastTicker.time) { // 1000ms, @Note: we may add +1 to ticker.time later
           // some datasources only count on second, but we may truly have a new ticker
-          if (ticker.time <= prevTicker.time) {
-            ticker.time = prevTicker.time + 1 // avoid duplicate key
+          if (ticker.time <= lastTicker.time) {
+            ticker.time = lastTicker.time + 1 // avoid duplicate key
           }
 
           tickerValid = true
 
-          if (ticker.dayVolume > prevTicker.dayVolume) {
+          if (ticker.dayVolume > lastTicker.dayVolume) {
             execution = new Execution
             execution.sec = sec
             execution.time = ticker.time
-            execution.price  = ticker.lastPrice
-            execution.volume = ticker.dayVolume - prevTicker.dayVolume
-            execution.amount = ticker.dayAmount - prevTicker.dayAmount
+            execution.price = ticker.lastPrice
+            execution.volume = ticker.dayVolume - lastTicker.dayVolume
+            execution.amount = ticker.dayAmount - lastTicker.dayAmount
             allExecutions += execution
-          }
-          else{
-            log.fine("dayVolome curr: " + ticker.dayVolume + ", prev: " + prevTicker.dayVolume)
+          } else{
+            log.fine("dayVolome curr: " + ticker.dayVolume + ", last: " + lastTicker.dayVolume)
           }
 
           if (minQuote.justOpen_?) {
             minQuote.unjustOpen_!
+            
+            // init minQuote values:
+            minQuote.open = ticker.lastPrice
+            minQuote.high = ticker.lastPrice
+            minQuote.low  = ticker.lastPrice
+            minQuote.volume = 0
+            minQuote.amount = 0
+          } 
 
-            minQuote.open = prevTicker.lastPrice
-            if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
-              if (ticker.dayHigh > prevTicker.dayHigh) {
-                /** this is a new day high happened during this ticker */
-                minQuote.high = ticker.dayHigh
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minQuote.high = math.max(minQuote.high, ticker.lastPrice)
-            }
-
-            if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
-              if (ticker.dayLow < prevTicker.dayLow) {
-                /** this is a new day low happened during this ticker */
-                minQuote.low = ticker.dayLow
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minQuote.low = math.min(minQuote.low, ticker.lastPrice)
-            }
-            minQuote.close = ticker.lastPrice
-            if (execution != null && execution.volume > 1) {
-              minQuote.volume = execution.volume
-              minQuote.amount = execution.amount
-            }
-
-          } else {
-
-            if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
-              if (ticker.dayHigh > prevTicker.dayHigh) {
-                /** this is a new day high happened during this ticker */
-                minQuote.high = ticker.dayHigh
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minQuote.high = math.max(minQuote.high, ticker.lastPrice)
-            }
-
-            if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
-              if (ticker.dayLow < prevTicker.dayLow) {
-                /** this is a new day low happened during this ticker */
-                minQuote.low = ticker.dayLow
-              }
-            }
-            if (ticker.lastPrice != 0) {
-              minQuote.low = math.min(minQuote.low, ticker.lastPrice)
-            }
-
-            minQuote.close = ticker.lastPrice
-            if (execution != null && execution.volume > 1) {
-              minQuote.volume += execution.volume
-              minQuote.amount += execution.amount
+          if (lastTicker.dayHigh > 0 && ticker.dayHigh > 0) {
+            if (ticker.dayHigh > lastTicker.dayHigh) {
+              /** this is a new day high happened during prevTicker to this ticker */
+              minQuote.high = ticker.dayHigh
             }
           }
+          if (ticker.lastPrice > 0) {
+            minQuote.high = math.max(minQuote.high, ticker.lastPrice)
+          }
+
+          if (lastTicker.dayLow > 0 && ticker.dayLow > 0) {
+            if (ticker.dayLow < lastTicker.dayLow) {
+              /** this is a new day low happened during prevTicker to this ticker */
+              minQuote.low = ticker.dayLow
+            }
+          }
+          if (ticker.lastPrice > 0) {
+            minQuote.low = math.min(minQuote.low, ticker.lastPrice)
+          }
+          
+          minQuote.close = ticker.lastPrice
+          if (execution != null && execution.volume > 0) {
+            minQuote.volume += execution.volume
+            minQuote.amount += execution.amount
+          }
+
         } else {
           log.warning("Discard ticker " + ticker.toString)
         }
@@ -315,8 +296,8 @@ abstract class TickerServer extends DataServer[Ticker] {
 
 
       if (execution != null) {
-        val prevPrice = if (isDayFirst) ticker.prevClose else prevTicker.lastPrice
-        val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(prevTicker.bidAsks, copy = true)
+        val prevPrice = if (isDayFirst) ticker.prevClose else lastTicker.lastPrice
+        val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
         allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
 
         sec.publish(ExecutionEvent(ticker.prevClose, execution))
@@ -325,7 +306,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
       if (tickerValid) {
         allTickers += ticker
-        prevTicker.copyFrom(ticker)
+        lastTicker.copyFrom(ticker)
         sec.publish(TickerEvent(ticker))
 
         // update daily quote and ser

@@ -546,7 +546,7 @@ class Exchange {
     
     if (willCommit) {
       commit
-      log.info(this.code + " closed, committed.")
+      log.info(this.code + " doClosing: committed.")
     }
   }
 
