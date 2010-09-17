@@ -627,6 +627,7 @@ class Sec extends SerProvider {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(quoteServer) =>
+            contract.srcSymbol = quoteServer.toSrcSymbol(this.uniSymbol)
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
             quoteServer.subscribe(contract)
 
@@ -707,9 +708,6 @@ class Sec extends SerProvider {
   def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
     if (uniSymbol == "") return None
 
-    // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-    tickerContract.srcSymbol = uniSymbol
-
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
@@ -723,7 +721,9 @@ class Sec extends SerProvider {
       if (!startRefresh) {
         tickerServer.stopRefresh
       }
-
+      // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+      //this is not always true, for DJI, src code: DJI while unisymbol is ^DJI
+      tickerContract.srcSymbol = tickerServer.toSrcSymbol(uniSymbol)
       if (!tickerServer.isContractSubsrcribed(tickerContract)) {
         tickerServer.subscribe(tickerContract)
       }
@@ -789,7 +789,8 @@ class Sec extends SerProvider {
 
 class SecSnap(val sec: Sec) {
   var currTicker: Ticker = _
-  var prevTicker: Ticker = _
+  var prevTicker$: Ticker = _
+    
   var isDayFirstTicker: Boolean = _
 
   var dailyQuote: Quote = _
@@ -797,6 +798,8 @@ class SecSnap(val sec: Sec) {
 
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
+
+  def prevTicker : Ticker = prevTicker$
   
   private val timeZone = sec.exchange.timeZone
 
@@ -876,16 +879,17 @@ class SecSnap(val sec: Sec) {
       case null =>
         Tickers.lastTickerOf(sec, rounded) match  {
           case None =>
-            prevTicker = new Ticker
+            prevTicker$ = new Ticker
             isDayFirstTicker = true
           case Some(x) =>
-            prevTicker = x
+            prevTicker$ = x
             isDayFirstTicker = false
         }
-      case _ => isDayFirstTicker = false
+      case _ =>
+        isDayFirstTicker = false
     }
 
-    (prevTicker, isDayFirstTicker)
+    (prevTicker$, isDayFirstTicker)
   }
 }
 

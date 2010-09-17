@@ -90,7 +90,7 @@ abstract class TickerServer extends DataServer[Ticker] {
      * of tickerSnapshot may not know there is a new tickerSnapshot for
      * this symbol, the older one won't be updated any more.
      */
-    val symbol = contract.srcSymbol
+    val symbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
     tickerSnapshot.symbol = symbol
@@ -140,8 +140,14 @@ abstract class TickerServer extends DataServer[Ticker] {
               tickersLast += tickerx
               secSnaps += sec.secSnap.setByTicker(ticker)
             }
-          case None =>
+            else{
+              log.fine("subscribedSrcSymbols doesn't contain " + symbol)
+            }
+          case None => log.warning("No sec for " + symbol)
         }
+      }
+      else{
+        log.info("Discard ticker: " + ticker.symbol)
       }
 
       i += 1
@@ -156,6 +162,8 @@ abstract class TickerServer extends DataServer[Ticker] {
   def composeSer(values: Array[Ticker]): Long = {
     var lastTime = Long.MinValue
     log.info("Composing ser from tickers: " + values.length)
+//    values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
+
     if (values.length == 0) return lastTime
 
     val secSnaps = getSecSnaps(values)
@@ -179,6 +187,8 @@ abstract class TickerServer extends DataServer[Ticker] {
       val prevTicker = secSnap.prevTicker
       val dayQuote = secSnap.dailyQuote
       val minQuote = secSnap.minuteQuote
+
+      log.fine("Composing " + ticker.symbol + ", prevTicker: " + prevTicker)
 
       var tickerValid = false
       var execution: Execution = null
@@ -204,12 +214,14 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.amount = ticker.dayAmount
         allExecutions += execution
 
-        minQuote.open   = ticker.lastPrice
-        minQuote.high   = ticker.lastPrice
-        minQuote.low    = ticker.lastPrice
+        minQuote.open   = ticker.dayOpen
+        minQuote.high   = ticker.dayHigh
+        minQuote.low    = ticker.dayLow
         minQuote.close  = ticker.lastPrice
-        minQuote.volume = 0.00001
-        minQuote.amount = 0.00001
+        minQuote.volume = ticker.dayVolume
+        minQuote.amount = ticker.dayAmount
+
+        dayQuote.open = ticker.dayOpen
 
       } else {
 
@@ -235,14 +247,38 @@ abstract class TickerServer extends DataServer[Ticker] {
             execution.amount = ticker.dayAmount - prevTicker.dayAmount
             allExecutions += execution
           }
+          else{
+            log.fine("dayVolome curr: " + ticker.dayVolume + ", prev: " + prevTicker.dayVolume)
+          }
 
           if (minQuote.justOpen_?) {
             minQuote.unjustOpen_!
 
-            minQuote.open  = ticker.lastPrice
-            minQuote.high  = ticker.lastPrice
-            minQuote.low   = ticker.lastPrice
+            minQuote.open = prevTicker.lastPrice
+            if (prevTicker.dayHigh != 0 && ticker.dayHigh != 0) {
+              if (ticker.dayHigh > prevTicker.dayHigh) {
+                /** this is a new day high happened during this ticker */
+                minQuote.high = ticker.dayHigh
+              }
+            }
+            if (ticker.lastPrice != 0) {
+              minQuote.high = math.max(minQuote.high, ticker.lastPrice)
+            }
+
+            if (prevTicker.dayLow != 0 && ticker.dayLow != 0) {
+              if (ticker.dayLow < prevTicker.dayLow) {
+                /** this is a new day low happened during this ticker */
+                minQuote.low = ticker.dayLow
+              }
+            }
+            if (ticker.lastPrice != 0) {
+              minQuote.low = math.min(minQuote.low, ticker.lastPrice)
+            }
             minQuote.close = ticker.lastPrice
+            if (execution != null && execution.volume > 1) {
+              minQuote.volume = execution.volume
+              minQuote.amount = execution.amount
+            }
 
           } else {
 
@@ -284,6 +320,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
 
         sec.publish(ExecutionEvent(ticker.prevClose, execution))
+        log.fine("Published execution: " + ExecutionEvent(ticker.prevClose, execution))
       }
 
       if (tickerValid) {
@@ -314,6 +351,9 @@ abstract class TickerServer extends DataServer[Ticker] {
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
         lastTime = math.max(lastTime, ticker.time)
+      }
+      else{
+        log.warning("Invalid ticker: " + ticker)
       }
 
       i += 1
@@ -375,6 +415,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
       if (willCommit) {
         log.info("Committing: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+//        allTickers.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Will commit " + ticker)}}
       }
     }
 
@@ -398,6 +439,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     // publish events
     if (allTickers.length > 0) {
       TickerServer.publish(TickersEvent(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
+//      allTickers.foreach(t => if(t.symbol == "399001.SZ"){log.info("Published " + t.symbol + ": " + t)})
     }
 
     lastTime
