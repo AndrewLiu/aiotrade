@@ -95,7 +95,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     val res = if (timeout == -1) {
       syncVar.get
     } else {
-      syncVar.get(timeout) getOrElse RpcResponse(req, "rpc timeout")
+      syncVar.get(timeout) getOrElse RpcTimeout
     }
 
     res match {

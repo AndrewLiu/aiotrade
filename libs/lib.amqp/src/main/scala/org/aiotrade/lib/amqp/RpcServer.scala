@@ -6,9 +6,6 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
 
-case class RpcRequest(args: Any*)
-case class RpcResponse(req: RpcRequest, result: Any)
-
 /**
  * Class which manages a request queue for a simple RPC-style service.
  * The class is agnostic about the format of RPC arguments / return values.

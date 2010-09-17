@@ -61,13 +61,34 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  */
 
 /**
+ * Encapsulates an arbitrary message - simple "bean" holder structure.
+ */
+case class Delivery(body: Array[Byte], properties: AMQP.BasicProperties, envelope: Envelope) extends Event
+
+/**
  * @param content A deserialized value received via AMQP.
  * @param props
  *
  * Messages received from AMQP are wrapped in this case class. When you
  * register a listener, this is the case class that you will be matching on.
  */
-case class AMQPMessage(content: Any, props: AMQP.BasicProperties) extends Event
+object AMQPMessage {
+  def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new AMQPMessage(body, props, envelope)
+  def unapply(x: AMQPMessage): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
+}
+@serializable
+class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event
+
+object RpcResponse {
+  def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new RpcResponse(body, props, envelope)
+  def unapply(x: RpcResponse): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
+}
+@serializable
+class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event
+
+case object RpcTimeout extends RpcResponse("RPC timeout", null, null)
+
+case class RpcRequest(args: Any*) extends Event
 
 object AMQPExchange {
   /**
@@ -275,11 +296,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     // of shutting down is the presence of _shutdown.
     // Invariant: This is never on _queue unless _shutdown != null.
     private val POISON = Delivery(null, null, null)
-
-    /**
-     * Encapsulates an arbitrary message - simple "bean" holder structure.
-     */
-    case class Delivery(envelope: Envelope, properties: AMQP.BasicProperties, body: Array[Byte])
   }
   
   class QueueingConsumer(channle: Channel) extends DefaultConsumer(channle) {
@@ -305,7 +321,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       checkShutdown
       log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
-      this._queue.add(Delivery(envelope, props, body))
+      this._queue.add(Delivery(body, props, envelope))
     }
 
     /**
@@ -362,7 +378,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
     def relay(delivery: Delivery) {
       delivery match {
-        case Delivery(env, props, body) =>
+        case Delivery(body, props, env) =>
           val body1 = props.getContentEncoding match {
             case "gzip" => ungzip(body)
             case "lzma" => unlzma(body)

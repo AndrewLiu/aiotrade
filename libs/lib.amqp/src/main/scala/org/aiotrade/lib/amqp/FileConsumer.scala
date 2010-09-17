@@ -67,7 +67,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
   class DefaultProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
-      val content = msg.content.asInstanceOf[Array[Byte]]
+      val body = msg.body.asInstanceOf[Array[Byte]]
 
       try {
         var fileName = headers.get("filename").toString
@@ -80,7 +80,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
         }
         
         val out = new FileOutputStream(outputFile)
-        out.write(content)
+        out.write(body)
         out.close
       } catch {
         case e => e.printStackTrace
@@ -97,7 +97,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
     
     protected def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
-      val content = msg.content.asInstanceOf[Array[Byte]]
+      val body = msg.body.asInstanceOf[Array[Byte]]
 
       try {
         var fileName = headers.get("filename").toString
@@ -110,7 +110,7 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
         }
         
         val out = new FileOutputStream(outputFile)
-        out.write(content)
+        out.write(body)
         out.close
 
         outputFile.renameTo(new File(outputDir, fileName))
