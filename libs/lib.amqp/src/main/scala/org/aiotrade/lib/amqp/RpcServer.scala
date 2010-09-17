@@ -7,7 +7,7 @@ import com.rabbitmq.client.Consumer
 import java.io.IOException
 import org.aiotrade.lib.util.Reactor
 
-case class RpcRequest(args: List[Any]) {def this() = this(Nil)}
+case class RpcRequest(args: Any*)
 case class RpcResponse(req: RpcRequest, result: Any)
 
 /**
@@ -44,41 +44,30 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
   }
 
   /**
-   * Hidden super's Processor, we'll use Handler for RpcServer instead
-   */
-  private class Processor
-
-  /**
-   * Hold strong refs of processors to avoid them to be GCed
-   */
-  var handlers: List[Handler] = Nil
-
-  /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage and reply to client via process(msg).
    */
-  abstract class Handler extends Reactor {
-    handlers ::= this
-
-    reactions += {
-      case msg: AMQPMessage =>
-        val reqProps = msg.props
-        if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
-          val (replyContent, replyProps) = process(msg) match {
-            case AMQPMessage(replyContentx, null) => (replyContentx, new AMQP.BasicProperties)
-            case AMQPMessage(replyContentx, replyPropsx) => (replyContentx, replyPropsx)
-          }
-              
-          replyProps.setCorrelationId(reqProps.getCorrelationId)
-          publish("", reqProps.getReplyTo, replyProps, replyContent)
-        }
-    }
-    listenTo(RpcServer.this)
+  abstract class Handler extends Processor {
 
     /**
      * @return AMQPMessage that will be send back to caller
      */
-    protected def process(msg: AMQPMessage): AMQPMessage
+    protected def process(msg: AMQPMessage) {
+      msg match {
+        case AMQPMessage(req: RpcRequest, reqProps) =>
+          if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
+            val replyContent = handle(req)
+            val replyProps = new AMQP.BasicProperties
+            
+            replyProps.setCorrelationId(reqProps.getCorrelationId)
+            publish("", reqProps.getReplyTo, replyProps, replyContent)
+          }
+      }
+    }
+    
+    /**
+     * @return AMQPMessage that will be send back to caller
+     */
+    protected def handle(req: RpcRequest): RpcResponse
   }
 }
-
