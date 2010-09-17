@@ -58,15 +58,29 @@ object YahooQuoteServer {
   protected val UrlPath = "/table.csv"
   protected val dateFormat: DateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-  def exchangeOf(symbol: String): Exchange = {
-    symbol.split("\\.") match {
+  def exchangeOf(srcSymbol: String): Exchange = {
+    srcSymbol.split("\\.") match {
       case Array(head, exchange) => exchange.toUpperCase match {
           case "L"  => Exchange.L
           case "SS" => Exchange.SS
           case "SZ" => Exchange.SZ
           case _ => Exchange.N
         }
-      case _ => Exchange.N
+      case _ =>
+        exchangeOfIndex(srcSymbol) match {
+          case Some(x) => x
+          case None => Exchange.N
+        }
+
+
+    }
+  }
+
+  private def exchangeOfIndex(srcSymbol: String) : Option[Exchange] = {
+    srcSymbol match {
+      case "DJI" => Some(Exchange.N)
+      case "HSI" => Some(Exchange.HK)
+      case _ => None
     }
   }
 
