@@ -628,6 +628,7 @@ class Sec extends SerProvider {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(quoteServer) =>
+            contract.srcSymbol = quoteServer.toSrcSymbol(this.uniSymbol)
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
             quoteServer.subscribe(contract)
 
@@ -708,9 +709,6 @@ class Sec extends SerProvider {
   def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
     if (uniSymbol == "") return None
 
-    // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-    tickerContract.srcSymbol = uniSymbol
-
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
@@ -724,7 +722,9 @@ class Sec extends SerProvider {
       if (!startRefresh) {
         tickerServer.stopRefresh
       }
-
+      // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+      //this is not always true, for DJI, src code: DJI while unisymbol is ^DJI
+      tickerContract.srcSymbol = tickerServer.toSrcSymbol(uniSymbol)
       if (!tickerServer.isContractSubsrcribed(tickerContract)) {
         tickerServer.subscribe(tickerContract)
       }

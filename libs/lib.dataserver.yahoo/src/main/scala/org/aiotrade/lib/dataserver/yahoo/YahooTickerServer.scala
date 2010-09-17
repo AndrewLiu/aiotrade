@@ -66,6 +66,9 @@ class YahooTickerServer extends TickerServer {
   private val BaseUrl = "http://quote.yahoo.com"
   private val UrlPath = "/download/javasoft.beans"
 
+  override def toSrcSymbol(uniSymbol: String): String = if(uniSymbol == "^DJI") "DJI" else uniSymbol
+  override def toUniSymbol(srcSymbol: String): String = if(srcSymbol == "DJI") "^DJI" else srcSymbol
+
   /**
    * Template:
    * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
@@ -127,11 +130,12 @@ class YahooTickerServer extends TickerServer {
     @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
-      case line => line.split(",") match {
+      case line => 
+        log.fine("line: " + line)
+        line.split(",") match {
           case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _, _, _, nameX, marketX, _*)
             if !dateX.toUpperCase.contains("N/A") && !timeX.toUpperCase.contains("N/A") =>
-
-            val symbol  = symbolX.toUpperCase.replace('"', ' ').trim
+            val symbol  = toUniSymbol(symbolX.toUpperCase.replace('"', ' ').trim)
             val dateStr = dateX.replace('"', ' ').trim
             val timeStr = timeX.replace('"', ' ').trim
 
@@ -183,6 +187,8 @@ class YahooTickerServer extends TickerServer {
             tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
             tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
             tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
+            log.fine("tickerSnapshot : "+ tickerSnapshot.toLightTicker.toString)
+            log.fine("tickerSnapshot.isChanged : " + tickerSnapshot.isChanged + ", subscribedSrcSymbols.contains " + symbol + ": " + this.subscribedSrcSymbols.contains(symbol))
             if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
               val ticker = new Ticker
               ticker.symbol = symbol
@@ -227,7 +233,7 @@ class YahooTickerServer extends TickerServer {
       if (!toProcess.isEmpty) {
         try {
           request(toProcess) match {
-            case Some(is) => 
+            case Some(is) =>
               val tickers = read(is)
               loadedTime = postRefresh(tickers)
             case None => log.info("no reponse for :" +toProcess.mkString(","))

@@ -90,7 +90,7 @@ abstract class TickerServer extends DataServer[Ticker] {
      * of tickerSnapshot may not know there is a new tickerSnapshot for
      * this symbol, the older one won't be updated any more.
      */
-    val symbol = contract.srcSymbol
+    val symbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
     tickerSnapshot.symbol = symbol
