@@ -5,7 +5,6 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
-import org.aiotrade.lib.util.Reactor
 
 case class RpcRequest(args: Any*)
 case class RpcResponse(req: RpcRequest, result: Any)

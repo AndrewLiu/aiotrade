@@ -11,8 +11,6 @@ import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
 import java.util.logging.Logger
 
-case object RpcTimeOut
-
 /**
  * Convenience class which manages a temporary reply queue for simple RPC-style communication.
  * The class is agnostic about the format of RPC arguments / return values.
@@ -97,7 +95,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     val res = if (timeout == -1) {
       syncVar.get
     } else {
-      syncVar.get(timeout) getOrElse RpcTimeOut
+      syncVar.get(timeout) getOrElse RpcResponse(req, "rpc timeout")
     }
 
     res match {
