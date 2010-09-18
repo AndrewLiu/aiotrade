@@ -711,9 +711,9 @@ class Sec extends SerProvider {
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
-           klass <- quoteServer.classOfTickerServer
+           klassName <- quoteServer.classNameOfTickerServer
       ) {
-        tickerContract.serviceClassName = klass.getName
+        tickerContract.serviceClassName = klassName
       }
     }
 

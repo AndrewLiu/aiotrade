@@ -243,21 +243,15 @@ class YahooQuoteServer extends QuoteServer {
 
   def sourceSerialNumber = 1
 
-  override def supportedFreqs: Array[TFreq] = {
-    Array(TFreq.DAILY)
-  }
+  override def supportedFreqs: Array[TFreq] = Array(TFreq.DAILY)
 
   override def icon: Option[Image] = {
-    val img = try {
-      ImageIO.read(new File("org/aiotrade/lib/dataserver/yahoo/resources/favicon_yahoo.png"))
-    } catch {case _ => null}
-
-    if (img == null) None else Some(img)
+    try {
+      Option(ImageIO.read(new File("org/aiotrade/lib/dataserver/yahoo/resources/favicon_yahoo.png")))
+    } catch {case _ => None}
   }
 
-  override def sourceTimeZone: TimeZone = {
-    TimeZone.getTimeZone("America/New_York")
-  }
+  override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
 
-  def classOfTickerServer = Some(classOf[YahooTickerServer])
+  def classNameOfTickerServer = Some(YahooTickerServer.getClass.getName)
 }

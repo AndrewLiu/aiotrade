@@ -135,7 +135,7 @@ abstract class QuoteServer extends DataServer[Quote] {
 
   def isFreqSupported(freq: TFreq): Boolean = supportedFreqs exists (_ == freq)
 
-  def classOfTickerServer: Option[Class[_ <: TickerServer]]
+  def classNameOfTickerServer: Option[String]
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol

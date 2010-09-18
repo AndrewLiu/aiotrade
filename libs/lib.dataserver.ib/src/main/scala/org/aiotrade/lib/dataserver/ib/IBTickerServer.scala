@@ -43,9 +43,10 @@ import org.aiotrade.lib.securities.model.Ticker
  *
  * @author Caoyuan Deng
  */
-abstract class IBTickerServer extends TickerServer
-object IBTickerServer extends IBTickerServer {
-    
+object IBTickerServer extends TickerServer {
+
+  def getSingleton = this
+
   private lazy val ibWrapper = IBWrapper
     
   protected def connect: Boolean = {
@@ -136,9 +137,7 @@ object IBTickerServer extends IBTickerServer {
     EmptyValues
   }
     
-  override def createNewInstance: Option[IBTickerServer] = {
-    Some(this)
-  }
+  override def createNewInstance: Option[TickerServer] = Some(this)
     
   def displayName = {
     "IB TWS"

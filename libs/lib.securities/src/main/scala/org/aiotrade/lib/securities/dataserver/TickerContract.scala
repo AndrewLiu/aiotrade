@@ -30,11 +30,8 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
-import java.util.logging.Level
-import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Ticker
 
@@ -45,16 +42,9 @@ import org.aiotrade.lib.securities.model.Ticker
  *
  * @author Caoyuan Deng
  */
-object TickerContract {
-  val folderName = "TickerServers"
-}
-
-import TickerContract._
 class TickerContract extends DataContract[Ticker, TickerServer] {
   type T = QuoteSer
 
-  val log = Logger.getLogger(this.getClass.getName)
-  
   serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
   refreshable = true
@@ -67,29 +57,12 @@ class TickerContract extends DataContract[Ticker, TickerServer] {
    * @param none args are needed
    */
   override def createServiceInstance(args: Any*): Option[TickerServer] = {
-    lookupServiceTemplate match {
+    lookupServiceTemplate(classOf[TickerServer], "DataServers") match {
       case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
       case None => None
     }
   }
-
-  def lookupServiceTemplate: Option[TickerServer] = {
-    val services = PersistenceManager().lookupAllRegisteredServices(classOf[TickerServer], folderName)
-    services find {x =>
-      val className = x.getClass.getName
-      className == serviceClassName || (className + "$") == serviceClassName
-    } match {
-      case None =>
-        try {
-          log.warning("Cannot find registeredService of QuoteServer in " + (services map (_.getClass.getName)) + ", try Class.forName call: serviceClassName=" + serviceClassName)
-          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[TickerServer])
-        } catch {
-          case ex: Exception => log.log(Level.SEVERE, "Cannot class.forName of class: " + serviceClassName, ex); None
-        }
-      case some => some
-    }
-  }
-        
+  
   /**
    * Ticker contract don't care about freq, so override super
    */

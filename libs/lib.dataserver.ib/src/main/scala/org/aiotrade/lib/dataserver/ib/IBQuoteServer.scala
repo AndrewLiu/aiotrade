@@ -282,7 +282,7 @@ class IBQuoteServer extends QuoteServer {
 
   override def icon: Option[Image] = {
     try {
-      Some(ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/ib/resources/favicon_ib.png")))
+      Option(ImageIO.read(new File("org/aiotrade/platform/modules/dataserver/ib/resources/favicon_ib.png")))
     } catch {case ex: IOException => None}
   }
 
@@ -290,7 +290,7 @@ class IBQuoteServer extends QuoteServer {
     TimeZone.getTimeZone("America/New_York")
   }
 
-  def classOfTickerServer = Some(classOf[IBTickerServer])
+  def classNameOfTickerServer = Some(classOf[IBTickerServer].getName)
 
   /**
    * 1 1sec "<30;2000> S"

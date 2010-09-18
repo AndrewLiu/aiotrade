@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math
 
 import java.util.Properties
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.util.ServiceLoader
 
@@ -41,7 +42,13 @@ import org.aiotrade.lib.util.ServiceLoader
  * @since   1.0.4
  */
 object PersistenceManager {
-  private lazy val manager: PersistenceManager = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private lazy val manager: PersistenceManager = {
+    val x = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
+    log.info("Use PersistenceManager: " + x.getClass.getName)
+    x
+  }
 
   def apply(): PersistenceManager = manager
     

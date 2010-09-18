@@ -31,11 +31,8 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.awt.Image
-import java.util.logging.Level
-import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Quote
 
 /**
@@ -43,13 +40,7 @@ import org.aiotrade.lib.securities.model.Quote
  *
  * @author Caoyuan Deng
  */
-object QuoteContract {
-  val folderName = "QuoteServers"
-}
-
-import QuoteContract._
 class QuoteContract extends DataContract[Quote, QuoteServer] {
-  private val log = Logger.getLogger(this.getClass.getName)
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   /** default freq */
@@ -60,7 +51,7 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.icon
     } else {
-      lookupServiceTemplate match {
+      lookupServiceTemplate(classOf[QuoteServer], "DataServers") match {
         case Some(x) => x.icon
         case None => None
       }
@@ -71,9 +62,9 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.supportedFreqs
     } else {
-      lookupServiceTemplate match {
-        case None => Array()
+      lookupServiceTemplate(classOf[QuoteServer], "DataServers") match {
         case Some(x) => x.supportedFreqs
+        case None => Array()
       }
     }
   }
@@ -82,9 +73,9 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.isFreqSupported(freq)
     } else {
-      lookupServiceTemplate match {
-        case None => false
+      lookupServiceTemplate(classOf[QuoteServer], "DataServers") match {
         case Some(x) => x.isFreqSupported(freq)
+        case None => false
       }
     }
   }
@@ -95,26 +86,9 @@ class QuoteContract extends DataContract[Quote, QuoteServer] {
    * @param none args are needed.
    */
   override def createServiceInstance(args: Any*): Option[QuoteServer] = {
-    lookupServiceTemplate match {
+    lookupServiceTemplate(classOf[QuoteServer], "DataServers") match {
       case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
       case None => None
-    }
-  }
-
-  def lookupServiceTemplate: Option[QuoteServer] =  {
-    val services = PersistenceManager().lookupAllRegisteredServices(classOf[QuoteServer], folderName)
-    services find {x =>
-      val className = x.getClass.getName
-      className == serviceClassName || (className + "$") == serviceClassName
-    } match {
-      case None =>
-        try {
-          log.warning("Cannot find registeredService of QuoteServer in " + (services map (_.getClass.getName)) + ", try Class.forName call: serviceClassName=" + serviceClassName)
-          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[QuoteServer])
-        } catch {
-          case ex: Exception => log.log(Level.SEVERE, "Cannot class.forName of class: " + serviceClassName, ex); None
-        }
-      case some => some
     }
   }
 

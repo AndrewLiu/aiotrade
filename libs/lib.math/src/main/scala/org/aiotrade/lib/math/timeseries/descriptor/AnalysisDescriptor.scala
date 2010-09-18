@@ -30,7 +30,10 @@
  */
 package org.aiotrade.lib.math.timeseries.descriptor
 
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.swing.Action
+import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.serialization.BeansDocument
 //import org.aiotrade.lib.util.serialization.DeserializationConstructor
@@ -50,6 +53,8 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
                                       private var _freq: TFreq,
                                       private var _active: Boolean) extends WithActions {
 
+  private val log = Logger.getLogger(this.getClass.getName)
+
   private val withActionsHelper = new WithActionsHelper(this)
 
   var containerContents: AnalysisContents = _
@@ -65,8 +70,6 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
     this.serviceClassName = serviceClassName
     this.freq = freq.clone
   }
-
-  protected def createServiceInstance(args: Any*): Option[S]
 
   /**
    * init and return a server instance
@@ -111,7 +114,50 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
   def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
     this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
   }
-    
+
+  protected def createServiceInstance(args: Any*): Option[S]
+
+  // --- helpers ---
+  
+  protected def lookupServiceTemplate[T <: AnyRef](tpe: Class[T], folderName: String): Option[T] = {
+    val services = PersistenceManager().lookupAllRegisteredServices(tpe, folderName)
+    services find {x =>
+      val className = x.getClass.getName
+      className == serviceClassName || (className + "$") == serviceClassName
+    } match {
+      case None =>
+        try {
+          log.warning("Cannot find registeredService of " + tpe + " in folder '" +
+                      folderName + "': " + services.map(_.getClass.getName) +
+                      ", try Class.forName call: serviceClassName=" + serviceClassName)
+
+          val klass = Class.forName(serviceClassName)
+          getScalaSingletonInstance(klass) match {
+            case Some(x) if x.isInstanceOf[T] => Option(x.asInstanceOf[T])
+            case _ => Option(klass.newInstance.asInstanceOf[T])
+          }
+        } catch {
+          case ex: Exception => log.log(Level.SEVERE, "Failed to call Class.forName of class: " + serviceClassName, ex)
+            None
+        }
+      case some => some
+    }
+  }
+
+  protected def isScalaSingletonClass(klass: Class[_]) = {
+    klass.getSimpleName.endsWith("$") && klass.getInterfaces.exists(_.getName == "scala.ScalaObject") &&
+    klass.getDeclaredFields.exists(_.getName == "MODULE$")
+  }
+
+  protected def getScalaSingletonInstance(klass: Class[_]): Option[AnyRef] = {
+    if (klass.getSimpleName.endsWith("$") && klass.getInterfaces.exists(_.getName == "scala.ScalaObject")) {
+      klass.getDeclaredFields.find(_.getName == "MODULE$") match {
+        case Some(x) => Option(x.get(klass))
+        case None => None
+      }
+    } else None
+  }
+
   def addAction(action: Action): Action = {
     withActionsHelper.addAction(action)
   }
@@ -123,7 +169,7 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
   def createDefaultActions: Array[Action] = {
     Array[Action]()
   }
-    
+
   def writeToBean(doc:BeansDocument): Element = {
     val bean = doc.createBean(this)
         
@@ -141,5 +187,5 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
                         "freq" +
                         active)
   }
-    
+
 }

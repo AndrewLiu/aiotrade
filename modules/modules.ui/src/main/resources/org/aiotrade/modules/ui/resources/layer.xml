@@ -297,18 +297,6 @@
     </folder>
 
 
-    <folder name="QuoteServers">
-        <file name="Yahoo.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"/>
-        </file>
-    </folder>
-
-    <folder name="TickerServers">
-        <file name="Yahoo.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"/>
-        </file>
-    </folder>
-
     <folder name="Indicators">
         <file name="VOL.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.indicator.VOLIndicator"/>

@@ -52,12 +52,17 @@ import scala.collection.mutable.ListBuffer
  * 
  * @author Caoyuan Deng
  */
-object YahooTickerServer extends YahooTickerServer {
-  override protected val isTheSingleton = true
-}
-class YahooTickerServer extends TickerServer {
+object YahooTickerServer extends TickerServer {
   private val log = Logger.getLogger(this.getClass.getName)
-  protected val isTheSingleton = false
+
+  /**
+   * Used to generate a static method for YahooTickerServer.getSingleton, then
+   * we can register it in NetBeans' layer.xml as:
+   *     <file name="YahooTicker.instance">
+   *         <attr name="instanceCreate" methodvalue="org.aiotrade.lib.dataserver.yahoo.YahooTickerServer.getSingleton"/>
+   *     </file>
+   */
+  def getSingleton = this
 
   private val nSymbolsPerReq = 100
 
@@ -214,10 +219,8 @@ class YahooTickerServer extends TickerServer {
    * @param afterThisTime from time
    */
   protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
-    if (!isTheSingleton) return EmptyValues
-
-    log.info("Loading from source ...")
-
+    if (subscribedContracts.isEmpty) return EmptyValues
+    
     val symbols = subscribedContracts map (_.srcSymbol) toArray
     var i = 0
     while (i < symbols.length) {
@@ -240,12 +243,10 @@ class YahooTickerServer extends TickerServer {
       }
     }
 
-    log.info("Finished loading from source")
-
     EmptyValues
   }
 
-  override def createNewInstance: Option[YahooTickerServer] = Some(YahooTickerServer)
+  override def createNewInstance: Option[TickerServer] = Some(this)
 
   override def displayName: String = "Yahoo! Finance Internet"
 

@@ -11,4 +11,13 @@
         <file name="DefaultContents.xml" url="DefaultContents.xml"/>
     </folder>
 
+    <folder name="DataServers">
+        <file name="YahooQuote.instance">
+            <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"/>
+        </file>
+        <file name="YahooTicker.instance">
+            <attr name="instanceCreate" methodvalue="org.aiotrade.lib.dataserver.yahoo.YahooTickerServer.getSingleton"/>
+        </file>
+    </folder>
+
 </filesystem>

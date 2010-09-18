@@ -13,16 +13,13 @@
         </folder>
     </folder>
     
-    <folder name="QuoteServers">
+    <folder name="DataServers">
         <file name="IBQuote.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.ib.IBQuoteServer"/>
         </file>
-    </folder>
-    
-    <folder name="TickerServers">
         <file name="IBTicker.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.ib.IBTickerServer"/>
+            <attr name="instanceCreate" stringvalue="org.aiotrade.lib.dataserver.ib.IBTickerServer.getSingleton"/>
         </file>
     </folder>
-    
+        
 </filesystem>

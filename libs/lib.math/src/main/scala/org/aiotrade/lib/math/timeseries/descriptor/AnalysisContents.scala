@@ -75,7 +75,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     descriptorBuf.indexOf(descriptor)
   }
     
-  def lastIndexOf[T <: AnalysisDescriptor[Any]](clz: Class[T]): Int = {
+  def lastIndexOf[T <: AnalysisDescriptor[_]](clz: Class[T]): Int = {
     var lastOne: T = null.asInstanceOf[T]
     for (descriptor <- descriptorBuf if clz.isInstance(descriptor)) {
       lastOne = descriptor.asInstanceOf[T]
@@ -97,7 +97,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
       }
       i += 1
     }
-        
+
     for (i <- toBeRemoved) {
       descriptorBuf.remove(i)
     }
@@ -166,11 +166,9 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   }
     
   private class ContentsSaveAction extends SaveAction {
-        
-    def execute: Unit = {
+    def execute {
       PersistenceManager().saveContents(AnalysisContents.this)
     }
-        
   }
     
 }

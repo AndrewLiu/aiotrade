@@ -74,8 +74,6 @@ abstract class TickerServer extends DataServer[Ticker] {
   protected val isServer = !config.getBool("dataserver.client", false)
   log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
 
-  refreshable = true
-
   def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = {
     val sec = Exchange.secOf(uniSymbol).get
     sec.tickerSnapshot
