@@ -62,7 +62,6 @@ import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.InfoSecs
 import ru.circumflex.orm._
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.WeakHashMap
 
 
 object Secs extends Table[Sec] {
@@ -177,9 +176,6 @@ class Sec extends SerProvider {
   private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
-
-  // Holding strong reference to ser combiner etc, see @QuoteSerCombiner
-  private lazy val strongRefHolders = WeakHashMap[AnyRef, AnyRef]()
 
   var description = ""
   private var _defaultFreq: TFreq = _
@@ -368,7 +364,6 @@ class Sec extends SerProvider {
 
         val tarSer = new QuoteSer(this, freq)
         val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
-        strongRefHolders.put(tarSer, combiner)
         
         combiner.computeFrom(0) // don't remove me, see notice above.
         freqToQuoteSer.put(tarSer.freq, tarSer)
