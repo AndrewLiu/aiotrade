@@ -180,7 +180,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       val sec = secSnap.sec
       val ticker = secSnap.newTicker
       val lastTicker = secSnap.lastTicker
-      val isDayFirst = lastTicker.isDayFirst
+      val isDayFirst = ticker.isDayFirst
       val dayQuote = secSnap.dailyQuote
       val minQuote = secSnap.minuteQuote
 
@@ -220,7 +220,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
         allExecutions += execution
-
 
       } else {
 

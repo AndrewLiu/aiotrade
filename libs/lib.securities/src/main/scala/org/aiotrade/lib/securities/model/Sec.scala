@@ -878,13 +878,14 @@ class SecSnap(val sec: Sec) {
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
       case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
-        if (one.isDayFirst) {
-          one.isDayFirst = false // switch to false
-        }
+        newTicker.isDayFirst = false
         one
       case _ => // not today's one or null
         val newone = Tickers.lastTickerOf(sec, rounded, time)
         lastTicker = newone
+        if (lastTicker.isTransient) {
+          newTicker.isDayFirst = true
+        }
         newone
     }
   }
