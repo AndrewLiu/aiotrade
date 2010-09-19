@@ -36,7 +36,7 @@ object Main {
     pane.setBackground(Color.WHITE)
         
     val symbol = "GOOG"
-    val containers = (new Util).init(pane, w, h, symbol, "", "", classOf[YahooQuoteServer], classOf[YahooTickerServer])
+    val containers = (new Util).init(pane, w, h, symbol, "", "", classOf[YahooQuoteServer], YahooTickerServer.getClass)
 
     for (viewContainer <- containers) {
       viewContainer.get.setPreferredSize(new Dimension(w, h))
