@@ -38,18 +38,18 @@ import java.util.logging.Logger
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.JSplitPane
-import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
-import org.aiotrade.lib.charting.laf.LookFeel;
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
+import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartingController
-import org.aiotrade.lib.charting.view.WithDrawingPane;
-import org.aiotrade.lib.charting.view.pane.DrawingPane;
+import org.aiotrade.lib.charting.view.WithDrawingPane
+import org.aiotrade.lib.charting.view.pane.DrawingPane
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.actions.ChangeOptsAction
@@ -66,7 +66,7 @@ import org.aiotrade.modules.ui.actions.ZoomInAction
 import org.aiotrade.modules.ui.actions.ZoomOutAction
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.modules.ui.nodes.AddToFavoriteAction
-import org.openide.nodes.Node;
+import org.openide.nodes.Node
 import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
@@ -110,7 +110,6 @@ object AnalysisChartTopComponent {
   def apply(contents: AnalysisContents, standalone: Boolean = false): AnalysisChartTopComponent = {
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
-    log.info("Calling apply(...) on " + freq)
     
     if (standalone) {
       val instance = instances find {x =>
@@ -224,9 +223,11 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     viewContainer.setComponentPopupMenu(popupMenu)
 
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
-      val ser = sec.serOf(freq).getOrElse(null)
-      if (ser != null && !ser.isLoaded) sec.loadSer(ser)
+      val ser = sec.serOf(freq).get
+      if (!ser.isLoaded) sec.loadSer(ser)
       sec.subscribeTickerServer(true)
+
+      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
 
       val quoteInfoSer = sec.infoPointSerOf(freq).getOrElse(null)
       if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
@@ -272,11 +273,14 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
   def init(contents: AnalysisContents): State = {
     if (state != null) {
-      realTimeBoard.unWatch
-      splitPane.remove(realTimeBoard)
+      val prevSec = viewContainer.controller.baseSer.serProvider.asInstanceOf[Sec]
+      val currSec = contents.serProvider.asInstanceOf[Sec]
+      if (currSec ne prevSec) {
+        realTimeBoard.unWatch
+        splitPane.remove(realTimeBoard)
+        prevSec.resetSers
+      }
       splitPane.remove(viewContainer)
-      val sec = viewContainer.controller.baseSer.serProvider.asInstanceOf[Sec]
-      sec.resetSers
     }
 
     state = new State(contents)

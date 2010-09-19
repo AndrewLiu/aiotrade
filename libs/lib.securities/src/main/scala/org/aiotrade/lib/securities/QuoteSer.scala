@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
+import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Quote
@@ -40,7 +41,8 @@ import org.aiotrade.lib.securities.model.Sec
  * @author Caoyuan Deng
  */
 class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
-    
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
     

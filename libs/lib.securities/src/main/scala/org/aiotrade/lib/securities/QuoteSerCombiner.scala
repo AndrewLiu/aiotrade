@@ -39,20 +39,20 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.util.actors.Reactor
 
 /**
+ * @Note to get this Combiner react to srcSer, it should be held as strong ref by some instances
  *
  * @author Caoyuan Deng
  */
 class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {
   private val log = Logger.getLogger(this.getClass.getName)
   val sec = srcSer.serProvider.asInstanceOf[Sec]
-  log.info("ser of sec: " + sec.freqToQuoteSer)
+
   reactions += {
     case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeFrom(fromTime)
   }
-  
   listenTo(srcSer)
 
   private val freq = tarSer.freq

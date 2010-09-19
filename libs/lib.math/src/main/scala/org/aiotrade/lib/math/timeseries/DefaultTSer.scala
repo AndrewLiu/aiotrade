@@ -301,7 +301,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
 
   override def toString = {
     val sb = new StringBuilder(20)
-    val len = size
+    val len = timestamps.length
     sb.append(shortDescription).append("(").append(freq).append("): size=").append(size).append(", ")
     if (timestamps != null && timestamps.length > 0) {
 

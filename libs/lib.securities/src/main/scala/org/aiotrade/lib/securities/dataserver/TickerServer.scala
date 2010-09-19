@@ -137,14 +137,12 @@ abstract class TickerServer extends DataServer[Ticker] {
             if (subscribedSrcSymbols.contains(symbol)) {
               tickersLast += tickerx
               secSnaps += sec.secSnap.setByTicker(ticker)
-            }
-            else{
+            } else{
               log.fine("subscribedSrcSymbols doesn't contain " + symbol)
             }
           case None => log.warning("No sec for " + symbol)
         }
-      }
-      else{
+      } else {
         log.info("Discard ticker: " + ticker.symbol)
       }
 

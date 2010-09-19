@@ -6,10 +6,10 @@ object SecDividends extends Table[SecDividend] {
   val sec = "secs_id" REFERENCES(Secs)
 
   val prevClose = "prevClose" DOUBLE()
-  val adjWeight =  "adjWeight" DOUBLE()
+  val adjWeight = "adjWeight" DOUBLE()
   val cashBonus = "cashBonus" DOUBLE()
   val shareBobus = "shareBonus" DOUBLE()
-  val shareRight =  "shareRight" DOUBLE()
+  val shareRight = "shareRight" DOUBLE()
   val shareRightPrice = "shareRightPrice" DOUBLE()
   val registerDate = "registerDate" BIGINT
   val dividendDate = "dividendDate" BIGINT
