@@ -86,7 +86,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
             /** no currentPreferredQuoteContract */
             quoteContractTemplate = quoteContract;
         }
-        QuoteServer quoteServerTemplate = quoteContractTemplate.lookupServiceTemplate().get();
+        QuoteServer quoteServerTemplate = quoteContractTemplate.lookupServiceTemplate(QuoteServer.class, "DataServers").get();
 
         dataSourceComboBox.setSelectedItem(quoteServerTemplate);
 
