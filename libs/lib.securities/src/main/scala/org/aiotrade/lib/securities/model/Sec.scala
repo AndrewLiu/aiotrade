@@ -787,7 +787,12 @@ class Sec extends SerProvider {
   lazy val tickerSnapshot = new TickerSnapshot
 }
 
+object SecSnap {
+  protected val ONE_DAY = 24 * 60 * 60 * 1000
+}
 class SecSnap(val sec: Sec) {
+  import SecSnap._
+
   var newTicker: Ticker = _
   var lastTicker: Ticker = _
 
@@ -872,9 +877,9 @@ class SecSnap(val sec: Sec) {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
-      case one: Ticker if one.time > rounded && one.time <= time =>
+      case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
         if (one.isDayFirst) {
-          one.isDayFirst = false
+          one.isDayFirst = false // switch to false
         }
         one
       case _ => // not today's one or null
