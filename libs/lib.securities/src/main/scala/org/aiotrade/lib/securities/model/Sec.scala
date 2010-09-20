@@ -177,7 +177,6 @@ class Sec extends SerProvider {
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
 
-
   var description = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
@@ -365,6 +364,7 @@ class Sec extends SerProvider {
 
         val tarSer = new QuoteSer(this, freq)
         val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
+        
         combiner.computeFrom(0) // don't remove me, see notice above.
         freqToQuoteSer.put(tarSer.freq, tarSer)
         Some(tarSer)
@@ -787,7 +787,12 @@ class Sec extends SerProvider {
   lazy val tickerSnapshot = new TickerSnapshot
 }
 
+object SecSnap {
+  protected val ONE_DAY = 24 * 60 * 60 * 1000
+}
 class SecSnap(val sec: Sec) {
+  import SecSnap._
+
   var newTicker: Ticker = _
   var lastTicker: Ticker = _
 
@@ -872,14 +877,15 @@ class SecSnap(val sec: Sec) {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
-      case one: Ticker if one.time > rounded && one.time <= time =>
-        if (one.isDayFirst) {
-          one.isDayFirst = false
-        }
+      case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
+        newTicker.isDayFirst = false
         one
       case _ => // not today's one or null
         val newone = Tickers.lastTickerOf(sec, rounded, time)
         lastTicker = newone
+        if (lastTicker.isTransient) {
+          newTicker.isDayFirst = true
+        }
         newone
     }
   }

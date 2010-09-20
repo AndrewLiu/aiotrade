@@ -48,7 +48,7 @@ object YahooQuoteServerTest extends TestHelper {
   class TestOne(symbol:String) {
 
     val quoteServer  = classOf[YahooQuoteServer]
-    val tickerServer = classOf[YahooTickerServer]
+    val tickerServer = YahooTickerServer.getClass
 
     val oneMinFreq = TFreq.ONE_MIN
     val dailyFreq = TFreq.DAILY

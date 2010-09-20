@@ -37,24 +37,33 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.util.actors.Reactor
+import scala.collection.mutable.WeakHashMap
 
 /**
+ * @Note to get this Combiner react to srcSer, it should be held as strong ref by some instances
  *
  * @author Caoyuan Deng
  */
+object QuoteSerCombiner {
+  // Holding strong reference to ser combiner etc, see @QuoteSerCombiner
+  private val strongRefHolders = WeakHashMap[QuoteSer, QuoteSerCombiner]()
+}
+
+import QuoteSerCombiner._
 class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {
   private val log = Logger.getLogger(this.getClass.getName)
-  val sec = srcSer.serProvider.asInstanceOf[Sec]
-  log.info("ser of sec: " + sec.freqToQuoteSer)
+
+  strongRefHolders.put(tarSer, this)
+  
   reactions += {
     case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeFrom(fromTime)
     case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeFrom(fromTime)
   }
-  
   listenTo(srcSer)
 
+  private val sec = srcSer.serProvider.asInstanceOf[Sec]
   private val freq = tarSer.freq
   private var quote: Quote = _
 
@@ -66,10 +75,8 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
 
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
-    log.info("Computing from: " + cal.getTime)
     val masterFromTime = freq.round(fromTime, cal)
     val masterFromIdx1 = srcSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
-    log.info("Computing from: " + cal.getTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
 
     //targetQuoteSer.clear(myFromTime);
@@ -163,12 +170,9 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
   def computeFrom(fromTime: Long) {
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
-    log.info("Computing from: " + cal.getTime)
     val roundedFromTime = freq.round(fromTime, cal)
     cal.setTimeInMillis(roundedFromTime)
-    log.info("Computing from: " + cal.getTime)
     val srcFromIdx = math.max(0, srcSer.timestamps.indexOfNearestOccurredTimeBehind(roundedFromTime))
-    log.info("Computing from: " + srcFromIdx)
 
     // --- begin combining
 

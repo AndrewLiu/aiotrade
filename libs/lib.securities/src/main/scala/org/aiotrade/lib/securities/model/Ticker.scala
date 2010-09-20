@@ -106,8 +106,8 @@ object Tickers extends TickersTable {
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long, tillTime: Long): Ticker = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
-        (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, tillTime))
-      ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
+        (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+      ) ORDER_BY (Tickers.time DESC) LIMIT (2) list
     ) match {
       case Seq() =>
         val newone = new Ticker

@@ -232,7 +232,7 @@ class IBQuoteServer extends QuoteServer {
             if (ibWrapper.isHisDataReqPending(contract.reqId)) {
               ibWrapper.cancelHisDataRequest(contract.reqId)
             }
-            return Array()
+            return EmptyValues
         }
       }
     }
@@ -254,14 +254,14 @@ class IBQuoteServer extends QuoteServer {
         
     var loadedTime1 = loadedTime
     if (!connect) {
-      return Array()
+      return EmptyValues
     }
     try {
       request
       return read
     } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)}
         
-    Array()
+    EmptyValues
   }
     
   def displayName = {
@@ -272,9 +272,7 @@ class IBQuoteServer extends QuoteServer {
     "yyyyMMdd HH:mm:ss"
   }
     
-  def sourceSerialNumber: Int = {
-    6
-  }
+  def sourceSerialNumber: Int = 6
     
   override def supportedFreqs = {
     IBWrapper.getSupportedFreqs
@@ -286,9 +284,7 @@ class IBQuoteServer extends QuoteServer {
     } catch {case ex: IOException => None}
   }
 
-  override def sourceTimeZone: TimeZone = {
-    TimeZone.getTimeZone("America/New_York")
-  }
+  override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
 
   def classNameOfTickerServer = Some(IBTickerServer.getClass.getName)
 

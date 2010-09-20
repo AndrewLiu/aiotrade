@@ -137,14 +137,12 @@ abstract class TickerServer extends DataServer[Ticker] {
             if (subscribedSrcSymbols.contains(symbol)) {
               tickersLast += tickerx
               secSnaps += sec.secSnap.setByTicker(ticker)
-            }
-            else{
+            } else{
               log.fine("subscribedSrcSymbols doesn't contain " + symbol)
             }
           case None => log.warning("No sec for " + symbol)
         }
-      }
-      else{
+      } else {
         log.info("Discard ticker: " + ticker.symbol)
       }
 
@@ -159,13 +157,13 @@ abstract class TickerServer extends DataServer[Ticker] {
    */
   def composeSer(values: Array[Ticker]): Long = {
     var lastTime = Long.MinValue
-    log.info("Composing ser from tickers: " + values.length)
-//    values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
 
+    log.info("Composing ser from tickers: " + values.length)
     if (values.length == 0) return lastTime
+    //values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
 
     val secSnaps = getSecSnaps(values)
-    log.info("Compsing ser from secSnaps: " + secSnaps.length)
+    log.info("Composing ser from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return lastTime
 
     allTickers.clear
@@ -182,7 +180,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       val sec = secSnap.sec
       val ticker = secSnap.newTicker
       val lastTicker = secSnap.lastTicker
-      val isDayFirst = lastTicker.isDayFirst
+      val isDayFirst = ticker.isDayFirst
       val dayQuote = secSnap.dailyQuote
       val minQuote = secSnap.minuteQuote
 
@@ -191,7 +189,8 @@ abstract class TickerServer extends DataServer[Ticker] {
       var tickerValid = false
       var execution: Execution = null
       if (isDayFirst) {
-
+        log.info("Got day's first ticker: " + ticker)
+        
         /**
          * this is today's first ticker we got when begin update data server,
          * actually it should be, so maybe we should check this.
@@ -221,7 +220,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
         allExecutions += execution
-
 
       } else {
 
