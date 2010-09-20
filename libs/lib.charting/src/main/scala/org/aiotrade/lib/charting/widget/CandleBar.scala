@@ -82,7 +82,7 @@ class CandleBar extends PathWidget {
     path.reset
 
     /** why - 2 ? 1 for centre, 1 for space */
-    val xRadius = (if (m.width < 2) 0 else (m.width - 2) / 2)
+    val xRadius = if (m.width < 2) 0 else (m.width - 2) / 2
     /** upper and lower of candle's rectangle */
     val yUpper = math.min(m.yOpen, m.yClose)
     val yLower = math.max(m.yOpen, m.yClose)
@@ -103,14 +103,15 @@ class CandleBar extends PathWidget {
       path.moveTo(m.xCenter, yLower)
       path.lineTo(m.xCenter, m.yLow)
             
-      if (m.isFilled) {
-        var i = 1
-        while (i < m.width - 2) {
-          path.moveTo(m.xCenter - xRadius + i, yUpper)
-          path.lineTo(m.xCenter - xRadius + i, yLower)
-          i += 1
-        }
-      }
+      isFilled = m.isFilled
+//      if (m.isFilled) {
+//        var i = 1
+//        while (i < m.width - 2) {
+//          path.moveTo(m.xCenter - xRadius + i, yUpper)
+//          path.lineTo(m.xCenter - xRadius + i, yLower)
+//          i += 1
+//        }
+//      }
             
     }
         

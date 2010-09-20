@@ -50,14 +50,12 @@ class PathPool(maxIdle: Int,
   setFactory(this)
 
   @throws(classOf[RuntimeException])
-  def activateObject(obj: GeneralPath): Unit = {
+  def activateObject(obj: GeneralPath) {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj: GeneralPath): Unit = {
-        
-  }
+  def destroyObject(obj: GeneralPath) {}
 
   @throws(classOf[RuntimeException])
   def makeObject: GeneralPath = {
@@ -65,7 +63,7 @@ class PathPool(maxIdle: Int,
   }
 
   @throws(classOf[RuntimeException])
-  def passivateObject(obj: GeneralPath): Unit = {}
+  def passivateObject(obj: GeneralPath) {}
     
   def validateObject(obj: GeneralPath): Boolean = true
 }

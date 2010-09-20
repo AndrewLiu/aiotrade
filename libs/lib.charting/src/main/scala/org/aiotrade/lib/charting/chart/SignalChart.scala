@@ -72,9 +72,11 @@ class SignalChart extends AbstractChart {
     val negColor = LookFeel().getNegativeColor
         
     val color = Color.YELLOW
+    val antiColor = LookFeel().backgroundColor
     setForeground(color)
 
-    val font = new Font(Font.DIALOG, Font.PLAIN, 9)
+    val font = new Font(Font.DIALOG, Font.PLAIN, 10)
+    val antiFont = new Font(Font.DIALOG, Font.PLAIN, 8)
 
     val pathsWidget = addChild(new PathsWidget)
     val arrowTp = new Arrow
@@ -115,16 +117,18 @@ class SignalChart extends AbstractChart {
                 signal.kind match {
                   case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
                     var height = 12
+                    var filled = false
                     if (signal.isInstanceOf[Sign]) {
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y + dyUp, true, true)
                       height = math.max(height, 12)
+                      filled = true
                     }
 
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
-                      labelTp.setFont(font)
-                      labelTp.setForeground(color)
+                      labelTp.setFont(if (filled) antiFont else font)
+                      labelTp.setForeground(if (filled) antiColor else color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
                       labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height)
@@ -134,19 +138,21 @@ class SignalChart extends AbstractChart {
                     dyUp += (1 + height)
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
                     var height = 12
+                    var filled = false
                     if (signal.isInstanceOf[Sign]) {
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y - dyDn, false, true)
                       height = math.max(height, 12)
+                      filled = true
                     }
 
                     if (signal.hasText) {
                       val labelTp = addChild(new Label)
-                      labelTp.setFont(font)
-                      labelTp.setForeground(color)
+                      labelTp.setFont(if (filled) antiFont else font)
+                      labelTp.setForeground(if (filled) antiColor else color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y - dyDn - 3)
                       height = bounds.height
                     }
                     

@@ -78,14 +78,15 @@ class StickBar extends PathWidget {
       path.lineTo(m.xCenter + xRadius, m.y1)
       path.closePath
 
-      if (m.isFilled) {
-        var i = 1
-        while (i < m.width - 2) {
-          path.moveTo(m.xCenter - xRadius + i, m.y1)
-          path.lineTo(m.xCenter - xRadius + i, m.y2)
-          i += 1
-        }
-      }
+      isFilled = m.isFilled
+//      if (m.isFilled) {
+//        var i = 1
+//        while (i < m.width - 2) {
+//          path.moveTo(m.xCenter - xRadius + i, m.y1)
+//          path.lineTo(m.xCenter - xRadius + i, m.y2)
+//          i += 1
+//        }
+//      }
             
     }
   }

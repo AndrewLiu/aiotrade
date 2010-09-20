@@ -168,7 +168,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     plotChart
   }
     
-  protected def plotChart: Unit
+  protected def plotChart
     
   override def reset {
     super.reset

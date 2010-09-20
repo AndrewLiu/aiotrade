@@ -35,6 +35,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.geom.GeneralPath
+import java.util.logging.Logger
 import scala.collection.mutable.HashMap
 
 
@@ -45,22 +46,22 @@ import scala.collection.mutable.HashMap
  * @since   1.0.4
  */
 class PathsWidget extends AbstractWidget {
-    
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
     
   protected def createModel: M = null
     
-  override def isContainerOnly: Boolean = {
-    false
-  }
+  override def isContainerOnly: Boolean = false
     
   override protected def makePreferredBounds: Rectangle = {
     val pathBounds = new Rectangle
-    for ((path, pathFilled) <- colorToPathPair.valuesIterator) {
-      pathBounds.add(path.getBounds)
+    for ((pathToDraw, pathToFill) <- colorToPathPair.valuesIterator) {
+      pathBounds.add(pathToDraw.getBounds)
+      pathBounds.add(pathToFill.getBounds)
     }
         
-    return new Rectangle(
+    new Rectangle(
       pathBounds.x, pathBounds.y,
       pathBounds.width + 1, pathBounds.height + 1)
   }
@@ -68,23 +69,21 @@ class PathsWidget extends AbstractWidget {
   def pathOf(color: Color): (GeneralPath, GeneralPath) = {
     colorToPathPair.get(color) match {
       case None =>
-        val pathx = borrowPath
-        val pathFilled = borrowPath
-        colorToPathPair.put(color, (pathx, pathFilled))
-        (pathx, pathFilled)
+        val pathToDraw = borrowPath
+        val pathToFill = borrowPath
+        colorToPathPair.put(color, (pathToDraw, pathToFill))
+        (pathToDraw, pathToFill)
       case Some(x) => x  
     }
   }
     
   def appendFrom(pathWidget: PathWidget) {
     val color = pathWidget.getForeground
-    pathOf(color) match {
-      case (path, pathFilled) =>
-        if (pathWidget.isFilled) {
-          pathFilled.append(pathWidget.getPath, false)
-        } else {
-          path.append(pathWidget.getPath, false)
-        }
+    val (pathToDraw, pathToFill) = pathOf(color)
+    if (pathWidget.isFilled) {
+      pathToFill.append(pathWidget.getPath, false)
+    } else {
+      pathToDraw.append(pathWidget.getPath, false)
     }
   }
     
@@ -103,18 +102,25 @@ class PathsWidget extends AbstractWidget {
   override def renderWidget(g0: Graphics) {
     val g = g0.asInstanceOf[Graphics2D]
         
-    for ((color, (path, pathFill)) <- colorToPathPair) {
+    for ((color, (pathToDraw, pathToFill)) <- colorToPathPair) {
       g.setColor(color)
-      g.draw(path)
-      g.fill(pathFill)
+
+      if (pathToDraw != null) {
+        g.draw(pathToDraw)
+      }
+      
+      if (pathToFill != null) {
+        g.draw(pathToFill) // g.fill only fills shape's interior, we need draw shape too
+        g.fill(pathToFill)
+      }
     }
   }
     
   override def reset {
     super.reset
-    for ((path, pathFill) <- colorToPathPair.valuesIterator) {
-      path.reset
-      pathFill.reset
+    for ((pathToDraw, pathToFill) <- colorToPathPair.valuesIterator) {
+      pathToDraw.reset
+      pathToFill.reset
     }
   }
     
@@ -122,9 +128,9 @@ class PathsWidget extends AbstractWidget {
 
   @throws(classOf[Throwable])
   override protected def finalize {
-    for ((path, pathFill) <- colorToPathPair.valuesIterator) {
-      returnPath(path)
-      returnPath(pathFill)
+    for ((pathToDraw, pathToFill) <- colorToPathPair.valuesIterator) {
+      returnPath(pathToDraw)
+      returnPath(pathToFill)
     }
         
     super.finalize

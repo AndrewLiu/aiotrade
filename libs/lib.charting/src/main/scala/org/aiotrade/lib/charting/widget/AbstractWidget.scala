@@ -74,11 +74,11 @@ abstract class AbstractWidget extends Widget {
     
   private var _isOpaque: Boolean = _
   private var _isFilled = false
-  private var foreground: Color = Color.WHITE
-  private var background: Paint = _
+  private var _foreground: Color = Color.WHITE
+  private var _background: Paint = _
     
-  private var location: Point = _
-  private var bounds: Rectangle = _
+  private var _location: Point = _
+  private var _bounds: Rectangle = _
     
   private var _model: M = _
     
@@ -88,10 +88,7 @@ abstract class AbstractWidget extends Widget {
     
   def children = _children
 
-  def isOpaque: Boolean = {
-    _isOpaque
-  }
-    
+  def isOpaque: Boolean = _isOpaque
   def setOpaque(opaque: Boolean) {
     this._isOpaque = opaque
   }
@@ -101,52 +98,46 @@ abstract class AbstractWidget extends Widget {
     this._isFilled = isFilled
   }
     
+  def getBackground: Paint = _background
   def setBackground(paint:Paint) {
-    this.background = paint
+    this._background = paint
   }
     
-  def getBackground :Paint = {
-    background
-  }
-    
+  def getForeground : Color = _foreground
   def setForeground(color: Color) {
-    this.foreground = color
+    this._foreground = color
   }
     
-  def getForeground : Color = {
-    foreground
+  def getLocation: Point = {
+    if (_location == null) new Point(0, 0) else new Point(_location)
   }
-    
+
   def setLocation(point: Point) {
     setLocation(point.x, point.y)
   }
     
   def setLocation(x: Double, y: Double) {
-    if (location == null) {
-      location = new Point(x.toInt, y.toInt)
+    if (_location == null) {
+      _location = new Point(x.toInt, y.toInt)
     } else {
-      location.setLocation(x, y)
+      _location.setLocation(x, y)
     }
   }
     
-  def getLocation: Point = {
-    if (location == null) new Point(0, 0) else new Point(location)
+  def getBounds: Rectangle = {
+    if (_bounds == null) makePreferredBounds else _bounds
   }
-    
+
   def setBounds(rect:Rectangle) {
     setBounds(rect.x, rect.y, rect.width, rect.height)
   }
     
   def setBounds(x: Double, y: Double, width: Double, height: Double) {
-    if (bounds == null) {
-      bounds = new Rectangle(x.toInt, y.toInt, width.toInt, height.toInt)
+    if (_bounds == null) {
+      _bounds = new Rectangle(x.toInt, y.toInt, width.toInt, height.toInt)
     } else {
-      bounds.setRect(x, y, width, height)
+      _bounds.setRect(x, y, width, height)
     }
-  }
-    
-  def getBounds: Rectangle = {
-    if (bounds == null) makePreferredBounds else bounds
   }
     
   protected def makePreferredBounds: Rectangle = {
@@ -290,13 +281,13 @@ abstract class AbstractWidget extends Widget {
             if (colorToPathPair == null) colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
 
             val color = child.getForeground
-            val (pathBuf, pathFilledBuf) = colorToPathPair.get(color) getOrElse {
-              val pathBufx = borrowPath
-              val pathFilledBufx = borrowPath
-              colorToPathPair.put(color, (pathBufx, pathFilledBufx))
-              (pathBufx, pathFilledBufx)
+            val (pathToDraw, pathToFill) = colorToPathPair.get(color) getOrElse {
+              val toDraw = borrowPath
+              val toFill = borrowPath
+              colorToPathPair.put(color, (toDraw, toFill))
+              (toDraw, toFill)
             }
-                
+
             val path = x.getPath                
             val location = child.getLocation
             val shape = if (location.x == 0 && location.y == 0) {
@@ -305,9 +296,9 @@ abstract class AbstractWidget extends Widget {
             } else path
 
             if (x.isFilled) {
-              pathFilledBuf.append(shape, false)
+              pathToFill.append(shape, false)
             } else {
-              pathBuf.append(shape, false)
+              pathToDraw.append(shape, false)
             }
           case _ => child.render(g)
         }
@@ -315,12 +306,19 @@ abstract class AbstractWidget extends Widget {
     }
 
     if (colorToPathPair != null) {
-      for ((color, (path, pathFilled)) <- colorToPathPair) {
+      for ((color, (pathToDraw, pathToFill)) <- colorToPathPair) {
         g.setColor(color)
-        g.draw(path)
-        g.fill(path)
-        returnPath(path)
-        returnPath(pathFilled)
+        
+        if (pathToDraw != null) {
+          g.draw(pathToDraw)
+          returnPath(pathToDraw)
+        }
+        
+        if (pathToFill != null) {
+          g.draw(pathToFill) // g.fill only fills shape's interior, we need draw shape too
+          g.fill(pathToFill) 
+          returnPath(pathToFill)
+        }
       }
       
       colorToPathPair.clear

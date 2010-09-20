@@ -67,7 +67,7 @@ class Arrow extends PathWidget {
     val path = getPath
     path.reset
     
-    //isFilled = m.isFilled
+    isFilled = m.isFilled
         
     if (m.up) {
       path.moveTo(m.x, m.y)
