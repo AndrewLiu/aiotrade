@@ -38,6 +38,7 @@ final class MarketDepth(_bidAsks: Array[Double]) {
 
   def bidAsks = _bidAsks
   def bidAsks_=(that: Array[Double]) {
+    isChanged = false
     if (that.length != _bidAsks.length) {
       return
     }
