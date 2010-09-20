@@ -290,7 +290,7 @@ class IBQuoteServer extends QuoteServer {
     TimeZone.getTimeZone("America/New_York")
   }
 
-  def classNameOfTickerServer = Some(classOf[IBTickerServer].getName)
+  def classNameOfTickerServer = Some(IBTickerServer.getClass.getName)
 
   /**
    * 1 1sec "<30;2000> S"
