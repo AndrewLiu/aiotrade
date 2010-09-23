@@ -70,7 +70,8 @@ object Indicator {
   }
 
   def displayName(name: String, factors: Array[Factor]): String = {
-    factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString(name + "(", ",", ")")
+    if (factors.length == 0) name
+    else factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString(name + "(", ",", ")")
   }
 }
 
