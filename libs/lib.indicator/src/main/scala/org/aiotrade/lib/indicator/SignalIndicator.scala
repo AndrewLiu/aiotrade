@@ -40,6 +40,7 @@ import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
+import org.aiotrade.lib.math.timeseries.TSerEvent
 
 /**
  * Abstract Signal Indicator
@@ -205,5 +206,45 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     }
   }
 
-}
+  protected def addSignal(signal: Signal) {
+    val time = signal.time
+    if (exists(time)) {
+      signalVar(time) = signalVar(time) match {
+        case null => List(signal)
+        case xs =>
+          val (existOnes, others) = xs partition (_ == signal)
+          signal :: others
+      }
+    }
 
+    publish(TSerEvent.Computed(this, null, time, time, null, null))
+  }
+
+  protected def addSignals(signals: Array[Signal]) {
+    var frTime = Long.MaxValue
+    var toTime = Long.MinValue
+    var i = 0
+    while (i < signals.length) {
+      val signal = signals(i)
+      val time = signal.time
+      if (exists(time)) {
+        signalVar(time) = signalVar(time) match {
+          case null => List(signal)
+          case xs =>
+            val (existOnes, others) = xs partition (_ == signal)
+            signal :: others
+        }
+      }
+
+      frTime = math.min(frTime, time)
+      toTime = math.max(toTime, time)
+
+      i += 1
+    }
+
+    if (signals.length > 0) {
+      publish(TSerEvent.Computed(this, null, frTime, toTime, null, null))
+    }
+  }
+
+}
