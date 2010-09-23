@@ -851,7 +851,7 @@ class SecSnap(val sec: Sec) {
       case one: Quote if one.time == rounded =>
         one
       case _ => // minute changes or null
-        val newone = Quotes1m.minuteQuoteOf(sec, rounded)
+        val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
         minuteQuote = newone
         newone
     }
@@ -881,7 +881,7 @@ class SecSnap(val sec: Sec) {
         newTicker.isDayFirst = false
         one
       case _ => // not today's one or null
-        val newone = Tickers.lastTickerOf(sec, rounded, time)
+        val newone = Tickers.lastTickerOf(sec, rounded)
         lastTicker = newone
         if (lastTicker.isTransient) {
           newTicker.isDayFirst = true

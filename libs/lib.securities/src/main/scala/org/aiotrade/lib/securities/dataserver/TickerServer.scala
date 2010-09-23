@@ -70,7 +70,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   private val log = Logger.getLogger(this.getClass.getName)
   private val config = org.aiotrade.lib.util.config.Config()
-
   protected val isServer = !config.getBool("dataserver.client", false)
   log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
 

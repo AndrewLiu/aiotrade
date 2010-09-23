@@ -79,32 +79,58 @@ object TickersLast extends TickersTable {
 }
 
 object Tickers extends TickersTable {
+  private val config = org.aiotrade.lib.util.config.Config()
+  protected val isServer = !config.getBool("dataserver.client", false)
+
   private val lastTickersCache = new HashMap[Long, HashMap[Sec, Ticker]]
 
-  def lastTickerOf_cached(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
+  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Ticker = {
+    if (isServer) lastTickerOf_nocached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
+  }
+
+  /**
+   * @Note do not use it when table is partitioned on secs_id, since this qeury is only on time
+   */
+  def lastTickerOf_cached(sec: Sec, dailyRoundedTime: Long): Ticker = {
     val cached = lastTickersCache.get(dailyRoundedTime) match {
-      case Some(m) => m
+      case Some(map) => map
       case None =>
         if (lastTickersCache.size >= 4) {
           val earliest = lastTickersCache.map(_._1).min
           lastTickersCache.remove(earliest)
         }
-        val m = lastTickersOf(dailyRoundedTime)
-        lastTickersCache.put(dailyRoundedTime, m)
-        m
+        val map = lastTickersOf(dailyRoundedTime)
+        lastTickersCache.put(dailyRoundedTime, map)
+        map
     }
 
-    cached.get(sec)
+    cached.get(sec) match {
+      case Some(one) =>
+        one.isTransient = false
+        one
+      case None =>
+        val newone = new Ticker
+        newone.isTransient = true
+        newone
+    }
   }
 
-  def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Option[Ticker] = {
+  def lastTickerOf_nocached(sec: Sec, dailyRoundedTime: Long): Ticker = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
-    ) headOption
+    ) match {
+      case Seq(one) =>
+        one.isTransient = false
+        one
+      case Seq() =>
+        val newone = new Ticker
+        newone.isTransient = true
+        newone
+    }
   }
 
-  def lastTickerOf(sec: Sec, dailyRoundedTime: Long, tillTime: Long): Ticker = {
+  def lastTickerOf_reference(sec: Sec, dailyRoundedTime: Long, tillTime: Long): Ticker = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (2) list

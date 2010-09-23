@@ -126,6 +126,9 @@ object Quotes1d extends Quotes {
 }
 
 object Quotes1m extends Quotes {
+  private val config = org.aiotrade.lib.util.config.Config()
+  protected val isServer = !config.getBool("dataserver.client", false)
+
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
   private val minuteCache = new HashMap[Long, HashMap[Sec, Quote]]
@@ -136,8 +139,14 @@ object Quotes1m extends Quotes {
     ) ORDER_BY (this.time DESC) list
   }
 
-  // Since Quotes1m is partitioned into secs_id, don't query it only on time
-  @deprecated def minuteQuoteOf_cached(sec: Sec, minuteRoundedTime: Long): Quote = {
+  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
+    if (isServer) minuteQuoteOf_oncached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
+  }
+  
+  /**
+   * @Note do not use it when table is partitioned on secs_id (for example, quotes1m on server side), since this qeury is only on time
+   */
+  def minuteQuoteOf_cached(sec: Sec, minuteRoundedTime: Long): Quote = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
       case None =>
@@ -170,15 +179,15 @@ object Quotes1m extends Quotes {
     }
   }
 
-  def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
+  def minuteQuoteOf_oncached(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
-    ) headOption match {
-      case Some(one) =>
+    ) match {
+      case Seq(one) =>
         one.isTransient = false
         one
-      case None =>
+      case Seq() =>
         val newone = new Quote
         newone.time = minuteRoundedTime
         newone.sec = sec
