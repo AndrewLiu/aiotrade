@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mode version="2.3">
-    <name unique="realTimeBoard" />
+  <name unique="realTimeBoard" />
   <kind type="view" />
   <state type="joined" />
   <constraints>
@@ -10,7 +10,5 @@
     <path orientation="horizontal" number="80" weight="0.2"/>
     <path orientation="vertical" number="80" weight="0.5"/>
   </constraints>
-  <bounds x="931" y="435" width="186" height="248" />
-  <frame state="0"/>
-    <empty-behavior permanent="true"/>
+  <empty-behavior permanent="true"/>
 </mode>
