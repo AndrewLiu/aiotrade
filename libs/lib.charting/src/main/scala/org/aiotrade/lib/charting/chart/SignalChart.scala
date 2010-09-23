@@ -76,7 +76,7 @@ class SignalChart extends AbstractChart {
     setForeground(color)
 
     val font = new Font(Font.DIALOG, Font.PLAIN, 10)
-    val antiFont = new Font(Font.DIALOG, Font.PLAIN, 8)
+    val antiFont = new Font(Font.DIALOG, Font.BOLD, 8)
 
     val pathsWidget = addChild(new PathsWidget)
     val arrowTp = new Arrow
