@@ -82,7 +82,7 @@ class SignalTopComponent extends TopComponent with Reactor {
               case Direction.EnterShort => Bundle.getString("enterShort")
               case Direction.ExitShort  => Bundle.getString("exitShort")
             }
-          case 3 => event.name
+          case 3 => event.signal.id + "号"
           case _ => null
         }
       }
@@ -234,7 +234,8 @@ class SignalTopComponent extends TopComponent with Reactor {
           case 1 => // Symbol
             setHorizontalAlignment(SwingConstants.TRAILING)
           case 2 => // Sign
-            if (row - 1 >= 0) {
+            setHorizontalAlignment(SwingConstants.CENTER)
+            if (row >= 0) {
               value.toString.trim match {
                 case "买" => setForeground(LookFeel().getPositiveBgColor)
                 case "卖" => setForeground(LookFeel().getNegativeBgColor)
