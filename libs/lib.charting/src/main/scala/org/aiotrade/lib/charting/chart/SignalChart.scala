@@ -67,13 +67,12 @@ class SignalChart extends AbstractChart {
 
   protected def plotChart {
     val m = model
+
+    val laf = LookFeel()
+    val posColor = laf.getPositiveColor
+    val negColor = laf.getNegativeColor
         
-    val posColor = LookFeel().getPositiveColor
-    val negColor = LookFeel().getNegativeColor
-        
-    val color = Color.YELLOW
-    val antiColor = LookFeel().backgroundColor
-    setForeground(color)
+    val antiColor = laf.backgroundColor
 
     val font = new Font(Font.DIALOG, Font.PLAIN, 10)
     val antiFont = new Font(Font.DIALOG, Font.BOLD, 8)
@@ -119,6 +118,7 @@ class SignalChart extends AbstractChart {
                     var height = 12
                     var filled = false
                     if (signal.isInstanceOf[Sign]) {
+                      val color = laf.getChartColor(signal.id)
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y + dyUp, true, true)
                       height = math.max(height, 12)
@@ -140,6 +140,7 @@ class SignalChart extends AbstractChart {
                     var height = 12
                     var filled = false
                     if (signal.isInstanceOf[Sign]) {
+                      val color = laf.getChartColor(signal.id)
                       arrowTp.setForeground(color)
                       arrowTp.model.set(x, y - dyDn, false, true)
                       height = math.max(height, 12)
