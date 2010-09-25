@@ -175,7 +175,9 @@ class AttributiveCellTableModel(data: Vector[_], colNames: Vector[_]) extends De
     _cellAttr = cellAttr
     fireTableDataChanged
   }
-
+  override def isCellEditable(rowIndex:Int, columnIndex:Int): Boolean = {
+    false
+  }
   /*
    public void changeCellAttribute(int row, int column, Object command) {
    cellAtt.changeAttribute(row, column, command);
