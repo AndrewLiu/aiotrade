@@ -70,8 +70,11 @@ object YahooTickerServer extends TickerServer {
   private val BaseUrl = "http://quote.yahoo.com"
   private val UrlPath = "/download/javasoft.beans"
 
-  override def toSrcSymbol(uniSymbol: String): String = if(uniSymbol == "^DJI") "DJI" else uniSymbol
-  override def toUniSymbol(srcSymbol: String): String = if(srcSymbol == "DJI") "^DJI" else srcSymbol
+  //Dow Jones Index restrict yahoo publish ^DJI quote, reference:
+  //http://developer.yahoo.net/forum/?showtopic=6943&endsession=1
+  //http://stackoverflow.com/questions/3679870/yahoo-finance-csv-file-will-not-return-dow-jones-dji
+  override def toSrcSymbol(uniSymbol: String): String = if(uniSymbol == "^DJI") "INDU" else uniSymbol
+  override def toUniSymbol(srcSymbol: String): String = if(srcSymbol == "INDU") "^DJI" else srcSymbol
 
   /**
    * Template:
@@ -139,7 +142,8 @@ object YahooTickerServer extends TickerServer {
         line.split(",") match {
           case Array(symbolX, lastPriceX, dateX, timeX, dayChangeX, dayOpenX, dayHighX, dayLowX, dayVolumeX, bidPriceX1, askPriceX1, prevCloseX, _, _, _, nameX, marketX, _*)
             if !dateX.toUpperCase.contains("N/A") && !timeX.toUpperCase.contains("N/A") =>
-            val symbol  = toUniSymbol(symbolX.toUpperCase.replace('"', ' ').trim)
+            val symbol = symbolX.toUpperCase.replace('"', ' ').trim
+            //val symbol  = toUniSymbol(symbolX.toUpperCase.replace('"', ' ').trim)
             val dateStr = dateX.replace('"', ' ').trim
             val timeStr = timeX.replace('"', ' ').trim
 

@@ -78,8 +78,8 @@ object YahooQuoteServer {
 
   private def exchangeOfIndex(srcSymbol: String) : Option[Exchange] = {
     srcSymbol match {
-      case "DJI" => Some(Exchange.N)
-      case "HSI" => Some(Exchange.HK)
+      case "^DJI" => Some(Exchange.N)
+      case "^HSI" => Some(Exchange.HK)
       case _ => None
     }
   }
