@@ -188,7 +188,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       var tickerValid = false
       var execution: Execution = null
       if (isDayFirst) {
-        log.info("Got day's first ticker: " + ticker)
+        log.fine("Got day's first ticker: " + ticker)
         
         /**
          * this is today's first ticker we got when begin update data server,
