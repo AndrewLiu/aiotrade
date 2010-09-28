@@ -18,7 +18,7 @@ object Newses extends Table[News]{
   val hotness = "hotness" FLOAT()
 }
 
-class News extends TVal with Flag with InfoContent{
+class News extends TVal with Flag {
   private val log = Logger.getLogger(this.getClass.getName)
   var generalInfo : GeneralInfo = _
   var author : String = ""
@@ -44,37 +44,37 @@ class News extends TVal with Flag with InfoContent{
     values ++=: _newses
   }
 
-  def publishTime: Long = this.time
-  //def weight: Float = 0F
-  def link: String = if(generalInfo != null ) generalInfo.url else ""
+//  def publishTime: Long = this.time
+//  //def weight: Float = 0F
+//  def link: String = if(gene?ralInfo != null ) generalInfo.url else ""
   
-  def exportToMap: Map[String, String] = {
-    val map = Map[String, String]()
-    map += ("PUBLISH_TIME" -> publishTime.toString)
-    if(author != null) map += ("PUBLISHER" -> author)
-    if(link != null) map += ("LINK" -> link)
-    if(orgPublisher != null) map += ("SOURCE_NAME" -> orgPublisher)
-    map += ("COMBINE_COUNT" -> hotness.toString)
-    //map += ("weight" -> weight.toString)
-    try{
-      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
-      if(generalInfo.secs.size > 0){
-        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
-      }
-      if(generalInfo.categories.size > 0){
-        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
-      }
-    }
-    catch{
-      case _ => log.info("News export to Map exception")
-    }
-    map
-  }
+//  def exportToMap: Map[String, String] = {
+//    val map = Map[String, String]()
+//    map += ("PUBLISH_TIME" -> publishTime.toString)
+//    if(author != null) map += ("PUBLISHER" -> author)
+//    if(link != null) map += ("LINK" -> link)
+//    if(orgPublisher != null) map += ("SOURCE_NAME" -> orgPublisher)
+//    map += ("COMBINE_COUNT" -> hotness.toString)
+//    //map += ("weight" -> weight.toString)
+//    try{
+//      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+//      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
+//      if(generalInfo.secs.size > 0){
+//        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+//      }
+//      if(generalInfo.categories.size > 0){
+//        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+//      }
+//    }
+//    catch{
+//      case _ => log.severe("News export to Map exception")
+//    }
+//    map
+//  }
 
-  def exportToJavaMap: java.util.Map[String, String] = {
-    exportToMap
-  }
+//  def exportToJavaMap: java.util.Map[String, String] = {
+//    exportToMap
+//  }
   
   override def toString: String = {
     this.generalInfo.title + "|" + this.generalInfo.publishTime + "|" + this.author

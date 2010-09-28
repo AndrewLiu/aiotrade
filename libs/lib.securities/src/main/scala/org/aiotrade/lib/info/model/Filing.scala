@@ -39,7 +39,7 @@ object Filing {
 
 }
 
-class Filing extends TVal with Flag with InfoContent{
+class Filing extends TVal with Flag {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -67,37 +67,37 @@ class Filing extends TVal with Flag with InfoContent{
     values ++=: _filings
   }
 
-  def publishTime: Long = this.time
-  //def weight: Float = 0F
-  def link: String = if(generalInfo != null ) generalInfo.url else ""
-
-  def exportToMap: Map[String, String] = {
-    val map = Map[String, String]()
-    map += ("PUBLISH_TIME" -> publishTime.toString)
-    //map += ("weight" -> weight.toString)
-    if(link != null) map += ("LINK" -> link)
-    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
-    map += ("FILE_SIZE" -> size.toString)
-    map += ("FILE_TYPE" -> Filing.extNameFromFormat(format))
-    try{
-      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-      if(generalInfo.secs.size > 0){
-        if(generalInfo.secs(0) != null) map += ("SECURITY_NAME" -> generalInfo.secs(0).secInfo.name)
-      }
-      if(generalInfo.categories.size > 0){
-        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
-      }
-    }
-    catch{
-      case _ => log.info("Filing export to Map exception")
-    }
-
-    map
-  }
-
-  def exportToJavaMap: java.util.Map[String, String] = {
-    exportToMap
-  }
+//  def publishTime: Long = this.time
+//  //def weight: Float = 0F
+//  def link: String = if(generalInfo != null ) generalInfo.url else ""
+//
+//  def exportToMap: Map[String, String] = {
+//    val map = Map[String, String]()
+//    map += ("PUBLISH_TIME" -> publishTime.toString)
+//    //map += ("weight" -> weight.toString)
+//    if(link != null) map += ("LINK" -> link)
+//    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
+//    map += ("FILE_SIZE" -> size.toString)
+//    map += ("FILE_TYPE" -> Filing.extNameFromFormat(format))
+//    try{
+//      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+//      if(generalInfo.secs.size > 0){
+//        if(generalInfo.secs(0) != null) map += ("SECURITY_NAME" -> generalInfo.secs(0).secInfo.name)
+//      }
+//      if(generalInfo.categories.size > 0){
+//        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+//      }
+//    }
+//    catch{
+//      case _ => log.info("Filing export to Map exception")
+//    }
+//
+//    map
+//  }
+//
+//  def exportToJavaMap: java.util.Map[String, String] = {
+//    exportToMap
+//  }
 }
 
 object Filings extends Table[Filing]{

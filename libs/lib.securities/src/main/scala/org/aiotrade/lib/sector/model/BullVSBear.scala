@@ -8,7 +8,6 @@ package org.aiotrade.lib.sector.model
 import ru.circumflex.orm.Table
 import org.aiotrade.lib.securities.model.Flag
 import org.aiotrade.lib.math.timeseries.TVal
-import org.aiotrade.lib.info.model.InfoContent
 import scala.collection.JavaConversions._
 import scala.collection.mutable.Map
 
@@ -19,7 +18,7 @@ object BullVSBears extends Table[BullVSBear]{
   INDEX(getClass.getSimpleName + "_time_idx", time.name)
 }
 
-class BullVSBear extends TVal with Flag with InfoContent{
+class BullVSBear extends TVal with Flag {
 //    var time : Long = _
     var ratio : Float = _
     var summary : String = ""

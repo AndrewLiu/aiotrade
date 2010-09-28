@@ -16,7 +16,7 @@ object AnalysisReports extends Table[AnalysisReport]{
   val publisher = "publisher" VARCHAR(30) DEFAULT("''")
 }
 
-class AnalysisReport extends TVal with Flag with InfoContent{
+class AnalysisReport extends TVal with Flag {
   private val log = Logger.getLogger(this.getClass.getName)
   var generalInfo : GeneralInfo = _
   
@@ -41,34 +41,34 @@ class AnalysisReport extends TVal with Flag with InfoContent{
     values ++=: _analysisReports
   }
 
-  def publishTime: Long = this.time
-  //def weight: Float = 0F
-  def link: String = if(generalInfo != null ) generalInfo.url else ""
-
-  def exportToMap: Map[String, String] = {
-    val map = Map[String, String]()
-    map += ("PUBLISH_TIME" -> publishTime.toString)
-    //map += ("weight" -> weight.toString)
-    if(link != null) map += ("LINK" -> link)
-    if(author != null) map +=("PUBLISHER" -> author)
-    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
-    try{
-      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
-      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
-      if(generalInfo.secs.size > 0){
-        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
-      }
-      if(generalInfo.categories.size > 0){
-        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
-      }
-    }
-    catch{
-      case _ => log.info("AnalysisReport export to Map exception")
-    }
-    map
-  }
-
-  def exportToJavaMap: java.util.Map[String, String] = {
-    exportToMap
-  }
+//  def publishTime: Long = this.time
+//  //def weight: Float = 0F
+//  def link: String = if(generalInfo != null ) generalInfo.url else ""
+//
+//  def exportToMap: Map[String, String] = {
+//    val map = Map[String, String]()
+//    map += ("PUBLISH_TIME" -> publishTime.toString)
+//    //map += ("weight" -> weight.toString)
+//    if(link != null) map += ("LINK" -> link)
+//    if(author != null) map +=("PUBLISHER" -> author)
+//    if(publisher != null) map += ("SOURCE_NAME" -> publisher)
+//    try{
+//      if(generalInfo.title != null ) map += ("TITLE" -> generalInfo.title)
+//      if(generalInfo.infoAbstracts != null) map += ("SUMMARY" -> generalInfo.infoAbstracts(0).content)
+//      if(generalInfo.secs.size > 0){
+//        if(generalInfo.secs(0) != null) map += ("SECURITY_CODE" -> generalInfo.secs(0).secInfo.uniSymbol)
+//      }
+//      if(generalInfo.categories.size > 0){
+//        if(generalInfo.categories(0) != null) map += ("SUBJECT" -> generalInfo.categories(0).name)
+//      }
+//    }
+//    catch{
+//      case _ => log.info("AnalysisReport export to Map exception")
+//    }
+//    map
+//  }
+//
+//  def exportToJavaMap: java.util.Map[String, String] = {
+//    exportToMap
+//  }
 }

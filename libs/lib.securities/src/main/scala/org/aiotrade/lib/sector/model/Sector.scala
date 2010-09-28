@@ -1,7 +1,6 @@
 package org.aiotrade.lib.sector.model
 
 import ru.circumflex.orm._
-import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Map
 import org.aiotrade.lib.securities.model.Flag
@@ -38,7 +37,7 @@ object Sectors extends Table[Sector] {
   def portfolios = inverse(Portfolios.sector)
 }
 
-class Sector extends TVal with Flag with InfoContent{
+class Sector extends TVal with Flag {
   private val log = Logger.getLogger(this.getClass.getName)
   var name : String = ""
   var code : String = ""
@@ -50,36 +49,36 @@ class Sector extends TVal with Flag with InfoContent{
   def weight: Float = 0F
   def link: String = ""
 
-  def exportToMap: Map[String, String] = Map("" -> "")
+//  def exportToMap: Map[String, String] = Map("" -> "")
+//
+//  def exportToJavaMap: java.util.Map[String, String] = exportToMap
 
-  def exportToJavaMap: java.util.Map[String, String] = exportToMap
-
-  def exportToList: List[Map[String, String]] = {
-    var list = List[Map[String, String]]()
-    if(portfolio != null && portfolio.breakouts != null){
-      for(portfolio <- portfolio.breakouts){
-        val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)
-        map += ("SECURITY_NAME" -> portfolio.sec.secInfo.name)
-        map += ("ENTER_TIME" -> this.time.toString)
-        //list += map
-        list = list:+map
-      }
-    }
-    list
-  }
-
-  def exportToJavaList: java.util.List[java.util.Map[String, String]] = {
-    
-    val list = new java.util.ArrayList[java.util.Map[String, String]]
-    
-    if(portfolio != null && portfolio.breakouts != null){
-      for(portfolio <- portfolio.breakouts){
-        val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)
-        map += ("SECURITY_NAME" -> portfolio.sec.secInfo.name)
-        map += ("ENTER_TIME" -> this.time.toString)
-        list.add(map)
-      }
-    }
-    list
-  }
+//  def exportToList: List[Map[String, String]] = {
+//    var list = List[Map[String, String]]()
+//    if(portfolio != null && portfolio.breakouts != null){
+//      for(portfolio <- portfolio.breakouts){
+//        val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)
+//        map += ("SECURITY_NAME" -> portfolio.sec.secInfo.name)
+//        map += ("ENTER_TIME" -> this.time.toString)
+//        //list += map
+//        list = list:+map
+//      }
+//    }
+//    list
+//  }
+//
+//  def exportToJavaList: java.util.List[java.util.Map[String, String]] = {
+//
+//    val list = new java.util.ArrayList[java.util.Map[String, String]]
+//
+//    if(portfolio != null && portfolio.breakouts != null){
+//      for(portfolio <- portfolio.breakouts){
+//        val map = Map[String, String]("SECURITY_CODE" -> portfolio.sec.uniSymbol)
+//        map += ("SECURITY_NAME" -> portfolio.sec.secInfo.name)
+//        map += ("ENTER_TIME" -> this.time.toString)
+//        list.add(map)
+//      }
+//    }
+//    list
+//  }
 }

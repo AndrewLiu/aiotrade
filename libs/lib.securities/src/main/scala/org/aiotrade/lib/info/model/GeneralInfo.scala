@@ -4,9 +4,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import org.aiotrade.lib.securities.model.Flag
 import org.aiotrade.lib.math.timeseries.TVal
-import org.aiotrade.lib.securities.model.Sec
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.Map
 import scala.collection.JavaConversions._
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 
@@ -78,7 +76,7 @@ object GeneralInfo {
 }
 
 import GeneralInfo._
-class GeneralInfo extends TVal with Flag with InfoContent {
+class GeneralInfo extends TVal with Flag {
   var publishTime: Long = -1
   var title: String = ""
   var infoClass : Int = NEWS
@@ -102,23 +100,23 @@ class GeneralInfo extends TVal with Flag with InfoContent {
   def infoContents : Seq[Content] = GeneralInfos.infoContents(this)
   def infoAbstracts : Seq[ContentAbstract] = GeneralInfos.infoAbstracts(this)
 
-  def weight: Float = 0F
-  def link: String = url
-
-  def exportToMap: Map[String, String] = {
-    val map = Map[String, String]()
-    map += ("TITLE" -> title)
-    
-    if(summary != null) map += ("CONTENT" -> summary)
-    //if(categories(0) != null) map += ("CATEGORY" -> categories(0).name)
-    map += ("PUBLISH_TIME" -> publishTime.toString)
-    if(link != null) map += ("LINK" -> link)
-
-    map
-  }
-
-  def exportToJavaMap: java.util.Map[String, String] = {
-    exportToMap
-  }
+//  def weight: Float = 0F
+//  def link: String = url
+//
+//  def exportToMap: Map[String, String] = {
+//    val map = Map[String, String]()
+//    map += ("TITLE" -> title)
+//
+//    if(summary != null) map += ("CONTENT" -> summary)
+//    //if(categories(0) != null) map += ("CATEGORY" -> categories(0).name)
+//    map += ("PUBLISH_TIME" -> publishTime.toString)
+//    if(link != null) map += ("LINK" -> link)
+//
+//    map
+//  }
+//
+//  def exportToJavaMap: java.util.Map[String, String] = {
+//    exportToMap
+//  }
 }
 
