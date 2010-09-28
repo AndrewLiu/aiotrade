@@ -1,6 +1,7 @@
 package org.aiotrade.lib.info.model
 
 import java.util.logging.Logger
+import scala.collection.mutable.ListBuffer
 
 trait InfoContent{
   
@@ -54,6 +55,13 @@ object NewsContent {
     case x => log.severe("Fail to import " + this.getClass.getName + " from " + v)
       NewsContent("", "", 0L, "", "", "", 0, "", "")
   }
+
+  def importFrom(v: ListBuffer[List[(String, Any)]]): ListBuffer[NewsContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
+  }
+    
 }
 
 case class FilingContent(title: String,  publishTime: Long, link: String, 
@@ -84,6 +92,12 @@ object FilingContent{
                                                              uniSymbol, fileType, fileSize)
     case x => log.severe("Fail to import " + this.getClass.getName + " from " + v)
       FilingContent("", 0L, "", "", "", "", 0)
+  }
+
+  def importFrom(v: ListBuffer[List[(String, Any)]]): ListBuffer[FilingContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
   }
 }
 
@@ -119,6 +133,12 @@ object AnalysisReportContent{
     case x => log.severe("Fail to import " + this.getClass.getName + " from " + v)
       AnalysisReportContent("", "", 0L, "", "", "", "", "")
   }
+
+  def importFrom(v: ListBuffer[List[(String, Any)]]): ListBuffer[AnalysisReportContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
+  }
 }
 
 case class NotificationContent(title: String, content: String, 
@@ -143,6 +163,12 @@ object NotificationContent {
     case x => log.severe("Fail to import " + this.getClass.getName + " from " + v)
       NotificationContent("", "", 0L, "")
   }
+
+  def importFrom(v: ListBuffer[List[(String, Any)]]): ListBuffer[NotificationContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
+  }
 }
 
 case class SecPoolContent(startFrom: Long,  tpe: String, uniSymbol: String, symbolName: String) extends InfoContent with InfoHelper {
@@ -159,6 +185,12 @@ object SecPoolContent {
     case x =>  log.severe("Fail to import " + this.getClass.getName + " from " + v)
       SecPoolContent(0L, "", "", "")
   }
+
+  def importFrom(v: ListBuffer[(Long, String, String, String)]): ListBuffer[SecPoolContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
+  }
 }
 
 case class BullVSBearContent(optimismRatio: Float, analysis: String, predictTime: Long) extends InfoContent with InfoHelper {
@@ -174,5 +206,11 @@ object BullVSBearContent{
     case (optimismRatio: Float, analysis: String, predictTime: Long) => BullVSBearContent(optimismRatio, analysis, predictTime)
     case x => log.severe("Fail to import " + this.getClass.getName + " from " + v)
       BullVSBearContent(0.5F, "", 0L)
+  }
+
+  def importFrom(v: ListBuffer[(Float, String, Long)]): ListBuffer[BullVSBearContent] = {
+    for(vv <- v) yield {
+      importFrom(vv)
+    }
   }
 }
