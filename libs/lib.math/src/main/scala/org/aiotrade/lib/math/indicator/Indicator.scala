@@ -41,9 +41,11 @@ import org.aiotrade.lib.util.actors.Event
  * @author Caoyuan Deng
  */
 object Indicator {
+  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
+
   private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
 
-  final def getInstance[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
+  def getInstance[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
     val id = Id(clazz, baseSer, args: _*)
     idToIndicator.get(id) match {
       case null =>
@@ -61,8 +63,6 @@ object Indicator {
       case x => x.asInstanceOf[T]
     }
   }
-
-  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
   def displayName(ser: TSer): String = ser match {
     case x: Indicator => displayName(ser.shortDescription, x.factors)

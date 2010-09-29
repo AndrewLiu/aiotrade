@@ -15,11 +15,12 @@ import org.aiotrade.spi.quicksearch.SearchResponse
 
 class FreqSearchProvider extends SearchProvider {
 
-  private val freqs = Map(TFreq.ONE_MIN -> "1分钟",
+  private val freqs = Map(TFreq.ONE_MIN -> "分钟线",
                           TFreq.THREE_MINS -> "3分钟",
                           TFreq.FIVE_MINS -> "5分钟",
                           TFreq.FIFTEEN_MINS -> "15分钟",
                           TFreq.THIRTY_MINS -> "30分钟",
+                          TFreq.ONE_HOUR -> "小时线",
                           TFreq.DAILY -> "日线",
                           TFreq.THREE_DAYS -> "3日线",
                           TFreq.FIVE_DAYS -> "5日线",
@@ -30,7 +31,17 @@ class FreqSearchProvider extends SearchProvider {
   )
   private val textToFreq = (freqs map (x => (x._1.shortDescription -> x._1))) ++ Map(
     "rt" -> TFreq.ONE_SEC,
-    "fs" -> TFreq.ONE_SEC
+    "fs" -> TFreq.ONE_SEC,
+    "fz" -> TFreq.ONE_MIN,
+    "3fz" -> TFreq.THREE_MINS,
+    "5fz" -> TFreq.FIVE_MINS,
+    "15fz" -> TFreq.FIFTEEN_MINS,
+    "30fz" -> TFreq.THIRTY_MINS,
+    "1xs" -> TFreq.ONE_HOUR,
+    "sx" -> TFreq.ONE_HOUR,
+    "zx" -> TFreq.WEEKLY,
+    "yx" -> TFreq.MONTHLY,
+    "nx"  -> TFreq.ONE_YEAR
   )
 
   /**

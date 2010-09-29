@@ -131,7 +131,7 @@ class SignalChart extends AbstractChart {
                       labelTp.setForeground(if (filled) antiColor else color)
                       labelTp.model.setText(text)
                       val bounds = labelTp.textBounds
-                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height)
+                      labelTp.model.set(x - math.floor(bounds.width / 2.0).toInt, y + dyUp + bounds.height - 1)
                       height = bounds.height
                     }
 

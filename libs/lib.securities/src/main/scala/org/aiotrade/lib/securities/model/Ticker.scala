@@ -300,6 +300,13 @@ object Ticker {
 
 /**
  *
+ * A stock ticker is a running report of the prices and trading volume of securities
+ * traded on the various stock exchanges. A "tick" is an up or down movement in the
+ * sale price of a security. Since the days of the paper ticker tape dating back to
+ * 1867, stock tickers have evolved with the times, becoming fully electronic with
+ * most being presented in real-time or with only a small delay of 15-20 minutes.
+ * http://www.nasdaq.com/services/stock-ticker.stm
+ *
  * This is just a lightweight value object. So, it can be used to lightly store
  * tickers at various time. That is, you can store many many tickers for same
  * symbol efficiently, as in case of composing an one minute ser.
