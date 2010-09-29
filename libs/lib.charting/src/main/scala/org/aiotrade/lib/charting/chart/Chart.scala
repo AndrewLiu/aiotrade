@@ -30,6 +30,9 @@
  */
 package org.aiotrade.lib.charting.chart
 
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Stroke
 import org.aiotrade.lib.charting.view.pane.DatumPlane
 import org.aiotrade.lib.charting.widget.Widget
 import org.aiotrade.lib.math.timeseries.TSer
@@ -45,6 +48,35 @@ object Chart {
     case object Base extends StrockType
     case object Dash extends StrockType
   }
+
+  val MARK_INTERVAL = 16
+
+  val COLOR_SELECTED = new Color(0x447BCD)
+  val COLOR_HIGHLIGHTED = COLOR_SELECTED.darker
+  val COLOR_HOVERED = COLOR_SELECTED.brighter
+
+  val BASE_STROKES = Array[Stroke](
+    new BasicStroke(1.0f),
+    new BasicStroke(2.0f)
+  )
+  val DASH_PATTERN = Array[Float](5, 2)
+  val DASH_STROKES = Array[Stroke](
+    new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, DASH_PATTERN, 0),
+    new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, DASH_PATTERN, 0)
+  )
+
+  /**
+   * To allow the mouse pick up accurately a chart, we need seperate a chart to
+   * a lot of segment, each segment is a shape that could be sensible for the
+   * mouse row. The minimum segment's width is defined here.
+   *
+   * Although we can define it > 1, such as 3 or 5, but, when 2 bars or more
+   * are located in the same one segment, they can have only one color,
+   * example: two-colors candle chart. So, we just simplely define it as 1.
+   *
+   * Another solution is define 1 n-colors chart as n 1-color charts (implemented).
+   */
+  val MIN_SEGMENT_WIDTH = 1
 }
 
 trait Chart extends Widget with Ordered[Chart] {

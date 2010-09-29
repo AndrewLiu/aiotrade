@@ -44,7 +44,7 @@ object Function {
    * puzzled by the name, it actully will return funcion instance
    */
   protected def functionOf[T <: org.aiotrade.lib.math.indicator.Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    org.aiotrade.lib.math.indicator.Function.getInstance(clazz, baseSer, args: _*)
+    org.aiotrade.lib.math.indicator.Function.functionOf(clazz, baseSer, args: _*)
   }
 }
 

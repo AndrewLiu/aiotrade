@@ -39,7 +39,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 object Function {
   private val idToFunction = new ConcurrentHashMap[Id[_], Function]
 
-  final def getInstance[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
+  def functionOf[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
     val id = Id(clazz, baseSer, args: _*)
     idToFunction.get(id) match {
       case null =>

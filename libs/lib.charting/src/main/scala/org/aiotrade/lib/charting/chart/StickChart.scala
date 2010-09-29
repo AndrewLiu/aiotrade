@@ -103,7 +103,7 @@ class StickChart extends AbstractChart {
         tp.plot
         pathsWidget.appendFrom(tp)
 
-        if (x % AbstractChart.MARK_INTERVAL == 0) {
+        if (x % Chart.MARK_INTERVAL == 0) {
           addMarkPoint(x.toInt, yValue.toInt)
         }
       }

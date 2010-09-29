@@ -46,7 +46,7 @@ object Indicator {
   /** a static global session id */
   protected var sessionId: Long = _
 
-  protected def setSessionId: Unit = {
+  protected def setSessionId {
     sessionId += 1
   }
 
@@ -55,7 +55,7 @@ object Indicator {
    * puzzled by the name, it actully will return funcion instance
    */
   protected def functionOf[T <: org.aiotrade.lib.math.indicator.Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    org.aiotrade.lib.math.indicator.Function.getInstance(clazz, baseSer, args: _*)
+    org.aiotrade.lib.math.indicator.Function.functionOf(clazz, baseSer, args: _*)
   }
 }
 

@@ -31,11 +31,9 @@
 package org.aiotrade.lib.charting.chart
 
 import java.awt.BasicStroke
-import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
-import java.awt.Stroke
 import java.awt.geom.GeneralPath
 import org.aiotrade.lib.charting.util.GeomUtil
 import org.aiotrade.lib.math.timeseries.BaseTSer
@@ -51,40 +49,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-object AbstractChart {
-  val MARK_INTERVAL = 16
-
-  private val COLOR_SELECTED = new Color(0x447BCD)
-  private val COLOR_HIGHLIGHTED = COLOR_SELECTED.darker
-  private val COLOR_HOVERED = COLOR_SELECTED.brighter
-
-  private val BASE_STROKES = Array[Stroke](
-    new BasicStroke(1.0f),
-    new BasicStroke(2.0f)
-  )
-  private val DASH_PATTERN = Array[Float](5, 2)
-  private val DASH_STROKES = Array[Stroke](
-    new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, DASH_PATTERN, 0),
-    new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, DASH_PATTERN, 0)
-  )
-
-  /**
-   * To allow the mouse pick up accurately a chart, we need seperate a chart to
-   * a lot of segment, each segment is a shape that could be sensible for the
-   * mouse row. The minimum segment's width is defined here.
-   *
-   * Although we can define it > 1, such as 3 or 5, but, when 2 bars or more
-   * are located in the same one segment, they can have only one color,
-   * example: two-colors candle chart. So, we just simplely define it as 1.
-   *
-   * Another solution is define 1 n-colors chart as n 1-color charts (implemented).
-   */
-  private val MIN_SEGMENT_WIDTH = 1
-}
-
 abstract class AbstractChart extends AbstractWidget with Chart {
-  import AbstractChart._
-  import Chart._
 
   private val markPoints = new ArrayBuffer[Point] // used to draw selected mark
     
@@ -102,7 +67,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    */
   private var _depth: Int = _
   private var _strockWidth = 1.0F
-  private var _strockType: StrockType = StrockType.Base
+  private var _strockType: Chart.StrockType = Chart.StrockType.Base
   private var _isSelected: Boolean = _
   private var _firstPlotting: Boolean = _
 
@@ -114,7 +79,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
   protected var wBar: Double = _
     
 
-  protected var wSeg = MIN_SEGMENT_WIDTH
+  protected var wSeg = Chart.MIN_SEGMENT_WIDTH
   protected var nSegs: Int = _
     
   protected var nBarsCompressed = 1
@@ -158,7 +123,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     this.nBars   = datumPlane.nBars
     this.wBar    = datumPlane.wBar
         
-    this.wSeg = math.max(wBar, MIN_SEGMENT_WIDTH).toInt
+    this.wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     this.nSegs = (nBars * wBar / wSeg).toInt + 1
         
     this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt
@@ -196,12 +161,12 @@ abstract class AbstractChart extends AbstractWidget with Chart {
         
     val w = strockWidth.toInt
     val stroke = strockType match {
-      case StrockType.Base =>
-        if (w <= BASE_STROKES.length) BASE_STROKES(w - 1)
+      case Chart.StrockType.Base =>
+        if (w <= Chart.BASE_STROKES.length) Chart.BASE_STROKES(w - 1)
         else new BasicStroke(w)
-      case StrockType.Dash =>
-        if (w <= DASH_STROKES.length) DASH_STROKES(w - 1)
-        else new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, DASH_PATTERN, 0)
+      case Chart.StrockType.Dash =>
+        if (w <= Chart.DASH_STROKES.length) Chart.DASH_STROKES(w - 1)
+        else new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, Chart.DASH_PATTERN, 0)
       case _ => new BasicStroke(w)
     }
     g.setStroke(stroke)
@@ -229,7 +194,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     this._isSelected = b
   }
     
-  def setStrock(width: Int, tpe: StrockType) {
+  def setStrock(width: Int, tpe: Chart.StrockType) {
     this._strockWidth = width
     this._strockType = tpe
   }
@@ -238,7 +203,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @return width of chart. not width of canvas!
    */
   def strockWidth: Double = _strockWidth
-  def strockType: StrockType = _strockType
+  def strockType: Chart.StrockType = _strockType
     
   def ser = _ser
   def ser_=(ser: TSer) {
@@ -397,10 +362,10 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     val dy = yEnd - yBeg
         
     val k: Double = if (dx == 0) 1 else dy / dx
-    val xmin = Math.min(xBeg, xEnd)
-    val xmax = Math.max(xBeg, xEnd)
-    val ymin = Math.min(yBeg, yEnd)
-    val ymax = Math.max(yBeg, yEnd)
+    val xmin = math.min(xBeg, xEnd)
+    val xmax = math.max(xBeg, xEnd)
+    val ymin = math.min(yBeg, yEnd)
+    val ymax = math.max(yBeg, yEnd)
         
     var xlast = xb(0) // bar 0
     var ylast = Null.Double

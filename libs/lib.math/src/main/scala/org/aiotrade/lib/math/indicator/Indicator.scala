@@ -45,11 +45,11 @@ object Indicator {
 
   private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
 
-  def getInstance[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
+  def indicatorOf[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
     val id = Id(clazz, baseSer, args: _*)
     idToIndicator.get(id) match {
       case null =>
-        /** if got none from functionSet, try to create new one */
+        /** if got none from idToIndicator, try to create new one */
         try {
           val indicator = clazz.newInstance
           /** don't forget to call set(baseSer, args) immediatley */

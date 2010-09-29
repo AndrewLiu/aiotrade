@@ -98,7 +98,7 @@ class PolyLineChart extends AbstractChart {
             val x2 = xb(bar)
             tp.model.set(x1, y1, x2, y2)
                         
-            if (x2 % AbstractChart.MARK_INTERVAL == 0) {
+            if (x2 % Chart.MARK_INTERVAL == 0) {
               addMarkPoint(x2.toInt, y2.toInt)
             }
                         
