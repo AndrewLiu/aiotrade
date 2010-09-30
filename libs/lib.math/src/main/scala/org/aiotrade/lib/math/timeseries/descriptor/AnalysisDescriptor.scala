@@ -36,7 +36,6 @@ import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.serialization.BeansDocument
-//import org.aiotrade.lib.util.serialization.DeserializationConstructor
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper
@@ -49,9 +48,9 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
-                                      private var _freq: TFreq,
-                                      private var _active: Boolean) extends WithActions {
+abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: String,
+                                               private var _freq: TFreq,
+                                               private var _active: Boolean) extends WithActions {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -119,7 +118,7 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
 
   // --- helpers ---
   
-  protected def lookupServiceTemplate[T <: AnyRef](tpe: Class[T], folderName: String): Option[T] = {
+  protected def lookupServiceTemplate(tpe: Class[S], folderName: String): Option[S] = {
     val services = PersistenceManager().lookupAllRegisteredServices(tpe, folderName)
     services find {x =>
       val className = x.getClass.getName
@@ -133,8 +132,8 @@ abstract class AnalysisDescriptor[+S](private var _serviceClassName: String,
 
           val klass = Class.forName(serviceClassName)
           getScalaSingletonInstance(klass) match {
-            case Some(x) if x.isInstanceOf[T] => Option(x.asInstanceOf[T])
-            case _ => Option(klass.newInstance.asInstanceOf[T])
+            case Some(x) if x.isInstanceOf[S] => Option(x.asInstanceOf[S])
+            case _ => Option(klass.newInstance.asInstanceOf[S])
           }
         } catch {
           case ex: Exception => log.log(Level.SEVERE, "Failed to call Class.forName of class: " + serviceClassName, ex)

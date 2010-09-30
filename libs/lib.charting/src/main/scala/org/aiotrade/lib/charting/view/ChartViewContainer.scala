@@ -41,8 +41,8 @@ import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 import org.aiotrade.lib.charting.chart.Chart
-import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.HashMap
 
@@ -175,14 +175,14 @@ abstract class ChartViewContainer extends JPanel {
     add(masterView, gbc)
   }
 
-  def addSlaveView(descriptor: IndicatorDescriptor, indicator: Indicator, $gbc: GridBagConstraints): ChartView = {
+  def addSlaveView(descriptor: IndicatorDescriptor, ser: TSer, $gbc: GridBagConstraints): ChartView = {
     var view: ChartView = null
     if (!descriptorToSlaveView.contains(descriptor)) {
-      if (indicator.isOverlapping) {
+      if (ser.isOverlapping) {
         view = masterView
-        view.addOverlappingCharts(indicator)
+        view.addOverlappingCharts(ser)
       } else {
-        view = new IndicatorChartView(controller, indicator)
+        view = new IndicatorChartView(controller, ser)
         val gbc = if ($gbc == null) {
           GBC(0).setFill(GridBagConstraints.BOTH)
         } else $gbc

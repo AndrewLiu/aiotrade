@@ -4,7 +4,6 @@
  */
 
 package org.aiotrade.lib.securities.dataserver
-import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent

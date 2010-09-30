@@ -81,7 +81,7 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
   }
 
   override def displayName: String = {
-    val description = lookupServiceTemplate match {
+    val description = lookupServiceTemplate(classOf[Indicator], "Indicators") match {
       case Some(tpInstance) => tpInstance.shortDescription
       case None => serviceClassName
     }
@@ -98,7 +98,7 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
    * @param baseSer for indicator
    */
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
-    case Seq(baseSer: BaseTSer) => lookupServiceTemplate match {
+    case Seq(baseSer: BaseTSer) => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
         case Some(x) =>
           val instance = x.createNewInstance(baseSer)
                 
@@ -119,25 +119,14 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
     val defaultFacs = PersistenceManager().defaultContents.lookupDescriptor(
       classOf[IndicatorDescriptor], serviceClassName, freq
     ) match {
-      case None => lookupServiceTemplate match {
+      case None => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
           case None => None
-          case Some(template) => Some(template.factors)
+          case Some(x) => Some(x.factors)
         }
       case Some(defaultDescriptor) => Some(defaultDescriptor.factors)
     }
 
     defaultFacs foreach {x => factors = x}
-  }
-
-  def lookupServiceTemplate: Option[Indicator] = {
-    val services = PersistenceManager().lookupAllRegisteredServices(classOf[Indicator], folderName)
-    services find {x => x.getClass.getName == serviceClassName} match {
-      case None =>
-        try {
-          Some(Class.forName(serviceClassName).newInstance.asInstanceOf[Indicator])
-        } catch {case ex: Exception => ex.printStackTrace; None}
-      case some => some
-    }
   }
 
   override def createDefaultActions: Array[Action] = {

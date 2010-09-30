@@ -33,14 +33,13 @@ package org.aiotrade.lib.securities.dataserver
 import java.awt.Image
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.securities.model.Quote
 
 /**
  * most fields' default value should be OK.
  *
  * @author Caoyuan Deng
  */
-class QuoteContract extends DataContract[Quote, QuoteServer] {
+class QuoteContract extends DataContract[QuoteServer] {
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   /** default freq */

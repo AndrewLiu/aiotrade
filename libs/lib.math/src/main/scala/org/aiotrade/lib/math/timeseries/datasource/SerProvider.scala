@@ -41,7 +41,7 @@ import org.aiotrade.lib.util.actors.Publisher
  */
 trait SerProvider extends Publisher {
   type T <: TSer
-  type C <: DataContract[_, _]
+  type C <: DataContract[_]
     
   /**
    * Load sers, can be called to load ser whenever

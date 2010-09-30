@@ -8,7 +8,7 @@ package org.aiotrade.lib.securities.dataserver
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.TFreq
 
-class QuoteInfoContract extends DataContract[QuoteInfo, QuoteInfoDataServer] {
+class QuoteInfoContract extends DataContract[QuoteInfoDataServer] {
 
   serviceClassName = null
   freq = TFreq.ONE_MIN

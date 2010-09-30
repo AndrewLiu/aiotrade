@@ -70,7 +70,7 @@ class DrawingDescriptor(layerName: String) extends AnalysisDescriptor[DrawingPan
     
     
   def putHandledChart(handledChart: HandledChart, handlePoints: ArrayBuffer[ValuePoint]) {
-    handledChartMapPoints.put(handledChart, handlePoints);
+    handledChartMapPoints.put(handledChart, handlePoints)
   }
     
   def removeHandledChart(handledChart: HandledChart) {

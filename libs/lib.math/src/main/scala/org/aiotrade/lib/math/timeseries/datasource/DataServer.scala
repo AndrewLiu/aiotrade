@@ -74,7 +74,7 @@ object DataServer extends Publisher {
  */
 import DataServer._
 abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
-  type C <: DataContract[V, _]
+  type C <: DataContract[_]
 
   protected val EmptyValues = Array[V]()
 

@@ -33,7 +33,6 @@ package org.aiotrade.lib.securities.dataserver
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.lib.securities.model.Ticker
 
 
 /**
@@ -42,7 +41,7 @@ import org.aiotrade.lib.securities.model.Ticker
  *
  * @author Caoyuan Deng
  */
-class TickerContract extends DataContract[Ticker, TickerServer] {
+class TickerContract extends DataContract[TickerServer] {
   type T = QuoteSer
 
   serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"

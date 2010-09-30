@@ -43,7 +43,6 @@ import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.util.swing.GBC
 import scala.collection.mutable.HashSet
 
@@ -135,7 +134,7 @@ class IndicatorChartView($controller: ChartingController, $mainSer: TSer, $empty
       }
             
       /** plot grid */
-      val grids = mainSer.asInstanceOf[Indicator].grids
+      val grids = mainSer.grids
       if (grids != null && grids.length > 0) {
         val gridChart = new GridChart
                 
