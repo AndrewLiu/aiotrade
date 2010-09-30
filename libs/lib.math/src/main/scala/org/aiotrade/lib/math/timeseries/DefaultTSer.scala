@@ -56,9 +56,8 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
-  protected val logger = Logger.getLogger(getClass.getName)
-  logger.setLevel(Level.INFO)
+class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
+  private val log = Logger.getLogger(getClass.getName)
 
   protected val INIT_CAPACITY = 100
 
@@ -87,7 +86,15 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
   private var tsLogCheckedCursor = 0
   private var tsLogCheckedSize = 0
 
-  private var description = ""
+  /**
+   * Long description
+   */
+  protected var lname = ""
+  
+  /**
+   * Short description
+   */
+  protected var sname = ""
 
   def this() = this(TFreq.DAILY)
 
@@ -154,10 +161,13 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
    */
   protected def createItem(time: Long): Holder = true
 
-  def shortDescription :String = description
-  def shortDescription_=(description: String): Unit = {
-    this.description = description
+  def longDescription: String = lname
+  def shortDescription: String = sname
+  def shortDescription_=(description: String) {
+    this.sname = description
   }
+
+  def displayName = shortDescription + " - (" + longDescription + ")"
 
   /**
    * @Note:
@@ -207,7 +217,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
                 i += 1
               }
               holders.insertAll(begIdx1, newHolders)
-              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + holders.size)
+              log.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + holders.size)
                             
             case TStampsLog.APPEND =>
               val begIdx = holders.size
@@ -225,7 +235,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
                 i += 1
               }
               holders ++= newHolders
-              logger.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + holders.size)
+              log.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + holders.size)
 
             case x => assert(false, "Unknown log type: " + x)
           }
@@ -241,7 +251,7 @@ class DefaultTSer(afreq: TFreq) extends AbstractTSer(afreq) {
              ", checkedCursor=" + tsLogCheckedCursor +
              ", log=" + tlog)
     } catch {
-      case ex => logger.log(Level.WARNING, "exception", ex)
+      case ex => log.log(Level.WARNING, "exception", ex)
     } finally {
       writeLock.unlock
       //timestamps.readLock.unlock

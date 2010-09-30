@@ -33,7 +33,6 @@ package org.aiotrade.lib.math.indicator
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.util.actors.Reactions
-import org.aiotrade.lib.util.actors.Reactor
 
 
 /**
@@ -45,7 +44,7 @@ import org.aiotrade.lib.util.actors.Reactor
  *
  * @author Caoyuan Deng
  */
-trait IndicatorHelper extends Reactor {self: Indicator =>
+trait IndicatorHelper {self: Indicator =>
 
   /**
    * factors of this instance, such as period long, period short etc,

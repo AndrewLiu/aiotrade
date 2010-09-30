@@ -34,9 +34,12 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
-class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTSer($freq) with BaseTSer {
+class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends DefaultTSer($freq) with BaseTSer {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private var _isOnCalendarMode = false
     
   attach(TStampsFactory.createInstance(INIT_CAPACITY))
@@ -87,7 +90,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
     }
   }
 
-    def createWhenNonExist(time: Long) {
+  def createWhenNonExist(time: Long) {
     try {
       writeLock.lock
       /**
@@ -210,7 +213,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: TFreq) extends DefaultTS
       writeLock.unlock
     }
 
-    logger.fine("TimestampsLog: " + timestamps.log)
+    log.fine("TimestampsLog: " + timestamps.log)
     this
   }
 

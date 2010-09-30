@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -45,13 +45,13 @@ object Indicator {
 
   private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
 
-  def indicatorOf[T <: Indicator](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    val id = Id(clazz, baseSer, args: _*)
+  def indicatorOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, args: Any*): T = {
+    val id = Id(klass, baseSer, args: _*)
     idToIndicator.get(id) match {
       case null =>
         /** if got none from idToIndicator, try to create new one */
         try {
-          val indicator = clazz.newInstance
+          val indicator = klass.newInstance
           /** don't forget to call set(baseSer, args) immediatley */
           indicator.set(baseSer) // @todo, setFactors
           idToIndicator.putIfAbsent(id, indicator)
@@ -75,19 +75,15 @@ object Indicator {
   }
 }
 
-case class ComputeFrom(time: Long) extends Event
-
-trait Indicator extends TSer {
+trait Indicator extends TSer with Ordered[Indicator] {
 
   val Plot = org.aiotrade.lib.math.indicator.Plot
-
+  
   reactions += {
     case ComputeFrom(time) => computeFrom(time)
   }
 
   def set(baseSer: BaseTSer)
-  def createNewInstance(baseSer: BaseTSer): Indicator
-
   def baseSer: BaseTSer
   def baseSer_=(baseSer: BaseTSer)
 
@@ -101,6 +97,18 @@ trait Indicator extends TSer {
   def factors_=(factors: Array[Factor])
   def factorValues_=(values: Array[Double])
 
+  def createNewInstance(baseSer: BaseTSer): Indicator
+
   def dispose
 
+  def compare(another: Indicator): Int = {
+    if (this.shortDescription.equalsIgnoreCase(another.shortDescription)) {
+      if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
+    } else {
+      this.shortDescription.compareTo(another.shortDescription)
+    }
+  }
+
 }
+
+case class ComputeFrom(time: Long) extends Event

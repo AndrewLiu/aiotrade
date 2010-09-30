@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.indicator
 
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
@@ -59,11 +61,15 @@ object Indicator {
   }
 }
 
+/**
+ * @param base series to compute this
+ */
 import Indicator._
-abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
-                                                with org.aiotrade.lib.math.indicator.Indicator
-                                                with IndicatorHelper
-                                                with Ordered[Indicator] {
+abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
+                                                   with org.aiotrade.lib.math.indicator.Indicator
+                                                   with IndicatorHelper {
+
+  private val log = Logger.getLogger(this.getClass.getName)
 
   /**
    * !NOTICE
@@ -72,14 +78,7 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
    * by indicatorHelper.addFac(..)
    */
   private var _computedTime = Long.MinValue
-    
-  /** some instance scope variables that can be set directly */
-  protected var sname = "unkown"
-  protected var lname = "unkown"
-
-  /** base series to compute this */
-  var baseSer: BaseTSer = _
-    
+        
   /** To store values of open, high, low, close, volume: */
   protected var O: TVar[Double] = _
   protected var H: TVar[Double] = _
@@ -87,8 +86,8 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
   protected var C: TVar[Double] = _
   protected var V: TVar[Double] = _
 
-  if ($baseSer != null) {
-    set($baseSer)
+  if (baseSer != null) {
+    set(baseSer)
   }
     
   /**
@@ -111,7 +110,9 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
     }
   }
     
-  /** override this method to define your predefined vars */
+  /**
+   * override this method to define your predefined vars
+   */
   protected def initPredefinedVarsOfBaseSer {
     baseSer match {
       case x: QuoteSer =>
@@ -169,31 +170,14 @@ abstract class Indicator($baseSer: BaseTSer) extends DefaultTSer
         
   protected def computeCont(fromIdx: Int, size: Int): Unit
     
-  protected def longDescription: String = lname
-    
-  override def shortDescription: String = sname
-  override def shortDescription_=(description: String) {
-    this.sname = description
-  }
-
-  def displayName = shortDescription + " - (" + longDescription + ")"
-    
-  def compare(another: Indicator): Int = {
-    if (this.shortDescription.equalsIgnoreCase(another.shortDescription)) {
-      if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
-    } else {
-      this.shortDescription.compareTo(another.shortDescription)
-    }
-  }
-    
   def createNewInstance(baseSer: BaseTSer): Indicator = {
     try {
       val instance = this.getClass.newInstance.asInstanceOf[Indicator]
       instance.set(baseSer)
       instance
     } catch {
-      case ex: IllegalAccessException => ex.printStackTrace; null
-      case ex: InstantiationException => ex.printStackTrace; null
+      case ex: IllegalAccessException => log.log(Level.SEVERE, ex.getMessage, ex); null
+      case ex: InstantiationException => log.log(Level.SEVERE, ex.getMessage, ex); null
     }
   }
     
