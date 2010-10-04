@@ -86,7 +86,7 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
       case None => serviceClassName
     }
         
-    org.aiotrade.lib.math.indicator.Indicator.displayName(description, factors)
+    Indicator.displayName(description, factors)
   }
 
   /**

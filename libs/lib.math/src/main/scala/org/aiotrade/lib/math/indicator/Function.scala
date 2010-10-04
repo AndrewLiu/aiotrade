@@ -39,13 +39,13 @@ import org.aiotrade.lib.math.timeseries.TSer
 object Function {
   private val idToFunction = new ConcurrentHashMap[Id[_], Function]
 
-  def functionOf[T <: Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    val id = Id(clazz, baseSer, args: _*)
+  def functionOf[T <: Function](klass: Class[T], baseSer: BaseTSer, args: Any*): T = {
+    val id = Id(klass, baseSer, args: _*)
     idToFunction.get(id) match {
       case null =>
         /** if got none from functionSet, try to create new one */
         try {
-          val function = clazz.newInstance
+          val function = klass.newInstance
           /** don't forget to call set(baseSer, args) immediatley */
           function.set(baseSer, args: _*)
           idToFunction.putIfAbsent(id, function)
