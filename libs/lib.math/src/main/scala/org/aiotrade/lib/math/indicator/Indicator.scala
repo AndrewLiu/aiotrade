@@ -45,15 +45,16 @@ object Indicator {
 
   private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
 
-  def indicatorOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    val id = Id(klass, baseSer, args: _*)
+  def apply[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*): T = {
+    val id = Id(klass, baseSer, factors: _*)
     idToIndicator.get(id) match {
       case null =>
         /** if got none from idToIndicator, try to create new one */
         try {
           val indicator = klass.newInstance
           /** don't forget to call set(baseSer, args) immediatley */
-          indicator.set(baseSer) // @todo, setFactors
+          indicator.set(baseSer)
+          indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
           indicator
         } catch {
@@ -96,8 +97,6 @@ trait Indicator extends TSer with Ordered[Indicator] {
   def factors: Array[Factor]
   def factors_=(factors: Array[Factor])
   def factorValues_=(values: Array[Double])
-
-  def createNewInstance(baseSer: BaseTSer): Indicator
 
   def dispose
 

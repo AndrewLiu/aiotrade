@@ -55,7 +55,7 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
     setFacsToDefault
   }
 
-  def factors: Array[Factor]= _factors.toArray
+  def factors: Array[Factor] = _factors.toArray
   def factors_=(factors: Array[Factor]) {
     /**
      * @NOTICE:
@@ -100,16 +100,16 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
     case Seq(baseSer: BaseTSer) => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
         case Some(x) =>
-          val instance = x.createNewInstance(baseSer)
-                
-          if (factors.length == 0) {
-            /** this means this indicatorDescritor's factors may not be set yet, so set a default one now */
-            factors = instance.factors
+          val instance = if (factors.length == 0) {
+            // this means this indicatorDescritor's factors may not be set yet, so set a default one now
+            val instancex = Indicator(x.getClass.asInstanceOf[Class[Indicator]], baseSer)
+            factors = instancex.factors
+            instancex
           } else {
-            /** should set facs here, because it's from those stored in xml */
-            instance.factors = factors
+            // should set facs here, because it's from one that is stored in xml
+            Indicator(x.getClass.asInstanceOf[Class[Indicator]], baseSer, factors: _*)
           }
-          Some(instance)
+          Option(instance)
         case None => None
       }
     case _ => None

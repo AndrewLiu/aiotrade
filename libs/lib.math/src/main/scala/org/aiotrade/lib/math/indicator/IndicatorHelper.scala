@@ -50,14 +50,14 @@ trait IndicatorHelper {self: Indicator =>
    * factors of this instance, such as period long, period short etc,
    * @todo it should be 'final' to avoid being replaced somewhere?.
    */
-  var _factors = Array[Factor]()
+  private var _factors = Array[Factor]()
         
   /**
    * preComputeFrom will set and backup the context before computeFrom(long begTime):
    * begTime, begIdx etc.
    *
    *
-   * @return begTime
+   * @return fromTime
    */
   private var fromTime: Long = _ // used by postComputeFrom only
 

@@ -30,8 +30,6 @@
  */
 package org.aiotrade.lib.indicator
 
-import java.util.logging.Level
-import java.util.logging.Logger
 import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
@@ -68,8 +66,6 @@ import Indicator._
 abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
                                                    with org.aiotrade.lib.math.indicator.Indicator
                                                    with IndicatorHelper {
-
-  private val log = Logger.getLogger(this.getClass.getName)
 
   /**
    * !NOTICE
@@ -169,17 +165,6 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
   }
         
   protected def computeCont(fromIdx: Int, size: Int): Unit
-    
-  def createNewInstance(baseSer: BaseTSer): Indicator = {
-    try {
-      val instance = this.getClass.newInstance.asInstanceOf[Indicator]
-      instance.set(baseSer)
-      instance
-    } catch {
-      case ex: IllegalAccessException => log.log(Level.SEVERE, ex.getMessage, ex); null
-      case ex: InstantiationException => log.log(Level.SEVERE, ex.getMessage, ex); null
-    }
-  }
     
   /**
    * Define functions
