@@ -76,7 +76,7 @@ object Indicator {
   }
 }
 
-trait Indicator extends TSer with Ordered[Indicator] {
+trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
 
   val Plot = org.aiotrade.lib.math.indicator.Plot
   
@@ -94,10 +94,6 @@ trait Indicator extends TSer with Ordered[Indicator] {
   def computeFrom(time: Long)
   def computedTime: Long
 
-  def factors: Array[Factor]
-  def factors_=(factors: Array[Factor])
-  def factorValues_=(values: Array[Double])
-
   def dispose
 
   def compare(another: Indicator): Int = {
@@ -108,6 +104,117 @@ trait Indicator extends TSer with Ordered[Indicator] {
     }
   }
 
+}
+
+trait WithFactors {self: Indicator =>
+
+  /**
+   * factors of this instance, such as period long, period short etc,
+   */
+  private var _factors = Array[Factor]()
+  
+  def factors: Array[Factor] = _factors
+  def factors_=(factors: Array[Factor]) {
+    if (factors != null) {
+      val values = new Array[Double](factors.length)
+      var i = 0
+      while (i < factors.length) {
+        values(i) = _factors(i).value
+        i += 1
+      }
+      factorValues_=(values)
+    }
+  }
+
+  /**
+   *
+   * @return if any value of factors changed, return true, else return false
+   */
+  def factorValues_=(facValues: Array[Double]) {
+    var valueChanged = false
+    if (facValues != null) {
+      if (factors.length == facValues.length) {
+        var i = 0
+        while (i < facValues.length) {
+          val myFactor = _factors(i)
+          val inValue = facValues(i)
+          /** check if changed happens before set myFactor */
+          if (myFactor.value != inValue) {
+            valueChanged = true
+          }
+          myFactor.value = inValue
+          i += 1
+        }
+      }
+    }
+
+    if (valueChanged) {
+      factors foreach {x => publish(FactorEvent(x))}
+    }
+  }
+
+  def replaceFactor(oldFactor: Factor, newFactor: Factor) {
+    var idxOld = -1
+    var i = 0
+    var break = false
+    while (i < factors.length && !break) {
+      val factor = factors(i)
+      if (factor.equals(oldFactor)) {
+        idxOld = i
+        break = true
+      }
+    }
+
+    if (idxOld != -1) {
+      addFactorReactions(newFactor)
+
+      factors(idxOld) = newFactor
+    }
+  }
+
+  private def addFactor(factor: Factor) {
+    /** add factor reaction to this factor */
+    addFactorReactions(factor)
+
+    val old = _factors
+    _factors = new Array[Factor](old.length + 1)
+    System.arraycopy(old, 0, _factors, 0, old.length)
+    _factors(_factors.length - 1) = factor
+  }
+
+  private def addFactorReactions(factor: Factor) {
+    reactions += {
+      /**
+       * As any factor in factors changed will publish events for each factor
+       * in factors, we only need respond to the first one.
+       */
+      case FactorEvent(source) if source == _factors(0) => computeFrom(0)
+    }
+    listenTo(factor)
+  }
+
+  /**
+   * Inner Fac class that will be added to AbstractIndicator instance
+   * automaticlly when new it.
+   * Fac can only lives in AbstractIndicator
+   *
+   *
+   * @see addFactor()
+   * --------------------------------------------------------------------
+   */
+  object Factor {
+    def apply(name: String, value: Double) =
+      new InnerFactor(name, value, 1.0, Double.MinValue, Double.MaxValue)
+    def apply(name: String, value: Double, step: Double) =
+      new InnerFactor(name, value, step, Double.MinValue, Double.MaxValue)
+    def apply(name: String, value: Double, step: Double, minValue: Double, maxValue: Double) =
+      new InnerFactor(name, value, step, minValue, maxValue)
+  }
+
+  protected class InnerFactor(name: => String, value: => Double, step: => Double, minValue: => Double, maxValue: => Double
+  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
+    addFactor(this)
+  }
 }
 
 case class ComputeFrom(time: Long) extends Event

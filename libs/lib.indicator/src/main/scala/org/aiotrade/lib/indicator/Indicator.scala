@@ -31,7 +31,6 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.indicator.function._
-import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.indicator.Function
 import org.aiotrade.lib.math.indicator.IndicatorHelper
@@ -387,34 +386,5 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
    * ----------------------------------------------------------------------
    * End of Functions
    */
-    
-    
-  /**
-   * Inner Fac class that will be added to AbstractIndicator instance
-   * automaticlly when new it.
-   * Fac can only lives in AbstractIndicator
-   *
-   *
-   * @see addFactor()
-   * --------------------------------------------------------------------
-   */
-  object Factor {
-    def apply(name: String, value: Double) =
-      new InnerFactor(name, value, 1.0, Double.MinValue, Double.MaxValue)
-    def apply(name: String, value: Double, step: Double) =
-      new InnerFactor(name, value, step, Double.MinValue, Double.MaxValue)
-    def apply(name: String, value: Double, step: Double, minValue: Double, maxValue: Double) =
-      new InnerFactor(name, value, step, minValue, maxValue)
-  }
-    
-  protected class InnerFactor(name: => String,
-                              value: => Double,
-                              step: => Double,
-                              minValue: => Double,
-                              maxValue: => Double
-  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
-
-    addFactor(this)
-
-  }
+        
 }

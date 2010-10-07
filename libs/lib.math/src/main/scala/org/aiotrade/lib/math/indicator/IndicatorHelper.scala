@@ -45,12 +45,6 @@ import org.aiotrade.lib.util.actors.Reactions
  * @author Caoyuan Deng
  */
 trait IndicatorHelper {self: Indicator =>
-
-  /**
-   * factors of this instance, such as period long, period short etc,
-   * @todo it should be 'final' to avoid being replaced somewhere?.
-   */
-  private var _factors = Array[Factor]()
         
   /**
    * preComputeFrom will set and backup the context before computeFrom(long begTime):
@@ -174,94 +168,6 @@ trait IndicatorHelper {self: Indicator =>
                                     baseSerEventCallBack))
   }
     
-  def addFactor(factor: Factor) {
-    /** add factor reaction to this factor */
-    addFactorReactions(factor)
-
-    val old = _factors
-    _factors = new Array[Factor](old.length + 1)
-    System.arraycopy(old, 0, _factors, 0, old.length)
-    _factors(_factors.length - 1) = factor
-  }
-    
-  private def addFactorReactions(factor: Factor) {
-    reactions += {
-      case FactorEvent(source) =>
-        /**
-         * As any factor in factors changed will publish events
-         * for each factor in factors, we only need respond to the first
-         * one.
-         */
-        if (source.equals(_factors(0))) {
-          computeFrom(0)
-        }
-
-    }
-    listenTo(factor)
-
-  }
-
-  def factors: Array[Factor] = _factors
-
-  /**
-   * @return if any value of factors changed, return true, else return false
-   */
-  def factors_=(factors: Array[Factor]) {
-    if (factors != null) {
-      val values = new Array[Double](factors.length)
-      for (i <- 0 until factors.length) {
-        values(i) = _factors(i).value
-      }
-      factorValues_=(values)
-    }
-  }
-    
-  /**
-   *
-   * @return if any value of factors changed, return true, else return false
-   */
-  def factorValues_=(facValues: Array[Double]) {
-    var valueChanged = false
-    if (facValues != null) {
-      if (factors.length == facValues.length) {
-        var i = 0
-        while (i < facValues.length) {
-          val myFactor = _factors(i)
-          val inValue = facValues(i)
-          /** check if changed happens before set myFactor */
-          if (myFactor.value != inValue) {
-            valueChanged = true
-          }
-          myFactor.value = inValue
-          i += 1
-        }
-      }
-    }
-        
-    if (valueChanged) {
-      factors foreach {x => publish(FactorEvent(x))}
-    }
-  }
-    
-  def replaceFactor(oldFactor: Factor, newFactor: Factor): Unit = {
-    var idxOld = -1
-    var i = 0
-    var break = false
-    while (i < factors.length && !break) {
-      val factor = factors(i)
-      if (factor.equals(oldFactor)) {
-        idxOld = i
-        break = true
-      }
-    }
-        
-    if (idxOld != -1) {
-      addFactorReactions(newFactor)
-            
-      factors(idxOld) = newFactor
-    }
-  }
-
   def dispose {
     if (baseSerReactions != null) {
       baseSer.reactions -= baseSerReactions
