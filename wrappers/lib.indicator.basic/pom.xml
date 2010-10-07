@@ -104,6 +104,7 @@
                 <configuration>
                     <publicPackages>
                         <publicPackage>org.aiotrade.lib.indicator.basic</publicPackage>
+                        <publicPackage>org.aiotrade.lib.indicator.basic.signal</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>
