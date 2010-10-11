@@ -28,57 +28,30 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.aiotrade.lib.indicator
 
-package org.aiotrade.lib.math.indicator
-
-import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Level
-import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.math.timeseries.TSer
+import org.aiotrade.lib.math.timeseries.DefaultBaseTSer
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.math.timeseries.TFreq
 
+/**
+ * @author Caoyuan Deng
+ */
+class FreeFillIndicator($serProvider: => SerProvider, $freq: => TFreq) extends DefaultBaseTSer($serProvider, $freq)
+                                                                          with org.aiotrade.lib.math.indicator.Indicator {
 
-object Function {
-  private val log = Logger.getLogger(this.getClass.getName)
+  def set(baseSer: BaseTSer) {}
 
-  private val idToFunction = new ConcurrentHashMap[Id, Function]
-
-  def apply[T <: Function](klass: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    val id = Id(klass, baseSer, args: _*)
-    idToFunction.get(id) match {
-      case null =>
-        /** if got none from functionSet, try to create new one */
-        try {
-          val function = klass.newInstance
-          /** don't forget to call set(baseSer, args) immediatley */
-          function.set(baseSer, args: _*)
-          idToFunction.putIfAbsent(id, function)
-          function
-        } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
-        }
-      case x => x.asInstanceOf[T]
-    }
-  }
-}
-
-trait Function extends TSer {
-  
-  /**
-   * set the function's arguments.
-   * @param baseSer, the ser that this function is based, ie. used to compute
-   */
-  def set(baseSer: BaseTSer, args: Any*)
+  def baseSer: BaseTSer = null
+  def baseSer_=(baseSer: BaseTSer) {}
 
   /**
-   * This method will compute from computedIdx <b>to</b> idx.
-   *
-   * and AbstractIndicator.compute(final long begTime) will compute <b>from</b>
-   * begTime to last data
-   *
-   * @param sessionId, the sessionId usally is controlled by outside caller,
-   *        such as an indicator
-   * @param idx, the idx to be computed to
+   * @param time to be computed from
    */
-  def computeTo(sessionId: Long, idx: Int): Unit
+  def computeFrom(time: Long) {}
+  def computedTime: Long = this.lastOccurredTime
+
+  def dispose {}
+
 }

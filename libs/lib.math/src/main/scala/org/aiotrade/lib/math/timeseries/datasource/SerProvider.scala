@@ -61,10 +61,6 @@ trait SerProvider extends Publisher {
     
   def serOf(freq: TFreq): Option[T]
 
-  def indicatorOf(clazzName: String, freq: TFreq): Option[Indicator]
-  def addIndicator(indicator: Indicator)
-  def removeIndicator(indicator: Indicator)
-    
   def description: String
   def description_=(description: String)
     

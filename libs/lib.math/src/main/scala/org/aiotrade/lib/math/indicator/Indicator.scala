@@ -32,6 +32,8 @@ package org.aiotrade.lib.math.indicator
 
 import java.text.DecimalFormat
 import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.actors.Event
@@ -41,9 +43,11 @@ import org.aiotrade.lib.util.actors.Event
  * @author Caoyuan Deng
  */
 object Indicator {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  private val idToIndicator = new ConcurrentHashMap[Id[_], Indicator]
+  private val idToIndicator = new ConcurrentHashMap[Id, Indicator]
 
   def apply[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*): T = {
     val id = Id(klass, baseSer, factors: _*)
@@ -52,14 +56,13 @@ object Indicator {
         /** if got none from idToIndicator, try to create new one */
         try {
           val indicator = klass.newInstance
-          /** don't forget to call set(baseSer, args) immediatley */
+          /** don't forget to call set(baseSer) immediatley */
           indicator.set(baseSer)
           indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
           indicator
         } catch {
-          case ex: IllegalAccessException => ex.printStackTrace; null.asInstanceOf[T]
-          case ex: InstantiationException => ex.printStackTrace; null.asInstanceOf[T]
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
         }
       case x => x.asInstanceOf[T]
     }

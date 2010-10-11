@@ -34,7 +34,6 @@ package org.aiotrade.lib.securities.model
 import java.util.Calendar
 import org.aiotrade.lib.info.model.Infos1m
 import org.aiotrade.lib.info.model.Infos1d
-import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -61,7 +60,6 @@ import org.aiotrade.lib.info.model.GeneralInfos
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.InfoSecs
 import ru.circumflex.orm._
-import scala.collection.mutable.ListBuffer
 
 
 object Secs extends Table[Sec] {
@@ -173,7 +171,6 @@ class Sec extends SerProvider {
   private var _realtimeSer: QuoteSer = _
   private[securities] lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
-  private lazy val freqToIndicators = HashMap[TFreq, ListBuffer[Indicator]]()
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
 
@@ -260,31 +257,6 @@ class Sec extends SerProvider {
             }
           case some => some
         }
-    }
-  }
-
-  def indicatorOf(clazzName: String, freq: TFreq): Option[Indicator] = mutex synchronized {
-    freqToIndicators.get(freq) match {
-      case Some(inds) => inds find (_.getClass.getName == clazzName)
-      case None => None
-    }
-  }
-
-  def addIndicator(indicator: Indicator): Unit = mutex synchronized {
-    val freq = indicator.freq
-    val indicators = freqToIndicators.get(freq) match {
-      case Some(xs) => xs += indicator
-      case None =>
-        val xs = ListBuffer[Indicator](indicator)
-        freqToIndicators.put(freq, xs)
-    }
-  }
-
-  def removeIndicator(indicator: Indicator): Unit = mutex synchronized {
-    val freq = indicator.freq
-    freqToIndicators.get(freq) match {
-      case Some(indicators) => indicators -= indicator
-      case None =>
     }
   }
 
@@ -394,7 +366,6 @@ class Sec extends SerProvider {
     _realtimeSer = null
     freqToQuoteSer.clear
     freqToMoneyFlowSer.clear
-    freqToIndicators.clear
     freqToInfoSer.clear
   }
 

@@ -30,20 +30,18 @@
  */
 package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.math.timeseries.TSer
-
 /**
  * @author Caoyuan Deng
- * @Note baseSer should implement proper hashCode and equals method
+ * @Note ref should implement proper hashCode and equals method,
+ *       it could be baseSer or name string etc
  */
-final case class Id[T <: TSer](clazz: Class[T], baseSer: BaseTSer, args: Any*) {
+final case class Id(clazz: Class[_], ref: AnyRef, args: Any*) {
 
   @inline final override def equals(o: Any): Boolean = {
     o match {
-      case Id(clazz, baseSer, args@_*) if
+      case Id(clazz, ref, args@_*) if
         this.clazz.eq(clazz) &&
-        this.baseSer.eq(baseSer) &&
+        this.ref.eq(ref) &&
         this.args.size == args.size
         =>
         val itr1 = this.args.iterator
@@ -61,7 +59,7 @@ final case class Id[T <: TSer](clazz: Class[T], baseSer: BaseTSer, args: Any*) {
   @inline final override def hashCode: Int = {
     var h = 17
     h = 37 * h + clazz.hashCode
-    h = 37 * h + baseSer.hashCode
+    h = 37 * h + ref.hashCode
     val itr = args.iterator
     while (itr.hasNext) {
       val more: Int = itr.next match {
