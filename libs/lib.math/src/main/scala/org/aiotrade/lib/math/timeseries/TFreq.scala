@@ -34,6 +34,7 @@ package org.aiotrade.lib.math.timeseries
 import java.util.Calendar
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.w3c.dom.Element
+import java.util.regex.Pattern
 import org.aiotrade.lib.math.timeseries.TUnit._
 
 object TFreq {
@@ -77,6 +78,21 @@ object TFreq {
   case object MONTHLY      extends TFreq(TUnit.Month,  1)
   case object THREE_MONTHS extends TFreq(TUnit.Month,  3)
   case object ONE_YEAR     extends TFreq(TUnit.Year,   1)
+
+  private val shortNamePattern = Pattern.compile("([0-9]+)([smhDWMY])")
+  
+  def withName(shortName: String): Option[TFreq] = {
+    val matcher = shortNamePattern.matcher(shortName)
+    if (matcher.find && matcher.groupCount == 2) {
+      val nUnits = matcher.group(1).toInt
+      TUnit.withShortName(matcher.group(2)) match {
+        case Some(unit) => Some(TFreq(unit, nUnits))
+        case None => None
+      }
+    } else None
+  }
+
+  def apply(unit: TUnit, nUnit: Int) = new TFreq(unit, nUnit)
 
   // simple test
   def main(args: Array[String]) {

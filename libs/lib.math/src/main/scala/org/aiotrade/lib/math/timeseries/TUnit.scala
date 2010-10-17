@@ -82,6 +82,20 @@ object TUnit {
       case "Week"   => Week
       case "Month"  => Month
       case "Year"   => Year
+      case c => throw new Exception("Wrong unit: " + c)
+    }
+  }
+
+  def withShortName(shortName: String): Option[TUnit] = {
+    shortName match {
+      case "s" => Some(Second)
+      case "m" => Some(Minute)
+      case "h" => Some(Hour)
+      case "D" => Some(Day)
+      case "W" => Some(Week)
+      case "M" => Some(Month)
+      case "Y" => Some(Year)
+      case _ => None
     }
   }
 }
