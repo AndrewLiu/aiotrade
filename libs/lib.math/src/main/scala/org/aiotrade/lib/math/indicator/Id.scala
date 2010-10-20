@@ -35,14 +35,38 @@ package org.aiotrade.lib.math.indicator
  * @Note ref should implement proper hashCode and equals method,
  *       it could be baseSer or name string etc
  */
-final case class Id(clazz: Class[_], ref: AnyRef, args: Any*) {
+
+object Id {
+  def apply(klass: Class[_], keyRef: AnyRef, args: Any*) = new Id(klass, keyRef, args: _*)
+  def unapplySeq(e: Id): Option[(Class[_], AnyRef, Seq[Any])] = Some((e.klass, e.keyRef, e.args))
+
+  // simple test
+  def main(args: Array[String]) {
+    val keya = "abc"
+    val keyb = "abc"
+
+    val id1 = Id(classOf[String], keya, 1)
+    val id2 = Id(classOf[String], keyb, 1)
+    println(id1 == id2)
+
+    val id3 = Id(classOf[String], keya)
+    val id4 = Id(classOf[String], keyb)
+    println(id3 == id4)
+
+    val id5 = Id(classOf[Indicator], keya, org.aiotrade.lib.math.timeseries.TFreq.ONE_MIN)
+    val id6 = Id(classOf[Indicator], keyb, org.aiotrade.lib.math.timeseries.TFreq.withName("1m").get)
+    println(id5 == id6)
+  }
+}
+
+final class Id(val klass: Class[_], val keyRef: AnyRef, val args: Any*) {
 
   @inline final override def equals(o: Any): Boolean = {
     o match {
-      case Id(clazz, ref, args@_*) if
-        this.clazz.eq(clazz) &&
-        this.ref.eq(ref) &&
-        this.args.size == args.size
+      case Id(klass, keyRef, args@_*) if
+        (this.klass.getName == klass.getName) &&
+        ((this.keyRef eq keyRef) || (this.keyRef.isInstanceOf[String] && this.keyRef == keyRef)) &&
+        (this.args.size == args.size)
         =>
         val itr1 = this.args.iterator
         val itr2 = args.iterator
@@ -58,8 +82,8 @@ final case class Id(clazz: Class[_], ref: AnyRef, args: Any*) {
 
   @inline final override def hashCode: Int = {
     var h = 17
-    h = 37 * h + clazz.hashCode
-    h = 37 * h + ref.hashCode
+    h = 37 * h + klass.hashCode
+    h = 37 * h + keyRef.hashCode
     val itr = args.iterator
     while (itr.hasNext) {
       val more: Int = itr.next match {
@@ -76,6 +100,7 @@ final case class Id(clazz: Class[_], ref: AnyRef, args: Any*) {
       h = 37 * h + more
     }
     h
-
   }
+
+  override def toString = "Id(" + klass.getName + ", " + keyRef + ", " + args + ")"
 }

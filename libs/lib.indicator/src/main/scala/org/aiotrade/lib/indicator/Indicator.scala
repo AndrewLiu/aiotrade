@@ -48,14 +48,6 @@ object Indicator {
   protected def setSessionId {
     sessionId += 1
   }
-
-  /**
-   * a helper function for keeping the same functin form as Function, don't be
-   * puzzled by the name, it actully will return funcion instance
-   */
-  protected def apply[T <: org.aiotrade.lib.math.indicator.Function](clazz: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    org.aiotrade.lib.math.indicator.Function(clazz, baseSer, args: _*)
-  }
 }
 
 /**

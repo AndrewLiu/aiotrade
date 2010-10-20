@@ -44,16 +44,8 @@ import java.util.TimeZone
  *     stebridev@users.sourceforge.net - fix case of Week : beginTimeOfUnitThatInclude(long)
  */
 object TUnit {
-  case object Second extends TUnit
-  case object Minute extends TUnit
-  case object Hour   extends TUnit
-  case object Day    extends TUnit
-  case object Week   extends TUnit
-  case object Month  extends TUnit
-  case object Year   extends TUnit
-
   /**
-   * the unit(interval) of each Unit
+   * Interval of each Unit
    */
   private val ONE_SECOND: Int  = 1000
   private val ONE_MINUTE: Int  = 60 * ONE_SECOND
@@ -61,7 +53,15 @@ object TUnit {
   private val ONE_DAY:    Long = 24 * ONE_HOUR
   private val ONE_WEEK:   Long =  7 * ONE_DAY
   private val ONE_MONTH:  Long = 30 * ONE_DAY
-  private val ONE_Year:   Long = (365.24 * ONE_DAY).toLong
+  private val ONE_YEAR:   Long = (365.24 * ONE_DAY).toLong
+
+  case object Second extends TUnit(ONE_SECOND)
+  case object Minute extends TUnit(ONE_MINUTE)
+  case object Hour   extends TUnit(ONE_HOUR)
+  case object Day    extends TUnit(ONE_DAY)
+  case object Week   extends TUnit(ONE_WEEK)
+  case object Month  extends TUnit(ONE_MONTH)
+  case object Year   extends TUnit(ONE_YEAR)
 
   def values: Array[TUnit] = Array(
     Second,
@@ -115,20 +115,8 @@ object TUnit {
  */
 
 @serializable
-abstract class TUnit {
+abstract class TUnit(val interval: Long) {
   import TUnit._
-
-  def interval: Long = {
-    this match {
-      case Second => ONE_SECOND
-      case Minute => ONE_MINUTE
-      case Hour   => ONE_HOUR
-      case Day    => ONE_DAY
-      case Week   => ONE_WEEK
-      case Month  => ONE_MONTH
-      case Year   => ONE_Year
-    }
-  }
 
   /**
    * round time to unit's begin 0
@@ -343,5 +331,17 @@ abstract class TUnit {
     df.setTimeZone(timeZone)
     df.format(date, buffer, new FieldPosition(DateFormat.MONTH_FIELD))
     buffer.toString()
+  }
+
+  override def equals(o: Any): Boolean = {
+    o match {
+      case x: TUnit => x.interval == this.interval
+      case _ => false
+    }
+  }
+
+  override def hashCode: Int = {
+    /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
+    (interval ^ (interval >>> 32)).toInt
   }
 }

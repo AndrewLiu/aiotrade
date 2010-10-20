@@ -50,7 +50,14 @@ object PanelIndicator {
   private val idToIndicator = new ConcurrentHashMap[Id, PanelIndicator[_]]
 
   def apply[T <: PanelIndicator[_]](klass: Class[T], sectionName: String, freq: TFreq, factors: Factor*): T = {
-    val id = Id(klass, sectionName, factors +: sectionName)
+    val factorArr = factors.toArray
+    val factorLen = factorArr.length
+    val args = new Array[Any](factorLen + 1)
+    args(0) = freq
+    System.arraycopy(factorArr, 0, args, 1, factorLen)
+    
+    val id = Id(klass, sectionName, args: _*)
+    
     idToIndicator.get(id) match {
       case null =>
         /** if got none from idToIndicator, try to create new one */

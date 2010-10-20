@@ -223,12 +223,14 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
 
   override def equals(o: Any): Boolean = {
     o match {
-      case x: TFreq =>
-        if (x.unit == this.unit && x.nUnits == this.nUnits) {
-          true
-        } else false
+      case x: TFreq => this.interval == x.interval
       case _ => false
     }
+  }
+
+  override def hashCode: Int = {
+    /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
+    (interval ^ (interval >>> 32)).toInt
   }
 
   override def clone: TFreq = {
@@ -245,14 +247,6 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
     } else {
       if (this.nUnits < another.nUnits) -1 else {if (this.nUnits == another.nUnits) 0 else 1}
     }
-  }
-
-  override def hashCode: Int = {
-    /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
-    interval.toInt
-    /*- Reserve
-     return unit.hashCode() * nUnits
-     */
   }
 
   override def toString: String = name
