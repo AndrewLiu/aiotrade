@@ -98,7 +98,6 @@ class PanelIndicator[T <: Indicator](freq: => TFreq)(
   def addSec(sec: Sec) {
     sec.serOf(freq) match {
       case Some(baseSer) =>
-        m.erasure
         val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
         indicators += ind
