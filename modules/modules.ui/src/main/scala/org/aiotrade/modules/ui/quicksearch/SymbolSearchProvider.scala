@@ -8,19 +8,27 @@ package org.aiotrade.modules.ui.quicksearch
 import java.net.MalformedURLException
 import java.net.URL
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.util.swing.action.ViewAction;
+import org.aiotrade.lib.util.PinYin
+import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.spi.quicksearch.SearchProvider
 import org.aiotrade.spi.quicksearch.SearchRequest
 import org.aiotrade.spi.quicksearch.SearchResponse
 import org.openide.awt.HtmlBrowser.URLDisplayer
+import scala.collection.mutable.HashMap
 
 
 class SymbolSearchProvider extends SearchProvider {
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val textToSymbol = Exchange.uniSymbolToSec map (x => x._1.toUpperCase -> x._1)
-
+  private val textToSymbol = {
+    val map = new HashMap[String, String]
+    for ((symbol, sec) <- Exchange.uniSymbolToSec) {
+      map.put(symbol.toUpperCase, symbol)
+      map.put(PinYin.getFirstSpell(sec.name).toUpperCase, symbol)
+    }
+    map
+  }
   /**
    * Method is called by infrastructure when search operation was requested.
    * Implementors should evaluate given request and fill response object with
