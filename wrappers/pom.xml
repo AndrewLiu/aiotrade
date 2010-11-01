@@ -218,7 +218,9 @@
         <module>lib.view.securities</module>
         <module>net.lag.configgy</module>
         <module>org.apache.commons</module>
+        <module>org.dbunit</module>
         <module>org.scala-lang</module>
+        <module>org.slf4j</module>
         <module>ru.circumflex.orm</module>
     </modules>
 
