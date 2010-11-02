@@ -73,6 +73,8 @@ import scala.collection.mutable.HashMap
  * and under mysql jdbc url:
  *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
  */
+
+@deprecated("Use SyncUtil")
 object Data {
   private val log = Logger.getLogger(this.getClass.getName)
 

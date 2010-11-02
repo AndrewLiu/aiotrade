@@ -41,7 +41,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
-import org.aiotrade.lib.securities.model.data.Data
+import org.aiotrade.lib.securities.model.data.SyncUtil
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.netbeans.api.progress.ProgressHandle
@@ -140,7 +140,7 @@ class Installer extends ModuleInstall {
     // create database if does not exist
     if (!Exchanges.exists) {
       log.info("Database does not exist yet, will create it ...")
-      Data.createData
+      SyncUtil.createData
     }
 
     UserOptionsManager.assertLoaded
