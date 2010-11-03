@@ -225,6 +225,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = sec.serOf(freq).get
       if (!ser.isLoaded) sec.loadSer(ser)
+      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
       sec.subscribeTickerServer(true)
 
       log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
@@ -317,7 +318,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   
   override protected def componentActivated {
     super.componentActivated
-    //updateToolbar
+    updateToolbar
   }
     
   override protected def componentShowing {

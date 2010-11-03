@@ -30,19 +30,19 @@
  */
 package org.aiotrade.modules.ui.actions;
 
-import java.awt.Component;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import javax.swing.ImageIcon;
-import javax.swing.JToggleButton;
-import org.aiotrade.lib.charting.view.ChartViewContainer;
-import org.aiotrade.lib.charting.view.WithQuoteChart;
+import java.awt.Component
+import java.awt.event.ItemEvent
+import java.awt.event.ItemListener
+import javax.swing.ImageIcon
+import javax.swing.JToggleButton
+import org.aiotrade.lib.charting.view.ChartViewContainer
+import org.aiotrade.lib.charting.view.WithQuoteChart
 import org.aiotrade.lib.securities.QuoteSer
-import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent;
-import org.openide.util.HelpCtx;
+import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent
+import org.openide.util.HelpCtx
 import org.openide.util.ImageUtilities
 import org.openide.util.NbBundle
-import org.openide.util.actions.CallableSystemAction;
+import org.openide.util.actions.CallableSystemAction
 
 /**
  *
@@ -58,8 +58,9 @@ object SwitchAdjustQuoteAction {
     }
   }
 
-
+  def isAdjusted = toggleButton.isSelected
 }
+
 class SwitchAdjustQuoteAction extends CallableSystemAction {
   import SwitchAdjustQuoteAction._
 
@@ -126,7 +127,7 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
         }
       })
         
-    toggleButton;
+    toggleButton
   }
     
 }
