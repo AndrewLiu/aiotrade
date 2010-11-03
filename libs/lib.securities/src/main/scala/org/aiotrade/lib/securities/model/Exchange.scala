@@ -403,55 +403,75 @@ class Exchange {
     status
   }
 
-  def isClosed(freq: TFreq, time: Long) = {
-    val cal = Calendar.getInstance(timeZone)
-    val rounded = freq.round(time, cal)
-    tradingStatus.time > rounded + freq.interval
-  }
-
   private val emptyQuotes = ArrayList[Quote]()
   private val emptyMoneyFlows = ArrayList[MoneyFlow]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
-  private var prevTimeInMinutes = -1
+  private var toCloseTimeInMinutes = -1
+
+  private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
+    tradingStatusTime >= roundedTime + freq.interval
+  }
 
   /**
    * Do closing in delay minutes. If quotesToClose/mfsToClose is empty, will do
    * nothing and return at once.
    */
   private[securities] def tryClosing(alsoSave: Boolean) {
+    import TradingStatus._
+
+    val closingTimeInMinutes = toCloseTimeInMinutes
+    val statusTime = tradingStatus.time
+
     val freqs = tradingStatus match {
-      case TradingStatus.Opening(time, timeInMinutes) if prevTimeInMinutes <= 0 =>
-        prevTimeInMinutes = timeInMinutes
+      
+      case Opening(time, timeInMinutes) if toCloseTimeInMinutes <= 0 || timeInMinutes <  toCloseTimeInMinutes =>
+        // When processing legacy data, 'toCloseTimeInMinutes' may be set to previous date's larger timeInMinutes,
+        // so we add '|| timeInMinutes <  toCloseTimeInMinutes'
+        toCloseTimeInMinutes = timeInMinutes + 1
         Nil
-      case TradingStatus.Opening(time, timeInMinutes) if prevTimeInMinutes > 0 && timeInMinutes > prevTimeInMinutes =>
-        prevTimeInMinutes = timeInMinutes
+      case Opening(time, timeInMinutes) if toCloseTimeInMinutes >  0 && timeInMinutes >= toCloseTimeInMinutes =>
+        // a new minute begins, will doClose on ONE_MIN after 1 minute
+        toCloseTimeInMinutes = timeInMinutes + 1
         List(TFreq.ONE_MIN)
-      case TradingStatus.Opening(time, timeInMinutes) => Nil
         
-      case TradingStatus.Close(time, timeInMinutes) => 
-        prevTimeInMinutes = -1
+      case Close(time, timeInMinutes) => 
+        toCloseTimeInMinutes = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
-      case TradingStatus.Closed(time, timeInMinutes) =>
-        prevTimeInMinutes = -1
+      case Closed(time, timeInMinutes) =>
+        toCloseTimeInMinutes = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
+        
       case _ => Nil
     }
 
-    log.info("Try closing quotes of: " + freqs)
-    
+    log.info("Try closing quotes of: " + freqs + ", closingTimeInMinutes=" + closingTimeInMinutes)
+
     for (freq <- freqs) {
+
       val quotesToClose = freqToUnclosedQuotes synchronized {
-        freqToUnclosedQuotes.remove(freq)
-      } match {
-        case Some(x) => x
-        case None => emptyQuotes
+        freqToUnclosedQuotes.get(freq) match {
+          case Some(unclosed) if freq == TFreq.DAILY =>
+            freqToUnclosedQuotes.put(freq, emptyQuotes)
+            unclosed
+          case Some(unclosed) =>
+            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+            freqToUnclosedQuotes.put(freq, other)
+            toClose
+          case None => emptyQuotes
+        }
       }
 
       val mfsToClose = freqToUnclosedMoneyFlows synchronized {
-        freqToUnclosedMoneyFlows.remove(freq)
-      } match {
-        case Some(x) => x
-        case None => emptyMoneyFlows
+        freqToUnclosedMoneyFlows.get(freq) match {
+          case Some(unclosed) if freq == TFreq.DAILY =>
+            freqToUnclosedMoneyFlows.put(freq, emptyMoneyFlows)
+            unclosed
+          case Some(unclosed) =>
+            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+            freqToUnclosedMoneyFlows.put(freq, other)
+            toClose
+          case None => emptyMoneyFlows
+        }
       }
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0) {
