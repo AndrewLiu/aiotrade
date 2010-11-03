@@ -279,6 +279,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
         realTimeBoard.unWatch
         splitPane.remove(realTimeBoard)
         prevSec.resetSers
+        contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
       }
       splitPane.remove(viewContainer)
     }

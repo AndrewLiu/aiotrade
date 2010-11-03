@@ -65,9 +65,13 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
     this(null, TFreq.DAILY, false)
   }
             
-  def set(serviceClassName: String, freq: TFreq): Unit = {
+  def set(serviceClassName: String, freq: TFreq) {
     this.serviceClassName = serviceClassName
     this.freq = freq.clone
+  }
+
+  def resetInstance {
+    _serviceInstance = None
   }
 
   /**
