@@ -87,6 +87,12 @@ object Secs extends Table[Sec] {
 
   def tickers = inverse(Tickers.sec)
   def executions = inverse(Executions.sec)
+
+  // --- helper methods
+  def dividendsOf(sec: Sec): Seq[SecDividend] = {
+    val secId = Secs.idOf(sec)
+    SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list
+  }
 }
 
 
@@ -180,6 +186,8 @@ class Sec extends SerProvider {
   private var _tickerContract: TickerContract = _
   private var _quoteInfoContract : QuoteInfoContract = _
   private var _quoteInfoHisContractc : Seq[QuoteInfoHisContract] = _
+
+  def dividends: Seq[SecDividend] = Secs.dividendsOf(this)
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 

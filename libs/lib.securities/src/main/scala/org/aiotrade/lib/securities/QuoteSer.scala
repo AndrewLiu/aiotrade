@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
+import java.util.Calendar
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
@@ -74,7 +75,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
         close_ori(time) = quote.close
 
         val adjuestedClose = /* if (quote.adjWeight != 0 ) quote.adjWeight else */ quote.close
-        close_adj(time) = adjuestedClose
+        close_adj(time) = quote.close
         
         isClosed(time) = quote.closed_?
       case _ => assert(false, "Should pass a Quote type TimeValue")
@@ -123,11 +124,14 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
    * @param boolean b: if true, do adjust, else, de adjust
    */
   def adjust(b: Boolean) {
+    if (b) {
+      setAdjustedClose
+    }
+    
     var i = 0
     while (i < size) {
-            
-      var prevNorm = close(i)
-      var postNorm = if (b) {
+      val prevNorm = close(i)
+      val postNorm = if (b) {
         /** do adjust */
         close_adj(i)
       } else {
@@ -142,11 +146,28 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
       i += 1
     }
-        
+
     adjusted = b
         
     val evt = TSerEvent.Updated(this, null, 0, lastOccurredTime)
     publish(evt)
+  }
+
+  private def setAdjustedClose {
+    val cal = Calendar.getInstance($sec.exchange.timeZone)
+    val divs = for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
+
+    var i = 0
+    while (i < size) {
+      var adjClose = close(i)
+      val time = timeOfIndex(i)
+      for ((divTime, adjWeight) <- divs if time < divTime) {
+        adjClose /= adjWeight
+      }
+      close_adj(i) = adjClose
+      
+      i += 1
+    }
   }
     
   /**
@@ -167,7 +188,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       _shortDescription
     }
   }
-    
+
 }
 
 
