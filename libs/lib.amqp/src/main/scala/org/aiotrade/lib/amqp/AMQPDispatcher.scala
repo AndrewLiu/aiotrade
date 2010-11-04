@@ -105,6 +105,15 @@ object AMQPExchange {
    * property being equal to the name of the queue.
    */
   val defaultDirect = "" // amp.direct
+
+}
+
+object AMQPDispatcher {
+  // Marker object used to signal the queue is in shutdown mode.
+  // It is only there to wake up consumers. The canonical representation
+  // of shutting down is the presence of _shutdown.
+  // Invariant: This is never on _queue unless _shutdown != null.
+  private val POISON = Delivery(null, null, null)
 }
 
 /**
@@ -112,6 +121,7 @@ object AMQPExchange {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
+import AMQPDispatcher._
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher with Serializer {
   private val log = Logger.getLogger(getClass.getName)
 
@@ -136,6 +146,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     if (channel != null) {
       channel.addShutdownListener(new ShutdownListener {
           def shutdownCompleted(cause: ShutdownSignalException) {
+            log.log(Level.WARNING, cause.getMessage, cause)
             reconnect(5000)
           }
         })
@@ -239,13 +250,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def reconnect(delay: Long) {
     disconnect
     try {
+      log.log(Level.INFO, "Try reconnect to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       state = doConnect
-      log.log(Level.FINEST, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+      log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
       case e: Exception =>
         val waitInMillis = delay * 2
-        val self = this
-        log.log(Level.FINEST, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
+        log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
         new Timer("AMQPReconnectTimer").schedule(new TimerTask {
             def run {
               reconnect(waitInMillis)
@@ -256,6 +267,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
     private val log = Logger.getLogger(this.getClass.getName)
+
+    // When this is non-null the queue is in shutdown mode and nextDelivery should
+    // throw a shutdown signal exception.
+    @volatile private var _shutdown: ShutdownSignalException = _
+
+    override def handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException ) {
+      _shutdown = sig
+    }
 
     @throws(classOf[IOException])
     override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
@@ -297,16 +316,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  object QueueingConsumer {
-    // Marker object used to signal the queue is in shutdown mode.
-    // It is only there to wake up consumers. The canonical representation
-    // of shutting down is the presence of _shutdown.
-    // Invariant: This is never on _queue unless _shutdown != null.
-    private val POISON = Delivery(null, null, null)
-  }
-  
   class QueueingConsumer(channle: Channel) extends DefaultConsumer(channle) {
-    import QueueingConsumer._
 
     private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
 

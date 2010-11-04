@@ -32,7 +32,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   var replyQueue: String = _ // The name of our private reply queue
 
   /** Map from request correlation ID to continuation BlockingCell */
-  private val continuationMap = new HashMap[String, SyncVar[RpcResponse]]
+  private val continuationMap = new HashMap[String, SyncVar[AnyRef]]
   /** Contains the most recently-used request correlation ID */
   private var correlationId = 0L
   /** Should hold strong ref for SyncVarSetterProcessor */
@@ -47,7 +47,17 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
-    val consumer = new AMQPConsumer(channel)
+
+    val consumer = new AMQPConsumer(channel) {
+      override def handleShutdownSignal(consumerTag: String, signal: ShutdownSignalException) {
+        continuationMap synchronized {
+          for ((replyId, syncVar) <- continuationMap) {
+            syncVar.set(signal)
+          }
+        }
+      }
+    }
+
     // since AMQPConsumer will call channel.basicAck(env.getDeliveryTag, false) always,
     // we need to set 'noAck' to false
     channel.basicConsume(replyQueue, false, consumer)
@@ -73,9 +83,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   protected def checkConsumer {
-    if (consumer.isEmpty) {
-      throw new EOFException("RpcClient is closed")
-    }
+    if (consumer.isEmpty) throw new EOFException("RpcClient is closed")
   }
 
   /**
@@ -121,11 +129,11 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[RpcResponse] = {
+  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[AnyRef] = {
     checkConsumer
     val props = if ($props == null) new AMQP.BasicProperties else $props
 
-    val syncVar = new SyncVar[RpcResponse]
+    val syncVar = new SyncVar[AnyRef]
     val replyId = continuationMap synchronized {
       correlationId += 1
       val replyId = correlationId.toString
