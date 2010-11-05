@@ -163,9 +163,10 @@ object ChartingController {
     /**
      * min spacing in number of bars between referRow and left / right edge, if want more, such as:
      *     minSpacing = (nBars * 0.168).intValue
+     * set REF_PADDING_RIGHT=1 to avoid hidden last day's bar sometimes. @Todo
      */
-    val REF_PADDING_LEFT  = 0
-    val REF_PADDING_RIGHT = 0
+    val REF_PADDING_RIGHT = 1
+    val REF_PADDING_LEFT  = 1
 
     /** BASIC_BAR_WIDTH = 6 */
     private val PREFERRED_BAR_WIDTHS = Array(
@@ -248,7 +249,7 @@ object ChartingController {
         /** this reaction only process loading, update events to check if need to update cursor */
         case TSerEvent.Loaded(_, _, fromTime, toTime, _, _)  => updateView(toTime)
         case TSerEvent.Refresh(_, _, fromTime, toTime, _, _) => updateView(toTime)
-        case TSerEvent.Updated(_, _, fromTime, toTime, _, _)          => updateView(toTime)
+        case TSerEvent.Updated(_, _, fromTime, toTime, _, _) => updateView(toTime)
         case _ =>
       }
 
