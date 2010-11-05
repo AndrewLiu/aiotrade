@@ -140,14 +140,16 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     } catch {
       case ex => 
         log.log(Level.WARNING, ex.getMessage, ex)
-        reconnect(5000)
+        reconnect(1000)
     }
 
-    if (channel != null) {
-      channel.addShutdownListener(new ShutdownListener {
+    if (connection != null) {
+      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+      connection.addShutdownListener(new ShutdownListener {
           def shutdownCompleted(cause: ShutdownSignalException) {
             log.log(Level.WARNING, cause.getMessage, cause)
-            reconnect(5000)
+            reconnect(1000)
           }
         })
     }
@@ -223,16 +225,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   }
 
   def disconnect {
-    if (consumer.isDefined && channel != null) {
-      channel.basicCancel(consumer.get.asInstanceOf[DefaultConsumer].getConsumerTag)
-    }
-
     if (channel != null) {
       try {
+        consumer foreach {case x: DefaultConsumer => channel.basicCancel(x.getConsumerTag)}
         channel.close
       } catch {
         case e: IOException => log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-        case _ => ()
+        case _ =>
       }
     }
 
@@ -242,7 +241,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       } catch {
         case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-        case _ => ()
+        case _ =>
       }
     }
   }
@@ -255,7 +254,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
       case e: Exception =>
-        val waitInMillis = delay * 2
+        val waitInMillis = math.max(delay * 2, 10000)
         log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
         new Timer("AMQPReconnectTimer").schedule(new TimerTask {
             def run {
