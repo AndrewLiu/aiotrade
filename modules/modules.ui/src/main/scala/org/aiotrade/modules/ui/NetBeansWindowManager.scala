@@ -28,10 +28,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.modules.ui;
+package org.aiotrade.modules.ui
 
-import org.aiotrade.lib.securities.util.WindowManager
-import org.openide.awt.StatusDisplayer;
+import org.aiotrade.lib.util.WindowManager
+import org.openide.awt.StatusDisplayer
 import org.openide.awt.ToolbarPool
 
 /**
@@ -42,21 +42,20 @@ class NetBeansWindowManager extends WindowManager {
   private val statusLine = StatusDisplayer.getDefault
   private val toolbarPool = ToolbarPool.getDefault
 
-  //setToolbarPreferredIconSize(16)
+  toolbarPreferredIconSize = 16
 
-  def getStatusText: String = {
-    statusLine.getStatusText
+  def statusText: String = statusLine.getStatusText
+  def statusText_=(text: String) {
+    statusLine.setStatusText(text)
   }
-    
-  def setStatusText(text: String) {
-    statusLine.setStatusText(text);
-  }
-    
-  def setToolbarConfiguration(name: String) {
+
+  def toolbarConfiguration = toolbarPool.getConfiguration
+  def toolbarConfiguration_=(name: String) {
     toolbarPool.setConfiguration(name)
   }
-    
-  private def setToolbarPreferredIconSize(size: Int) {
+
+  private def toolbarPreferredIconSize = toolbarPool.getPreferredIconSize
+  private def toolbarPreferredIconSize_=(size: Int) {
     toolbarPool.setPreferredIconSize(size)
   }
 }

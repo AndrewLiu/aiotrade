@@ -669,7 +669,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         rs.close
 
         conn.commit
-        WIN_MAN.setStatusText(quotes.size + " quotes restored from database.")
+        WIN_MAN.statusText = quotes.size + " quotes restored from database."
       } catch {case ex: SQLException => ex.printStackTrace} finally {
         if (conn != null) conn.close
         if (stmt != null) stmt.close
@@ -696,7 +696,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.execute
 
         conn.commit
-        WIN_MAN.setStatusText("Delete data of " + tb + " successfully.")
+        WIN_MAN.statusText = "Delete data of " + tb + " successfully."
       } catch {case ex: SQLException => ex.printStackTrace} finally {
         if (conn != null) conn.close
         if (stmt != null) stmt.close
@@ -730,8 +730,8 @@ class NetBeansPersistenceManager extends PersistenceManager {
         stmt.executeUpdate(sql)
 
         conn.commit
-        WIN_MAN.setStatusText("Clear data of " + symbol + " successfully.")
-      } catch {case ex: SQLException =>ex.printStackTrace} finally {
+        WIN_MAN.statusText = "Clear data of " + symbol + " successfully."
+      } catch {case ex: SQLException => ex.printStackTrace} finally {
         if (conn != null) conn.close
         if (stmt != null) stmt.close
       }
@@ -857,7 +857,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       stmt2.execute
 
       conn.commit
-      WIN_MAN.setStatusText("Delete data of " + tickerTb + " successfully.")
+      WIN_MAN.statusText = "Delete data of " + tickerTb + " successfully."
     } catch {case ex: SQLException => ex.printStackTrace} finally {
       if (conn  != null) conn.close
       if (stmt1 != null) stmt1.close
@@ -991,7 +991,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
       conn.commit
 
-      WIN_MAN.setStatusText(tickers.size + " quotes restored from database.")
+      WIN_MAN.statusText = tickers.size + " quotes restored from database."
     } catch {case ex: SQLException => ex.printStackTrace} finally {
       if (conn != null) conn.close
       if (stmt != null) stmt.close
@@ -1040,7 +1040,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       rs.close
 
       conn.commit
-      WIN_MAN.setStatusText("Load market overview successfully.")
+      WIN_MAN.statusText = "Load market overview successfully."
     } catch {case ex: SQLException => ex.printStackTrace} finally {
       if (conn != null) conn.close
       if (stmt != null) stmt.close
