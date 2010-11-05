@@ -159,12 +159,13 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
     var i = 0
     while (i < size) {
-      var adjClose = close(i)
+      val prevNorm = open(i)
+      var postNorm = prevNorm
       val time = timeOfIndex(i)
       for ((divTime, adjWeight) <- divs if time < divTime) {
-        adjClose /= adjWeight
+        postNorm /= adjWeight
       }
-      close_adj(i) = adjClose
+      close_adj(i) = linearAdjust(close(i), prevNorm, postNorm)
       
       i += 1
     }
