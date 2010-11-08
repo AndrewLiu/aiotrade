@@ -33,10 +33,10 @@
 
     <folder name="Menu">
         <folder name="File">
-            <file name="AddSymbolAction.shadow">
+            <!--file name="AddSymbolAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-AddSymbolAction.instance"/>
                 <attr name="position" intvalue="100"/>
-            </file>
+        </file-->
         </folder>
         <folder name="Window">
             <file name="OpenExplorerAction.shadow">

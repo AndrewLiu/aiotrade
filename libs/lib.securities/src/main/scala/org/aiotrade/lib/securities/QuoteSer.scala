@@ -153,19 +153,21 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     publish(evt)
   }
 
+  /**
+   * adjWeight = (close of the day before dividend) / (prevClose of dividend day)
+   */
   private def setAdjustedClose {
     val cal = Calendar.getInstance($sec.exchange.timeZone)
     val divs = for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
 
     var i = 0
     while (i < size) {
-      val prevNorm = open(i)
-      var postNorm = prevNorm
       val time = timeOfIndex(i)
+      var adjClose = close(i)
       for ((divTime, adjWeight) <- divs if time < divTime) {
-        postNorm /= adjWeight
+        adjClose /= adjWeight
       }
-      close_adj(i) = linearAdjust(close(i), prevNorm, postNorm)
+      close_adj(i) = adjClose
       
       i += 1
     }
