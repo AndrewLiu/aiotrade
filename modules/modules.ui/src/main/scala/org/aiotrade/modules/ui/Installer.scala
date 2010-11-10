@@ -133,9 +133,10 @@ class Installer extends ModuleInstall {
       configFile = FileUtil.toFile(configFo)
     }
 
-    println("Config file is " + configFile.getCanonicalPath)
-    org.aiotrade.lib.util.config.Config(configFile.getCanonicalPath)
-    log.info("Config file is " + configFile.getCanonicalPath)
+    // load config file
+    val configFilePath = configFile.getCanonicalPath
+    org.aiotrade.lib.util.config.Config(configFilePath)
+    log.info("Config file is " + configFilePath)
 
     // create database if does not exist
     if (!Exchanges.exists) {
@@ -197,10 +198,16 @@ class Installer extends ModuleInstall {
     val start = System.currentTimeMillis
     log.info("Create symbols node files from db ...")
 
+    val config = org.aiotrade.lib.util.config.Config()
+    val activeExchanges = config.getList("market.exchanges") match {
+      case Seq() => Exchange.allExchanges
+      case xs => xs flatMap {x => Exchange.withCode(x)}
+    }
+
     // add symbols to exchange folder
     val dailyQuoteContract = createQuoteContract
     val symbolsToFolder = new HashMap[String, DataFolder]
-    for (exchange <- Exchange.allExchanges;
+    for (exchange <- activeExchanges;
          exchangeFolder = DataFolder.create(rootFolder, exchange.code);
          symbol <- Exchange.symbolsOf(exchange)
     ) {
