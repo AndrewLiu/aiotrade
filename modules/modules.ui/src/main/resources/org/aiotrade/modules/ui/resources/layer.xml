@@ -219,14 +219,16 @@
     </folder>
 
     <folder name="OptionsDialog">
-        <attr name="GeneralOptions.instance/ColorFontOptions.instance" boolvalue="true"/>
-        <file name="GeneralOptions.instance">
+        <!-- GeneralOptionsCategory have been included in NetBeans Platform
+        <file name="General.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.modules.ui.options.general.GeneralOptionsCategory"/>
+            <attr name="position" intvalue="100"/>
         </file>
+        -->
 
-        <attr name="ColorFontOptions.instance/Advanced.instance" boolvalue="true"/>
         <file name="ColorFontOptions.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.modules.ui.options.colors.ColorFontOptionsCategory"/>
+            <attr name="position" intvalue="200"/>
         </file>
     </folder>
 
