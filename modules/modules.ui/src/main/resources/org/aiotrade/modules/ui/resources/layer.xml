@@ -202,16 +202,24 @@
             <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
             <file name="SignalTopComponent.settings" url="SignalTopComponent.xml"/>
         </folder>
+        
         <folder name="Modes">
-            <!-- It's better to always use 'editor' mode as the top one, otherwise, it's difficult to arrange editor type mode -->
+            <!-- It's better to do not redefine/override 'editor' mode, otherwise it's difficult to arrange editor type mode -->
             <file name="explorer.wsmode" url="explorer.wsmode"/>
-            <file name="editor.wsmode" url="editor.wsmode"/>
-            <file name="info.wsmode" url="info.wsmode"/>
-            <file name="realTimeBoard.wsmode" url="realTimeBoard.wsmode"/>
-            <file name="signal.wsmode" url="signal.wsmode"/>
             <folder name="explorer">
                 <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
             </folder>
+
+            <file name="chart.wsmode" url="chart.wsmode"/>
+            <folder name="chart"/>
+
+            <file name="info.wsmode" url="info.wsmode"/>
+            <folder name="info"/>
+
+            <file name="board.wsmode" url="board.wsmode"/>
+            <folder name="board"/>
+
+            <file name="signal.wsmode" url="signal.wsmode"/>
             <folder name="signal">
                 <file name="SignalTopComponent.wstcref" url="SignalTopComponent_1.xml"/>
             </folder>

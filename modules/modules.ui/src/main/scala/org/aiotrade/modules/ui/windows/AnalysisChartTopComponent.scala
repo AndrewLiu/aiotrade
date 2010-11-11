@@ -99,7 +99,7 @@ object AnalysisChartTopComponent {
   private var singleton: AnalysisChartTopComponent = _
 
   // The Mode this component will live in.
-  val MODE = "editor"
+  val MODE = "chart"
 
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
 

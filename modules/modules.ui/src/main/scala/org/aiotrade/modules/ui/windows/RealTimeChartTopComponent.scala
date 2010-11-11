@@ -70,7 +70,7 @@ object RealTimeChartTopComponent {
   private val instanceRefs = WeakHashMap[RealTimeChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
-  private val MODE = "editor"
+  private val MODE = "chart"
 
   def apply(contents: AnalysisContents): RealTimeChartTopComponent = {
     val instance = instances find (_.contents == contents) getOrElse new RealTimeChartTopComponent(contents)

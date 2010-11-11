@@ -57,7 +57,7 @@ object RealTimeBoardTopComponent {
   def instances = instanceRefs.keys
 
   /** The Mode this component will live in */
-  val MODE = "realTimeBoard"
+  val MODE = "board"
 
   def apply(contents: AnalysisContents): RealTimeBoardTopComponent = {
     val instance = instances find (_.contents == contents) getOrElse RealTimeBoardTopComponent(contents)
