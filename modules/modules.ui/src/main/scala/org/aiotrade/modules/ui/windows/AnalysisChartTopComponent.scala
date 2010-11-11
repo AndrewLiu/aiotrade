@@ -49,9 +49,13 @@ import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.modules.ui.actions.ChangeOptsAction
 import org.aiotrade.modules.ui.actions.ChangeStatisticChartOptsAction
 import org.aiotrade.modules.ui.actions.MarketNewsAction
@@ -143,7 +147,7 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
+class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent with Reactor {
   instanceRefs.put(this, null)
 
   private var addToFavActionMenuItem: JMenuItem = _
@@ -225,7 +229,20 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = sec.serOf(freq).get
       if (!ser.isLoaded) sec.loadSer(ser)
-      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+
+      if (SwitchAdjustQuoteAction.isAdjusted) {
+        // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+        var reaction: PartialFunction[Event, Unit] = null
+        reaction = {
+          case TSerEvent.Loaded(ser: QuoteSer, uniSymbol, frTime, toTime, _, _) =>
+            reactions -= reaction
+            deafTo(ser)
+            ser.adjust(true)
+        }
+        reactions += reaction
+        listenTo(ser)
+      }
+
       sec.subscribeTickerServer(true)
 
       log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
