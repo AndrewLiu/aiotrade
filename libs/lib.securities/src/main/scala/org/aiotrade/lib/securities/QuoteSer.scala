@@ -144,10 +144,12 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
    * @param boolean b: if true, do adjust, else, de adjust
    */
   private def doAdjust(b: Boolean) {
+    //if (adjusted && b || !adjusted && !b) return
+
     if (b) {
       setAdjustedClose
     }
-    
+
     var i = 0
     while (i < size) {
       val prevNorm = close(i)
@@ -183,7 +185,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     var i = 0
     while (i < size) {
       val time = timeOfIndex(i)
-      var adjClose = close(i)
+      var adjClose = close_ori(i)
       for ((divTime, adjWeight) <- divs if time < divTime) {
         adjClose /= adjWeight
       }
