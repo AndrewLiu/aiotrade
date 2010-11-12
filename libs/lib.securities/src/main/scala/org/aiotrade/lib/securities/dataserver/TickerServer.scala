@@ -315,11 +315,11 @@ abstract class TickerServer extends DataServer[Ticker] {
           }
         }
 
-        if (isServer || sec.isSerLoaded(TFreq.DAILY)) {
+        if (isServer || sec.isSerCreated(TFreq.DAILY)) {
           val ser = sec.serOf(TFreq.DAILY).get
           ser.updateFrom(dayQuote)
         }
-        if (isServer || sec.isSerLoaded(TFreq.ONE_MIN)) {
+        if (isServer || sec.isSerCreated(TFreq.ONE_MIN)) {
           val ser = sec.serOf(TFreq.ONE_MIN).get
           ser.updateFrom(minQuote)
         }

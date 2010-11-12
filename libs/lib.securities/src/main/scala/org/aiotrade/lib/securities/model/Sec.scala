@@ -390,6 +390,10 @@ class Sec extends SerProvider {
     }
   }
 
+  def isSerCreated(freq: TFreq) = {
+    freqToQuoteSer.get(freq).isDefined
+  }
+
   /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
@@ -618,14 +622,14 @@ class Sec extends SerProvider {
             reaction = {
               case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
                 reactions -= reaction
-                deafTo(serx)
-                serx.isLoaded = true
+                deafTo(ser)
+                ser.isLoaded = true
             }
             reactions += reaction
             listenTo(ser)
 
             ser.isInLoading = true
-            quoteServer.loadHistory(fromTime)
+            quoteServer.loadHistory(fromTime - 1)
 
           case _ => ser.isLoaded = true
         }

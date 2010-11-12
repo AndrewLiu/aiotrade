@@ -341,4 +341,5 @@ class Quote extends TVal with Flag {
     " C: " + data(CLOSE) +
     " V: " + data(VOLUME)
   }
+
 }
