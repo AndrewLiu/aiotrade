@@ -49,11 +49,17 @@ class MarketStatus extends StatusLineElementProvider {
   status.add(box)
 
   private val SSName = new JLabel("上证")
+  SSName.setOpaque(true)
   private val SZName = new JLabel("深证")
+  SZName.setOpaque(true)
   private val SSValue = new JLabel("-")
+  SSValue.setOpaque(true)
   private val SZValue = new JLabel("-")
+  SZValue.setOpaque(true)
   private val SSPercent = new JLabel("-")
+  SSPercent.setOpaque(true)
   private val SZPercent = new JLabel("-")
+  SZPercent.setOpaque(true)
 
   private val priceDf = new DecimalFormat("0.000")
   private val neuColor = LookFeel().getNeutralColor
@@ -93,16 +99,16 @@ class MarketStatus extends StatusLineElementProvider {
   private def setSSValue(ticker: Ticker) {
     if (ticker.changeInPercent > 0) {
       //SSName.setForeground(posColor)
-      SSValue.setForeground(posColor)
-      SSPercent.setForeground(posColor)
+      SSValue.setBackground(posColor)
+      SSPercent.setBackground(posColor)
     } else if (ticker.changeInPercent == 0) {
       //SSName.setForeground(neuColor)
-      SSValue.setForeground(neuColor)
-      SSPercent.setForeground(neuColor)
+      SSValue.setBackground(neuColor)
+      SSPercent.setBackground(neuColor)
     } else {
       //SSName.setForeground(negColor)
-      SSValue.setForeground(negColor)
-      SSPercent.setForeground(negColor)
+      SSValue.setBackground(negColor)
+      SSPercent.setBackground(negColor)
     }
 
     SSValue.setText(priceDf.format(ticker.lastPrice))
@@ -112,16 +118,16 @@ class MarketStatus extends StatusLineElementProvider {
   private def setSZValue(ticker: Ticker) {
     if (ticker.changeInPercent > 0) {
       //SZName.setForeground(posColor)
-      SZValue.setForeground(posColor)
-      SZPercent.setForeground(posColor)
+      SZValue.setBackground(posColor)
+      SZPercent.setBackground(posColor)
     } else if (ticker.changeInPercent == 0) {
       //SZName.setForeground(neuColor)
-      SZValue.setForeground(neuColor)
-      SZPercent.setForeground(neuColor)
+      SZValue.setBackground(neuColor)
+      SZPercent.setBackground(neuColor)
     } else {
       //SZName.setForeground(negColor)
-      SZValue.setForeground(negColor)
-      SZPercent.setForeground(negColor)
+      SZValue.setBackground(negColor)
+      SZPercent.setBackground(negColor)
     }
 
     SZValue.setText(priceDf.format(ticker.lastPrice))
