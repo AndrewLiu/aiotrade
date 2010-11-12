@@ -52,6 +52,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.modules.ui.actions.ChangeOptsAction
 import org.aiotrade.modules.ui.actions.ChangeStatisticChartOptsAction
 import org.aiotrade.modules.ui.actions.MarketNewsAction
@@ -99,7 +100,7 @@ object AnalysisChartTopComponent {
   private var singleton: AnalysisChartTopComponent = _
 
   // The Mode this component will live in.
-  val MODE = "editor"
+  val MODE = "chart"
 
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
 
@@ -225,7 +226,9 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
       val ser = sec.serOf(freq).get
       if (!ser.isLoaded) sec.loadSer(ser)
+
       if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+
       sec.subscribeTickerServer(true)
 
       log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)

@@ -59,22 +59,22 @@ object Exchange extends Publisher {
   }
 
   lazy val exchangeToUniSymbols = {
-    exchangeToSecs map {x =>
+    exchangeToSecs map {m =>
       val syms = ListBuffer[String]()
-      x._2 foreach {sec =>
+      m._2 foreach {sec =>
         if (sec.secInfo == null)
           log.warning("secInfo of sec " + sec + " is null")
         else
           syms += sec.secInfo.uniSymbol
       }
-      log.info("Symbols number of " + x._1.code + " is " + syms.size)
-      x._1 -> syms.toList
+      log.info("Symbols number of " + m._1.code + " is " + syms.size)
+      m._1 -> syms.toList
     } toMap
   }
 
   lazy val uniSymbolToSec = {
-    exchangeToSecs map (_._2) flatMap {secs =>
-      secs filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
+    exchangeToSecs flatMap {m =>
+      m._2 filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
     } toMap
   }
 

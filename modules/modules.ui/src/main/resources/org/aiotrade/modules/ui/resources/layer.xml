@@ -33,10 +33,10 @@
 
     <folder name="Menu">
         <folder name="File">
-            <file name="AddSymbolAction.shadow">
+            <!--file name="AddSymbolAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-AddSymbolAction.instance"/>
                 <attr name="position" intvalue="100"/>
-            </file>
+        </file-->
         </folder>
         <folder name="Window">
             <file name="OpenExplorerAction.shadow">
@@ -202,16 +202,24 @@
             <file name="ExplorerTopComponent.settings" url="ExplorerTopComponent.xml"/>
             <file name="SignalTopComponent.settings" url="SignalTopComponent.xml"/>
         </folder>
+        
         <folder name="Modes">
-            <!-- It's better to always use 'editor' mode as the top one, otherwise, it's difficult to arrange editor type mode -->
+            <!-- It's better to do not redefine/override 'editor' mode, otherwise it's difficult to arrange editor type mode -->
             <file name="explorer.wsmode" url="explorer.wsmode"/>
-            <file name="editor.wsmode" url="editor.wsmode"/>
-            <file name="info.wsmode" url="info.wsmode"/>
-            <file name="realTimeBoard.wsmode" url="realTimeBoard.wsmode"/>
-            <file name="signal.wsmode" url="signal.wsmode"/>
             <folder name="explorer">
                 <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponent_1.xml"/>
             </folder>
+
+            <file name="chart.wsmode" url="chart.wsmode"/>
+            <folder name="chart"/>
+
+            <file name="info.wsmode" url="info.wsmode"/>
+            <folder name="info"/>
+
+            <file name="board.wsmode" url="board.wsmode"/>
+            <folder name="board"/>
+
+            <file name="signal.wsmode" url="signal.wsmode"/>
             <folder name="signal">
                 <file name="SignalTopComponent.wstcref" url="SignalTopComponent_1.xml"/>
             </folder>
@@ -219,14 +227,16 @@
     </folder>
 
     <folder name="OptionsDialog">
-        <attr name="GeneralOptions.instance/ColorFontOptions.instance" boolvalue="true"/>
-        <file name="GeneralOptions.instance">
+        <!-- GeneralOptionsCategory have been included in NetBeans Platform
+        <file name="General.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.modules.ui.options.general.GeneralOptionsCategory"/>
+            <attr name="position" intvalue="100"/>
         </file>
+        -->
 
-        <attr name="ColorFontOptions.instance/Advanced.instance" boolvalue="true"/>
         <file name="ColorFontOptions.instance">
             <attr name="instanceClass" stringvalue="org.aiotrade.modules.ui.options.colors.ColorFontOptionsCategory"/>
+            <attr name="position" intvalue="200"/>
         </file>
     </folder>
 

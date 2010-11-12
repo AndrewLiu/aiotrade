@@ -36,6 +36,7 @@ import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.util.actors.Event
 
 /**
  *
@@ -119,15 +120,36 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
+  def adjust(b: Boolean) {
+    if (isLoaded) {
+      doAdjust(b)
+    } else {
+      // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+      var reaction: PartialFunction[Event, Unit] = null
+      reaction = {
+        case TSerEvent.Loaded(ser: QuoteSer, uniSymbol, frTime, toTime, _, _) if ser eq this =>
+          reactions -= reaction
+          doAdjust(b)
+      }
+      reactions += reaction
+
+      if (isLoaded) {
+        reactions -= reaction
+        doAdjust(b)
+      }
+    }
+  }
 
   /**
    * @param boolean b: if true, do adjust, else, de adjust
    */
-  def adjust(b: Boolean) {
+  private def doAdjust(b: Boolean) {
+    //if (adjusted && b || !adjusted && !b) return
+
     if (b) {
       setAdjustedClose
     }
-    
+
     var i = 0
     while (i < size) {
       val prevNorm = close(i)
@@ -153,19 +175,21 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     publish(evt)
   }
 
+  /**
+   * adjWeight = (close of the day before dividend) / (prevClose of dividend day)
+   */
   private def setAdjustedClose {
     val cal = Calendar.getInstance($sec.exchange.timeZone)
     val divs = for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
 
     var i = 0
     while (i < size) {
-      val prevNorm = open(i)
-      var postNorm = prevNorm
       val time = timeOfIndex(i)
+      var adjClose = close_ori(i)
       for ((divTime, adjWeight) <- divs if time < divTime) {
-        postNorm /= adjWeight
+        adjClose /= adjWeight
       }
-      close_adj(i) = linearAdjust(close(i), prevNorm, postNorm)
+      close_adj(i) = adjClose
       
       i += 1
     }
