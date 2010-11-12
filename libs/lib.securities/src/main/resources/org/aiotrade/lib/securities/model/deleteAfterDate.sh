@@ -2,10 +2,12 @@
 
 input=$1
 host=$2
+user=$3
+password=$4
 
-if [ $# -lt 2 ]
+if [ $# -lt 4 ]
 then
-    echo "Need input parameter YYYYmmdd host"
+    echo "Need input parameter YYYYmmdd host user password"
     exit 1
 fi
 
@@ -31,7 +33,7 @@ wheretime="time > ${utimestamp1000}"
 #------------------------delete quotes1d
 sqldelquotes1d="delete  from quotes1d where ${wheretime};commit;"
 echo "to execute: ${sqldelquotes1d}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqldelquotes1d}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelquotes1d}"
 echo "delete quotes1d: success!"
 
 
@@ -39,14 +41,14 @@ echo "delete quotes1d: success!"
 
 sqldelmf1d="delete  from money_flows1d where ${wheretime};commit;"
 echo "to execute: ${sqldelmf1d}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqldelmf1d}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelmf1d}"
 echo "delete money_flows1d: success!"
 
 #------------------------delete tickers_last
 
 sqldeltickerslast="delete  from tickers_last where ${wheretime};commit;"
 echo "to execute: ${sqldeltickerslast}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqldeltickerslast}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldeltickerslast}"
 echo "delete tickers_last: success!"
 
 
@@ -54,29 +56,29 @@ echo "delete tickers_last: success!"
 
 sqldelmf1m="delete  from money_flows1m where secs_id between 1 and 6000 and ${wheretime};commit;"
 echo "to execute: ${sqldelmf1m}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqldelmf1m}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelmf1m}"
 echo "delete money_flows1m: success!"
 
 #------------------------delete quotes1m
 
 sqldelquotes1m="delete  from quotes1m where secs_id between 1 and 6000 and ${wheretime};commit;"
 echo "to execute: ${sqldelquotes1m}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqldelquotes1m}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelquotes1m}"
 echo "delete quotes1m: success!"
 
 #------------------------rename tickers;
 sqlrentickers="drop table if exists tickers${posix}; alter table tickers rename to tickers${posix};"
 echo "to execute: ${sqlrentickers}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqlrentickers}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqlrentickers}"
 
 #DROP TABLE IF EXISTS `tickers`;
 
 #------------------------rename executions;
 sqlrenexecutions="drop table if exists executions${posix}; alter table executions rename to executions${posix};"
 echo "to execute:${sqlrenexecutions}"
-time mysql --user=faster --password=faster --database=faster --host=${host} --execute="${sqlrenexecutions}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqlrenexecutions}"
 
 #------------------------re-create tickers & executions
 echo "to re-create tickers & executions"
-time mysql --user=faster --password=faster --database=faster --host=${host}<tickersexecutions.sql
+time mysql --user=${user} --password=${password} --database=faster --host=${host}<tickersexecutions.sql
 
