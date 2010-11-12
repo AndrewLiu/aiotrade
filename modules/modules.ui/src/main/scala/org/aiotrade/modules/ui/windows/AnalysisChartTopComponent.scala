@@ -187,7 +187,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   def contents = state.contents
   def viewContainer = state.viewContainer
   def realTimeBoard = state.realTimeBoard
-  def freq = state.freq
+  def freq = state.contractFreq
 
   private def sec = state.sec
   private def tcId = state.tcId
@@ -300,30 +300,34 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   class State(val contents: AnalysisContents) {
     val sec = contents.serProvider.asInstanceOf[Sec]
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
-    val freq = quoteContract.freq
+    val contractFreq = quoteContract.freq
     val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
 
     sec.resetSers
     contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
 
-    val ser = sec.serOf(freq).get
+    val ser = sec.serOf(contractFreq).get
     if (!ser.isLoaded) sec.loadSer(ser)
-    if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+
+    val isRealtime = contractFreq == TFreq.ONE_SEC
+    if (!isRealtime) {
+      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+    }
     sec.subscribeTickerServer(true)
 
-    val quoteInfoSer = sec.infoPointSerOf(freq).getOrElse(null)
+    val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
     if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
     sec.subscribeQuoteInfoDataServer(true)
 
-    val viewContainer = createViewContainer(ser, contents)
+    val viewContainer = createViewContainer(ser, contents, isRealtime)
     val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
 
     splitPane.setLeftComponent(viewContainer)
     splitPane.setRightComponent(realTimeBoard)
     splitPane.revalidate
 
-    setName(sec.secInfo.name + " - " + freq)
+    setName(sec.secInfo.name + " - " + contractFreq)
 
     private val popupMenu = new JPopupMenu
     popupMenu.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
@@ -351,11 +355,14 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     /** inject popup menu from this TopComponent */
     viewContainer.setComponentPopupMenu(popupMenu)
 
-    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents) = {
-      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
+    /**
+     * Since we use 1min freq as the ser's freq when contractFreq is 1sec, we should pass contractFreq here
+     */
+    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, isRealtime: Boolean) = {
+      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - , isRealtime=" + isRealtime)
 
       val controller = ChartingController(ser, contents)
-      if (ser.freq == TFreq.ONE_SEC) {
+      if (isRealtime) {
         controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
       } else {
         controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)

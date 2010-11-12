@@ -184,7 +184,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
     var i = 0
     while (i < size) {
-      val time = timeOfIndex(i)
+      val time = timestamps(i)
       var adjClose = close_ori(i)
       for ((divTime, adjWeight) <- divs if time < divTime) {
         adjClose /= adjWeight
