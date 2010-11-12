@@ -360,7 +360,10 @@ class Sec extends SerProvider {
    * synchronized this method to avoid conflict on variable: loadBeginning and
    * concurrent accessing to varies maps.
    */
-  def loadSer(ser: QuoteSer): Boolean = synchronized {
+  def loadSer(ser: QuoteSer): Boolean = {
+    if (ser.isInLoading) return true
+
+    ser.isInLoading = true
     // load from persistence
     val wantTime = loadSerFromPersistence(ser)
 
@@ -371,7 +374,7 @@ class Sec extends SerProvider {
   }
 
   def resetSers: Unit = mutex synchronized {
-    _realtimeSer = null
+    // _realtimeSer = null  @todo
     freqToQuoteSer.clear
     freqToMoneyFlowSer.clear
     freqToInfoSer.clear
@@ -613,10 +616,10 @@ class Sec extends SerProvider {
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: PartialFunction[Event, Unit] = null
             reaction = {
-              case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
+              case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
                 reactions -= reaction
-                deafTo(ser)
-                ser.isLoaded = true
+                deafTo(serx)
+                serx.isLoaded = true
             }
             reactions += reaction
             listenTo(ser)

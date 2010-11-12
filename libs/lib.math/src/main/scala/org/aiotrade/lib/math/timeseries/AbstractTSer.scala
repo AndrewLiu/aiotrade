@@ -54,7 +54,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     
   def isLoaded = _isLoaded
   def isLoaded_=(b: Boolean) {
-    _isInLoading = if (b) false else _isInLoading
+    if (b) _isInLoading = false
     _isLoaded = b
   }
 

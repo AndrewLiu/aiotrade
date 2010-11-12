@@ -94,8 +94,12 @@ object RealTimeBoardPanel {
   private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
   def instances = instanceRefs.keys
 
-  def instanceOf(sec: Sec, contents: AnalysisContents): RealTimeBoardPanel = {
-    instances find {_.sec eq sec} getOrElse new RealTimeBoardPanel(sec, contents)
+  def instanceOf(sec: Sec, contents: AnalysisContents): RealTimeBoardPanel = instanceRefs synchronized {
+    instances find {_.sec eq sec} match {
+      case Some(x) => instanceRefs.remove(x)
+      case None => 
+    }
+    new RealTimeBoardPanel(sec, contents)
   }
 
   private val log = Logger.getLogger(this.getClass.getSimpleName)

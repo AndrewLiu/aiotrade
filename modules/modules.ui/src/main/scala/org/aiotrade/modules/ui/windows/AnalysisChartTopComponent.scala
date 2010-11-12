@@ -51,8 +51,8 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.modules.ui.actions.ChangeOptsAction
 import org.aiotrade.modules.ui.actions.ChangeStatisticChartOptsAction
 import org.aiotrade.modules.ui.actions.MarketNewsAction
@@ -115,7 +115,10 @@ object AnalysisChartTopComponent {
     if (standalone) {
       val instance = instances find {x =>
         x.contents == contents && x.freq == freq
-      } getOrElse new AnalysisChartTopComponent(contents)
+      } match {
+        case Some(tc) => tc.init(contents); tc
+        case None => new AnalysisChartTopComponent(contents)
+      }
 
       if (!instance.isOpened) {
         instance.open
@@ -125,9 +128,7 @@ object AnalysisChartTopComponent {
     } else {
       if (singleton == null) {
         singleton = new AnalysisChartTopComponent(contents)
-      }
-
-      if ((singleton.contents ne contents) || (singleton.freq != freq)) {
+      } else {
         singleton.init(contents)
       }
 
@@ -181,90 +182,6 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       def focusLost(e: FocusEvent) {}
     })
 
-  class State(val contents: AnalysisContents) {
-    val sec = contents.serProvider.asInstanceOf[Sec]
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
-    val freq = quoteContract.freq
-    val tcId = sec.secInfo.name
-    val symbol = sec.uniSymbol
-
-    val viewContainer = createViewContainer(sec, freq, contents)
-    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
-
-    splitPane.setLeftComponent(viewContainer)
-    splitPane.setRightComponent(realTimeBoard)
-    splitPane.revalidate
-
-    setName(sec.secInfo.name + " - " + freq)
-
-    private val popupMenu = new JPopupMenu
-    popupMenu.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
-    popupMenu.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
-    popupMenu.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
-    popupMenu.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
-    popupMenu.add(SystemAction.get(classOf[ZoomInAction]))
-    popupMenu.add(SystemAction.get(classOf[ZoomOutAction]))
-    popupMenu.addSeparator
-    popupMenu.add(SystemAction.get(classOf[PickIndicatorAction]))
-    popupMenu.add(SystemAction.get(classOf[ChangeOptsAction]))
-    popupMenu.addSeparator
-    popupMenu.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
-    popupMenu.addSeparator
-    popupMenu.add(SystemAction.get(classOf[MarketNewsAction]))
-    popupMenu.addSeparator
-    popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
-
-    SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
-      AnalysisChartTopComponent.this.setActivatedNodes(Array(node))
-      popupMenu.add(node.getLookup.lookup(classOf[AddToFavoriteAction]))
-      injectActionsToDescriptors(node)
-    }
-
-    /** inject popup menu from this TopComponent */
-    viewContainer.setComponentPopupMenu(popupMenu)
-
-    private def createViewContainer(sec: Sec, freq: TFreq, contents: AnalysisContents) = {
-      val ser = sec.serOf(freq).get
-      if (!ser.isLoaded) sec.loadSer(ser)
-
-      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
-
-      sec.subscribeTickerServer(true)
-
-      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
-
-      val quoteInfoSer = sec.infoPointSerOf(freq).getOrElse(null)
-      if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
-      sec.subscribeQuoteInfoDataServer(true)
-
-      val controller = ChartingController(ser, contents)
-      val viewContainer = if (freq == TFreq.ONE_SEC) {
-        controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
-      } else {
-        controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
-      }
-
-      viewContainer
-    }
-
-    private def injectActionsToDescriptors(node: Node) {
-      /** we choose here to lazily create actions instances */
-
-      /** init all children of node to create the actions that will be injected to descriptor */
-      initNodeChildrenRecursively(node)
-    }
-
-    private def initNodeChildrenRecursively(node: Node) {
-      if (!node.isLeaf) {
-        /** call getChildren().getNodes(true) to initialize all children nodes */
-        val childrenNodes = node.getChildren.getNodes(true)
-        for (child <- childrenNodes) {
-          initNodeChildrenRecursively(child)
-        }
-      }
-    }
-
-  }
 
   private var state = init($contents)
   def contents = state.contents
@@ -275,20 +192,18 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   private def sec = state.sec
   private def tcId = state.tcId
 
-  def init(contents: AnalysisContents): State = {
+  def init(currContents: AnalysisContents): State = {
     if (state != null) {
       val prevSec = viewContainer.controller.baseSer.serProvider.asInstanceOf[Sec]
-      val currSec = contents.serProvider.asInstanceOf[Sec]
-      if (currSec ne prevSec) {
-        realTimeBoard.unWatch
-        splitPane.remove(realTimeBoard)
-        prevSec.resetSers
-        contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
-      }
+      val prevContents = contents
+      realTimeBoard.unWatch
+      splitPane.remove(realTimeBoard)
+      prevSec.resetSers
+      prevContents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
       splitPane.remove(viewContainer)
     }
-
-    state = new State(contents)
+    
+    state = new State(currContents)
     realTimeBoard.watch
 
     state
@@ -381,5 +296,86 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   override protected def finalize {
     super.finalize
   }
-  
+
+  class State(val contents: AnalysisContents) {
+    val sec = contents.serProvider.asInstanceOf[Sec]
+    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
+    val freq = quoteContract.freq
+    val tcId = sec.secInfo.name
+    val symbol = sec.uniSymbol
+
+    sec.resetSers
+    contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
+
+    val ser = sec.serOf(freq).get
+    if (!ser.isLoaded) sec.loadSer(ser)
+    if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+    sec.subscribeTickerServer(true)
+
+    val quoteInfoSer = sec.infoPointSerOf(freq).getOrElse(null)
+    if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
+    sec.subscribeQuoteInfoDataServer(true)
+
+    val viewContainer = createViewContainer(ser, contents)
+    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+
+    splitPane.setLeftComponent(viewContainer)
+    splitPane.setRightComponent(realTimeBoard)
+    splitPane.revalidate
+
+    setName(sec.secInfo.name + " - " + freq)
+
+    private val popupMenu = new JPopupMenu
+    popupMenu.add(SystemAction.get(classOf[SwitchCandleOhlcAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchCalendarTradingTimeViewAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchLinearLogScaleAction]))
+    popupMenu.add(SystemAction.get(classOf[SwitchAdjustQuoteAction]))
+    popupMenu.add(SystemAction.get(classOf[ZoomInAction]))
+    popupMenu.add(SystemAction.get(classOf[ZoomOutAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[PickIndicatorAction]))
+    popupMenu.add(SystemAction.get(classOf[ChangeOptsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[ChangeStatisticChartOptsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[MarketNewsAction]))
+    popupMenu.addSeparator
+    popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
+
+    SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
+      AnalysisChartTopComponent.this.setActivatedNodes(Array(node))
+      popupMenu.add(node.getLookup.lookup(classOf[AddToFavoriteAction]))
+      injectActionsToDescriptors(node)
+    }
+
+    /** inject popup menu from this TopComponent */
+    viewContainer.setComponentPopupMenu(popupMenu)
+
+    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents) = {
+      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - " + ser.freq)
+
+      val controller = ChartingController(ser, contents)
+      if (ser.freq == TFreq.ONE_SEC) {
+        controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
+      } else {
+        controller.createChartViewContainer(classOf[AnalysisChartViewContainer], AnalysisChartTopComponent.this)
+      }
+    }
+
+    /** we choose here to lazily create actions instances */
+    private def injectActionsToDescriptors(node: Node) {
+      /** init all children of node to create the actions that will be injected to descriptor */
+      initNodeChildrenRecursively(node)
+    }
+
+    private def initNodeChildrenRecursively(node: Node) {
+      if (!node.isLeaf) {
+        /** call getChildren().getNodes(true) to initialize all children nodes */
+        val childrenNodes = node.getChildren.getNodes(true)
+        for (child <- childrenNodes) {
+          initNodeChildrenRecursively(child)
+        }
+      }
+    }
+  }
 }
