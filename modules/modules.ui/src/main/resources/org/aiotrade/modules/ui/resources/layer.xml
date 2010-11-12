@@ -17,6 +17,7 @@
         <file name="org-aiotrade-modules-ui-actions-SwitchCandleOhlcAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-SwitchLinearLogScaleAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-SwitchAdjustQuoteAction.instance"/>
+        <file name="org-aiotrade-modules-ui-actions-SwichAnalysisReaTimeAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-RemoveCompareQuoteChartsAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-PickIndicatorAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-ChangeOptsAction.instance"/>
@@ -82,6 +83,9 @@
             </file>
             <file name="org-aiotrade-modules-ui-actions-SwitchLinearLogScaleAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SwitchLinearLogScaleAction.instance"/>
+            </file>
+            <file name="org-aiotrade-modules-ui-actions-SwichAnalysisReaTimeAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SwichAnalysisReaTimeAction.instance"/>
             </file>
             <file name="org-aiotrade-modules-ui-actions-SwitchAdjustQuoteAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SwitchAdjustQuoteAction.instance"/>
@@ -194,6 +198,9 @@
         </file>
         <file name="O-S.shadow">
             <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-AddStatisticChartAction.instance"/>
+        </file>
+        <file name="F5.shadow">
+            <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SwichAnalysisReaTimeAction.instance"/>
         </file>
     </folder>
 

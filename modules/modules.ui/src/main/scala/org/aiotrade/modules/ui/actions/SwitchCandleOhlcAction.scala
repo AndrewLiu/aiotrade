@@ -76,9 +76,7 @@ class SwitchCandleOhlcAction extends CallableSystemAction {
   }
     
   def getName = {
-    //"Candle/Bar/Line"
-    val name = NbBundle.getMessage(this.getClass,"CTL_SwitchCandleOhlcAction")
-    name
+    NbBundle.getMessage(this.getClass,"CTL_SwitchCandleOhlcAction")
   }
     
   def getHelpCtx: HelpCtx = {
