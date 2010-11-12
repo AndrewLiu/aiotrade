@@ -472,7 +472,11 @@ object SymbolNodes {
     def this(symbolFileNode: Node) = this(symbolFileNode, new InstanceContent)
 
     override def getDisplayName = {
-      analysisContents.uniSymbol
+      val uniSymbol = analysisContents.uniSymbol
+      Exchange.secOf(uniSymbol) match {
+        case Some(sec) => uniSymbol + " (" + sec.name + ")"
+        case None => uniSymbol
+      }
     }
 
     override def getIcon(tpe: Int): Image = {
