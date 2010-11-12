@@ -934,21 +934,7 @@ object SymbolNodes {
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)
 
-      val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
-      watchListTc.requestActive
-
-      val lastTickers = new ArrayList[LightTicker]
-      for (contents <- symbolContents) {
-        val uniSymbol = contents.uniSymbol
-        Exchange.secOf(uniSymbol) match {
-          case Some(sec) =>
-            watchListTc.watch(sec)
-            sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
-          case None =>
-        }
-      }
-
-      watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
+      watchSymbolInFolder(folderNode, symbolContents.toArray)
     }
   }
 
@@ -1184,6 +1170,9 @@ object SymbolNodes {
       if (!favFolder.getChildren.exists(_.getName == node.getName)) {
         dobj.createShadow(favFolder)
       }
+
+      val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      watchSymbolInFolder(favoriteNode, Array(contents))
     }
   }
 
@@ -1209,6 +1198,28 @@ object SymbolNodes {
         DataFolder.create(folder, floderName)
       } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)}
     }
+  }
+
+  private def watchSymbolInFolder(folderNode: SymbolFolderNode, symbolContents: Array[AnalysisContents]) {
+    val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
+    watchListTc.requestActive
+
+    val lastTickers = new ArrayList[LightTicker]
+    var i = 0
+    while (i < symbolContents.length) {
+      val contents = symbolContents(i)
+      val uniSymbol = contents.uniSymbol
+      Exchange.secOf(uniSymbol) match {
+        case Some(sec) =>
+          watchListTc.watch(sec)
+          sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
+        case None =>
+      }
+      
+      i += 1
+    }
+
+    watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
   }
 
 }
