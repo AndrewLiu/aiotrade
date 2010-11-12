@@ -236,7 +236,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   
   override protected def componentActivated {
     super.componentActivated
-    updateToolbar
+    //updateToolbar
   }
     
   override protected def componentShowing {
