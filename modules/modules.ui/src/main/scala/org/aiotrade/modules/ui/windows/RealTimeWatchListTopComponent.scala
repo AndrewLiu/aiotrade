@@ -163,43 +163,43 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
 
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
-  watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
-      private var prevSelected: String = _
-      def valueChanged(e: ListSelectionEvent) {
-        val lsm = e.getSource.asInstanceOf[ListSelectionModel]
-        if (lsm.isSelectionEmpty) {
-          // no rows are selected
-        } else {
-          val row = watchListTable.getSelectedRow
-          if (row >= 0 && row < watchListTable.getRowCount) {
-            val symbol = watchListPanel.symbolAtRow(row)
-            if (symbol != null && prevSelected != symbol) {
-              prevSelected = symbol
-              SymbolNodes.findSymbolNode(folderNode, symbol) foreach {x =>
-                val viewAction = x.getLookup.lookup(classOf[ViewAction])
-                viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
-                viewAction.execute
-              }
-              
-//              for (node <- symbolToNode.get(symbol)) {
-//                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
-//                val sec = contents.serProvider.asInstanceOf[Sec]
-//
-//                if (realTimeBoard != null) {
-//                  realTimeBoard.unWatch
-//                  splitPane.remove(realTimeBoard)
-//                }
-//                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
-//                realTimeBoard.watch
-//
-//                splitPane.setRightComponent(realTimeBoard)
-//                splitPane.revalidate
-//              }
-            }
-          }
-        }
-      }
-    })
+  /*   watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+   private var prevSelected: String = _
+   def valueChanged(e: ListSelectionEvent) {
+   val lsm = e.getSource.asInstanceOf[ListSelectionModel]
+   if (lsm.isSelectionEmpty) {
+   // no rows are selected
+   } else {
+   val row = watchListTable.getSelectedRow
+   if (row >= 0 && row < watchListTable.getRowCount) {
+   val symbol = watchListPanel.symbolAtRow(row)
+   if (symbol != null && prevSelected != symbol) {
+   prevSelected = symbol
+   SymbolNodes.findSymbolNode(folderNode, symbol) foreach {x =>
+   val viewAction = x.getLookup.lookup(classOf[ViewAction])
+   viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
+   viewAction.execute
+   }
+
+   //              for (node <- symbolToNode.get(symbol)) {
+   //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+   //                val sec = contents.serProvider.asInstanceOf[Sec]
+   //
+   //                if (realTimeBoard != null) {
+   //                  realTimeBoard.unWatch
+   //                  splitPane.remove(realTimeBoard)
+   //                }
+   //                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+   //                realTimeBoard.watch
+   //
+   //                splitPane.setRightComponent(realTimeBoard)
+   //                splitPane.revalidate
+   //              }
+   }
+   }
+   }
+   }
+   }) */
 
   add(watchListPanel, BorderLayout.CENTER)
 
