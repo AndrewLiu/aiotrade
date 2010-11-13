@@ -224,8 +224,6 @@ class Sec extends SerProvider {
     _quoteInfoContract = contract
   }
 
-
-  
   def realtimeSer = mutex synchronized {
     if (_realtimeSer == null) {
       _realtimeSer = new QuoteSer(this, TFreq.ONE_MIN)
@@ -364,17 +362,18 @@ class Sec extends SerProvider {
     if (ser.isInLoading) return true
 
     ser.isInLoading = true
-    // load from persistence
-    val wantTime = loadSerFromPersistence(ser)
 
+    val isRealTime = ser eq realtimeSer
+    // load from persistence
+    val wantTime = loadSerFromPersistence(ser, isRealTime)
     // try to load from quote server
-    loadFromQuoteServer(ser, wantTime)
+    loadFromQuoteServer(ser, wantTime, isRealTime)
 
     true
   }
 
   def resetSers: Unit = mutex synchronized {
-    // _realtimeSer = null  @todo
+    _realtimeSer = null
     freqToQuoteSer.clear
     freqToMoneyFlowSer.clear
     freqToInfoSer.clear
@@ -397,8 +396,9 @@ class Sec extends SerProvider {
   /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  private def loadSerFromPersistence(ser: QuoteSer): Long = {
-    val quotes = if (ser eq realtimeSer) {
+  private def loadSerFromPersistence(ser: QuoteSer, isRealTime: Boolean): Long = {
+    val quotes = if (isRealTime) {
+
       val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {
         case Some(x) => x
         case None => TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance(exchange.timeZone))
@@ -408,12 +408,15 @@ class Sec extends SerProvider {
       cal.setTimeInMillis(dailyRoundedTime)
       log.info("Loading realtime ser from persistence of " + cal.getTime)
       Quotes1m.mintueQuotesOf(this, dailyRoundedTime)
+
     } else {
+
       ser.freq match {
         case TFreq.ONE_MIN => Quotes1m.quotesOf(this)
         case TFreq.DAILY   => Quotes1d.quotesOf(this)
         case _ => return 0L
       }
+
     }
 
     ser ++= quotes.toArray
@@ -445,18 +448,19 @@ class Sec extends SerProvider {
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got quotes=" + quotes.length +
+      log.info(uniSymbol + "(" + (if (isRealTime) TFreq.ONE_SEC else ser.freq) + "): loaded from persistence, got quotes=" + quotes.length +
                ", loaded: time=" + last.time + ", ser size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
       
       wantTime
     } else {
-      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got 0 quotes" + ", ser size=" + ser.size
-               + ", will try to load from data source from beginning")
+      log.info(uniSymbol + "(" + (if (isRealTime) TFreq.ONE_SEC else ser.freq) + "): loaded from persistence, got 0 quotes" + 
+               ", ser size=" + ser.size + ", will try to load from data source from beginning")
       0L
     }
   }
+
   def loadInfoPointSer(ser : InfoPointSer) : Boolean = synchronized {
     //after resolve orm problem
     val wantTime = loadInfoPointSerFromPersistence(ser)
@@ -606,15 +610,15 @@ class Sec extends SerProvider {
     } else 0L
   }
 
-  private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long) {
-    val freq = ser.freq
+  private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long, isRealTime: Boolean) {
+    val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
     
     quoteContractOf(freq) match {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(quoteServer) =>
-            contract.srcSymbol = quoteServer.toSrcSymbol(this.uniSymbol)
-            contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
+            contract.srcSymbol = quoteServer.toSrcSymbol(uniSymbol)
+            contract.freq = freq
             quoteServer.subscribe(contract)
 
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
@@ -628,7 +632,6 @@ class Sec extends SerProvider {
             reactions += reaction
             listenTo(ser)
 
-            ser.isInLoading = true
             quoteServer.loadHistory(fromTime - 1)
 
           case _ => ser.isLoaded = true

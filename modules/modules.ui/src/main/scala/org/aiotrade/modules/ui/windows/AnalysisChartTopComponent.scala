@@ -198,14 +198,13 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       val prevContents = contents
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
+      splitPane.remove(viewContainer)
+
       prevSec.resetSers
       prevContents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
-      splitPane.remove(viewContainer)
     }
     
     state = new State(currContents)
-    realTimeBoard.watch
-
     state
   }
 
@@ -298,30 +297,36 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   }
 
   class State(val contents: AnalysisContents) {
+    // set class fields
     val sec = contents.serProvider.asInstanceOf[Sec]
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse null
-    val contractFreq = quoteContract.freq
     val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
+
+    // should keep contractFreq before load realtime ser which may change quoteContract in contents
+    // @Todo: use multiple quoteContracts?
+    private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) get
+    val contractFreq = quoteContract.freq
 
     sec.resetSers
     contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
 
-    val ser = sec.serOf(contractFreq).get
+    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+    realTimeBoard.watch
+
+    private val ser = sec.serOf(contractFreq).get
     if (!ser.isLoaded) sec.loadSer(ser)
 
-    val isRealtime = contractFreq == TFreq.ONE_SEC
+    private val isRealtime = contractFreq == TFreq.ONE_SEC
     if (!isRealtime) {
       if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
     }
     sec.subscribeTickerServer(true)
 
-    val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
+    private val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
     if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
     sec.subscribeQuoteInfoDataServer(true)
 
     val viewContainer = createViewContainer(ser, contents, isRealtime)
-    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
 
     splitPane.setLeftComponent(viewContainer)
     splitPane.setRightComponent(realTimeBoard)
@@ -354,6 +359,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     /** inject popup menu from this TopComponent */
     viewContainer.setComponentPopupMenu(popupMenu)
+
 
     /**
      * Since we use 1min freq as the ser's freq when contractFreq is 1sec, we should pass contractFreq here

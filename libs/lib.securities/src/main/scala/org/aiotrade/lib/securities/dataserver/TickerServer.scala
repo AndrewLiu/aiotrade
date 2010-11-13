@@ -308,20 +308,15 @@ abstract class TickerServer extends DataServer[Ticker] {
         updateDailyQuoteByTicker(dayQuote, ticker)
 
         // update chainSers
-        if (!isServer) {
+        if (!isServer && sec.isSerCreated(TFreq.ONE_SEC)) {
           val rtSer = sec.realtimeSer
-          if (rtSer.isLoaded) {
-            rtSer.updateFrom(minQuote) // update realtime quoteSer from minute quote
-          }
-        }
-
-        if (isServer || sec.isSerCreated(TFreq.DAILY)) {
-          val ser = sec.serOf(TFreq.DAILY).get
-          ser.updateFrom(dayQuote)
+          rtSer.updateFrom(minQuote)
         }
         if (isServer || sec.isSerCreated(TFreq.ONE_MIN)) {
-          val ser = sec.serOf(TFreq.ONE_MIN).get
-          ser.updateFrom(minQuote)
+          sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(minQuote)}
+        }
+        if (isServer || sec.isSerCreated(TFreq.DAILY)) {
+          sec.serOf(TFreq.DAILY) foreach {_.updateFrom(dayQuote)}
         }
 
         exchangeToLastTime.put(sec.exchange, ticker.time)
