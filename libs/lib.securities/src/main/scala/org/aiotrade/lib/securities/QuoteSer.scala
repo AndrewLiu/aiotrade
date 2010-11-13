@@ -60,6 +60,11 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   val isClosed = TVar[Boolean]()
 
+  lazy val divs = {
+    val cal = Calendar.getInstance($sec.exchange.timeZone)
+    for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
+  }
+
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
   override protected def assignValue(tval: TVal) {
@@ -133,6 +138,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       }
       reactions += reaction
 
+      // TSerEvent.Loaded may have missed during above produre, so confirm it
       if (isLoaded) {
         reactions -= reaction
         doAdjust(b)
@@ -141,30 +147,42 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   }
 
   /**
+   * adjWeight = (close of the day before dividend) / (prevClose of dividend day)
+   *
+   * ((value - prevNorm) / prevNorm) * postNorm + postNorm = value * (postNorm / prevNorm)
+   * 
    * @param boolean b: if true, do adjust, else, de adjust
    */
   private def doAdjust(b: Boolean) {
-    //if (adjusted && b || !adjusted && !b) return
-
-    if (b) {
-      setAdjustedClose
-    }
+    if (adjusted && b || !adjusted && !b) return
 
     var i = 0
     while (i < size) {
-      val prevNorm = close(i)
-      val postNorm = if (b) {
-        /** do adjust */
-        close_adj(i)
-      } else {
-        /** de adjust */
-        close_ori(i)
+      val time = timestamps(i)
+
+      var h = high(i)
+      var l = low(i)
+      var o = open(i)
+      var c = close(i)
+
+      for ((divTime, adjWeight) <- divs if time < divTime) {
+        if (b) {
+          h /= adjWeight
+          l /= adjWeight
+          o /= adjWeight
+          c /= adjWeight
+        } else {
+          h *= adjWeight
+          l *= adjWeight
+          o *= adjWeight
+          c *= adjWeight
+        }
       }
-                        
-      high(i)  = linearAdjust(high(i),  prevNorm, postNorm)
-      low(i)   = linearAdjust(low(i),   prevNorm, postNorm)
-      open(i)  = linearAdjust(open(i),  prevNorm, postNorm)
-      close(i) = linearAdjust(close(i), prevNorm, postNorm)
+
+      high(i)  = h
+      low(i)   = l
+      open(i)  = o
+      close(i) = c
 
       i += 1
     }
@@ -175,37 +193,6 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     publish(evt)
   }
 
-  /**
-   * adjWeight = (close of the day before dividend) / (prevClose of dividend day)
-   */
-  private def setAdjustedClose {
-    val cal = Calendar.getInstance($sec.exchange.timeZone)
-    val divs = for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
-
-    var i = 0
-    while (i < size) {
-      val time = timestamps(i)
-      var adjClose = close_ori(i)
-      for ((divTime, adjWeight) <- divs if time < divTime) {
-        adjClose /= adjWeight
-      }
-      close_adj(i) = adjClose
-      
-      i += 1
-    }
-  }
-    
-  /**
-   * This function adjusts linear according to a norm
-   */
-  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
-    ((value - prevNorm) / prevNorm) * postNorm + postNorm
-  }
-
-  override def shortDescription_=(symbol: String) {
-    this._shortDescription = symbol
-  }
-    
   override def shortDescription: String = {
     if (adjusted) {
       _shortDescription + "(*)"
