@@ -195,16 +195,24 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       var i = if (shouldReverse) lenth - 1 else 0
       while (i >= 0 && i < lenth) {
         val value = values(i)
-        val time = value.time
-        createOrClear(time)
-        assignValue(value)
+        if (value != null) {
+          val time = value.time
+          createOrClear(time)
+          assignValue(value)
 
-        frTime = math.min(frTime, time)
-        toTime = math.max(toTime, time)
+          frTime = math.min(frTime, time)
+          toTime = math.max(toTime, time)
+        } else {
+          // @todo why will  happen? seems form loadFromPersistence
+          log.warning("Value of i=" + i + " is null")
+        }
 
         /** shoudReverse: the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
         /** otherwise:    the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
-        i += (if (shouldReverse) -1 else 1)
+        if (shouldReverse)
+          i -= 1
+        else
+          i += 1
       }
 
       publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
