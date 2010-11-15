@@ -30,16 +30,11 @@
  */
 package org.aiotrade.modules.ui.actions
 
-import java.awt.Component
-import java.awt.event.ItemEvent
-import java.awt.event.ItemListener
-import javax.swing.ImageIcon
-import javax.swing.JToggleButton
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent
 import org.openide.util.HelpCtx
-import org.openide.util.ImageUtilities
 import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
 
@@ -47,73 +42,37 @@ import org.openide.util.actions.CallableSystemAction
  *
  * @author Caoyuan Deng
  */
-object SwichAnalysisReaTimeAction {
-  private var toggleButton: JToggleButton = _
-
-  def isRealTime = toggleButton.isSelected
-}
-
-import SwichAnalysisReaTimeAction._
 class SwichAnalysisReaTimeAction extends CallableSystemAction {
 
   def performAction {
     try {
-      java.awt.EventQueue.invokeLater(new Runnable() {
+      java.awt.EventQueue.invokeLater(new Runnable {
           def run {
-            if (toggleButton.isSelected) {
-              toggleButton.setSelected(false)
-            } else {
-              toggleButton.setSelected(true)
+            for (tc <- AnalysisChartTopComponent.selected;
+                 contents = tc.contents;
+                 quoteContract <- contents.lookupActiveDescriptor(classOf[QuoteContract])
+            ) {
+              val toFreq = if (tc.viewContainer.isInstanceOf[RealTimeChartViewContainer]) {
+                TFreq.DAILY
+              } else {
+                TFreq.ONE_SEC
+              }
+              quoteContract.freq = toFreq
+              val newTc = AnalysisChartTopComponent(contents)
+              newTc.requestActive
             }
           }
         })
     } catch {case ex: Exception =>}
-
   }
 
-  def getName: String = {
-    NbBundle.getMessage(this.getClass, "CTL_SwichAnalysisReaTimeAction")
-  }
+  def getName: String = NbBundle.getMessage(this.getClass, "CTL_SwichAnalysisReaTimeAction")
 
-  def getHelpCtx: HelpCtx = {
-    HelpCtx.DEFAULT_HELP
-  }
+  def getHelpCtx: HelpCtx = HelpCtx.DEFAULT_HELP
 
-  override protected def iconResource: String = {
-    "org/aiotrade/modules/ui/resources/realtime.jpg"
-  }
+  override protected def iconResource: String = "org/aiotrade/modules/ui/resources/realtime.jpg"
 
-  override protected def asynchronous: Boolean = {
-    false
-  }
-
-  override def getToolbarPresenter: Component = {
-    val iconImage = ImageUtilities.loadImage(iconResource)
-    val icon = new ImageIcon(iconImage)
-
-    toggleButton = new JToggleButton
-    toggleButton.setIcon(icon)
-    toggleButton.setToolTipText(getName)
-
-    toggleButton.addItemListener(new ItemListener {
-        def itemStateChanged(e: ItemEvent) {
-          val state = e.getStateChange
-
-          for (tc <- AnalysisChartTopComponent.selected;
-               contents = tc.contents;
-               quoteContract <- contents.lookupActiveDescriptor(classOf[QuoteContract])
-          ) {
-            val freq = if (state == ItemEvent.SELECTED) TFreq.ONE_SEC else TFreq.DAILY
-            quoteContract.freq = freq
-            val tc = AnalysisChartTopComponent(contents)
-            tc.requestActive
-          }
-        }
-      })
-
-    toggleButton
-  }
-
+  override protected def asynchronous: Boolean = false
 }
 
 
