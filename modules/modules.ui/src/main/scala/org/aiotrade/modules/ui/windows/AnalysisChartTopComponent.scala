@@ -98,6 +98,7 @@ object AnalysisChartTopComponent {
   val STANDALONE = "STANDALONE"
 
   private var singleton: AnalysisChartTopComponent = _
+  private var defaultFreq = TFreq.DAILY
 
   // The Mode this component will live in.
   val MODE = "chart"
@@ -194,14 +195,19 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
   def init(currContents: AnalysisContents): State = {
     if (state != null) {
-      val prevSec = viewContainer.controller.baseSer.serProvider.asInstanceOf[Sec]
-      val prevContents = contents
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
       splitPane.remove(viewContainer)
 
-      prevSec.resetSers
-      prevContents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
+      val prevContents = contents
+      val prevSec = prevContents.serProvider.asInstanceOf[Sec]
+      val currSec = currContents.serProvider.asInstanceOf[Sec]
+      if (currSec ne prevSec) {
+        prevSec.resetSers
+        prevContents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
+        // change back to its quote contract to default freq
+        prevContents.lookupDescriptors(classOf[QuoteContract]) foreach {_.freq = defaultFreq}
+      }
     }
     
     state = new State(currContents)
