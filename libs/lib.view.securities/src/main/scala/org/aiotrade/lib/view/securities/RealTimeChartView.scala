@@ -43,8 +43,9 @@ import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Ticker
+import org.aiotrade.lib.securities.dataserver.TickerEvent
+import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
 
@@ -89,7 +90,13 @@ class RealTimeChartView($controller: ChartingController,
 
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
 
+    reactions += {
+      case TickerEvent(ticker) => updateByTicker(ticker)
+    }
+    listenTo(sec)
     listenTo(mainSer)
+
+    sec.exchange.uniSymbolToLastTradingDayTicker.get(sec.uniSymbol) foreach {updateByTicker(_)}
   }
 
   protected def initComponents {
@@ -174,18 +181,22 @@ class RealTimeChartView($controller: ChartingController,
 
   override def updateView(evt: TSerEvent) {
     evt match {
-      case TSerEvent(_, _, _, _, ticker: Ticker, _) =>
-        val percentValue = ticker.changeInPercent
-        val strValue = ("%+3.2f%% " format percentValue) + ticker.lastPrice
-        val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
-
-        glassPane.updateInstantValue(strValue, color)
-        prevClose = ticker.prevClose
-
-        controller.fixedLeftSideTime = exchange.openTime(ticker.time)
+      case TSerEvent(_, _, _, _, ticker: Ticker, _) => //updateByTicker(ticker)
       case _ =>
     }
   }
+
+  private def updateByTicker(ticker: Ticker) {
+    val percentValue = ticker.changeInPercent
+    val strValue = ("%+3.2f%% " format percentValue) + ticker.lastPrice
+    val color = if (percentValue >= 0) LookFeel().getPositiveColor else LookFeel().getNegativeColor
+
+    glassPane.updateInstantValue(strValue, color)
+    prevClose = ticker.prevClose
+
+    controller.fixedLeftSideTime = exchange.openTime(ticker.time)
+  }
+
 }
 
 
