@@ -39,7 +39,6 @@ import java.awt.event.KeyEvent
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Comparator
 import java.util.ResourceBundle
 import java.util.logging.Logger
 import javax.swing.JComponent
@@ -88,11 +87,11 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val NAME       = "Name"
   private val TIME       = "Time"
   private val LAST_PRICE = "Last"
+  private val PERCENT    = "Percent"
   private val DAY_VOLUME = "Volume"
   private val DAY_AMOUNT = "Amount"
   private val PREV_CLOSE = "PrevCls"
   private val DAY_CHANGE = "Change"
-  private val PERCENT    = "Percent"
   private val DAY_HIGH   = "High"
   private val DAY_LOW    = "Low"
   private val DAY_OPEN   = "Open"
@@ -102,11 +101,11 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     NAME,
     TIME,
     LAST_PRICE,
+    PERCENT,
     DAY_VOLUME,
     DAY_AMOUNT,
     PREV_CLOSE,
     DAY_CHANGE,
-    PERCENT,
     DAY_HIGH,
     DAY_LOW,
     DAY_OPEN
@@ -129,8 +128,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val df = new SimpleDateFormat("HH:mm:ss")
   private val cal = Calendar.getInstance
   private val priceDf = new DecimalFormat("0.000")
-
-  private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
 
   initTable
 
@@ -178,30 +175,9 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     // --- sorter
     table.setAutoCreateRowSorter(false)
     val sorter = new TableRowSorter(model)
-    val comparator = new Comparator[Object] {
-      def compare(o1: Object, o2: Object): Int = {
-        (o1, o2) match {
-          case ("-", "-") => 0
-          case ("-",  _ ) => -1
-          case (_  , "-") => 1
-          case (s1: String, s2: String) =>
-            val s11 = if (s1.endsWith("%")) s1.substring(0, s1.length - 1) else s1
-            val s12 = if (s2.endsWith("%")) s2.substring(0, s2.length - 1) else s2
-            try {
-              val d1 = s11.toDouble
-              val d2 = s12.toDouble
-              if (d1 > d2) 1 else if (d1 < d2) -1 else 0
-            } catch {
-              case _ => s1 compareTo s2
-            }
-          case _ => 
-            log.warning("Comparing: " + o1.getClass.getName + ", " + o2.getClass.getName)
-            0
-        }
-      }
-    }
-    for (col <- 1 until model.getColumnCount) {
-      sorter.setComparator(col, comparator)
+    for (col <- 0 until model.getColumnCount) {
+      if (col == 0) sorter.setComparator(col, Comparators.symbolComparator)
+      else sorter.setComparator(col, Comparators.comparator)
     }
     // default sort order and precedence
     val sortKeys = new java.util.ArrayList[RowSorter.SortKey]
@@ -218,7 +194,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       val names = new Array[String](colKeys.length)
       var i = 0
       while (i < colKeys.length) {
-        val key = colKeys(i)
         names(i) = BUNDLE.getString(colKeys(i))
         i += 1
       }
@@ -249,11 +224,11 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
               df.setTimeZone(tz)
               df format cal.getTime
             case LAST_PRICE => priceDf   format ticker.lastPrice
+            case PERCENT    => "%3.2f%%" format ticker.changeInPercent
             case DAY_VOLUME => "%10.0f"  format ticker.dayVolume / 100.0
             case DAY_AMOUNT => "%10.2f"  format ticker.dayAmount / 10000.0
             case PREV_CLOSE => priceDf   format ticker.prevClose
             case DAY_CHANGE => priceDf   format ticker.dayChange
-            case PERCENT    => "%3.2f%%" format ticker.changeInPercent
             case DAY_HIGH   => priceDf   format ticker.dayHigh
             case DAY_LOW    => priceDf   format ticker.dayLow
             case DAY_OPEN   => priceDf   format ticker.dayOpen
@@ -265,11 +240,11 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
             case NAME => sec.name
             case TIME       => "-"
             case LAST_PRICE => "-"
+            case PERCENT    => "-"
             case DAY_VOLUME => "-"
             case DAY_AMOUNT => "-"
             case PREV_CLOSE => "-"
             case DAY_CHANGE => "-"
-            case PERCENT    => "-"
             case DAY_HIGH   => "-"
             case DAY_LOW    => "-"
             case DAY_OPEN   => "-"
@@ -448,7 +423,9 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   
   class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {
     private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
+    private val bgColorSelected = new Color(56, 86, 111)//new Color(24, 24, 24) //new Color(169, 178, 202)
     setOpaque(true)
+    
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
                                       hasFocus: Boolean, row: Int, col: Int): Component = {
 
@@ -465,15 +442,14 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       val symbol = symbolAtRow(row)
       symbolToInfo.get(symbol) match {
         case Some(info) =>
-          val colKeyToColor = info.colKeyToColor
-
-          val colKey = colKeys(col)
           if (isSelected) {
             setBackground(bgColorSelected)
           } else {
             setBackground(LookFeel().backgroundColor)
           }
 
+          val colKeyToColor = info.colKeyToColor
+          val colKey = colKeys(col)
           setForeground(colKeyToColor(colKey))
 
           if (value != null) {

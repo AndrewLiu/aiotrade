@@ -11,33 +11,48 @@ import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
+import javax.swing.RowSorter
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import org.aiotrade.lib.collection.ArrayList
+import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SubSignalEvent
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.util.actors.Reactor
+import org.aiotrade.lib.view.securities.Comparators
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.openide.windows.TopComponent
 
 class SignalTopComponent extends TopComponent with Reactor {
-  private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.windows.Bundle")
+  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.modules.ui.windows.Bundle")
 
   private val tc_id = "SignalTopComponent"
 
-  private var signalTable: JTable = _
-  private var signalModel: AbstractTableModel = _
+  private var table: JTable = _
+  private var model: AbstractTableModel = _
 
   private val signalEvents = new ArrayList[SubSignalEvent]
+
+
+  private val TIME = "time"
+  private val SYMBOL = "symbol"
+  private val SIGN = "sign"
+  private val NAME = "name"
+
+  private val colKeys = Array[String](
+    TIME,
+    SYMBOL,
+    SIGN,
+    NAME
+  )
 
   initComponent
 
@@ -45,19 +60,25 @@ class SignalTopComponent extends TopComponent with Reactor {
     case x@SubSignalEvent(uniSymbol, name, freq, signal) =>
       requestActive
       updateSignalTable(x)
-      signalTable.repaint()
+      table.repaint()
   }
   listenTo(Signal)
   
   private def initComponent {
     
-    signalModel = new AbstractTableModel {
-      private val columnNames = Array[String](
-        Bundle.getString("time"), Bundle.getString("symbol"), Bundle.getString("sign"), Bundle.getString("name")
-      )
+    model = new AbstractTableModel {
+      private val colNames = {
+        val names = new Array[String](colKeys.length)
+        var i = 0
+        while (i < colKeys.length) {
+          names(i) = BUNDLE.getString(colKeys(i))
+          i += 1
+        }
+        names
+      }
 
       def getRowCount: Int = signalEvents.size
-      def getColumnCount: Int = columnNames.length
+      def getColumnCount: Int = colNames.length
 
       def getValueAt(row: Int, col: Int): Object = {
         val event = signalEvents(row)
@@ -77,53 +98,71 @@ class SignalTopComponent extends TopComponent with Reactor {
             df format cal.getTime
           case 1 => event.uniSymbol
           case 2 => event.signal.kind match {
-              case Direction.EnterLong  => Bundle.getString("enterLong")
-              case Direction.ExitLong   => Bundle.getString("exitLong")
-              case Direction.EnterShort => Bundle.getString("enterShort")
-              case Direction.ExitShort  => Bundle.getString("exitShort")
+              case Direction.EnterLong  => BUNDLE.getString("enterLong")
+              case Direction.ExitLong   => BUNDLE.getString("exitLong")
+              case Direction.EnterShort => BUNDLE.getString("enterShort")
+              case Direction.ExitShort  => BUNDLE.getString("exitShort")
             }
           case 3 => event.signal.id + "号"
           case _ => null
         }
       }
 
-      override def getColumnName(col: Int) = columnNames(col)
+      override def getColumnName(col: Int) = colNames(col)
     }
 
-    signalTable = new JTable(signalModel)
-    signalTable.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
-    signalTable.setFocusable(false)
-    signalTable.setCellSelectionEnabled(false)
-    signalTable.setShowHorizontalLines(false)
-    signalTable.setShowVerticalLines(false)
-    signalTable.setForeground(Color.WHITE)
-    signalTable.setBackground(LookFeel().backgroundColor)
-    signalTable.setFillsViewportHeight(true)
-    signalTable.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
+    table = new JTable(model)
+    table.setDefaultRenderer(classOf[Object], new TrendSensitiveCellRenderer)
+    table.setFocusable(false)
+    table.setShowHorizontalLines(false)
+    table.setShowVerticalLines(false)
+    table.setForeground(Color.WHITE)
+    table.setBackground(LookFeel().backgroundColor)
+    table.setFillsViewportHeight(true)
+    table.getTableHeader.setDefaultRenderer(new TableHeaderRenderer)
+
+    table.setAutoCreateRowSorter(false)
+    val sorter = new TableRowSorter(model)
+    for (col <- 0 until colKeys.length) {
+      if (col == 1) sorter.setComparator(col, Comparators.symbolComparator)
+      else sorter.setComparator(col, Comparators.comparator)
+    }
+    // default sort order and precedence
+    val sortKeys = new java.util.ArrayList[RowSorter.SortKey]
+    sortKeys.add(new RowSorter.SortKey(0, javax.swing.SortOrder.ASCENDING))
+    sortKeys.add(new RowSorter.SortKey(2, javax.swing.SortOrder.ASCENDING))
+    sortKeys.add(new RowSorter.SortKey(1, javax.swing.SortOrder.ASCENDING))
+    sortKeys.add(new RowSorter.SortKey(3, javax.swing.SortOrder.ASCENDING))
+    sorter.setSortKeys(sortKeys)
+    // @Note sorter.setSortsOnUpdates(true) almost work except that the cells behind sort key
+    // of selected row doesn't refresh, TableRowSorter.sort manually
+
+    table.setRowSorter(sorter)
+
 
     // --- set column width
-    var columnModel = signalTable.getColumnModel
+    var columnModel = table.getColumnModel
     columnModel.getColumn(0).setMinWidth(20)
     columnModel.getColumn(1).setMinWidth(70)
     columnModel.getColumn(2).setMinWidth(10)
 
     val scrollPane = new JScrollPane
-    scrollPane.setViewportView(signalTable)
+    scrollPane.setViewportView(table)
     scrollPane.setBackground(LookFeel().backgroundColor)
     scrollPane.setFocusable(true)
 
     setLayout(new BorderLayout)
     add(BorderLayout.CENTER, scrollPane)
 
-    signalTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+    table.getSelectionModel.addListSelectionListener(new ListSelectionListener {
         private var prevSelected: String = _
         def valueChanged(e: ListSelectionEvent) {
           val lsm = e.getSource.asInstanceOf[ListSelectionModel]
           if (lsm.isSelectionEmpty) {
             // no rows are selected
           } else {
-            val row = signalTable.getSelectedRow
-            if (row >= 0 && row < signalTable.getRowCount) {
+            val row = table.getSelectedRow
+            if (row >= 0 && row < table.getRowCount) {
               val symbol = symbolAtRow(row)
               if (symbol != null && prevSelected != symbol) {
                 prevSelected = symbol
@@ -141,8 +180,8 @@ class SignalTopComponent extends TopComponent with Reactor {
   }
 
   def symbolAtRow(row: Int): String = {
-    if (row >= 0 && row < signalModel.getRowCount) {
-      signalTable.getValueAt(row, 1).asInstanceOf[String]
+    if (row >= 0 && row < model.getRowCount) {
+      table.getValueAt(row, 1).asInstanceOf[String]
     } else null
   }
 
@@ -151,8 +190,8 @@ class SignalTopComponent extends TopComponent with Reactor {
    */
   private def updateSignalTable(event: SubSignalEvent) {
     signalEvents += event
-    signalModel.fireTableDataChanged
-    scrollToLastRow(signalTable)
+    model.fireTableDataChanged
+    scrollToLastRow(table)
   }
 
   private def scrollToLastRow(table: JTable) {
@@ -177,13 +216,13 @@ class SignalTopComponent extends TopComponent with Reactor {
 
   override protected def preferredID: String = tc_id
 
-  override def getDisplayName: String = Bundle.getString("CTL_SignalTopComponent")
+  override def getDisplayName: String = BUNDLE.getString("CTL_SignalTopComponent")
 
 
   class TableHeaderRenderer extends JLabel with TableCellRenderer {
     private val defaultFont = new Font("Dialog", Font.BOLD, 12)
-
     setOpaque(true)
+
     def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
                                       hasFocus: Boolean, row: Int, col: Int): Component = {
 
@@ -205,13 +244,9 @@ class SignalTopComponent extends TopComponent with Reactor {
     override def firePropertyChange(propertyName: String, oldValue: Boolean, newValue: Boolean) {}
   }
 
-
-  class TrendSensitiveCellRenderer extends DefaultTableCellRenderer {
+  class TrendSensitiveCellRenderer extends JLabel with TableCellRenderer {
     private val defaultFont = new Font("Dialog", Font.PLAIN, 12)
     private val bgColorSelected = new Color(56, 86, 111)
-
-    setForeground(Color.WHITE)
-    setBackground(LookFeel().backgroundColor)
     setOpaque(true)
 
     override def getTableCellRendererComponent(table: JTable, value: Object, isSelected: Boolean,
@@ -219,13 +254,12 @@ class SignalTopComponent extends TopComponent with Reactor {
 
       /** Beacuse this will be a sinleton for all cells, so, should clear it first */
       setFont(defaultFont)
-      setForeground(Color.WHITE)
       if (isSelected) {
         setBackground(bgColorSelected)
       } else {
         setBackground(LookFeel().backgroundColor)
       }
-      setText(null)
+      setForeground(Color.WHITE)
 
       if (value != null) {
         column match {
@@ -247,6 +281,8 @@ class SignalTopComponent extends TopComponent with Reactor {
         }
 
         setText(value.toString)
+      } else {
+        setText(null)
       }
 
       this
