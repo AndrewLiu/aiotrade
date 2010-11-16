@@ -34,6 +34,7 @@ import java.awt.event.ComponentListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
+import java.util.logging.Logger
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartValidityObserver
 import org.aiotrade.lib.charting.view.ChartView
@@ -47,6 +48,7 @@ import org.aiotrade.lib.util.awt.AWTUtil
  * @author Caoyuan Deng
  */
 class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
+  private val log = Logger.getLogger(this.getClass.getName)
     
   private var colorTheme: LookFeel = _
     
@@ -131,10 +133,10 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
     var oldBMouse = -Integer.MAX_VALUE
     var oldYMouse = -Integer.MAX_VALUE
         
-    override def mouseClicked(e: MouseEvent) {
-      if (e.isPopupTrigger) {
-        return
-      }
+    override def mousePressed(e: MouseEvent) {
+      if (e.isPopupTrigger) return // isPopupTrigger is the event of mousePressed and mouseReleased instead of mouseClicked
+
+      log.info("MouseClicked")
             
       if (!view.isInteractive) {
         /**
