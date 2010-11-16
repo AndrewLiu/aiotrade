@@ -135,8 +135,6 @@ class ChartPane(aview: ChartView) extends AbstractDatumPlane(aview) {
         
     override def mousePressed(e: MouseEvent) {
       if (e.isPopupTrigger) return // isPopupTrigger is the event of mousePressed and mouseReleased instead of mouseClicked
-
-      log.info("MouseClicked")
             
       if (!view.isInteractive) {
         /**

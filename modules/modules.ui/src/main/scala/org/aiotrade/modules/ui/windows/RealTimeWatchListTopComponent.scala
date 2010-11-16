@@ -39,28 +39,22 @@ import java.util.logging.Logger
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
-import javax.swing.JTable;
+import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
 import org.aiotrade.lib.view.securities.RealTimeWatchListPanel
-import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.actions.OpenMultipleChartsAction
 import org.aiotrade.modules.ui.actions.StartSelectedWatchAction
 import org.aiotrade.modules.ui.actions.StopSelectedWatchAction
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.modules.ui.nodes.SymbolNodes.SymbolStopWatchAction
-import org.openide.nodes.Node;
+import org.openide.nodes.Node
 import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
@@ -163,43 +157,51 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
 
   watchListTable.addMouseListener(new WatchListTableMouseListener(watchListTable, this))
 
-  /*   watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
-   private var prevSelected: String = _
-   def valueChanged(e: ListSelectionEvent) {
-   val lsm = e.getSource.asInstanceOf[ListSelectionModel]
-   if (lsm.isSelectionEmpty) {
-   // no rows are selected
-   } else {
-   val row = watchListTable.getSelectedRow
-   if (row >= 0 && row < watchListTable.getRowCount) {
-   val symbol = watchListPanel.symbolAtRow(row)
-   if (symbol != null && prevSelected != symbol) {
-   prevSelected = symbol
-   SymbolNodes.findSymbolNode(folderNode, symbol) foreach {x =>
-   val viewAction = x.getLookup.lookup(classOf[ViewAction])
-   viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
-   viewAction.execute
-   }
+  watchListTable.getSelectionModel.addListSelectionListener(new ListSelectionListener {
+      private var prevSelected: String = _
+      def valueChanged(e: ListSelectionEvent) {
+        val lsm = e.getSource.asInstanceOf[ListSelectionModel]
+        if (lsm.isSelectionEmpty) {
+          // no rows are selected
+        } else {
+          val minIdx = lsm.getMinSelectionIndex
+          val maxIdx = lsm.getMaxSelectionIndex
+          var isMultiple = false
+          var i = minIdx
+          while (i <= maxIdx) {
+            if (lsm.isSelectedIndex(i) && i >= 0 && i < watchListTable.getRowCount) {
+              val symbol = watchListPanel.symbolAtRow(i)
+              if (symbol != null && prevSelected != symbol) {
+                prevSelected = symbol
+                SymbolNodes.findSymbolNode(folderNode, symbol) foreach {x =>
+                  val viewAction = x.getLookup.lookup(classOf[ViewAction])
+                  viewAction.putValue(AnalysisChartTopComponent.STANDALONE, isMultiple)
+                  viewAction.execute
+                  isMultiple = true
+                }
 
-   //              for (node <- symbolToNode.get(symbol)) {
-   //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
-   //                val sec = contents.serProvider.asInstanceOf[Sec]
-   //
-   //                if (realTimeBoard != null) {
-   //                  realTimeBoard.unWatch
-   //                  splitPane.remove(realTimeBoard)
-   //                }
-   //                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
-   //                realTimeBoard.watch
-   //
-   //                splitPane.setRightComponent(realTimeBoard)
-   //                splitPane.revalidate
-   //              }
-   }
-   }
-   }
-   }
-   }) */
+                //              for (node <- symbolToNode.get(symbol)) {
+                //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
+                //                val sec = contents.serProvider.asInstanceOf[Sec]
+                //
+                //                if (realTimeBoard != null) {
+                //                  realTimeBoard.unWatch
+                //                  splitPane.remove(realTimeBoard)
+                //                }
+                //                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+                //                realTimeBoard.watch
+                //
+                //                splitPane.setRightComponent(realTimeBoard)
+                //                splitPane.revalidate
+                //              }
+              }
+            }
+
+            i += 1
+          }
+        }
+      }
+    })
 
   add(watchListPanel, BorderLayout.CENTER)
 
@@ -308,21 +310,6 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
 
     override def mouseClicked(e: MouseEvent) {
       showPopup(e)
-      
-      val symbol = watchListPanel.symbolAtRow(rowAtY(e))
-      if (symbol != null && prevSelected != symbol) {
-        prevSelected = symbol
-        SymbolNodes.findSymbolNode(symbol) foreach {x =>
-          val viewAction = x.getLookup.lookup(classOf[ViewAction])
-          if (e.isAltDown || e.getClickCount == 2) {
-            // when double click on a row, active this stock's chart view in a standalone window
-            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, true)
-          } else {
-            viewAction.putValue(AnalysisChartTopComponent.STANDALONE, false)
-          }
-          viewAction.execute
-        }
-      }
     }
         
     override def mousePressed(e: MouseEvent) {
