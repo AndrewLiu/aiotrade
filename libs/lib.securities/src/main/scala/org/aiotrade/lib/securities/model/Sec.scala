@@ -663,7 +663,7 @@ class Sec extends SerProvider {
     freqToQuoteInfoHisContract.get(freq)
   }
 
-  def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else ""
+  def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {
       secInfo.uniSymbol = uniSymbol
@@ -671,9 +671,7 @@ class Sec extends SerProvider {
   }
 
   override def name: String = {
-    if (secInfo != null) {
-      secInfo.name
-    } else uniSymbol
+    if (secInfo != null) secInfo.name else uniSymbol
   }
 
   def stopAllDataServer {

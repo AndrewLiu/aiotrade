@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.actors.Event
 class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private var _shortDescription: String = ""
+  private var _shortDescription: String = $sec.uniSymbol
   var adjusted: Boolean = false
     
   val open   = TVar[Double]("O", Plot.Quote)

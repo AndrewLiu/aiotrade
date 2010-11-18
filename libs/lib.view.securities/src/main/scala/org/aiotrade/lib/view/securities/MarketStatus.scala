@@ -56,6 +56,10 @@ class MarketStatus extends StatusLineElementProvider {
   SSValue.setOpaque(true)
   private val SZValue = new JLabel("-")
   SZValue.setOpaque(true)
+  private val SSChange = new JLabel("-")
+  SSChange.setOpaque(true)
+  private val SZChange = new JLabel("-")
+  SZChange.setOpaque(true)
   private val SSPercent = new JLabel("-")
   SSPercent.setOpaque(true)
   private val SZPercent = new JLabel("-")
@@ -87,7 +91,7 @@ class MarketStatus extends StatusLineElementProvider {
       setSZValue(lastTicker)
     }
 
-    for (label <- List(SSName, SSValue, SSPercent, SZName, SZValue, SZPercent)) {
+    for (label <- List(SSName, SSValue, SSChange, SSPercent, SZName, SZValue, SZChange, SZPercent)) {
       box.add(label)
       box.add(Box.createHorizontalStrut(5))
     }
@@ -100,18 +104,22 @@ class MarketStatus extends StatusLineElementProvider {
     if (ticker.changeInPercent > 0) {
       //SSName.setForeground(posColor)
       SSValue.setBackground(posColor)
+      SSChange.setBackground(posColor)
       SSPercent.setBackground(posColor)
     } else if (ticker.changeInPercent == 0) {
       //SSName.setForeground(neuColor)
       SSValue.setBackground(neuColor)
+      SSChange.setBackground(neuColor)
       SSPercent.setBackground(neuColor)
     } else {
       //SSName.setForeground(negColor)
       SSValue.setBackground(negColor)
+      SSChange.setBackground(negColor)
       SSPercent.setBackground(negColor)
     }
 
     SSValue.setText(priceDf.format(ticker.lastPrice))
+    SSChange.setText(priceDf.format(ticker.dayChange))
     SSPercent.setText("%+3.2f%%" format ticker.changeInPercent)
   }
 
@@ -119,18 +127,22 @@ class MarketStatus extends StatusLineElementProvider {
     if (ticker.changeInPercent > 0) {
       //SZName.setForeground(posColor)
       SZValue.setBackground(posColor)
+      SZChange.setBackground(posColor)
       SZPercent.setBackground(posColor)
     } else if (ticker.changeInPercent == 0) {
       //SZName.setForeground(neuColor)
       SZValue.setBackground(neuColor)
+      SZChange.setBackground(neuColor)
       SZPercent.setBackground(neuColor)
     } else {
       //SZName.setForeground(negColor)
       SZValue.setBackground(negColor)
+      SZChange.setBackground(negColor)
       SZPercent.setBackground(negColor)
     }
 
     SZValue.setText(priceDf.format(ticker.lastPrice))
+    SZChange.setText(priceDf.format(ticker.dayChange))
     SZPercent.setText("%+3.2f%%" format ticker.changeInPercent)
   }
 
