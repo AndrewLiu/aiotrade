@@ -233,6 +233,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
     label.setOpaque(false)
     label.setHorizontalAlignment(SwingConstants.RIGHT)
     label.setVisible(false)
+    label.setFont(LookFeel().axisFont)
+
     label
   }
 
@@ -457,19 +459,19 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
             val period = datumPlane.br(mouseRow) - datumPlane.br(referRow)
             val percent = if (vRefer == 0) 0.0 else 100 * (datumPlane.vy(y) - vRefer) / vRefer
 
-            var volumeSum = 0.0
+            var amountSum = 0.0
             val rowBeg = math.min(referRow, mouseRow)
             val rowEnd = math.max(referRow, mouseRow)
             var i = rowBeg
             while (i <= rowEnd) {
               val time = quoteSer.timeOfRow(i)
               if (quoteSer.exists(time)) {
-                volumeSum += quoteSer.volume(time)
+                amountSum += quoteSer.amount(time)
               }
               i += 1
             }
 
-            new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
+            new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  A: ").append("%5.0f".format(amountSum)).toString
           } else { // else, usually RealtimeQuoteChartView
             val vRefer = GlassPane.this.referCursorValue
             val vYMouse = datumPlane.vy(y)
@@ -479,7 +481,6 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
           }
 
         deltaLabel.setForeground(LookFeel().nameColor)
-        deltaLabel.setFont(LookFeel().axisFont)
         deltaLabel.setText(str)
 
         //val fm = getFontMetrics(deltaLabel.getFont)
@@ -763,19 +764,19 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
               val period = br(mouseRow) - br(referRow)
               val percent = if (vRefer == 0) 0.0 else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
 
-              var volumeSum = 0.0
+              var amountSum = 0.0
               val rowBeg = math.min(referRow, mouseRow)
               val rowEnd = math.max(referRow, mouseRow)
               var i = rowBeg
               while (i <= rowEnd) {
                 val time = quoteSer.timeOfRow(i)
                 if (quoteSer.exists(time)) {
-                  volumeSum += quoteSer.volume(time)
+                  amountSum += quoteSer.volume(time)
                 }
                 i += 1
               }
 
-              new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  V: ").append("%5.0f".format(volumeSum)).toString
+              new StringBuilder(20).append("P: ").append(period).append("  ").append("%+3.2f".format(percent)).append("%").append("  A: ").append("%5.0f".format(amountSum)).toString
             } else { // else, usually RealtimeQuoteChartView
               val vRefer = GlassPane.this.referCursorValue
               val percent = if (vRefer == 0) 0.0 else 100 * (mainChartPane.vy(y) - vRefer) / vRefer
