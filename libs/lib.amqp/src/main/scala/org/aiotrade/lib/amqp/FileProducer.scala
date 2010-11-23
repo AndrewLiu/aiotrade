@@ -46,6 +46,10 @@ object FileProducer {
 class FileProducer(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, nConsumers: Int
 ) extends AMQPDispatcher(factory, exchange) {
 
+  def this(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String) = {
+    this(factory, exchange, queue, routingKey, 0)
+  }
+
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     channel.exchangeDeclare(exchange, "direct", true)
