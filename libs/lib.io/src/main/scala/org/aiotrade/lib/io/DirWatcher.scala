@@ -134,7 +134,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
             fileToLastModified.put(file, $fileNameToLastModified.get(file).get)
             onChange(FileAdded(file))
           }
-        case Some(last) if last != $fileNameToLastModified.get(file).get =>
+        case Some(last) if last > $fileNameToLastModified.get(file).get =>
           // modified file
           if (file.canRead) {
             fileToLastModified.put(file, $fileNameToLastModified.get(file).get)
