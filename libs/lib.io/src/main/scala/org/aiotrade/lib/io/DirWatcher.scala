@@ -33,7 +33,7 @@ object DirWatcher {
 /**
  * The DirWatcher watches two directories simutaneously.
  * If a file with the same file name emerges in the two directories,
- * only the first one will be notified, the other will be ignored.
+ * only the latest one will be notified, the old one will be ignored.
  *
  * If only one path is provided for DirWatcher and the other path is null,
  * the Dirwatcher will only watch one directory and ignore the null path.
