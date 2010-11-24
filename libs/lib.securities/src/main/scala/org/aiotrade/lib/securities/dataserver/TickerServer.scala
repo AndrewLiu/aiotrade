@@ -50,6 +50,7 @@ import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 
 /**
  *
@@ -119,16 +120,19 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   private val exchangeToLastTime = new HashMap[Exchange, Long]
 
-  private def getSecSnaps(values: Array[Ticker]): Seq[SecSnap] = {
+  private def toSecSnaps(values: Array[Ticker]): Seq[SecSnap] = {
+    val processedSymbols = new HashSet[String] // used to avoid duplicate symbols of each refreshing
     val secSnaps = new ArrayList[SecSnap]
     var i = 0
     while (i < values.length) {
       val ticker = values(i)
+      val symbol = ticker.symbol
 
-      if (ticker.dayHigh != 0 && ticker.dayLow != 0) {
-        val symbol = ticker.symbol
+      if (!processedSymbols.contains(symbol) && ticker.dayHigh != 0 && ticker.dayLow != 0) {
+        processedSymbols.add(symbol)
+        
         Exchange.secOf(symbol) match {
-          case Some(sec) => sec
+          case Some(sec) =>
             ticker.sec = sec
 
             val exchange = sec.exchange
@@ -136,7 +140,7 @@ abstract class TickerServer extends DataServer[Ticker] {
             if (subscribedSrcSymbols.contains(symbol)) {
               tickersLast += tickerx
               secSnaps += sec.secSnap.setByTicker(ticker)
-            } else{
+            } else {
               log.fine("subscribedSrcSymbols doesn't contain " + symbol)
             }
           case None => log.warning("No sec for " + symbol)
@@ -147,6 +151,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
       i += 1
     }
+    
     secSnaps
   }
 
@@ -161,7 +166,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (values.length == 0) return lastTime
     //values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
 
-    val secSnaps = getSecSnaps(values)
+    val secSnaps = toSecSnaps(values)
     log.info("Composing ser from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return lastTime
 
