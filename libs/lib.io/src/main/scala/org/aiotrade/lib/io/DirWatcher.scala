@@ -13,20 +13,38 @@ import scala.collection.mutable.HashSet
 object DirWatcher {
   // ----- simple test
   def main(args: Array[String]) {
+    //Test watching the single directory
     val task = new DirWatcher("/tmp/test01", "txt" ) {
       override protected def onChange(event: FileEvent) {
-        println("task: " + event)
+        println("task:----- " + event)
       }
-    }
+      override protected def lastModified(file: File): Long = {
+        val f = new java.io.BufferedReader(new java.io.FileReader(file))
+        val timestamp = f.readLine.toLong
+        f.close
+        timestamp
+      }
 
-    val task2 = new DirWatcher("/tmp/test02", "/tmp/test03", "txt") {
-      override protected def onChange(event: FileEvent) {
-        println("task2: " + event)
-      }
     }
     val timer = new Timer
     timer.schedule(task , new Date, 1000)
-    timer.schedule(task2, new Date, 1000)
+
+    //Test watching the two directories simutaneously
+    val task2 = new DirWatcher("/tmp/test02", "/tmp/test03", ".txt") {
+      override protected def onChange(event: FileEvent) {
+        println("task2:----- " + event)
+      }
+
+      override protected def lastModified(file: File): Long = {
+        val f = new java.io.BufferedReader(new java.io.FileReader(file))
+        val timestamp = f.readLine.toLong
+        f.close
+        timestamp
+      }
+    }
+    val timer2 = new Timer
+    timer2.schedule(task2, new Date, 1000)
+    
   }
 }
 
@@ -44,9 +62,9 @@ object DirWatcher {
 abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includingExistingFiles: Boolean = false) extends TimerTask {
 
   private val log = Logger.getLogger(this.getClass.getName)
-  private val fileToLastModified = new WatcherMap
+  private val __fileNameToLastModified = new WatcherMap
 
-  log.log(Level.INFO, "Watching on " + path01 + " and " + path02)
+  log.log(Level.INFO, "DirWatcher watching on " + path01 + " and " + path02)
   init
 
   def this(path01: String, path02: String, endWith: String) =
@@ -75,7 +93,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
             var i = 0
             while (i < existed.length) {
               val x = existed(i)
-              fileToLastModified.put(x, lastModified(x))
+              __fileNameToLastModified.put(x, lastModified(x))
               i += 1
             }
         }
@@ -83,7 +101,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
     }
 
     if (includingExistingFiles) {
-      fileToLastModified.export.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
+      __fileNameToLastModified.exportToFiles.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
     }
   }
 
@@ -95,7 +113,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
   /** always add () for empty apply method */
   final def apply() {
     val $fileNameToLastModified = new WatcherMap
-
+    
     //Scan both directories to get current files.
     List(path01, path02).foreach {
       path =>
@@ -119,37 +137,40 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
     }
 
     // It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
-    val files = $fileNameToLastModified.export.sortWith(_.compareTo(_) < 0)
-    val checkedFiles = new HashSet[File]
+    val fileNames = $fileNameToLastModified.exportToFileNames.sortWith(_.compareTo(_) < 0)
+    val checkedFiles = new HashSet[String]
 
     var i = 0
-    while (i < files.length) {
-      val file = files(i)
-      checkedFiles += file
+    while (i < fileNames.length) {
+      val fileName = fileNames(i)
+      checkedFiles += fileName
 
-      fileToLastModified.get(file) match {
+      __fileNameToLastModified.get(fileName) match {
         case None =>
+          val file = $fileNameToLastModified.fileOf(fileName).get
           // new file
           if (file.canRead) {
-            fileToLastModified.put(file, $fileNameToLastModified.get(file).get)
+            __fileNameToLastModified.put(file, $fileNameToLastModified.get(file).get)
             onChange(FileAdded(file))
           }
-        case Some(last) if last > $fileNameToLastModified.get(file).get =>
+        case Some(last) if last < $fileNameToLastModified.get(fileName).get =>
+          val file = $fileNameToLastModified.fileOf(fileName).get
           // modified file
           if (file.canRead) {
-            fileToLastModified.put(file, $fileNameToLastModified.get(file).get)
+            __fileNameToLastModified.put(file, $fileNameToLastModified.get(file).get)
             onChange(FileModified(file))
           }
-        case _ =>
+        case x => //Ingore the old one and current one, only care the newer one.
       }
       
       i += 1
     }
 
     // deleted files
-    val deletedfiles = (new HashSet ++ fileToLastModified.export.clone) -- checkedFiles
-    deletedfiles foreach {file =>
-      fileToLastModified remove file
+    val deletedfiles = (new HashSet ++ __fileNameToLastModified.exportToFileNames.clone) -- checkedFiles
+    deletedfiles foreach {fileName =>
+      val file = __fileNameToLastModified.fileOf(fileName).get
+      __fileNameToLastModified remove file
       onChange(FileDeleted(file))
     }
   }
@@ -169,49 +190,75 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
 
 
   
-  private class WatcherMap{
-    private val _fileNameToLastModified = new HashMap[String, (File, Long)]
+  protected class WatcherMap{
+    private val fileNameToLastModified = new HashMap[String, (File, Long)]
 
     /**
      * Filter out the duplicated file whose file name is same,
      * only keep the latest one according to lastModified()
      */
-    def put(_file: File, _lastModified: Long): Boolean = {
-      _fileNameToLastModified.get(_file.getName) match {
+    def put(file: File, lastModified: Long): Boolean = {
+      fileNameToLastModified.get(file.getName) match {
         case Some((f, timestamp)) =>
           //Only keep the latest one
-          if(timestamp < _lastModified){
-            _fileNameToLastModified(_file.getName) = (_file, _lastModified)
+          if(timestamp < lastModified){
+            fileNameToLastModified(file.getName) = (file, lastModified)
             true
           }
           else {
             false
           }
         case None =>
-          _fileNameToLastModified(_file.getName) = (_file, _lastModified)
+          fileNameToLastModified(file.getName) = (file, lastModified)
           true
       }
     }
 
-    def get(_file: File): Option[Long] = {
-      _fileNameToLastModified.get(_file.getName) match {
+    def get(file: File): Option[Long] = {
+      fileNameToLastModified.get(file.getName) match {
         case Some((f, timestamp)) => Some(timestamp)
-        case _ => None
+        case None => None
       }
     }
 
-    def remove(_file: File) {
-      _fileNameToLastModified.get(_file.getName) match {
-        case Some((f, timestamp)) => _fileNameToLastModified -= _file.getName
+    def get(fileName: String): Option[Long] = {
+      fileNameToLastModified.get(fileName) match {
+        case Some((f, timestamp)) => Some(timestamp)
+        case None => None
+      }
+    }
+
+    def fileOf(fileName: String) : Option[File] = {
+      fileNameToLastModified.get(fileName) match {
+        case Some((f, timestamp)) => Some(f)
+        case None => None
+      }
+    }
+
+    def remove(file: File) {
+      fileNameToLastModified.get(file.getName) match {
+        case Some((f, timestamp)) => fileNameToLastModified -= file.getName
         case _ =>
       }
     }
 
-    def export: Array[File] = {
+    def exportToFiles: Array[File] = {
       val result = new scala.collection.mutable.ArrayBuffer[File]
-      _fileNameToLastModified.values.foreach(m => result + m._1)
+      fileNameToLastModified.values.foreach(m => result + m._1)
       result.toArray
     }
+
+    def exportToFileNames: Array[String] = {
+      val result = new scala.collection.mutable.ArrayBuffer[String]
+      fileNameToLastModified.keys.foreach(m => result + m)
+      result.toArray
+    }
+
+    def clear {
+      fileNameToLastModified.clear
+    }
+
+    def getAll = fileNameToLastModified
   }
 }
 
