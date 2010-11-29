@@ -112,6 +112,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
 
   /** always add () for empty apply method */
   final def apply() {
+    val startTimestamp = System.currentTimeMillis
     val $fileNameToLastModified = new WatcherMap
     
     //Scan both directories to get current files.
@@ -172,6 +173,10 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
       val file = __fileNameToLastModified.fileOf(fileName).get
       __fileNameToLastModified remove file
       onChange(FileDeleted(file))
+    }
+    val duration = System.currentTimeMillis - startTimestamp
+    if(duration > 2000) {
+      log.log(Level.WARNING, "Scaning " + path01 + " and " + path02 + " costs " + duration / 1000F + " seconds")
     }
   }
 
