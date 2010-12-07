@@ -30,8 +30,7 @@ object PinYin {
   }
 
   def getFullSpells(cnStr: String): Set[String] = {
-    if (cnStr == null || "".equals(cnStr.trim))
-      return Set(cnStr)
+    if (cnStr == null || "".equals(cnStr.trim)) return Set(cnStr)
 
     var allSpells = Set("")
 
@@ -46,7 +45,6 @@ object PinYin {
           newSpells += prevSpell + spell
         }
       }
-
       allSpells = newSpells
 
       i += 1
@@ -56,8 +54,7 @@ object PinYin {
   }
 
   def getFirstSpells(cnStr: String): Set[String] = {
-    if (cnStr == null || "".equals(cnStr.trim))
-      return Set(cnStr)
+    if (cnStr == null || "".equals(cnStr.trim)) return Set(cnStr)
 
     var allSpells = Set("")
 
@@ -78,7 +75,6 @@ object PinYin {
           newSpells += prevSpell + first
         }
       }
-
       allSpells = newSpells
 
       i += 1
@@ -120,7 +116,8 @@ object PinYin {
       "中国石油",
       "ＳＴ＊东海",
       "国债（１）",
-      "万科Ａ")
+      "万科Ａ"
+    )
 
     for (s <- ss) {
       val s1 = toDBC(s)
