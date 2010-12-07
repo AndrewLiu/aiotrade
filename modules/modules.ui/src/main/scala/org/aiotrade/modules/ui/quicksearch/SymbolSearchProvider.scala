@@ -7,8 +7,10 @@ package org.aiotrade.modules.ui.quicksearch
 
 import java.net.MalformedURLException
 import java.net.URL
+import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.util.PinYin
+import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.util.pinyin.PinYin
 import org.aiotrade.lib.util.swing.action.ViewAction
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.spi.quicksearch.SearchProvider
@@ -19,16 +21,29 @@ import scala.collection.mutable.HashMap
 
 
 class SymbolSearchProvider extends SearchProvider {
+  private val log = Logger.getLogger(this.getClass.getName)
+
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val textToSymbol = {
-    val map = new HashMap[String, String]
-    for ((symbol, sec) <- Exchange.uniSymbolToSec) {
-      map.put(symbol.toUpperCase, symbol)
-      map.put(PinYin.getFirstSpell(sec.name).toUpperCase, symbol)
-    }
-    map
+  private val textToSymbols = new HashMap[String, List[String]]
+
+  initMap
+  
+  private def initMap {
+    for ((symbol, sec) <- Exchange.uniSymbolToSec) addSec(symbol, sec)
+    log.fine("Search map: " + textToSymbols)
   }
+
+  def addSec(symbol: String, sec: Sec) {
+    textToSymbols.put(symbol.toUpperCase, List(symbol))
+    PinYin.getFirstSpells(sec.name) foreach {spell =>
+      textToSymbols.get(spell) match {
+        case Some(xs) => textToSymbols.put(spell, symbol :: xs)
+        case None => textToSymbols.put(spell, List(symbol))
+      }
+    }
+  }
+
   /**
    * Method is called by infrastructure when search operation was requested.
    * Implementors should evaluate given request and fill response object with
@@ -41,11 +56,14 @@ class SymbolSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
     val input = request.text.toUpperCase
-    for ((text, symbol) <- textToSymbol if text.startsWith(input)) {
+    for ((text, symbols) <- textToSymbols if text.startsWith(input);
+         symbol <- symbols
+    ) {
       val name = Exchange.secOf(symbol) match {
         case Some(x) => symbol + " (" + x.name + ")"
         case _ => symbol
       }
+      
       if (!response.addResult(new FoundResult(symbol), name)) return
     }
   }

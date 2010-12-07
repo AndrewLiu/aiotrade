@@ -66,6 +66,7 @@
                         <publicPackage>org.aiotrade.lib.util.actors</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.awt</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.config</publicPackage>
+                        <publicPackage>org.aiotrade.lib.util.pinyin</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.pool</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.security</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.serialization</publicPackage>
