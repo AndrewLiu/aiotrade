@@ -22,7 +22,7 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-sevenzip</artifactId>
-            <version>9.10.beta</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
