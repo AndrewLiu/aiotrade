@@ -61,21 +61,25 @@ object PinYin {
     val chars = toDBC(cnStr)
     var i = 0
     while (i < chars.length) {
-      val spells = getCnSpells(chars(i))
+      chars(i) match {
+        case ' ' =>
+        case c =>
+          val spells = getCnSpells(c)
 
-      var newSpells = Set[String]()
-      for (spell <- spells) {
-        val first = if (spell.length > 0) {
-          spell.charAt(0)
-        } else {
-          chars(i)
-        }
+          var newSpells = Set[String]()
+          for (spell <- spells) {
+            val first = if (spell.length > 0) {
+              spell.charAt(0)
+            } else {
+              c
+            }
 
-        for (prevSpell <- allSpells) {
-          newSpells += prevSpell + first
-        }
+            for (prevSpell <- allSpells) {
+              newSpells += prevSpell + first
+            }
+          }
+          allSpells = newSpells
       }
-      allSpells = newSpells
 
       i += 1
     }
@@ -90,10 +94,11 @@ object PinYin {
     val chars = input.toCharArray
     var i = 0
     while (i < chars.length) {
-      if (chars(i) == '\u3000') {
+      val c = chars(i)
+      if (c == '\u3000') {
         chars(i) = ' '
-      } else if (chars(i) > '\uFF00' && chars(i) < '\uFF5F') {
-        chars(i) = (chars(i) - 65248).toChar
+      } else if (c > '\uFF00' && c < '\uFF5F') {
+        chars(i) = (c - 65248).toChar
       }
 
       i += 1
@@ -110,6 +115,7 @@ object PinYin {
 
     val ss = Array(
       "浦发银行",
+      "浦 发 银 行",
       "西藏矿业",
       "This is 俄国",
       "上证指数",
