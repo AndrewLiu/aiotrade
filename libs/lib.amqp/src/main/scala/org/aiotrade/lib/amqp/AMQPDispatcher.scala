@@ -91,6 +91,8 @@ case object RpcTimeout extends RpcResponse("RPC timeout", null, null)
 
 case class RpcRequest(args: Any*) extends Event
 
+case object AMQPConnected extends Event
+
 object AMQPExchange {
   /**
    * Each AMQP broker declares one instance of each supported exchange type on it's
@@ -137,6 +139,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def connect: this.type = {
     try {
       state = doConnect
+      publish(AMQPConnected)
     } catch {
       case ex => 
         log.log(Level.WARNING, ex.getMessage, ex)
@@ -230,7 +233,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         consumer foreach {case x: DefaultConsumer => channel.basicCancel(x.getConsumerTag)}
         channel.close
       } catch {
-        case e: IOException => log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+        case e: IOException => //log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         case _ =>
       }
     }
@@ -240,7 +243,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         connection.close
         log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       } catch {
-        case e: IOException => log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+        case e: IOException => //log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         case _ =>
       }
     }
@@ -249,13 +252,16 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def reconnect(delay: Long) {
     disconnect
     try {
-      log.log(Level.INFO, "Try reconnect to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+      log.info("Try to reconnect to AMQP server")
+      //log.log(Level.INFO, "Try reconnect to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
       state = doConnect
-      log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+      log.info("Successfully reconnected to AMQP server")
+      //log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
       case e: Exception =>
         val waitInMillis = math.max(delay * 2, 10000)
-        log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
+        log.info("Try to reconnect to AMQP server in " + waitInMillis)
+        //log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
         new Timer("AMQPReconnectTimer").schedule(new TimerTask {
             def run {
               reconnect(waitInMillis)
