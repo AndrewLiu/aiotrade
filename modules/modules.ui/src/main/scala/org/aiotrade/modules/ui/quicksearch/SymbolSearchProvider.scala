@@ -18,6 +18,7 @@ import org.aiotrade.spi.quicksearch.SearchRequest
 import org.aiotrade.spi.quicksearch.SearchResponse
 import org.openide.awt.HtmlBrowser.URLDisplayer
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 
 
 class SymbolSearchProvider extends SearchProvider {
@@ -25,7 +26,7 @@ class SymbolSearchProvider extends SearchProvider {
 
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val textToSymbols = new HashMap[String, List[String]]
+  private val textToSymbols = new HashMap[String, Set[String]]
 
   initMap
   
@@ -35,11 +36,11 @@ class SymbolSearchProvider extends SearchProvider {
   }
 
   def addSec(symbol: String, sec: Sec) {
-    textToSymbols.put(symbol.toUpperCase, List(symbol))
+    textToSymbols.put(symbol.toUpperCase, Set(symbol))
     PinYin.getFirstSpells(sec.name) foreach {spell =>
       textToSymbols.get(spell) match {
-        case Some(xs) => textToSymbols.put(spell, symbol :: xs)
-        case None => textToSymbols.put(spell, List(symbol))
+        case Some(xs) => textToSymbols.put(spell, xs + symbol)
+        case None => textToSymbols.put(spell, Set(symbol))
       }
     }
   }
@@ -56,9 +57,11 @@ class SymbolSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
     val input = request.text.toUpperCase
+    val addedSymbols = HashSet[String]()
     for ((text, symbols) <- textToSymbols if text.startsWith(input);
-         symbol <- symbols
+         symbol <- symbols if !addedSymbols.contains(symbol)
     ) {
+      addedSymbols += symbol
       val name = Exchange.secOf(symbol) match {
         case Some(x) => symbol + " (" + x.name + ")"
         case _ => symbol
