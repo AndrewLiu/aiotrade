@@ -30,14 +30,14 @@ object PinYin {
   }
 
   def getFullSpells(cnStr: String): Set[String] = {
-    if (cnStr == null || "".equals(cnStr.trim)) return Set(cnStr)
+    if (cnStr == null || cnStr.trim == "") return Set(cnStr)
 
     var allSpells = Set("")
 
-    val chars = toDBC(cnStr)
+    val chars = cnStr.toCharArray
     var i = 0
     while (i < chars.length) {
-      val spells = getCnSpells(chars(i))
+      val spells = getCnSpells(toDBC(chars(i)))
 
       var newSpells = Set[String]()
       for (spell <- spells) {
@@ -54,14 +54,14 @@ object PinYin {
   }
 
   def getFirstSpells(cnStr: String): Set[String] = {
-    if (cnStr == null || "".equals(cnStr.trim)) return Set(cnStr)
+    if (cnStr == null || cnStr.trim == "") return Set(cnStr)
 
     var allSpells = Set("")
 
-    val chars = toDBC(cnStr)
+    val chars = cnStr.toCharArray
     var i = 0
     while (i < chars.length) {
-      chars(i) match {
+      toDBC(chars(i)) match {
         case ' ' =>
         case c =>
           val spells = getCnSpells(c)
@@ -70,9 +70,7 @@ object PinYin {
           for (spell <- spells) {
             val first = if (spell.length > 0) {
               spell.charAt(0)
-            } else {
-              c
-            }
+            } else c
 
             for (prevSpell <- allSpells) {
               newSpells += prevSpell + first
@@ -87,6 +85,16 @@ object PinYin {
     allSpells
   }
 
+
+  /**
+   *  Convert full-width character (SBC case) to half-width character (DBC case)
+   */
+  private def toDBC(c: Char): Char = c match {
+    case'\u3000' => ' '
+    case c if c > '\uFF00' && c < '\uFF5F' => (c - 65248).toChar
+    case c => c
+  }
+
   /**
    *  Convert full-width character (SBC case) to half-width character (DBC case)
    */
@@ -94,12 +102,7 @@ object PinYin {
     val chars = input.toCharArray
     var i = 0
     while (i < chars.length) {
-      val c = chars(i)
-      if (c == '\u3000') {
-        chars(i) = ' '
-      } else if (c > '\uFF00' && c < '\uFF5F') {
-        chars(i) = (c - 65248).toChar
-      }
+      chars(i) = toDBC(chars(i))
 
       i += 1
     }
