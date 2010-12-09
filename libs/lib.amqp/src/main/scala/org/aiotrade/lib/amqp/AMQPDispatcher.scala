@@ -138,24 +138,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   @throws(classOf[IOException])
   def connect: this.type = {
     try {
-      state = doConnect
-      publish(AMQPConnected)
+      doConnect
     } catch {
       case ex => 
         log.log(Level.WARNING, ex.getMessage, ex)
         reconnect(1000)
     }
 
-    if (connection != null) {
-      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-      connection.addShutdownListener(new ShutdownListener {
-          def shutdownCompleted(cause: ShutdownSignalException) {
-            log.log(Level.WARNING, cause.getMessage, cause)
-            reconnect(1000)
-          }
-        })
-    }
     this
   }
 
@@ -164,7 +153,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def consumer = state.consumer
 
   @throws(classOf[IOException])
-  private def doConnect: State = {
+  private def doConnect {
     val connection = factory.newConnection
     val channel = connection.createChannel
     val consumer = configure(channel)
@@ -183,7 +172,20 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       case _ =>
     }
     
-    State(connection, channel, consumer)
+    state = State(connection, channel, consumer)
+
+    if (connection != null) {
+      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+      connection.addShutdownListener(new ShutdownListener {
+          def shutdownCompleted(cause: ShutdownSignalException) {
+            log.log(Level.WARNING, cause.getMessage, cause)
+            reconnect(1000)
+          }
+        })
+    }
+
+    publish(AMQPConnected)
   }
 
   /**
@@ -254,7 +256,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     try {
       log.info("Try to reconnect to AMQP server")
       //log.log(Level.INFO, "Try reconnect to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-      state = doConnect
+      doConnect
       log.info("Successfully reconnected to AMQP server")
       //log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
     } catch {
