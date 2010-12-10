@@ -14,7 +14,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 object Exchanges extends Table[Exchange] {
-  private val log = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
@@ -39,7 +39,7 @@ object Exchanges extends Table[Exchange] {
 }
 
 object Exchange extends Publisher {
-  private val log = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
