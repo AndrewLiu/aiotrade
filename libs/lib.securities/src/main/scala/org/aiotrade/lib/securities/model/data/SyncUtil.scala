@@ -71,6 +71,8 @@ import org.dbunit.database.DatabaseConnection
 import org.dbunit.database.QueryDataSet
 import org.dbunit.dataset.xml.FlatXmlDataSet
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder
+import org.dbunit.ext.h2.H2Connection
+import org.dbunit.ext.mysql.MySqlConnection
 import org.dbunit.operation.DatabaseOperation
 
 /**
@@ -98,14 +100,16 @@ object SyncUtil {
                                 "sec_issues",
                                 "sec_statuses")
 
-  // export data to aiotrade.xml
+  private val mysqlDriver = "com.mysql.jdbc.Driver"
+
   def main(args: Array[String]) {
     //exportDataFileFromProductionMysql
-    importDataToLocalTestMysql
+    //importDataToLocalTestMysql
   }
 
+  // export data to aiotrade.xml
   def exportDataFileFromProductionMysql {
-    Class.forName("com.mysql.jdbc.Driver")
+    Class.forName(mysqlDriver)
     val dbName = "faster"
     val schema = "faster"
     val conn = DriverManager.getConnection("jdbc:mysql://192.168.132.220:3306/" + dbName + "?useUnicode=true", "root", "") // dburl, user, passwd
@@ -115,12 +119,13 @@ object SyncUtil {
   }
 
   def importDataToLocalTestMysql {
-    Class.forName("com.mysql.jdbc.Driver")
+    Class.forName(mysqlDriver)
     val dbName = "aiotrade"
     val schema = "aiotrade"
-    val conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + dbName + "?useUnicode=true", "root", "") // dburl, user, passwd
+    val conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + dbName + "?useUnicode=true&sessionVariables=FOREIGN_KEY_CHECKS=0", "root", "") // dburl, user, passwd
 
-    importToDb(conn, schema)
+
+    importToDb(conn, schema, mysqlDriver)
     conn.close
   }
 
@@ -174,20 +179,28 @@ object SyncUtil {
     Class.forName(dbDriver)
 
     val conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)
-    importToDb(conn, dbSchema)
+    importToDb(conn, dbSchema, dbDriver)
   }
 
-  private def importToDb(jdbcConn: Connection, schema: String) {
+  private def importToDb(jdbcConn: Connection, schema: String, dbDriver: String) {
     val dataStream = classLoader.getResourceAsStream("data/" + dataFileName)
     val dataSet = (new FlatXmlDataSetBuilder).setCaseSensitiveTableNames(false).build(dataStream)
 
-    val conn = new DatabaseConnection(jdbcConn, schema)
+    val dbConn = createDatabaseConnection(dbDriver, jdbcConn, schema)
+
     try {
-      DatabaseOperation.CLEAN_INSERT.execute(conn, dataSet)
+      DatabaseOperation.CLEAN_INSERT.execute(dbConn, dataSet)
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     } finally {
-      conn.close
+      dbConn.close
     }
   }
+
+  private def createDatabaseConnection(dbDriver: String, jdbcConn: Connection, schema: String) = {
+    if (dbDriver.contains(".h2.")) new H2Connection(jdbcConn, schema)
+    else if (dbDriver.contains(".mysql.")) new MySqlConnection(jdbcConn, schema)
+    else new DatabaseConnection(jdbcConn, schema)
+  }
+  
 }

@@ -60,6 +60,8 @@
                         <publicPackage>org.dbunit.database</publicPackage>
                         <publicPackage>org.dbunit.dataset</publicPackage>
                         <publicPackage>org.dbunit.dataset.xml</publicPackage>
+                        <publicPackage>org.dbunit.ext.h2</publicPackage>
+                        <publicPackage>org.dbunit.ext.mysql</publicPackage>
                         <publicPackage>org.dbunit.operation</publicPackage>
                     </publicPackages>
                 </configuration>
