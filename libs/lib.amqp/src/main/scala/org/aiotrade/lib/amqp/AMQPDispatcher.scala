@@ -191,7 +191,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     Option(connection)
   }
 
-  def disconnect {
+  private def disconnect {
     if (channel != null) {
       try {
         consumer foreach {case x: DefaultConsumer => channel.basicCancel(x.getConsumerTag)}
@@ -213,7 +213,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  def reconnect(delay: Long) {
+  private def reconnect(delay: Long) {
     disconnect
     try {
       log.info("Begin to reconnect to AMQP server")
@@ -222,6 +222,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case Some(conn) =>
           log.info("Successfully reconnected to AMQP server")
         case None =>
+          // @Note try to reconnet **only** when a connection is not created. Let shutdown listener to handle all other reconnetion needs
+
           val waitInMillis = delay * 2
           log.info("Will try to reconnect to AMQP server in " + waitInMillis)
           //log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
