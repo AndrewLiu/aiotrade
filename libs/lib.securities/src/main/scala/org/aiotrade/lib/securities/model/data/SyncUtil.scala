@@ -88,24 +88,45 @@ object SyncUtil {
   private val dataFileDir = prefixPath + "data"
   private val dataFileName = "aiotrade.xml"
 
-  def main(args: Array[String]) {
-    Class.forName("com.mysql.jdbc.Driver")
-    val fromConn = DriverManager.getConnection("jdbc:mysql://192.168.132.220:3306/faster?useUnicode=true", "root", "") // dburl, user, passwd
+  private val tableNames = List("companies",
+                                "company_industries",
+                                "industries",
+                                "exchanges",
+                                "exchange_close_dates",
+                                "secs", "sec_dividends",
+                                "sec_infos",
+                                "sec_issues",
+                                "sec_statuses")
 
-    val tableNames = List("companies",
-                          "company_industries",
-                          "industries",
-                          "exchanges",
-                          "exchange_close_dates",
-                          "secs", "sec_dividends",
-                          "sec_infos",
-                          "sec_issues",
-                          "sec_statuses")
-    
-    exportToXml(fromConn, "faster", tableNames)
-    fromConn.close
+  // export data to aiotrade.xml
+  def main(args: Array[String]) {
+    //exportDataFileFromProductionMysql
+    importDataToLocalTestMysql
   }
 
+  def exportDataFileFromProductionMysql {
+    Class.forName("com.mysql.jdbc.Driver")
+    val dbName = "faster"
+    val schema = "faster"
+    val conn = DriverManager.getConnection("jdbc:mysql://192.168.132.220:3306/" + dbName + "?useUnicode=true", "root", "") // dburl, user, passwd
+
+    exportToXml(conn, schema, tableNames)
+    conn.close
+  }
+
+  def importDataToLocalTestMysql {
+    Class.forName("com.mysql.jdbc.Driver")
+    val dbName = "aiotrade"
+    val schema = "aiotrade"
+    val conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + dbName + "?useUnicode=true", "root", "") // dburl, user, passwd
+
+    importToDb(conn, schema)
+    conn.close
+  }
+
+
+  // --- API methods
+  
   def exportToXml(jdbcConn: Connection, schema: String, tableNames: List[String]) {
     val conn = new DatabaseConnection(jdbcConn, schema)
     val dataSet = new QueryDataSet(conn)
@@ -152,15 +173,15 @@ object SyncUtil {
     
     Class.forName(dbDriver)
 
-    val jdbcConn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)
-    importToDb(jdbcConn, dbSchema)
+    val conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)
+    importToDb(conn, dbSchema)
   }
 
   private def importToDb(jdbcConn: Connection, schema: String) {
-    val conn = new DatabaseConnection(jdbcConn, schema)
     val dataStream = classLoader.getResourceAsStream("data/" + dataFileName)
-    val dataSet = (new FlatXmlDataSetBuilder).build(dataStream)
+    val dataSet = (new FlatXmlDataSetBuilder).setCaseSensitiveTableNames(false).build(dataStream)
 
+    val conn = new DatabaseConnection(jdbcConn, schema)
     try {
       DatabaseOperation.CLEAN_INSERT.execute(conn, dataSet)
     } catch {

@@ -12,8 +12,8 @@ import scala.actors.Scheduler
  * -- Dump schema
  * mysqldump5 -uroot --no-data --database aiotrade > aiotrade.mysql
  * -- Create db
- * mysql> source file_name
- * mysql> \. file_name
+ * mysqladmin create target_db_name
+ * mysql -uroot target_db_name < aiotrade.mysql
  *
  *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx)
  *  SELECT * FROM bid_ask AS a WHERE a.time = (SELECT max(time) FROM bid_ask WHERE isBid = a.isBid AND idx = a.idx AND intraDay = 2) AND intraDay = 2
