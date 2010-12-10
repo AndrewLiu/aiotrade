@@ -344,32 +344,32 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
       colKeyToColor(key) = fgColor
     }
 
-    val neutralColor  = LookFeel().getNeutralBgColor
-    val positiveColor = LookFeel().getPositiveBgColor
-    val negativeColor = LookFeel().getNegativeBgColor
+    val neuColor  = LookFeel().getNeutralBgColor
+    val posColor = LookFeel().getPositiveBgColor
+    val negColor = LookFeel().getNegativeBgColor
 
     /** color of volume should be recorded for switching between two colors */
     colKeyToColor(DAY_VOLUME) = fgColor
 
     if (ticker != null) {
       if (ticker.dayChange > 0) {
-        colKeyToColor(DAY_CHANGE) = positiveColor
-        colKeyToColor(PERCENT)    = positiveColor
+        colKeyToColor(DAY_CHANGE) = posColor
+        colKeyToColor(PERCENT)    = posColor
       } else if (ticker.dayChange < 0) {
-        colKeyToColor(DAY_CHANGE) = negativeColor
-        colKeyToColor(PERCENT)    = negativeColor
+        colKeyToColor(DAY_CHANGE) = negColor
+        colKeyToColor(PERCENT)    = negColor
       } else {
-        colKeyToColor(DAY_CHANGE) = neutralColor
-        colKeyToColor(PERCENT)    = neutralColor
+        colKeyToColor(DAY_CHANGE) = neuColor
+        colKeyToColor(PERCENT)    = neuColor
       }
 
       def setColorByPrevClose(value: Double, columnName: String) {
         if (value > ticker.prevClose) {
-          colKeyToColor(columnName) = positiveColor
+          colKeyToColor(columnName) = posColor
         } else if (value < ticker.prevClose) {
-          colKeyToColor(columnName) = negativeColor
+          colKeyToColor(columnName) = negColor
         } else {
-          colKeyToColor(columnName) = neutralColor
+          colKeyToColor(columnName) = neuColor
         }
       }
 
