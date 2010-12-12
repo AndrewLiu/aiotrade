@@ -66,12 +66,14 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
    */
   private var _computedTime = Long.MinValue
         
-  /** To store values of open, high, low, close, volume: */
+  /** To store values of open, high, low, close, volume, amount, closed: */
   protected var O: TVar[Double] = _
   protected var H: TVar[Double] = _
   protected var L: TVar[Double] = _
   protected var C: TVar[Double] = _
   protected var V: TVar[Double] = _
+  protected var A: TVar[Double] = _
+  protected var E: TVar[Boolean] = _
 
   if (baseSer != null) {
     set(baseSer)
@@ -108,6 +110,8 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
         L = x.low
         C = x.close
         V = x.volume
+        A = x.amount
+        E = x.isClosed
       case _ =>
     }
   }
