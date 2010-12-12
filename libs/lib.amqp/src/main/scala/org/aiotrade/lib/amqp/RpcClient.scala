@@ -118,19 +118,26 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[AnyRef] = {
-    checkConsumer
-    val props = if ($props == null) new AMQP.BasicProperties else $props
-
     val syncVar = new SyncVar[AnyRef]
     val replyId = continuationMap synchronized {
       correlationId += 1
-      val replyId = correlationId.toString
-      continuationMap.put(replyId, syncVar)
-      replyId
+      val replyIdx = correlationId.toString
+      continuationMap.put(replyIdx, syncVar)
+      replyIdx
     }
 
+    try {
+      checkConsumer
+    } catch {
+      case ex => 
+        syncVar.set(RpcTimeout)
+        return syncVar
+    }
+
+    val props = if ($props == null) new AMQP.BasicProperties else $props
     props.setCorrelationId(replyId)
     props.setReplyTo(replyQueue)
+    
     publish(exchange, routingKey, props, req)
     
     syncVar
