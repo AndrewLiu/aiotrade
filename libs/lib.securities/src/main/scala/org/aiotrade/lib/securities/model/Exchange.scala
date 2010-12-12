@@ -504,6 +504,14 @@ class Exchange {
         val quote = quotesToClose(i)
         quote.closed_!
 
+        val sec = quote.sec
+        if (alsoSave || sec.isSerCreated(TFreq.ONE_MIN)) {
+          sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+        }
+        if (alsoSave || sec.isSerCreated(TFreq.DAILY)) {
+          sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+        }
+
         i += 1
       }
 
