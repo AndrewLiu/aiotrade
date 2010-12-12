@@ -19,9 +19,9 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
-import org.aiotrade.lib.util.Event
-import org.aiotrade.lib.util.Publisher
-import org.aiotrade.lib.util.Reactor
+import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 /*_ rabbitmqctl common usages:
@@ -92,6 +92,7 @@ case object RpcTimeout extends RpcResponse("RPC timeout", null, null)
 case class RpcRequest(args: Any*) extends Event
 
 case object AMQPConnected extends Event
+case object AMQPDisconnected extends Event
 
 object AMQPExchange {
   /**
@@ -127,22 +128,21 @@ import AMQPDispatcher._
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher with Serializer {
   private val log = Logger.getLogger(getClass.getName)
 
-  case class State(connection: Connection, channel: Channel, consumer: Option[Consumer])
-  private var state: State = _
+  case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
+  private var state = State(None, None, None)
+
+  private lazy val timer = new Timer("AMQPReconnectTimer")
 
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,
    * for instance, all processors are ready. Otherwise, the messages may have been
    * consumered before processors ready.
    */
-  @throws(classOf[IOException])
   def connect: this.type = {
     try {
-      doConnect
+      doConnect(3000)
     } catch {
-      case ex => 
-        log.log(Level.WARNING, ex.getMessage, ex)
-        reconnect(1000)
+      case _ => // don't log ex here, we hope ShutdownListener will give us the cause
     }
 
     this
@@ -153,89 +153,86 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def consumer = state.consumer
 
   @throws(classOf[IOException])
-  private def doConnect: Option[Connection] = {
-    val connection = factory.newConnection
+  private def doConnect(reconnectDelay: Long) {
+    log.info("Begin to connect ...")
 
-    if (connection != null) {
-      val channel = connection.createChannel
-      val consumer = configure(channel)
-    
-      consumer match {
-        case Some(qconsumer: QueueingConsumer) =>
-          val consumerRun = new Runnable {
-            def run {
-              while (true) {
-                val delivery = qconsumer.nextDelivery // blocked here
-                qconsumer.relay(delivery)
-              }
+    (try {
+        val conn = factory.newConnection
+        // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+        // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+        conn.addShutdownListener(new ShutdownListener {
+            def shutdownCompleted(cause: ShutdownSignalException) {
+              publish(AMQPDisconnected)
+              reconnect(reconnectDelay, cause)
             }
-          }
-          (new Thread(consumerRun)).start
-        case _ =>
+          })
+
+        Left(conn)
+      } catch {
+        case ex => Right(ex)
       }
-    
-      state = State(connection, channel, consumer)
+    ) match {
+      case Left(conn) =>
+        // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
+        
+        val channel = conn.createChannel
+        val consumer = configure(channel)
 
-      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-      connection.addShutdownListener(new ShutdownListener {
-          def shutdownCompleted(cause: ShutdownSignalException) {
-            log.log(Level.WARNING, cause.getMessage, cause)
-            reconnect(1000)
-          }
-        })
+        state = State(Option(conn), Option(channel), consumer)
 
-      publish(AMQPConnected)
+        consumer match {
+          case Some(qConsumer: QueueingConsumer) => startQueueConsumer(qConsumer)
+          case _ =>
+        }
+
+        log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
+        publish(AMQPConnected)
+
+      case Right(ex) =>
+        // @Note **only** when there is no created connection, we'll try to reconnect here,
+        // let shutdown listener to handle all other reconnetion needs
+        publish(AMQPDisconnected)
+        reconnect(reconnectDelay, ex)
     }
+  }
 
-    Option(connection)
+  private def reconnect(delay: Long, cause: Throwable) {
+    log.warning("Will try to reconnect in " + delay + ", the cause is:")
+    log.log(Level.WARNING, cause.getMessage, cause)
+
+    disconnect
+    
+    timer.schedule(new TimerTask {
+        def run {
+          try {
+            val nextDelay = if (delay == 0) 3000 else delay * 2
+            doConnect(nextDelay)
+          } catch {
+            case _ => // don't log ex here, we hope ShutdownListener will give us the cause
+          }
+        }
+      }, delay)
   }
 
   private def disconnect {
-    if (channel != null) {
+    channel foreach {chan =>
       try {
-        consumer foreach {case x: DefaultConsumer => channel.basicCancel(x.getConsumerTag)}
-        channel.close
+        consumer foreach {case x: DefaultConsumer => chan.basicCancel(x.getConsumerTag)}
+        chan.close
       } catch {
-        case e: IOException => //log.log(Level.INFO, "Could not close AMQP channel %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         case _ =>
       }
     }
 
-    if (connection != null && connection.isOpen) {
-      try {
-        connection.close
-        //log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-      } catch {
-        case e: IOException => //log.log(Level.WARNING, "Could not close AMQP connection %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-        case _ =>
+    connection foreach {conn =>
+      if (conn.isOpen) {
+        try {
+          conn.close
+          //log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+        } catch {
+          case _ =>
+        }
       }
-    }
-  }
-
-  private def reconnect(delay: Long) {
-    disconnect
-    try {
-      log.info("Begin to reconnect to AMQP server")
-      //log.log(Level.INFO, "Try reconnect to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-      doConnect match {
-        case Some(conn) =>
-          log.info("Successfully reconnected to AMQP server")
-        case None =>
-          // @Note try to reconnet **only** when a connection is not created. Let shutdown listener to handle all other reconnetion needs
-
-          val waitInMillis = delay * 2
-          log.info("Will try to reconnect to AMQP server in " + waitInMillis)
-          //log.log(Level.INFO, "Trying to reconnect to AMQP server in %n milliseconds [%s]", Array(waitInMillis, this))
-          new Timer("AMQPReconnectTimer").schedule(new TimerTask {
-              def run {
-                reconnect(waitInMillis)
-              }
-            }, delay)
-      }
-      //log.log(Level.INFO, "Successfully reconnected to AMQP Server %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
-    } catch {
-      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
   }
 
@@ -249,35 +246,49 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   @throws(classOf[IOException])
   def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
-    import ContentType._
+    channel foreach {chan =>
+      import ContentType._
 
-    val props = if ($props == null) new AMQP.BasicProperties else $props
+      val props = if ($props == null) new AMQP.BasicProperties else $props
 
-    val contentType = props.getContentType match {
-      case null | "" => JAVA_SERIALIZED_OBJECT
-      case x => ContentType(x)
-    }
+      val contentType = props.getContentType match {
+        case null | "" => JAVA_SERIALIZED_OBJECT
+        case x => ContentType(x)
+      }
 
-    val body = contentType.mimeType match {
-      case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
-      case JAVA_SERIALIZED_OBJECT.mimeType => encodeJava(content)
-      case JSON.mimeType => encodeJson(content)
-      case _ => encodeJava(content)
-    }
+      val body = contentType.mimeType match {
+        case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
+        case JAVA_SERIALIZED_OBJECT.mimeType => encodeJava(content)
+        case JSON.mimeType => encodeJson(content)
+        case _ => encodeJava(content)
+      }
 
-    val contentEncoding = props.getContentEncoding match {
-      case null | "" => props.setContentEncoding("gzip"); "gzip"
-      case x => x
-    }
+      val contentEncoding = props.getContentEncoding match {
+        case null | "" => props.setContentEncoding("gzip"); "gzip"
+        case x => x
+      }
     
-    val body1 = contentEncoding match {
-      case "gzip" => gzip(body)
-      case "lzma" => lzma(body)
-      case _ => body
-    }
+      val body1 = contentEncoding match {
+        case "gzip" => gzip(body)
+        case "lzma" => lzma(body)
+        case _ => body
+      }
 
-    //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-    channel.basicPublish(exchange, routingKey, props, body1)
+      //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+      chan.basicPublish(exchange, routingKey, props, body1)
+    }
+  }
+
+  private def startQueueConsumer(consumer: QueueingConsumer) {
+    val consumerRunner = new Runnable {
+      def run {
+        while (true) {
+          val delivery = consumer.nextDelivery // blocked here
+          consumer.relay(delivery)
+        }
+      }
+    }
+    (new Thread(consumerRunner)).start
   }
 
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {

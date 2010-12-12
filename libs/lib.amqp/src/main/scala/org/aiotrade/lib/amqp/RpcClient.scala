@@ -39,12 +39,6 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   private val processor = new SyncVarSetterProcessor
 
   @throws(classOf[IOException])
-  override def connect: this.type = {
-    super.connect
-    this
-  }
-
-  @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
 
@@ -107,13 +101,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     }
 
     res match {
-      case sig: ShutdownSignalException =>
-        val wrapper = new ShutdownSignalException(sig.isHardError,
-                                                  sig.isInitiatedByApplication,
-                                                  sig.getReason,
-                                                  sig.getReference)
-        wrapper.initCause(sig)
-        throw wrapper
+      case sig: ShutdownSignalException => RpcTimeout
       case reply: RpcResponse => reply
       case x => throw new IOException("Error reply: " + x)
     }
