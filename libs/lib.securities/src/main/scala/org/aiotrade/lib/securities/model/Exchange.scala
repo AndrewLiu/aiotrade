@@ -520,26 +520,19 @@ class Exchange {
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
-            if (toInsert.length > 0) {
-              Quotes1d.insertBatch_!(toInsert.toArray)
-            }
-            if (toUpdate.length > 0) {
-              Quotes1d.updateBatch_!(toUpdate.toArray)
-            }
+            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
+            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) {
-              Quotes1m.insertBatch_!(toInsert.toArray)
-            }
-            if (toUpdate.length > 0) {
-              Quotes1m.updateBatch_!(toUpdate.toArray)
-            }
+            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
+            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
         }
 
-        willCommit = true
       }
     }
 
     if (mfsToClose.length > 0) {
+      willCommit = true
+
       var i = 0
       while (i < mfsToClose.length) {
         val mfs = mfsToClose(i)
@@ -553,22 +546,13 @@ class Exchange {
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
-            if (toInsert.length > 0) {
-              MoneyFlows1d.insertBatch_!(toInsert.toArray)
-            }
-            if (toUpdate.length > 0) {
-              MoneyFlows1d.updateBatch_!(toUpdate.toArray)
-            }
+            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
+            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) {
-              MoneyFlows1m.insertBatch_!(toInsert.toArray)
-            }
-            if (toUpdate.length > 0) {
-              MoneyFlows1m.updateBatch_!(toUpdate.toArray)
-            }
+            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
+            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
         }
 
-        willCommit = true
       }
     }
     
