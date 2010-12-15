@@ -505,11 +505,12 @@ class Exchange {
         quote.closed_!
 
         val sec = quote.sec
-        if (alsoSave || sec.isSerCreated(TFreq.ONE_MIN)) {
-          sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-        }
-        if (alsoSave || sec.isSerCreated(TFreq.DAILY)) {
-          sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+        freq match {
+          case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
+            sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+          case TFreq.ONE_MIN if alsoSave || sec.isSerCreated(TFreq.ONE_MIN) =>
+            sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+          case _ =>
         }
 
         i += 1
