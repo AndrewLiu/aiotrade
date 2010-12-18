@@ -243,6 +243,15 @@ class Exchange {
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
+  /** @Todo */
+  def primaryIndex: Option[Sec] = code match {
+    case "SS" => Exchange.secOf("000001.SS")
+    case "SZ" => Exchange.secOf("399001.SZ")
+    case "N" => Exchange.secOf("^DJI")
+    case "L" => Exchange.secOf("^FTSE")
+    case _ => Exchange.secOf("000001.SS")
+  }
+
   /**
    * @return the ticker should be updated/saved to TickersLast
    */

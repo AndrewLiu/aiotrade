@@ -55,20 +55,11 @@ trait IndicatorHelper {self: Indicator =>
    */
   private var fromTime: Long = _ // used by postComputeFrom only
 
-  private var baseSerReactions: Reactions.Reaction = _
+  private var baseSerReaction: Reactions.Reaction = _
   // remember event's callback to be forwarded in postCompute()
   private var baseSerEventCallBack: TSerEvent.Callback = _
 
-  protected def setBaseSer(baseSer: BaseTSer) {
-    self.baseSer = baseSer
-
-    // * share same timestamps with baseSer, should be care of ReadWriteLock
-    self.attach(baseSer.timestamps)
-
-    addBaseSerReactions
-  }
-
-  private def addBaseSerReactions {
+  protected def createBaseSerReaction(baseSer: BaseTSer) = {
     /**
      * The ser is a result computed from baseSer, so should follow the baseSeries' data changing:
      * 1. In case of series is the same as baseSeries, should respond to
@@ -76,7 +67,7 @@ trait IndicatorHelper {self: Indicator =>
      * 2. In case of series is not the same as baseSeries, should respond to
      *    Loaded, Refresh and Updated event of baseSeries.
      */
-    baseSerReactions = {
+    baseSerReaction = {
       case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) =>
         self.computeFrom(fromTime)
         baseSerEventCallBack = callback
@@ -100,8 +91,7 @@ trait IndicatorHelper {self: Indicator =>
         baseSerEventCallBack = callback
     }
     
-    self.reactions += baseSerReactions
-    self.listenTo(baseSer)
+    baseSerReaction
   }
         
   def preComputeFrom(fromTime: Long): Int = {
@@ -169,8 +159,8 @@ trait IndicatorHelper {self: Indicator =>
   }
     
   def dispose {
-    if (baseSerReactions != null) {
-      baseSer.reactions -= baseSerReactions
+    if (baseSerReaction != null) {
+      baseSer.reactions -= baseSerReaction
     }
   }
     

@@ -38,13 +38,13 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
 class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends DefaultTSer($freq) with BaseTSer {
+  def this() = this(null, TFreq.DAILY)
+
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _isOnCalendarMode = false
     
   attach(TStampsFactory.createInstance(INIT_CAPACITY))
-
-  def this() = this(null, TFreq.DAILY)
 
   def serProvider = _serProvider
 

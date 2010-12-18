@@ -54,9 +54,9 @@ object Indicator {
  * @param base series to compute this
  */
 import Indicator._
-abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
-                                                   with org.aiotrade.lib.math.indicator.Indicator
-                                                   with IndicatorHelper {
+abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
+                                                              with org.aiotrade.lib.math.indicator.Indicator
+                                                              with IndicatorHelper {
 
   /**
    * !NOTICE
@@ -75,7 +75,7 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
   protected var A: TVar[Double] = _
   protected var E: TVar[Boolean] = _
 
-  if (baseSer != null) {
+  if (_baseSer != null) {
     set(baseSer)
   }
     
@@ -91,14 +91,26 @@ abstract class Indicator(var baseSer: BaseTSer) extends DefaultTSer
    * 2. via createInstance
    */
   def set(baseSer: BaseTSer) {
+    _baseSer = baseSer
     if (baseSer != null) {
       super.set(baseSer.freq)
-      super.setBaseSer(baseSer)
+
+      // * share same timestamps with baseSer, should be care of ReadWriteLock
+      attach(baseSer.timestamps)
+
+      val baseSerReaction = createBaseSerReaction(baseSer)
+      reactions += baseSerReaction
+      listenTo(baseSer)
 
       initPredefinedVarsOfBaseSer
     }
   }
-    
+
+  def baseSer: BaseTSer = _baseSer
+  def baseSer_=(baseSer: BaseTSer) {
+    set(baseSer)
+  }
+
   /**
    * override this method to define your predefined vars
    */
