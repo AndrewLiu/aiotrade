@@ -30,16 +30,17 @@
  */
 package org.aiotrade.lib.indicator
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.Level
+import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.indicator.Id
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
-import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Level
-import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.util.actors.Event
 
 /**
  * @author Caoyuan Deng
@@ -74,15 +75,14 @@ object PanelIndicator {
   }
 }
 
-class PanelIndicator[T <: Indicator](freq: => TFreq)(
-  protected implicit val m: Manifest[T]
-) extends FreeFillIndicator(null, freq) {
+class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   val indicators = new ArrayList[T]
 
-  reactions += {
+  private var reaction: PartialFunction[Event, Unit] = null
+  reaction = {
     case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) =>
       computeFrom(fromTime)
     case TSerEvent.Refresh(_, _, fromTime, toTime, _, callback) =>
@@ -94,15 +94,24 @@ class PanelIndicator[T <: Indicator](freq: => TFreq)(
     case TSerEvent.Cleared(src, _, fromTime, toTime, _, callback) =>
       clear(fromTime)
   }
+  reactions += reaction
 
-  def addSec(sec: Sec) {
+  def addSecs(secs: Set[Sec]) {
+    reactions -= reaction
+    for (sec <- secs; ind <- addSec(sec))
+    computeFrom(0)
+    reactions += reaction
+  }
+
+  def addSec(sec: Sec): Option[T] = {
     sec.serOf(freq) match {
       case Some(baseSer) =>
         val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
         indicators += ind
         ind.computeFrom(0)
-      case _ =>
+        Some(ind)
+      case _ => None
     }
   }
 
@@ -121,5 +130,9 @@ class PanelIndicator[T <: Indicator](freq: => TFreq)(
     }
 
     firstTime
+  }
+
+  final protected def lastTimeOf(sers: ArrayList[_ <: TSer]) = {
+    sers.map(_.lastOccurredTime).max
   }
 }

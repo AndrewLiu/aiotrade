@@ -33,11 +33,11 @@ package org.aiotrade.lib.view.securities
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.charting.view.WithDrawingPane
-import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
-import org.aiotrade.lib.indicator.Indicator
+import org.aiotrade.lib.math.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer

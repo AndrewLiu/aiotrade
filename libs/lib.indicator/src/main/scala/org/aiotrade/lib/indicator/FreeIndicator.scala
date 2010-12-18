@@ -38,10 +38,14 @@ import org.aiotrade.lib.math.timeseries.TFreq
 /**
  * @author Caoyuan Deng
  */
-class FreeFillIndicator($serProvider: => SerProvider, $freq: => TFreq) extends DefaultBaseTSer($serProvider, $freq)
-                                                                          with org.aiotrade.lib.math.indicator.Indicator {
+class FreeIndicator($serProvider: SerProvider, $freq: TFreq) extends DefaultBaseTSer($serProvider, $freq)
+                                                                with org.aiotrade.lib.math.indicator.Indicator {
 
-  def set(baseSer: BaseTSer) {}
+  def set(baseSer: BaseTSer) {
+    if (baseSer != null) {
+      super.set(baseSer.freq)
+    }
+  }
 
   def baseSer: BaseTSer = null
   def baseSer_=(baseSer: BaseTSer) {}
