@@ -32,7 +32,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   var replyQueue: String = _ // The name of our private reply queue
 
   /** Map from request correlation ID to continuation BlockingCell */
-  private val continuationMap = new ConcurrentHashMap[String, SyncVar[AnyRef]]
+  private val continuationMap = new ConcurrentHashMap[String, SyncVar[RpcResponse]]
   /** Contains the most recently-used request correlation ID */
   private var correlationId = 0L
   /** Should hold strong ref for SyncVarSetterProcessor */
@@ -47,7 +47,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
         val entries = continuationMap.entrySet.iterator
         while (entries.hasNext) {
           val entry = entries.next
-          entry.getValue.set(entry.getKey)
+          entry.getValue.set(RpcResponse(signal.getMessage))
         }
       }
     }
@@ -101,7 +101,6 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     }
 
     res match {
-      case sig: ShutdownSignalException => RpcTimeout
       case reply: RpcResponse => reply
       case x => throw new IOException("Error reply: " + x)
     }
@@ -117,8 +116,8 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[AnyRef] = {
-    val syncVar = new SyncVar[AnyRef]
+  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[RpcResponse] = {
+    val syncVar = new SyncVar[RpcResponse]
     val replyId = {
       correlationId += 1
       val replyIdx = correlationId.toString
@@ -146,7 +145,6 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
 
   class SyncVarSetterProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
-      log.info("RpcClient got: " + msg)
       msg match {
         case AMQPMessage(res: RpcResponse, props) =>
           val replyId = msg.props.getCorrelationId

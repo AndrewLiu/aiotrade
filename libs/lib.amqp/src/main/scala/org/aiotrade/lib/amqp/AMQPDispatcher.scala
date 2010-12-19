@@ -329,12 +329,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props))
-        log.info("Fired amqp message: " + content)
+        //log.info("Fired amqp message: " + content)
        
         // if noAck is set false, messages will be blocked until an ack to broker,
         // so it's better always ack it. (Although prefetch may deliver more than
         // one message to consumer)
         channel.basicAck(env.getDeliveryTag, false)
+        //log.info(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
