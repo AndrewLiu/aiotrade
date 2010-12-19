@@ -76,6 +76,7 @@ abstract class QuoteServer extends DataServer[Quote] {
           quote.unfromMe_!
           frTime = math.min(quote.time, frTime)
           toTime = math.max(quote.time, toTime)
+          
           i += 1
         }
 

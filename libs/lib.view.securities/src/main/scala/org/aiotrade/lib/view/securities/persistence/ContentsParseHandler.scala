@@ -177,6 +177,7 @@ class ContentsParseHandler extends DefaultHandler {
     indicatorDescriptor = new IndicatorDescriptor
     indicatorDescriptor.active = (meta.getValue("active").trim).toBoolean
     indicatorDescriptor.serviceClassName = meta.getValue("class")
+    indicatorDescriptor.uniSymbol = meta.getValue("symbol")
     val freq = new TFreq(
       TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
       meta.getValue("nunits").trim.toInt)

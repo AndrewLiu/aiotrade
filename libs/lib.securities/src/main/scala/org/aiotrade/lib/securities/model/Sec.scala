@@ -249,7 +249,11 @@ class Sec extends SerProvider {
    */
   private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
   private lazy val quoteInfoServer : QuoteInfoDataServer = quoteInfoContract.serviceInstance().get
-  
+
+  def serProviderOf(uniSymbol: String): Option[Sec] = {
+    Exchange.secOf(uniSymbol)
+  }
+
   def serOf(freq: TFreq): Option[QuoteSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC => Some(realtimeSer)
@@ -610,6 +614,9 @@ class Sec extends SerProvider {
     } else 0L
   }
 
+  /**
+   * @Note Since we use same quoteServer and contract to load varies freq data , we should guarantee that quoteServer is thread safe
+   */
   private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
     

@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 import java.util.Timer
 import java.util.TimerTask
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Event
 import org.aiotrade.lib.util.actors.Publisher
@@ -114,19 +115,27 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     def act = loop {
       react {
         case Refresh =>
-          //log.info("loadActor Received Refresh message")
-          inRefreshing = true
-          val values = loadFromSource(loadedTime)
-          if (values.length > 0) {
-            loadedTime = postRefresh(values)
+          try {
+            //log.info("loadActor Received Refresh message")
+            inRefreshing = true
+            val values = loadFromSource(loadedTime)
+            if (values.length > 0) {
+              loadedTime = postRefresh(values)
+            }
+            //log.info("loadActor Finished Refresh")
+            inRefreshing = false
+          } catch {
+            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
           }
-          //log.info("loadActor Finished Refresh")
-          inRefreshing = false
 
         case LoadHistory(afterTime) =>
-          log.info("loadActor Received LoadHistory message")
-          val values = loadFromSource(afterTime)
-          loadedTime = postLoadHistory(values)
+          try {
+            log.info("loadActor Received LoadHistory message")
+            val values = loadFromSource(afterTime)
+            loadedTime = postLoadHistory(values)
+          } catch {
+            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          }
           
         case Stop => exit
         case _ =>

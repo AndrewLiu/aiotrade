@@ -41,14 +41,29 @@ import org.aiotrade.lib.math.timeseries.TFreq
 class FreeIndicator($serProvider: SerProvider, $freq: TFreq) extends DefaultBaseTSer($serProvider, $freq)
                                                                 with org.aiotrade.lib.math.indicator.Indicator {
 
+  private var _baseSer: BaseTSer = _
+
+  private var _uniSymbol: Option[String] = None
+
+  def uniSymbol = _uniSymbol
+  def uniSymbol_=(uniSymbol: String) {
+    _uniSymbol = uniSymbol match {
+      case null | "" => None
+      case _ => Some(uniSymbol)
+    }
+  }
+
   def set(baseSer: BaseTSer) {
+    _baseSer = baseSer
     if (baseSer != null) {
       super.set(baseSer.freq)
     }
   }
 
-  def baseSer: BaseTSer = null
-  def baseSer_=(baseSer: BaseTSer) {}
+  def baseSer: BaseTSer = _baseSer
+  def baseSer_=(baseSer: BaseTSer) {
+    set(baseSer)
+  }
 
   /**
    * @param time to be computed from

@@ -43,11 +43,26 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
  */
 class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factors: => Array[Factor], $active: => Boolean
 ) extends AnalysisDescriptor[Indicator]($serviceClassName, $freq, $active) {
+
+  def this() = this(null, TFreq.DAILY, Array[Factor](), false)
+
   val folderName = "Indicators"
 
   private var _factors = new ArrayList[Factor] ++= $factors
 
-  def this() = this(null, TFreq.DAILY, Array[Factor](), false)
+  private var _uniSymbol: Option[String] = None
+
+
+  /**
+   * You specify the indictor is from another symbols
+   */
+  def uniSymbol = _uniSymbol
+  def uniSymbol_=(uniSymbol: String) {
+     _uniSymbol = uniSymbol match {
+      case null | "" => None
+      case _ => Some(uniSymbol)
+    }
+  }
 
   override def set(serviceClassName: String, freq: TFreq): Unit = {
     super.set(serviceClassName, freq)
@@ -98,17 +113,26 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
    * @param baseSer for indicator
    */
   override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
-    case Seq(baseSer: BaseTSer) => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
-        case Some(x) =>
+    case Seq(baseSerx: BaseTSer) => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
+        case Some(indx) =>
+          // is this indicator from another symbol ?
+          val baseSer = (
+            for (s <- uniSymbol if s != baseSerx.serProvider.uniSymbol;
+                 p <- baseSerx.serProvider.serProviderOf(s);
+                 b <- p.serOf(baseSerx.freq)
+            ) yield b 
+          ) getOrElse baseSerx
+
           val instance = if (factors.length == 0) {
             // this means this indicatorDescritor's factors may not be set yet, so set a default one now
-            val instancex = Indicator(x.getClass.asInstanceOf[Class[Indicator]], baseSer)
+            val instancex = Indicator(indx.getClass.asInstanceOf[Class[Indicator]], baseSer)
             factors = instancex.factors
             instancex
           } else {
             // should set facs here, because it's from one that is stored in xml
-            Indicator(x.getClass.asInstanceOf[Class[Indicator]], baseSer, factors: _*)
+            Indicator(indx.getClass.asInstanceOf[Class[Indicator]], baseSer, factors: _*)
           }
+          
           Option(instance)
         case None => None
       }

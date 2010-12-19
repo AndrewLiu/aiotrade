@@ -59,6 +59,12 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
                                                               with IndicatorHelper {
 
   /**
+   * Make sure this null args contructor only be called and return instance to
+   * NetBeans layer manager for register usage, so it just do nothing.
+   */
+  def this() = this(null)
+
+  /**
    * !NOTICE
    * IndicatorHelper should be created here, because it will be used to
    * inject Factor(s): new Factor() will call addFac which delegated
@@ -75,15 +81,19 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   protected var A: TVar[Double] = _
   protected var E: TVar[Boolean] = _
 
+  private var _uniSymbol: Option[String] = None
+
   if (_baseSer != null) {
     set(baseSer)
   }
-    
-  /**
-   * Make sure this null args contructor only be called and return instance to
-   * NetBeans layer manager for register usage, so it just do nothing.
-   */
-  def this() = this(null)
+
+  def uniSymbol = _uniSymbol
+  def uniSymbol_=(uniSymbol: String) {
+     _uniSymbol = uniSymbol match {
+      case null | "" => None
+      case _ => Some(uniSymbol)
+    }
+  }
     
   /**
    * make sure this method will be called before this instance return to any others:

@@ -122,14 +122,14 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
         val indicator = indicators find (x => x.displayName == selectedIndicator) getOrElse (return)
         val className = indicator.getClass.getName
 
-        (contents.lookupDescriptor(classOf[IndicatorDescriptor],
-                                   className,
-                                   new TFreq(unit, nUnits)
-          ) match {
+        (contents.lookupDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) match {
             case None =>
-              contents.createDescriptor(classOf[IndicatorDescriptor],
-                                        className,
-                                        new TFreq(unit, nUnits))
+              contents.createDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) map {x =>
+                indicator.uniSymbol match {
+                  case Some(s) => x.uniSymbol = s; x
+                  case None => x
+                }
+              }
             case some => some
           }
         ) foreach {descriptor =>

@@ -5,6 +5,41 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.io.IOException
+import java.util.logging.Level
+import java.util.logging.Logger
+
+object RpcServer {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  def declareServer(factory: ConnectionFactory, exchange: String, requestQueues: Seq[String]) {
+    try {
+      val conn = factory.newConnection
+      val channel = conn.createChannel
+      
+      if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
+
+      declareQueue(channel, exchange, requestQueues)
+
+      conn.close
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+  }
+
+  /**
+   * @Note queue should always be declared with same props in object RpcServer and in class RpcServer
+   */
+  private def declareQueue(channel: Channel, exchange: String, requestQueues: Seq[String]) {
+    for (requestQueue <- requestQueues) {
+      // durable = false, exclusive = false, autoDelete = true
+      channel.queueDeclare(requestQueue, false, false, true, null)
+
+      // use routingKey identical to queue name
+      val routingKey = requestQueue
+      channel.queueBind(requestQueue, exchange, routingKey)
+    }
+  }
+}
 
 /**
  * Class which manages a request queue for a simple RPC-style service.
@@ -27,12 +62,7 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
   override def configure(channel: Channel): Option[Consumer] = {
     if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
 
-    // durable = false, exclusive = false, autoDelete = true
-    channel.queueDeclare(requestQueue, false, false, true, null)
-
-    // use routingKey identical to queue name
-    val routingKey = requestQueue
-    channel.queueBind(requestQueue, exchange, routingKey)
+    RpcServer.declareQueue(channel, exchange, List(requestQueue))
 
     val consumer = new AMQPConsumer(channel)
     channel.basicConsume(requestQueue, consumer)

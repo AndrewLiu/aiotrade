@@ -42,8 +42,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.swing.GBC
-import scala.collection.mutable.ArrayBuffer
-
+import org.aiotrade.lib.collection.ArrayList
 
 /**
  *
@@ -65,8 +64,8 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */
-    val indicatorDescriptorsToBeShowing = new ArrayBuffer[IndicatorDescriptor]
-    val  indicatorsToBeShowing = new ArrayBuffer[Indicator]
+    val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
+    val  indicatorsToBeShowing = new ArrayList[Indicator]
     for (descriptor <- controller.contents.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq == controller.baseSer.freq
     ) {
@@ -89,12 +88,15 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     }
         
     /** now add slaveViews, the size has excluded those indicators not showing */
-    val size = indicatorDescriptorsToBeShowing.size
-    for (i <- 0 until size) {
+    val size = indicatorDescriptorsToBeShowing.length
+    var i = 0
+    while (i < size) {
       gbc.weighty = 382.0 / size
       addSlaveView(indicatorDescriptorsToBeShowing(i), indicatorsToBeShowing(i), gbc)
+
+      i += 1
     }
-        
+
     for (descriptor <- controller.contents.lookupDescriptors(classOf[DrawingDescriptor])
          if descriptor.freq == controller.baseSer.freq
     ) {

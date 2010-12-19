@@ -7,8 +7,8 @@ import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
-import scala.collection.mutable.HashMap
 import scala.concurrent.SyncVar
+import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
 /**
@@ -32,7 +32,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   var replyQueue: String = _ // The name of our private reply queue
 
   /** Map from request correlation ID to continuation BlockingCell */
-  private val continuationMap = new HashMap[String, SyncVar[AnyRef]]
+  private val continuationMap = new ConcurrentHashMap[String, SyncVar[AnyRef]]
   /** Contains the most recently-used request correlation ID */
   private var correlationId = 0L
   /** Should hold strong ref for SyncVarSetterProcessor */
@@ -44,10 +44,10 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
 
     val consumer = new AMQPConsumer(channel) {
       override def handleShutdownSignal(consumerTag: String, signal: ShutdownSignalException) {
-        continuationMap synchronized {
-          for ((replyId, syncVar) <- continuationMap) {
-            syncVar.set(signal)
-          }
+        val entries = continuationMap.entrySet.iterator
+        while (entries.hasNext) {
+          val entry = entries.next
+          entry.getValue.set(entry.getKey)
         }
       }
     }
@@ -77,7 +77,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   protected def checkConsumer {
-    if (consumer.isEmpty) throw new EOFException("RpcClient is closed")
+    if (consumer.isEmpty) throw new EOFException("Consumer of rpcClient is closed")
   }
 
   /**
@@ -119,7 +119,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   @throws(classOf[ShutdownSignalException])
   def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[AnyRef] = {
     val syncVar = new SyncVar[AnyRef]
-    val replyId = continuationMap synchronized {
+    val replyId = {
       correlationId += 1
       val replyIdx = correlationId.toString
       continuationMap.put(replyIdx, syncVar)
@@ -129,8 +129,9 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
     try {
       checkConsumer
     } catch {
-      case ex => 
-        syncVar.set(RpcTimeout)
+      case ex =>
+        log.warning(ex.getMessage)
+        syncVar.set(RpcResponse(ex.getMessage))
         return syncVar
     }
 
@@ -145,13 +146,13 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
 
   class SyncVarSetterProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
+      log.info("RpcClient got: " + msg)
       msg match {
         case AMQPMessage(res: RpcResponse, props) =>
           val replyId = msg.props.getCorrelationId
-          val syncVar = continuationMap synchronized  {
-            continuationMap.remove(replyId).get
-          }
+          val syncVar = continuationMap.remove(replyId)
           syncVar.set(res)
+        case x => log.warning("Wrong msg: " + x)
       }
     }
   }

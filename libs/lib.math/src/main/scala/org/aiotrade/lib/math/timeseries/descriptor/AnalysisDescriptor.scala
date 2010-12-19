@@ -70,8 +70,29 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
     this.freq = freq.clone
   }
 
+  def serviceClassName = _serviceClassName
+  def serviceClassName_=(serviceClassName: String) = {
+    this._serviceClassName = serviceClassName
+  }
+
+  def freq = _freq
+  def freq_=(freq: TFreq) = {
+    this._freq = freq
+  }
+
+  def active = _active
+  def active_=(active: Boolean) = {
+    this._active = active
+  }
+
+  def displayName: String
+
   def resetInstance {
     _serviceInstance = None
+  }
+
+  def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
+    this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
   }
 
   /**
@@ -96,28 +117,7 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
   def isServiceInstanceCreated: Boolean = {
     _serviceInstance.isDefined
   }
-
-  def serviceClassName = _serviceClassName
-  def serviceClassName_=(serviceClassName: String) = {
-    this._serviceClassName = serviceClassName
-  }
-
-  def freq = _freq
-  def freq_=(freq: TFreq) = {
-    this._freq = freq
-  }
-
-  def active = _active
-  def active_=(active: Boolean) = {
-    this._active = active
-  }
-  
-  def displayName: String
     
-  def idEquals(serviceClassName: String, freq: TFreq): Boolean = {
-    this.serviceClassName.equals(serviceClassName) && this.freq.equals(freq)
-  }
-
   protected def createServiceInstance(args: Any*): Option[S]
 
   // --- helpers ---
@@ -135,6 +135,7 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
                       ", try Class.forName call: serviceClassName=" + serviceClassName)
 
           val klass = Class.forName(serviceClassName)
+          
           getScalaSingletonInstance(klass) match {
             case Some(x) if x.isInstanceOf[S] => Option(x.asInstanceOf[S])
             case _ => Option(klass.newInstance.asInstanceOf[S])

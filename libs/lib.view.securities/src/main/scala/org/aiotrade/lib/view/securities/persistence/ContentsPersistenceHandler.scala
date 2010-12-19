@@ -96,6 +96,7 @@ object ContentsPersistenceHandler {
         buffer.append("        <indicator ")
         buffer.append("active=\"" + descriptor.active + "\" ")
         buffer.append("class=\"" + descriptor.serviceClassName + "\" ")
+        for (s <- descriptor.uniSymbol) buffer.append("symbol=\"" + s + "\" ")
         buffer.append("nunits=\"" + descriptor.freq.nUnits + "\" ")
         buffer.append("unit=\"" + descriptor.freq.unit + "\">\n")
                 

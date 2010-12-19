@@ -92,6 +92,12 @@ trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
   def baseSer_=(baseSer: BaseTSer)
 
   /**
+   * If uniSymbol.isDefined, means the baseSer may belong to another one which is of this uniSymbol
+   */
+  def uniSymbol: Option[String]
+  def uniSymbol_=(uniSymbol: String)
+
+  /**
    * @param time to be computed from
    */
   def computeFrom(time: Long)

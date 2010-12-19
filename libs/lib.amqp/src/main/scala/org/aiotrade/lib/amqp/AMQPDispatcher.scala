@@ -322,23 +322,24 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       try {
         val content = contentType.mimeType match {
           case OCTET_STREAM.mimeType => body1
-          case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
           case JSON.mimeType => decodeJson(body1)
+          case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
           case _ => decodeJava(body1)
         }
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props))
+        log.info("Fired amqp message: " + content)
+       
+        // if noAck is set false, messages will be blocked until an ack to broker,
+        // so it's better always ack it. (Although prefetch may deliver more than
+        // one message to consumer)
+        channel.basicAck(env.getDeliveryTag, false)
       } catch {
         // should catch it when old version classes were sent by old version of clients.
-        case e: InvalidClassException => 
-        case _ =>
+        case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-
-      // if noAck is set false, messages will be blocked until an ack to broker,
-      // so it's better always ack it. (Although prefetch may deliver more than
-      // one message to consumer)
-      channel.basicAck(env.getDeliveryTag, false)
     }
   }
 
