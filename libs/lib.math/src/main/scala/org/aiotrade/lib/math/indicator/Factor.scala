@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 
 /**
  * Class for defining indicator's factor

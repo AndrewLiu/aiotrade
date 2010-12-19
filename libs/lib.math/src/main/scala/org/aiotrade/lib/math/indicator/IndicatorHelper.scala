@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.util.actors.Reactions
+import org.aiotrade.lib.util.reactors.Reactions
 
 
 /**

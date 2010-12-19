@@ -40,7 +40,8 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
+import org.aiotrade.lib.util.reactors.Reactions
 
 /**
  * @author Caoyuan Deng
@@ -81,7 +82,7 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
 
   val indicators = new ArrayList[T]
 
-  private var reaction: PartialFunction[Event, Unit] = null
+  private var reaction: Reactions.Reaction = null
   reaction = {
     case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) =>
       computeFrom(fromTime)

@@ -52,8 +52,10 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
       }
     }
 
+    // autoAck - true if the server should consider messages acknowledged once delivered;
+    //           false if the server should expect explicit acknowledgements
     // since AMQPConsumer will call channel.basicAck(env.getDeliveryTag, false) always,
-    // we need to set 'noAck' to false
+    // we need to set 'autoAck' to false
     channel.basicConsume(replyQueue, false, consumer)
     Some(consumer)
   }

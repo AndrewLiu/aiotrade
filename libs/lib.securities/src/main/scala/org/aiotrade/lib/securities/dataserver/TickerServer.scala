@@ -45,7 +45,7 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._

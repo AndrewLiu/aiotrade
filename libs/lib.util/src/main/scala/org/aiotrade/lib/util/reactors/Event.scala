@@ -11,3 +11,4 @@
 package org.aiotrade.lib.util.reactors
 
 trait Event
+case object Stop extends Event

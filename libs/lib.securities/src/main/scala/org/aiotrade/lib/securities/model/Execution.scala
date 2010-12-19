@@ -1,6 +1,6 @@
 package org.aiotrade.lib.securities.model
 
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 import ru.circumflex.orm._
 
 case class ExecutionEvent(prevClose: Double, execution: Execution) extends Event

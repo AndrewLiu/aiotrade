@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.signal
 
 import org.aiotrade.lib.math.indicator.SignalIndicator
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import java.awt.Color
 

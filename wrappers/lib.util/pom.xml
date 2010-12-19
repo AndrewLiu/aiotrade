@@ -68,6 +68,7 @@
                         <publicPackage>org.aiotrade.lib.util.config</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.pinyin</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.pool</publicPackage>
+                        <publicPackage>org.aiotrade.lib.util.reactors</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.security</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.serialization</publicPackage>
                         <publicPackage>org.aiotrade.lib.util.swing</publicPackage>

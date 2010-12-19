@@ -51,7 +51,8 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
+import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable.HashMap
 import ru.circumflex.orm.Table
@@ -503,7 +504,7 @@ class Sec extends SerProvider {
             quoteInfoHisServer.subscribe(contract)
 
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
-            var reaction: PartialFunction[Event, Unit] = null
+            var reaction: Reactions.Reaction = null
             reaction = {
               case TSerEvent.Loaded(ser, uniSymbol, frTime, toTime, _, _) =>
                 reactions -= reaction

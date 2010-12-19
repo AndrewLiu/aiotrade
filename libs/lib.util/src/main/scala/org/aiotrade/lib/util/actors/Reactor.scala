@@ -10,6 +10,10 @@
 
 package org.aiotrade.lib.util.actors
 
+import org.aiotrade.lib.util.reactors.Event
+import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.reactors.Stop
+
 
 /**
  * The counterpart to publishers. Listens to events from registered publishers.

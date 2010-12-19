@@ -36,7 +36,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 
 /**
  *

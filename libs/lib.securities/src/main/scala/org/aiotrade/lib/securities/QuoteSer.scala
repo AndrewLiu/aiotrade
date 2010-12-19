@@ -36,7 +36,8 @@ import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
+import org.aiotrade.lib.util.reactors.Reactions
 
 /**
  *
@@ -130,7 +131,7 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       doAdjust(b)
     } else {
       // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
-      var reaction: PartialFunction[Event, Unit] = null
+      var reaction: Reactions.Reaction = null
       reaction = {
         case TSerEvent.Loaded(ser: QuoteSer, uniSymbol, frTime, toTime, _, _) if ser eq this =>
           reactions -= reaction

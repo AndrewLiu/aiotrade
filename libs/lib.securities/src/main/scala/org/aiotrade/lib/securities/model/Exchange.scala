@@ -8,7 +8,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._

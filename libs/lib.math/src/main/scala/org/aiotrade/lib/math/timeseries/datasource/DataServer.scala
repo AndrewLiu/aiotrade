@@ -40,7 +40,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable.{HashMap, HashSet}
 
@@ -104,7 +104,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   // --- a proxy actor for HeartBeat event etc, which will detect the speed of
   // refreshing requests, if consumer can not catch up the producer, will drop some requests.
-  // We here also avoid concurent racing risk of Refresh/LoadHistory requests @see reactions += {...
+  // We here also avoid concurrent racing risk of Refresh/LoadHistory requests @see reactions += {...
   private case object Stop extends Event
   private case object Refresh extends Event
   private case class LoadHistory(afterTime: Long) extends Event
@@ -144,7 +144,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   }
 
   reactions += {
-    case HeartBeat(interval) if refreshable && !inRefreshing => loadActor ! Refresh
+    case HeartBeat(interval) if refreshable && !inRefreshing =>
+      loadActor ! Refresh
     case HeartBeat(_) => // should match this to avoid MatchError
   }
 
@@ -158,7 +159,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
     log.info("Fired LoadHistory message to loadActor")
     /**
-     * Transit to async load reaction to avoid shared variable lock (loadedTime etc)
+     * Transit to async load reactor to avoid shared variable lock (loadedTime etc)
      */
     loadActor ! LoadHistory(afterTime)
   }

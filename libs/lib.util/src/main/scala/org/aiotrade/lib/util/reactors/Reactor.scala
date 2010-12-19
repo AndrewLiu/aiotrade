@@ -17,7 +17,9 @@ trait Reactor {
   /**
    * All reactions of this reactor.
    */
-  val reactions: Reactions = new Reactions.Impl
+  val reactions: Reactions = new Reactions.Impl += {
+    case _ => // it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction
+  }
   /**
    * Listen to the given publisher as long as <code>deafTo</code> isn't called for
    * them.

@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._

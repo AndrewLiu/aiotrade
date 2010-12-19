@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.actors.Event
+import org.aiotrade.lib.util.reactors.Event
 
 /**
  * Time Series

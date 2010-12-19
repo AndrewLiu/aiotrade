@@ -19,9 +19,15 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
-import org.aiotrade.lib.util.actors.Event
-import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.actors.Reactor
+/**
+ * @Note we use plain sync Publisher/Reactor instead of actor based async model here, because:
+ * 1. It seems that when actor model is mixed with a hard coded thread (amcp.connection has a looped MainThread),
+ *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
+ * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
+ */
+import org.aiotrade.lib.util.reactors.Event
+import org.aiotrade.lib.util.reactors.Publisher
+import org.aiotrade.lib.util.reactors.Reactor
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 /*_ rabbitmqctl common usages:
@@ -331,7 +337,12 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         publish(AMQPMessage(content, props))
         //log.info("Fired amqp message: " + content)
        
-        // if noAck is set false, messages will be blocked until an ack to broker,
+        // Parameters:
+        //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
+        //   multiple - true to acknowledge all messages up to and including the supplied delivery tag;
+        //              false to acknowledge just the supplied delivery tag.
+        //
+        // if autoAck is set false, messages will be blocked until an ack to broker,
         // so it's better always ack it. (Although prefetch may deliver more than
         // one message to consumer)
         channel.basicAck(env.getDeliveryTag, false)
