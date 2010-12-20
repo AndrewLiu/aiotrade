@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 /**
  * @Note we use plain sync Publisher/Reactor instead of actor based async model here, because:
- * 1. It seems that when actor model is mixed with a hard coded thread (amcp.connection has a looped MainThread),
+ * 1. It seems that when actor model is mixed with a hard coded thread (AMQPConnection has a MainLoop thread),
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
@@ -187,7 +187,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         state = State(Option(conn), Option(channel), consumer)
 
         consumer match {
-          case Some(qConsumer: QueueingConsumer) => startQueueConsumer(qConsumer)
+          case Some(qConsumer: QueueingConsumer) => QueueingConsumer.startConsumer(qConsumer)
           case _ =>
         }
 
@@ -285,18 +285,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  private def startQueueConsumer(consumer: QueueingConsumer) {
-    val consumerRunner = new Runnable {
-      def run {
-        while (true) {
-          val delivery = consumer.nextDelivery // blocked here
-          consumer.relay(delivery)
-        }
-      }
-    }
-    (new Thread(consumerRunner)).start
-  }
-
   class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
     private val log = Logger.getLogger(this.getClass.getName)
 
@@ -355,6 +343,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
+  object QueueingConsumer {
+    def startConsumer(consumer: QueueingConsumer) {
+      val consumerRunner = new Runnable {
+        def run {
+          while (true) {
+            val delivery = consumer.nextDelivery // blocked here
+            consumer.relay(delivery)
+          }
+        }
+      }
+      (new Thread(consumerRunner)).start
+    }
+  }
   class QueueingConsumer(channle: Channel) extends DefaultConsumer(channle) {
 
     private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]

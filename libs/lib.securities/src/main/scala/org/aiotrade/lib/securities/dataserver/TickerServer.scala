@@ -362,6 +362,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     // batch save to db
 
+    log.info("Going to save to db ...")
     var willCommit = false
     val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
     tickersLast.clear
