@@ -116,13 +116,14 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allDepthSnaps = new ArrayList[DepthSnap]
   private val updatedDailyQuotes = new ArrayList[Quote]
 
-  private val tickersLast = new ArrayList[Ticker]
 
   private val exchangeToLastTime = new HashMap[Exchange, Long]
 
-  private def toSecSnaps(values: Array[Ticker]): Seq[SecSnap] = {
+  private def toSecSnaps(values: Array[Ticker]): (Seq[SecSnap], Seq[Ticker]) = {
     val processedSymbols = new HashSet[String] // used to avoid duplicate symbols of each refreshing
+
     val secSnaps = new ArrayList[SecSnap]
+    val tickersLast = new ArrayList[Ticker]
     var i = 0
     while (i < values.length) {
       val ticker = values(i)
@@ -152,7 +153,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       i += 1
     }
     
-    secSnaps
+    (secSnaps, tickersLast)
   }
 
   /**
@@ -166,7 +167,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (values.length == 0) return lastTime
     //values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
 
-    val secSnaps = toSecSnaps(values)
+    val (secSnaps, tickersLast) = toSecSnaps(values)
     log.info("Composing ser from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return lastTime
 
@@ -315,8 +316,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         // update chainSers
         if (!isServer && sec.isSerCreated(TFreq.ONE_SEC)) {
-          val rtSer = sec.realtimeSer
-          rtSer.updateFrom(minQuote)
+          sec.realtimeSer.updateFrom(minQuote)
         }
         if (isServer || sec.isSerCreated(TFreq.ONE_MIN)) {
           sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(minQuote)}
@@ -365,7 +365,6 @@ abstract class TickerServer extends DataServer[Ticker] {
     log.info("Going to save to db ...")
     var willCommit = false
     val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
-    tickersLast.clear
     if (tickersLastToInsert.length > 0) {
       TickersLast.insertBatch_!(tickersLastToInsert.toArray)
       willCommit = true
