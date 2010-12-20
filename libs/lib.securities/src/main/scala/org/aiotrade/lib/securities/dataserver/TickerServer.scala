@@ -248,7 +248,7 @@ abstract class TickerServer extends DataServer[Ticker] {
             execution.volume = ticker.dayVolume - lastTicker.dayVolume
             execution.amount = ticker.dayAmount - lastTicker.dayAmount
             allExecutions += execution
-          } else{
+          } else {
             log.fine("dayVolome curr: " + ticker.dayVolume + ", last: " + lastTicker.dayVolume)
           }
 
@@ -300,6 +300,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
         allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
 
+        log.fine("Will published execution")
         sec.publish(ExecutionEvent(ticker.prevClose, execution))
         log.fine("Published execution: " + ExecutionEvent(ticker.prevClose, execution))
       }
@@ -327,8 +328,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
         lastTime = math.max(lastTime, ticker.time)
-      }
-      else{
+      } else{
         log.warning("Invalid ticker: " + ticker)
       }
 
