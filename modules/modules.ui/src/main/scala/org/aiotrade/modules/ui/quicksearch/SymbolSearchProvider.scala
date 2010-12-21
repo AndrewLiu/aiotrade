@@ -17,8 +17,8 @@ import org.aiotrade.spi.quicksearch.SearchProvider
 import org.aiotrade.spi.quicksearch.SearchRequest
 import org.aiotrade.spi.quicksearch.SearchResponse
 import org.openide.awt.HtmlBrowser.URLDisplayer
+import scala.collection.immutable.TreeSet
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
 
 
 class SymbolSearchProvider extends SearchProvider {
@@ -26,21 +26,21 @@ class SymbolSearchProvider extends SearchProvider {
 
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val textToSymbols = new HashMap[String, Set[String]]
+  private val textToSecs = new HashMap[String, Set[Sec]]
 
   initMap
   
   private def initMap {
     for ((symbol, sec) <- Exchange.uniSymbolToSec) addSec(symbol, sec)
-    log.fine("Search map: " + textToSymbols)
+    log.fine("Search map: " + textToSecs)
   }
 
   def addSec(symbol: String, sec: Sec) {
-    textToSymbols.put(symbol.toUpperCase, Set(symbol))
+    textToSecs.put(symbol.toUpperCase, Set(sec))
     PinYin.getFirstSpells(sec.name) foreach {spell =>
-      textToSymbols.get(spell) match {
-        case Some(xs) => textToSymbols.put(spell, xs + symbol)
-        case None => textToSymbols.put(spell, Set(symbol))
+      textToSecs.get(spell) match {
+        case Some(xs) => textToSecs.put(spell, xs + sec)
+        case None => textToSecs.put(spell, Set(sec))
       }
     }
   }
@@ -57,17 +57,16 @@ class SymbolSearchProvider extends SearchProvider {
    */
   def evaluate(request: SearchRequest, response: SearchResponse) {
     val input = request.text.toUpperCase
-    val addedSymbols = HashSet[String]()
-    for ((text, symbols) <- textToSymbols if text.startsWith(input);
-         symbol <- symbols if !addedSymbols.contains(symbol)
-    ) {
-      addedSymbols += symbol
-      val name = Exchange.secOf(symbol) match {
-        case Some(x) => symbol + " (" + x.name + ")"
-        case _ => symbol
-      }
-      
-      if (!response.addResult(new FoundResult(symbol), name)) return
+    var addedSecs = TreeSet[Sec]()
+
+    for ((text, secs) <- textToSecs if text.startsWith(input); sec <- secs) {
+      addedSecs += sec
+    }
+
+    addedSecs foreach {sec =>
+      val uniSymbol = sec.uniSymbol
+      val name = uniSymbol + " (" + sec.name + ")"
+      if (!response.addResult(new FoundResult(uniSymbol), name)) return
     }
   }
 

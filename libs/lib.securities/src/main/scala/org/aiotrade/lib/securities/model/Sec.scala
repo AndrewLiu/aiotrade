@@ -141,7 +141,7 @@ object Sec {
 }
 
 import Sec._
-class Sec extends SerProvider {
+class Sec extends SerProvider with Ordered[Sec] {
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
@@ -772,6 +772,30 @@ class Sec extends SerProvider {
 
   def isQuoteInfoDataServerSubcribed : Boolean = {
     quoteInfoServer != null && quoteInfoServer.isContractSubsrcribed(quoteInfoContract)
+  }
+
+  override def equals(another: Any) = another match {
+    case Some(x: Sec) => this.uniSymbol == x.uniSymbol
+    case _ => false
+  }
+
+  override def hashCode = this.uniSymbol.hashCode
+
+  def compare(another: Sec): Int = {
+    this.exchange.compare(another.exchange) match {
+      case 0 => (this.uniSymbol, another.uniSymbol) match {
+          case ("-", "-") => 0
+          case ("-",  _ ) => -1
+          case (_  , "-") => 1
+          case (s1: String, s2: String) =>
+            val s1s = s1.split('.')
+            val s2s = s2.split('.')
+            s1s(0).compareTo(s2s(0))
+          case _ => 0
+        }
+
+      case x => x
+    }
   }
 
   /**

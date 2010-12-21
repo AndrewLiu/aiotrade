@@ -41,7 +41,7 @@ object Comparators {
           val s2s = s2.split('.')
           val s1a = if (s1s.length > 1) s1s(1) + s1s(0) else s1
           val s2a = if (s2s.length > 1) s2s(1) + s2s(0) else s2
-          s1a.compareTo(s2a)
+          s2a.compareTo(s1a)
         case _ => 0
       }
     }

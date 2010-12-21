@@ -158,7 +158,7 @@ object TradingStatus {
 }
 
 import Exchange._
-class Exchange {
+class Exchange extends Ordered[Exchange] {
 
   // --- database fields
   var code: String = "SS"
@@ -574,6 +574,23 @@ class Exchange {
 
   override def toString: String = {
     code + "(" + timeZone.getDisplayName + ")" + ", open/close: " + openCloseHMs.mkString("(", ",", ")")
+  }
+
+  override def equals(another: Any) = another match {
+    case Some(x: Exchange) => this.code == x.code
+    case _ => false
+  }
+
+  override def hashCode = this.code.hashCode
+
+  def compare(another: Exchange): Int = {
+    (this.code, another.code) match {
+      case ("-", "-") => 0
+      case ("-",  _ ) => -1
+      case (_  , "-") => 1
+      case (s1: String, s2: String) => s2.compare(s1) // "SZ" > "SS" > "N" > "L" > "HK"
+      case _ => 0
+    }
   }
 
 }
