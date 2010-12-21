@@ -577,7 +577,7 @@ class Exchange extends Ordered[Exchange] {
   }
 
   override def equals(another: Any) = another match {
-    case Some(x: Exchange) => this.code == x.code
+    case x: Exchange => this.code == x.code
     case _ => false
   }
 

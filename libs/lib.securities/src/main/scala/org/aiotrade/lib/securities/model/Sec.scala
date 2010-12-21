@@ -775,7 +775,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   }
 
   override def equals(another: Any) = another match {
-    case Some(x: Sec) => this.uniSymbol == x.uniSymbol
+    case x: Sec => this.uniSymbol == x.uniSymbol
     case _ => false
   }
 
