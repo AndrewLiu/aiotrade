@@ -316,21 +316,21 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
      * Should set columeColors[] before addRow() or setValue() of table to
      * make the color effects take place at once.
      */
-    var updated = false
+    var isUpdated = false
     val colKeyToColor = info.colKeyToColor
     if (dayFirst) {
       setColColorsByTicker(info, ticker)
-      updated = true
+      isUpdated = true
     } else {
       if (ticker.isDayVolumeGrown(prevTicker)) {
         setColColorsByTicker(info, ticker)
-        updated = true
+        isUpdated = true
       }
     }
 
     prevTicker.copyFrom(ticker)
     
-    updated
+    isUpdated
   }
 
   private val SWITCH_COLOR_A = LookFeel().nameColor
