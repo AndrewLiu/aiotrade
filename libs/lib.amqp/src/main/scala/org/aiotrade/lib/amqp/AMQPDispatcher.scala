@@ -139,6 +139,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   private lazy val timer = new Timer("AMQPReconnectTimer")
 
+  private val defaultReconnectDelay = 3000
+  private var reconnectDelay: Long = defaultReconnectDelay
+
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,
    * for instance, all processors are ready. Otherwise, the messages may have been
@@ -146,7 +149,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
    */
   def connect: this.type = {
     try {
-      doConnect(3000)
+      doConnect
     } catch {
       case _ => // don't log ex here, we hope ShutdownListener will give us the cause
     }
@@ -159,7 +162,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def consumer = state.consumer
 
   @throws(classOf[IOException])
-  private def doConnect(reconnectDelay: Long) {
+  private def doConnect {
     log.info("Begin to connect ...")
 
     (try {
@@ -169,7 +172,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         conn.addShutdownListener(new ShutdownListener {
             def shutdownCompleted(cause: ShutdownSignalException) {
               publish(AMQPDisconnected)
-              reconnect(reconnectDelay, cause)
+              reconnect(cause)
             }
           })
 
@@ -192,18 +195,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
 
         log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
+        reconnectDelay = defaultReconnectDelay
         publish(AMQPConnected)
 
       case Right(ex) =>
         // @Note **only** when there is no created connection, we'll try to reconnect here,
         // let shutdown listener to handle all other reconnetion needs
         publish(AMQPDisconnected)
-        reconnect(reconnectDelay, ex)
+        reconnect(ex)
     }
   }
 
-  private def reconnect(delay: Long, cause: Throwable) {
-    log.warning("Will try to reconnect in " + delay + ", the cause is:")
+  private def reconnect(cause: Throwable) {
+    log.warning("Will try to reconnect in " + reconnectDelay + ", the cause is:")
     log.log(Level.WARNING, cause.getMessage, cause)
 
     disconnect
@@ -211,13 +215,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     timer.schedule(new TimerTask {
         def run {
           try {
-            val nextDelay = if (delay == 0) 3000 else delay * 2
-            doConnect(nextDelay)
+            reconnectDelay *= 2
+            doConnect
           } catch {
             case _ => // don't log ex here, we hope ShutdownListener will give us the cause
           }
         }
-      }, delay)
+      }, reconnectDelay)
   }
 
   private def disconnect {
