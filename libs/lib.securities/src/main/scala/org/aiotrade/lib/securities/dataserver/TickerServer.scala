@@ -81,6 +81,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   override def subscribe(contract: TickerContract) {
     super.subscribe(contract)
+
     /**
      * !NOTICE
      * the symbol-tickerSnapshot pair must be immutable, other wise, if
@@ -94,22 +95,21 @@ abstract class TickerServer extends DataServer[Ticker] {
     tickerSnapshot.symbol = symbol
   }
 
-  override def unSubscribe(contract: TickerContract) {
-    super.unSubscribe(contract)
+  override def unsubscribe(contract: TickerContract) {
+    super.unsubscribe(contract)
+
     val symbol = contract.srcSymbol
     val sec = Exchange.secOf(symbol).get
     val tickerSnapshot = sec.tickerSnapshot
   }
 
-  override protected def postLoadHistory(values: Array[Ticker]): Long = {
+  override protected def postLoadHistory(values: Array[Ticker], contracts: Iterable[TickerContract]): Long = {
     composeSer(values)
   }
 
   override protected def postRefresh(values: Array[Ticker]): Long = {
     composeSer(values)
   }
-
-  override protected def postStopRefresh {}
 
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]

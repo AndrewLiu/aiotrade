@@ -501,8 +501,10 @@ class Sec extends SerProvider with Ordered[Sec] {
       case Some(contract) =>  contract.serviceInstance() match {
           case Some(quoteInfoHisServer) =>
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
-            quoteInfoHisServer.subscribe(contract)
-
+            if (contract.refreshable) {
+              quoteInfoHisServer.subscribe(contract)
+            }
+            
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: Reactions.Reaction = null
             reaction = {
@@ -515,7 +517,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             listenTo(ser)
 
             ser.isInLoading = true
-            quoteInfoHisServer.loadHistory(fromTime)
+            quoteInfoHisServer.loadHistory(fromTime - 1, List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -627,7 +629,10 @@ class Sec extends SerProvider with Ordered[Sec] {
           case Some(quoteServer) =>
             contract.srcSymbol = quoteServer.toSrcSymbol(uniSymbol)
             contract.freq = freq
-            quoteServer.subscribe(contract)
+
+            if (contract.refreshable) {
+              quoteServer.subscribe(contract)
+            }
 
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: PartialFunction[Event, Unit] = null
@@ -640,7 +645,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            quoteServer.loadHistory(fromTime - 1)
+            quoteServer.loadHistory(fromTime - 1, List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -724,7 +729,7 @@ class Sec extends SerProvider with Ordered[Sec] {
       }
 
       if (startRefresh) {
-        tickerServer.startRefresh(tickerContract.refreshInterval)
+        tickerServer.startRefresh
       }
     }
 
@@ -733,7 +738,7 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   def unSubscribeTickerServer {
     if (tickerServer != null && tickerContract != null) {
-      tickerServer.unSubscribe(tickerContract)
+      tickerServer.unsubscribe(tickerContract)
     }
   }
 
@@ -752,21 +757,20 @@ class Sec extends SerProvider with Ordered[Sec] {
         quoteInfoServer.stopRefresh
       }
 
-      if (!quoteInfoServer.isContractSubsrcribed(quoteInfoContract)) {
-        quoteInfoServer.subscribe(quoteInfoContract)
-      }
-
       if (startRefresh) {
-        quoteInfoServer.startRefresh(quoteInfoContract.refreshInterval)
+        if (!quoteInfoServer.isContractSubsrcribed(quoteInfoContract)) {
+          quoteInfoServer.subscribe(quoteInfoContract)
+        }
+        quoteInfoServer.startRefresh
       }
     }
 
     Some(quoteInfoServer)
   }
 
-  def unSubscribeQuoteInfoDataServer {
-    if(quoteInfoServer != null & quoteInfoContract != null){
-      quoteInfoServer.unSubscribe(quoteInfoContract)
+  def unsubscribeQuoteInfoDataServer {
+    if (quoteInfoServer != null & quoteInfoContract != null){
+      quoteInfoServer.unsubscribe(quoteInfoContract)
     }
   }
 

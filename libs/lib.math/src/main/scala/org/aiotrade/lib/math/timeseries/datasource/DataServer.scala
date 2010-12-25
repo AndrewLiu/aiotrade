@@ -42,7 +42,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
-import scala.collection.mutable.{HashMap, HashSet}
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -86,16 +87,11 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
   //private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  val _subscribedContracts = new HashSet[C]
+  private val _refreshableContracts = new HashSet[C]
   /** a quick seaching map */
-  private val _subscribedSymbolToContract = new HashMap[String, C]
+  private val _refreshableSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
 
-  /**
-   * key ser is the base one,
-   * values (if available) are that who concern key ser.
-   * Example: ticker ser also will compose today's quoteSer
-   */
   protected var count: Int = 0
   protected var loadedTime: Long = _
   protected var fromTime: Long = _
@@ -107,7 +103,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   // We here also avoid concurrent racing risk of Refresh/LoadHistory requests @see reactions += {...
   private case object Stop extends Event
   private case object Refresh extends Event
-  private case class LoadHistory(afterTime: Long) extends Event
+  private case class LoadHistory(afterTime: Long, contracts: Iterable[C]) extends Event
   private var inRefreshing: Boolean = _
   private lazy val loadActor = new scala.actors.Reactor[Event] {
     start
@@ -118,7 +114,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
           try {
             //log.info("loadActor Received Refresh message")
             inRefreshing = true
-            val values = loadFromSource(loadedTime)
+            val values = loadFromSource(loadedTime, subscribedContracts)
             if (values.length > 0) {
               loadedTime = postRefresh(values)
             }
@@ -128,11 +124,11 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
             case ex => log.log(Level.SEVERE, ex.getMessage, ex)
           }
 
-        case LoadHistory(afterTime) =>
+        case LoadHistory(afterTime, contracts: Iterable[C]) =>
           try {
-            log.info("loadActor Received LoadHistory message")
-            val values = loadFromSource(afterTime)
-            loadedTime = postLoadHistory(values)
+            log.info("loadActor received LoadHistory message")
+            val values = loadFromSource(afterTime, contracts)
+            loadedTime = postLoadHistory(values, contracts)
           } catch {
             case ex => log.log(Level.SEVERE, ex.getMessage, ex)
           }
@@ -153,60 +149,58 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   // --- public interfaces
 
-  def loadHistory(afterTime: Long) {
-    assert(currentContract.isDefined, "dataContract not set!")
-    assert(!_subscribedContracts.isEmpty, "none ser subscribed!")
-
+  def loadHistory(afterTime: Long, contracts: Iterable[C]) {
     log.info("Fired LoadHistory message to loadActor")
     /**
      * Transit to async load reactor to avoid shared variable lock (loadedTime etc)
      */
-    loadActor ! LoadHistory(afterTime)
+    loadActor ! LoadHistory(afterTime, contracts)
   }
 
-  protected def postLoadHistory(values: Array[V]): Long = loadedTime
-  protected def postRefresh(values: Array[V]): Long = loadedTime
-
-  def startRefresh(refreshInterval: Int) {
-    refreshable = true
-  }
-
-  def stopRefresh {
-    refreshable = false
-    postStopRefresh
-  }
-
-  protected def postStopRefresh {}
+  protected def postLoadHistory(values: Array[V], contracts: Iterable[C]): Long = loadedTime
 
   /**
-   * first ser is the base one,
-   * second one (if available) is that who concerns first one, etc.
-   * Example: tickering ser also will compose today's quoteSer
-   *
-   * @param contract DataContract which contains all the type, market info for this source
-   * @param ser the Ser that will be filled by this server
-   * @param chairSers
+   * @param afterThisTime When afterThisTime equals ANCIENT_TIME, you should process this condition.
+   *        contracts
+   * @return TVals, if you want to manually call postRefresh during loadFromSource, just return an empty Array
    */
+  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[C]): Array[V]
+
+  protected def postRefresh(values: Array[V]): Long = loadedTime
+  def startRefresh {refreshable = true}
+  def stopRefresh {refreshable = false}
+
+  // ----- subscribe/unsubscribe is used for refresh only
+
   def subscribe(contract: C): Unit = subscribingMutex synchronized {
-    _subscribedContracts.add(contract)
-    _subscribedSymbolToContract.put(contract.srcSymbol, contract)
-  }
-  
-  def unSubscribe(contract: C): Unit = subscribingMutex synchronized {
-    cancelRequest(contract)
-    _subscribedContracts -= contract
-    _subscribedSymbolToContract -= contract.srcSymbol
+    _refreshableContracts += contract
+    _refreshableSymbolToContract += contract.srcSymbol -> contract
   }
 
-  def subscribedContracts  = _subscribedContracts
-  def subscribedSrcSymbols = _subscribedSymbolToContract
+  def unsubscribe(contract: C): Unit = subscribingMutex synchronized {
+    cancelRequest(contract)
+    _refreshableContracts -= contract
+    _refreshableSymbolToContract -= contract.srcSymbol
+  }
+
+  def subscribedContracts  = _refreshableContracts
+  def subscribedSrcSymbols = _refreshableSymbolToContract
 
   def isContractSubsrcribed(contract: C): Boolean = {
-    _subscribedContracts contains contract
+    _refreshableContracts contains contract
   }
 
   def isSymbolSubscribed(srcSymbol: String): Boolean = {
-    _subscribedSymbolToContract contains srcSymbol
+    _refreshableSymbolToContract contains srcSymbol
+  }
+
+  /**
+   * @TODO
+   * temporary method? As in some data feed, the symbol is not unique,
+   * it may be same in different exchanges with different secType.
+   */
+  def contractOf(symbol: String): Option[C] = {
+    _refreshableSymbolToContract.get(symbol)
   }
 
   def createNewInstance: Option[DataServer[V]] = {
@@ -216,8 +210,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
       Option(instance)
     } catch {
-      case ex: InstantiationException => ex.printStackTrace; None
-      case ex: IllegalAccessException => ex.printStackTrace; None
+      case ex: InstantiationException => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: IllegalAccessException => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
   }
 
@@ -259,7 +253,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   /** @Note DateFormat is not thread safe, so we always return a new instance */
   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-    val pattern = currentContract.get.dateFormatPattern getOrElse defaultDateFormatPattern
+    val pattern = defaultDateFormatPattern
     val dateFormat = new SimpleDateFormat(pattern)
     dateFormat.setTimeZone(timeZone)
     dateFormat
@@ -285,15 +279,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
      */
   }
 
-  /**
-   * @TODO
-   * temporary method? As in some data feed, the symbol is not unique,
-   * it may be same in different exchanges with different secType.
-   */
-  def contractOf(symbol: String): Option[C] = {
-    _subscribedSymbolToContract.get(symbol)
-  }
-
   protected def isAscending(values: Array[V]): Boolean = {
     val size = values.length
     if (size <= 1) {
@@ -312,25 +297,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     }
   }
 
-  protected def currentContract: Option[C] = {
-    /**
-     * simplely return the contract currently in the front
-     * @Todo, do we need to implement a scheduler in case of multiple contract?
-     * Till now, only QuoteDataServer call this method, and they all use the
-     * per server per contract approach.
-     */
-    _subscribedContracts.headOption
-  }
-
-
   protected def cancelRequest(contract: C) {}
-
-  /**
-   * @param afterThisTime. when afterThisTime equals ANCIENT_TIME, you should
-   *        process this condition.
-   * @return TVals, if you want to manually call postRefresh during loadFromSource, just return an empty Array
-   */
-  protected def loadFromSource(afterThisTime: Long): Array[V]
 
   override def compare(another: DataServer[V]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {

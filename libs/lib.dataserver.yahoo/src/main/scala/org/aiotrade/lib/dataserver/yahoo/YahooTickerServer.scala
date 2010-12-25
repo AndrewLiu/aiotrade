@@ -38,6 +38,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
@@ -222,7 +223,7 @@ object YahooTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
+  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[TickerContract]): Array[Ticker] = {
     if (subscribedContracts.isEmpty) return EmptyValues
     
     val symbols = subscribedContracts map (_.srcSymbol) toArray
@@ -241,7 +242,7 @@ object YahooTickerServer extends TickerServer {
             case Some(is) =>
               val tickers = read(is)
               loadedTime = postRefresh(tickers)
-            case None => log.info("no reponse for :" +toProcess.mkString(","))
+            case None => log.info("no reponse for :" + toProcess.mkString(","))
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
       }

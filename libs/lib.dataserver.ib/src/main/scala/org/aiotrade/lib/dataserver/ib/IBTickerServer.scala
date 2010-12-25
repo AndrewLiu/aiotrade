@@ -121,7 +121,7 @@ object IBTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long): Array[Ticker] = {
+  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[TickerContract]): Array[Ticker] = {
     fromTime = afterThisTime + 1
         
     if (!connect) {

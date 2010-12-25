@@ -97,10 +97,10 @@ class YahooQuoteServer extends QuoteServer {
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request(fromTime: Long): Option[InputStream] = {
+  protected def request(fromTime: Long, contracts: Iterable[QuoteContract]): Option[InputStream] = {
     val cal = Calendar.getInstance
 
-    contract = currentContract match {
+    contract = contracts.headOption match {
       case Some(x: QuoteContract) => x
       case _ => return None
     }
@@ -222,11 +222,11 @@ class YahooQuoteServer extends QuoteServer {
     quotes.toArray
   }
 
-  protected def loadFromSource(afterThisTime: Long): Array[Quote] = {
+  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[QuoteContract]): Array[Quote] = {
     fromTime = afterThisTime + 1
 
     try {
-      request(fromTime) match {
+      request(fromTime, contracts) match {
         case Some(is) => return read(is)
         case None =>
       }

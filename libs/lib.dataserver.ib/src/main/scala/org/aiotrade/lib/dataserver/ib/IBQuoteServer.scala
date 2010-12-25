@@ -70,8 +70,6 @@ class IBQuoteServer extends QuoteServer {
   private val maxDurationInWeeks   = 54
   private val maxDurationInYears   = 1
     
-  private lazy val contract: QuoteContract = currentContract.get
-    
   protected def connect: Boolean = {
     if (!ibWrapper.isConnected) {
       ibWrapper.connect
@@ -81,7 +79,7 @@ class IBQuoteServer extends QuoteServer {
   }
 
   @throws(classOf[Exception])
-  protected def request {
+  protected def request(contract: QuoteContract) {
     val cal = Calendar.getInstance
         
     val storage = new ArrayList[Quote]
@@ -214,7 +212,7 @@ class IBQuoteServer extends QuoteServer {
   }
 
   @throws(classOf[Exception])
-  protected def read: Array[Quote] = {
+  protected def read(contract: QuoteContract): Array[Quote] = {
     /**
      * Don't try <code>synchronized (storage) {}<code>, synchronized (this)
      * instead. Otherwise, the ibWrapper can not process storage during the
@@ -249,7 +247,7 @@ class IBQuoteServer extends QuoteServer {
     ibWrapper.cancelHisDataRequest(contract.reqId)
   }
     
-  protected def loadFromSource(afterThisTime: Long): Array[Quote] = {
+  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[QuoteContract]): Array[Quote] = {
     fromTime = afterThisTime + 1
         
     var loadedTime1 = loadedTime
@@ -257,8 +255,8 @@ class IBQuoteServer extends QuoteServer {
       return EmptyValues
     }
     try {
-      request
-      return read
+      request(contracts.head)
+      return read(contracts.head)
     } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)}
         
     EmptyValues

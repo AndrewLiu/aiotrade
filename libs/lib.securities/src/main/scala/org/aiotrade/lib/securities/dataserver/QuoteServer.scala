@@ -59,11 +59,11 @@ abstract class QuoteServer extends DataServer[Quote] {
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
-  override protected def postLoadHistory(quotes: Array[Quote]): Long = {
+  override protected def postLoadHistory(quotes: Array[Quote], contracts: Iterable[QuoteContract]): Long = {
     var frTime = loadedTime
     var toTime = loadedTime
 
-    currentContract match {
+    contracts.headOption match {
       case Some(c) =>
         val contract = c
         val uniSymbol = toUniSymbol(contract.srcSymbol)
@@ -102,9 +102,7 @@ abstract class QuoteServer extends DataServer[Quote] {
         }
 
         if (contract.refreshable) {
-          startRefresh(contract.refreshInterval)
-        } else {
-          unSubscribe(contract)
+          startRefresh
         }
       case None => 
     }
@@ -115,7 +113,7 @@ abstract class QuoteServer extends DataServer[Quote] {
   override protected def postRefresh(quotes: Array[Quote]): Long = {
     var lastTime = loadedTime
 
-    currentContract match {
+    subscribedContracts.headOption match {
       case Some(c) =>
         val contract = c
         val uniSymbol = toUniSymbol(contract.srcSymbol)

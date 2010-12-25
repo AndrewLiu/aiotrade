@@ -108,7 +108,7 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     updatedEvents
   }
 
-  override protected def postLoadHistory(values: Array[QuoteInfo]): Long = {
+  override protected def postLoadHistory(values: Array[QuoteInfo], contracts: Iterable[QuoteInfoContract]): Long = {
     val events = composeSer(values)
     var lastTime = Long.MinValue
     events foreach {
