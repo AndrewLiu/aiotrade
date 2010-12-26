@@ -362,9 +362,10 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     // batch save to db
 
+    val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
     log.info("Going to save to db ...")
     var willCommit = false
-    val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
+    var start = System.currentTimeMillis
     if (tickersLastToInsert.length > 0) {
       TickersLast.insertBatch_!(tickersLastToInsert.toArray)
       willCommit = true
@@ -373,25 +374,22 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
       willCommit = true
     }
-
     if (willCommit) {
-      log.info("Committing: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
+      log.info("Saving tickersLast used " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
     }
 
     if (isServer) {
+      start = System.currentTimeMillis
       if (allTickers.length > 0) {
         Tickers.insertBatch_!(allTickers.toArray)
         willCommit = true
       }
-
       if (allExecutions.length > 0) {
         Executions.insertBatch_!(allExecutions.toArray)
         willCommit = true
       }
-
       if (willCommit) {
-        log.info("Committing: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
-//        allTickers.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Will commit " + ticker)}}
+        log.info("Saving Tickers/Executions used " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
       }
     }
 
@@ -415,7 +413,6 @@ abstract class TickerServer extends DataServer[Ticker] {
     // publish events
     if (allTickers.length > 0) {
       TickerServer.publish(TickersEvent(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
-//      allTickers.foreach(t => if(t.symbol == "399001.SZ"){log.info("Published " + t.symbol + ": " + t)})
     }
 
     lastTime
