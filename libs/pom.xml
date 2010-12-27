@@ -137,6 +137,7 @@
                     <jvmArgs>
                         <jvmArg>-Xms64m</jvmArg>
                         <jvmArg>-Xmx512m</jvmArg>
+                        <jvmArg>-Xss64m</jvmArg>
                     </jvmArgs>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
