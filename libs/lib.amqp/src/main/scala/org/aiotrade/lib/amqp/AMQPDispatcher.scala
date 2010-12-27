@@ -20,14 +20,14 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 /**
- * @Note we use plain sync Publisher/Reactor instead of actor based async model here, because:
+ * @Note If we use plain sync Publisher/Reactor instead of actor based async model, it will because:
  * 1. It seems that when actor model is mixed with a hard coded thread (AMQPConnection has a MainLoop thread),
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
+import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.reactors.Event
-import org.aiotrade.lib.util.reactors.Publisher
-import org.aiotrade.lib.util.reactors.Reactor
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 /*_ rabbitmqctl common usages:
