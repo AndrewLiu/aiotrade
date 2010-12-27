@@ -42,7 +42,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   override def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
 
-    val consumer = new AMQPConsumer(channel) {
+    val consumer = new AMQPConsumer(channel, true) {
       override def handleShutdownSignal(consumerTag: String, signal: ShutdownSignalException) {
         continuationMap synchronized {
           for ((_, syncVar) <- continuationMap) {
@@ -52,11 +52,10 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
       }
     }
 
-    // autoAck - true if the server should consider messages acknowledged once delivered;
+    // autoAck - true  if the server should consider messages acknowledged once delivered;
     //           false if the server should expect explicit acknowledgements
-    // since AMQPConsumer will call channel.basicAck(env.getDeliveryTag, false) always,
-    // we need to set 'autoAck' to false
-    channel.basicConsume(replyQueue, false, consumer)
+    // When consumer.isAutoAck == true, AMQPConsumer will call channel.basicAck(env.getDeliveryTag, false)
+    channel.basicConsume(replyQueue, consumer.isAutoAck, consumer)
     Some(consumer)
   }
 

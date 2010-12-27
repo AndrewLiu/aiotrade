@@ -59,8 +59,8 @@ class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, 
     channel.queueDeclare(queue, true, false, false, null)
     channel.queueBind(queue, exchange, routingKey)
     
-    val consumer = new AMQPConsumer(channel)
-    channel.basicConsume(queue, consumer)
+    val consumer = new AMQPConsumer(channel, false)
+    channel.basicConsume(queue, consumer.isAutoAck, consumer)
     Some(consumer)
   }
 

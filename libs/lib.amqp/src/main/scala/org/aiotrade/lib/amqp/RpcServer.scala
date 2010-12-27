@@ -60,12 +60,15 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
 
   @throws(classOf[IOException])
   override def configure(channel: Channel): Option[Consumer] = {
+    // Set prefetchCount to 1, so the requestQueue can be shared and balanced by lots of rpc servers on 1 message each time behavior
+    channel.basicQos(1)
+
     if (exchange != AMQPExchange.defaultDirect) channel.exchangeDeclare(exchange, "direct")
 
     RpcServer.declareQueue(channel, exchange, List(requestQueue))
 
-    val consumer = new AMQPConsumer(channel)
-    channel.basicConsume(requestQueue, consumer)
+    val consumer = new AMQPConsumer(channel, false)
+    channel.basicConsume(requestQueue, consumer.isAutoAck, consumer)
     Some(consumer)
   }
 

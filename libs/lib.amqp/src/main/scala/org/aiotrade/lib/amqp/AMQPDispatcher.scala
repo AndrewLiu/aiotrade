@@ -289,7 +289,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  class AMQPConsumer(channel: Channel) extends DefaultConsumer(channel) {
+  class AMQPConsumer(channel: Channel, val isAutoAck: Boolean) extends DefaultConsumer(channel) {
     private val log = Logger.getLogger(this.getClass.getName)
 
     // When this is non-null the queue is in shutdown mode and nextDelivery should
@@ -301,8 +301,21 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
 
     @throws(classOf[IOException])
-    override def handleDelivery(tag: String, env: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
-      import ContentType._
+    override def handleDelivery(tag: String, envelope: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
+      // If needs ack, do it right now to avoid the queue on server is blocked.
+      // @Note: when autoAck is set false, messages will be blocked until an ack to broker,
+      // so should ack it. (Although prefetch may deliver more than one message to consumer)
+      if (!isAutoAck) {
+        try {
+          // Params:
+          //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
+          //   multiple - true  to acknowledge all messages up to and including the supplied delivery tag;
+          //              false to acknowledge just the supplied delivery tag.
+          channel.basicAck(envelope.getDeliveryTag, false)
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+      }
 
       log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
@@ -312,6 +325,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case _ => body
       }
 
+      import ContentType._
       val contentType = props.getContentType match {
         case null | "" => JAVA_SERIALIZED_OBJECT
         case x => ContentType(x)
@@ -329,21 +343,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         publish(AMQPMessage(content, props))
         //log.info("Fired amqp message: " + content)
        
-        // Parameters:
-        //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
-        //   multiple - true to acknowledge all messages up to and including the supplied delivery tag;
-        //              false to acknowledge just the supplied delivery tag.
-        //
-        // if autoAck is set false, messages will be blocked until an ack to broker,
-        // so it's better always ack it. (Although prefetch may deliver more than
-        // one message to consumer)
-        channel.basicAck(env.getDeliveryTag, false)
         //log.info(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
+
     }
   }
 
@@ -360,7 +366,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       (new Thread(consumerRunner)).start
     }
   }
-  class QueueingConsumer(channle: Channel) extends DefaultConsumer(channle) {
+  class QueueingConsumer(channel: Channel, val isAutoAck: Boolean) extends DefaultConsumer(channel) {
 
     private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
 
@@ -380,6 +386,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
                                 body: Array[Byte]
     ) {
       checkShutdown
+
+      if (!isAutoAck) {
+        try {
+          // Params:
+          //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
+          //   multiple - true  to acknowledge all messages up to and including the supplied delivery tag;
+          //              false to acknowledge just the supplied delivery tag.
+          channel.basicAck(envelope.getDeliveryTag, false)
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+      }
+
       log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       this._queue.add(Delivery(body, props, envelope))
@@ -439,7 +458,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
     def relay(delivery: Delivery) {
       delivery match {
-        case Delivery(body, props, env) =>
+        case Delivery(body, props, envelope) =>
           val body1 = props.getContentEncoding match {
             case "gzip" => ungzip(body)
             case "lzma" => unlzma(body)
@@ -463,8 +482,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
             publish(AMQPMessage(content, props))
           } catch {
             // should catch it when old version classes were sent by old version of clients.
-            case e: InvalidClassException =>
-            case _ =>
+            case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
+            case ex => log.log(Level.WARNING, ex.getMessage, ex)
           }
         case _ =>
       }
