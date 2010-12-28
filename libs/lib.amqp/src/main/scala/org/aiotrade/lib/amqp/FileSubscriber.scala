@@ -8,7 +8,7 @@ import java.util.logging.Logger
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 
-object FileConsumer {
+object FileSubscriber {
 
   // --- simple test
   def main(args: Array[String]) {
@@ -31,20 +31,20 @@ object FileConsumer {
 
     for (i <- 0 until 5) {
       val queuei = queue + i
-      val consumer = new FileConsumer(factory,
-                                      exchange,
-                                      queuei,
-                                      routingKey,
-                                      outputDirPath)
+      val subscriber = new FileSubscriber(factory,
+                                          exchange,
+                                          queuei,
+                                          routingKey,
+                                          outputDirPath)
       
-      new consumer.SafeProcessor
-      consumer.connect
+      new subscriber.SafeProcessor
+      subscriber.connect
     }
   }
 
 }
 
-class FileConsumer(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, outputDirPath: String
+class FileSubscriber(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, outputDirPath: String
 ) extends AMQPDispatcher(factory, exchange) {
   val outputDir = new File(outputDirPath)
   if (!outputDir.exists) {

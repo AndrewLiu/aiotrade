@@ -13,11 +13,11 @@ import java.util.HashMap
 import java.util.Map
 import org.aiotrade.lib.amqp.datatype.ContentType
 
-object FileProducer {
+object FilePublisher {
 
   // --- simple test
   def main(args: Array[String]) {
-    val nConsumers = 5
+    val nSubscribers = 5
 
     val host = "localhost"
     val port = 5672
@@ -34,16 +34,16 @@ object FileProducer {
     factory.setVirtualHost("/")
     factory.setRequestedHeartbeat(0)
 
-    val producer = new FileProducer(factory, exchange, queue, routingKey, nConsumers)
-    producer.connect
+    val publisher = new FilePublisher(factory, exchange, queue, routingKey, nSubscribers)
+    publisher.connect
     val files = List(new File("pom.xml"), new File("src/test/resources/testfile.txt"))
 
-    producer.sendFiles(files)
+    publisher.sendFiles(files)
     System.exit(0)
   }
 }
 
-class FileProducer(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, nConsumers: Int
+class FilePublisher(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, nConsumers: Int
 ) extends AMQPDispatcher(factory, exchange) {
 
   def this(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String) = {
