@@ -198,11 +198,7 @@ class Installer extends ModuleInstall {
     val start = System.currentTimeMillis
     log.info("Create symbols node files from db ...")
 
-    val config = org.aiotrade.lib.util.config.Config()
-    val activeExchanges = config.getList("market.exchanges") match {
-      case Seq() => Exchange.allExchanges
-      case xs => xs flatMap {x => Exchange.withCode(x)}
-    }
+    val activeExchanges = Exchange.activeExchanges
 
     // add symbols to exchange folder
     val dailyQuoteContract = createQuoteContract

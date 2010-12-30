@@ -375,7 +375,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       willCommit = true
     }
     if (willCommit) {
-      log.info("Saving tickersLast used " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
+      log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
     }
 
     if (isServer) {

@@ -778,16 +778,16 @@ class Sec extends SerProvider with Ordered[Sec] {
     quoteInfoServer != null && quoteInfoServer.isContractSubsrcribed(quoteInfoContract)
   }
 
-  override def equals(another: Any) = another match {
+  override def equals(that: Any) = that match {
     case x: Sec => this.uniSymbol == x.uniSymbol
     case _ => false
   }
 
   override def hashCode = this.uniSymbol.hashCode
 
-  def compare(another: Sec): Int = {
-    this.exchange.compare(another.exchange) match {
-      case 0 => (this.uniSymbol, another.uniSymbol) match {
+  def compare(that: Sec): Int = {
+    this.exchange.compare(that.exchange) match {
+      case 0 => (this.uniSymbol, that.uniSymbol) match {
           case ("-", "-") => 0
           case ("-",  _ ) => -1
           case (_  , "-") => 1

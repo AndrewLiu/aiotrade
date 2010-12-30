@@ -43,39 +43,27 @@ object Exchange extends Publisher {
 
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
+  private val config = org.aiotrade.lib.util.config.Config()
 
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
 
-  lazy val allExchanges = {
-    val xs = Exchanges.all()
-    xs foreach {x => log.info("Exchange: " + x)}
-    xs
-  }
-  lazy val codeToExchange = allExchanges map (x => (x.code -> x)) toMap
 
-  lazy val exchangeToSecs = {
-    allExchanges map (x => (x -> Exchanges.secsOf(x))) toMap
-  }
+  // ----- search tables
+  private var _allExchanges: Seq[Exchange] = Nil
+  private var _codeToExchange = Map[String, Exchange]()
+  private var _exchangeToSecs = Map[Exchange, Seq[Sec]]()
+  private var _exchangeToUniSymbols = Map[Exchange, Seq[String]]()
+  private var _uniSymbolToSec = Map[String, Sec]()
+  private var _activeExchanges: Seq[Exchange] = Nil
 
-  lazy val exchangeToUniSymbols = {
-    exchangeToSecs map {m =>
-      val syms = ListBuffer[String]()
-      m._2 foreach {sec =>
-        if (sec.secInfo == null)
-          log.warning("secInfo of sec " + sec + " is null")
-        else
-          syms += sec.secInfo.uniSymbol
-      }
-      log.info("Symbols number of " + m._1.code + " is " + syms.size)
-      m._1 -> syms.toList
-    } toMap
-  }
+  // Init all searching tables
+  allExchanges = Exchanges.all()
 
-  lazy val uniSymbolToSec = {
-    exchangeToSecs flatMap {m =>
-      m._2 filter (_.secInfo != null) map (x => x.secInfo.uniSymbol -> x)
-    } toMap
+  // Init active exchanges
+  activeExchanges = config.getList("market.exchanges") match {
+    case Seq() => allExchanges
+    case xs => xs flatMap {x => Exchange.withCode(x)}
   }
 
   lazy val N  = withCode("N" ).get
@@ -85,6 +73,44 @@ object Exchange extends Publisher {
   lazy val HK = withCode("HK").get
   lazy val OQ = withCode("OQ").get
 
+  def allExchanges = _allExchanges
+  def allExchanges_=(allExchanges: Seq[Exchange]) {
+    _allExchanges = allExchanges
+
+    _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
+
+    _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
+
+    _exchangeToUniSymbols = Map() ++ (_exchangeToSecs map {m =>
+        val syms = ListBuffer[String]()
+        m._2 foreach {sec =>
+          if (sec.secInfo == null)
+            log.warning("secInfo of sec " + sec + " is null")
+          else
+            syms += sec.secInfo.uniSymbol
+        }
+        (m._1, syms.toList)
+      }
+    )
+    
+    _uniSymbolToSec = Map() ++ (_exchangeToSecs flatMap {m =>
+        m._2 filter (_.secInfo != null) map (x => (x.secInfo.uniSymbol, x))
+      }
+    )
+  }
+
+  def activeExchanges = _activeExchanges
+  def activeExchanges_=(activeExchanges: Seq[Exchange]) {
+    _activeExchanges = activeExchanges
+  }
+
+  def codeToExchange = _codeToExchange
+  def exchangeToSecs = _exchangeToSecs
+  def exchangeToUniSymbols = _exchangeToUniSymbols
+  def uniSymbolToSec = _uniSymbolToSec
+
+  // ----- Major methods
+  
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
@@ -142,23 +168,9 @@ object Exchange extends Publisher {
   val CLOSE_QUOTE_DELAY_MINUTES = 2
 }
 
-abstract class TradingStatus {
-  def time: Long
-  def timeInMinutes: Int
-}
-object TradingStatus {
-  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Unknown(time: Long, timeInMinutes: Int) extends TradingStatus
-}
-
 import Exchange._
 class Exchange extends Ordered[Exchange] {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
   var code: String = "SS"
@@ -171,7 +183,7 @@ class Exchange extends Ordered[Exchange] {
   var secs: List[Sec] = Nil
   // --- end database fields
 
-  log.info("Create exchange: " + System.identityHashCode(this))
+  log.info("Create exchange: identityHashCode=" + System.identityHashCode(this))
 
   private var _tradingStatus: TradingStatus = TradingStatus.Unknown(-1, -1)
 
@@ -573,18 +585,18 @@ class Exchange extends Ordered[Exchange] {
   }
 
   override def toString: String = {
-    code + "(" + timeZone.getDisplayName + ")" + ", open/close: " + openCloseHMs.mkString("(", ",", ")")
+    code + "(" + timeZone.getDisplayName + ")" + ", open/close=" + openCloseHMs.mkString("(", ",", ")") + ", identityHashCode=" + System.identityHashCode(this)
   }
 
-  override def equals(another: Any) = another match {
+  override def equals(that: Any) = that match {
     case x: Exchange => this.code == x.code
     case _ => false
   }
 
   override def hashCode = this.code.hashCode
 
-  def compare(another: Exchange): Int = {
-    (this.code, another.code) match {
+  def compare(that: Exchange): Int = {
+    (this.code, that.code) match {
       case ("-", "-") => 0
       case ("-",  _ ) => -1
       case (_  , "-") => 1
@@ -595,3 +607,17 @@ class Exchange extends Ordered[Exchange] {
 
 }
 
+trait TradingStatus {
+  def time: Long
+  def timeInMinutes: Int
+}
+object TradingStatus {
+  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Unknown(time: Long, timeInMinutes: Int) extends TradingStatus
+}
