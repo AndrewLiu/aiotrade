@@ -230,7 +230,7 @@ class Installer extends ModuleInstall {
     val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
 
     quoteContract.freq = TFreq.DAILY
-    quoteContract.refreshable = false
+    quoteContract.isRefreshable = false
     quoteContract
   }
 

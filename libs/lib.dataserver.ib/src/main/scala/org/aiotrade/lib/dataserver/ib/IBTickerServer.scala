@@ -32,22 +32,24 @@ package org.aiotrade.lib.dataserver.ib
 
 import com.ib.client.Contract
 import java.util.TimeZone
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.model.Ticker
-
+import org.aiotrade.lib.util.Singleton
 
 /**
  *
  * @author Caoyuan Deng
  */
-object IBTickerServer extends TickerServer {
+object IBTickerServer extends TickerServer with Singleton {
+  private val log = Logger.getLogger(this.getClass.getName)
 
   def getSingleton = this
 
-  private lazy val ibWrapper = IBWrapper
+  private val ibWrapper = IBWrapper
     
   protected def connect: Boolean = {
     if (!ibWrapper.isConnected) {
@@ -57,21 +59,21 @@ object IBTickerServer extends TickerServer {
     ibWrapper.isConnected
   }
     
-  /**
-   * Template:
-   * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
-   */
-  @throws(classOf[Exception])
-  protected def request {
-    for (contract <- subscribedContracts if !ibWrapper.isMktDataRequested(contract.reqId)) {
+  override protected def cancelRequest(contract: TickerContract) {
+    val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
+    tickerSnapshot.removeObservers
+    ibWrapper.cancelMktDataRequest(contract.reqId)
+  }
+
+  private def request(fromTime: Long, contracts: Iterable[TickerContract]) {
+    for (contract <- contracts if !ibWrapper.isMktDataRequested(contract.reqId)) {
       /** request seems lost, re-request */
       var m_rc = false
       var m_marketDepthRows = 0
       val m_contract = new Contract
-            
+
       m_rc = false
       try {
-                
         // set contract fields
         m_contract.m_symbol = contract.srcSymbol
         val sec = Exchange.secOf(contract.srcSymbol)
@@ -85,74 +87,43 @@ object IBTickerServer extends TickerServer {
         m_contract.m_primaryExch = "SUPERSOES"
         m_contract.m_currency = "USD"
         m_contract.m_localSymbol = ""
-                
+
         // set market depth rows
         m_marketDepthRows = 20
-      } catch {case ex: Exception => ex.printStackTrace; return}
+      } catch {
+        case ex: Exception => ex.printStackTrace; return
+      }
       m_rc = true
-            
+
       val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
       val reqId = ibWrapper.reqMktData(this, m_contract, tickerSnapshot)
       contract.reqId = reqId
     }
   }
 
-  @throws(classOf[Exception])
-  protected def read {
-    val tickers = ibWrapper.tickers
-    var res: Array[Ticker] = null
-    tickers synchronized {
-      res = tickers.toArray
-      tickers.clear
-    }
-    loadedTime = postRefresh(res)
-  }
+  protected def requestData(afterThisTime: Long, contracts: Iterable[TickerContract]) {
+    if (!connect) return
 
-  override protected def cancelRequest(contract: TickerContract) {
-    val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
-    tickerSnapshot.removeObservers
-    ibWrapper.cancelMktDataRequest(contract.reqId)
-  }
-    
-  /**
-   * Retrive data from Yahoo finance website
-   * Template:
-   * http://quote.yahoo.com/download/javasoft.beans?symbols=^HSI+YHOO+SUMW&&format=sl1d1t1c1ohgvbap
-   *
-   * @param afterThisTime from time
-   */
-  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[TickerContract]): Array[Ticker] = {
-    fromTime = afterThisTime + 1
-        
-    if (!connect) {
-      return EmptyValues
-    }
+    val fromTime = afterThisTime + 1
+    request(fromTime, contracts)
     
     try {
-      request
-      read
-    } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)
+      val tickers = ibWrapper.tickers
+      tickers synchronized {
+        if (tickers.length > 0) {
+          publish(DataLoaded(tickers.toArray, null))
+        }
+        tickers.clear
+      }
+    } catch {
+      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
-        
-    EmptyValues
   }
     
-  override def createNewInstance: Option[TickerServer] = Some(this)
-    
-  def displayName = {
-    "IB TWS"
-  }
-    
-  def defaultDateFormatPattern = {
-    "yyyyMMdd HH:mm:ss"
-  }
-    
-  def sourceSerialNumber = 6
-
-  def sourceTimeZone: TimeZone = {
-    TimeZone.getTimeZone("America/New_York")
-  }
-
+  val displayName = "IB TWS"
+  val defaultDatePattern = "yyyyMMdd HH:mm:ss"
+  val serialNumber = 6
+  val sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 }
 
 

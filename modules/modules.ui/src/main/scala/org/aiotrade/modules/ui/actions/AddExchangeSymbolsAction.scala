@@ -82,7 +82,7 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
 
     quoteContract.freq = TFreq.DAILY
 
-    quoteContract.refreshable = false
+    quoteContract.isRefreshable = false
     
     quoteContract
   }

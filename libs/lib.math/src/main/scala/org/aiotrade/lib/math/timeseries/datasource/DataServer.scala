@@ -52,8 +52,10 @@ import scala.collection.mutable.HashSet
  */
 object DataServer extends Publisher {
   private lazy val DEFAULT_ICON: Option[Image] = {
-    val url = classOf[DataServer[_]].getResource("defaultIcon.gif")
-    if (url != null) Some(Toolkit.getDefaultToolkit.createImage(url)) else None
+    classOf[DataServer[_]].getResource("defaultIcon.gif") match {
+      case null => None
+      case url => Some(Toolkit.getDefaultToolkit.createImage(url))
+    }
   }
 
   private val config = org.aiotrade.lib.util.config.Config()
@@ -82,116 +84,123 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   private val log = Logger.getLogger(this.getClass.getName)
 
-  val ANCIENT_TIME: Long = Long.MinValue
+  protected val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
   //private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  private val _refreshableContracts = new HashSet[C]
+  private val _refreshContracts = new HashSet[C]
   /** a quick seaching map */
-  private val _refreshableSymbolToContract = new HashMap[String, C]
+  private val _refreshSymbolToContract = new HashMap[String, C]
   // --- Above maps should be created once here, since server may be singleton
 
-  protected var count: Int = 0
   protected var loadedTime: Long = _
-  protected var fromTime: Long = _
 
-  var refreshable = false
+  private var isRefreshable = false
+  private var inLoading: Boolean = _
 
-  // --- a proxy actor for HeartBeat event etc, which will detect the speed of
-  // refreshing requests, if consumer can not catch up the producer, will drop some requests.
-  // We here also avoid concurrent racing risk of Refresh/LoadHistory requests @see reactions += {...
-  private case object Stop extends Event
   private case object Refresh extends Event
-  private case class LoadHistory(afterTime: Long, contracts: Iterable[C]) extends Event
-  private var inRefreshing: Boolean = _
-  private lazy val loadActor = new scala.actors.Reactor[Event] {
-    start
-    
-    def act = loop {
-      react {
-        case Refresh =>
-          try {
-            //log.info("loadActor Received Refresh message")
-            inRefreshing = true
-            val values = loadFromSource(loadedTime, subscribedContracts)
-            if (values.length > 0) {
-              loadedTime = postRefresh(values)
-            }
-            //log.info("loadActor Finished Refresh")
-            inRefreshing = false
-          } catch {
-            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
-          }
-
-        case LoadHistory(afterTime, contracts: Iterable[C]) =>
-          try {
-            log.info("loadActor received LoadHistory message")
-            val values = loadFromSource(afterTime, contracts)
-            loadedTime = postLoadHistory(values, contracts)
-          } catch {
-            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
-          }
-          
-        case Stop => exit
-        case _ =>
-      }
-    }
-  }
+  private case class LoadData(afterTime: Long, contract: Iterable[C]) extends Event
+  protected case class DataLoaded(values: Array[V], contract: C) extends Event
+  protected case object SerComposed extends Event
 
   reactions += {
-    case HeartBeat(interval) if refreshable && !inRefreshing =>
-      loadActor ! Refresh
-    case HeartBeat(_) => // should match this to avoid MatchError
+    // --- a proxy actor for HeartBeat event etc, which will detect the speed of
+    // refreshing requests, if consumer can not catch up the producer, will drop some requests.
+    // We here also avoid concurrent racing risk of Refresh/LoadHistory requests @see reactions += {...
+    case HeartBeat(interval) =>
+      if (isRefreshable && !inLoading) {
+        publish(Refresh)
+      }
+      
+    case Refresh =>
+      //log.info("Received Refresh event")
+      inLoading = true
+      try {
+        requestData(loadedTime, subscribedContracts)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
+      inLoading = false
+      //log.info("Finished Refresh")
+
+    case LoadData(afterTime, contracts) =>
+      log.info("Received LoadData event")
+      inLoading = true
+      try {
+        requestData(afterTime, contracts)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
+      inLoading = false
+
+    case DataLoaded(values, contract) =>
+      log.info("Received DataLoaded event")
+      inLoading = true
+      try {
+        loadedTime = composeSer(values, contract)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
+      inLoading = false
+      
+      publish(SerComposed)
   }
 
   listenTo(DataServer)
 
   // --- public interfaces
 
-  def loadHistory(afterTime: Long, contracts: Iterable[C]) {
-    log.info("Fired LoadHistory message to loadActor")
+  def loadData(afterTime: Long, contracts: Iterable[C]) {
+    log.info("Fired LoadData message")
     /**
      * Transit to async load reactor to avoid shared variable lock (loadedTime etc)
      */
-    loadActor ! LoadHistory(afterTime, contracts)
+    publish(LoadData(afterTime, contracts))
   }
 
-  protected def postLoadHistory(values: Array[V], contracts: Iterable[C]): Long = loadedTime
-
   /**
+   * Implement this method to request data from data source.
+   * It should fire DataLoaded event
+   *
    * @param afterThisTime When afterThisTime equals ANCIENT_TIME, you should process this condition.
    *        contracts
-   * @return TVals, if you want to manually call postRefresh during loadFromSource, just return an empty Array
+   * @publish DataLoaded
    */
-  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[C]): Array[V]
+  protected def requestData(afterThisTime: Long, contracts: Iterable[C])
+  
+  /**
+   * @param values the TVal values
+   * @param contract could be null
+   * @return loadedTime
+   */
+  protected def composeSer(values: Array[V], contract: C): Long
 
-  protected def postRefresh(values: Array[V]): Long = loadedTime
-  def startRefresh {refreshable = true}
-  def stopRefresh {refreshable = false}
+  def startRefresh {isRefreshable = true}
+  def stopRefresh {isRefreshable = false}
 
   // ----- subscribe/unsubscribe is used for refresh only
 
   def subscribe(contract: C): Unit = subscribingMutex synchronized {
-    _refreshableContracts += contract
-    _refreshableSymbolToContract += contract.srcSymbol -> contract
+    _refreshContracts += contract
+    _refreshSymbolToContract += contract.srcSymbol -> contract
   }
 
   def unsubscribe(contract: C): Unit = subscribingMutex synchronized {
     cancelRequest(contract)
-    _refreshableContracts -= contract
-    _refreshableSymbolToContract -= contract.srcSymbol
+    _refreshContracts -= contract
+    _refreshSymbolToContract -= contract.srcSymbol
   }
 
-  def subscribedContracts  = _refreshableContracts
-  def subscribedSrcSymbols = _refreshableSymbolToContract
+  def subscribedContracts  = _refreshContracts
+  def subscribedSrcSymbols = _refreshSymbolToContract
 
   def isContractSubsrcribed(contract: C): Boolean = {
-    _refreshableContracts contains contract
+    _refreshContracts contains contract
   }
 
   def isSymbolSubscribed(srcSymbol: String): Boolean = {
-    _refreshableSymbolToContract contains srcSymbol
+    _refreshSymbolToContract contains srcSymbol
   }
 
   /**
@@ -199,33 +208,21 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * temporary method? As in some data feed, the symbol is not unique,
    * it may be same in different exchanges with different secType.
    */
-  def contractOf(symbol: String): Option[C] = {
-    _refreshableSymbolToContract.get(symbol)
-  }
-
-  def createNewInstance: Option[DataServer[V]] = {
-    try {
-      val instance = getClass.newInstance.asInstanceOf[DataServer[V]]
-      instance.init
-
-      Option(instance)
-    } catch {
-      case ex: InstantiationException => log.log(Level.SEVERE, ex.getMessage, ex); None
-      case ex: IllegalAccessException => log.log(Level.SEVERE, ex.getMessage, ex); None
-    }
+  def contractOf(srcSymbol: String): Option[C] = {
+    _refreshSymbolToContract.get(srcSymbol)
   }
 
   def displayName: String
-  def defaultDateFormatPattern: String
+  def defaultDatePattern: String
   def sourceTimeZone: TimeZone
   /**
    * @return serial number, valid only when >= 0
    */
-  def sourceSerialNumber: Int
+  def serialNumber: Int
 
   /**
    * Override it to return your icon
-   * @return a predifined image as the default icon
+   * @return an image as the data server icon
    */
   def icon: Option[Image] = DEFAULT_ICON
 
@@ -240,8 +237,8 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * ...
    * @return source id
    */
-  def sourceId: Long = {
-    val sn = sourceSerialNumber
+  def id: Long = {
+    val sn = serialNumber
     assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
     if (sn == 0) 0 else 1 << (sn - 1)
@@ -249,34 +246,12 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   // -- end of public interfaces
 
-  protected def init {}
-
   /** @Note DateFormat is not thread safe, so we always return a new instance */
   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-    val pattern = defaultDateFormatPattern
+    val pattern = defaultDatePattern
     val dateFormat = new SimpleDateFormat(pattern)
     dateFormat.setTimeZone(timeZone)
     dateFormat
-  }
-
-  protected def resetCount {
-    this.count = 0
-  }
-
-  protected def countOne {
-    this.count += 1
-
-    /*- @Reserve
-     * Don't do refresh in loading any more, it may cause potential conflict
-     * between connected refresh events (i.e. when processing one refresh event,
-     * another event occured concurrent.)
-     * if (count % 500 == 0 && System.currentTimeMillis() - startTime > 2000) {
-     *     startTime = System.currentTimeMillis();
-     *     preRefresh();
-     *     fireDataUpdateEvent(new DataUpdatedEvent(this, DataUpdatedEvent.Type.Refresh, newestTime));
-     *     System.out.println("refreshed: count " + count);
-     * }
-     */
   }
 
   protected def isAscending(values: Array[V]): Boolean = {

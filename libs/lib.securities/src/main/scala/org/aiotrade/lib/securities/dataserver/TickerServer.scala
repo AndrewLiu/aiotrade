@@ -103,14 +103,6 @@ abstract class TickerServer extends DataServer[Ticker] {
     val tickerSnapshot = sec.tickerSnapshot
   }
 
-  override protected def postLoadHistory(values: Array[Ticker], contracts: Iterable[TickerContract]): Long = {
-    composeSer(values)
-  }
-
-  override protected def postRefresh(values: Array[Ticker]): Long = {
-    composeSer(values)
-  }
-
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]
   private val allDepthSnaps = new ArrayList[DepthSnap]
@@ -160,7 +152,7 @@ abstract class TickerServer extends DataServer[Ticker] {
    * compose ser using data from Tickers
    * @param Tickers
    */
-  def composeSer(values: Array[Ticker]): Long = {
+  protected def composeSer(values: Array[Ticker], Contract: TickerContract): Long = {
     var lastTime = Long.MinValue
 
     log.info("Composing ser from tickers: " + values.length)

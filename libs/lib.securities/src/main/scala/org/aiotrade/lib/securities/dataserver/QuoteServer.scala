@@ -40,17 +40,11 @@ import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import ru.circumflex.orm._
 
-object QuoteServer {
-
-}
-
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
  *
  * @author Caoyuan Deng
  */
-import QuoteServer._
 abstract class QuoteServer extends DataServer[Quote] {
   type C = QuoteContract
 
@@ -59,83 +53,50 @@ abstract class QuoteServer extends DataServer[Quote] {
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
-  override protected def postLoadHistory(quotes: Array[Quote], contracts: Iterable[QuoteContract]): Long = {
+  protected def composeSer(quotes: Array[Quote], contract: QuoteContract): Long = {
     var frTime = loadedTime
     var toTime = loadedTime
 
-    contracts.headOption match {
-      case Some(c) =>
-        val contract = c
-        val uniSymbol = toUniSymbol(contract.srcSymbol)
-        val sec = Exchange.secOf(uniSymbol).get
-        log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
-        var i = 0
-        while (i < quotes.length) {
-          val quote = quotes(i)
-          quote.sec = sec
-          quote.unfromMe_!
-          frTime = math.min(quote.time, frTime)
-          toTime = math.max(quote.time, toTime)
+    val uniSymbol = toUniSymbol(contract.srcSymbol)
+    val sec = Exchange.secOf(uniSymbol).get
+    log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
+    var i = 0
+    while (i < quotes.length) {
+      val quote = quotes(i)
+      quote.sec = sec
+      quote.unfromMe_!
+      frTime = math.min(quote.time, frTime)
+      toTime = math.max(quote.time, toTime)
           
-          i += 1
-        }
+      i += 1
+    }
 
-        val ser = contract.freq match {
-          case TFreq.ONE_SEC => sec.realtimeSer
-          case x => sec.serOf(x).get
-        }
-        ser ++= quotes
+    val ser = contract.freq match {
+      case TFreq.ONE_SEC => sec.realtimeSer
+      case x => sec.serOf(x).get
+    }
+    ser ++= quotes
 
-        ser.publish(TSerEvent.Loaded(ser, uniSymbol, frTime, toTime))
+    ser.publish(TSerEvent.Loaded(ser, uniSymbol, frTime, toTime))
 
-        // save to db after published TSerEvent, so the chart showing won't be blocked
-        contract.freq match {
-          case TFreq.DAILY =>
-            Quotes1d.saveBatch(sec, quotes)
-            commit
-          case TFreq.ONE_MIN =>
-            Quotes1m.saveBatch(sec, quotes)
-            commit
-          case _ =>
-            // we won't save quote to quotes1m when contract.freq is ONE_SEC, so we can always keep
-            // quoteSer of 1min after loaded from db will not be blocked by this period of time.
-        }
+    // save to db after published TSerEvent, so the chart showing won't be blocked
+    contract.freq match {
+      case TFreq.DAILY =>
+        Quotes1d.saveBatch(sec, quotes)
+        commit
+      case TFreq.ONE_MIN =>
+        Quotes1m.saveBatch(sec, quotes)
+        commit
+      case _ =>
+        // we won't save quote to quotes1m when contract.freq is ONE_SEC, so we can always keep
+        // quoteSer of 1min after loaded from db will not be blocked by this period of time.
+    }
 
-        if (contract.refreshable) {
-          startRefresh
-        }
-      case None => 
+    if (contract.isRefreshable) {
+      startRefresh
     }
     
     toTime
-  }
-
-  override protected def postRefresh(quotes: Array[Quote]): Long = {
-    var lastTime = loadedTime
-
-    subscribedContracts.headOption match {
-      case Some(c) =>
-        val contract = c
-        val uniSymbol = toUniSymbol(contract.srcSymbol)
-        val sec = Exchange.secOf(uniSymbol).get
-        var i = 0
-        while (i < quotes.length) {
-          val quote = quotes(i)
-          quote.sec = sec
-          lastTime = math.max(quote.time, lastTime)
-          i += 1
-        }
-
-        val ser = contract.freq match {
-          case TFreq.ONE_MIN => sec.realtimeSer
-          case x => sec.serOf(x).get
-        }
-        ser ++= quotes
-      case None =>
-    }
-
-
-    lastTime
   }
 
   /**

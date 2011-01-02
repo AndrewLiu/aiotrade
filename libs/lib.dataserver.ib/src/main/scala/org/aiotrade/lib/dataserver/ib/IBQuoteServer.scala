@@ -28,16 +28,18 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.dataserver.ib;
+package org.aiotrade.lib.dataserver.ib
 
-import com.ib.client.Contract;
-import com.ib.client.Order;
-import java.awt.Image;
-import java.io.File;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
+import com.ib.client.Contract
+import com.ib.client.Order
+import java.awt.Image
+import java.io.File
+import java.io.IOException
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.imageio.ImageIO
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -46,6 +48,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.util.Singleton
 
 /**
  * TWS demo user/password
@@ -58,12 +61,12 @@ import org.aiotrade.lib.securities.model.Sec
  *
  * @author Caoyuan Deng
  */
-object IBQuoteServer {
-  val ibWrapper = IBWrapper
-}
+object IBQuoteServer extends QuoteServer with Singleton {
+  private val log = Logger.getLogger(this.getClass.getName)
 
-import IBQuoteServer._
-class IBQuoteServer extends QuoteServer {
+  def getSingleton = this
+
+  private val ibWrapper = IBWrapper
 
   private val maxDurationInSeconds = 86400 // 24 hours
   private val maxDurationInDays    = 365
@@ -79,7 +82,7 @@ class IBQuoteServer extends QuoteServer {
   }
 
   @throws(classOf[Exception])
-  protected def request(contract: QuoteContract) {
+  protected def request(fromTime: Long, contract: QuoteContract) {
     val cal = Calendar.getInstance
         
     val storage = new ArrayList[Quote]
@@ -193,7 +196,9 @@ class IBQuoteServer extends QuoteServer {
             
       // set market depth rows
       m_marketDepthRows = 20
-    } catch {case ex: Exception => ex.printStackTrace; return}
+    } catch {
+      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex); return
+    }
     
     m_rc = true
         
@@ -247,34 +252,25 @@ class IBQuoteServer extends QuoteServer {
     ibWrapper.cancelHisDataRequest(contract.reqId)
   }
     
-  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[QuoteContract]): Array[Quote] = {
-    fromTime = afterThisTime + 1
-        
-    var loadedTime1 = loadedTime
-    if (!connect) {
-      return EmptyValues
+  protected def requestData(afterThisTime: Long, contracts: Iterable[QuoteContract]) {
+    if (!connect) return
+
+    val fromTime = afterThisTime + 1
+    for (contract <- contracts) {
+      var loadedTime1 = loadedTime
+      try {
+        request(fromTime, contract)
+        val quotes = read(contract)
+        if (quotes.length > 0) {
+          publish(DataLoaded(quotes, contract))
+        }
+      } catch {
+        case ex: Exception => println("Error in loading from source: " + ex.getMessage)
+      }
     }
-    try {
-      request(contracts.head)
-      return read(contracts.head)
-    } catch {case ex: Exception => println("Error in loading from source: " + ex.getMessage)}
-        
-    EmptyValues
   }
     
-  def displayName = {
-    "IB TWS"
-  }
-    
-  def defaultDateFormatPattern = {
-    "yyyyMMdd HH:mm:ss"
-  }
-    
-  def sourceSerialNumber: Int = 6
-    
-  override def supportedFreqs = {
-    IBWrapper.getSupportedFreqs
-  }
+  override def supportedFreqs = IBWrapper.getSupportedFreqs
 
   override def icon: Option[Image] = {
     try {
@@ -282,9 +278,11 @@ class IBQuoteServer extends QuoteServer {
     } catch {case ex: IOException => None}
   }
 
-  override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
-
-  def classNameOfTickerServer = Some(IBTickerServer.getClass.getName)
+  val displayName = "IB TWS"
+  val defaultDatePattern = "yyyyMMdd HH:mm:ss"
+  val serialNumber = 6
+  val sourceTimeZone = TimeZone.getTimeZone("America/New_York")
+  val classNameOfTickerServer = Some(IBTickerServer.getClass.getName)
 
   /**
    * 1 1sec "<30;2000> S"

@@ -60,21 +60,19 @@ case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) extends Event {
 
 object QuoteInfoDataServer extends Publisher
 
-abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
+abstract class QuoteInfoDataServer extends DataServer[QuoteInfo] {
   type C = QuoteInfoContract
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val updatedEvents = new ArrayList[TSerEvent]
   private val allQuoteInfo = new ArrayList[QuoteInfoSnapshot]
 
-  refreshable = true
-  
-  protected def composeSer(values: Array[QuoteInfo]) : Seq[TSerEvent] = {
+  protected def composeSer(values: Array[QuoteInfo], contract: QuoteInfoContract): Long = {
     updatedEvents.clear
     allQuoteInfo.clear
-    count = 0
+    var count = 0
 
-    for (info <- values ; sec <- info.secs) {
+    for (info <- values; sec <- info.secs) {
       sec.infoPointSerOf(TFreq.ONE_MIN) match {
         case Some(minuteSer) => val event = minuteSer.updateFromNoFire(info)
           updatedEvents += event
@@ -106,12 +104,9 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
       QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
     }
     updatedEvents
-  }
 
-  override protected def postLoadHistory(values: Array[QuoteInfo], contracts: Iterable[QuoteInfoContract]): Long = {
-    val events = composeSer(values)
     var lastTime = Long.MinValue
-    events foreach {
+    updatedEvents foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
         //log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
@@ -120,19 +115,5 @@ abstract class QuoteInfoDataServer extends  DataServer[QuoteInfo] {
     }
     lastTime
   }
-
-  override protected def postRefresh(values: Array[QuoteInfo]): Long = {
-    val events = composeSer(values)
-    var lastTime = Long.MinValue
-    events foreach {
-      case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
-        source.publish(event)
-        //log.info(source + " publish event " + event)
-        lastTime = toTime
-      case _ =>
-    }
-    lastTime
-  }
-
 }
 

@@ -44,7 +44,7 @@ class QuoteContract extends DataContract[QuoteServer] {
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   /** default freq */
   freq = TFreq.DAILY
-  dateFormatPattern = Some("yyyy-MM-dd")
+  datePattern = Some("yyyy-MM-dd")
 
   def icon: Option[Image] =  {
     if (isServiceInstanceCreated) {
@@ -80,15 +80,4 @@ class QuoteContract extends DataContract[QuoteServer] {
   }
 
   override def displayName = "Quote Data Contract"
-
-  /**
-   * @param none args are needed.
-   */
-  override def createServiceInstance(args: Any*): Option[QuoteServer] = {
-    lookupServiceTemplate(classOf[QuoteServer], "DataServers") match {
-      case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteServer]]
-      case None => None
-    }
-  }
-
 }

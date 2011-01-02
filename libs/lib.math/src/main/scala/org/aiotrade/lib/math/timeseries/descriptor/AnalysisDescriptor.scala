@@ -50,7 +50,7 @@ import org.w3c.dom.Element
  */
 abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: String,
                                                private var _freq: TFreq,
-                                               private var _active: Boolean) extends WithActions {
+                                               private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -61,7 +61,7 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
   /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
   private var _serviceInstance: Option[_] = None
     
-  def this() {
+  def this()(implicit m: Manifest[S]) {
     this(null, TFreq.DAILY, false)
   }
             
@@ -117,7 +117,7 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
   def isServiceInstanceCreated: Boolean = {
     _serviceInstance.isDefined
   }
-    
+
   protected def createServiceInstance(args: Any*): Option[S]
 
   // --- helpers ---
@@ -126,7 +126,7 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
     val services = PersistenceManager().lookupAllRegisteredServices(tpe, folderName)
     services find {x =>
       val className = x.getClass.getName
-      className == serviceClassName || (className + "$") == serviceClassName
+      className == serviceClassName || className == (serviceClassName + "$") || (className + "$") == serviceClassName
     } match {
       case None =>
         try {
@@ -141,7 +141,8 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
             case _ => Option(klass.newInstance.asInstanceOf[S])
           }
         } catch {
-          case ex: Exception => log.log(Level.SEVERE, "Failed to call Class.forName of class: " + serviceClassName, ex)
+          case ex: Exception =>
+            log.log(Level.SEVERE, "Failed to call Class.forName of class: " + serviceClassName, ex)
             None
         }
       case some => some

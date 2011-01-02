@@ -48,29 +48,38 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[S <: AnyRef] extends AnalysisDescriptor[S] {
+abstract class DataContract[S <: AnyRef: Manifest] extends AnalysisDescriptor[S] {
   @transient var reqId = 0
 
   /** symbol in source */
   var srcSymbol: String = _
    
-  var dateFormatPattern: Option[String] = None
+  var datePattern: Option[String] = None
   var urlString: String = ""
-  var refreshable: Boolean = false
+  var isRefreshable: Boolean = false
   var refreshInterval: Int = 5000 // ms
 
   private val cal = Calendar.getInstance
   var endDate = cal.getTime
   cal.set(1970, Calendar.JANUARY, 1)
   var beginDate = cal.getTime
-    
+
+
+  /**
+   * All dataserver will be implemented as singleton
+   * @param none args are needed.
+   */
+  override def createServiceInstance(args: Any*): Option[S] = {
+    lookupServiceTemplate(m.erasure.asInstanceOf[Class[S]], "DataServers")
+  }
+
   override def toString: String = displayName
 
   override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)
 
     doc.valuePropertyOfBean(bean, "symbol", srcSymbol)
-    doc.valuePropertyOfBean(bean, "dateFormatPattern", dateFormatPattern)
+    doc.valuePropertyOfBean(bean, "datePattern", datePattern)
 
     val begDateBean = doc.createBean(beginDate)
     doc.innerPropertyOfBean(bean, "begDate", begDateBean)
@@ -81,7 +90,7 @@ abstract class DataContract[S <: AnyRef] extends AnalysisDescriptor[S] {
     doc.valueConstructorArgOfBean(endDateBean, 0, endDate.getTime)
 
     doc.valuePropertyOfBean(bean, "urlString", urlString)
-    doc.valuePropertyOfBean(bean, "refreshable", refreshable)
+    doc.valuePropertyOfBean(bean, "refreshable", isRefreshable)
     doc.valuePropertyOfBean(bean, "refreshInterval", refreshInterval)
 
     bean
@@ -90,13 +99,13 @@ abstract class DataContract[S <: AnyRef] extends AnalysisDescriptor[S] {
   override def writeToJava(id: String): String = {
     super.writeToJava(id) +
     JavaDocument.set(id, "setSymbol", "" + srcSymbol) +
-    JavaDocument.set(id, "setDateFormatPattern", "" + dateFormatPattern) +
+    JavaDocument.set(id, "setDateFormatPattern", "" + datePattern) +
     JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
     JavaDocument.set(id, "setBegDate", "begDate") +
     JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +
     JavaDocument.set(id, "setEndDate", "endDate") +
     JavaDocument.set(id, "setUrlString", urlString) +
-    JavaDocument.set(id, "setRefreshable", refreshable) +
+    JavaDocument.set(id, "setRefreshable", isRefreshable) +
     JavaDocument.set(id, "setRefreshInterval", refreshInterval)
   }
 }

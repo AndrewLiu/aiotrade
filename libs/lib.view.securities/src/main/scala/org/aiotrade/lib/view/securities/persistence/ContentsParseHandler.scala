@@ -298,7 +298,7 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
     dataContract.srcSymbol = meta.getValue("symbol")
-    dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
+    dataContract.datePattern = Option(meta.getValue("dateformat"))
         
     val freq = new TFreq(
       TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
@@ -306,7 +306,7 @@ class ContentsParseHandler extends DefaultHandler {
     )
     dataContract.freq = freq
         
-    dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
         
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
@@ -349,7 +349,7 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
     dataContract.srcSymbol = meta.getValue("symbol")
-    dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
+    dataContract.datePattern = Option(meta.getValue("dateformat"))
 
     val freq = new TFreq(
       TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
@@ -357,7 +357,7 @@ class ContentsParseHandler extends DefaultHandler {
     )
     dataContract.freq = freq
 
-    dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
 
     val sdf = new SimpleDateFormat("yyyy-MM-dd")
@@ -401,7 +401,7 @@ class ContentsParseHandler extends DefaultHandler {
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
     dataContract.srcSymbol = meta.getValue("symbol")
-    dataContract.dateFormatPattern = Option(meta.getValue("dateformat"))
+    dataContract.datePattern = Option(meta.getValue("dateformat"))
 
     val freq = new TFreq(
       TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
@@ -409,7 +409,7 @@ class ContentsParseHandler extends DefaultHandler {
     )
     dataContract.freq = freq
 
-    dataContract.refreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
 
     val sdf = new SimpleDateFormat("yyyy-MM-dd")

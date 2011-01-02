@@ -42,6 +42,7 @@ import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
+import org.aiotrade.lib.util.Singleton
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
@@ -53,16 +54,9 @@ import scala.collection.mutable.ListBuffer
  * 
  * @author Caoyuan Deng
  */
-object YahooTickerServer extends TickerServer {
+object YahooTickerServer extends TickerServer with Singleton {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  /**
-   * Used to generate a static method for YahooTickerServer.getSingleton, then
-   * we can register it in NetBeans' layer.xml as:
-   *     <file name="YahooTicker.instance">
-   *         <attr name="instanceCreate" methodvalue="org.aiotrade.lib.dataserver.yahoo.YahooTickerServer.getSingleton"/>
-   *     </file>
-   */
   def getSingleton = this
 
   private val nSymbolsPerReq = 100
@@ -125,8 +119,6 @@ object YahooTickerServer extends TickerServer {
   @throws(classOf[Exception])
   protected def read(is: InputStream): Array[Ticker] = {
     val reader = new BufferedReader(new InputStreamReader(is))
-
-    resetCount
     
     val tickers = new ArrayList[Ticker]
 
@@ -204,14 +196,12 @@ object YahooTickerServer extends TickerServer {
               tickers += ticker
             }
 
-            countOne
             loop(math.max(newestTime, time))
           case _ => loop(newestTime)
         }
     }
 
     val newestTime = loop(Long.MinValue)
-    log.info("Got tickers: " + count)
     
     tickers.toArray
   }
@@ -223,10 +213,10 @@ object YahooTickerServer extends TickerServer {
    *
    * @param afterThisTime from time
    */
-  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[TickerContract]): Array[Ticker] = {
-    if (subscribedContracts.isEmpty) return EmptyValues
+  protected def requestData(afterThisTime: Long, contracts: Iterable[TickerContract]) {
+    if (contracts.isEmpty) return
     
-    val symbols = subscribedContracts map (_.srcSymbol) toArray
+    val symbols = contracts map (_.srcSymbol) toArray
     var i = 0
     while (i < symbols.length) {
       val toProcess = new ListBuffer[String]
@@ -241,24 +231,19 @@ object YahooTickerServer extends TickerServer {
           request(toProcess) match {
             case Some(is) =>
               val tickers = read(is)
-              loadedTime = postRefresh(tickers)
+              if (tickers.length > 0) {
+                publish(DataLoaded(tickers, null))
+              }
             case None => log.info("no reponse for :" + toProcess.mkString(","))
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}
       }
     }
-
-    EmptyValues
   }
 
-  override def createNewInstance: Option[TickerServer] = Some(this)
-
-  override def displayName: String = "Yahoo! Finance Internet"
-
-  def defaultDateFormatPattern: String = "MM/dd/yyyy h:mma"
-
-  def sourceSerialNumber = 1
-
+  val displayName = "Yahoo! Finance Internet"
+  val defaultDatePattern = "MM/dd/yyyy h:mma"
+  val serialNumber = 1
   val sourceTimeZone = TimeZone.getTimeZone("America/New_York")
 }
 

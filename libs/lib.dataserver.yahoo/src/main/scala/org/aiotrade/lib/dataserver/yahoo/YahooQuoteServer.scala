@@ -44,15 +44,18 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
+import org.aiotrade.lib.util.Singleton
 import scala.annotation.tailrec
 
 /**
- * This class will load the quote datas from data source to its data storage: quotes.
- * @TODO it will be implemented as a Data Server ?
  *
  * @author Caoyuan Deng
  */
-object YahooQuoteServer {
+object YahooQuoteServer extends QuoteServer with Singleton {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  def getSingleton = this
+
   // * "http://table.finance.yahoo.com/table.csv"
   protected val BaseUrl = "http://table.finance.yahoo.com"
   protected val UrlPath = "/table.csv"
@@ -71,8 +74,6 @@ object YahooQuoteServer {
           case Some(x) => x
           case None => Exchange.N
         }
-
-
     }
   }
 
@@ -84,26 +85,13 @@ object YahooQuoteServer {
     }
   }
 
-}
-
-import YahooQuoteServer._
-class YahooQuoteServer extends QuoteServer {
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private var contract: QuoteContract = _
-
   /**
    * Template:
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request(fromTime: Long, contracts: Iterable[QuoteContract]): Option[InputStream] = {
+  protected def request(fromTime: Long, contract: QuoteContract): Option[InputStream] = {
     val cal = Calendar.getInstance
-
-    contract = contracts.headOption match {
-      case Some(x: QuoteContract) => x
-      case _ => return None
-    }
 
     val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
       (contract.beginDate, contract.endDate)
@@ -156,12 +144,11 @@ class YahooQuoteServer extends QuoteServer {
    * @return readed time
    */
   @throws(classOf[Exception])
-  protected def read(is: InputStream): Array[Quote] = {
+  protected def read(fromTime: Long, contract: QuoteContract, is: InputStream): Array[Quote] = {
     val reader = new BufferedReader(new InputStreamReader(is))
     /** skip first line */
     val s = reader.readLine
 
-    resetCount
     val quotes = new ArrayList[Quote]
     val freq = contract.freq
     val symbol = contract.srcSymbol
@@ -169,7 +156,7 @@ class YahooQuoteServer extends QuoteServer {
     val timeZone = exchange.timeZone
     // * for daily quote, yahoo returns exchange's local date, so use exchange time zone
     val cal = Calendar.getInstance(timeZone)
-    val dateFormat = new SimpleDateFormat(defaultDateFormatPattern) //dateFormatOf(timeZone)
+    val dateFormat = new SimpleDateFormat(defaultDatePattern) //dateFormatOf(timeZone)
     dateFormat.setTimeZone(timeZone)
     
     @tailrec
@@ -189,7 +176,7 @@ class YahooQuoteServer extends QuoteServer {
             } catch {case _: ParseException => loop(newestTime)}
 
             // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
-            var time = cal.getTimeInMillis
+            val time = cal.getTimeInMillis
             if (time < fromTime) {
               loop(newestTime)
             }
@@ -208,7 +195,6 @@ class YahooQuoteServer extends QuoteServer {
               newestTime
             } else {
               quotes += quote
-              countOne
               math.max(newestTime, time)
             }
                         
@@ -222,26 +208,23 @@ class YahooQuoteServer extends QuoteServer {
     quotes.toArray
   }
 
-  protected def loadFromSource(afterThisTime: Long, contracts: Iterable[QuoteContract]): Array[Quote] = {
-    fromTime = afterThisTime + 1
-
-    try {
-      request(fromTime, contracts) match {
-        case Some(is) => return read(is)
-        case None =>
+  protected def requestData(afterThisTime: Long, contracts: Iterable[QuoteContract]) {
+    val fromTime = afterThisTime + 1
+    for (contract <- contracts) {
+      try {
+        request(fromTime, contract) match {
+          case Some(is) =>
+            val quotes = read(fromTime, contract, is)
+            if (quotes.length > 0) {
+              publish(DataLoaded(quotes, contract))
+            }
+          case None =>
+        }
+      } catch {
+        case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
       }
-    } catch {
-      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
-
-    Array()
   }
-
-  override def displayName: String = "Yahoo! Finance Internet"
-
-  def defaultDateFormatPattern: String = "yyyy-MM-dd"
-
-  def sourceSerialNumber = 1
 
   override def supportedFreqs: Array[TFreq] = Array(TFreq.DAILY)
 
@@ -251,7 +234,9 @@ class YahooQuoteServer extends QuoteServer {
     } catch {case _ => None}
   }
 
-  override def sourceTimeZone: TimeZone = TimeZone.getTimeZone("America/New_York")
-
-  def classNameOfTickerServer = Some(YahooTickerServer.getClass.getName)
+  val displayName = "Yahoo! Finance Internet"
+  val defaultDatePattern = "yyyy-MM-dd"
+  val serialNumber = 1
+  val sourceTimeZone = TimeZone.getTimeZone("America/New_York")
+  val classNameOfTickerServer = Some(YahooTickerServer.getClass.getName)
 }

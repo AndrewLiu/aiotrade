@@ -94,7 +94,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         timeUnitField.setSelectedItem(quoteContractTemplate.freq().unit());
         unitTimesField.setValue(quoteContractTemplate.freq().nUnits());
 
-        refreshable.setSelected(quoteContractTemplate.refreshable());
+        refreshable.setSelected(quoteContractTemplate.isRefreshable());
         refreshInterval.setValue(quoteContractTemplate.refreshInterval());
 
         pathField.setText(quoteContractTemplate.urlString());
@@ -111,8 +111,8 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         }
 
         String dfPattern = "";
-        if (quoteContractTemplate.dateFormatPattern().isDefined()) {
-            dfPattern = quoteContractTemplate.dateFormatPattern().get();
+        if (quoteContractTemplate.datePattern().isDefined()) {
+            dfPattern = quoteContractTemplate.datePattern().get();
         }
         formatStringField.setText(dfPattern);
         SimpleDateFormat sdf = new SimpleDateFormat(dfPattern, Locale.US);
@@ -163,11 +163,11 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
                 (Integer) unitTimesField.getValue());
         quoteContract.freq_$eq(freq);
 
-        quoteContract.refreshable_$eq(refreshable.isSelected());
+        quoteContract.isRefreshable_$eq(refreshable.isSelected());
         quoteContract.refreshInterval_$eq((Integer) refreshInterval.getValue());
 
         String str = formatStringField.getText().trim();
-        quoteContract.dateFormatPattern_$eq(Option.apply(propDateFormatString(str)));
+        quoteContract.datePattern_$eq(Option.apply(propDateFormatString(str)));
     }
 
     private String propDateFormatString(String str) {
@@ -485,7 +485,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
             pathField.setEnabled(false);
             formatStringField.setEnabled(false);
         }
-        String selectedDfStr = selectedServer.defaultDateFormatPattern();
+        String selectedDfStr = selectedServer.defaultDatePattern();
         SimpleDateFormat sdf = new SimpleDateFormat(selectedDfStr, Locale.US);
         dateFormatSample.setText(sdf.format(quoteContract.beginDate()));
         formatStringField.setText(selectedDfStr);

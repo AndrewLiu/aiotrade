@@ -12,19 +12,9 @@ class QuoteInfoContract extends DataContract[QuoteInfoDataServer] {
 
   serviceClassName = null
   freq = TFreq.ONE_MIN
-  refreshable = true
+  isRefreshable = true
 
   override def displayName = {
     "QuoteInfo Data Contract[" + srcSymbol + "]"
-  }
-
-  /**
-   * @param none args are needed
-   */
-  override def createServiceInstance(args: Any*): Option[QuoteInfoDataServer] = {
-    lookupServiceTemplate(classOf[QuoteInfoDataServer], "DataServers") match {
-      case Some(x) => x.createNewInstance.asInstanceOf[Option[QuoteInfoDataServer]]
-      case None => None
-    }
   }
 }

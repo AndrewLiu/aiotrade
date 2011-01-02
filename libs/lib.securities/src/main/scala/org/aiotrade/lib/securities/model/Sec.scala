@@ -51,7 +51,6 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable.HashMap
@@ -501,7 +500,7 @@ class Sec extends SerProvider with Ordered[Sec] {
       case Some(contract) =>  contract.serviceInstance() match {
           case Some(quoteInfoHisServer) =>
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
-            if (contract.refreshable) {
+            if (contract.isRefreshable) {
               quoteInfoHisServer.subscribe(contract)
             }
             
@@ -517,7 +516,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             listenTo(ser)
 
             ser.isInLoading = true
-            quoteInfoHisServer.loadHistory(fromTime - 1, List(contract))
+            quoteInfoHisServer.loadData(fromTime - 1, List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -630,12 +629,12 @@ class Sec extends SerProvider with Ordered[Sec] {
             contract.srcSymbol = quoteServer.toSrcSymbol(uniSymbol)
             contract.freq = freq
 
-            if (contract.refreshable) {
+            if (contract.isRefreshable) {
               quoteServer.subscribe(contract)
             }
 
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
-            var reaction: PartialFunction[Event, Unit] = null
+            var reaction: Reactions.Reaction = null
             reaction = {
               case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
                 reactions -= reaction
@@ -645,7 +644,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            quoteServer.loadHistory(fromTime - 1, List(contract))
+            quoteServer.loadData(fromTime - 1, List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -660,10 +659,10 @@ class Sec extends SerProvider with Ordered[Sec] {
           case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
             val x = new QuoteContract
             x.freq = freq
-            x.refreshable = false
+            x.isRefreshable = false
             x.srcSymbol = defaultOne.srcSymbol
             x.serviceClassName = defaultOne.serviceClassName
-            x.dateFormatPattern = defaultOne.dateFormatPattern
+            x.datePattern = defaultOne.datePattern
             freqToQuoteContract.put(freq, x)
             Some(x)
           case _ => None

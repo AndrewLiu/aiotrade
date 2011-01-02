@@ -71,11 +71,11 @@ object ContentsPersistenceHandler {
           buffer.append("active=\"" + contract.active + "\" ")
           buffer.append("class=\"" + contract.serviceClassName + "\" ")
           buffer.append("symbol=\"" + contract.srcSymbol + "\" ")
-          contract.dateFormatPattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
+          contract.datePattern foreach {x => buffer.append("dateformat=\"" + x + "\" ")}
           // always store daily freq for datacontract
           buffer.append("nunits=\"" + TFreq.DAILY.nUnits + "\" ")
           buffer.append("unit=\"" + TFreq.DAILY.unit + "\" ")
-          buffer.append("refreshable=\"" + contract.refreshable + "\" ")
+          buffer.append("refreshable=\"" + contract.isRefreshable + "\" ")
           buffer.append("refreshinterval=\"" + contract.refreshInterval + "\" ")
           try {
             buffer.append("begdate=\"" + df.valueToString(contract.beginDate.getTime) + "\" ")

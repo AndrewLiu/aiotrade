@@ -100,7 +100,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         quoteContract.active_$eq(true);
         quoteContract.serviceClassName_$eq(previewQuoteServer.getClass().getName());
         quoteContract.srcSymbol_$eq(symbol);
-        quoteContract.dateFormatPattern_$eq(Option.apply(previewQuoteServer.defaultDateFormatPattern()));
+        quoteContract.datePattern_$eq(Option.apply(previewQuoteServer.defaultDatePattern()));
 
         FileObject previewFile = FileUtil.getConfigFile("UserOptions/Template/preview.csv");
         if (previewFile != null) {

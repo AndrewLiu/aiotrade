@@ -15,31 +15,31 @@ import org.aiotrade.lib.indicator.basic._
 
 trait TestHelper {
     
-  def createQuoteContract(symbol: String, category: String , sname: String, freq: TFreq, refreshable: Boolean, server: Class[_]): QuoteContract = {
+  def createQuoteContract(symbol: String, category: String , sname: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): QuoteContract = {
     val dataContract = new QuoteContract
 
     dataContract.active = true
-    dataContract.serviceClassName = server.getName
+    dataContract.serviceClassName = serverClassName
 
     dataContract.srcSymbol = symbol
 
     dataContract.freq = freq
-    dataContract.refreshable = refreshable
+    dataContract.isRefreshable = isRefreshable
     dataContract.refreshInterval = 5
 
     dataContract
   }
 
-  def createTickerContract(symbol: String, category: String, sname: String, freq: TFreq, server: Class[_]): TickerContract = {
+  def createTickerContract(symbol: String, category: String, sname: String, freq: TFreq, serverClassName: String): TickerContract = {
     val dataContract = new TickerContract
 
     dataContract.active = true
-    dataContract.serviceClassName = server.getName
+    dataContract.serviceClassName = serverClassName
 
     dataContract.srcSymbol = symbol
 
     dataContract.freq = freq
-    dataContract.refreshable = true
+    dataContract.isRefreshable = true
     dataContract.refreshInterval = 5
 
     dataContract

@@ -21,35 +21,32 @@ abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
 
   private val updatedEvents = new ArrayList[TSerEvent]
 
-  refreshable = false
-  
   deafTo(DataServer)
 
-  protected def composeSer(values: Array[QuoteInfo]) : Seq[TSerEvent] = {
+  protected def composeSer(values: Array[QuoteInfo], contract: QuoteInfoHisContract): Long = {
     updatedEvents.clear
-    count = 0
+    var count = 0
 
     for (info <- values ; sec <- info.secs) {
       sec.infoPointSerOf(TFreq.ONE_MIN) match {
-        case Some(minuteSer) => val event = minuteSer.updateFromNoFire(info)
+        case Some(minuteSer) =>
+          val event = minuteSer.updateFromNoFire(info)
           updatedEvents += event
           count = count + 1
         case _ =>
       }
       sec.infoPointSerOf(TFreq.DAILY) match {
-        case Some(dailyeSer) => val event = dailyeSer.updateFromNoFire(info)
+        case Some(dailyeSer) =>
+          val event = dailyeSer.updateFromNoFire(info)
           updatedEvents += event
           count = count + 1
         case _ =>
       }
     }
     updatedEvents
-  }
-
-  override protected def postLoadHistory(values: Array[QuoteInfo], contracts: Iterable[QuoteInfoHisContract]): Long = {
-    val events = composeSer(values)
+    
     var lastTime = Long.MinValue
-    events foreach {
+    updatedEvents foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
         //log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")

@@ -46,22 +46,12 @@ class TickerContract extends DataContract[TickerServer] {
 
   serviceClassName = null //"org.aiotrade.lib.dataserver.yahoo.YahooTickerServer"
   freq = TFreq.ONE_MIN
-  refreshable = true
+  isRefreshable = true
 
   override def displayName = {
     "Ticker Data Contract[" + srcSymbol + "]"
   }
     
-  /**
-   * @param none args are needed
-   */
-  override def createServiceInstance(args: Any*): Option[TickerServer] = {
-    lookupServiceTemplate(classOf[TickerServer], "DataServers") match {
-      case Some(x) => x.createNewInstance.asInstanceOf[Option[TickerServer]]
-      case None => None
-    }
-  }
-  
   /**
    * Ticker contract don't care about freq, so override super
    */

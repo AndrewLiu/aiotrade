@@ -30,25 +30,23 @@ object YahooQuoteServerTest extends TestHelper {
       i += 1
     }
 
-    scala.actors.Actor.actor {
-      val timer = new Timer
-      timer.schedule(new TimerTask {
-          def run {
-            testers foreach {x =>
-              reportQuote(x.sec)
-              reportInds(x.oneMinInds)
-              reportInds(x.dailyInds)
-              reportInds(x.weeklyInds)
-            }
+    val timer = new Timer
+    timer.schedule(new TimerTask {
+        def run {
+          testers foreach {x =>
+            reportQuote(x.sec)
+            reportInds(x.oneMinInds)
+            reportInds(x.dailyInds)
+            reportInds(x.weeklyInds)
           }
-        }, 5000, 6000)
-    }
+        }
+      }, 5000, 6000)
   }
 
   class TestOne(symbol:String) {
 
-    val quoteServer  = classOf[YahooQuoteServer]
-    val tickerServer = YahooTickerServer.getClass
+    val quoteServer  = YahooQuoteServer.getClass.getName
+    val tickerServer = YahooTickerServer.getClass.getName
 
     val oneMinFreq = TFreq.ONE_MIN
     val dailyFreq = TFreq.DAILY

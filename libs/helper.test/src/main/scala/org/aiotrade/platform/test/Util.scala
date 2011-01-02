@@ -109,7 +109,7 @@ class Util {
     sec.quoteContracts = quoteContracts
     sec.tickerContract = tickerContract
     val exchange =
-      if (quoteServer.getName == classOf[YahooQuoteServer].getName) {
+      if (quoteServer.getName == YahooQuoteServer.getClass.getName) {
         YahooQuoteServer.exchangeOf(symbol)
       } else {
         null//ApcQuoteServer.GetMarket(symbol)
@@ -219,7 +219,7 @@ class Util {
 //        return toolBar;
 //    }
 
-  private def createQuoteContract(symbol: String, category: String, sname: String, freq: TFreq, refreshable: Boolean, server: Class[_]): QuoteContract = {
+  private def createQuoteContract(symbol: String, category: String, sname: String, freq: TFreq, isRefreshable: Boolean, server: Class[_]): QuoteContract = {
     val dataContract = new QuoteContract
 
     dataContract.active = true
@@ -227,11 +227,11 @@ class Util {
 
     dataContract.srcSymbol = symbol
 
-    dataContract.dateFormatPattern = Some("yyyy-MM-dd")
+    dataContract.datePattern = Some("yyyy-MM-dd")
 
     dataContract.freq = freq
 
-    dataContract.refreshable = refreshable
+    dataContract.isRefreshable = isRefreshable
     dataContract.refreshInterval = 5
 
     dataContract
@@ -245,9 +245,9 @@ class Util {
 
     dataContract.srcSymbol = symbol
 
-    dataContract.dateFormatPattern = Some("yyyy-MM-dd-HH-mm-ss")
+    dataContract.datePattern = Some("yyyy-MM-dd-HH-mm-ss")
     dataContract.freq = freq
-    dataContract.refreshable = true
+    dataContract.isRefreshable = true
     dataContract.refreshInterval = 5
 
     dataContract

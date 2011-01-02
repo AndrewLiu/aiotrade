@@ -13,7 +13,7 @@
 
     <folder name="DataServers">
         <file name="YahooQuote.instance">
-            <attr name="instanceClass" stringvalue="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"/>
+            <attr name="instanceClass" methodvalue="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer.getSingleton"/>
         </file>
         <file name="YahooTicker.instance">
             <attr name="instanceCreate" methodvalue="org.aiotrade.lib.dataserver.yahoo.YahooTickerServer.getSingleton"/>
