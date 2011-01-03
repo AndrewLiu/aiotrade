@@ -39,28 +39,23 @@ import org.aiotrade.lib.securities.model.Ticker
 
 class TickerPool extends StackObjectPool[Ticker](500, 200) with PoolableObjectFactory[Ticker] {
 
-  setFactory(this)
+  factory_=(this)
     
   @throws(classOf[RuntimeException])
-  def activateObject(obj:Ticker): Unit = {
+  final def activate(obj:Ticker) {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj: Ticker): Unit = {
-    //obj = null
-  }
+  final def destroy(obj: Ticker) {}
 
   @throws(classOf[RuntimeException])
-  def makeObject: Ticker = {
-    new Ticker
-  }
-
+  final def create = new Ticker
+  
   @throws(classOf[RuntimeException])
-  def passivateObject(obj: Ticker): Unit = {
-  }
+  final def passivate(obj: Ticker) {}
 
-  def validateObject(obj: Ticker): Boolean = true
+  final def validate(obj: Ticker) = true
 }
 
 

@@ -96,9 +96,7 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    * using {@link #returnObject(java.lang.Object)}
    * before they can be {@link #borrowObject borrowed}.
    */
-  def this() = {
-    this(null, DEFAULT_MAX_SLEEPING, DEFAULT_INIT_SLEEPING_CAPACITY)
-  }
+  def this() = this(null, DEFAULT_MAX_SLEEPING, DEFAULT_INIT_SLEEPING_CAPACITY)
 
   /**
    * Create a new pool using
@@ -108,9 +106,7 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    *
    * @param maxIdle cap on the number of "sleeping" instances in the pool
    */
-  def this(maxIdle: Int) = {
-    this(null, maxIdle, DEFAULT_INIT_SLEEPING_CAPACITY)
-  }
+  def this(maxIdle: Int) = this(null, maxIdle, DEFAULT_INIT_SLEEPING_CAPACITY)
 
   /**
    * Create a new pool using
@@ -122,9 +118,7 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    * @param initIdleCapacity initial size of the pool (this specifies the size of the container,
    *             it does not cause the pool to be pre-populated.)
    */
-  def this(maxIdle: Int, initIdleCapacity: Int) = {
-    this(null, maxIdle, initIdleCapacity)
-  }
+  def this(maxIdle: Int, initIdleCapacity: Int) = this(null, maxIdle, initIdleCapacity)
 
   /**
    * Create a new <tt>StackObjectPool</tt> using
@@ -132,9 +126,7 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    *
    * @param factory the {@link PoolableObjectFactory} used to populate the pool
    */
-  def this(factory: PoolableObjectFactory[T]) = {
-    this(factory, DEFAULT_MAX_SLEEPING, DEFAULT_INIT_SLEEPING_CAPACITY)
-  }
+  def this(factory: PoolableObjectFactory[T]) = this(factory, DEFAULT_MAX_SLEEPING, DEFAULT_INIT_SLEEPING_CAPACITY)
 
   /**
    * Create a new <tt>SimpleObjectPool</tt> using
@@ -144,30 +136,28 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    * @param factory the {@link PoolableObjectFactory} used to populate the pool
    * @param maxIdle cap on the number of "sleeping" instances in the pool
    */
-  def this(factory: PoolableObjectFactory[T], maxIdle: Int) = {
-    this(factory, maxIdle, DEFAULT_INIT_SLEEPING_CAPACITY)
-  }
+  def this(factory: PoolableObjectFactory[T], maxIdle: Int) = this(factory, maxIdle, DEFAULT_INIT_SLEEPING_CAPACITY)
 
   @throws(classOf[RuntimeException])
-  override def borrowObject :T  = synchronized {
+  def borrow: T = synchronized {
     assertOpen
     var obj: Option[T] = None
-    while (None == obj) {
+    while (obj.isEmpty) {
       if (!_pool.empty) {
         obj = Some(_pool.pop)
       } else {
-        if(null == _factory) {
-          throw new NoSuchElementException
+        if (_factory != null) {
+          obj = Some(_factory.create)
         } else {
-          obj = Some(_factory.makeObject)
+          throw new NoSuchElementException
         }
       }
-      if(null != _factory && None != obj) {
-        _factory.activateObject(obj.get)
-      }
-      if (null != _factory && None != obj && !_factory.validateObject(obj.get)) {
-        _factory.destroyObject(obj.get)
-        obj = None
+      if (_factory != null && obj.isDefined) {
+        _factory.activate(obj.get)
+        if (!_factory.validate(obj.get)) {
+          _factory.destroy(obj.get)
+          obj = None
+        }
       }
     }
     _numActive += 1
@@ -176,71 +166,69 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
   }
 
   @throws(classOf[RuntimeException])
-  override def returnObject(obj: T): Unit = synchronized {
+  def returnIt(obj: T): Unit = synchronized {
     assertOpen
-    var obj1 = obj
-    var success = true
-    if (null != _factory) {
-      if (!(_factory.validateObject(obj))) {
-        success = false
-      } else {
-        try {
-          _factory.passivateObject(obj)
-        } catch {case e: Exception => success = false}
-      }
-    }
-
-    var shouldDestroy = !success
-
     _numActive -= 1
-    if (success) {
-      var toBeDestroyed = null.asInstanceOf[T]
-      if(_pool.size >= _maxSleeping) {
-        shouldDestroy = true
-        toBeDestroyed = _pool.remove(0) // remove the stalest object
-      }
-      _pool.push(obj)
-      obj1 = toBeDestroyed // swap returned obj with the stalest one so it can be destroyed
+
+    val success = if (_factory == null) true else {
+      if (_factory.validate(obj)) {
+        try {
+          _factory.passivate(obj)
+          true
+        } catch {
+          case e: Exception => false
+        }
+      } else false
     }
+
+    var toBeDestroyed = if (!success) Some(obj) else {
+      val x = if (_pool.size >= _maxSleeping) {
+        Option(_pool.remove(0)) // remove the stalest object
+      } else None
+      _pool.push(obj) // swap returned obj with the stalest one so it can be destroyed
+      x 
+    }
+    
     notifyAll // _numActive has changed
 
-    if(shouldDestroy) { // by constructor, shouldDestroy is false when _factory is null
+    for (x <- toBeDestroyed) { // by constructor, shouldDestroy is false when _factory is null
       try {
-        _factory.destroyObject(obj1)
-      } catch {case e: Exception =>}
+        _factory.destroy(x)
+      } catch {
+        case e: Exception =>
+      }
     }
   }
 
   @throws(classOf[RuntimeException])
-  override def invalidateObject(obj: T): Unit = synchronized {
+  def invalidate(obj: T): Unit = synchronized {
     assertOpen
     _numActive -= 1
-    if (null != _factory ) {
-      _factory.destroyObject(obj)
+    if (_factory != null) {
+      _factory.destroy(obj)
     }
     notifyAll // _numActive has changed
   }
 
-  override def getNumIdle: Int = synchronized {
+  override def numOfIdle: Int = synchronized {
     assertOpen
     _pool.size
   }
 
-  override def getNumActive: Int = synchronized {
+  override def numOfActive: Int = synchronized {
     assertOpen
     _numActive
   }
 
   override def clear: Unit = synchronized {
     assertOpen
-    if (null != _factory) {
+    if (_factory != null) {
       val it = _pool.iterator
       while(it.hasNext) {
         try {
-          _factory.destroyObject(it.next)
+          _factory.destroy(it.next)
         } catch {
-          case e: Exception =>
-            // ignore error, keep destroying the rest
+          case e: Exception => // ignore error, keep destroying the rest
         }
       }
     }
@@ -261,17 +249,17 @@ class StackObjectPool[T](factory: PoolableObjectFactory[T], maxIdle: Int, initId
    * @throws Exception when the {@link #_factory} has a problem creating an object.
    */
   @throws(classOf[RuntimeException])
-  override def addObject: Unit = synchronized {
+  override def add: Unit = synchronized {
     assertOpen
-    val obj = _factory.makeObject
+    val obj = _factory.create
     _numActive += 1   // A little slimy - must do this because returnObject decrements it.
-    returnObject(obj)
+    returnIt(obj)
   }
 
   @throws(classOf[IllegalStateException])
-  override def setFactory(factory: PoolableObjectFactory[T]): Unit = synchronized {
+  override def factory_=(factory: PoolableObjectFactory[T]): Unit = synchronized {
     assertOpen
-    if (0 < getNumActive) {
+    if (numOfActive > 0) {
       throw new IllegalStateException("Objects are already active")
     } else {
       clear

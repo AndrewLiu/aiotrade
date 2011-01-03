@@ -39,28 +39,23 @@ import org.aiotrade.lib.securities.model.Quote
 
 class QuotePool extends StackObjectPool[Quote](500, 200) with PoolableObjectFactory[Quote] {
 
-  setFactory(this)
+  factory_=(this)
 
   @throws(classOf[RuntimeException])
-  def activateObject(obj: Quote): Unit = {
+  final def activate(obj: Quote) {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj: Quote): Unit = {
-    //obj = null
-  }
+  final def destroy(obj: Quote) {}
     
   @throws(classOf[RuntimeException])
-  def makeObject: Quote = {
-    new Quote
-  }
+  final def create = new Quote
 
   @throws(classOf[RuntimeException])
-  def passivateObject(obj: Quote): Unit = {
-  }
+  final def passivate(obj: Quote) {}
     
-  def validateObject(obj: Quote): Boolean = true
+  final def validate(obj: Quote) = true
 }
 
 

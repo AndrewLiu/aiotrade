@@ -44,26 +44,23 @@ import org.aiotrade.lib.util.pool.StackObjectPool
 class PathPool(maxIdle: Int,
                initIdleCapacity: Int,
                initialCapacityOfPath: Int
-) extends StackObjectPool[GeneralPath](maxIdle, initIdleCapacity)
-     with PoolableObjectFactory[GeneralPath] {
+) extends StackObjectPool[GeneralPath](maxIdle, initIdleCapacity) with PoolableObjectFactory[GeneralPath] {
 
-  setFactory(this)
+  factory_=(this)
 
   @throws(classOf[RuntimeException])
-  def activateObject(obj: GeneralPath) {
+  final def activate(obj: GeneralPath) {
     obj.reset
   }
 
   @throws(classOf[RuntimeException])
-  def destroyObject(obj: GeneralPath) {}
+  final def destroy(obj: GeneralPath) {}
 
   @throws(classOf[RuntimeException])
-  def makeObject: GeneralPath = {
-    new GeneralPath(PathIterator.WIND_NON_ZERO, initialCapacityOfPath)
-  }
+  final def create: GeneralPath = new GeneralPath(PathIterator.WIND_NON_ZERO, initialCapacityOfPath)
 
   @throws(classOf[RuntimeException])
-  def passivateObject(obj: GeneralPath) {}
+  final def passivate(obj: GeneralPath) {}
     
-  def validateObject(obj: GeneralPath): Boolean = true
+  final def validate(obj: GeneralPath): Boolean = true
 }

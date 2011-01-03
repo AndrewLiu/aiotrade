@@ -24,7 +24,7 @@ import java.util.logging.Logger
  * @see #setupReplyQueue
  */
 @throws(classOf[IOException])
-class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKey: String
+class RpcClient($factory: ConnectionFactory, $reqExchange: String, reqRoutingKey: String
 ) extends AMQPDispatcher($factory, $reqExchange) {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -39,7 +39,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   private val processor = new SyncVarSetterProcessor
 
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Option[Consumer] = {
+  def configure(channel: Channel): Option[Consumer] = {
     replyQueue = setupReplyQueue(channel)
 
     val consumer = new AMQPConsumer(channel, true) {
@@ -84,6 +84,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   /**
    * Perform a simple byte-array-based RPC roundtrip.
    * @param req the rpc request message to send
+   * @param routingKey the rpc routingKey to publish
    * @param props for request message, default null
    * @param timeout in milliseconds, default infinit (-1)
    * @return the response received
@@ -92,8 +93,8 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey, timeout: Long = -1): RpcResponse = {
-    val syncVar = arpcCall(req, $props, routingKey)
+  def rpcCall(req: RpcRequest, routingKey: String = reqRoutingKey, props: AMQP.BasicProperties = new AMQP.BasicProperties, timeout: Long = -1): RpcResponse = {
+    val syncVar = arpcCall(req, routingKey, props)
 
     val res = if (timeout == -1) {
       syncVar.get
@@ -110,6 +111,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
   /**
    * Perform a async simple byte-array-based RPC roundtrip.
    * @param req the rpc request message to send
+   * @param routingKey the rpc routingKey to publish
    * @param props for request message, default null
    * @return a SyncVar that wrapps response received
    * @throws ShutdownSignalException if the connection dies during our wait
@@ -117,7 +119,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def arpcCall(req: RpcRequest, $props: AMQP.BasicProperties = null, routingKey: String = $reqRoutingKey): SyncVar[RpcResponse] = {
+  def arpcCall(req: RpcRequest, routingKey: String = reqRoutingKey, props: AMQP.BasicProperties = new AMQP.BasicProperties): SyncVar[RpcResponse] = {
     val syncVar = new SyncVar[RpcResponse]
     val replyId = continuationMap synchronized {
       correlationId += 1
@@ -135,7 +137,6 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String, $reqRoutingKe
         return syncVar
     }
 
-    val props = if ($props == null) new AMQP.BasicProperties else $props
     props.setCorrelationId(replyId)
     props.setReplyTo(replyQueue)
     

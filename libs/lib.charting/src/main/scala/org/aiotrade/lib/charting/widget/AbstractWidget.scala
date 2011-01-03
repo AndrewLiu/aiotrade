@@ -41,7 +41,7 @@ import java.awt.geom.GeneralPath
 import javax.swing.Action
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.util.PathPool
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.HashMap
 
 /**
  *
@@ -58,17 +58,17 @@ import AbstractWidget._
 abstract class AbstractWidget extends Widget {
     
   protected def borrowPath: GeneralPath = {
-    pathPool.borrowObject
+    pathPool.borrow
   }
     
   protected def returnPath(path: GeneralPath) {
-    pathPool.returnObject(path)
+    pathPool.returnIt(path)
   }
     
   protected def returnBorrowedPaths(paths: java.util.Collection[GeneralPath]) {
     val itr = paths.iterator
     while (itr.hasNext) {
-      pathPool.returnObject(itr.next)
+      pathPool.returnIt(itr.next)
     }
   }
     

@@ -41,19 +41,19 @@ package org.aiotrade.lib.util.pool
 abstract class BaseObjectPool[T] extends ObjectPool[T] {
   
   @throws(classOf[RuntimeException])
-  def borrowObject: T
+  def borrow: T
 
   @throws(classOf[RuntimeException])
-  def returnObject(obj: T): Unit
+  def returnIt(obj: T)
   
   @throws(classOf[RuntimeException])
-  def invalidateObject(obj: T): Unit
+  def invalidate(obj: T)
 
   /**
    * Not supported in this base implementation.
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumIdle: Int = {
+  def numOfIdle: Int = {
     throw new UnsupportedOperationException
   }
 
@@ -61,7 +61,7 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    * Not supported in this base implementation.
    */
   @throws(classOf[UnsupportedOperationException])
-  def getNumActive: Int = {
+  def numOfActive: Int = {
     throw new UnsupportedOperationException
   }
 
@@ -70,7 +70,7 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[Exception])
-  def clear: Unit = {
+  def clear {
     throw new UnsupportedOperationException
   }
 
@@ -79,12 +79,12 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[RuntimeException])
-  def addObject: Unit = {
+  def add {
     throw new UnsupportedOperationException
   }
 
   @throws(classOf[Exception])
-  def close: Unit = {
+  def close {
     assertOpen
     closed = true
   }
@@ -94,7 +94,7 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
    */
   @throws(classOf[UnsupportedOperationException])
   @throws(classOf[IllegalStateException])
-  def setFactory(factory: PoolableObjectFactory[T]): Unit = {
+  def factory_=(factory: PoolableObjectFactory[T]) {
     throw new UnsupportedOperationException();
   }
     
@@ -103,8 +103,8 @@ abstract class BaseObjectPool[T] extends ObjectPool[T] {
   }
     
   @throws(classOf[IllegalStateException])
-  protected final def assertOpen: Unit = {
-    if(isClosed) {
+  protected final def assertOpen {
+    if (isClosed) {
       throw new IllegalStateException("Pool not open")
     }
   }
