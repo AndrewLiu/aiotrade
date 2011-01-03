@@ -246,6 +246,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
+  def isConnected = connection.isDefined && connection.get.isOpen
+
   /**
    * Registers queue and consumer.
    * @throws IOException if an error is encountered
