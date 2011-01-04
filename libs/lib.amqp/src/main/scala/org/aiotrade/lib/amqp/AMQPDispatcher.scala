@@ -225,10 +225,10 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   }
 
   private def disconnect {
-    channel foreach {chan =>
+    channel foreach {ch =>
       try {
-        consumer foreach {case x: DefaultConsumer => chan.basicCancel(x.getConsumerTag)}
-        chan.close
+        consumer foreach {case x: DefaultConsumer => ch.basicCancel(x.getConsumerTag)}
+        ch.close
       } catch {
         case _ =>
       }
@@ -258,7 +258,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   @throws(classOf[IOException])
   def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
-    channel foreach {chan =>
+    channel foreach {ch =>
       import ContentType._
 
       val props = if ($props == null) new AMQP.BasicProperties else $props
@@ -287,7 +287,26 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       }
 
       //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-      chan.basicPublish(exchange, routingKey, props, body1)
+      ch.basicPublish(exchange, routingKey, props, body1)
+    }
+  }
+
+  protected def deleteQueue(queue: String) {
+    channel foreach {ch =>
+      try {
+        // Check if the queue existed, if existed, will return a declareOk object, otherwise will throw IOException
+        val declareOk = ch.queueDeclarePassive(queue)
+        try {
+          // the exception thrown here will destroy the connection too, so use it carefully
+          ch.queueDelete(queue)
+          log.info("Deleted queue: " + queue)
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        }
+      } catch {
+        case ex: IOException => // queue doesn't exist
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
     }
   }
 
