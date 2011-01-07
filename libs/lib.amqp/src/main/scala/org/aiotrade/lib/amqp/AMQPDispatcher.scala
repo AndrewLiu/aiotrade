@@ -114,15 +114,6 @@ object AMQPExchange {
    * property being equal to the name of the queue.
    */
   val defaultDirect = "" // amp.direct
-
-}
-
-object AMQPDispatcher {
-  // Marker object used to signal the queue is in shutdown mode.
-  // It is only there to wake up consumers. The canonical representation
-  // of shutting down is the presence of _shutdown.
-  // Invariant: This is never on _queue unless _shutdown != null.
-  private val POISON = Delivery(null, null, null)
 }
 
 /**
@@ -130,7 +121,6 @@ object AMQPDispatcher {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-import AMQPDispatcher._
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher with Serializer {
   private val log = Logger.getLogger(getClass.getName)
 
@@ -286,7 +276,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case _ => body
       }
 
-      //println(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+      log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
       ch.basicPublish(exchange, routingKey, props, body1)
     }
   }
@@ -338,7 +328,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
       }
 
-      log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
+      //log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       val body1 = props.getContentEncoding match {
         case "gzip" => ungzip(body)
@@ -362,19 +352,23 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props))
-        //log.info("Fired amqp message: " + content)
-       
+        //log.info("Published amqp message: " + content)
         //log.info(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-
     }
   }
 
   object QueueingConsumer {
+    // Marker object used to signal the queue is in shutdown mode.
+    // It is only there to wake up consumers. The canonical representation
+    // of shutting down is the presence of _shutdown.
+    // Invariant: This is never on _queue unless _shutdown != null.
+    private val POISON = Delivery(null, null, null)
+
     def startConsumer(consumer: QueueingConsumer) {
       val consumerRunner = new Runnable {
         def run {
@@ -388,7 +382,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
   class QueueingConsumer(channel: Channel, val isAutoAck: Boolean) extends DefaultConsumer(channel) {
-
+    import QueueingConsumer._
+    
     private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
 
     // When this is non-null the queue is in shutdown mode and nextDelivery should
@@ -419,8 +414,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           case ex => log.log(Level.WARNING, ex.getMessage, ex)
         }
       }
-
-      log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       this._queue.add(Delivery(body, props, envelope))
     }

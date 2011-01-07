@@ -50,18 +50,19 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
+case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_ <: AnyRef]) extends Event
+case object DataProcessed extends Event
+
 object DataServer extends Publisher {
   private lazy val DEFAULT_ICON: Option[Image] = {
-    classOf[DataServer[_]].getResource("defaultIcon.gif") match {
-      case null => None
-      case url => Some(Toolkit.getDefaultToolkit.createImage(url))
-    }
+    Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
   }
 
   private val config = org.aiotrade.lib.util.config.Config()
 
   case class HeartBeat(interval: Long) extends Event
-  val heartBeatInterval = config.getInt("dataserver.heartbeat", 50)
+  private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
+  
   // in context of applet, a page refresh may cause timer into a unpredict status,
   // so it's always better to restart this timer? , if so, cancel it first.
   //    if (timer != null) {
@@ -97,35 +98,21 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected var loadedTime: Long = _
 
   private var isRefreshable = false
-  private var inLoading: Boolean = _
+  private var inLoading = false
 
-  private case object Refresh extends Event
   private case class LoadData(afterTime: Long, contract: Iterable[C]) extends Event
-  protected case class DataLoaded(values: Array[V], contract: C) extends Event
-  protected case object SerComposed extends Event
 
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
-    // refreshing requests, if consumer can not catch up the producer, will drop some requests.
-    // We here also avoid concurrent racing risk of Refresh/LoadHistory requests @see reactions += {...
+    // refreshing requests, if consumer can not catch up the producer, will drop
+    // some requests.
     case HeartBeat(interval) =>
       if (isRefreshable && !inLoading) {
-        publish(Refresh)
+        // Refresh from loadedTime for subscribedContracts
+        publish(LoadData(loadedTime, subscribedContracts))
       }
       
-    case Refresh =>
-      //log.info("Received Refresh event")
-      inLoading = true
-      try {
-        requestData(loadedTime, subscribedContracts)
-      } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
-      }
-      inLoading = false
-      //log.info("Finished Refresh")
-
     case LoadData(afterTime, contracts) =>
-      log.info("Received LoadData event")
       inLoading = true
       try {
         requestData(afterTime, contracts)
@@ -134,17 +121,17 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       }
       inLoading = false
 
-    case DataLoaded(values, contract) =>
+    case DataLoaded(values: Array[V], contract) => // don't specify contract type as C, which won't match 'null'
       log.info("Received DataLoaded event")
       inLoading = true
       try {
-        loadedTime = composeSer(values, contract)
+        loadedTime = processData(values, contract.asInstanceOf[C])
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
       inLoading = false
       
-      publish(SerComposed)
+      publish(DataProcessed)
   }
 
   listenTo(DataServer)
@@ -161,7 +148,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
 
   /**
    * Implement this method to request data from data source.
-   * It should fire DataLoaded event
+   * It should publish DataLoaded event to enable processData
    *
    * @param afterThisTime When afterThisTime equals ANCIENT_TIME, you should process this condition.
    *        contracts
@@ -174,7 +161,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * @param contract could be null
    * @return loadedTime
    */
-  protected def composeSer(values: Array[V], contract: C): Long
+  protected def processData(values: Array[V], contract: C): Long
 
   def startRefresh {isRefreshable = true}
   def stopRefresh {isRefreshable = false}

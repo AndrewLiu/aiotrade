@@ -67,7 +67,7 @@ abstract class QuoteInfoDataServer extends DataServer[QuoteInfo] {
   private val updatedEvents = new ArrayList[TSerEvent]
   private val allQuoteInfo = new ArrayList[QuoteInfoSnapshot]
 
-  protected def composeSer(values: Array[QuoteInfo], contract: QuoteInfoContract): Long = {
+  protected def processData(values: Array[QuoteInfo], contract: QuoteInfoContract): Long = {
     updatedEvents.clear
     allQuoteInfo.clear
     var count = 0

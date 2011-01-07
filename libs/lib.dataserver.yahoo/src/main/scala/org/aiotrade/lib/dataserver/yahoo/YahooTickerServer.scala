@@ -38,6 +38,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.datasource.DataLoaded
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange

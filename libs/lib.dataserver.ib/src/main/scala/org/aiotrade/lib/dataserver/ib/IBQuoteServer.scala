@@ -43,6 +43,7 @@ import java.util.logging.Logger
 import javax.imageio.ImageIO
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.math.timeseries.datasource.DataLoaded
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.securities.model.Exchange

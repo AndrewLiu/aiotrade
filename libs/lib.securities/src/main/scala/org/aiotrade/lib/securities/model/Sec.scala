@@ -180,6 +180,12 @@ class Sec extends SerProvider with Ordered[Sec] {
   private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
 
+  /**
+   * @TODO, how about tickerServer switched?
+   */
+  private lazy val tickerServer: Option[TickerServer] = tickerContract.serviceInstance()
+  private lazy val quoteInfoServer: Option[QuoteInfoDataServer] = quoteInfoContract.serviceInstance()
+
   var description = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
@@ -244,12 +250,6 @@ class Sec extends SerProvider with Ordered[Sec] {
   }
 
  
-  /**
-   * @TODO, how about tickerServer switched?
-   */
-  private lazy val tickerServer: TickerServer = tickerContract.serviceInstance().get
-  private lazy val quoteInfoServer : QuoteInfoDataServer = quoteInfoContract.serviceInstance().get
-
   def serProviderOf(uniSymbol: String): Option[Sec] = {
     Exchange.secOf(uniSymbol)
   }
@@ -705,8 +705,6 @@ class Sec extends SerProvider with Ordered[Sec] {
   }
 
   def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
-    if (uniSymbol == "") return None
-
     if (tickerContract.serviceClassName == null) {
       for (quoteContract <- quoteContractOf(defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
@@ -716,65 +714,56 @@ class Sec extends SerProvider with Ordered[Sec] {
       }
     }
 
-    if (tickerContract.serviceClassName != null) {
-      if (!startRefresh) {
-        tickerServer.stopRefresh
-      }
+    tickerServer map {server =>
+      if (!startRefresh) server.stopRefresh
+      
       // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
       //this is not always true, for DJI, src code: DJI while unisymbol is ^DJI
-      tickerContract.srcSymbol = tickerServer.toSrcSymbol(uniSymbol)
-      if (!tickerServer.isContractSubsrcribed(tickerContract)) {
-        tickerServer.subscribe(tickerContract)
+      tickerContract.srcSymbol = server.toSrcSymbol(uniSymbol)
+      if (!server.isContractSubsrcribed(tickerContract)) {
+        server.subscribe(tickerContract)
       }
 
-      if (startRefresh) {
-        tickerServer.startRefresh
-      }
+      if (startRefresh) server.startRefresh
+
+      server
     }
-
-    Some(tickerServer)
   }
 
   def unSubscribeTickerServer {
-    if (tickerServer != null && tickerContract != null) {
-      tickerServer.unsubscribe(tickerContract)
+    if (tickerServer.isDefined && tickerContract != null) {
+      tickerServer.get.unsubscribe(tickerContract)
     }
   }
 
   def isTickerServerSubscribed: Boolean = {
-    tickerServer != null && tickerServer.isContractSubsrcribed(tickerContract)
+    tickerServer.isDefined && tickerServer.get.isContractSubsrcribed(tickerContract)
   }
 
-  def subscribeQuoteInfoDataServer(startRefresh: Boolean = true) : Option[QuoteInfoDataServer] = {
-    if (uniSymbol == "") return None
+  def subscribeQuoteInfoDataServer(startRefresh: Boolean = true): Option[QuoteInfoDataServer] = {
+    quoteInfoServer map {server =>
+      // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
+      quoteInfoContract.srcSymbol = uniSymbol
+      if (!startRefresh) server.stopRefresh
 
-    // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-    quoteInfoContract.srcSymbol = uniSymbol
-
-    if (quoteInfoContract.serviceClassName != null) {
-      if (!startRefresh) {
-        quoteInfoServer.stopRefresh
+      if (!server.isContractSubsrcribed(quoteInfoContract)) {
+        server.subscribe(quoteInfoContract)
       }
 
-      if (startRefresh) {
-        if (!quoteInfoServer.isContractSubsrcribed(quoteInfoContract)) {
-          quoteInfoServer.subscribe(quoteInfoContract)
-        }
-        quoteInfoServer.startRefresh
-      }
+      if (startRefresh) server.startRefresh
+
+      server
     }
-
-    Some(quoteInfoServer)
   }
 
   def unsubscribeQuoteInfoDataServer {
-    if (quoteInfoServer != null & quoteInfoContract != null){
-      quoteInfoServer.unsubscribe(quoteInfoContract)
+    if (quoteInfoServer.isDefined & quoteInfoContract != null){
+      quoteInfoServer.get.unsubscribe(quoteInfoContract)
     }
   }
 
   def isQuoteInfoDataServerSubcribed : Boolean = {
-    quoteInfoServer != null && quoteInfoServer.isContractSubsrcribed(quoteInfoContract)
+    quoteInfoServer.isDefined && quoteInfoServer.get.isContractSubsrcribed(quoteInfoContract)
   }
 
   override def equals(that: Any) = that match {
@@ -805,8 +794,6 @@ class Sec extends SerProvider with Ordered[Sec] {
    * store latest snap info
    */
   lazy val secSnap = new SecSnap(this)
-
-  lazy val tickerSnapshot = new TickerSnapshot
 }
 
 object SecSnap {

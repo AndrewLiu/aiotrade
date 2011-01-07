@@ -58,6 +58,7 @@ import scala.collection.mutable.HashSet
  */
 case class TickerEvent(ticker: Ticker) extends Event // TickerEvent only accept Ticker
 case class TickersEvent(tickers: Array[LightTicker]) extends Event // TickersEvent accept LightTicker
+case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) extends Event // TickersEvent accept LightTicker
 
 case class DepthSnap (
   prevPrice: Double,
@@ -74,40 +75,21 @@ abstract class TickerServer extends DataServer[Ticker] {
   protected val isServer = !config.getBool("dataserver.client", false)
   log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
 
-  def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = {
-    val sec = Exchange.secOf(uniSymbol).get
-    sec.tickerSnapshot
-  }
+  private lazy val uniSymbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
 
-  override def subscribe(contract: TickerContract) {
-    super.subscribe(contract)
-
-    /**
-     * !NOTICE
-     * the symbol-tickerSnapshot pair must be immutable, other wise, if
-     * the symbol is subscribed repeatly by outside, the old observers
-     * of tickerSnapshot may not know there is a new tickerSnapshot for
-     * this symbol, the older one won't be updated any more.
-     */
-    val symbol = toUniSymbol(contract.srcSymbol)
-    val sec = Exchange.secOf(symbol).get
-    val tickerSnapshot = sec.tickerSnapshot
-    tickerSnapshot.symbol = symbol
-  }
-
-  override def unsubscribe(contract: TickerContract) {
-    super.unsubscribe(contract)
-
-    val symbol = contract.srcSymbol
-    val sec = Exchange.secOf(symbol).get
-    val tickerSnapshot = sec.tickerSnapshot
+  def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = uniSymbolToTickerSnapshot synchronized {
+    uniSymbolToTickerSnapshot.get(uniSymbol).getOrElse{
+      val newOne = new TickerSnapshot
+      uniSymbolToTickerSnapshot += (uniSymbol -> newOne)
+      newOne.symbol = uniSymbol
+      newOne
+    }
   }
 
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]
   private val allDepthSnaps = new ArrayList[DepthSnap]
   private val updatedDailyQuotes = new ArrayList[Quote]
-
 
   private val exchangeToLastTime = new HashMap[Exchange, Long]
 
@@ -152,7 +134,7 @@ abstract class TickerServer extends DataServer[Ticker] {
    * compose ser using data from Tickers
    * @param Tickers
    */
-  protected def composeSer(values: Array[Ticker], Contract: TickerContract): Long = {
+  protected def processData(values: Array[Ticker], Contract: TickerContract): Long = {
     var lastTime = Long.MinValue
 
     log.info("Composing ser from tickers: " + values.length)
@@ -392,7 +374,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     }
 
     if (allDepthSnaps.length > 0) {
-      processDepthSnaps(allDepthSnaps.toArray)
+      TickerServer.publish(DepthSnapsEvent(allDepthSnaps.toArray))
     }
 
     for ((exchange, lastTime) <- exchangeToLastTime) {
@@ -409,8 +391,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     lastTime
   }
-
-  protected def processDepthSnaps(depthSnaps: Array[DepthSnap]) = ()
 
   private def updateDailyQuoteByTicker(dailyQuote: Quote, ticker: Ticker) {
     dailyQuote.open   = ticker.dayOpen

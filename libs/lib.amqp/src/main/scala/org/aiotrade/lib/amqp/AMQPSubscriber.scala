@@ -62,7 +62,7 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
       }
       
       ch.basicConsume(queue, cs.asInstanceOf[AMQPConsumer].isAutoAck, cs)
-      log.info("Declared and will consumer queue: " + queue + ", consumingQueues=" + _consumingQueues + ", defaultQueue=" + _defaultQueue)
+      log.info("Declared and will consumer queue: " + queue + ". consumingQueues=" + _consumingQueues + ", defaultQueue=" + _defaultQueue)
     }
   }
 

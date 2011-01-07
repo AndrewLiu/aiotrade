@@ -41,9 +41,11 @@ import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.DataLoaded
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
-import org.aiotrade.lib.securities.dataserver.{QuoteContract, QuoteServer}
+import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.util.Singleton
 import scala.annotation.tailrec
 
@@ -77,7 +79,7 @@ object YahooQuoteServer extends QuoteServer with Singleton {
     }
   }
 
-  private def exchangeOfIndex(srcSymbol: String) : Option[Exchange] = {
+  private def exchangeOfIndex(srcSymbol: String): Option[Exchange] = {
     srcSymbol match {
       case "^DJI" => Some(Exchange.N)
       case "^HSI" => Some(Exchange.HK)
