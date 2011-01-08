@@ -60,52 +60,54 @@ object DirWatcher {
  */
 @throws(classOf[IOException])
 abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includingExistingFiles: Boolean = false) extends TimerTask {
-
   private val log = Logger.getLogger(this.getClass.getName)
-  private val __fileNameToLastModified = new WatcherMap
+  
+  private val _fileNameToLastModified = new WatcherMap
+
+  protected val NOT_SURE = Long.MinValue
 
   log.log(Level.INFO, "DirWatcher watching on " + path01 + " and " + path02)
   init
 
   def this(path01: String, path02: String, endWith: String) =
     this(new File(path01), new File(path02), new DefaultWatcherFilter(endWith), false)
+
   def this(path01: String, path02: String, filter: FileFilter) =
     this(new File(path01), new File(path02), filter, false)
   
   def this(path: File, filter: FileFilter, includingExistingFiles: Boolean) =
     this(path, null, filter, includingExistingFiles)
+
   def this(path: File, filter: FileFilter) = this(path, filter, false)
   def this(path: String, filter: FileFilter) = this(new File(path), filter)
   def this(path: String, endWith: String) = this(path, new DefaultWatcherFilter(endWith))
   def this(path: String) = this(path, "")
 
-
   /**
    * Processing the existing files in the watched directories
    */
-  def init() = {
-    List(path01, path02).foreach {
-      path =>
-      if(path != null) {
-        path listFiles filter match {
-          case null => log.log(Level.SEVERE, path + " is not a valid directory or I/O error occurs.")
-          case existed =>
-            var i = 0
-            while (i < existed.length) {
-              val x = existed(i)
-              __fileNameToLastModified.put(x, lastModified(x))
-              i += 1
+  def init {
+    for (path <- List(path01, path02) if path != null) {
+      path listFiles filter match {
+        case null => log.log(Level.SEVERE, path + " is not a valid directory or I/O error occurs.")
+        case existed =>
+          var i = 0
+          while (i < existed.length) {
+            val file = existed(i)
+            lastModified(file) match {
+              case NOT_SURE =>
+              case x => _fileNameToLastModified.put(file, x)
             }
-        }
+            i += 1
+          }
       }
     }
 
     if (includingExistingFiles) {
-      __fileNameToLastModified.exportToFiles.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
+      _fileNameToLastModified.exportToFiles.sortWith(_.compareTo(_) < 0) foreach {x => onChange(FileAdded(x))}
     }
   }
 
-  
   final def run {
     apply()
   }
@@ -113,32 +115,36 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
   /** always add () for empty apply method */
   final def apply() {
     val startTimestamp = System.currentTimeMillis
-    val $fileNameToLastModified = new WatcherMap
+    val fileNameToLastModified = new WatcherMap
     
     //Scan both directories to get current files.
-    List(path01, path02).foreach {
-      path =>
-      if(path != null){
-        try{
-          val files = {path listFiles filter match {
-              case null =>
-                log.log(Level.SEVERE, path + " is not a valid directory or I/O error occurs.")
-                Array[File]()
-              case x => x
-            }
+    for (path <- List(path01, path02) if path != null) {
+      try {
+        val files = {
+          path listFiles filter match {
+            case null =>
+              log.log(Level.SEVERE, path + " is not a valid directory or I/O error occurs.")
+              Array[File]()
+            case xs => xs
           }
+        }
           
-          var i = 0
-          while(i < files.length) {
-            $fileNameToLastModified.put(files(i), lastModified(files(i)))
-            i += 1
+        var i = 0
+        while (i < files.length) {
+          val file = files(i)
+          lastModified(file) match {
+            case NOT_SURE =>
+            case x => fileNameToLastModified.put(file, x)
           }
-        } catch{case ex: Exception => log.log(Level.SEVERE, ex.getMessage, ex)}
+          i += 1
+        }
+      } catch {
+        case ex: Exception => log.log(Level.SEVERE, ex.getMessage, ex)
       }
     }
 
     // It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
-    val fileNames = $fileNameToLastModified.exportToFileNames.sortWith(_.compareTo(_) < 0)
+    val fileNames = fileNameToLastModified.exportToFileNames.sortWith(_.compareTo(_) < 0)
     val checkedFiles = new HashSet[String]
 
     var i = 0
@@ -146,19 +152,19 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
       val fileName = fileNames(i)
       checkedFiles += fileName
 
-      __fileNameToLastModified.get(fileName) match {
+      _fileNameToLastModified.get(fileName) match {
         case None =>
-          val file = $fileNameToLastModified.fileOf(fileName).get
           // new file
+          val file = fileNameToLastModified.fileOf(fileName).get
           if (file.canRead) {
-            __fileNameToLastModified.put(file, $fileNameToLastModified.get(file).get)
+            _fileNameToLastModified.put(file, fileNameToLastModified.get(file).get)
             onChange(FileAdded(file))
           }
-        case Some(last) if last < $fileNameToLastModified.get(fileName).get =>
-          val file = $fileNameToLastModified.fileOf(fileName).get
+        case Some(lastModified) if lastModified < fileNameToLastModified.get(fileName).get =>
           // modified file
+          val file = fileNameToLastModified.fileOf(fileName).get
           if (file.canRead) {
-            __fileNameToLastModified.put(file, $fileNameToLastModified.get(file).get)
+            _fileNameToLastModified.put(file, fileNameToLastModified.get(file).get)
             onChange(FileModified(file))
           }
         case x => //Ingore the old one and current one, only care the newer one.
@@ -168,14 +174,15 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
     }
 
     // deleted files
-    val deletedfiles = (new HashSet ++ __fileNameToLastModified.exportToFileNames.clone) -- checkedFiles
+    val deletedfiles = (new HashSet ++ _fileNameToLastModified.exportToFileNames.clone) -- checkedFiles
     deletedfiles foreach {fileName =>
-      val file = __fileNameToLastModified.fileOf(fileName).get
-      __fileNameToLastModified remove file
+      val file = _fileNameToLastModified.fileOf(fileName).get
+      _fileNameToLastModified remove file
       onChange(FileDeleted(file))
     }
+    
     val duration = System.currentTimeMillis - startTimestamp
-    if(duration > 2000) {
+    if (duration > 2000) {
       log.log(Level.WARNING, "Scaning " + path01 + " and " + path02 + " costs " + duration / 1000F + " seconds")
     }
   }
@@ -183,19 +190,20 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
   /**
    * Override it if you want sync processing
    */
-  protected def onChange(event: FileEvent){}
+  protected def onChange(event: FileEvent) {}
 
   /**
    * Override it if you want to get the timestamp by other way,
    * such as by some the content of the file
+   *
+   * @return last modified time or NOT_SURE
    */
   protected def lastModified(file: File): Long = {
     file.lastModified
   }
 
-
   
-  protected class WatcherMap{
+  protected class WatcherMap {
     private val fileNameToLastModified = new HashMap[String, (File, Long)]
 
     /**
@@ -206,11 +214,10 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
       fileNameToLastModified.get(file.getName) match {
         case Some((f, timestamp)) =>
           //Only keep the latest one
-          if(timestamp < lastModified){
+          if (timestamp < lastModified){
             fileNameToLastModified(file.getName) = (file, lastModified)
             true
-          }
-          else {
+          } else {
             false
           }
         case None =>
@@ -248,15 +255,11 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
     }
 
     def exportToFiles: Array[File] = {
-      val result = new scala.collection.mutable.ArrayBuffer[File]
-      fileNameToLastModified.values.foreach(m => result + m._1)
-      result.toArray
+      fileNameToLastModified.values.map(_._1).toArray
     }
 
     def exportToFileNames: Array[String] = {
-      val result = new scala.collection.mutable.ArrayBuffer[String]
-      fileNameToLastModified.keys.foreach(m => result + m)
-      result.toArray
+      fileNameToLastModified.keys.toArray
     }
 
     def clear {
@@ -271,6 +274,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
 class DefaultWatcherFilter(filter: String) extends FileFilter {
   def this() = this("")
 
-  def accept(file: File): Boolean = 
-    if (filter != "") file.getName.endsWith(filter) else true
+  def accept(file: File): Boolean = {
+    filter == "" || file.getName.endsWith(filter)
+  }
 }
