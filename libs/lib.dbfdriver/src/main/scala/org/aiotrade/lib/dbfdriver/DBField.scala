@@ -17,40 +17,7 @@ object DBFField {
    * @throws IOException If any stream reading problems occures.
    */
   @throws(classOf[IOException])
-  def read(in: ByteBuffer): DBFField = {
-    val field = new DBFField
-
-    val t_byte = in.get /* 0 */
-    if (t_byte == 0x0D.toByte) {
-      return null
-    }
-
-    in.get(field._name, 1, 10)	/* 1-10 */
-    field._name(0) = t_byte
-    var i = 0
-    var break = false
-    while (i < field._name.length && !break) {
-      if (field._name(i) == 0) {
-        field.nameNullIndex = i
-        break = true
-      }
-      i += 1
-    }
-
-    field.dataType = in.get                         /* 11 */
-    field.reserv1 = Utils.readLittleEndianInt(in)   /* 12-15 */
-    // read byte as unsigne to int with & 0xFF
-    field.length = in.get & 0xFF                    /* 16 */
-    field.decimalCount = in.get                     /* 17 */
-    field.reserv2 = Utils.readLittleEndianShort(in) /* 18-19 */
-    field.workAreaId = in.get                       /* 20 */
-    field.reserv3 = Utils.readLittleEndianShort(in) /* 21-22 */
-    field.setFieldsFlag = in.get                    /* 23 */
-    in.get(field.reserv4)                           /* 24-30 */
-    field.indexFieldFlag = in.get                   /* 31 */
-
-    field
-  }
+  def read(in: ByteBuffer): DBFField = (new DBFField).read(in)
 
   def apply(name: String, dataType: Char, length: Int, decimalCount: Int) = {
     val field = new DBFField
@@ -82,6 +49,50 @@ class DBFField {
 
   /* other class variables */
   private var nameNullIndex = 0
+
+  /**
+   * load a DBFField object from the data read from the given DataInputStream.
+   *
+   * The data in the DataInputStream object is supposed to be organised correctly
+   * and the stream "pointer" is supposed to be positioned properly.
+   *
+   * @param in DataInputStream
+   * @return Returns the created DBFField object.
+   * @throws IOException If any stream reading problems occures.
+   */
+  @throws(classOf[IOException])
+  def read(in: ByteBuffer): DBFField = {
+    val t_byte = in.get /* 0 */
+    if (t_byte == 0x0D.toByte) {
+      return null
+    }
+
+    in.get(this._name, 1, 10)	/* 1-10 */
+    this._name(0) = t_byte
+    var i = 0
+    var break = false
+    while (i < this._name.length && !break) {
+      if (this._name(i) == 0) {
+        this.nameNullIndex = i
+        break = true
+      }
+      i += 1
+    }
+
+    this.dataType = in.get                         /* 11 */
+    this.reserv1 = Utils.readLittleEndianInt(in)   /* 12-15 */
+    // read byte as unsigne to int with & 0xFF
+    this.length = in.get & 0xFF                    /* 16 */
+    this.decimalCount = in.get                     /* 17 */
+    this.reserv2 = Utils.readLittleEndianShort(in) /* 18-19 */
+    this.workAreaId = in.get                       /* 20 */
+    this.reserv3 = Utils.readLittleEndianShort(in) /* 21-22 */
+    this.setFieldsFlag = in.get                    /* 23 */
+    in.get(this.reserv4)                           /* 24-30 */
+    this.indexFieldFlag = in.get                   /* 31 */
+
+    this
+  }
 
   /**
    Writes the content of DBFField object into the stream as per

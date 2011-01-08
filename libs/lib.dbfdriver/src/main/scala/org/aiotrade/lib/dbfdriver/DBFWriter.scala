@@ -192,7 +192,7 @@ class DBFWriter(dbfFile: File)  {
           if (values(i) != null) {
             val calendar = new GregorianCalendar
             calendar.setTime(values(i).asInstanceOf[Date])
-            dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes);
+            dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes)
             dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
             dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
             dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.HOUR_OF_DAY)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))

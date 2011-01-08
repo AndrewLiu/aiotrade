@@ -1,11 +1,12 @@
 package org.aiotrade.lib.dbfdriver
 
 object TestReader {
-  val debug = true
+  val willPrintRecord = true
 
   val warmTimes = 5
-  val times = if (debug) 1 else 30
+  val times = if (willPrintRecord) 1 else 30
   val filename = "SJSHQ.DBF"
+  
   def main(args: Array[String]) {
     test1
     println("==============")
@@ -16,7 +17,7 @@ object TestReader {
     var t0 = System.currentTimeMillis
     var i = 0
     while (i < times) {
-      if (i == warmTimes) t0 = System.currentTimeMillis // warm using first warmTimes reading
+      if (i == warmTimes) t0 = System.currentTimeMillis // warm using the head warmTimes reading
 
       val reader = DBFReader(filename)
       readRecords(reader)
@@ -25,7 +26,8 @@ object TestReader {
       i += 1
     }
 
-    println("Averagy time: " + (System.currentTimeMillis - t0) / (times - warmTimes) + " ms")
+    val countTimes = if (times > warmTimes) (times - warmTimes) else times
+    println("Averagy time: " + (System.currentTimeMillis - t0) / countTimes + " ms")
   }
 
   def test2 {
@@ -33,7 +35,7 @@ object TestReader {
     val reader = DBFReader(filename)
     var i = 0
     while (i < times) {
-      if (i == warmTimes) t0 = System.currentTimeMillis // warm using first warmTimes reading
+      if (i == warmTimes) t0 = System.currentTimeMillis // warm using head warmTimes reading
 
       reader.load
       readRecords(reader)
@@ -42,11 +44,12 @@ object TestReader {
     }
     reader.close
 
-    println("Averagy time: " + (System.currentTimeMillis - t0) / (times - warmTimes) + " ms")
+    val countTimes = if (times > warmTimes) (times - warmTimes) else times
+    println("Averagy time: " + (System.currentTimeMillis - t0) / countTimes + " ms")
   }
 
   def readRecords(reader: DBFReader) {
-    if (debug) {
+    if (willPrintRecord) {
       reader.header.fields foreach {x => print(x.name + " | ")}
       println
     }
@@ -55,7 +58,7 @@ object TestReader {
     val l = reader.recordCount
     while (i < l) {
       val recordObjs = reader.nextRecord
-      if (debug) {
+      if (willPrintRecord) {
         recordObjs foreach {x => print(x + " | ")}
         println
       } else {
@@ -63,6 +66,7 @@ object TestReader {
       }
       i += 1
     }
+    
     println("Total Count: " + i)
   }
 

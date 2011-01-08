@@ -124,9 +124,7 @@ class DBFReader(input: Either[FileChannel, InputStream]) {
     } else -1
   }
 
-  def hasNext: Boolean = {
-    in.position < in.capacity
-  }
+  def hasNext: Boolean = in.position < in.capacity
 
   /**
    * Reads the returns the next row in the DBF stream.

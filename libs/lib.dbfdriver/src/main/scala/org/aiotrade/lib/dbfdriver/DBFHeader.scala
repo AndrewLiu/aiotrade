@@ -7,14 +7,16 @@ import java.util.Calendar
 import scala.collection.mutable.ArrayBuffer
 
 /**
- *
- * @see http://www.clicketyclick.dk/databases/xbase/format/dbf.html#DBF_STRUCT
+ * http://www.clicketyclick.dk/databases/xbase/format/dbf.html#DBF_STRUCT
  */
 object DBFHeader {
   val DBASE_III: Byte = 0x03
   
-  val headLengthFixed = (
-    1 +
+  /**
+   * Fixed part of head length, which is the length except variable 32 * fields.length
+   */
+  val headLengthFixedPart = (
+    1 + // versionNumber
     3 +
     4 +
     2 +
@@ -27,42 +29,12 @@ object DBFHeader {
     4 +
     1 +
     1 +
-    2 +
-    //32 * fields.length +
-    1
+    2 + // reserved4
+    1   // terminator
   )
   
   @throws(classOf[IOException])
-  def read(in: ByteBuffer) = {
-    val header = new DBFHeader
-
-    header.versionNumber = in.get                           /* 0 */
-    header.year  = in.get                                   /* 1 */
-    header.month = in.get                                   /* 2 */
-    header.day   = in.get                                   /* 3 */
-    header.numberOfRecords = Utils.readLittleEndianInt(in)  /* 4-7 */
-    header.headerLength = Utils.readLittleEndianShort(in)   /* 8-9 */
-    header.recordLength = Utils.readLittleEndianShort(in)   /* 10-11 */
-    header.reserved1 = Utils.readLittleEndianShort(in)      /* 12-13 */
-    header.incompleteTransaction = in.get                   /* 14 */
-    header.encryptionFlag = in.get                          /* 15 */
-    header.freeRecordThread = Utils.readLittleEndianInt(in) /* 16-19 */
-    header.reserved2 = in.getInt                            /* 20-23 */
-    header.reserved3 = in.getInt                            /* 24-27 */
-    header.mdxFlag = in.get                                 /* 28 */
-    header.languageDriver = in.get                          /* 29 */
-    header.reserved4 = Utils.readLittleEndianShort(in)      /* 30-31 */
-
-    val fields = new ArrayBuffer[DBFField]
-    var field = DBFField.read(in) /* 32 each */
-    while (field != null) {
-      fields += field
-      field = DBFField.read(in)
-    }
-    header.fields = fields.toArray
-
-    header
-  }
+  def read(in: ByteBuffer): DBFHeader = (new DBFHeader).read(in)
 }
 
 import DBFHeader._
@@ -88,6 +60,35 @@ class DBFHeader {
   var terminator: Byte = 0x0D           // n+1
   // var databaseContainer; /* 263 bytes */
   /* DBF structure ends here */
+
+  @throws(classOf[IOException])
+  def read(in: ByteBuffer): DBFHeader = {
+    this.versionNumber = in.get                           /* 0 */
+    this.year  = in.get                                   /* 1 */
+    this.month = in.get                                   /* 2 */
+    this.day   = in.get                                   /* 3 */
+    this.numberOfRecords = Utils.readLittleEndianInt(in)  /* 4-7 */
+    this.headerLength = Utils.readLittleEndianShort(in)   /* 8-9 */
+    this.recordLength = Utils.readLittleEndianShort(in)   /* 10-11 */
+    this.reserved1 = Utils.readLittleEndianShort(in)      /* 12-13 */
+    this.incompleteTransaction = in.get                   /* 14 */
+    this.encryptionFlag = in.get                          /* 15 */
+    this.freeRecordThread = Utils.readLittleEndianInt(in) /* 16-19 */
+    this.reserved2 = in.getInt                            /* 20-23 */
+    this.reserved3 = in.getInt                            /* 24-27 */
+    this.mdxFlag = in.get                                 /* 28 */
+    this.languageDriver = in.get                          /* 29 */
+    this.reserved4 = Utils.readLittleEndianShort(in)      /* 30-31 */
+
+    val fields = new ArrayBuffer[DBFField]
+    var field: DBFField = null                            /* 32 each */
+    while ({field = DBFField.read(in); field != null}) {
+      fields += field
+    }
+    this.fields = fields.toArray
+
+    this
+  }
 
   @throws(classOf[IOException])
   def write(out: DataOutput) {
@@ -122,16 +123,16 @@ class DBFHeader {
 
 
   private def findHeaderLength: Short =
-    (headLengthFixed + 32 * fields.length).toShort
+    (headLengthFixedPart + 32 * fields.length).toShort
  
   private def findRecordLength: Short = {
-    var t_recordLength = 0
+    var recordLength = 0
     var i = 0
     while (i < fields.length) {
-      t_recordLength += fields(i).length
+      recordLength += fields(i).length
       i += 1
     }
 
-    (t_recordLength + 1).toShort
+    (recordLength + 1).toShort
   }
 }
