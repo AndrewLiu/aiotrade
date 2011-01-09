@@ -216,38 +216,20 @@ object Model {
     assert(Exchanges.idOf(SZ).isDefined, SZ + " with none id")
     
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      createSec(symbol, symbol, N)
+      Exchanges.createSimpleSec(N, symbol, symbol, false)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      createSec(symbol, symbol, L)
+      Exchanges.createSimpleSec(L, symbol, symbol, false)
     }
 
     for ((symbol, name) <- SSSymToName) {
-      createSec(symbol + ".SS", name, SS)
+      Exchanges.createSimpleSec(SS, symbol + ".SS", name, false)
     }
 
     for (symbol <- List("000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ")) {
-      createSec(symbol, symbol, SZ)
+      Exchanges.createSimpleSec(SZ, symbol, symbol, false)
     }
-  }
-
-  def createSec(uniSymbol: String, name: String, exchange: Exchange) {
-    val secInfo = new SecInfo
-    secInfo.uniSymbol = uniSymbol
-    secInfo.name = name
-    SecInfos.save(secInfo)
-    assert(SecInfos.idOf(secInfo).isDefined, secInfo + " with none id")
-
-    val sec = new Sec
-    sec.secInfo = secInfo
-    sec.exchange = exchange
-    Secs.save_!(sec)
-    assert(Secs.idOf(sec).isDefined, sec + " with none id")
-
-    secInfo.sec = sec
-    SecInfos.update(secInfo)
-    commit
   }
 
   lazy val N   = Exchange("N",  "America/New_York", Array(9, 30, 16, 00))  // New York

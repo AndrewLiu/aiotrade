@@ -2,8 +2,7 @@ package org.aiotrade.lib.securities.model
 
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -28,14 +27,36 @@ object Exchanges extends Table[Exchange] {
   INDEX(getClass.getSimpleName + "_code_idx", code.name)
 
   // --- helper methods
-  def secsOf(exchange: Exchange): Seq[Sec] = {
+  def secsOf(exchange: Exchange): mutable.Set[Sec] = {
     val t0 = System.currentTimeMillis
     val exchangeId = Exchanges.idOf(exchange)
     val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list) map (_._1)
-    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size +
-             ", loaded in " + (System.currentTimeMillis - t0) + " ms")
-    secs
+    log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
+    
+    mutable.Set[Sec]() ++= secs
   }
+
+  def createSimpleSec(exchange: Exchange, uniSymbol: String, name: String, willCommit: Boolean = false) = {
+    val secInfo = new SecInfo
+    secInfo.uniSymbol = uniSymbol
+    secInfo.name = name
+    SecInfos.save(secInfo)
+    //assert(SecInfos.idOf(secInfo).isDefined, secInfo + " with none id")
+
+    val sec = new Sec
+    sec.secInfo = secInfo
+    sec.exchange = exchange
+    Secs.save_!(sec)
+    //assert(Secs.idOf(sec).isDefined, sec + " with none id")
+
+    secInfo.sec = sec
+    SecInfos.update(secInfo)
+
+    if (willCommit) commit
+
+    sec
+  }
+
 }
 
 object Exchange extends Publisher {
@@ -48,14 +69,14 @@ object Exchange extends Publisher {
   case class Opened(exchange: Exchange) extends Event
   case class Closed(exchange: Exchange) extends Event
 
-
   // ----- search tables
+  private val mutex = new Object
   private var _allExchanges: Seq[Exchange] = Nil
-  private var _codeToExchange = Map[String, Exchange]()
-  private var _exchangeToSecs = Map[Exchange, Seq[Sec]]()
-  private var _exchangeToUniSymbols = Map[Exchange, Seq[String]]()
-  private var _uniSymbolToSec = Map[String, Sec]()
   private var _activeExchanges: Seq[Exchange] = Nil
+  private val _codeToExchange = mutable.Map[String, Exchange]()
+  private val _exchangeToSecs = mutable.Map[Exchange, mutable.Set[Sec]]()
+  private val _exchangeToUniSymbols = mutable.Map[Exchange, mutable.Set[String]]()
+  private val _uniSymbolToSec = mutable.Map[String, Sec]()
 
   // Init all searching tables
   allExchanges = Exchanges.all()
@@ -77,23 +98,23 @@ object Exchange extends Publisher {
   def allExchanges_=(allExchanges: Seq[Exchange]) {
     _allExchanges = allExchanges
 
-    _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
+    _codeToExchange ++= (_allExchanges map {x => (x.code, x)})
 
-    _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
+    _exchangeToSecs ++= (_allExchanges map {x => (x, Exchanges.secsOf(x))})
 
-    _exchangeToUniSymbols = Map() ++ (_exchangeToSecs map {m =>
-        val syms = ListBuffer[String]()
+    _exchangeToUniSymbols ++= (_exchangeToSecs map {m =>
+        val syms = mutable.Set[String]()
         m._2 foreach {sec =>
           if (sec.secInfo == null)
             log.warning("secInfo of sec " + sec + " is null")
           else
             syms += sec.secInfo.uniSymbol
         }
-        (m._1, syms.toList)
+        (m._1, syms)
       }
     )
     
-    _uniSymbolToSec = Map() ++ (_exchangeToSecs flatMap {m =>
+    _uniSymbolToSec ++= (_exchangeToSecs flatMap {m =>
         m._2 filter (_.secInfo != null) map (x => (x.secInfo.uniSymbol, x))
       }
     )
@@ -136,10 +157,10 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): Seq[Sec] = exchangeToSecs.get(exchange) getOrElse Nil
+  def secsOf(exchange: Exchange): mutable.Set[Sec] = exchangeToSecs.get(exchange) getOrElse mutable.Set[Sec]()
 
-  def symbolsOf(exchange: Exchange): Seq[String] = {
-    exchangeToUniSymbols.get(exchange) getOrElse Nil
+  def symbolsOf(exchange: Exchange): mutable.Set[String] = {
+    exchangeToUniSymbols.get(exchange) getOrElse mutable.Set[String]()
   }
 
   def secOf(uniSymbol: String): Option[Sec] =
@@ -224,10 +245,8 @@ class Exchange extends Ordered[Exchange] {
     ((closeInMills - openInMillis) / TUnit.Minute.interval).toInt + 1
   }
 
-  private var _symbols = List[String]()
-
   lazy val uniSymbolToLastTicker = {
-    val symbolToTicker = new HashMap[String, Ticker]
+    val symbolToTicker = mutable.Map[String, Ticker]()
 
     for ((sec, ticker) <- TickersLast.lastTickersOf(this) if sec != null) {
       val symbol = sec.uniSymbol
@@ -239,7 +258,7 @@ class Exchange extends Ordered[Exchange] {
   }
   
   lazy val uniSymbolToLastTradingDayTicker = {
-    val symbolToTicker = new HashMap[String, Ticker]
+    val symbolToTicker = mutable.Map[String, Ticker]()
 
     for ((sec, ticker) <- TickersLast.lastTradingDayTickersOf(this) if sec != null) {
       val symbol = sec.uniSymbol
@@ -250,10 +269,17 @@ class Exchange extends Ordered[Exchange] {
     symbolToTicker
   }
 
-  private val freqToUnclosedQuotes = new HashMap[TFreq, ArrayList[Quote]]
-  private val freqToUnclosedMoneyFlows = new HashMap[TFreq, ArrayList[MoneyFlow]]
+  private val freqToUnclosedQuotes = mutable.Map[TFreq, ArrayList[Quote]]()
+  private val freqToUnclosedMoneyFlows = mutable.Map[TFreq, ArrayList[MoneyFlow]]()
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
+
+  val _uniSymbols = mutable.Set[String]()
+  def uniSymbols = _uniSymbols synchronized {_uniSymbols}
+  def addNewSec(uniSymbol: String, name: String): Sec = _uniSymbols synchronized {
+    _uniSymbols += uniSymbol
+    Exchanges.createSimpleSec(this, uniSymbol, name, true)
+  }
 
   /** @Todo */
   def primaryIndex: Option[Sec] = code match {
@@ -350,11 +376,6 @@ class Exchange extends Ordered[Exchange] {
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
     cal.getTimeInMillis
-  }
-
-  def symbols = _symbols
-  def symbols_=(symbols: List[String]) {
-    _symbols = symbols
   }
 
   protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
