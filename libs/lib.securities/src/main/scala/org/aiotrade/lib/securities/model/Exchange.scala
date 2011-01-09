@@ -7,10 +7,11 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.reactors.Event
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
+
+case class SecAdded(sec: Sec)
 
 object Exchanges extends Table[Exchange] {
   private val log = Logger.getLogger(this.getClass.getName)
@@ -66,8 +67,8 @@ object Exchange extends Publisher {
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
 
-  case class Opened(exchange: Exchange) extends Event
-  case class Closed(exchange: Exchange) extends Event
+  case class Opened(exchange: Exchange)
+  case class Closed(exchange: Exchange)
 
   // ----- search tables
   private val mutex = new Object
@@ -125,10 +126,10 @@ object Exchange extends Publisher {
     _activeExchanges = activeExchanges
   }
 
-  def codeToExchange = _codeToExchange
-  def exchangeToSecs = _exchangeToSecs
-  def exchangeToUniSymbols = _exchangeToUniSymbols
-  def uniSymbolToSec = _uniSymbolToSec
+  def codeToExchange = mutex synchronized {_codeToExchange}
+  def exchangeToSecs = mutex synchronized  {_exchangeToSecs}
+  def exchangeToUniSymbols = mutex synchronized {_exchangeToUniSymbols}
+  def uniSymbolToSec = mutex synchronized {_uniSymbolToSec}
 
   // ----- Major methods
   
@@ -157,14 +158,28 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): mutable.Set[Sec] = exchangeToSecs.get(exchange) getOrElse mutable.Set[Sec]()
+  def secsOf(exchange: Exchange): mutable.Set[Sec] = mutex synchronized {
+    exchangeToSecs.get(exchange) getOrElse mutable.Set[Sec]()
+  }
 
-  def symbolsOf(exchange: Exchange): mutable.Set[String] = {
+  def symbolsOf(exchange: Exchange): mutable.Set[String] = mutex synchronized {
     exchangeToUniSymbols.get(exchange) getOrElse mutable.Set[String]()
   }
 
-  def secOf(uniSymbol: String): Option[Sec] =
+  def secOf(uniSymbol: String): Option[Sec] = mutex synchronized {
     uniSymbolToSec.get(uniSymbol)
+  }
+
+  def addNewSec(exchange: Exchange, uniSymbol: String, name: String): Sec = mutex synchronized {
+    val sec = Exchanges.createSimpleSec(exchange, uniSymbol, name, true)
+
+    _exchangeToUniSymbols += (exchange -> (_exchangeToUniSymbols.get(exchange).getOrElse(mutable.Set()) + uniSymbol))
+    _exchangeToSecs += (exchange -> (_exchangeToSecs.get(exchange).getOrElse(mutable.Set()) + sec))
+    _uniSymbolToSec += (uniSymbol -> sec)
+
+    publish(SecAdded(sec))
+    sec
+  }
 
   def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
     val exchange = new Exchange
@@ -274,11 +289,10 @@ class Exchange extends Ordered[Exchange] {
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
-  val _uniSymbols = mutable.Set[String]()
-  def uniSymbols = _uniSymbols synchronized {_uniSymbols}
-  def addNewSec(uniSymbol: String, name: String): Sec = _uniSymbols synchronized {
-    _uniSymbols += uniSymbol
-    Exchanges.createSimpleSec(this, uniSymbol, name, true)
+  def uniSymbols = Exchange.symbolsOf(this)
+  
+  def addNewSec(uniSymbol: String, name: String): Sec = {
+    Exchange.addNewSec(this, uniSymbol, name)
   }
 
   /** @Todo */

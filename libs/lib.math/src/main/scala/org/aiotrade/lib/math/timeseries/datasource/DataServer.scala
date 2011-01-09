@@ -40,7 +40,6 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
@@ -50,8 +49,8 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_]) extends Event
-case object DataProcessed extends Event
+case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_])
+case object DataProcessed
 
 object DataServer extends Publisher {
   private lazy val DEFAULT_ICON: Option[Image] = {
@@ -60,7 +59,7 @@ object DataServer extends Publisher {
 
   private val config = org.aiotrade.lib.util.config.Config()
 
-  case class HeartBeat(interval: Long) extends Event
+  case class HeartBeat(interval: Long) 
   private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
   
   // in context of applet, a page refresh may cause timer into a unpredict status,
@@ -100,7 +99,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private var isRefreshable = false
   private var inLoading = false
 
-  private case class LoadData(afterTime: Long, contract: Iterable[C]) extends Event
+  private case class LoadData(afterTime: Long, contract: Iterable[C])
 
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of

@@ -36,7 +36,6 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.util.reactors.Event
 
 /**
  *
@@ -226,4 +225,4 @@ trait WithFactors {self: Indicator =>
   }
 }
 
-case class ComputeFrom(time: Long) extends Event
+case class ComputeFrom(time: Long)

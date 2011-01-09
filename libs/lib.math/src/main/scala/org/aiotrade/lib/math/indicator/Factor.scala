@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.indicator
 
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.reactors.Event
 
 /**
  * Class for defining indicator's factor
@@ -120,4 +119,4 @@ trait Factor extends Publisher {
   //    }
 }
 
-case class FactorEvent(source: Factor) extends Event
+case class FactorEvent(source: Factor)

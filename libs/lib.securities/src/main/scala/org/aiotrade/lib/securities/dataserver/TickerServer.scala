@@ -45,7 +45,6 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
@@ -56,9 +55,9 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-case class TickerEvent(ticker: Ticker) extends Event // TickerEvent only accept Ticker
-case class TickersEvent(tickers: Array[LightTicker]) extends Event // TickersEvent accept LightTicker
-case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) extends Event // TickersEvent accept LightTicker
+case class TickerEvent(ticker: Ticker) // TickerEvent only accept Ticker
+case class TickersEvent(tickers: Array[LightTicker]) // TickersEvent accept LightTicker
+case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) // TickersEvent accept LightTicker
 
 case class DepthSnap (
   prevPrice: Double,

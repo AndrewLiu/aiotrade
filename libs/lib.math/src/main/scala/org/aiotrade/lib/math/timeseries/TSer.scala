@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.reactors.Event
 
 /**
  * Time Series
@@ -167,7 +166,7 @@ object TSerEvent {
   }
 }
 
-abstract class TSerEvent extends Event {
+abstract class TSerEvent {
   def source: TSer
   def symbol: String
   def fromTime: Long

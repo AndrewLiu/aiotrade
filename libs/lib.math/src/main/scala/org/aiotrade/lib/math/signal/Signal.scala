@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.signal
 
 import org.aiotrade.lib.math.indicator.SignalIndicator
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import java.awt.Color
 
@@ -39,11 +38,11 @@ import java.awt.Color
  *
  * @author Caoyuan Deng
  */
-case class SignalEvent(source: SignalIndicator, signal: Signal) extends Event
-case class SignalsEvent(source: SignalIndicator, signals: Array[Signal]) extends Event
+case class SignalEvent(source: SignalIndicator, signal: Signal)
+case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
 
-case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal) extends Event
-case class SubSignalsEvent(uniSymbol: String, name: String, freq: String, signals: Array[Signal]) extends Event
+case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal)
+case class SubSignalsEvent(uniSymbol: String, name: String, freq: String, signals: Array[Signal])
 
 object Signal extends Publisher {  
   def importFrom(v: (Long, List[Any])): Signal = {

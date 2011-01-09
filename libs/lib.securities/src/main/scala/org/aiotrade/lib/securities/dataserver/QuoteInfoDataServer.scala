@@ -15,7 +15,6 @@ import scala.collection.mutable.ListBuffer
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
@@ -40,7 +39,7 @@ class QuoteInfo extends TVal {
 
 case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
                              combinValue : Long, content : String, summary : String,
-                             category : List[ContentCategory], secs : List[Sec] ) extends Event{
+                             category : List[ContentCategory], secs : List[Sec] ) {
 
   def export: HashMap[String, Any]= {
     HashMap[String, Any] ("publishTime" -> publishTime,
@@ -54,7 +53,7 @@ case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
   }
 }
 
-case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) extends Event {
+case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) {
   def export: List[HashMap[String, Any]] = for(event <- events) yield event.export
 }
 
