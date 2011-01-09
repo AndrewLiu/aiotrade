@@ -50,7 +50,7 @@ import scala.collection.mutable.HashSet
  *
  * @author Caoyuan Deng
  */
-case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_ <: AnyRef]) extends Event
+case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_]) extends Event
 case object DataProcessed extends Event
 
 object DataServer extends Publisher {
@@ -155,6 +155,22 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * @publish DataLoaded
    */
   protected def requestData(afterThisTime: Long, contracts: Iterable[C])
+
+  /**
+   * A helper method to publish loaded data to reactor (including this DataServer instance)
+   * or remote message system (by overridding it).
+   * @Note this DataServer will react to DataLoaded with processData automatically if it
+   * received this event
+   * @See reactions += {...}
+   * 
+   * @param values the TVal values
+   * @param contract could be null
+   */
+  protected def publishData(values: Array[V], contract: C) {
+    if (values.length > 0) {
+      publish(DataLoaded(values, contract))
+    }
+  }
   
   /**
    * @param values the TVal values

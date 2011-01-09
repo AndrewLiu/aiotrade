@@ -48,7 +48,7 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[S <: AnyRef: Manifest] extends AnalysisDescriptor[S] {
+abstract class DataContract[S: Manifest] extends AnalysisDescriptor[S] {
   @transient var reqId = 0
 
   /** symbol in source */

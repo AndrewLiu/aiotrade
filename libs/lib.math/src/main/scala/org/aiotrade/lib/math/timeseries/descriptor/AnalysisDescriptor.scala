@@ -48,9 +48,9 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: String,
-                                               private var _freq: TFreq,
-                                               private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
+abstract class AnalysisDescriptor[S](private var _serviceClassName: String,
+                                     private var _freq: TFreq,
+                                     private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -124,14 +124,14 @@ abstract class AnalysisDescriptor[S <: AnyRef](private var _serviceClassName: St
   
   protected def lookupServiceTemplate(tpe: Class[S], folderName: String): Option[S] = {
     val services = PersistenceManager().lookupAllRegisteredServices(tpe, folderName)
-    services find {x =>
-      val className = x.getClass.getName
+    services find {service =>
+      val className = service.asInstanceOf[AnyRef].getClass.getName
       className == serviceClassName || className == (serviceClassName + "$") || (className + "$") == serviceClassName
     } match {
       case None =>
         try {
           log.warning("Cannot find registeredService of " + tpe + " in folder '" +
-                      folderName + "': " + services.map(_.getClass.getName) +
+                      folderName + "': " + services.map(_.asInstanceOf[AnyRef].getClass.getName) +
                       ", try Class.forName call: serviceClassName=" + serviceClassName)
 
           val klass = Class.forName(serviceClassName)

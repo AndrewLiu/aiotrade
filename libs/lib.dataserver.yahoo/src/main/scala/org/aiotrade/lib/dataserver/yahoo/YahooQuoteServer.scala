@@ -41,7 +41,6 @@ import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.datasource.DataLoaded
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -217,9 +216,7 @@ object YahooQuoteServer extends QuoteServer with Singleton {
         request(fromTime, contract) match {
           case Some(is) =>
             val quotes = read(fromTime, contract, is)
-            if (quotes.length > 0) {
-              publish(DataLoaded(quotes, contract))
-            }
+            publishData(quotes, contract)
           case None =>
         }
       } catch {
