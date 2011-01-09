@@ -32,12 +32,11 @@ object DBFField {
 }
 
 class DBFField {
-
   /* Field struct variables start here */
   private var _name = new Array[Byte](11)   /* 0-10*/
   private var _dataType: Byte = _           /* 11 */
   private var reserv1: Int = _              /* 12-15 */
-  private var _ength: Int = _               /* 16 */
+  private var _length: Int = _              /* 16 */
   private var _decimalCount: Byte = _       /* 17 */
   private var reserv2: Short = _            /* 18-19 */
   private var workAreaId: Byte = _          /* 20 */
@@ -95,11 +94,11 @@ class DBFField {
   }
 
   /**
-   Writes the content of DBFField object into the stream as per
-   DBF format specifications.
-
-   @param os OutputStream
-   @throws IOException if any stream related issues occur.
+   * Writes the content of DBFField object into the stream as per
+   * DBF format specifications.
+   *
+   * @param os OutputStream
+   * @throws IOException if any stream related issues occur.
    */
   @throws(classOf[IOException])
   def write(out: DataOutput) {
@@ -108,7 +107,7 @@ class DBFField {
 
     out.writeByte(_dataType)      /* 11 */
     out.writeInt(0x00)            /* 12-15 */
-    out.writeByte(_ength)         /* 16 */
+    out.writeByte(_length)         /* 16 */
     out.writeByte(_decimalCount)  /* 17 */
     out.writeShort(0x00)          /* 18-19 */
     out.writeByte(0x00)           /* 20 */
@@ -125,74 +124,74 @@ class DBFField {
    @since 0.3.3.1
    */
   def name = new String(this._name, 0, nameNullIndex)
-  def name_=(value: String) {
-    if (value == null) {
+  def name_=(name: String) {
+    if (name == null) {
       throw new IllegalArgumentException("Field name cannot be null")
     }
 
-    if (value.length == 0 || value.length > 10) {
+    if (name.length == 0 || name.length > 10) {
       throw new IllegalArgumentException("Field name should be of length 0-10")
     }
 
-    _name = value.getBytes
+    _name = name.getBytes
     nameNullIndex = this._name.length
   }
 
   /**
-   Sets the data type of the field.
-
-   @param type of the field. One of the following:<br>
-   C, L, N, F, D, M
+   * Sets the data type of the field.
+   *
+   * @param type of the field. One of the following:<br>
+   * C, L, N, F, D, M
    */
   def dataType = _dataType
-  def dataType_=(value: Byte) {
-    value match {
-      case 'D' => _ength = 8
+  def dataType_=(dataType: Byte) {
+    dataType match {
+      case 'D' => _length = 8
       case 'C' | 'L' | 'N' | 'F' | 'M' =>
       case _ => throw new IllegalArgumentException("Unknown data type")
     }
     
-    _dataType = value
+    _dataType = dataType
   }
 
   /**
-   Length of the field.
-   This method should be called before calling setDecimalCount().
-
-   @param Length of the field as int.
+   * Length of the field.
+   * This method should be called before calling setDecimalCount().
+   *
+   * @param Length of the field as int.
    */
-  def length = _ength
-  def length_=(value: Int) {
-    if (value <= 0) {
+  def length = _length
+  def length_=(length: Int) {
+    if (length <= 0) {
       throw new IllegalArgumentException("Field length should be a positive number");
     }
 
     if (_dataType == 'D') {
 //      throw new UnsupportedOperationException("Cannot do this on a Date field");
-      _ength = 17
+      _length = 17
     }
 
-    _ength = value
+    _length = length
   }
 
   /**
-   Sets the decimal place size of the field.
-   Before calling this method the size of the field
-   should be set by calling setFieldLength().
-
-   @param Size of the decimal field.
+   * Sets the decimal place size of the field.
+   * Before calling this method the size of the field
+   * should be set by calling setFieldLength().
+   *
+   * @param Size of the decimal field.
    */
   def decimalCount = _decimalCount
-  def decimalCount_=(value: Int) {
-    if (value < 0) {
+  def decimalCount_=(count: Int) {
+    if (count < 0) {
       throw new IllegalArgumentException("Decimal length should be a positive number")
     }
 
-    if (value > _ength) {
+    if (count > _length) {
       throw new IllegalArgumentException("Decimal length should be less than field length")
     }
 
-    _decimalCount = value.toByte
+    _decimalCount = count.toByte
   }
 
   override def toString = {

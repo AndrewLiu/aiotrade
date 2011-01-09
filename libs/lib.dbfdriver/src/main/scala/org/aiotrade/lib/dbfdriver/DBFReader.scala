@@ -17,22 +17,52 @@ object DBFReader {
 
   @throws(classOf[IOException])
   def apply(is: InputStream) = is match {
-    case x: FileInputStream => new DBFReader(Left(x getChannel))
+    case x: FileInputStream =>
+      val fileChannel = x.getChannel
+      try {
+        new DBFReader(Left(fileChannel))
+      } catch {
+        case ex => tryCloseFileChannel(fileChannel); throw ex
+      }
+
     case _ => new DBFReader(Right(is))
   }
 
   @throws(classOf[IOException])
-  def apply(file: File) = new DBFReader(Left(new FileInputStream(file) getChannel))
+  def apply(file: File) = {
+    val fileChannel = (new FileInputStream(file)).getChannel
+    try {
+      new DBFReader(Left(new FileInputStream(file) getChannel))
+    } catch {
+      case ex => tryCloseFileChannel(fileChannel); throw ex
+    }
+  }
 
   @throws(classOf[IOException])
-  def apply(fileName: String) = new DBFReader(Left(new RandomAccessFile(fileName, "r") getChannel))
+  def apply(fileName: String) = {
+    val fileChannel = (new RandomAccessFile(fileName, "r")).getChannel
+    try {
+      new DBFReader(Left(fileChannel))
+    } catch {
+      case ex => tryCloseFileChannel(fileChannel); throw ex
+    }
+  }
+
+  private def tryCloseFileChannel(fileChannel: FileChannel) {
+    if (fileChannel != null) {
+      try {
+        fileChannel.close
+      } catch {
+        case ex =>
+      }
+    }
+  }
 }
 
 import DBFReader._
 @throws(classOf[IOException])
-class DBFReader(input: Either[FileChannel, InputStream]) {
+class DBFReader private (input: Either[FileChannel, InputStream]) {
   var charsetName = "8859_1"
-
   var isClosed = false
 
   private var in: ByteBuffer = _
@@ -73,10 +103,10 @@ class DBFReader(input: Either[FileChannel, InputStream]) {
 
 
   // it might be required to leap to the start of records at times
-  val t_dataStartIndex = header.headerLength - (32 + (32 * header.fields.length)) - 1
-  if (t_dataStartIndex > 0) {
-    in.position(in.position + t_dataStartIndex)
-    //is.skip(t_dataStartIndex)
+  val dataStartIndex = header.headerLength - (32 + (32 * header.fields.length)) - 1
+  if (dataStartIndex > 0) {
+    in.position(in.position + dataStartIndex)
+    //is.skip(dataStartIndex)
   }
 
   override def toString = {
@@ -93,9 +123,7 @@ class DBFReader(input: Either[FileChannel, InputStream]) {
   /**
    * Returns the number of records in the DBF.
    */
-  def recordCount = {
-    header.numberOfRecords
-  }
+  def recordCount = header.numberOfRecords
 
   /**
    * Returns the asked Field. In case of an invalid index,
@@ -257,7 +285,9 @@ class DBFReader(input: Either[FileChannel, InputStream]) {
         case Left(x) => x.close
         case Right(x) => x.close
       }
-    } catch {case ex: IOException => throw ex}
+    } catch {
+      case ex: IOException => throw ex
+    }
   }
 
 }
