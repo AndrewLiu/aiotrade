@@ -10,15 +10,13 @@
 
 package org.aiotrade.lib.util.actors
 
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.reactors.Reactions
-import org.aiotrade.lib.util.reactors.Stop
-
 
 /**
  * The counterpart to publishers. Listens to events from registered publishers.
  */
-trait Reactor extends scala.actors.Reactor[Event] {
+trait Reactor extends scala.actors.Reactor[Any] {
+  private case object Stop
   
   /**
    * All reactions of this reactor.
@@ -30,6 +28,9 @@ trait Reactor extends scala.actors.Reactor[Event] {
   
   start
 
+  /**
+   * Stop via message driven, so the reactor will react messages before finally exit.
+   */
   def stop {this ! Stop}
 
   /**

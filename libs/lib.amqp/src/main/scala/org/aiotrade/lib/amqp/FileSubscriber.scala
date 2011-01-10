@@ -1,23 +1,20 @@
 package org.aiotrade.lib.amqp
 
-import com.rabbitmq.client.Consumer
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.logging.Logger
-import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 
 object FileSubscriber {
 
   // --- simple test
   def main(args: Array[String]) {
-    val queue = "filequeue"
-    val exchange = "market.file"
-    val routingKey = "faster.server.dbffile"
+    val host = "localhost"
     val port = 5672
 
-    val host = "localhost"
+    val queue = "filequeue"
+    val exchange = "market.internal"
+    val routingKey = "source.file.cndbf"
 
     val outputDirPath = System.getProperty("user.home") + File.separator + "storage"
 
@@ -33,19 +30,19 @@ object FileSubscriber {
       val queuei = queue + i
       val subscriber = new FileSubscriber(factory,
                                           exchange,
-                                          queuei,
-                                          routingKey,
                                           outputDirPath)
       
       new subscriber.SafeProcessor
       subscriber.connect
+      subscriber.consumeQueue(queuei, true, false, false, true)
+      subscriber.subscribeTopic(routingKey)
     }
   }
 
 }
 
-class FileSubscriber(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, outputDirPath: String
-) extends AMQPDispatcher(factory, exchange) {
+class FileSubscriber(factory: ConnectionFactory, exchange: String, outputDirPath: String, isAutoAck: Boolean = true
+) extends AMQPSubscriber(factory, exchange) {
   val outputDir = new File(outputDirPath)
   if (!outputDir.exists) {
     outputDir.mkdirs
@@ -53,17 +50,6 @@ class FileSubscriber(factory: ConnectionFactory, exchange: String, queue: String
     assert(outputDir.isDirectory, "outputDir should be director: " + outputDir)
   }
   
-  @throws(classOf[IOException])
-  override def configure(channel: Channel): Option[Consumer] = {
-    channel.exchangeDeclare(exchange, "direct", true)
-    channel.queueDeclare(queue, true, false, false, null)
-    channel.queueBind(queue, exchange, routingKey)
-    
-    val consumer = new AMQPConsumer(channel, false)
-    channel.basicConsume(queue, consumer.isAutoAck, consumer)
-    Some(consumer)
-  }
-
   class DefaultProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders

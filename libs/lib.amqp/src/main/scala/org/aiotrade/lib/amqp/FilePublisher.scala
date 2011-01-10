@@ -22,9 +22,8 @@ object FilePublisher {
     val host = "localhost"
     val port = 5672
 
-    val exchange = "market.file"
-    val queue = "filequeue"
-    val routingKey = "faster.server.dbffile"
+    val exchange = "market.internal"
+    val routingKey = "source.file.cndbf"
 
     val factory = new ConnectionFactory
     factory.setHost(host)
@@ -34,7 +33,7 @@ object FilePublisher {
     factory.setVirtualHost("/")
     factory.setRequestedHeartbeat(0)
 
-    val publisher = new FilePublisher(factory, exchange, queue, routingKey, nSubscribers)
+    val publisher = new FilePublisher(factory, exchange, routingKey, true)
     publisher.connect
     val files = List(new File("pom.xml"), new File("src/test/resources/testfile.txt"))
 
@@ -43,26 +42,12 @@ object FilePublisher {
   }
 }
 
-class FilePublisher(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String, nConsumers: Int
+class FilePublisher(factory: ConnectionFactory, exchange: String, routingKey: String, durable: Boolean = false
 ) extends AMQPDispatcher(factory, exchange) {
 
-  def this(factory: ConnectionFactory, exchange: String, queue: String, routingKey: String) = {
-    this(factory, exchange, queue, routingKey, 0)
-  }
-
   @throws(classOf[IOException])
-  override def configure(channel: Channel): Option[Consumer] = {
-    channel.exchangeDeclare(exchange, "direct", true)
-    // produce to n queues.
-    // we'll create these queues here whatever, so, even the consumer starts
-    // later than producer, they won't miss messages that were previously sent.
-    for (i <- 0 until nConsumers) {
-      // count from 1, (i + 1) should be enclosed, otherwise will be 01 instead of 1
-      val queuei = queue + (i + 1) 
-      channel.queueDeclare(queuei, true, false, false, null)
-      channel.queueBind(queuei, exchange, routingKey)
-    }
-    
+  def configure(channel: Channel): Option[Consumer] = {
+    channel.exchangeDeclare(exchange, "direct", durable)
     None
   }
 
@@ -89,7 +74,7 @@ class FilePublisher(factory: ConnectionFactory, exchange: String, queue: String,
     val props = new BasicProperties
     props.setHeaders(headers)
     props.setContentType(ContentType.OCTET_STREAM.mimeType)
-    props.setDeliveryMode(2) // persistent
+    if (durable) props.setDeliveryMode(2) // persistent
     publish(exchange, routingKey, props, body)
   }
 

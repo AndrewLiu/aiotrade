@@ -98,8 +98,8 @@
         </dependency>
         <dependency>
             <groupId>org.scala-tools.testing</groupId>
-            <artifactId>specs_2.8.0</artifactId>
-            <version>1.6.5</version>
+            <artifactId>specs_2.8.1</artifactId>
+            <version>1.6.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -198,6 +198,7 @@
         <module>lib.indicator.basic</module>
         <module>lib.dataserver.ib</module>
         <module>lib.dataserver.yahoo</module>
+        <module>lib.dbfdriver</module>
         <module>lib.amqp</module>
         <module>helper.test</module>
         <module>lib.sevenzip</module>

@@ -23,7 +23,7 @@ abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
 
   deafTo(DataServer)
 
-  protected def composeSer(values: Array[QuoteInfo], contract: QuoteInfoHisContract): Long = {
+  protected def processData(values: Array[QuoteInfo], contract: QuoteInfoHisContract): Long = {
     updatedEvents.clear
     var count = 0
 

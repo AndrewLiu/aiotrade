@@ -311,28 +311,12 @@ object Data {
     val secInfosFile = new File(dataFileDir, "sec_infos.txt")
 
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      createSimpleSec(symbol, symbol, N)
+      Exchanges.createSimpleSec(N, symbol, symbol, false)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      createSimpleSec(symbol, symbol, L)
+      Exchanges.createSimpleSec(L, symbol, symbol, false)
     }
   }
 
-  def createSimpleSec(uniSymbol: String, name: String, exchange: Exchange) {
-    val secInfo = new SecInfo
-    secInfo.uniSymbol = uniSymbol
-    secInfo.name = name
-    SecInfos.save(secInfo)
-    assert(SecInfos.idOf(secInfo).isDefined, secInfo + " with none id")
-
-    val sec = new Sec
-    sec.secInfo = secInfo
-    sec.exchange = exchange
-    Secs.save_!(sec)
-    assert(Secs.idOf(sec).isDefined, sec + " with none id")
-
-    secInfo.sec = sec
-    SecInfos.update(secInfo)
-  }
 }

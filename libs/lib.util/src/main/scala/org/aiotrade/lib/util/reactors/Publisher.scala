@@ -27,6 +27,7 @@ import scala.collection.mutable.HashSet
  *    since reactors (strongly) reference publishers they are interested in.
  *  </p>
  */
+@deprecated("Use actors.Reactor")
 trait Publisher extends Reactor {
   import Reactions._
 
@@ -45,7 +46,7 @@ trait Publisher extends Reactor {
   /**
    * Notify all registered reactions.
    */
-  def publish(e: Event) { for (l <- listeners) l(e) }
+  def publish(e: Any) { for (l <- listeners) l(e) }
 
   listenTo(this)
 }

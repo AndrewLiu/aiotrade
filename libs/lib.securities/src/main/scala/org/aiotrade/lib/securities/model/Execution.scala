@@ -1,9 +1,8 @@
 package org.aiotrade.lib.securities.model
 
-import org.aiotrade.lib.util.reactors.Event
 import ru.circumflex.orm._
 
-case class ExecutionEvent(prevClose: Double, execution: Execution) extends Event
+case class ExecutionEvent(prevClose: Double, execution: Execution)
 
 object Executions extends Table[Execution] {
   val sec = "secs_id" REFERENCES(Secs)

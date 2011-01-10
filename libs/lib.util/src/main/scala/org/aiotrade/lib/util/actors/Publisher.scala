@@ -12,7 +12,6 @@ package org.aiotrade.lib.util.actors
 
 import scala.collection._
 import scala.collection.mutable.HashSet
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.reactors.Reactions
 import org.aiotrade.lib.util.reactors.RefSet
 import org.aiotrade.lib.util.reactors.StrongReference
@@ -51,7 +50,7 @@ trait Publisher extends Reactor {
   /**
    * Notify all registered reactions.
    */
-  def publish(e: Event) { for (l <- listeners) l ! e }
+  def publish(e: Any) { for (l <- listeners) l ! e }
 
   listenTo(this)
 }

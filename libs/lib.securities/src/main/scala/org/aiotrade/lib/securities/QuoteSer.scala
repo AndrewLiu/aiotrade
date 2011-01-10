@@ -36,7 +36,6 @@ import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.util.reactors.Reactions
 
 /**

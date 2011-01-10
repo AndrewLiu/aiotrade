@@ -231,9 +231,7 @@ object YahooTickerServer extends TickerServer with Singleton {
           request(toProcess) match {
             case Some(is) =>
               val tickers = read(is)
-              if (tickers.length > 0) {
-                publish(DataLoaded(tickers, null))
-              }
+              publishData(tickers, null)
             case None => log.info("no reponse for :" + toProcess.mkString(","))
           }
         } catch {case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)}

@@ -53,7 +53,7 @@ abstract class QuoteServer extends DataServer[Quote] {
   /**
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
-  protected def composeSer(quotes: Array[Quote], contract: QuoteContract): Long = {
+  protected def processData(quotes: Array[Quote], contract: QuoteContract): Long = {
     var frTime = loadedTime
     var toTime = loadedTime
 
