@@ -264,7 +264,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           }
 
         } else {
-          log.warning("Discard ticker " + ticker.toString)
+          log.warning("Discard invalid ticker: symbol=" + ticker.symbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
         }
       }
 
@@ -301,8 +301,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
         lastTime = math.max(lastTime, ticker.time)
-      } else{
-        log.warning("Invalid ticker: " + ticker)
       }
 
       i += 1
