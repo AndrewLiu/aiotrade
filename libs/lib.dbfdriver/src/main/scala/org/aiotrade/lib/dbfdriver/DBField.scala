@@ -141,13 +141,14 @@ class DBFField {
    * Sets the data type of the field.
    *
    * @param type of the field. One of the following:<br>
-   * C, L, N, F, D, M
+   * C, L, N, F, D, M,T(DateTime),I(Int)
    */
   def dataType = _dataType
   def dataType_=(dataType: Byte) {
     dataType match {
       case 'D' => _length = 8
-      case 'C' | 'L' | 'N' | 'F' | 'M' =>
+      case 'T' => _length = 17
+      case 'C' | 'L' | 'N' | 'F' | 'M' | 'I' =>
       case _ => throw new IllegalArgumentException("Unknown data type")
     }
     
@@ -167,7 +168,9 @@ class DBFField {
     }
 
     if (_dataType == 'D') {
-//      throw new UnsupportedOperationException("Cannot do this on a Date field");
+      _length = 8
+    }
+    if (_dataType == 'T') {
       _length = 17
     }
 

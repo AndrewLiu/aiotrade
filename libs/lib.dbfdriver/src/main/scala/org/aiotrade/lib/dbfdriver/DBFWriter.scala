@@ -113,6 +113,10 @@ class DBFWriter(dbfFile: File)  {
             throw new IOException("Invalid value for field " + i)
           case 'F' if !values(i).isInstanceOf[Double] =>
             throw new IOException("Invalid value for field " + i)
+          case 'I' if !values(i).isInstanceOf[Int] =>
+            throw new IOException("Invalid value for field " + i)
+          case 'T' if !values(i).isInstanceOf[Date] =>
+            throw new IOException("Invalid value for field " + i)
           case _ => 
         }
       }
@@ -195,12 +199,9 @@ class DBFWriter(dbfFile: File)  {
             dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes)
             dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
             dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
-            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.HOUR_OF_DAY)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
-            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MINUTE)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
-            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.SECOND)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
-            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MILLISECOND)), charsetName, 3, Utils.ALIGN_RIGHT, '0'.toByte))
+            
           } else {
-            dataOutput.write("                 ".getBytes)
+            dataOutput.write("        ".getBytes)
           }
 
         case 'F' =>
@@ -229,6 +230,29 @@ class DBFWriter(dbfFile: File)  {
           }
 
         case 'M' =>
+          
+        case 'T' =>
+          if (values(i) != null) {
+            val calendar = new GregorianCalendar
+            calendar.setTime(values(i).asInstanceOf[Date])
+            dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes)
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.HOUR_OF_DAY)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MINUTE)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.SECOND)), charsetName, 2, Utils.ALIGN_RIGHT, '0'.toByte))
+            dataOutput.write(Utils.textPadding(String.valueOf(calendar.get(Calendar.MILLISECOND)), charsetName, 3, Utils.ALIGN_RIGHT, '0'.toByte))
+          } else {
+            dataOutput.write("                 ".getBytes)
+          }
+
+        case 'I' =>
+          if (values(i) != null) {
+            val int_value = values(i).toString
+            dataOutput.write(Utils.textPadding(int_value, charsetName, header.fields(i).length))
+          } else {
+            dataOutput.write(Utils.textPadding("0", charsetName, this.header.fields(i).length))
+          }
         case _ => throw new IOException("Unknown field type " + header.fields(i).dataType)
       }
       
