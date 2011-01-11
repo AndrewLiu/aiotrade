@@ -1,11 +1,12 @@
 package org.aiotrade.lib.dbfdriver
-
+import java.util.Date
+import java.text.SimpleDateFormat
 object TestReader {
   val willPrintRecord = true
 
   val warmTimes = 5
   val times = if (willPrintRecord) 1 else 30
-  val filename = "SJSHQ.DBF"
+  val filename = "testwrite.dbf"
   
   def main(args: Array[String]) {
     test1
@@ -59,7 +60,11 @@ object TestReader {
     while (i < l) {
       val recordObjs = reader.nextRecord
       if (willPrintRecord) {
-        recordObjs foreach {x => print(x + " | ")}
+        recordObjs foreach {x => x match {
+            case x: String => print(new String(x.getBytes("8859_1"),"GBK") + " | ")
+            case x: Date => print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(x) + " | ")
+            case av => print(av + " | ")
+          }}
         println
       } else {
         recordObjs foreach {x =>}
