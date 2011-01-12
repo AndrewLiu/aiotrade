@@ -97,8 +97,8 @@ case object RpcTimeout extends RpcResponse("RPC timeout", null, null)
 
 case class RpcRequest(args: Any*) extends Event
 
-case object AMQPConnected extends Event
-case object AMQPDisconnected extends Event
+case object AMQPConnected
+case object AMQPDisconnected
 
 object AMQPExchange {
   /**
@@ -189,15 +189,15 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         publish(AMQPConnected)
 
       case Right(ex) =>
-        // @Note **only** when there is no created connection, we'll try to reconnect here,
-        // let shutdown listener to handle all other reconnetion needs
         publish(AMQPDisconnected)
+        // @Note **only** when there is none created connection, we'll try to reconnect here,
+        // let shutdown listener to handle all other reconnetion needs
         reconnect(ex)
     }
   }
 
   private def reconnect(cause: Throwable) {
-    log.warning("Will try to reconnect in " + reconnectDelay + ", the cause is:")
+    log.warning("Will try to reconnect in " + reconnectDelay + " ms, the cause is:")
     log.log(Level.WARNING, cause.getMessage, cause)
 
     disconnect
