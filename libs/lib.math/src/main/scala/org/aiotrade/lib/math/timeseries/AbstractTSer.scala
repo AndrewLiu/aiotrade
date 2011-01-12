@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  *
@@ -79,7 +79,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       val len = toIdx - frIdx + 1
       
       if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
-        var vmap: HashMap[String, Array[_]] = new HashMap
+        var vmap = mutable.Map[String, Array[_]]()
 
         val timesx = new Array[Long](len)
         timestamps.copyToArray(timesx, frIdx, len)

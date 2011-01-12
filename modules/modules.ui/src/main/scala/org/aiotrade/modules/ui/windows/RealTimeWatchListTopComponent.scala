@@ -59,8 +59,7 @@ import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 /** This class implements serializbale by inheriting TopComponent, but should
  * overide writeExternal() and readExternal() to implement own serializable
@@ -75,7 +74,7 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object RealTimeWatchListTopComponent {
-  private val instanceRefs = WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
+  private val instanceRefs = mutable.WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
   // The Mode this component will live in.
@@ -83,7 +82,7 @@ object RealTimeWatchListTopComponent {
 
   private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
 
-  private val watchingSecs = HashSet[Sec]()
+  private val watchingSecs = mutable.Set[Sec]()
 
   def getInstance(node: SymbolNodes.SymbolFolderNode): RealTimeWatchListTopComponent = {
     val instance = instances find (_.getActivatedNodes.contains(node)) getOrElse {

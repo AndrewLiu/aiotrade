@@ -100,8 +100,7 @@ import org.openide.windows.WindowManager
 import org.openide.xml.XMLUtil
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 
 
@@ -139,9 +138,9 @@ object SymbolNodes {
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/symbol.gif")
 
-  private val contentToOccuptantNode = new HashMap[AnalysisContents, Node]
+  private val contentToOccuptantNode = mutable.Map[AnalysisContents, Node]()
 
-  private val symbolNodeToSymbol = new WeakHashMap[OneSymbolNode, String]
+  private val symbolNodeToSymbol = new mutable.WeakHashMap[OneSymbolNode, String]
 
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
   private val stockIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")

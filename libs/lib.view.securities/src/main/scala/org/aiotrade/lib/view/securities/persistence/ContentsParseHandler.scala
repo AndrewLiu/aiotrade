@@ -51,8 +51,7 @@ import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
 import org.xml.sax.helpers.DefaultHandler
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Stack
+import scala.collection.mutable
 
 /**
  *
@@ -67,14 +66,14 @@ class ContentsParseHandler extends DefaultHandler {
   private var factors: ArrayBuffer[Factor] = _
     
   private var drawingDescriptor: DrawingDescriptor = _
-  private var handledChartMapPoints: HashMap[HandledChart, ArrayBuffer[ValuePoint]] = _
+  private var handledChartMapPoints: mutable.Map[HandledChart, ArrayBuffer[ValuePoint]] = _
   private var handledChartClassName: String = _
   private var points: ArrayBuffer[ValuePoint] = _
     
   val DEBUG = false
     
   private var buffer: StringBuffer = new StringBuffer(500)
-  private val context = new Stack[Array[Object]]
+  private val context = mutable.Stack[Array[Object]]()
     
   private val calendar = Calendar.getInstance
     
@@ -455,7 +454,7 @@ class ContentsParseHandler extends DefaultHandler {
       Integer.parseInt(meta.getValue("nunits").trim))
     drawingDescriptor.freq = freq
         
-    handledChartMapPoints = new HashMap
+    handledChartMapPoints = mutable.Map()
   }
     
   @throws(classOf[SAXException])

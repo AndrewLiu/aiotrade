@@ -10,7 +10,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.math.indicator.Plot
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import java.util.logging.Logger
 
 class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
@@ -38,7 +38,7 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
     }
   }
 
-  def exportTo(fromTime : Long, toTime : Long) : List[HashMap[String, Any]] =  {
+  def exportTo(fromTime : Long, toTime : Long) : List[mutable.Map[String, Any]] =  {
     try {
       readLock.lock
       timestamps.readLock.lock
@@ -47,7 +47,7 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
       val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
       var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
       toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
-      val quoteInfos = ArrayList[HashMap[String, Any]]()
+      val quoteInfos = ArrayList[mutable.Map[String, Any]]()
       for(i : Int <- 0 to infos.size) {
         if(infos(i) != null ){
           for (quoteInfo <- infos(i)) {

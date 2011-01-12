@@ -18,7 +18,7 @@ import org.aiotrade.spi.quicksearch.SearchRequest
 import org.aiotrade.spi.quicksearch.SearchResponse
 import org.openide.awt.HtmlBrowser.URLDisplayer
 import scala.collection.immutable.TreeSet
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 class SymbolSearchProvider extends SearchProvider {
@@ -26,7 +26,7 @@ class SymbolSearchProvider extends SearchProvider {
 
   private val url = "http://finance.yahoo.com/q?s="
 
-  private val textToSecs = new HashMap[String, Set[Sec]]
+  private val textToSecs = mutable.Map[String, Set[Sec]]()
 
   initMap
   

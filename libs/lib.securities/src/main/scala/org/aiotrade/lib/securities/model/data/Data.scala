@@ -43,7 +43,7 @@ import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
 import scala.actors.Scheduler
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  * Dump table to txt using ',' to separat fields
@@ -86,11 +86,11 @@ object Data {
   var exchanges = Array[Exchange]()
 
   // holding temporary id for secs, companies, industries etc
-  val idToExchange = HashMap[String, Exchange]()
-  val idToSec = HashMap[String, Sec]()
-  val idToSecInfo = HashMap[String, SecInfo]()
-  val idToCompany = HashMap[String, Company]()
-  val idToIndustry = HashMap[String, Industry]()
+  val idToExchange = mutable.Map[String, Exchange]()
+  val idToSec = mutable.Map[String, Sec]()
+  val idToSecInfo = mutable.Map[String, SecInfo]()
+  val idToCompany = mutable.Map[String, Company]()
+  val idToIndustry = mutable.Map[String, Industry]()
 
   val secRecords = new ArrayList[Sec]
   val secInfoRecords = new ArrayList[SecInfo]

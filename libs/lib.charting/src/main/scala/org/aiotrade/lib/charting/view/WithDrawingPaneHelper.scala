@@ -33,7 +33,7 @@ package org.aiotrade.lib.charting.view
 import javax.swing.JLayeredPane
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.charting.view.pane.DrawingPane
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  * This class help to implement a default drawingPart support.
@@ -49,7 +49,7 @@ import scala.collection.mutable.HashMap
  * WithDrawingPaneHelper.
  */
 class WithDrawingPaneHelper(owner: ChartView) extends WithDrawingPane {
-  val descriptorToDrawing = new HashMap[DrawingDescriptor, DrawingPane]
+  val descriptorToDrawing = mutable.Map[DrawingDescriptor, DrawingPane]()
   private var _selectedDrawing: DrawingPane = _
     
   def selectedDrawing: DrawingPane = _selectedDrawing

@@ -49,7 +49,7 @@ import org.aiotrade.modules.ui.dialog.PickIndicatorDialog;
 import org.openide.util.ImageUtilities
 import org.openide.util.NbBundle
 import org.openide.windows.WindowManager
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -93,7 +93,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     def execute {
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
             
-      var keyToResult = HashMap[String, Object]()
+      var keyToResult = mutable.Map[String, Object]()
             
       val dialog = new PickIndicatorDialog(
         WindowManager.getDefault.getMainWindow,

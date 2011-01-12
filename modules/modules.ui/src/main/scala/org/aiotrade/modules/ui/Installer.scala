@@ -53,7 +53,7 @@ import org.openide.loaders.DataFolder
 import org.openide.modules.ModuleInstall
 import org.openide.util.RequestProcessor
 import org.openide.windows.WindowManager
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  * How do i change the closing action of the MainWindow?
@@ -202,7 +202,7 @@ class Installer extends ModuleInstall {
 
     // add symbols to exchange folder
     val dailyQuoteContract = createQuoteContract
-    val symbolsToFolder = new HashMap[String, DataFolder]
+    val symbolsToFolder = mutable.Map[String, DataFolder]()
     for (exchange <- activeExchanges;
          exchangeFolder = DataFolder.create(rootFolder, exchange.code);
          symbol <- Exchange.symbolsOf(exchange)

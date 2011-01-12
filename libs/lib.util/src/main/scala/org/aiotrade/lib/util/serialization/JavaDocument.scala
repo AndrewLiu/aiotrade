@@ -32,8 +32,7 @@ package org.aiotrade.lib.util.serialization
 
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
-import java.util.HashMap
-import java.util.Map
+import scala.collection.mutable
 
 /**
  *
@@ -61,7 +60,7 @@ object JavaDocument {
 class JavaDocument {
     
   def create(o: AnyRef): Unit = {
-    val constructorArgMapField = new HashMap[ConstructorArg, Field]
+    val constructorArgMapField = mutable.Map[ConstructorArg, Field]()
     
     o.getClass.getFields.foreach{field =>
       val a = field.getAnnotation(classOf[ConstructorArg])
@@ -93,7 +92,7 @@ class JavaDocument {
     val itr1 = constructorArgMapField.keySet.iterator
     while (itr1.hasNext) {
       val a = itr1.next
-      fields(a.index) = constructorArgMapField.get(a)
+      fields(a.index) = constructorArgMapField.get(a).orNull
     }
 
     if (constructor != null) {

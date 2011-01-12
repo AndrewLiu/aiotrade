@@ -1,7 +1,7 @@
 package org.aiotrade.lib.securities.model
 
 import junit.framework.TestCase
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import junit.framework.Assert._
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -16,7 +16,7 @@ class TestExchangeUnit extends TestCase {
   private lazy val HK  = Exchange.HK
   private lazy val OQ  = Exchange.OQ
   
-  private val timeToTradingStatus = HashMap[Long, TradingStatus]()
+  private val timeToTradingStatus = mutable.Map[Long, TradingStatus]()
 
   private val dateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
   protected val timeZone = TimeZone.getTimeZone("Asia/Shanghai")

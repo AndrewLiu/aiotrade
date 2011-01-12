@@ -38,12 +38,12 @@ import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 object Quotes1d extends Quotes {
   private val logger = Logger.getLogger(this.getClass.getSimpleName)
 
-  private val dailyCache = new HashMap[Long, HashMap[Sec, Quote]]
+  private val dailyCache = mutable.Map[Long, mutable.Map[Sec, Quote]]()
 
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
     (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
@@ -54,7 +54,7 @@ object Quotes1d extends Quotes {
       case Some(map) => map
       case None =>
         dailyCache.clear
-        val map = new HashMap[Sec, Quote]
+        val map = mutable.Map[Sec, Quote]()
         dailyCache.put(dailyRoundedTime, map)
 
         (SELECT (this.*) FROM (this) WHERE (
@@ -131,7 +131,7 @@ object Quotes1m extends Quotes {
 
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
-  private val minuteCache = new HashMap[Long, HashMap[Sec, Quote]]
+  private val minuteCache = mutable.Map[Long, mutable.Map[Sec, Quote]]()
 
   def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
     SELECT (this.*) FROM (this) WHERE (
@@ -151,7 +151,7 @@ object Quotes1m extends Quotes {
       case Some(map) => map
       case None =>
         minuteCache.clear
-        val map = new HashMap[Sec, Quote]
+        val map = mutable.Map[Sec, Quote]()
         minuteCache.put(minuteRoundedTime, map)
 
         (SELECT (this.*) FROM (this) WHERE (
@@ -245,7 +245,7 @@ abstract class Quotes extends Table[Quote] {
     val last = sortedQuotes.last
     val frTime = math.min(head.time, last.time)
     val toTime = math.max(head.time, last.time)
-    val exists = new HashMap[Long, Quote]
+    val exists = mutable.Map[Long, Quote]()
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list

@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  * Assume table BidAsk's structure:
@@ -28,11 +28,11 @@ import scala.collection.mutable.HashMap
 
 object TickersLast extends TickersTable {
 
-  private[model] def lastTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  private[model] def lastTickersOf(exchange: Exchange): mutable.Map[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
     val start = System.currentTimeMillis
-    val map = new HashMap[Sec, Ticker]
+    val map = mutable.Map[Sec, Ticker]()
     (SELECT(this.*) FROM (this JOIN Secs) WHERE (
         (Secs.exchange.field EQ Exchanges.idOf(exchange))
       ) list
@@ -43,11 +43,11 @@ object TickersLast extends TickersTable {
     map
   }
 
-  private[model] def lastTradingDayTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  private[model] def lastTradingDayTickersOf(exchange: Exchange): mutable.Map[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
     val start = System.currentTimeMillis
-    val map = new HashMap[Sec, Ticker]
+    val map = mutable.Map[Sec, Ticker]()
 
     lastTradingTimeOf(exchange) match {
       case Some(time) =>
@@ -82,7 +82,7 @@ object Tickers extends TickersTable {
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
-  private val lastTickersCache = new HashMap[Long, HashMap[Sec, Ticker]]
+  private val lastTickersCache = mutable.Map[Long, mutable.Map[Sec, Ticker]]()
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Ticker = {
     if (isServer) lastTickerOf_nocached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
@@ -181,11 +181,11 @@ object Tickers extends TickersTable {
    * Plan B:
    * SELECT tickers.* FROM (SELECT tickers.secs_id as secs_id, MAX(tickers.time) AS maxtime FROM orm.tickers AS tickers LEFT JOIN orm.secs AS secs ON tickers.secs_id = secs.id WHERE tickers.time >= 1281715200000 AND tickers.time < 1281801600000 AND secs.exchanges_id = 1 GROUP BY tickers.secs_id) AS x INNER JOIN orm.tickers AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;
    */
-  private[securities] def lastTradingDayTickersOf(exchange: Exchange): HashMap[Sec, Ticker] = {
+  private[securities] def lastTradingDayTickersOf(exchange: Exchange): mutable.Map[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     val start = System.currentTimeMillis
-    val map = new HashMap[Sec, Ticker]
+    val map = mutable.Map[Sec, Ticker]()
     lastTradingTimeOf(exchange) match {
       case Some(time) =>
         val cal = Calendar.getInstance(exchange.timeZone)
@@ -211,11 +211,11 @@ object Tickers extends TickersTable {
     map
   }
 
-  private[securities] def lastTickersOf(dailyRoundedTime: Long): HashMap[Sec, Ticker] = {
+  private[securities] def lastTickersOf(dailyRoundedTime: Long): mutable.Map[Sec, Ticker] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
     val start = System.currentTimeMillis
-    val map = new HashMap[Sec, Ticker]
+    val map = mutable.Map[Sec, Ticker]()
 
     (new Select(Tickers.*) {
         private val sqlTickersTab = ORM.dialect.relationQualifiedName(Tickers)

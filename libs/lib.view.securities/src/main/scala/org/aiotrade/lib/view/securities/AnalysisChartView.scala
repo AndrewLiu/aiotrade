@@ -52,7 +52,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -73,7 +73,7 @@ class AnalysisChartView(acontroller: ChartingController,
                         aquoteSer: QuoteSer,
                         empty: Boolean
 ) extends {
-  private val compareIndicatorToChart = new HashMap[QuoteCompareIndicator, QuoteChart]
+  private val compareIndicatorToChart = mutable.Map[QuoteCompareIndicator, QuoteChart]()
   private var withDrawingPaneHelper: WithDrawingPaneHelper = _
 } with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane with Reactor {
     
@@ -224,7 +224,7 @@ class AnalysisChartView(acontroller: ChartingController,
     compareIndicatorToChart.keySet
   }
     
-  def getCompareIndicatorMapChart: HashMap[QuoteCompareIndicator, QuoteChart] = {
+  def getCompareIndicatorMapChart: mutable.Map[QuoteCompareIndicator, QuoteChart] = {
     compareIndicatorToChart
   }
     
@@ -277,7 +277,7 @@ class AnalysisChartView(acontroller: ChartingController,
     withDrawingPaneHelper.deleteDrawing(descriptor)
   }
     
-  def descriptorToDrawing: HashMap[DrawingDescriptor, DrawingPane] = {
+  def descriptorToDrawing: mutable.Map[DrawingDescriptor, DrawingPane] = {
     withDrawingPaneHelper.descriptorToDrawing
   }
 

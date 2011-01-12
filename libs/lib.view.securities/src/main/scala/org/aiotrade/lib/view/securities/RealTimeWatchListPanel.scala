@@ -63,8 +63,7 @@ import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.actors.Reactor
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable
 
 /**
  *
@@ -112,16 +111,16 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   )
 
   private val uniSymbols = new ArrayList[String]
-  private val watchingSymbols = new HashSet[String] // symbols will list in this pael
+  private val watchingSymbols = mutable.Set[String]() // symbols will list in this pael
 
   private class Info {
     val prevTicker = new Ticker
-    val colKeyToColor = HashMap[String, Color]()
+    val colKeyToColor = mutable.Map[String, Color]()
     for (key <- colKeys) {
       colKeyToColor(key) = LookFeel().nameColor
     }
   }
-  private val symbolToInfo = new HashMap[String, Info]
+  private val symbolToInfo = mutable.Map[String, Info]()
 
   val table = new JTable
   private val model = new WatchListTableModel

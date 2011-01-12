@@ -7,8 +7,7 @@ import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.{Logger, Level}
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable
 
 object DirWatcher {
   // ----- simple test
@@ -145,7 +144,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
 
     // It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
     val fileNames = fileNameToLastModified.exportToFileNames.sortWith(_.compareTo(_) < 0)
-    val checkedFiles = new HashSet[String]
+    val checkedFiles = mutable.Set[String]()
 
     var i = 0
     while (i < fileNames.length) {
@@ -174,7 +173,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
     }
 
     // deleted files
-    val deletedfiles = (new HashSet ++ _fileNameToLastModified.exportToFileNames.clone) -- checkedFiles
+    val deletedfiles = (mutable.Set() ++ _fileNameToLastModified.exportToFileNames.clone) -- checkedFiles
     deletedfiles foreach {fileName =>
       val file = _fileNameToLastModified.fileOf(fileName).get
       _fileNameToLastModified remove file
@@ -204,7 +203,7 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
 
   
   protected class WatcherMap {
-    private val fileNameToLastModified = new HashMap[String, (File, Long)]
+    private val fileNameToLastModified = mutable.Map[String, (File, Long)]()
 
     /**
      * Filter out the duplicated file whose file name is same,

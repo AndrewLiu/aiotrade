@@ -9,8 +9,6 @@ import com.rabbitmq.client.Consumer
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.util.HashMap
-import java.util.Map
 import org.aiotrade.lib.amqp.datatype.ContentType
 
 object FilePublisher {
@@ -68,7 +66,7 @@ class FilePublisher(factory: ConnectionFactory, exchange: String, routingKey: St
   }
 
   def sendFile(body: Array[Byte], toName: String) {
-    val headers: java.util.Map[String, AnyRef] = new HashMap
+    val headers: java.util.Map[String, AnyRef] = new java.util.HashMap
     headers.put("filename", toName)
     headers.put("length", body.length.asInstanceOf[AnyRef])
     val props = new BasicProperties

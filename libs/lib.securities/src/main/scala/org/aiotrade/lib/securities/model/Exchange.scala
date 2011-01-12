@@ -12,6 +12,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 case class SecAdded(sec: Sec)
+case class SecInfoAdded(secInfo: SecInfo)
 
 object Exchanges extends Table[Exchange] {
   private val log = Logger.getLogger(this.getClass.getName)
@@ -37,25 +38,44 @@ object Exchanges extends Table[Exchange] {
     mutable.Set[Sec]() ++= secs
   }
 
-  def createSimpleSec(exchange: Exchange, uniSymbol: String, name: String, willCommit: Boolean = false) = {
-    val secInfo = new SecInfo
-    secInfo.uniSymbol = uniSymbol
-    secInfo.name = name
-    SecInfos.save(secInfo)
-    //assert(SecInfos.idOf(secInfo).isDefined, secInfo + " with none id")
+  def secOf(uniSymbol: String): Option[Sec] = {
+    (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
+  }
 
+  def createSimpleSec(exchange: Exchange, uniSymbol: String, name: String, willCommit: Boolean = false) = {
     val sec = new Sec
-    sec.secInfo = secInfo
     sec.exchange = exchange
     Secs.save_!(sec)
-    //assert(Secs.idOf(sec).isDefined, sec + " with none id")
 
+    val secInfo = new SecInfo
     secInfo.sec = sec
-    SecInfos.update(secInfo)
+    secInfo.uniSymbol = uniSymbol
+    secInfo.name = name
+    SecInfos.save_!(secInfo)
+
+    sec.secInfo = secInfo
+    Secs.update_!(sec, Secs.secInfo)
 
     if (willCommit) commit
 
     sec
+  }
+
+  def createSimpleSecInfo(sec: Sec, name: String, isCurrent: Boolean = true): SecInfo = {
+    val secInfo = new SecInfo
+    secInfo.sec = sec
+    secInfo.uniSymbol = sec.uniSymbol
+    secInfo.name = name
+    SecInfos.save_!(secInfo)
+
+    if (isCurrent) {
+      sec.secInfo = secInfo
+      Secs.update_!(sec, Secs.secInfo)
+    }
+
+    commit
+
+    secInfo
   }
 
 }
@@ -126,10 +146,10 @@ object Exchange extends Publisher {
     _activeExchanges = activeExchanges
   }
 
-  def codeToExchange = mutex synchronized {_codeToExchange}
-  def exchangeToSecs = mutex synchronized  {_exchangeToSecs}
-  def exchangeToUniSymbols = mutex synchronized {_exchangeToUniSymbols}
-  def uniSymbolToSec = mutex synchronized {_uniSymbolToSec}
+  def codeToExchange: collection.Map[String, Exchange] = mutex synchronized {_codeToExchange}
+  def exchangeToSecs: collection.Map[Exchange, collection.Set[Sec]] = mutex synchronized  {_exchangeToSecs}
+  def exchangeToUniSymbols: collection.Map[Exchange, collection.Set[String]] = mutex synchronized {_exchangeToUniSymbols}
+  def uniSymbolToSec: collection.Map[String, Sec] = mutex synchronized {_uniSymbolToSec}
 
   // ----- Major methods
   
@@ -150,7 +170,7 @@ object Exchange extends Publisher {
     }
   }
 
-  def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {
+  def exchangeOfIndex(uniSymbol: String): Option[Exchange] = {
     uniSymbol match {
       case "^DJI" => Some(N)
       case "^HSI" => Some(HK)
@@ -158,23 +178,51 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): mutable.Set[Sec] = mutex synchronized {
-    exchangeToSecs.get(exchange) getOrElse mutable.Set[Sec]()
+  def secsOf(exchange: Exchange): collection.Set[Sec] = mutex synchronized {
+    exchangeToSecs.getOrElse(exchange, Set())
   }
 
-  def symbolsOf(exchange: Exchange): mutable.Set[String] = mutex synchronized {
-    exchangeToUniSymbols.get(exchange) getOrElse mutable.Set[String]()
+  def symbolsOf(exchange: Exchange): collection.Set[String] = mutex synchronized {
+    exchangeToUniSymbols.getOrElse(exchange, Set())
   }
 
   def secOf(uniSymbol: String): Option[Sec] = mutex synchronized {
     uniSymbolToSec.get(uniSymbol)
   }
 
+  def checkIfExist(uniSymbol: String, name: String) {
+    uniSymbolToSec.get(uniSymbol) match {
+      case Some(sec) =>
+        if (sec.name != name) {
+          log.info("Found new name: " + name + ", the old name is " + sec.name)
+          val secInfo = Exchanges.createSimpleSecInfo(sec, name, true)
+          publish(SecInfoAdded(secInfo))
+        }
+      case None =>
+        log.info("Found new symbol: " + uniSymbol)
+        addNewSec(Exchange.SZ, uniSymbol, name)
+    }
+  }
+
   def addNewSec(exchange: Exchange, uniSymbol: String, name: String): Sec = mutex synchronized {
     val sec = Exchanges.createSimpleSec(exchange, uniSymbol, name, true)
+    secAdded(sec)
+  }
 
-    _exchangeToUniSymbols += (exchange -> (_exchangeToUniSymbols.get(exchange).getOrElse(mutable.Set()) + uniSymbol))
-    _exchangeToSecs += (exchange -> (_exchangeToSecs.get(exchange).getOrElse(mutable.Set()) + sec))
+  def secAdded(uniSymbol: String): Sec = {
+    // check database if sec has been here, if not, something was wrong
+    Exchanges.secOf(uniSymbol) match {
+      case Some(sec) => secAdded(sec)
+      case None => log.severe("Sec of " + uniSymbol + " has not been created in database"); null
+    }
+  }
+
+  def secAdded(sec: Sec): Sec = mutex synchronized {
+    val exchange = sec.exchange
+    val uniSymbol= sec.uniSymbol
+
+    _exchangeToUniSymbols += (exchange -> (_exchangeToUniSymbols.getOrElse(exchange, mutable.Set()) += uniSymbol))
+    _exchangeToSecs += (exchange -> (_exchangeToSecs.getOrElse(exchange, mutable.Set()) += sec))
     _uniSymbolToSec += (uniSymbol -> sec)
 
     publish(SecAdded(sec))
@@ -260,7 +308,7 @@ class Exchange extends Ordered[Exchange] {
     ((closeInMills - openInMillis) / TUnit.Minute.interval).toInt + 1
   }
 
-  lazy val uniSymbolToLastTicker = {
+  private lazy val _uniSymbolToLastTicker = {
     val symbolToTicker = mutable.Map[String, Ticker]()
 
     for ((sec, ticker) <- TickersLast.lastTickersOf(this) if sec != null) {
@@ -272,7 +320,7 @@ class Exchange extends Ordered[Exchange] {
     symbolToTicker
   }
   
-  lazy val uniSymbolToLastTradingDayTicker = {
+  private lazy val _uniSymbolToLastTradingDayTicker = {
     val symbolToTicker = mutable.Map[String, Ticker]()
 
     for ((sec, ticker) <- TickersLast.lastTradingDayTickersOf(this) if sec != null) {
@@ -289,12 +337,10 @@ class Exchange extends Ordered[Exchange] {
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
-  def uniSymbols = Exchange.symbolsOf(this)
+  def uniSymbolToLastTicker: collection.Map[String, Ticker] = _uniSymbolToLastTicker synchronized {_uniSymbolToLastTicker}
+  def uniSymbolToLastTradingDayTicker: collection.Map[String, Ticker] = _uniSymbolToLastTradingDayTicker synchronized {_uniSymbolToLastTradingDayTicker}
+  def uniSymbols: collection.Set[String] = Exchange.symbolsOf(this)
   
-  def addNewSec(uniSymbol: String, name: String): Sec = {
-    Exchange.addNewSec(this, uniSymbol, name)
-  }
-
   /** @Todo */
   def primaryIndex: Option[Sec] = code match {
     case "SS" => Exchange.secOf("000001.SS")
@@ -310,8 +356,8 @@ class Exchange extends Ordered[Exchange] {
   def gotLastTicker(ticker: Ticker): Ticker = {
     val uniSymbol = ticker.symbol
 
-    uniSymbolToLastTicker synchronized {
-      uniSymbolToLastTicker.get(uniSymbol) match {
+    _uniSymbolToLastTicker synchronized {
+      _uniSymbolToLastTicker.get(uniSymbol) match {
         case Some(existOne) =>
           existOne.copyFrom(ticker)
           existOne.isTransient = TickersLast.transient_?(existOne)
@@ -320,9 +366,9 @@ class Exchange extends Ordered[Exchange] {
           val newOne = new Ticker
           newOne.isTransient = true
           newOne.copyFrom(ticker)
-          uniSymbolToLastTicker.put(uniSymbol, newOne)
-          uniSymbolToLastTradingDayTicker synchronized {
-            uniSymbolToLastTradingDayTicker.put(uniSymbol, newOne)
+          _uniSymbolToLastTicker.put(uniSymbol, newOne)
+          _uniSymbolToLastTradingDayTicker synchronized {
+            _uniSymbolToLastTradingDayTicker.put(uniSymbol, newOne)
           }
           newOne
       }

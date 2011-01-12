@@ -41,7 +41,7 @@ import java.awt.geom.GeneralPath
 import javax.swing.Action
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.util.PathPool
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  *
@@ -84,7 +84,7 @@ abstract class AbstractWidget extends Widget {
     
   private var _children: ArrayList[Widget] = _
   private var _actions: ArrayList[Action] = _
-  private var colorToPathPair: HashMap[Color, (GeneralPath, GeneralPath)] = _
+  private var colorToPathPair: mutable.Map[Color, (GeneralPath, GeneralPath)] = _
     
   def children = _children
 
@@ -278,7 +278,7 @@ abstract class AbstractWidget extends Widget {
       if (child.intersects(clipBounds) || clipBounds.contains(child.getBounds) || child.getBounds.height == 1 || child.getBounds.width == 1) {
         child match {
           case x: PathWidget =>
-            if (colorToPathPair == null) colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
+            if (colorToPathPair == null) colorToPathPair = mutable.Map[Color, (GeneralPath, GeneralPath)]()
 
             val color = child.getForeground
             val (pathToDraw, pathToFill) = colorToPathPair.get(color) getOrElse {

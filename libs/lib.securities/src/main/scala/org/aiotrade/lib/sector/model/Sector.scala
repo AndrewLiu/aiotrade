@@ -1,11 +1,9 @@
 package org.aiotrade.lib.sector.model
 
 import ru.circumflex.orm._
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Map
+import scala.collection.mutable
 import org.aiotrade.lib.securities.model.Flag
 import java.util.logging.Logger
-import org.aiotrade.lib.info.model.InfoContent
 import org.aiotrade.lib.math.timeseries.TVal
 import scala.collection.JavaConversions._
 
@@ -16,7 +14,7 @@ object Sectors extends Table[Sector] {
   var portfolio = "portfolios_id" REFERENCES(Portfolios)
 
   private var isLoad : Boolean = false
-  private val codetoSector   = new HashMap[String, Sector]()
+  private val codetoSector = mutable.Map[String, Sector]()
 
   def sectorOf(code : String) : Option[Sector] = {
     synchronized {

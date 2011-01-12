@@ -5,7 +5,7 @@ import org.aiotrade.lib.info.model.ContentCategories
 import org.aiotrade.lib.math.timeseries.TFreq
 import ru.circumflex.orm._
 import scala.collection.immutable.TreeMap
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import scala.actors.Scheduler
 
 /**
@@ -27,7 +27,7 @@ object Model {
     val secinfos = (SELECT (SecInfos.*,Secs.*) FROM (SecInfos JOIN Secs) list)
   }
 
-  val secs = new HashMap[String, Sec]
+  val secs = mutable.Map[String, Sec]()
   // holding strong reference of exchange
   var exchanges: Seq[Exchange] = Nil
   

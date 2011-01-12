@@ -5,17 +5,17 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 object MoneyFlows1d extends MoneyFlows {
-  private val dailyCache = new HashMap[Long, HashMap[Sec, MoneyFlow]]
+  private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
     val cached = dailyCache.get(dailyRoundedTime) match {
       case Some(map) => map
       case None =>
         dailyCache.clear
-        val map = new HashMap[Sec, MoneyFlow]
+        val map = mutable.Map[Sec, MoneyFlow]()
         dailyCache.put(dailyRoundedTime, map)
 
         (SELECT (this.*) FROM (this) WHERE (
@@ -69,7 +69,7 @@ object MoneyFlows1m extends MoneyFlows {
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
-  private val minuteCache = new HashMap[Long, HashMap[Sec, MoneyFlow]]
+  private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     if (isServer) minuteMoneyFlowOf_nocached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
@@ -83,7 +83,7 @@ object MoneyFlows1m extends MoneyFlows {
       case Some(map) => map
       case None =>
         minuteCache.clear
-        val map = new HashMap[Sec, MoneyFlow]
+        val map = mutable.Map[Sec, MoneyFlow]()
         minuteCache.put(minuteRoundedTime, map)
 
         (SELECT (this.*) FROM (this) WHERE (

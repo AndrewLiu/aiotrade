@@ -44,7 +44,7 @@ import org.aiotrade.lib.charting.chart.Chart
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.util.swing.GBC
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -53,7 +53,7 @@ import scala.collection.mutable.HashMap
  */
 abstract class ChartViewContainer extends JPanel {
 
-  private val descriptorToSlaveView = new HashMap[IndicatorDescriptor, ChartView]
+  private val descriptorToSlaveView = mutable.Map[IndicatorDescriptor, ChartView]()
   private var _controller: ChartingController = _
   private var _masterView: ChartView = _
   /**
@@ -252,7 +252,7 @@ abstract class ChartViewContainer extends JPanel {
     descriptorToSlaveView.get(descriptor)
   }
 
-  def getDescriptorsWithSlaveView: HashMap[IndicatorDescriptor, ChartView] = {
+  def getDescriptorsWithSlaveView: mutable.Map[IndicatorDescriptor, ChartView] = {
     descriptorToSlaveView
   }
 

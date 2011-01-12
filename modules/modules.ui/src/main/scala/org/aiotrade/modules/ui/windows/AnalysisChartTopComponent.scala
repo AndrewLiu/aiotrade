@@ -72,7 +72,7 @@ import org.openide.util.ImageUtilities
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 
 /**
@@ -91,7 +91,7 @@ import scala.collection.mutable.WeakHashMap
 object AnalysisChartTopComponent {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val instanceRefs = WeakHashMap[AnalysisChartTopComponent, AnyRef]()
+  private val instanceRefs = mutable.WeakHashMap[AnalysisChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
 

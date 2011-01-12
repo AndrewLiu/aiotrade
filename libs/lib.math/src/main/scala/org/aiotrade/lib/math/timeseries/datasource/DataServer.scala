@@ -41,8 +41,7 @@ import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Publisher
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -89,9 +88,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected val subscribingMutex = new Object
   // --- Following maps should be created once here, since server may be singleton:
   //private val contractToStorage = new HashMap[C, ArrayList[V]] // use ArrayList instead of ArrayBuffer here, for toArray performance
-  private val _refreshContracts = new HashSet[C]
+  private val _refreshContracts = mutable.Set[C]()
   /** a quick seaching map */
-  private val _refreshSymbolToContract = new HashMap[String, C]
+  private val _refreshSymbolToContract = mutable.Map[String, C]()
   // --- Above maps should be created once here, since server may be singleton
 
   protected var loadedTime: Long = _

@@ -4,7 +4,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import org.aiotrade.lib.securities.model.Flag
 import org.aiotrade.lib.math.timeseries.TVal
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import scala.collection.JavaConversions._
 import org.aiotrade.lib.securities.dataserver.QuoteInfo
 
@@ -21,7 +21,7 @@ object GeneralInfos extends Table[GeneralInfo]{
   def infoContents = inverse(Contents.generalInfo)
   def infoAbstracts = inverse(ContentAbstracts.generalInfo)
   
-  private val urlToInfo   = new HashMap[String, GeneralInfo]()
+  private val urlToInfo = mutable.Map[String, GeneralInfo]()
   private var isLoad = false
 
   def infoOf(url : String) : Option[GeneralInfo]= {

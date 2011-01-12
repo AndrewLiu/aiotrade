@@ -4,25 +4,22 @@
  */
 package org.aiotrade.lib.util
 
-import java.util.HashMap
-import java.util.Map
 import java.util.ResourceBundle
-
+import scala.collection.mutable
 /**
  *
  * @author dcaoyuan
  */
 class Bundle {
   private val RESOURCE_NAME = "Bundle"
-  private val cache = new HashMap[Class[_], ResourceBundle]
+  private val cache = mutable.Map[Class[_], ResourceBundle]()
 
   def getString(clazz: Class[_], name: String): String = {
     getResourceBundle(clazz).getString(name)
   }
 
   private def getResourceBundle(clazz: Class[_]): ResourceBundle = {
-    var rb = cache.get(clazz)
-    if (rb == null) {
+    cache.get(clazz) getOrElse {
       var name = clazz.getName
       val dotIdx = name.lastIndexOf('.')
       if (dotIdx != -1) {
@@ -30,9 +27,9 @@ class Bundle {
       } else {
         name = RESOURCE_NAME
       }
-      rb = ResourceBundle.getBundle(name)
+      val rb = ResourceBundle.getBundle(name)
       cache.put(clazz, rb)
+      rb
     }
-    rb
   }
 }

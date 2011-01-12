@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.collection.ArrayList
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable
 
 /**
  * A package class that implements timestamped Map based List, used to store
@@ -125,13 +125,13 @@ import scala.collection.mutable.{HashMap}
  */
 class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A] {
     
-  private val timeToElementData = new HashMap[Long, A]()
+  private val timeToElementData = mutable.Map[Long, A]()
 
   override def size: Int = timestamps.size
 
   override def isEmpty: Boolean = timestamps.isEmpty
     
-  override def contains(o: Any) :Boolean = timeToElementData.valuesIterator.contains(o)
+  override def contains(o: Any): Boolean = timeToElementData.valuesIterator.contains(o)
     
  override def toArray[B >: A : ClassManifest]: Array[B] = {
     val length = timestamps.size

@@ -48,8 +48,7 @@ import org.aiotrade.lib.securities.model.TickersLast
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable
 
 /**
  *
@@ -74,7 +73,7 @@ abstract class TickerServer extends DataServer[Ticker] {
   protected val isServer = !config.getBool("dataserver.client", false)
   log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
 
-  private lazy val uniSymbolToTickerSnapshot = new HashMap[String, TickerSnapshot]
+  private lazy val uniSymbolToTickerSnapshot = mutable.Map[String, TickerSnapshot]()
 
   def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = uniSymbolToTickerSnapshot synchronized {
     uniSymbolToTickerSnapshot.get(uniSymbol).getOrElse{
@@ -90,10 +89,10 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allDepthSnaps = new ArrayList[DepthSnap]
   private val updatedDailyQuotes = new ArrayList[Quote]
 
-  private val exchangeToLastTime = new HashMap[Exchange, Long]
+  private val exchangeToLastTime = mutable.Map[Exchange, Long]()
 
   private def toSecSnaps(values: Array[Ticker]): (Seq[SecSnap], Seq[Ticker]) = {
-    val processedSymbols = new HashSet[String] // used to avoid duplicate symbols of each refreshing
+    val processedSymbols = mutable.Set[String]() // used to avoid duplicate symbols of each refreshing
 
     val secSnaps = new ArrayList[SecSnap]
     val tickersLast = new ArrayList[Ticker]

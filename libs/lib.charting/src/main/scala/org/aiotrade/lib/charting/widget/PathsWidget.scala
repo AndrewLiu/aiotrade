@@ -36,7 +36,7 @@ import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.geom.GeneralPath
 import java.util.logging.Logger
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -48,7 +48,7 @@ import scala.collection.mutable.HashMap
 class PathsWidget extends AbstractWidget {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private val colorToPathPair = new HashMap[Color, (GeneralPath, GeneralPath)]
+  private val colorToPathPair = mutable.Map[Color, (GeneralPath, GeneralPath)]()
     
   protected def createModel: M = null
     

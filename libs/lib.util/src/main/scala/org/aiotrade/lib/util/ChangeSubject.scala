@@ -36,13 +36,13 @@ package org.aiotrade.lib.util
  * @version 1.0, November 24, 2006, 5:06 PM
  * @since   1.0.4
  */
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait ChangeSubject {
 
   @transient
-  private val observerToOwner = new HashMap[ChangeObserver, AnyRef]
+  private val observerToOwner = mutable.Map[ChangeObserver, AnyRef]()
 
   def addObserver(owner: AnyRef, observer: ChangeObserver) {
     synchronized {observerToOwner(observer) = owner}

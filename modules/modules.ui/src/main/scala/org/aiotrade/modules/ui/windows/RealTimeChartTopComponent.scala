@@ -47,7 +47,7 @@ import org.aiotrade.modules.ui.actions.ZoomOutAction
 import org.openide.util.actions.SystemAction
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 /**
  *
@@ -67,7 +67,7 @@ import scala.collection.mutable.WeakHashMap
  * exception. So, it's better to test serialization out of the IDE.
  */
 object RealTimeChartTopComponent {
-  private val instanceRefs = WeakHashMap[RealTimeChartTopComponent, AnyRef]()
+  private val instanceRefs = mutable.WeakHashMap[RealTimeChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
   private val MODE = "chart"

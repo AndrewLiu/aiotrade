@@ -10,7 +10,7 @@ import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.ContentCategory
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Sec
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TSerEvent
@@ -25,15 +25,15 @@ class QuoteInfo extends TVal {
   var summary : String = ""
   var categories : ListBuffer[ContentCategory] = new ListBuffer[ContentCategory]()
   var secs : ListBuffer[Sec] = new ListBuffer[Sec]()
-  def export: HashMap[String, Any]= {
-    HashMap[String, Any] ("publishTime" -> generalInfo.publishTime,
-                          "title" -> generalInfo.title,
-                          "url" -> generalInfo.url,
-                          "combinValue" -> generalInfo.combinValue,
-                          "content" -> content,
-                          "summary" -> summary,
-                          "category" -> {for(cate <- categories if cate != null) yield cate.code}.toList,
-                          "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol}.toList)
+  def export: mutable.Map[String, Any]= {
+    mutable.Map[String, Any]("publishTime" -> generalInfo.publishTime,
+                             "title" -> generalInfo.title,
+                             "url" -> generalInfo.url,
+                             "combinValue" -> generalInfo.combinValue,
+                             "content" -> content,
+                             "summary" -> summary,
+                             "category" -> {for(cate <- categories if cate != null) yield cate.code}.toList,
+                             "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol}.toList)
   }
 }
 
@@ -41,20 +41,20 @@ case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
                              combinValue : Long, content : String, summary : String,
                              category : List[ContentCategory], secs : List[Sec] ) {
 
-  def export: HashMap[String, Any]= {
-    HashMap[String, Any] ("publishTime" -> publishTime,
-                          "title" -> title,
-                          "url" -> url,
-                          "combinValue" -> combinValue,
-                          "content" -> content,
-                          "summary" -> summary,
-                          "category" -> {for(cate <- category if cate != null) yield cate.code},
-                          "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol})
+  def export: mutable.Map[String, Any]= {
+    mutable.Map[String, Any]("publishTime" -> publishTime,
+                             "title" -> title,
+                             "url" -> url,
+                             "combinValue" -> combinValue,
+                             "content" -> content,
+                             "summary" -> summary,
+                             "category" -> {for(cate <- category if cate != null) yield cate.code},
+                             "symbol" -> {for(sec <- secs if sec != null) yield sec.uniSymbol})
   }
 }
 
 case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) {
-  def export: List[HashMap[String, Any]] = for(event <- events) yield event.export
+  def export: List[mutable.Map[String, Any]] = for(event <- events) yield event.export
 }
 
 object QuoteInfoDataServer extends Publisher

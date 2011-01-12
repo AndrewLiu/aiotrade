@@ -53,7 +53,7 @@ import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
 import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 import ru.circumflex.orm.Table
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.GeneralInfos
@@ -171,14 +171,14 @@ class Sec extends SerProvider with Ordered[Sec] {
   type T = QuoteSer
   type C = QuoteContract
 
-  private val freqToQuoteContract = HashMap[TFreq, QuoteContract]()
-  private val freqToQuoteInfoHisContract = HashMap[TFreq, QuoteInfoHisContract]()
+  private val freqToQuoteContract = mutable.Map[TFreq, QuoteContract]()
+  private val freqToQuoteInfoHisContract = mutable.Map[TFreq, QuoteInfoHisContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
-  private[securities] lazy val freqToQuoteSer = HashMap[TFreq, QuoteSer]()
-  private lazy val freqToMoneyFlowSer = HashMap[TFreq, MoneyFlowSer]()
-  private lazy val freqToInfoSer = HashMap[TFreq, InfoSer]()
-  private lazy val freqToInfoPointSer = HashMap[TFreq, InfoPointSer]()
+  private[securities] lazy val freqToQuoteSer = mutable.Map[TFreq, QuoteSer]()
+  private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, MoneyFlowSer]()
+  private lazy val freqToInfoSer = mutable.Map[TFreq, InfoSer]()
+  private lazy val freqToInfoPointSer = mutable.Map[TFreq, InfoPointSer]()
 
   /**
    * @TODO, how about tickerServer switched?

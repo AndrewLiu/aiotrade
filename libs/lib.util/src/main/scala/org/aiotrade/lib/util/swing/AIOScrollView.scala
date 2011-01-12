@@ -33,7 +33,7 @@ package org.aiotrade.lib.util.swing
 import java.awt.Graphics
 import javax.swing.JComponent
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  *
@@ -68,7 +68,7 @@ class AIOScrollView($viewPort: JComponent, $pictures: List[JComponent]) extends 
   private var frozen: Boolean = false
     
   /** <idx, x> pair */
-  private val idxToX = new HashMap[Int, Int]
+  private val idxToX = mutable.Map[Int, Int]()
 
   setOpaque(true)
   setDoubleBuffered(true)

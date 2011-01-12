@@ -31,7 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.Calendar
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 /**
  * @author Caoyuan Deng
@@ -68,7 +68,7 @@ import TimeQueue._
 final class TimeQueue[T <: TimeTuple](fixedSize: Int) {
 
   private val lastIdx = fixedSize - 1
-  private var _dayToXs = new Array[(Int, HashMap[String, List[T]])](fixedSize)
+  private var _dayToXs = new Array[(Int, mutable.Map[String, List[T]])](fixedSize)
 
   val length = fixedSize
   def apply(i: Int) = _dayToXs synchronized {_dayToXs(i)}
@@ -85,7 +85,7 @@ final class TimeQueue[T <: TimeTuple](fixedSize: Int) {
             if (day == dayMax) {
               keyToXs
             } else if (day > dayMax) {
-              val newDayToXs = new Array[(Int, HashMap[String, List[T]])](fixedSize)
+              val newDayToXs = new Array[(Int, mutable.Map[String, List[T]])](fixedSize)
               System.arraycopy(_dayToXs, 1, newDayToXs, 0, lastIdx)
               _dayToXs = newDayToXs
               _dayToXs(lastIdx) = null
@@ -98,7 +98,7 @@ final class TimeQueue[T <: TimeTuple](fixedSize: Int) {
 
         if (willAdd) {
           if (lastKeyToXs == null) {
-            val newMap = HashMap[String, List[T]](key -> List(x._2))
+            val newMap = mutable.Map[String, List[T]](key -> List(x._2))
             _dayToXs(lastIdx) = (day, newMap)
           } else {
             val xs = lastKeyToXs.get(key).getOrElse(Nil)

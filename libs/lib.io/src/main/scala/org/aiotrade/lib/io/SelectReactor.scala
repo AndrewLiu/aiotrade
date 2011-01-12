@@ -7,7 +7,7 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 import scala.actors.Actor
 import scala.collection.immutable.Queue
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 case class ProcessData(reactor: Actor, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
 case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
@@ -21,10 +21,10 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
   // The buffer into which we'll read data when it's available
   private val readBuffer = ByteBuffer.allocate(8192)
 
-  private val pendingData = new HashMap[SocketChannel, Queue[ByteBuffer]]
+  private val pendingData = mutable.Map[SocketChannel, Queue[ByteBuffer]]()
 
   // Maps a SocketChannel to a Handler
-  private val rspHandlers = HashMap[SocketChannel, Actor]()
+  private val rspHandlers = mutable.Map[SocketChannel, Actor]()
 
   def act = loop {
     react {

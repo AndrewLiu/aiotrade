@@ -57,8 +57,7 @@ import org.aiotrade.lib.charting.view.scalar.Scalar
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.ChangeSubject
 import org.aiotrade.lib.util.actors.Reactor
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashSet
+import scala.collection.mutable
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -92,9 +91,9 @@ abstract class ChartView(protected var _controller: ChartingController,
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeSubject with Reactor {
 
-  protected val overlappingSerChartToVars = new HashMap[TSer, HashMap[Chart, HashSet[TVar[_]]]]
+  protected val overlappingSerChartToVars = mutable.Map[TSer, mutable.Map[Chart, mutable.Set[TVar[_]]]]()
 
-  val mainSerChartToVars = new HashMap[Chart, HashSet[TVar[_]]]
+  val mainSerChartToVars = mutable.Map[Chart, mutable.Set[TVar[_]]]()
 
   val mainChartPane = new ChartPane(this)
   val glassPane = new GlassPane(this, mainChartPane)
@@ -420,7 +419,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   final def mainSer: TSer = _mainSer
   final def controller: ChartingController = _controller
 
-  def chartToVarsOf(ser: TSer): HashMap[Chart, HashSet[TVar[_]]] = {
+  def chartToVarsOf(ser: TSer): mutable.Map[Chart, mutable.Set[TVar[_]]] = {
     assert(ser != null, "Do not pass me a null ser!")
     if (ser eq mainSer) mainSerChartToVars else overlappingSerChartToVars.get(ser).get
   }
@@ -428,7 +427,7 @@ abstract class ChartView(protected var _controller: ChartingController,
   def overlappingSers = overlappingSerChartToVars.keySet
 
   def allSers = {
-    val _allSers = new HashSet[TSer]
+    val _allSers = mutable.Set[TSer]()
 
     _allSers += mainSer
     _allSers ++= overlappingSers
@@ -443,7 +442,7 @@ abstract class ChartView(protected var _controller: ChartingController,
     listenTo(ser)
 
     val chartToVars = overlappingSerChartToVars.get(ser) getOrElse {
-      val x = new HashMap[Chart, HashSet[TVar[_]]]
+      val x = mutable.Map[Chart, mutable.Set[TVar[_]]]()
       overlappingSerChartToVars.put(ser, x)
       x
     }
@@ -460,7 +459,7 @@ abstract class ChartView(protected var _controller: ChartingController,
       
       if (chart != null) {
         val vars = chartToVars.get(chart) getOrElse {
-          val x = HashSet[TVar[_]]()
+          val x = mutable.Set[TVar[_]]()
           chartToVars.put(chart, x)
           x
         }

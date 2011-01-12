@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.securities.model.Sec
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 
 /** This class implements serializbale by inheriting TopComponent, but should
@@ -53,7 +53,7 @@ import scala.collection.mutable.WeakHashMap
  * @author Caoyuan Deng
  */
 object RealTimeBoardTopComponent {
-  private val instanceRefs = WeakHashMap[RealTimeBoardTopComponent, AnyRef]()
+  private val instanceRefs = mutable.WeakHashMap[RealTimeBoardTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
   /** The Mode this component will live in */

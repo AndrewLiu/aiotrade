@@ -70,7 +70,7 @@ import org.aiotrade.lib.util.swing.AIOCloseButton
 import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
 import scala.actors.Reactor
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -92,8 +92,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
   private val MONEY_DECIMAL_FORMAT = new DecimalFormat("0.###")
 } with Pane($view, $datumPlane) with WithCursorChart {
 
-  private val overlappingSerToNameLabel = new HashMap[TSer, (AIOCloseButton, JLabel)]
-  private val selectedSerVarToValueLabel = new HashMap[TVar[_], JLabel]
+  private val overlappingSerToNameLabel = mutable.Map[TSer, (AIOCloseButton, JLabel)]()
+  private val selectedSerVarToValueLabel = mutable.Map[TVar[_], JLabel]()
   private var _isSelected: Boolean = _
   private var instantValueLabel: JLabel = _
   private var _isUsingInstantTitleValue: Boolean = _

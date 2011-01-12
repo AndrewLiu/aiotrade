@@ -152,7 +152,7 @@ object ChartingController {
   import org.aiotrade.lib.math.timeseries.TSerEvent
   import javax.swing.WindowConstants
   import org.aiotrade.lib.util.actors.Reactor
-  import scala.collection.mutable.WeakHashMap
+  import scala.collection.mutable
 
 
   def apply(baseSer: BaseTSer, contents: AnalysisContents): ChartingController = {
@@ -202,7 +202,7 @@ object ChartingController {
     val baseSer = $baseSer
     val contents = $contents
 
-    private val popupViewRefs = WeakHashMap[ChartView, AnyRef]()
+    private val popupViewRefs = mutable.WeakHashMap[ChartView, AnyRef]()
     private def popupViews = popupViewRefs.keys
     private var viewContainer: ChartViewContainer = _
     private var _fixedLeftSideTime = Long.MinValue

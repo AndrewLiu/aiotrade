@@ -51,7 +51,8 @@ import org.aiotrade.modules.ui.actions.ZoomInAction;
 import org.aiotrade.modules.ui.actions.ZoomOutAction;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;import scala.collection.mutable.WeakHashMap
+import org.openide.windows.WindowManager
+import scala.collection.mutable
 
 
 /**
@@ -68,7 +69,7 @@ import org.openide.windows.WindowManager;import scala.collection.mutable.WeakHas
  * @author Caoyuan Deng
  */
 object RealTimeChartsTopComponent {
-  private val instanceRefs = WeakHashMap[RealTimeChartsTopComponent, AnyRef]()
+  private val instanceRefs = mutable.WeakHashMap[RealTimeChartsTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
   private val SCROLL_SPEED_THROTTLE = 2400 // delay in milli seconds

@@ -2,14 +2,14 @@ package org.aiotrade.lib.info.model
 
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 object ContentCategories extends Table[ContentCategory]{
   val parent = "parent" BIGINT
   val name = "name" VARCHAR(30)
   val code = "code" VARCHAR(30)
   
-  private val codetocate   = new HashMap[String, ContentCategory]()
+  private val codetocate = mutable.Map[String, ContentCategory]()
   private var isLoad : Boolean = false
 
   def cateOf(code : String) : Option[ContentCategory] = {

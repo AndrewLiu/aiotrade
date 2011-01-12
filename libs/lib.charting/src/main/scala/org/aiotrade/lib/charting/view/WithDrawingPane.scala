@@ -32,7 +32,7 @@ package org.aiotrade.lib.charting.view
 
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.charting.view.pane.DrawingPane
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 
 /**
@@ -44,7 +44,7 @@ trait WithDrawingPane {
   def selectedDrawing: DrawingPane
   def selectedDrawing_=(drawing: DrawingPane): Unit
     
-  def descriptorToDrawing: HashMap[DrawingDescriptor, DrawingPane]
+  def descriptorToDrawing: mutable.Map[DrawingDescriptor, DrawingPane]
     
   def addDrawing(descriptor: DrawingDescriptor, drawing: DrawingPane): Unit
     
