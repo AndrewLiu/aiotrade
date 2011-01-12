@@ -26,6 +26,22 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
+                    <launchers>
+                        <launcher>
+                            <id>DBFReader</id>
+                            <mainClass>org.aiotrade.lib.dbfdriver.TestReader</mainClass>
+                            <jvmArgs>
+                                <jvmArg>-Xmx1024m</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>DBFWriter</id>
+                            <mainClass>org.aiotrade.lib.dbfdriver.TestWriter</mainClass>
+                            <jvmArgs>
+                                <jvmArg>-Xmx1024m</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                    </launchers>
                 </configuration>
             </plugin>
         </plugins>

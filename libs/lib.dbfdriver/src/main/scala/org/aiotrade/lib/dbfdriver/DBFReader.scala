@@ -208,22 +208,10 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
               in.get(m)
               val d = new Array[Byte](2)
               in.get(d)
-              val h = new Array[Byte](2)
-              in.get(h)
-              val min = new Array[Byte](2)
-              in.get(min)
-              val sec = new Array[Byte](2)
-              in.get(sec)
-              val milsec = new Array[Byte](3)
-              in.get(milsec)
               val cal = Calendar.getInstance
               cal.set(Calendar.YEAR, (new String(y)).toInt)
               cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
               cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
-              cal.set(Calendar.HOUR_OF_DAY, new String(h).toInt)
-              cal.set(Calendar.MINUTE, new String(min).toInt)
-              cal.set(Calendar.SECOND, new String(sec).toInt)
-              cal.set(Calendar.MILLISECOND, new String(milsec).toInt)
               cal.getTime
             } catch {
               case ex: Exception => null // this field may be empty or may have improper value set
@@ -264,6 +252,44 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
             }
             
           case 'M' => "null" // TODO Later
+
+          case 'T' =>
+            try {
+              val y = new Array[Byte](4)
+              in.get(y)
+              val m = new Array[Byte](2)
+              in.get(m)
+              val d = new Array[Byte](2)
+              in.get(d)
+              val h = new Array[Byte](2)
+              in.get(h)
+              val min = new Array[Byte](2)
+              in.get(min)
+              val sec = new Array[Byte](2)
+              in.get(sec)
+              val milsec = new Array[Byte](3)
+              in.get(milsec)
+              val cal = Calendar.getInstance
+              cal.set(Calendar.YEAR, (new String(y)).toInt)
+              cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
+              cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
+              cal.set(Calendar.HOUR_OF_DAY, new String(h).toInt)
+              cal.set(Calendar.MINUTE, new String(min).toInt)
+              cal.set(Calendar.SECOND, new String(sec).toInt)
+              cal.set(Calendar.MILLISECOND, new String(milsec).toInt)
+              cal.getTime
+            } catch {
+              case ex: Exception => null // this field may be empty or may have improper value set
+            }
+           case 'I' =>
+            try{
+              var bytes = new Array[Byte](header.fields(i).length)
+              in.get(bytes)
+               bytes = Utils.trimLeftSpaces(bytes)
+              (new String(bytes)).toInt
+            } catch{
+              case ex:Exception => 0
+            }
           case _ => "null"
         }
         

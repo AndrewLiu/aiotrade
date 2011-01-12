@@ -142,6 +142,11 @@ abstract class DirWatcher(path01: File, path02: File, filter: FileFilter, includ
       }
     }
 
+    val listDuration = System.currentTimeMillis - startTimestamp
+    if(listDuration > 1000) {
+      log.log(Level.WARNING, "Listing " + path01 + " and " + path02 + " costs " + listDuration/1000F + " seconds")
+    }
+
     // It is to Guarantee that the name strings in the resulting array will appear in alphabetical order.
     val fileNames = fileNameToLastModified.exportToFileNames.sortWith(_.compareTo(_) < 0)
     val checkedFiles = mutable.Set[String]()
