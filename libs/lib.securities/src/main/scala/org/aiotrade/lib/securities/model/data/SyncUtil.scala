@@ -66,7 +66,7 @@ import org.aiotrade.lib.securities.model.SecInfos
 import org.aiotrade.lib.securities.model.SecStatuses
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
-import ru.circumflex.orm._
+import org.dbunit.database.DatabaseConfig
 import org.dbunit.database.DatabaseConnection
 import org.dbunit.database.QueryDataSet
 import org.dbunit.dataset.xml.FlatXmlDataSet
@@ -74,6 +74,7 @@ import org.dbunit.dataset.xml.FlatXmlDataSetBuilder
 import org.dbunit.ext.h2.H2Connection
 import org.dbunit.ext.mysql.MySqlConnection
 import org.dbunit.operation.DatabaseOperation
+import ru.circumflex.orm._
 
 /**
  *
@@ -124,7 +125,6 @@ object SyncUtil {
     val schema = "aiotrade"
     val conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + dbName + "?useUnicode=true&sessionVariables=FOREIGN_KEY_CHECKS=0", "root", "") // dburl, user, passwd
 
-
     importToDb(conn, schema, mysqlDriver)
     conn.close
   }
@@ -135,9 +135,7 @@ object SyncUtil {
   def exportToXml(jdbcConn: Connection, schema: String, tableNames: List[String]) {
     val conn = new DatabaseConnection(jdbcConn, schema)
     val dataSet = new QueryDataSet(conn)
-    for (tableName <- tableNames) {
-      dataSet.addTable(tableName)
-    }
+    tableNames foreach dataSet.addTable
     
     FlatXmlDataSet.write(dataSet, new FileOutputStream(dataFileName))
   }
@@ -168,7 +166,9 @@ object SyncUtil {
   }
 
   def createData {
+    val t0 = System.currentTimeMillis
     schema
+    log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     val dbDriver = config.getString("orm.connection.driver", "org.h2.driver")
     val dbUrl = config.getString("orm.connection.url", "jdbc:h2:~/.aiotrade/dev/db/aiotrade")
@@ -179,7 +179,10 @@ object SyncUtil {
     Class.forName(dbDriver)
 
     val conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)
+
+    val t1 = System.currentTimeMillis
     importToDb(conn, dbSchema, dbDriver)
+    log.info("Imported dataset in " + (System.currentTimeMillis - t1) / 1000.0 + " s.")
   }
 
   private def importToDb(jdbcConn: Connection, schema: String, dbDriver: String) {
@@ -187,6 +190,11 @@ object SyncUtil {
     val dataSet = (new FlatXmlDataSetBuilder).setCaseSensitiveTableNames(false).build(dataStream)
 
     val dbConn = createDatabaseConnection(dbDriver, jdbcConn, schema)
+    val config = dbConn.getConfig
+    val batchStatementsFeature = DatabaseConfig.FEATURE_BATCHED_STATEMENTS
+    log.info("Default batchedStatements: " + config.getProperty(batchStatementsFeature))
+    config.setProperty(batchStatementsFeature, true)
+    log.info("Set batchedStatements: " + dbConn.getConfig.getProperty(batchStatementsFeature))
 
     try {
       DatabaseOperation.CLEAN_INSERT.execute(dbConn, dataSet)
