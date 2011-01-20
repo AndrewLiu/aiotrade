@@ -11,7 +11,7 @@ import java.util.logging.Logger
 
 object Newses extends Table[News]{
 
-  val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+  val generalInfo =  "generalInfos_id".BIGINT REFERENCES(GeneralInfos)
 
   val author = "author"  VARCHAR(30) DEFAULT("''")
   val orgPublisher = "orgPublisher" VARCHAR(30) DEFAULT("''")

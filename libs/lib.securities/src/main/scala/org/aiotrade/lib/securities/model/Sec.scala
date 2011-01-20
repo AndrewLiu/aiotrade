@@ -63,20 +63,20 @@ import ru.circumflex.orm._
 
 
 object Secs extends Table[Sec] {
-  val exchange = "exchanges_id" REFERENCES(Exchanges)
+  val exchange = "exchanges_id".BIGINT REFERENCES(Exchanges)
 
   val validFrom = "validFrom" BIGINT 
   val validTo = "validTo" BIGINT
 
-  val company = "companies_id" REFERENCES(Companies)
+  val company = "companies_id".BIGINT REFERENCES(Companies)
   def companyHists = inverse(Companies.sec)
 
-  val secInfo = "secInfos_id" REFERENCES(SecInfos)
+  val secInfo = "secInfos_id".BIGINT REFERENCES(SecInfos)
   def secInfoHists = inverse(SecInfos.sec)
-  val secStatus = "secStatuses_id" REFERENCES(SecStatuses)
+  val secStatus = "secStatuses_id".BIGINT REFERENCES(SecStatuses)
   def secStatusHists = inverse(SecStatuses.sec)
 
-  val secIssue = "secIssues_id" REFERENCES(SecIssues)
+  val secIssue = "secIssues_id".BIGINT REFERENCES(SecIssues)
   def secDividends = inverse(SecDividends.sec)
 
   def dailyQuotes = inverse(Quotes1d.sec)

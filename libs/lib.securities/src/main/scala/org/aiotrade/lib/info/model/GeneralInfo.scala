@@ -38,7 +38,7 @@ object GeneralInfos extends Table[GeneralInfo]{
     
   }
 
-  INDEX(getClass.getSimpleName + "_time_idx", publishTime.name)
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(publishTime.name)
 }
 
 object GeneralInfo {

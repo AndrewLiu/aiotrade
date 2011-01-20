@@ -10,7 +10,7 @@ import scala.collection.mutable.Map
 import java.util.logging.Logger
 
 object AnalysisReports extends Table[AnalysisReport]{
-  val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+  val generalInfo =  "generalInfos_id".BIGINT REFERENCES(GeneralInfos)
 
   val author = "author"  VARCHAR(30) DEFAULT("''")
   val publisher = "publisher" VARCHAR(30) DEFAULT("''")

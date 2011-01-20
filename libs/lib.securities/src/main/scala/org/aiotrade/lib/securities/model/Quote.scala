@@ -202,7 +202,7 @@ object Quotes1m extends Quotes {
 }
 
 abstract class Quotes extends Table[Quote] {
-  val sec = "secs_id" REFERENCES(Secs)
+  val sec = "secs_id".BIGINT REFERENCES(Secs)
 
   val time = "time" BIGINT
 
@@ -216,7 +216,7 @@ abstract class Quotes extends Table[Quote] {
 
   val flag = "flag" INTEGER
 
-  INDEX(getClass.getSimpleName + "_time_idx", time.name)
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
   def quotesOf(sec: Sec): Seq[Quote] = {
     SELECT (this.*) FROM (this) WHERE (

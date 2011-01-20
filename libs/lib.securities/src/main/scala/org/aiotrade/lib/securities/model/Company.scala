@@ -3,7 +3,7 @@ package org.aiotrade.lib.securities.model
 import ru.circumflex.orm.Table
 
 object Companies extends Table[Company] {
-  val sec = "secs_id" REFERENCES(Secs)
+  val sec = "secs_id".BIGINT REFERENCES(Secs)
 
   val validFrom = "validFrom" BIGINT
   val validTo = "validTo" BIGINT //DEFAULT("-1")

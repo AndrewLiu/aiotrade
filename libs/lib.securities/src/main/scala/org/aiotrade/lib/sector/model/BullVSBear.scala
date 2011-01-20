@@ -15,7 +15,7 @@ object BullVSBears extends Table[BullVSBear]{
   val time = "time" BIGINT
   val ratio = "ratio" FLOAT()
   var summary  = "summary" VARCHAR(3000)
-  INDEX(getClass.getSimpleName + "_time_idx", time.name)
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 }
 
 class BullVSBear extends TVal with Flag {

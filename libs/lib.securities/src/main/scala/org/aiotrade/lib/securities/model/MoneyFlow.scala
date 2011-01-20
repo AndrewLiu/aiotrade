@@ -134,7 +134,7 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
-  val sec = "secs_id" REFERENCES(Secs)
+  val sec = "secs_id".BIGINT REFERENCES(Secs)
 
   val time = "time" BIGINT
 
@@ -152,7 +152,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   
   val flag = "flag" INTEGER
 
-  INDEX(getClass.getSimpleName + "_time_idx", time.name)
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
     SELECT (this.*) FROM (this) WHERE (

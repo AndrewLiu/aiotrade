@@ -101,7 +101,7 @@ class Filing extends TVal with Flag {
 }
 
 object Filings extends Table[Filing]{
-  val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+  val generalInfo =  "generalInfos_id".BIGINT REFERENCES(GeneralInfos)
   
   val publisher = "publisher" VARCHAR(30) DEFAULT("''")
   val format = "format" TINYINT

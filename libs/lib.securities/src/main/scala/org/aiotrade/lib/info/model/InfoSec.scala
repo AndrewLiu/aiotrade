@@ -6,8 +6,8 @@ import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.Sec
 
 object InfoSecs extends Table[InfoSec]{
-  val sec = "secs_id" REFERENCES(Secs)
-  val generalInfo = "generalInfos_id" REFERENCES(GeneralInfos)
+  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val generalInfo = "generalInfos_id".BIGINT REFERENCES(GeneralInfos)
 }
 
 

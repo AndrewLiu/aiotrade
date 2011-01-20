@@ -11,7 +11,7 @@ object Sectors extends Table[Sector] {
   private val log = Logger.getLogger(this.getClass.getName)
   val name = "name" VARCHAR(30)
   val code = "code" VARCHAR(30)
-  var portfolio = "portfolios_id" REFERENCES(Portfolios)
+  var portfolio = "portfolios_id".BIGINT REFERENCES(Portfolios)
 
   private var isLoad : Boolean = false
   private val codetoSector = mutable.Map[String, Sector]()

@@ -263,7 +263,7 @@ abstract class TickersTable extends Table[Ticker] {
   protected val log = Logger.getLogger(this.getClass.getName)
   protected val ONE_DAY = 24 * 60 * 60 * 1000
 
-  val sec = "secs_id" REFERENCES(Secs)
+  val sec = "secs_id".BIGINT REFERENCES(Secs)
 
   val time = "time" BIGINT
 
@@ -280,8 +280,7 @@ abstract class TickersTable extends Table[Ticker] {
 
   val bidAsks = "bidAsks" SERIALIZED(classOf[Array[Double]], 400)
 
-  INDEX(getClass.getSimpleName + "_time_idx", time.name)
-
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 }
 
 object Ticker {

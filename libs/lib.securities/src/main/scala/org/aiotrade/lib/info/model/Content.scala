@@ -5,9 +5,9 @@ import ru.circumflex.orm._
 
 object Contents extends Table[Content]
 {
-   val generalInfo =  "generalInfos_id" REFERENCES(GeneralInfos)
+   val generalInfo =  "generalInfos_id".BIGINT REFERENCES(GeneralInfos)
 
-   val content = "content" VARCHAR(3000)  NULLABLE
+   val content = "content" VARCHAR(3000)
 }
 
 class Content {

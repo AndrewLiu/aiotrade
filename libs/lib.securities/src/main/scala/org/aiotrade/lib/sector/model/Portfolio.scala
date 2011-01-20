@@ -3,7 +3,7 @@ package org.aiotrade.lib.sector.model
 import ru.circumflex.orm.Table
 
 object  Portfolios extends Table[Portfolio]{
-  val sector = "sectors_id" REFERENCES(Sectors)
+  val sector = "sectors_id".BIGINT REFERENCES(Sectors)
 
   val validFrom = "validFrom" BIGINT
   val validTo = "validTo" BIGINT

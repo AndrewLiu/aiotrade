@@ -26,7 +26,7 @@ object Exchanges extends Table[Exchange] {
   def closeDates = inverse(ExchangeCloseDates.exchange)
   def secs = inverse(Secs.exchange)
 
-  INDEX(getClass.getSimpleName + "_code_idx", code.name)
+  val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
 
   // --- helper methods
   def secsOf(exchange: Exchange): mutable.Set[Sec] = {
