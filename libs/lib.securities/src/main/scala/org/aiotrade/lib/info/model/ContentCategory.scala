@@ -26,7 +26,7 @@ object ContentCategories extends Table[ContentCategory]{
 
   
   private def load() = {
-    val categories = (select (ContentCategories.*) from ContentCategories list)
+    val categories = (SELECT (ContentCategories.*) FROM ContentCategories list)
     categories map { case x => codetocate.put(x.code, x)
     }
     codetocate

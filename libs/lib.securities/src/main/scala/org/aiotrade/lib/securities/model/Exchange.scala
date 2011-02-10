@@ -56,7 +56,7 @@ object Exchanges extends Table[Exchange] {
     sec.secInfo = secInfo
     Secs.update_!(sec, Secs.secInfo)
 
-    if (willCommit) commit
+    if (willCommit) COMMIT
 
     sec
   }
@@ -73,7 +73,7 @@ object Exchanges extends Table[Exchange] {
       Secs.update_!(sec, Secs.secInfo)
     }
 
-    commit
+    COMMIT
 
     secInfo
   }
@@ -660,7 +660,7 @@ class Exchange extends Ordered[Exchange] {
     }
     
     if (willCommit) {
-      commit
+      COMMIT
       log.info(this.code + " doClosing: committed.")
     }
   }

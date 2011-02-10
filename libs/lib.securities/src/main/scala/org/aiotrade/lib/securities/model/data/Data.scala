@@ -147,7 +147,7 @@ object Data {
     readFromCompanyIndustries(readerOf("company_industries.txt"))
     
     Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
-    commit
+    COMMIT
   }
 
   /**

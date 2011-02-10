@@ -141,7 +141,7 @@ class Installer extends ModuleInstall {
     // create database if does not exist
     if (!Exchanges.exists) {
       log.info("Database does not exist yet, will create it ...")
-      SyncUtil.createData
+      SyncUtil.createData(System.getProperty("netbeans.user") + "/data")
     }
 
     UserOptionsManager.assertLoaded

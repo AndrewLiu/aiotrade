@@ -365,7 +365,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
     if (willCommit) {
-      commit
+      COMMIT
       log.info("Committed")
     }
 

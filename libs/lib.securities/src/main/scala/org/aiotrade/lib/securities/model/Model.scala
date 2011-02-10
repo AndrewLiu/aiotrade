@@ -63,7 +63,7 @@ object Model {
     schema
     sampleExchanges
     sampleSecs
-    commit
+    COMMIT
     Exchange.allExchanges map (x => 
       Exchange.symbolsOf(x).mkString(",")
     ) foreach println
@@ -206,7 +206,7 @@ object Model {
     exchanges = List(N, SS, SZ, L)
     exchanges foreach println
     exchanges foreach Exchanges.save
-    commit
+    COMMIT
   }
 
   def sampleSecs = {

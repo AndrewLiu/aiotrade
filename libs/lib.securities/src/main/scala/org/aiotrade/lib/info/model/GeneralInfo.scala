@@ -27,11 +27,8 @@ object GeneralInfos extends Table[GeneralInfo]{
   def infoOf(url : String) : Option[GeneralInfo]= {
     synchronized {
       if(!isLoad){
-        val allInfo = (select (GeneralInfos.*) from GeneralInfos list)
-        allInfo foreach {
-          case x => urlToInfo.put(x.url, x)
-        }
-
+        val allInfo = (SELECT (GeneralInfos.*) FROM GeneralInfos list)
+        allInfo foreach {x => urlToInfo.put(x.url, x)}
       }
       urlToInfo.get(url)
     }

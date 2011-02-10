@@ -83,10 +83,10 @@ abstract class QuoteServer extends DataServer[Quote] {
     contract.freq match {
       case TFreq.DAILY =>
         Quotes1d.saveBatch(sec, quotes)
-        commit
+        COMMIT
       case TFreq.ONE_MIN =>
         Quotes1m.saveBatch(sec, quotes)
-        commit
+        COMMIT
       case _ =>
         // we won't save quote to quotes1m when contract.freq is ONE_SEC, so we can always keep
         // quoteSer of 1min after loaded from db will not be blocked by this period of time.

@@ -200,6 +200,7 @@
         <module>lib.dataserver.yahoo</module>
         <module>lib.dbfdriver</module>
         <module>lib.amqp</module>
+        <module>lib.avro</module>
         <module>helper.test</module>
         <module>lib.sevenzip</module>
         <module>../../configgy</module>

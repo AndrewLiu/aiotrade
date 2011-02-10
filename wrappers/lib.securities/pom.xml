@@ -124,6 +124,11 @@
             <artifactId>org-dbunit</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-apache-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 
