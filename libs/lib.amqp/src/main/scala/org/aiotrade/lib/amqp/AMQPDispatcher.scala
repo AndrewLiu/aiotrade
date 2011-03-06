@@ -153,7 +153,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   @throws(classOf[IOException])
   private def doConnect {
-    log.info("Begin to connect ...")
+    log.info("Begin to connect " + factory.getHost + ":" + factory.getPort + "...")
 
     (try {
         val conn = factory.newConnection
