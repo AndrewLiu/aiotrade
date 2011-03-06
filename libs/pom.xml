@@ -192,6 +192,7 @@
         <module>lib.io</module>
         <module>lib.math</module>
         <module>lib.securities</module>
+        <module>lib.securities.data</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
         <module>lib.view.securities</module>

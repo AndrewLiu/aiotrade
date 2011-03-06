@@ -165,7 +165,8 @@ object Model {
     )
 
 
-    val s1 = (SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list)
+    val s1 = SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list
+    
     s1 foreach println
 
     val com = Companies.get(1).get

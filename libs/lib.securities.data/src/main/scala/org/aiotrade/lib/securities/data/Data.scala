@@ -1,4 +1,4 @@
-package org.aiotrade.lib.securities.model.data
+package org.aiotrade.lib.securities.data
 
 import java.io.BufferedReader
 import java.io.File
@@ -74,7 +74,7 @@ import scala.collection.mutable
  *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
  */
 
-@deprecated("Use SyncUtil")
+@deprecated("Use SyncUtil, this class is for reference only")
 object Data {
   private val log = Logger.getLogger(this.getClass.getName)
 

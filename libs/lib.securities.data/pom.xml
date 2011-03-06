@@ -1,0 +1,155 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.aiotrade</groupId>
+        <artifactId>libs</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>lib-securities-data</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    
+    <name>lib-securities-data</name>
+    
+    <dependencies>
+
+        <dependency>
+            <groupId>ru.circumflex</groupId>
+            <artifactId>circumflex-orm</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>lib-securities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- explicit inculde dependency on mysql jdbc -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.9</version>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <configuration>
+                    <launchers>
+                        <!-- mvn scala:run -Dlauncher=data -Drun.mode=export_data -->
+                        <launcher>
+                            <id>data</id>
+                            <mainClass>org.aiotrade.lib.securities.data.SyncUtil</mainClass>
+                            <jvmArgs>
+                                <jvmArg>-Xmx512m</jvmArg>
+                            </jvmArgs>
+                            <args>
+                                <arg>src/main/resources/export_data.conf</arg>
+                            </args>
+                        </launcher>
+                    </launchers>
+                </configuration>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <!--
+            @Note Since we have binary file under 'data':
+            Do not filter files with binary content like images! This will most likely result in corrupt output. 
+            If you have both text files and binary files as resources, you need to declare two mutually exclusive 
+            resource sets. The first resource set defines the files to be filtered and the other resource set defines 
+            the files to copy unaltered as illustrated below:
+            @see http://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html
+            -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- should enable filtering to get properites in active profile to be substitued in resources file -->
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.conf</include>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.conf</exclude>
+                    <exclude>**/*.properties</exclude>
+                    <exclude>**/*.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+    </build>
+
+    <profiles>
+        <profile>
+            <id>mysql</id>
+            <activation>
+                <property>
+                    <name>db</name>
+                    <value>mysql</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>com.mysql.jdbc.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:mysql://127.0.0.1:3306/aiotrade?useUnicode=true</orm.connection.url>
+                <orm.connection.username>root</orm.connection.username>
+                <orm.connection.password></orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.MySQLDialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.9</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>h2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>db</name>
+                    <value>h2</value>
+                </property>
+            </activation>
+            <properties>
+                <orm.connection.driver>org.h2.Driver</orm.connection.driver>
+                <orm.connection.url>jdbc:h2:~/.aiotrade/dev/db/aiotrade</orm.connection.url>
+                <orm.connection.username>sa</orm.connection.username>
+                <orm.connection.password></orm.connection.password>
+                <orm.dialect>ru.circumflex.orm.H2Dialect</orm.dialect>
+                <orm.defaultSchema>orm</orm.defaultSchema>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>1.2.147</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+</project>
+

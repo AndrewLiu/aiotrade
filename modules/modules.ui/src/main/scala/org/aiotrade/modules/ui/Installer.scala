@@ -30,6 +30,7 @@
  */
 package org.aiotrade.modules.ui
 
+import java.io.File
 import java.io.IOException
 import java.io.OutputStream
 import java.util.ResourceBundle
@@ -41,7 +42,7 @@ import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
-import org.aiotrade.lib.securities.model.data.SyncUtil
+import org.aiotrade.lib.securities.data.SyncUtil
 import org.aiotrade.lib.securities.util.UserOptionsManager
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.netbeans.api.progress.ProgressHandle
@@ -138,10 +139,16 @@ class Installer extends ModuleInstall {
     org.aiotrade.lib.util.config.Config(configFilePath)
     log.info("Config file is " + configFilePath)
 
+    val dataPath = System.getProperty("netbeans.user") + "/data"
+    val file = new File(dataPath)
+    if (file != null && !file.exists) {
+      SyncUtil.extractDataTo(dataPath)      
+    }
+    
     // create database if does not exist
     if (!Exchanges.exists) {
       log.info("Database does not exist yet, will create it ...")
-      SyncUtil.createData(System.getProperty("netbeans.user") + "/data")
+      SyncUtil.importDataFrom(dataPath)
     }
 
     UserOptionsManager.assertLoaded
@@ -182,6 +189,7 @@ class Installer extends ModuleInstall {
 //        }
 //      })
   }
+
 
 
   private def isSymbolNodesAdded = {

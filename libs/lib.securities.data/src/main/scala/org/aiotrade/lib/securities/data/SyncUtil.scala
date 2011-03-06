@@ -29,11 +29,11 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.securities.model.data
+package org.aiotrade.lib.securities.data
 
+import java.io.File
 import java.io.FileOutputStream
-import java.sql.Connection
-import java.sql.DriverManager
+import java.net.JarURLConnection
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.info.model.AnalysisReports
@@ -66,14 +66,6 @@ import org.aiotrade.lib.securities.model.SecInfos
 import org.aiotrade.lib.securities.model.SecStatuses
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
-//import org.dbunit.database.DatabaseConfig
-//import org.dbunit.database.DatabaseConnection
-//import org.dbunit.database.QueryDataSet
-//import org.dbunit.dataset.xml.FlatXmlDataSet
-//import org.dbunit.dataset.xml.FlatXmlDataSetBuilder
-//import org.dbunit.ext.h2.H2Connection
-//import org.dbunit.ext.mysql.MySqlConnection
-//import org.dbunit.operation.DatabaseOperation
 import ru.circumflex.orm._
 
 /**
@@ -118,36 +110,13 @@ object SyncUtil {
   private val mysqlDriver = "com.mysql.jdbc.Driver"
 
   def main(args: Array[String]) {
-    //exportAvroDataFileFromProductionMysql
-    createData(exportDataDir)
-    //exportDataFileFromProductionMysql
+    exportAvroDataFileFromProductionMysql
+    //createData(exportDataDir)
     //importDataToLocalTestMysql
   }
 
-  // export data to aiotrade.xml
-//  def exportDataFileFromProductionMysql {
-//    Class.forName(mysqlDriver)
-//    val dbName = "faster"
-//    val schema = "faster"
-//    val conn = DriverManager.getConnection("jdbc:mysql://192.168.132.220:3306/" + dbName + "?useUnicode=true", "root", "") // dburl, user, passwd
-//
-//    exportToXml(conn, schema, tableNames)
-//    conn.close
-//  }
-//
-//  def importDataToLocalTestMysql {
-//    Class.forName(mysqlDriver)
-//    val dbName = "aiotrade"
-//    val schema = "aiotrade"
-//    val conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + dbName + "?useUnicode=true&sessionVariables=FOREIGN_KEY_CHECKS=0", "root", "") // dburl, user, passwd
-//
-//    importToDb(conn, schema, mysqlDriver)
-//    conn.close
-//  }
-//
   def exportAvroDataFileFromProductionMysql {
     org.aiotrade.lib.util.config.Config(srcMainResources + "/export_data.conf")
-    //val records = tables map {x => SELECT(x.*) FROM(x) list()} // select all records to cache so the id of them is held.
     exportToAvro(tables)
   }
 
@@ -166,14 +135,6 @@ object SyncUtil {
   private def exportToAvro[R](x: Relation[R]) {
     SELECT (x.*) FROM (x) toAvro(exportDataDir + "/" + x.relationName + ".avro")
   }
-
-//  def exportToXml(jdbcConn: Connection, schema: String, tableNames: List[String]) {
-//    val conn = new DatabaseConnection(jdbcConn, schema)
-//    val dataSet = new QueryDataSet(conn)
-//    tableNames foreach dataSet.addTable
-//
-//    FlatXmlDataSet.write(dataSet, new FileOutputStream(dataFileName))
-//  }
 
   /**
    * @Note All tables should be ddl.dropCreate together, since schema will be
@@ -200,7 +161,7 @@ object SyncUtil {
     ddl.dropCreate.messages.foreach(msg => log.info(msg.body))
   }
 
-  def createData(dataDir: String) {
+  def importDataFrom(dataDir: String) {
     var t0 = System.currentTimeMillis
     schema
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
@@ -211,6 +172,66 @@ object SyncUtil {
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
+  
+  /**
+   * Extract data to destPath from jar file
+   * @see http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/InstalledFileLocator.html
+   */
+  def extractDataTo(destPath: String) {
+    try {
+      // locate jar 
+      val c = classOf[Locator]
+      // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
+      val jarUrl = c.getProtectionDomain.getCodeSource.getLocation
+      log.info("Initial data is located at: " + jarUrl)
+
+      val start = System.currentTimeMillis
+
+      val buf = new Array[Byte](1024)
+      val jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
+      val entries = jarFile.entries
+      while (entries.hasMoreElements) {
+        val entry = entries.nextElement
+        val entryName = entry.getName
+        if (entryName != "data/" && entryName.startsWith("data/")) {
+          var fileName = entryName.substring(4, entryName.length)
+          if (fileName.charAt(fileName.length - 1) == '/') fileName = fileName.substring(0, fileName.length - 1)
+          if (fileName.charAt(0) == '/') fileName = fileName.substring(1)
+          if (File.separatorChar != '/') fileName = fileName.replace('/', File.separatorChar)
+        
+
+          val file = new File(destPath, fileName)
+          if (entry.isDirectory) {
+            // make sure the directory exists
+            file.mkdirs
+          }  else {
+            // make sure the directory exists
+            val parent = file.getParentFile
+            if (parent != null && !parent.exists) {
+              parent.mkdirs
+            }
+            
+            // dump the file
+            val in = jarFile.getInputStream(entry)
+            val out = new FileOutputStream(file)
+            var len = 0
+            while ({len = in.read(buf, 0, buf.length); len != -1}) {
+              out.write(buf, 0, len)
+            }
+            out.flush
+            out.close
+            file.setLastModified(entry.getTime)
+            in.close
+          }
+        }         
+      }
+      
+      log.info("Extract data in " + (System.currentTimeMillis - start) + "ms")
+    } catch {
+      case e => log.log(Level.WARNING, e.getMessage, e)
+    }
+  }
+    
 
   private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
     SELECT (table.*) FROM (AVRO(table, avroFile)) list()
@@ -225,53 +246,5 @@ object SyncUtil {
     val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
     table.insertBatch(records.toArray, false)
   }
-
-//  def createData_old {
-//    val config = org.aiotrade.lib.util.config.Config()
-//
-//    val t0 = System.currentTimeMillis
-//    schema
-//    log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
-//
-//    val dbDriver = config.getString("orm.connection.driver", "org.h2.driver")
-//    val dbUrl = config.getString("orm.connection.url", "jdbc:h2:~/.aiotrade/dev/db/aiotrade")
-//    val dbUsername = config.getString("orm.connection.username", "sa")
-//    val dbPassword = config.getString("orm.connection.password", "")
-//    val dbSchema = config.getString("orm.defaultSchema", "orm")
-//
-//    Class.forName(dbDriver)
-//
-//    val conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)
-//
-//    val t1 = System.currentTimeMillis
-//    importToDb(conn, dbSchema, dbDriver)
-//    log.info("Imported dataset in " + (System.currentTimeMillis - t1) / 1000.0 + " s.")
-//  }
-//
-//  private def importToDb(jdbcConn: Connection, schema: String, dbDriver: String) {
-//    val dataStream = classLoader.getResourceAsStream("data/" + dataFileName)
-//    val dataSet = (new FlatXmlDataSetBuilder).setCaseSensitiveTableNames(false).build(dataStream)
-//
-//    val dbConn = createDatabaseConnection(dbDriver, jdbcConn, schema)
-//    val config = dbConn.getConfig
-//    val batchStatementsFeature = DatabaseConfig.FEATURE_BATCHED_STATEMENTS
-//    log.info("Default batchedStatements: " + config.getProperty(batchStatementsFeature))
-//    config.setProperty(batchStatementsFeature, true)
-//    log.info("Set batchedStatements: " + dbConn.getConfig.getProperty(batchStatementsFeature))
-//
-//    try {
-//      DatabaseOperation.CLEAN_INSERT.execute(dbConn, dataSet)
-//    } catch {
-//      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
-//    } finally {
-//      dbConn.close
-//    }
-//  }
-//
-//  private def createDatabaseConnection(dbDriver: String, jdbcConn: Connection, schema: String) = {
-//    if (dbDriver.contains(".h2.")) new H2Connection(jdbcConn, schema)
-//    else if (dbDriver.contains(".mysql.")) new MySqlConnection(jdbcConn, schema)
-//    else new DatabaseConnection(jdbcConn, schema)
-//  }
   
 }

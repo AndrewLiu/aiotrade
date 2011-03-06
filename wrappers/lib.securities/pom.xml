@@ -56,30 +56,6 @@
                     <groupId>com.h2database</groupId>
                     <artifactId>h2</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.dbunit</groupId>
-                    <artifactId>dbunit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
 
@@ -119,16 +95,6 @@
             <artifactId>com-h2database-h2</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-dbunit</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-apache-avro</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
     </dependencies>
 
@@ -145,7 +111,6 @@
                         <publicPackage>org.aiotrade.lib.securities</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.dataserver</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.model</publicPackage>
-                        <publicPackage>org.aiotrade.lib.securities.model.data</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.util</publicPackage>
                     </publicPackages>
                 </configuration>

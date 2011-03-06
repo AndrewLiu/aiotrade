@@ -114,6 +114,11 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-securities-data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-view-securities</artifactId>
             <version>${project.version}</version>
         </dependency>
