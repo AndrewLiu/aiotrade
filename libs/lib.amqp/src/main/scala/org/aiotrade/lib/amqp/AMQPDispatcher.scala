@@ -357,7 +357,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
 
         // send back to interested observers for further relay
-        publish(AMQPMessage(content, props))
+        publish(AMQPMessage(content, props, envelope))
         //log.info("Published amqp message: " + content)
         //log.info(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
@@ -499,7 +499,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
               case _ => decodeJava(body1)
             }
 
-            publish(AMQPMessage(content, props))
+            publish(AMQPMessage(content, props, envelope))
           } catch {
             // should catch it when old version classes were sent by old version of clients.
             case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
