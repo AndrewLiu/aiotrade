@@ -72,6 +72,8 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  */
 case class Delivery(body: Array[Byte], properties: AMQP.BasicProperties, envelope: Envelope) extends Event
 
+case class AMQPAcknowledge(deliveryTag: Long) extends Event
+
 /**
  * @param content A deserialized value received via AMQP.
  * @param props
@@ -311,22 +313,26 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       _shutdown = sig
     }
 
-    @throws(classOf[IOException])
-    override def handleDelivery(tag: String, envelope: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
-      // If needs ack, do it right now to avoid the queue on server is blocked.
-      // @Note: when autoAck is set false, messages will be blocked until an ack to broker,
-      // so should ack it. (Although prefetch may deliver more than one message to consumer)
-      if (!isAutoAck) {
+    def handleAck(_isAutoAck: Boolean, _channel: Channel, _envelope: Envelope) {
+      if (!_isAutoAck) {
         try {
           // Params:
           //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
           //   multiple - true  to acknowledge all messages up to and including the supplied delivery tag;
           //              false to acknowledge just the supplied delivery tag.
-          channel.basicAck(envelope.getDeliveryTag, false)
+          _channel.basicAck(_envelope.getDeliveryTag, false)
         } catch {
           case ex => log.log(Level.WARNING, ex.getMessage, ex)
         }
       }
+    }
+
+    @throws(classOf[IOException])
+    override def handleDelivery(tag: String, envelope: Envelope, props: AMQP.BasicProperties, body: Array[Byte]) {
+      // If needs ack, do it right now to avoid the queue on server is blocked.
+      // @Note: when autoAck is set false, messages will be blocked until an ack to broker,
+      // so should ack it. (Although prefetch may deliver more than one message to consumer)
+      handleAck(isAutoAck, channel, envelope)
 
       //log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
 
