@@ -21,7 +21,7 @@ object Config {
   val mode = System.getProperty("run.mode", "development")
   val version = "0.10"
 
-  lazy val configDir: Option[String] = List("./conf", "./etc") find {x =>
+  lazy val configDir: Option[String] = List("../conf", "../etc") find {x =>
     val f = new File(x)
     f.exists && f.isDirectory
   }
