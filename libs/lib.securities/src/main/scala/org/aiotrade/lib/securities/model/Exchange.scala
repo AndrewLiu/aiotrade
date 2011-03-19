@@ -11,6 +11,8 @@ import org.aiotrade.lib.util.actors.Publisher
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
+case class SecAddedToDb(sec: Sec)
+case class SecInfoAddedToDb(secInfo: SecInfo)
 case class SecAdded(sec: Sec)
 case class SecInfoAdded(secInfo: SecInfo)
 
@@ -38,7 +40,11 @@ object Exchanges extends Table[Exchange] {
     mutable.Set[Sec]() ++= secs
   }
 
-  def secOf(uniSymbol: String): Option[Sec] = {
+  /**
+   * @Note expensive method.
+   * private package method to avoid to be used no-aware expensive
+   */
+  private[model] def secOf(uniSymbol: String): Option[Sec] = {
     (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
   }
 
@@ -190,13 +196,13 @@ object Exchange extends Publisher {
     uniSymbolToSec.get(uniSymbol)
   }
 
-  def checkIfExist(uniSymbol: String, name: String) {
+  def checkIfIsSthNew(uniSymbol: String, name: String) {
     uniSymbolToSec.get(uniSymbol) match {
       case Some(sec) =>
         if (sec.name != name) {
           log.info("Found new name: " + name + ", the old name is " + sec.name)
           val secInfo = Exchanges.createSimpleSecInfo(sec, name, true)
-          publish(SecInfoAdded(secInfo))
+          publish(SecInfoAddedToDb(secInfo))
         }
       case None =>
         log.info("Found new symbol: " + uniSymbol)
@@ -204,17 +210,10 @@ object Exchange extends Publisher {
     }
   }
 
-  def addNewSec(exchange: Exchange, uniSymbol: String, name: String): Sec = mutex synchronized {
+  private def addNewSec(exchange: Exchange, uniSymbol: String, name: String): Sec = mutex synchronized {
     val sec = Exchanges.createSimpleSec(exchange, uniSymbol, name, true)
+    publish(SecAddedToDb(sec))
     secAdded(sec)
-  }
-
-  def secAdded(uniSymbol: String): Sec = {
-    // check database if sec has been here, if not, something was wrong
-    Exchanges.secOf(uniSymbol) match {
-      case Some(sec) => secAdded(sec)
-      case None => log.severe("Sec of " + uniSymbol + " has not been created in database"); null
-    }
   }
 
   def secAdded(sec: Sec): Sec = mutex synchronized {
@@ -227,6 +226,14 @@ object Exchange extends Publisher {
 
     publish(SecAdded(sec))
     sec
+  }
+  
+  def secAdded(uniSymbol: String): Sec = {
+    // check database if sec has been here, if not, something was wrong
+    Exchanges.secOf(uniSymbol) match {
+      case Some(sec) => secAdded(sec)
+      case None => log.severe("Sec of " + uniSymbol + " has not been created in database"); null
+    }
   }
 
   def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
