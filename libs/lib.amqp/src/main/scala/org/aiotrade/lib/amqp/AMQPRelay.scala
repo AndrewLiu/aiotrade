@@ -29,8 +29,8 @@ object AMQPRelay {
     val masterUsername = config.getString("amqp.relay.master.username", "guest")
     val masterPassword = config.getString("amqp.relay.master.password", "guest")
     val masterExchange = config.getString("amqp.relay.master.exchange", "market.internal")
-    val masterQueue = config.getString("amqp.relay.master.queue", "file.cndbf.master")
-    val masterKey = config.getString("amqp.relay.master.routingkey", "source.file.cndbf")
+    val masterQueue = config.getString("amqp.relay.master.queue", "file.levelIIsz.master")
+    val masterKey = config.getString("amqp.relay.master.routingkey", "source.file.levelIIsz")
     val masterPrefetchCount = config.getInt("amqp.relay.master.prefetchcount", 0)
 
     val slaveHost = config.getString("amqp.relay.slave.host", "localhost")
@@ -38,8 +38,8 @@ object AMQPRelay {
     val slaveUsername = config.getString("amqp.relay.slave.username", "guest")
     val slavePassword = config.getString("amqp.relay.slave.password", "guest")
     val slaveExchange = config.getString("amqp.relay.slave.exchange", "market.internal")
-    val slaveQueue = config.getString("amqp.relay.slave.queue", "file.cndbf.master")
-    val slaveKey = config.getString("amqp.relay.slave.routingkey", "source.file.cndbf")
+    val slaveQueue = config.getString("amqp.relay.slave.queue", "file.levelIIsz.slave")
+    val slaveKey = config.getString("amqp.relay.slave.routingkey", "source.file.levelIIsz")
     val slavePrefetchCount = config.getInt("amqp.relay.slave.prefetchCount", 0)
 
     val masterFactory = new ConnectionFactory
