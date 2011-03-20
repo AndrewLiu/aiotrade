@@ -271,9 +271,9 @@ class SignalTopComponent extends TopComponent with Reactor {
             setHorizontalAlignment(SwingConstants.CENTER)
             if (row >= 0) {
               value.toString.trim match {
-                case "买" => setForeground(LookFeel().getPositiveBgColor)
-                case "卖" => setForeground(LookFeel().getNegativeBgColor)
-                case _    => setForeground(LookFeel().getNegativeBgColor)
+                case "买" | "卖空"=> setForeground(LookFeel().getPositiveBgColor)
+                case "卖" | "买空" => setForeground(LookFeel().getNegativeBgColor)
+                case _  => setForeground(LookFeel().getNegativeBgColor)
               }
             }
           case 3 => // Name
