@@ -15,7 +15,7 @@
         <dependency>
             <groupId>net.lag</groupId>
             <artifactId>configgy</artifactId>
-            <version>1.5.5</version>
+            <version>${configgy.version}</version>
         </dependency>
     </dependencies>
 

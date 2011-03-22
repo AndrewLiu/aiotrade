@@ -51,6 +51,8 @@
         <amqp.version>2.2.0</amqp.version>
         <netbeans.version>RELEASE691</netbeans.version>
         <deploy.version>snapshots</deploy.version>
+		<circumflex-orm.version>1.2</circumflex-orm.version>
+		<configgy.version>1.5.5.1</configgy.version>
     </properties>
 
     <distributionManagement>
