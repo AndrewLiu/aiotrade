@@ -15,11 +15,6 @@
     <name>lib-dbfdriver</name>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/scala</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>

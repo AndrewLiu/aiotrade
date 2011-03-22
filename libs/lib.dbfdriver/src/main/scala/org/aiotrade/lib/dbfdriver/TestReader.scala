@@ -6,7 +6,7 @@ object TestReader {
 
   val warmTimes = 5
   val times = if (willPrintRecord) 1 else 30
-  val filename = "testwrite.dbf"
+  val filename = "show2003.dbf"
   
   def main(args: Array[String]) {
     test1
@@ -18,7 +18,7 @@ object TestReader {
     var t0 = System.currentTimeMillis
     var i = 0
     while (i < times) {
-      if (i == warmTimes) t0 = System.currentTimeMillis // warm using the head warmTimes reading
+      if (i == warmTimes) t0 = System.currentTimeMillis // warm using the first warmTimes reading
 
       val reader = DBFReader(filename)
       readRecords(reader)
@@ -36,7 +36,7 @@ object TestReader {
     val reader = DBFReader(filename)
     var i = 0
     while (i < times) {
-      if (i == warmTimes) t0 = System.currentTimeMillis // warm using head warmTimes reading
+      if (i == warmTimes) t0 = System.currentTimeMillis // warm using the first warmTimes reading
 
       reader.load
       readRecords(reader)

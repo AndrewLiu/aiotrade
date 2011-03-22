@@ -16,31 +16,26 @@ object DBFReader {
   val END_OF_DATA = 0x1A
 
   @throws(classOf[IOException])
-  def apply(is: InputStream) = is match {
+  def apply(is: InputStream): DBFReader = is match {
     case x: FileInputStream =>
       val fileChannel = x.getChannel
-      try {
-        new DBFReader(Left(fileChannel))
-      } catch {
-        case ex => tryCloseFileChannel(fileChannel); throw ex
-      }
-
+      apply(fileChannel)
     case _ => new DBFReader(Right(is))
   }
 
   @throws(classOf[IOException])
-  def apply(file: File) = {
+  def apply(file: File): DBFReader = {
     val fileChannel = (new FileInputStream(file)).getChannel
-    try {
-      new DBFReader(Left(new FileInputStream(file) getChannel))
-    } catch {
-      case ex => tryCloseFileChannel(fileChannel); throw ex
-    }
+    apply(fileChannel)
   }
 
   @throws(classOf[IOException])
-  def apply(fileName: String) = {
+  def apply(fileName: String): DBFReader = {
     val fileChannel = (new RandomAccessFile(fileName, "r")).getChannel
+    apply(fileChannel)
+  }
+  
+  def apply(fileChannel: FileChannel): DBFReader = {
     try {
       new DBFReader(Left(fileChannel))
     } catch {
@@ -65,7 +60,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
   var charsetName = "8859_1"
   var isClosed = false
 
-  private var in: ByteBuffer = _
+  private var bBuf: ByteBuffer = _
   var header: DBFHeader = _
 
   load
@@ -73,7 +68,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
   /** Can be reloaded */
   def load {
     input match {
-      case Left(x)  => load(x)
+      case Left(x) => load(x)
       case Right(x) => load(x)
     }
   }
@@ -81,8 +76,13 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
   private def load(fileChannel: FileChannel) {
     if (isClosed) throw new IOException("This reader has closed")
 
-    in = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size)
-    header = DBFHeader.read(in)
+    //bBuf = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size)
+    bBuf = ByteBuffer.allocate(fileChannel.size.toInt)
+    fileChannel.position(0)
+    fileChannel.read(bBuf)
+    bBuf.rewind
+    
+    header = DBFHeader.read(bBuf)
   }
 
   private def load(is: InputStream) {
@@ -96,16 +96,16 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
       out.write(buf, 0, len)
     }
     val bytes = out.toByteArray
+    bBuf = ByteBuffer.wrap(bytes)
     
-    in = ByteBuffer.wrap(bytes)
-    header = DBFHeader.read(in)
+    header = DBFHeader.read(bBuf)
   }
 
 
   // it might be required to leap to the start of records at times
   val dataStartIndex = header.headerLength - (32 + (32 * header.fields.length)) - 1
   if (dataStartIndex > 0) {
-    in.position(in.position + dataStartIndex)
+    bBuf.position(bBuf.position + dataStartIndex)
     //is.skip(dataStartIndex)
   }
 
@@ -152,7 +152,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
     } else -1
   }
 
-  def hasNext: Boolean = in.position < in.capacity
+  def hasNext: Boolean = bBuf.position < bBuf.capacity
 
   /**
    * Reads the returns the next row in the DBF stream.
@@ -167,7 +167,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
     val values = new Array[Any](header.fields.length)
     try {
-      in.get //Skip the Record deleted flag
+      bBuf.get //Skip the Record deleted flag
       
 //      var isDeleted = false
 //      do {
@@ -195,7 +195,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
           case 'C' =>
             try{
               val bytes = new Array[Byte](header.fields(i).length)
-              in.get(bytes)
+              bBuf.get(bytes)
               new String(bytes, charsetName)
             } catch{
               case ex:Exception => new String("".getBytes, charsetName)
@@ -203,11 +203,11 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
           case 'D' =>
             try {
               val y = new Array[Byte](4)
-              in.get(y)
+              bBuf.get(y)
               val m = new Array[Byte](2)
-              in.get(m)
+              bBuf.get(m)
               val d = new Array[Byte](2)
-              in.get(d)
+              bBuf.get(d)
               val cal = Calendar.getInstance
               cal.set(Calendar.YEAR, (new String(y)).toInt)
               cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
@@ -220,7 +220,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
           case 'F' =>
             try {
               var bytes = new Array[Byte](header.fields(i).length)
-              in.get(bytes)
+              bBuf.get(bytes)
               bytes = Utils.trimLeftSpaces(bytes)
             
               if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
@@ -234,7 +234,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
           case 'N' =>
             try {
               var bytes = new Array[Byte](header.fields(i).length)
-              in.get(bytes)
+              bBuf.get(bytes)
               bytes = Utils.trimLeftSpaces(bytes)
             
               if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
@@ -246,7 +246,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
             }
 
           case 'L' =>
-            in.get match {
+            bBuf.get match {
               case 'Y' | 'y' | 'T' | 't' => true
               case _ => false
             }
@@ -256,19 +256,19 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
           case 'T' =>
             try {
               val y = new Array[Byte](4)
-              in.get(y)
+              bBuf.get(y)
               val m = new Array[Byte](2)
-              in.get(m)
+              bBuf.get(m)
               val d = new Array[Byte](2)
-              in.get(d)
+              bBuf.get(d)
               val h = new Array[Byte](2)
-              in.get(h)
+              bBuf.get(h)
               val min = new Array[Byte](2)
-              in.get(min)
+              bBuf.get(min)
               val sec = new Array[Byte](2)
-              in.get(sec)
+              bBuf.get(sec)
               val milsec = new Array[Byte](3)
-              in.get(milsec)
+              bBuf.get(milsec)
               val cal = Calendar.getInstance
               cal.set(Calendar.YEAR, (new String(y)).toInt)
               cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
@@ -281,11 +281,11 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
             } catch {
               case ex: Exception => null // this field may be empty or may have improper value set
             }
-           case 'I' =>
+          case 'I' =>
             try{
               var bytes = new Array[Byte](header.fields(i).length)
-              in.get(bytes)
-               bytes = Utils.trimLeftSpaces(bytes)
+              bBuf.get(bytes)
+              bytes = Utils.trimLeftSpaces(bytes)
               (new String(bytes)).toInt
             } catch{
               case ex:Exception => 0

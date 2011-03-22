@@ -126,11 +126,11 @@ class DBFField {
   def name = new String(this._name, 0, nameNullIndex)
   def name_=(name: String) {
     if (name == null) {
-      throw new IllegalArgumentException("Field name cannot be null")
+      throw new IOException("Field name cannot be null")
     }
 
     if (name.length == 0 || name.length > 10) {
-      throw new IllegalArgumentException("Field name should be of length 0-10")
+      throw new IOException("Field name should be of length 0-10")
     }
 
     _name = name.getBytes
@@ -149,7 +149,7 @@ class DBFField {
       case 'D' => _length = 8
       case 'T' => _length = 17
       case 'C' | 'L' | 'N' | 'F' | 'M' | 'I' =>
-      case _ => throw new IllegalArgumentException("Unknown data type")
+      case x => throw new IOException("Unknown data type: " + x.toChar)
     }
     
     _dataType = dataType
@@ -164,7 +164,7 @@ class DBFField {
   def length = _length
   def length_=(length: Int) {
     if (length <= 0) {
-      throw new IllegalArgumentException("Field length should be a positive number");
+      throw new IOException("Field length should be a positive number");
     }
 
     if (_dataType == 'D') {
@@ -187,11 +187,11 @@ class DBFField {
   def decimalCount = _decimalCount
   def decimalCount_=(count: Int) {
     if (count < 0) {
-      throw new IllegalArgumentException("Decimal length should be a positive number")
+      throw new IOException("Decimal length should be a positive number")
     }
 
     if (count > _length) {
-      throw new IllegalArgumentException("Decimal length should be less than field length")
+      throw new IOException("Decimal length should be less than field length")
     }
 
     _decimalCount = count.toByte
