@@ -83,19 +83,22 @@ object Utils {
 
   @throws(classOf[UnsupportedEncodingException])
   def textPadding(text: String, charsetName: String, length: Int, alignment: Int = ALIGN_LEFT, paddingByte: Byte = ' '.toByte): Array[Byte] = {
-    if (text.length >= length) {
-      return text.substring(0, length).getBytes(charsetName)
-    }
 
     val bytes = new Array[Byte](length)
+    val srcLength = text.getBytes(charsetName).length
+
+    if (srcLength >= length) {
+      return Arrays.copyOfRange(text.getBytes(charsetName), 0, length)
+    }
+
     Arrays.fill(bytes, paddingByte)
 
     alignment match {
       case ALIGN_LEFT =>
-        System.arraycopy(text.getBytes(charsetName), 0, bytes, 0, text.length)
+        System.arraycopy(text.getBytes(charsetName), 0, bytes, 0, srcLength)
       case ALIGN_RIGHT =>
         val t_offset = length - text.length
-        System.arraycopy(text.getBytes(charsetName), 0, bytes, t_offset, text.length)
+        System.arraycopy(text.getBytes(charsetName), 0, bytes, t_offset, srcLength)
     }
 
     bytes
