@@ -21,6 +21,8 @@ object TestReader {
       if (i == warmTimes) t0 = System.currentTimeMillis // warm using the head warmTimes reading
 
       val reader = DBFReader(filename)
+      reader.charsetName_=("GBK")
+
       readRecords(reader)
       reader.close
 
@@ -34,6 +36,8 @@ object TestReader {
   def test2 {
     var t0 = System.currentTimeMillis
     val reader = DBFReader(filename)
+      reader.charsetName_=("GBK")
+      
     var i = 0
     while (i < times) {
       if (i == warmTimes) t0 = System.currentTimeMillis // warm using head warmTimes reading
@@ -61,7 +65,7 @@ object TestReader {
       val recordObjs = reader.nextRecord
       if (willPrintRecord) {
         recordObjs foreach {x => x match {
-            case x: String => print(new String(x.getBytes("8859_1"),"GBK") + " | ")
+            case x: String => print( x + " | ")
             case x: Date => print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(x) + " | ")
             case av => print(av + " | ")
           }}

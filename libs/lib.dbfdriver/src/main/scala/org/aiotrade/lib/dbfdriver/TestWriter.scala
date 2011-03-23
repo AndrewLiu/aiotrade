@@ -20,12 +20,14 @@ object TestWriter {
     )
     
     val writer = new DBFWriter(file)
+    writer.charsetName_=("GBK")
+    
     writer.setFields(fields)
 
     val records = Array(
-      Array("1", "aaa", 500, 500.123, new Date, new Date,new String("中国".getBytes("GBK"),"8859_1")),
-      Array("2", "bbb", 610, 600.234, new Date, new Date,new String("日本".getBytes("GBK"),"8859_1")),
-      Array("3", "ccc", 320, 700.456, new Date, new Date,new String("缅甸".getBytes("GBK"),"8859_1"))
+      Array("1", "aaa", 500, 500.123, new Date, new Date,new String("浦发银行-马达加斯加分行".getBytes("GBK"))),
+      Array("2", "bbb", 610, 600.234, new Date, new Date,new String("白云机场".getBytes("GBK"))),
+      Array("3", "ccc", 320, 700.456, new Date, new Date,new String("*ST金花".getBytes("GBK")))
     )
 
     var i = 0
