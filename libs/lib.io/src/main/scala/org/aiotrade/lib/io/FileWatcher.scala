@@ -28,13 +28,13 @@ class FileWatcher(file: File) extends TimerTask with scala.swing.Publisher {
 
   final def apply() {
     if (file.exists) {
-      val timeStamp = file.lastModified
-      if (this.timeStamp != timeStamp) {
-        this.timeStamp = timeStamp
-        onChange(FileModified(file))
+      val timestamp = file.lastModified
+      if (this.timeStamp != timestamp) {
+        this.timeStamp = timestamp
+        onChange(FileModified(file, timestamp))
       }
     } else {
-      onChange(FileDeleted(file))
+      onChange(FileDeleted(file, System.currentTimeMillis))
     }
   }
 

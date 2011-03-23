@@ -28,10 +28,10 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
   private val dirWatcher = new DirWatcher(workingDir, fileFilter, true) {
     override protected def onChange(event: FileEvent) {
       event match {
-        case FileAdded(file) =>
+        case FileAdded(file, _) =>
           fileQueue.add(file)
           log.info("Added file " + file.getName)
-        case FileModified(file) =>
+        case FileModified(file, _) =>
         case _ =>
       }
     }
