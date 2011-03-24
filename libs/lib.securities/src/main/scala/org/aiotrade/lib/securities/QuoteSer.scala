@@ -97,6 +97,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       quote.close  = close(time)
       quote.volume = volume(time)
       quote.amount = amount(time)
+      if (isClosed(time)) quote.closed_! else quote.unclosed_!
+      
       Some(quote)
     } else None
   }
