@@ -182,17 +182,34 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 class MoneyFlow extends TVal with Flag {
   var sec: Sec = _
   
+  var totalVolumeIn: Double = _
+  var totalAmountIn: Double = _
+  var totalVolumeOut: Double = _
+  var totalAmountOut: Double = _
   var totalVolume: Double = _
   var totalAmount: Double = _
 
+  var superVolumeIn: Double = _
+  var superAmountIn: Double = _
+  var superVolumeOut: Double = _
+  var superAmountOut: Double = _
   var superVolume: Double = _
   var superAmount: Double = _
 
+  var largeVolumeIn: Double = _
+  var largeAmountIn: Double = _
+  var largeVolumeOut: Double = _
+  var largeAmountOut: Double = _
   var largeVolume: Double = _
   var largeAmount: Double = _
 
+  var smallVolumeIn: Double = _
+  var smallAmountIn: Double = _
+  var smallVolumeOut: Double = _
+  var smallAmountOut: Double = _
   var smallVolume: Double = _
   var smallAmount: Double = _
+
 
   // --- no db fields
   var isTransient = true
