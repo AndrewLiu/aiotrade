@@ -133,10 +133,8 @@ class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String,
 
 }
 
-
+import AMQPRelay._
 class RelayPublisher(factory: ConnectionFactory, exchange: String, queue: String, bindingKey: String, prefetchCount: Int = 0) extends AMQPDispatcher(factory, exchange) {
-
-  private val log = Logger.getLogger(getClass.getName)
 
   @throws(classOf[IOException])
   def configure(channel: Channel): Option[Consumer] = {
