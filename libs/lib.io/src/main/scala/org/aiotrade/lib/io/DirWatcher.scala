@@ -84,8 +84,8 @@ abstract class DirWatcher(paths: List[File], filter: FileFilter, includingExisti
    */
   private def init = {
     val map = scanFiles
-
-    if (includingExistingFiles) {
+    /** @TODO Here are NullPointerException bug to be fixed!! */
+    if (includingExistingFiles && map.size > 0) {
       map.values.sortWith{(a, b) => a._1.compareTo(b._1) < 0} foreach {x => onChange(FileAdded(x._1, x._2))}
     }
     
@@ -267,6 +267,8 @@ abstract class DirWatcher(paths: List[File], filter: FileFilter, includingExisti
     }
 
     def getAll = map
+
+    def size = map.size
   }
 }
 
