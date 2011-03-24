@@ -154,8 +154,8 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     signalVar(idx) = null
   }
     
-  protected def remove(idx: Int, direction: Kind) {
-    remove(idx, direction, 0, null, null)
+  protected def remove(idx: Int, kind: Kind) {
+    remove(idx, kind, 0, null, null)
   }
 
   protected def remove(idx: Int, id: Int) {
@@ -170,28 +170,28 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     remove(idx, null, 0, null, color)
   }
 
-  protected def remove(idx: Int, direction: Kind, id: Int) {
-    remove(idx, direction, id, null, null)
+  protected def remove(idx: Int, kind: Kind, id: Int) {
+    remove(idx, kind, id, null, null)
   }
 
-  protected def remove(idx: Int, direction: Kind, text: String) {
-    remove(idx, direction, 0, text, null)
+  protected def remove(idx: Int, kind: Kind, text: String) {
+    remove(idx, kind, 0, text, null)
   }
 
-  protected def remove(idx: Int, direction: Kind, color: Color) {
-    remove(idx, direction, 0, null, color)
+  protected def remove(idx: Int, kind: Kind, color: Color) {
+    remove(idx, kind, 0, null, color)
   }
 
-  protected def remove(idx: Int, direction: Kind, id: Int, text: String) {
-    remove(idx, direction, id, text, null)
+  protected def remove(idx: Int, kind: Kind, id: Int, text: String) {
+    remove(idx, kind, id, text, null)
   }
 
-  protected def remove(idx: Int, direction: Kind, id: Int, color: Color) {
-    remove(idx, direction, id, null, color)
+  protected def remove(idx: Int, kind: Kind, id: Int, color: Color) {
+    remove(idx, kind, id, null, color)
   }
 
-  protected def remove(idx: Int, direction: Kind, text: String, color: Color) {
-    remove(idx, direction, 0, text, color)
+  protected def remove(idx: Int, kind: Kind, text: String, color: Color) {
+    remove(idx, kind, 0, text, color)
   }
 
   protected def remove(idx: Int, kind: Kind = null, id: Int = 0, text: String = null, color: Color = null) {
