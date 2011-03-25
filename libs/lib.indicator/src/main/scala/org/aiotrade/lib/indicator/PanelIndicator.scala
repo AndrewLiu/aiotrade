@@ -30,25 +30,37 @@
  */
 package org.aiotrade.lib.indicator
 
+import java.util.Timer
+import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.indicator.Id
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.actors.Publisher
 
 /**
  * @author Caoyuan Deng
  */
-object PanelIndicator {
+object PanelIndicator extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val idToIndicator = new ConcurrentHashMap[Id, PanelIndicator[_]]
+  
+  private case object PanelHeartBeat
+  private val interval = 10000L // 10 seconds
+  private val timer = new Timer("PanelIndictorTimer")
+  timer.scheduleAtFixedRate(new TimerTask {
+      def run {
+        publish(PanelHeartBeat)
+      }
+    }, 1000, interval)
 
   def apply[T <: PanelIndicator[_]](klass: Class[T], sectionName: String, freq: TFreq, factors: Factor*): T = {
     val factorArr = factors.toArray
@@ -76,31 +88,38 @@ object PanelIndicator {
 }
 
 class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
-
   private val log = Logger.getLogger(this.getClass.getName)
 
   val indicators = new ArrayList[T]
-
-  private var reaction: Reactions.Reaction = null
-  reaction = {
-    case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) =>
-      computeFrom(fromTime)
+  
+  private var lastFromTime = Long.MaxValue
+  reactions += {
+    case PanelIndicator.PanelHeartBeat => 
+      computeFrom(lastFromTime)
+      lastFromTime = computedTime + 1
+    case ComputeFrom(time) => 
+      lastFromTime = time
+    case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) => 
+      lastFromTime = math.min(fromTime, lastFromTime)
+      //computeFrom(fromTime)
     case TSerEvent.Refresh(_, _, fromTime, toTime, _, callback) =>
-      computeFrom(fromTime)
+      lastFromTime = math.min(fromTime, lastFromTime)
+      //computeFrom(fromTime)
     case TSerEvent.Updated(_, _, fromTime, toTime, _, callback) =>
-      computeFrom(fromTime)
+      lastFromTime = math.min(fromTime, lastFromTime)
+      //computeFrom(fromTime)
     case TSerEvent.Computed(src, _, fromTime, toTime, _, callback) =>
-      computeFrom(fromTime)
+      lastFromTime = math.min(fromTime, lastFromTime)
+      //computeFrom(fromTime)
     case TSerEvent.Cleared(src, _, fromTime, toTime, _, callback) =>
       clear(fromTime)
   }
-  reactions += reaction
+  listenTo(PanelIndicator)
 
   def addSecs(secs: Set[Sec]) {
-    reactions -= reaction
-    for (sec <- secs; ind <- addSec(sec))
-    computeFrom(0)
-    reactions += reaction
+    for (sec <- secs) addSec(sec)
+    //computeFrom(0)
+    publish(ComputeFrom(0))
   }
 
   def addSec(sec: Sec): Option[T] = {
@@ -133,6 +152,6 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
   }
 
   final protected def lastTimeOf(sers: ArrayList[_ <: TSer]) = {
-    sers.map(_.lastOccurredTime).max
+    if (sers.isEmpty) 0 else sers.map(_.lastOccurredTime).max
   }
 }
