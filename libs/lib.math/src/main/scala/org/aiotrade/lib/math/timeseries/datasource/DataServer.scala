@@ -131,7 +131,6 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
       
       publish(DataProcessed)
   }
-
   listenTo(DataServer)
 
   // --- public interfaces

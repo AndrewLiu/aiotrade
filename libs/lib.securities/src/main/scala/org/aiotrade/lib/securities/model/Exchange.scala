@@ -553,7 +553,7 @@ class Exchange extends Ordered[Exchange] {
       case _ => Nil
     }
 
-    log.info("Try closing quotes of: " + freqs + ", closingTimeInMinutes=" + closingTimeInMinutes)
+    log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closingTimeInMinutes)
 
     for (freq <- freqs) {
 
