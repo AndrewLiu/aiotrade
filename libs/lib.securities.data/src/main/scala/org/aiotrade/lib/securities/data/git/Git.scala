@@ -32,4 +32,5 @@ object Git {
     log.info("Initialized empty git repository in " + gitDir)
     dst
   }
+ 
 }

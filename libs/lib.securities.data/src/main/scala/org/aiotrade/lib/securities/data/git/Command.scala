@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.data.git
 
+import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
@@ -19,6 +20,7 @@ import org.eclipse.jgit.transport.TrackingRefUpdate
  * @param git repository that the command was invoked within.
  */
 import Command._
+import org.eclipse.jgit.transport.URIish
 abstract class Command(protected val db: Repository) {
   
   /** RevWalk used during command line parsing, if it was required. */
@@ -175,4 +177,24 @@ object Command {
     }
   }
   
+  
+  def guessGitDir(aGitDir: String, aLocalName: String = null, sourceUri: String = null): String = {
+    if (aLocalName != null && aGitDir != null) {
+      throw new RuntimeException(CLIText().conflictingUsageOf_git_dir_andArguments)
+    }
+    
+    val gitdir = if (aGitDir == null) {
+      val localName = if (aLocalName == null && sourceUri != null) {
+        try {
+          new URIish(sourceUri).getHumanishName
+        } catch {
+          case e: IllegalArgumentException => throw new Exception(MessageFormat.format(CLIText().cannotGuessLocalNameFrom, sourceUri))
+        }
+      } else aLocalName
+      
+      new File(localName, Constants.DOT_GIT).getAbsolutePath
+    } else aGitDir
+    
+    gitdir
+  }
 }

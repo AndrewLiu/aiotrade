@@ -41,7 +41,7 @@ import java.lang.reflect.Modifier
  * 
  * @author Caoyuan Deng
  */
-class ClassVar[C, V](val name: String, val getter: Method, val setter: Method) {
+final class ClassVar[C, V](val name: String, val getter: Method, val setter: Method) {
   if (getter != null) getter.setAccessible(true)
   if (setter != null) setter.setAccessible(true)
 
@@ -55,7 +55,7 @@ class ClassVar[C, V](val name: String, val getter: Method, val setter: Method) {
 
   def set(to: C, value: V) {
     try {
-      setter.invoke(to, value.asInstanceOf[AnyRef]) // @todo, T is any
+      setter.invoke(to, value.asInstanceOf[AnyRef]) // @todo, V is Any
     } catch {
       case e: Exception => throw new RuntimeException(e)
     }

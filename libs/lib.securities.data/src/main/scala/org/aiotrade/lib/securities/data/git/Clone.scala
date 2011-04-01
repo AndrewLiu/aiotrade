@@ -3,7 +3,6 @@ package org.aiotrade.lib.securities.data.git
 import java.io.File
 import java.io.IOException
 import java.net.URISyntaxException
-import java.text.MessageFormat
 import java.util.ArrayList
 import java.util.Collections
 import java.util.logging.Logger
@@ -26,14 +25,14 @@ import org.eclipse.jgit.transport.Transport
 import org.eclipse.jgit.transport.URIish
 import org.eclipse.jgit.transport.TagOpt
 
-class Clone(repository: Repository, sourceUri: URIish, remoteName: String) extends Command(repository) {
+class Clone(repository: Repository, remoteUri: URIish, remoteName: String) extends Command(repository) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   @throws(classOf[Exception])
   protected def run {
     val t0 = System.currentTimeMillis
     
-    saveRemote(sourceUri)
+    saveRemote(remoteUri)
     val r = runFetch
     val branch = guessHEAD(r)
     doCheckout(branch)
@@ -133,33 +132,18 @@ object Clone {
    * @param source url
    * @param remote name, default is 'origin'
    */
-  def apply(aGitDir: String, aLocalName: String, sourceUri: String, remoteName: String = Constants.DEFAULT_REMOTE_NAME) = {
-    if (aLocalName != null && aGitDir != null) {
-      throw new RuntimeException(CLIText().conflictingUsageOf_git_dir_andArguments)
-    }
-    
-    val srcUri = new URIish(sourceUri)
-    val gitDir = if (aGitDir == null) {
-      val localName = if (aLocalName == null) {
-        try {
-          srcUri.getHumanishName
-        } catch {
-          case e: IllegalArgumentException => throw new Exception(MessageFormat.format(CLIText().cannotGuessLocalNameFrom, sourceUri))
-        }
-      } else aLocalName
-      
-      new File(localName, Constants.DOT_GIT).getAbsolutePath
-    } else aGitDir
-    
-    val repository = Git.createFileRepository(gitDir)
+  def apply(aGitDir: String, sourceUri: String, localName: String = null, remoteName: String = Constants.DEFAULT_REMOTE_NAME) = {
+    val gitDir = Command.guessGitDir(aGitDir, localName, sourceUri)    
+    val repo = Git.createFileRepository(gitDir)
+    val remote = new URIish(sourceUri)
 
-    new Clone(repository, srcUri, remoteName)
+    new Clone(repo, remote, remoteName)
   }
   
   // --- simple test
   def main(args: Array[String]) {
     val userHome = System.getProperty("user.home")
-    val clone = Clone(userHome + File.separator + "gittest/.git", null, "git://github.com/dcaoyuan/dcaoyuan.github.com.git")
-    clone.run
+    val command = Clone(userHome + File.separator + "gittest/.git", "git://github.com/dcaoyuan/dcaoyuan.github.com.git")
+    command.run
   }
 }
