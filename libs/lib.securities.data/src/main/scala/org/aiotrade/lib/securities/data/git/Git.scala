@@ -127,9 +127,10 @@ object Git {
     log.info("Added all in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
 
-  def commit(gitPath: String, msg: String) {commit(getGit(gitPath), msg)}
-  def commit(git: org.eclipse.jgit.api.Git, msg: String) {
+  def commitAll(gitPath: String, msg: String) {commitAll(getGit(gitPath), msg)}
+  def commitAll(git: org.eclipse.jgit.api.Git, msg: String) {
     val cmd = git.commit
+    cmd.setAll(true)
     cmd.setMessage(msg)
     
     val t0 = System.currentTimeMillis
@@ -251,13 +252,13 @@ object Git {
   def main(args: Array[String]) {
     val userHome = System.getProperty("user.home")
     val tmpPath = userHome + File.separator + "gittest" + File.separator
-    val dstPath = tmpPath + "clone_test"
+    val workPath = tmpPath + "clone_test"
     
-    if ({val file = new File(dstPath); !file.exists}) {
-      clone(dstPath, "file://" + tmpPath + "origin_test.git")
+    if ({val file = new File(workPath); !file.exists}) {
+      clone(workPath, "file://" + tmpPath + "origin_test.git")
     }
     
-    val git = getGit(dstPath + File.separator + Constants.DOT_GIT)
+    val git = getGit(workPath + File.separator + Constants.DOT_GIT)
     pull(git)
     
     // --- change some contents
@@ -271,7 +272,7 @@ object Git {
     // --- end change some contents
 
     addAll(git)
-    commit(git, "from " + this.getClass.getName)
+    commitAll(git, "from " + this.getClass.getName)
     pushAll(git)
   }
 }
