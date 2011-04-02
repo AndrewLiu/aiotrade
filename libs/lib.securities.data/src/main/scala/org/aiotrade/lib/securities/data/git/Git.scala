@@ -2,6 +2,7 @@ package org.aiotrade.lib.securities.data.git
 
 import java.io.File
 import java.io.IOException
+import java.io.PrintWriter
 import java.text.MessageFormat
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -32,7 +33,7 @@ object Git {
     _monitor = monitor
   }
   
-  def clone(gitPath: String, sourceUri: String, localName: String = null, remoteName: String = Constants.DEFAULT_REMOTE_NAME) = {
+  def clone(gitPath: String, sourceUri: String, localName: String = null, remote: String = Constants.DEFAULT_REMOTE_NAME) = {
     val gitDir = guessGitDir(gitPath, localName, sourceUri)    
     if (gitDir.exists) {
       log.info(gitDir.getAbsolutePath + " existed, will delete it first.")
@@ -53,7 +54,7 @@ object Git {
     val cmd = new CloneCommand
     cmd.setDirectory(gitDir)
     cmd.setURI(sourceUri)
-    cmd.setRemote(remoteName)
+    cmd.setRemote(remote)
     // @Note:
     // default branch in CloneCommand is Constants.HEAD, which will bypass 
     //   if (branch.startsWith(Constants.R_HEADS)) {
@@ -63,16 +64,16 @@ object Git {
     //   }
     // and causes no branch is linked, the actual HEAD name should be Constants.R_HEADS + Constants.MASTER
     cmd.setBranch(Constants.R_HEADS + Constants.MASTER)
+    cmd.setProgressMonitor(monitor)
     
     val t0 = System.currentTimeMillis
-    cmd.setProgressMonitor(monitor)
     val git = try {
       cmd.call
     } catch {
       case e => log.log(Level.SEVERE, e.getMessage, e); null
     }
     /* @see cmd.setBranch(Constants.R_HEADS + Constants.MASTER) */
-    fixCloneCommond(git.getRepository, Constants.R_HEADS + Constants.MASTER, remoteName)
+    fixCloneCommond(git.getRepository, Constants.R_HEADS + Constants.MASTER, remote)
 
     log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     git
@@ -94,24 +95,72 @@ object Git {
     repo.getConfig.save
   }
   
-  def pull(gitPath: String, localName: String = null, remoteName: String = Constants.DEFAULT_REMOTE_NAME) {
-    val gitDir = guessGitDir(gitPath, localName)    
-    val repo = openGitRepository(gitDir)
-
-    val git = new org.eclipse.jgit.api.Git(repo)
+  def pull(gitPath: String) {pull(getGit(gitPath))}
+  def pull(git: org.eclipse.jgit.api.Git) = {
     val cmd = git.pull
-    
-    val t0 = System.currentTimeMillis
     cmd.setProgressMonitor(monitor)
+
+    val t0 = System.currentTimeMillis
     try {
       cmd.call
     } catch {
       case e => log.log(Level.SEVERE, e.getMessage, e) 
     }
     log.info("Pulled in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
+    
+    git
+  }
+  
+  def addAll(gitPath: String) {addAll(getGit(gitPath))}
+  def addAll(git: org.eclipse.jgit.api.Git) {
+    val cmd = git.add
+    cmd.addFilepattern(".")
+    
+    val t0 = System.currentTimeMillis
+    try {
+      cmd.call
+    } catch {
+      case e => log.log(Level.SEVERE, e.getMessage, e) 
+    }
+    log.info("Added all in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
+  }
+
+  def commit(gitPath: String, msg: String) {commit(getGit(gitPath), msg)}
+  def commit(git: org.eclipse.jgit.api.Git, msg: String) {
+    val cmd = git.commit
+    cmd.setMessage(msg)
+    
+    val t0 = System.currentTimeMillis
+    try {
+      cmd.call
+    } catch {
+      case e => log.log(Level.SEVERE, e.getMessage, e) 
+    }
+    log.info("Committed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
+  }
+  
+  def pushAll(gitPath: String) {pushAll(getGit(gitPath))}
+  def pushAll(git: org.eclipse.jgit.api.Git, remote: String = Constants.DEFAULT_REMOTE_NAME) {
+    val cmd = git.push
+    cmd.setRemote(remote).setPushAll
+    cmd.setProgressMonitor(monitor)
+
+    val t0 = System.currentTimeMillis
+    try {
+      cmd.call
+    } catch {
+      case e => log.log(Level.SEVERE, e.getMessage, e) 
+    }
+    log.info("Pushed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
   
   // --- helper
+  
+  private def getGit(gitPath: String, localName: String = null) = {
+    val gitDir = guessGitDir(gitPath, localName)    
+    val repo = openGitRepository(gitDir)
+    new org.eclipse.jgit.api.Git(repo)
+  }
   
   def guessGitDir(gitPath: String, aLocalName: String = null, sourceUri: String = null): File = {
     if (aLocalName != null && gitPath != null) {
@@ -174,10 +223,27 @@ object Git {
   def main(args: Array[String]) {
     val userHome = System.getProperty("user.home")
     val tmpPath = userHome + File.separator + "gittest" + File.separator
-    val gitPath = tmpPath + "clone_test"
+    val dstPath = tmpPath + "clone_test"
     
-    val git = clone(gitPath, "file://" + tmpPath + "origin_test.git")
+    if ({val file = new File(dstPath); !file.exists}) {
+      clone(dstPath, "file://" + tmpPath + "origin_test.git")
+    }
     
-    pull(gitPath + File.separator + Constants.DOT_GIT)
+    val git = getGit(dstPath + File.separator + Constants.DOT_GIT)
+    pull(git)
+    
+    // --- change some contents
+    val file = new File(git.getRepository.getWorkTree, "a.txt")
+    if (!file.exists) {
+      file.createNewFile
+    }
+    val writer = new PrintWriter(file)
+    writer.print("content-" + System.currentTimeMillis + "\n")
+    writer.close
+    // --- end change some contents
+
+    addAll(git)
+    commit(git, "from " + this.getClass.getName)
+    pushAll(git)
   }
 }
