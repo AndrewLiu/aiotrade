@@ -3,6 +3,8 @@ package org.aiotrade.lib.securities.data.git
 import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
+import java.net.MalformedURLException
+import java.net.URL
 import java.text.MessageFormat
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -206,6 +208,32 @@ object Git {
     rb.build
   }
   
+  @throws(classOf[MalformedURLException])
+  private def configureHttpProxy {
+    val s = System.getenv("http_proxy")
+    if (s == null || s.equals(""))
+      return
+
+    val u = new URL(if (s.indexOf("://") == -1) "http://" + s else s)
+    if (!"http".equals(u.getProtocol))
+      throw new MalformedURLException(MessageFormat.format(CLIText().invalidHttpProxyOnlyHttpSupported, s))
+
+    val proxyHost = u.getHost
+    val proxyPort = u.getPort
+
+    System.setProperty("http.proxyHost", proxyHost)
+    if (proxyPort > 0)
+      System.setProperty("http.proxyPort", String.valueOf(proxyPort))
+
+    val userpass = u.getUserInfo
+    if (userpass != null && userpass.contains(":")) {
+      val c = userpass.indexOf(':')
+      val user = userpass.substring(0, c)
+      val pass = userpass.substring(c + 1)
+      CachedAuthenticator.add(CachedAuthenticator.CachedAuthentication(proxyHost, proxyPort, user, pass))
+    }
+  }
+  
 //  @Note: 'val dst = new FileRepository(gitDir)' in this method cause NetBeans run out of stack space 
 //  @throws(classOf[Exception])
 //  private def createFileRepository(gitDir: String) = {
@@ -238,7 +266,7 @@ object Git {
       file.createNewFile
     }
     val writer = new PrintWriter(file)
-    writer.print("content-" + System.currentTimeMillis + "\n")
+    writer.print("Content at " + new java.util.Date + "\n")
     writer.close
     // --- end change some contents
 
