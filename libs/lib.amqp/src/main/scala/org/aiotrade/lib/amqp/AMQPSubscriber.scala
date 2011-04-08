@@ -11,7 +11,7 @@ import org.aiotrade.lib.util.reactors.Event
  *
  * @author Caoyuan Deng
  */
-class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Boolean = true) extends AMQPDispatcher(factory, exchange) {
+class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Boolean = true, durable: Boolean = false) extends AMQPDispatcher(factory, exchange) {
   private val log = Logger.getLogger(this.getClass.getName)
 
   object Queue {
@@ -97,7 +97,7 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
 
       _consumingQueues += (queue.name -> queue)
       for (ch <- channel; cs <- consumer) {
-        ch.exchangeDeclare(exchange, "direct")
+        ch.exchangeDeclare(exchange, "direct", durable)
 
         // @Todo We need a non-exclusive queue, so when reconnected, this queue can be used by the new created connection.
         // string queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments
