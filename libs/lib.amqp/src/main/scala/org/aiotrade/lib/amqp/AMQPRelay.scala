@@ -32,6 +32,7 @@ object AMQPRelay {
     val masterQueue = config.getString("amqp.relay.master.queue", "file.levelIIsz.master")
     val masterKey = config.getString("amqp.relay.master.routingkey", "source.file.levelIIsz")
     val masterPrefetchCount = config.getInt("amqp.relay.master.prefetchcount", 0)
+    val masterDurable = config.getBool("amqp.relay.master.durable", false)
 
     val slaveHost = config.getString("amqp.relay.slave.host", "localhost")
     val slavePort = config.getInt("amqp.relay.slave.port", 5673)
@@ -41,6 +42,7 @@ object AMQPRelay {
     val slaveQueue = config.getString("amqp.relay.slave.queue", "file.levelIIsz.slave")
     val slaveKey = config.getString("amqp.relay.slave.routingkey", "source.file.levelIIsz")
     val slavePrefetchCount = config.getInt("amqp.relay.slave.prefetchCount", 0)
+    val slaveDurable = config.getBool("amqp.relay.slave.durable", false)
 
     val masterFactory = new ConnectionFactory
     masterFactory.setHost(masterHost)
@@ -58,8 +60,8 @@ object AMQPRelay {
     slaveFactory.setVirtualHost("/")
     slaveFactory.setRequestedHeartbeat(0)
 
-    consumer = new RelayConsumer(masterFactory, masterExchange, masterQueue, masterKey, masterPrefetchCount)
-    publisher = new RelayPublisher(slaveFactory, slaveExchange, slaveQueue, slaveKey, slavePrefetchCount)
+    consumer = new RelayConsumer(masterFactory, masterExchange, masterQueue, masterKey, masterPrefetchCount, masterDurable)
+    publisher = new RelayPublisher(slaveFactory, slaveExchange, slaveQueue, slaveKey, slavePrefetchCount, slaveDurable)
 
     consumer.listenTo(publisher)
     publisher.listenTo(consumer)
@@ -96,12 +98,12 @@ object AMQPRelay {
 }
 
 import AMQPRelay._
-class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String, bindingKey: String, prefetchCount: Int = 0) extends AMQPDispatcher(factory, exchange) {
+class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String, bindingKey: String, prefetchCount: Int = 0, durable: Boolean) extends AMQPDispatcher(factory, exchange) {
 
   override def configure(channel: Channel): Option[Consumer] = {
     
     channel.basicQos(prefetchCount)
-    channel.exchangeDeclare(exchange, "direct")
+    channel.exchangeDeclare(exchange, "direct", durable)
     channel.queueDeclare(queue, true, false, false, null)
     channel.queueBind(queue, exchange, bindingKey)
 
@@ -134,13 +136,13 @@ class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String,
 }
 
 import AMQPRelay._
-class RelayPublisher(factory: ConnectionFactory, exchange: String, queue: String, bindingKey: String, prefetchCount: Int = 0) extends AMQPDispatcher(factory, exchange) {
+class RelayPublisher(factory: ConnectionFactory, exchange: String, queue: String, bindingKey: String, prefetchCount: Int = 0, durable: Boolean) extends AMQPDispatcher(factory, exchange) {
 
   @throws(classOf[IOException])
   def configure(channel: Channel): Option[Consumer] = {
 
     channel.basicQos(prefetchCount)
-    channel.exchangeDeclare(exchange, "direct")
+    channel.exchangeDeclare(exchange, "direct", durable)
     channel.queueDeclare(queue, true, false, false, null)
     channel.queueBind(queue, exchange, bindingKey)
 
