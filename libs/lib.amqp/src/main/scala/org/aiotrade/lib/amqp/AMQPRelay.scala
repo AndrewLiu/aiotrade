@@ -79,8 +79,17 @@ object AMQPRelay {
 
   def start = {
     if(isInitialized) {
-      consumer.connect
       publisher.connect
+
+      //Check the publisher's connection firstly to avoid losing the message on master
+      try{ Thread.sleep(5000) } catch {case e =>}
+      if(!publisher.isConnected) {
+        log.severe("AMQPRelay consumer cannot establish connection, please check the conection configuration. Existing...")
+        System.exit(1)
+      }
+
+      consumer.connect
+      
     } else {
       log.severe("AMQPRelay is not correctly initialized. Please invoke init(config) firstly.")
       System.exit(1)
