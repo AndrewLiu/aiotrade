@@ -72,7 +72,10 @@ object Exchanges extends Table[Exchange] {
     sec.secInfo = secInfo
     Secs.update_!(sec, Secs.secInfo)
 
-    if (willCommit) COMMIT
+    if (willCommit) {
+      COMMIT
+      log.info("Committed: sec_infos" + name)
+    }
 
     sec
   }
@@ -90,6 +93,7 @@ object Exchanges extends Table[Exchange] {
     }
 
     COMMIT
+    log.info("Committed: sec_infos" + name)
 
     secInfo
   }
