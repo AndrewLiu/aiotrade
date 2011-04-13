@@ -18,6 +18,9 @@ case class SecInfoAdded(secInfo: SecInfo)
 
 object Exchanges extends Table[Exchange] {
   private val log = Logger.getLogger(this.getClass.getName)
+  private val config = org.aiotrade.lib.util.config.Config()
+  private val isServer = !config.getBool("dataserver.client", false)
+
 
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
@@ -34,7 +37,14 @@ object Exchanges extends Table[Exchange] {
   def secsOf(exchange: Exchange): mutable.Set[Sec] = {
     val t0 = System.currentTimeMillis
     val exchangeId = Exchanges.idOf(exchange)
-    val secs = (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list) map (_._1)
+    
+    val secs = if (isServer) {
+      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
+    } else {
+      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+      SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+    }
+    
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     
     mutable.Set[Sec]() ++= secs

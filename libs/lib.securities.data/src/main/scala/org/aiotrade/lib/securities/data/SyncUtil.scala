@@ -167,7 +167,7 @@ object SyncUtil {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val records = tables map {x => holdAvroRecords(dataDir + "/" +  x.relationName + ".avro", x)}
+    val holdingRecords = tables map {x => holdAvroRecords(dataDir + "/" +  x.relationName + ".avro", x)}
     tables foreach {x => importAvroToDb(dataDir + "/" +  x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
