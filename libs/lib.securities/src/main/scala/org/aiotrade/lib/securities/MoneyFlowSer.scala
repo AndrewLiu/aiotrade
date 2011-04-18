@@ -44,81 +44,81 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
 
+  val totalVolume = TVar[Double]("TV", Plot.Stick)
+  val totalAmount = TVar[Double]("TA", Plot.None)
   val totalVolumeIn = TVar[Double]("TVi", Plot.Stick)
   val totalAmountIn = TVar[Double]("TAi", Plot.None)
   val totalVolumeOut = TVar[Double]("TVo", Plot.Stick)
   val totalAmountOut = TVar[Double]("TAo", Plot.None)
   val totalVolumeEven = TVar[Double]("TVe", Plot.Stick)
   val totalAmountEven = TVar[Double]("TAe", Plot.None)
-  val totalVolume = TVar[Double]("TV", Plot.Stick)
-  val totalAmount = TVar[Double]("TA", Plot.None)
   
+  val superVolume = TVar[Double]("SV", Plot.None)
+  val superAmount = TVar[Double]("SA", Plot.None)
   val superVolumeIn = TVar[Double]("SVi", Plot.None)
   val superAmountIn = TVar[Double]("SAi", Plot.None)
   val superVolumeOut = TVar[Double]("SVo", Plot.None)
   val superAmountOut = TVar[Double]("SAo", Plot.None)
   val superVolumeEven = TVar[Double]("SVe", Plot.None)
   val superAmountEven = TVar[Double]("SAe", Plot.None)
-  val superVolume = TVar[Double]("SV", Plot.None)
-  val superAmount = TVar[Double]("SA", Plot.None)
 
+  val largeVolume = TVar[Double]("LV", Plot.None)
+  val largeAmount = TVar[Double]("LA", Plot.None)
   val largeVolumeIn = TVar[Double]("LVi", Plot.None)
   val largeAmountIn = TVar[Double]("LAi", Plot.None)
   val largeVolumeOut = TVar[Double]("LVo", Plot.None)
   val largeAmountOut = TVar[Double]("LAo", Plot.None)
   val largeVolumeEven = TVar[Double]("LVe", Plot.None)
   val largeAmountEven = TVar[Double]("LAe", Plot.None)
-  val largeVolume = TVar[Double]("LV", Plot.None)
-  val largeAmount = TVar[Double]("LA", Plot.None)
 
+  val smallVolume = TVar[Double]("sV", Plot.None)
+  val smallAmount = TVar[Double]("sA", Plot.None)
   val smallVolumeIn = TVar[Double]("sVi", Plot.None)
   val smallAmountIn = TVar[Double]("sAi", Plot.None)
   val smallVolumeOut = TVar[Double]("sVo", Plot.None)
   val smallAmountOut = TVar[Double]("sAo", Plot.None)
   val smallVolumeEven = TVar[Double]("sVo", Plot.None)
   val smallAmountEven = TVar[Double]("sAo", Plot.None)
-  val smallVolume = TVar[Double]("sV", Plot.None)
-  val smallAmount = TVar[Double]("sA", Plot.None)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
     tval match {
       case mf: MoneyFlow =>
+        totalVolume(time) = mf.totalVolume
+        totalAmount(time) = mf.totalAmount
         totalVolumeIn(time) = mf.totalVolumeIn
         totalAmountIn(time) = mf.totalAmountIn
         totalVolumeOut(time) = mf.totalVolumeOut
         totalAmountOut(time) = mf.totalAmountOut
         totalVolumeEven(time) = mf.totalVolumeEven
         totalAmountEven(time) = mf.totalAmountEven
-        totalVolume(time) = mf.totalVolume
-        totalAmount(time) = mf.totalAmount
         
+        superVolume(time) = mf.superVolume
+        superAmount(time) = mf.superAmount
         superVolumeIn(time) = mf.superVolumeIn
         superAmountIn(time) = mf.superAmountIn
         superVolumeOut(time) = mf.superVolumeOut
         superAmountOut(time) = mf.superAmountOut
         superVolumeEven(time) = mf.superVolumeEven
         superAmountEven(time) = mf.superAmountEven
-        superVolume(time) = mf.superVolume
-        superAmount(time) = mf.superAmount
 
+        largeVolume(time) = mf.largeVolume
+        largeAmount(time) = mf.largeAmount
         largeVolumeIn(time) = mf.largeVolumeIn
         largeAmountIn(time) = mf.largeAmountIn
         largeVolumeOut(time) = mf.largeVolumeOut
         largeAmountOut(time) = mf.largeAmountOut
         largeVolumeEven(time) = mf.largeVolumeEven
         largeAmountEven(time) = mf.largeAmountEven
-        largeVolume(time) = mf.largeVolume
-        largeAmount(time) = mf.largeAmount
 
+        smallVolume(time) = mf.smallVolume
+        smallAmount(time) = mf.smallVolume
         smallVolumeIn(time) = mf.smallVolumeIn
         smallAmountIn(time) = mf.smallVolumeIn
         smallVolumeOut(time) = mf.smallVolumeOut
         smallAmountOut(time) = mf.smallVolumeOut
         smallVolumeEven(time) = mf.smallVolumeEven
         smallAmountEven(time) = mf.smallVolumeEven
-        smallVolume(time) = mf.smallVolume
-        smallAmount(time) = mf.smallVolume
       case _ =>
     }
   }
@@ -132,8 +132,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.totalAmountOut = totalAmountOut(time)
       mf.totalVolumeEven = totalVolumeEven(time)
       mf.totalAmountEven = totalAmountEven(time)
-      mf.totalVolume = totalVolume(time)
-      mf.totalAmount = totalAmount(time)
 
       mf.superVolumeIn = superVolumeIn(time)
       mf.superAmountIn = superAmountIn(time)
@@ -141,8 +139,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.superAmountOut = superAmountOut(time)
       mf.superVolumeEven = superVolumeEven(time)
       mf.superAmountEven = superAmountEven(time)
-      mf.superVolume = superVolume(time)
-      mf.superAmount = superAmount(time)
 
       mf.largeAmountIn = largeVolumeIn(time)
       mf.largeAmountIn = largeAmountIn(time)
@@ -150,8 +146,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.largeAmountOut = largeAmountOut(time)
       mf.largeVolumeEven = largeVolumeOut(time)
       mf.largeAmountEven = largeAmountOut(time)
-      mf.largeVolume = largeVolume(time)
-      mf.largeAmount = largeAmount(time)
 
       mf.smallVolumeIn = smallVolumeIn(time)
       mf.smallVolumeIn = smallAmountIn(time)
@@ -159,8 +153,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.smallVolumeOut = smallAmountOut(time)
       mf.smallVolumeEven = smallVolumeEven(time)
       mf.smallVolumeEven = smallAmountEven(time)
-      mf.smallVolume = smallVolume(time)
-      mf.smallVolume = smallAmount(time)
       
       Some(mf)
     } else None
@@ -174,34 +166,42 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     val time = mf.time
     createOrClear(time)
     
+    totalVolume(time) = mf.totalVolume
+    totalAmount(time) = mf.totalAmount
     totalVolumeIn(time) = mf.totalVolumeIn
     totalAmountIn(time) = mf.totalAmountIn
     totalVolumeOut(time) = mf.totalVolumeOut
     totalAmountOut(time) = mf.totalAmountOut
-    totalVolume(time) = mf.totalVolume
-    totalAmount(time) = mf.totalAmount
+    totalVolumeEven(time) = mf.totalVolumeEven
+    totalAmountEven(time) = mf.totalAmountEven
         
+    superVolume(time) = mf.superVolume
+    superAmount(time) = mf.superAmount
     superVolumeIn(time) = mf.superVolumeIn
     superAmountIn(time) = mf.superAmountIn
     superVolumeOut(time) = mf.superVolumeOut
     superAmountOut(time) = mf.superAmountOut
-    superVolume(time) = mf.superVolume
-    superAmount(time) = mf.superAmount
+    superVolumeEven(time) = mf.superVolumeEven
+    superAmountEven(time) = mf.superAmountEven
 
+    largeVolume(time) = mf.largeVolume
+    largeAmount(time) = mf.largeAmount
     largeVolumeIn(time) = mf.largeVolumeIn
     largeAmountIn(time) = mf.largeAmountIn
     largeVolumeOut(time) = mf.largeVolumeOut
     largeAmountOut(time) = mf.largeAmountOut
-    largeVolume(time) = mf.largeVolume
-    largeAmount(time) = mf.largeAmount
+    largeVolumeEven(time) = mf.largeVolumeEven
+    largeAmountEven(time) = mf.largeAmountEven
 
+    smallVolume(time) = mf.smallVolume
+    smallAmount(time) = mf.smallVolume
     smallVolumeIn(time) = mf.smallVolumeIn
     smallAmountIn(time) = mf.smallVolumeIn
     smallVolumeOut(time) = mf.smallVolumeOut
     smallAmountOut(time) = mf.smallVolumeOut
-    smallVolume(time) = mf.smallVolume
-    smallAmount(time) = mf.smallVolume
-
+    smallVolumeEven(time) = mf.smallVolumeEven
+    smallAmountEven(time) = mf.smallVolumeEven
+        
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
   }

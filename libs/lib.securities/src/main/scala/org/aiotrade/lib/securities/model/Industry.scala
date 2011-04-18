@@ -9,6 +9,10 @@ object Industries extends Table[Industry] {
   val name = "name" VARCHAR(60) DEFAULT("''")
 
   def companies = inverse(CompanyIndustries.industry)
+
+  val categoryIdx = getClass.getSimpleName + "_category_idx" INDEX(category.name)
+  val levelIdx = getClass.getSimpleName + "_level_idx" INDEX(level.name)
+  val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
 }
 
 class Industry {

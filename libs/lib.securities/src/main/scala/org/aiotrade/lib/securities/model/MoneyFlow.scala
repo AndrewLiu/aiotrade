@@ -138,17 +138,33 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val time = "time" BIGINT()
 
-  val totalVolume = "totalVolume" DOUBLE()
-  val totalAmount = "totalAmount" DOUBLE()
+  val totalVolumeIn = "totalVolumeIn" DOUBLE()
+  val totalAmountIn = "totalAmountIn" DOUBLE()
+  val totalVolumeOut = "totalVolumeOut" DOUBLE()
+  val totalAmountOut = "totalAmountOut" DOUBLE()
+  val totalVolumeEven = "totalVolumeEven" DOUBLE()
+  val totalAmountEven = "totalAmountEven" DOUBLE()
 
-  val superVolume = "superVolume" DOUBLE()
-  val superAmount = "superAmount" DOUBLE()
+  val superVolumeIn = "superVolumeIn" DOUBLE()
+  val superAmountIn = "superAmountIn" DOUBLE()
+  val superVolumeOut = "superVolumeOut" DOUBLE()
+  val superAmountOut = "superAmountOut" DOUBLE()
+  val superVolumeEven = "superVolumeEven" DOUBLE()
+  val superAmountEven = "superAmountEven" DOUBLE()
 
-  val largeVolume = "largeVolume" DOUBLE()
-  val largeAmount = "largeAmount" DOUBLE()
+  val largeVolumeIn = "largeVolumeIn" DOUBLE()
+  val largeAmountIn = "largeAmountIn" DOUBLE()
+  val largeVolumeOut = "largeVolumeOut" DOUBLE()
+  val largeAmountOut = "largeAmountOut" DOUBLE()
+  val largeVolumeEven = "largeVolumeEven" DOUBLE()
+  val largeAmountEven = "largeAmountEven" DOUBLE()
 
-  val smallVolume = "smallVolume" DOUBLE()
-  val smallAmount = "smallAmount" DOUBLE()
+  val smallVolumeIn = "smallVolume" DOUBLE()
+  val smallAmountIn = "smallAmount" DOUBLE()
+  val smallVolumeOut = "smallVolume" DOUBLE()
+  val smallAmountOut = "smallAmount" DOUBLE()
+  val smallVolumeEven = "smallVolume" DOUBLE()
+  val smallAmountEven = "smallAmount" DOUBLE()
   
   val flag = "flag" INTEGER()
 
@@ -188,8 +204,6 @@ class MoneyFlow extends TVal with Flag {
   var totalAmountOut: Double = _
   var totalVolumeEven: Double = _
   var totalAmountEven: Double = _
-  var totalVolume: Double = _
-  var totalAmount: Double = _
 
   var superVolumeIn: Double = _
   var superAmountIn: Double = _
@@ -197,8 +211,6 @@ class MoneyFlow extends TVal with Flag {
   var superAmountOut: Double = _
   var superVolumeEven: Double = _
   var superAmountEven: Double = _
-  var superVolume: Double = _
-  var superAmount: Double = _
 
   var largeVolumeIn: Double = _
   var largeAmountIn: Double = _
@@ -206,8 +218,6 @@ class MoneyFlow extends TVal with Flag {
   var largeAmountOut: Double = _
   var largeVolumeEven: Double = _
   var largeAmountEven: Double = _
-  var largeVolume: Double = _
-  var largeAmount: Double = _
 
   var smallVolumeIn: Double = _
   var smallAmountIn: Double = _
@@ -215,10 +225,16 @@ class MoneyFlow extends TVal with Flag {
   var smallAmountOut: Double = _
   var smallVolumeEven: Double = _
   var smallAmountEven: Double = _
-  var smallVolume: Double = _
-  var smallAmount: Double = _
-
 
   // --- no db fields
   var isTransient = true
+
+  def totalVolume: Double = totalVolumeIn - totalVolumeOut
+  def totalAmount: Double = totalAmountIn - totalAmountOut
+  def superVolume: Double = superVolumeIn - superVolumeOut
+  def superAmount: Double = superAmountIn - superAmountOut
+  def largeVolume: Double = largeVolumeIn - largeVolumeOut
+  def largeAmount: Double = largeAmountIn - largeAmountOut
+  def smallVolume: Double = smallVolumeIn - smallVolumeOut
+  def smallAmount: Double = smallAmountIn - smallAmountOut
 }
