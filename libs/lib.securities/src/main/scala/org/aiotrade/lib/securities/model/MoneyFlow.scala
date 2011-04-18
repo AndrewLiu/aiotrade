@@ -134,9 +134,9 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val time = "time" BIGINT
+  val time = "time" BIGINT()
 
   val totalVolume = "totalVolume" DOUBLE()
   val totalAmount = "totalAmount" DOUBLE()
@@ -150,7 +150,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   val smallVolume = "smallVolume" DOUBLE()
   val smallAmount = "smallAmount" DOUBLE()
   
-  val flag = "flag" INTEGER
+  val flag = "flag" INTEGER()
 
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 

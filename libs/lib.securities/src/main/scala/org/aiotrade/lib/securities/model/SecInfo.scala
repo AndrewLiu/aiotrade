@@ -7,15 +7,15 @@ object SecInfos extends Table[SecInfo] {
   /**
    * Belongs to one Sec
    */
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val validFrom = "validFrom" BIGINT
-  val validTo = "validTo" BIGINT
+  val validFrom = "validFrom" BIGINT()
+  val validTo = "validTo" BIGINT()
   val uniSymbol = "uniSymbol" VARCHAR(10) DEFAULT("''")
   val name = "name" VARCHAR(40) DEFAULT("''")
-  val totalShare = "totalShare" BIGINT
-  val freeFloat = "freeFloat" BIGINT
-  val tradingUnit = "tradingUnit" INTEGER 
+  val totalShare = "totalShare" BIGINT()
+  val freeFloat = "freeFloat" BIGINT()
+  val tradingUnit = "tradingUnit" INTEGER()
   val upperLimit = "upperLimit" DOUBLE()
   val lowerLimit = "lowerLimit" DOUBLE()
 }
