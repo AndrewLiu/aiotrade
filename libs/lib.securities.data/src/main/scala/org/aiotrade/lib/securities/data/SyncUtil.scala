@@ -110,14 +110,20 @@ object SyncUtil {
   private val mysqlDriver = "com.mysql.jdbc.Driver"
 
   def main(args: Array[String]) {
-    exportAvroDataFileFromProductionMysql
-    //createData(exportDataDir)
-    //importDataToLocalTestMysql
+    //exportAvroDataFileFromProductionMysql
+    importAvroDataFileToTestMysql
+    println("Finished!")
+    System.exit(0)
   }
 
   def exportAvroDataFileFromProductionMysql {
-    org.aiotrade.lib.util.config.Config(srcMainResources + "/export_data.conf")
+    org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_from_production.conf")
     exportToAvro(tables)
+  }
+  
+  def importAvroDataFileToTestMysql {
+    org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
+    importDataFrom(exportDataDir)
   }
 
 
@@ -133,7 +139,7 @@ object SyncUtil {
   }
 
   private def exportToAvro[R](x: Relation[R]) {
-    SELECT (x.*) FROM (x) toAvro(exportDataDir + "/" + x.relationName + ".avro")
+    SELECT (x.*) FROM (x) toAvro(exportDataDir + File.separator + x.relationName + ".avro")
   }
 
   /**
@@ -167,8 +173,8 @@ object SyncUtil {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = tables map {x => holdAvroRecords(dataDir + "/" +  x.relationName + ".avro", x)}
-    tables foreach {x => importAvroToDb(dataDir + "/" +  x.relationName + ".avro", x)}
+    val holdingRecords = tables map {x => holdAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    tables foreach {x => importAvroToDb(dataDir + File.separator +  x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }

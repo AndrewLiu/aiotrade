@@ -54,6 +54,7 @@ import scala.collection.mutable
  *
  * Don't forget to set (in /etc/my.cnf):
  * [mysqld]
+ * default-character-set=utf8
  * character-set-server=utf8
  * collation-server=utf8_general_ci
  * init-connect='SET NAMES utf8'
