@@ -9,9 +9,7 @@ object Companies extends Table[Company] {
   val validTo = "validTo" BIGINT() //DEFAULT("-1")
   val shortName = "shortName" VARCHAR(30) DEFAULT("''")
   val fullName = "fullName" VARCHAR(100) DEFAULT("''")
-  val listDate = "listDate" BIGINT()
-  
-  def industries = inverse(CompanyIndustries.company)
+  val listDate = "listDate" BIGINT()  
 }
 
 class Company {
@@ -22,5 +20,4 @@ class Company {
   var shortName: String = ""
   var fullName: String = ""
   var listDate: Long = _
-  var industries: List[Industry] = Nil
 }

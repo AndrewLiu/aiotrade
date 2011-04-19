@@ -20,14 +20,10 @@ import org.aiotrade.lib.sector.model.BullVSBears
 import org.aiotrade.lib.sector.model.Portfolios
 import org.aiotrade.lib.securities.model.Companies
 import org.aiotrade.lib.securities.model.Company
-import org.aiotrade.lib.securities.model.CompanyIndustries
-import org.aiotrade.lib.securities.model.CompanyIndustry
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.ExchangeCloseDates
 import org.aiotrade.lib.securities.model.Executions
-import org.aiotrade.lib.securities.model.Industry
-import org.aiotrade.lib.securities.model.Industries
 import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.MoneyFlows1m
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -91,13 +87,10 @@ object Data {
   val idToSec = mutable.Map[String, Sec]()
   val idToSecInfo = mutable.Map[String, SecInfo]()
   val idToCompany = mutable.Map[String, Company]()
-  val idToIndustry = mutable.Map[String, Industry]()
 
   val secRecords = new ArrayList[Sec]
   val secInfoRecords = new ArrayList[SecInfo]
   val companyRecords = new ArrayList[Company]()
-  val industryRecords = new ArrayList[Industry]()
-  val comIndRecords = new ArrayList[CompanyIndustry]()
 
   private lazy val N   = Exchange("N",  "NY", "", "America/New_York", Array(9, 30, 16, 00))  // New York
   private lazy val SS  = Exchange("SS", "SS", "", "Asia/Shanghai", Array(9, 30, 11, 30, 13, 0, 15, 0)) // Shanghai
@@ -144,8 +137,6 @@ object Data {
     
     readFromSecInfos(readerOf("sec_infos.txt"))
     readFromCompanies(readerOf("companies.txt"))
-    readFromIndustries(readerOf("industries.txt"))
-    readFromCompanyIndustries(readerOf("company_industries.txt"))
     
     Secs.updateBatch_!(secRecords.toArray, Secs.secInfo, Secs.company)
     COMMIT
@@ -158,8 +149,7 @@ object Data {
   def schema {
     val tables = List(
       // -- basic tables
-      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
-      Companies, CompanyIndustries, Industries,
+      Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
       Tickers, TickersLast, Executions,
@@ -245,44 +235,6 @@ object Data {
       }
     }
     Companies.insertBatch_!(companyRecords.toArray)
-  }
-
-  def readFromIndustries(reader: BufferedReader) {
-    var line: String = null
-    while ({line = reader.readLine; line != null}) {
-      line.split(',') match {
-        case Array(id, code, level, name, _*) =>
-          val industry = new Industry
-          industry.code = code
-          industry.level = level.toInt
-          industry.name = name
-          industryRecords += industry
-          idToIndustry.put(id, industry)
-
-        case xs => log.warning("industries data file error at line: " + xs.mkString(","))
-      }
-    }
-    Industries.insertBatch_!(industryRecords.toArray)
-  }
-
-  def readFromCompanyIndustries(reader: BufferedReader) {
-    var line: String = null
-    while ({line = reader.readLine; line != null}) {
-      line.split(',') match {
-        case Array(id, company_id, industry_id) =>
-          for (com <- idToCompany.get(company_id);
-               ind <- idToIndustry.get(industry_id)
-          ) {
-            val com_ind = new CompanyIndustry
-            com_ind.company = com
-            com_ind.industry = ind
-            comIndRecords += com_ind
-          }
-
-        case xs => log.warning("company_industries data file error at line: " + xs.mkString(","))
-      }
-    }
-    CompanyIndustries.insertBatch_!(comIndRecords.toArray)
   }
 
   def exchangeOfIndex(uniSymbol: String) : Option[Exchange] = {

@@ -71,8 +71,7 @@ object Model {
 
   def schema {
     val tables = List(
-      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
-      Companies, CompanyIndustries, Industries,
+      Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
       Tickers, Executions
@@ -83,19 +82,10 @@ object Model {
   }
 
   private def testSave(i: Int) {
-    val i = new Industry
-    i.code = "0001"
-    Industries.save(i)
-
     val com = new Company
     com.listDate = System.currentTimeMillis
     com.shortName = "abc"
     Companies.save(com)
-
-    val inds = new CompanyIndustry
-    inds.company = com
-    inds.industry = i
-    CompanyIndustries.save(inds)
 
     println("company's listDate: " + com.listDate)
 
@@ -158,21 +148,21 @@ object Model {
     val quote1d = Quotes1d.get(1).get
 
     val co = Companies
-    val ci = CompanyIndustries
 
     co.criteria.add(co.shortName like "a%").list foreach (c =>
       println(c.shortName)
     )
 
 
-    val s1 = SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list
-    
-    s1 foreach println
+//    val ci = CompanyIndustries
+//    val s1 = SELECT (co.*, ci.*) FROM (co JOIN ci) WHERE (co.shortName LIKE "a%") ORDER_BY (co.shortName ASC) list
+//    
+//    s1 foreach println
 
     val com = Companies.get(1).get
     Companies.sec(com) // fetch com.sec
     println("com: " + com.shortName + ", com.sec: " + com.sec)
-    println("com's industries: " + (Companies.industries(com) map (CompanyIndustries.industry(_).getOrElse(null))))
+//    println("com's industries: " + (Companies.industries(com) map (CompanyIndustries.industry(_).getOrElse(null))))
     
     val sec = Secs.get(1).get
 
