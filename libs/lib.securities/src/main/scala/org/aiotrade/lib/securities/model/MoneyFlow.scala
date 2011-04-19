@@ -159,12 +159,12 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   val largeVolumeEven = "largeVolumeEven" DOUBLE()
   val largeAmountEven = "largeAmountEven" DOUBLE()
 
-  val smallVolumeIn = "smallVolume" DOUBLE()
-  val smallAmountIn = "smallAmount" DOUBLE()
-  val smallVolumeOut = "smallVolume" DOUBLE()
-  val smallAmountOut = "smallAmount" DOUBLE()
-  val smallVolumeEven = "smallVolume" DOUBLE()
-  val smallAmountEven = "smallAmount" DOUBLE()
+  val smallVolumeIn = "smallVolumeIn" DOUBLE()
+  val smallAmountIn = "smallAmountIn" DOUBLE()
+  val smallVolumeOut = "smallVolumeOut" DOUBLE()
+  val smallAmountOut = "smallAmountOut" DOUBLE()
+  val smallVolumeEven = "smallVolumeEven" DOUBLE()
+  val smallAmountEven = "smallAmountEven" DOUBLE()
   
   val flag = "flag" INTEGER()
 
