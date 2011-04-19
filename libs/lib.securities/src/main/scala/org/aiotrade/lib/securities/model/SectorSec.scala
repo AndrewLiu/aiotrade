@@ -6,6 +6,7 @@ class SectorSec {
   var sector: Sector = _
   var sec: Sec = _
   
+  var weight: Float = _
   var validFrom: Long = _
   var validTo: Long = _
 }
@@ -13,7 +14,8 @@ class SectorSec {
 object SectorSecs extends Table[SectorSec] {
   val sector  = "sectors_id" BIGINT() REFERENCES(Sectors)
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
-
+  
+  val weight = "weight" FLOAT()
   val validFrom = "validFrom" BIGINT()
   val validTo = "validTo" BIGINT()
   
