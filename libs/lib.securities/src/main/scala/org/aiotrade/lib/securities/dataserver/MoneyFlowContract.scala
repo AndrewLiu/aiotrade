@@ -15,7 +15,7 @@ class MoneyFlowContract extends DataContract[MoneyFlowServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.icon
     } else {
-      lookupServiceTemplate(classOf[MoneyFlowHisServer], "DataServers") match {
+      lookupServiceTemplate(classOf[MoneyFlowServer], "DataServers") match {
         case Some(x) => x.icon
         case None => None
       }
@@ -26,7 +26,7 @@ class MoneyFlowContract extends DataContract[MoneyFlowServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.supportedFreqs
     } else {
-      lookupServiceTemplate(classOf[MoneyFlowHisServer], "DataServers") match {
+      lookupServiceTemplate(classOf[MoneyFlowServer], "DataServers") match {
         case Some(x) => x.supportedFreqs
         case None => Array()
       }
@@ -37,7 +37,7 @@ class MoneyFlowContract extends DataContract[MoneyFlowServer] {
     if (isServiceInstanceCreated) {
       createdServerInstance.isFreqSupported(freq)
     } else {
-      lookupServiceTemplate(classOf[MoneyFlowHisServer], "DataServers") match {
+      lookupServiceTemplate(classOf[MoneyFlowServer], "DataServers") match {
         case Some(x) => x.isFreqSupported(freq)
         case None => false
       }
