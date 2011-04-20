@@ -4,7 +4,7 @@ import java.awt.Image
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 
-class MoneyFlowContract extends DataContract[MoneyFlowHisServer] {
+class MoneyFlowContract extends DataContract[MoneyFlowServer] {
 
   serviceClassName = "org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
   /** default freq */
