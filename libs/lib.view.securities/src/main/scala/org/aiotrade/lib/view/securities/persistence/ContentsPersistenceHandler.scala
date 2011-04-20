@@ -37,6 +37,7 @@ import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
@@ -60,10 +61,11 @@ object ContentsPersistenceHandler {
     val df = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd"))
   
     val dataContracts = ("sources", "source", contents.lookupDescriptors(classOf[QuoteContract]))
+    val moneyflowContracts = ("moneyflowsources", "moneyflowsource", contents.lookupDescriptors(classOf[MoneyFlowContract]))
     val infoContracts = ("quoteinfosources", "quoteinfosource", contents.lookupDescriptors(classOf[QuoteInfoContract]))
     val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", contents.lookupDescriptors(classOf[QuoteInfoHisContract]))
 
-    for ((sources, source, contracts) <- List(dataContracts, infoContracts, infoHisContracts)) {
+    for ((sources, source, contracts) <- List(dataContracts, moneyflowContracts, infoContracts, infoHisContracts)) {
       if (contracts.size > 0) {
         buffer.append("    <").append(sources).append(">\n")
         for (contract <- contracts) {

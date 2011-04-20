@@ -318,7 +318,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
 
     val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
     realTimeBoard.watch
-
+    
     private val ser = sec.serOf(contractFreq).get
     if (!ser.isLoaded) sec.loadSer(ser)
 
@@ -327,7 +327,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
       if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
     }
     sec.subscribeTickerServer(true)
-
+    
     private val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
     if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
     sec.subscribeQuoteInfoDataServer(true)
