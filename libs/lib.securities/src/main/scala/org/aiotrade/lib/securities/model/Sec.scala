@@ -44,6 +44,7 @@ import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.TickerSnapshot
+import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
@@ -63,20 +64,20 @@ import ru.circumflex.orm._
 
 
 object Secs extends Table[Sec] {
-  val exchange = "exchanges_id".BIGINT REFERENCES(Exchanges)
+  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
-  val validFrom = "validFrom" BIGINT 
-  val validTo = "validTo" BIGINT
+  val validFrom = "validFrom" BIGINT() 
+  val validTo = "validTo" BIGINT()
 
-  val company = "companies_id".BIGINT REFERENCES(Companies)
+  val company = "companies_id" BIGINT() REFERENCES(Companies)
   def companyHists = inverse(Companies.sec)
 
-  val secInfo = "secInfos_id".BIGINT REFERENCES(SecInfos)
+  val secInfo = "secInfos_id" BIGINT() REFERENCES(SecInfos)
   def secInfoHists = inverse(SecInfos.sec)
-  val secStatus = "secStatuses_id".BIGINT REFERENCES(SecStatuses)
+  val secStatus = "secStatuses_id" BIGINT() REFERENCES(SecStatuses)
   def secStatusHists = inverse(SecStatuses.sec)
 
-  val secIssue = "secIssues_id".BIGINT REFERENCES(SecIssues)
+  val secIssue = "secIssues_id" BIGINT() REFERENCES(SecIssues)
   def secDividends = inverse(SecDividends.sec)
 
   def dailyQuotes = inverse(Quotes1d.sec)
@@ -172,9 +173,11 @@ class Sec extends SerProvider with Ordered[Sec] {
   type C = QuoteContract
 
   private val freqToQuoteContract = mutable.Map[TFreq, QuoteContract]()
+  private val freqToMoneyFlowContract = mutable.Map[TFreq, MoneyFlowContract]()
   private val freqToQuoteInfoHisContract = mutable.Map[TFreq, QuoteInfoHisContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
+  private var _realtimeMoneyFlowSer: MoneyFlowSer = _
   private[securities] lazy val freqToQuoteSer = mutable.Map[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, MoneyFlowSer]()
   private lazy val freqToInfoSer = mutable.Map[TFreq, InfoSer]()
@@ -189,6 +192,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   var description = ""
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
+  private var _moneyFlowContracts: Seq[MoneyFlowContract] = Nil
   private var _tickerContract: TickerContract = _
   private var _quoteInfoContract : QuoteInfoContract = _
   private var _quoteInfoHisContractc : Seq[QuoteInfoHisContract] = _
@@ -209,6 +213,19 @@ class Sec extends SerProvider with Ordered[Sec] {
       freqToQuoteContract.put(freq, contract)
     }
   }
+  
+  def moneyFlowContracts = _moneyFlowContracts
+  def moneyFlowContracts_=(moneyFlowContracts: Seq[MoneyFlowContract]) {
+    _moneyFlowContracts = moneyFlowContracts
+    for (contract <- moneyFlowContracts) {
+      val freq = contract.freq
+      if (_defaultFreq == null) {
+        _defaultFreq = freq
+      }
+
+      freqToMoneyFlowContract.put(freq, contract)
+    }
+  }  
 
   def quoteInfoHisContracts = _quoteInfoHisContractc
 
@@ -236,6 +253,14 @@ class Sec extends SerProvider with Ordered[Sec] {
       freqToQuoteSer.put(TFreq.ONE_SEC, _realtimeSer)
     }
     _realtimeSer
+  }
+
+  def realtimeMoneyFlowSer = mutex synchronized {
+    if (_realtimeMoneyFlowSer == null) {
+      _realtimeMoneyFlowSer = new MoneyFlowSer(this, TFreq.ONE_MIN)
+      freqToMoneyFlowSer.put(TFreq.ONE_SEC, _realtimeMoneyFlowSer)
+    }
+    _realtimeMoneyFlowSer
   }
 
   /** tickerContract will always be built according to quoteContrat ? */
@@ -372,6 +397,24 @@ class Sec extends SerProvider with Ordered[Sec] {
     val wantTime = loadSerFromPersistence(ser, isRealTime)
     // try to load from quote server
     loadFromQuoteServer(ser, wantTime, isRealTime)
+
+    true
+  }
+  
+  /**
+   * synchronized this method to avoid conflict on variable: loadBeginning and
+   * concurrent accessing to varies maps.
+   */
+  def loadMoneyFlowSer(ser: MoneyFlowSer): Boolean = {
+    if (ser.isInLoading) return true
+
+    ser.isInLoading = true
+
+    val isRealTime = ser eq realtimeMoneyFlowSer
+    // load from persistence
+    val wantTime = loadMoneyFlowSerFromPersistence(ser, isRealTime)
+    // try to load from quote server
+    loadFromMoneyFlowServer(ser, wantTime, isRealTime)
 
     true
   }
@@ -528,7 +571,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   /**
    * All values in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  def loadMoneyFlowSerFromPersistence(ser: MoneyFlowSer): Long = {
+  def loadMoneyFlowSerFromPersistence(ser: MoneyFlowSer, isRealTime: Boolean): Long = {
     val mfs = ser.freq match {
       case TFreq.DAILY   => MoneyFlows1d.closedMoneyFlowOf(this)
       case TFreq.ONE_MIN => MoneyFlows1m.closedMoneyFlowOf(this)
@@ -653,6 +696,40 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
 
+  private def loadFromMoneyFlowServer(ser: MoneyFlowSer, fromTime: Long, isRealTime: Boolean) {
+    val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
+    
+    moneyFlowContractOf(freq) match {
+      case Some(contract) =>
+        contract.serviceInstance() match {
+          case Some(moneyFlowServer) =>
+            contract.srcSymbol = moneyFlowServer.toSrcSymbol(uniSymbol)
+            contract.freq = freq
+
+            if (contract.isRefreshable) {
+              moneyFlowServer.subscribe(contract)
+            }
+
+            // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+            var reaction: Reactions.Reaction = null
+            reaction = {
+              case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
+                reactions -= reaction
+                deafTo(ser)
+                ser.isLoaded = true
+            }
+            reactions += reaction
+            listenTo(ser)
+
+            moneyFlowServer.loadData(fromTime - 1, List(contract))
+
+          case _ => ser.isLoaded = true
+        }
+
+      case _ => ser.isLoaded = true
+    }
+  }
+  
   private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {
     freqToQuoteContract.get(freq) match {
       case None => freqToQuoteContract.get(defaultFreq) match {
@@ -664,6 +741,24 @@ class Sec extends SerProvider with Ordered[Sec] {
             x.serviceClassName = defaultOne.serviceClassName
             x.datePattern = defaultOne.datePattern
             freqToQuoteContract.put(freq, x)
+            Some(x)
+          case _ => None
+        }
+      case some => some
+    }
+  }
+  
+  private def moneyFlowContractOf(freq: TFreq): Option[MoneyFlowContract] = {
+    freqToMoneyFlowContract.get(freq) match {
+      case None => freqToMoneyFlowContract.get(defaultFreq) match {
+          case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
+            val x = new MoneyFlowContract
+            x.freq = freq
+            x.isRefreshable = false
+            x.srcSymbol = defaultOne.srcSymbol
+            x.serviceClassName = defaultOne.serviceClassName
+            x.datePattern = defaultOne.datePattern
+            freqToMoneyFlowContract.put(freq, x)
             Some(x)
           case _ => None
         }

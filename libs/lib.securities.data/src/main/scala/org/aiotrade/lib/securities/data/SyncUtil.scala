@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,16 +45,10 @@ import org.aiotrade.lib.info.model.ContentAbstracts
 import org.aiotrade.lib.info.model.Contents
 import org.aiotrade.lib.info.model.Filings
 import org.aiotrade.lib.info.model.Newses
-import org.aiotrade.lib.sector.model.PortfolioBreakouts
-import org.aiotrade.lib.sector.model.Sectors
-import org.aiotrade.lib.sector.model.BullVSBears
-import org.aiotrade.lib.sector.model.Portfolios
 import org.aiotrade.lib.securities.model.Companies
-import org.aiotrade.lib.securities.model.CompanyIndustries
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.ExchangeCloseDates
 import org.aiotrade.lib.securities.model.Executions
-import org.aiotrade.lib.securities.model.Industries
 import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.MoneyFlows1m
 import org.aiotrade.lib.securities.model.Quotes1d
@@ -64,6 +58,8 @@ import org.aiotrade.lib.securities.model.Secs
 import org.aiotrade.lib.securities.model.SecDividends
 import org.aiotrade.lib.securities.model.SecInfos
 import org.aiotrade.lib.securities.model.SecStatuses
+import org.aiotrade.lib.securities.model.SectorSecs
+import org.aiotrade.lib.securities.model.Sectors
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
@@ -85,39 +81,34 @@ object SyncUtil {
    * @Note lazy call them so we can specify config file before orm package
    */
   private lazy val tables = List(Companies,
-                                 CompanyIndustries,
-                                 Industries,
                                  Exchanges,
                                  ExchangeCloseDates,
                                  Secs,
                                  SecDividends,
                                  SecInfos,
                                  SecIssues,
-                                 SecStatuses
+                                 SecStatuses,
+                                 Sectors,
+                                 SectorSecs
   )
-
-  private val tableNames = List("companies",
-                                "company_industries",
-                                "industries",
-                                "exchanges",
-                                "exchange_close_dates",
-                                "secs",
-                                "sec_dividends",
-                                "sec_infos",
-                                "sec_issues",
-                                "sec_statuses")
 
   private val mysqlDriver = "com.mysql.jdbc.Driver"
 
   def main(args: Array[String]) {
-    exportAvroDataFileFromProductionMysql
-    //createData(exportDataDir)
-    //importDataToLocalTestMysql
+    //exportAvroDataFileFromProductionMysql
+    importAvroDataFileToTestMysql
+    println("Finished!")
+    System.exit(0)
   }
 
   def exportAvroDataFileFromProductionMysql {
-    org.aiotrade.lib.util.config.Config(srcMainResources + "/export_data.conf")
+    org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_fr_prod.conf")
     exportToAvro(tables)
+  }
+  
+  def importAvroDataFileToTestMysql {
+    org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
+    importDataFrom(exportDataDir)
   }
 
 
@@ -133,7 +124,7 @@ object SyncUtil {
   }
 
   private def exportToAvro[R](x: Relation[R]) {
-    SELECT (x.*) FROM (x) toAvro(exportDataDir + "/" + x.relationName + ".avro")
+    SELECT (x.*) FROM (x) toAvro(exportDataDir + File.separator + x.relationName + ".avro")
   }
 
   /**
@@ -143,18 +134,15 @@ object SyncUtil {
   def schema {
     val tables = List(
       // -- basic tables
-      Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
-      Companies, CompanyIndustries, Industries,
+      Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Exchanges, ExchangeCloseDates,
       Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
       Tickers, TickersLast, Executions,
+      Sectors, SectorSecs,
 
       // -- info tables
       ContentCategories, GeneralInfos, ContentAbstracts,
-      Contents, Newses, Filings, AnalysisReports, InfoSecs, InfoContentCategories,
-
-      // -- sector tables
-      BullVSBears, Sectors, Portfolios, PortfolioBreakouts
+      Contents, Newses, Filings, AnalysisReports, InfoSecs, InfoContentCategories
     )
 
     val ddl = new DDLUnit(tables: _*)
@@ -167,8 +155,8 @@ object SyncUtil {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = tables map {x => holdAvroRecords(dataDir + "/" +  x.relationName + ".avro", x)}
-    tables foreach {x => importAvroToDb(dataDir + "/" +  x.relationName + ".avro", x)}
+    val holdingRecords = tables map {x => holdAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    tables foreach {x => importAvroToDb(dataDir + File.separator +  x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }

@@ -43,6 +43,7 @@ import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
@@ -101,13 +102,17 @@ class ContentsParseHandler extends DefaultHandler {
       start_sources(attrs)
     } else if ("source".equals(qname)) {
       start_source(attrs)
-    }else if ("quoteinfosources".equals(qname)) {
+    } else if ("moneyflowsources".equals(qname)) {
+      start_moneyflowsources(attrs)
+    } else if ("moneyflowsource".equals(qname)) {
+      start_moneyflowsource(attrs)
+    } else if ("quoteinfosources".equals(qname)) {
       start_QuoteInfosources(attrs)
-    }else if ("quoteinfosource".equals(qname)) {
+    } else if ("quoteinfosource".equals(qname)) {
       start_QuoteInfosource(attrs)
-    }else if ("quoteinfohissources".equals(qname)) {
+    } else if ("quoteinfohissources".equals(qname)) {
       start_QuoteInfoHissources(attrs)
-    }else if ("quoteinfohissource".equals(qname)) {
+    } else if ("quoteinfohissource".equals(qname)) {
       start_QuoteInfoHissource(attrs)
     }
 
@@ -335,8 +340,52 @@ class ContentsParseHandler extends DefaultHandler {
     if (DEBUG) {
       System.err.println("end_sources()")
     }
-        
   }
+  
+  @throws(classOf[SAXException])
+  def start_moneyflowsources(meta: Attributes) {
+    if (DEBUG) {
+      System.err.println("start_moneyflowsources: " + meta)
+    }
+  }
+
+  @throws(classOf[SAXException])
+  def start_moneyflowsource(meta: Attributes)  {
+    if (DEBUG) {
+      System.err.println("start_moneyflowsource: " + meta)
+    }
+
+    val dataContract = new MoneyFlowContract
+
+    dataContract.active = meta.getValue("active").trim.toBoolean
+    dataContract.serviceClassName = meta.getValue("class")
+    dataContract.srcSymbol = meta.getValue("symbol")
+    dataContract.datePattern = Option(meta.getValue("dateformat"))
+
+    val freq = new TFreq(
+      TUnit.withName(meta.getValue("unit")).asInstanceOf[TUnit],
+      meta.getValue("nunits").trim.toInt
+    )
+    dataContract.freq = freq
+
+    dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
+    dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
+
+    val sdf = new SimpleDateFormat("yyyy-MM-dd")
+
+    try {
+      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
+      dataContract.beginDate = calendar.getTime
+
+      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
+      dataContract.endDate = calendar.getTime
+    } catch {case ex: ParseException => ex.printStackTrace}
+
+    dataContract.urlString = meta.getValue("url")
+
+    contents.addDescriptor(dataContract)
+  }
+  
   @throws(classOf[SAXException])
   def start_QuoteInfosource(meta: Attributes)  {
     if (DEBUG) {

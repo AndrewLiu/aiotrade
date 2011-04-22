@@ -30,10 +30,7 @@
  */
 package org.aiotrade.modules.ui.actions
 
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.aiotrade.modules.ui.windows.ExplorerTopComponent
 import org.openide.loaders.DataFolder
@@ -60,33 +57,17 @@ class AddExchangeSymbolsAction extends CallableSystemAction {
           explorerTc.getExplorerManager.setExploredContext(rootNode)
                 
           // add symbols to exchange folder
-          val dailyQuoteContract  = createQuoteContract
           for (exchange <- Exchange.allExchanges;
-               exchangefolder = DataFolder.create(rootFolder, exchange.code);
+               exchangeFolder = DataFolder.create(rootFolder, exchange.code);
                symbol <- Exchange.symbolsOf(exchange)
           ) {
-            dailyQuoteContract.srcSymbol = symbol
-            SymbolNodes.createSymbolXmlFile(exchangefolder, symbol, dailyQuoteContract)
+            SymbolNodes.createSymbolXmlFile(exchangeFolder, symbol)
           }
         }
       })
         
   }
 
-  private def createQuoteContract = {
-    val contents = PersistenceManager().defaultContents
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-    //quoteContract.beginDate_$eq((Date) fromDateField.getValue());
-    //quoteContract.endDate_$eq((Date) toDateField.getValue());
-    //quoteContract.urlString_$eq(pathField.getText().trim());
-
-    quoteContract.freq = TFreq.DAILY
-
-    quoteContract.isRefreshable = false
-    
-    quoteContract
-  }
-    
   def getName = {
     //"Add Exchange Symbols"
     val name = NbBundle.getMessage(this.getClass,"CTL_AddExchangeSymbolsAction")

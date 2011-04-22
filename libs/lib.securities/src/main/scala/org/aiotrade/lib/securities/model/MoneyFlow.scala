@@ -134,23 +134,39 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val time = "time" BIGINT
+  val time = "time" BIGINT()
 
-  val totalVolume = "totalVolume" DOUBLE()
-  val totalAmount = "totalAmount" DOUBLE()
+  val totalVolumeIn = "totalVolumeIn" DOUBLE()
+  val totalAmountIn = "totalAmountIn" DOUBLE()
+  val totalVolumeOut = "totalVolumeOut" DOUBLE()
+  val totalAmountOut = "totalAmountOut" DOUBLE()
+  val totalVolumeEven = "totalVolumeEven" DOUBLE()
+  val totalAmountEven = "totalAmountEven" DOUBLE()
 
-  val superVolume = "superVolume" DOUBLE()
-  val superAmount = "superAmount" DOUBLE()
+  val superVolumeIn = "superVolumeIn" DOUBLE()
+  val superAmountIn = "superAmountIn" DOUBLE()
+  val superVolumeOut = "superVolumeOut" DOUBLE()
+  val superAmountOut = "superAmountOut" DOUBLE()
+  val superVolumeEven = "superVolumeEven" DOUBLE()
+  val superAmountEven = "superAmountEven" DOUBLE()
 
-  val largeVolume = "largeVolume" DOUBLE()
-  val largeAmount = "largeAmount" DOUBLE()
+  val largeVolumeIn = "largeVolumeIn" DOUBLE()
+  val largeAmountIn = "largeAmountIn" DOUBLE()
+  val largeVolumeOut = "largeVolumeOut" DOUBLE()
+  val largeAmountOut = "largeAmountOut" DOUBLE()
+  val largeVolumeEven = "largeVolumeEven" DOUBLE()
+  val largeAmountEven = "largeAmountEven" DOUBLE()
 
-  val smallVolume = "smallVolume" DOUBLE()
-  val smallAmount = "smallAmount" DOUBLE()
+  val smallVolumeIn = "smallVolumeIn" DOUBLE()
+  val smallAmountIn = "smallAmountIn" DOUBLE()
+  val smallVolumeOut = "smallVolumeOut" DOUBLE()
+  val smallAmountOut = "smallAmountOut" DOUBLE()
+  val smallVolumeEven = "smallVolumeEven" DOUBLE()
+  val smallAmountEven = "smallAmountEven" DOUBLE()
   
-  val flag = "flag" INTEGER
+  val flag = "flag" INTEGER()
 
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
@@ -173,6 +189,29 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
       (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
     ) ORDER_BY (this.time) list
   }
+  
+  def saveBatch(sec: Sec, sortedMfs: Seq[MoneyFlow]) {
+    if (sortedMfs.isEmpty) return
+
+    val head = sortedMfs.head
+    val last = sortedMfs.last
+    val frTime = math.min(head.time, last.time)
+    val toTime = math.max(head.time, last.time)
+    val exists = mutable.Map[Long, MoneyFlow]()
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
+      ) ORDER_BY (this.time) list
+    ) foreach {x => exists.put(x.time, x)}
+
+    val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
+    for (x <- updates) {
+      val existOne = exists(x.time)
+      existOne.copyFrom(x)
+      this.update_!(existOne)
+    }
+
+    this.insertBatch_!(inserts.toArray)
+  }
 }
 
 
@@ -181,44 +220,83 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
  */
 class MoneyFlow extends TVal with Flag {
   var sec: Sec = _
+
+  private val data = new Array[Double](24)
+
+  def totalVolumeIn = data(0)
+  def totalAmountIn = data(1)
+  def totalVolumeOut = data(2)
+  def totalAmountOut = data(3)
+  def totalVolumeEven = data(4)
+  def totalAmountEven = data(5)
+
+  def superVolumeIn = data(6)
+  def superAmountIn = data(7)
+  def superVolumeOut = data(8)
+  def superAmountOut = data(9)
+  def superVolumeEven = data(10)
+  def superAmountEven = data(11)
+
+  def largeVolumeIn = data(12)
+  def largeAmountIn = data(13)
+  def largeVolumeOut = data(14)
+  def largeAmountOut = data(15)
+  def largeVolumeEven = data(16)
+  def largeAmountEven = data(17)
+
+  def smallVolumeIn = data(18)
+  def smallAmountIn = data(19)
+  def smallVolumeOut = data(20)
+  def smallAmountOut = data(21)
+  def smallVolumeEven = data(22)
+  def smallAmountEven = data(23)
+
+  def totalVolumeIn_=(v: Double) {data(0) = v}
+  def totalAmountIn_=(v: Double) {data(1) = v}
+  def totalVolumeOut_=(v: Double) {data(2) = v}
+  def totalAmountOut_=(v: Double) {data(3) = v}
+  def totalVolumeEven_=(v: Double) {data(4) = v}
+  def totalAmountEven_=(v: Double) {data(5) = v}
+
+  def superVolumeIn_=(v: Double) {data(6) = v}
+  def superAmountIn_=(v: Double) {data(7) = v}
+  def superVolumeOut_=(v: Double) {data(8) = v}
+  def superAmountOut_=(v: Double) {data(9) = v}
+  def superVolumeEven_=(v: Double) {data(10) = v}
+  def superAmountEven_=(v: Double) {data(11) = v}
+
+  def largeVolumeIn_=(v: Double) {data(12) = v}
+  def largeAmountIn_=(v: Double) {data(13) = v}
+  def largeVolumeOut_=(v: Double) {data(14) = v}
+  def largeAmountOut_=(v: Double) {data(15) = v}
+  def largeVolumeEven_=(v: Double) {data(16) = v}
+  def largeAmountEven_=(v: Double) {data(17) = v}
+
+  def smallVolumeIn_=(v: Double) {data(18) = v}
+  def smallAmountIn_=(v: Double) {data(19) = v}
+  def smallVolumeOut_=(v: Double) {data(20) = v}
+  def smallAmountOut_=(v: Double) {data(21) = v}
+  def smallVolumeEven_=(v: Double) {data(22) = v}
+  def smallAmountEven_=(v: Double) {data(23) = v}
   
-  var totalVolumeIn: Double = _
-  var totalAmountIn: Double = _
-  var totalVolumeOut: Double = _
-  var totalAmountOut: Double = _
-  var totalVolumeEven: Double = _
-  var totalAmountEven: Double = _
-  var totalVolume: Double = _
-  var totalAmount: Double = _
-
-  var superVolumeIn: Double = _
-  var superAmountIn: Double = _
-  var superVolumeOut: Double = _
-  var superAmountOut: Double = _
-  var superVolumeEven: Double = _
-  var superAmountEven: Double = _
-  var superVolume: Double = _
-  var superAmount: Double = _
-
-  var largeVolumeIn: Double = _
-  var largeAmountIn: Double = _
-  var largeVolumeOut: Double = _
-  var largeAmountOut: Double = _
-  var largeVolumeEven: Double = _
-  var largeAmountEven: Double = _
-  var largeVolume: Double = _
-  var largeAmount: Double = _
-
-  var smallVolumeIn: Double = _
-  var smallAmountIn: Double = _
-  var smallVolumeOut: Double = _
-  var smallAmountOut: Double = _
-  var smallVolumeEven: Double = _
-  var smallAmountEven: Double = _
-  var smallVolume: Double = _
-  var smallAmount: Double = _
-
-
   // --- no db fields
   var isTransient = true
+
+  def totalVolume: Double = totalVolumeIn - totalVolumeOut
+  def totalAmount: Double = totalAmountIn - totalAmountOut
+  def superVolume: Double = superVolumeIn - superVolumeOut
+  def superAmount: Double = superAmountIn - superAmountOut
+  def largeVolume: Double = largeVolumeIn - largeVolumeOut
+  def largeAmount: Double = largeAmountIn - largeAmountOut
+  def smallVolume: Double = smallVolumeIn - smallVolumeOut
+  def smallAmount: Double = smallAmountIn - smallAmountOut
+  
+  def copyFrom(another: MoneyFlow) {
+    var i = 0
+    while (i < data.length) {
+      data(i) = another.data(i)
+      i += 1
+    }
+  }
+
 }

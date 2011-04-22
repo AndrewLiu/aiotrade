@@ -202,9 +202,9 @@ object Quotes1m extends Quotes {
 }
 
 abstract class Quotes extends Table[Quote] {
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val time = "time" BIGINT
+  val time = "time" BIGINT()
 
   val open   = "open"   DOUBLE()
   val high   = "high"   DOUBLE()
@@ -214,7 +214,7 @@ abstract class Quotes extends Table[Quote] {
   val amount = "amount" DOUBLE()
   val vwap   = "vwap"   DOUBLE()
 
-  val flag = "flag" INTEGER
+  val flag = "flag" INTEGER()
 
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 

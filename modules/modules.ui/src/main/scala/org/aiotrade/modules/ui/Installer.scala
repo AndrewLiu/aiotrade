@@ -37,9 +37,7 @@ import java.util.ResourceBundle
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.swing.SwingUtilities
-import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.data.SyncUtil
@@ -209,7 +207,6 @@ class Installer extends ModuleInstall {
     val activeExchanges = Exchange.activeExchanges
 
     // add symbols to exchange folder
-    val dailyQuoteContract = createQuoteContract
     val symbolsToFolder = mutable.Map[String, DataFolder]()
     for (exchange <- activeExchanges;
          exchangeFolder = DataFolder.create(rootFolder, exchange.code);
@@ -224,22 +221,12 @@ class Installer extends ModuleInstall {
     while (allSymbols.hasNext) {
       handle.progress(i)
       val (symbol, folder) = allSymbols.next
-      dailyQuoteContract.srcSymbol = symbol
-      SymbolNodes.createSymbolXmlFile(folder, symbol, dailyQuoteContract)
+      SymbolNodes.createSymbolXmlFile(folder, symbol)
       i += 1
     }
 
     handle.finish
     log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
-  }
-
-  private def createQuoteContract = {
-    val contents = PersistenceManager().defaultContents
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-
-    quoteContract.freq = TFreq.DAILY
-    quoteContract.isRefreshable = false
-    quoteContract
   }
 
   override def closing: Boolean = {

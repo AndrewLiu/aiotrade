@@ -88,7 +88,7 @@ class AddSymbolAction extends CallableSystemAction {
             /** dataSourceDescriptor may has been set to more than one symbols, process it here */
             quoteContract.srcSymbol = symbol1
                     
-            SymbolNodes.createSymbolXmlFile(currentFolder, symbol1, quoteContract) foreach {
+            SymbolNodes.createSymbolXmlFile(currentFolder, symbol1) foreach {
               // set attr to "open" to give a hint to SymbolNode.SymbolFolderChildren.creatNodes(Node)
               // so as to to open it automatically
               _.setAttribute("open", true)

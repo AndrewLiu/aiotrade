@@ -5,15 +5,15 @@ import ru.circumflex.orm._
 case class ExecutionEvent(prevClose: Double, execution: Execution)
 
 object Executions extends Table[Execution] {
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val time = "time" BIGINT
+  val time = "time" BIGINT()
 
   val price  = "price"  DOUBLE()
   val volume = "volume" DOUBLE()
   val amount = "amount" DOUBLE()
 
-  val flag = "flag" TINYINT // @Note jdbc type of TINYINT is Int
+  val flag = "flag" TINYINT() // @Note jdbc type of TINYINT is Int
 
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 

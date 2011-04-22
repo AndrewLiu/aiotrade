@@ -3,10 +3,10 @@ package org.aiotrade.lib.securities.model
 import ru.circumflex.orm.Table
 
 object ExchangeCloseDates extends Table[ExchangeCloseDate] {
-  val exchange = "exchanges_id".BIGINT REFERENCES(Exchanges) //manyToOne(ExchangeCloseDate.exchange)
+  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
-  val fromTime = "fromTime" BIGINT //field(ExchangeCloseDate.fromTime)
-  val toTime = "toTime" BIGINT //field(ExchangeCloseDate.toTime)
+  val fromTime = "fromTime" BIGINT() 
+  val toTime = "toTime" BIGINT()
 }
 
 class ExchangeCloseDate {

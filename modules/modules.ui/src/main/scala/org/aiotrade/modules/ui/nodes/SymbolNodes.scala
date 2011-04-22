@@ -56,6 +56,7 @@ import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.util.swing.action.GeneralAction
@@ -193,7 +194,7 @@ object SymbolNodes {
     }
   }
 
-  def createSymbolXmlFile(folder: DataFolder, symbol: String, quoteContracts: QuoteContract*): Option[FileObject] =  {
+  def createSymbolXmlFile(folder: DataFolder, symbol: String): Option[FileObject] =  {
     val folderObject = folder.getPrimaryFile
     val fileName = symbol
     
@@ -210,19 +211,8 @@ object SymbolNodes {
       out = new PrintStream(fo.getOutputStream(lock))
 
       val contents = PersistenceManager().defaultContents
-      /** clear default dataSourceContract */
-      contents.clearDescriptors(classOf[QuoteContract])
-
       contents.uniSymbol = symbol
-      for (quoteContract <- quoteContracts) {
-        contents.addDescriptor(quoteContract)
-      }
-      contents.lookupDescriptors(classOf[QuoteInfoContract]) foreach {
-        contract => contract.srcSymbol = symbol
-      }
-      contents.lookupDescriptors(classOf[QuoteInfoHisContract])foreach {
-        contract => contract.srcSymbol = symbol
-      }
+      contents.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = symbol}
       out.print(ContentsPersistenceHandler.dumpContents(contents))
 
       Option(fo)
@@ -710,8 +700,11 @@ object SymbolNodes {
                 case node: OneSymbolNode =>
                   val contents = node.analysisContents
                   Exchange.secOf(contents.uniSymbol) foreach {sec =>
-                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-                      sec.quoteContracts = List(quoteContract)
+                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract =>
+                      sec.quoteContracts = List(contract)
+                    }
+                    contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract =>
+                      sec.moneyFlowContracts = List(contract)
                     }
                     contents.serProvider = sec
                     
@@ -734,9 +727,8 @@ object SymbolNodes {
                 case node: OneSymbolNode =>
                   val contents = node.analysisContents
                   Exchange.secOf(contents.uniSymbol) foreach {sec =>
-                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {quoteContract =>
-                      sec.quoteContracts = List(quoteContract)
-                    }
+                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
+                    contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
                     contents.serProvider = sec
 
                     sec.unSubscribeTickerServer
@@ -751,9 +743,7 @@ object SymbolNodes {
         }
 
         def childrenReordered(nodeReorderEvent: NodeReorderEvent) {}
-
         def nodeDestroyed(nodeEvent: NodeEvent) {}
-
         def propertyChange(evt: PropertyChangeEvent) {}
       })
 
@@ -816,16 +806,14 @@ object SymbolNodes {
 
       /** otherwise, it's an OneSymbolNode, do real things */
       val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
-      val quoteInfoContract = contents.lookupActiveDescriptor(classOf[QuoteInfoContract]).get
-      val quoteInfoHisContract = contents.lookupActiveDescriptor(classOf[QuoteInfoHisContract]).get
       var mayNeedsReload = false
       Exchange.secOf(contents.uniSymbol) match {
         case Some(sec) =>
-          sec.quoteContracts = List(quoteContract)
-          sec.quoteInfoContract = quoteInfoContract
-          sec.quoteInfoHisContracts = List(quoteInfoHisContract)
           contents.serProvider = sec
+          contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
+          contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
+          contents.lookupActiveDescriptor(classOf[QuoteInfoContract]) foreach {contract => sec.quoteInfoContract =contract }
+          contents.lookupActiveDescriptor(classOf[QuoteInfoHisContract]) foreach {contract => sec.quoteInfoHisContracts = List(contract)}
           
           val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
             case null => false

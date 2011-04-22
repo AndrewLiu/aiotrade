@@ -263,9 +263,9 @@ abstract class TickersTable extends Table[Ticker] {
   protected val log = Logger.getLogger(this.getClass.getName)
   protected val ONE_DAY = 24 * 60 * 60 * 1000
 
-  val sec = "secs_id".BIGINT REFERENCES(Secs)
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
-  val time = "time" BIGINT
+  val time = "time" BIGINT()
 
   val prevClose = "prevClose" DOUBLE()
   val lastPrice = "lastPrice" DOUBLE()
