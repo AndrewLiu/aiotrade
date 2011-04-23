@@ -210,7 +210,7 @@ object Exchange extends Publisher {
     uniSymbolToSec.get(uniSymbol)
   }
 
-  def checkIfIsSthNew(uniSymbol: String, name: String) {
+  def checkIfIsSthingNew(exchange: Exchange, uniSymbol: String, name: String) {
     uniSymbolToSec.get(uniSymbol) match {
       case Some(sec) =>
         if (sec.name != name) {
@@ -220,7 +220,7 @@ object Exchange extends Publisher {
         }
       case None =>
         log.info("Found new symbol: " + uniSymbol)
-        addNewSec(Exchange.SZ, uniSymbol, name)
+        addNewSec(exchange, uniSymbol, name)
     }
   }
 
