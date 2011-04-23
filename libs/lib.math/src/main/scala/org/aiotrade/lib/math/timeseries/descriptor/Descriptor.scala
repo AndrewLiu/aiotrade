@@ -48,15 +48,15 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class AnalysisDescriptor[S](private var _serviceClassName: String,
-                                     private var _freq: TFreq,
-                                     private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
+abstract class Descriptor[S](private var _serviceClassName: String,
+                             private var _freq: TFreq,
+                             private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val withActionsHelper = new WithActionsHelper(this)
 
-  var containerContents: AnalysisContents = _
+  var containerContent: Content = _
 
   /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
   private var _serviceInstance: Option[_] = None

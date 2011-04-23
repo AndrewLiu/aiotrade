@@ -46,7 +46,7 @@ import org.aiotrade.lib.charting.view.ChartingController$;
 import org.aiotrade.lib.charting.view.WithQuoteChart;
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer;
 import org.aiotrade.lib.securities.PersistenceManager$;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
 import org.aiotrade.lib.securities.QuoteSer;
 import org.aiotrade.lib.securities.model.*;
 import org.aiotrade.lib.securities.dataserver.QuoteContract;
@@ -112,21 +112,21 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
             }
         }
 
-        AnalysisContents contents = PersistenceManager$.MODULE$.apply().defaultContents();
-        contents.addDescriptor(quoteContract);
+        Content content = PersistenceManager$.MODULE$.apply().defaultContent();
+        content.addDescriptor(quoteContract);
         Sec sec = new Sec();
         SecInfo info = new SecInfo();
         info.uniSymbol_$eq(symbol);
         sec.secInfo_$eq(info);
         sec.quoteContracts_$eq(Nil.$colon$colon(quoteContract));
-        contents.serProvider_$eq(sec);
+        content.serProvider_$eq(sec);
         QuoteSer ser = sec.serOf(quoteContract.freq()).get();
         if (!ser.isLoaded()) {
             sec.loadSer(ser);
         }
 
         ChartingController controller = ChartingController$.MODULE$.apply(
-                sec.serOf(quoteContract.freq()).get(), contents);
+                sec.serOf(quoteContract.freq()).get(), content);
         previewContainer = controller.createChartViewContainer(AnalysisChartViewContainer.class, this);
 
         previewPanel.setLayout(new BorderLayout());

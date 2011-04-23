@@ -84,7 +84,7 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
 
   override def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
-    sec = controller.contents.serProvider.asInstanceOf[Sec]
+    sec = controller.content.serProvider.asInstanceOf[Sec]
     if (axisXPane != null) {
       axisXPane.setTimeZone(sec.exchange.timeZone)
     }

@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.actions
 
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.modules.ui.windows.RealTimeChartsTopComponent
 import org.aiotrade.modules.ui.windows.RealTimeWatchListTopComponent
@@ -51,10 +51,10 @@ class OpenMultipleChartsAction extends CallableSystemAction {
             val chartsTc = RealTimeChartsTopComponent()
             for (watchlistTc <- RealTimeWatchListTopComponent.selected;
                  node <- watchlistTc.getSelectedSymbolNodes;
-                 contents = node.getLookup.lookup(classOf[AnalysisContents]);
-                 sec = contents.serProvider.asInstanceOf[Sec]
+                 content = node.getLookup.lookup(classOf[Content]);
+                 sec = content.serProvider.asInstanceOf[Sec]
             ) {
-              chartsTc.watch(sec, contents)
+              chartsTc.watch(sec, content)
             }
             if (!chartsTc.isOpened) {
               chartsTc.open

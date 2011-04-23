@@ -148,7 +148,7 @@ class DrawingPane($view: ChartView, $datumPlane: DatumPlane, descriptor: Drawing
       selectedHandledChart.removeMouseAdapterOnPane
             
       descriptor.removeHandledChart(selectedHandledChart)
-      PersistenceManager().saveContents(view.controller.contents)
+      PersistenceManager().saveContent(view.controller.content)
             
       setSelectedHandledChart(null)
     }
@@ -164,7 +164,7 @@ class DrawingPane($view: ChartView, $datumPlane: DatumPlane, descriptor: Drawing
         
     /** the chart may have got new handlesPoints, so, put them to descriptor anyway and save */
     descriptor.putHandledChart(handledChart, handledChart.getCurrentHandlesPoints)
-    PersistenceManager().saveContents(view.controller.contents)
+    PersistenceManager().saveContent(view.controller.content)
         
   }
     

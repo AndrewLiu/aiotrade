@@ -35,14 +35,14 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 
 /**
  *
  * @author Caoyuan Deng
  */
 class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factors: => Array[Factor], $active: => Boolean
-) extends AnalysisDescriptor[Indicator]($serviceClassName, $freq, $active) {
+) extends Descriptor[Indicator]($serviceClassName, $freq, $active) {
 
   def this() = this(null, TFreq.DAILY, Array[Factor](), false)
 
@@ -140,7 +140,7 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
   }
     
   def setFacsToDefault {
-    val defaultFacs = PersistenceManager().defaultContents.lookupDescriptor(
+    val defaultFacs = PersistenceManager().defaultContent.lookupDescriptor(
       classOf[IndicatorDescriptor], serviceClassName, freq
     ) match {
       case None => lookupServiceTemplate(classOf[Indicator], "Indicators") match {

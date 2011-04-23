@@ -200,8 +200,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
                   selectedSer = null
                 }
               }
-              val contents = view.controller.contents
-              contents.lookupDescriptor(classOf[IndicatorDescriptor],
+              val content = view.controller.content
+              content.lookupDescriptor(classOf[IndicatorDescriptor],
                                         ser.getClass.getName,
                                         ser.freq
               ) foreach {descriptor =>
@@ -246,8 +246,8 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       selectedSer = ser
       isSelected = true
       if (e.getClickCount == 2) {
-        val contents = view.controller.contents
-        contents.lookupDescriptor(classOf[IndicatorDescriptor],
+        val content = view.controller.content
+        content.lookupDescriptor(classOf[IndicatorDescriptor],
                                   ser.getClass.getName,
                                   ser.freq
         ) foreach {descriptor =>

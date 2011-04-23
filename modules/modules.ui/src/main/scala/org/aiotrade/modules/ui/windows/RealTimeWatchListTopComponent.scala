@@ -180,14 +180,14 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
                 }
 
                 //              for (node <- symbolToNode.get(symbol)) {
-                //                val contents = node.getLookup.lookup(classOf[AnalysisContents]);
-                //                val sec = contents.serProvider.asInstanceOf[Sec]
+                //                val content = node.getLookup.lookup(classOf[Content]);
+                //                val sec = content.serProvider.asInstanceOf[Sec]
                 //
                 //                if (realTimeBoard != null) {
                 //                  realTimeBoard.unWatch
                 //                  splitPane.remove(realTimeBoard)
                 //                }
-                //                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+                //                realTimeBoard = RealTimeBoardPanel.instanceOf(sec, content)
                 //                realTimeBoard.watch
                 //
                 //                splitPane.setRightComponent(realTimeBoard)
@@ -364,7 +364,7 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
 
    /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
 
-   val secNode_? = SymbolNodes.occupantNodeOf(contents)
+   val secNode_? = SymbolNodes.occupantNodeOf(content)
    assert(secNode_?.isDefined, "There should be at least one created node bound with descriptors here, as view has been opened!")
    for (groupNode <- secNode_?.get.getChildren.getNodes) {
    groupNode.asInstanceOf[GroupNode].freq = baseSer.freq

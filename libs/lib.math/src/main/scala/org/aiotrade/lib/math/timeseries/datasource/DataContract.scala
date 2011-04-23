@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import java.util.Calendar
 import java.util.Date
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.aiotrade.lib.util.serialization.JavaDocument
 import org.w3c.dom.Element
@@ -41,14 +41,14 @@ import org.w3c.dom.Element
  * Securities' data source request contract. It know how to find and invoke
  * server by call createBindInstance().
  *
- * We simplely inherit AnalysisDescriptor, we may think the bindClass provides
+ * We simplely inherit Descriptor, we may think the bindClass provides
  * service for descriptor.
  *
  * most fields' default value should be OK.
  *
  * @author Caoyuan Deng
  */
-abstract class DataContract[S: Manifest] extends AnalysisDescriptor[S] {
+abstract class DataContract[S: Manifest] extends Descriptor[S] {
   @transient var reqId = 0
 
   /** symbol in source */

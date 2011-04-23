@@ -70,8 +70,8 @@ class ChangeOptsAction extends CallableSystemAction {
             return
           }
                 
-          val contents = analysisWin.viewContainer.controller.contents
-          for (descriptor <- contents.lookupDescriptor(classOf[IndicatorDescriptor],
+          val content = analysisWin.viewContainer.controller.content
+          for (descriptor <- content.lookupDescriptor(classOf[IndicatorDescriptor],
                                                        indicator.getClass.getName,
                                                        selectedView.mainSer.freq)
           ) {

@@ -45,25 +45,25 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class AnalysisContents(var uniSymbol: String) extends WithActions {
+class Content(var uniSymbol: String) extends WithActions {
   private val withActionsHelper = new WithActionsHelper(this)
 
   /** Ser could be loaded lazily */
   var serProvider: SerProvider = _
     
   /** use List to store descriptor, so they can be ordered by index */
-  private var descriptorBuf = ArrayBuffer[AnalysisDescriptor[_]]()
+  private var descriptorBuf = ArrayBuffer[Descriptor[_]]()
     
-  def descriptors: List[AnalysisDescriptor[_]] = descriptorBuf.toList
+  def descriptors: List[Descriptor[_]] = descriptorBuf.toList
     
-  def addDescriptor(descriptor: AnalysisDescriptor[_]) {
+  def addDescriptor(descriptor: Descriptor[_]) {
     if (!descriptorBuf.contains(descriptor)) {
       descriptorBuf += descriptor
-      descriptor.containerContents = this
+      descriptor.containerContent = this
     }
   }
     
-  def removeDescriptor(descriptor: AnalysisDescriptor[_]) {
+  def removeDescriptor(descriptor: Descriptor[_]) {
     descriptorBuf.remove(descriptorBuf.indexOf(descriptor))
   }
     
@@ -71,11 +71,11 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     descriptorBuf.remove(idx)
   }
     
-  def indexOf(descriptor: AnalysisDescriptor[_]): Int = {
+  def indexOf(descriptor: Descriptor[_]): Int = {
     descriptorBuf.indexOf(descriptor)
   }
     
-  def lastIndexOf[T <: AnalysisDescriptor[_]](clz: Class[T]): Int = {
+  def lastIndexOf[T <: Descriptor[_]](clz: Class[T]): Int = {
     var lastOne: T = null.asInstanceOf[T]
     for (descriptor <- descriptorBuf if clz.isInstance(descriptor)) {
       lastOne = descriptor.asInstanceOf[T]
@@ -84,7 +84,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     if (lastOne != null) descriptorBuf.indexOf(lastOne) else -1
   }
     
-  def clearDescriptors[T <: AnalysisDescriptor[_]](clz: Class[T]) {
+  def clearDescriptors[T <: Descriptor[_]](clz: Class[T]) {
     /**
      * try to avoid java.util.ConcurrentModificationException by add those to
      * toBeRemoved, then call descriptorList.removeAll(toBeRemoved)
@@ -106,30 +106,30 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   /**
    *
    * @param clazz the Class being looking up
-   * @return found collection of AnalysisDescriptor instances.
+   * @return found collection of Descriptor instances.
    *         If found none, return an empty collection other than null
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[_]](clz: Class[T]): Seq[T] = {
+  def lookupDescriptors[T <: Descriptor[_]](clz: Class[T]): Seq[T] = {
     for (descriptor <- descriptorBuf if clz.isInstance(descriptor)) yield descriptor.asInstanceOf[T]
   }
     
   /**
    * Lookup the descriptorList of clazz (Indicator/Drawing/Source etc) with the same time frequency
    */
-  def lookupDescriptors[T <: AnalysisDescriptor[_]](clz: Class[T], freq: TFreq): Seq[T] = {
+  def lookupDescriptors[T <: Descriptor[_]](clz: Class[T], freq: TFreq): Seq[T] = {
     for (descriptor <- descriptorBuf if clz.isInstance(descriptor) && descriptor.freq == freq)
       yield descriptor.asInstanceOf[T]
   }
     
-  def lookupDescriptor[T <: AnalysisDescriptor[_]](clz: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
+  def lookupDescriptor[T <: Descriptor[_]](clz: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
     lookupDescriptors(clz) find (_.idEquals(serviceClassName, freq))
   }
     
-  def lookupActiveDescriptor[T <: AnalysisDescriptor[_]](clz: Class[T]): Option[T] = {
+  def lookupActiveDescriptor[T <: Descriptor[_]](clz: Class[T]): Option[T] = {
     lookupDescriptors(clz) find (_.active)
   }
     
-  def createDescriptor[T <: AnalysisDescriptor[_]](clz: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
+  def createDescriptor[T <: Descriptor[_]](clz: Class[T], serviceClassName: String, freq: TFreq): Option[T] = {
     try {
       val descriptor = clz.newInstance
       descriptor.set(serviceClassName, freq)
@@ -151,7 +151,7 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
   }
     
   def createDefaultActions: Array[Action] = {
-    Array(new ContentsSaveAction)
+    Array(new ContentSaveAction)
   }
     
   def writeToBean(doc: BeansDocument): Element = {
@@ -165,9 +165,9 @@ class AnalysisContents(var uniSymbol: String) extends WithActions {
     bean
   }
     
-  private class ContentsSaveAction extends SaveAction {
+  private class ContentSaveAction extends SaveAction {
     def execute {
-      PersistenceManager().saveContents(AnalysisContents.this)
+      PersistenceManager().saveContent(Content.this)
     }
   }
     

@@ -42,7 +42,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.swing.AIOScrollView;
 import org.aiotrade.modules.ui.actions.SwitchCandleOhlcAction;
@@ -141,11 +141,11 @@ class RealTimeChartsTopComponent private () extends TopComponent {
   setFocusable(true)
   
     
-  def watch(sec: Sec, contents: AnalysisContents) {
+  def watch(sec: Sec, content: Content) {
     if (!secToViewContainers.contains(sec)) {
       val rtSer = sec.realtimeSer
       if (!rtSer.isLoaded) sec.loadSer(rtSer)
-      val controller = ChartingController(rtSer, contents)
+      val controller = ChartingController(rtSer, content)
       val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
             
       viewContainer.isInteractive = false

@@ -8,7 +8,7 @@
     <file name="aiotrade.conf" url="aiotrade.conf"/>
     
     <folder name="UserOptions">
-        <file name="DefaultContents.xml" url="DefaultContents.xml"/>
+        <file name="DefaultContent.xml" url="DefaultContent.xml"/>
     </folder>
 
     <folder name="DataServers">

@@ -32,7 +32,7 @@ package org.aiotrade.lib.math
 
 import java.util.Properties
 import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.util.ServiceLoader
 
 /**
@@ -59,9 +59,9 @@ trait PersistenceManager {
   def saveProperties
   def properties: Properties
 
-  def saveContents(contents: AnalysisContents)
-  def restoreContents(uniSymbol: String): AnalysisContents
-  def defaultContents: AnalysisContents
+  def saveContent(content: Content)
+  def restoreContent(uniSymbol: String): Content
+  def defaultContent: Content
 
   def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T]
 }
