@@ -341,11 +341,16 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
 
 
   // --- no db fields:
-  var name: String = ""
+  private var _name: String = ""
+  def name = _name
+  def name_=(v: String) {
+    this._name = v
+    if (_name != v) _isChanged = true
+  }
   
   def isChanged = _isChanged || marketDepth.isChanged
   def isChanged_=(changed: Boolean) = {
-    _isChanged = changed
+    this._isChanged = changed
     if (!changed) {
       marketDepth.isChanged = false
     }

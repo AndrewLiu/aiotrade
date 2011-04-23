@@ -210,17 +210,21 @@ object Exchange extends Publisher {
     uniSymbolToSec.get(uniSymbol)
   }
 
-  def checkIfIsSthingNew(exchange: Exchange, uniSymbol: String, name: String) {
-    uniSymbolToSec.get(uniSymbol) match {
-      case Some(sec) =>
-        if (sec.name != name) {
-          log.info("Found new name: " + name + ", the old name is " + sec.name)
-          val secInfo = Exchanges.createSimpleSecInfo(sec, name, true)
-          publish(SecInfoAddedToDb(secInfo))
-        }
-      case None =>
-        log.info("Found new symbol: " + uniSymbol)
-        addNewSec(exchange, uniSymbol, name)
+  def checkIfIsSomethingNew(exchange: Exchange, tickers: Array[Ticker]) {
+    for (ticker <- tickers) {
+      val uniSymbol = ticker.symbol
+      val name = ticker.name
+      uniSymbolToSec.get(uniSymbol) match {
+        case Some(sec) =>
+          if (sec.name != name) {
+            log.info("Found new name: " + name + ", the old name is " + sec.name)
+            val secInfo = Exchanges.createSimpleSecInfo(sec, name, true)
+            publish(SecInfoAddedToDb(secInfo))
+          }
+        case None =>
+          log.info("Found new symbol: " + uniSymbol)
+          addNewSec(exchange, uniSymbol, name)
+      }
     }
   }
 
