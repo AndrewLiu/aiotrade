@@ -264,11 +264,11 @@ object Data {
     val secInfosFile = new File(dataFileDir, "sec_infos.txt")
 
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      Exchanges.createSimpleSec(N, symbol, symbol, false)
+      Exchanges.createSimpleSec(symbol, symbol, false)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      Exchanges.createSimpleSec(L, symbol, symbol, false)
+      Exchanges.createSimpleSec(symbol, symbol, false)
     }
   }
 

@@ -58,7 +58,8 @@ object Exchanges extends Table[Exchange] {
     (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
   }
 
-  def createSimpleSec(exchange: Exchange, uniSymbol: String, name: String, willCommit: Boolean = false) = {
+  def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
+    val exchange = Exchange.exchangeOf(uniSymbol)
     val sec = new Sec
     sec.exchange = exchange
     Secs.save_!(sec)
@@ -210,7 +211,7 @@ object Exchange extends Publisher {
     uniSymbolToSec.get(uniSymbol)
   }
 
-  def checkIfIsSomethingNew(exchange: Exchange, tickers: Array[Ticker]) {
+  def checkIfIsSomethingNew(tickers: Array[Ticker]) {
     for (ticker <- tickers) {
       val uniSymbol = ticker.symbol
       val name = ticker.name
@@ -223,13 +224,13 @@ object Exchange extends Publisher {
           }
         case None =>
           log.info("Found new symbol: " + uniSymbol)
-          addNewSec(exchange, uniSymbol, name)
+          addNewSec(uniSymbol, name)
       }
     }
   }
 
-  private def addNewSec(exchange: Exchange, uniSymbol: String, name: String): Sec = mutex synchronized {
-    val sec = Exchanges.createSimpleSec(exchange, uniSymbol, name, true)
+  private def addNewSec(uniSymbol: String, name: String): Sec = mutex synchronized {
+    val sec = Exchanges.createSimpleSec(uniSymbol, name, true)
     publish(SecAddedToDb(sec))
     secAdded(sec)
   }
