@@ -99,6 +99,69 @@ object Exchanges extends Table[Exchange] {
     secInfo
   }
 
+  def createSimpleSecs(uniSymbolToName: Array[(String, String)], willCommit: Boolean = false): Array[Sec] = {
+    val secInfos = new ArrayList[SecInfo]
+    val secs = new ArrayList[Sec]
+    
+    for ((uniSymbol, name) <- uniSymbolToName) {
+      val exchange = Exchange.exchangeOf(uniSymbol)
+      val sec = new Sec
+      sec.exchange = exchange
+      secs += sec
+
+      val secInfo = new SecInfo
+      secInfo.sec = sec
+      secInfo.uniSymbol = uniSymbol
+      secInfo.name = name
+      secInfos += secInfo
+
+      sec.secInfo = secInfo
+    }
+    
+    val secInfosA = secInfos.toArray
+    val secsA = secs.toArray
+    Secs.insertBatch_!(secsA)
+    SecInfos.insertBatch_!(secInfosA)
+    Secs.updateBatch_!(secsA, Secs.secInfo)
+    
+    if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
+      COMMIT
+      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+    }
+    
+    secsA
+  }
+  
+  def createSimpleSecInfos(secToName: Array[(Sec, String)], isCurrent: Boolean = true): Array[SecInfo] = {
+    val secInfos = new ArrayList[SecInfo]
+    val secs = new ArrayList[Sec]
+    
+    for ((sec, name) <- secToName) {
+      val secInfo = new SecInfo
+      secInfo.sec = sec
+      secInfo.uniSymbol = sec.uniSymbol
+      secInfo.name = name
+      secInfos += secInfo
+
+      if (isCurrent) {
+        sec.secInfo = secInfo
+        secs += sec
+      }
+    }
+    
+    val secInfosA = secInfos.toArray
+    val secsA = secs.toArray
+    SecInfos.insertBatch_!(secInfosA)
+    Secs.updateBatch_!(secsA, Secs.secInfo)
+    
+    if (secsA.length > 0 | secInfosA.length > 0) {
+      COMMIT
+      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+    }
+    
+    secInfosA
+  }
+  
 }
 
 object Exchange extends Publisher {
@@ -144,20 +207,20 @@ object Exchange extends Publisher {
 
     _exchangeToSecs ++= (_allExchanges map {x => (x, Exchanges.secsOf(x))})
 
-    _exchangeToUniSymbols ++= (_exchangeToSecs map {m =>
-        val syms = mutable.Set[String]()
-        m._2 foreach {sec =>
-          if (sec.secInfo == null)
-            log.warning("secInfo of sec " + sec + " is null")
-          else
-            syms += sec.secInfo.uniSymbol
-        }
-        (m._1, syms)
+    _exchangeToUniSymbols ++= (_exchangeToSecs map {case (exchg, secs) =>
+          val syms = mutable.Set[String]()
+          secs foreach {sec =>
+            if (sec.secInfo == null)
+              log.warning("secInfo of sec " + sec + " is null")
+            else
+              syms += sec.secInfo.uniSymbol
+          }
+          (exchg, syms)
       }
     )
     
-    _uniSymbolToSec ++= (_exchangeToSecs flatMap {m =>
-        m._2 filter (_.secInfo != null) map (x => (x.secInfo.uniSymbol, x))
+    _uniSymbolToSec ++= (_exchangeToSecs flatMap {case (_, secs) =>
+          secs filter (_.secInfo != null) map (x => (x.secInfo.uniSymbol, x))
       }
     )
   }
@@ -195,6 +258,8 @@ object Exchange extends Publisher {
     uniSymbol match {
       case "^DJI" => Some(N)
       case "^HSI" => Some(HK)
+      case "000001.SS" => Some(SS)
+      case "399001.SZ" => Some(SZ)
       case _=> None
     }
   }
@@ -211,31 +276,47 @@ object Exchange extends Publisher {
     uniSymbolToSec.get(uniSymbol)
   }
 
-  def checkIfIsSomethingNew(tickers: Array[Ticker]) {
+  def checkIfSomethingNew(tickers: Array[Ticker]) {
+    val uniSymbolToName = new ArrayList[(String, String)]
+    val secToName = new ArrayList[(Sec, String)]
+    
     for (ticker <- tickers) {
       val uniSymbol = ticker.symbol
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
         case Some(sec) =>
           if (sec.name != name) {
-            log.info("Found new name: " + name + ", the old name is " + sec.name)
-            val secInfo = Exchanges.createSimpleSecInfo(sec, name, true)
-            publish(SecInfoAddedToDb(secInfo))
+            log.info("Found new name of symbol: " + uniSymbol + ", new name: " + name + ", old name: " + sec.name)
+            secToName += (sec -> name)
           }
         case None =>
-          log.info("Found new symbol: " + uniSymbol)
-          addNewSec(uniSymbol, name)
+          log.info("Found new symbol: " + uniSymbol + ", name: " + name)
+          uniSymbolToName += (uniSymbol -> name)
       }
+    }
+    
+    val secs = Exchanges.createSimpleSecs(uniSymbolToName.toArray, true)
+    val secInfos = Exchanges.createSimpleSecInfos(secToName.toArray, true)
+    
+    for (sec <- secs) {
+      publish(SecAddedToDb(sec))
+      secAdded(sec)      
+    }
+    
+    for (secInfo <- secInfos) {
+      publish(SecInfoAddedToDb(secInfo))
     }
   }
 
-  private def addNewSec(uniSymbol: String, name: String): Sec = mutex synchronized {
-    val sec = Exchanges.createSimpleSec(uniSymbol, name, true)
-    publish(SecAddedToDb(sec))
-    secAdded(sec)
+  def secAdded(uniSymbol: String): Sec = {
+    // check database if sec has been here, if not, something was wrong
+    Exchanges.secOf(uniSymbol) match {
+      case Some(sec) => secAdded(sec)
+      case None => log.severe("Sec of " + uniSymbol + " has not been created in database"); null
+    }
   }
 
-  def secAdded(sec: Sec): Sec = mutex synchronized {
+  private def secAdded(sec: Sec): Sec = mutex synchronized {
     val exchange = sec.exchange
     val uniSymbol= sec.uniSymbol
 
@@ -247,14 +328,6 @@ object Exchange extends Publisher {
     sec
   }
   
-  def secAdded(uniSymbol: String): Sec = {
-    // check database if sec has been here, if not, something was wrong
-    Exchanges.secOf(uniSymbol) match {
-      case Some(sec) => secAdded(sec)
-      case None => log.severe("Sec of " + uniSymbol + " has not been created in database"); null
-    }
-  }
-
   def apply(code: String, timeZoneStr: String, openCloseHMs: Array[Int]) = {
     val exchange = new Exchange
     exchange.code = code
@@ -414,19 +487,21 @@ class Exchange extends Ordered[Exchange] {
   }
 
   def addNewQuote(freq: TFreq, quote: Quote) = freqToUnclosedQuotes synchronized {
-    freqToUnclosedQuotes.get(freq) getOrElse {
-      val xs = new ArrayList[Quote]
-      freqToUnclosedQuotes.put(freq, xs)
-      xs
-    } += quote
+    (freqToUnclosedQuotes.get(freq) getOrElse {
+        val xs = new ArrayList[Quote]
+        freqToUnclosedQuotes.put(freq, xs)
+        xs
+      }
+    ) += quote
   }
 
   def addNewMoneyFlow(freq: TFreq, mf: MoneyFlow) = freqToUnclosedMoneyFlows synchronized {
-    freqToUnclosedMoneyFlows.get(freq) getOrElse {
-      val xs = new ArrayList[MoneyFlow]
-      freqToUnclosedMoneyFlows.put(freq, xs)
-      xs
-    } += mf
+    (freqToUnclosedMoneyFlows.get(freq) getOrElse {
+        val xs = new ArrayList[MoneyFlow]
+        freqToUnclosedMoneyFlows.put(freq, xs)
+        xs
+      }
+    ) += mf
   }
 
   def tradingStatus = _tradingStatus
@@ -534,7 +609,7 @@ class Exchange extends Ordered[Exchange] {
   private val emptyQuotes = ArrayList[Quote]()
   private val emptyMoneyFlows = ArrayList[MoneyFlow]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
-  private var toCloseTimeInMinutes = -1
+  private var timeInMinutesToClose = -1
 
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
     tradingStatusTime >= roundedTime + freq.interval
@@ -547,32 +622,32 @@ class Exchange extends Ordered[Exchange] {
   private[securities] def tryClosing(alsoSave: Boolean) {
     import TradingStatus._
 
-    val closingTimeInMinutes = toCloseTimeInMinutes
+    val closeTimeInMinutes = timeInMinutesToClose
     val statusTime = tradingStatus.time
 
     val freqs = tradingStatus match {
       
-      case Opening(time, timeInMinutes) if toCloseTimeInMinutes <= 0 || timeInMinutes <  toCloseTimeInMinutes =>
-        // When processing legacy data, 'toCloseTimeInMinutes' may be set to previous date's larger timeInMinutes,
-        // so we add '|| timeInMinutes <  toCloseTimeInMinutes'
-        toCloseTimeInMinutes = timeInMinutes + 1
+      case Opening(time, timeInMinutes) if timeInMinutesToClose <= 0 || timeInMinutes <  timeInMinutesToClose =>
+        // When processing legacy data, 'timeInMinutesToClose' may be set to previous date's larger timeInMinutes,
+        // so we add '|| timeInMinutes <  timeInMinutesToClose'
+        timeInMinutesToClose = timeInMinutes + 1
         Nil
-      case Opening(time, timeInMinutes) if toCloseTimeInMinutes >  0 && timeInMinutes >= toCloseTimeInMinutes =>
+      case Opening(time, timeInMinutes) if timeInMinutesToClose >  0 && timeInMinutes >= timeInMinutesToClose =>
         // a new minute begins, will doClose on ONE_MIN after 1 minute
-        toCloseTimeInMinutes = timeInMinutes + 1
+        timeInMinutesToClose = timeInMinutes + 1
         List(TFreq.ONE_MIN)
         
       case Close(time, timeInMinutes) => 
-        toCloseTimeInMinutes = -1
+        timeInMinutesToClose = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
       case Closed(time, timeInMinutes) =>
-        toCloseTimeInMinutes = -1
+        timeInMinutesToClose = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
         
       case _ => Nil
     }
 
-    log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closingTimeInMinutes)
+    log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closeTimeInMinutes)
 
     for (freq <- freqs) {
 
