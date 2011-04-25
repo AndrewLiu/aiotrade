@@ -31,8 +31,12 @@
 
 package org.aiotrade.lib.securities.model
 
+import scala.collection
+import scala.collection.mutable
 import scala.collection.immutable
+import org.aiotrade.lib.util.ValidTime
 import ru.circumflex.orm.Table
+import ru.circumflex.orm._
 
 /**
  * fullcode is defined as two parts first part is caterogy (6 chars), second part is subcategory
@@ -40,6 +44,7 @@ import ru.circumflex.orm.Table
  * @author Caoyuan Deng
  */
 object Sector {
+
   object Category {
     // security kind
     val kind = "000000" 
@@ -62,6 +67,26 @@ object Sector {
     val warrant = "005"
     val forex = "006"
   }
+  
+  lazy val sectorToSecValidTimes: collection.Map[String, collection.Seq[ValidTime[Sec]]] = {
+    Sectors.sectorToSecValidTimes
+  }
+
+  def allSectors = sectorToSecValidTimes.keys
+  
+  // --- simple test
+  def main(args: Array[String]) {
+    try {
+      val secsHolder = SELECT(Secs.*) FROM (Secs) list()
+      val t0 = System.currentTimeMillis
+      val sectorToSecValidTimes = Sectors.sectorToSecValidTimes
+      sectorToSecValidTimes foreach println
+      println("Finished in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
+      System.exit(0)
+    } catch {
+      case ex => ex.printStackTrace; System.exit(1)
+    }
+  }
 }
 
 class Sector {
@@ -70,6 +95,8 @@ class Sector {
   var name: String = ""
   
   var secs: List[Sec] = Nil
+  
+  lazy val key = category + "_" + code
 }
 
 object Sectors extends Table[Sector] {
@@ -81,6 +108,42 @@ object Sectors extends Table[Sector] {
   
   val categoryIdx = getClass.getSimpleName + "_category_idx" INDEX(category.name)
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
+  
+  
+  // --- helpers:
+  
+  private[model] def allSectors: Seq[String] = {
+    SELECT(Sectors.*) FROM (Sectors) list() map (_.key)
+  }
+  
+  def secsOf(sector: Sector): Seq[Sec] = {
+    SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
+  }
+  
+  /**
+   * @Note: This method can only be called after all secs have been selected and kept in Memory
+   */
+  private[model] def sectorToSecValidTimes = {
+    val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()
+    
+    val sectorsHolder = SELECT(Sectors.*) FROM (Sectors) list()
+    val sectorSecs = SELECT (SectorSecs.*) FROM (SectorSecs) list()
+    for (sectorSec <- sectorSecs) {
+      val key = sectorSec.sector.key
+      val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
+      val validTimes = result.get(key) match {
+        case None => 
+          val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
+          result += (key -> validTimes)
+          validTimes
+        case Some(x) => x
+      }
+      
+      validTimes += validTime
+    }
+    
+    result
+  }
 }
 
 
