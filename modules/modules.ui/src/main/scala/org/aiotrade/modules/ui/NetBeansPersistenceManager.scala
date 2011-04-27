@@ -44,10 +44,10 @@ import java.sql.Statement
 import java.util.Properties;
 import org.aiotrade.lib.charting.chart.QuoteChart;
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
-import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
+import org.aiotrade.lib.view.securities.persistence.ContentPersistenceHandler
+import org.aiotrade.lib.view.securities.persistence.ContentParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Ticker
@@ -89,10 +89,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
    */
   private val WIN_MAN = new NetBeansWindowManager
   /**
-   * we perfer contents instances long lives in application context, so, don't
+   * we perfer content instances long lives in application context, so, don't
    * use weak reference map here.
    */
-  val defaultContents: AnalysisContents = restoreContents("Default")
+  val defaultContent: Content = restoreContent("Default")
   private var propsLoaded = false
   private var props: Properties = _
   private var dbDriver: String = _
@@ -111,17 +111,17 @@ class NetBeansPersistenceManager extends PersistenceManager {
   restoreProperties
   //checkAndCreateDatabaseIfNecessary
 
-  def saveContents(contents: AnalysisContents) {
-    if (contents.uniSymbol.equalsIgnoreCase("Default")) {
-      val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml")
-      if (defaultContentsFile != null) {
+  def saveContent(content: Content) {
+    if (content.uniSymbol.equalsIgnoreCase("Default")) {
+      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml")
+      if (defaultContentFile != null) {
         var out: PrintStream = null
         var lock: FileLock = null
         try {
-          lock = defaultContentsFile.lock
+          lock = defaultContentFile.lock
 
-          out = new PrintStream(defaultContentsFile.getOutputStream(lock))
-          out.print(ContentsPersistenceHandler.dumpContents(contents))
+          out = new PrintStream(defaultContentFile.getOutputStream(lock))
+          out.print(ContentPersistenceHandler.dumpContent(content))
         } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
           /** should remember to do out.close() here */
           if (out  != null) out.close
@@ -129,7 +129,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
         }
       }
     } else {
-      SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
+      SymbolNodes.findSymbolNode(content.uniSymbol) foreach {node =>
         /** refresh node's icon in explorer window */
         val children = node.getChildren
         for (child <- children.getNodes) {
@@ -144,7 +144,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
           lock = writeTo.lock
 
           out = new PrintStream(writeTo.getOutputStream(lock))
-          out.print(ContentsPersistenceHandler.dumpContents(contents))
+          out.print(ContentPersistenceHandler.dumpContent(content))
         } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
           /** should remember to do out.close() here */
           if (out  != null) out.close
@@ -155,20 +155,20 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
-  def restoreContents(uniSymbol: String): AnalysisContents = {
-    var contents: AnalysisContents = null
+  def restoreContent(uniSymbol: String): Content = {
+    var content: Content = null
 
     if (uniSymbol.equalsIgnoreCase("Default")) {
-      val defaultContentsFile = FileUtil.getConfigFile("UserOptions/DefaultContents.xml");
-      if (defaultContentsFile != null) {
+      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml");
+      if (defaultContentFile != null) {
         var is: InputStream = null
         try {
-          is = defaultContentsFile.getInputStream
+          is = defaultContentFile.getInputStream
           val xmlReader = XMLUtil.createXMLReader
-          val handler = new ContentsParseHandler
+          val handler = new ContentParseHandler
           xmlReader.setContentHandler(handler)
           xmlReader.parse(new InputSource(is))
-          contents = handler.getContents
+          content = handler.getContent
         } catch {
           case ex: IOException  => ErrorManager.getDefault.notify(ex)
           case ex: SAXException => ErrorManager.getDefault.notify(ex)
@@ -181,7 +181,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
        *  useful or useless in this case? */
     }
 
-    contents
+    content
   }
 
   def saveProperties {

@@ -49,8 +49,8 @@ class SwichAnalysisReaTimeAction extends CallableSystemAction {
       java.awt.EventQueue.invokeLater(new Runnable {
           def run {
             for (tc <- AnalysisChartTopComponent.selected;
-                 contents = tc.contents;
-                 quoteContract <- contents.lookupActiveDescriptor(classOf[QuoteContract])
+                 content = tc.content;
+                 quoteContract <- content.lookupActiveDescriptor(classOf[QuoteContract])
             ) {
               val toFreq = if (tc.viewContainer.isInstanceOf[RealTimeChartViewContainer]) {
                 TFreq.DAILY
@@ -58,7 +58,7 @@ class SwichAnalysisReaTimeAction extends CallableSystemAction {
                 TFreq.ONE_SEC
               }
               quoteContract.freq = toFreq
-              val newTc = AnalysisChartTopComponent(contents)
+              val newTc = AnalysisChartTopComponent(content)
               newTc.requestActive
             }
           }

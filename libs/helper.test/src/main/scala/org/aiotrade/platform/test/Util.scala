@@ -22,7 +22,7 @@ import org.aiotrade.lib.charting.laf.CityLights
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.util.swing.plaf.AIOTabbedPaneUI
 import org.aiotrade.lib.view.securities.AnalysisChartViewContainer
 import org.aiotrade.lib.view.securities.AnalysisChartView
@@ -116,20 +116,20 @@ class Util {
       }
     sec.exchange = exchange
 
-    val dailyContents = createAnalysisContents(symbol, freqDaily, quoteServer, tickerServer);
-    dailyContents.addDescriptor(dailyQuoteContract)
-    dailyContents.serProvider = sec
-    loadSer(dailyContents)
+    val dailyContent = createContent(symbol, freqDaily, quoteServer, tickerServer);
+    dailyContent.addDescriptor(dailyQuoteContract)
+    dailyContent.serProvider = sec
+    loadSer(dailyContent)
 
-    val rtContents = createAnalysisContents(symbol, freqOneMin, quoteServer, tickerServer);
-    rtContents.addDescriptor(oneMinQuoteContract)
-    rtContents.serProvider = sec
-    loadSer(rtContents)
+    val rtContent = createContent(symbol, freqOneMin, quoteServer, tickerServer);
+    rtContent.addDescriptor(oneMinQuoteContract)
+    rtContent.serProvider = sec
+    loadSer(rtContent)
 
     // --- other freqs:
 //    val oneMinViewContainer = createViewContainer(
 //      sec.serOf(freqOneMin).getOrElse(null),
-//      rtContents,
+//      rtContent,
 //      symbol,
 //      QuoteChart.Type.Line,
 //      pane)
@@ -139,14 +139,14 @@ class Util {
 
     val dailyViewContainer = createViewContainer(
       sec.serOf(freqDaily).getOrElse(null),
-      dailyContents,
+      dailyContent,
       symbol,
       QuoteChart.Type.Candle,
       pane)
     //dailyViewContainer.setPreferredSize(new Dimension(mainWidth, height))
     viewContainers.add(new WeakReference[AnalysisChartViewContainer](dailyViewContainer))
 
-    //val rtViewContainer = createRealTimeViewContainer(sec, rtContents, pane)
+    //val rtViewContainer = createRealTimeViewContainer(sec, rtContent, pane)
 
     try {
       pane.setLayout(new BorderLayout)
@@ -181,7 +181,7 @@ class Util {
       val dailyPanel = new JPanel(new BorderLayout)
       dailyPanel.add(BorderLayout.CENTER, dailyViewContainer)
 
-      val rtBoard = RealTimeBoardPanel.instanceOf(sec, rtContents)
+      val rtBoard = RealTimeBoardPanel.instanceOf(sec, rtContent)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
@@ -198,7 +198,7 @@ class Util {
       //pane.add(BorderLayout.NORTH, createToolBar(width));
       pane.add(BorderLayout.CENTER, splitPane)
 
-      watchRealTime(rtContents, rtBoard)
+      watchRealTime(rtContent, rtBoard)
 
       //container.getController().setCursorCrossLineVisible(showLastClose(apcpara));
     } catch {case ex: Exception => ex.printStackTrace}
@@ -253,37 +253,37 @@ class Util {
     dataContract
   }
 
-  private def createAnalysisContents(symbol: String, freq: TFreq, quoteServer: Class[_], tickerServer: Class[_]): AnalysisContents = {
-    val contents = new AnalysisContents(symbol)
+  private def createContent(symbol: String, freq: TFreq, quoteServer: Class[_], tickerServer: Class[_]): Content = {
+    val content = new Content(symbol)
 
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator],  freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator],  freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
 
-    contents
+    content
   }
 
-//    private static final AnalysisContents createRealTimeContents(String symbol, Frequency freq, Class quoteServer) {
-//        AnalysisContents contents = new AnalysisContents(symbol);
+//    private static final Content createRealTimeContent(String symbol, Frequency freq, Class quoteServer) {
+//        Content content = new Content(symbol);
 //
-//        contents.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
+//        content.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
 //
 //        QuoteContract quoteContract = createQuoteContract(symbol, freq, quoteServer);
 //        TickerContract tickerContract = createTickerContract(symbol, ApcTickerServer.class);
-//        contents.addDescriptor(quoteContract);
-//        contents.addDescriptor(tickerContract);
+//        content.addDescriptor(quoteContract);
+//        content.addDescriptor(tickerContract);
 //
-//        return contents;
+//        return content;
 //    }
-  private def loadSer(contents: AnalysisContents) {
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+  private def loadSer(content: Content) {
+    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
     val freq = quoteContract.freq
     if (!quoteContract.isFreqSupported(freq)) {
       return
     }
 
-    val sec = contents.serProvider
+    val sec = content.serProvider
     var mayNeedsReload = false
     if (sec == null) {
       return
@@ -312,7 +312,7 @@ class Util {
 
   private def createViewContainer(
     ser: QuoteSer,
-    contents: AnalysisContents,
+    content: Content,
     atitle: String,
     tpe: QuoteChart.Type,
     parent: Component
@@ -320,8 +320,8 @@ class Util {
 
     var title = atitle
 
-    if (!ser.isLoaded) contents.serProvider.asInstanceOf[Sec].loadSer(ser)
-    val controller = ChartingController(ser, contents)
+    if (!ser.isLoaded) content.serProvider.asInstanceOf[Sec].loadSer(ser)
+    val controller = ChartingController(ser, content)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent)
 
     if (title == null) {
@@ -341,9 +341,9 @@ class Util {
     viewContainer
   }
 
-  private def createRealTimeViewContainer(sec: Sec, contents: AnalysisContents, parent: Component): RealTimeChartViewContainer = {
+  private def createRealTimeViewContainer(sec: Sec, content: Content, parent: Component): RealTimeChartViewContainer = {
     var baseSer = sec.serOf(TFreq.ONE_MIN).get
-    val controller = ChartingController(baseSer, contents)
+    val controller = ChartingController(baseSer, content)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer
   }
@@ -372,7 +372,7 @@ class Util {
 //
 //                    /** update the descriptorGourp node's children according to selected viewContainer's time frequency: */
 //
-//                    Node secNode = NetBeansPersistenceManager.getOccupantNode(contents);
+//                    Node secNode = NetBeansPersistenceManager.getOccupantNode(content);
 //                    assert secNode != null : "There should be at least one created node bound with descriptors here, as view has been opened!";
 //                    for (Node groupNode : secNode.getChildren().getNodes()) {
 //                        ((GroupNode)groupNode).setTimeFrequency(masterSer.getFreq());
@@ -417,7 +417,7 @@ class Util {
 //        UIManager.put("TabbedPane.darkShadow", Color.GRAY);
   }
 
-  def watchRealTime(contents: AnalysisContents, rtBoard: RealTimeBoardPanel) {
+  def watchRealTime(content: Content, rtBoard: RealTimeBoardPanel) {
     sec.subscribeTickerServer()
     rtBoard.watch
   }

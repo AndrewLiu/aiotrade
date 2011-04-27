@@ -341,11 +341,17 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
 
 
   // --- no db fields:
-
+  private var _name: String = ""
+  def name = _name
+  def name_=(v: String) {
+    this._name = v
+    if (_name != v) _isChanged = true
+  }
+  
   def isChanged = _isChanged || marketDepth.isChanged
-  def isChanged_=(b: Boolean) = {
-    _isChanged = b
-    if (b == false) {
+  def isChanged_=(changed: Boolean) = {
+    this._isChanged = changed
+    if (!changed) {
       marketDepth.isChanged = false
     }
   }
@@ -363,7 +369,9 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
   override def copyFrom(another: LightTicker) {
     super.copyFrom(another)
     another match {
-      case x: Ticker => System.arraycopy(x.bidAsks, 0, bidAsks, 0, bidAsks.length)
+      case x: Ticker => 
+        this.name = x.name
+        System.arraycopy(x.bidAsks, 0, bidAsks, 0, bidAsks.length)
       case _ =>
     }
   }

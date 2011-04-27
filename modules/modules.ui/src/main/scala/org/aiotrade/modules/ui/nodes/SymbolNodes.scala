@@ -43,13 +43,13 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JOptionPane
 import org.aiotrade.lib.view.securities.AnalysisChartView
-import org.aiotrade.lib.view.securities.persistence.ContentsParseHandler
-import org.aiotrade.lib.view.securities.persistence.ContentsPersistenceHandler
+import org.aiotrade.lib.view.securities.persistence.ContentParseHandler
+import org.aiotrade.lib.view.securities.persistence.ContentPersistenceHandler
 import javax.swing.SwingUtilities
 import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.math.timeseries.descriptor.Content
+import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
 import org.aiotrade.lib.securities.model.Exchange
@@ -139,7 +139,7 @@ object SymbolNodes {
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/symbol.gif")
 
-  private val contentToOccuptantNode = mutable.Map[AnalysisContents, Node]()
+  private val contentToOccuptantNode = mutable.Map[Content, Node]()
 
   private val symbolNodeToSymbol = new mutable.WeakHashMap[OneSymbolNode, String]
 
@@ -151,46 +151,46 @@ object SymbolNodes {
   private var _favoriteNode: SymbolFolderNode = _
   def favoriteNode = _favoriteNode
 
-  def occupantNodeOf(contents: AnalysisContents): Option[Node] =  {
-    contentToOccuptantNode.get(contents)
+  def occupantNodeOf(content: Content): Option[Node] =  {
+    contentToOccuptantNode.get(content)
   }
 
-  def occupiedContentsOf(node: Node): Option[AnalysisContents] = {
-    contentToOccuptantNode find {case (contents, aNode) => (aNode eq node)} map (_._1)
+  def occupiedContentOf(node: Node): Option[Content] = {
+    contentToOccuptantNode find {case (content, aNode) => (aNode eq node)} map (_._1)
   }
 
-  def contentsOf(symbol: String): Option[AnalysisContents] = {
+  def contentOf(symbol: String): Option[Content] = {
     contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
   }
 
   def nodeOf(symbol: String): Option[Node] = {
-    contentsOf(symbol) map occupantNodeOf get
+    contentOf(symbol) map occupantNodeOf get
   }
 
-  def putNode(contents: AnalysisContents, node: Node) {
-    contentToOccuptantNode += (contents -> node)
+  def putNode(content: Content, node: Node) {
+    contentToOccuptantNode += (content -> node)
   }
 
   /**
-   * Remove node will not remove the contents, we prefer contents instances
+   * Remove node will not remove the content, we prefer content instances
    * long lives in application context, so if node is moved to other place, we
-   * can just pick a contents from here (if exists) instead of reading from xml
+   * can just pick a content from here (if exists) instead of reading from xml
    * file, and thus makes the opened topcomponent needn't to refer to a new
-   * created contents instance.
+   * created content instance.
    * So, just do
-   * <code>putNode(contents, null)</code>
+   * <code>putNode(content, null)</code>
    */
   def removeNode(node: Node) {
     /**
      * @NOTICE
      * When move a node from a folder to another folder, a new node could
      * be created first, then the old node is removed. so the nodeMap may
-     * has been updated by the new node, and lookupContents(node) will
+     * has been updated by the new node, and lookupContent(node) will
      * return a null since it lookup via the old node.
      * Check it here
      */
-    occupiedContentsOf(node) foreach {contents =>
-      contentToOccuptantNode -= contents
+    occupiedContentOf(node) foreach {content =>
+      contentToOccuptantNode -= content
     }
   }
 
@@ -210,10 +210,10 @@ object SymbolNodes {
       lock = fo.lock
       out = new PrintStream(fo.getOutputStream(lock))
 
-      val contents = PersistenceManager().defaultContents
-      contents.uniSymbol = symbol
-      contents.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = symbol}
-      out.print(ContentsPersistenceHandler.dumpContents(contents))
+      val content = PersistenceManager().defaultContent
+      content.uniSymbol = symbol
+      content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = symbol}
+      out.print(ContentPersistenceHandler.dumpContent(content))
 
       Option(fo)
     } catch {
@@ -227,24 +227,24 @@ object SymbolNodes {
   }
 
   /** Deserialize a Symbol from xml file */
-  private def readContents(node: Node): Option[AnalysisContents] = {
+  private def readContent(node: Node): Option[Content] = {
     val fo = node.getLookup.lookup(classOf[DataObject]) match {
       case null => throw new IllegalStateException("Bogus file in Symbols folder: " + node.getLookup.lookup(classOf[FileObject]))
       case shadow: DataShadow => shadow.getOriginal.getPrimaryFile
       case dobj: DataObject => dobj.getPrimaryFile
     }
-    readContents(fo)
+    readContent(fo)
   }
 
-  private def readContents(fo: FileObject): Option[AnalysisContents] = {
+  private def readContent(fo: FileObject): Option[Content] = {
     var is = fo.getInputStream
     try {
       val xmlReader = XMLUtil.createXMLReader
-      val handler = new ContentsParseHandler
+      val handler = new ContentParseHandler
       xmlReader.setContentHandler(handler)
       xmlReader.parse(new InputSource(is))
 
-      Some(handler.getContents)
+      Some(handler.getContent)
     } catch {
       case ex: IOException  => ErrorManager.getDefault.notify(ex); None
       case ex: SAXException => ErrorManager.getDefault.notify(ex); None
@@ -426,17 +426,17 @@ object SymbolNodes {
                                                                            new AbstractLookup(ic))
   ) {
 
-    val analysisContents = readContents(symbolFileNode) match {
-      case Some(contents) =>
+    val content = readContent(symbolFileNode) match {
+      case Some(content) =>
         // check if has existed in application context, if true, use the existed one
-        val contents1 = contentsOf(contents.uniSymbol).getOrElse(contents)
-        putNode(contents1, this)
-        ic.add(contents1)
-        contents1
+        val content1 = contentOf(content.uniSymbol).getOrElse(content)
+        putNode(content1, this)
+        ic.add(content1)
+        content1
       case None => null
     }
 
-    symbolNodeToSymbol.put(this, analysisContents.uniSymbol)
+    symbolNodeToSymbol.put(this, content.uniSymbol)
 
     /* add additional items to the lookup */
     ic.add(new SymbolViewAction(this))
@@ -449,7 +449,7 @@ object SymbolNodes {
     ic.add(new SymbolClearDataAction(this))
     ic.add(new SymbolAddToFavoriteAction(this))
 
-    log.info("OneSymbolNode(" + analysisContents.uniSymbol + ") created.")
+    log.info("OneSymbolNode(" + content.uniSymbol + ") created.")
 
     /* As the lookup needs to be constucted before Node's constructor is called,
      * it might not be obvious how to add Node or other objects into it without
@@ -461,7 +461,7 @@ object SymbolNodes {
     def this(symbolFileNode: Node) = this(symbolFileNode, new InstanceContent)
 
     override def getDisplayName = {
-      val uniSymbol = analysisContents.uniSymbol
+      val uniSymbol = content.uniSymbol
       Exchange.secOf(uniSymbol) match {
         case Some(sec) => uniSymbol + " (" + sec.name + ")"
         case None => uniSymbol
@@ -538,7 +538,7 @@ object SymbolNodes {
            * Here we should find via OneSymbolNode.this instead of nodeEvent.getNode(),
            * which may return the delegated node.
            */
-          if (occupiedContentsOf(OneSymbolNode.this) != null) {
+          if (occupiedContentOf(OneSymbolNode.this) != null) {
             getLookup.lookup(classOf[SymbolClearDataAction]).perform(false)
           }
 
@@ -571,7 +571,7 @@ object SymbolNodes {
           return Array(new SymbolFolderNode(symbolFileNode))
         } else {
           /**
-           * else, create a sec node for it, which will deserilize a contents instance from the sec xml file,
+           * else, create a sec node for it, which will deserilize a content instance from the sec xml file,
            */
           val fo = symbolFileNode.getLookup.lookup(classOf[DataObject]).getPrimaryFile
           val uniSymbol = symbolOf(fo)
@@ -626,7 +626,7 @@ object SymbolNodes {
    *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
    *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
    */
-  private class SymbolChildren extends Children.Keys[GroupDescriptor[AnalysisDescriptor[_]]] {
+  private class SymbolChildren extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
 
     /**
      * Called when children are first asked for nodes. Typical implementations at this time
@@ -638,26 +638,26 @@ object SymbolNodes {
      * use a repeatly used bufChildrenKeys here.
      * And, to sort them in letter order, we can use a SortedSet to copy from collection.(TODO)
      */
-    private val bufChildrenKeys = new java.util.HashSet[GroupDescriptor[AnalysisDescriptor[_]]]()
+    private val bufChildrenKeys = new java.util.HashSet[GroupDescriptor[Descriptor[_]]]()
 
     @unchecked
     override protected def addNotify {
-      val groups = PersistenceManager().lookupAllRegisteredServices(classOf[GroupDescriptor[AnalysisDescriptor[_]]],
+      val groups = PersistenceManager().lookupAllRegisteredServices(classOf[GroupDescriptor[Descriptor[_]]],
                                                                     "DescriptorGroups")
 
       bufChildrenKeys.clear
       /** each symbol should create new NodeInfo instances that belongs to itself */
       for (nodeInfo <- groups) {
-        bufChildrenKeys add nodeInfo.clone.asInstanceOf[GroupDescriptor[AnalysisDescriptor[_]]]
+        bufChildrenKeys add nodeInfo.clone.asInstanceOf[GroupDescriptor[Descriptor[_]]]
       }
       setKeys(bufChildrenKeys)
     }
 
-    def createNodes(key: GroupDescriptor[AnalysisDescriptor[_]]): Array[Node] = {
+    def createNodes(key: GroupDescriptor[Descriptor[_]]): Array[Node] = {
       try {
-        // lookup AnalysisContents in parent node
-        val analysisContents = this.getNode.getLookup.lookup(classOf[AnalysisContents])
-        Array(new GroupNode(key, analysisContents))
+        // lookup Content in parent node
+        val content = this.getNode.getLookup.lookup(classOf[Content])
+        Array(new GroupNode(key, content))
       } catch {
         case ex: IntrospectionException =>
           ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
@@ -698,15 +698,11 @@ object SymbolNodes {
             case Some(listTc) if listTc.isOpened =>
               nodeMemberEvent.getDelta foreach {
                 case node: OneSymbolNode =>
-                  val contents = node.analysisContents
-                  Exchange.secOf(contents.uniSymbol) foreach {sec =>
-                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract =>
-                      sec.quoteContracts = List(contract)
-                    }
-                    contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract =>
-                      sec.moneyFlowContracts = List(contract)
-                    }
-                    contents.serProvider = sec
+                  val content = node.content
+                  Exchange.secOf(content.uniSymbol) foreach {sec =>
+                    content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
+                    content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
+                    content.serProvider = sec
                     
                     sec.subscribeTickerServer(true)
                     listTc.watch(sec)
@@ -725,11 +721,11 @@ object SymbolNodes {
             case Some(listTc) if listTc.isOpened =>
               nodeMemberEvent.getDelta foreach {
                 case node: OneSymbolNode =>
-                  val contents = node.analysisContents
-                  Exchange.secOf(contents.uniSymbol) foreach {sec =>
-                    contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
-                    contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
-                    contents.serProvider = sec
+                  val content = node.content
+                  Exchange.secOf(content.uniSymbol) foreach {sec =>
+                    content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
+                    content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
+                    content.serProvider = sec
 
                     sec.unSubscribeTickerServer
                     listTc.unWatch(sec)
@@ -805,15 +801,15 @@ object SymbolNodes {
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      val content = node.getLookup.lookup(classOf[Content])
       var mayNeedsReload = false
-      Exchange.secOf(contents.uniSymbol) match {
+      Exchange.secOf(content.uniSymbol) match {
         case Some(sec) =>
-          contents.serProvider = sec
-          contents.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
-          contents.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
-          contents.lookupActiveDescriptor(classOf[QuoteInfoContract]) foreach {contract => sec.quoteInfoContract =contract }
-          contents.lookupActiveDescriptor(classOf[QuoteInfoHisContract]) foreach {contract => sec.quoteInfoHisContracts = List(contract)}
+          content.serProvider = sec
+          content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
+          content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
+          content.lookupActiveDescriptor(classOf[QuoteInfoContract]) foreach {contract => sec.quoteInfoContract =contract }
+          content.lookupActiveDescriptor(classOf[QuoteInfoHisContract]) foreach {contract => sec.quoteInfoHisContracts = List(contract)}
           
           val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
             case null => false
@@ -821,7 +817,7 @@ object SymbolNodes {
           }
           
           log.info("Open standalone AnalysisChartTopComponent: " + standalone)
-          val analysisTc = AnalysisChartTopComponent(contents, standalone)
+          val analysisTc = AnalysisChartTopComponent(content, standalone)
           analysisTc.setActivatedNodes(Array(node))
           /**
            * !NOTICE
@@ -853,19 +849,19 @@ object SymbolNodes {
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             log.info("Start collecting node children")
-            val analysisContents = getAnalysisContentsViaNode(node, handle)
+            val content = getContentViaNode(node, handle)
             handle.finish
-            log.info("Finished collecting node children: " + analysisContents.length)
-            watchSymbols(folderNode, analysisContents)
+            log.info("Finished collecting node children: " + content.length)
+            watchSymbols(folderNode, content)
           }
         }, handle, false)
     }
 
-    /** Not as efficient as getSymbolContentsViaFolder if nodes were not inited previously */
-    private def getAnalysisContentsViaNode(node: Node, handle: ProgressHandle) = {
+    /** Not as efficient as getSymbolContentViaFolder if nodes were not inited previously */
+    private def getContentViaNode(node: Node, handle: ProgressHandle) = {
       val symbolNodes = new ArrayList[Node]
       collectSymbolNodes(node, symbolNodes, handle)
-      symbolNodes map (_.getLookup.lookup(classOf[AnalysisContents]))
+      symbolNodes map (_.getLookup.lookup(classOf[Content]))
     }
 
     private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
@@ -887,20 +883,20 @@ object SymbolNodes {
       }
     }
 
-    private def getAnalysisContentsViaFolder(node: Node, handle: ProgressHandle) = {
-      val analysisContents = new ArrayList[AnalysisContents]
+    private def getContentViaFolder(node: Node, handle: ProgressHandle) = {
+      val contents = new ArrayList[Content]
 
       val folder = node.getLookup.lookup(classOf[DataFolder])
       if (folder == null) {
         // it's an OneSymbolNode, do real things
-        readContents(node) foreach (analysisContents += _)
+        readContent(node) foreach (contents += _)
       } else {
-        collectSymbolContents(folder, analysisContents, handle)
+        collectSymbolContents(folder, contents, handle)
       }
-      analysisContents
+      contents
     }
 
-    private def collectSymbolContents(dob: DataObject, analysisContents: ArrayList[AnalysisContents], handle: ProgressHandle) {
+    private def collectSymbolContents(dob: DataObject, contents: ArrayList[Content], handle: ProgressHandle) {
       dob match {
         case x: DataFolder =>
           /** it's a folder, go recursively */
@@ -911,17 +907,17 @@ object SymbolNodes {
           while (i < count) {
             handle.progress(i)
             val child = children(i)
-            collectSymbolContents(child, analysisContents, handle)
+            collectSymbolContents(child, contents, handle)
             i += 1
           }
         case x: DataObject =>
           val fo = x.getPrimaryFile
-          readContents(fo) foreach (analysisContents += _)
+          readContent(fo) foreach (contents += _)
         case x => log.warning("Unknown DataObject: " + x)
       }
     }
 
-    private def watchSymbols(folderNode: SymbolFolderNode, symbolContents: ArrayList[AnalysisContents]) {
+    private def watchSymbols(folderNode: SymbolFolderNode, symbolContents: ArrayList[Content]) {
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)
 
@@ -952,8 +948,8 @@ object SymbolNodes {
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      Exchange.secOf(contents.uniSymbol) match {
+      val content = node.getLookup.lookup(classOf[Content])
+      Exchange.secOf(content.uniSymbol) match {
         case Some(sec) =>
           sec.unSubscribeTickerServer
 
@@ -969,7 +965,7 @@ object SymbolNodes {
 //        RealTimeChartsTopComponent.instanceRefs.head.get.unWatch(sec)
 //      }
 //
-//      RealTimeBoardTopComponent(contents) foreach {rtBoardWin =>
+//      RealTimeBoardTopComponent(content) foreach {rtBoardWin =>
 //        rtBoardWin.unWatch
 //      }
 
@@ -992,18 +988,18 @@ object SymbolNodes {
        * if node destroy is invoked by parent node, such as folder,
        * the lookup content may has been destroyed before node destroyed.
        */
-      occupiedContentsOf(node) foreach {contents =>
+      occupiedContentOf(node) foreach {content =>
         val confirm = if (shouldConfirm) {
           JOptionPane.showConfirmDialog(
             WindowManager.getDefault.getMainWindow(),
-            "Are you sure you want to clear data of : " + contents.uniSymbol + " ?",
+            "Are you sure you want to clear data of : " + content.uniSymbol + " ?",
             "Clearing data ...",
             JOptionPane.YES_NO_OPTION
           )
         } else JOptionPane.YES_OPTION
 
         if (confirm == JOptionPane.YES_OPTION) {
-          val symbol = contents.uniSymbol
+          val symbol = content.uniSymbol
           /** drop tables in database */
           PersistenceManager().dropAllQuoteTables(symbol)
         }
@@ -1029,8 +1025,8 @@ object SymbolNodes {
 
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+      val content = node.getLookup.lookup(classOf[Content])
+      val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
       val cal = Calendar.getInstance
       cal.clear
@@ -1039,14 +1035,14 @@ object SymbolNodes {
       val fromTime = cal.getTimeInMillis
 
       val freq = quoteContract.freq
-      PersistenceManager().deleteQuotes(contents.uniSymbol, freq, fromTime, Long.MaxValue)
+      PersistenceManager().deleteQuotes(content.uniSymbol, freq, fromTime, Long.MaxValue)
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = content.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        //sec = new Sec(contents.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        //sec = new Sec(content.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
         sec.quoteContracts = List(quoteContract)
-        contents.serProvider = sec
+        content.serProvider = sec
       } else {
         sec.dataContract = quoteContract
       }
@@ -1075,15 +1071,15 @@ object SymbolNodes {
       }
 
       /** otherwise, it's an OneSymbolNode, do real things */
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+      val content = node.getLookup.lookup(classOf[Content])
+      val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = content.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        //sec = new Sec(contents.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        //sec = new Sec(content.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
         sec.quoteContracts = List(quoteContract)
-        contents.serProvider = sec
+        content.serProvider = sec
       } else {
         sec.dataContract = quoteContract
       }
@@ -1099,17 +1095,17 @@ object SymbolNodes {
     putValue(Action.NAME, Bundle.getString("AC_set_data_source"))
 
     def execute {
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
+      val content = node.getLookup.lookup(classOf[Content])
 
       val pane = new ImportSymbolDialog(
         WindowManager.getDefault.getMainWindow,
-        contents.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null),
+        content.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null),
         false)
       if (pane.showDialog != JOptionPane.OK_OPTION) {
         return
       }
 
-      contents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+      content.lookupAction(classOf[SaveAction]) foreach {_.execute}
       node.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
     }
   }
@@ -1118,15 +1114,15 @@ object SymbolNodes {
     putValue(Action.NAME, Bundle.getString("AC_compare_to_current"))
 
     def execute {
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+      val content = node.getLookup.lookup(classOf[Content])
+      val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = contents.serProvider.asInstanceOf[Sec]
+      var sec = content.serProvider.asInstanceOf[Sec]
       if (sec == null) {
-        //sec = new Sec(contents.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(contents.uniSymbol) getOrElse (return)
+        //sec = new Sec(content.uniSymbol, List(quoteContract))
+        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
         sec.quoteContracts = List(quoteContract)
-        contents.serProvider = sec
+        content.serProvider = sec
       }
 
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
@@ -1162,8 +1158,8 @@ object SymbolNodes {
         dobj.createShadow(favFolder)
       }
 
-      val contents = node.getLookup.lookup(classOf[AnalysisContents])
-      watchSymbolInFolder(favoriteNode, Array(contents))
+      val content = node.getLookup.lookup(classOf[Content])
+      watchSymbolInFolder(favoriteNode, Array(content))
     }
   }
 
@@ -1191,15 +1187,15 @@ object SymbolNodes {
     }
   }
 
-  private def watchSymbolInFolder(folderNode: SymbolFolderNode, symbolContents: Array[AnalysisContents]) {
+  private def watchSymbolInFolder(folderNode: SymbolFolderNode, symbolContents: Array[Content]) {
     val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
     watchListTc.requestActive
 
     val lastTickers = new ArrayList[LightTicker]
     var i = 0
     while (i < symbolContents.length) {
-      val contents = symbolContents(i)
-      val uniSymbol = contents.uniSymbol
+      val content = symbolContents(i)
+      val uniSymbol = content.uniSymbol
       Exchange.secOf(uniSymbol) match {
         case Some(sec) =>
           watchListTc.watch(sec)

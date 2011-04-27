@@ -45,31 +45,31 @@ trait TestHelper {
     dataContract
   }
 
-  def createAnalysisContents(symbol: String, freq: TFreq): AnalysisContents = {
-    val contents = new AnalysisContents(symbol)
+  def createContent(symbol: String, freq: TFreq): Content = {
+    val content = new Content(symbol)
 
-    contents.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[BIASIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[BOLLIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[CCIIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[DMIIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[EMAIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[GMMAIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[HVDIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[KDIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MACDIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MFIIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[MTMIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[OBVIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[ROCIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[SARIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[WMSIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGFAIndicator], freq))
-    contents.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[BIASIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[BOLLIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[CCIIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[DMIIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[EMAIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[GMMAIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[HVDIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[KDIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[MACDIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[MFIIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[MTMIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[OBVIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[ROCIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[SARIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[WMSIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGFAIndicator], freq))
+    content.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGIndicator], freq))
 
-    contents
+    content
   }
 
   def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: TFreq): IndicatorDescriptor = {
@@ -81,15 +81,15 @@ trait TestHelper {
   }
 
 
-  def loadSer(contents: AnalysisContents): Unit = {
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse (return)
+  def loadSer(content: Content): Unit = {
+    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse (return)
 
     val freq = quoteContract.freq
     if (!quoteContract.isFreqSupported(freq)) {
       return
     }
 
-    val sec = contents.serProvider
+    val sec = content.serProvider
     var mayNeedsReload = false
     if (sec == null) {
       return
@@ -107,9 +107,9 @@ trait TestHelper {
     }
   }
 
-  def initIndicators(contents: AnalysisContents, baseSer: BaseTSer): Seq[Indicator] = {
+  def initIndicators(content: Content, baseSer: BaseTSer): Seq[Indicator] = {
     var indicators: List[Indicator] = Nil
-    for (descriptor <- contents.lookupDescriptors(classOf[IndicatorDescriptor])
+    for (descriptor <- content.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq.equals(baseSer.freq)
     ) yield {
       descriptor.serviceInstance(baseSer) match {

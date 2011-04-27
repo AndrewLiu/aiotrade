@@ -32,7 +32,7 @@ package org.aiotrade.modules.ui
 
 import java.awt.Image
 import javax.swing.Action
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 
 /**
  * A lightweight class to carry the information that will be wrapped in Node
@@ -56,7 +56,7 @@ abstract class GroupDescriptor[T] extends Cloneable with Ordered[GroupDescriptor
     
   def getIcon(tpe: Int): Image
     
-  def createActions(contents: AnalysisContents): Array[Action]
+  def createActions(content: Content): Array[Action]
     
   override def clone: GroupDescriptor[T] = {
     try {

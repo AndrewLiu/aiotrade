@@ -13,7 +13,7 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import java.util.Properties
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.indicator.basic._
@@ -64,9 +64,9 @@ class PlainPersistenceManager extends PersistenceManager {
   def saveProperties {}
   def properties = new Properties
 
-  def saveContents(contents: AnalysisContents) {}
-  def restoreContents(symbol: String): AnalysisContents = new AnalysisContents(symbol)
-  def defaultContents: AnalysisContents = new AnalysisContents("<Default>")
+  def saveContent(content: Content) {}
+  def restoreContent(symbol: String): Content = new Content(symbol)
+  def defaultContent: Content = new Content("<Default>")
 
   def lookupAllRegisteredServices[T](clz: Class[T], folderName: String): Seq[T] = {
     if (clz == classOf[QuoteServer]) {

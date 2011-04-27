@@ -40,9 +40,9 @@ import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.indicator.Id
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.TSer
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 
 /**
@@ -62,14 +62,14 @@ object PanelIndicator extends Publisher {
       }
     }, 1000, interval)
 
-  def apply[T <: PanelIndicator[_]](klass: Class[T], sectionName: String, freq: TFreq, factors: Factor*): T = {
+  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): T = {
     val factorArr = factors.toArray
     val factorLen = factorArr.length
     val args = new Array[Any](factorLen + 1)
     args(0) = freq
     System.arraycopy(factorArr, 0, args, 1, factorLen)
     
-    val id = Id(klass, sectionName, args: _*)
+    val id = Id(klass, sectorKey, args: _*)
     
     idToIndicator.get(id) match {
       case null =>
@@ -90,7 +90,7 @@ object PanelIndicator extends Publisher {
 class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  val indicators = new ArrayList[T]
+  val indicators = new ArrayList[(T, ValidTime[Sec])]
   
   private var lastFromTime = Long.MaxValue
   reactions += {
@@ -116,31 +116,30 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
   }
   listenTo(PanelIndicator)
 
-  def addSecs(secs: Set[Sec]) {
-    for (sec <- secs) addSec(sec)
-    //computeFrom(0)
+  def addSecs(secValidTimes: collection.Seq[ValidTime[Sec]]) {
+    secValidTimes foreach addSec
     publish(ComputeFrom(0))
   }
 
-  def addSec(sec: Sec): Option[T] = {
-    sec.serOf(freq) match {
+  def addSec(secValidTime: ValidTime[Sec]): Option[T] = {
+    secValidTime.ref.serOf(freq) match {
       case Some(baseSer) =>
         val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
-        indicators += ind
+        indicators += ((ind, secValidTime))
         ind.computeFrom(0)
         Some(ind)
       case _ => None
     }
   }
 
-  final protected def firstTimeOf(sers: ArrayList[_ <: TSer]) = {
+  final protected def firstTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
     var firstTime = Long.MinValue
 
     val length = sers.length
     var i = 0
     while (i < length) {
-      var ser = sers(i)
+      var ser = sers(i)._1
       if (ser.timestamps.size > 0) {
         val fTime = ser.timestamps(0)
         firstTime = if (firstTime == Long.MinValue) fTime else math.min(firstTime, fTime)
@@ -151,7 +150,7 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
     firstTime
   }
 
-  final protected def lastTimeOf(sers: ArrayList[_ <: TSer]) = {
-    if (sers.isEmpty) 0 else sers.map(_.lastOccurredTime).max
+  final protected def lastTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
+    if (sers.isEmpty) 0 else sers.map(_._1.lastOccurredTime).max
   }
 }

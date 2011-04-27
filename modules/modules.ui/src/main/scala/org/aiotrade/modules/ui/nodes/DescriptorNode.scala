@@ -35,8 +35,8 @@ import java.beans.IntrospectionException
 import java.beans.PropertyChangeEvent
 import javax.swing.Action
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor
+import org.aiotrade.lib.math.timeseries.descriptor.Content
+import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 import org.aiotrade.lib.util.swing.action.DeleteAction
 import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
@@ -87,27 +87,27 @@ object DescriptorNode {
 
 import DescriptorNode._
 @throws(classOf[IntrospectionException])
-class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisContents, ic: InstanceContent
-) extends FilterNode(new BeanNode[AnalysisDescriptor[_]](descriptorInfo), Children.LEAF, new AbstractLookup(ic)) {
+class DescriptorNode(descriptorInfo: Descriptor[_], content: Content, ic: InstanceContent
+) extends FilterNode(new BeanNode[Descriptor[_]](descriptorInfo), Children.LEAF, new AbstractLookup(ic)) {
 
   /**
-   * the descriptor param may be a clone of descritor in contents, so we
-   * should lookup that one in contents instead put it in lookup content.
-   * Otherwise, the descriptor stored in viewContainer (which is from contents)
+   * the descriptor param may be a clone of descritor in content, so we
+   * should lookup that one in content instead put it in lookup content.
+   * Otherwise, the descriptor stored in viewContainer (which is from content)
    * may not the one stored here.
    * @TODO The better solution is give a NodeInfo param
    */
-  private val descriptor = contents.lookupDescriptor(
-    descriptorInfo.getClass.asInstanceOf[Class[AnalysisDescriptor[_]]],
+  private val descriptor = content.lookupDescriptor(
+    descriptorInfo.getClass.asInstanceOf[Class[Descriptor[_]]],
     descriptorInfo.serviceClassName,
     descriptorInfo.freq
   ).get
 
   /* adds additional items to the lookup */
-  ic.add(contents)
+  ic.add(content)
     
-  def this(descriptor: AnalysisDescriptor[_], contents: AnalysisContents) = {
-    this(descriptor, contents, new InstanceContent)
+  def this(descriptor: Descriptor[_], content: Content) = {
+    this(descriptor, content, new InstanceContent)
     /**
      * @TODO
      * this method seems that will call descriptor.setName(String) automatically,
@@ -204,7 +204,7 @@ class DescriptorNode(descriptorInfo: AnalysisDescriptor[_], contents: AnalysisCo
             descriptor.serviceClassName = evt.getNewValue.toString
             refreshDisplayName
           }
-          descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_ execute}
+          descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach {_ execute}
         }
       }
     }

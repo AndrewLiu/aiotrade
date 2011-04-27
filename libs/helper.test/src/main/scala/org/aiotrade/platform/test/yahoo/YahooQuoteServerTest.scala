@@ -66,30 +66,30 @@ object YahooQuoteServerTest extends TestHelper {
     val exchange = YahooQuoteServer.exchangeOf(symbol)
     sec.exchange = exchange
 
-    val dailyContents = createAnalysisContents(symbol, dailyFreq)
-    dailyContents.addDescriptor(dailyQuoteContract)
-    dailyContents.serProvider = sec
+    val dailyContent = createContent(symbol, dailyFreq)
+    dailyContent.addDescriptor(dailyQuoteContract)
+    dailyContent.serProvider = sec
 
-    val rtContents = createAnalysisContents(symbol, oneMinFreq)
-    rtContents.addDescriptor(oneMinQuoteContract)
-    rtContents.serProvider = sec
+    val rtContent = createContent(symbol, oneMinFreq)
+    rtContent.addDescriptor(oneMinQuoteContract)
+    rtContent.serProvider = sec
 
-    val weeklyContents = createAnalysisContents(symbol, TFreq.WEEKLY)
-    //weeklyContents.addDescriptor(dailyQuoteContract)
-    weeklyContents.serProvider = sec
+    val weeklyContent = createContent(symbol, TFreq.WEEKLY)
+    //weeklyContent.addDescriptor(dailyQuoteContract)
+    weeklyContent.serProvider = sec
 
     val daySer  = sec.serOf(dailyFreq).get
     val minSer = sec.serOf(oneMinFreq).get
 
     // * init indicators before loadSer, so, they can receive the Loaded evt
-    val dailyInds  = initIndicators(dailyContents, daySer)
-    val oneMinInds = initIndicators(rtContents, minSer)
+    val dailyInds  = initIndicators(dailyContent, daySer)
+    val oneMinInds = initIndicators(rtContent, minSer)
 
-    loadSer(dailyContents)
-    //loadSer(rtContents)
+    loadSer(dailyContent)
+    //loadSer(rtContent)
 
     val weeklySer = sec.serOf(TFreq.WEEKLY).get
-    val weeklyInds = initIndicators(weeklyContents, weeklySer)
+    val weeklyInds = initIndicators(weeklyContent, weeklySer)
     
     // wait for some secs for data loading
     //waitFor(10000)

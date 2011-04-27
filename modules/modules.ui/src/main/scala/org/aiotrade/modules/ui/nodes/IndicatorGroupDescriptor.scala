@@ -38,7 +38,7 @@ import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
@@ -70,8 +70,8 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     classOf[IndicatorDescriptor]
   }
     
-  def createActions(contents: AnalysisContents): Array[Action] = {
-    Array(new AddIndicatorAction(contents))
+  def createActions(content: Content): Array[Action] = {
+    Array(new AddIndicatorAction(content))
   }
     
   def getDisplayName = {
@@ -86,7 +86,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     ICON
   }
     
-  private class AddIndicatorAction(contents: AnalysisContents) extends AddAction {
+  private class AddIndicatorAction(content: Content) extends AddAction {
 //    putValue(Action.NAME, "Add Indicator")
     putValue(Action.NAME,NbBundle.getMessage(this .getClass,"Add_Indicator"))
 
@@ -122,9 +122,9 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
         val indicator = indicators find (x => x.displayName == selectedIndicator) getOrElse (return)
         val className = indicator.getClass.getName
 
-        (contents.lookupDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) match {
+        (content.lookupDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) match {
             case None =>
-              contents.createDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) map {x =>
+              content.createDescriptor(classOf[IndicatorDescriptor], className, TFreq(unit, nUnits)) map {x =>
                 indicator.uniSymbol match {
                   case Some(s) => x.uniSymbol = s; x
                   case None => x
@@ -133,7 +133,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
             case some => some
           }
         ) foreach {descriptor =>
-          contents.  lookupAction(classOf[SaveAction]) foreach {_.execute}
+          content.lookupAction(classOf[SaveAction]) foreach {_.execute}
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         }
       } catch {case _ => return}

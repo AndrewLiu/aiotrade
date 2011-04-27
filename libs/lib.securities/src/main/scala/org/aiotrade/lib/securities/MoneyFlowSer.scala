@@ -44,13 +44,13 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   private var _shortDescription: String = ""
   var adjusted: Boolean = false
 
-  val totalVolume = TVar[Double]("TV", Plot.Stick)
+  val totalVolume = TVar[Double]("TV", Plot.None)
   val totalAmount = TVar[Double]("TA", Plot.None)
-  val totalVolumeIn = TVar[Double]("TVi", Plot.Stick)
+  val totalVolumeIn = TVar[Double]("TVi", Plot.None)
   val totalAmountIn = TVar[Double]("TAi", Plot.None)
-  val totalVolumeOut = TVar[Double]("TVo", Plot.Stick)
+  val totalVolumeOut = TVar[Double]("TVo", Plot.None)
   val totalAmountOut = TVar[Double]("TAo", Plot.None)
-  val totalVolumeEven = TVar[Double]("TVe", Plot.Stick)
+  val totalVolumeEven = TVar[Double]("TVe", Plot.None)
   val totalAmountEven = TVar[Double]("TAe", Plot.None)
   
   val superVolume = TVar[Double]("SV", Plot.None)
