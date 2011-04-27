@@ -236,7 +236,9 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
   override def clone: TFreq = {
     try {
       super.clone.asInstanceOf[TFreq]
-    } catch {case ex:CloneNotSupportedException => ex.printStackTrace; null}
+    } catch {
+      case ex:CloneNotSupportedException => ex.printStackTrace; null
+    }
   }
 
   override def compare(another: TFreq): Int = {

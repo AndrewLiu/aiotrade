@@ -48,48 +48,43 @@ object YahooQuoteServerTest extends TestHelper {
     val quoteServer  = YahooQuoteServer.getClass.getName
     val tickerServer = YahooTickerServer.getClass.getName
 
-    val oneMinFreq = TFreq.ONE_MIN
-    val dailyFreq = TFreq.DAILY
-
-    val dailyQuoteContract = createQuoteContract(symbol, "", "", dailyFreq, false, quoteServer)
-
-    val supportOneMin = dailyQuoteContract.isFreqSupported(oneMinFreq)
-
-    val oneMinQuoteContract = createQuoteContract(symbol, "", "", oneMinFreq, false, quoteServer)
-    val tickerContract = createTickerContract(symbol, "", "", oneMinFreq, tickerServer)
-
-    val quoteContracts = List(dailyQuoteContract, oneMinQuoteContract)
-
     val sec = Exchange.secOf(symbol).get
-    sec.quoteContracts = quoteContracts
-    sec.tickerContract = tickerContract
     val exchange = YahooQuoteServer.exchangeOf(symbol)
     sec.exchange = exchange
 
-    val dailyContent = createContent(symbol, dailyFreq)
-    dailyContent.addDescriptor(dailyQuoteContract)
-    dailyContent.serProvider = sec
+    val content = new Content(symbol)
+    content.serProvider = sec
+    sec.content = content
 
-    val rtContent = createContent(symbol, oneMinFreq)
-    rtContent.addDescriptor(oneMinQuoteContract)
-    rtContent.serProvider = sec
+    val dailyQuoteContract = createQuoteContract(symbol, "", "", TFreq.DAILY, false, quoteServer)
 
-    val weeklyContent = createContent(symbol, TFreq.WEEKLY)
+    val supportOneMin = dailyQuoteContract.isFreqSupported(TFreq.ONE_MIN)
+
+    val oneMinQuoteContract = createQuoteContract(symbol, "", "", TFreq.ONE_MIN, false, quoteServer)
+    val tickerContract = createTickerContract(symbol, "", "", TFreq.ONE_MIN, tickerServer)
+
+    content.addDescriptor(dailyQuoteContract)
+    content.addDescriptor(oneMinQuoteContract)
+    sec.tickerContract = tickerContract
+
+
+    createAndAddIndicatorDescritors(content, TFreq.DAILY)
+    createAndAddIndicatorDescritors(content, TFreq.ONE_MIN)
+    createAndAddIndicatorDescritors(content, TFreq.WEEKLY)
     //weeklyContent.addDescriptor(dailyQuoteContract)
-    weeklyContent.serProvider = sec
 
-    val daySer  = sec.serOf(dailyFreq).get
-    val minSer = sec.serOf(oneMinFreq).get
+    val daySer  = sec.serOf(TFreq.DAILY).get
+    val minSer = sec.serOf(TFreq.ONE_MIN).get
 
     // * init indicators before loadSer, so, they can receive the Loaded evt
-    val dailyInds  = initIndicators(dailyContent, daySer)
-    val oneMinInds = initIndicators(rtContent, minSer)
+    val dailyInds  = initIndicators(content, daySer)
+    val oneMinInds = initIndicators(content, minSer)
 
-    loadSer(dailyContent)
-    //loadSer(rtContent)
+    loadSer(sec, TFreq.DAILY)
+    //loadSer(sec, TFreq.ONE_MIN)
 
     val weeklySer = sec.serOf(TFreq.WEEKLY).get
-    val weeklyInds = initIndicators(weeklyContent, weeklySer)
+    val weeklyInds = initIndicators(content, weeklySer)
     
     // wait for some secs for data loading
     //waitFor(10000)

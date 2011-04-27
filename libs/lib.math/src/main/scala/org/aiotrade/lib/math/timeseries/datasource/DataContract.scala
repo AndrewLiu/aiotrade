@@ -32,6 +32,9 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import java.util.Calendar
 import java.util.Date
+import java.util.logging.Level
+import java.util.logging.Logger
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.aiotrade.lib.util.serialization.JavaDocument
@@ -49,6 +52,8 @@ import org.w3c.dom.Element
  * @author Caoyuan Deng
  */
 abstract class DataContract[S: Manifest] extends Descriptor[S] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   @transient var reqId = 0
 
   /** symbol in source */
@@ -64,7 +69,8 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
   cal.set(1970, Calendar.JANUARY, 1)
   var beginDate = cal.getTime
 
-
+  def isFreqSupported(freq: TFreq): Boolean
+  
   /**
    * All dataserver will be implemented as singleton
    * @param none args are needed.
@@ -74,6 +80,14 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
   }
 
   override def toString: String = displayName
+
+  override def clone: DataContract[S] = {
+    try {
+      super.clone.asInstanceOf[DataContract[S]]
+    } catch {
+      case ex: CloneNotSupportedException => log.log(Level.SEVERE, ex.getMessage, ex); null
+    }
+  }
 
   override def writeToBean(doc: BeansDocument): Element = {
     val bean = super.writeToBean(doc)

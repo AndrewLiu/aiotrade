@@ -9,6 +9,8 @@ class QuoteInfoHisContract extends DataContract[QuoteInfoHisDataServer] {
   freq = TFreq.DAILY
   isRefreshable = false
 
+  def isFreqSupported(freq: TFreq): Boolean = true
+
   override def displayName = {
     "QuoteInfo His Data Contract[" + srcSymbol + "]"
   }

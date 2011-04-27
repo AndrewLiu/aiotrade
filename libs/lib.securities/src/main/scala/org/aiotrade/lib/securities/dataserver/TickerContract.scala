@@ -48,6 +48,8 @@ class TickerContract extends DataContract[TickerServer] {
   freq = TFreq.ONE_MIN
   isRefreshable = true
 
+  def isFreqSupported(freq: TFreq): Boolean = true
+
   override def displayName = {
     "Ticker Data Contract[" + srcSymbol + "]"
   }
