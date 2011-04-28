@@ -34,7 +34,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.util.ChangeSubject
 
 
@@ -44,9 +44,9 @@ import org.aiotrade.lib.util.ChangeSubject
  *
  * A ChartingController instance keeps the 1-1 relation with:
  *   the BaseTSer,
- *   the AnalysisDescriptor, and
+ *   the Descriptor, and
  *   a ChartViewContainer
- * Thus, ChartingController couples BaseTSer-AnalysisDescriptor-ChartViewContainer
+ * Thus, ChartingController couples BaseTSer-Descriptor-ChartViewContainer
  * together from outside.
  *
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -59,7 +59,7 @@ trait ChartingController extends ChangeSubject {
 
   def baseSer: BaseTSer
 
-  def contents: AnalysisContents
+  def content: Content
 
   def isCursorCrossLineVisible: Boolean
   def isCursorCrossLineVisible_=(b: Boolean)
@@ -147,7 +147,7 @@ object ChartingController {
   import java.awt.event.WindowEvent
   import javax.swing.JComponent
   import javax.swing.JFrame
-  import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+  import org.aiotrade.lib.math.timeseries.descriptor.Content
   import org.aiotrade.lib.math.timeseries.BaseTSer
   import org.aiotrade.lib.math.timeseries.TSerEvent
   import javax.swing.WindowConstants
@@ -155,8 +155,8 @@ object ChartingController {
   import scala.collection.mutable
 
 
-  def apply(baseSer: BaseTSer, contents: AnalysisContents): ChartingController = {
-    new DefaultChartingController(baseSer, contents)
+  def apply(baseSer: BaseTSer, content: Content): ChartingController = {
+    new DefaultChartingController(baseSer, content)
   }
 
   object DefaultChartingController {
@@ -194,13 +194,13 @@ object ChartingController {
    *   mouseEnteredAnyChartPane
    */
   import DefaultChartingController._
-  private class DefaultChartingController($baseSer: BaseTSer, $contents: AnalysisContents) extends ChartingController
+  private class DefaultChartingController($baseSer: BaseTSer, $content: Content) extends ChartingController
                                                                                               with Reactor {
 
     private val log = Logger.getLogger(this.getClass.getName)
 
     val baseSer = $baseSer
-    val contents = $contents
+    val content = $content
 
     private val popupViewRefs = mutable.WeakHashMap[ChartView, AnyRef]()
     private def popupViews = popupViewRefs.keys

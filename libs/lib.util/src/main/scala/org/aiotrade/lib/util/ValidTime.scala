@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -28,41 +28,22 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math
-
-import java.util.Properties
-import java.util.logging.Logger
-import org.aiotrade.lib.math.timeseries.descriptor.Content
-import org.aiotrade.lib.util.ServiceLoader
+package org.aiotrade.lib.util
 
 /**
- *
- * @author  Caoyuan Deng
- * @version 1.0, December 1, 2006, 10:20 PM
- * @since   1.0.4
+ * A class to get the valid time of something
+ * 
+ * @param ref       What the valid time is talking about
+ * @param validFrom the time valid from, included
+ * @param validTo   the time valid to, excluded.
+ * 
+ * @author Caoyuan Deng
  */
-object PersistenceManager {
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private lazy val manager: PersistenceManager = {
-    val x = ServiceLoader.load(classOf[PersistenceManager]).iterator.next
-    log.info("Use PersistenceManager: " + x.getClass.getName)
-    x
+final case class ValidTime[T](ref: T, validFrom: Long, validTo: Long) {
+  def isValid(time: Long): Boolean = {
+    if (validTo == 0) true else (validFrom <= time && validTo > time)
   }
-
-  def apply(): PersistenceManager = manager
-    
+  
+  def isIn(prevTime: Long, time: Long): Boolean = !isValid(prevTime) && isValid(time)
+  def isOut(prevTime: Long, time: Long): Boolean = isValid(prevTime) && !isValid(time)
 }
-/** Interface of PersistenceManager */
-trait PersistenceManager {
-  def restoreProperties
-  def saveProperties
-  def properties: Properties
-
-  def saveContent(content: Content)
-  def restoreContent(uniSymbol: String): Content
-  def defaultContent: Content
-
-  def lookupAllRegisteredServices[T](tpe: Class[T], folderName: String): Seq[T]
-}
-

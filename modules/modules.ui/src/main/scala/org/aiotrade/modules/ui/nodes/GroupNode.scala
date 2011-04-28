@@ -35,8 +35,8 @@ import java.beans.IntrospectionException;
 import java.util.HashSet;
 import javax.swing.Action;
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisDescriptor;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
+import org.aiotrade.lib.math.timeseries.descriptor.Descriptor;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.aiotrade.lib.util.swing.action.UpdateAction;
@@ -80,28 +80,28 @@ object GroupNode {
    * The children wrap class
    * ------------------------------------------------------------------------
    */
-  private class GroupChildren(contents: AnalysisContents, groupClass: Class[AnalysisDescriptor[_]]) extends Children.Keys[AnalysisDescriptor[_]] {
+  private class GroupChildren(content: Content, groupClass: Class[Descriptor[_]]) extends Children.Keys[Descriptor[_]] {
 
     /**
      * since setKeys(childrenKeys) will copy the elements of childrenKeys, it's safe to
      * use a repeatly used bufChildrenKeys here.
      * And, to sort them in letter order, we can use a SortedSet to copy from collection.(TODO)
      */
-    private val bufChildrenKeys = new java.util.HashSet[AnalysisDescriptor[_]]
+    private val bufChildrenKeys = new java.util.HashSet[Descriptor[_]]
 
     override def addNotify {
       val node = getNode.asInstanceOf[GroupNode]
       bufChildrenKeys.clear
-      val descriptors = contents.lookupDescriptors(groupClass, node.freq).iterator
+      val descriptors = content.lookupDescriptors(groupClass, node.freq).iterator
       while (descriptors.hasNext) {
         bufChildrenKeys.add(descriptors.next)
       }
       setKeys(bufChildrenKeys)
     }
 
-    def createNodes(key: AnalysisDescriptor[_]): Array[Node] = {
+    def createNodes(key: Descriptor[_]): Array[Node] = {
       try {
-        Array(new DescriptorNode(key, contents))
+        Array(new DescriptorNode(key, content))
       } catch {
         case ex: IntrospectionException =>
           ErrorManager.getDefault.notify(ErrorManager.INFORMATIONAL, ex)
@@ -141,14 +141,14 @@ object GroupNode {
 }
 
 @throws(classOf[IntrospectionException])
-class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: AnalysisContents, ic: InstanceContent
-) extends FilterNode(new BeanNode[GroupDescriptor[_]](group), new GroupNode.GroupChildren(contents, group.getBindClass), new AbstractLookup(ic)) {
+class GroupNode(group: GroupDescriptor[Descriptor[_]], content: Content, ic: InstanceContent
+) extends FilterNode(new BeanNode[GroupDescriptor[_]](group), new GroupNode.GroupChildren(content, group.getBindClass), new AbstractLookup(ic)) {
   import GroupNode._
 
   private var _freq: TFreq = TFreq.DAILY
 
   /* add aditional items to the lookup */
-  ic.add(contents)
+  ic.add(content)
 
   ic.add(new GroupRefreshAction(this))
   ic.add(new GroupUpdateAction(this))
@@ -156,7 +156,7 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
   /**
    * add actions carried with nodeInfo
    */
-  for (action <- group.createActions(contents)) {
+  for (action <- group.createActions(content)) {
     /**
      * as content only do flat lookup, should add actions one by one,
      * instead of adding an array, otherwise this.getLookup().loopup
@@ -167,8 +167,8 @@ class GroupNode(group: GroupDescriptor[AnalysisDescriptor[_]], contents: Analysi
 
 
   @throws(classOf[IntrospectionException])
-  def this(group: GroupDescriptor[AnalysisDescriptor[_]], contents: AnalysisContents)  {
-    this(group, contents, new InstanceContent)
+  def this(group: GroupDescriptor[Descriptor[_]], content: Content) = {
+    this(group, content, new InstanceContent)
 
     setName(group.getDisplayName)
   }

@@ -36,7 +36,7 @@ import javax.swing.JOptionPane;
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor;
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.lib.util.swing.action.SaveAction;
 import org.aiotrade.lib.util.swing.action.ViewAction;
@@ -64,8 +64,8 @@ class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {
     classOf[DrawingDescriptor]
   }
     
-  def createActions(contents: AnalysisContents): Array[Action] = {
-    Array(new AddDrawingAction(contents))
+  def createActions(content: Content): Array[Action] = {
+    Array(new AddDrawingAction(content))
   }
     
   def getDisplayName: String = {
@@ -80,7 +80,7 @@ class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {
     ICON
   }
     
-  private class AddDrawingAction(contents: AnalysisContents) extends AddAction {
+  private class AddDrawingAction(content: Content) extends AddAction {
     putValue(Action.NAME, NbBundle.getMessage(this .getClass,"Add_Layer"))
         
     def execute {
@@ -101,19 +101,19 @@ class DrawingGroupDescriptor extends GroupDescriptor[DrawingDescriptor] {
       layerName = layerName.trim
             
       var freq = new TFreq(TUnit.Day, 1)
-      AnalysisChartTopComponent.instanceOf(contents.uniSymbol) foreach {analysisTc =>
+      AnalysisChartTopComponent.instanceOf(content.uniSymbol) foreach {analysisTc =>
         val viewContainer = analysisTc.viewContainer
         freq = viewContainer.controller.baseSer.freq
       }
             
-      val descriptor = contents.lookupDescriptor(
+      val descriptor = content.lookupDescriptor(
         classOf[DrawingDescriptor],
         layerName,
         freq
-      ) getOrElse (contents.createDescriptor(classOf[DrawingDescriptor], layerName, freq) getOrElse null)
+      ) getOrElse (content.createDescriptor(classOf[DrawingDescriptor], layerName, freq) getOrElse null)
             
       if (descriptor != null) {
-        contents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+        content.lookupAction(classOf[SaveAction]) foreach {_.execute}
                 
         descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
       }

@@ -40,7 +40,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.IndicatorDescriptorActionFactory
 import org.aiotrade.lib.math.indicator.ComputeFrom
 import org.aiotrade.lib.math.indicator.Factor
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.util.swing.action.DeleteAction
 import org.aiotrade.lib.util.swing.action.EditAction
@@ -79,9 +79,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         
     def execute {
       descriptor.active = true
-      descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+      descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol);
+      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol);
            viewContainer = analysisTc.viewContainer;
            indicator <- descriptor.serviceInstance(viewContainer.controller.baseSer)
       ) {
@@ -120,9 +120,9 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         
     def execute {
       descriptor.active = false
-      descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+      descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol)
+      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol)
       ) {
         val viewContainer = analysisTc.viewContainer
         viewContainer.removeSlaveView(descriptor)
@@ -151,8 +151,8 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       if (confirm == JOptionPane.YES_OPTION) {
         descriptor.lookupAction(classOf[HideAction]) foreach (_.execute)
                 
-        descriptor.containerContents.removeDescriptor(descriptor)
-        descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach (_.execute)
+        descriptor.containerContent.removeDescriptor(descriptor)
+        descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach (_.execute)
       }
     }
         
@@ -188,19 +188,19 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         }
                 
         if (pane.isSaveAsDefault()) {
-          val defaultContents = PersistenceManager().defaultContents
-          defaultContents.lookupDescriptor(classOf[IndicatorDescriptor],
-                                           descriptor.serviceClassName,
-                                           descriptor.freq
+          val defaultContent = PersistenceManager().defaultContent
+          defaultContent.lookupDescriptor(classOf[IndicatorDescriptor],
+                                          descriptor.serviceClassName,
+                                          descriptor.freq
           ) match {
             case Some(x) =>
               x.factors = descriptor.factors
             case None =>
               val defaultOne = new IndicatorDescriptor(descriptor.serviceClassName, descriptor.freq, descriptor.factors, false)
-              defaultContents.addDescriptor(defaultOne)
+              defaultContent.addDescriptor(defaultOne)
           }
                     
-          PersistenceManager().saveContents(defaultContents)
+          PersistenceManager().saveContent(defaultContent)
         }
       } else { // else, opts may have been changed when preview, so, should do setOpts to restore old opts to indicator instance
         setIndicatorOpts(descriptor, descriptor.factors)
@@ -221,12 +221,12 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
           setIndicatorOptsRecursively(child, descriptorWithOpts)
         }
       } else { // else, an OneSymbolNode
-        val contents = rootNodeToBeSet.getLookup.lookup(classOf[AnalysisContents])
+        val content = rootNodeToBeSet.getLookup.lookup(classOf[Content])
         val indicatorGroupNode = rootNodeToBeSet.getChildren.findChild(IndicatorGroupDescriptor.NAME)
         if (indicatorGroupNode != null) {
-          for (descriptorToBeSet <- contents.lookupDescriptor(classOf[IndicatorDescriptor],
-                                                              descriptorWithOpts.serviceClassName,
-                                                              descriptorWithOpts.freq);
+          for (descriptorToBeSet <- content.lookupDescriptor(classOf[IndicatorDescriptor],
+                                                             descriptorWithOpts.serviceClassName,
+                                                             descriptorWithOpts.freq);
                child <- indicatorGroupNode.getChildren.getNodes
           ) {
             setIndicatorOpts(descriptorToBeSet, descriptorWithOpts.factors)
@@ -237,13 +237,13 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         
     private def setIndicatorOpts(descriptorToBeSet: IndicatorDescriptor, factors: Array[Factor]) {
       descriptorToBeSet.factors = factors
-      descriptorToBeSet.containerContents.lookupAction(classOf[SaveAction]) foreach (_.execute)
+      descriptorToBeSet.containerContent.lookupAction(classOf[SaveAction]) foreach (_.execute)
             
       showEffect(descriptorToBeSet)
     }
         
     private def showEffect(descriptorToBeSet: IndicatorDescriptor) {
-      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptorToBeSet.containerContents.uniSymbol);
+      for (analysisWin <- AnalysisChartTopComponent.instanceOf(descriptorToBeSet.containerContent.uniSymbol);
            descriptor <- analysisWin.lookupIndicator(descriptor)
       ) {
         descriptor.factors = descriptorToBeSet.factors

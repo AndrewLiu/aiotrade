@@ -207,19 +207,19 @@ object Model {
     assert(Exchanges.idOf(SZ).isDefined, SZ + " with none id")
     
     for (symbol <- List("GOOG", "YHOO", "ORCL")) {
-      Exchanges.createSimpleSec(N, symbol, symbol, false)
+      Exchanges.createSimpleSec(symbol, symbol, false)
     }
 
     for (symbol <- List("BP.L", "VOD.L", "BT-A.L", "BARC.L", "BAY.L", "TSCO.L", "HSBA.L")) {
-      Exchanges.createSimpleSec(L, symbol, symbol, false)
+      Exchanges.createSimpleSec(symbol, symbol, false)
     }
 
     for ((symbol, name) <- SSSymToName) {
-      Exchanges.createSimpleSec(SS, symbol + ".SS", name, false)
+      Exchanges.createSimpleSec(symbol + ".SS", name, false)
     }
 
     for (symbol <- List("000001.SZ", "000002.SZ", "000003.SZ", "000004.SZ")) {
-      Exchanges.createSimpleSec(SZ, symbol, symbol, false)
+      Exchanges.createSimpleSec(symbol, symbol, false)
     }
   }
 

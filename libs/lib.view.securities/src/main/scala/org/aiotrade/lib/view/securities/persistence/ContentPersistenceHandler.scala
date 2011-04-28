@@ -35,7 +35,7 @@ import java.text.SimpleDateFormat
 import javax.swing.text.DateFormatter
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -47,23 +47,23 @@ import org.aiotrade.lib.util.serialization.BeansDocument
  * @author Caoyuan Deng
  */
 
-object ContentsPersistenceHandler {
+object ContentPersistenceHandler {
     
-  def dumpContents(contents: AnalysisContents): String = {
+  def dumpContent(content: Content): String = {
     val buffer = new StringBuilder(500)
     val beans = new BeansDocument
-    beans.appendBean(contents.writeToBean(beans))
+    beans.appendBean(content.writeToBean(beans))
         
     buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-    //buffer.append("<!DOCTYPE settings PUBLIC \"-//AIOTrade//DTD AnalysisContents settings 1.0//EN\" >\n")
-    buffer.append("<sec unisymbol=\"" + contents.uniSymbol + "\">\n")
+    //buffer.append("<!DOCTYPE settings PUBLIC \"-//AIOTrade//DTD Content settings 1.0//EN\" >\n")
+    buffer.append("<sec unisymbol=\"" + content.uniSymbol + "\">\n")
 
     val df = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd"))
   
-    val dataContracts = ("sources", "source", contents.lookupDescriptors(classOf[QuoteContract]))
-    val moneyflowContracts = ("moneyflowsources", "moneyflowsource", contents.lookupDescriptors(classOf[MoneyFlowContract]))
-    val infoContracts = ("quoteinfosources", "quoteinfosource", contents.lookupDescriptors(classOf[QuoteInfoContract]))
-    val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", contents.lookupDescriptors(classOf[QuoteInfoHisContract]))
+    val dataContracts = ("sources", "source", content.lookupDescriptors(classOf[QuoteContract]))
+    val moneyflowContracts = ("moneyflowsources", "moneyflowsource", content.lookupDescriptors(classOf[MoneyFlowContract]))
+    val infoContracts = ("quoteinfosources", "quoteinfosource", content.lookupDescriptors(classOf[QuoteInfoContract]))
+    val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", content.lookupDescriptors(classOf[QuoteInfoHisContract]))
 
     for ((sources, source, contracts) <- List(dataContracts, moneyflowContracts, infoContracts, infoHisContracts)) {
       if (contracts.size > 0) {
@@ -89,9 +89,9 @@ object ContentsPersistenceHandler {
         }
         buffer.append("    </").append(sources).append(">\n")
       }
-  }
+    }
         
-    val indicatorDescriptors = contents.lookupDescriptors(classOf[IndicatorDescriptor])
+    val indicatorDescriptors = content.lookupDescriptors(classOf[IndicatorDescriptor])
     if (indicatorDescriptors.size > 0) {
       buffer.append("    <indicators>\n")
       for (descriptor <- indicatorDescriptors) {
@@ -117,7 +117,7 @@ object ContentsPersistenceHandler {
       buffer.append("    </indicators>\n")
     }
         
-    val drawingDescriptors = contents.lookupDescriptors(classOf[DrawingDescriptor])
+    val drawingDescriptors = content.lookupDescriptors(classOf[DrawingDescriptor])
     if (drawingDescriptors.size > 0) {
       buffer.append("    <drawings>\n")
       for (descriptor <- drawingDescriptors) {
@@ -145,7 +145,7 @@ object ContentsPersistenceHandler {
     return buffer.toString
   }
     
-  def loadContents {
+  def loadContent {
   }
     
 }

@@ -33,7 +33,7 @@ package org.aiotrade.modules.ui.windows
 import java.awt.BorderLayout
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.view.securities.RealTimeBoardPanel
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.model.Sec
 import org.openide.windows.TopComponent
 import org.openide.windows.WindowManager
@@ -59,8 +59,8 @@ object RealTimeBoardTopComponent {
   /** The Mode this component will live in */
   val MODE = "board"
 
-  def apply(contents: AnalysisContents): RealTimeBoardTopComponent = {
-    val instance = instances find (_.contents == contents) getOrElse RealTimeBoardTopComponent(contents)
+  def apply(content: Content): RealTimeBoardTopComponent = {
+    val instance = instances find (_.content == content) getOrElse RealTimeBoardTopComponent(content)
 
     if (!instance.isOpened) {
       instance.open
@@ -72,16 +72,16 @@ object RealTimeBoardTopComponent {
 }
 
 import RealTimeBoardTopComponent._
-class RealTimeBoardTopComponent private (val contents: AnalysisContents) extends TopComponent {
+class RealTimeBoardTopComponent private (val content: Content) extends TopComponent {
   instanceRefs.put(this, null)
     
-  val sec = contents.serProvider.asInstanceOf[Sec]
+  val sec = content.serProvider.asInstanceOf[Sec]
 
   private var reallyClosed = false
     
   private val tc_id = sec.name + "_TK"
         
-  private val boardPanel = RealTimeBoardPanel.instanceOf(sec, contents)
+  private val boardPanel = RealTimeBoardPanel.instanceOf(sec, content)
         
   setLayout(new BorderLayout)
         

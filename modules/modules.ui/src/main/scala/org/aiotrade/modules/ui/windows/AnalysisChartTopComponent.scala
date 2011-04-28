@@ -49,7 +49,7 @@ import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -109,16 +109,16 @@ object AnalysisChartTopComponent {
     instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
   }
 
-  def apply(contents: AnalysisContents, standalone: Boolean = false): AnalysisChartTopComponent = {
-    val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]).get
+  def apply(content: Content, standalone: Boolean = false): AnalysisChartTopComponent = {
+    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
     
     if (standalone) {
       val instance = instances find {x =>
-        x.contents == contents && x.freq == freq
+        x.content == content && x.freq == freq
       } match {
-        case Some(tc) => tc.init(contents); tc
-        case None => new AnalysisChartTopComponent(contents)
+        case Some(tc) => tc.init(content); tc
+        case None => new AnalysisChartTopComponent(content)
       }
 
       if (!instance.isOpened) {
@@ -128,9 +128,9 @@ object AnalysisChartTopComponent {
       instance
     } else {
       if (singleton == null) {
-        singleton = new AnalysisChartTopComponent(contents)
+        singleton = new AnalysisChartTopComponent(content)
       } else {
-        singleton.init(contents)
+        singleton.init(content)
       }
 
       singleton
@@ -146,7 +146,7 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent private ($contents: AnalysisContents) extends TopComponent {
+class AnalysisChartTopComponent private ($content: Content) extends TopComponent {
   instanceRefs.put(this, null)
 
   private var addToFavActionMenuItem: JMenuItem = _
@@ -184,8 +184,8 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     })
 
 
-  private var state = init($contents)
-  def contents = state.contents
+  private var state = init($content)
+  def content = state.content
   def viewContainer = state.viewContainer
   def realTimeBoard = state.realTimeBoard
   def freq = state.contractFreq
@@ -193,24 +193,24 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
   private def sec = state.sec
   private def tcId = state.tcId
 
-  def init(currContents: AnalysisContents): State = {
+  def init(currContent: Content): State = {
     if (state != null) {
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
       splitPane.remove(viewContainer)
 
-      val prevContents = contents
-      val prevSec = prevContents.serProvider.asInstanceOf[Sec]
-      val currSec = currContents.serProvider.asInstanceOf[Sec]
+      val prevContent = content
+      val prevSec = prevContent.serProvider.asInstanceOf[Sec]
+      val currSec = currContent.serProvider.asInstanceOf[Sec]
       if (currSec ne prevSec) {
         prevSec.resetSers
-        prevContents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
+        prevContent.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
         // change back to its quote contract to default freq
-        prevContents.lookupDescriptors(classOf[QuoteContract]) foreach {_.freq = defaultFreq}
+        prevContent.lookupDescriptors(classOf[QuoteContract]) foreach {_.freq = defaultFreq}
       }
     }
     
-    state = new State(currContents)
+    state = new State(currContent)
     state
   }
 
@@ -302,21 +302,21 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     super.finalize
   }
 
-  class State(val contents: AnalysisContents) {
+  class State(val content: Content) {
     // set class fields
-    val sec = contents.serProvider.asInstanceOf[Sec]
+    val sec = content.serProvider.asInstanceOf[Sec]
     val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
 
-    // should keep contractFreq before load realtime ser which may change quoteContract in contents
+    // should keep contractFreq before load realtime ser which may change quoteContract in content
     // @Todo: use multiple quoteContracts?
-    private val quoteContract = contents.lookupActiveDescriptor(classOf[QuoteContract]) get
+    private val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]) get
     val contractFreq = quoteContract.freq
 
     sec.resetSers
-    contents.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
+    content.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
 
-    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, contents)
+    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, content)
     realTimeBoard.watch
     
     private val ser = sec.serOf(contractFreq).get
@@ -332,7 +332,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
     sec.subscribeQuoteInfoDataServer(true)
 
-    val viewContainer = createViewContainer(ser, contents, isRealtime)
+    val viewContainer = createViewContainer(ser, content, isRealtime)
 
     splitPane.setLeftComponent(viewContainer)
     splitPane.setRightComponent(realTimeBoard)
@@ -357,7 +357,7 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     popupMenu.addSeparator
     popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
 
-    SymbolNodes.findSymbolNode(contents.uniSymbol) foreach {node =>
+    SymbolNodes.findSymbolNode(content.uniSymbol) foreach {node =>
       AnalysisChartTopComponent.this.setActivatedNodes(Array(node))
       popupMenu.add(node.getLookup.lookup(classOf[AddToFavoriteAction]))
       injectActionsToDescriptors(node)
@@ -370,10 +370,10 @@ class AnalysisChartTopComponent private ($contents: AnalysisContents) extends To
     /**
      * Since we use 1min freq as the ser's freq when contractFreq is 1sec, we should pass contractFreq here
      */
-    private def createViewContainer(ser: QuoteSer, contents: AnalysisContents, isRealtime: Boolean) = {
+    private def createViewContainer(ser: QuoteSer, content: Content, isRealtime: Boolean) = {
       log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - , isRealtime=" + isRealtime)
 
-      val controller = ChartingController(ser, contents)
+      val controller = ChartingController(ser, content)
       if (isRealtime) {
         controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
       } else {

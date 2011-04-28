@@ -267,17 +267,6 @@ abstract class Quotes extends Table[Quote] {
  *
  * @author Caoyuan Deng
  */
-object Quote {
-  private val OPEN      = 0
-  private val HIGH      = 1
-  private val LOW       = 2
-  private val CLOSE     = 3
-  private val VOLUME    = 4
-  private val AMOUNT    = 5
-  private val VWAP      = 6
-}
-
-import Quote._
 @serializable
 class Quote extends TVal with Flag {
   var sec: Sec = _
@@ -288,21 +277,21 @@ class Quote extends TVal with Flag {
 
   var hasGaps = false
 
-  def open      = data(OPEN)
-  def high      = data(HIGH)
-  def low       = data(LOW)
-  def close     = data(CLOSE)
-  def volume    = data(VOLUME)
-  def amount    = data(AMOUNT)
-  def vwap      = data(VWAP)
+  def open      = data(0)
+  def high      = data(1)
+  def low       = data(2)
+  def close     = data(3)
+  def volume    = data(4)
+  def amount    = data(5)
+  def vwap      = data(6)
 
-  def open_=     (v: Double) {data(OPEN)      = v}
-  def high_=     (v: Double) {data(HIGH)      = v}
-  def low_=      (v: Double) {data(LOW)       = v}
-  def close_=    (v: Double) {data(CLOSE)     = v}
-  def volume_=   (v: Double) {data(VOLUME)    = v}
-  def amount_=   (v: Double) {data(AMOUNT)    = v}
-  def vwap_=     (v: Double) {data(VWAP)      = v}
+  def open_=     (v: Double) {data(0)      = v}
+  def high_=     (v: Double) {data(1)      = v}
+  def low_=      (v: Double) {data(2)       = v}
+  def close_=    (v: Double) {data(3)     = v}
+  def volume_=   (v: Double) {data(4)    = v}
+  def amount_=   (v: Double) {data(5)    = v}
+  def vwap_=     (v: Double) {data(6)      = v}
 
   // Foreign keys
   var tickers: List[Ticker] = Nil
@@ -313,11 +302,7 @@ class Quote extends TVal with Flag {
   var isTransient: Boolean = true
   
   def copyFrom(another: Quote) {
-    var i = 0
-    while (i < data.length) {
-      data(i) = another.data(i)
-      i += 1
-    }
+    System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
   def reset {
@@ -334,12 +319,13 @@ class Quote extends TVal with Flag {
   override def toString = {
     val cal = Calendar.getInstance
     cal.setTimeInMillis(time)
+    
     this.getClass.getSimpleName + ": " + cal.getTime +
-    " O: " + data(OPEN) +
-    " H: " + data(HIGH) +
-    " L: " + data(LOW) +
-    " C: " + data(CLOSE) +
-    " V: " + data(VOLUME)
+    " O: " + open +
+    " H: " + high +
+    " L: " + low +
+    " C: " + close +
+    " V: " + volume
   }
 
 }

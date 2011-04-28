@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.actions;
 
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents;
+import org.aiotrade.lib.math.timeseries.descriptor.Content;
 import org.aiotrade.lib.util.swing.action.AddAction;
 import org.aiotrade.modules.ui.nodes.IndicatorGroupDescriptor;
 import org.aiotrade.modules.ui.windows.ExplorerTopComponent;
@@ -55,11 +55,11 @@ class PickIndicatorAction extends CallableSystemAction {
               val symbolListWin = ExplorerTopComponent()
               val nodes = symbolListWin.getExplorerManager.getSelectedNodes
               if (nodes.length > 0) {
-                nodes(0).getLookup.lookup(classOf[AnalysisContents]).uniSymbol
+                nodes(0).getLookup.lookup(classOf[Content]).uniSymbol
               } else {
                 return
               }
-            case Some(x) => x.viewContainer.controller.contents.uniSymbol
+            case Some(x) => x.viewContainer.controller.content.uniSymbol
           }
 
           SymbolNodes.findSymbolNode(uniSymbol) foreach {secNode =>

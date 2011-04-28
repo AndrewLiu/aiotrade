@@ -66,7 +66,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     putValue(Action.NAME, show)
         
     def execute {
-      AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+      AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol) foreach {analysisWin =>
         val viewContainer = analysisWin.viewContainer
         descriptor.active = true
                     
@@ -87,7 +87,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
         drawing.activate
                     
         /** hide other drawings */
-        val descriptors = descriptor.containerContents.lookupDescriptors(
+        val descriptors = descriptor.containerContent.lookupDescriptors(
           classOf[DrawingDescriptor],
           descriptor.freq
         )
@@ -113,7 +113,7 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
     def execute {
       descriptor.active = false
             
-      AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+      AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol) foreach {analysisWin =>
         val viewContainer = analysisWin.viewContainer
         val masterView = viewContainer.masterView
                     
@@ -147,10 +147,10 @@ class NetBeansDrawingDescriptorActionFactory extends DrawingDescriptorActionFact
         JOptionPane.YES_NO_OPTION
       ) match {
         case JOptionPane.YES_OPTION =>
-          descriptor.containerContents.removeDescriptor(descriptor)
-          descriptor.containerContents.lookupAction(classOf[SaveAction]) foreach {_.execute}
+          descriptor.containerContent.removeDescriptor(descriptor)
+          descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach {_.execute}
                 
-          AnalysisChartTopComponent.instanceOf(descriptor.containerContents.uniSymbol) foreach {analysisWin =>
+          AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol) foreach {analysisWin =>
             val masterView = analysisWin.viewContainer.masterView
             masterView.asInstanceOf[WithDrawingPane].deleteDrawing(descriptor)
           }

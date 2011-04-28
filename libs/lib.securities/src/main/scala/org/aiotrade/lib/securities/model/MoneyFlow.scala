@@ -292,11 +292,7 @@ class MoneyFlow extends TVal with Flag {
   def smallAmount: Double = smallAmountIn - smallAmountOut
   
   def copyFrom(another: MoneyFlow) {
-    var i = 0
-    while (i < data.length) {
-      data(i) = another.data(i)
-      i += 1
-    }
+    System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
 }

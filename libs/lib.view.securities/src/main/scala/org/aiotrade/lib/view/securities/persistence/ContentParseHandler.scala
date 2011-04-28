@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.AnalysisContents
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -58,10 +58,10 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-class ContentsParseHandler extends DefaultHandler {
+class ContentParseHandler extends DefaultHandler {
   private val NUMBER_FORMAT = NumberFormat.getInstance
     
-  private var contents: AnalysisContents = _
+  private var content: Content = _
     
   private var indicatorDescriptor: IndicatorDescriptor = _
   private var factors: ArrayBuffer[Factor] = _
@@ -196,7 +196,7 @@ class ContentsParseHandler extends DefaultHandler {
       System.err.println("end_indicator()")
     }
     indicatorDescriptor.factors = factors.toArray
-    contents.addDescriptor(indicatorDescriptor)
+    content.addDescriptor(indicatorDescriptor)
   }
     
   @throws(classOf[SAXException])
@@ -281,7 +281,7 @@ class ContentsParseHandler extends DefaultHandler {
       System.err.println("start_sofic: " + meta.getValue("unisymbol"))
     }
     val uniSymbol = meta.getValue("unisymbol")
-    contents = new AnalysisContents(uniSymbol)
+    content = new Content(uniSymbol)
   }
     
   @throws(classOf[SAXException])
@@ -325,7 +325,7 @@ class ContentsParseHandler extends DefaultHandler {
         
     dataContract.urlString = meta.getValue("url")
         
-    contents.addDescriptor(dataContract)
+    content.addDescriptor(dataContract)
   }
     
   @throws(classOf[SAXException])
@@ -383,7 +383,7 @@ class ContentsParseHandler extends DefaultHandler {
 
     dataContract.urlString = meta.getValue("url")
 
-    contents.addDescriptor(dataContract)
+    content.addDescriptor(dataContract)
   }
   
   @throws(classOf[SAXException])
@@ -420,7 +420,7 @@ class ContentsParseHandler extends DefaultHandler {
 
     dataContract.urlString = meta.getValue("url")
 
-    contents.addDescriptor(dataContract)
+    content.addDescriptor(dataContract)
   }
 
   @throws(classOf[SAXException])
@@ -472,7 +472,7 @@ class ContentsParseHandler extends DefaultHandler {
 
     dataContract.urlString = meta.getValue("url")
 
-    contents.addDescriptor(dataContract)
+    content.addDescriptor(dataContract)
   }
 
   @throws(classOf[SAXException])
@@ -512,11 +512,11 @@ class ContentsParseHandler extends DefaultHandler {
       System.err.println("end_layer()")
     }
     drawingDescriptor.setHandledChartMapPoints(handledChartMapPoints)
-    contents.addDescriptor(drawingDescriptor)
+    content.addDescriptor(drawingDescriptor)
   }
     
-  def getContents: AnalysisContents = {
-    contents
+  def getContent: Content = {
+    content
   }
         
 }
