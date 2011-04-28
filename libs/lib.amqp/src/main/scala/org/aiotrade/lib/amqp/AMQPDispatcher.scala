@@ -86,16 +86,22 @@ object AMQPMessage {
   def unapply(x: AMQPMessage): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
 }
 @serializable
-class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event
+class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
+  override def toString = body.toString
+}
 
 object RpcResponse {
   def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new RpcResponse(body, props, envelope)
   def unapply(x: RpcResponse): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
 }
 @serializable
-class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event
+class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
+  override def toString = body.toString
+}
 
-case object RpcTimeout extends RpcResponse("RPC timeout", null, null)
+case object RpcTimeout extends RpcResponse(null, null, null) {
+  override def toString = "RPC timeout"
+}
 
 case class RpcRequest(args: Any*) extends Event
 
