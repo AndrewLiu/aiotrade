@@ -132,16 +132,15 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
       case _ => None
     }
   }
-
-  final protected def firstTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
+  
+  protected def firstTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
     var firstTime = Long.MinValue
 
-    val length = sers.length
     var i = 0
-    while (i < length) {
-      var ser = sers(i)._1
-      if (ser.timestamps.size > 0) {
-        val fTime = ser.timestamps(0)
+    while (i < inds.length) {
+      val ind = inds(i)._1
+      if (ind != null && ind.timestamps.size > 0) {
+        val fTime = ind.timestamps(0)
         firstTime = if (firstTime == Long.MinValue) fTime else math.min(firstTime, fTime)
       }
       i += 1
@@ -150,7 +149,7 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
     firstTime
   }
 
-  final protected def lastTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
-    if (sers.isEmpty) 0 else sers.map(_._1.lastOccurredTime).max
+  protected def lastTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
+    if (inds.isEmpty) 0 else inds.map(_._1.lastOccurredTime).max
   }
 }
