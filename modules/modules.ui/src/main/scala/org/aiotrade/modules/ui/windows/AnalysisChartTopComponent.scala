@@ -328,10 +328,6 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     }
     sec.subscribeTickerServer(true)
     
-    private val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
-    if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
-    sec.subscribeQuoteInfoDataServer(true)
-
     val viewContainer = createViewContainer(ser, content, isRealtime)
 
     splitPane.setLeftComponent(viewContainer)
