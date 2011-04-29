@@ -37,13 +37,15 @@ import org.aiotrade.lib.info.model.Infos1d
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
-import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
@@ -172,9 +174,6 @@ class Sec extends SerProvider with Ordered[Sec] {
   type T = QuoteSer
   type C = QuoteContract
 
-  private val freqToQuoteContract = mutable.Map[TFreq, QuoteContract]()
-  private val freqToMoneyFlowContract = mutable.Map[TFreq, MoneyFlowContract]()
-  private val freqToQuoteInfoHisContract = mutable.Map[TFreq, QuoteInfoHisContract]()
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
   private var _realtimeMoneyFlowSer: MoneyFlowSer = _
@@ -190,51 +189,40 @@ class Sec extends SerProvider with Ordered[Sec] {
   private lazy val quoteInfoServer: Option[QuoteInfoDataServer] = quoteInfoContract.serviceInstance()
 
   var description = ""
+  private var _content: Content = _
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _moneyFlowContracts: Seq[MoneyFlowContract] = Nil
   private var _tickerContract: TickerContract = _
   private var _quoteInfoContract : QuoteInfoContract = _
-  private var _quoteInfoHisContractc : Seq[QuoteInfoHisContract] = _
+  private var _quoteInfoHisContracts : Seq[QuoteInfoHisContract] = _
 
   def dividends: Seq[SecDividend] = Secs.dividendsOf(this)
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
-  def quoteContracts = _quoteContracts
-  def quoteContracts_=(quoteContracts: Seq[QuoteContract]) {
-    _quoteContracts = quoteContracts
-    for (contract <- quoteContracts) {
-      val freq = contract.freq
-      if (_defaultFreq == null) {
-        _defaultFreq = freq
-      }
-
-      freqToQuoteContract.put(freq, contract)
-    }
+  def content = _content
+  def content_=(content: Content) {
+    _content = content
   }
   
-  def moneyFlowContracts = _moneyFlowContracts
-  def moneyFlowContracts_=(moneyFlowContracts: Seq[MoneyFlowContract]) {
-    _moneyFlowContracts = moneyFlowContracts
-    for (contract <- moneyFlowContracts) {
-      val freq = contract.freq
-      if (_defaultFreq == null) {
-        _defaultFreq = freq
-      }
-
-      freqToMoneyFlowContract.put(freq, contract)
-    }
-  }  
-
-  def quoteInfoHisContracts = _quoteInfoHisContractc
-
-  def quoteInfoHisContracts_= (consracts : Seq[QuoteInfoHisContract]) {
-    _quoteInfoHisContractc = consracts
-    for (contract <- _quoteInfoHisContractc){
-      freqToQuoteInfoHisContract.put(contract.freq, contract)
+  private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {
+    val contracts = content.lookupDescriptors(tpe)
+    contracts.find(_.freq == freq) match {
+      case None => 
+        contracts.find(_.freq == defaultFreq) match {
+          case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
+            val x = defaultOne.clone//new QuoteContract
+            x.freq = freq
+            content.addDescriptor(x)
+            Some(x.asInstanceOf[T])
+          case _ => None
+        }
+      case some => some
     }
   }
+
+  def quoteInfoHisContracts = _quoteInfoHisContracts
 
   def quoteInfoContract = {
     if (_quoteInfoContract == null){
@@ -274,7 +262,6 @@ class Sec extends SerProvider with Ordered[Sec] {
     _tickerContract = tickerContract
   }
 
- 
   def serProviderOf(uniSymbol: String): Option[Sec] = {
     Exchange.secOf(uniSymbol)
   }
@@ -539,7 +526,7 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   private def loadInfoPointSerFromDataServer(ser: InfoPointSer, fromTime: Long) : Long = {
     val freq = ser.freq
-    quoteInfoHisContractOf(freq) match {
+    dataContractOf(classOf[QuoteInfoHisContract], freq) match {
       case Some(contract) =>  contract.serviceInstance() match {
           case Some(quoteInfoHisServer) =>
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
@@ -665,7 +652,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
     
-    quoteContractOf(freq) match {
+    dataContractOf(classOf[QuoteContract], freq) match {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(quoteServer) =>
@@ -699,7 +686,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   private def loadFromMoneyFlowServer(ser: MoneyFlowSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
     
-    moneyFlowContractOf(freq) match {
+    dataContractOf(classOf[MoneyFlowContract], freq) match {
       case Some(contract) =>
         contract.serviceInstance() match {
           case Some(moneyFlowServer) =>
@@ -730,45 +717,6 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
   
-  private def quoteContractOf(freq: TFreq): Option[QuoteContract] = {
-    freqToQuoteContract.get(freq) match {
-      case None => freqToQuoteContract.get(defaultFreq) match {
-          case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
-            val x = new QuoteContract
-            x.freq = freq
-            x.isRefreshable = false
-            x.srcSymbol = defaultOne.srcSymbol
-            x.serviceClassName = defaultOne.serviceClassName
-            x.datePattern = defaultOne.datePattern
-            freqToQuoteContract.put(freq, x)
-            Some(x)
-          case _ => None
-        }
-      case some => some
-    }
-  }
-  
-  private def moneyFlowContractOf(freq: TFreq): Option[MoneyFlowContract] = {
-    freqToMoneyFlowContract.get(freq) match {
-      case None => freqToMoneyFlowContract.get(defaultFreq) match {
-          case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
-            val x = new MoneyFlowContract
-            x.freq = freq
-            x.isRefreshable = false
-            x.srcSymbol = defaultOne.srcSymbol
-            x.serviceClassName = defaultOne.serviceClassName
-            x.datePattern = defaultOne.datePattern
-            freqToMoneyFlowContract.put(freq, x)
-            Some(x)
-          case _ => None
-        }
-      case some => some
-    }
-  }
-
-  private def quoteInfoHisContractOf(freq: TFreq): Option[QuoteInfoHisContract] = {
-    freqToQuoteInfoHisContract.get(freq)
-  }
 
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
   def uniSymbol_=(uniSymbol: String) {
@@ -782,7 +730,7 @@ class Sec extends SerProvider with Ordered[Sec] {
   }
 
   def stopAllDataServer {
-    for ((freq, contract) <- freqToQuoteContract;
+    for (contract <- content.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
          server <- contract.serviceInstance()
     ) {
       server.stopRefresh
@@ -793,15 +741,9 @@ class Sec extends SerProvider with Ordered[Sec] {
     "Sec(Company=" + company + ", info=" + secInfo + ")"
   }
 
-  def dataContract: QuoteContract = freqToQuoteContract(defaultFreq)
-  def dataContract_=(quoteContract: QuoteContract) {
-    val freq = quoteContract.freq
-    freqToQuoteContract += (freq -> quoteContract)
-  }
-
   def subscribeTickerServer(startRefresh: Boolean = true): Option[TickerServer] = {
     if (tickerContract.serviceClassName == null) {
-      for (quoteContract <- quoteContractOf(defaultFreq);
+      for (quoteContract <- dataContractOf(classOf[QuoteContract], defaultFreq);
            quoteServer <- quoteContract.serviceInstance();
            klassName <- quoteServer.classNameOfTickerServer
       ) {

@@ -118,7 +118,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
         SecInfo info = new SecInfo();
         info.uniSymbol_$eq(symbol);
         sec.secInfo_$eq(info);
-        sec.quoteContracts_$eq(Nil.$colon$colon(quoteContract));
+        sec.content_$eq(content);
         content.serProvider_$eq(sec);
         QuoteSer ser = sec.serOf(quoteContract.freq()).get();
         if (!ser.isLoaded()) {

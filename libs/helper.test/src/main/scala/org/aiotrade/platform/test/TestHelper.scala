@@ -45,9 +45,7 @@ trait TestHelper {
     dataContract
   }
 
-  def createContent(symbol: String, freq: TFreq): Content = {
-    val content = new Content(symbol)
-
+  def createAndAddIndicatorDescritors(content: Content, freq: TFreq) {
     content.addDescriptor(createIndicatorDescriptor(classOf[ARBRIndicator], freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[BIASIndicator], freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[BOLLIndicator], freq))
@@ -68,8 +66,6 @@ trait TestHelper {
     content.addDescriptor(createIndicatorDescriptor(classOf[WMSIndicator], freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGFAIndicator], freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[ZIGZAGIndicator], freq))
-
-    content
   }
 
   def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: TFreq): IndicatorDescriptor = {
@@ -81,15 +77,7 @@ trait TestHelper {
   }
 
 
-  def loadSer(content: Content): Unit = {
-    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]) getOrElse (return)
-
-    val freq = quoteContract.freq
-    if (!quoteContract.isFreqSupported(freq)) {
-      return
-    }
-
-    val sec = content.serProvider
+  def loadSer(sec: Sec, freq: TFreq): Unit = {
     var mayNeedsReload = false
     if (sec == null) {
       return

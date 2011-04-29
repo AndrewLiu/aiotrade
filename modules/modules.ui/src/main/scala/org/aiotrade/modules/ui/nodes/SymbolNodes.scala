@@ -700,11 +700,10 @@ object SymbolNodes {
                 case node: OneSymbolNode =>
                   val content = node.content
                   Exchange.secOf(content.uniSymbol) foreach {sec =>
-                    content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
-                    content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
                     content.serProvider = sec
-                    
+                    sec.content = content
                     sec.subscribeTickerServer(true)
+                    
                     listTc.watch(sec)
                     node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(false)
                     node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
@@ -723,11 +722,10 @@ object SymbolNodes {
                 case node: OneSymbolNode =>
                   val content = node.content
                   Exchange.secOf(content.uniSymbol) foreach {sec =>
-                    content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
-                    content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
                     content.serProvider = sec
-
+                    sec.content = content
                     sec.unSubscribeTickerServer
+                    
                     listTc.unWatch(sec)
                     node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
                     node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(false)
@@ -806,10 +804,7 @@ object SymbolNodes {
       Exchange.secOf(content.uniSymbol) match {
         case Some(sec) =>
           content.serProvider = sec
-          content.lookupActiveDescriptor(classOf[QuoteContract]) foreach {contract => sec.quoteContracts = List(contract)}
-          content.lookupActiveDescriptor(classOf[MoneyFlowContract]) foreach {contract => sec.moneyFlowContracts = List(contract)}
-          content.lookupActiveDescriptor(classOf[QuoteInfoContract]) foreach {contract => sec.quoteInfoContract =contract }
-          content.lookupActiveDescriptor(classOf[QuoteInfoHisContract]) foreach {contract => sec.quoteInfoHisContracts = List(contract)}
+          sec.content = content
           
           val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
             case null => false
@@ -1037,15 +1032,14 @@ object SymbolNodes {
       val freq = quoteContract.freq
       PersistenceManager().deleteQuotes(content.uniSymbol, freq, fromTime, Long.MaxValue)
 
-      var sec = content.serProvider.asInstanceOf[Sec]
-      if (sec == null) {
-        //sec = new Sec(content.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
-        sec.quoteContracts = List(quoteContract)
-        content.serProvider = sec
-      } else {
-        sec.dataContract = quoteContract
+      val sec = content.serProvider match {
+        case null => 
+          val x = Exchange.secOf(content.uniSymbol) getOrElse (return)
+          content.serProvider = x
+          x
+        case x: Sec => x
       }
+      sec.content = content
 
       /**
        * @TODO
@@ -1074,16 +1068,15 @@ object SymbolNodes {
       val content = node.getLookup.lookup(classOf[Content])
       val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = content.serProvider.asInstanceOf[Sec]
-      if (sec == null) {
-        //sec = new Sec(content.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
-        sec.quoteContracts = List(quoteContract)
-        content.serProvider = sec
-      } else {
-        sec.dataContract = quoteContract
+      val sec = content.serProvider match {
+        case null => 
+          val x = Exchange.secOf(content.uniSymbol) getOrElse (return)
+          content.serProvider = x
+          x
+        case x: Sec => x
       }
-
+      sec.content = content
+      
       sec.resetSers
       val ser = sec.serOf(quoteContract.freq).get
 
@@ -1117,13 +1110,14 @@ object SymbolNodes {
       val content = node.getLookup.lookup(classOf[Content])
       val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-      var sec = content.serProvider.asInstanceOf[Sec]
-      if (sec == null) {
-        //sec = new Sec(content.uniSymbol, List(quoteContract))
-        sec = Exchange.secOf(content.uniSymbol) getOrElse (return)
-        sec.quoteContracts = List(quoteContract)
-        content.serProvider = sec
+      val sec = content.serProvider match {
+        case null => 
+          val x = Exchange.secOf(content.uniSymbol) getOrElse (return)
+          content.serProvider = x
+          x
+        case x: Sec => x
       }
+      sec.content = content
 
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
 

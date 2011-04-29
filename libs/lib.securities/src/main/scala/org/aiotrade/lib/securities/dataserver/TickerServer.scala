@@ -359,7 +359,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         willCommit = true
       }
       if (willCommit) {
-        log.info("Saving Tickers/Executions used " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
       }
     }
 

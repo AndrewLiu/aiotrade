@@ -32,6 +32,7 @@ package org.aiotrade.lib.math.timeseries.datasource
 
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.BaseTSer
+import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.util.actors.Publisher
 
 /**
@@ -63,9 +64,9 @@ trait SerProvider extends Publisher {
   def description: String
   def description_=(description: String)
     
-  def dataContract: C
-  def dataContract_=(dataContract: C)
-
+  def content: Content
+  def content_=(content: Content)
+  
   /**
    * A helper method which can be overridden to get another ser provider from symbol
    */

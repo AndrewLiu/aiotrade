@@ -91,22 +91,21 @@ class Util {
 
     setUIStyle
 
-    val freqOneMin = TFreq.ONE_MIN
-    val freqDaily = TFreq.DAILY
-
-    var quoteContracts: List[QuoteContract] = Nil
-    val dailyQuoteContract = createQuoteContract(symbol, category, sname, freqDaily, false, quoteServer)
-    quoteContracts ::= dailyQuoteContract
-    val supportOneMin = dailyQuoteContract.isFreqSupported(freqOneMin)
-    val oneMinQuoteContract = createQuoteContract(symbol, category, sname, freqOneMin, supportOneMin, quoteServer)
-    quoteContracts ::= oneMinQuoteContract
+    sec = Exchange.secOf(symbol).get
+    val content = new Content(symbol)
+    content.serProvider = sec
+    sec.content = content
+    
+    val dailyQuoteContract = createQuoteContract(symbol, category, sname, TFreq.DAILY, false, quoteServer)
+    val supportOneMin = dailyQuoteContract.isFreqSupported(TFreq.ONE_MIN)
+    val oneMinQuoteContract = createQuoteContract(symbol, category, sname, TFreq.ONE_MIN, supportOneMin, quoteServer)
     val tickerContract =
       if (tickerServer != null) {
-        createTickerContract(symbol, category, sname, freqOneMin, tickerServer)
+        createTickerContract(symbol, category, sname, TFreq.ONE_MIN, tickerServer)
       } else null
 
-    sec = Exchange.secOf(symbol).get
-    sec.quoteContracts = quoteContracts
+    content.addDescriptor(dailyQuoteContract)
+    content.addDescriptor(oneMinQuoteContract)
     sec.tickerContract = tickerContract
     val exchange =
       if (quoteServer.getName == YahooQuoteServer.getClass.getName) {
@@ -116,15 +115,10 @@ class Util {
       }
     sec.exchange = exchange
 
-    val dailyContent = createContent(symbol, freqDaily, quoteServer, tickerServer);
-    dailyContent.addDescriptor(dailyQuoteContract)
-    dailyContent.serProvider = sec
-    loadSer(dailyContent)
-
-    val rtContent = createContent(symbol, freqOneMin, quoteServer, tickerServer);
-    rtContent.addDescriptor(oneMinQuoteContract)
-    rtContent.serProvider = sec
-    loadSer(rtContent)
+    createAndAddIndicatorDescritors(content, TFreq.DAILY)
+    loadSer(sec, TFreq.DAILY)
+    createAndAddIndicatorDescritors(content, TFreq.ONE_MIN)
+    loadSer(sec, TFreq.ONE_MIN)
 
     // --- other freqs:
 //    val oneMinViewContainer = createViewContainer(
@@ -138,8 +132,8 @@ class Util {
 //    viewContainers.add(new WeakReference[AnalysisChartViewContainer](oneMinViewContainer))
 
     val dailyViewContainer = createViewContainer(
-      sec.serOf(freqDaily).getOrElse(null),
-      dailyContent,
+      sec.serOf(TFreq.DAILY).getOrElse(null),
+      content,
       symbol,
       QuoteChart.Type.Candle,
       pane)
@@ -181,7 +175,7 @@ class Util {
       val dailyPanel = new JPanel(new BorderLayout)
       dailyPanel.add(BorderLayout.CENTER, dailyViewContainer)
 
-      val rtBoard = RealTimeBoardPanel.instanceOf(sec, rtContent)
+      val rtBoard = RealTimeBoardPanel.instanceOf(sec, content)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
@@ -198,7 +192,7 @@ class Util {
       //pane.add(BorderLayout.NORTH, createToolBar(width));
       pane.add(BorderLayout.CENTER, splitPane)
 
-      watchRealTime(rtContent, rtBoard)
+      watchRealTime(content, rtBoard)
 
       //container.getController().setCursorCrossLineVisible(showLastClose(apcpara));
     } catch {case ex: Exception => ex.printStackTrace}
@@ -253,14 +247,10 @@ class Util {
     dataContract
   }
 
-  private def createContent(symbol: String, freq: TFreq, quoteServer: Class[_], tickerServer: Class[_]): Content = {
-    val content = new Content(symbol)
-
+  private def createAndAddIndicatorDescritors(content: Content, freq: TFreq) {
     content.addDescriptor(createIndicatorDescriptor(classOf[MAIndicator],  freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[VOLIndicator], freq))
     content.addDescriptor(createIndicatorDescriptor(classOf[RSIIndicator], freq))
-
-    content
   }
 
 //    private static final Content createRealTimeContent(String symbol, Frequency freq, Class quoteServer) {
@@ -275,15 +265,7 @@ class Util {
 //
 //        return content;
 //    }
-  private def loadSer(content: Content) {
-    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
-
-    val freq = quoteContract.freq
-    if (!quoteContract.isFreqSupported(freq)) {
-      return
-    }
-
-    val sec = content.serProvider
+  private def loadSer(sec: Sec, freq: TFreq) {
     var mayNeedsReload = false
     if (sec == null) {
       return

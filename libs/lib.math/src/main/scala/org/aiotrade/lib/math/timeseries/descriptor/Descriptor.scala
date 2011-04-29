@@ -48,10 +48,11 @@ import org.w3c.dom.Element
  *
  * @author Caoyuan Deng
  */
-abstract class Descriptor[S](private var _serviceClassName: String,
-                             private var _freq: TFreq,
-                             private var _active: Boolean)(protected implicit val m: Manifest[S]) extends WithActions {
-
+abstract class Descriptor[S](
+  private var _serviceClassName: String,
+  private var _freq: TFreq,
+  private var _active: Boolean
+)(protected implicit val m: Manifest[S]) extends WithActions with Cloneable {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val withActionsHelper = new WithActionsHelper(this)
@@ -173,6 +174,14 @@ abstract class Descriptor[S](private var _serviceClassName: String,
     
   def createDefaultActions: Array[Action] = {
     Array[Action]()
+  }
+  
+  override def clone: Descriptor[S] = {
+    try {
+      super.clone.asInstanceOf[Descriptor[S]]
+    } catch {
+      case ex: CloneNotSupportedException => log.log(Level.SEVERE, ex.getMessage, ex); null
+    }
   }
 
   def writeToBean(doc:BeansDocument): Element = {
