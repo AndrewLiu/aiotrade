@@ -74,37 +74,6 @@ case class Delivery(body: Array[Byte], properties: AMQP.BasicProperties, envelop
 
 case class AMQPAcknowledge(deliveryTag: Long) extends Event
 
-/**
- * @param content A deserialized value received via AMQP.
- * @param props
- *
- * Messages received from AMQP are wrapped in this case class. When you
- * register a listener, this is the case class that you will be matching on.
- */
-object AMQPMessage {
-  def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new AMQPMessage(body, props, envelope)
-  def unapply(x: AMQPMessage): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
-}
-@serializable
-class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
-  override def toString = body.toString
-}
-
-object RpcResponse {
-  def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new RpcResponse(body, props, envelope)
-  def unapply(x: RpcResponse): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
-}
-@serializable
-class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
-  override def toString = body.toString
-}
-
-case object RpcTimeout extends RpcResponse(null, null, null) {
-  override def toString = "RPC timeout"
-}
-
-case class RpcRequest(args: Any*) extends Event
-
 case object AMQPConnected
 case object AMQPDisconnected
 
