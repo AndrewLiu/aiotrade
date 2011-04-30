@@ -49,10 +49,9 @@ class MAIndicator extends Indicator {
   val ma2 = TVar[Double]("MA2", Plot.Line)
   val ma3 = TVar[Double]("MA3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int): Unit = {
+    var i = fromIdx
     while (i < size) {
-
       ma1(i) = ma(i, C, period1)
       ma2(i) = ma(i, C, period2)
       ma3(i) = ma(i, C, period3)

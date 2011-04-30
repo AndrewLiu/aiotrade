@@ -46,10 +46,9 @@ class ZIGZAGIndicator extends Indicator {
   val zigzag       = TVar[Double]("ZIGZAG", Plot.Zigzag)
   val pseudoZigzag = TVar[Double]("PSEUDO", Plot.Zigzag)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       zigzag(i) = zigzag(i, percent)
       pseudoZigzag(i) = pseudoZigzag(i, percent)
 

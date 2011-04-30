@@ -50,7 +50,7 @@ class MACDSignal extends SignalIndicator {
   val _osc    = TVar[Double]()
 
 
-  protected def computeCont(fromIdx: Int, size: Int) {
+  protected def compute(fromIdx: Int, size: Int) {
     var i = fromIdx
     while (i < size) {
       _macd(i) = macd(i, C, periodSlow, periodFast)

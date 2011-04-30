@@ -46,10 +46,9 @@ class ROCIndicator extends Indicator {
   val roc1 = TVar[Double]("ROC1", Plot.Line)
   val roc2 = TVar[Double]("ROC2", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       roc1(i) = roc(i, C, period1)
       roc2(i) = roc(i, C, period2)
 

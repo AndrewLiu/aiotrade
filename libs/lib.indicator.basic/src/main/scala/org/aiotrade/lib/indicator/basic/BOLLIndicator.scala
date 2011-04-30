@@ -52,10 +52,9 @@ class BOLLIndicator extends Indicator {
   val boll_u2 = TVar[Double]("UPPER", Plot.Line)
   val boll_l2 = TVar[Double]("LOWER", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       boll_m (i) = bollMiddle(i, C, period, alpha1)
       boll_u1(i) = bollUpper (i, C, period, alpha1)
       boll_l1(i) = bollLower (i, C, period, alpha1)

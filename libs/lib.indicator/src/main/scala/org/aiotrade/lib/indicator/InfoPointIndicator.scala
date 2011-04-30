@@ -33,7 +33,7 @@ class InfoPointIndicator extends Indicator {
     super.set(infoSer)
   }
 
-  protected def computeCont(fromIdx: Int, size: Int) {
+  protected def compute(fromIdx: Int, size: Int) {
     var i = fromIdx
     while (i < size) {
       val info = infos(i)

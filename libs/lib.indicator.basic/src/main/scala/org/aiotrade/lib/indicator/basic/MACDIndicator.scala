@@ -48,10 +48,9 @@ class MACDIndicator extends Indicator {
   val signal = TVar[Double]("SIGNAL", Plot.Line)
   val osc    = TVar[Double]("OSC",    Plot.Stick)
     
-  protected def computeCont(begIdx: Int, size: Int) = {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) = {
+    var i = fromIdx
     while (i < size) {
-    
       macd(i)   = macd(i, C, periodSlow, periodFast)
       signal(i) = ema (i, macd, periodSignal)
       osc(i)    = macd(i) - signal(i)

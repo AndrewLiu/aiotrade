@@ -165,13 +165,13 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
       val fromIdx = super.preComputeFrom(fromTime)
       /**
        * @Note
-       * It's better to pass Size as param to computeCont instead of keep it as instance field,
+       * It's better to pass Size as param to compute(...) instead of keep it as instance field,
        * so, we do not need to worry about if field _Size will be changed concurrent by another
        * thread
        */
       val size = timestamps.size
 
-      computeCont(fromIdx, size)
+      compute(fromIdx, size)
         
       _computedTime = timestamps.lastOccurredTime
       super.postComputeFrom
@@ -181,7 +181,7 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
     }
   }
         
-  protected def computeCont(fromIdx: Int, size: Int)
+  protected def compute(fromIdx: Int, size: Int)
     
   /**
    * Define functions

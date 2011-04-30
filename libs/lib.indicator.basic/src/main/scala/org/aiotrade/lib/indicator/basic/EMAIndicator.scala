@@ -49,10 +49,9 @@ class EMAIndicator extends Indicator {
   val ema2 = TVar[Double]("EMA2", Plot.Line)
   val ema3 = TVar[Double]("EMA3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       ema1(i) = ema(i, C, period1)
       ema2(i) = ema(i, C, period2)
       ema3(i) = ema(i, C, period3)

@@ -46,7 +46,7 @@ class VOLIndicator extends Indicator {
   val ma2 = TVar[Double]("MA2", Plot.Line)
     
     
-  protected def computeCont(fromIdx: Int, size: Int) {
+  protected def compute(fromIdx: Int, size: Int) {
     var i = fromIdx
     while (i < size) {
       vol(i) = V(i)

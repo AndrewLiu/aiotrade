@@ -42,10 +42,10 @@ import org.aiotrade.lib.util.actors.Reactor
 class QuoteSerJointer(srcSers: Map[QuoteSer, Double], targetSer: QuoteSer, timeZone: TimeZone) extends Reactor {
 
   reactions += {
-    case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeCont(fromTime)
-    case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeCont(fromTime)
-    case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeCont(fromTime)
-    case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeCont(fromTime)
+    case TSerEvent.Loaded(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Computed(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Updated(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Cleared(_, _, fromTime, _, _, _) => compute(fromTime)
   }
 
   srcSers foreach (x => listenTo(x._1))
@@ -58,13 +58,13 @@ class QuoteSerJointer(srcSers: Map[QuoteSer, Double], targetSer: QuoteSer, timeZ
   } toMap
 
   def computeFrom(fromTime: Long) {
-    computeCont(fromTime)
+    compute(fromTime)
   }
     
   /**
    * Combine data according to wanted frequency, such as Weekly, Monthly etc.
    */
-  protected def computeCont(fromTime: Long) {
+  protected def compute(fromTime: Long) {
     val targetFreq = targetSer.freq
     val targetUnit = targetFreq.unit
 

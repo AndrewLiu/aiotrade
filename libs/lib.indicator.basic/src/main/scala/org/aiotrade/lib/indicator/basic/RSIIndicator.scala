@@ -49,10 +49,9 @@ class RSIIndicator extends Indicator {
   val rsi2 = TVar[Double]("RSI2", Plot.Line)
   val rsi3 = TVar[Double]("RSI3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       rsi1(i) = rsi(i, periodS)
       rsi2(i) = rsi(i, periodM)
       rsi3(i) = rsi(i, periodL)

@@ -49,10 +49,9 @@ class KDIndicator extends Indicator {
   val d = TVar[Double]("D", Plot.Line)
   val j = TVar[Double]("J", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       k(i) = stochK(i, period, periodK)
       d(i) = stochD(i, period, periodK, periodD)
       j(i) = stochJ(i, period, periodK, periodD)

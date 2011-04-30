@@ -48,10 +48,9 @@ class CCIIndicator extends Indicator {
   val cci    = TVar[Double]("CCI",   Plot.Line)
   val cci_ma = TVar[Double]("MACCI", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       cci(i)    = cci(i, period, alpha)
       cci_ma(i) = ma (i, cci, periodMa)
 
