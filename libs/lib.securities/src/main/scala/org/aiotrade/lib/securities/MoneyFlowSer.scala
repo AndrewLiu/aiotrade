@@ -77,8 +77,8 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   val smallAmountIn = TVar[Double]("sAi", Plot.None)
   val smallVolumeOut = TVar[Double]("sVo", Plot.None)
   val smallAmountOut = TVar[Double]("sAo", Plot.None)
-  val smallVolumeEven = TVar[Double]("sVo", Plot.None)
-  val smallAmountEven = TVar[Double]("sAo", Plot.None)
+  val smallVolumeEven = TVar[Double]("sVe", Plot.None)
+  val smallAmountEven = TVar[Double]("sAe", Plot.None)
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
@@ -148,10 +148,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.largeAmountEven = largeAmountOut(time)
 
       mf.smallVolumeIn = smallVolumeIn(time)
-      mf.smallVolumeIn = smallAmountIn(time)
+      mf.smallAmountIn = smallAmountIn(time)
       mf.smallVolumeOut = smallVolumeOut(time)
-      mf.smallVolumeOut = smallAmountOut(time)
-      mf.smallVolumeEven = smallVolumeEven(time)
+      mf.smallAmountOut = smallAmountOut(time)
+      mf.smallAmountEven = smallVolumeEven(time)
       mf.smallVolumeEven = smallAmountEven(time)
       
       Some(mf)

@@ -280,8 +280,6 @@ class MoneyFlow extends TVal with Flag {
   def smallAmountEven_=(v: Double) {data(23) = v}
   
   // --- no db fields
-  var isTransient = true
-
   def totalVolume: Double = totalVolumeIn - totalVolumeOut
   def totalAmount: Double = totalAmountIn - totalAmountOut
   def superVolume: Double = superVolumeIn - superVolumeOut
@@ -291,6 +289,8 @@ class MoneyFlow extends TVal with Flag {
   def smallVolume: Double = smallVolumeIn - smallVolumeOut
   def smallAmount: Double = smallAmountIn - smallAmountOut
   
+  var isTransient = true
+
   def copyFrom(another: MoneyFlow) {
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
