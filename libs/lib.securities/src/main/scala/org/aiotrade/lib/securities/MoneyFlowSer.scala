@@ -112,13 +112,13 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         largeAmountEven(time) = mf.largeAmountEven
 
         smallVolume(time) = mf.smallVolume
-        smallAmount(time) = mf.smallVolume
+        smallAmount(time) = mf.smallAmount
         smallVolumeIn(time) = mf.smallVolumeIn
-        smallAmountIn(time) = mf.smallVolumeIn
+        smallAmountIn(time) = mf.smallAmountIn
         smallVolumeOut(time) = mf.smallVolumeOut
-        smallAmountOut(time) = mf.smallVolumeOut
+        smallAmountOut(time) = mf.smallAmountOut
         smallVolumeEven(time) = mf.smallVolumeEven
-        smallAmountEven(time) = mf.smallVolumeEven
+        smallAmountEven(time) = mf.smallAmountEven
       case _ =>
     }
   }
@@ -194,13 +194,13 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     largeAmountEven(time) = mf.largeAmountEven
 
     smallVolume(time) = mf.smallVolume
-    smallAmount(time) = mf.smallVolume
+    smallAmount(time) = mf.smallAmount
     smallVolumeIn(time) = mf.smallVolumeIn
-    smallAmountIn(time) = mf.smallVolumeIn
+    smallAmountIn(time) = mf.smallAmountIn
     smallVolumeOut(time) = mf.smallVolumeOut
-    smallAmountOut(time) = mf.smallVolumeOut
+    smallAmountOut(time) = mf.smallAmountOut
     smallVolumeEven(time) = mf.smallVolumeEven
-    smallAmountEven(time) = mf.smallVolumeEven
+    smallAmountEven(time) = mf.smallAmountEven
         
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
