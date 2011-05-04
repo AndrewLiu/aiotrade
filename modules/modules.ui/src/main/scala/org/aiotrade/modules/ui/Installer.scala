@@ -137,9 +137,9 @@ class Installer extends ModuleInstall {
     org.aiotrade.lib.util.config.Config(configFilePath)
     log.info("Config file is " + configFilePath)
 
-    val dataPath = System.getProperty("netbeans.user") + "/data"
-    val file = new File(dataPath)
-    if (file != null && !file.exists) {
+    val dataPath = System.getProperty("netbeans.user") + File.separator + "data"
+    val dataDir = new File(dataPath)
+    if (dataDir != null && !dataDir.exists) {
       SyncUtil.extractDataTo(dataPath)      
     }
     
