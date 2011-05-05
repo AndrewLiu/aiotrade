@@ -144,7 +144,7 @@ object SymbolNodes {
   private val symbolNodeToSymbol = new mutable.WeakHashMap[OneSymbolNode, String]
 
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
-  private val stockIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
+  private val symbolIcon  = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
 
   val favoriteFolderName = "Favorite"
 
@@ -469,7 +469,7 @@ object SymbolNodes {
     }
 
     override def getIcon(tpe: Int): Image = {
-      stockIcon
+      symbolIcon
     }
 
     override def getOpenedIcon(tpe: Int): Image = {
@@ -916,7 +916,7 @@ object SymbolNodes {
       node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
       this.setEnabled(false)
 
-      watchSymbolInFolder(folderNode, symbolContents.toArray)
+      watchSymbolsInFolder(folderNode, symbolContents.toArray)
     }
   }
 
@@ -1153,7 +1153,7 @@ object SymbolNodes {
       }
 
       val content = node.getLookup.lookup(classOf[Content])
-      watchSymbolInFolder(favoriteNode, Array(content))
+      watchSymbolsInFolder(favoriteNode, Array(content))
     }
   }
 
@@ -1181,7 +1181,7 @@ object SymbolNodes {
     }
   }
 
-  private def watchSymbolInFolder(folderNode: SymbolFolderNode, symbolContents: Array[Content]) {
+  private def watchSymbolsInFolder(folderNode: SymbolFolderNode, symbolContents: Array[Content]) {
     val watchListTc = RealTimeWatchListTopComponent.getInstance(folderNode)
     watchListTc.requestActive
 
