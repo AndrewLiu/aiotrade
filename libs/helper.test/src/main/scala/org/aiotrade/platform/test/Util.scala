@@ -133,7 +133,6 @@ class Util {
 
     val dailyViewContainer = createViewContainer(
       sec.serOf(TFreq.DAILY).getOrElse(null),
-      content,
       symbol,
       QuoteChart.Type.Candle,
       pane)
@@ -175,7 +174,7 @@ class Util {
       val dailyPanel = new JPanel(new BorderLayout)
       dailyPanel.add(BorderLayout.CENTER, dailyViewContainer)
 
-      val rtBoard = RealTimeBoardPanel.instanceOf(sec, content)
+      val rtBoard = RealTimeBoardPanel.instanceOf(sec)
       rtBoard.setPreferredSize(new Dimension(leftPaneWidth, height))
 
       val splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT)
@@ -294,7 +293,6 @@ class Util {
 
   private def createViewContainer(
     ser: QuoteSer,
-    content: Content,
     atitle: String,
     tpe: QuoteChart.Type,
     parent: Component
@@ -302,8 +300,8 @@ class Util {
 
     var title = atitle
 
-    if (!ser.isLoaded) content.serProvider.asInstanceOf[Sec].loadSer(ser)
-    val controller = ChartingController(ser, content)
+    if (!ser.isLoaded) sec.loadSer(ser)
+    val controller = ChartingController(sec, ser)
     val viewContainer = controller.createChartViewContainer(classOf[AnalysisChartViewContainer], parent)
 
     if (title == null) {
@@ -323,9 +321,9 @@ class Util {
     viewContainer
   }
 
-  private def createRealTimeViewContainer(sec: Sec, content: Content, parent: Component): RealTimeChartViewContainer = {
+  private def createRealTimeViewContainer(sec: Sec, parent: Component): RealTimeChartViewContainer = {
     var baseSer = sec.serOf(TFreq.ONE_MIN).get
-    val controller = ChartingController(baseSer, content)
+    val controller = ChartingController(sec, baseSer)
     val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], parent)
     viewContainer
   }

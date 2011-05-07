@@ -120,7 +120,7 @@ class SwitchHideShowDrawingLineAction extends CallableSystemAction {
           }
                 
           val baseSer = viewContainer.controller.baseSer
-          val content = viewContainer.controller.content
+          val content = viewContainer.controller.serProvider.content
           content.lookupDescriptor(
             classOf[DrawingDescriptor],
             masterView.selectedDrawing.layerName,

@@ -24,7 +24,7 @@
                       <Group type="103" groupAlignment="1" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace pref="46" max="32767" attributes="0"/>
+                              <EmptySpace pref="104" max="32767" attributes="0"/>
                               <Component id="lafBox" min="-2" pref="199" max="-2" attributes="1"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
@@ -34,7 +34,7 @@
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="quoteChartTypeBox" pref="205" max="32767" attributes="1"/>
+                                  <Component id="quoteChartTypeBox" pref="298" max="32767" attributes="1"/>
                                   <Component id="autoHideScrollBox" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
@@ -42,10 +42,10 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="thinVolumeBox" min="-2" max="-2" attributes="0"/>
-                          <Component id="reverseColorBox" alignment="0" pref="250" max="32767" attributes="0"/>
+                          <Component id="reverseColorBox" alignment="0" pref="281" max="32767" attributes="0"/>
                       </Group>
                   </Group>
-                  <Component id="jLabel3" alignment="0" pref="554" max="32767" attributes="1"/>
+                  <Component id="jLabel3" alignment="0" pref="792" max="32767" attributes="1"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -156,7 +156,7 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&#x9884;&#x89c8;">
+            <TitledBorder title="&lt;ColorFontOptionsPanel.previewPanel.border.title&gt;">
               <ResourceString PropertyName="titleX" bundle="org/aiotrade/modules/ui/netbeans/options/colors/Bundle.properties" key="ColorFontOptionsPanel.previewPanel.border.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </TitledBorder>
           </Border>
@@ -172,7 +172,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <EmptySpace min="0" pref="542" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="780" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">

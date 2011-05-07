@@ -40,9 +40,9 @@ class MarketNewsAction extends CallableSystemAction {
             case _ => null
           }
 
-          println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  "+viewContainer.controller.content.uniSymbol)
+          println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  "+viewContainer.controller.serProvider.uniSymbol)
           
-          MarketNewsConfig.symbol = viewContainer.controller.content.uniSymbol
+          MarketNewsConfig.symbol = viewContainer.controller.serProvider.uniSymbol
           
           val tComponent = WindowManager.getDefault.findTopComponent("marketnewsTopComponent")
           if(tComponent != null){

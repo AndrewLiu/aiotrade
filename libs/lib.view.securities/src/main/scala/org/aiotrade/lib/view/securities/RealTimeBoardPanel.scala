@@ -64,7 +64,6 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerEvent
 import org.aiotrade.lib.securities.model.Execution
@@ -94,19 +93,19 @@ object RealTimeBoardPanel {
   private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
   def instances = instanceRefs.keys
 
-  def instanceOf(sec: Sec, content: Content): RealTimeBoardPanel = instanceRefs synchronized {
+  def instanceOf(sec: Sec): RealTimeBoardPanel = instanceRefs synchronized {
     instances find {_.sec eq sec} match {
       case Some(x) => instanceRefs.remove(x)
       case None => 
     }
-    new RealTimeBoardPanel(sec, content)
+    new RealTimeBoardPanel(sec)
   }
 
   private val log = Logger.getLogger(this.getClass.getSimpleName)
 }
 
 import RealTimeBoardPanel._
-class RealTimeBoardPanel private (val sec: Sec, content: Content) extends JPanel with Reactor {
+class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   instanceRefs.put(this, null)
   log.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
@@ -154,7 +153,7 @@ class RealTimeBoardPanel private (val sec: Sec, content: Content) extends JPanel
 
   private val rtSer = sec.realtimeSer
   if (!rtSer.isLoaded) sec.loadSer(rtSer)
-  private val controller = ChartingController(rtSer, content)
+  private val controller = ChartingController(sec, rtSer)
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewMiniContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)

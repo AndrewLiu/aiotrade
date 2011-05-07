@@ -68,11 +68,12 @@ class FreqSearchProvider extends SearchProvider {
   private class FoundResult(freq: TFreq) extends Runnable {
     def run {
       for (tc <- AnalysisChartTopComponent.selected;
-           content = tc.content;
+           sec = tc.sec;
+           content = sec.content;
            quoteContract <- content.lookupActiveDescriptor(classOf[QuoteContract])
       ) {
         quoteContract.freq = freq
-        val tc = AnalysisChartTopComponent(content)
+        val tc = AnalysisChartTopComponent(sec)
         tc.requestActive
       }
     }

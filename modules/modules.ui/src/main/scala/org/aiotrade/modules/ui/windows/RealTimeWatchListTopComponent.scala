@@ -248,21 +248,19 @@ class RealTimeWatchListTopComponent private (val sectorNode: SymbolNodes.SectorN
     watchListPanel.unWatch(sec)
   }
     
-  def getSelectedSymbolNodes: List[Node] = {
-    var selectedNodes = List[Node]()
+  def getSelectedSymbolNodes: List[SymbolNodes.SymbolNode] = {
+    var selectedNodes = List[SymbolNodes.SymbolNode]()
     for (row <- watchListTable.getSelectedRows) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
-        SymbolNodes.findSymbolNode(symbol) foreach {node =>
-          selectedNodes ::= node
-        }
+        SymbolNodes.findSymbolNode(symbol) foreach {node => selectedNodes ::= node}
       }
     }
     selectedNodes
   }
     
-  private def getAllSymbolNodes: List[Node] = {
-    var nodes = List[Node]()
+  private def getAllSymbolNodes: List[SymbolNodes.SymbolNode] = {
+    var nodes = List[SymbolNodes.SymbolNode]()
     for (row <- 0 until watchListTable.getRowCount) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {

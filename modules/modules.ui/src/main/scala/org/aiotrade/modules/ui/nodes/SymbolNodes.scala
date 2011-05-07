@@ -761,7 +761,7 @@ object SymbolNodes {
           }
           
           log.info("Open standalone AnalysisChartTopComponent: " + standalone)
-          val analysisTc = AnalysisChartTopComponent(sec.content, standalone)
+          val analysisTc = AnalysisChartTopComponent(sec, standalone)
           analysisTc.setActivatedNodes(Array(node))
           /**
            * !NOTICE
