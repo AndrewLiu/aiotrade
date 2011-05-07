@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries.descriptor
 
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -45,7 +47,9 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class Content(var uniSymbol: String) extends WithActions {
+class Content(var uniSymbol: String) extends WithActions with Cloneable {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val withActionsHelper = new WithActionsHelper(this)
 
   /** Ser could be loaded lazily */
@@ -137,8 +141,16 @@ class Content(var uniSymbol: String) extends WithActions {
             
       Some(descriptor.asInstanceOf[T])
     } catch {
-      case ex: IllegalAccessException => ex.printStackTrace; None
-      case ex: InstantiationException => ex.printStackTrace; None
+      case ex: IllegalAccessException => log.log(Level.WARNING, ex.getMessage, ex); None
+      case ex: InstantiationException => log.log(Level.WARNING, ex.getMessage, ex); None
+    }
+  }
+  
+  override def clone: Content = {
+    try {
+      super.clone.asInstanceOf[Content]
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); null 
     }
   }
             

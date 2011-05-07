@@ -151,14 +151,14 @@ class Installer extends ModuleInstall {
 
     UserOptionsManager.assertLoaded
 
-    if (!isSymbolNodesAdded) {
+    /* if (!isSymbolNodesAdded) {
       val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
             addSymbolsFromDB(handle)
           }
         }, handle, true)
-    }
+    } */
 
     // run some task in background
 //    SwingUtilities.invokeLater(new Runnable {
