@@ -393,8 +393,8 @@ object SymbolNodes {
   }
   
   class CategoryChildFactory(category: String) extends ChildFactory[Sector] {
+    val sectors = Sector.sectorsOf(category)
     protected def createKeys(toPopulate: java.util.List[Sector]): Boolean = {
-      val sectors = Sector.sectorsOf(category)
       for (sector <- sectors) {
         toPopulate.add(sector)
       }
@@ -405,7 +405,7 @@ object SymbolNodes {
   }
   
   @throws(classOf[IntrospectionException])
-  class SectorNode(sector: Sector, ic: InstanceContent
+  class SectorNode(val sector: Sector, ic: InstanceContent
   ) extends BeanNode(sector, new SectorChildren(sector), new AbstractLookup(ic)) {
 
     setName(sector.key)
@@ -500,8 +500,12 @@ object SymbolNodes {
     }
 
     override def getDisplayName: String = {
-      val name = sector.name
-      if (Bundle.containsKey(name)) Bundle.getString(name) else name
+      (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + " (" + getChildren.asInstanceOf[SectorChildren].secs.length + ")"
+    }
+    
+    /** tooltip */
+    override def getShortDescription = {
+      sector.code + " (" + (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + ")"
     }
   }
   
@@ -509,14 +513,12 @@ object SymbolNodes {
    * The children of the sector node, child should be a symbol
    */
   private class SectorChildren(sector: Sector) extends Children.Keys[Sec] {
+    val secs = Sector.secsOf(sector)
     val keys = new java.util.TreeSet[Sec]
 
     override protected def addNotify {
       keys.clear
-      val secs = Sector.secsOf(sector)
-      for (sec <- secs) {
-        keys add sec
-      }
+      secs foreach keys.add
       setKeys(keys)
     }
 
@@ -592,13 +594,8 @@ object SymbolNodes {
 
     override def getDisplayName = sec.uniSymbol + " (" + sec.name + ")"
 
-    override def getIcon(tpe: Int): Image = {
-      symbolIcon
-    }
-
-    override def getOpenedIcon(tpe: Int): Image = {
-      getIcon(0)
-    }
+    override def getIcon(tpe: Int): Image = symbolIcon
+    override def getOpenedIcon(tpe: Int): Image = getIcon(0)
 
     override def canRename = false
 
@@ -716,8 +713,8 @@ object SymbolNodes {
     override protected def addNotify {
       keys.clear
       /** each symbol should create new NodeInfo instance that belongs to itself */
-      for (nodeInfo <- groups) {
-        keys add nodeInfo.clone.asInstanceOf[GroupDescriptor[Descriptor[_]]]
+      for (group <- groups) {
+        keys add group.clone
       }
       setKeys(keys)
     }
@@ -794,80 +791,13 @@ object SymbolNodes {
       val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + " " + node.getDisplayName + " ...")
       ProgressUtils.showProgressDialogAndRun(new Runnable {
           def run {
-            log.info("Start collecting node children")
-            val content = getContentViaNode(node, handle)
             handle.finish
-            log.info("Finished collecting node children: " + content.length)
-            watchSymbols(sectorNode, content)
+            node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+            SymbolStartWatchAction.this.setEnabled(false)
+
+            openSector(sectorNode.sector)
           }
         }, handle, false)
-    }
-
-    /** Not as efficient as getSymbolContentViaFolder if nodes were not inited previously */
-    private def getContentViaNode(node: Node, handle: ProgressHandle) = {
-      val symbolNodes = new ArrayList[Node]
-      collectSymbolNodes(node, symbolNodes, handle)
-      symbolNodes map (_.getLookup.lookup(classOf[Content]))
-    }
-
-    private def collectSymbolNodes(node: Node, symbolNodes: ArrayList[Node], handle: ProgressHandle) {
-      node match {
-        case x: SymbolNode => symbolNodes += node
-        case x: SectorNode =>
-          /** it's a folder, go recursively */
-          val children = node.getChildren
-          val count = children.getNodesCount
-          handle.switchToDeterminate(count)
-          var i = 0
-          while (i < count) {
-            handle.progress(i)
-            val node_i = children.getNodeAt(i)
-            collectSymbolNodes(node_i, symbolNodes, handle)
-            i += 1
-          }
-        case _ =>
-      }
-    }
-
-    private def getContentViaFolder(node: Node, handle: ProgressHandle) = {
-      val contents = new ArrayList[Content]
-
-      val folder = node.getLookup.lookup(classOf[DataFolder])
-      if (folder == null) {
-        // it's an SymbolNode, do real things
-        readContent(node) foreach (contents += _)
-      } else {
-        collectSymbolContents(folder, contents, handle)
-      }
-      contents
-    }
-
-    private def collectSymbolContents(dob: DataObject, contents: ArrayList[Content], handle: ProgressHandle) {
-      dob match {
-        case x: DataFolder =>
-          /** it's a folder, go recursively */
-          val children = x.getChildren
-          val count = children.length
-          handle.switchToDeterminate(count)
-          var i = 0
-          while (i < count) {
-            handle.progress(i)
-            val child = children(i)
-            collectSymbolContents(child, contents, handle)
-            i += 1
-          }
-        case x: DataObject =>
-          val fo = x.getPrimaryFile
-          readContent(fo) foreach (contents += _)
-        case x => log.warning("Unknown DataObject: " + x)
-      }
-    }
-
-    private def watchSymbols(folderNode: SectorNode, symbolContents: ArrayList[Content]) {
-      node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-      this.setEnabled(false)
-
-      watchSymbolsInSector(folderNode, symbolContents.toArray)
     }
   }
 
@@ -1032,11 +962,10 @@ object SymbolNodes {
     def execute {
       val sec = node.sec
       val content = sec.content
-      val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
-
-      val serToCompare = sec.serOf(quoteContract.freq).get
+      val freq = analysisTc.freq
+      val serToCompare = sec.serOf(freq).get
       if (!serToCompare.isLoaded) {
         sec.loadSer(serToCompare)
       }
@@ -1068,7 +997,7 @@ object SymbolNodes {
       }
 
       val content = node.getLookup.lookup(classOf[Content])
-      watchSymbolsInSector(favoriteNode, Array(content))
+      watchSymbolsOfSector(favoriteNode, Array(content))
     }
   }
 
@@ -1092,11 +1021,13 @@ object SymbolNodes {
 
       try {
         DataFolder.create(folder, floderName)
-      } catch {case ex: IOException => ErrorManager.getDefault().notify(ex)}
+      } catch {
+        case ex: IOException => ErrorManager.getDefault().notify(ex)
+      }
     }
   }
 
-  private def watchSymbolsInSector(sectorNode: SectorNode, symbolContents: Array[Content]) {
+  private def watchSymbolsOfSector(sectorNode: SectorNode, symbolContents: Array[Content]) {
     val watchListTc = RealTimeWatchListTopComponent.getInstance(sectorNode)
     watchListTc.requestActive
 
