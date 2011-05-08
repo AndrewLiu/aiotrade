@@ -47,6 +47,7 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.view.securities.persistence.ContentPersistenceHandler
 import org.aiotrade.lib.view.securities.persistence.ContentParseHandler
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Quote
@@ -56,6 +57,7 @@ import org.aiotrade.lib.util.swing.action.RefreshAction;
 import org.aiotrade.modules.ui.nodes.SymbolNodes
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileLock;
+import org.openide.filesystems.FileObject
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
@@ -110,6 +112,12 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   restoreProperties
   //checkAndCreateDatabaseIfNecessary
+  
+  /**
+   * 'symbols' folder in default file system, usually the 'config' dir in userdir.
+   * Physical folder "symbols" is defined in layer.xml
+   */
+  private def symbolsFolder =  FileUtil.getConfigFile("symbols")
 
   def saveContent(content: Content) {
     if (content.uniSymbol.equalsIgnoreCase("Default")) {
@@ -155,33 +163,44 @@ class NetBeansPersistenceManager extends PersistenceManager {
     }
   }
 
+  /** Deserialize a Symbol from xml file */
   def restoreContent(uniSymbol: String): Content = {
-    var content: Content = null
-
-    if (uniSymbol.equalsIgnoreCase("Default")) {
-      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml");
-      if (defaultContentFile != null) {
-        var is: InputStream = null
-        try {
-          is = defaultContentFile.getInputStream
-          val xmlReader = XMLUtil.createXMLReader
-          val handler = new ContentParseHandler
-          xmlReader.setContentHandler(handler)
-          xmlReader.parse(new InputSource(is))
-          content = handler.getContent
-        } catch {
-          case ex: IOException  => ErrorManager.getDefault.notify(ex)
-          case ex: SAXException => ErrorManager.getDefault.notify(ex)
-        } finally {
-          if (is != null) is.close
+    val contentOpt = 
+      if (uniSymbol.equalsIgnoreCase("Default")) {
+        val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml");
+        if (defaultContentFile != null) {
+          readContent(defaultContentFile)
+        } else None
+      } else {
+        Option(symbolsFolder.getFileObject(uniSymbol, "sec")) match {
+          case Some(fo) => readContent(fo)
+          case None =>       
+            val content = defaultContent.clone
+            content.uniSymbol = uniSymbol
+            content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = uniSymbol}
+            Some(content)
         }
       }
-    } else {
-      /** @TODO
-       *  useful or useless in this case? */
-    }
 
-    content
+    contentOpt getOrElse (null)
+  }
+  
+  private def readContent(fo: FileObject): Option[Content] = {
+    var is: InputStream = null
+    try {
+      is = fo.getInputStream
+      val xmlReader = XMLUtil.createXMLReader
+      val handler = new ContentParseHandler
+      xmlReader.setContentHandler(handler)
+      xmlReader.parse(new InputSource(is))
+
+      Option(handler.getContent)
+    } catch {
+      case ex: IOException  => ErrorManager.getDefault.notify(ex); None
+      case ex: SAXException => ErrorManager.getDefault.notify(ex); None
+    } finally {
+      if (is != null) is.close
+    }
   }
 
   def saveProperties {
