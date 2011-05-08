@@ -45,8 +45,8 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
+import org.aiotrade.lib.securities.dataserver.RichInfoContract
+import org.aiotrade.lib.securities.dataserver.RichInfoHisContract
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.AttributesImpl
@@ -106,14 +106,14 @@ class ContentParseHandler extends DefaultHandler {
       start_moneyflowsources(attrs)
     } else if ("moneyflowsource".equals(qname)) {
       start_moneyflowsource(attrs)
-    } else if ("quoteinfosources".equals(qname)) {
-      start_QuoteInfosources(attrs)
-    } else if ("quoteinfosource".equals(qname)) {
-      start_QuoteInfosource(attrs)
-    } else if ("quoteinfohissources".equals(qname)) {
-      start_QuoteInfoHissources(attrs)
-    } else if ("quoteinfohissource".equals(qname)) {
-      start_QuoteInfoHissource(attrs)
+    } else if ("richinfosources".equals(qname)) {
+      start_RichInfosources(attrs)
+    } else if ("richinfosource".equals(qname)) {
+      start_RichInfosource(attrs)
+    } else if ("richinfohissources".equals(qname)) {
+      start_RichInfoHissources(attrs)
+    } else if ("richinfohissource".equals(qname)) {
+      start_RichInfoHissource(attrs)
     }
 
   }
@@ -140,10 +140,10 @@ class ContentParseHandler extends DefaultHandler {
       end_layer()
     } else if ("sources".equals(qname)) {
       end_sources()
-    }else if ("sources_quoteinfo".equals(qname)) {
-      end_QuoteInfosources()
-    }else if ("sources_quoteinfohis".equals(qname)) {
-      end_QuoteInfoHissources()
+    }else if ("sources_richinfo".equals(qname)) {
+      end_RichInfosources()
+    }else if ("sources_richinfohis".equals(qname)) {
+      end_RichInfoHissources()
     }
   }
     
@@ -387,12 +387,12 @@ class ContentParseHandler extends DefaultHandler {
   }
   
   @throws(classOf[SAXException])
-  def start_QuoteInfosource(meta: Attributes)  {
+  def start_RichInfosource(meta: Attributes)  {
     if (DEBUG) {
-      System.err.println("start_QuoteInfosource: " + meta)
+      System.err.println("start_RichInfosource: " + meta)
     }
 
-    val dataContract = new QuoteInfoContract
+    val dataContract = new RichInfoContract
 
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
@@ -424,27 +424,27 @@ class ContentParseHandler extends DefaultHandler {
   }
 
   @throws(classOf[SAXException])
-  def start_QuoteInfosources(meta: Attributes) {
+  def start_RichInfosources(meta: Attributes) {
     if (DEBUG) {
-      System.err.println("start_QuoteInfosources: " + meta)
+      System.err.println("start_RichInfosources: " + meta)
     }
   }
 
   @throws(classOf[SAXException])
-  def end_QuoteInfosources() {
+  def end_RichInfosources() {
     if (DEBUG) {
-      System.err.println("end_QuoteInfosources()")
+      System.err.println("end_RichInfosources()")
     }
 
   }
 
   @throws(classOf[SAXException])
-  def start_QuoteInfoHissource(meta: Attributes)  {
+  def start_RichInfoHissource(meta: Attributes)  {
     if (DEBUG) {
-      System.err.println("start_QuoteInfoHissource: " + meta)
+      System.err.println("start_RichInfoHissource: " + meta)
     }
 
-    val dataContract = new QuoteInfoHisContract
+    val dataContract = new RichInfoHisContract
 
     dataContract.active = meta.getValue("active").trim.toBoolean
     dataContract.serviceClassName = meta.getValue("class")
@@ -476,16 +476,16 @@ class ContentParseHandler extends DefaultHandler {
   }
 
   @throws(classOf[SAXException])
-  def start_QuoteInfoHissources(meta: Attributes) {
+  def start_RichInfoHissources(meta: Attributes) {
     if (DEBUG) {
-      System.err.println("start_QuoteInfoHissources: " + meta)
+      System.err.println("start_RichInfoHissources: " + meta)
     }
   }
 
   @throws(classOf[SAXException])
-  def end_QuoteInfoHissources() {
+  def end_RichInfoHissources() {
     if (DEBUG) {
-      System.err.println("end_QuoteInfoHissources")
+      System.err.println("end_RichInfoHissources")
     }
 
   }

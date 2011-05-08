@@ -12,18 +12,18 @@ import org.aiotrade.lib.collection.ArrayList
 
 
 /*                        Sington           deaf to heart beat    function
- * QuoteInfoHisDataServer  one per contract   yes                 history quote info only
- * QuoteInfoDataServer      yes               no                  incremental quote info only
+ * RichInfoHisDataServer  one per contract   yes                 history quote info only
+ * InfoDataServer      yes               no                  incremental quote info only
  */
-abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
-  type C = QuoteInfoHisContract
+abstract class RichInfoHisDataServer extends DataServer[RichInfo] {
+  type C = RichInfoHisContract
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val updatedEvents = new ArrayList[TSerEvent]
 
   deafTo(DataServer)
 
-  protected def processData(values: Array[QuoteInfo], contract: QuoteInfoHisContract): Long = {
+  protected def processData(values: Array[RichInfo], contract: RichInfoHisContract): Long = {
     updatedEvents.clear
     var count = 0
 
@@ -49,7 +49,7 @@ abstract class QuoteInfoHisDataServer extends  DataServer[QuoteInfo] {
     updatedEvents foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
-        //log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
+        //log.info(symbol + ": " + count + ", data loaded, load RichInfo server finished")
         lastTime = toTime
       case _ =>
     }

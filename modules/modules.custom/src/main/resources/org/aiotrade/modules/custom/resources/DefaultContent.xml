@@ -45,17 +45,17 @@
         <layer name="Layer One" nunits="1" unit="Minute">
         </layer>
     </drawings>
-    <quoteinfosources>
-        <quoteinfosource active="true" class="" symbol="hsi"
+    <richinfosources>
+        <richinfosource active="true" class="" symbol="hsi"
                 dateformat="dd-MMM-yy" nunits="1" unit="Second" refreshable="true" refreshinterval="5000"
                 begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
-        </quoteinfosource>
-    </quoteinfosources>
-    <quoteinfohissources>
-        <quoteinfohissource active="true" class="" symbol="hsi"
+        </richinfosource>
+    </richinfosources>
+    <richinfohissources>
+        <richinfohissource active="true" class="" symbol="hsi"
                 dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="5000"
                 begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
-        </quoteinfohissource>
-    </quoteinfohissources>
+        </richinfohissource>
+    </richinfohissources>
     
 </sec>

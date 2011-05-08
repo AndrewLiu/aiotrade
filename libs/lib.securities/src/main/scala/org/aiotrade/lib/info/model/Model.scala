@@ -22,7 +22,7 @@ object Model {
 
 
   def testCategory {
-    println (ContentCategories.cateOf("quoteinfo.filing"))
+    println (ContentCategories.cateOf("richinfo.filing"))
   }
   def testSelect {
     val infos = (SELECT (GeneralInfos.*) FROM GeneralInfos list)

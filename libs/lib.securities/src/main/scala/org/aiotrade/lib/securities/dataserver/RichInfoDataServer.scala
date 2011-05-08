@@ -19,7 +19,7 @@ import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 
-class QuoteInfo extends TVal {
+class RichInfo extends TVal {
   var generalInfo : GeneralInfo =  new GeneralInfo()
   var content : String = ""
   var summary : String = ""
@@ -37,9 +37,9 @@ class QuoteInfo extends TVal {
   }
 }
 
-case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
-                             combinValue : Long, content : String, summary : String,
-                             category : List[ContentCategory], secs : List[Sec] ) {
+case class RichInfoSnapshot(publishTime : Long, title: String, url : String,
+                            combinValue : Long, content : String, summary : String,
+                            category : List[ContentCategory], secs : List[Sec] ) {
 
   def export: mutable.Map[String, Any]= {
     mutable.Map[String, Any]("publishTime" -> publishTime,
@@ -53,22 +53,22 @@ case class QuoteInfoSnapshot(publishTime : Long, title: String, url : String,
   }
 }
 
-case class QuoteInfoSnapshots(events : List[QuoteInfoSnapshot]) {
+case class RichInfoSnapshots(events : List[RichInfoSnapshot]) {
   def export: List[mutable.Map[String, Any]] = for(event <- events) yield event.export
 }
 
-object QuoteInfoDataServer extends Publisher
+object RichInfoDataServer extends Publisher
 
-abstract class QuoteInfoDataServer extends DataServer[QuoteInfo] {
-  type C = QuoteInfoContract
+abstract class RichInfoDataServer extends DataServer[RichInfo] {
+  type C = RichInfoContract
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val updatedEvents = new ArrayList[TSerEvent]
-  private val allQuoteInfo = new ArrayList[QuoteInfoSnapshot]
+  private val allRichInfo = new ArrayList[RichInfoSnapshot]
 
-  protected def processData(values: Array[QuoteInfo], contract: QuoteInfoContract): Long = {
+  protected def processData(values: Array[RichInfo], contract: RichInfoContract): Long = {
     updatedEvents.clear
-    allQuoteInfo.clear
+    allRichInfo.clear
     var count = 0
 
     for (info <- values; sec <- info.secs) {
@@ -88,19 +88,19 @@ abstract class QuoteInfoDataServer extends DataServer[QuoteInfo] {
         case Some(x) => x
         case None => null
       }
-      val quoteInfo = QuoteInfoSnapshot(info.generalInfo.publishTime, info.generalInfo.title,
-                                        info.generalInfo.url, info.generalInfo.combinValue,
-                                        info.content, info.summary,info.categories.toList,
-                                        info.secs.toList)
-      allQuoteInfo += quoteInfo
+      val RichInfo = RichInfoSnapshot(info.generalInfo.publishTime, info.generalInfo.title,
+                                      info.generalInfo.url, info.generalInfo.combinValue,
+                                      info.content, info.summary,info.categories.toList,
+                                      info.secs.toList)
+      allRichInfo += RichInfo
     }
 
     values foreach (value => GeneralInfo.save(value))
     COMMIT
     
-    if (allQuoteInfo.length > 0) {
-      log.info("Publish QuoteInfoSnapshots :" + allQuoteInfo.size)
-      QuoteInfoDataServer.publish(QuoteInfoSnapshots(allQuoteInfo.toList))
+    if (allRichInfo.length > 0) {
+      log.info("Publish RichInfoSnapshots :" + allRichInfo.size)
+      RichInfoDataServer.publish(RichInfoSnapshots(allRichInfo.toList))
     }
     updatedEvents
 
@@ -108,7 +108,7 @@ abstract class QuoteInfoDataServer extends DataServer[QuoteInfo] {
     updatedEvents foreach {
       case event@TSerEvent.Updated(source, symbol, fromTime, toTime, lastObject, callback) =>
         source.publish(event)
-        //log.info(symbol + ": " + count + ", data loaded, load QuoteInfo server finished")
+        //log.info(symbol + ": " + count + ", data loaded, load RichInfo server finished")
         lastTime = toTime
       case _ =>
     }
