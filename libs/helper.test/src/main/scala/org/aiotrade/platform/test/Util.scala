@@ -92,10 +92,8 @@ class Util {
     setUIStyle
 
     sec = Exchange.secOf(symbol).get
-    val content = new Content(symbol)
-    content.serProvider = sec
-    sec.content = content
     
+    val content = sec.content
     val dailyQuoteContract = createQuoteContract(symbol, category, sname, TFreq.DAILY, false, quoteServer)
     val supportOneMin = dailyQuoteContract.isFreqSupported(TFreq.ONE_MIN)
     val oneMinQuoteContract = createQuoteContract(symbol, category, sname, TFreq.ONE_MIN, supportOneMin, quoteServer)
@@ -106,6 +104,7 @@ class Util {
 
     content.addDescriptor(dailyQuoteContract)
     content.addDescriptor(oneMinQuoteContract)
+    
     sec.tickerContract = tickerContract
     val exchange =
       if (quoteServer.getName == YahooQuoteServer.getClass.getName) {
@@ -253,7 +252,7 @@ class Util {
   }
 
 //    private static final Content createRealTimeContent(String symbol, Frequency freq, Class quoteServer) {
-//        Content content = new Content(symbol);
+//        
 //
 //        content.addDescriptor(createIndicatorDescriptor(VOLIndicator.class, freq));
 //

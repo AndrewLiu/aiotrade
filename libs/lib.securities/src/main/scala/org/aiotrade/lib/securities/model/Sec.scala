@@ -44,6 +44,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
+import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
@@ -201,9 +202,11 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
-  def content = _content
-  def content_=(content: Content) {
-    _content = content
+  def content = {
+    if (_content == null) {
+      _content = PersistenceManager().restoreContent(uniSymbol)
+    }
+    _content
   }
   
   private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {

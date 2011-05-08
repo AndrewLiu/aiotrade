@@ -146,7 +146,7 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent private (val sec: Sec) extends TopComponent {
+class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
   instanceRefs.put(this, null)
 
   private var addToFavActionMenuItem: JMenuItem = _
@@ -184,12 +184,15 @@ class AnalysisChartTopComponent private (val sec: Sec) extends TopComponent {
     })
 
 
-  private var state = init(sec)
+  private var state = init($sec)
+  
+  /**
+   * Current sec of this tc, it may be different from original sec that was passed via constructor.
+   */
+  def sec = state.sec
   def viewContainer = state.viewContainer
   def realTimeBoard = state.realTimeBoard
   def freq = state.contractFreq
-
-  private def tcId = state.tcId
 
   def init(currSec: Sec): State = {
     if (state != null) {
@@ -256,17 +259,9 @@ class AnalysisChartTopComponent private (val sec: Sec) extends TopComponent {
     //sec.setSignSeriesLoaded(false);
   }
 
-  override def getIcon: Image = {
-    iconImage
-  }
-
-  override protected def preferredID: String = {
-    tcId
-  }
-
-  override def getPersistenceType: Int = {
-    TopComponent.PERSISTENCE_NEVER
-  }
+  override def getIcon: Image = iconImage
+  override def getPersistenceType: Int = TopComponent.PERSISTENCE_NEVER
+  override protected def preferredID: String = state.tcId
     
   private def updateToolbar {
     SwitchCalendarTradingTimeViewAction.updateToolbar(viewContainer)

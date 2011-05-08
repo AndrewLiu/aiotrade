@@ -35,7 +35,6 @@ import java.util.logging.Logger
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.util.serialization.BeansDocument
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper
@@ -52,9 +51,6 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
   
   private val withActionsHelper = new WithActionsHelper(this)
 
-  /** Ser could be loaded lazily */
-  var serProvider: SerProvider = _
-    
   /** use List to store descriptor, so they can be ordered by index */
   private var descriptorBuf = ArrayBuffer[Descriptor[_]]()
     

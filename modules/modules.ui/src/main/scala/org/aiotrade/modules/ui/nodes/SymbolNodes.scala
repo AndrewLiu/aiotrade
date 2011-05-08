@@ -490,18 +490,7 @@ object SymbolNodes {
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
   class SymbolNode private (val sec: Sec, ic: InstanceContent
-  ) extends BeanNode(sec, new SymbolChildren, new AbstractLookup(ic)) {
-
-    // check if has existed in application context, if true, use the existed one
-    val content = contentOf(sec.uniSymbol) getOrElse {
-      val content1 = PersistenceManager().restoreContent(sec.uniSymbol)
-      putNode(content1, this)
-      ic.add(content1)
-      content1
-    }
-    content.serProvider = sec
-    sec.content = content
-
+  ) extends BeanNode(sec, new SymbolChildren(sec), new AbstractLookup(ic)) {
     secToSymbolNode.put(sec, this)
 
     /* add additional items to the lookup */
@@ -630,7 +619,7 @@ object SymbolNodes {
       *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
       *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
       */
-     private class SymbolChildren extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
+     private class SymbolChildren(sec: Sec) extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
 
         /**
          * Called when children are first asked for nodes. Typical implementations at this time
@@ -655,8 +644,7 @@ object SymbolNodes {
 
         def createNodes(key: GroupDescriptor[Descriptor[_]]): Array[Node] = {
           try {
-            // lookup Content in parent node
-            val content = this.getNode.getLookup.lookup(classOf[Content])
+            val content = sec.content
             Array(new GroupNode(key, content))
           } catch {
             case ex: IntrospectionException =>
