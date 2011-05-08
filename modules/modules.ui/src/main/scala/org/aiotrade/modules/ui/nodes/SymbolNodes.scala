@@ -128,8 +128,6 @@ object SymbolNodes {
 
   private val DEFAUTL_SOURCE_ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/symbol.gif")
 
-  private val contentToOccuptantNode = mutable.Map[Content, Node]()
-
   private val secToSymbolNode = new mutable.WeakHashMap[Sec, SymbolNode]
 
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
@@ -147,48 +145,14 @@ object SymbolNodes {
   
   private val groups = PersistenceManager().lookupAllRegisteredServices(classOf[GroupDescriptor[Descriptor[_]]], "DescriptorGroups")
 
-  def occupantNodeOf(content: Content): Option[Node] =  {
-    contentToOccuptantNode.get(content)
-  }
-
-  def occupiedContentOf(node: Node): Option[Content] = {
-    contentToOccuptantNode find {case (content, aNode) => (aNode eq node)} map (_._1)
-  }
-
-  def contentOf(symbol: String): Option[Content] = {
-    contentToOccuptantNode.keySet find {_.uniSymbol == symbol}
-  }
-
-  def nodeOf(symbol: String): Option[Node] = {
-    contentOf(symbol) map occupantNodeOf get
-  }
-
-  def putNode(content: Content, node: Node) {
-    contentToOccuptantNode += (content -> node)
-  }
-
   /**
-   * Remove node will not remove the content, we prefer content instances
-   * long lives in application context, so if node is moved to other place, we
-   * can just pick a content from here (if exists) instead of reading from xml
-   * file, and thus makes the opened topcomponent needn't to refer to a new
-   * created content instance.
-   * So, just do
-   * <code>putNode(content, null)</code>
+   * @NOTICE
+   * When move a node from a folder to another folder, a new node could
+   * be created first, then the old node is removed. so the nodeMap may
+   * has been updated by the new node, and lookupContent(node) will
+   * return a null since it lookup via the old node.
+   * Check it here
    */
-  def removeNode(node: Node) {
-    /**
-     * @NOTICE
-     * When move a node from a folder to another folder, a new node could
-     * be created first, then the old node is removed. so the nodeMap may
-     * has been updated by the new node, and lookupContent(node) will
-     * return a null since it lookup via the old node.
-     * Check it here
-     */
-    occupiedContentOf(node) foreach {content =>
-      contentToOccuptantNode -= content
-    }
-  }
 
   def createSymbolXmlFile(folder: DataFolder, symbol: String): Option[FileObject] =  {
     val folderObject = folder.getPrimaryFile
@@ -511,46 +475,46 @@ object SymbolNodes {
      * type casting. Here is the recommended suggestion that uses public/private
      * pair of constructors:
      */
-     @throws(classOf[IOException])
-     @throws(classOf[IntrospectionException])
-     def this(sec: Sec) = this(sec, new InstanceContent)
+    @throws(classOf[IOException])
+    @throws(classOf[IntrospectionException])
+    def this(sec: Sec) = this(sec, new InstanceContent)
 
-     override def getDisplayName = sec.uniSymbol + " (" + sec.name + ")"
+    override def getDisplayName = sec.uniSymbol + " (" + sec.name + ")"
 
-     override def getIcon(tpe: Int): Image = symbolIcon
-     override def getOpenedIcon(tpe: Int): Image = getIcon(0)
+    override def getIcon(tpe: Int): Image = symbolIcon
+    override def getOpenedIcon(tpe: Int): Image = getIcon(0)
 
-     override def canRename = false
+    override def canRename = false
 
-     override def getActions(context: Boolean): Array[Action] = {
-        Array(
-          getLookup.lookup(classOf[SymbolViewAction]),
-          getLookup.lookup(classOf[SymbolRefreshDataAction]),
-          getLookup.lookup(classOf[SymbolReimportDataAction]),
-          null,
-          getLookup.lookup(classOf[SymbolStartWatchAction]),
-          getLookup.lookup(classOf[SymbolStopWatchAction]),
-          null,
-          getLookup.lookup(classOf[SymbolCompareToAction]),
-          null,
-          getLookup.lookup(classOf[SymbolSetDataSourceAction]),
-          null,
-          getLookup.lookup(classOf[SymbolClearDataAction]),
-          null,
-          SystemAction.get(classOf[CopyAction]),
-          SystemAction.get(classOf[DeleteAction]),
-          null,
-          getLookup.lookup(classOf[SymbolAddToFavoriteAction])
-        )
-      }
+    override def getActions(context: Boolean): Array[Action] = {
+      Array(
+        getLookup.lookup(classOf[SymbolViewAction]),
+        getLookup.lookup(classOf[SymbolRefreshDataAction]),
+        getLookup.lookup(classOf[SymbolReimportDataAction]),
+        null,
+        getLookup.lookup(classOf[SymbolStartWatchAction]),
+        getLookup.lookup(classOf[SymbolStopWatchAction]),
+        null,
+        getLookup.lookup(classOf[SymbolCompareToAction]),
+        null,
+        getLookup.lookup(classOf[SymbolSetDataSourceAction]),
+        null,
+        getLookup.lookup(classOf[SymbolClearDataAction]),
+        null,
+        SystemAction.get(classOf[CopyAction]),
+        SystemAction.get(classOf[DeleteAction]),
+        null,
+        getLookup.lookup(classOf[SymbolAddToFavoriteAction])
+      )
+    }
 
-     /**
-      * The getPreferredAction() simply returns the action that should be
-      * run if the user double-clicks this node
-      */
-     override def getPreferredAction: Action = {
-        getActions(true)(0)
-      }
+    /**
+     * The getPreferredAction() simply returns the action that should be
+     * run if the user double-clicks this node
+     */
+    override def getPreferredAction: Action = {
+      getActions(true)(0)
+    }
 
 //    override protected def createNodeListener: NodeListener = {
 //      //val delegate = super.createNodeListener
@@ -596,156 +560,156 @@ object SymbolNodes {
 //      }
 //      newListener
 //    }
-     }
+  }
   
 
 
-     /**
-      * The children wrap class
-      * ------------------------------------------------------------------------
-      *
-      * Defining the all children of a Symbol node
-      * They will be representation for descriptorGroups in this case. it's simply
-      * a wrap class of DescriptorGroupNode with addNotify() and createNodes()
-      * implemented
-      *
-      * Typical usage of Children.Keys:
-      *
-      *  1. Subclass.
-      *  2. Decide what type your key should be.
-      *  3. Implement createNodes(java.lang.Object) to create some nodes (usually exactly one) per key.
-      *  4. Override Children.addNotify() to construct a set of keys and set it using setKeys(Collection). The collection may be ordered.
-      *  5. Override Children.removeNotify() to just call setKeys on Collections.EMPTY_SET.
-      *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
-      *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
-      */
-     private class SymbolChildren(sec: Sec) extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
+  /**
+   * The children wrap class
+   * ------------------------------------------------------------------------
+   *
+   * Defining the all children of a Symbol node
+   * They will be representation for descriptorGroups in this case. it's simply
+   * a wrap class of DescriptorGroupNode with addNotify() and createNodes()
+   * implemented
+   *
+   * Typical usage of Children.Keys:
+   *
+   *  1. Subclass.
+   *  2. Decide what type your key should be.
+   *  3. Implement createNodes(java.lang.Object) to create some nodes (usually exactly one) per key.
+   *  4. Override Children.addNotify() to construct a set of keys and set it using setKeys(Collection). The collection may be ordered.
+   *  5. Override Children.removeNotify() to just call setKeys on Collections.EMPTY_SET.
+   *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
+   *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
+   */
+   private class SymbolChildren(sec: Sec) extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
 
-        /**
-         * Called when children are first asked for nodes. Typical implementations at this time
-         * calculate their node list (or keys for Children.Keys etc.).
-         *
-         * !Notice: call to getNodes() inside of this method will return an empty array of nodes.
-         *
-         * Since setKeys(childrenKeys) will copy the elements of childrenKeys, it's safe to
-         * use a repeatly used bufChildrenKeys here.
-         * And, to sort them in letter order, we can use a SortedSet to copy from collection.(TODO)
-         */
-        val keys = new java.util.HashSet[GroupDescriptor[Descriptor[_]]]()
+      /**
+       * Called when children are first asked for nodes. Typical implementations at this time
+       * calculate their node list (or keys for Children.Keys etc.).
+       *
+       * !Notice: call to getNodes() inside of this method will return an empty array of nodes.
+       *
+       * Since setKeys(childrenKeys) will copy the elements of childrenKeys, it's safe to
+       * use a repeatly used bufChildrenKeys here.
+       * And, to sort them in letter order, we can use a SortedSet to copy from collection.(TODO)
+       */
+      val keys = new java.util.HashSet[GroupDescriptor[Descriptor[_]]]()
 
-        override protected def addNotify {
-          keys.clear
-          /** each symbol should create new NodeInfo instance that belongs to itself */
-          for (group <- groups) {
-            keys add group.clone
-          }
-          setKeys(keys)
+      override protected def addNotify {
+        keys.clear
+        /** each symbol should create new NodeInfo instance that belongs to itself */
+        for (group <- groups) {
+          keys add group.clone
         }
+        setKeys(keys)
+      }
 
-        def createNodes(key: GroupDescriptor[Descriptor[_]]): Array[Node] = {
-          try {
-            val content = sec.content
-            Array(new GroupNode(key, content))
-          } catch {
-            case ex: IntrospectionException =>
-              ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
-              /** Should never happen - no reason for it to fail above */
-              Array(
-                new AbstractNode(Children.LEAF) {
-                  override def getHtmlDisplayName = {
-                    "<font color='red'>" + ex.getMessage() + "</font>"
-                  }
+      def createNodes(key: GroupDescriptor[Descriptor[_]]): Array[Node] = {
+        try {
+          val content = sec.content
+          Array(new GroupNode(key, content))
+        } catch {
+          case ex: IntrospectionException =>
+            ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
+            /** Should never happen - no reason for it to fail above */
+            Array(
+              new AbstractNode(Children.LEAF) {
+                override def getHtmlDisplayName = {
+                  "<font color='red'>" + ex.getMessage() + "</font>"
                 }
-              )
-          }
+              }
+            )
         }
       }
+    }
   
 
-     // ----- node actions
+   // ----- node actions
 
-     private class SymbolViewAction(node: Node) extends ViewAction {
-        putValue(Action.NAME, Bundle.getString("AC_view"))
+   private class SymbolViewAction(node: Node) extends ViewAction {
+      putValue(Action.NAME, Bundle.getString("AC_view"))
 
-        def execute {
-          node match {
-            case x: SectorNode => 
-              for (child <- node.getChildren.getNodes) {
-                child.getLookup.lookup(classOf[SymbolViewAction]).execute
-              }
-            case x: SymbolNode =>
-              val sec = x.sec
-              var mayNeedsReload = false
+      def execute {
+        node match {
+          case x: SectorNode => 
+            for (child <- node.getChildren.getNodes) {
+              child.getLookup.lookup(classOf[SymbolViewAction]).execute
+            }
+          case x: SymbolNode =>
+            val sec = x.sec
+            var mayNeedsReload = false
 
-              val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
-                case null => false
-                case x => x.asInstanceOf[Boolean]
-              }
+            val standalone = getValue(AnalysisChartTopComponent.STANDALONE) match {
+              case null => false
+              case x => x.asInstanceOf[Boolean]
+            }
           
-              log.info("Open standalone AnalysisChartTopComponent: " + standalone)
-              val analysisTc = AnalysisChartTopComponent(sec, standalone)
-              analysisTc.setActivatedNodes(Array(node))
-              /**
-               * !NOTICE
-               * close a TopComponent doen's mean this TopComponent is null, it still
-               * exsit, just invsible
-               */
-              /** if TopComponent of this stock has been shown before, should reload quote data, why */
-              /* if (mayNeedsReload) {
-               sec.clearSer(quoteContract.freq)
-               } */
+            log.info("Open standalone AnalysisChartTopComponent: " + standalone)
+            val analysisTc = AnalysisChartTopComponent(sec, standalone)
+            analysisTc.setActivatedNodes(Array(node))
+            /**
+             * !NOTICE
+             * close a TopComponent doen's mean this TopComponent is null, it still
+             * exsit, just invsible
+             */
+            /** if TopComponent of this stock has been shown before, should reload quote data, why */
+            /* if (mayNeedsReload) {
+             sec.clearSer(quoteContract.freq)
+             } */
 
-              if (!analysisTc.isOpened) {
-                analysisTc.open
-              }
+            if (!analysisTc.isOpened) {
+              analysisTc.open
+            }
 
-              analysisTc.requestActive
-          }
+            analysisTc.requestActive
         }
       }
+    }
 
-     class SymbolStartWatchAction(node: Node) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_start_watching"))
-        putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/resources/startWatch.gif")
+   class SymbolStartWatchAction(node: Node) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_start_watching"))
+      putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/resources/startWatch.gif")
 
-        def execute {
-          val sectorNode = getSectorNode(node) getOrElse (return)
-          val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + " " + node.getDisplayName + " ...")
-          ProgressUtils.showProgressDialogAndRun(new Runnable {
-              def run {
-                handle.finish
-                node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
-                SymbolStartWatchAction.this.setEnabled(false)
+      def execute {
+        val sectorNode = getSectorNode(node) getOrElse (return)
+        val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_init_symbols") + " " + node.getDisplayName + " ...")
+        ProgressUtils.showProgressDialogAndRun(new Runnable {
+            def run {
+              handle.finish
+              node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
+              SymbolStartWatchAction.this.setEnabled(false)
 
-                openSector(sectorNode.sector)
-              }
-            }, handle, false)
-        }
+              openSector(sectorNode.sector)
+            }
+          }, handle, false)
+      }
+    }
+
+   class SymbolStopWatchAction(node: Node) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_stop_watching"))
+      putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/resources/stopWatch.gif")
+
+      if (node.getLookup.lookup(classOf[DataFolder]) != null) {
+        this.setEnabled(true)
+      } else {
+        this.setEnabled(false)
       }
 
-     class SymbolStopWatchAction(node: Node) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_stop_watching"))
-        putValue(Action.SMALL_ICON, "org/aiotrade/modules/ui/resources/stopWatch.gif")
+      def execute {
+        node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
+        this.setEnabled(false)
 
-        if (node.getLookup.lookup(classOf[DataFolder]) != null) {
-          this.setEnabled(true)
-        } else {
-          this.setEnabled(false)
-        }
-
-        def execute {
-          node.getLookup.lookup(classOf[SymbolStartWatchAction]).setEnabled(true)
-          this.setEnabled(false)
-
-          node match {
-            case x: SectorNode =>
-              for (child <- node.getChildren.getNodes) {
-                child.getLookup.lookup(classOf[SymbolStopWatchAction]).execute
-              }
-            case x: SymbolNode =>
-              val sec = x.sec
-              val content = sec.content
-              sec.unSubscribeTickerServer
+        node match {
+          case x: SectorNode =>
+            for (child <- node.getChildren.getNodes) {
+              child.getLookup.lookup(classOf[SymbolStopWatchAction]).execute
+            }
+          case x: SymbolNode =>
+            val sec = x.sec
+            val content = sec.content
+            sec.unSubscribeTickerServer
 
 //      if (!RealTimeWatchListTopComponent.instanceRefs.isEmpty) {
 //        RealTimeWatchListTopComponent.instanceRefs.head.get.unWatch(sec)
@@ -758,219 +722,218 @@ object SymbolNodes {
 //      RealTimeBoardTopComponent(content) foreach {rtBoardWin =>
 //        rtBoardWin.unWatch
 //      }          
-          }
+        }
 
 
+      }
+    }
+
+   /**
+    * We We shouldn't implement deleting data in db in NodeListener#nodeDestroyed(NodeEvent),
+    * since  it will be called also when you move a node from a folder to another
+    * folder. So we need a standalone action here.
+    *
+    * @TODO
+    */
+   class SymbolClearDataAction(node: SymbolNode) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_clear_data"))
+
+      def perform(shouldConfirm: Boolean) {
+        /**
+         * don't get descriptors from getLookup.lookup(..), becuase
+         * if node destroy is invoked by parent node, such as folder,
+         * the lookup content may has been destroyed before node destroyed.
+         */
+        val content = node.sec.content
+        val confirm = if (shouldConfirm) {
+          JOptionPane.showConfirmDialog(WindowManager.getDefault.getMainWindow(),
+                                        "Are you sure you want to clear data of : " + content.uniSymbol + " ?",
+                                        "Clearing data ...",
+                                        JOptionPane.YES_NO_OPTION)
+        } else JOptionPane.YES_OPTION
+
+        if (confirm == JOptionPane.YES_OPTION) {
+          val symbol = content.uniSymbol
+          /** drop tables in database */
+          PersistenceManager().dropAllQuoteTables(symbol)
         }
       }
 
-     /**
-      * We We shouldn't implement deleting data in db in NodeListener#nodeDestroyed(NodeEvent),
-      * since  it will be called also when you move a node from a folder to another
-      * folder. So we need a standalone action here.
-      *
-      * @TODO
-      */
-     class SymbolClearDataAction(node: SymbolNode) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_clear_data"))
+      def execute {
+        perform(true)
+      }
+    }
 
-        def perform(shouldConfirm: Boolean) {
-          /**
-           * don't get descriptors from getLookup.lookup(..), becuase
-           * if node destroy is invoked by parent node, such as folder,
-           * the lookup content may has been destroyed before node destroyed.
-           */
-          occupiedContentOf(node) foreach {content =>
-            val confirm = if (shouldConfirm) {
-              JOptionPane.showConfirmDialog(WindowManager.getDefault.getMainWindow(),
-                                            "Are you sure you want to clear data of : " + content.uniSymbol + " ?",
-                                            "Clearing data ...",
-                                            JOptionPane.YES_NO_OPTION)
-            } else JOptionPane.YES_OPTION
+   class SymbolReimportDataAction(node: Node) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_reimport_data"))
 
-            if (confirm == JOptionPane.YES_OPTION) {
-              val symbol = content.uniSymbol
-              /** drop tables in database */
-              PersistenceManager().dropAllQuoteTables(symbol)
+      def execute {
+        node match {
+          case x: SectorNode =>
+            for (child <- node.getChildren.getNodes) {
+              child.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
             }
-          }
-        }
-
-        def execute {
-          perform(true)
-        }
-      }
-
-     class SymbolReimportDataAction(node: Node) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_reimport_data"))
-
-        def execute {
-          node match {
-            case x: SectorNode =>
-              for (child <- node.getChildren.getNodes) {
-                child.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
-              }
-            case x: SymbolNode =>
-              val sec = x.sec
-              val content = sec.content
+          case x: SymbolNode =>
+            val sec = x.sec
+            val content = sec.content
           
-              val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
+            val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-              val cal = Calendar.getInstance
-              cal.clear
+            val cal = Calendar.getInstance
+            cal.clear
 
-              cal.setTime(quoteContract.beginDate)
-              val fromTime = cal.getTimeInMillis
+            cal.setTime(quoteContract.beginDate)
+            val fromTime = cal.getTimeInMillis
 
-              val freq = quoteContract.freq
-              PersistenceManager().deleteQuotes(content.uniSymbol, freq, fromTime, Long.MaxValue)
+            val freq = quoteContract.freq
+            PersistenceManager().deleteQuotes(content.uniSymbol, freq, fromTime, Long.MaxValue)
 
-              /**
-               * @TODO
-               * need more works, the clear(long) in default implement of Ser doesn't work good!
-               */
-              sec.resetSers
-              val ser = sec.serOf(freq).get
+            /**
+             * @TODO
+             * need more works, the clear(long) in default implement of Ser doesn't work good!
+             */
+            sec.resetSers
+            val ser = sec.serOf(freq).get
 
-              node.getLookup.lookup(classOf[ViewAction]).execute
-          }
+            node.getLookup.lookup(classOf[ViewAction]).execute
         }
       }
+    }
 
-     private class SymbolRefreshDataAction(node: Node) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_refresh_data"))
+   private class SymbolRefreshDataAction(node: Node) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_refresh_data"))
 
-        def execute {
-          node match {
-            case x: SectorNode =>
-              for (child <- node.getChildren.getNodes) {
-                child.getLookup.lookup(classOf[SymbolRefreshDataAction]).execute
-              }
-            case x: SymbolNode =>
-              val sec = x.sec
-              val content = sec.content
-              val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
+      def execute {
+        node match {
+          case x: SectorNode =>
+            for (child <- node.getChildren.getNodes) {
+              child.getLookup.lookup(classOf[SymbolRefreshDataAction]).execute
+            }
+          case x: SymbolNode =>
+            val sec = x.sec
+            val content = sec.content
+            val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
 
-              sec.resetSers
-              val ser = sec.serOf(quoteContract.freq).get
+            sec.resetSers
+            val ser = sec.serOf(quoteContract.freq).get
 
-              node.getLookup.lookup(classOf[ViewAction]).execute      
-          }
+            node.getLookup.lookup(classOf[ViewAction]).execute      
         }
       }
+    }
 
-     private class SymbolSetDataSourceAction(node: SymbolNode) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_set_data_source"))
+   private class SymbolSetDataSourceAction(node: SymbolNode) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_set_data_source"))
 
-        def execute {
-          val content = node.sec.content
+      def execute {
+        val content = node.sec.content
 
-          val pane = new ImportSymbolDialog(
-            WindowManager.getDefault.getMainWindow,
-            content.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null),
-            false)
-          if (pane.showDialog != JOptionPane.OK_OPTION) {
-            return
-          }
-
-          content.lookupAction(classOf[SaveAction]) foreach {_.execute}
-          node.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
-        }
-      }
-
-     private class SymbolCompareToAction(node: SymbolNode) extends GeneralAction {
-        putValue(Action.NAME, Bundle.getString("AC_compare_to_current"))
-
-        def execute {
-          val sec = node.sec
-          val content = sec.content
-
-          val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
-          val freq = analysisTc.freq
-          val serToCompare = sec.serOf(freq).get
-          if (!serToCompare.isLoaded) {
-            sec.loadSer(serToCompare)
-          }
-
-          val viewContainer = analysisTc.viewContainer
-
-          val baseSer = viewContainer.controller.baseSer
-          val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
-          quoteCompareIndicator.shortDescription = sec.uniSymbol
-          quoteCompareIndicator.serToBeCompared = serToCompare
-          quoteCompareIndicator.computeFrom(0)
-
-          viewContainer.controller.scrollReferCursorToLeftSide
-          viewContainer.masterView.asInstanceOf[AnalysisChartView].addQuoteCompareChart(quoteCompareIndicator)
-
-          analysisTc.requestActive
+        val pane = new ImportSymbolDialog(
+          WindowManager.getDefault.getMainWindow,
+          content.lookupActiveDescriptor(classOf[QuoteContract]).getOrElse(null),
+          false)
+        if (pane.showDialog != JOptionPane.OK_OPTION) {
+          return
         }
 
+        content.lookupAction(classOf[SaveAction]) foreach {_.execute}
+        node.getLookup.lookup(classOf[SymbolReimportDataAction]).execute
+      }
+    }
+
+   private class SymbolCompareToAction(node: SymbolNode) extends GeneralAction {
+      putValue(Action.NAME, Bundle.getString("AC_compare_to_current"))
+
+      def execute {
+        val sec = node.sec
+        val content = sec.content
+
+        val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
+        val freq = analysisTc.freq
+        val serToCompare = sec.serOf(freq).get
+        if (!serToCompare.isLoaded) {
+          sec.loadSer(serToCompare)
+        }
+
+        val viewContainer = analysisTc.viewContainer
+
+        val baseSer = viewContainer.controller.baseSer
+        val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
+        quoteCompareIndicator.shortDescription = sec.uniSymbol
+        quoteCompareIndicator.serToBeCompared = serToCompare
+        quoteCompareIndicator.computeFrom(0)
+
+        viewContainer.controller.scrollReferCursorToLeftSide
+        viewContainer.masterView.asInstanceOf[AnalysisChartView].addQuoteCompareChart(quoteCompareIndicator)
+
+        analysisTc.requestActive
       }
 
-     private class SymbolAddToFavoriteAction(node: Node) extends AddToFavoriteAction {
-        putValue(Action.NAME, Bundle.getString("AC_add_to_favorite"))
+    }
 
-        def execute {
-          val dobj = node.getLookup.lookup(classOf[DataObject])
-          val favFolder = favoriteNode.getLookup.lookup(classOf[DataFolder])
-          if (!favFolder.getChildren.exists(_.getName == node.getName)) {
-            dobj.createShadow(favFolder)
-          }
+   private class SymbolAddToFavoriteAction(node: Node) extends AddToFavoriteAction {
+      putValue(Action.NAME, Bundle.getString("AC_add_to_favorite"))
 
-          val content = node.getLookup.lookup(classOf[Content])
-          watchSymbolsOfSector(favoriteNode, Array(content))
+      def execute {
+        val dobj = node.getLookup.lookup(classOf[DataObject])
+        val favFolder = favoriteNode.getLookup.lookup(classOf[DataFolder])
+        if (!favFolder.getChildren.exists(_.getName == node.getName)) {
+          dobj.createShadow(favFolder)
+        }
+
+        val content = node.getLookup.lookup(classOf[Content])
+        watchSymbolsOfSector(favoriteNode, Array(content))
+      }
+    }
+
+   /** Creating an action for adding a folder to organize stocks into groups */
+   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
+      putValue(Action.NAME, Bundle.getString("AC_add_folder"))
+
+      def actionPerformed(ae: ActionEvent) {
+        var floderName = JOptionPane.showInputDialog(
+          WindowManager.getDefault.getMainWindow,
+          Bundle.getString("SN_askfolder_msg"),
+          Bundle.getString("AC_add_folder"),
+          JOptionPane.OK_CANCEL_OPTION
+        )
+
+        if (floderName == null) {
+          return
+        }
+
+        floderName = floderName.trim
+
+        try {
+          DataFolder.create(folder, floderName)
+        } catch {
+          case ex: IOException => ErrorManager.getDefault().notify(ex)
         }
       }
+    }
 
-     /** Creating an action for adding a folder to organize stocks into groups */
-     private class AddFolderAction(folder: DataFolder) extends AbstractAction {
-        putValue(Action.NAME, Bundle.getString("AC_add_folder"))
+   private def watchSymbolsOfSector(sectorNode: SectorNode, symbolContents: Array[Content]) {
+      val watchListTc = RealTimeWatchListTopComponent.getInstance(sectorNode)
+      watchListTc.requestActive
 
-        def actionPerformed(ae: ActionEvent) {
-          var floderName = JOptionPane.showInputDialog(
-            WindowManager.getDefault.getMainWindow,
-            Bundle.getString("SN_askfolder_msg"),
-            Bundle.getString("AC_add_folder"),
-            JOptionPane.OK_CANCEL_OPTION
-          )
-
-          if (floderName == null) {
-            return
-          }
-
-          floderName = floderName.trim
-
-          try {
-            DataFolder.create(folder, floderName)
-          } catch {
-            case ex: IOException => ErrorManager.getDefault().notify(ex)
-          }
+      val lastTickers = new ArrayList[LightTicker]
+      var i = 0
+      while (i < symbolContents.length) {
+        val content = symbolContents(i)
+        val uniSymbol = content.uniSymbol
+        Exchange.secOf(uniSymbol) match {
+          case Some(sec) =>
+            watchListTc.watch(sec)
+            sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
+          case None =>
         }
-      }
-
-     private def watchSymbolsOfSector(sectorNode: SectorNode, symbolContents: Array[Content]) {
-        val watchListTc = RealTimeWatchListTopComponent.getInstance(sectorNode)
-        watchListTc.requestActive
-
-        val lastTickers = new ArrayList[LightTicker]
-        var i = 0
-        while (i < symbolContents.length) {
-          val content = symbolContents(i)
-          val uniSymbol = content.uniSymbol
-          Exchange.secOf(uniSymbol) match {
-            case Some(sec) =>
-              watchListTc.watch(sec)
-              sec.exchange.uniSymbolToLastTradingDayTicker.get(uniSymbol) foreach (lastTickers += _)
-            case None =>
-          }
       
-          i += 1
-        }
-
-        watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
+        i += 1
       }
 
-     }
+      watchListTc.watchListPanel.updateByTickers(lastTickers.toArray)
+    }
 
-     abstract class AddToFavoriteAction extends GeneralAction
+   }
+
+   abstract class AddToFavoriteAction extends GeneralAction
