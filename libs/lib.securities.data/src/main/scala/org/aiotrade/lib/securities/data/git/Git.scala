@@ -9,7 +9,6 @@ import java.text.MessageFormat
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.eclipse.jgit.api.CloneCommand
-import org.eclipse.jgit.lib.ConfigConstants
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ProgressMonitor
 import org.eclipse.jgit.lib.Repository
@@ -57,15 +56,6 @@ object Git {
     cmd.setDirectory(gitDir)
     cmd.setURI(sourceUri)
     cmd.setRemote(remote)
-    // @Note:
-    // default branch in CloneCommand is Constants.HEAD, which will bypass 
-    //   if (branch.startsWith(Constants.R_HEADS)) {
-    //     final RefUpdate head = repo.updateRef(Constants.HEAD);
-    //     head.disableRefLog();
-    //     head.link(branch);
-    //   }
-    // and causes no branch is linked, the actual HEAD name should be Constants.R_HEADS + Constants.MASTER
-    cmd.setBranch(Constants.R_HEADS + Constants.MASTER)
     cmd.setProgressMonitor(monitor)
     
     val t0 = System.currentTimeMillis
@@ -74,27 +64,8 @@ object Git {
     } catch {
       case e => log.log(Level.SEVERE, e.getMessage, e); null
     }
-    /* @see cmd.setBranch(Constants.R_HEADS + Constants.MASTER) */
-    fixCloneCommond(git.getRepository, Constants.R_HEADS + Constants.MASTER, remote)
-
     log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     git
-  }
-  
-  /**
-   * Change branch name from "refs/heads/master" to "master"
-   */
-  private def fixCloneCommond(repo: Repository, branch: String, remote: String) {
-    // remove [branch "refs/heads/master"]
-    repo.getConfig.unsetSection(ConfigConstants.CONFIG_BRANCH_SECTION, branch)
-    
-    // set back contents to [branch "master"]
-    repo.getConfig.setString(ConfigConstants.CONFIG_BRANCH_SECTION, Constants.MASTER, 
-                             ConfigConstants.CONFIG_KEY_REMOTE, remote)
-    repo.getConfig.setString(ConfigConstants.CONFIG_BRANCH_SECTION, Constants.MASTER, 
-                             ConfigConstants.CONFIG_KEY_MERGE, branch)
-
-    repo.getConfig.save
   }
   
   def pull(gitPath: String) {pull(getGit(gitPath))}

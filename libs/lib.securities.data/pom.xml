@@ -17,10 +17,10 @@
             <id>jgit-repository</id>
             <url>http://download.eclipse.org/jgit/maven</url>
         </repository>
-        <repository>
+        <!--repository>
             <id>github-dcaoyuan</id>
             <url>https://github.com/dcaoyuan/dcaoyuan-mvn-repo/raw/master/snapshots</url>
-        </repository>
+        </repository-->
     </repositories>
 
     <dependencies>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>0.12.0-SNAPSHOT</version>
+            <version>0.12.1</version>
         </dependency>
 
         <dependency>
