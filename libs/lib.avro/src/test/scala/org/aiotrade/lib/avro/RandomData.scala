@@ -6,7 +6,6 @@
 package org.aiotrade.lib.avro
 
 import java.io.File
-import java.nio.ByteBuffer
 import java.util.HashMap
 import java.util.Random
 import org.apache.avro.Schema
@@ -69,8 +68,8 @@ object RandomData {
     utf8
   }
 
-  private def randomBytes(rand: Random, maxLength: Int): ByteBuffer = {
-    val bytes = ByteBuffer.allocate(rand.nextInt(maxLength))
+  private def randomBytes(rand: Random, maxLength: Int): java.nio.ByteBuffer = {
+    val bytes = java.nio.ByteBuffer.allocate(rand.nextInt(maxLength))
     bytes.limit(bytes.capacity)
     rand.nextBytes(bytes.array)
     bytes

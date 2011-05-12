@@ -17,6 +17,7 @@ import java.util.zip.GZIPOutputStream
 import org.aiotrade.lib.json.JsonInputStreamReader
 import org.aiotrade.lib.json.JsonOutputStreamWriter
 import org.aiotrade.lib.json.JsonSerializable
+import org.aiotrade.lib.avro.ScalaApacheAvroMarshaller
 
 object Serializer {
   /**
@@ -43,6 +44,14 @@ trait Serializer {
     in.readObject
   }
 
+  def encodeAvro(content: Any): Array[Byte] = {
+    ScalaApacheAvroMarshaller().objectToBuffer(content.asInstanceOf[AnyRef]).getBuf
+  }
+
+  def decodeAvro(body: Array[Byte]): Any = {
+    ScalaApacheAvroMarshaller().objectFromByteBuffer(body)
+  }
+  
   def encodeJson(content: Any): Array[Byte] = {
     val out = new ByteArrayOutputStream
     val jout = new JsonOutputStreamWriter(out, "utf-8")
@@ -61,6 +70,7 @@ trait Serializer {
     out.toByteArray
   }
 
+  
   def decodeJson(body: Array[Byte]): Any = {
     val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
     jin.readObject
