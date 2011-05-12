@@ -89,7 +89,7 @@ class AddSymbolAction extends CallableSystemAction {
             quoteContract.srcSymbol = symbol1
                     
             SymbolNodes.createSymbolXmlFile(currentFolder, symbol1) foreach {
-              // set attr to "open" to give a hint to SymbolNode.SymbolFolderChildren.creatNodes(Node)
+              // set attr to "open" to give a hint to SecurityNode.SymbolFolderChildren.creatNodes(Node)
               // so as to to open it automatically
               _.setAttribute("open", true)
             }

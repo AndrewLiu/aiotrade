@@ -45,10 +45,9 @@ class MFIIndicator extends Indicator {
     
   val mfi = TVar[Double]("MFI", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int): Unit = {
+    var i = fromIdx
     while (i < size) {
-
       mfi(i) = mfi(i, period)
 
       i += 1

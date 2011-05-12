@@ -72,7 +72,29 @@ object Sector {
     Sectors.sectorToSecValidTimes
   }
 
+  def toCategoryCode(key: String): (String, String) = {
+    val separator = key.indexOf('.')
+    if (separator > 0) {
+      val category = key.substring(0, separator)
+      val code = key.substring(separator + 1, key.length)
+      (category, code)
+    } else {
+      (key, null)
+    }
+  }
+  
   def allSectors = sectorToSecValidTimes.keys
+  
+  def sectorsOf(category: String) = Sectors.sectorsOf(category)
+  
+  def secsOf(sector: Sector): Seq[Sec] = Sectors.secsOf(sector)
+  def secsOf(key: String): Seq[Sec] = withKey(key) match {
+    case Some(sector) => secsOf(sector)
+    case None => Nil
+  }
+  
+  def withKey(key: String) = Sectors.withKey(key)
+  def withCategoryCode(category: String, code: String): Option[Sector] = Sectors.withCategoryCode(category, code)
   
   // --- simple test
   def main(args: Array[String]) {
@@ -96,7 +118,7 @@ class Sector {
   
   var secs: List[Sec] = Nil
   
-  lazy val key = category + "_" + code
+  lazy val key = category + "." + code
 }
 
 object Sectors extends Table[Sector] {
@@ -113,15 +135,28 @@ object Sectors extends Table[Sector] {
   // --- helpers:
   
   private[model] def allSectors: Seq[String] = {
-    SELECT(Sectors.*) FROM (Sectors) list() map (_.key)
+    SELECT (Sectors.*) FROM (Sectors) list() map (_.key)
   }
   
-  def secsOf(sector: Sector): Seq[Sec] = {
+  private[model] def sectorsOf(category: String): Seq[Sector] = {
+    SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
+  } 
+  
+  private[model] def secsOf(sector: Sector): Seq[Sec] = {
     SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
   }
   
+  private[model] def withKey(key: String): Option[Sector] = {
+    val (category, code) = Sector.toCategoryCode(key)
+    withCategoryCode(category, code)
+  }
+  
+  private[model] def withCategoryCode(category: String, code: String): Option[Sector] = {
+    SELECT (Sectors.*) FROM (Sectors) WHERE ((Sectors.category EQ category) AND (Sectors.code EQ code)) unique()
+  } 
+  
   /**
-   * @Note: This method can only be called after all secs have been selected and kept in Memory
+   * @Note: This method can only be called after all secs have been selected and holded in Memory
    */
   private[model] def sectorToSecValidTimes = {
     val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()

@@ -84,7 +84,7 @@ object RealTimeWatchListTopComponent {
 
   private val watchingSecs = mutable.Set[Sec]()
 
-  def getInstance(node: SymbolNodes.SymbolFolderNode): RealTimeWatchListTopComponent = {
+  def getInstance(node: SymbolNodes.SectorNode): RealTimeWatchListTopComponent = {
     val instance = instances find (_.getActivatedNodes.contains(node)) getOrElse {
       new RealTimeWatchListTopComponent(node)
     }
@@ -96,7 +96,7 @@ object RealTimeWatchListTopComponent {
     instance
   }
 
-  def instanceOf(node: SymbolNodes.SymbolFolderNode): Option[RealTimeWatchListTopComponent] = {
+  def instanceOf(node: SymbolNodes.SectorNode): Option[RealTimeWatchListTopComponent] = {
     instances find (_.getActivatedNodes.contains(node))
   }
 
@@ -110,7 +110,7 @@ object RealTimeWatchListTopComponent {
 }
 
 import RealTimeWatchListTopComponent._
-class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolFolderNode) extends TopComponent {
+class RealTimeWatchListTopComponent private (val sectorNode: SymbolNodes.SectorNode) extends TopComponent {
   instanceRefs.put(this, null)
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -129,9 +129,9 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
 
   setLayout(new BorderLayout)
 
-  setActivatedNodes(Array(folderNode))
+  setActivatedNodes(Array(sectorNode))
 
-  setName(folderNode.getDisplayName)
+  setName(sectorNode.getDisplayName)
   setBackground(LookFeel().backgroundColor)
 
   // component should setFocusable(true) to have the ability to gain the focus
@@ -172,7 +172,7 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
               val symbol = watchListPanel.symbolAtRow(i)
               if (symbol != null && prevSelected != symbol) {
                 prevSelected = symbol
-                SymbolNodes.findSymbolNode(folderNode, symbol) foreach {x =>
+                SymbolNodes.findSymbolNode(symbol) foreach {x =>
                   val viewAction = x.getLookup.lookup(classOf[ViewAction])
                   viewAction.putValue(AnalysisChartTopComponent.STANDALONE, isMultiple)
                   viewAction.execute
@@ -248,25 +248,23 @@ class RealTimeWatchListTopComponent private (val folderNode: SymbolNodes.SymbolF
     watchListPanel.unWatch(sec)
   }
     
-  def getSelectedSymbolNodes: List[Node] = {
-    var selectedNodes = List[Node]()
+  def getSelectedSymbolNodes: List[SymbolNodes.SymbolNode] = {
+    var selectedNodes = List[SymbolNodes.SymbolNode]()
     for (row <- watchListTable.getSelectedRows) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
-        SymbolNodes.findSymbolNode(folderNode, symbol) foreach {node =>
-          selectedNodes ::= node
-        }
+        SymbolNodes.findSymbolNode(symbol) foreach {node => selectedNodes ::= node}
       }
     }
     selectedNodes
   }
     
-  private def getAllSymbolNodes: List[Node] = {
-    var nodes = List[Node]()
+  private def getAllSymbolNodes: List[SymbolNodes.SymbolNode] = {
+    var nodes = List[SymbolNodes.SymbolNode]()
     for (row <- 0 until watchListTable.getRowCount) {
       val symbol = watchListPanel.symbolAtRow(row)
       if (symbol != null) {
-        SymbolNodes.findSymbolNode(folderNode, symbol) foreach {node =>
+        SymbolNodes.findSymbolNode(symbol) foreach {node =>
           nodes ::= node
         }
       }

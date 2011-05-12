@@ -4,7 +4,7 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.TFreq
 
 
-class QuoteInfoHisContract extends DataContract[QuoteInfoHisDataServer] {
+class RichInfoHisContract extends DataContract[RichInfoHisDataServer] {
   serviceClassName = null
   freq = TFreq.DAILY
   isRefreshable = false
@@ -12,7 +12,7 @@ class QuoteInfoHisContract extends DataContract[QuoteInfoHisDataServer] {
   def isFreqSupported(freq: TFreq): Boolean = true
 
   override def displayName = {
-    "QuoteInfo His Data Contract[" + srcSymbol + "]"
+    "RichInfo His Data Contract[" + srcSymbol + "]"
   }
 
 }

@@ -44,16 +44,17 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
+import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
+import org.aiotrade.lib.securities.dataserver.RichInfoHisContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer
-import org.aiotrade.lib.securities.dataserver.QuoteInfo
-import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoDataServer
+import org.aiotrade.lib.securities.dataserver.RichInfo
+import org.aiotrade.lib.securities.dataserver.RichInfoContract
+import org.aiotrade.lib.securities.dataserver.RichInfoDataServer
 import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -186,7 +187,7 @@ class Sec extends SerProvider with Ordered[Sec] {
    * @TODO, how about tickerServer switched?
    */
   private lazy val tickerServer: Option[TickerServer] = tickerContract.serviceInstance()
-  private lazy val quoteInfoServer: Option[QuoteInfoDataServer] = quoteInfoContract.serviceInstance()
+  private lazy val richInfoServer: Option[RichInfoDataServer] = richInfoContract.serviceInstance()
 
   var description = ""
   private var _content: Content = _
@@ -194,16 +195,18 @@ class Sec extends SerProvider with Ordered[Sec] {
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _moneyFlowContracts: Seq[MoneyFlowContract] = Nil
   private var _tickerContract: TickerContract = _
-  private var _quoteInfoContract : QuoteInfoContract = _
-  private var _quoteInfoHisContracts : Seq[QuoteInfoHisContract] = _
+  private var _richInfoContract : RichInfoContract = _
+  private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
 
   def dividends: Seq[SecDividend] = Secs.dividendsOf(this)
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
-  def content = _content
-  def content_=(content: Content) {
-    _content = content
+  def content = {
+    if (_content == null) {
+      _content = PersistenceManager().restoreContent(uniSymbol)
+    }
+    _content
   }
   
   private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {
@@ -222,17 +225,17 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
 
-  def quoteInfoHisContracts = _quoteInfoHisContracts
+  def richInfoHisContracts = _richInfoHisContracts
 
-  def quoteInfoContract = {
-    if (_quoteInfoContract == null){
-      _quoteInfoContract = new QuoteInfoContract()
+  def richInfoContract = {
+    if (_richInfoContract == null){
+      _richInfoContract = new RichInfoContract()
     }
-    _quoteInfoContract
+    _richInfoContract
   }
 
-  def quoteInfoContract_= (contract : QuoteInfoContract) {
-    _quoteInfoContract = contract
+  def richInfoContract_= (contract : RichInfoContract) {
+    _richInfoContract = contract
   }
 
   def realtimeSer = mutex synchronized {
@@ -507,18 +510,18 @@ class Sec extends SerProvider with Ordered[Sec] {
     val GI = GeneralInfos
     val IS = InfoSecs
     var time : Long = 0
-    val infos = (SELECT (GI.*) FROM (GI JOIN IS) WHERE ( (GI.infoClass EQ GeneralInfo.QUOTE_INFO) AND (IS.sec.field EQ id) ) ORDER_BY (GI.publishTime DESC) list)
+    val infos = (SELECT (GI.*) FROM (GI JOIN IS) WHERE ( (GI.infoClass EQ GeneralInfo.RICH_INFO) AND (IS.sec.field EQ id) ) ORDER_BY (GI.publishTime DESC) list)
     infos map {
       info =>
-      val quoteInfo = new QuoteInfo
-      quoteInfo.time = info.publishTime
-      quoteInfo.generalInfo = info
-//      quoteInfo.summary = "info.summary"
-//      quoteInfo.content = "info.content"
-//      quoteInfo.content = info.content
-      info.categories foreach ( cate => quoteInfo.categories.append(cate))
-      info.secs foreach (sec => quoteInfo.secs.append(sec))
-      ser.updateFrom(quoteInfo)
+      val RichInfo = new RichInfo
+      RichInfo.time = info.publishTime
+      RichInfo.generalInfo = info
+//      RichInfo.summary = "info.summary"
+//      RichInfo.content = "info.content"
+//      RichInfo.content = info.content
+      info.categories foreach ( cate => RichInfo.categories.append(cate))
+      info.secs foreach (sec => RichInfo.secs.append(sec))
+      ser.updateFrom(RichInfo)
       time = info.publishTime
     }
     time
@@ -526,12 +529,12 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   private def loadInfoPointSerFromDataServer(ser: InfoPointSer, fromTime: Long) : Long = {
     val freq = ser.freq
-    dataContractOf(classOf[QuoteInfoHisContract], freq) match {
+    dataContractOf(classOf[RichInfoHisContract], freq) match {
       case Some(contract) =>  contract.serviceInstance() match {
-          case Some(quoteInfoHisServer) =>
+          case Some(richInfoHisServer) =>
             contract.freq = if (ser eq realtimeSer) TFreq.ONE_SEC else freq
             if (contract.isRefreshable) {
-              quoteInfoHisServer.subscribe(contract)
+              richInfoHisServer.subscribe(contract)
             }
             
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
@@ -546,7 +549,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             listenTo(ser)
 
             ser.isInLoading = true
-            quoteInfoHisServer.loadData(fromTime - 1, List(contract))
+            richInfoHisServer.loadData(fromTime - 1, List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -777,14 +780,14 @@ class Sec extends SerProvider with Ordered[Sec] {
     tickerServer.isDefined && tickerServer.get.isContractSubsrcribed(tickerContract)
   }
 
-  def subscribeQuoteInfoDataServer(startRefresh: Boolean = true): Option[QuoteInfoDataServer] = {
-    quoteInfoServer map {server =>
+  def subscribeInfoDataServer(startRefresh: Boolean = true): Option[RichInfoDataServer] = {
+    richInfoServer map {server =>
       // always set uniSymbol, since _tickerContract may be set before secInfo.uniSymbol
-      quoteInfoContract.srcSymbol = uniSymbol
+      richInfoContract.srcSymbol = uniSymbol
       if (!startRefresh) server.stopRefresh
 
-      if (!server.isContractSubsrcribed(quoteInfoContract)) {
-        server.subscribe(quoteInfoContract)
+      if (!server.isContractSubsrcribed(richInfoContract)) {
+        server.subscribe(richInfoContract)
       }
 
       if (startRefresh) server.startRefresh
@@ -793,14 +796,14 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
 
-  def unsubscribeQuoteInfoDataServer {
-    if (quoteInfoServer.isDefined & quoteInfoContract != null){
-      quoteInfoServer.get.unsubscribe(quoteInfoContract)
+  def unsubscribeInfoDataServer {
+    if (richInfoServer.isDefined & richInfoContract != null){
+      richInfoServer.get.unsubscribe(richInfoContract)
     }
   }
 
-  def isQuoteInfoDataServerSubcribed : Boolean = {
-    quoteInfoServer.isDefined && quoteInfoServer.get.isContractSubsrcribed(quoteInfoContract)
+  def isInfoDataServerSubcribed : Boolean = {
+    richInfoServer.isDefined && richInfoServer.get.isContractSubsrcribed(richInfoContract)
   }
 
   override def equals(that: Any) = that match {

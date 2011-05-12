@@ -59,7 +59,7 @@ class PickIndicatorAction extends CallableSystemAction {
               } else {
                 return
               }
-            case Some(x) => x.viewContainer.controller.content.uniSymbol
+            case Some(x) => x.viewContainer.controller.serProvider.uniSymbol
           }
 
           SymbolNodes.findSymbolNode(uniSymbol) foreach {secNode =>

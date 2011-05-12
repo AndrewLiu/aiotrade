@@ -46,10 +46,9 @@ class MTMIndicator extends Indicator {
   val mtm    = TVar[Double]("MTM",    Plot.Line)
   val mtm_ma = TVar[Double]("MTM_MA", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       mtm(i) = mtm(i, C, period)
       mtm_ma(i) = ma(i, mtm, periodSmooth)
 

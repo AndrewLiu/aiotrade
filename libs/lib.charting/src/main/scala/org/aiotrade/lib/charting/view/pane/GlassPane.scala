@@ -75,7 +75,7 @@ import scala.collection.mutable
 
 /**
  * GlassPane overlaps mainChartPane, and is not opaque, thus we should carefully
- * define the contents of it, try the best to avoid add components on it, since
+ * define the content of it, try the best to avoid add components on it, since
  * when the tranparent components change size, bounds, text etc will cause the
  * components repaint(), and cause the overlapped mainChartPane repaint() in chain.
  * That's why we here use a lot of none component-based lightweight textSegments,
@@ -200,7 +200,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
                   selectedSer = null
                 }
               }
-              val content = view.controller.content
+              val content = view.controller.serProvider.content
               content.lookupDescriptor(classOf[IndicatorDescriptor],
                                         ser.getClass.getName,
                                         ser.freq
@@ -246,7 +246,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
       selectedSer = ser
       isSelected = true
       if (e.getClickCount == 2) {
-        val content = view.controller.content
+        val content = view.controller.serProvider.content
         content.lookupDescriptor(classOf[IndicatorDescriptor],
                                   ser.getClass.getName,
                                   ser.freq

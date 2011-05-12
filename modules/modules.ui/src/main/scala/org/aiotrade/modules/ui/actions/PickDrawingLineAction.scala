@@ -150,7 +150,7 @@ object PickDrawingLineAction {
       val theHandledChart = handledCharts find (_.toString.equalsIgnoreCase(selectedStr)) getOrElse null
       assert(theHandledChart != null, "A just picked handled chart should be there!")
 
-      val content = viewContainer.controller.content
+      val content = viewContainer.controller.serProvider.content
 
       content.lookupDescriptor(
         classOf[DrawingDescriptor],

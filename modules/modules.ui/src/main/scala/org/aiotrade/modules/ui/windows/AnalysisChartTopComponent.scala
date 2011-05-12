@@ -49,7 +49,6 @@ import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
 import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.dataserver.QuoteContract
@@ -109,16 +108,17 @@ object AnalysisChartTopComponent {
     instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
   }
 
-  def apply(content: Content, standalone: Boolean = false): AnalysisChartTopComponent = {
+  def apply(sec: Sec, standalone: Boolean = false): AnalysisChartTopComponent = {
+    val content = sec.content
     val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
     val freq = quoteContract.freq
     
     if (standalone) {
       val instance = instances find {x =>
-        x.content == content && x.freq == freq
+        (x.sec eq sec) && x.freq == freq
       } match {
-        case Some(tc) => tc.init(content); tc
-        case None => new AnalysisChartTopComponent(content)
+        case Some(tc) => tc.init(sec); tc
+        case None => new AnalysisChartTopComponent(sec)
       }
 
       if (!instance.isOpened) {
@@ -128,9 +128,9 @@ object AnalysisChartTopComponent {
       instance
     } else {
       if (singleton == null) {
-        singleton = new AnalysisChartTopComponent(content)
+        singleton = new AnalysisChartTopComponent(sec)
       } else {
-        singleton.init(content)
+        singleton.init(sec)
       }
 
       singleton
@@ -146,7 +146,7 @@ object AnalysisChartTopComponent {
 }
 
 import AnalysisChartTopComponent._
-class AnalysisChartTopComponent private ($content: Content) extends TopComponent {
+class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
   instanceRefs.put(this, null)
 
   private var addToFavActionMenuItem: JMenuItem = _
@@ -184,33 +184,33 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     })
 
 
-  private var state = init($content)
-  def content = state.content
+  private var state = init($sec)
+  
+  /**
+   * Current sec of this tc, it may be different from original sec that was passed via constructor.
+   */
+  def sec = state.sec
   def viewContainer = state.viewContainer
   def realTimeBoard = state.realTimeBoard
   def freq = state.contractFreq
 
-  private def sec = state.sec
-  private def tcId = state.tcId
-
-  def init(currContent: Content): State = {
+  def init(currSec: Sec): State = {
     if (state != null) {
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
       splitPane.remove(viewContainer)
 
-      val prevContent = content
-      val prevSec = prevContent.serProvider.asInstanceOf[Sec]
-      val currSec = currContent.serProvider.asInstanceOf[Sec]
+      val prevSec = state.sec
       if (currSec ne prevSec) {
         prevSec.resetSers
+        val prevContent = prevSec.content
         prevContent.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
         // change back to its quote contract to default freq
         prevContent.lookupDescriptors(classOf[QuoteContract]) foreach {_.freq = defaultFreq}
       }
     }
     
-    state = new State(currContent)
+    state = new State(currSec)
     state
   }
 
@@ -259,17 +259,9 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     //sec.setSignSeriesLoaded(false);
   }
 
-  override def getIcon: Image = {
-    iconImage
-  }
-
-  override protected def preferredID: String = {
-    tcId
-  }
-
-  override def getPersistenceType: Int = {
-    TopComponent.PERSISTENCE_NEVER
-  }
+  override def getIcon: Image = iconImage
+  override def getPersistenceType: Int = TopComponent.PERSISTENCE_NEVER
+  override protected def preferredID: String = state.tcId
     
   private def updateToolbar {
     SwitchCalendarTradingTimeViewAction.updateToolbar(viewContainer)
@@ -302,21 +294,21 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     super.finalize
   }
 
-  class State(val content: Content) {
+  class State(val sec: Sec) {
     // set class fields
-    val sec = content.serProvider.asInstanceOf[Sec]
     val tcId = sec.secInfo.name
     val symbol = sec.uniSymbol
 
     // should keep contractFreq before load realtime ser which may change quoteContract in content
     // @Todo: use multiple quoteContracts?
+    val content = sec.content
     private val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]) get
     val contractFreq = quoteContract.freq
 
     sec.resetSers
     content.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
 
-    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec, content)
+    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec)
     realTimeBoard.watch
     
     private val ser = sec.serOf(contractFreq).get
@@ -328,11 +320,7 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     }
     sec.subscribeTickerServer(true)
     
-    private val quoteInfoSer = sec.infoPointSerOf(contractFreq).getOrElse(null)
-    if (quoteInfoSer != null && !quoteInfoSer.isLoaded) sec.loadInfoPointSer(quoteInfoSer)
-    sec.subscribeQuoteInfoDataServer(true)
-
-    val viewContainer = createViewContainer(ser, content, isRealtime)
+    val viewContainer = createViewContainer(sec, ser, isRealtime)
 
     splitPane.setLeftComponent(viewContainer)
     splitPane.setRightComponent(realTimeBoard)
@@ -357,7 +345,7 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     popupMenu.addSeparator
     popupMenu.add(SystemAction.get(classOf[RemoveCompareQuoteChartsAction]))
 
-    SymbolNodes.findSymbolNode(content.uniSymbol) foreach {node =>
+    SymbolNodes.findSymbolNode(sec.uniSymbol) foreach {node =>
       AnalysisChartTopComponent.this.setActivatedNodes(Array(node))
       popupMenu.add(node.getLookup.lookup(classOf[AddToFavoriteAction]))
       injectActionsToDescriptors(node)
@@ -370,10 +358,10 @@ class AnalysisChartTopComponent private ($content: Content) extends TopComponent
     /**
      * Since we use 1min freq as the ser's freq when contractFreq is 1sec, we should pass contractFreq here
      */
-    private def createViewContainer(ser: QuoteSer, content: Content, isRealtime: Boolean) = {
-      log.info("Creating viewContainer for ser: " + System.identityHashCode(ser) + " - , isRealtime=" + isRealtime)
+    private def createViewContainer(sec: Sec, baseSer: QuoteSer, isRealtime: Boolean) = {
+      log.info("Creating viewContainer for ser: " + System.identityHashCode(baseSer) + " - , isRealtime=" + isRealtime)
 
-      val controller = ChartingController(ser, content)
+      val controller = ChartingController(sec, baseSer)
       if (isRealtime) {
         controller.createChartViewContainer(classOf[RealTimeChartViewContainer], AnalysisChartTopComponent.this)
       } else {

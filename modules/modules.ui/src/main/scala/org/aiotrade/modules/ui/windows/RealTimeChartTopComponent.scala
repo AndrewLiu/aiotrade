@@ -38,7 +38,6 @@ import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.view.securities.RealTimeChartViewContainer
-import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.modules.ui.actions.SwitchCandleOhlcAction
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.modules.ui.actions.SwitchCalendarTradingTimeViewAction
@@ -72,8 +71,8 @@ object RealTimeChartTopComponent {
 
   private val MODE = "chart"
 
-  def apply(content: Content): RealTimeChartTopComponent = {
-    val instance = instances find (_.content == content) getOrElse new RealTimeChartTopComponent(content)
+  def apply(sec: Sec): RealTimeChartTopComponent = {
+    val instance = instances find (_.sec eq sec) getOrElse new RealTimeChartTopComponent(sec)
     
     if (!instance.isOpened) {
       instance.open
@@ -92,16 +91,15 @@ object RealTimeChartTopComponent {
 }
 
 import RealTimeChartTopComponent._
-class RealTimeChartTopComponent private (val content: Content) extends TopComponent {
+class RealTimeChartTopComponent private (val sec: Sec) extends TopComponent {
   instanceRefs.put(this, null)
 
-  val sec = content.serProvider.asInstanceOf[Sec]
   private val symbol = sec.uniSymbol
   private val tc_id = sec.name + "_RT"
 
   private val rtSer = sec.realtimeSer
   if (!rtSer.isLoaded) sec.loadSer(rtSer)
-  private val controller = ChartingController(rtSer, content)
+  private val controller = ChartingController(sec, rtSer)
   val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewContainer], this)
   
   setLayout(new BorderLayout)

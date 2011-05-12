@@ -67,10 +67,9 @@ class GMMAIndicator extends Indicator {
   val  ma11 = TVar[Double]("MA11", Plot.Line)
   val  ma12 = TVar[Double]("MA12", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       ma01(i) = ma(i, C, period01)
       ma02(i) = ma(i, C, period02)
       ma03(i) = ma(i, C, period03)

@@ -154,7 +154,7 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
       ) {
         RequestProcessor.getDefault.post(doOpenFolders)
       } else {
-        SymbolNodes.openAllSymbolFolders
+        SymbolNodes.openAllSectors
       }
     }
   }

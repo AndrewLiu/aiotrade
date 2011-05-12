@@ -220,7 +220,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
           // do recursive call
           setIndicatorOptsRecursively(child, descriptorWithOpts)
         }
-      } else { // else, an OneSymbolNode
+      } else { // else, a SecurityNode
         val content = rootNodeToBeSet.getLookup.lookup(classOf[Content])
         val indicatorGroupNode = rootNodeToBeSet.getChildren.findChild(IndicatorGroupDescriptor.NAME)
         if (indicatorGroupNode != null) {

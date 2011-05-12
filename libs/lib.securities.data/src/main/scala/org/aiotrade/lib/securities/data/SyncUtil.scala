@@ -65,6 +65,11 @@ import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
 
 /**
+ * A empty class to support locate this module, @see org.openide.modules.InstalledFileLocator
+ */
+class Locator
+
+/**
  *
  * @author Caoyuan Deng
  */
@@ -212,6 +217,12 @@ object SyncUtil {
             in.close
           }
         }         
+      }
+      
+      // rename folder "data/dotgit" to "data/.git"
+      val gitFile = new File(destPath, "dotgit")
+      if (gitFile.exists) {
+        gitFile.renameTo(new File(destPath, ".git"))
       }
       
       log.info("Extract data in " + (System.currentTimeMillis - start) + "ms")

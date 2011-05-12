@@ -87,7 +87,7 @@ object PanelIndicator extends Publisher {
   }
 }
 
-class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
+abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
   private val log = Logger.getLogger(this.getClass.getName)
 
   val indicators = new ArrayList[(T, ValidTime[Sec])]
@@ -132,16 +132,37 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
       case _ => None
     }
   }
+  
+  override def computeFrom(fromTime: Long) {
+    var fromTime1 = fromTime
+    if (fromTime == 0 | fromTime == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)
+      val firstTime = firstTimeOf(indicators)
+      if (firstTime == Long.MinValue) return else fromTime1 = firstTime
+    }
+    
+    val lastTime = lastTimeOf(indicators)
 
-  final protected def firstTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
+    log.info("Compute " + fromTime1 + " - " + lastTime)
+    val start = System.currentTimeMillis
+    compute(fromTime1, lastTime)
+    log.info("Computed in " + (System.currentTimeMillis - start) + "ms")
+  }
+  
+  /**
+   * Implement this method for actual computing.
+   * @param from time, included
+   * @param to time, included
+   */
+  protected def compute(fromTime: Long, toTime: Long)
+  
+  protected def firstTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
     var firstTime = Long.MinValue
 
-    val length = sers.length
     var i = 0
-    while (i < length) {
-      var ser = sers(i)._1
-      if (ser.timestamps.size > 0) {
-        val fTime = ser.timestamps(0)
+    while (i < inds.length) {
+      val ind = inds(i)._1
+      if (ind != null && ind.timestamps.size > 0) {
+        val fTime = ind.timestamps(0)
         firstTime = if (firstTime == Long.MinValue) fTime else math.min(firstTime, fTime)
       }
       i += 1
@@ -150,7 +171,7 @@ class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) exte
     firstTime
   }
 
-  final protected def lastTimeOf(sers: ArrayList[(T, ValidTime[Sec])]) = {
-    if (sers.isEmpty) 0 else sers.map(_._1.lastOccurredTime).max
+  protected def lastTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
+    if (inds.isEmpty) 0 else inds.map(_._1.lastOccurredTime).max
   }
 }

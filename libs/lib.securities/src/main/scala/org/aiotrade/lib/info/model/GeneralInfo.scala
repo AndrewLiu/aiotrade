@@ -6,7 +6,7 @@ import org.aiotrade.lib.securities.model.Flag
 import org.aiotrade.lib.math.timeseries.TVal
 import scala.collection.mutable
 import scala.collection.JavaConversions._
-import org.aiotrade.lib.securities.dataserver.QuoteInfo
+import org.aiotrade.lib.securities.dataserver.RichInfo
 
 object GeneralInfos extends Table[GeneralInfo]{
 
@@ -43,9 +43,9 @@ object GeneralInfo {
   val FILING = 2
   val ANALYSIS_REPORT = 3
   val SYS_NOTIFICATION = 4
-  val QUOTE_INFO = 5
+  val RICH_INFO = 5
 
-  def save(info : QuoteInfo) {
+  def save(info : RichInfo) {
     GeneralInfos.save(info.generalInfo)
     val content = new Content()
     content.generalInfo = info.generalInfo

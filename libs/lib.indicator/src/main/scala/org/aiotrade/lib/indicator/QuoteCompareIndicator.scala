@@ -54,7 +54,7 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
   var close  = TVar[Double]("C", Plot.Quote)
   var volume = TVar[Double]("V", Plot.Quote)
     
-  protected def computeCont(begIdx: Int, size: Int) {
+  protected def compute(begIdx: Int, size: Int) {
     /** camparing base point is the value of begin time (the most left on screen */
         
     /** always compute from most left position on screen */

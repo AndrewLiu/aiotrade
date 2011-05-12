@@ -34,7 +34,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
-import org.aiotrade.lib.math.timeseries.descriptor.Content
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.util.ChangeSubject
 
 
@@ -57,9 +57,8 @@ import org.aiotrade.lib.util.ChangeSubject
  */
 trait ChartingController extends ChangeSubject {
 
+  def serProvider: SerProvider
   def baseSer: BaseTSer
-
-  def content: Content
 
   def isCursorCrossLineVisible: Boolean
   def isCursorCrossLineVisible_=(b: Boolean)
@@ -147,7 +146,6 @@ object ChartingController {
   import java.awt.event.WindowEvent
   import javax.swing.JComponent
   import javax.swing.JFrame
-  import org.aiotrade.lib.math.timeseries.descriptor.Content
   import org.aiotrade.lib.math.timeseries.BaseTSer
   import org.aiotrade.lib.math.timeseries.TSerEvent
   import javax.swing.WindowConstants
@@ -155,8 +153,8 @@ object ChartingController {
   import scala.collection.mutable
 
 
-  def apply(baseSer: BaseTSer, content: Content): ChartingController = {
-    new DefaultChartingController(baseSer, content)
+  def apply(serProvider: SerProvider, baseSer: BaseTSer): ChartingController = {
+    new DefaultChartingController(serProvider, baseSer)
   }
 
   object DefaultChartingController {
@@ -194,13 +192,10 @@ object ChartingController {
    *   mouseEnteredAnyChartPane
    */
   import DefaultChartingController._
-  private class DefaultChartingController($baseSer: BaseTSer, $content: Content) extends ChartingController
-                                                                                              with Reactor {
+  private class DefaultChartingController(val serProvider: SerProvider, val baseSer: BaseTSer) extends ChartingController
+                                                                                                  with Reactor {
 
     private val log = Logger.getLogger(this.getClass.getName)
-
-    val baseSer = $baseSer
-    val content = $content
 
     private val popupViewRefs = mutable.WeakHashMap[ChartView, AnyRef]()
     private def popupViews = popupViewRefs.keys

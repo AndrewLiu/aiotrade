@@ -47,10 +47,9 @@ class WMSIndicator extends Indicator {
   val wms1 = TVar[Double]("WMS1", Plot.Line)
   val wms2 = TVar[Double]("WMS2", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-
       wms1(i) = wms(i, period1)
       wms2(i) = wms(i, period2)
 

@@ -51,10 +51,9 @@ class ARBRIndicator extends Indicator {
   val br = TVar[Double]("BR", Plot.Line)
     
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-      
       up(i) = H(i) - O(i)
       val up_sum_i = sum(i, up, period)
             

@@ -48,10 +48,9 @@ class BIASIndicator extends Indicator {
   val bias2 = TVar[Double]("BIAS2", Plot.Line)
   val bias3 = TVar[Double]("BIAS3", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-            
       val ma1 = ma(i, C, period1)
       val ma2 = ma(i, C, period2)
       val ma3 = ma(i, C, period3)

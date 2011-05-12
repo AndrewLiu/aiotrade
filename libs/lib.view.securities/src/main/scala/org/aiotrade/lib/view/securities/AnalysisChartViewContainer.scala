@@ -59,14 +59,15 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     val gbc = GBC(0).setFill(GridBagConstraints.BOTH).setWeight(100, 618)
     
     val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
-    quoteSer.shortDescription = controller.content.uniSymbol
+    quoteSer.shortDescription = controller.serProvider.uniSymbol
     val quoteChartView = new AnalysisChartView(controller, quoteSer)
     setMasterView(quoteChartView, gbc)
         
     /** use two list to record the active indicators and their order(index) for later showing */
     val indicatorDescriptorsToBeShowing = new ArrayList[IndicatorDescriptor]
     val  indicatorsToBeShowing = new ArrayList[Indicator]
-    for (descriptor <- controller.content.lookupDescriptors(classOf[IndicatorDescriptor])
+    val content = controller.serProvider.content
+    for (descriptor <- content.lookupDescriptors(classOf[IndicatorDescriptor])
          if descriptor.active && descriptor.freq == controller.baseSer.freq
     ) {
       descriptor.serviceInstance(quoteSer) foreach {indicator =>
@@ -97,7 +98,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
       i += 1
     }
 
-    for (descriptor <- controller.content.lookupDescriptors(classOf[DrawingDescriptor])
+    for (descriptor <- content.lookupDescriptors(classOf[DrawingDescriptor])
          if descriptor.freq == controller.baseSer.freq
     ) {
       descriptor.serviceInstance(masterView) foreach {drawing =>

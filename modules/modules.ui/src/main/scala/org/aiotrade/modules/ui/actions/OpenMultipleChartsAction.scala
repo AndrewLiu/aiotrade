@@ -50,11 +50,10 @@ class OpenMultipleChartsAction extends CallableSystemAction {
           def run() {
             val chartsTc = RealTimeChartsTopComponent()
             for (watchlistTc <- RealTimeWatchListTopComponent.selected;
-                 node <- watchlistTc.getSelectedSymbolNodes;
-                 content = node.getLookup.lookup(classOf[Content]);
-                 sec = content.serProvider.asInstanceOf[Sec]
+                 node <- watchlistTc.getSelectedSymbolNodes
             ) {
-              chartsTc.watch(sec, content)
+              val sec = node.sec
+              chartsTc.watch(sec)
             }
             if (!chartsTc.isOpened) {
               chartsTc.open

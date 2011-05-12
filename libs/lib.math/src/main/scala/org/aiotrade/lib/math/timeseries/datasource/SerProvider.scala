@@ -63,9 +63,12 @@ trait SerProvider extends Publisher {
 
   def description: String
   def description_=(description: String)
-    
+
+  /**
+   * The content of each symbol should be got automatailly from PersistenceManager.restoreContent
+   * and keep it there without being refered to another one, so, we only give getter without setter.
+   */
   def content: Content
-  def content_=(content: Content)
   
   /**
    * A helper method which can be overridden to get another ser provider from symbol

@@ -112,21 +112,18 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
             }
         }
 
-        Content content = PersistenceManager$.MODULE$.apply().defaultContent();
-        content.addDescriptor(quoteContract);
         Sec sec = new Sec();
         SecInfo info = new SecInfo();
         info.uniSymbol_$eq(symbol);
         sec.secInfo_$eq(info);
-        sec.content_$eq(content);
-        content.serProvider_$eq(sec);
+        Content content = sec.content();
+        content.addDescriptor(quoteContract);
         QuoteSer ser = sec.serOf(quoteContract.freq()).get();
         if (!ser.isLoaded()) {
             sec.loadSer(ser);
         }
 
-        ChartingController controller = ChartingController$.MODULE$.apply(
-                sec.serOf(quoteContract.freq()).get(), content);
+        ChartingController controller = ChartingController$.MODULE$.apply(sec, sec.serOf(quoteContract.freq()).get());
         previewContainer = controller.createChartViewContainer(AnalysisChartViewContainer.class, this);
 
         previewPanel.setLayout(new BorderLayout());

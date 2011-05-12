@@ -42,10 +42,9 @@ class OBVIndicator extends Indicator {
 
   val obv1 = TVar[Double]("OBV", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int): Unit = {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int): Unit = {
+    var i = fromIdx
     while (i < size) {
-
       obv1(i) = obv(i)
 
       i += 1

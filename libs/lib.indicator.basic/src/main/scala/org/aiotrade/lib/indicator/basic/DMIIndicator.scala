@@ -49,10 +49,9 @@ class DMIIndicator extends Indicator {
   val adx     = TVar[Double]("ADX",  Plot.Line)
   val adxr    = TVar[Double]("ADXR", Plot.Line)
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
-            
       diPlus (i) = diPlus( i, periodDi)
       diMinus(i) = diMinus(i, periodDi)
       adx    (i) = adx(    i, periodDi, periodAdx)

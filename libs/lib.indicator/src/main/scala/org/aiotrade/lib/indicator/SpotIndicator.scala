@@ -63,8 +63,8 @@ abstract class SpotIndicator($baseSer: BaseTSer) extends Indicator($baseSer) wit
     postComputeFrom
   }
     
-  protected def computeCont(begIdx: Int, size: Int) {
-    var i = begIdx
+  protected def compute(fromIdx: Int, size: Int) {
+    var i = fromIdx
     while (i < size) {
       val time = baseSer.timestamps(i)
       if (time == spotTime) {

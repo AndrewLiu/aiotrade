@@ -39,8 +39,8 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoContract
-import org.aiotrade.lib.securities.dataserver.QuoteInfoHisContract
+import org.aiotrade.lib.securities.dataserver.RichInfoContract
+import org.aiotrade.lib.securities.dataserver.RichInfoHisContract
 import org.aiotrade.lib.util.serialization.BeansDocument
 
 /**
@@ -62,8 +62,8 @@ object ContentPersistenceHandler {
   
     val dataContracts = ("sources", "source", content.lookupDescriptors(classOf[QuoteContract]))
     val moneyflowContracts = ("moneyflowsources", "moneyflowsource", content.lookupDescriptors(classOf[MoneyFlowContract]))
-    val infoContracts = ("quoteinfosources", "quoteinfosource", content.lookupDescriptors(classOf[QuoteInfoContract]))
-    val infoHisContracts = ("quoteinfohissources", "quoteinfohissource", content.lookupDescriptors(classOf[QuoteInfoHisContract]))
+    val infoContracts = ("richinfosources", "richinfosource", content.lookupDescriptors(classOf[RichInfoContract]))
+    val infoHisContracts = ("richinfohissources", "richinfohissource", content.lookupDescriptors(classOf[RichInfoHisContract]))
 
     for ((sources, source, contracts) <- List(dataContracts, moneyflowContracts, infoContracts, infoHisContracts)) {
       if (contracts.size > 0) {

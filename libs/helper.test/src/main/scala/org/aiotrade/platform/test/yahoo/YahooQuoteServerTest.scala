@@ -52,9 +52,7 @@ object YahooQuoteServerTest extends TestHelper {
     val exchange = YahooQuoteServer.exchangeOf(symbol)
     sec.exchange = exchange
 
-    val content = new Content(symbol)
-    content.serProvider = sec
-    sec.content = content
+    val content = sec.content
 
     val dailyQuoteContract = createQuoteContract(symbol, "", "", TFreq.DAILY, false, quoteServer)
 
