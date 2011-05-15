@@ -86,7 +86,8 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
         case AMQPMessage(req: RpcRequest, reqProps) =>
           if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
             val replyContent = handle(req)
-            val replyProps = new AMQP.BasicProperties
+            //If replyPropreties is set to replyContent then we use it, otherwise create a new one
+            val replyProps = if(replyContent.props != null) replyContent.props else new AMQP.BasicProperties
             
             replyProps.setCorrelationId(reqProps.getCorrelationId)
             publish("", reqProps.getReplyTo, replyProps, replyContent)
