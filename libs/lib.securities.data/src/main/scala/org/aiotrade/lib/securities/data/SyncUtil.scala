@@ -76,11 +76,8 @@ class Locator
 object SyncUtil {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private lazy val classLoader = Thread.currentThread.getContextClassLoader
-
   private val srcMainResources = "src/main/resources/"
   private val exportDataDir = srcMainResources + "data"
-  private val dataFileName = "aiotrade.xml"
 
   /**
    * @Note lazy call them so we can specify config file before orm package
@@ -96,8 +93,6 @@ object SyncUtil {
                                  Sectors,
                                  SectorSecs
   )
-
-  private val mysqlDriver = "com.mysql.jdbc.Driver"
 
   def main(args: Array[String]) {
     //exportAvroDataFileFromProductionMysql

@@ -285,13 +285,13 @@ class Quote extends TVal with Flag {
   def amount    = data(5)
   def vwap      = data(6)
 
-  def open_=     (v: Double) {data(0)      = v}
-  def high_=     (v: Double) {data(1)      = v}
-  def low_=      (v: Double) {data(2)       = v}
-  def close_=    (v: Double) {data(3)     = v}
-  def volume_=   (v: Double) {data(4)    = v}
-  def amount_=   (v: Double) {data(5)    = v}
-  def vwap_=     (v: Double) {data(6)      = v}
+  def open_=   (v: Double) {data(0) = v}
+  def high_=   (v: Double) {data(1) = v}
+  def low_=    (v: Double) {data(2) = v}
+  def close_=  (v: Double) {data(3) = v}
+  def volume_= (v: Double) {data(4) = v}
+  def amount_= (v: Double) {data(5) = v}
+  def vwap_=   (v: Double) {data(6) = v}
 
   // Foreign keys
   var tickers: List[Ticker] = Nil
