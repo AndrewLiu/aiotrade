@@ -130,9 +130,14 @@ class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String,
 
   class RelayProcessor extends Processor {
     protected def process(msg: AMQPMessage) {
+      val now = System.currentTimeMillis
+
       log.fine("Received delivery tag: " + msg.envelope.getDeliveryTag)
       //Publish the received msg to RelayPublisher
       publish(msg)
+      
+      val duration = System.currentTimeMillis - now
+      if(duration > 5) log.warning("Consume " + msg.envelope.getDeliveryTag + " from master costs " + duration)
     }
   }
 
@@ -162,11 +167,16 @@ class RelayPublisher(factory: ConnectionFactory, exchange: String, queue: String
 
   reactions += {
     case msg: AMQPMessage =>
+      val now = System.currentTimeMillis
+      
       //Publish the msg to the slave AMQP
       publish(exchange, bindingKey, msg.props, msg.body)
       //Then acknowledge the delivery to master AMQP
       log.fine(msg.envelope.getDeliveryTag + " relayed")
       publish(AMQPAcknowledge(msg.envelope.getDeliveryTag))
+
+      val duration = System.currentTimeMillis - now
+      if(duration > 5) log.warning("Publish " + msg.envelope.getDeliveryTag + " to slave costs " + duration)
   }
 
 }

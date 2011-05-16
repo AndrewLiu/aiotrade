@@ -12,6 +12,12 @@ then
     exit 1
 fi
 
+#------------------------drop table sectors if exists
+sqldropsectors="set foreign_key_checks = 0; drop table if exists sectors"
+echo "to execute: ${sqldropsectors}"
+time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldropsectors}"
+echo "drop table sectors if exists: success!"
+
 #------------------------rename money_flows1d , money_flows1m
 sqlrenamemf="alter table money_flows1d rename to money_flows1d_old; alter table money_flows1m rename to money_flows1m_old; "
 echo "to execute: ${sqlrenamemf}"
