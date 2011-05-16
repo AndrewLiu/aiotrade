@@ -48,6 +48,17 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Quote
 
 /**
+ * Dump table to txt using ',' to separat fields
+ * mkdir tmp
+ * chmod 777 tmp
+ * cd tmp
+ * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables quotes1d
+ *
+ * chmod 666 quotes1d.txt
+ * mysql> load data local infile 'quotes1d.txt' into table quotes1d (@dummy, vwap, amount, volume, flag, secs_id, time, low, open, high, close);
+ * or
+ * nohup mysql -e "load data local infile 'quotes1d.txt' into table quotes1d (@dummy, vwap, amount, volume, flag, secs_id, time, low, open, high, close)" faster &
+ * 
  * @author Caoyuan Deng
  */
 object TdxDayReader {

@@ -46,16 +46,20 @@ import scala.collection.mutable
  * mkdir tmp
  * chmod 777 tmp
  * cd tmp
- * mysqldump --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies industries company_industries --fields-terminated-by=,
+ * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies --fields-terminated-by=,
+ *
+ * mysql> load data infile '/Users/dcaoyuan/tmp/tmp/secs.txt' into table secs;
  *
  * Don't forget to set (in /etc/my.cnf):
- * [mysqld]
- * default-character-set=utf8
- * character-set-server=utf8
- * collation-server=utf8_general_ci
- * init-connect='SET NAMES utf8'
- * [mysql]
- * default-character-set=utf8
+
+[mysqld]
+default-character-set=utf8
+character-set-server=utf8
+collation-server=utf8_general_ci
+init-connect='SET NAMES utf8'
+[mysql]
+default-character-set=utf8
+
  *
  * and check:
  *   mysql> SHOW VARIABLES LIKE 'character%';
