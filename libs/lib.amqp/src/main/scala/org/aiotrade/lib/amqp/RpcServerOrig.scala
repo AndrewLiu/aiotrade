@@ -105,7 +105,6 @@ class RpcServerOrig(val channel: Channel, $queue: String) {
    */
   @throws(classOf[IOException])
   def mainloop: ShutdownSignalException = {
-    @tailrec
     def loop: ShutdownSignalException = {
       if (!mainloopRunning) return null
       var request: QueueingConsumer.Delivery = null

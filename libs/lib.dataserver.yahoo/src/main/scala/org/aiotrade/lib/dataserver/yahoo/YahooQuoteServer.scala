@@ -46,7 +46,6 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.QuoteServer
 import org.aiotrade.lib.util.Singleton
-import scala.annotation.tailrec
 
 /**
  *
@@ -160,7 +159,6 @@ object YahooQuoteServer extends QuoteServer with Singleton {
     val dateFormat = new SimpleDateFormat(defaultDatePattern) //dateFormatOf(timeZone)
     dateFormat.setTimeZone(timeZone)
     
-    @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break now
       case line => line.split(",") match {

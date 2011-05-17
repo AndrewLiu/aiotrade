@@ -90,7 +90,7 @@ object ValueReader {
    */
   @throws(classOf[IOException])
   final def readTable(in: DataInputStream): Map[String, _] = {
-    val table = Map[String, Any]()
+    var table = Map[String, Any]()
     val tableLength = unsignedExtend(in.readInt)
 
     val tableIn = new DataInputStream (new TruncatedInputStream(in, tableLength))
@@ -98,7 +98,7 @@ object ValueReader {
       val name = readShortstr(tableIn)
       val value = readFieldValue(tableIn)
       if (!table.contains(name))
-        table(name) = value
+        table += (name -> value)
     }
     
     table

@@ -147,12 +147,12 @@ object Frame {
    * elements, starting at one).
    */
   def buildTable(keysValues: Array[_]): Map[String, _] = {
-    val result = Map[String, Any]()
+    var result = Map[String, Any]()
     var index = 0
     while (index < keysValues.length) {
       val key = keysValues(index).asInstanceOf[String]
       val value = keysValues(index + 1)
-      result(key) = value
+      result += (key -> value)
       index += 2
     }
     result

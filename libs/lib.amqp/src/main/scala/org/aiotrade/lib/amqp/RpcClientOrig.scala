@@ -256,10 +256,10 @@ class RpcClientOrig(channel: Channel, exchange: String, routingKey: String) {
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def mapCall(keyValuePairs: Array[_]): Map[String, _] = {
-    val message = Map[String, Any]()
+    var message = Map[String, Any]()
     var i = 0
     while (i < keyValuePairs.length) {
-      message(keyValuePairs(i).asInstanceOf[String]) = keyValuePairs(i + 1)
+      message += (keyValuePairs(i).asInstanceOf[String] -> keyValuePairs(i + 1))
       i += 1
     }
     mapCall(message)

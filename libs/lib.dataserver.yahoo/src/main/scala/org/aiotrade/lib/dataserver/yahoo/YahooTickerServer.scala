@@ -43,7 +43,6 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.Singleton
-import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -127,7 +126,6 @@ object YahooTickerServer extends TickerServer with Singleton {
     val cal = Calendar.getInstance(sourceTimeZone)
     val dateFormat = dateFormatOf(sourceTimeZone)
 
-    @tailrec
     def loop(newestTime: Long): Long = reader.readLine match {
       case null => newestTime // break right now
       case line => 

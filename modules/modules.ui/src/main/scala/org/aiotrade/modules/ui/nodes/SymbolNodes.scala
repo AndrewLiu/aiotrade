@@ -262,7 +262,7 @@ object SymbolNodes {
    */
   @throws(classOf[DataObjectNotFoundException])
   @throws(classOf[IntrospectionException])
-  object RootSymbolsNode extends BeanNode("Symbols", Children.create(RootChildFactory, false)) {
+  object RootSymbolsNode extends BeanNode[String]("Symbols", Children.create(RootChildFactory, false)) {
     override def getIcon(tpe: Int) = folderIcon
     override def getOpenedIcon(tpe: Int) = getIcon(0)
     override def getDisplayName = Bundle.getString("SN_title")
@@ -280,7 +280,7 @@ object SymbolNodes {
   }
   
   class CategoryNode(category: String, ic: InstanceContent
-  ) extends BeanNode(category, Children.create(new CategoryChildFactory(category), false), new AbstractLookup(ic)) {
+  ) extends BeanNode[String](category, Children.create(new CategoryChildFactory(category), false), new AbstractLookup(ic)) {
     setName(category)
     
     @throws(classOf[DataObjectNotFoundException])
@@ -306,7 +306,7 @@ object SymbolNodes {
   
   @throws(classOf[IntrospectionException])
   class SectorNode(val sector: Sector, ic: InstanceContent
-  ) extends BeanNode(sector, new SectorChildren(sector), new AbstractLookup(ic)) {
+  ) extends BeanNode[Sector](sector, new SectorChildren(sector), new AbstractLookup(ic)) {
 
     setName(sector.key)
     
@@ -412,7 +412,7 @@ object SymbolNodes {
   /**
    * The children of the sector node, child should be a symbol
    */
-  private class SectorChildren(sector: Sector) extends Children.Keys[Sec] {
+  class SectorChildren(sector: Sector) extends Children.Keys[Sec] {
     val secs = Sector.secsOf(sector)
     val keys = new java.util.TreeSet[Sec]
 
@@ -454,7 +454,7 @@ object SymbolNodes {
 
   /** Getting the Symbol node and wrapping it in a FilterNode */
   class SymbolNode private (val sec: Sec, ic: InstanceContent
-  ) extends BeanNode(sec, new SymbolChildren(sec), new AbstractLookup(ic)) {
+  ) extends BeanNode[Sec](sec, new SymbolChildren(sec), new AbstractLookup(ic)) {
     secToSymbolNode.put(sec, this)
 
     /* add additional items to the lookup */
@@ -583,7 +583,7 @@ object SymbolNodes {
    *  6. When your model changes, call setKeys with the new set of keys. Children.Keys will be smart and calculate exactly what it needs to do effficiently.
    *  7. (Optional) if your notion of what the node for a given key changes (but the key stays the same), you can call refreshKey(java.lang.Object). Usually this is not necessary.
    */
-   private class SymbolChildren(sec: Sec) extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
+   class SymbolChildren(sec: Sec) extends Children.Keys[GroupDescriptor[Descriptor[_]]] {
 
       /**
        * Called when children are first asked for nodes. Typical implementations at this time
@@ -628,7 +628,7 @@ object SymbolNodes {
 
    // ----- node actions
 
-   private class SymbolViewAction(node: Node) extends ViewAction {
+   class SymbolViewAction(node: Node) extends ViewAction {
       putValue(Action.NAME, Bundle.getString("AC_view"))
 
       def execute {
@@ -800,7 +800,7 @@ object SymbolNodes {
       }
     }
 
-   private class SymbolRefreshDataAction(node: Node) extends GeneralAction {
+   class SymbolRefreshDataAction(node: Node) extends GeneralAction {
       putValue(Action.NAME, Bundle.getString("AC_refresh_data"))
 
       def execute {
@@ -822,7 +822,7 @@ object SymbolNodes {
       }
     }
 
-   private class SymbolSetDataSourceAction(node: SymbolNode) extends GeneralAction {
+   class SymbolSetDataSourceAction(node: SymbolNode) extends GeneralAction {
       putValue(Action.NAME, Bundle.getString("AC_set_data_source"))
 
       def execute {
@@ -841,7 +841,7 @@ object SymbolNodes {
       }
     }
 
-   private class SymbolCompareToAction(node: SymbolNode) extends GeneralAction {
+   class SymbolCompareToAction(node: SymbolNode) extends GeneralAction {
       putValue(Action.NAME, Bundle.getString("AC_compare_to_current"))
 
       def execute {
@@ -871,7 +871,7 @@ object SymbolNodes {
 
     }
 
-   private class SymbolAddToFavoriteAction(node: Node) extends AddToFavoriteAction {
+   class SymbolAddToFavoriteAction(node: Node) extends AddToFavoriteAction {
       putValue(Action.NAME, Bundle.getString("AC_add_to_favorite"))
 
       def execute {
@@ -887,7 +887,7 @@ object SymbolNodes {
     }
 
    /** Creating an action for adding a folder to organize stocks into groups */
-   private class AddFolderAction(folder: DataFolder) extends AbstractAction {
+   class AddFolderAction(folder: DataFolder) extends AbstractAction {
       putValue(Action.NAME, Bundle.getString("AC_add_folder"))
 
       def actionPerformed(ae: ActionEvent) {
