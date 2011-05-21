@@ -33,12 +33,28 @@ package org.aiotrade.lib.util.actors
 import scala.collection.mutable
 
 /**
- * @TODO A sketch of business message protocals (APIs) design
+ * A sketch of business message protocals (APIs) design
+ * 
+ * 'Evt' is actually the evt definition, or the API definition
+ * 'T' is the type of evt value
+ * '(Int, T)' is the type of each evt message (EvtMessage)
+ * 
+ * Instead of using case class as evt message, the design here uses a plain
+ * Tuple as the evt message, so:
+ * 1. It's easier to keep off from possible serialization issue for lots concrete classes
+ * 2. The meta data such as 'doc', 'tpeClass' are stored in evt definition for
+ *    each type of evt. Only the message data is stored in each evt message
+ * 3. The serialization size of evt message is smaller.
+ * 
+ * @param [T] the type of the evt value
+ * @param tag an unique id in int for this type of Evt
+ * @param doc the document of this Evt
  * 
  * @author Caoyuan Deng
  */
-class Evt[T <: AnyRef](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
+abstract class Evt[T <: AnyRef](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
   type tpe = T
+  type EvtMessage = (Int, T)
   val tpeClass = m.erasure
   
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
@@ -50,14 +66,18 @@ class Evt[T <: AnyRef](val tag: Int, val doc: String = "")(implicit m: Manifest[
    */
   def schema: String = "" // todo
   
-  def apply(evtValue: T) = (tag, evtValue)
+  /**
+   * Return the evt message that is to be passed to. the evt message is wrapped in
+   * a tuple in form of (tag, evtValue)
+   */
+  def apply(evtValue: T): (Int, T) = (tag, evtValue)
   
   /** 
-   * @Note Since  T is erasued after compiled, should check type of evt value via isInstance.
+   * @Note Since T is erasued after compiled, should check type of evt message via isInstance.
    * And, don't write as unapply(evt: (Int, T)), which will confuse the compiler to generate
    * wrong code for match {case .. case ..}
    */
-  def unapply(evt: AnyRef): Option[T] = evt match {
+  def unapply(evtMessage: AnyRef): Option[T] = evtMessage match {
     case (`tag`, value: T) if tpeClass.isInstance(value) => Some(value)
     case _ => None
   }
@@ -90,16 +110,16 @@ object Evt {
     val bada = (-1, 1)
     val badb = (-2, "a")
     
-    val evts = List(a, b, c, bada, badb)
+    val evtMsgs = List(a, b, c, bada, badb)
     
-    println("\n==== evts: ")
-    evts foreach println
+    println("\n==== evt messages: ")
+    evtMsgs foreach println
     
     println("\n==== regular matching: ")
-    evts foreach regularMatch
+    evtMsgs foreach regularMatch
     
     println("\n==== advanced matching: ")
-    evts foreach advancedMatch
+    evtMsgs foreach advancedMatch
     
     /** The regular match on those evts look like: */
     def regularMatch(v: Any) = v match {
