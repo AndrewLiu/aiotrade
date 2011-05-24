@@ -40,11 +40,13 @@ import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
+import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
+import org.aiotrade.lib.util.actors.Evt
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
@@ -56,7 +58,7 @@ import scala.collection.mutable
  */
 case class TickerEvent(ticker: Ticker) // TickerEvent only accept Ticker
 case class TickersEvent(tickers: Array[LightTicker]) // TickersEvent accept LightTicker
-case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) // TickersEvent accept LightTicker
+case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) 
 
 case class DepthSnap (
   prevPrice: Double,
@@ -64,7 +66,16 @@ case class DepthSnap (
   execution: Execution
 )
 
-object TickerServer extends Publisher
+object TickerServer extends Publisher {
+  object TickerEvt         extends Evt[Ticker](1, "ticker") {override def schema = "todo"}
+  object TickersEvt        extends Evt[Array[LightTicker]](2, "tickers")
+  object DepthSnapshotsEvt extends Evt[Array[DepthSnap]](3)
+  object QuoteEvt          extends Evt[(String, TFreq, Quote)](4, "symbol, freq, quote")
+  object QuotesEvt         extends Evt[Array[(String, TFreq, Quote)]](5)
+  object MoneyFlowEvt      extends Evt[(String, TFreq, MoneyFlow)](6, "symbol, freq, moneyflow")
+  object MoneyFlowsEvt     extends Evt[Array[(String, TFreq, MoneyFlow)]](7)
+}
+
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
