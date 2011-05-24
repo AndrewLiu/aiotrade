@@ -83,14 +83,14 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
      */
     protected def process(msg: AMQPMessage) {
       msg match {
-        case AMQPMessage(req: RpcRequest, reqProps) =>
+        case AMQPMessage(req: Any, reqProps)  =>
           if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
-            val replyContent = handle(req)
-            //If replyPropreties is set to replyContent then we use it, otherwise create a new one
-            val replyProps = if(replyContent.props != null) replyContent.props else new AMQP.BasicProperties
+            val reply = handle(req)
+            // If replyPropreties is set to replyContent then we use it, otherwise create a new one
+            val replyProps = if (reply.props != null) reply.props else new AMQP.BasicProperties
             
             replyProps.setCorrelationId(reqProps.getCorrelationId)
-            publish("", reqProps.getReplyTo, replyProps, replyContent)
+            publish("", reqProps.getReplyTo, replyProps, reply.body)
           }
       }
     }
@@ -98,6 +98,6 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
     /**
      * @return AMQPMessage that will be send back to caller
      */
-    protected def handle(req: RpcRequest): RpcResponse
+    protected def handle(req: Any): AMQPMessage
   }
 }
