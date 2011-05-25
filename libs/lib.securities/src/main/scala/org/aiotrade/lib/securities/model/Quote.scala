@@ -315,6 +315,18 @@ class Quote extends TVal with Flag {
     }
     hasGaps = false
   }
+  
+  /**
+   * This quote must be a daily quote
+   */
+  def updateDailyQuoteByTicker(ticker: Ticker) {
+    open   = ticker.dayOpen
+    high   = ticker.dayHigh
+    low    = ticker.dayLow
+    close  = ticker.lastPrice
+    volume = ticker.dayVolume
+    amount = ticker.dayAmount
+  }
 
   override def toString = {
     val cal = Calendar.getInstance

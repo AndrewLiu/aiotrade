@@ -57,7 +57,7 @@ import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.securities.dataserver.TickerServer
-import org.aiotrade.lib.securities.dataserver.TickersEvent
+import org.aiotrade.lib.securities.dataserver.TickerServer.TickersEvt
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
@@ -144,7 +144,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   add(BorderLayout.CENTER, scrollPane)
 
   reactions += {
-    case TickersEvent(tickers) => updateByTickers(tickers)
+    case TickersEvt(tickers) => updateByTickers(tickers)
   }
 
   listenTo(TickerServer)

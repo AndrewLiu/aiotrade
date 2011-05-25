@@ -65,7 +65,7 @@ import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerContract
-import org.aiotrade.lib.securities.dataserver.TickerEvent
+import org.aiotrade.lib.securities.dataserver.TickerServer.TickerEvt
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
@@ -166,7 +166,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   viewContainer.setFocusable(false)
 
   reactions += {
-    case TickerEvent(ticker: Ticker) =>
+    case TickerEvt(ticker) =>
       // symbol.value = if (src.secInfo != null) src.secInfo.uniSymbol else ticker.symbol
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {

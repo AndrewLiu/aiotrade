@@ -56,10 +56,6 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-case class TickerEvent(ticker: Ticker) // TickerEvent only accept Ticker
-case class TickersEvent(tickers: Array[LightTicker]) // TickersEvent accept LightTicker
-case class DepthSnapsEvent(depthSnaps: Array[DepthSnap]) 
-
 case class DepthSnap (
   prevPrice: Double,
   prevDepth: MarketDepth,
@@ -67,13 +63,13 @@ case class DepthSnap (
 )
 
 object TickerServer extends Publisher {
-  object TickerEvt         extends Evt[Ticker](1, "ticker") {override def schema = "todo"}
-  object TickersEvt        extends Evt[Array[LightTicker]](2, "tickers")
-  object DepthSnapshotsEvt extends Evt[Array[DepthSnap]](3)
-  object QuoteEvt          extends Evt[(String, TFreq, Quote)](4, "symbol, freq, quote")
-  object QuotesEvt         extends Evt[Array[(String, TFreq, Quote)]](5)
-  object MoneyFlowEvt      extends Evt[(String, TFreq, MoneyFlow)](6, "symbol, freq, moneyflow")
-  object MoneyFlowsEvt     extends Evt[Array[(String, TFreq, MoneyFlow)]](7)
+  object TickerEvt     extends Evt[Ticker](1, "ticker") {override def schema = "todo"}
+  object TickersEvt    extends Evt[Array[LightTicker]](2, "tickers")
+  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)
+  object QuoteEvt      extends Evt[(TFreq, Quote)](4, "freq, quote")
+  object QuotesEvt     extends Evt[(TFreq, Array[Quote])](5)
+  object MoneyFlowEvt  extends Evt[(TFreq, MoneyFlow)](6, "freq, moneyflow")
+  object MoneyFlowsEvt extends Evt[(TFreq, Array[MoneyFlow])](7)
 }
 
 abstract class TickerServer extends DataServer[Ticker] {
@@ -292,10 +288,10 @@ abstract class TickerServer extends DataServer[Ticker] {
       if (tickerValid) {
         allTickers += ticker
         lastTicker.copyFrom(ticker)
-        sec.publish(TickerEvent(ticker))
+        sec.publish(TickerServer.TickerEvt(ticker))
 
         // update daily quote and ser
-        updateDailyQuoteByTicker(dayQuote, ticker)
+        dayQuote.updateDailyQuoteByTicker(ticker)
 
         // update chainSers
         if (!isServer && sec.isSerCreated(TFreq.ONE_SEC)) {
@@ -381,7 +377,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     }
 
     if (allDepthSnaps.length > 0) {
-      TickerServer.publish(DepthSnapsEvent(allDepthSnaps.toArray))
+      TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
     }
 
     for ((exchange, lastTime) <- exchangeToLastTime) {
@@ -393,19 +389,10 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     // publish events
     if (allTickers.length > 0) {
-      TickerServer.publish(TickersEvent(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
+      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
     }
 
     lastTime
-  }
-
-  private def updateDailyQuoteByTicker(dailyQuote: Quote, ticker: Ticker) {
-    dailyQuote.open   = ticker.dayOpen
-    dailyQuote.high   = ticker.dayHigh
-    dailyQuote.low    = ticker.dayLow
-    dailyQuote.close  = ticker.lastPrice
-    dailyQuote.volume = ticker.dayVolume
-    dailyQuote.amount = ticker.dayAmount
   }
 
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
