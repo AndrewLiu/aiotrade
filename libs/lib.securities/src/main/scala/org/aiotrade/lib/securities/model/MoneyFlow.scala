@@ -218,11 +218,20 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 /**
  * The definition of "super/large/small block" will depond on amount
  */
+@serializable
 class MoneyFlow extends TVal with Flag {
-  var sec: Sec = _
+  @transient var _sec: Sec = _
+  def sec = _sec
+  def sec_=(sec: Sec) {
+    _uniSymbol = sec.uniSymbol
+    _sec = sec
+  }
+  
+  private var _uniSymbol: String = _
+  def uniSymbol = _uniSymbol
 
   private val data = new Array[Double](24)
-
+  
   def totalVolumeIn = data(0)
   def totalAmountIn = data(1)
   def totalVolumeOut = data(2)

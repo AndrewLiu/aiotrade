@@ -66,8 +66,8 @@ import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.dataserver.TickerContract
 import org.aiotrade.lib.securities.dataserver.TickerServer.TickerEvt
+import org.aiotrade.lib.securities.dataserver.TickerServer.ExecutionEvt
 import org.aiotrade.lib.securities.model.Execution
-import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Sec
@@ -176,7 +176,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
         infoTable.repaint()
         depthTable.repaint()
       }
-    case ExecutionEvent(prevClose, execution) =>
+    case ExecutionEvt(prevClose, execution) =>
       updateExecutionTable(prevClose, execution)
       executionTable.repaint()
   }

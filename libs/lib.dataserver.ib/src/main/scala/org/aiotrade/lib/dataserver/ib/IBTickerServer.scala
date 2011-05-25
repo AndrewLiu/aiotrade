@@ -110,7 +110,9 @@ object IBTickerServer extends TickerServer with Singleton {
     try {
       val tickers = ibWrapper.tickers
       tickers synchronized {
-        publishData(tickers.toArray, null)
+        if (tickers.length > 0) {
+          publishData(DataLoaded(tickers.toArray, null))
+        }
         tickers.clear
       }
     } catch {

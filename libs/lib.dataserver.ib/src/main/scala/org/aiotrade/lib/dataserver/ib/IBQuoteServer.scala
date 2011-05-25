@@ -261,7 +261,9 @@ object IBQuoteServer extends QuoteServer with Singleton {
       try {
         request(fromTime, contract)
         val quotes = read(contract)
-        publishData(quotes, contract)
+        if (quotes.length > 0) {
+          publishData(DataLoaded(quotes, contract))
+        }
       } catch {
         case ex: Exception => println("Error in loading from source: " + ex.getMessage)
       }

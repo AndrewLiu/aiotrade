@@ -48,18 +48,14 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-case class DataLoaded(values: Array[_ <: TVal], contract: DataContract[_])
-case object DataProcessed
-
 object DataServer extends Publisher {
   private lazy val DEFAULT_ICON: Option[Image] = {
     Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
   }
 
   private val config = org.aiotrade.lib.util.config.Config()
-
-  case class HeartBeat(interval: Long) 
   private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
+  case class HeartBeat(interval: Long) 
   
   // in context of applet, a page refresh may cause timer into a unpredict status,
   // so it's always better to restart this timer? , if so, cancel it first.
@@ -76,8 +72,11 @@ object DataServer extends Publisher {
  * V data storege type
  */
 import DataServer._
-abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] with Publisher {
+abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publisher {
   type C <: DataContract[_]
+
+  case object DataProcessed
+  case class DataLoaded(values: Array[V], contract: C)
 
   protected val EmptyValues = Array[V]()
 
@@ -98,7 +97,7 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   private var isRefreshable = false
   private var inLoading = false
 
-  private case class LoadData(afterTime: Long, contract: Iterable[C])
+  private case class AskLoadData(afterTime: Long, contract: Iterable[C])
 
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
@@ -106,11 +105,11 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
     // some requests.
     case HeartBeat(interval) =>
       if (isRefreshable && !inLoading) {
-        // Refresh from loadedTime for subscribedContracts
-        publish(LoadData(loadedTime, subscribedContracts))
+        // refresh from loadedTime for subscribedContracts
+        publish(AskLoadData(loadedTime, subscribedContracts))
       }
       
-    case LoadData(afterTime, contracts) =>
+    case AskLoadData(afterTime, contracts) =>
       inLoading = true
       try {
         requestData(afterTime, contracts)
@@ -138,9 +137,9 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   def loadData(afterTime: Long, contracts: Iterable[C]) {
     log.info("Fired LoadData message")
     /**
-     * Transit to async load reactor to avoid shared variable lock (loadedTime etc)
+     * Transit to async load reactor to avoid shared variables lock (loadedTime etc)
      */
-    publish(LoadData(afterTime, contracts))
+    publish(AskLoadData(afterTime, contracts))
   }
 
   /**
@@ -154,21 +153,17 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
   protected def requestData(afterThisTime: Long, contracts: Iterable[C])
 
   /**
-   * A helper method to publish loaded data to reactor (including this DataServer instance)
-   * or remote message system (by overridding it).
+   * Publish loaded data to local reactor (including this DataServer instance), 
+   * or to remote message system (by overridding it).
    * @Note this DataServer will react to DataLoaded with processData automatically if it
    * received this event
    * @See reactions += {...}
    * 
-   * @param values the TVal values
-   * @param contract could be null
    */
-  protected def publishData(values: Array[V], contract: C) {
-    if (values.length > 0) {
-      publish(DataLoaded(values, contract))
-    }
+  protected def publishData(msg: Any) {
+    publish(msg)
   }
-  
+    
   /**
    * @param values the TVal values
    * @param contract could be null
@@ -237,55 +232,55 @@ abstract class DataServer[V <: TVal: Manifest] extends Ordered[DataServer[V]] wi
    * ...
    * @return source id
    */
-  def id: Long = {
-    val sn = serialNumber
-    assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
+   def id: Long = {
+      val sn = serialNumber
+      assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
-    if (sn == 0) 0 else 1 << (sn - 1)
-  }
+      if (sn == 0) 0 else 1 << (sn - 1)
+    }
 
-  // -- end of public interfaces
+   // -- end of public interfaces
 
-  /** @Note DateFormat is not thread safe, so we always return a new instance */
-  protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-    val pattern = defaultDatePattern
-    val dateFormat = new SimpleDateFormat(pattern)
-    dateFormat.setTimeZone(timeZone)
-    dateFormat
-  }
+   /** @Note DateFormat is not thread safe, so we always return a new instance */
+   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
+      val pattern = defaultDatePattern
+      val dateFormat = new SimpleDateFormat(pattern)
+      dateFormat.setTimeZone(timeZone)
+      dateFormat
+    }
 
-  protected def isAscending(values: Array[V]): Boolean = {
-    val size = values.length
-    if (size <= 1) {
-      true
-    } else {
-      var i = 0
-      while (i < size - 1) {
-        if (values(i).time < values(i + 1).time) {
-          return true
-        } else if (values(i).time > values(i + 1).time) {
-          return false
+   protected def isAscending(values: Array[_ <: TVal]): Boolean = {
+      val size = values.length
+      if (size <= 1) {
+        true
+      } else {
+        var i = 0
+        while (i < size - 1) {
+          if (values(i).time < values(i + 1).time) {
+            return true
+          } else if (values(i).time > values(i + 1).time) {
+            return false
+          }
+          i += 1
         }
-        i += 1
+        false
       }
-      false
     }
-  }
 
-  protected def cancelRequest(contract: C) {}
+   protected def cancelRequest(contract: C) {}
 
-  override def compare(another: DataServer[V]): Int = {
-    if (this.displayName.equalsIgnoreCase(another.displayName)) {
-      if (this.hashCode < another.hashCode) -1
-      else if (this.hashCode == another.hashCode) 0
-      else 1
-    } else {
-      this.displayName.compareTo(another.displayName)
+   override def compare(another: DataServer[V]): Int = {
+      if (this.displayName.equalsIgnoreCase(another.displayName)) {
+        if (this.hashCode < another.hashCode) -1
+        else if (this.hashCode == another.hashCode) 0
+        else 1
+      } else {
+        this.displayName.compareTo(another.displayName)
+      }
     }
-  }
 
-  override def toString: String = displayName
-}
+   override def toString: String = displayName
+   }
 
 
 

@@ -37,7 +37,6 @@ import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
-import org.aiotrade.lib.securities.model.ExecutionEvent
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MoneyFlow
@@ -63,22 +62,44 @@ case class DepthSnap (
 )
 
 object TickerServer extends Publisher {
-  object TickerEvt     extends Evt[Ticker](1, "ticker") {override def schema = "todo"}
-  object TickersEvt    extends Evt[Array[LightTicker]](2, "tickers")
-  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)
-  object QuoteEvt      extends Evt[(TFreq, Quote)](4, "freq, quote")
-  object QuotesEvt     extends Evt[(TFreq, Array[Quote])](5)
-  object MoneyFlowEvt  extends Evt[(TFreq, MoneyFlow)](6, "freq, moneyflow")
-  object MoneyFlowsEvt extends Evt[(TFreq, Array[MoneyFlow])](7)
+  // snap evts
+  object TickerEvt     extends Evt[Ticker](0, "ticker") {override def schema = "todo"}
+  object TickersEvt    extends Evt[Array[LightTicker]](1, "tickers")
+  object ExecutionEvt  extends Evt[(Double, Execution)](2, "prevClose, execution")
+  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)  
+  
+  // update evts
+  object QuoteEvt      extends Evt[(TFreq, Quote)](10, "freq, quote")
+  object QuotesEvt     extends Evt[(TFreq, Array[Quote])](11)
+  object MoneyFlowEvt  extends Evt[(TFreq, MoneyFlow)](12, "freq, moneyflow")
+  object MoneyFlowsEvt extends Evt[(TFreq, Array[MoneyFlow])](13)  
+
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private val config = org.aiotrade.lib.util.config.Config()
+  val isServer = !config.getBool("dataserver.client", false)
+  log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
 }
 
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
 
   private val log = Logger.getLogger(this.getClass.getName)
-  private val config = org.aiotrade.lib.util.config.Config()
-  protected val isServer = !config.getBool("dataserver.client", false)
-  log.info("Ticker server is started as " + (if (isServer) "server" else "client"))
+  
+  // add reaction to update chain ser
+  reactions += {
+    case TickerServer.QuoteEvt(freq, quote) =>
+      Exchange.secOf(quote.uniSymbol) foreach {sec =>
+        quote.sec = sec
+        sec.updateSerByValue(freq, quote)
+      }
+    case TickerServer.MoneyFlowEvt(freq, mf) =>
+      Exchange.secOf(mf.uniSymbol) foreach {sec =>
+        log.info("To update money flow ser by mf")
+        mf.sec = sec
+        sec.updateSerByValue(freq, mf)
+      }
+  }
 
   private lazy val uniSymbolToTickerSnapshot = mutable.Map[String, TickerSnapshot]()
 
@@ -94,7 +115,6 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]
   private val allDepthSnaps = new ArrayList[DepthSnap]
-  private val updatedDailyQuotes = new ArrayList[Quote]
 
   private val exchangeToLastTime = mutable.Map[Exchange, Long]()
 
@@ -142,18 +162,17 @@ abstract class TickerServer extends DataServer[Ticker] {
   protected def processData(values: Array[Ticker], Contract: TickerContract): Long = {
     var lastTime = Long.MinValue
 
-    log.info("Composing ser from tickers: " + values.length)
+    log.info("Composing quote from tickers: " + values.length)
     if (values.length == 0) return lastTime
     //values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
 
     val (secSnaps, tickersLast) = toSecSnaps(values)
-    log.info("Composing ser from secSnaps: " + secSnaps.length)
+    log.info("Composing quote from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return lastTime
 
     allTickers.clear
     allExecutions.clear
     allDepthSnaps.clear
-    updatedDailyQuotes.clear
 
     exchangeToLastTime.clear
 
@@ -203,7 +222,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.price  = ticker.lastPrice
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
-        allExecutions += execution
 
       } else {
 
@@ -227,7 +245,6 @@ abstract class TickerServer extends DataServer[Ticker] {
             execution.price = ticker.lastPrice
             execution.volume = ticker.dayVolume - lastTicker.dayVolume
             execution.amount = ticker.dayAmount - lastTicker.dayAmount
-            allExecutions += execution
           } else {
             log.fine("dayVolome curr: " + ticker.dayVolume + ", last: " + lastTicker.dayVolume)
           }
@@ -245,7 +262,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
           if (lastTicker.dayHigh > 0 && ticker.dayHigh > 0) {
             if (ticker.dayHigh > lastTicker.dayHigh) {
-              /** this is a new day high happened during prevTicker to this ticker */
+              // this is a new day high happened during prevTicker to this ticker
               minQuote.high = ticker.dayHigh
             }
           }
@@ -255,7 +272,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
           if (lastTicker.dayLow > 0 && ticker.dayLow > 0) {
             if (ticker.dayLow < lastTicker.dayLow) {
-              /** this is a new day low happened during prevTicker to this ticker */
+              // this is a new day low happened during prevTicker to this ticker
               minQuote.low = ticker.dayLow
             }
           }
@@ -275,35 +292,27 @@ abstract class TickerServer extends DataServer[Ticker] {
       }
 
 
-      if (execution != null) {
-        val prevPrice = if (isDayFirst) ticker.prevClose else lastTicker.lastPrice
-        val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
-        allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
-
-        log.fine("Will published execution")
-        sec.publish(ExecutionEvent(ticker.prevClose, execution))
-        log.fine("Published execution: " + ExecutionEvent(ticker.prevClose, execution))
-      }
-
       if (tickerValid) {
+        sec.publish(TickerServer.TickerEvt(ticker))
         allTickers += ticker
         lastTicker.copyFrom(ticker)
-        sec.publish(TickerServer.TickerEvt(ticker))
+
+        if (execution != null) {
+          sec.publish(TickerServer.ExecutionEvt(ticker.prevClose, execution))
+          allExecutions += execution
+
+          val prevPrice = if (isDayFirst) ticker.prevClose else lastTicker.lastPrice
+          val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
+          allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
+        }
 
         // update daily quote and ser
         dayQuote.updateDailyQuoteByTicker(ticker)
 
-        // update chainSers
-        if (!isServer && sec.isSerCreated(TFreq.ONE_SEC)) {
-          sec.realtimeSer.updateFrom(minQuote)
-        }
-        if (isServer || sec.isSerCreated(TFreq.ONE_MIN)) {
-          sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(minQuote)}
-        }
-        if (isServer || sec.isSerCreated(TFreq.DAILY)) {
-          sec.serOf(TFreq.DAILY) foreach {_.updateFrom(dayQuote)}
-        }
-
+        // publish updated quotes for continue processing, for example: update chain ser, or to remote message system
+        publishData(TickerServer.QuoteEvt(TFreq.DAILY, dayQuote))
+        publishData(TickerServer.QuoteEvt(TFreq.ONE_MIN, minQuote))
+        
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
         lastTime = math.max(lastTime, ticker.time)
@@ -355,7 +364,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
     }
 
-    if (isServer) {
+    if (TickerServer.isServer) {
       start = System.currentTimeMillis
       if (allTickers.length > 0) {
         Tickers.insertBatch_!(allTickers.toArray)
@@ -376,25 +385,26 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Committed")
     }
 
+    // publish broadcast events via TickerServer for immediate usages
+    if (allTickers.length > 0) {
+      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
+    }
     if (allDepthSnaps.length > 0) {
       TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
     }
-
+    
+    // Try to close and save updated quotes, moneyflows
     for ((exchange, lastTime) <- exchangeToLastTime) {
       val status = exchange.tradingStatusOf(lastTime)
       log.info("Trading status of " + exchange.code + ": " + status)
       exchange.tradingStatus = status
-      exchange.tryClosing(isServer)
-    }
-
-    // publish events
-    if (allTickers.length > 0) {
-      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
+      val alsoSave = TickerServer.isServer
+      exchange.tryClosing(alsoSave)
     }
 
     lastTime
   }
-
+  
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol
 }

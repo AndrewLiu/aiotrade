@@ -269,14 +269,22 @@ abstract class Quotes extends Table[Quote] {
  */
 @serializable
 class Quote extends TVal with Flag {
-  var sec: Sec = _
+  @transient var _sec: Sec = _
+  def sec = _sec
+  def sec_=(sec: Sec) {
+    _uniSymbol = sec.uniSymbol
+    _sec = sec
+  }
   
-  private val data = new Array[Double](7)
-
+  private var _uniSymbol: String = _
+  def uniSymbol = _uniSymbol
+  
   @transient var sourceId = 0L
 
   var hasGaps = false
-
+  
+  private val data = new Array[Double](7)
+  
   def open      = data(0)
   def high      = data(1)
   def low       = data(2)
@@ -294,8 +302,8 @@ class Quote extends TVal with Flag {
   def vwap_=   (v: Double) {data(6) = v}
 
   // Foreign keys
-  var tickers: List[Ticker] = Nil
-  var executions: List[Execution] = Nil
+  @transient var tickers: List[Ticker] = Nil
+  @transient var executions: List[Execution] = Nil
 
   
   // --- no db fields:

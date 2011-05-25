@@ -720,6 +720,35 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
   
+  def updateSerByValue(freq: TFreq, value: AnyRef) {
+    value match {
+      case quote: Quote =>
+        freq match {
+          case TFreq.ONE_MIN =>
+            if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
+              realtimeSer.updateFrom(quote)
+            }
+            if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
+              serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+            }
+          case TFreq.DAILY =>
+            if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
+              serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+            }
+        }
+      case mf: MoneyFlow =>
+        freq match {
+          case TFreq.ONE_MIN =>
+            if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
+              moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(mf))
+            }
+          case TFreq.DAILY =>
+            if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
+              moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(mf))
+            }
+        }
+    }
+  }
 
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
   def uniSymbol_=(uniSymbol: String) {
@@ -815,17 +844,17 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   def compare(that: Sec): Int = {
     this.exchange.compare(that.exchange) match {
-      case 0 => (this.uniSymbol, that.uniSymbol) match {
-          case ("-", "-") => 0
-          case ("-",  _ ) => -1
-          case (_  , "-") => 1
-          case (s1: String, s2: String) =>
-            val s1s = s1.split('.')
-            val s2s = s2.split('.')
-            s1s(0).compareTo(s2s(0))
-          case _ => 0
+      case 0 => 
+        val s1 = this.uniSymbol
+        val s2 = that.uniSymbol
+        if (s1 == "_" && s2 == "_") 0
+        else if (s1 == "_") -1
+        else if (s2 == "_") 1
+        else {
+          val s1s = s1.split('.')
+          val s2s = s2.split('.')
+          s1s(0).compareTo(s2s(0))
         }
-
       case x => x
     }
   }

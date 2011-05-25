@@ -48,7 +48,8 @@ import org.w3c.dom.Element
  * service for descriptor.
  *
  * most fields' default value should be OK.
- *
+ * 
+ * @param [S] DataServer
  * @author Caoyuan Deng
  */
 abstract class DataContract[S: Manifest] extends Descriptor[S] {

@@ -214,7 +214,9 @@ object YahooQuoteServer extends QuoteServer with Singleton {
         request(fromTime, contract) match {
           case Some(is) =>
             val quotes = read(fromTime, contract, is)
-            publishData(quotes, contract)
+            if (quotes.length > 0) {
+              publishData(DataLoaded(quotes, contract))
+            }
           case None =>
         }
       } catch {

@@ -2,8 +2,6 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm._
 
-case class ExecutionEvent(prevClose: Double, execution: Execution)
-
 object Executions extends Table[Execution] {
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
@@ -28,7 +26,7 @@ object Executions extends Table[Execution] {
 
 object Execution {
   // bit masks for flag
-  val MaskNone          = 1 << 0   //    000...00000001
+  val MaskEven          = 1 << 0   //    000...00000001
   val MaskIn            = 1 << 1   //    000...00000010
   val MaskOut           = 1 << 2   //    000...00000100
   val MaskSame          = 1 << 3   //    000...00001000
@@ -40,7 +38,15 @@ object Execution {
 
 import Execution._
 class Execution {
-  var sec: Sec = _
+  @transient var _sec: Sec = _
+  def sec = _sec
+  def sec_=(sec: Sec) {
+    _uniSymbol = sec.uniSymbol
+    _sec = sec
+  }
+  
+  private var _uniSymbol: String = _
+  def uniSymbol = _uniSymbol
   
   var time: Long = -1
 
@@ -50,15 +56,15 @@ class Execution {
 
   var flag: Int = _ // @Note jdbc type of TINYINT is Int
 
-  none_!
+  even_!
   same_!
 
-  def none_? : Boolean = (flag & MaskNone) == MaskNone
+  def even_? : Boolean = (flag & MaskEven) == MaskEven
   def in_?   : Boolean = (flag & MaskIn) == MaskIn
   def out_?  : Boolean = (flag & MaskOut) == MaskOut
-  def none_! {flag = (((flag | MaskNone) & ~MaskIn) & ~MaskOut)}
-  def out_!  {flag = (((flag | MaskOut) & ~MaskIn) & ~MaskNone)}
-  def in_!   {flag = (((flag | MaskIn) & ~MaskOut) & ~MaskNone)}
+  def even_! {flag = (((flag | MaskEven) & ~MaskIn) & ~MaskOut)}
+  def out_!  {flag = (((flag | MaskOut) & ~MaskIn) & ~MaskEven)}
+  def in_!   {flag = (((flag | MaskIn) & ~MaskOut) & ~MaskEven)}
 
   def same_? : Boolean = (flag & MaskSame) == MaskSame
   def up_?   : Boolean = (flag & MaskUp) == MaskUp

@@ -60,8 +60,8 @@ import scala.collection.mutable
  * @author Caoyuan Deng
  */
 abstract class Evt[T: Manifest](val tag: Int, val doc: String = "") {
-  type Type = T
-  type EvtMsg = (Int, T)
+  type ValType = T
+  type MsgType = (Int, T)
   
   private val m = manifest[T]
   private val typeArguments = m.typeArguments map (_.erasure)
@@ -175,13 +175,16 @@ object Evt {
     println("\n==== advanced unmatched: ")
     assert(!(badEvtMsgs  map advancedMatch).contains(true),  "Test failed") 
     
-    /** The regular match on those evts look like: */
+    /** 
+     * @TODO bad match on ValType, need more research
+     * The regular match on those evts look like: 
+     */
     def regularMatch(v: Any) = v match {
-      case (StrEvt.tag, aval: StrEvt.Type) => println("Matched: " + v + " => " + aval); true
-      case (IntEvt.tag, aval: IntEvt.Type) => println("Matched: " + v + " => " + aval); true
-      case (ArrEvt.tag, aval: ArrEvt.Type) => println("Matched: " + v + " => " + aval); true
-      case (LstEvt.tag, aval: LstEvt.Type) => println("Matched: " + v + " => " + aval); true
-      case (MulEvt.tag, aval: MulEvt.Type) => println("Matched: " + v + " => " + aval); true
+      case (StrEvt.tag, aval: StrEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case (IntEvt.tag, aval: IntEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case (ArrEvt.tag, aval: ArrEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case (LstEvt.tag, aval: LstEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case (MulEvt.tag, aval: MulEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case _ => println("Unmatched: " + v); false
     }
     
