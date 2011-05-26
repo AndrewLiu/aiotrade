@@ -22,14 +22,14 @@ AIOTrade
     > cd aiotrade.git
 
     # Build opensource aiotrade client
-    > cd ../aiotrade/suite  
+    > cd ../aiotrade
     > mvn clean install  
 
 ## Code -> Build -> Run Cycle
 
-    > cd ../aiotrade/suite  
+    > cd ../aiotrade
     > mvn install  
-    > application/target/aiotrade/bin/aiotrade
+    > suite/application/target/aiotrade/bin/aiotrade
 
 ## Zipped application package:
 
