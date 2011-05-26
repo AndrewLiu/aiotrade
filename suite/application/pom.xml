@@ -1,22 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
     <parent>
         <groupId>org.aiotrade</groupId>
         <artifactId>platform-suite</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
+    <!-- ***************************************************************************************************************
+    *
+    * Project description
+    *
+    **************************************************************************************************************** -->
+    <groupId>org.aiotrade</groupId>
     <artifactId>platform-application</artifactId>
     <packaging>nbm-application</packaging>
     <version>1.0-SNAPSHOT</version>
+    
     <name>AIOTrade Org Application</name>
 
     <dependencies>
-        <!--
-        all nb modules that will be packed must be incuded here,
-        even some of them have been declared dependencies by other nbm modules
+        <!-- all nb modules that will be packed must be incuded here,
+             even some of them have been declared dependencies by other nbm modules
         -->
 
         <dependency>
@@ -28,28 +37,28 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-modules-platform-i10n</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>nbm</type>
         </dependency>
 
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>platform-branding</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>nbm</type>
         </dependency>
 
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-modules-custom</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>nbm</type>
         </dependency>
 
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-modules-ui</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>nbm</type>
         </dependency>
 
@@ -228,4 +237,5 @@
             </build>
         </profile>
     </profiles>
+    
 </project>

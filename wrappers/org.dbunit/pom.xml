@@ -1,24 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    
     <parent>
         <groupId>org.aiotrade</groupId>
         <artifactId>wrappers</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <!-- ***************************************************************************************************************
+    *
+    * Project description
+    *
+    **************************************************************************************************************** -->
+    <groupId>org.aiotrade</groupId>
     <artifactId>org-dbunit</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
+    
     <name>org-dbunit-wrapper</name>
-
-    <repositories>
-        <repository>
-            <id>maven.repo1</id>
-            <url>http://repo1.maven.org/maven2</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -53,7 +56,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
-                <extensions>true</extensions>
                 <configuration>
                     <publicPackages>
                         <publicPackage>org.dbunit</publicPackage>

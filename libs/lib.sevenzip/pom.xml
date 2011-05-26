@@ -1,28 +1,35 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <modelVersion>4.0.0</modelVersion>
+    
     <parent>
         <groupId>org.aiotrade</groupId>
         <artifactId>libs</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <deploy.version>releases</deploy.version>
-    </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>repo.qa</id>
-            <name>Nyapc ${deploy.version} repository</name>
-            <url>http://repo.qa/content/repositories/${deploy.version}</url>
-        </repository>
-    </distributionManagement>
-
+    <!-- ***************************************************************************************************************
+    *
+    * Project description
+    *
+    **************************************************************************************************************** -->
+    <groupId>org.aiotrade</groupId>
     <artifactId>lib-sevenzip</artifactId>
-    <version>9.10.beta</version>
+    <version>1.0-SNAPSHOT</version>
 
     <name>lib-sevenzip</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
 
