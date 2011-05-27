@@ -63,8 +63,11 @@ trait TSer extends Publisher {
   /**
    * Export times and vars to map. Only Var with no-empty name can be exported.
    * The key of times is always "."
+   * 
+   * @Note use collection.Map[String, Array[_]] here will cause some caller of
+   * this method to be comipled with lots of stack space and time.
    */
-  def export(fromTime: Long, toTime: Long): Map[String, Array[_]]
+  def export(fromTime: Long, toTime: Long): collection.Map[String, Array[Any]]
 
   def exists(time: Long): Boolean
     
