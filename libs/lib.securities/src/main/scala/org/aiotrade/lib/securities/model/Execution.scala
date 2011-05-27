@@ -52,7 +52,11 @@ class Execution {
 
   var price:  Double = _
   var volume: Double = _
-  var amount: Double = _
+  private var _amount: Double = _
+  def amount = if (_amount != 0) _amount else price * volume 
+  def amount_=(amount: Double) {
+    _amount = amount
+  }
 
   var flag: Int = _ // @Note jdbc type of TINYINT is Int
 
@@ -72,4 +76,11 @@ class Execution {
   def same_! {flag = (((flag | MaskSame) & ~MaskDown) & ~MaskUp)}
   def up_!   {flag = (((flag | MaskUp) & ~MaskDown) & ~MaskSame)}
   def down_! {flag = (((flag | MaskDown) & ~MaskUp) & ~MaskSame)}
+  
+  def directionA: Int = if (up_?) 1 else if (down_?) -1 else 0
+  def directionB: Int = if (in_?) 1 else if (out_?)  -1 else 0
+  
+  override def toString = {
+    "Execution(" + "price=" + price + ", volume=" + volume + ", amount=" + amount + ", directionA=" + directionA + ", directionB=" + directionB  + ")"
+  }
 }
