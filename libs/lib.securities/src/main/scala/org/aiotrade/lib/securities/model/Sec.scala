@@ -197,6 +197,37 @@ class Sec extends SerProvider with Ordered[Sec] {
   private var _tickerContract: TickerContract = _
   private var _richInfoContract : RichInfoContract = _
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
+  
+  
+  // reactions for QuoteEvt, MoneyFlowEvt to update chainsers
+  reactions += {
+    case TickerServer.QuoteEvt(freq, quote) =>
+      freq match {
+        case TFreq.ONE_MIN =>
+          if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
+            realtimeSer.updateFrom(quote)
+          }
+          if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
+            serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+          }
+        case TFreq.DAILY =>
+          if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
+            serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+          }
+      }
+    case TickerServer.MoneyFlowEvt(freq, mf) =>
+      freq match {
+        case TFreq.ONE_MIN =>
+          if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
+            moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(mf))
+          }
+        case TFreq.DAILY =>
+          if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
+            moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(mf))
+          }
+      }
+  }
+
 
   def dividends: Seq[SecDividend] = Secs.dividendsOf(this)
 
@@ -720,36 +751,6 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
   
-  def updateSerByValue(freq: TFreq, value: AnyRef) {
-    value match {
-      case quote: Quote =>
-        freq match {
-          case TFreq.ONE_MIN =>
-            if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
-              realtimeSer.updateFrom(quote)
-            }
-            if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
-              serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-            }
-          case TFreq.DAILY =>
-            if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
-              serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
-            }
-        }
-      case mf: MoneyFlow =>
-        freq match {
-          case TFreq.ONE_MIN =>
-            if (TickerServer.isServer || isSerCreated(TFreq.ONE_MIN)) {
-              moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(mf))
-            }
-          case TFreq.DAILY =>
-            if (TickerServer.isServer || isSerCreated(TFreq.DAILY)) {
-              moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(mf))
-            }
-        }
-    }
-  }
-
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {

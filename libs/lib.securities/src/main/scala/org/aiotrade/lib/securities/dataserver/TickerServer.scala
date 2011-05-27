@@ -86,21 +86,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   private val log = Logger.getLogger(this.getClass.getName)
   
-  // add reaction to update chain ser
-  reactions += {
-    case TickerServer.QuoteEvt(freq, quote) =>
-      Exchange.secOf(quote.uniSymbol) foreach {sec =>
-        quote.sec = sec
-        sec.updateSerByValue(freq, quote)
-      }
-    case TickerServer.MoneyFlowEvt(freq, mf) =>
-      Exchange.secOf(mf.uniSymbol) foreach {sec =>
-        log.info("To update money flow ser by mf")
-        mf.sec = sec
-        sec.updateSerByValue(freq, mf)
-      }
-  }
-
   private lazy val uniSymbolToTickerSnapshot = mutable.Map[String, TickerSnapshot]()
 
   def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = uniSymbolToTickerSnapshot synchronized {
@@ -115,6 +100,8 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]
   private val allDepthSnaps = new ArrayList[DepthSnap]
+  private val allUpdatedDailyQuotes = new ArrayList[Quote]
+  private val allUpdatedMinuteQuotes = new ArrayList[Quote]
 
   private val exchangeToLastTime = mutable.Map[Exchange, Long]()
 
@@ -173,6 +160,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     allTickers.clear
     allExecutions.clear
     allDepthSnaps.clear
+    allUpdatedDailyQuotes.clear
+    allUpdatedMinuteQuotes.clear
 
     exchangeToLastTime.clear
 
@@ -309,9 +298,12 @@ abstract class TickerServer extends DataServer[Ticker] {
         // update daily quote and ser
         dayQuote.updateDailyQuoteByTicker(ticker)
 
-        // publish updated quotes for continue processing, for example: update chain ser, or to remote message system
-        publishData(TickerServer.QuoteEvt(TFreq.DAILY, dayQuote))
-        publishData(TickerServer.QuoteEvt(TFreq.ONE_MIN, minQuote))
+        // send updated quote to sec to update chain ser
+        sec ! TickerServer.QuoteEvt(TFreq.DAILY, dayQuote)
+        sec ! TickerServer.QuoteEvt(TFreq.ONE_MIN, minQuote)
+        
+        allUpdatedDailyQuotes += dayQuote
+        allUpdatedMinuteQuotes += minQuote
         
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
@@ -385,15 +377,23 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Committed")
     }
 
-    // publish broadcast events via TickerServer for immediate usages
+    // broadcast events via TickerServer, the interesting listener can use them:
+    // 1. to forward to remote message system, or
+    // 2. to compute money flow etc.
     if (allTickers.length > 0) {
       TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
     }
     if (allDepthSnaps.length > 0) {
       TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
     }
+    if (allUpdatedDailyQuotes.length > 0) {
+      TickerServer.publish(TickerServer.QuotesEvt(TFreq.DAILY, allUpdatedDailyQuotes.toArray))
+    }
+    if (allUpdatedMinuteQuotes.length > 0) {
+      TickerServer.publish(TickerServer.QuotesEvt(TFreq.ONE_MIN, allUpdatedMinuteQuotes.toArray))
+    }
     
-    // Try to close and save updated quotes, moneyflows
+    // Try to close and save updated quotes, moneyflows 
     for ((exchange, lastTime) <- exchangeToLastTime) {
       val status = exchange.tradingStatusOf(lastTime)
       log.info("Trading status of " + exchange.code + ": " + status)
