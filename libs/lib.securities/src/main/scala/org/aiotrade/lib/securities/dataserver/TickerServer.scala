@@ -284,14 +284,15 @@ abstract class TickerServer extends DataServer[Ticker] {
       if (tickerValid) {
         sec.publish(TickerServer.TickerEvt(ticker))
         allTickers += ticker
-        lastTicker.copyFrom(ticker)
 
         if (execution != null) {
+          val prevPrice = if (isDayFirst) ticker.prevClose else lastTicker.lastPrice
+          val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
+          execution.setDirection(prevPrice, prevDepth)
+
           sec.publish(TickerServer.ExecutionEvt(ticker.prevClose, execution))
           allExecutions += execution
 
-          val prevPrice = if (isDayFirst) ticker.prevClose else lastTicker.lastPrice
-          val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
           allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
         }
 
@@ -307,6 +308,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         
         exchangeToLastTime.put(sec.exchange, ticker.time)
 
+        lastTicker.copyFrom(ticker)
         lastTime = math.max(lastTime, ticker.time)
       }
 

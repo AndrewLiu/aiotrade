@@ -77,6 +77,30 @@ class Execution {
   def up_!   {flag = (((flag | MaskUp) & ~MaskDown) & ~MaskSame)}
   def down_! {flag = (((flag | MaskDown) & ~MaskUp) & ~MaskSame)}
   
+  def setDirection(prevPrice: Double, prevDepth: MarketDepth) {
+    // directionA
+    if (price > prevPrice) {
+      up_!
+    } else if (price < prevPrice) {
+      down_!
+    } else {
+      same_!
+    }
+    
+    // directionB
+    if (prevDepth.depth > 0) {
+      val bidPrice0 = prevDepth.bidPrice(0)
+      val askPrice0 = prevDepth.askPrice(0)
+      if (price >= bidPrice0) {
+        in_!
+      } else if (price <= askPrice0) {
+        out_!
+      } else {
+        even_!
+      }
+    }
+  }
+  
   def directionA: Int = if (up_?) 1 else if (down_?) -1 else 0
   def directionB: Int = if (in_?) 1 else if (out_?)  -1 else 0
   
