@@ -38,7 +38,7 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
   override def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
-  protected var array: Array[A] = makeArray(initialSize)
+  protected[collection] var array: Array[A] = makeArray(initialSize)
 
   protected def makeArray(size: Int) = {
     val s = math.max(size, 1)
