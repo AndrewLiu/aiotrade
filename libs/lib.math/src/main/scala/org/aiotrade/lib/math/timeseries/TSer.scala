@@ -65,9 +65,14 @@ trait TSer extends Publisher {
    * The key of times is always "."
    * 
    * @Note use collection.Map[String, Array[_]] here will cause some caller of
-   * this method to be comipled with lots of stack space and time.
+   * this method to be comipled with lots of stack space and time. 
+   * and use collection.Map[String, Array[Any]] wil cause runtime exception of
+   * cast Array[T] (where T is primary type) to Array[Object]
+   * 
+   * @Todo a custom vmap ?
+   * @return usally a collection.Map[String, Array[_]]
    */
-  def export(fromTime: Long, toTime: Long): collection.Map[String, Array[Any]]
+  def export(fromTime: Long, toTime: Long): collection.Map[String, Any]
 
   def exists(time: Long): Boolean
     

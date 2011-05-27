@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
 
 /**
@@ -68,9 +69,13 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
    * The key of times is always "."
    * 
    * @Note use collection.Map[String, Array[_]] here will cause some caller of
-   * this method to be comipled with lots of stack space and time.
+   * this method to be comipled with lots of stack space and time. 
+   * and use collection.Map[String, Array[Any]] wil cause runtime exception of
+   * cast Array[T] (where T is primary type) to Array[Object]
+   * 
+   * @Todo a custom vmap
    */
-  def export(fromTime: Long, toTime: Long): collection.Map[String, Array[Any]] = {
+  def export(fromTime: Long, toTime: Long): collection.Map[String, Any] = {
     try {
       readLock.lock
       timestamps.readLock.lock
@@ -82,10 +87,9 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       val len = toIdx - frIdx + 1
       
       if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
-        var vmap = mutable.Map[String, Array[_]]()
+        var vmap = new mutable.HashMap[String, Array[_]]()
 
-        val timesx = new Array[Long](len)
-        timestamps.copyToArray(timesx, frIdx, len)
+        val timesx = timestamps.sliceToArray(frIdx, len)
         vmap.put(".", timesx)
 
         for (v <- vs) {
@@ -93,7 +97,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
           vmap.put(v.name, valuesx)
         }
 
-        vmap.asInstanceOf[collection.Map[String, Array[Any]]]
+        vmap
       } else {
         Map()
       }
