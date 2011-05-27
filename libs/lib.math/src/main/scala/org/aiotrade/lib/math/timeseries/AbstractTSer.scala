@@ -47,7 +47,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   protected val writeLock = readWriteLock.writeLock
 
   def this() = this(TFreq.DAILY)
-    
+   
   def set(freq: TFreq) {
     this.freq = freq
   }
@@ -66,8 +66,11 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   /**
    * Export times and vars to map. Only Var with no-empty name can be exported.
    * The key of times is always "."
+   * 
+   * @Note use collection.Map[String, Array[_]] here will cause some caller of
+   * this method to be comipled with lots of stack space and time.
    */
-  def export(fromTime: Long, toTime: Long): Map[String, Array[_]] = {
+  def export(fromTime: Long, toTime: Long): collection.Map[String, Array[Any]] = {
     try {
       readLock.lock
       timestamps.readLock.lock
@@ -90,7 +93,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
           vmap.put(v.name, valuesx)
         }
 
-        vmap.toMap
+        vmap.asInstanceOf[collection.Map[String, Array[Any]]]
       } else {
         Map()
       }

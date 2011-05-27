@@ -59,12 +59,11 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-abstract class Evt[T: Manifest](val tag: Int, val doc: String = "") {
+abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
   type ValType = T
   type MsgType = (Int, T)
   
-  private val m = manifest[T]
-  private val typeArguments = m.typeArguments map (_.erasure)
+  private val typeParams = m.typeArguments map (_.erasure)
   val typeClass = m.erasure
   
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
@@ -92,7 +91,7 @@ abstract class Evt[T: Manifest](val tag: Int, val doc: String = "") {
       // we will do 1-level type arguments check, and won't deep check t's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
-          val t = typeArguments.head
+          val t = typeParams.head
           val vs = x.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(t, vs.next)) 
@@ -101,7 +100,7 @@ abstract class Evt[T: Manifest](val tag: Int, val doc: String = "") {
           Some(value)
         case x: Product if (ClassHelper.isTuple(x))=>
           val vs = x.productIterator
-          val ts = typeArguments.iterator
+          val ts = typeParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
