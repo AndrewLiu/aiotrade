@@ -37,14 +37,7 @@ package org.aiotrade.lib.util
 object ClassHelper {
   
   // --- classes
-  
-  val JByteClass = classOf[java.lang.Byte]
-  val JShortClass = classOf[java.lang.Short]
-  val JIntegerClass = classOf[java.lang.Integer]
-  val JLongClass = classOf[java.lang.Long]
-  val JFloatClass = classOf[java.lang.Float]
-  val JDoubleClass = classOf[java.lang.Double]
-  val JBooleanClass = classOf[java.lang.Boolean]
+  val UnitClass = classOf[Unit]
   
   val ByteClass = classOf[Byte]
   val ShortClass = classOf[Short]
@@ -54,8 +47,15 @@ object ClassHelper {
   val DoubleClass = classOf[Double]
   val BooleanClass = classOf[Boolean]
   
+  val JByteClass = classOf[java.lang.Byte]
+  val JShortClass = classOf[java.lang.Short]
+  val JIntegerClass = classOf[java.lang.Integer]
+  val JLongClass = classOf[java.lang.Long]
+  val JFloatClass = classOf[java.lang.Float]
+  val JDoubleClass = classOf[java.lang.Double]
+  val JBooleanClass = classOf[java.lang.Boolean]
+  
   val StringClass = classOf[String]
-
 
   val SeqClass = classOf[collection.Seq[_]]
 
@@ -82,6 +82,7 @@ object ClassHelper {
   
   def isInstance(t: Class[_], v: Any): Boolean = {
     t match {
+      case UnitClass => v.isInstanceOf[Unit] // corner case: classOf[Unit].isInstance(()) returns false, but, ().isInstanceOf[Unit] returns true
       case ByteClass => JByteClass.isInstance(v) || ByteClass.isInstance(v)
       case ShortClass => JShortClass.isInstance(v) || ShortClass.isInstance(v)
       case IntClass => JIntegerClass.isInstance(v) || IntClass.isInstance(v)

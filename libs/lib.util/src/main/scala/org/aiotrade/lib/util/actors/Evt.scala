@@ -80,11 +80,12 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
    * a tuple in form of (tag, evtValue)
    */
   def apply(evtVal: T): (Int, T) = (tag, evtVal)
-  
+
   /** 
-   * @Note Since T is erasued after compiled, should check type of evt message via Manifest.
-   * And, don't write as unapply(evtMsg: (Int, T)), which will confuse the compiler to generate
-   * wrong code for match {case .. case ..}
+   * @Note Since T is erasued after compiled, should check type of evt message 
+   * via Manifest instead of v.isInstanceOf[T]
+   * And, don't write as unapply(evtMsg: (Int, T)), which will confuse the compiler 
+   * to generate wrong code for match {case .. case ..}
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
     case (`tag`, value: T) if ClassHelper.isInstance(typeClass, value) =>
@@ -98,7 +99,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
               return None
           }
           Some(value)
-        case x: Product if (ClassHelper.isTuple(x))=>
+        case x: Product if ClassHelper.isTuple(x) =>
           val vs = x.productIterator
           val ts = typeParams.iterator
           while (vs.hasNext) {
@@ -121,7 +122,7 @@ object Evt {
   
   def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.typeClass}
   def schemaOf(tag: Int): Option[String] = tagToEvt.get(tag) map {_.schema}
-  def allEvts = tagToEvt.valuesIterator
+  def allEvts = tagToEvt.values
     
   // -- simple test
   def main(args: Array[String]) {
@@ -130,6 +131,8 @@ object Evt {
     object ArrEvt extends Evt[Array[String]](-3)
     object LstEvt extends Evt[List[String]](-4)
     object MulEvt extends Evt[(Int, String, Double)](-5, "id, name, value")
+    object EmpEvt extends Evt(-10) // T will be AnyRef
+    object EmpEvt2 extends Evt[Unit](-11)
     
     println("\n==== apis: ")
     println(StrEvt)
@@ -138,17 +141,20 @@ object Evt {
     println(LstEvt)
     println(MulEvt)
     
-    println(allEvts)
+    allEvts foreach println
     
     val goodEvtMsgs = List(
+      EmpEvt,
+      EmpEvt2(),
       StrEvt("a"),
+      StrEvt("b"),
       IntEvt(8),
       ArrEvt(Array("a", "b")),
       LstEvt(List("a", "b")),
       MulEvt(8, "a", 8.0),
       MulEvt(8, "a", 8)
     )
-    
+
     val badEvtMsgs = List(
       (-1, 8),
       (-2, "a"),
@@ -179,6 +185,8 @@ object Evt {
      * The regular match on those evts look like: 
      */
     def regularMatch(v: Any) = v match {
+      case EmpEvt => println("Matched emp evt"); true
+      case (EmpEvt2.tag, aval: EmpEvt2.ValType) => println("Matched emp evt2"); true
       case (StrEvt.tag, aval: StrEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case (IntEvt.tag, aval: IntEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case (ArrEvt.tag, aval: ArrEvt.ValType) => println("Matched: " + v + " => " + aval); true
@@ -189,6 +197,9 @@ object Evt {
     
     /** But we'd like a more concise approach: */
     def advancedMatch(v: Any) = v match {
+      case EmpEvt => println("Matched emp evt"); true
+      case EmpEvt2(_) => println("Matched emp evt2"); true
+      case StrEvt("a")  => println("Matched with value equals: " + v + " => " + "a"); true
       case StrEvt(aval) => println("Matched: " + v + " => " + aval); true
       case IntEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ArrEvt(aval) => println("Matched: " + v + " => " + aval); true
