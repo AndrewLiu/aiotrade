@@ -8,9 +8,9 @@ object SecDividends extends Table[SecDividend] {
   val prevClose = "prevClose" DOUBLE()
   val adjWeight = "adjWeight" DOUBLE()
   val cashBonus = "cashBonus" DOUBLE()
-  val shareBobus = "shareBonus" DOUBLE()
+  val shareBonus = "shareBonus" DOUBLE()
   val shareRight = "shareRight" DOUBLE()
-  val shareRightPrice = "shareRightPrice" DOUBLE()
+  val sharePrice = "shareRightPrice" DOUBLE()
   val registerDate = "registerDate" BIGINT()
   val dividendDate = "dividendDate" BIGINT()
 }
@@ -21,10 +21,31 @@ class SecDividend {
   var prevClose: Double = _
   var adjWeight: Double = _
   var cashBonus: Double = _
-  var shareBobus: Double = _
-  var shareRight: Double = _
-  var shareRightPrice: Double = _
+  var shareBonus: Double = _ // bonus issue, entitle bonus share
+  var shareRight: Double = _ // allotment of shares in sharePrice
+  var sharePrice: Double = _ // price of allotment of share
   var registerDate: Long = _
   var dividendDate: Long = _
+  
+  final def dividedClose = accurateAdjust(prevClose)
+  
+  private def cashAfterwards = cashBonus - shareRight * sharePrice
+  private def shareAfterwards = 1 + shareRight + shareBonus
+
+  final def accurateAdjust(price: Double)   = (price - cashBonus + shareRight * sharePrice) / (1 + shareRight + shareBonus)
+  final def accurateUnadjust(price: Double) = price * (1 + shareRight + shareBonus) + (cashBonus - shareRight * sharePrice)
+  
+  final def adjust(price: Double) = {
+    val p = accurateAdjust(price)
+    if (p != price) p else (if (adjWeight != 0) price / adjWeight else price)
+  }
+  
+  final def unadjust(price: Double) = {
+    val p = accurateUnadjust(price)
+    if (p != price) p else (if (adjWeight != 0) price * adjWeight else price)
+  }
+  
+  final def forwardAdjust(price: Double) = adjust(price)
+  final def backwradAdjust(price: Double) = unadjust(price)
 }
 

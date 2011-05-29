@@ -94,8 +94,12 @@ object Secs extends Table[Sec] {
 
   // --- helper methods
   def dividendsOf(sec: Sec): Seq[SecDividend] = {
-    val secId = Secs.idOf(sec)
-    SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list
+    if (TickerServer.isServer) {
+      val secId = Secs.idOf(sec)
+      SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
+    } else {
+      SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+    }
   }
 }
 

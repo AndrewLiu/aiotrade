@@ -62,7 +62,8 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   lazy val divs = {
     val cal = Calendar.getInstance($sec.exchange.timeZone)
-    for (div <- $sec.dividends) yield (TFreq.DAILY.round(div.dividendDate, cal), div.adjWeight)
+    $sec.dividends foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
+    $sec.dividends.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
@@ -158,6 +159,11 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   private def doAdjust(b: Boolean) {
     if (adjusted && b || !adjusted && !b) return
 
+    if (divs.isEmpty) {
+      adjusted = b
+      return
+    }
+    
     var i = 0
     while (i < size) {
       val time = timestamps(i)
@@ -167,32 +173,35 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       var o = open(i)
       var c = close(i)
 
-      for ((divTime, adjWeight) <- divs if time < divTime) {
-        if (b) {
-          h /= adjWeight
-          l /= adjWeight
-          o /= adjWeight
-          c /= adjWeight
-        } else {
-          h *= adjWeight
-          l *= adjWeight
-          o *= adjWeight
-          c *= adjWeight
+      val divItr = divs.iterator
+      while (divItr.hasNext) {
+        val div = divItr.next
+        if (time < div.dividendDate) {
+          if (b) {
+            h = div.adjust(h)
+            l = div.adjust(l)
+            o = div.adjust(o)
+            c = div.adjust(c)
+          } else {
+            h = div.unadjust(h)
+            l = div.unadjust(l)
+            o = div.unadjust(o)
+            c = div.unadjust(c)
+          }
+          
+          high (i) = h
+          low  (i) = l
+          open (i) = o
+          close(i) = c
         }
       }
-
-      high(i)  = h
-      low(i)   = l
-      open(i)  = o
-      close(i) = c
-
+      
       i += 1
     }
 
     adjusted = b
         
-    val evt = TSerEvent.Updated(this, null, 0, lastOccurredTime)
-    publish(evt)
+    publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
   override def shortDescription: String = {
