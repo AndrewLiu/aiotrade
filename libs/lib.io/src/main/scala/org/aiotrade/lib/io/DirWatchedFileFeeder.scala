@@ -60,8 +60,8 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
               log.info("Unziping " + zipFile.getName)
             } catch {
               case ex => 
-                log.log(Level.WARNING, "Bad zip file, please check the format of zip " + 
-                        "or did you copied a zip file directly? You sould copy it to " + 
+                log.log(Level.WARNING, "Bad zip file, please check the zip format of file using jar " + 
+                        "or did you copy a zip file to here directly? You sould copy it to " + 
                         "here with a tmp file name (not end with .zip, then rename it to .zip file). " +
                         "The Exception is: " + ex.getMessage, ex)
             }
@@ -109,7 +109,7 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
     while (entries.hasMoreElements){
       zFileList.add(entries.nextElement.getName)
     }
-    //Sort by the file name.
+    // sort by the file name.
     java.util.Collections.sort(zFileList)
     zFileList
   }
