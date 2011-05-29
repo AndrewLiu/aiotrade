@@ -54,9 +54,17 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
         val workingFile = fileQueue.peek
         if (workingFile.length > 1024) {
           if (workingFile.getName.indexOf(".zip") > -1) {
-            zipFile = new ZipFile(workingFile)
-            zipEntries = getZipEntries(zipFile)
-            log.info("Unziping " + zipFile.getName)
+            try {
+              zipFile = new ZipFile(workingFile)
+              zipEntries = getZipEntries(zipFile)
+              log.info("Unziping " + zipFile.getName)
+            } catch {
+              case ex => 
+                log.log(Level.WARNING, "Bad zip file, please check the format of zip " + 
+                        "or did you copied a zip file directly? You sould copy it to " + 
+                        "here with a tmp file name (not end with .zip, then rename it to .zip file). " +
+                        "The Exception is: " + ex.getMessage, ex)
+            }
             fileQueue.poll
             hasNext
           } else true
