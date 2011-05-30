@@ -6,6 +6,7 @@ import scala.collection.mutable
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
 
 import ru.circumflex.orm.Table
@@ -56,6 +57,15 @@ object Exchanges extends Table[Exchange] {
    */
   private[model] def secOf(uniSymbol: String): Option[Sec] = {
     (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
+  }
+  
+  def dividendsOf(sec: Sec): Seq[SecDividend] = {
+    if (TickerServer.isServer) {
+      val secId = Secs.idOf(sec)
+      SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
+    } else {
+      SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+    }
   }
 
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {

@@ -34,6 +34,7 @@ import java.util.Calendar
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
+import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.reactors.Reactions
@@ -42,10 +43,10 @@ import org.aiotrade.lib.util.reactors.Reactions
  *
  * @author Caoyuan Deng
  */
-class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
+class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private var _shortDescription: String = $sec.uniSymbol
+  private var _shortDescription: String = _sec.uniSymbol
   var adjusted: Boolean = false
     
   val open   = TVar[Double]("O", Plot.Quote)
@@ -61,9 +62,10 @@ class QuoteSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val isClosed = TVar[Boolean]()
 
   lazy val divs = {
-    val cal = Calendar.getInstance($sec.exchange.timeZone)
-    $sec.dividends foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
-    $sec.dividends.sortWith((a, b) => a.dividendDate < b.dividendDate)
+    val cal = Calendar.getInstance(serProvider.exchange.timeZone)
+    val dividends = Exchanges.dividendsOf(serProvider) 
+    dividends foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
+    dividends.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]

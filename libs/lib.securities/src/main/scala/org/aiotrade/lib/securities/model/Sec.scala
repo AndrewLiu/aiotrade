@@ -91,16 +91,6 @@ object Secs extends Table[Sec] {
 
   def tickers = inverse(Tickers.sec)
   def executions = inverse(Executions.sec)
-
-  // --- helper methods
-  def dividendsOf(sec: Sec): Seq[SecDividend] = {
-    if (TickerServer.isServer) {
-      val secId = Secs.idOf(sec)
-      SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
-    } else {
-      SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
-    }
-  }
 }
 
 
@@ -232,8 +222,6 @@ class Sec extends SerProvider with Ordered[Sec] {
       }
   }
 
-
-  def dividends: Seq[SecDividend] = Secs.dividendsOf(this)
 
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
