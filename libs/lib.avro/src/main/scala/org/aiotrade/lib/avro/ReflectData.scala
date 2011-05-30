@@ -118,7 +118,7 @@ object ReflectData {
 }
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
-import SpecificData._
+import org.aiotrade.lib.util.ClassHelper._
 import ReflectData._
 class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
   import Schema.Type._

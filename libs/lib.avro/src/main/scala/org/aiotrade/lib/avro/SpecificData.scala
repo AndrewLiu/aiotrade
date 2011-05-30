@@ -32,56 +32,12 @@ object SpecificData {
   private val NO_CLASS = (new Object {}).getClass
   private val NULL_SCHEMA = Schema.create(Schema.Type.NULL)
 
-  val BooleanType = java.lang.Boolean.TYPE
-  val ByteType = java.lang.Byte.TYPE
-  val ShortType = java.lang.Short.TYPE
-  val IntegerType = java.lang.Integer.TYPE
-  val LongType = java.lang.Long.TYPE
-  val FloatType = java.lang.Float.TYPE
-  val DoubleType = java.lang.Double.TYPE
-  val VoidType = java.lang.Void.TYPE
-
-  val BooleanClass = classOf[scala.Boolean]
-  val ByteClass = classOf[scala.Byte]
-  val ShortClass = classOf[scala.Short]
-  val IntClass = classOf[scala.Int]
-  val LongClass = classOf[scala.Long]
-  val FloatClass = classOf[scala.Float]
-  val DoubleClass = classOf[scala.Double]
-  val NullClass = classOf[scala.Null]
-  val UnitClass = scala.Unit
-
-  val JBooleanClass = classOf[java.lang.Boolean]
-  val JByteClass = classOf[java.lang.Byte]
-  val JShortClass = classOf[java.lang.Short]
-  val JIntegerClass = classOf[java.lang.Integer]
-  val JLongClass = classOf[java.lang.Long]
-  val JFloatClass = classOf[java.lang.Float]
-  val JDoubleClass = classOf[java.lang.Double]
-  val JVoidClass = classOf[java.lang.Void]
-
-  val SeqClass = classOf[collection.Seq[_]]
-  val MapClass = classOf[collection.Map[_, _]]
-  
-  val JCollectionClass = classOf[java.util.Collection[_]]
-  val JMapClass = classOf[java.util.Map[_, _]]
-
-  val StringClass = classOf[String]
-  val CharSequenceClass = classOf[java.lang.CharSequence]
-  val ByteBufferClass = classOf[java.nio.ByteBuffer]
-  val NumberClass = classOf[java.lang.Number]
-  val BigDecimalClass = classOf[java.math.BigDecimal]
-  val BigIntegerClass = classOf[java.math.BigInteger]
-  val DateClass = classOf[java.util.Date]
-  val SqlDateClass = classOf[java.sql.Date]
-  val SqlTimeClass = classOf[java.sql.Time]
-  val SqlTimestampClass = classOf[java.sql.Timestamp]
-
   /** Return the singleton instance. */
   def get(): SpecificData = INSTANCE
 }
 
 /** Utilities for generated Java classes and interfaces. */
+import org.aiotrade.lib.util.ClassHelper._
 import SpecificData._
 class SpecificData protected () extends GenericData {
   import Schema.Type._
