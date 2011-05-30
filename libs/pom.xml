@@ -32,6 +32,29 @@
         </license>
     </licenses>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-swing</artifactId>
+        </dependency>
+
+        <!-- testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-tools.testing</groupId>
+            <artifactId>specs_2.8.1</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
     <!-- ***************************************************************************************************************
     *
     *
@@ -65,7 +88,6 @@
         <module>lib.io</module>
         <module>lib.math</module>
         <module>lib.securities</module>
-        <module>lib.securities.data</module>
         <module>lib.indicator</module>
         <module>lib.charting</module>
         <module>lib.view.securities</module>

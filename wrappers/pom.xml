@@ -69,7 +69,6 @@
         <module>lib.json</module>
         <module>lib.math</module>
         <module>lib.securities</module>
-        <module>lib.securities.data</module>
         <module>lib.sevenzip</module>
         <module>lib.util</module>
         <module>lib.view.securities</module>
