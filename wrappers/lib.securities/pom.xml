@@ -69,17 +69,17 @@
         </dependency>
 
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-util</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-json</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -117,6 +117,7 @@
                         <publicPackage>org.aiotrade.lib.info.model</publicPackage>
                         <publicPackage>org.aiotrade.lib.sector.model</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities</publicPackage>
+                        <publicPackage>org.aiotrade.lib.securities.data</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.dataserver</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.model</publicPackage>
                         <publicPackage>org.aiotrade.lib.securities.util</publicPackage>

@@ -27,12 +27,10 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-swing</artifactId>
-            <version>${scala.version}</version>
         </dependency>
     </dependencies>
 
@@ -63,10 +61,10 @@
                         <publicPackage>scala.collection.immutable</publicPackage>
                         <publicPackage>scala.collection.interfaces</publicPackage>
                         <publicPackage>scala.collection.mutable</publicPackage>
-						<!-- 2.9.0
+                        <!-- 2.9.0 -->
                         <publicPackage>scala.collection.parallel</publicPackage>
                         <publicPackage>scala.collection.parallel.mutable</publicPackage>
-						-->
+                        <!-- -->
                         <publicPackage>scala.collection.script</publicPackage>
                         <publicPackage>scala.compat</publicPackage>
                         <publicPackage>scala.concurrent</publicPackage>
