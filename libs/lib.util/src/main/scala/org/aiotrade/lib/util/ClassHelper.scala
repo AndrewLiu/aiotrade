@@ -38,6 +38,7 @@ object ClassHelper {
   
   // --- classes
   val UnitClass = classOf[Unit]
+  val NullClass = classOf[scala.Null]
   
   val ByteClass = classOf[Byte]
   val ShortClass = classOf[Short]
@@ -54,22 +55,39 @@ object ClassHelper {
   val JFloatClass = classOf[java.lang.Float]
   val JDoubleClass = classOf[java.lang.Double]
   val JBooleanClass = classOf[java.lang.Boolean]
+  val JVoidClass = classOf[java.lang.Void]
   
-  val StringClass = classOf[String]
-
   val SeqClass = classOf[collection.Seq[_]]
+  val MapClass = classOf[collection.Map[_, _]]
+
+  val StringClass = classOf[String]
+  val CharSequenceClass = classOf[java.lang.CharSequence]
+  val ByteBufferClass = classOf[java.nio.ByteBuffer]
 
   val JCollectionClass = classOf[java.util.Collection[_]]
+  val JMapClass = classOf[java.util.Map[_, _]]
   val JListClass = classOf[java.util.List[_]]
   
   val BigDecimalClass = classOf[java.math.BigDecimal]
   val BigIntegerClass = classOf[java.math.BigInteger]
   val DateClass = classOf[java.util.Date]
+  val NumberClass = classOf[java.lang.Number]
   val SqlDateClass = classOf[java.sql.Date]
   val SqlTimeClass = classOf[java.sql.Time]
   val SqlTimestampClass = classOf[java.sql.Timestamp]
 
-  
+  val BooleanType = java.lang.Boolean.TYPE
+  val ByteType = java.lang.Byte.TYPE
+  val ShortType = java.lang.Short.TYPE
+  val IntegerType = java.lang.Integer.TYPE
+  val LongType = java.lang.Long.TYPE
+  val FloatType = java.lang.Float.TYPE
+  val DoubleType = java.lang.Double.TYPE
+  val VoidType = java.lang.Void.TYPE
+
+  val UnitType = scala.Unit
+
+
   // --- helpers
   
   private val TupleNameRegex = """scala\.Tuple(\d\d?)""".r
