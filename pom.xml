@@ -275,7 +275,6 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <scalaVersion>${scala.version}</scalaVersion>
                         <jvmArgs>
                             <jvmArg>-Xms64m</jvmArg>
                             <jvmArg>-Xmx512m</jvmArg>
