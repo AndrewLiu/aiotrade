@@ -34,6 +34,7 @@ package org.aiotrade.lib.securities.data
 import java.io.File
 import java.io.FileOutputStream
 import java.net.JarURLConnection
+import java.net.URL
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.info.model.AnalysisReports
@@ -45,8 +46,10 @@ import org.aiotrade.lib.info.model.ContentAbstracts
 import org.aiotrade.lib.info.model.Contents
 import org.aiotrade.lib.info.model.Filings
 import org.aiotrade.lib.info.model.Newses
+import org.aiotrade.lib.securities.data.git.Git
 import org.aiotrade.lib.securities.model.Companies
 import org.aiotrade.lib.securities.model.Exchanges
+import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.ExchangeCloseDates
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MoneyFlows1d
@@ -65,7 +68,7 @@ import org.aiotrade.lib.securities.model.TickersLast
 import ru.circumflex.orm._
 
 /**
- * A empty class to support locate this module, @see org.openide.modules.InstalledFileLocator
+ * An empty class to support locating this module, @see org.openide.modules.InstalledFileLocator
  */
 class Locator
 
@@ -76,22 +79,24 @@ class Locator
 object SyncUtil {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val srcMainResources = "src/main/resources/"
-  private val exportDataDir = srcMainResources + "data"
-
+  private[data] val srcMainResources = "src/main/resources/"
+  private[data] val dataGitDirToPackage = srcMainResources + "data"
+  
+  private var localDataGit: Option[org.eclipse.jgit.api.Git] = None
+  
   /**
    * @Note lazy call them so we can specify config file before orm package
    */
-  private lazy val tables = List(Companies,
-                                 Exchanges,
-                                 ExchangeCloseDates,
-                                 Secs,
-                                 SecDividends,
-                                 SecInfos,
-                                 SecIssues,
-                                 SecStatuses,
-                                 Sectors,
-                                 SectorSecs
+  private lazy val baseTables = List(Companies,
+                                     Exchanges,
+                                     ExchangeCloseDates,
+                                     Secs,
+                                     SecDividends,
+                                     SecInfos,
+                                     SecIssues,
+                                     SecStatuses,
+                                     Sectors,
+                                     SectorSecs
   )
 
   def main(args: Array[String]) {
@@ -100,31 +105,35 @@ object SyncUtil {
     println("Finished!")
     System.exit(0)
   }
-
+  
   def exportAvroDataFileFromProductionMysql {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_fr_prod.conf")
-    exportToAvro(tables)
+    exportToAvro(dataGitDirToPackage, baseTables)
   }
   
   def importAvroDataFileToTestMysql {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
-    importDataFrom(exportDataDir)
+    importDataFrom(dataGitDirToPackage)
   }
 
 
   // --- API methods
 
+  def exportBaseTablesToAvro(destDirPath: String) {
+    exportToAvro(destDirPath, baseTables)
+  }
+  
   /**
    * all avro file size is about 1708959
    */
-  def exportToAvro(tables: Seq[Table[_]]) {
+  def exportToAvro(destDirPath: String, tables: Seq[Table[_]]) {
     val t0 = System.currentTimeMillis
-    tables foreach {x => exportToAvro(x)}
+    tables foreach {x => exportToAvro(destDirPath, x)}
     log.info("Exported to avro in " + (System.currentTimeMillis - t0) + " ms.")
   }
 
-  private def exportToAvro[R](x: Relation[R]) {
-    SELECT (x.*) FROM (x) toAvro(exportDataDir + File.separator + x.relationName + ".avro")
+  private def exportToAvro[R](destDirPath: String, x: Relation[R]) {
+    SELECT (x.*) FROM (x) toAvro(destDirPath + File.separator + x.relationName + ".avro")
   }
 
   /**
@@ -155,8 +164,8 @@ object SyncUtil {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = tables map {x => holdAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
-    tables foreach {x => importAvroToDb(dataDir + File.separator +  x.relationName + ".avro", x)}
+    val holdingRecords = baseTables map {x => holdAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    baseTables foreach {x => importAvroToDb(dataDir + File.separator +  x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
@@ -170,13 +179,18 @@ object SyncUtil {
       // locate jar 
       val c = classOf[Locator]
       // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
-      val jarUrl = c.getProtectionDomain.getCodeSource.getLocation
-      log.info("Initial data is located at: " + jarUrl)
+      val fileUrl = c.getProtectionDomain.getCodeSource.getLocation
+      log.info("Initial data is located at: " + fileUrl)
 
-      val start = System.currentTimeMillis
+      val jarFile = fileUrl.openConnection match {
+        case x: JarURLConnection => x.getJarFile
+        case _ => 
+          val url = new URL("jar:" + fileUrl.toExternalForm + "!/")
+          url.openConnection.asInstanceOf[JarURLConnection].getJarFile
+      }
 
+      val t0 = System.currentTimeMillis
       val buf = new Array[Byte](1024)
-      val jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
       val entries = jarFile.entries
       while (entries.hasMoreElements) {
         val entry = entries.nextElement
@@ -187,7 +201,6 @@ object SyncUtil {
           if (fileName.charAt(0) == '/') fileName = fileName.substring(1)
           if (File.separatorChar != '/') fileName = fileName.replace('/', File.separatorChar)
         
-
           val file = new File(destPath, fileName)
           if (entry.isDirectory) {
             // make sure the directory exists
@@ -218,15 +231,27 @@ object SyncUtil {
       val gitFile = new File(destPath, "dotgit")
       if (gitFile.exists) {
         gitFile.renameTo(new File(destPath, ".git"))
+        localDataGit = Option(Git.getGit(destPath + "/.git"))
       }
       
-      log.info("Extract data in " + (System.currentTimeMillis - start) + "ms")
+      log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
     } catch {
       case e => log.log(Level.WARNING, e.getMessage, e)
     }
   }
+  
+  @throws(classOf[Exception])
+  def syncLocalData() {
+    localDataGit match {
+      case None => // @todo, clone a new one
+      case Some(git) =>
+        Git.pull(git)
+      
+        // refresh secs, secInfos, secDividends etc
+        Exchange.resetSearchTables
+    }
+  }
     
-
   private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
     SELECT (table.*) FROM (AVRO(table, avroFile)) list()
   }

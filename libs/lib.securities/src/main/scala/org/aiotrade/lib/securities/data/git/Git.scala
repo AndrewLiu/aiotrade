@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  o Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  o Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  o Neither the name of AIOTrade Computing Co. nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.aiotrade.lib.securities.data.git
 
 import java.io.File
@@ -34,7 +64,11 @@ object Git {
     _monitor = monitor
   }
   
-  def clone(gitPath: String, sourceUri: String, localName: String = null, remote: String = Constants.DEFAULT_REMOTE_NAME) = {
+  def clone(gitPath: String, sourceUri: String, 
+            localName: String = null, 
+            branch: String = null,
+            remote: String = Constants.DEFAULT_REMOTE_NAME) = {
+    
     val gitDir = guessGitDir(gitPath, localName, sourceUri)    
     if (gitDir.exists) {
       log.info(gitDir.getAbsolutePath + " existed, will delete it first.")
@@ -42,19 +76,23 @@ object Git {
         deleteDir(gitDir)
         log.info(gitDir.getAbsolutePath + " deleted: " + !gitDir.exists)
       } catch {
-        case e => log.log(Level.SEVERE, e.getMessage, e) 
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
       }
     }
     
     try {
       gitDir.mkdirs
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e) 
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
 
     val cmd = new CloneCommand
     cmd.setDirectory(gitDir)
     cmd.setURI(sourceUri)
+    if (branch != null) {
+      cmd.setBranch(branch)
+      cmd.setBranchesToClone(java.util.Collections.singletonList(branch))
+    }
     cmd.setRemote(remote)
     cmd.setProgressMonitor(monitor)
     
@@ -62,13 +100,15 @@ object Git {
     val git = try {
       cmd.call
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e); null
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); null
     }
     log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     git
   }
   
-  def pull(gitPath: String) {pull(getGit(gitPath))}
+  @throws(classOf[Exception])
+  def pull(gitPath: String): org.eclipse.jgit.api.Git = pull(getGit(gitPath))
+  @throws(classOf[Exception])
   def pull(git: org.eclipse.jgit.api.Git) = {
     val cmd = git.pull
     cmd.setProgressMonitor(monitor)
@@ -77,7 +117,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e) 
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); throw ex
     }
     log.info("Pulled in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     
@@ -93,7 +133,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e) 
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Added all in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
@@ -108,7 +148,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e) 
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Committed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
@@ -123,14 +163,14 @@ object Git {
     try {
       cmd.call
     } catch {
-      case e => log.log(Level.SEVERE, e.getMessage, e) 
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Pushed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
   
   // --- helper
   
-  private def getGit(gitPath: String, localName: String = null) = {
+  def getGit(gitPath: String, localName: String = null) = {
     val gitDir = guessGitDir(gitPath, localName)    
     val repo = openGitRepository(gitDir)
     new org.eclipse.jgit.api.Git(repo)
@@ -206,7 +246,7 @@ object Git {
     }
   }
   
-//  @Note: 'val dst = new FileRepository(gitDir)' in this method cause NetBeans run out of stack space 
+  // @Note: 'val dst = new FileRepository(gitDir)' in this method cause NetBeans run out of stack space 
 //  @throws(classOf[Exception])
 //  private def createFileRepository(gitDir: String) = {
 //    val dst = new org.eclipse.jgit.storage.file.FileRepository(gitDir)

@@ -2,18 +2,19 @@ package org.aiotrade.lib.securities.model
 
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
-import scala.collection.mutable
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
 
+import org.aiotrade.lib.util.pinyin.PinYin
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
+import scala.collection.mutable
 
-case class SecAddedToDb(sec: Sec)
-case class SecInfoAddedToDb(secInfo: SecInfo)
+case class SecsAddedToDb(secs: Array[Sec])
+case class SecInfosAddedToDb(secInfo: Array[SecInfo])
 case class SecAdded(sec: Sec)
 case class SecInfoAdded(secInfo: SecInfo)
 
@@ -35,7 +36,7 @@ object Exchanges extends Table[Exchange] {
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
 
   // --- helper methods
-  def secsOf(exchange: Exchange): mutable.Set[Sec] = {
+  def secsOf(exchange: Exchange): Set[Sec] = {
     val t0 = System.currentTimeMillis
     val exchangeId = Exchanges.idOf(exchange)
     
@@ -48,7 +49,7 @@ object Exchanges extends Table[Exchange] {
     
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     
-    mutable.Set[Sec]() ++= secs
+    Set() ++ secs
   }
 
   /**
@@ -60,12 +61,16 @@ object Exchanges extends Table[Exchange] {
   }
   
   def dividendsOf(sec: Sec): Seq[SecDividend] = {
-    if (TickerServer.isServer) {
+    val divs = if (TickerServer.isServer) {
       val secId = Secs.idOf(sec)
       SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
     } else {
       SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
     }
+
+    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    divs foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
+    divs.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
 
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
@@ -184,15 +189,16 @@ object Exchange extends Publisher {
   case class Opened(exchange: Exchange)
   case class Closed(exchange: Exchange)
 
-  // ----- search tables
-  private val mutex = new Object
+  // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil
   private var _activeExchanges: Seq[Exchange] = Nil
-  private val _codeToExchange = mutable.Map[String, Exchange]()
-  private val _exchangeToSecs = mutable.Map[Exchange, mutable.Set[Sec]]()
-  private val _exchangeToUniSymbols = mutable.Map[Exchange, mutable.Set[String]]()
-  private val _uniSymbolToSec = mutable.Map[String, Sec]()
+  private var _codeToExchange = Map[String, Exchange]()
+  private var _exchangeToSecs = Map[Exchange, Set[Sec]]()
+  private var _exchangeToUniSymbols = Map[Exchange, Set[String]]()
+  private var _uniSymbolToSec = Map[String, Sec]()
+  private var _searchTextToSecs = Map[String, Set[Sec]]()
 
+  
   // Init all searching tables
   allExchanges = Exchanges.all()
 
@@ -212,27 +218,30 @@ object Exchange extends Publisher {
   def allExchanges = _allExchanges
   def allExchanges_=(allExchanges: Seq[Exchange]) {
     _allExchanges = allExchanges
-
-    _codeToExchange ++= (_allExchanges map {x => (x.code, x)})
-
-    _exchangeToSecs ++= (_allExchanges map {x => (x, Exchanges.secsOf(x))})
-
-    _exchangeToUniSymbols ++= (_exchangeToSecs map {case (exchg, secs) =>
-          val syms = mutable.Set[String]()
-          secs foreach {sec =>
-            if (sec.secInfo == null)
-              log.warning("secInfo of sec " + sec + " is null")
-            else
-              syms += sec.secInfo.uniSymbol
-          }
-          (exchg, syms)
-      }
-    )
+    resetSearchTables
+  }
+  
+  def resetSearchTables() {
+    val t0 = System.currentTimeMillis
     
-    _uniSymbolToSec ++= (_exchangeToSecs flatMap {case (_, secs) =>
-          secs filter (_.secInfo != null) map (x => (x.secInfo.uniSymbol, x))
-      }
-    )
+    _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
+
+    _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
+
+    val exchgToGoodSecs = _exchangeToSecs map {case (exchg, secs) => (exchg, secs filter (_.secInfo != null))}
+    
+    _exchangeToUniSymbols = exchgToGoodSecs map {case (exchg, secs) => (exchg, secs map (_.secInfo.uniSymbol))}
+    
+    _uniSymbolToSec = exchgToGoodSecs flatMap {case (exchg, secs) => secs map (x => (x.secInfo.uniSymbol, x))}
+    
+    // _searchTextToSecs
+    _uniSymbolToSec foreach {case (symbol, sec) => 
+        _searchTextToSecs ++= Map(symbol.toUpperCase -> Set(sec)) ++ (
+          PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Set()) + sec)}
+        )
+    }
+    
+    log.info("Reset search table in " + (System.currentTimeMillis - t0) + "ms.")
   }
 
   def activeExchanges = _activeExchanges
@@ -240,10 +249,11 @@ object Exchange extends Publisher {
     _activeExchanges = activeExchanges
   }
 
-  def codeToExchange: collection.Map[String, Exchange] = mutex synchronized {_codeToExchange}
-  def exchangeToSecs: collection.Map[Exchange, collection.Set[Sec]] = mutex synchronized  {_exchangeToSecs}
-  def exchangeToUniSymbols: collection.Map[Exchange, collection.Set[String]] = mutex synchronized {_exchangeToUniSymbols}
-  def uniSymbolToSec: collection.Map[String, Sec] = mutex synchronized {_uniSymbolToSec}
+  def codeToExchange: Map[String, Exchange] = _codeToExchange
+  def exchangeToSecs: Map[Exchange, Set[Sec]] = _exchangeToSecs
+  def exchangeToUniSymbols: Map[Exchange, Set[String]] = _exchangeToUniSymbols
+  def uniSymbolToSec: Map[String, Sec] = _uniSymbolToSec
+  def searchTextToSecs: Map[String, Set[Sec]] = _searchTextToSecs
 
   // ----- Major methods
   
@@ -274,15 +284,15 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): collection.Set[Sec] = mutex synchronized {
+  def secsOf(exchange: Exchange): Set[Sec] = {
     exchangeToSecs.getOrElse(exchange, Set())
   }
 
-  def symbolsOf(exchange: Exchange): collection.Set[String] = mutex synchronized {
+  def symbolsOf(exchange: Exchange): Set[String] = {
     exchangeToUniSymbols.getOrElse(exchange, Set())
   }
 
-  def secOf(uniSymbol: String): Option[Sec] = mutex synchronized {
+  def secOf(uniSymbol: String): Option[Sec] = {
     uniSymbolToSec.get(uniSymbol)
   }
 
@@ -308,14 +318,12 @@ object Exchange extends Publisher {
     val secs = Exchanges.createSimpleSecs(uniSymbolToName.toArray, true)
     val secInfos = Exchanges.createSimpleSecInfos(secToName.toArray, true)
     
+    publish(SecsAddedToDb(secs))
     for (sec <- secs) {
-      publish(SecAddedToDb(sec))
-      secAdded(sec)      
+      secAdded(sec)
     }
     
-    for (secInfo <- secInfos) {
-      publish(SecInfoAddedToDb(secInfo))
-    }
+    publish(SecInfosAddedToDb(secInfos))
   }
 
   def secAdded(uniSymbol: String): Sec = {
@@ -326,13 +334,13 @@ object Exchange extends Publisher {
     }
   }
 
-  private def secAdded(sec: Sec): Sec = mutex synchronized {
-    val exchange = sec.exchange
-    val uniSymbol= sec.uniSymbol
+  private def secAdded(sec: Sec): Sec = {
+    val exchg = sec.exchange
+    val symbol= sec.uniSymbol
 
-    _exchangeToUniSymbols += (exchange -> (_exchangeToUniSymbols.getOrElse(exchange, mutable.Set()) += uniSymbol))
-    _exchangeToSecs += (exchange -> (_exchangeToSecs.getOrElse(exchange, mutable.Set()) += sec))
-    _uniSymbolToSec += (uniSymbol -> sec)
+    _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Set()) + symbol))
+    _exchangeToSecs += (exchg -> (_exchangeToSecs.getOrElse(exchg, Set()) + sec))
+    _uniSymbolToSec += (symbol -> sec)
 
     publish(SecAdded(sec))
     sec

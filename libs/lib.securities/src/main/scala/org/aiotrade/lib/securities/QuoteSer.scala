@@ -30,7 +30,6 @@
  */
 package org.aiotrade.lib.securities
 
-import java.util.Calendar
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
@@ -60,13 +59,6 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   val close_ori = TVar[Double]()
 
   val isClosed = TVar[Boolean]()
-
-  lazy val divs = {
-    val cal = Calendar.getInstance(serProvider.exchange.timeZone)
-    val dividends = Exchanges.dividendsOf(serProvider) 
-    dividends foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
-    dividends.sortWith((a, b) => a.dividendDate < b.dividendDate)
-  }
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -160,7 +152,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
    */
   private def doAdjust(b: Boolean) {
     if (adjusted && b || !adjusted && !b) return
-
+    
+    val divs = Exchanges.dividendsOf(serProvider)
     if (divs.isEmpty) {
       adjusted = b
       return

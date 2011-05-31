@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	logallrefupdates = true
+	autocrlf = false
+[remote "origin"]
+	url = git://github.com/dcaoyuan/aiotrade-data.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "test"]
+	remote = origin
+	merge = refs/heads/test
