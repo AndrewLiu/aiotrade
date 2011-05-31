@@ -269,7 +269,7 @@ object Git {
       clone(workPath, "file://" + tmpPath + "origin_test.git")
     }
     
-    val git = getGit(workPath + File.separator + Constants.DOT_GIT)
+    val git = getGit(workPath + "/.git")
     pull(git)
     
     // --- change some contents
