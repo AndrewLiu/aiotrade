@@ -80,7 +80,7 @@ object SyncUtil {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private[data] val srcMainResources = "src/main/resources/"
-  private[data] val dataGitDirToPackage = srcMainResources + "data"
+  private[data] val exportDataDirPath = srcMainResources + "data"
   
   private var localDataGit: Option[org.eclipse.jgit.api.Git] = None
   
@@ -108,12 +108,12 @@ object SyncUtil {
   
   def exportAvroDataFileFromProductionMysql {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_fr_prod.conf")
-    exportToAvro(dataGitDirToPackage, baseTables)
+    exportToAvro(exportDataDirPath, baseTables)
   }
   
   def importAvroDataFileToTestMysql {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
-    importDataFrom(dataGitDirToPackage)
+    importDataFrom(exportDataDirPath)
   }
 
 

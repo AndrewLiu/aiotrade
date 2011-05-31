@@ -50,18 +50,19 @@ object Packaging {
   private val log = Logger.getLogger(this.getClass.getName)
   
   def main(args: Array[String]) {
-    val sourceUri = args(0)
-    val branch = if (args.length > 1) args(1) else null
-    log.info("Re-cloning base data from " + sourceUri + ", branch=" + (if (branch == null) "refs/heads/master" else branch))
+    val destPath = args(0)
+    val sourceUri = args(1)
+    val branch = if (args.length > 2) args(2) else null
+    log.info("Re-cloning base data to " + destPath + " from " + sourceUri + ", branch=" + (if (branch == null) "refs/heads/master" else branch))
     try {
-      Git.clone(SyncUtil.dataGitDirToPackage, sourceUri, branch = branch)
+      Git.clone(destPath, sourceUri, branch = branch)
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex)
     }
     
-    val dotGit = new File(SyncUtil.dataGitDirToPackage, ".git")
+    val dotGit = new File(destPath, ".git")
     if (dotGit.exists) {
-      dotGit.renameTo(new File(SyncUtil.dataGitDirToPackage, "dotgit"))
+      dotGit.renameTo(new File(destPath, "dotgit"))
     }
   }
 

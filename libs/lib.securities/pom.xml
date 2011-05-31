@@ -167,6 +167,7 @@
                                             <id>git-clone-data</id>
                                             <mainClass>org.aiotrade.lib.securities.data.Packaging</mainClass>
                                             <args>
+                                                <arg>${basedir}/src/main/resources/data</arg>
                                                 <arg>git://github.com/dcaoyuan/aiotrade-data.git</arg> <!-- sourceUri -->
                                                 <arg>refs/heads/test</arg> <!-- the only branch to clone -->
                                             </args>
