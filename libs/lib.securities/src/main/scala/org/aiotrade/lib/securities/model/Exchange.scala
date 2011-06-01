@@ -320,12 +320,17 @@ object Exchange extends Publisher {
     val secs = Exchanges.createSimpleSecs(uniSymbolToName.toArray, true)
     val secInfos = Exchanges.createSimpleSecInfos(secToName.toArray, true)
     
-    publish(SecsAddedToDb(secs))
-    for (sec <- secs) {
-      secAdded(sec)
+    if (secs.length > 0) {
+      publish(SecsAddedToDb(secs))
+      var i = -1
+      while ({i += 1; i < secs.length}) {
+        secAdded(secs(i))
+      }
     }
     
-    publish(SecInfosAddedToDb(secInfos))
+    if (secInfos.length > 0) {
+      publish(SecInfosAddedToDb(secInfos))
+    }
   }
 
   def secAdded(uniSymbol: String): Sec = {
