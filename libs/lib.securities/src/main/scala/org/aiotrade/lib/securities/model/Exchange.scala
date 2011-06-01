@@ -300,7 +300,9 @@ object Exchange extends Publisher {
     val uniSymbolToName = new ArrayList[(String, String)]
     val secToName = new ArrayList[(Sec, String)]
     
-    for (ticker <- tickers) {
+    var i = -1
+    while ({i += 1; i < tickers.length}) {
+      val ticker = tickers(i)
       val uniSymbol = ticker.symbol
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
