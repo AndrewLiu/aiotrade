@@ -35,6 +35,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.JarURLConnection
 import java.net.URL
+import java.util.jar.JarFile
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.info.model.AnalysisReports
@@ -190,19 +191,17 @@ object SyncUtil {
    * @see http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/InstalledFileLocator.html
    */
   def extractDataTo(destPath: String) {
+    var jarFile: JarFile = null
     try {
       // locate jar 
-      val c = classOf[Locator]
+      val locator = classOf[Locator]
       // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
-      val fileUrl = c.getProtectionDomain.getCodeSource.getLocation
-      log.info("Initial data is located at: " + fileUrl)
+      val url = locator.getProtectionDomain.getCodeSource.getLocation
+      log.info("Initial data is located at: " + url)
 
-      val jarFile = fileUrl.openConnection match {
-        case x: JarURLConnection => x.getJarFile
-        case _ => 
-          val url = new URL("jar:" + fileUrl.toExternalForm + "!/")
-          url.openConnection.asInstanceOf[JarURLConnection].getJarFile
-      }
+      val urlStr = url.toExternalForm
+      val jarUrl = if (urlStr.startsWith("jar:")) url else new URL("jar:" + urlStr + "!/")
+      jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
 
       val t0 = System.currentTimeMillis
       val buf = new Array[Byte](1024)
@@ -251,7 +250,15 @@ object SyncUtil {
       
       log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
     } catch {
-      case e => log.log(Level.WARNING, e.getMessage, e)
+      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+    } finally {
+      if (jarFile != null) {
+        try {
+          jarFile.close
+        } catch {
+          case _ =>
+        }
+      }
     }
   }
   
@@ -271,7 +278,7 @@ object SyncUtil {
             case x => 
               import MergeResult.MergeStatus
               val status = x.getMergeStatus 
-              log.warning("Pull result is: " + status)
+              log.warning("Pull status is: " + status)
               status match {
                 case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
                 case MergeStatus.ALREADY_UP_TO_DATE => false
