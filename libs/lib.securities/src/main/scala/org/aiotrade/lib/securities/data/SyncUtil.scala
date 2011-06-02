@@ -65,6 +65,7 @@ import org.aiotrade.lib.securities.model.SectorSecs
 import org.aiotrade.lib.securities.model.Sectors
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
+import org.eclipse.jgit.api.MergeResult
 import ru.circumflex.orm._
 
 /**
@@ -170,6 +171,20 @@ object SyncUtil {
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
   
+  private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
+    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
+  }
+
+  /**
+   * @Note
+   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
+   * this standalone function to get type right
+   */
+  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
+    val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
+    table.insertBatch(records.toArray, false)
+  }
+  
   /**
    * Extract data to destPath from jar file
    * @see http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/InstalledFileLocator.html
@@ -231,7 +246,7 @@ object SyncUtil {
       val gitFile = new File(destPath, "dotgit")
       if (gitFile.exists) {
         gitFile.renameTo(new File(destPath, ".git"))
-        localDataGit = Option(Git.getGit(destPath + "/.git"))
+        initLocalDataGit(destPath)
       }
       
       log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
@@ -240,30 +255,39 @@ object SyncUtil {
     }
   }
   
+  def initLocalDataGit(destPath: String) {
+    localDataGit = Option(Git.getGit(destPath + "/.git"))
+  }
+  
   @throws(classOf[Exception])
   def syncLocalData() {
     localDataGit match {
       case None => // @todo, clone a new one
       case Some(git) =>
-        Git.pull(git)
-      
-        // refresh secs, secInfos, secDividends etc
-        Exchange.resetSearchTables
+        val pullResult = Git.pull(git)
+        if (pullResult != null) {
+          val willResetSearchTable = pullResult.getMergeResult match {
+            case null => false
+            case x => 
+              import MergeResult.MergeStatus
+              val status = x.getMergeStatus 
+              log.warning("Pull result is: " + status)
+              status match {
+                case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
+                case MergeStatus.ALREADY_UP_TO_DATE => false
+                case _ => false
+              }
+          }
+          
+          // refresh secs, secInfos, secDividends etc
+          if (willResetSearchTable) {
+            Exchange.resetSearchTables
+          }
+        } else {
+          log.warning("Pull result is null")
+        }
     }
   }
     
-  private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
-    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-  }
 
-  /**
-   * @Note
-   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
-   * this standalone function to get type right
-   */
-  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
-    val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-    table.insertBatch(records.toArray, false)
-  }
-  
 }
