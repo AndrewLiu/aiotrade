@@ -135,6 +135,28 @@ object Sec {
       }
     }
   }
+  
+  /**
+   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
+   * since it returns same value of function CRC32(String) in mysql.
+   * 
+   * @note 
+   * 1. Check conflict by:
+   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
+   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
+   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
+   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
+   * 2. Select data of uniSymbol:
+   *    select * from quotes1d where secs_id = crc32(uniSymbol)
+   * 3. How about when uniSymbol changed of a sec?
+   *    we need to use its original uniSymbol, or create a new sec
+   */ 
+  def longId(uniSymbol: String): Long = {
+    val c = new java.util.zip.CRC32
+    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
+    c.getValue
+  }
+  
 }
 
 import Sec._
