@@ -39,31 +39,28 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 class JsonInputStreamReader(in: InputStream, charsetName: String)  extends InputStreamReader(in, charsetName) {
-  private val rin = new InputStreamReader(in)
-
-  private val ret = JsonBuilder.readJson(rin) match {
-    case map: Json.Object if map.size == 1 =>
-      map.iterator.next match {
-        case (name, fields) => readObject(name, fields)
-        case _ => null
-      }
-    case seq: collection.Seq[_] =>
-      val ret = new ArrayBuffer[Any]
-      val xs = seq.iterator
-      while (xs.hasNext) {
-        val obj = xs.next match {
-          case map: Json.Object if map.size == 1 =>
-            map.iterator.next match {
-              case (name, fields) => readObject(name, fields)
-              case _ => null
-            }
+  
+  private lazy val ret = {
+    JsonBuilder.readJson(new InputStreamReader(in)) match {
+      case map: Json.Object if map.size == 1 =>
+        val (name, fields) = map.iterator.next
+        readObject(name, fields)
+      case seq: collection.Seq[_] =>
+        val ret = new ArrayBuffer[Any]
+        val xs = seq.iterator
+        while (xs.hasNext) {
+          val obj = xs.next match {
+            case map: Json.Object if map.size == 1 =>
+              val (name, fields) = map.iterator.next
+              readObject(name, fields)
+          }
+          ret += obj
         }
-        ret += obj
-      }
-      ret.toArray
-    case x =>
-      println(x)
-      x
+        ret.toArray
+      case x =>
+        println(x)
+        x
+    }
   }
 
   private def readObject(clzName: String, fields: collection.Map[String, _]): Any = {

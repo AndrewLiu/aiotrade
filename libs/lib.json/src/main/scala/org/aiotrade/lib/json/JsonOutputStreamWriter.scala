@@ -41,9 +41,7 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
   def write(x: JsonSerializable) {
     write('{')
 
-    write('"')
-    write(x.getClass.getName)
-    write('"')
+    jsonWrite(x.getClass.getName)
 
     write(':')
 
@@ -85,8 +83,8 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
     write('{')
     val xs = map.iterator
     while (xs.hasNext) {
-      val x = xs.next
-      jsonWrite(x)
+      val (name, value) = xs.next
+      jsonWrite(name, value)
       if (xs.hasNext) {
         write(',')
       }
@@ -98,9 +96,7 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
    * write field or pair
    */
   def write(name: String, value: Any) {
-    write('"')
-    write(name)
-    write('"')
+    jsonWrite(name)
 
     write(':')
 
@@ -119,10 +115,10 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
       case x: Double => write(x.toString)
       case x: Boolean => write(x.toString)
       case (k: String, v: Any) => write(k, v)
-      case x: JsonSerializable => write(x)
       case x: Array[_] => write(x)
       case x: collection.Seq[_] => write(x)
       case x: collection.Map[String, _] => write(x)
+      case x: JsonSerializable => write(x)
       case _ => throw new UnsupportedOperationException(value + " cannot be json serialized")
     }
   }
