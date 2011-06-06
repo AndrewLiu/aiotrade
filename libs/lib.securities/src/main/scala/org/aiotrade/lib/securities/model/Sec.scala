@@ -892,7 +892,8 @@ class SecSnap(val sec: Sec) {
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
 
-  private val timeZone = sec.exchange.timeZone
+  // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker
+  private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
   final def setByTicker(ticker: Ticker): SecSnap = {
     this.newTicker = ticker
@@ -908,7 +909,6 @@ class SecSnap(val sec: Sec) {
 
   private def checkDailyQuoteAt(time: Long): Quote = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     dailyQuote match {
       case one: Quote if one.time == rounded =>
@@ -922,7 +922,6 @@ class SecSnap(val sec: Sec) {
 
   private def checkDailyMoneyFlowAt(time: Long): MoneyFlow = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     dailyMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
@@ -935,7 +934,6 @@ class SecSnap(val sec: Sec) {
   }
 
   private def checkMinuteQuoteAt(time: Long): Quote = {
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteQuote match {
       case one: Quote if one.time == rounded =>
@@ -948,7 +946,6 @@ class SecSnap(val sec: Sec) {
   }
 
   private def checkMinuteMoneyFlowAt(time: Long): MoneyFlow = {
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteMoneyFlow match {
       case one: MoneyFlow if one.time == rounded =>
@@ -964,7 +961,6 @@ class SecSnap(val sec: Sec) {
    * @return lastTicker of this day
    */
   private def checkLastTickerAt(time: Long): Ticker = {
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
       case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
