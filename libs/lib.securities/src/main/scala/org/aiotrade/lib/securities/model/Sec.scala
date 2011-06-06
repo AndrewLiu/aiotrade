@@ -880,11 +880,8 @@ class Sec extends SerProvider with Ordered[Sec] {
   lazy val secSnap = new SecSnap(this)
 }
 
-object SecSnap {
-  protected val ONE_DAY = 24 * 60 * 60 * 1000
-}
 class SecSnap(val sec: Sec) {
-  import SecSnap._
+  private val ONE_DAY = 24 * 60 * 60 * 1000
 
   var newTicker: Ticker = _
   var lastTicker: Ticker = _
@@ -897,19 +894,19 @@ class SecSnap(val sec: Sec) {
 
   private val timeZone = sec.exchange.timeZone
 
-  def setByTicker(ticker: Ticker): SecSnap = {
+  final def setByTicker(ticker: Ticker): SecSnap = {
     this.newTicker = ticker
     
     val time = ticker.time
-    checkLastTickerOf(time)
-    checkDailyQuoteOf(time)
-    checkMinuteQuoteOf(time)
-    checkDailyMoneyFlowOf(time)
-    checkMinuteMoneyFlowOf(time)
+    checkLastTickerAt(time)
+    checkDailyQuoteAt(time)
+    checkMinuteQuoteAt(time)
+    checkDailyMoneyFlowAt(time)
+    checkMinuteMoneyFlowAt(time)
     this
   }
 
-  def checkDailyQuoteOf(time: Long): Quote = {
+  private def checkDailyQuoteAt(time: Long): Quote = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
@@ -923,7 +920,7 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkDailyMoneyFlowOf(time: Long): MoneyFlow = {
+  private def checkDailyMoneyFlowAt(time: Long): MoneyFlow = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
@@ -937,7 +934,7 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkMinuteQuoteOf(time: Long): Quote = {
+  private def checkMinuteQuoteAt(time: Long): Quote = {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteQuote match {
@@ -950,7 +947,7 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkMinuteMoneyFlowOf(time: Long): MoneyFlow = {
+  private def checkMinuteMoneyFlowAt(time: Long): MoneyFlow = {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteMoneyFlow match {
@@ -966,7 +963,7 @@ class SecSnap(val sec: Sec) {
   /**
    * @return lastTicker of this day
    */
-  def checkLastTickerOf(time: Long): Ticker = {
+  private def checkLastTickerAt(time: Long): Ticker = {
     val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
