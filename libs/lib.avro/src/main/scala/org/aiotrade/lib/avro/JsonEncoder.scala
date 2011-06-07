@@ -286,10 +286,13 @@ class JsonEncoder(sc: Schema, _out: JsonGenerator) extends ParsingEncoder with P
       parser.advance(Symbol.UNION)
       val top = parser.popSymbol().asInstanceOf[Symbol.Alternative]
       val symbol = top.getSymbol(unionIndex)
-      if (symbol != Symbol.NULL) {
-        out.writeStartObject()
-        out.writeFieldName(top.getLabel(unionIndex))
-        parser.pushSymbol(Symbol.UNION_END)
+      symbol match {
+        case Symbol.NULL =>
+        case Symbol.STRING | Symbol.BYTES | Symbol.INT | Symbol.LONG | Symbol.FLOAT | Symbol.DOUBLE | Symbol.BOOLEAN => // primitives
+        case _ =>
+          out.writeStartObject()
+          out.writeFieldName(top.getLabel(unionIndex))
+          parser.pushSymbol(Symbol.UNION_END)
       }
       parser.pushSymbol(symbol)
     }
