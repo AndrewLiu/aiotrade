@@ -51,7 +51,8 @@ object ReflectData {
    * null. */
   object AllowNull extends ReflectData {
     override protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
-      makeNullable(super.createFieldSchema(field, names))
+      val schema = super.createFieldSchema(field, names)
+      makeNullable(schema)
     }
   }
 
@@ -165,7 +166,15 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
         true
       case ARRAY =>
         datum match {
-          case xs: Collection[_] => // collection
+          case xs: collection.Seq[_] => 
+            val itr = xs.iterator
+            while (itr.hasNext) {
+              val element = itr.next.asInstanceOf[AnyRef]
+              if (!validate(schema.getElementType, element)) return false
+            }
+
+            true
+          case xs: java.util.Collection[_] => // collection
             val itr = xs.iterator
             while (itr.hasNext) {
               val element = itr.next.asInstanceOf[AnyRef]
@@ -203,7 +212,7 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
     }
   }
 
-  override protected def createSchema(tpe: Type, names: java.util.Map[String,Schema]): Schema = {
+  override protected def createSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
     tpe match {
       case atype: GenericArrayType => // generic array
         atype.getGenericComponentType match {
