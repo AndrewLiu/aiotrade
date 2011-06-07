@@ -12,6 +12,7 @@ import scala.collection.JavaConversions._
 
 object AvroDatumWriter {
   def apply[R]() = new AvroDatumWriter[R](null, GenericData.get)
+  def apply[R](schema: Schema) = new AvroDatumWriter[R](schema, GenericData.get)
 }
 
 class AvroDatumWriter[R] private (private var _root: Schema, data: GenericData) extends DatumWriter[R] {
