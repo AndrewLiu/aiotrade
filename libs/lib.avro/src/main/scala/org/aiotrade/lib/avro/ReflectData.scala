@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.apache.avro.AvroRemoteException;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Protocol
@@ -37,7 +38,6 @@ import org.apache.avro.reflect.Nullable
 import org.apache.avro.reflect.Union
 import org.apache.avro.reflect.Stringable
 import org.apache.avro.specific.FixedSize;
-import org.apache.avro.ipc.AvroRemoteException;
 
 import com.thoughtworks.paranamer.CachingParanamer
 
@@ -156,7 +156,7 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
         while (fields.hasNext) {
           val f = fields.next
           try {
-            if (!validate(f.schema, getField(c, f.name).get(datum))) return false
+            if (!validate(f.schema, ReflectData.getField(c, f.name).get(datum))) return false
           } catch {
             case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
           }

@@ -26,7 +26,7 @@ object RandomData {
         record
       case ENUM =>
         val symbols = schema.getEnumSymbols
-        new GenericData.EnumSymbol(symbols.get(random.nextInt(symbols.size)))
+        new GenericData.EnumSymbol(schema, symbols.get(random.nextInt(symbols.size)))
       case ARRAY =>
         val length = (random.nextInt(5)+2)-d
         val array = new GenericData.Array[Object](if (length <= 0) 0 else length, schema)
@@ -47,7 +47,7 @@ object RandomData {
       case FIXED =>
         val bytes = new Array[Byte](schema.getFixedSize)
         random.nextBytes(bytes)
-        new GenericData.Fixed(bytes)
+        new GenericData.Fixed(schema, bytes)
       case STRING =>  return randomUtf8(random, 40)
       case BYTES =>   return randomBytes(random, 40)
       case INT =>     return random.nextInt.asInstanceOf[AnyRef]
