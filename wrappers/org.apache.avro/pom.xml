@@ -109,6 +109,8 @@
                         <publicPackage>org.apache.avro.file</publicPackage>
                         <publicPackage>org.apache.avro.generic</publicPackage>
                         <publicPackage>org.apache.avro.io</publicPackage>
+                        <publicPackage>org.apache.avro.reflect</publicPackage>
+                        <publicPackage>org.apache.avro.specific</publicPackage>
                         <publicPackage>org.apache.avro.util</publicPackage>
                     </publicPackages>
                 </configuration>
