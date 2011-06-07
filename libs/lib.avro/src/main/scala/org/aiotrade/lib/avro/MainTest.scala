@@ -29,7 +29,7 @@ object MainTest {
     val schema = org.apache.avro.Schema.parse(schemaDesc)
     println(schema.toString)
     val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.jsonEncoder(schema, bao)
+    val encoder = JsonEncoder(schema, bao)
     val writer = new ReflectDatumWriter[java.util.HashMap[String, Array[_]]](schema)
     writer.write(r, encoder)
     encoder.flush()
