@@ -66,7 +66,9 @@ object TickerServer extends Publisher {
   object TickerEvt     extends Evt[Ticker](0, "ticker") {override def schema = "todo"}
   object TickersEvt    extends Evt[Array[LightTicker]](1, "tickers")
   object ExecutionEvt  extends Evt[(Double, Execution)](2, "prevClose, execution")
-  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)  
+  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)
+  object DelimiterEvt  extends Evt[Unit](9, "A delimiter to notice batch tickers got.")
+
   
   // update evts
   object QuoteEvt      extends Evt[(TFreq, Quote)](10, "freq, quote")

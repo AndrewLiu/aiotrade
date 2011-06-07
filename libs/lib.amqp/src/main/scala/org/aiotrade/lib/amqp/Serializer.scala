@@ -14,9 +14,8 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import org.aiotrade.lib.json.Json
 import org.aiotrade.lib.json.JsonInputStreamReader
-import org.aiotrade.lib.json.JsonOutputStreamWriter
-import org.aiotrade.lib.json.JsonSerializable
 import org.aiotrade.lib.avro.ScalaApacheAvroMarshaller
 
 object Serializer {
@@ -53,24 +52,9 @@ trait Serializer {
   }
   
   def encodeJson(content: Any): Array[Byte] = {
-    val out = new ByteArrayOutputStream
-    val jout = new JsonOutputStreamWriter(out, "utf-8")
-
-    content match {
-      case x: JsonSerializable => 
-        jout.write(x)
-      case xs: Array[JsonSerializable] =>
-        jout.write(xs)
-      case xs: List[JsonSerializable] =>
-        jout.write(xs)
-      case _ => //todo
-    }
-    jout.close
-
-    out.toByteArray
+    Json.encode(content)
   }
 
-  
   def decodeJson(body: Array[Byte]): Any = {
     val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
     jin.readObject

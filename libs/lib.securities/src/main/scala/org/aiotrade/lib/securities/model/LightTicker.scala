@@ -179,7 +179,7 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   }
 
   @throws(classOf[IOException])
-  def readJson(fields: Map[String, _]) {
+  def readJson(fields: collection.Map[String, _]) {
     symbol  = fields("s").asInstanceOf[String]
     time    = fields("t").asInstanceOf[Long] * 1000
     var vs  = fields("v").asInstanceOf[List[Number]]
