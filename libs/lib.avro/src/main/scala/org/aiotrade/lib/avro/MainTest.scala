@@ -1,13 +1,38 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *  o Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ *    
+ *  o Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution. 
+ *    
+ *  o Neither the name of AIOTrade Computing Co. nor the names of 
+ *    its contributors may be used to endorse or promote products derived 
+ *    from this software without specific prior written permission. 
+ *    
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.aiotrade.lib.avro
 
 import java.io.ByteArrayOutputStream
+import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
-import org.apache.avro.reflect.ReflectDatumWriter
 import scala.collection.mutable
 
 object MainTest {
@@ -23,77 +48,69 @@ object MainTest {
     """
     
     
-    val r = new java.util.HashMap[String, Array[_]]
-    r.put(".", Array(1L, 2L, 3L))
-    r.put("a", Array(1.0, 2.0, 3.0))
+    val vmap = new java.util.HashMap[String, Array[_]]
+    vmap.put(".", Array(1L, 2L, 3L))
+    vmap.put("a", Array(1.0, 2.0, 3.0))
 
-    //val schema = ReflectData.get).getSchema(r.getClass)
-    val schema = org.apache.avro.Schema.parse(schemaDesc)
-    println(schema.toString)
-    val bao = new ByteArrayOutputStream()
-    val encoder = JsonEncoder(schema, bao)
-    val writer = new ReflectDatumWriter[java.util.HashMap[String, Array[_]]](schema)
-    writer.write(r, encoder)
-    encoder.flush()
-    val json = new String(bao.toByteArray, "UTF-8")
-    println(json)
-    
-    val itr = r.entrySet.iterator
-    while (itr.hasNext) {
-      val entry = itr.next
-      //val schema = ReflectData.get).getSchema(entry.getValue.getClass)
-      val schema = ReflectData.get.getSchema(classOf[Array[_]])
-      println(schema.toString)
-      val bao = new ByteArrayOutputStream()
-      val encoder = EncoderFactory.get.jsonEncoder(schema, bao)
-      val writer = new ReflectDatumWriter[Array[_]](schema)
-      writer.write(entry.getValue, encoder)
-      encoder.flush()
-      val json = new String(bao.toByteArray, "UTF-8")
-      println(json)
-    }
+    testJsonMap(schemaDesc, vmap)
+    testAvroMap(schemaDesc, vmap)
   }
   
   def testScalaVMap {
     val schemaDesc = """
-    {"type": "map", "values": {"type": "array", "items": ["long", "double"]}}
+    {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
     """
     
     
-    val r = new mutable.HashMap[String, Array[_]]
-    r.put(".", Array(1L, 2L, 3L))
-    r.put("a", Array(1.0, 2.0, 3.0))
+    val vmap = new mutable.HashMap[String, Array[_]]
+    vmap.put(".", Array(1L, 2L, 3L))
+    vmap.put("a", Array(1.0, 2.0, 3.0))
+    vmap.put("b", Array("a", "b", "c"))
 
-    //val schema = ReflectData.get).getSchema(r.getClass)
+    testJsonMap(schemaDesc, vmap)
+    testAvroMap(schemaDesc, vmap)
+  }
+  
+  def testJsonMap[T](schemaDesc: String, vmap: T) {
+    println("\n========= Json ============= ")
+    //val schema = ReflectData.get).getSchema(vmap.getClass)
     val schema = org.apache.avro.Schema.parse(schemaDesc)
     println(schema.toString)
+    
+    // encode a map
     val bao = new ByteArrayOutputStream()
     val encoder = JsonEncoder(schema, bao)
-    val writer = AvroDatumWriter[collection.Map[String, Array[_]]](schema)
-    writer.write(r, encoder)
+    val writer = AvroDatumWriter[T](schema)
+    writer.write(vmap, encoder)
     encoder.flush()
     val json = new String(bao.toByteArray, "UTF-8")
     println(json)
     
-    // decode
+    // decode to scala map
     val decoder = JsonDecoder(schema, json)
     val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
     val map = reader.read(null, decoder)
-    println(map)
+    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
+  }
+  
+  def testAvroMap[T](schemaDesc: String, vmap: T) {
+    println("\n========= Avro ============= ")
+    //val schema = ReflectData.get).getSchema(vmap.getClass)
+    val schema = org.apache.avro.Schema.parse(schemaDesc)
+    println(schema.toString)
     
-    val itr = r.iterator
-    while (itr.hasNext) {
-      val entry = itr.next
-      //val schema = ReflectData.get).getSchema(entry.getValue.getClass)
-      val schema = ReflectData.get.getSchema(classOf[Array[_]])
-      println(schema.toString)
-      val bao = new ByteArrayOutputStream()
-      val encoder = EncoderFactory.get.jsonEncoder(schema, bao)
-      val writer = new ReflectDatumWriter[Array[_]](schema)
-      writer.write(entry._2, encoder)
-      encoder.flush()
-      val json = new String(bao.toByteArray, "UTF-8")
-      println(json)
-    }
+    // encode a map
+    val bao = new ByteArrayOutputStream()
+    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
+    val writer = AvroDatumWriter[T](schema)
+    writer.write(vmap, encoder)
+    encoder.flush()
+    val bytes= bao.toByteArray
+    
+    // decode to scala map
+    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
+    val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
+    val map = reader.read(null, decoder)
+    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
 }
