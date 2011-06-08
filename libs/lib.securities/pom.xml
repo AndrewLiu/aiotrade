@@ -109,6 +109,10 @@
                                 <jvmArg>-Xmx512m</jvmArg>
                             </jvmArgs>
                         </launcher>
+                        <launcher>
+                            <id>create_schema</id>
+                            <mainClass>org.aiotrade.lib.securities.data.SyncUtil</mainClass>
+                        </launcher>
                     </launchers>
                 </configuration>
             </plugin>
