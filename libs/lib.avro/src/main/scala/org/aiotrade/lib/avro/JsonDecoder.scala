@@ -148,7 +148,7 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
     val t = in.getCurrentToken() 
     if (t == JsonToken.VALUE_TRUE || t == JsonToken.VALUE_FALSE) {
       in.nextToken()
-      return t == JsonToken.VALUE_TRUE;
+      return t == JsonToken.VALUE_TRUE
     } else {
       throw error("boolean")
     }
@@ -174,7 +174,7 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
     if (in.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) {
       val result = in.getLongValue()
       in.nextToken()
-      return result;
+      return result
     } else {
       throw error("long")
     }
@@ -187,7 +187,7 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
     if (in.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT) {
       val result = in.getFloatValue()
       in.nextToken()
-      return result;
+      return result
     } else {
       throw error("float")
     }
@@ -338,7 +338,7 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
       val n = top.findLabel(in.getText())
       if (n >= 0) {
         in.nextToken()
-        return n;
+        return n
       }
       throw error("Unknown symbol in enum " + in.getText())
     } else {
@@ -416,7 +416,7 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
       advance(Symbol.MAP_END)
       0
     } else {
-      11
+      1
     }
   }
 
@@ -440,20 +440,49 @@ class JsonDecoder private (root: Symbol, _in: Either[InputStream, String]) exten
     advance(Symbol.UNION)
     val a = parser.popSymbol().asInstanceOf[Symbol.Alternative]
     
-    var label: String = null
-    if (in.getCurrentToken() == JsonToken.VALUE_NULL) {
-      label = "null";
-    } else if (in.getCurrentToken() == JsonToken.START_OBJECT &&
-               in.nextToken() == JsonToken.FIELD_NAME) {
-      label = in.getText()
-      in.nextToken()
-      parser.pushSymbol(Symbol.UNION_END)
-    } else {
-      throw error("start-union")
+    var n: Int = -1
+    in.getCurrentToken match {
+      case JsonToken.VALUE_NULL =>
+        val label = "null"
+        n = a.findLabel(label)
+        if (n < 0)
+          throw error("Unknown union branch " + label)
+      case JsonToken.START_OBJECT =>
+        in.nextToken() match {
+          case JsonToken.FIELD_NAME =>
+            val label = in.getText()
+            in.nextToken()
+            parser.pushSymbol(Symbol.UNION_END)
+            n = a.findLabel(label)
+            if (n < 0)
+              throw error("Unknown union branch " + label)
+          case _ => throw error("start-union")
+        }
+      case JsonToken.VALUE_NUMBER_FLOAT =>
+        n = a.findLabel("float")
+        if (n < 0) {
+          n = a.findLabel("double")
+        }
+        if (n < 0)
+          throw error("Lack union branch float or double")
+      case JsonToken.VALUE_NUMBER_INT =>
+        n = a.findLabel("int")
+        if (n < 0) {
+          n = a.findLabel("long")
+        }
+        if (n < 0)
+          throw error("Lack union branch int or long")
+      case JsonToken.VALUE_FALSE | JsonToken.VALUE_TRUE =>
+        n = a.findLabel("boolean")
+        if (n < 0)
+          throw error("Lack union branch boolean")
+      case JsonToken.VALUE_STRING =>
+        n = a.findLabel("string")
+        if (n < 0)
+          throw error("Lack union branch string")
+      case _ => throw error("start-union")
     }
-    val n = a.findLabel(label)
-    if (n < 0)
-      throw error("Unknown union branch " + label)
+    
     parser.pushSymbol(a.getSymbol(n))
     n
   }

@@ -75,6 +75,12 @@ object MainTest {
     val json = new String(bao.toByteArray, "UTF-8")
     println(json)
     
+    // decode
+    val decoder = JsonDecoder(schema, json)
+    val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
+    val map = reader.read(null, decoder)
+    println(map)
+    
     val itr = r.iterator
     while (itr.hasNext) {
       val entry = itr.next

@@ -2,6 +2,7 @@ package org.aiotrade.lib.avro
 
 import java.io.IOException
 
+import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
@@ -15,7 +16,6 @@ import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.ResolvingDecoder
 import org.apache.avro.util.Utf8
 import org.apache.avro.util.WeakIdentityHashMap
-//import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 object AvroDatumReader {
@@ -220,7 +220,7 @@ class AvroDatumReader[R](private var actual: Schema, private var expected: Schem
     val expectedType = expected.getElementType
     var l = in.readArrayStart
     var base = 0L
-    if (l > 0) {
+    val result = if (l > 0) {
       val array = newArray(old, l.toInt, expected)
       do {
         var i = 0L
@@ -234,6 +234,7 @@ class AvroDatumReader[R](private var actual: Schema, private var expected: Schem
     } else {
       newArray(old, 0, expected)
     }
+    result.toArray
   }
 
   /** Called by the default implementation of {@link #readArray} to retrieve a
@@ -249,13 +250,13 @@ class AvroDatumReader[R](private var actual: Schema, private var expected: Schem
   /** Called by the default implementation of {@link #readArray} to add a
    * value.  The default implementation is for {@link Collection}.*/
   protected def addToArray(array: AnyRef, pos: Long, e: Any) {
-    array.asInstanceOf[java.util.Collection[Any]].add(e)
+    array.asInstanceOf[ArrayList[Any]] += e
   }
 
   /** Called to read a map instance.  May be overridden for alternate map
    * representations.*/
   @throws(classOf[IOException])
-  protected def readMap(old: AnyRef, expected: Schema, in: ResolvingDecoder) {
+  protected def readMap(old: AnyRef, expected: Schema, in: ResolvingDecoder): AnyRef = {
     val eValue = expected.getValueType
     var l = in.readMapStart
     val map = newMap(old, l.toInt)
@@ -274,7 +275,7 @@ class AvroDatumReader[R](private var actual: Schema, private var expected: Schem
   /** Called by the default implementation of {@link #readMap} to add a
    * key/value pair.  The default implementation is for {@link Map}.*/
   protected def addToMap(map: AnyRef, key: Any, value: Any) {
-    map.asInstanceOf[java.util.Map[Any, Any]].put(key, value)
+    map.asInstanceOf[mutable.Map[Any, Any]] += (key -> value)
   }
 
   /** Called to read a fixed value. May be overridden for alternate fixed
@@ -320,15 +321,16 @@ class AvroDatumReader[R](private var actual: Schema, private var expected: Schem
   /** Called to create new array instances.  Subclasses may override to use a
    * different array implementation.  By default, this returns a {@link
    * Array}.*/
-  protected def newArray(old: AnyRef, size: Int, schema: Schema): AnyRef = {
+  protected def newArray(old: AnyRef, size: Int, schema: Schema): ArrayList[_] = {
     import Schema.Type._
     schema.getElementType.getType match {
-      case RECORD | ENUM | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL =>  new Array[AnyRef](size)
-      case INT =>     new Array[Int](size)
-      case LONG =>    new Array[Long](size)
-      case FLOAT =>   new Array[Float](size)
-      case DOUBLE =>  new Array[Double](size)
-      case BOOLEAN => new Array[Boolean](size)
+      case RECORD | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL => new ArrayList[AnyRef](size)
+      case INT =>     new ArrayList[Int](size)
+      case ENUM =>    new ArrayList[Int](size)
+      case LONG =>    new ArrayList[Long](size)
+      case FLOAT =>   new ArrayList[Float](size)
+      case DOUBLE =>  new ArrayList[Double](size)
+      case BOOLEAN => new ArrayList[Boolean](size)
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
   }
