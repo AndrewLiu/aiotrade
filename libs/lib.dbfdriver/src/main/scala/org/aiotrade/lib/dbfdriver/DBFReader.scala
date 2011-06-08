@@ -167,6 +167,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
     val values = new Array[Any](header.fields.length)
     try {
+      
       bBuf.get //Skip the Record deleted flag
       
 //      var isDeleted = false
@@ -304,6 +305,163 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
     values
   }
 
+    /**
+   * Reads the returns the next row in the DBF stream.
+   * @returns The next row as an Object array. Types of the elements
+   * these arrays follow the convention mentioned in the class description.
+   */
+  @throws(classOf[IOException])
+  def nextRecordWithDelFlag: (DBFDelFlag,Array[Any]) = {
+    if (isClosed) {
+      throw new IOException("Source is not open")
+    }
+
+    val values = new Array[Any](header.fields.length)
+    var flag : DBFDelFlag = DBFDelFlag.Normal()
+    try {
+      
+       flag = bBuf.get match {
+         case 32 => DBFDelFlag.Normal()
+         case 42 => DBFDelFlag.Delete()
+         case _ =>   DBFDelFlag.Normal()
+       }
+       
+      
+//      var isDeleted = false
+//      do {
+//        if (isDeleted) {
+//          try{
+//            in.position(in.position + header.recordLength - 1)
+//          }catch{case ex: Exception => return null}
+//          //is.skip(header.recordLength - 1)
+//        }
+//
+//        if(in.position >= in.capacity)
+//          return null
+//
+//        val b = in.get
+//        if (b == END_OF_DATA) {
+//          return null
+//        }
+//
+//        isDeleted = (b == '*')
+//      } while (isDeleted)
+
+      var i = 0
+      while (i < header.fields.length) {
+        val obj = header.fields(i).dataType match {
+          case 'C' =>
+            try{
+              val bytes = new Array[Byte](header.fields(i).length)
+              bBuf.get(bytes)
+              new String(bytes, charsetName)
+            } catch{
+              case ex:Exception => new String("".getBytes, charsetName)
+            }
+          case 'D' =>
+            try {
+              val y = new Array[Byte](4)
+              bBuf.get(y)
+              val m = new Array[Byte](2)
+              bBuf.get(m)
+              val d = new Array[Byte](2)
+              bBuf.get(d)
+              val cal = Calendar.getInstance
+              cal.set(Calendar.YEAR, (new String(y)).toInt)
+              cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
+              cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
+              cal.getTime
+            } catch {
+              case ex: Exception => null // this field may be empty or may have improper value set
+            } 
+
+          case 'F' =>
+            try {
+              var bytes = new Array[Byte](header.fields(i).length)
+              bBuf.get(bytes)
+              bytes = Utils.trimLeftSpaces(bytes)
+            
+              if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
+                (new String(bytes)).toFloat
+              } else null
+            } catch {
+              case ex: NumberFormatException => 0.0F // throw new IOException("Failed to parse Float: " + ex.getMessage)
+              case ex: Exception => 0.0F
+            }
+
+          case 'N' =>
+            try {
+              var bytes = new Array[Byte](header.fields(i).length)
+              bBuf.get(bytes)
+              bytes = Utils.trimLeftSpaces(bytes)
+            
+              if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
+                (new String(bytes)).toDouble
+              } else null
+            } catch {
+              case ex: NumberFormatException => 0.0 // throw new IOException("Failed to parse Number: " + ex.getMessage)
+              case ex: Exception => 0.0
+            }
+
+          case 'L' =>
+            bBuf.get match {
+              case 'Y' | 'y' | 'T' | 't' => true
+              case _ => false
+            }
+            
+          case 'M' => "null" // TODO Later
+
+          case 'T' =>
+            try {
+              val y = new Array[Byte](4)
+              bBuf.get(y)
+              val m = new Array[Byte](2)
+              bBuf.get(m)
+              val d = new Array[Byte](2)
+              bBuf.get(d)
+              val h = new Array[Byte](2)
+              bBuf.get(h)
+              val min = new Array[Byte](2)
+              bBuf.get(min)
+              val sec = new Array[Byte](2)
+              bBuf.get(sec)
+              val milsec = new Array[Byte](3)
+              bBuf.get(milsec)
+              val cal = Calendar.getInstance
+              cal.set(Calendar.YEAR, (new String(y)).toInt)
+              cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
+              cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
+              cal.set(Calendar.HOUR_OF_DAY, new String(h).toInt)
+              cal.set(Calendar.MINUTE, new String(min).toInt)
+              cal.set(Calendar.SECOND, new String(sec).toInt)
+              cal.set(Calendar.MILLISECOND, new String(milsec).toInt)
+              cal.getTime
+            } catch {
+              case ex: Exception => null // this field may be empty or may have improper value set
+            }
+          case 'I' =>
+            try{
+              var bytes = new Array[Byte](header.fields(i).length)
+              bBuf.get(bytes)
+              bytes = Utils.trimLeftSpaces(bytes)
+              (new String(bytes)).toInt
+            } catch{
+              case ex:Exception => 0
+            }
+          case _ => "null"
+        }
+        
+        values(i) = obj
+        i += 1
+      }
+    } catch {
+      case ex: EOFException => return null
+      case ex: IOException => throw new IOException(ex.getMessage)
+    }
+
+    (flag,values)
+  }
+  
   def close {
     isClosed = true
     try {
@@ -317,3 +475,39 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
   }
 
 }
+
+object DBFDelFlag {
+  class Delete extends DBFDelFlag {
+    override def equals( o : Any) : Boolean = {
+      if(o.isInstanceOf[Delete]) true else false
+    }  
+    
+    override def toString : String = "Delete()"
+  }
+  
+  object Delete {
+    def apply() = {
+      new Delete()
+    }
+    def unapply(x : Delete) = x ne null
+  }
+
+  class Normal extends DBFDelFlag {
+     override def equals( o : Any) : Boolean = {
+      if(o.isInstanceOf[Normal]) true else false
+    }  
+    
+    override def toString : String = "Normal()"
+  }
+  
+  object Normal {
+    def apply() = {
+      new Normal()
+    }
+    
+    def unapply(x : Normal) = x ne null
+  }
+  
+}
+
+trait DBFDelFlag
