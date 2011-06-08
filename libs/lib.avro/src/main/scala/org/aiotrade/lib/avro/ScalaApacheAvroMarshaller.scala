@@ -12,6 +12,7 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.io.EncoderFactory
 import org.apache.avro.util.Utf8;
 import org.apache.avro.AvroRuntimeException;
 
@@ -120,7 +121,7 @@ class ScalaApacheAvroMarshaller extends AbstractScalaMarshaller {
 
    override protected def objectToBuffer(o : AnyRef, estimatedSize : Int) : ByteBuffer = {
       var baos = new ExposedByteArrayOutputStream(estimatedSize);
-      var encoder = new BinaryEncoder(baos);
+      var encoder = EncoderFactory.get.binaryEncoder(baos, null);
       objectToBuffer(o, encoder);
       return new ByteBuffer(baos.getRawBuffer(), 0, baos.size());
    }

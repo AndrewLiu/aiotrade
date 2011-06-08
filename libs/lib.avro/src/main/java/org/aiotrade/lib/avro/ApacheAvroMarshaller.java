@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.avro.io.EncoderFactory;
 
 
 /**
@@ -103,7 +104,7 @@ public class ApacheAvroMarshaller extends AbstractMarshaller {
    @Override
    protected ByteBuffer objectToBuffer(Object o, int estimatedSize) throws IOException {
       ExposedByteArrayOutputStream baos = new ExposedByteArrayOutputStream(estimatedSize);
-      Encoder encoder = new BinaryEncoder(baos);
+      Encoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
       objectToBuffer(o, encoder);
       return new ByteBuffer(baos.getRawBuffer(), 0, baos.size());
    }

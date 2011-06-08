@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.apache.avro.AvroRemoteException;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Protocol
@@ -37,7 +38,6 @@ import org.apache.avro.reflect.Nullable
 import org.apache.avro.reflect.Union
 import org.apache.avro.reflect.Stringable
 import org.apache.avro.specific.FixedSize;
-import org.apache.avro.ipc.AvroRemoteException;
 
 import com.thoughtworks.paranamer.CachingParanamer
 
@@ -51,7 +51,8 @@ object ReflectData {
    * null. */
   object AllowNull extends ReflectData {
     override protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
-      makeNullable(super.createFieldSchema(field, names))
+      val schema = super.createFieldSchema(field, names)
+      makeNullable(schema)
     }
   }
 
@@ -156,7 +157,7 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
         while (fields.hasNext) {
           val f = fields.next
           try {
-            if (!validate(f.schema, getField(c, f.name).get(datum))) return false
+            if (!validate(f.schema, ReflectData.getField(c, f.name).get(datum))) return false
           } catch {
             case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
           }
@@ -165,7 +166,15 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
         true
       case ARRAY =>
         datum match {
-          case xs: Collection[_] => // collection
+          case xs: collection.Seq[_] => 
+            val itr = xs.iterator
+            while (itr.hasNext) {
+              val element = itr.next.asInstanceOf[AnyRef]
+              if (!validate(schema.getElementType, element)) return false
+            }
+
+            true
+          case xs: java.util.Collection[_] => // collection
             val itr = xs.iterator
             while (itr.hasNext) {
               val element = itr.next.asInstanceOf[AnyRef]
@@ -203,7 +212,7 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
     }
   }
 
-  override protected def createSchema(tpe: Type, names: java.util.Map[String,Schema]): Schema = {
+  override protected def createSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
     tpe match {
       case atype: GenericArrayType => // generic array
         atype.getGenericComponentType match {
