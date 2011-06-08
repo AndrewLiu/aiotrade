@@ -90,7 +90,7 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
             val replyProps = if (reply.props != null) reply.props else new AMQP.BasicProperties
             
             replyProps.setCorrelationId(reqProps.getCorrelationId)
-            publish("", reqProps.getReplyTo, replyProps, reply.body)
+            publish(exchange, reqProps.getReplyTo, replyProps, reply.body)
           }
       }
     }
