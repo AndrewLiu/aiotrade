@@ -93,10 +93,10 @@ object ReflectData {
     throw new AvroRuntimeException("No field named " + name + " in: " + c)
   }
 
-  protected val CLASS_PROP = "java-class"
-  protected val ELEMENT_PROP = "java-element-class"
+  protected[avro] val CLASS_PROP = "java-class"
+  protected[avro] val ELEMENT_PROP = "java-element-class"
 
-  protected def getClassProp(schema: Schema, prop: String): Class[_] = {
+  protected[avro] def getClassProp(schema: Schema, prop: String): Class[_] = {
     schema.getProp(prop) match {
       case null => null
       case name =>
@@ -121,7 +121,7 @@ object ReflectData {
 /** Utilities to use existing Java classes and interfaces via reflection. */
 import org.aiotrade.lib.util.ClassHelper._
 import ReflectData._
-class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
+class ReflectData protected () extends SpecificData {
   import Schema.Type._
 
   override
@@ -366,7 +366,7 @@ class ReflectData protected () extends org.apache.avro.reflect.ReflectData {
   }
 
   /** Create a schema for a field. */
-  override protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
+  protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
     val schema = createSchema(field.getGenericType(), names)
     if (field.isAnnotationPresent(classOf[Nullable])) { // nullable
       makeNullable(schema)

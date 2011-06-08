@@ -28,8 +28,6 @@ import org.apache.avro.Schema
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.file.SeekableFileInput;
-import org.apache.avro.reflect.ReflectDatumReader;
-import org.apache.avro.reflect.ReflectDatumWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -96,7 +94,7 @@ object TestDataFileReflect {
     val schemas = Arrays.asList(reflectData.getSchema(classOf[FooRecord]),
                                 reflectData.getSchema(classOf[BarRecord]))
     val union = Schema.createUnion(schemas);
-    val writer = new DataFileWriter[Object](new ReflectDatumWriter[Object](union)).create(union, fos);
+    val writer = new DataFileWriter[Object](ReflectDatumWriter[Object](union)).create(union, fos);
 
     // test writing to a file
     val check = new CheckList[Object]();
@@ -106,7 +104,7 @@ object TestDataFileReflect {
     write(writer, new FooRecord(20), check);
     writer.close();
 
-    val din = new ReflectDatumReader[Object]();
+    val din = ReflectDatumReader[Object]();
     val sin = new SeekableFileInput(FILE);
     val reader = new DataFileReader[Object](sin, din)
     val readerItr = reader.iterator
@@ -128,7 +126,7 @@ object TestDataFileReflect {
 
     val reflectData = ReflectData.AllowNull
     val schema = reflectData.getSchema(classOf[BarRecord]);
-    val writer = new DataFileWriter[BarRecord](new ReflectDatumWriter[BarRecord](classOf[BarRecord], reflectData)).create(schema, fos);
+    val writer = new DataFileWriter[BarRecord](ReflectDatumWriter[BarRecord](classOf[BarRecord], reflectData)).create(schema, fos);
 
     // test writing to a file
     val check = new CheckList[BarRecord]();
@@ -138,7 +136,7 @@ object TestDataFileReflect {
     write(writer, new BarRecord("Two beers please"), check);
     writer.close();
 
-    val din = new ReflectDatumReader[BarRecord]();
+    val din = ReflectDatumReader[BarRecord]();
     val sin = new SeekableFileInput(FILE);
     val reader = new DataFileReader[BarRecord](sin, din);
     var count = 0
@@ -158,7 +156,7 @@ object TestDataFileReflect {
     val fos = new FileOutputStream(FILE);
 
     val schema = ReflectData.get().getSchema(classOf[BazRecord]);
-    val writer = new DataFileWriter[BazRecord](new ReflectDatumWriter[BazRecord](schema)).create(schema, fos);
+    val writer = new DataFileWriter[BazRecord](ReflectDatumWriter[BazRecord](schema)).create(schema, fos);
 
     // test writing to a file
     val check = new CheckList[BazRecord]()
@@ -166,7 +164,7 @@ object TestDataFileReflect {
     write(writer, new BazRecord(20), check)
     writer.close();
 
-    val din = new ReflectDatumReader[BazRecord]
+    val din = ReflectDatumReader[BazRecord]()
     val sin = new SeekableFileInput(FILE)
     val reader = new DataFileReader[BazRecord](sin, din);
     var count = 0

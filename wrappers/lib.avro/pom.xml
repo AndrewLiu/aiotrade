@@ -47,10 +47,6 @@
                     <artifactId>avro</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>net.jcip</groupId>
-                    <artifactId>jcip-annotations</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>net.lag</groupId>
                     <artifactId>configgy</artifactId>
                 </exclusion>

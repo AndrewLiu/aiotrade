@@ -38,8 +38,10 @@ import scala.collection.mutable
 object MainTest {
   
   def main(args: Array[String]) {
+    val t0 = System.currentTimeMillis
     testJavaVMap
     testScalaVMap
+    println("Finished in " + (System.currentTimeMillis - t0) + "ms")
   }
   
   def testJavaVMap {
@@ -80,7 +82,7 @@ object MainTest {
     // encode a map
     val bao = new ByteArrayOutputStream()
     val encoder = JsonEncoder(schema, bao)
-    val writer = AvroDatumWriter[T](schema)
+    val writer = ReflectDatumWriter[T](schema)
     writer.write(vmap, encoder)
     encoder.flush()
     val json = new String(bao.toByteArray, "UTF-8")
@@ -102,14 +104,14 @@ object MainTest {
     // encode a map
     val bao = new ByteArrayOutputStream()
     val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = AvroDatumWriter[T](schema)
+    val writer = ReflectDatumWriter[T](schema)
     writer.write(vmap, encoder)
     encoder.flush()
     val bytes= bao.toByteArray
     
     // decode to scala map
     val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
+    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
     val map = reader.read(null, decoder)
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }

@@ -16,7 +16,11 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import org.aiotrade.lib.json.Json
 import org.aiotrade.lib.json.JsonInputStreamReader
-import org.aiotrade.lib.avro.ScalaApacheAvroMarshaller
+import org.aiotrade.lib.avro.ReflectData
+import org.aiotrade.lib.avro.ReflectDatumReader
+import org.aiotrade.lib.avro.ReflectDatumWriter
+import org.apache.avro.io.DecoderFactory
+import org.apache.avro.io.EncoderFactory
 
 object Serializer {
   /**
@@ -44,11 +48,27 @@ trait Serializer {
   }
 
   def encodeAvro(content: Any): Array[Byte] = {
-    ScalaApacheAvroMarshaller().objectToBuffer(content.asInstanceOf[AnyRef]).getBuf
+    val schema = ReflectData.get.getSchema(content.asInstanceOf[AnyRef].getClass)
+    //val schema = org.apache.avro.Schema.parse(schemaDesc)
+    val out = new ByteArrayOutputStream()
+    val encoder = EncoderFactory.get.binaryEncoder(out, null)
+    val writer = ReflectDatumWriter[Any](schema)
+    writer.write(content, encoder)
+    encoder.flush()
+    val body = out.toByteArray
+    out.close
+    body
   }
 
   def decodeAvro(body: Array[Byte]): Any = {
-    ScalaApacheAvroMarshaller().objectFromByteBuffer(body)
+    // @todo
+    val jsonSchema = """
+      {"type": "java.lang.Object", "fields": []}
+    """
+    val schema = org.apache.avro.Schema.parse(jsonSchema)
+    val decoder = DecoderFactory.get.binaryDecoder(body, null)
+    val reader = ReflectDatumReader[Any](schema)
+    reader.read(null, decoder)
   }
   
   def encodeJson(content: Any): Array[Byte] = {
@@ -62,7 +82,7 @@ trait Serializer {
 
   @throws(classOf[IOException])
   def gzip(input: Array[Byte]): Array[Byte] = {
-    val out = new ByteArrayOutputStream
+    val out = new ByteArrayOutputStream()
     val bout = new BufferedOutputStream(new GZIPOutputStream(out))
     bout.write(input)
     bout.close
@@ -77,7 +97,7 @@ trait Serializer {
   def ungzip(input: Array[Byte]): Array[Byte] = {
     val in = new ByteArrayInputStream(input)
     val bin = new BufferedInputStream(new GZIPInputStream(in))
-    val out = new ByteArrayOutputStream
+    val out = new ByteArrayOutputStream()
 
     val buf = new Array[Byte](1024)
     var len = -1
