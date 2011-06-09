@@ -10,6 +10,7 @@ object MainApp {
   def main(args: Array[String]) {
     testDecode
     testVmap
+    testTuple2
   }
   
   def testDecode {
@@ -68,12 +69,30 @@ object MainApp {
     
     val bytes = Json.encode(vmap)
     val json = new String(bytes)
-    println("\n========= encode ==============")
+    println("\n========= vmap encode ==============")
     println(json)
 
-    println("\n========= decode ==============")
+    println("\n========= vmap decode ==============")
     val jsonObj = Json.decode(json)
     println(jsonObj)
 
+  }
+
+  def testTuple2 {
+    val vmap = new HashMap[String, Array[_]]
+    vmap += ("." -> Array(1, 2, 3, 4))
+    vmap += ("a" -> Array(1.1, 2.1, 3.1, 4.1))
+    vmap += ("b" -> Array(Array("up", 10.0, "White"), Array("dn", 11.0, "White"), Array("up", 12.0, "White"), Array("up", 13.0, "White")))
+
+    val tuple = (1307598546000L, vmap)
+    
+    val bytes = Json.encode(tuple)
+    val json = new String(bytes)
+    println("\n========= tuple encode ==============")
+    println(json)
+
+    println("\n========= tuple decode ==============")
+    val jsonObj = Json.decode(json)
+    println(jsonObj)
   }
 }

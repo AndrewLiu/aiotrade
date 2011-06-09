@@ -92,6 +92,14 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
     write('}')
   }
 
+  def write(t: scala.Tuple2[_, Any]) {
+    write('{')
+    jsonWrite(t._1.toString)
+    write(':')
+    jsonWrite(t._2)
+    write('}')
+  }
+
   /**
    * write field or pair
    */
@@ -119,6 +127,7 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
       case x: collection.Seq[_] => write(x)
       case x: collection.Map[String, _] => write(x)
       case x: JsonSerializable => write(x)
+      case x: scala.Tuple2[_, _] => write(x)
       case _ => throw new UnsupportedOperationException(value + " cannot be json serialized")
     }
   }
