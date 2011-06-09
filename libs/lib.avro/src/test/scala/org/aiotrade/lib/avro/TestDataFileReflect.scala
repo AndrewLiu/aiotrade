@@ -122,10 +122,10 @@ object TestDataFileReflect {
    */
   @throws(classOf[IOException])
   def testNull() {
-    val fos = new FileOutputStream(FILE);
+    val fos = new FileOutputStream(FILE)
 
     val reflectData = ReflectData.AllowNull
-    val schema = reflectData.getSchema(classOf[BarRecord]);
+    val schema = reflectData.getSchema(classOf[BarRecord])
     val writer = new DataFileWriter[BarRecord](ReflectDatumWriter[BarRecord](classOf[BarRecord], reflectData)).create(schema, fos);
 
     // test writing to a file

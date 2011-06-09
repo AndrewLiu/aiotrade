@@ -75,7 +75,7 @@ object MainTest {
   
   def testJsonMap[T](schemaDesc: String, vmap: T) {
     println("\n========= Json ============= ")
-    //val schema = ReflectData.get).getSchema(vmap.getClass)
+    //val schema = ReflectData.get.getSchema(vmap.getClass)
     val schema = org.apache.avro.Schema.parse(schemaDesc)
     println(schema.toString)
     
@@ -95,9 +95,9 @@ object MainTest {
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
-  def testAvroMap[T](schemaDesc: String, vmap: T) {
+  def testAvroMap[T <: AnyRef](schemaDesc: String, vmap: T) {
     println("\n========= Avro ============= ")
-    //val schema = ReflectData.get).getSchema(vmap.getClass)
+    //val schema = ReflectData.get.getSchema(vmap.getClass)
     val schema = org.apache.avro.Schema.parse(schemaDesc)
     println(schema.toString)
     
