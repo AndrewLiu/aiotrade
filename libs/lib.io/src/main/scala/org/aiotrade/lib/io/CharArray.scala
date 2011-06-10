@@ -52,7 +52,7 @@ class CharArray(private var buf: Array[Char], private var off: Int, private var 
   }
 
   protected def resize(len:Int) {
-    val newBuf = new Array[Char](Math.max(buf.length << 1, len))
+    val newBuf = new Array[Char](math.max(buf.length << 1, len))
     Array.copy(buf, off, newBuf, 0, length)
     buf = newBuf
   }
