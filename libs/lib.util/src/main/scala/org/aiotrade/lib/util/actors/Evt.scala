@@ -241,7 +241,15 @@ object Evt {
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); Int.MinValue
     }
-  } 
+  }
+  
+  /**
+   * A utility method to see the reflected schame of a class
+   */
+  def printSchema(x: Class[_]) {
+    val schema = ReflectData.get.getSchema(x)
+    println(schema)
+  }
   
   // -- simple test
   def main(args: Array[String]) {
@@ -250,7 +258,7 @@ object Evt {
     testVmap
   }
   
-  def testMatch {
+  private def testMatch {
     object StrEvt extends Evt[String](-1)
     object IntEvt extends Evt[Int](-2)
     object ArrEvt extends Evt[Array[String]](-3)
@@ -336,6 +344,8 @@ object Evt {
   
   private def testObject {
     object TestDataEvt extends Evt[TestData](-100)
+
+    printSchema(classOf[TestData])
     
     val data = TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))
     val evt = TestDataEvt(data)
@@ -351,7 +361,7 @@ object Evt {
   
   private def testVmap {
     object TestVmapEvt extends Evt[collection.Map[String, Array[_]]](-101) {override def schemaJson = """
-      {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
+      {"type": "map", "values": {"type": "array", "items": ["long", "double", "string", {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.Evt$","fields":[{"name":"a","type":"string"},{"name":"b","type":"int"},{"name":"c","type":"double"},{"name":"d","type":{"type":"array","items":"float"}}]}]}}
       """
     }
     
@@ -359,16 +369,19 @@ object Evt {
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
     vmap.put("b", Array("a", "b", "c"))
+    vmap.put("c", Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
     
     val evt = TestVmapEvt(vmap)
 
     val avroBytes = toAvro(evt)
-    val avroDatum = fromAvro(avroBytes)
+    val avroDatum = fromAvro(avroBytes).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(avroDatum)
+    avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
     val jsonBytes = toJson(evt)
-    val jsonDatum = fromJson(jsonBytes)
+    val jsonDatum = fromJson(jsonBytes).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(jsonDatum)    
+    jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
   private case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
