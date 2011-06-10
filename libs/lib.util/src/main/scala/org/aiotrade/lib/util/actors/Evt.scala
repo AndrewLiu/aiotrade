@@ -78,10 +78,10 @@ import scala.collection.mutable
 
 case class Msg[T](tag: Int, value: T)
 
-abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
+abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = null)(implicit m: Manifest[T]) {
   type ValType = T
   
-  private val valueClassParams = m.typeArguments map (_.erasure)
+  private val valueTypeParams = m.typeArguments map (_.erasure)
   val valueClass = m.erasure
   
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
@@ -100,11 +100,6 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
   }
   
   /**
-   * override it for custom json
-   */
-  protected def schemaJson: String = null
-  
-  /**
    * Return the evt message that is to be passed to. the evt message is wrapped in
    * a tuple in form of (tag, evtValue)
    */
@@ -121,7 +116,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
       // we will do 1-level type arguments check, and won't deep check t's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
-          val t = valueClassParams.head
+          val t = valueTypeParams.head
           val vs = x.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(t, vs.next)) 
@@ -130,7 +125,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
           Some(value)
         case x: Product if ClassHelper.isTuple(x) =>
           val vs = x.productIterator
-          val ts = valueClassParams.iterator
+          val ts = valueTypeParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
@@ -154,7 +149,7 @@ object Evt {
   
   def valueClassOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.valueClass}
   def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.schema} getOrElse NullSchema
-  def allEvts = tagToEvt.values
+  def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1).toString)}
  
   def toAvro[T](msg: Msg[T]): Array[Byte] = {
     val tag = msg.tag
@@ -251,11 +246,30 @@ object Evt {
     println(schema)
   }
   
+  def prettyPrint(evts: collection.Iterable[Evt[_]]): String = {
+    val sb = new StringBuffer
+    
+    sb.append("\n================ APIs ==============")
+    evts foreach {evt =>
+      sb.append("\n==============================")
+      sb.append("\n\nName:       \n    ").append(evt.getClass.getName)
+      sb.append("\n\nValue Class:\n    ").append(evt.valueClass.getName)
+      sb.append("\n\nParamters:  \n    ").append(evt.doc)
+      sb.append("\n\nSchema:     \n    ").append(evt.schema.toString)
+      sb.append("\n\n")
+    }
+    sb.append("\n================ End of APIs ==============")
+    
+    sb.toString
+  }
+  
   // -- simple test
   def main(args: Array[String]) {
     testMatch
     testObject
     testVmap
+    
+    println(prettyPrint(tagToEvt map (_._2)))
   }
   
   private def testMatch {
@@ -263,7 +277,7 @@ object Evt {
     object IntEvt extends Evt[Int](-2)
     object ArrEvt extends Evt[Array[String]](-3)
     object LstEvt extends Evt[List[String]](-4)
-    object MulEvt extends Evt[(Int, String, Double)](-5, "id, name, value")
+    object MulEvt extends Evt[(Int, String, Double)](-5, "id, name, value", schemaJson = """{"type": "array", "items":["int", "double", "string"]}""")
     object EmpEvt extends Evt(-10) // T will be AnyRef
     object EmpEvt2 extends Evt[Unit](-11)
     
@@ -273,8 +287,6 @@ object Evt {
     println(ArrEvt)
     println(LstEvt)
     println(MulEvt)
-    
-    allEvts foreach println
     
     val goodEvtMsgs = List(
       EmpEvt,
@@ -360,10 +372,9 @@ object Evt {
   }
   
   private def testVmap {
-    object TestVmapEvt extends Evt[collection.Map[String, Array[_]]](-101) {override def schemaJson = """
-      {"type": "map", "values": {"type": "array", "items": ["long", "double", "string", {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.Evt$","fields":[{"name":"a","type":"string"},{"name":"b","type":"int"},{"name":"c","type":"double"},{"name":"d","type":{"type":"array","items":"float"}}]}]}}
-      """
-    }
+    object TestVmapEvt extends Evt[collection.Map[String, Array[_]]](-101, schemaJson = """
+      {"type":"map","values":{"type":"array","items":["long","double","string",{"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.Evt$","fields":[{"name":"a","type":"string"},{"name":"b","type":"int"},{"name":"c","type":"double"},{"name":"d","type":{"type":"array","items":"float"}}]}]}}
+    """)
     
     val vmap = new mutable.HashMap[String, Array[_]]
     vmap.put(".", Array(1L, 2L, 3L))
