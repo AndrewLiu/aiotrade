@@ -21,7 +21,6 @@ package org.aiotrade.lib.avro
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.avro.Schema
@@ -181,7 +180,7 @@ object TestDataFileReflect {
     writer.append(l.addAndReturn(o));
   }
 
-  private class CheckList[T] extends ArrayList[T] {
+  private class CheckList[T] extends java.util.ArrayList[T] {
     def addAndReturn(check: T): T = {
       add(check);
       return check;

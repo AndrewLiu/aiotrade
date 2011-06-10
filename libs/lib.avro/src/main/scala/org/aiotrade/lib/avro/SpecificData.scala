@@ -20,9 +20,9 @@ object SpecificData {
 }
 
 /** Utilities for generated Java classes and interfaces. */
-import org.aiotrade.lib.util.ClassHelper._
-import SpecificData._
 class SpecificData protected () extends GenericData {
+  import ClassHelper._
+  import SpecificData._
   import Schema.Type._
 
   private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]]()

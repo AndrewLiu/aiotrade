@@ -91,7 +91,7 @@ object MainTest {
     
     // decode to scala map
     val decoder = JsonDecoder(schema, json)
-    val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
+    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
     val map = reader.read(null, decoder)
 
     println("\ndecoded ==>")

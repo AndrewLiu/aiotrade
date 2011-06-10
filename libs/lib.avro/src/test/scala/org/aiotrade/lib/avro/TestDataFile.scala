@@ -2,7 +2,6 @@ package org.aiotrade.lib.avro
 
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
 import java.util.Random
 import java.util.logging.Logger
 import org.apache.avro.Schema
@@ -55,7 +54,7 @@ object TestDataFile {
   }
 
   def codecs = {
-    val r = new ArrayList[Array[Object]]()
+    val r = new java.util.ArrayList[Array[Object]]()
     r.add(Array( null ))
     r.add(Array( CodecFactory.deflateCodec(0) ))
     r.add(Array( CodecFactory.deflateCodec(1) ))
@@ -142,7 +141,7 @@ object TestDataFile {
     val reader = new DataFileReader[Object](file, GenericDatumReader[Object]())
     try {
       // discover the sync points
-      val syncs = new ArrayList[Long]()
+      val syncs = new java.util.ArrayList[Long]()
       var previousSync = -1L
       while (reader.hasNext) {
         if (reader.previousSync() != previousSync) {

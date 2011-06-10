@@ -28,9 +28,15 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
 
   @throws(classOf[IOException])
   override protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
-    super.readArray(old, expected, in) match {
+    super.doReadArray(old, expected, in) match {
       case xs: immutable.Seq[Any] => xs.reverse
-      case xs => xs
+      case xs => 
+        if (ReflectData.getClassProp(expected, ReflectData.CLASS_PROP) == null) {
+          // expected native array @see GenericDatumReader#newArray
+          toNativeArray(expected.getElementType.getType, xs.asInstanceOf[mutable.ArrayBuffer[_]])
+        } else {
+          xs
+        }
     }
   }
   
@@ -41,17 +47,22 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
           case null => ReflectData.get.getClass(schema.getElementType)
           case x => x
         }
-        java.lang.reflect.Array.newInstance(elementClass, size)
+        super.newArray(elementClass, old, size, schema)
       case collectionClass => 
-        if (old.isInstanceOf[java.util.Collection[_]]) {
-          old.asInstanceOf[java.util.Collection[_]].clear
-          old
-        } else {
-          if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]])) {
-            new java.util.ArrayList()
-          } else {
-            SpecificDatumReader.newInstance(collectionClass.asInstanceOf[Class[AnyRef]], schema)
-          }
+        old match {
+          case xs: java.util.Collection[_] => xs.clear; xs
+          case xs: mutable.ArrayBuffer[_] => xs.clear; xs
+          case xs: mutable.ListBuffer[_] => xs.clear; xs
+          case _ =>
+            if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]])) {
+              new java.util.ArrayList()
+            } else if (collectionClass.isAssignableFrom(classOf[mutable.ListBuffer[_]])) {
+              new mutable.ListBuffer()
+            } else if (collectionClass.isAssignableFrom(classOf[List[_]])) {
+              Nil
+            } else {
+              super.newArray(old, size, schema)
+            }
         }
     }
   }
@@ -62,9 +73,10 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
   override protected def addToArray(array: Any, pos: Long, e: Any): Any = {
     array match {
       case xs: java.util.Collection[AnyRef] => xs.add(e.asInstanceOf[AnyRef]); xs
-      case xs: mutable.Seq[_] => xs.:+(e)   // append to end
+      case xs: mutable.ArrayBuffer[Any] => xs += e
+      case xs: mutable.Seq[_]   => xs.:+(e) // append to end
       case xs: immutable.Seq[_] => xs.+:(e) // insert in front
-      case xs => java.lang.reflect.Array.set(array, pos.toInt, e); xs
+      case xs => java.lang.reflect.Array.set(array, pos.toInt, e); xs // it's better not use it (for json)
     }
   }
 

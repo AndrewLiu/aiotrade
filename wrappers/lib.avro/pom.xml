@@ -50,11 +50,6 @@
                     <groupId>net.lag</groupId>
                     <artifactId>configgy</artifactId>
                 </exclusion>
-
-                <exclusion>
-                    <groupId>org.aiotrade</groupId>
-                    <artifactId>lib-util</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         
