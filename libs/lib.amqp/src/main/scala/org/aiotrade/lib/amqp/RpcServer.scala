@@ -90,11 +90,39 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
             val replyProps = if (reply.props != null) reply.props else new AMQP.BasicProperties
             
             replyProps.setCorrelationId(reqProps.getCorrelationId)
-            publish(exchange, reqProps.getReplyTo, replyProps, reply.body)
+            publish("", reqProps.getReplyTo, replyProps, reply.body)
           }
       }
     }
     
+    /**
+     * @return AMQPMessage that will be send back to caller
+     */
+    protected def handle(req: Any): AMQPMessage
+  }
+
+  /**
+   * Handler with the concrete exchange when publish back to client
+   */
+  abstract class HandlerWithSpecificExchange extends Processor {
+
+    /**
+     * @return AMQPMessage that will be send back to caller
+     */
+    protected def process(msg: AMQPMessage) {
+      msg match {
+        case AMQPMessage(req: Any, reqProps)  =>
+          if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
+            val reply = handle(req)
+            // If replyPropreties is set to replyContent then we use it, otherwise create a new one
+            val replyProps = if (reply.props != null) reply.props else new AMQP.BasicProperties
+
+            replyProps.setCorrelationId(reqProps.getCorrelationId)
+            publish(exchange, reqProps.getReplyTo, replyProps, reply.body)
+          }
+      }
+    }
+
     /**
      * @return AMQPMessage that will be send back to caller
      */
