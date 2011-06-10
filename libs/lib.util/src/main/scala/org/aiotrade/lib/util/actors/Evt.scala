@@ -88,12 +88,21 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
   Evt.tagToEvt(tag) = this
     
   /**
-   * Avro schema: a Json String, We can implement a generic method by reflect 'tpe',
-   * you can also override it to ge custom json
+   * Avro schema: we've implement a reflect schema.
+   * you can also override 'schemaJson' to ge custom json
    */
-  def schema: Schema = {
-    ReflectData.get.getSchema(valueClass)
+  lazy val schema: Schema = {
+    if (schemaJson != null) {
+      Schema.parse(schemaJson)
+    } else {
+      ReflectData.get.getSchema(valueClass)
+    }
   }
+  
+  /**
+   * override it for custom json
+   */
+  protected def schemaJson: String = null
   
   /**
    * Return the evt message that is to be passed to. the evt message is wrapped in
@@ -238,6 +247,7 @@ object Evt {
   def main(args: Array[String]) {
     testMatch
     testObject
+    testVmap
   }
   
   def testMatch {
@@ -331,12 +341,34 @@ object Evt {
     val evt = TestDataEvt(data)
 
     val avroBytes = toAvro(evt)
-    val avroData = fromAvro(avroBytes)
-    println(avroData)
+    val avroDatum = fromAvro(avroBytes)
+    println(avroDatum)
     
     val jsonBytes = toJson(evt)
-    val jsonData = fromJson(jsonBytes)
-    println(jsonData)    
+    val jsonDatum = fromJson(jsonBytes)
+    println(jsonDatum)    
+  }
+  
+  private def testVmap {
+    object TestVmapEvt extends Evt[collection.Map[String, Array[_]]](-101) {override def schemaJson = """
+      {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
+      """
+    }
+    
+    val vmap = new mutable.HashMap[String, Array[_]]
+    vmap.put(".", Array(1L, 2L, 3L))
+    vmap.put("a", Array(1.0, 2.0, 3.0))
+    vmap.put("b", Array("a", "b", "c"))
+    
+    val evt = TestVmapEvt(vmap)
+
+    val avroBytes = toAvro(evt)
+    val avroDatum = fromAvro(avroBytes)
+    println(avroDatum)
+    
+    val jsonBytes = toJson(evt)
+    val jsonDatum = fromJson(jsonBytes)
+    println(jsonDatum)    
   }
   
   private case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {

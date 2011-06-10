@@ -31,6 +31,7 @@
 package org.aiotrade.lib.avro
 
 import java.io.ByteArrayOutputStream
+import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
@@ -46,7 +47,7 @@ object MainTest {
   }
   
   def testJavaVMap {
-    val schemaDesc = """
+    val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double"]}}
     """
     
@@ -55,12 +56,12 @@ object MainTest {
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
 
-    testJsonMap(schemaDesc, vmap)
-    testAvroMap(schemaDesc, vmap)
+    testJsonMap(schemaJson, vmap)
+    testAvroMap(schemaJson, vmap)
   }
   
   def testScalaVMap {
-    val schemaDesc = """
+    val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
     """
     
@@ -70,14 +71,14 @@ object MainTest {
     vmap.put("a", Array(1.0, 2.0, 3.0))
     vmap.put("b", Array("a", "b", "c"))
 
-    testJsonMap(schemaDesc, vmap)
-    testAvroMap(schemaDesc, vmap)
+    testJsonMap(schemaJson, vmap)
+    testAvroMap(schemaJson, vmap)
   }
   
   def testJsonMap[T](schemaDesc: String, vmap: T) {
     println("\n========= Json ============= ")
     //val schema = ReflectData.get.getSchema(vmap.getClass)
-    val schema = org.apache.avro.Schema.parse(schemaDesc)
+    val schema = Schema.parse(schemaDesc)
     println(schema.toString)
     
     // encode a map
@@ -101,7 +102,7 @@ object MainTest {
   def testAvroMap[T <: AnyRef](schemaDesc: String, vmap: T) {
     println("\n========= Avro ============= ")
     //val schema = ReflectData.get.getSchema(vmap.getClass)
-    val schema = org.apache.avro.Schema.parse(schemaDesc)
+    val schema = Schema.parse(schemaDesc)
     println(schema.toString)
     
     // encode a map
