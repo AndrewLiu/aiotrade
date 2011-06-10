@@ -30,7 +30,16 @@
  */
 package org.aiotrade.lib.util.actors
 
+import java.io.ByteArrayOutputStream
+import org.aiotrade.lib.avro.JsonDecoder
+import org.aiotrade.lib.avro.JsonEncoder
+import org.aiotrade.lib.avro.ReflectData
+import org.aiotrade.lib.avro.ReflectDatumReader
+import org.aiotrade.lib.avro.ReflectDatumWriter
 import org.aiotrade.lib.util.ClassHelper
+import org.apache.avro.Schema
+import org.apache.avro.io.DecoderFactory
+import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
 
 /**
@@ -48,7 +57,7 @@ import scala.collection.mutable
  * 3. The serialization size of evt message is smaller.
  * 4. We can pattern match it via named extract, or via regural Tuple match 
  * 
- * @param [T] the type of the evt value. 
+ * @param [T] the type of the evt body. 
  *        For list, although we support collection.Seq[_] type of T, but it's better 
  *        to use JVM type safed Array[_], since we here have to check all elements 
  *        of value to make sure the pattern match won't be cheated. 
@@ -59,12 +68,38 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
+
+case class Msg[T](tag: Int, value: T) {
+  def schema = Evt.schemaOf(tag)
+  
+  def toAvro: Array[Byte] = {
+    val bao = new ByteArrayOutputStream()
+    bao.write(tag)
+    
+    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
+    val writer = ReflectDatumWriter[T](schema)
+    writer.write(value, encoder)
+    encoder.flush()
+    bao.toByteArray
+  }
+  
+  def toJson: Array[Byte] = {
+    val bao = new ByteArrayOutputStream()
+    bao.write(tag)
+    
+    val encoder = JsonEncoder(schema, bao)
+    val writer = ReflectDatumWriter[T](schema)
+    writer.write(value, encoder)
+    encoder.flush()
+    bao.toByteArray
+  }
+}
+
 abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
   type ValType = T
-  type MsgType = (Int, T)
   
-  private val typeParams = m.typeArguments map (_.erasure)
-  val typeClass = m.erasure
+  private val valueClassParams = m.typeArguments map (_.erasure)
+  val valueClass = m.erasure
   
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
   Evt.tagToEvt(tag) = this
@@ -73,13 +108,15 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
    * Avro schema: a Json String, We can implement a generic method by reflect 'tpe',
    * you can also override it to ge custom json
    */
-  def schema: String = "" // todo
+  def schema: Schema = {
+    ReflectData.get.getSchema(valueClass)
+  }
   
   /**
    * Return the evt message that is to be passed to. the evt message is wrapped in
    * a tuple in form of (tag, evtValue)
    */
-  def apply(evtVal: T): (Int, T) = (tag, evtVal)
+  def apply(evtVal: T): Msg[T] = Msg[T](tag, evtVal)
 
   /** 
    * @Note Since T is erasued after compiled, should check type of evt message 
@@ -88,11 +125,11 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
    * to generate wrong code for match {case .. case ..}
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
-    case (`tag`, value: T) if ClassHelper.isInstance(typeClass, value) =>
+    case Msg(`tag`, value: T) if ClassHelper.isInstance(valueClass, value) =>
       // we will do 1-level type arguments check, and won't deep check t's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
-          val t = typeParams.head
+          val t = valueClassParams.head
           val vs = x.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(t, vs.next)) 
@@ -101,7 +138,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
           Some(value)
         case x: Product if ClassHelper.isTuple(x) =>
           val vs = x.productIterator
-          val ts = typeParams.iterator
+          val ts = valueClassParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
@@ -113,17 +150,53 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
   }
   
   override def toString = {
-    "Evt(tag=" + tag + ", tpe=" + typeClass + ", doc=\"" + doc + "\")"
+    "Evt(tag=" + tag + ", tpe=" + valueClass + ", doc=\"" + doc + "\")"
   }
 }
 
 object Evt {
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
+  private val NullSchema = Schema.create(Schema.Type.NULL)
   
-  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.typeClass}
-  def schemaOf(tag: Int): Option[String] = tagToEvt.get(tag) map {_.schema}
+  def valueClassOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.valueClass}
+  def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.schema} getOrElse NullSchema
   def allEvts = tagToEvt.values
-    
+ 
+  private def readTag(bytes: Array[Byte]): Int = {
+    if (bytes.length > 4) {
+      val byteBuf = java.nio.ByteBuffer.wrap(bytes)
+      byteBuf.getInt
+    } else Int.MinValue
+  }
+  
+  def fromAvro(bytes: Array[Byte]) = {
+    val tag = readTag(bytes)
+    valueClassOf(tag) match {
+      case Some(x) => fromValueAvro(x, schemaOf(tag), bytes)
+      case _ => null
+    }
+  }
+  
+  private def fromValueAvro[T](valueClass: Class[T], schema: Schema, bytes: Array[Byte]): T = {
+    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
+    val reader = ReflectDatumReader[T](schema)
+    reader.read(null.asInstanceOf[T], decoder)
+  }
+  
+  def fromJson(bytes: Array[Byte]) = {
+    val tag = readTag(bytes)
+    valueClassOf(tag) match {
+      case Some(x) => fromValueJson(x, schemaOf(tag), bytes)
+      case _ => null
+    }
+  }
+  
+  private def fromValueJson[T](valueClass: Class[T], schema: Schema, bytes: Array[Byte]): T = {
+    val decoder = JsonDecoder(schema, new String(bytes, "UTF-8"))
+    val reader = ReflectDatumReader[T](schema)
+    reader.read(null.asInstanceOf[T], decoder)
+  }
+  
   // -- simple test
   def main(args: Array[String]) {
     object StrEvt extends Evt[String](-1)
@@ -156,13 +229,13 @@ object Evt {
     )
 
     val badEvtMsgs = List(
-      (-1, 8),
-      (-2, "a"),
-      (-3, Array(8, "a")),
-      (-3, Array(8, 8)),
-      (-4, List(1, "a")),
-      (-5, (8, "a")),
-      (-5, (8, 8, 8))
+      Msg(-1, 8),
+      Msg(-2, "a"),
+      Msg(-3, Array(8, "a")),
+      Msg(-3, Array(8, 8)),
+      Msg(-4, List(1, "a")),
+      Msg(-5, (8, "a")),
+      Msg(-5, (8, 8, 8))
     )
     
     println("\n==== good evt messages: ")
@@ -186,12 +259,12 @@ object Evt {
      */
     def regularMatch(v: Any) = v match {
       case EmpEvt => println("Matched emp evt"); true
-      case (EmpEvt2.tag, aval: EmpEvt2.ValType) => println("Matched emp evt2"); true
-      case (StrEvt.tag, aval: StrEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case (IntEvt.tag, aval: IntEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case (ArrEvt.tag, aval: ArrEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case (LstEvt.tag, aval: LstEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case (MulEvt.tag, aval: MulEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(EmpEvt2.tag, aval: EmpEvt2.ValType) => println("Matched emp evt2"); true
+      case Msg(StrEvt.tag, aval: StrEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(IntEvt.tag, aval: IntEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(ArrEvt.tag, aval: ArrEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(LstEvt.tag, aval: LstEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(MulEvt.tag, aval: MulEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case _ => println("Unmatched: " + v); false
     }
     

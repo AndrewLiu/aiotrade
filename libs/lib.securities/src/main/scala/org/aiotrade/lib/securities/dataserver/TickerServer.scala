@@ -63,7 +63,7 @@ case class DepthSnap (
 
 object TickerServer extends Publisher {
   // snap evts
-  object TickerEvt     extends Evt[Ticker](0, "ticker") {override def schema = "todo"}
+  object TickerEvt     extends Evt[Ticker](0, "ticker")
   object TickersEvt    extends Evt[Array[LightTicker]](1, "tickers")
   object ExecutionEvt  extends Evt[(Double, Execution)](2, "prevClose, execution")
   object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)

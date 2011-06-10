@@ -242,7 +242,6 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
       case BOOLEAN => xs.asInstanceOf[mutable.ArrayBuffer[Boolean]].toArray
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
-
   }
 
   /** Called by the default implementation of {@link #readArray} to retrieve a
