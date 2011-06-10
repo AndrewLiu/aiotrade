@@ -30,7 +30,14 @@
  */
 package org.aiotrade.lib.util.actors
 
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.avro.JsonDecoder
 import org.aiotrade.lib.avro.JsonEncoder
 import org.aiotrade.lib.avro.ReflectData
@@ -69,31 +76,7 @@ import scala.collection.mutable
  * @author Caoyuan Deng
  */
 
-case class Msg[T](tag: Int, value: T) {
-  def schema = Evt.schemaOf(tag)
-  
-  def toAvro: Array[Byte] = {
-    val bao = new ByteArrayOutputStream()
-    bao.write(tag)
-    
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(value, encoder)
-    encoder.flush()
-    bao.toByteArray
-  }
-  
-  def toJson: Array[Byte] = {
-    val bao = new ByteArrayOutputStream()
-    bao.write(tag)
-    
-    val encoder = JsonEncoder(schema, bao)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(value, encoder)
-    encoder.flush()
-    bao.toByteArray
-  }
-}
+case class Msg[T](tag: Int, value: T)
 
 abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T]) {
   type ValType = T
@@ -155,6 +138,8 @@ abstract class Evt[T](val tag: Int, val doc: String = "")(implicit m: Manifest[T
 }
 
 object Evt {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
   private val NullSchema = Schema.create(Schema.Type.NULL)
   
@@ -162,43 +147,100 @@ object Evt {
   def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.schema} getOrElse NullSchema
   def allEvts = tagToEvt.values
  
-  private def readTag(bytes: Array[Byte]): Int = {
-    if (bytes.length > 4) {
-      val byteBuf = java.nio.ByteBuffer.wrap(bytes)
-      byteBuf.getInt
-    } else Int.MinValue
-  }
-  
-  def fromAvro(bytes: Array[Byte]) = {
-    val tag = readTag(bytes)
-    valueClassOf(tag) match {
-      case Some(x) => fromValueAvro(x, schemaOf(tag), bytes)
-      case _ => null
+  def toAvro[T](msg: Msg[T]): Array[Byte] = {
+    val tag = msg.tag
+    val schema = schemaOf(tag)
+    try {
+      val bao = new ByteArrayOutputStream()
+      val out = new DataOutputStream(bao)
+      out.writeInt(msg.tag)
+    
+      val encoder = EncoderFactory.get.binaryEncoder(out, null)
+      val writer = ReflectDatumWriter[T](schema)
+      writer.write(msg.value, encoder)
+      encoder.flush()
+      bao.toByteArray
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
     }
   }
   
-  private def fromValueAvro[T](valueClass: Class[T], schema: Schema, bytes: Array[Byte]): T = {
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
+  def toJson[T](msg: Msg[T]): Array[Byte] = {
+    val tag = msg.tag
+    val schema = schemaOf(tag)
+    try {
+      val bao = new ByteArrayOutputStream()
+      val out = new DataOutputStream(bao)
+      out.writeInt(tag)
+    
+      val encoder = JsonEncoder(schema, out)
+      val writer = ReflectDatumWriter[T](schema)
+      writer.write(msg.value, encoder)
+      encoder.flush()
+      bao.toByteArray
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
+    }
+  }
+  
+  def fromAvro(bytes: Array[Byte]): Option[Any] = {
+    val in = new DataInputStream(new ByteArrayInputStream(bytes))
+    val tag = readTag(in)
+    valueClassOf(tag) match {
+      case Some(x) => 
+        try {
+          Option(fromValueAvro(x, schemaOf(tag), in))
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex); None
+        }
+      case _ => None
+    }
+  }
+  
+  @throws(classOf[IOException])
+  private def fromValueAvro[T](valueClass: Class[T], schema: Schema, in: InputStream): T = {
+    val decoder = DecoderFactory.get.binaryDecoder(in, null)
     val reader = ReflectDatumReader[T](schema)
     reader.read(null.asInstanceOf[T], decoder)
   }
   
-  def fromJson(bytes: Array[Byte]) = {
-    val tag = readTag(bytes)
+  @throws(classOf[IOException])
+  def fromJson(bytes: Array[Byte]): Option[Any] = {
+    val in = new DataInputStream(new ByteArrayInputStream(bytes))
+    val tag = readTag(in)
     valueClassOf(tag) match {
-      case Some(x) => fromValueJson(x, schemaOf(tag), bytes)
-      case _ => null
+      case Some(x) => 
+        try {
+          Option(fromValueJson(x, schemaOf(tag), in))
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex); None
+        }
+      case _ => None
     }
   }
   
-  private def fromValueJson[T](valueClass: Class[T], schema: Schema, bytes: Array[Byte]): T = {
-    val decoder = JsonDecoder(schema, new String(bytes, "UTF-8"))
+  @throws(classOf[IOException])
+  private def fromValueJson[T](valueClass: Class[T], schema: Schema, in: InputStream): T = {
+    val decoder = JsonDecoder(schema, in)
     val reader = ReflectDatumReader[T](schema)
     reader.read(null.asInstanceOf[T], decoder)
   }
+  
+  private def readTag(in: DataInputStream): Int = {
+    try {
+      in.readInt
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); Int.MinValue
+    }
+  } 
   
   // -- simple test
   def main(args: Array[String]) {
+    testMatch
+    testObject
+  }
+  
+  def testMatch {
     object StrEvt extends Evt[String](-1)
     object IntEvt extends Evt[Int](-2)
     object ArrEvt extends Evt[Array[String]](-3)
@@ -280,5 +322,24 @@ object Evt {
       case MulEvt(aint: Int, astr: String, adou: Double) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
       case _ => println("Unmatched: " + v); false
     }
+  }
+  
+  private def testObject {
+    object TestDataEvt extends Evt[TestData](-100)
+    
+    val data = TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))
+    val evt = TestDataEvt(data)
+
+    val avroBytes = toAvro(evt)
+    val avroData = fromAvro(avroBytes)
+    println(avroData)
+    
+    val jsonBytes = toJson(evt)
+    val jsonData = fromJson(jsonBytes)
+    println(jsonData)    
+  }
+  
+  private case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
+    def this() = this(null, 0, 0.0, Array())
   }
 }
