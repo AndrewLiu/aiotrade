@@ -76,6 +76,11 @@ object ClassHelper {
   val SqlTimeClass = classOf[java.sql.Time]
   val SqlTimestampClass = classOf[java.sql.Timestamp]
 
+  // scala> classOf[Int] == java.lang.Integer.TYPE
+  // res17: Boolean = true
+  // scala> classOf[Int] eq java.lang.Integer.TYPE
+  // res18: Boolean = true
+
   val BooleanType = java.lang.Boolean.TYPE
   val ByteType = java.lang.Byte.TYPE
   val ShortType = java.lang.Short.TYPE
