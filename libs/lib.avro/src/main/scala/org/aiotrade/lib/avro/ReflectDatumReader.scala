@@ -7,6 +7,10 @@ import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.io.Decoder
 
+import scala.collection.mutable
+import org.apache.avro.io.ResolvingDecoder
+import scala.collection.immutable
+
 
 object ReflectDatumReader {
   def apply[T](writer: Schema, reader: Schema, data: ReflectData) = new ReflectDatumReader[T](writer, reader, data)
@@ -22,32 +26,47 @@ object ReflectDatumReader {
  */
 class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: ReflectData) extends SpecificDatumReader[T](writer, reader, data) {
 
-  /** @TODO */
-//  override protected def newArray(old: Any, size: Int, schema: Schema): Any = {
-//    val collectionClass = ReflectData.getClassProp(schema, ReflectData.CLASS_PROP)
-//    if (collectionClass != null) {
-//      if (old.isInstanceOf[java.util.Collection[_]]) {
-//        (old.asInstanceOf[java.util.Collection[_]]).clear
-//        return old
-//      }
-//      if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]]))
-//        return new java.util.ArrayList()
-//      return SpecificDatumReader.newInstance(collectionClass.asInstanceOf[Class[AnyRef]], schema)
-//    }
-//    var elementClass = ReflectData.getClassProp(schema, ReflectData.ELEMENT_PROP)
-//    if (elementClass == null) {
-//      elementClass = ReflectData.get.getClass(schema.getElementType)
-//    }
-//    java.lang.reflect.Array.newInstance(elementClass, size)
-//  }
-//
-//  override protected def addToArray(array: Any, pos: Long, e: Any) {
-//    if (array.isInstanceOf[java.util.Collection[_]]) {
-//      array.asInstanceOf[java.util.Collection[AnyRef]].add(e.asInstanceOf[AnyRef])
-//    } else {
-//      java.lang.reflect.Array.set(array, pos.toInt, e)
-//    }
-//  }
+  @throws(classOf[IOException])
+  override protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
+    super.readArray(old, expected, in) match {
+      case xs: immutable.Seq[Any] => xs.reverse
+      case xs => xs
+    }
+  }
+  
+  override protected def newArray(old: Any, size: Int, schema: Schema): Any = {
+    ReflectData.getClassProp(schema, ReflectData.CLASS_PROP) match {
+      case null => // use native array
+        val elementClass = ReflectData.getClassProp(schema, ReflectData.ELEMENT_PROP) match {
+          case null => ReflectData.get.getClass(schema.getElementType)
+          case x => x
+        }
+        java.lang.reflect.Array.newInstance(elementClass, size)
+      case collectionClass => 
+        if (old.isInstanceOf[java.util.Collection[_]]) {
+          old.asInstanceOf[java.util.Collection[_]].clear
+          old
+        } else {
+          if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]])) {
+            new java.util.ArrayList()
+          } else {
+            SpecificDatumReader.newInstance(collectionClass.asInstanceOf[Class[AnyRef]], schema)
+          }
+        }
+    }
+  }
+
+  /**
+   * @Todo how about immutable seq?
+   */
+  override protected def addToArray(array: Any, pos: Long, e: Any): Any = {
+    array match {
+      case xs: java.util.Collection[AnyRef] => xs.add(e.asInstanceOf[AnyRef]); xs
+      case xs: mutable.Seq[_] => xs.:+(e)   // append to end
+      case xs: immutable.Seq[_] => xs.+:(e) // insert in front
+      case xs => java.lang.reflect.Array.set(array, pos.toInt, e); xs
+    }
+  }
 
   override protected def peekArray(array: Any): Any = null
 
@@ -77,7 +96,7 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
 
   @throws(classOf[IOException])
   override protected def readBytes(old: Any, in: Decoder): Any = {
-    val bytes = in.readBytes(null);
+    val bytes = in.readBytes(null)
     val result = new Array[Byte](bytes.remaining)
     bytes.get(result)
     result
@@ -86,7 +105,8 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
   @throws(classOf[IOException])
   override protected def readInt(old: Any, expected: Schema, in: Decoder): Int = {
     val value = in.readInt()
-    if (classOf[Short].getName == expected.getProp(ReflectData.CLASS_PROP))
+    val classProp = expected.getProp(ReflectData.CLASS_PROP)
+    if (classOf[Short].getName == classProp || classOf[java.lang.Short].getName == classProp)
       value.toShort
     else
       value

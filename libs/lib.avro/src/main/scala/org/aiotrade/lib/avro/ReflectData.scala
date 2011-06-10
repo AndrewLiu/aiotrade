@@ -226,17 +226,16 @@ class ReflectData protected() extends SpecificData {
   def getClass(schema: Schema): Class[_] = {
     import Schema.Type._
     schema.getType match {
-      case ARRAY =>
-        val collectionClass = ReflectData.getClassProp(schema, ReflectData.CLASS_PROP)
-        if (collectionClass != null)
-          collectionClass
-        else
-          java.lang.reflect.Array.newInstance(getClass(schema.getElementType), 0).getClass
+      case ARRAY => ReflectData.getClassProp(schema, ReflectData.CLASS_PROP) match {
+          case null => java.lang.reflect.Array.newInstance(getClass(schema.getElementType), 0).getClass
+          case collectionClass => collectionClass
+        }
       case MAP => classOf[collection.Map[_, _]]
       case STRING => classOf[String]
       case BYTES => ReflectData.BYTES_CLASS
       case INT =>
-        if (classOf[Short].getName.equals(schema.getProp(ReflectData.CLASS_PROP)))
+        val classProp = schema.getProp(ReflectData.CLASS_PROP)
+        if (classOf[Short].getName == classProp || classOf[java.lang.Short].getName == classProp)
           java.lang.Short.TYPE
         else 
           super.getClass(schema)
@@ -280,12 +279,14 @@ class ReflectData protected() extends SpecificData {
           return super.createSchema(tpe, names)
       
         if (c.isArray) { // array
-          val component = c.getComponentType
-          if (component == java.lang.Byte.TYPE) return Schema.create(Schema.Type.BYTES) // byte array
-          
-          val result = Schema.createArray(createSchema(component, names))
-          setElement(result, component)
-          return result
+          c.getComponentType match {
+            case ByteType => 
+              return Schema.create(Schema.Type.BYTES) // byte array
+            case component => 
+              val result = Schema.createArray(createSchema(component, names))
+              setElement(result, component)
+              return result
+          }
         }
       
         if (classOf[CharSequence].isAssignableFrom(c)) return Schema.create(Schema.Type.STRING) // String
@@ -338,7 +339,7 @@ class ReflectData protected() extends SpecificData {
         }
         return schema
     }
-    return super.createSchema(tpe, names)
+    super.createSchema(tpe, names)
   }
 
   // if array element type is a class with a union annotation, note it
@@ -383,8 +384,8 @@ class ReflectData protected() extends SpecificData {
               nameToFields.put(name, field)
             }
           }
-          c = c.getSuperclass
         }
+        c = c.getSuperclass
       }
     } while (c != null && !break)
     nameToFields.values

@@ -41,6 +41,7 @@ object MainTest {
     val t0 = System.currentTimeMillis
     testJavaVMap
     testScalaVMap
+    testReflectClass
     println("Finished in " + (System.currentTimeMillis - t0) + "ms")
   }
   
@@ -92,6 +93,8 @@ object MainTest {
     val decoder = JsonDecoder(schema, json)
     val reader = AvroDatumReader[collection.Map[String, Array[_]]](schema)
     val map = reader.read(null, decoder)
+
+    println("\ndecoded ==>")
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
@@ -113,6 +116,51 @@ object MainTest {
     val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
     val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
     val map = reader.read(null, decoder)
+    
+    println("\ndecoded ==>")
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
+  }
+  
+  def testReflectClass {
+    val instance = new Ticker
+    instance.flag = 0
+    println("\n==== before ===")
+    println(instance)
+
+    val schema = ReflectData.get.getSchema(instance.getClass)
+    println(schema.toString)
+    
+    // encode
+    val bao = new ByteArrayOutputStream()
+    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
+    val writer = ReflectDatumWriter[Ticker](schema)
+    writer.write(instance, encoder)
+    encoder.flush()
+    val bytes= bao.toByteArray
+    
+    // decode
+    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
+    val reader = ReflectDatumReader[Ticker](schema)
+    val decoded = reader.read(null, decoder)
+
+    println("\n==== after ===")
+    println(decoded)
+  }
+  
+  
+  class Ticker {
+    private val data = Array(1.0, 2.0)
+    
+    @transient
+    var flag: Byte = 10
+    
+    val open = 8.0
+    private val high = 10.0f
+    
+    var close = 10.1
+    private var volumn = 100
+    
+    override def toString = 
+      "Ticker(data=" + data.mkString("[", ",", "]") + ", flag=" + flag + ", open=" + open + ", close=" + close + ", high=" + high +  ")"
   }
 }

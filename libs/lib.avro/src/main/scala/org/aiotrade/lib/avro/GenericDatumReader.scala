@@ -3,7 +3,6 @@ package org.aiotrade.lib.avro
 import java.io.IOException;
 
 import java.nio.ByteBuffer
-import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray
@@ -22,9 +21,9 @@ import scala.collection.mutable
 object GenericDatumReader {
   private val RESOLVER_CACHE = new ThreadLocal[java.util.Map[Schema, java.util.Map[Schema, ResolvingDecoder]]]() {
     override protected def initialValue: java.util.Map[Schema, java.util.Map[Schema, ResolvingDecoder]] = {
-        new WeakIdentityHashMap[Schema, java.util.Map[Schema, ResolvingDecoder]]()
-      }
+      new WeakIdentityHashMap[Schema, java.util.Map[Schema, ResolvingDecoder]]()
     }
+  }
 
   /** Skip an instance of a schema. */
   @throws(classOf[IOException])
@@ -209,11 +208,11 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     var l = in.readArrayStart()
     var base = 0L
     val result = if (l > 0) {
-      val array = newArray(old, l.toInt, expected)
+      var array = newArray(old, l.toInt, expected)
       do {
         var i = -1
         while ({i += 1; i < l}) {
-          addToArray(array, base + i, read(peekArray(array), expectedType, in))
+          array = addToArray(array, base + i, read(peekArray(array), expectedType, in))
         }
         base += l
       } while ({l = in.arrayNext; l > 0})
@@ -221,7 +220,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     } else {
       newArray(old, 0, expected)
     }
-    result.toArray
+    result
   }
 
   /** Called by the default implementation of {@link #readArray} to retrieve a
@@ -236,8 +235,9 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
 
   /** Called by the default implementation of {@link #readArray} to add a
    * value.  The default implementation is for {@link Collection}.*/
-  protected def addToArray(array: Any, pos: Long, e: Any) {
-    array.asInstanceOf[ArrayList[Any]] += e
+  protected def addToArray(array: Any, pos: Long, e: Any): Any = {
+    array.asInstanceOf[Array[Any]](pos.toInt) = e
+    array
   }
 
   /** Called to read a map instance.  May be overridden for alternate map
@@ -308,73 +308,73 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   /** Called to create new array instances.  Subclasses may override to use a
    * different array implementation.  By default, this returns a {@link
    * Array}.*/
-  protected def newArray(old: Any, size: Int, schema: Schema): ArrayList[_] = {
-    import Schema.Type._
-    schema.getElementType.getType match {
-      case RECORD | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL => new ArrayList[AnyRef](size)
-      case INT =>     new ArrayList[Int](size)
-      case ENUM =>    new ArrayList[Int](size)
-      case LONG =>    new ArrayList[Long](size)
-      case FLOAT =>   new ArrayList[Float](size)
-      case DOUBLE =>  new ArrayList[Double](size)
-      case BOOLEAN => new ArrayList[Boolean](size)
-      case _ => throw new AvroRuntimeException("Unknown type: " + expected)
+   protected def newArray(old: Any, size: Int, schema: Schema): Any = {
+      import Schema.Type._
+      schema.getElementType.getType match {
+        case RECORD | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL => new Array[AnyRef](size)
+        case INT =>     new Array[Int](size)
+        case ENUM =>    new Array[Int](size)
+        case LONG =>    new Array[Long](size)
+        case FLOAT =>   new Array[Float](size)
+        case DOUBLE =>  new Array[Double](size)
+        case BOOLEAN => new Array[Boolean](size)
+        case _ => throw new AvroRuntimeException("Unknown type: " + expected)
+      }
     }
-  }
 
-  /** Called to create new array instances.  Subclasses may override to use a
-   * different map implementation.  By default, this returns a {@link
-   * HashMap}.*/
-  protected def newMap(old: Any, size: Int): Any = {
-    old match {
-      case x: mutable.HashMap[_, _] => x.clear; old
-      case _ => new mutable.HashMap[AnyRef, AnyRef]
+   /** Called to create new array instances.  Subclasses may override to use a
+    * different map implementation.  By default, this returns a {@link
+    * HashMap}.*/
+   protected def newMap(old: Any, size: Int): Any = {
+      old match {
+        case x: mutable.HashMap[_, _] => x.clear; old
+        case _ => new mutable.HashMap[AnyRef, AnyRef]
+      }
     }
-  }
 
-  /** Called to read strings.  Subclasses may override to use a different
-   * string representation.  By default, this calls {@link
-   * #readString(AnyRef,Decoder)}.*/
-  @throws(classOf[IOException])
-  protected def readString(old: Any, expected: Schema, in: Decoder): Any = {
-    readString(old, in)
-  }
-  /** Called to read strings.  Subclasses may override to use a different
-   * string representation.  By default, this calls {@link
-   * Decoder#readString(Utf8)}.*/
-  @throws(classOf[IOException])
-  protected def readString(old: Any, in: Decoder): Any = {
-    in.readString(if (old.isInstanceOf[Utf8]) old.asInstanceOf[Utf8] else null)
-  }
+   /** Called to read strings.  Subclasses may override to use a different
+    * string representation.  By default, this calls {@link
+    * #readString(AnyRef,Decoder)}.*/
+   @throws(classOf[IOException])
+   protected def readString(old: Any, expected: Schema, in: Decoder): Any = {
+      readString(old, in)
+    }
+   /** Called to read strings.  Subclasses may override to use a different
+    * string representation.  By default, this calls {@link
+    * Decoder#readString(Utf8)}.*/
+   @throws(classOf[IOException])
+   protected def readString(old: Any, in: Decoder): Any = {
+      in.readString(if (old.isInstanceOf[Utf8]) old.asInstanceOf[Utf8] else null)
+    }
 
-  /** Called to create a string from a default value.  Subclasses may override
-   * to use a different string representation.  By default, this calls {@link
-   * Utf8#Utf8(String)}.*/
-  protected def createString(value: String): Any = { 
-    new Utf8(value)
-  }
+   /** Called to create a string from a default value.  Subclasses may override
+    * to use a different string representation.  By default, this calls {@link
+    * Utf8#Utf8(String)}.*/
+   protected def createString(value: String): Any = { 
+      new Utf8(value)
+    }
 
-  /** Called to read byte arrays.  Subclasses may override to use a different
-   * byte array representation.  By default, this calls {@link
-   * Decoder#readBytes(ByteBuffer)}.*/
-  @throws(classOf[IOException])
-  protected def readBytes(old: Any, in: Decoder): Any = {
-    in.readBytes(if (old.isInstanceOf[ByteBuffer]) old.asInstanceOf[ByteBuffer] else null)
-  }
+   /** Called to read byte arrays.  Subclasses may override to use a different
+    * byte array representation.  By default, this calls {@link
+    * Decoder#readBytes(ByteBuffer)}.*/
+   @throws(classOf[IOException])
+   protected def readBytes(old: Any, in: Decoder): Any = {
+      in.readBytes(if (old.isInstanceOf[ByteBuffer]) old.asInstanceOf[ByteBuffer] else null)
+    }
 
-  /** Called to read integers.  Subclasses may override to use a different
-   * integer representation.  By default, this calls {@link
-   * Decoder#readInt()}.*/
-  @throws(classOf[IOException])
-  protected def readInt(old: Any, expected: Schema, in: Decoder): Int = {
-    in.readInt
-  }
+   /** Called to read integers.  Subclasses may override to use a different
+    * integer representation.  By default, this calls {@link
+    * Decoder#readInt()}.*/
+   @throws(classOf[IOException])
+   protected def readInt(old: Any, expected: Schema, in: Decoder): Int = {
+      in.readInt
+    }
 
-  /** Called to create byte arrays from default values.  Subclasses may
-   * override to use a different byte array representation.  By default, this
-   * calls {@link ByteBuffer#wrap(byte[])}.*/
-  protected def createBytes(value: Array[Byte]): Any = { 
-    ByteBuffer.wrap(value)
-  }
+   /** Called to create byte arrays from default values.  Subclasses may
+    * override to use a different byte array representation.  By default, this
+    * calls {@link ByteBuffer#wrap(byte[])}.*/
+   protected def createBytes(value: Array[Byte]): Any = { 
+      ByteBuffer.wrap(value)
+    }
 
-}
+   }
