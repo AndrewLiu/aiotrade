@@ -34,8 +34,10 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.avro.JsonDecoder
@@ -45,6 +47,7 @@ import org.aiotrade.lib.avro.ReflectDatumReader
 import org.aiotrade.lib.avro.ReflectDatumWriter
 import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
+import org.apache.avro.io.BinaryData
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
@@ -90,8 +93,8 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
   Evt.tagToEvt(tag) = this
     
   /**
-   * Avro schema: we've implement a reflect schema.
-   * you can also override 'schemaJson' to ge custom json
+   * Avro schema of evt value: we've implemented a reflect schema.
+   * you can also override 'schemaJson' to get custom json
    */
   lazy val schema: Schema = {
     if (schemaJson != null) {
@@ -110,12 +113,12 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
   /** 
    * @Note Since T is erasued after compiled, should check type of evt message 
    * via Manifest instead of v.isInstanceOf[T]
-   * And, don't write as unapply(evtMsg: (Int, T)), which will confuse the compiler 
+   * And, don't write to unapply(evtMsg: (Int, T)), which will confuse the compiler 
    * to generate wrong code for match {case .. case ..}
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
     case Msg(`tag`, value: T) if ClassHelper.isInstance(valueClass, value) =>
-      // we will do 1-level type arguments check, and won't deep check t's type parameter anymore
+      // we will do 1-level type arguments check, and won't deep check it's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
           val t = valueTypeParams.head
@@ -159,7 +162,7 @@ object Evt {
     try {
       val bao = new ByteArrayOutputStream()
       val out = new DataOutputStream(bao)
-      out.writeInt(msg.tag)
+      writeTag(tag, out)
     
       val encoder = EncoderFactory.get.binaryEncoder(out, null)
       val writer = ReflectDatumWriter[T](schema)
@@ -177,7 +180,7 @@ object Evt {
     try {
       val bao = new ByteArrayOutputStream()
       val out = new DataOutputStream(bao)
-      out.writeInt(tag)
+      writeTag(tag, out)
     
       val encoder = JsonEncoder(schema, out)
       val writer = ReflectDatumWriter[T](schema)
@@ -189,17 +192,16 @@ object Evt {
     }
   }
   
-  def fromAvro(bytes: Array[Byte]): Option[Any] = {
-    val in = new DataInputStream(new ByteArrayInputStream(bytes))
-    val tag = readTag(in)
-    valueClassOf(tag) match {
-      case Some(x) => 
-        try {
-          Option(fromValueAvro(x, schemaOf(tag), in))
-        } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex); None
-        }
-      case _ => None
+  def fromAvro(bytes: Array[Byte]): Option[_] = {
+    try {
+      val in = new DataInputStream(new ByteArrayInputStream(bytes))
+      val tag = readTag(in)
+      valueClassOf(tag) match {
+        case Some(x) => Option(fromValueAvro(x, schemaOf(tag), in))
+        case _ => None
+      }
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); None
     }
   }
   
@@ -210,18 +212,16 @@ object Evt {
     reader.read(null.asInstanceOf[T], decoder)
   }
   
-  @throws(classOf[IOException])
-  def fromJson(bytes: Array[Byte]): Option[Any] = {
-    val in = new DataInputStream(new ByteArrayInputStream(bytes))
-    val tag = readTag(in)
-    valueClassOf(tag) match {
-      case Some(x) => 
-        try {
-          Option(fromValueJson(x, schemaOf(tag), in))
-        } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex); None
-        }
-      case _ => None
+  def fromJson(bytes: Array[Byte]): Option[_] = {
+    try {
+      val in = new DataInputStream(new ByteArrayInputStream(bytes))
+      val tag = readTag(in)
+      valueClassOf(tag) match {
+        case Some(x) => Option(fromValueJson(x, schemaOf(tag), in))
+        case _ => None
+      }
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); None
     }
   }
   
@@ -232,16 +232,37 @@ object Evt {
     reader.read(null.asInstanceOf[T], decoder)
   }
   
-  private def readTag(in: DataInputStream): Int = {
-    try {
-      in.readInt
-    } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); Int.MinValue
-    }
+  @throws(classOf[IOException])
+  private def writeTag(tag: Int, out: OutputStream) {
+    val buf = new Array[Byte](5) // max bytes is 5
+    val len = BinaryData.encodeInt(tag, buf, 0)
+    out.write(buf, 0, len)
+  }
+  
+  /** @see org.apache.avro.io.DirectBinaryDecoder#readInt */
+  @throws(classOf[IOException])
+  private def readTag(in: InputStream): Int = {
+    var n = 0
+    var b = 0
+    var shift = 0
+    do {
+      b = in.read()
+      if (b >= 0) {
+        n |= (b & 0x7F) << shift
+        if ((b & 0x80) == 0) {
+          return (n >>> 1) ^ -(n & 1) // back to two's-complement
+        }
+      } else {
+        throw new EOFException()
+      }
+      shift += 7
+    } while (shift < 32)
+    
+    throw new IOException("Invalid int encoding")
   }
   
   /**
-   * A utility method to see the reflected schame of a class
+   * A utility method to see the reflected schema of a class
    */
   def printSchema(x: Class[_]) {
     val schema = ReflectData.get.getSchema(x)
@@ -399,5 +420,6 @@ object Evt {
   
   private case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
     def this() = this(null, 0, 0.0, Array())
+    override def toString = "TestData(" + a + "," + b + "," + c + "," + d.mkString("[", ",", "]")
   }
 }
