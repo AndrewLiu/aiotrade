@@ -11,7 +11,6 @@ import java.util.Random
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.GenericData
-import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.util.Utf8
 import scala.collection.JavaConversions._
 
@@ -100,7 +99,7 @@ class RandomData(root: Schema, count: Int, seed: Long) extends java.lang.Iterabl
       System.exit(-1)
     }
     val sch = Schema.parse(new File(args(0)))
-    val writer = new DataFileWriter[Object](new GenericDatumWriter[Object]()).create(sch, new File(args(1)))
+    val writer = new DataFileWriter[Object](GenericDatumWriter[Object]()).create(sch, new File(args(1)))
     try {
       for (datum <- new RandomData(sch, Integer.parseInt(args(2)))) {
         writer.append(datum)

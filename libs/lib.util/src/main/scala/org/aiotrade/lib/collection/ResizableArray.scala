@@ -42,17 +42,7 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
 
   protected def makeArray(size: Int) = {
     val s = math.max(size, 1)
-    (m.toString match {
-        case "Byte"    => new Array[Byte](s)
-        case "Short"   => new Array[Short](s)
-        case "Char"    => new Array[Char](s)
-        case "Int"     => new Array[Int](s)
-        case "Long"    => new Array[Long](s)
-        case "Float"   => new Array[Float](s)
-        case "Double"  => new Array[Double](s)
-        case "Boolean" => new Array[Boolean](s)
-        case _ => new Array[A](s)
-      }).asInstanceOf[Array[A]]
+    new Array[A](s) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
   }
 
   protected var size0: Int = 0

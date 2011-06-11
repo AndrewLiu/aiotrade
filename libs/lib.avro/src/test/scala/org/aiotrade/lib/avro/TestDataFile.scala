@@ -2,17 +2,13 @@ package org.aiotrade.lib.avro
 
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
 import java.util.Random
 import java.util.logging.Logger
 import org.apache.avro.Schema
 import org.apache.avro.file.CodecFactory
 import org.apache.avro.file.DataFileReader
 import org.apache.avro.file.DataFileWriter
-import org.apache.avro.generic.GenericDatumReader
-import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.io.DatumReader
-import org.apache.avro.specific.SpecificDatumReader
 import scala.collection.JavaConversions._
 
 object TestDataFile {
@@ -48,17 +44,17 @@ object TestDataFile {
     log.info("Running with codec: " + codec)
 
     val projection: Schema = if (args.length > 1) Schema.parse(new File(args(1))) else null
-    readFile(input, new GenericDatumReader[Object](null, projection))
+    readFile(input, GenericDatumReader[Object](null, projection))
 
     val start = System.currentTimeMillis
     for (i <- 0 until 4) {
-      readFile(input, new GenericDatumReader[Object](null, projection))
+      readFile(input, GenericDatumReader[Object](null, projection))
     }
     println("Time: " + (System.currentTimeMillis - start))
   }
 
   def codecs = {
-    val r = new ArrayList[Array[Object]]()
+    val r = new java.util.ArrayList[Array[Object]]()
     r.add(Array( null ))
     r.add(Array( CodecFactory.deflateCodec(0) ))
     r.add(Array( CodecFactory.deflateCodec(1) ))
@@ -72,7 +68,7 @@ object TestDataFile {
   @throws(classOf[IOException])
   def testGenericWrite {
     val file = makeFile
-    val writer = new DataFileWriter[Object](new GenericDatumWriter[Object]()).setSyncInterval(syncInterval)
+    val writer = new DataFileWriter[Object](GenericDatumWriter[Object]()).setSyncInterval(syncInterval)
     if (codec != null) {
       writer.setCodec(codec)
     }
@@ -90,10 +86,9 @@ object TestDataFile {
     }
   }
 
-
   @throws(classOf[IOException])
   def testGenericRead {
-    val reader = new DataFileReader[Object](makeFile, new GenericDatumReader[Object])
+    val reader = new DataFileReader[Object](makeFile, GenericDatumReader[Object]())
     try {
       var datum: Object = null
       if (VALIDATE) {
@@ -116,7 +111,7 @@ object TestDataFile {
   @throws(classOf[IOException])
   def testSplits {
     val file = makeFile
-    val reader = new DataFileReader[Object](file, new GenericDatumReader[Object]())
+    val reader = new DataFileReader[Object](file, GenericDatumReader[Object]())
     val rand = new Random(SEED)
     try {
       val splits = 10                         // number of splits
@@ -143,10 +138,10 @@ object TestDataFile {
   @throws(classOf[IOException])
   def testSyncDiscovery {
     val file = makeFile
-    val reader = new DataFileReader[Object](file, new GenericDatumReader[Object]())
+    val reader = new DataFileReader[Object](file, GenericDatumReader[Object]())
     try {
       // discover the sync points
-      val syncs = new ArrayList[Long]()
+      val syncs = new java.util.ArrayList[Long]()
       var previousSync = -1L
       while (reader.hasNext) {
         if (reader.previousSync() != previousSync) {
@@ -172,7 +167,7 @@ object TestDataFile {
   def testGenericAppend {
     val file = makeFile
     val start = file.length
-    val writer = new DataFileWriter[Object](new GenericDatumWriter[Object]()).appendTo(file);
+    val writer = new DataFileWriter[Object](GenericDatumWriter[Object]()).appendTo(file);
     try {
       for (datum <- new RandomData(SCHEMA, COUNT, SEED+1)) {
         writer.append(datum)
@@ -180,7 +175,7 @@ object TestDataFile {
     } finally {
       writer.close
     }
-    val reader = new DataFileReader[Object](file, new GenericDatumReader[Object]());
+    val reader = new DataFileReader[Object](file, GenericDatumReader[Object]());
     try {
       reader.seek(start)
       var datum: Object = null
@@ -214,13 +209,13 @@ object TestDataFile {
     @throws(classOf[IOException])
     def testGeneratedGeneric {
       System.out.println("Reading with generic:")
-      readFiles(new GenericDatumReader[Object]())
+      readFiles(GenericDatumReader[Object]())
     }
 
     @throws(classOf[IOException])
     def testGeneratedSpecific {
       System.out.println("Reading with specific:")
-      readFiles(new SpecificDatumReader[Object]())
+      readFiles(SpecificDatumReader[Object]())
     }
 
     // Can't use same Interop.java as specific for reflect, since its stringField
