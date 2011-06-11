@@ -311,7 +311,7 @@ class MoneyFlow extends TVal with Flag with JsonSerializable {
   def writeJson(out: JsonOutputStreamWriter) {
     out.write("s", _uniSymbol)
     out.write(',')
-    out.write("t", time / 1000)
+    out.write("t", time)
     out.write(',')
     out.write("v", data)
   }
