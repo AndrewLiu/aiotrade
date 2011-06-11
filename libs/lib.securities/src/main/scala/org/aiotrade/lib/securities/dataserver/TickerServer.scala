@@ -132,10 +132,10 @@ abstract class TickerServer extends DataServer[Ticker] {
             } else {
               log.fine("subscribedSrcSymbols doesn't contain " + symbol)
             }
-          case None => log.warning("No sec for " + symbol)
+          case None => log.fine("No sec for " + symbol)
         }
       } else {
-        log.info("Discard ticker: " + ticker.symbol)
+        log.fine("Discard ticker: " + ticker.symbol)
       }
 
       i += 1
@@ -389,6 +389,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     }
     if (allDepthSnaps.length > 0) {
       TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
+      log.info("Published DepthSnapsEvt: " + allDepthSnaps.length)
     }
     if (allUpdatedDailyQuotes.length > 0) {
       TickerServer.publish(TickerServer.QuotesEvt(TFreq.DAILY, allUpdatedDailyQuotes.toArray))
