@@ -19,6 +19,8 @@ import org.aiotrade.lib.avro.ReflectDatumWriter
 import org.aiotrade.lib.util.actors.Evt
 import org.aiotrade.lib.util.actors.Msg
 import org.apache.avro.io.EncoderFactory
+import org.aiotrade.lib.json.Json
+import org.aiotrade.lib.json.JsonInputStreamReader
 
 object Serializer {
   /**
@@ -70,17 +72,12 @@ trait Serializer {
   }
   
   def encodeJson(content: Any): Array[Byte] = {
-    content match {
-      case msg: Msg[_] => Evt.toJson(msg)
-      case _ => Array[Byte]()
-    }
+    Json.encode(content)
   }
 
   def decodeJson(body: Array[Byte]): Any = {
-    Evt.fromJson(body) match {
-      case Some(x) => x
-      case None => null
-    }
+    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
+    jin.readObject
   }
 
   @throws(classOf[IOException])
