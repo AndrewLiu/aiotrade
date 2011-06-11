@@ -28,6 +28,12 @@
             <artifactId>amqp-client</artifactId>
             <version>${amqp.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
         
         <dependency>
             <groupId>org.aiotrade</groupId>
@@ -41,12 +47,6 @@
             <version>${project.version}</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>lib-json</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-avro</artifactId>

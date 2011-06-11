@@ -49,9 +49,19 @@
                     <groupId>org.scala-tools</groupId>
                     <artifactId>vscaladoc</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.aiotrade</groupId>
+                    <artifactId>lib-avro</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-scala-lang</artifactId>
@@ -60,6 +70,11 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>net-lag-configgy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-apache-avro</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
