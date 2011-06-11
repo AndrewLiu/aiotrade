@@ -3,9 +3,12 @@ package org.aiotrade.lib.securities.model
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.json.JsonOutputStreamWriter
+import org.aiotrade.lib.json.JsonSerializable
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
+import java.io.IOException
 
 object MoneyFlows1d extends MoneyFlows {
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
@@ -219,7 +222,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
  * The definition of "super/large/small block" will depond on amount
  */
 @serializable
-class MoneyFlow extends TVal with Flag {
+class MoneyFlow extends TVal with Flag with JsonSerializable {
   @transient var _sec: Sec = _
   def sec = _sec
   def sec_=(sec: Sec) {
@@ -304,4 +307,25 @@ class MoneyFlow extends TVal with Flag {
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
+  @throws(classOf[IOException])
+  def writeJson(out: JsonOutputStreamWriter) {
+    out.write("s", _uniSymbol)
+    out.write(',')
+    out.write("t", time / 1000)
+    out.write(',')
+    out.write("v", data)
+  }
+
+  @throws(classOf[IOException])
+  def readJson(fields: collection.Map[String, _]) {
+    _uniSymbol  = fields("s").asInstanceOf[String]
+    time    = fields("t").asInstanceOf[Long] * 1000
+    var vs  = fields("v").asInstanceOf[List[Number]]
+    var i = 0
+    while (!vs.isEmpty) {
+      data(i) = vs.head.doubleValue
+      vs = vs.tail
+      i += 1
+    }
+  }
 }

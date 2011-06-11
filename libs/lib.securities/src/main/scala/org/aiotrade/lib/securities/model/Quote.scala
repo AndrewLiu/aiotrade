@@ -38,7 +38,10 @@ import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.json.JsonOutputStreamWriter
+import org.aiotrade.lib.json.JsonSerializable
 import scala.collection.mutable
+import java.io.IOException
 
 object Quotes1d extends Quotes {
   private val logger = Logger.getLogger(this.getClass.getSimpleName)
@@ -268,7 +271,7 @@ abstract class Quotes extends Table[Quote] {
  * @author Caoyuan Deng
  */
 @serializable
-class Quote extends TVal with Flag {
+class Quote extends TVal with Flag with JsonSerializable {
   @transient var _sec: Sec = _
   def sec = _sec
   def sec_=(sec: Sec) {
@@ -334,6 +337,28 @@ class Quote extends TVal with Flag {
     close  = ticker.lastPrice
     volume = ticker.dayVolume
     amount = ticker.dayAmount
+  }
+
+  @throws(classOf[IOException])
+  def writeJson(out: JsonOutputStreamWriter) {
+    out.write("s", _uniSymbol)
+    out.write(',')
+    out.write("t", time / 1000)
+    out.write(',')
+    out.write("v", data)
+  }
+
+  @throws(classOf[IOException])
+  def readJson(fields: collection.Map[String, _]) {
+    _uniSymbol  = fields("s").asInstanceOf[String]
+    time    = fields("t").asInstanceOf[Long] * 1000
+    var vs  = fields("v").asInstanceOf[List[Number]]
+    var i = 0
+    while (!vs.isEmpty) {
+      data(i) = vs.head.doubleValue
+      vs = vs.tail
+      i += 1
+    }
   }
 
   override def toString = {
