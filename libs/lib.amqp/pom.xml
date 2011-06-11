@@ -49,12 +49,6 @@
         
         <dependency>
             <groupId>org.aiotrade</groupId>
-            <artifactId>lib-json</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.aiotrade</groupId>
             <artifactId>lib-avro</artifactId>
             <version>${project.version}</version>
         </dependency>

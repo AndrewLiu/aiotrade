@@ -54,17 +54,17 @@ import scala.collection.mutable
  * 
  * 'Evt' is actually the evt definition, or the API definition
  * 'T' is the type of evt value
- * '(Int, T)' is the type of each evt message (EvtMessage)
+ * 'Msg[T](Int, T)' is the type of each evt message
  * 
- * Instead of using case class as evt message, the design here uses a plain Tuple
- * as the evt message, so:
+ * Instead of using case class as each evt , the design here uses combination of 
+ * object Evt and case class Msg, so:
  * 1. It's easier to keep off from possible serialization issue for lots concrete classes
  * 2. The meta data such as 'doc', 'tpeClass' are stored in evt definition for
  *    each type of evt. Only the message data is stored in each evt message
  * 3. The serialization size of evt message is smaller.
  * 4. We can pattern match it via named extract, or via regural Tuple match 
  * 
- * @param [T] the type of the evt body. 
+ * @param [T] the type of the evt value. 
  *        For list, although we support collection.Seq[_] type of T, but it's better 
  *        to use JVM type safed Array[_], since we here have to check all elements 
  *        of value to make sure the pattern match won't be cheated. 
@@ -72,6 +72,7 @@ import scala.collection.mutable
  *        @see unapply
  * @param tag an unique id in int for this type of Evt
  * @param doc the document of this Evt
+ * @param schemaJson as the custom schema 
  * 
  * @author Caoyuan Deng
  */
@@ -80,6 +81,7 @@ case class Msg[T](tag: Int, value: T)
 
 abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = null)(implicit m: Manifest[T]) {
   type ValType = T
+  type MsgType = Msg[T]
   
   private val valueTypeParams = m.typeArguments map (_.erasure)
   val valueClass = m.erasure
@@ -103,7 +105,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
    * Return the evt message that is to be passed to. the evt message is wrapped in
    * a tuple in form of (tag, evtValue)
    */
-  def apply(evtVal: T): Msg[T] = Msg[T](tag, evtVal)
+  def apply(msgVal: T): Msg[T] = Msg[T](tag, msgVal)
 
   /** 
    * @Note Since T is erasued after compiled, should check type of evt message 

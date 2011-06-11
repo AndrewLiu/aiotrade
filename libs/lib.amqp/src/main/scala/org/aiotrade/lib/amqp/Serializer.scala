@@ -14,12 +14,10 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import org.aiotrade.lib.json.Json
-import org.aiotrade.lib.json.JsonInputStreamReader
 import org.aiotrade.lib.avro.ReflectData
-import org.aiotrade.lib.avro.ReflectDatumReader
 import org.aiotrade.lib.avro.ReflectDatumWriter
-import org.apache.avro.io.DecoderFactory
+import org.aiotrade.lib.util.actors.Evt
+import org.aiotrade.lib.util.actors.Msg
 import org.apache.avro.io.EncoderFactory
 
 object Serializer {
@@ -48,36 +46,41 @@ trait Serializer {
   }
 
   def encodeAvro(content: Any): Array[Byte] = {
-    val schema = ReflectData.get.getSchema(content.asInstanceOf[AnyRef].getClass)
-    //val schema = org.apache.avro.Schema.parse(schemaDesc)
-    val out = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(out, null)
-    val writer = ReflectDatumWriter[Any](schema)
-    writer.write(content, encoder)
-    encoder.flush()
-    val body = out.toByteArray
-    out.close
-    body
+    content match {
+      case msg: Msg[_] => Evt.toAvro(msg)
+      case _ =>
+        // best trying
+        val schema = ReflectData.get.getSchema(content.asInstanceOf[AnyRef].getClass)
+        val bao = new ByteArrayOutputStream()
+        val encoder = EncoderFactory.get.binaryEncoder(bao, null)
+        val writer = ReflectDatumWriter[Any](schema)
+        writer.write(content, encoder)
+        encoder.flush()
+        val body = bao.toByteArray
+        bao.close
+        body
+    }
   }
 
   def decodeAvro(body: Array[Byte]): Any = {
-    // @todo
-    val jsonSchema = """
-      {"type": "java.lang.Object", "fields": []}
-    """
-    val schema = org.apache.avro.Schema.parse(jsonSchema)
-    val decoder = DecoderFactory.get.binaryDecoder(body, null)
-    val reader = ReflectDatumReader[Any](schema)
-    reader.read(null, decoder)
+    Evt.fromAvro(body) match {
+      case Some(x) => x
+      case None => null
+    }
   }
   
   def encodeJson(content: Any): Array[Byte] = {
-    Json.encode(content)
+    content match {
+      case msg: Msg[_] => Evt.toJson(msg)
+      case _ => Array[Byte]()
+    }
   }
 
   def decodeJson(body: Array[Byte]): Any = {
-    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
-    jin.readObject
+    Evt.fromJson(body) match {
+      case Some(x) => x
+      case None => null
+    }
   }
 
   @throws(classOf[IOException])
