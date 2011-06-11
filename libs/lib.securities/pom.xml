@@ -56,6 +56,11 @@
             <artifactId>lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>lib-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- explicit inculde dependency on mysql jdbc -->
         <dependency>

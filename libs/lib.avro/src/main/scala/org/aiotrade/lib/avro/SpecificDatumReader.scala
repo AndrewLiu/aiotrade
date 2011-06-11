@@ -49,7 +49,7 @@ object SpecificDatumReader {
   def apply[T](writer: Schema, reader: Schema) = new SpecificDatumReader[T](writer, reader, SpecificData.get)
   /** Construct where the writer's and reader's schemas are the same. */
   def apply[T](schema: Schema) = new SpecificDatumReader[T](schema, schema, SpecificData.get)
-  def apply[T](c: Class[T]) = apply[T](SpecificData.get.getSchema(c))
+//  def apply[T](c: Class[T]) = apply[T](SpecificData.get.getSchema(c))
   def apply[T]() = new SpecificDatumReader[T](null, null, SpecificData.get)
 }
 

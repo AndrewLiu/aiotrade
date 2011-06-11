@@ -12,7 +12,7 @@ object ReflectDatumWriter {
   def apply[T]() = new ReflectDatumWriter[T](null, ReflectData.get)
   
   def apply[T](c: Class[T], data: ReflectData) = new ReflectDatumWriter[T](data.getSchema(c), data)
-  def apply[T](c: Class[T]) = apply[T](c, ReflectData.get)
+//  def apply[T](c: Class[T]) = apply[T](c, ReflectData.get)
 }
 
 /**
