@@ -613,13 +613,12 @@ class Exchange extends Ordered[Exchange] {
       } else if (timeInMinutes > lastClose) {
         status = Closed(time, timeInMinutes)
       } else {
-        var i = 0
-        while (i < openingPeriods.length && status == null) {
+        var i = -1
+        while ({i += 1; i < openingPeriods.length && status == null}) {
           val openingPeriod = openingPeriods(i)
           if (timeInMinutes >= openingPeriod._1 && timeInMinutes <= openingPeriod._2) {
             status = Opening(time, timeInMinutes)
           }
-          i += 1
         }
 
         if (status == null) {
@@ -727,8 +726,8 @@ class Exchange extends Ordered[Exchange] {
     if (quotesToClose.length > 0) {
       willCommit = true
 
-      var i = 0
-      while (i < quotesToClose.length) {
+      var i = -1
+      while ({i += 1; i < quotesToClose.length}) {
         val quote = quotesToClose(i)
         quote.closed_!
 
@@ -740,8 +739,6 @@ class Exchange extends Ordered[Exchange] {
             sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
           case _ =>
         }
-
-        i += 1
       }
 
       if (alsoSave) {
@@ -762,12 +759,10 @@ class Exchange extends Ordered[Exchange] {
     if (mfsToClose.length > 0) {
       willCommit = true
 
-      var i = 0
-      while (i < mfsToClose.length) {
+      var i = -1
+      while ({i += 1; i < mfsToClose.length}) {
         val mfs = mfsToClose(i)
         mfs.closed_!
-
-        i += 1
       }
 
       if (alsoSave) {

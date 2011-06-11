@@ -30,15 +30,13 @@ abstract class MoneyFlowServer extends DataServer[MoneyFlow] {
     val uniSymbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(uniSymbol).get
     log.info("Got Moneyflows from source of " + uniSymbol + "(" + contract.freq + "), size=" + mfs.length)
-    var i = 0
-    while (i < mfs.length) {
+    var i = -1
+    while ({i += 1; i < mfs.length}) {
       val mf = mfs(i)
       mf.sec = sec
       mf.unfromMe_!
       frTime = math.min(mf.time, frTime)
       toTime = math.max(mf.time, toTime)
-          
-      i += 1
     }
 
     val ser = contract.freq match {

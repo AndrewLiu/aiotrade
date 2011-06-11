@@ -60,15 +60,13 @@ abstract class QuoteServer extends DataServer[Quote] {
     val uniSymbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(uniSymbol).get
     log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
-    var i = 0
-    while (i < quotes.length) {
+    var i = -1
+    while ({i += 1; i < quotes.length}) {
       val quote = quotes(i)
       quote.sec = sec
       quote.unfromMe_!
       frTime = math.min(quote.time, frTime)
       toTime = math.max(quote.time, toTime)
-          
-      i += 1
     }
 
     val ser = contract.freq match {

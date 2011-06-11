@@ -42,11 +42,10 @@ final class MarketDepth(_bidAsks: Array[Double]) {
     if (that.length != _bidAsks.length) {
       return
     }
-    var i = 0
+    var i = -1
     val length = that.length
-    while (i < length) {
+    while ({i += 1; i < length}) {
       updateDepthValue(i, that(i))
-      i += 1
     }
   }
 

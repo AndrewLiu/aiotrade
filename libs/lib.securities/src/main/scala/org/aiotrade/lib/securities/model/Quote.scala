@@ -316,10 +316,9 @@ class Quote extends TVal with Flag {
   def reset {
     time = 0
     sourceId = 0
-    var i = 0
-    while (i < data.length) {
+    var i = -1
+    while ({i += 1; i < data.length}) {
       data(i) = 0
-      i += 1
     }
     hasGaps = false
   }

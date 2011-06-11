@@ -131,10 +131,9 @@ class LightTicker(val data: Array[Double]) extends TVal {
   def reset {
     time = 0
 
-    var i = 0
-    while (i < data.length) {
+    var i = -1
+    while ({i += 1; i < data.length}) {
       data(i) = 0
-      i += 1
     }
   }
 
@@ -149,12 +148,11 @@ class LightTicker(val data: Array[Double]) extends TVal {
   def export: (Long, List[Array[Double]]) = (time, List(data))
 
   def isValueChanged(another: LightTicker): Boolean = {
-    var i = 0
-    while (i < data.length) {
+    var i = -1
+    while ({i += 1; i < data.length}) {
       if (data(i) != another.data(i)) {
         return true
       }
-      i += 1
     }
 
     false
