@@ -221,7 +221,7 @@ abstract class TickerServer extends DataServer[Ticker] {
          *          |------------------|------------------->
          *          |<----- 1000 ----->|
          */
-        if (ticker.time + 1000 > lastTicker.time) { // 1000ms, @Note: we may add +1 to ticker.time later
+//        if (ticker.time + 1000 > lastTicker.time) { // 1000ms, @Note: we may add +1 to ticker.time later
           // some datasources only count on second, but we may truly have a new ticker
           if (ticker.time <= lastTicker.time) {
             ticker.time = lastTicker.time + 1 // avoid duplicate key
@@ -277,9 +277,9 @@ abstract class TickerServer extends DataServer[Ticker] {
             minQuote.amount += execution.amount
           }
 
-        } else {
-          log.warning("Discard invalid ticker: symbol=" + ticker.symbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
-        }
+//        } else {
+//          log.warning("Discard invalid ticker: symbol=" + ticker.symbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
+//        }
       }
 
 
