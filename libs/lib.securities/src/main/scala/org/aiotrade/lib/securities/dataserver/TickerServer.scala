@@ -112,8 +112,8 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     val secSnaps = new ArrayList[SecSnap]
     val tickersLast = new ArrayList[Ticker]
-    var i = 0
-    while (i < values.length) {
+    var i = -1
+    while ({i += 1; i < values.length}) {
       val ticker = values(i)
       val symbol = ticker.symbol
 
@@ -137,8 +137,6 @@ abstract class TickerServer extends DataServer[Ticker] {
       } else {
         log.info("Discard ticker: " + ticker.symbol)
       }
-
-      i += 1
     }
     
     (secSnaps, tickersLast)
@@ -167,8 +165,8 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     exchangeToLastTime.clear
 
-    var i = 0
-    while (i < secSnaps.length) {
+    var i = -1
+    while ({i += 1; i < secSnaps.length}) {
       val secSnap = secSnaps(i)
 
       val sec = secSnap.sec
@@ -313,8 +311,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         lastTicker.copyFrom(ticker)
         lastTime = math.max(lastTime, ticker.time)
       }
-
-      i += 1
     }
     
     /* else {

@@ -911,8 +911,8 @@ class SecSnap(val sec: Sec) {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
     dailyQuote match {
-      case one: Quote if one.time == rounded =>
-        one
+      case oldone: Quote if oldone.time == rounded =>
+        oldone
       case _ => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(sec, rounded)
         dailyQuote = newone
@@ -924,8 +924,8 @@ class SecSnap(val sec: Sec) {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
     dailyMoneyFlow match {
-      case one: MoneyFlow if one.time == rounded =>
-        one
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
       case _ => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
         dailyMoneyFlow = newone
@@ -936,8 +936,8 @@ class SecSnap(val sec: Sec) {
   private def checkMinuteQuoteAt(time: Long): Quote = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteQuote match {
-      case one: Quote if one.time == rounded =>
-        one
+      case oldone: Quote if oldone.time == rounded =>
+        oldone
       case _ => // minute changes or null
         val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
         minuteQuote = newone
@@ -948,8 +948,8 @@ class SecSnap(val sec: Sec) {
   private def checkMinuteMoneyFlowAt(time: Long): MoneyFlow = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteMoneyFlow match {
-      case one: MoneyFlow if one.time == rounded =>
-        one
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
       case _ => // minute changes or null
         val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
         minuteMoneyFlow = newone
@@ -963,9 +963,9 @@ class SecSnap(val sec: Sec) {
   private def checkLastTickerAt(time: Long): Ticker = {
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
-      case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
+      case oldone: Ticker if oldone.time >= rounded && oldone.time < rounded + ONE_DAY =>
         newTicker.isDayFirst = false
-        one
+        oldone
       case _ => // not today's one or null
         val newone = Tickers.lastTickerOf(sec, rounded)
         lastTicker = newone
