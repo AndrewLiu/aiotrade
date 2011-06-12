@@ -21,7 +21,7 @@ object RpcResponse {
 @serializable
 @SerialVersionUID(-9115442645150361620L)
 class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
-  override def toString = body.toString
+  override def toString = if (body == null) "null" else body.toString
 }
 
 /**
@@ -39,6 +39,6 @@ object AMQPMessage {
 
 @serializable
 class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
-  override def toString = body.toString
+  override def toString = if (body == null) "null" else body.toString
 }
 

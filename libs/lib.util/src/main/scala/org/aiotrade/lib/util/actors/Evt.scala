@@ -87,7 +87,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
   type MsgType = Msg[T]
   
   private val valueTypeParams = m.typeArguments map (_.erasure)
-  val valueClass = m.erasure
+  val valueType: Class[T] = m.erasure.asInstanceOf[Class[T]]
   
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
   Evt.tagToEvt(tag) = this
@@ -96,11 +96,11 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
    * Avro schema of evt value: we've implemented a reflect schema.
    * you can also override 'schemaJson' to get custom json
    */
-  lazy val schema: Schema = {
+  lazy val valueSchema: Schema = {
     if (schemaJson != null) {
       Schema.parse(schemaJson)
     } else {
-      ReflectData.get.getSchema(valueClass)
+      ReflectData.get.getSchema(valueType)
     }
   }
   
@@ -117,7 +117,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
    * to generate wrong code for match {case .. case ..}
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
-    case Msg(`tag`, value: T) if ClassHelper.isInstance(valueClass, value) =>
+    case Msg(`tag`, value: T) if ClassHelper.isInstance(valueType, value) =>
       // we will do 1-level type arguments check, and won't deep check it's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
@@ -142,7 +142,7 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
   }
   
   override def toString = {
-    "Evt(tag=" + tag + ", tpe=" + valueClass + ", doc=\"" + doc + "\")"
+    "Evt(tag=" + tag + ", tpe=" + valueType + ", doc=\"" + doc + "\")"
   }
 }
 
@@ -152,8 +152,12 @@ object Evt {
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
   private val NullSchema = Schema.create(Schema.Type.NULL)
   
-  def valueClassOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.valueClass}
-  def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.schema} getOrElse NullSchema
+  val NO_TAG = Int.MinValue
+  
+  def exists(tag: Int): Boolean = tagToEvt.get(tag).isDefined
+  def evtOf(tag: Int): Option[Evt[_]] = tagToEvt.get(tag)
+  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.valueType}
+  def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.valueSchema} getOrElse NullSchema
   def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1).toString)}
  
   def toAvro[T](msg: Msg[T]): Array[Byte] = {
@@ -162,7 +166,6 @@ object Evt {
     try {
       val bao = new ByteArrayOutputStream()
       val out = new DataOutputStream(bao)
-      writeTag(tag, out)
     
       val encoder = EncoderFactory.get.binaryEncoder(out, null)
       val writer = ReflectDatumWriter[T](schema)
@@ -180,7 +183,6 @@ object Evt {
     try {
       val bao = new ByteArrayOutputStream()
       val out = new DataOutputStream(bao)
-      writeTag(tag, out)
     
       val encoder = JsonEncoder(schema, out)
       val writer = ReflectDatumWriter[T](schema)
@@ -192,44 +194,38 @@ object Evt {
     }
   }
   
-  def fromAvro(bytes: Array[Byte]): Option[_] = {
+  def fromAvro(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
+    case Some(evt) => fromAvro(bytes, evt.valueSchema, evt.valueType)
+    case None => None
+  }
+
+  def fromJson(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
+    case Some(evt) => fromJson(bytes, evt.valueSchema, evt.valueType)
+    case None => None
+  }
+  
+  def fromAvro[T](bytes: Array[Byte], schema: Schema, valueType: Class[T]): Option[T] = {
     try {
       val in = new DataInputStream(new ByteArrayInputStream(bytes))
-      val tag = readTag(in)
-      valueClassOf(tag) match {
-        case Some(x) => Option(fromValueAvro(x, schemaOf(tag), in))
-        case _ => None
-      }
+      val decoder = DecoderFactory.get.binaryDecoder(in, null)
+      val reader = ReflectDatumReader[T](schema)
+      val value = reader.read(null.asInstanceOf[T], decoder)
+      Option(value)
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); None
     }
   }
-  
-  @throws(classOf[IOException])
-  private def fromValueAvro[T](valueClass: Class[T], schema: Schema, in: InputStream): T = {
-    val decoder = DecoderFactory.get.binaryDecoder(in, null)
-    val reader = ReflectDatumReader[T](schema)
-    reader.read(null.asInstanceOf[T], decoder)
-  }
-  
-  def fromJson(bytes: Array[Byte]): Option[_] = {
+    
+  def fromJson[T](bytes: Array[Byte], schema: Schema, valueType: Class[T]): Option[T] = {
     try {
       val in = new DataInputStream(new ByteArrayInputStream(bytes))
-      val tag = readTag(in)
-      valueClassOf(tag) match {
-        case Some(x) => Option(fromValueJson(x, schemaOf(tag), in))
-        case _ => None
-      }
+      val decoder = JsonDecoder(schema, in)
+      val reader = ReflectDatumReader[T](schema)
+      val value = reader.read(null.asInstanceOf[T], decoder)
+      Option(value)
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); None
     }
-  }
-  
-  @throws(classOf[IOException])
-  private def fromValueJson[T](valueClass: Class[T], schema: Schema, in: InputStream): T = {
-    val decoder = JsonDecoder(schema, in)
-    val reader = ReflectDatumReader[T](schema)
-    reader.read(null.asInstanceOf[T], decoder)
   }
   
   @throws(classOf[IOException])
@@ -276,9 +272,9 @@ object Evt {
     evts foreach {evt =>
       sb.append("\n==============================")
       sb.append("\n\nName:       \n    ").append(evt.getClass.getName)
-      sb.append("\n\nValue Class:\n    ").append(evt.valueClass.getName)
+      sb.append("\n\nValue Class:\n    ").append(evt.valueType.getName)
       sb.append("\n\nParamters:  \n    ").append(evt.doc)
-      sb.append("\n\nSchema:     \n    ").append(evt.schema.toString)
+      sb.append("\n\nSchema:     \n    ").append(evt.valueSchema.toString)
       sb.append("\n\n")
     }
     sb.append("\n================ End of APIs ==============")
@@ -386,11 +382,11 @@ object Evt {
     val evt = TestDataEvt(data)
 
     val avroBytes = toAvro(evt)
-    val avroDatum = fromAvro(avroBytes)
+    val avroDatum = fromAvro(avroBytes, evt.tag).get
     println(avroDatum)
     
     val jsonBytes = toJson(evt)
-    val jsonDatum = fromJson(jsonBytes)
+    val jsonDatum = fromJson(jsonBytes, evt.tag).get
     println(jsonDatum)    
   }
   
@@ -408,12 +404,12 @@ object Evt {
     val evt = TestVmapEvt(vmap)
 
     val avroBytes = toAvro(evt)
-    val avroDatum = fromAvro(avroBytes).get.asInstanceOf[collection.Map[String, Array[_]]]
+    val avroDatum = fromAvro(avroBytes, evt.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(avroDatum)
     avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
     val jsonBytes = toJson(evt)
-    val jsonDatum = fromJson(jsonBytes).get.asInstanceOf[collection.Map[String, Array[_]]]
+    val jsonDatum = fromJson(jsonBytes, evt.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(jsonDatum)    
     jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }

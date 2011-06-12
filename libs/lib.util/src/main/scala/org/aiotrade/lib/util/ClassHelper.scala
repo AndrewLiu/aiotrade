@@ -103,7 +103,7 @@ object ClassHelper {
     }
   }
   
-  def isInstance(t: Class[_], v: Any): Boolean = {
+  def isInstance[T](t: Class[T], v: Any): Boolean = {
     t match {
       case UnitClass => v.isInstanceOf[Unit] // corner case: classOf[Unit].isInstance(()) returns false, but, ().isInstanceOf[Unit] returns true
       case ByteClass => JByteClass.isInstance(v) || ByteClass.isInstance(v)

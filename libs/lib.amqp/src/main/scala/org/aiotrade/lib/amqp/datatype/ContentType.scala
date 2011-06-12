@@ -46,6 +46,8 @@ object ContentType {
   case object TEXT_HTML              extends CaseContentType("text", "html", DEFAULT_CHARSET)
   case object TEXT_PLAIN             extends CaseContentType("text", "plain", DEFAULT_CHARSET)
   case object AVRO                   extends CaseContentType("application", "avro", DEFAULT_CHARSET)
+  case object AVRO_BINARY            extends CaseContentType("avro", "binary", DEFAULT_CHARSET)
+  
   /**
    * Determines the best "Content-Type" header to use in a servlet response
    * based on the "Accept" header from a servlet request.

@@ -27,10 +27,7 @@ object Serializer {
    * encoder.SetDictionarySize(1 << 20) // 1048576
    */
   val lzmaProps = Array[Byte](93, 0, 0, 16, 0)
-}
-
-import Serializer._
-trait Serializer {
+  
   def encodeJava(content: Any): Array[Byte] = {
     val out = new ByteArrayOutputStream
     val oout = new ObjectOutputStream(out)
@@ -62,8 +59,8 @@ trait Serializer {
     }
   }
 
-  def decodeAvro(body: Array[Byte]): Any = {
-    Evt.fromAvro(body) match {
+  def decodeAvro(body: Array[Byte], tag: Int = Evt.NO_TAG): Any = {
+    Evt.fromAvro(body, tag) match {
       case Some(x) => x
       case None => null
     }
@@ -76,8 +73,8 @@ trait Serializer {
     }
   }
 
-  def decodeJson(body: Array[Byte]): Any = {
-    Evt.fromJson(body) match {
+  def decodeJson(body: Array[Byte], tag: Int = Evt.NO_TAG): Any = {
+    Evt.fromJson(body, tag) match {
       case Some(x) => x
       case None => null
     }

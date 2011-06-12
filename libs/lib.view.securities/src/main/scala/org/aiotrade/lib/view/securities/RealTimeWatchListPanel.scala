@@ -262,7 +262,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
   }
 
-  def updateByTickers(tickers: Array[LightTicker]) {
+  def updateByTickers(tickers: Array[Ticker]) {
     /*
      * To avoid:
      java.lang.NullPointerException
