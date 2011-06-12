@@ -10,10 +10,10 @@ import org.apache.avro.io.DatumWriter
 import org.apache.avro.io.Encoder
 
 object GenericDatumWriter {
-  def apply[T](root: Schema, data: GenericData) = new GenericDatumWriter[T](root, data)
-  def apply[T](root: Schema) = new GenericDatumWriter[T](root, GenericData.get)
-  def apply[T](data: GenericData) = new GenericDatumWriter[T](null, data)
-  def apply[T]() = new GenericDatumWriter[T](null, GenericData.get)
+  def apply[T](root: Schema, data: GenericData): GenericDatumWriter[T] = new GenericDatumWriter[T](root, data)
+  def apply[T](root: Schema): GenericDatumWriter[T] = new GenericDatumWriter[T](root, GenericData.get)
+  def apply[T](data: GenericData): GenericDatumWriter[T] = new GenericDatumWriter[T](null, data)
+  def apply[T](): GenericDatumWriter[T] = new GenericDatumWriter[T](null, GenericData.get)
 }
 
 /** {@link DatumWriter} for generic Java objects. */

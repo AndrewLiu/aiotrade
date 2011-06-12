@@ -74,11 +74,11 @@ object GenericDatumReader {
     }
   }
   
-  def apply[T](actual: Schema, expected: Schema, data: GenericData) = new GenericDatumReader[T](actual, expected, data)
-  def apply[T](actual: Schema, expected: Schema) = new GenericDatumReader[T](actual, expected, GenericData.get)
+  def apply[T](actual: Schema, expected: Schema, data: GenericData): GenericDatumReader[T] = new GenericDatumReader[T](actual, expected, data)
+  def apply[T](actual: Schema, expected: Schema): GenericDatumReader[T] = new GenericDatumReader[T](actual, expected, GenericData.get)
   /** Construct where the writer's and reader's schemas are the same. */
-  def apply[T](schema: Schema) = new GenericDatumReader[T](schema, schema, GenericData.get)
-  def apply[T]() = new GenericDatumReader[T](null, null, GenericData.get)
+  def apply[T](schema: Schema): GenericDatumReader[T] = new GenericDatumReader[T](schema, schema, GenericData.get)
+  def apply[T](): GenericDatumReader[T] = new GenericDatumReader[T](null, null, GenericData.get)
 }
 /** {@link DatumReader} for generic Java objects. */
 class GenericDatumReader[T] protected (private var actual: Schema, private var expected: Schema, data: GenericData) extends DatumReader[T] {
@@ -229,6 +229,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     }
   }
   
+  
   /** Called by the default implementation of {@link #readArray} to retrieve a
    * value from a reused instance.  The default implementation is for {@link
    * GenericArray}.*/
@@ -318,10 +319,10 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
    * different array implementation.  By default, this returns a {@link Array}
    */
   protected def newArray(old: Any, size: Int, schema: Schema): Any = {
-    newArray(classOf[AnyRef], old, size, schema)
+    newArray(old, size, schema, classOf[AnyRef])
   }
   
-  protected def newArray[T: Manifest](elementClass: Class[T], old: Any, size: Int, schema: Schema): Any = {
+  protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): Any = {
     import Schema.Type._
     schema.getElementType.getType match {
       case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)

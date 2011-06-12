@@ -39,7 +39,7 @@ import scala.collection.mutable
 object MainTest {
   
   def main(args: Array[String]) {
-    testArraySeq
+    testArrayBuffer
     
     val t0 = System.currentTimeMillis
     testJavaVMap
@@ -49,7 +49,7 @@ object MainTest {
     println("Finished in " + (System.currentTimeMillis - t0) + "ms")
   }
   
-  def testArraySeq {
+  def testArrayBuffer {
     // debug on it to see type of field array
     val alist = new ArrayList[Double]()
     val primitiveArray = alist.toArray
@@ -58,7 +58,19 @@ object MainTest {
     val abuff = new collection.mutable.ArrayBuffer[Double]()
     val objectArray = abuff.toArray
     println("The type of field array is still Object[]")
+    
+    
+    val tickers = new ArrayList[Ticker]()
+    tickers += new Ticker
+    val arr = tickers.toArray
+    var i = -1
+    while ({i += 1; i < arr.length}) {
+      val ticker = arr(i)
+      println(ticker)
+    }
   }
+  
+  
   
   def testJavaVMap {
     val schemaJson = """

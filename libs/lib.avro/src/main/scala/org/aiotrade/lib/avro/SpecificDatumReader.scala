@@ -45,12 +45,12 @@ object SpecificDatumReader {
   def enumValueOf[T <: Enum[T]](c: Class[_], name: String): Enum[_] =
     Enum.valueOf(c.asInstanceOf[Class[T]], name).asInstanceOf[Enum[_]]
 
-  def apply[T](writer: Schema, reader: Schema, data: SpecificData) = new SpecificDatumReader[T](writer, reader, data) 
-  def apply[T](writer: Schema, reader: Schema) = new SpecificDatumReader[T](writer, reader, SpecificData.get)
+  def apply[T](writer: Schema, reader: Schema, data: SpecificData): SpecificDatumReader[T] = new SpecificDatumReader[T](writer, reader, data) 
+  def apply[T](writer: Schema, reader: Schema): SpecificDatumReader[T] = new SpecificDatumReader[T](writer, reader, SpecificData.get)
   /** Construct where the writer's and reader's schemas are the same. */
-  def apply[T](schema: Schema) = new SpecificDatumReader[T](schema, schema, SpecificData.get)
-  def apply[T](c: Class[T]) = apply[T](SpecificData.get.getSchema(c))
-  def apply[T]() = new SpecificDatumReader[T](null, null, SpecificData.get)
+  def apply[T](schema: Schema): SpecificDatumReader[T] = new SpecificDatumReader[T](schema, schema, SpecificData.get)
+  def apply[T](c: Class[T]): SpecificDatumReader[T] = apply[T](SpecificData.get.getSchema(c))
+  def apply[T](): SpecificDatumReader[T] = new SpecificDatumReader[T](null, null, SpecificData.get)
 }
 
 /** {@link org.apache.avro.io.DatumReader DatumReader} for generated Java classes. */
