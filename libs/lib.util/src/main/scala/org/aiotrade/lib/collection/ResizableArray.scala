@@ -26,6 +26,7 @@ import scala.collection.mutable.IndexedSeqOptimized
  *  
  *  @author  Matthias Zenger, Burak Emir
  *  @author Martin Odersky
+ *  @author Caoyuan Deng
  *  @version 2.8
  *  @since   1
  */
@@ -35,6 +36,8 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
 
   protected implicit val m: Manifest[A]
   
+  protected val elementClass: Class[A]
+  
   override def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
@@ -42,7 +45,11 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
 
   protected def makeArray(size: Int) = {
     val s = math.max(size, 1)
-    new Array[A](s) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    if (elementClass != null) {
+      java.lang.reflect.Array.newInstance(elementClass, s).asInstanceOf[Array[A]]
+    } else {
+      new Array[A](s) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    }
   }
 
   protected var size0: Int = 0
