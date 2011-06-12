@@ -206,7 +206,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   @throws(classOf[IOException])
   protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
     val xs = doReadArray(old, expected, in)
-    toNativeArray(expected.getElementType.getType, xs.asInstanceOf[mutable.ArrayBuffer[_]])
+    xs.asInstanceOf[ArrayList[_]].toArray
   }
   
   final 
@@ -229,21 +229,6 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     }
   }
   
-  final 
-  protected def toNativeArray(elementType: Schema.Type, xs: mutable.ArrayBuffer[_]) = {
-    import Schema.Type._
-    elementType match {
-      case RECORD | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL => xs.asInstanceOf[mutable.ArrayBuffer[AnyRef]].toArray
-      case INT =>     xs.asInstanceOf[mutable.ArrayBuffer[Int]].toArray
-      case ENUM =>    xs.asInstanceOf[mutable.ArrayBuffer[Int]].toArray
-      case LONG =>    xs.asInstanceOf[mutable.ArrayBuffer[Long]].toArray
-      case FLOAT =>   xs.asInstanceOf[mutable.ArrayBuffer[Float]].toArray
-      case DOUBLE =>  xs.asInstanceOf[mutable.ArrayBuffer[Double]].toArray
-      case BOOLEAN => xs.asInstanceOf[mutable.ArrayBuffer[Boolean]].toArray
-      case _ => throw new AvroRuntimeException("Unknown type: " + expected)
-    }
-  }
-
   /** Called by the default implementation of {@link #readArray} to retrieve a
    * value from a reused instance.  The default implementation is for {@link
    * GenericArray}.*/
@@ -262,7 +247,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
    * we have to use appendable collection instead of a native array.
    */
   protected def addToArray(array: Any, pos: Long, e: Any): Any = {
-    array.asInstanceOf[mutable.ArrayBuffer[Any]] += e
+    array.asInstanceOf[ArrayList[Any]] += e
   }
 
   /** Called to read a map instance.  May be overridden for alternate map
@@ -339,13 +324,13 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   protected def newArray[T: Manifest](elementClass: Class[T], old: Any, size: Int, schema: Schema): Any = {
     import Schema.Type._
     schema.getElementType.getType match {
-      case RECORD | ARRAY | MAP | UNION  | FIXED | STRING | BYTES | NULL => new mutable.ArrayBuffer[T](size)
-      case INT =>     new mutable.ArrayBuffer[Int](size)
-      case ENUM =>    new mutable.ArrayBuffer[Int](size)
-      case LONG =>    new mutable.ArrayBuffer[Long](size)
-      case FLOAT =>   new mutable.ArrayBuffer[Float](size)
-      case DOUBLE =>  new mutable.ArrayBuffer[Double](size)
-      case BOOLEAN => new mutable.ArrayBuffer[Boolean](size)
+      case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)
+      case INT =>     new ArrayList[Int](size)
+      case ENUM =>    new ArrayList[Int](size)
+      case LONG =>    new ArrayList[Long](size)
+      case FLOAT =>   new ArrayList[Float](size)
+      case DOUBLE =>  new ArrayList[Double](size)
+      case BOOLEAN => new ArrayList[Boolean](size)
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
   }
@@ -356,7 +341,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   protected def newMap(old: Any, size: Int): Any = {
     old match {
       case x: mutable.HashMap[_, _] => x.clear; old
-      case _ => new mutable.HashMap[AnyRef, AnyRef]
+      case _ => new mutable.HashMap[Any, Any]
     }
   }
 

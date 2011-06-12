@@ -39,11 +39,25 @@ import scala.collection.mutable
 object MainTest {
   
   def main(args: Array[String]) {
+    testArraySeq
+    
     val t0 = System.currentTimeMillis
     testJavaVMap
     testScalaVMap
     testReflectClass
+    testReflectArrayOfClass
     println("Finished in " + (System.currentTimeMillis - t0) + "ms")
+  }
+  
+  def testArraySeq {
+    // debug on it to see type of field array
+    val alist = new ArrayList[Double]()
+    val primitiveArray = alist.toArray
+    println("The type of field array  should be double[]")
+    
+    val abuff = new collection.mutable.ArrayBuffer[Double]()
+    val objectArray = abuff.toArray
+    println("The type of field array is still Object[]")
   }
   
   def testJavaVMap {
@@ -142,6 +156,34 @@ object MainTest {
     // decode
     val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
     val reader = ReflectDatumReader[Ticker](schema)
+    val decoded = reader.read(null, decoder)
+
+    println("\n==== after ===")
+    println(decoded)
+  }
+  
+  def testReflectArrayOfClass {
+    val instance = new Ticker
+    instance.flag = 0
+    println("\n==== before ===")
+    println(instance)
+    
+    val instances = Array(instance)
+
+    val schema = ReflectData.get.getSchema(instances.getClass)
+    println(schema.toString)
+    
+    // encode
+    val bao = new ByteArrayOutputStream()
+    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
+    val writer = ReflectDatumWriter[Array[Ticker]](schema)
+    writer.write(instances, encoder)
+    encoder.flush()
+    val bytes= bao.toByteArray
+    
+    // decode
+    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
+    val reader = ReflectDatumReader[Array[Ticker]](schema)
     val decoded = reader.read(null, decoder)
 
     println("\n==== after ===")
