@@ -281,11 +281,10 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
   protected[avro] var array: Array[A] = makeArray(initialSize)
 
   protected def makeArray(size: Int) = {
-    val s = math.max(size, 1)
     if (elementClass != null) {
-      java.lang.reflect.Array.newInstance(elementClass, s).asInstanceOf[Array[A]]
+      java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
     } else {
-      new Array[A](s) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+      new Array[A](size) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
     }
   }
 
@@ -338,7 +337,9 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
     require(sz <= size0)
     while (size0 > sz) {
       size0 -= 1
-      array(size0) = null.asInstanceOf[A]
+      if (!m.erasure.isPrimitive) {
+        array(size0) = null.asInstanceOf[A]
+      }
     }
   }
 
