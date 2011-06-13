@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *  o Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ *    
+ *  o Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution. 
+ *    
+ *  o Neither the name of AIOTrade Computing Co. nor the names of 
+ *    its contributors may be used to endorse or promote products derived 
+ *    from this software without specific prior written permission. 
+ *    
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.aiotrade.lib.amqp
 
 import com.rabbitmq.client.AMQP
@@ -101,6 +131,8 @@ object AMQPDispatcher {
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
+ * 
+ * @author Caoyuan Deng
  */
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher {
   private val log = Logger.getLogger(getClass.getName)
@@ -347,15 +379,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case null => java.util.Collections.emptyMap[String, AnyRef]
         case x => x
       }
-      
+
       try {
         val content = contentType.mimeType match {
           case JSON.mimeType => headers.get("tag") match {
-              case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
+              case tag: java.lang.Integer => 
+                val value = Serializer.decodeJson(body1, tag.intValue)
+                Msg(tag.intValue, value)
               case _ => null
             }
           case AVRO.mimeType => headers.get("tag") match {
-              case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
+              case tag: java.lang.Integer => 
+                val value = Serializer.decodeAvro(body1, tag.intValue)
+                Msg(tag.intValue, value)
               case _ => null
             }
             
@@ -366,7 +402,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props, envelope))
-        log.fine("Published amqp message: " + content)
+        log.info("Delivered amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
