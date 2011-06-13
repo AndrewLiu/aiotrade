@@ -62,18 +62,18 @@ case class DepthSnap (
 
 object TickerServer extends Publisher {
   // snap evts
-  object TickerEvt     extends Evt[Ticker](0, "ticker")
-  object TickersEvt    extends Evt[Array[Ticker]](1, "tickers")
-  object ExecutionEvt  extends Evt[(Double, Execution)](2, "prevClose, execution")
-  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)
-  object DelimiterEvt  extends Evt[Unit](9, "A delimiter to notice batch tickers got.")
+  val TickerEvt     = Evt[Ticker](0, "ticker")
+  val TickersEvt    = Evt[Array[Ticker]](1, "tickers")
+  val ExecutionEvt  = Evt[(Double, Execution)](2, "prevClose, execution")
+  val DepthSnapsEvt = Evt[Array[DepthSnap]](3)
+  val DelimiterEvt  = Evt[Unit](9, "A delimiter to notice batch tickers got.")
 
   
   // update evts
-  object QuoteEvt      extends Evt[(TFreq, Quote)](10, "freq, quote")
-  object QuotesEvt     extends Evt[(TFreq, Array[Quote])](11)
-  object MoneyFlowEvt  extends Evt[(TFreq, MoneyFlow)](12, "freq, moneyflow")
-  object MoneyFlowsEvt extends Evt[(TFreq, Array[MoneyFlow])](13)  
+  val QuoteEvt      = Evt[(TFreq, Quote)](10, "freq, quote")
+  val QuotesEvt     = Evt[(TFreq, Array[Quote])](11)
+  val MoneyFlowEvt  = Evt[(TFreq, MoneyFlow)](12, "freq, moneyflow")
+  val MoneyFlowsEvt = Evt[(TFreq, Array[MoneyFlow])](13)  
 
   private val log = Logger.getLogger(this.getClass.getName)
 

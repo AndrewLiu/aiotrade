@@ -82,7 +82,14 @@ import scala.collection.mutable
 
 case class Msg[T](tag: Int, value: T)
 
-abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = null)(implicit m: Manifest[T]) {
+/**
+ * We don't encourage to use 'object anApi extends Evt[T](..)' to define an Evt, instead,
+ * use 'val anApi = Evt[T](..)' to define new api. Since object is something lazy val, 
+ * which should be explicitly referred to invoke initializing code, that is, it may
+ * not be regirtered in Evt.tagToEvt yet when you call its static 'apply', 'unapply' 
+ * methods.
+ */
+final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: String)(implicit m: Manifest[T]) {
   type ValType = T
   type MsgType = Msg[T]
   
@@ -291,6 +298,8 @@ object Evt {
     sb.toString
   }
   
+  def apply[T: Manifest](tag: Int, doc: String = "", schemaJson: String = null) = new Evt[T](tag, doc, schemaJson)
+  
   // -- simple test
   def main(args: Array[String]) {
     testMatch
@@ -302,31 +311,25 @@ object Evt {
   }
   
   private def testMatch {
-    object StrEvt extends Evt[String](-1)
-    object IntEvt extends Evt[Int](-2)
-    object ArrEvt extends Evt[Array[String]](-3)
-    object LstEvt extends Evt[List[String]](-4)
-    object MulEvt extends Evt[(Int, String, Double)](-5, "id, name, value", schemaJson = """{"type": "array", "items":["int", "double", "string"]}""")
-    object EmpEvt extends Evt(-10) // T will be AnyRef
-    object EmpEvt2 extends Evt[Unit](-11)
-    
+    import TestAPIs._
+
     println("\n==== apis: ")
-    println(StrEvt)
+    println(StringEvt)
     println(IntEvt)
-    println(ArrEvt)
-    println(LstEvt)
-    println(MulEvt)
+    println(ArrayEvt)
+    println(ListEvt)
+    println(TupleEvt)
     
     val goodEvtMsgs = List(
-      EmpEvt,
-      EmpEvt2(),
-      StrEvt("a"),
-      StrEvt("b"),
+      BadEmpEvt,
+      EmpEvt(),
+      StringEvt("a"),
+      StringEvt("b"),
       IntEvt(8),
-      ArrEvt(Array("a", "b")),
-      LstEvt(List("a", "b")),
-      MulEvt(8, "a", 8.0),
-      MulEvt(8, "a", 8)
+      ArrayEvt(Array("a", "b")),
+      ListEvt(List("a", "b")),
+      TupleEvt(8, "a", 8.0),
+      TupleEvt(8, "a", 8)
     )
 
     val badEvtMsgs = List(
@@ -359,47 +362,46 @@ object Evt {
      * The regular match on those evts look like: 
      */
     def regularMatch(v: Any) = v match {
-      case EmpEvt => println("Matched emp evt"); true
-      case Msg(EmpEvt2.tag, aval: EmpEvt2.ValType) => println("Matched emp evt2"); true
-      case Msg(StrEvt.tag, aval: StrEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case BadEmpEvt => println("Matched emp evt"); true
+      case Msg(EmpEvt.tag, aval: EmpEvt.ValType) => println("Matched emp evt2"); true
+      case Msg(StringEvt.tag, aval: StringEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case Msg(IntEvt.tag, aval: IntEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case Msg(ArrEvt.tag, aval: ArrEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case Msg(LstEvt.tag, aval: LstEvt.ValType) => println("Matched: " + v + " => " + aval); true
-      case Msg(MulEvt.tag, aval: MulEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(ArrayEvt.tag, aval: ArrayEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(ListEvt.tag, aval: ListEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(TupleEvt.tag, aval: TupleEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case _ => println("Unmatched: " + v); false
     }
     
     /** But we'd like a more concise approach: */
     def advancedMatch(v: Any) = v match {
-      case EmpEvt => println("Matched emp evt"); true
-      case EmpEvt2(_) => println("Matched emp evt2"); true
-      case StrEvt("a")  => println("Matched with value equals: " + v + " => " + "a"); true
-      case StrEvt(aval) => println("Matched: " + v + " => " + aval); true
+      case EmpEvt(_) => println("Matched emp evt2"); true
+      case StringEvt("a")  => println("Matched with value equals: " + v + " => " + "a"); true
+      case StringEvt(aval) => println("Matched: " + v + " => " + aval); true
       case IntEvt(aval) => println("Matched: " + v + " => " + aval); true
-      case ArrEvt(aval) => println("Matched: " + v + " => " + aval); true
-      case LstEvt(aval@List(a: String, b: String)) => println("Matched: " + v + " => " + aval); true
-      case MulEvt(aint: Int, astr: String, adou: Double) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
+      case ArrayEvt(aval) => println("Matched: " + v + " => " + aval); true
+      case ListEvt(aval@List(a: String, b: String)) => println("Matched: " + v + " => " + aval); true
+      case TupleEvt(aint: Int, astr: String, adou: Double) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
+      case BadEmpEvt => println("Matched emp evt"); true
       case _ => println("Unmatched: " + v); false
     }
   }
   
   private def testObject {
-    object TestDataEvt extends Evt[TestData](-100)
-
+    import TestAPIs._
+    
     printSchema(classOf[TestData])
     
     val data = TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))
+    val msg = TestDataEvt(data)
+    msg match {
+      case TestDataEvt(data1) => println("matched: " + data1)
+      case _ => error("Failed to match")
+    }
     testMsg(TestDataEvt(data))
   }
   
   private def testPrimitives {
-    object EmpEvt extends Evt[Unit](-201)
-    object IntEvt extends Evt[Int](-202)
-    object LongEvt extends Evt[Long](-203)
-    object FloatEvt extends Evt[Float](-204)
-    object DoubleEvt extends Evt[Double](-205)
-    object BooleanEvt extends Evt[Boolean](-206)
-    object StringEvt extends Evt[String](-207)
+    import TestAPIs._
     
     testMsg(EmpEvt())
     testMsg(IntEvt(1))
@@ -424,9 +426,7 @@ object Evt {
   }
 
   private def testVmap {
-    object TestVmapEvt extends Evt[collection.Map[String, Array[_]]](-102, schemaJson = """
-      {"type":"map","values":{"type":"array","items":["long","double","string",{"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.Evt$","fields":[{"name":"a","type":"string"},{"name":"b","type":"int"},{"name":"c","type":"double"},{"name":"d","type":{"type":"array","items":"float"}}]}]}}
-    """)
+    import TestAPIs._
     
     val vmap = new mutable.HashMap[String, Array[_]]
     vmap.put(".", Array(1L, 2L, 3L))
@@ -447,8 +447,42 @@ object Evt {
     jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
-  private case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
+}
+
+private[actors] object TestAPIs {
+  
+  val EmpEvt = Evt[Unit](-1)
+  val IntEvt = Evt[Int](-2)
+  val LongEvt = Evt[Long](-3)
+  val FloatEvt = Evt[Float](-4)
+  val DoubleEvt = Evt[Double](-5)
+  val BooleanEvt = Evt[Boolean](-6)
+  val StringEvt = Evt[String](-7)
+
+  val ListEvt = Evt[List[String]](-10)
+  val ArrayEvt = Evt[Array[String]](-11)
+  val TupleEvt = Evt[(Int, String, Double)](-12, "id, name, value", schemaJson = """
+    {"type": "array", "items":["int", "double", "string"]}
+  """)
+
+  val BadEmpEvt = Evt(-13) // T will be AnyRef
+  
+  val TestDataEvt =  Evt[TestData](-100)
+  val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-101, schemaJson = """
+    {"type":"map","values":{"type":"array","items":["long","double","string",
+     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.TestAPIs$",
+       "fields":[
+         {"name":"a","type":"string"},
+         {"name":"b","type":"int"},
+         {"name":"c","type":"double"},
+         {"name":"d","type":{"type":"array","items":"float"}}
+       ]}
+     ]}}
+  """)
+
+  case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
     def this() = this(null, 0, 0.0, Array())
     override def toString = "TestData(" + a + "," + b + "," + c + "," + d.mkString("[", ",", "]")
   }
+
 }
