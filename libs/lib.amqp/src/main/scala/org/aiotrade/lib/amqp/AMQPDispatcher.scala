@@ -222,19 +222,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   }
 
   private def disconnect {
-    channel foreach {ch =>
+    channel foreach {_ch =>
       try {
-        consumer foreach {case x: DefaultConsumer => ch.basicCancel(x.getConsumerTag)}
-        ch.close
+        consumer foreach {case x: DefaultConsumer => _ch.basicCancel(x.getConsumerTag)}
+        _ch.close
       } catch {
         case _ =>
       }
     }
 
-    connection foreach {conn =>
-      if (conn.isOpen) {
+    connection foreach {_conn =>
+      if (_conn.isOpen) {
         try {
-          conn.close
+          _conn.close
           log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         } catch {
           case _ =>
@@ -255,69 +255,69 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   @throws(classOf[IOException])
   def publish(exchange: String, routingKey: String, props: AMQP.BasicProperties, content: Any) {
-    channel foreach {ch =>
-      import ContentType._
-
-      val props1 = if (props == null) new AMQP.BasicProperties else props
+    channel foreach {_ch =>
+      val props1 = Option(props) getOrElse new AMQP.BasicProperties
 
       val contentType = props1.getContentType match {
         case null | "" => AMQPDispatcher.DEFAULT_CONTENT_TYPE 
         case x => ContentType(x)
       }
 
-      val body = contentType.mimeType match {
-        case JSON.mimeType => 
-          content match {
-            case msg: Msg[_] => 
-              val headers = props1.getHeaders match {
-                case null => new java.util.HashMap[String, AnyRef]
-                case x => x
-              }
-              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-              props1.setHeaders(headers)
-          }
-          Serializer.encodeJson(content)
-        case AVRO.mimeType => 
-          content match {
-            case msg: Msg[_] => 
-              val headers = props1.getHeaders match {
-                case null => new java.util.HashMap[String, AnyRef]
-                case x => x
-              }
-              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-              props1.setHeaders(headers)
-          }
-          Serializer.encodeAvro(content)  
+      try {
+        import ContentType._
+        val body = contentType.mimeType match {
+          case JSON.mimeType => 
+            content match {
+              case msg: Msg[_] => 
+                val headers = Option(props1.getHeaders) getOrElse new java.util.HashMap[String, AnyRef]
+                headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+                props1.setHeaders(headers)
+              case _ => // todo
+            }
+            Serializer.encodeJson(content)
+          case AVRO.mimeType => 
+            content match {
+              case msg: Msg[_] => 
+                val headers = Option(props1.getHeaders) getOrElse new java.util.HashMap[String, AnyRef]
+                headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+                props1.setHeaders(headers)
+              case _ => // todo
+            }
+            Serializer.encodeAvro(content)  
 
-        case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
-        case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
-        case _ => content.asInstanceOf[Array[Byte]]
-      }
+          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
+          case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
+          case _ => content.asInstanceOf[Array[Byte]]
+        }
 
-      val contentEncoding = props1.getContentEncoding match {
-        case null | "" => props1.setContentEncoding("gzip"); "gzip"
-        case x => x
-      }
+        val contentEncoding = props1.getContentEncoding match {
+          case null | "" => props1.setContentEncoding("gzip"); "gzip"
+          case x => x
+        }
     
-      val body1 = contentEncoding match {
-        case "gzip" => Serializer.gzip(body)
-        case "lzma" => Serializer.lzma(body)
-        case _ => body
-      }
+        val body1 = contentEncoding match {
+          case "gzip" => Serializer.gzip(body)
+          case "lzma" => Serializer.lzma(body)
+          case _ => body
+        }
 
-      log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-      ch.basicPublish(exchange, routingKey, props1, body1)
+        log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+        
+        _ch.basicPublish(exchange, routingKey, props1, body1)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
     }
   }
 
   protected def deleteQueue(queue: String) {
-    channel foreach {ch =>
+    channel foreach {_ch =>
       try {
         // Check if the queue existed, if existed, will return a declareOk object, otherwise will throw IOException
-        val declareOk = ch.queueDeclarePassive(queue)
+        val declareOk = _ch.queueDeclarePassive(queue)
         try {
           // the exception thrown here will destroy the connection too, so use it carefully
-          ch.queueDelete(queue)
+          _ch.queueDelete(queue)
           log.info("Deleted queue: " + queue)
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -369,18 +369,15 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case _ => body
       }
 
-      import ContentType._
       val contentType = props.getContentType match {
         case null | "" =>  AMQPDispatcher.DEFAULT_CONTENT_TYPE
         case x => ContentType(x)
       }
 
-      val headers = props.getHeaders match {
-        case null => java.util.Collections.emptyMap[String, AnyRef]
-        case x => x
-      }
+      val headers = Option(props.getHeaders) getOrElse java.util.Collections.emptyMap[String, AnyRef]
 
       try {
+        import ContentType._
         val content = contentType.mimeType match {
           case JSON.mimeType => headers.get("tag") match {
               case tag: java.lang.Integer => 
@@ -402,7 +399,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props, envelope))
-        log.info("Delivered amqp message: " + content)
+        
+        log.fine("Delivered amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
@@ -425,7 +423,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     processors ::= this
     
     reactions += {
-      case msg: AMQPMessage => process(msg)
+      case amqpMsg: AMQPMessage => process(amqpMsg)
     }
     listenTo(AMQPDispatcher.this)
 

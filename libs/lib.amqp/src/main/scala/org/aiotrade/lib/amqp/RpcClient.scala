@@ -142,10 +142,10 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
   }
 
   class SyncVarSetterProcessor extends Processor {
-    protected def process(msg: AMQPMessage) {
-      msg match {
-        case AMQPMessage(res: Any, props) =>
-          val replyId = msg.props.getCorrelationId
+    protected def process(amqpMsg: AMQPMessage) {
+      amqpMsg match {
+        case AMQPMessage(res, props, _) =>
+          val replyId = props.getCorrelationId
           val syncVar = continuationMap synchronized {
             continuationMap.remove(replyId).get
           }

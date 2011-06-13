@@ -32,13 +32,5 @@ class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: 
  * Messages received from AMQP are wrapped in this case class. When you
  * register a listener, this is the case class that you will be matching on.
  */
-object AMQPMessage {
-  def apply(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null) = new AMQPMessage(body, props, envelope)
-  def unapply(x: AMQPMessage): Option[(Any, AMQP.BasicProperties)] = Some((x.body, x.props))
-}
-
 @serializable
-class AMQPMessage(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
-  override def toString = if (body == null) "null" else body.toString
-}
-
+case class AMQPMessage(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null)
