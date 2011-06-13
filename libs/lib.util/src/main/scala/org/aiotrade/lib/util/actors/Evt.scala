@@ -113,8 +113,10 @@ abstract class Evt[T](val tag: Int, val doc: String = "", schemaJson: String = n
   /** 
    * @Note Since T is erasued after compiled, should check type of evt message 
    * via Manifest instead of v.isInstanceOf[T]
-   * And, don't write to unapply(evtMsg: (Int, T)), which will confuse the compiler 
-   * to generate wrong code for match {case .. case ..}
+   * 1. Don't write to unapply(evtMsg: Msg[T]), which will confuse the compiler 
+   *    to generate wrong code for match {case .. case ..}
+   * 2. Don't write to unapply(evtMsg: Msg[_]), which will cause sth like:
+   *    msg match {case => StrEvt("") => ... } doesn't work
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
     case Msg(`tag`, value: T) if ClassHelper.isInstance(valueType, value) =>
@@ -293,7 +295,7 @@ object Evt {
   def main(args: Array[String]) {
     testMatch
     testObject
-    testUnit
+    testPrimitives
     testVmap
     
     println(prettyPrint(tagToEvt map (_._2)))
@@ -387,30 +389,38 @@ object Evt {
     printSchema(classOf[TestData])
     
     val data = TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))
-    val msg = TestDataEvt(data)
-
-    val avroBytes = toAvro(msg.tag, msg.value)
-    val avroDatum = fromAvro(avroBytes, msg.tag).get
-    println(avroDatum)
-    
-    val jsonBytes = toJson(msg.tag, msg.value)
-    val jsonDatum = fromJson(jsonBytes, msg.tag).get
-    println(jsonDatum)    
+    testMsg(TestDataEvt(data))
   }
   
-  private def testUnit {
-    object EmpEvt extends Evt[Unit](-101)
-
-    val msg = EmpEvt()
-    println(schemaOf(msg.tag))
-
-    val avroBytes = toAvro(msg.tag, msg.value)
-    val avroDatum = fromAvro(avroBytes, msg.tag).get
-    println(avroDatum)
+  private def testPrimitives {
+    object EmpEvt extends Evt[Unit](-201)
+    object IntEvt extends Evt[Int](-202)
+    object LongEvt extends Evt[Long](-203)
+    object FloatEvt extends Evt[Float](-204)
+    object DoubleEvt extends Evt[Double](-205)
+    object BooleanEvt extends Evt[Boolean](-206)
+    object StringEvt extends Evt[String](-207)
     
-    val jsonBytes = toJson(msg.tag, msg.value)
-    val jsonDatum = fromJson(jsonBytes, msg.tag).get
-    println(jsonDatum)    
+    testMsg(EmpEvt())
+    testMsg(IntEvt(1))
+    testMsg(LongEvt(1L))
+    testMsg(FloatEvt(1.0f))
+    testMsg(DoubleEvt(1.0))
+    testMsg(BooleanEvt(true))
+    testMsg(StringEvt("abc"))
+  }
+  
+  private def testMsg[T](msg: Msg[T]) = msg match {
+    case Msg(tag, value) =>
+      println(schemaOf(tag))
+
+      val avroBytes = toAvro(tag, value)
+      val avroDatum = fromAvro(avroBytes, tag).get
+      println(avroDatum)
+    
+      val jsonBytes = toJson(tag, value)
+      val jsonDatum = fromJson(jsonBytes, tag).get
+      println(jsonDatum)    
   }
 
   private def testVmap {
