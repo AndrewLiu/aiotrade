@@ -71,6 +71,15 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   val largeVolumeEven = TVar[Double]("LVe", Plot.None)
   val largeAmountEven = TVar[Double]("LAe", Plot.None)
 
+  val middleVolume = TVar[Double]("MV", Plot.None)
+  val middleAmount = TVar[Double]("MA", Plot.None)
+  val middleVolumeIn = TVar[Double]("MVi", Plot.None)
+  val middleAmountIn = TVar[Double]("MAi", Plot.None)
+  val middleVolumeOut = TVar[Double]("MVo", Plot.None)
+  val middleAmountOut = TVar[Double]("MAo", Plot.None)
+  val middleVolumeEven = TVar[Double]("MVe", Plot.None)
+  val middleAmountEven = TVar[Double]("MAe", Plot.None)
+
   val smallVolume = TVar[Double]("sV", Plot.None)
   val smallAmount = TVar[Double]("sA", Plot.None)
   val smallVolumeIn = TVar[Double]("sVi", Plot.None)
@@ -111,6 +120,15 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         largeVolumeEven(time) = mf.largeVolumeEven
         largeAmountEven(time) = mf.largeAmountEven
 
+        middleVolume(time) = mf.middleVolume
+        middleAmount(time) = mf.middleAmount
+        middleVolumeIn(time) = mf.middleVolumeIn
+        middleAmountIn(time) = mf.middleAmountIn
+        middleVolumeOut(time) = mf.middleVolumeOut
+        middleAmountOut(time) = mf.middleAmountOut
+        middleVolumeEven(time) = mf.middleVolumeEven
+        middleAmountEven(time) = mf.middleAmountEven
+
         smallVolume(time) = mf.smallVolume
         smallAmount(time) = mf.smallAmount
         smallVolumeIn(time) = mf.smallVolumeIn
@@ -146,6 +164,13 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.largeAmountOut = largeAmountOut(time)
       mf.largeVolumeEven = largeVolumeOut(time)
       mf.largeAmountEven = largeAmountOut(time)
+
+      mf.middleVolumeIn = middleVolumeIn(time)
+      mf.middleAmountIn = middleAmountIn(time)
+      mf.middleVolumeOut = middleVolumeOut(time)
+      mf.middleAmountOut = middleAmountOut(time)
+      mf.middleAmountEven = middleVolumeEven(time)
+      mf.middleVolumeEven = middleAmountEven(time)
 
       mf.smallVolumeIn = smallVolumeIn(time)
       mf.smallAmountIn = smallAmountIn(time)
@@ -192,6 +217,15 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     largeAmountOut(time) = mf.largeAmountOut
     largeVolumeEven(time) = mf.largeVolumeEven
     largeAmountEven(time) = mf.largeAmountEven
+
+    middleVolume(time) = mf.middleVolume
+    middleAmount(time) = mf.middleAmount
+    middleVolumeIn(time) = mf.middleVolumeIn
+    middleAmountIn(time) = mf.middleAmountIn
+    middleVolumeOut(time) = mf.middleVolumeOut
+    middleAmountOut(time) = mf.middleAmountOut
+    middleVolumeEven(time) = mf.middleVolumeEven
+    middleAmountEven(time) = mf.middleAmountEven
 
     smallVolume(time) = mf.smallVolume
     smallAmount(time) = mf.smallAmount

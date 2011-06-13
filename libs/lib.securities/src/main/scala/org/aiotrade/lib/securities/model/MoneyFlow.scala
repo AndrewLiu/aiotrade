@@ -159,6 +159,16 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   val largeVolumeEven = "largeVolumeEven" DOUBLE()
   val largeAmountEven = "largeAmountEven" DOUBLE()
 
+  ///////////////////////////////////////////////////////////////////////////////////
+  // @TODO Change the DB fields
+  // /////////////////////////////////////////////////////////////////
+  val middleVolumeIn = ""DOUBLE()//"middleVolumeIn" DOUBLE()
+  val middleAmountIn = ""DOUBLE()//"middleAmountIn" DOUBLE()
+  val middleVolumeOut = ""DOUBLE()//"middleVolumeOut" DOUBLE()
+  val middleAmountOut = ""DOUBLE()//"middleAmountOut" DOUBLE()
+  val middleVolumeEven = ""DOUBLE()//"middleVolumeEven" DOUBLE()
+  val middleAmountEven = ""DOUBLE()//"middleAmountEven" DOUBLE()
+
   val smallVolumeIn = "smallVolumeIn" DOUBLE()
   val smallAmountIn = "smallAmountIn" DOUBLE()
   val smallVolumeOut = "smallVolumeOut" DOUBLE()
@@ -216,7 +226,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
 
 /**
- * The definition of "super/large/small block" will depond on amount
+ * The definition of "super/large/middle/small block" will depond on amount
  */
 @serializable
 class MoneyFlow extends TVal with Flag {
@@ -230,7 +240,7 @@ class MoneyFlow extends TVal with Flag {
   private var _uniSymbol: String = _
   def uniSymbol = _uniSymbol
 
-  private val data = new Array[Double](24)
+  private val data = new Array[Double](30)
   
   def totalVolumeIn = data(0)
   def totalAmountIn = data(1)
@@ -253,12 +263,19 @@ class MoneyFlow extends TVal with Flag {
   def largeVolumeEven = data(16)
   def largeAmountEven = data(17)
 
-  def smallVolumeIn = data(18)
-  def smallAmountIn = data(19)
-  def smallVolumeOut = data(20)
-  def smallAmountOut = data(21)
-  def smallVolumeEven = data(22)
-  def smallAmountEven = data(23)
+  def middleVolumeIn = data(18)
+  def middleAmountIn = data(19)
+  def middleVolumeOut = data(20)
+  def middleAmountOut = data(21)
+  def middleVolumeEven = data(22)
+  def middleAmountEven = data(23)
+
+  def smallVolumeIn = data(24)
+  def smallAmountIn = data(25)
+  def smallVolumeOut = data(26)
+  def smallAmountOut = data(27)
+  def smallVolumeEven = data(28)
+  def smallAmountEven = data(29)
 
   def totalVolumeIn_=(v: Double) {data(0) = v}
   def totalAmountIn_=(v: Double) {data(1) = v}
@@ -281,12 +298,19 @@ class MoneyFlow extends TVal with Flag {
   def largeVolumeEven_=(v: Double) {data(16) = v}
   def largeAmountEven_=(v: Double) {data(17) = v}
 
-  def smallVolumeIn_=(v: Double) {data(18) = v}
-  def smallAmountIn_=(v: Double) {data(19) = v}
-  def smallVolumeOut_=(v: Double) {data(20) = v}
-  def smallAmountOut_=(v: Double) {data(21) = v}
-  def smallVolumeEven_=(v: Double) {data(22) = v}
-  def smallAmountEven_=(v: Double) {data(23) = v}
+  def middleVolumeIn_=(v: Double) {data(18) = v}
+  def middleAmountIn_=(v: Double) {data(19) = v}
+  def middleVolumeOut_=(v: Double) {data(20) = v}
+  def middleAmountOut_=(v: Double) {data(21) = v}
+  def middleVolumeEven_=(v: Double) {data(22) = v}
+  def middleAmountEven_=(v: Double) {data(23) = v}
+
+  def smallVolumeIn_=(v: Double) {data(24) = v}
+  def smallAmountIn_=(v: Double) {data(25) = v}
+  def smallVolumeOut_=(v: Double) {data(26) = v}
+  def smallAmountOut_=(v: Double) {data(27) = v}
+  def smallVolumeEven_=(v: Double) {data(28) = v}
+  def smallAmountEven_=(v: Double) {data(29) = v}
   
   // --- no db fields
   def totalVolume: Double = totalVolumeIn - totalVolumeOut
@@ -295,6 +319,8 @@ class MoneyFlow extends TVal with Flag {
   def superAmount: Double = superAmountIn - superAmountOut
   def largeVolume: Double = largeVolumeIn - largeVolumeOut
   def largeAmount: Double = largeAmountIn - largeAmountOut
+  def middleVolume: Double = middleVolumeIn - middleVolumeOut
+  def middleAmount: Double = middleAmountIn - middleAmountOut
   def smallVolume: Double = smallVolumeIn - smallVolumeOut
   def smallAmount: Double = smallAmountIn - smallAmountOut
   

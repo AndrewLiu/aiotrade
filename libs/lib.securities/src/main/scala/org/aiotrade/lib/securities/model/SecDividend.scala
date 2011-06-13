@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.model
 
+import java.io.Serializable
 import ru.circumflex.orm.Table
 
 object SecDividends extends Table[SecDividend] {
@@ -17,7 +18,9 @@ object SecDividends extends Table[SecDividend] {
   val dividendDate = "dividendDate" BIGINT()
 }
 
+@serializable
 class SecDividend {
+  @transient
   var sec: Sec = _
 
   var prevClose: Double = _

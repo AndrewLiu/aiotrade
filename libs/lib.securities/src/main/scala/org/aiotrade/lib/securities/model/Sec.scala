@@ -45,6 +45,7 @@ import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
 import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.securities.PriceDistributionSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
@@ -172,8 +173,10 @@ class Sec extends SerProvider with Ordered[Sec] {
   private val mutex = new AnyRef
   private var _realtimeSer: QuoteSer = _
   private var _realtimeMoneyFlowSer: MoneyFlowSer = _
+  private var _realtimePriceDistributionSer: PriceDistributionSer = _
   private[securities] lazy val freqToQuoteSer = mutable.Map[TFreq, QuoteSer]()
   private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, MoneyFlowSer]()
+  private lazy val freqToPriceDistribuSer = mutable.Map[TFreq, PriceDistributionSer]()
   private lazy val freqToInfoSer = mutable.Map[TFreq, InfoSer]()
   private lazy val freqToInfoPointSer = mutable.Map[TFreq, InfoPointSer]()
 
@@ -219,6 +222,10 @@ class Sec extends SerProvider with Ordered[Sec] {
           if (isSerCreated(TFreq.DAILY)) {
             moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
           }
+      }
+    case TickerServer.PriceDistributionEvt(pd) =>
+      if (isSerCreated(TFreq.DAILY)) {
+        priceDistributionSerOf(TFreq.DAILY).foreach(_.updateFrom(pd))
       }
   }
 
@@ -277,6 +284,14 @@ class Sec extends SerProvider with Ordered[Sec] {
     _realtimeMoneyFlowSer
   }
 
+  def realtimePriceDistributionSer = mutex synchronized {
+        if (_realtimePriceDistributionSer == null) {
+      _realtimePriceDistributionSer = new PriceDistributionSer(this, TFreq.DAILY)
+      freqToPriceDistribuSer.put(TFreq.ONE_SEC, _realtimePriceDistributionSer)
+    }
+    _realtimePriceDistributionSer
+  }
+
   /** tickerContract will always be built according to quoteContrat ? */
   def tickerContract = {
     if (_tickerContract == null) {
@@ -324,6 +339,21 @@ class Sec extends SerProvider with Ordered[Sec] {
           case None => None // @todo createCombinedSer(freq)
           case some => some
         }
+    }
+  }
+
+  def priceDistributionSerOf(freq: TFreq): Option[PriceDistributionSer] = mutex synchronized {
+    freq match{
+      case TFreq.DAILY => freqToPriceDistribuSer.get(freq) match {
+          case None => serOf(freq) match {
+              case Some(quoteSer) =>
+                val x = new PriceDistributionSer(this, freq)
+                freqToPriceDistribuSer.put(freq, x)
+                Some(x)
+              case None => None
+          }
+          case _ => freqToPriceDistribuSer.get(freq)
+      }
     }
   }
 
@@ -436,6 +466,7 @@ class Sec extends SerProvider with Ordered[Sec] {
     _realtimeSer = null
     freqToQuoteSer.clear
     freqToMoneyFlowSer.clear
+    freqToPriceDistribuSer.clear
     freqToInfoSer.clear
   }
 
