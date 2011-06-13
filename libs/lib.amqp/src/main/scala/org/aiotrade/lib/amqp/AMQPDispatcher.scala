@@ -9,15 +9,11 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownListener
 import com.rabbitmq.client.ShutdownSignalException
-import com.rabbitmq.utility.Utility
 import java.io.IOException
 import java.io.InvalidClassException
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 /**
  * @Note If we use plain sync Publisher/Reactor instead of actor based async model, it will because:
@@ -94,6 +90,11 @@ object AMQPExchange {
   val defaultDirect = "" // amp.direct
 }
 
+
+object AMQPDispatcher {
+  val DEFAULT_CONTENT_TYPE = ContentType.JAVA_SERIALIZED_OBJECT // AVRO 
+}
+
 /**
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
@@ -156,11 +157,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         val consumer = configure(channel)
 
         state = State(Option(conn), Option(channel), consumer)
-
-        consumer match {
-          case Some(qConsumer: QueueingConsumer) => QueueingConsumer.startConsumer(qConsumer)
-          case _ =>
-        }
 
         log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
         reconnectDelay = defaultReconnectDelay
@@ -232,7 +228,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       val props1 = if (props == null) new AMQP.BasicProperties else props
 
       val contentType = props1.getContentType match {
-        case null | "" => JAVA_SERIALIZED_OBJECT // AVRO // 
+        case null | "" => AMQPDispatcher.DEFAULT_CONTENT_TYPE 
         case x => ContentType(x)
       }
 
@@ -342,7 +338,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
       import ContentType._
       val contentType = props.getContentType match {
-        case null | "" =>  JAVA_SERIALIZED_OBJECT // AVRO
+        case null | "" =>  AMQPDispatcher.DEFAULT_CONTENT_TYPE
         case x => ContentType(x)
       }
 
@@ -375,160 +371,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
-      }
-    }
-  }
-
-  object QueueingConsumer {
-    // Marker object used to signal the queue is in shutdown mode.
-    // It is only there to wake up consumers. The canonical representation
-    // of shutting down is the presence of _shutdown.
-    // Invariant: This is never on _queue unless _shutdown != null.
-    private val POISON = Delivery(null, null, null)
-
-    def startConsumer(consumer: QueueingConsumer) {
-      val consumerRunner = new Runnable {
-        def run {
-          while (true) {
-            val delivery = consumer.nextDelivery // blocked here
-            consumer.relay(delivery)
-          }
-        }
-      }
-      (new Thread(consumerRunner)).start
-    }
-  }
-  class QueueingConsumer(channel: Channel, val isAutoAck: Boolean) extends DefaultConsumer(channel) {
-    import QueueingConsumer._
-    
-    private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
-
-    // When this is non-null the queue is in shutdown mode and nextDelivery should
-    // throw a shutdown signal exception.
-    @volatile private var _shutdown: ShutdownSignalException = _
-
-    override def handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException ) {
-      _shutdown = sig
-      _queue.add(POISON)
-    }
-
-    @throws(classOf[IOException])
-    override def handleDelivery(consumerTag: String,
-                                envelope: Envelope ,
-                                props: AMQP.BasicProperties,
-                                body: Array[Byte]
-    ) {
-      checkShutdown
-
-      if (!isAutoAck) {
-        try {
-          // Params:
-          //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
-          //   multiple - true  to acknowledge all messages up to and including the supplied delivery tag;
-          //              false to acknowledge just the supplied delivery tag.
-          channel.basicAck(envelope.getDeliveryTag, false)
-        } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
-        }
-      }
-
-      this._queue.add(Delivery(body, props, envelope))
-    }
-
-    /**
-     * Check if we are in shutdown mode and if so throw an exception.
-     */
-    private def checkShutdown {
-      if (_shutdown != null) throw Utility.fixStackTrace(_shutdown)
-    }
-
-    /**
-     * If this is a non-POISON non-null delivery simply return it.
-     * If this is POISON we are in shutdown mode, throw _shutdown
-     * If this is null, we may be in shutdown mode. Check and see.
-     */
-    private def handle(delivery: Delivery): Delivery = {
-      if (delivery == POISON || delivery == null && _shutdown != null) {
-        if (delivery == POISON) {
-          _queue.add(POISON)
-          if (_shutdown == null) {
-            throw new IllegalStateException(
-              "POISON in queue, but null _shutdown. " +
-              "This should never happen, please report as a BUG")
-          }
-        }
-        throw Utility.fixStackTrace(_shutdown)
-      }
-      delivery
-    }
-
-    /**
-     * Main application-side API: wait for the next message delivery and return it.
-     * @return the next message
-     * @throws InterruptedException if an interrupt is received while waiting
-     * @throws ShutdownSignalException if the connection is shut down while waiting
-     */
-    @throws(classOf[InterruptedException])
-    @throws(classOf[ShutdownSignalException])
-    def nextDelivery: Delivery = {
-      handle(_queue.take)
-    }
-
-    /**
-     * Main application-side API: wait for the next message delivery and return it.
-     * @param timeout timeout in millisecond
-     * @return the next message or null if timed out
-     * @throws InterruptedException if an interrupt is received while waiting
-     * @throws ShutdownSignalException if the connection is shut down while waiting
-     */
-    @throws(classOf[InterruptedException])
-    @throws(classOf[ShutdownSignalException])
-    def nextDelivery(timeout: Long): Delivery = {
-      handle(_queue.poll(timeout, TimeUnit.MILLISECONDS))
-    }
-
-    def relay(delivery: Delivery) {
-      delivery match {
-        case Delivery(body, props, envelope) =>
-          val body1 = props.getContentEncoding match {
-            case "gzip" => Serializer.ungzip(body)
-            case "lzma" => Serializer.unlzma(body)
-            case _ => body
-          }
-
-          import ContentType._
-          val contentType = props.getContentType match {
-            case null | "" => JAVA_SERIALIZED_OBJECT
-            case x => ContentType(x)
-          }
-
-          val headers = props.getHeaders match {
-            case null => java.util.Collections.emptyMap[String, AnyRef]
-            case x => x
-          }
-      
-          try {
-            val content = contentType.mimeType match {
-              case JSON.mimeType => headers.get("tag") match {
-                  case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
-                  case _ => null
-                }
-              case AVRO.mimeType => headers.get("tag") match {
-                  case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
-                  case _ => null
-                }
-                
-              case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
-              case OCTET_STREAM.mimeType => body1
-            }
-
-            publish(AMQPMessage(content, props, envelope))
-          } catch {
-            // should catch it when old version classes were sent by old version of clients.
-            case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
-            case ex => log.log(Level.WARNING, ex.getMessage, ex)
-          }
-        case _ =>
       }
     }
   }
