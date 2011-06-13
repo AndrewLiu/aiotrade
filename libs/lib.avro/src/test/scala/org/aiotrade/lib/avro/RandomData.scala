@@ -11,7 +11,6 @@ import java.util.Random
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.GenericData
-import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.util.Utf8
 import scala.collection.JavaConversions._
 
@@ -26,7 +25,7 @@ object RandomData {
         record
       case ENUM =>
         val symbols = schema.getEnumSymbols
-        new GenericData.EnumSymbol(symbols.get(random.nextInt(symbols.size)))
+        new GenericData.EnumSymbol(schema, symbols.get(random.nextInt(symbols.size)))
       case ARRAY =>
         val length = (random.nextInt(5)+2)-d
         val array = new GenericData.Array[Object](if (length <= 0) 0 else length, schema)
@@ -47,7 +46,7 @@ object RandomData {
       case FIXED =>
         val bytes = new Array[Byte](schema.getFixedSize)
         random.nextBytes(bytes)
-        new GenericData.Fixed(bytes)
+        new GenericData.Fixed(schema, bytes)
       case STRING =>  return randomUtf8(random, 40)
       case BYTES =>   return randomBytes(random, 40)
       case INT =>     return random.nextInt.asInstanceOf[AnyRef]
@@ -100,7 +99,7 @@ class RandomData(root: Schema, count: Int, seed: Long) extends java.lang.Iterabl
       System.exit(-1)
     }
     val sch = Schema.parse(new File(args(0)))
-    val writer = new DataFileWriter[Object](new GenericDatumWriter[Object]()).create(sch, new File(args(1)))
+    val writer = new DataFileWriter[Object](GenericDatumWriter[Object]()).create(sch, new File(args(1)))
     try {
       for (datum <- new RandomData(sch, Integer.parseInt(args(2)))) {
         writer.append(datum)

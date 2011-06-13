@@ -1,15 +1,4 @@
-/*                     __                                               *\
- **     ________ ___   / /  ___     Scala API                            **
- **    / __/ __// _ | / /  / _ |    (c) 2003-2010, LAMP/EPFL             **
- **  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
- ** /____/\___/_/ |_/____/_/ | |                                         **
- **                          |/                                          **
- \*                                                                      */
-
-// $Id: ArrayList.scala 19223 2009-10-22 10:43:02Z malayeri $
-
-
-package org.aiotrade.lib.collection
+package org.aiotrade.lib.avro
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.generic.GenericCompanion
@@ -21,6 +10,8 @@ import scala.collection.mutable.Builder
 import scala.collection.mutable.IndexedSeqOptimized
 import scala.collection.mutable.WrappedArray
 
+
+/** @note copied from org.aiotrade.lib.collection to here to decouple dependency on it */
 
 /** An implementation of the <code>Buffer</code> class using an array to
  *  represent the assembled sequence internally. Append, update and random
@@ -262,5 +253,126 @@ object ArrayList extends SeqFactory[ArrayList] {
    * apply method to create ArrayList[A]
    */
   def newBuilder[A]: Builder[A, ArrayList[A]] = new ArrayList[AnyRef].asInstanceOf[ArrayList[A]]
-  def apply[A: Manifest]() = new ArrayList[A]
+  def apply[A: Manifest]() = new ArrayList[A]  
 }
+
+
+/** This class is used internally to implement data structures that
+ *  are based on resizable arrays.
+ *
+ *  @tparam A    type of the elements contained in this resizeable array.
+ *  
+ *  @author  Matthias Zenger, Burak Emir
+ *  @author Martin Odersky
+ *  @version 2.8
+ *  @since   1
+ */
+trait ResizableArray[@specialized A] extends IndexedSeq[A]
+                                        with GenericTraversableTemplate[A, ResizableArray]
+                                        with IndexedSeqOptimized[A, ResizableArray[A]] {
+
+  protected implicit val m: Manifest[A]
+  
+  protected val elementClass: Class[A]
+  
+  override def companion: GenericCompanion[ResizableArray] = ResizableArray
+
+  protected def initialSize: Int = 16
+  protected[avro] var array: Array[A] = makeArray(initialSize)
+
+  protected def makeArray(size: Int) = {
+    if (elementClass != null) {
+      java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
+    } else {
+      new Array[A](size) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    }
+  }
+
+  protected var size0: Int = 0
+
+  //##########################################################################
+  // implement/override methods of IndexedSeq[A]
+
+  /** Returns the length of this resizable array.
+   */
+  def length: Int = size0
+
+  def apply(idx: Int) = {
+    if (idx >= size0) throw new IndexOutOfBoundsException(idx.toString)
+    array(idx)
+  }
+
+  def update(idx: Int, elem: A) { 
+    if (idx >= size0) throw new IndexOutOfBoundsException(idx.toString)
+    array(idx) = elem
+  }
+
+  /** Fills the given array <code>xs</code> with at most `len` elements of
+   *  this traversable starting at position `start`.
+   *  Copying will stop once either the end of the current traversable is reached or
+   *  `len` elements have been copied or the end of the array is reached.
+   *
+   *  @param  xs the array to fill.
+   *  @param  start starting index.
+   *  @param  len number of elements to copy
+   */
+  override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
+    val len1 = len min (xs.length - start) min length
+    Array.copy(array, 0, xs, start, len1)
+  }
+
+  override def foreach[U](f: A =>  U) {
+    var i = 0
+    while (i < size) {
+      f(array(i).asInstanceOf[A])
+      i += 1
+    }
+  }
+
+  //##########################################################################
+
+  /** remove elements of this array at indices after <code>sz</code> 
+   */
+  def reduceToSize(sz: Int) {
+    require(sz <= size0)
+    while (size0 > sz) {
+      size0 -= 1
+      if (!m.erasure.isPrimitive) {
+        array(size0) = null.asInstanceOf[A]
+      }
+    }
+  }
+
+  /** ensure that the internal array has at n cells */
+  protected def ensureSize(n: Int) {
+    if (n > array.length) {
+      var newsize = array.length * 2
+      while (n > newsize)
+        newsize = newsize * 2
+      val newar: Array[A] = makeArray(newsize)
+      Array.copy(array, 0, newar, 0, size0)
+      array = newar
+    }
+  }
+
+  /** Swap two elements of this array.
+   */
+  protected def swap(a: Int, b: Int) {
+    val h = array(a)
+    array(a) = array(b)
+    array(b) = h
+  }
+
+  /** Move parts of the array.
+   */
+  protected def copy(m: Int, n: Int, len: Int) {
+    Array.copy(array, m, array, n, len)
+  }
+}
+
+object ResizableArray extends SeqFactory[ResizableArray] {
+  implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ResizableArray[A]] = new GenericCanBuildFrom[A]
+  def newBuilder[A]: Builder[A, ResizableArray[A]] = new ArrayList[AnyRef].asInstanceOf[ArrayList[A]]
+}
+
+

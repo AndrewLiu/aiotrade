@@ -359,10 +359,9 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
   override def reset {
     super.reset
 
-    var i = 0
-    while (i < bidAsks.length) {
+    var i = -1
+    while ({i += 1; i < bidAsks.length}) {
       bidAsks(i) = 0
-      i += 1
     }
   }
 
@@ -383,12 +382,11 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
       return true
     }
 
-    var i = 0
-    while (i < bidAsks.length) {
+    var i = -1
+    while ({i += 1; i < bidAsks.length}) {
       if (bidAsks(i) != another.bidAsks(i)) {
         return true
       }
-      i += 1
     }
 
     false

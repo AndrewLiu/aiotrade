@@ -26,6 +26,7 @@ import scala.collection.mutable.IndexedSeqOptimized
  *  
  *  @author  Matthias Zenger, Burak Emir
  *  @author Martin Odersky
+ *  @author Caoyuan Deng
  *  @version 2.8
  *  @since   1
  */
@@ -35,24 +36,19 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
 
   protected implicit val m: Manifest[A]
   
+  protected val elementClass: Class[A]
+  
   override def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
   protected[collection] var array: Array[A] = makeArray(initialSize)
 
   protected def makeArray(size: Int) = {
-    val s = math.max(size, 1)
-    (m.toString match {
-        case "Byte"    => new Array[Byte](s)
-        case "Short"   => new Array[Short](s)
-        case "Char"    => new Array[Char](s)
-        case "Int"     => new Array[Int](s)
-        case "Long"    => new Array[Long](s)
-        case "Float"   => new Array[Float](s)
-        case "Double"  => new Array[Double](s)
-        case "Boolean" => new Array[Boolean](s)
-        case _ => new Array[A](s)
-      }).asInstanceOf[Array[A]]
+    if (elementClass != null) {
+      java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
+    } else {
+      new Array[A](size) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    }
   }
 
   protected var size0: Int = 0
@@ -104,7 +100,9 @@ trait ResizableArray[@specialized A] extends IndexedSeq[A]
     require(sz <= size0)
     while (size0 > sz) {
       size0 -= 1
-      array(size0) = null.asInstanceOf[A]
+      if (!m.erasure.isPrimitive) {
+        array(size0) = null.asInstanceOf[A] 
+      }
     }
   }
 

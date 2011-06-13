@@ -1,12 +1,18 @@
 package org.aiotrade.lib.json
 
+import scala.collection.mutable.HashMap
+
 object MainApp {
 
   /**
    * @param args the command line arguments
    */
   def main(args: Array[String]) {
-
+    testDecode
+    testVmap
+  }
+  
+  def testDecode {
     var text = """{"L":{"s":"600001.SS","t":1265737049852,"v":[202.04144,61.16,51.15,31.13,41.14,740.1218,660.10156,21.12]}}"""
     var json = JsonBuilder.readJson(text)
     println(json)
@@ -51,5 +57,23 @@ object MainApp {
                    "longitude": -122.40401}]} \n\"""
     json = JsonBuilder.readJson(text)
     println(json)
+  }
+  
+  
+  def testVmap {
+    val vmap = new HashMap[String, Array[_]]
+    vmap += ("." -> Array(1, 2, 3, 4))
+    vmap += ("a" -> Array(1.1, 2.1, 3.1, 4.1))
+    vmap += ("b" -> Array(Array("up", 10.0, "White"), Array("dn", 11.0, "White"), Array("up", 12.0, "White"), Array("up", 13.0, "White")))
+    
+    val bytes = Json.encode(vmap)
+    val json = new String(bytes)
+    println("\n========= encode ==============")
+    println(json)
+
+    println("\n========= decode ==============")
+    val jsonObj = Json.decode(json)
+    println(jsonObj)
+
   }
 }

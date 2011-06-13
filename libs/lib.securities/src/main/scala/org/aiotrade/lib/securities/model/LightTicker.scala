@@ -30,11 +30,8 @@
  */
 package org.aiotrade.lib.securities.model
 
-import java.io.IOException
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TVal
-import org.aiotrade.lib.json.JsonOutputStreamWriter
-import org.aiotrade.lib.json.JsonSerializable
 
 /**
  *
@@ -64,7 +61,7 @@ object LightTicker {
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
+class LightTicker(val data: Array[Double]) extends TVal {
   @transient final var sec: Sec = _
   @transient final protected var _isChanged: Boolean = _
 
@@ -134,10 +131,9 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   def reset {
     time = 0
 
-    var i = 0
-    while (i < data.length) {
+    var i = -1
+    while ({i += 1; i < data.length}) {
       data(i) = 0
-      i += 1
     }
   }
 
@@ -152,12 +148,11 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
   def export: (Long, List[Array[Double]]) = (time, List(data))
 
   def isValueChanged(another: LightTicker): Boolean = {
-    var i = 0
-    while (i < data.length) {
+    var i = -1
+    while ({i += 1; i < data.length}) {
       if (data(i) != another.data(i)) {
         return true
       }
-      i += 1
     }
 
     false
@@ -169,30 +164,30 @@ class LightTicker(val data: Array[Double]) extends TVal with JsonSerializable {
     cloneOne
   }
 
-  @throws(classOf[IOException])
-  def writeJson(out: JsonOutputStreamWriter) {
-    out.write("s", symbol)
-    out.write(',')
-    out.write("t", time / 1000)
-    out.write(',')
-    out.write("v", data)
-  }
-
-  @throws(classOf[IOException])
-  def readJson(fields: Map[String, _]) {
-    symbol  = fields("s").asInstanceOf[String]
-    time    = fields("t").asInstanceOf[Long] * 1000
-    var vs  = fields("v").asInstanceOf[List[Number]]
-    var i = 0
-    while (!vs.isEmpty) {
-      data(i) = vs.head.doubleValue
-      vs = vs.tail
-      i += 1
-    }
-  }
+//  @throws(classOf[IOException])
+//  def writeJson(out: JsonOutputStreamWriter) {
+//    out.write("s", symbol)
+//    out.write(',')
+//    out.write("t", time / 1000)
+//    out.write(',')
+//    out.write("v", data)
+//  }
+//
+//  @throws(classOf[IOException])
+//  def readJson(fields: collection.Map[String, _]) {
+//    symbol  = fields("s").asInstanceOf[String]
+//    time    = fields("t").asInstanceOf[Long] * 1000
+//    var vs  = fields("v").asInstanceOf[List[Number]]
+//    var i = 0
+//    while (!vs.isEmpty) {
+//      data(i) = vs.head.doubleValue
+//      vs = vs.tail
+//      i += 1
+//    }
+//  }
 
   override def toString = {
-    symbol + ", " + time + ", " + data.mkString("[", ",", "]")
+    "LightTicker(" + "symbol=" + symbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"
   }
 }
 

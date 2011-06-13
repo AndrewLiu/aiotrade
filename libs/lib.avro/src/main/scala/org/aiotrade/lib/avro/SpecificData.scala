@@ -1,20 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.aiotrade.lib.avro
 
 import java.lang.reflect.ParameterizedType
@@ -37,9 +20,9 @@ object SpecificData {
 }
 
 /** Utilities for generated Java classes and interfaces. */
-import org.aiotrade.lib.util.ClassHelper._
-import SpecificData._
 class SpecificData protected () extends GenericData {
+  import ClassHelper._
+  import SpecificData._
   import Schema.Type._
 
   private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]]()
@@ -48,7 +31,6 @@ class SpecificData protected () extends GenericData {
   override protected def isEnum(datum: Object): Boolean = {
     datum.isInstanceOf[Enum[_]] || super.isEnum(datum)
   }
-
 
 
   /** Return the class that implements a schema, or null if none exists. */
@@ -114,22 +96,14 @@ class SpecificData protected () extends GenericData {
   /** Create the schema for a Java type. */
   protected def createSchema(tpe: java.lang.reflect.Type, names: java.util.Map[String, Schema]): Schema = {
     tpe match {
-      case c: Class[_] if CharSequenceClass.isAssignableFrom(c) =>
-        Schema.create(Type.STRING)
-      case ByteBufferClass =>
-        Schema.create(Type.BYTES)
-      case IntegerType| IntClass | JIntegerClass =>
-        Schema.create(Type.INT)
-      case LongType | LongClass | JLongClass =>
-        Schema.create(Type.LONG)
-      case JFloatClass | FloatType | FloatClass =>
-        Schema.create(Type.FLOAT)
-      case JDoubleClass | DoubleType | DoubleClass =>
-        Schema.create(Type.DOUBLE)
-      case JBooleanClass | BooleanType | BooleanClass =>
-        Schema.create(Type.BOOLEAN)
-      case JVoidClass | VoidType =>
-        Schema.create(Type.NULL)
+      case c: Class[_] if CharSequenceClass.isAssignableFrom(c) => Schema.create(Type.STRING)
+      case ByteBufferClass => Schema.create(Type.BYTES)
+      case VoidType    | JVoidClass => Schema.create(Type.NULL)
+      case IntegerType | IntClass     | JIntegerClass => Schema.create(Type.INT)
+      case LongType    | LongClass    | JLongClass    => Schema.create(Type.LONG)
+      case FloatType   | FloatClass   | JFloatClass   => Schema.create(Type.FLOAT)
+      case DoubleType  | DoubleClass  | JDoubleClass  => Schema.create(Type.DOUBLE)
+      case BooleanType | BooleanClass | JBooleanClass => Schema.create(Type.BOOLEAN)
       case ptype: ParameterizedType =>
         val raw = ptype.getRawType.asInstanceOf[Class[_]]
         val params = ptype.getActualTypeArguments

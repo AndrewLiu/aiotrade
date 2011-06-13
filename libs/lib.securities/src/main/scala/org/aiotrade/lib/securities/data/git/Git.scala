@@ -39,6 +39,7 @@ import java.text.MessageFormat
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.eclipse.jgit.api.CloneCommand
+import org.eclipse.jgit.api.PullResult
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ProgressMonitor
 import org.eclipse.jgit.lib.Repository
@@ -107,21 +108,22 @@ object Git {
   }
   
   @throws(classOf[Exception])
-  def pull(gitPath: String): org.eclipse.jgit.api.Git = pull(getGit(gitPath))
+  def pull(gitPath: String): PullResult = pull(getGit(gitPath))
+  
   @throws(classOf[Exception])
-  def pull(git: org.eclipse.jgit.api.Git) = {
+  def pull(git: org.eclipse.jgit.api.Git): PullResult = {
     val cmd = git.pull
     cmd.setProgressMonitor(monitor)
 
     val t0 = System.currentTimeMillis
-    try {
+    val pullResult = try {
       cmd.call
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); throw ex
     }
     log.info("Pulled in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     
-    git
+    pullResult
   }
   
   def addAll(gitPath: String) {addAll(getGit(gitPath))}

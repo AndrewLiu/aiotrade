@@ -50,11 +50,11 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sector
+import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.util.swing.action.GeneralAction
 import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
@@ -239,7 +239,7 @@ object SymbolNodes {
       val watchListTc = RealTimeWatchListTopComponent.getInstance(sectorNode)
       watchListTc.requestActive
 
-      val lastTickers = new ArrayList[LightTicker]
+      val lastTickers = new ArrayList[Ticker]
       val secs = Sector.secsOf(sector)
       for (sec <- secs) {
         watchListTc.watch(sec)
@@ -916,7 +916,7 @@ object SymbolNodes {
       val watchListTc = RealTimeWatchListTopComponent.getInstance(sectorNode)
       watchListTc.requestActive
 
-      val lastTickers = new ArrayList[LightTicker]
+      val lastTickers = new ArrayList[Ticker]
       var i = 0
       while (i < symbolContents.length) {
         val content = symbolContents(i)

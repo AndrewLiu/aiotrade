@@ -34,22 +34,6 @@
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.thoughtworks.paranamer</groupId>
-                    <artifactId>paranamer</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.thoughtworks.paranamer</groupId>
-                    <artifactId>paranamer-ant</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.thoughtworks.paranamer</groupId>
-                    <artifactId>paranamer-generator</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.thoughtworks.paranamer</groupId>
-                    <artifactId>qdox</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>asm</groupId>
                     <artifactId>asm</artifactId>
                 </exclusion>
@@ -104,11 +88,15 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
                     <publicPackages>
+                        <publicPackage>com.thoughtworks.paranamer</publicPackage>
                         <publicPackage>org.codehaus.jackson</publicPackage>
                         <publicPackage>org.apache.avro</publicPackage>
                         <publicPackage>org.apache.avro.file</publicPackage>
                         <publicPackage>org.apache.avro.generic</publicPackage>
                         <publicPackage>org.apache.avro.io</publicPackage>
+                        <publicPackage>org.apache.avro.io.parsing</publicPackage>
+                        <publicPackage>org.apache.avro.reflect</publicPackage>
+                        <publicPackage>org.apache.avro.specific</publicPackage>
                         <publicPackage>org.apache.avro.util</publicPackage>
                     </publicPackages>
                 </configuration>

@@ -136,6 +136,28 @@ object Sec {
       }
     }
   }
+  
+  /**
+   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
+   * since it returns same value of function CRC32(String) in mysql.
+   * 
+   * @note 
+   * 1. Check conflict by:
+   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
+   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
+   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
+   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
+   * 2. Select data of uniSymbol:
+   *    select * from quotes1d where secs_id = crc32(uniSymbol)
+   * 3. How about when uniSymbol changed of a sec?
+   *    we need to use its original uniSymbol, or create a new sec
+   */ 
+  def longId(uniSymbol: String): Long = {
+    val c = new java.util.zip.CRC32
+    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
+    c.getValue
+  }
+  
 }
 
 import Sec._
@@ -889,11 +911,8 @@ class Sec extends SerProvider with Ordered[Sec] {
   lazy val secSnap = new SecSnap(this)
 }
 
-object SecSnap {
-  protected val ONE_DAY = 24 * 60 * 60 * 1000
-}
 class SecSnap(val sec: Sec) {
-  import SecSnap._
+  private val ONE_DAY = 24 * 60 * 60 * 1000
 
   var newTicker: Ticker = _
   var lastTicker: Ticker = _
@@ -904,27 +923,27 @@ class SecSnap(val sec: Sec) {
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
 
-  private val timeZone = sec.exchange.timeZone
+  // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker
+  private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
-  def setByTicker(ticker: Ticker): SecSnap = {
+  final def setByTicker(ticker: Ticker): SecSnap = {
     this.newTicker = ticker
     
     val time = ticker.time
-    checkLastTickerOf(time)
-    checkDailyQuoteOf(time)
-    checkMinuteQuoteOf(time)
-    checkDailyMoneyFlowOf(time)
-    checkMinuteMoneyFlowOf(time)
+    checkLastTickerAt(time)
+    checkDailyQuoteAt(time)
+    checkMinuteQuoteAt(time)
+    checkDailyMoneyFlowAt(time)
+    checkMinuteMoneyFlowAt(time)
     this
   }
 
-  def checkDailyQuoteOf(time: Long): Quote = {
+  private def checkDailyQuoteAt(time: Long): Quote = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     dailyQuote match {
-      case one: Quote if one.time == rounded =>
-        one
+      case oldone: Quote if oldone.time == rounded =>
+        oldone
       case _ => // day changes or null
         val newone = Quotes1d.dailyQuoteOf(sec, rounded)
         dailyQuote = newone
@@ -932,13 +951,12 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkDailyMoneyFlowOf(time: Long): MoneyFlow = {
+  private def checkDailyMoneyFlowAt(time: Long): MoneyFlow = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
-    val cal = Calendar.getInstance(timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
     dailyMoneyFlow match {
-      case one: MoneyFlow if one.time == rounded =>
-        one
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
       case _ => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
         dailyMoneyFlow = newone
@@ -946,12 +964,11 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkMinuteQuoteOf(time: Long): Quote = {
-    val cal = Calendar.getInstance(timeZone)
+  private def checkMinuteQuoteAt(time: Long): Quote = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteQuote match {
-      case one: Quote if one.time == rounded =>
-        one
+      case oldone: Quote if oldone.time == rounded =>
+        oldone
       case _ => // minute changes or null
         val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
         minuteQuote = newone
@@ -959,12 +976,11 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  def checkMinuteMoneyFlowOf(time: Long): MoneyFlow = {
-    val cal = Calendar.getInstance(timeZone)
+  private def checkMinuteMoneyFlowAt(time: Long): MoneyFlow = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minuteMoneyFlow match {
-      case one: MoneyFlow if one.time == rounded =>
-        one
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
       case _ => // minute changes or null
         val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
         minuteMoneyFlow = newone
@@ -975,13 +991,12 @@ class SecSnap(val sec: Sec) {
   /**
    * @return lastTicker of this day
    */
-  def checkLastTickerOf(time: Long): Ticker = {
-    val cal = Calendar.getInstance(timeZone)
+  private def checkLastTickerAt(time: Long): Ticker = {
     val rounded = TFreq.DAILY.round(time, cal)
     lastTicker match {
-      case one: Ticker if one.time >= rounded && one.time < rounded + ONE_DAY =>
+      case oldone: Ticker if oldone.time >= rounded && oldone.time < rounded + ONE_DAY =>
         newTicker.isDayFirst = false
-        one
+        oldone
       case _ => // not today's one or null
         val newone = Tickers.lastTickerOf(sec, rounded)
         lastTicker = newone

@@ -1,4 +1,33 @@
-
+/*
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *  o Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ *    
+ *  o Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution. 
+ *    
+ *  o Neither the name of AIOTrade Computing Co. nor the names of 
+ *    its contributors may be used to endorse or promote products derived 
+ *    from this software without specific prior written permission. 
+ *    
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.aiotrade.lib.json
 
 import org.aiotrade.lib.io.CharArray
@@ -17,8 +46,8 @@ import scala.annotation.tailrec
  */
 
 
-import Json.Event._
 class JsonParser(val rest: RestReader) {
+  import Json.Event._
 
   private var event = 0  // last event read
 
@@ -150,70 +179,68 @@ class JsonParser(val rest: RestReader) {
    * map separators or array element separators to read
    */
   @tailrec
-  private def next(c: Char): Int = {
-    c match {
-      // @todo in case of '\n' try and keep track of linecounts?
-      case ' ' | '\t' | '\r' | '\n' => next(rest.next)
-      case '"' =>
-        valState = STRING
-        STRING
-      case '{' =>
-        stack.push(state)
-        state = STATE_OBJ_START
-        OBJECT_START
-      case '[' =>
-        stack.push(state)
-        state = STATE_ARR_START
-        ARRAY_START
-      case '0' =>
-        out.reset
-        //special case '0'?  If next char isn't '.' val=0
-        // test next char
-        rest.next match {
-          case '.' =>
-            rest.backup(1)
-            readNumber('0', false)
-            valState
-          case c1 if !isDigit(c1) =>
-            out.unsafePut('0')
-            rest.backup(1)
-            longVal = 0
-            valState = LONG
-            LONG
-          case _ => throw err("Leading zeros not allowed")
-        }
-      case _ if isDigit(c) && c != '0' =>
-        out.reset
-        longVal = readNumber(c, false)
-        valState
-      case '-' =>
-        out.reset
-        out.unsafePut('-')
-        val c1 = rest.next
-        if (!isDigit(c1)) throw err("expected digit after '-'")
-        longVal = readNumber(c1, true)
-        valState
-      case 't' =>
-        valState = BOOLEAN
-        // TODO: test performance of this non-branching inline version.
-        // if ((('r'-getChar)|('u'-getChar)|('e'-getChar)) != 0) err("")
-        rest.expect(Json.TRUE_CHARS)
-        boolVal = true
-        BOOLEAN
-      case 'f' =>
-        valState = BOOLEAN
-        rest.expect(Json.FALSE_CHARS)
-        boolVal = false
-        BOOLEAN
-      case 'n' =>
-        valState = NULL
-        rest.expect(Json.NULL_CHARS)
-        NULL
-      case rest.EOF =>
-        if (stack.getLevel > 0) throw new RuntimeException("Premature EOF")
-        EOF
-      case _ => throw err(null)
-    }
+  private def next(c: Char): Int = c match {
+    // @todo in case of '\n' try and keep track of linecounts?
+    case ' ' | '\t' | '\r' | '\n' => next(rest.next)
+    case '"' =>
+      valState = STRING
+      STRING
+    case '{' =>
+      stack.push(state)
+      state = STATE_OBJ_START
+      OBJECT_START
+    case '[' =>
+      stack.push(state)
+      state = STATE_ARR_START
+      ARRAY_START
+    case '0' =>
+      out.reset
+      // special case '0'?  if next char isn't '.' val=0
+      // test next char
+      rest.next match {
+        case '.' =>
+          rest.backup(1)
+          readNumber('0', false)
+          valState
+        case c1 if !isDigit(c1) =>
+          out.unsafePut('0')
+          rest.backup(1)
+          longVal = 0
+          valState = LONG
+          LONG
+        case _ => throw err("Leading zeros not allowed")
+      }
+    case _ if isDigit(c) && c != '0' =>
+      out.reset
+      longVal = readNumber(c, false)
+      valState
+    case '-' =>
+      out.reset
+      out.unsafePut('-')
+      val c1 = rest.next
+      if (!isDigit(c1)) throw err("expected digit after '-'")
+      longVal = readNumber(c1, true)
+      valState
+    case 't' =>
+      valState = BOOLEAN
+      // TODO: test performance of this non-branching inline version.
+      // if ((('r'-getChar)|('u'-getChar)|('e'-getChar)) != 0) err("")
+      rest.expect(Json.TRUE_CHARS)
+      boolVal = true
+      BOOLEAN
+    case 'f' =>
+      valState = BOOLEAN
+      rest.expect(Json.FALSE_CHARS)
+      boolVal = false
+      BOOLEAN
+    case 'n' =>
+      valState = NULL
+      rest.expect(Json.NULL_CHARS)
+      NULL
+    case rest.EOF =>
+      if (stack.getLevel > 0) throw new RuntimeException("Premature EOF")
+      EOF
+    case _ => throw err(null)
   }
 
 
@@ -233,61 +260,60 @@ class JsonParser(val rest: RestReader) {
     // We build up the number in the negative plane since it's larger (by one) than
     // the positive plane.
     val v: Long = '0' - fstChar
+    loopInReadNumber(rest.next, v, 1, isNeg)
+  }
+  
+  @tailrec
+  private def loopInReadNumber(c: Char, v: Long, i: Int, isNeg: Boolean): Long = c match {
+    case _ if i > 21 =>
+      numState = 0
+      valState = BIGNUMBER
+      0
+    case _ if isDigit(c) =>
+      out.unsafePut(c)
+      val v1 = v * 10 - (c - '0')
+      loopInReadNumber(rest.next, v1, i + 1, isNeg)
+    case '.' =>
+      out.unsafePut('.')
+      valState = readFrac(out, 22 - i)
+      0
+    case 'e' | 'E' =>
+      out.unsafePut(c)
+      numState = 0
+      valState = readExp(out, 22 - i)
+      0
+    case _ =>
+      // return the number, relying on nextEvent to return an error
+      // for invalid chars following the number.
+      if (c != rest.EOF) rest.backup(1)
 
-    @tailrec
-    def loop(c: Char, v: Long, i: Int): Long = c match {
-      case _ if i > 21 =>
-        numState = 0
-        valState = BIGNUMBER
-        0
-      case _ if isDigit(c) =>
-        out.unsafePut(c)
-        val v1 = v * 10 - (c - '0')
-        loop(rest.next, v1, i + 1)
-      case '.' =>
-        out.unsafePut('.')
-        valState = readFrac(out, 22 - i)
-        0
-      case 'e' | 'E' =>
-        out.unsafePut(c)
-        numState = 0
-        valState = readExp(out, 22 - i)
-        0
-      case _ =>
-        // return the number, relying on nextEvent to return an error
-        // for invalid chars following the number.
-        if (c != rest.EOF) rest.backup(1)
-
-        // the max number of digits we are reading only allows for
-        // a long to wrap once, so we can just check if the sign is
-        // what is expected to detect an overflow.
-        valState = if (v <= 0) LONG else BIGNUMBER
-        // -0 is allowed by the spec
-        if (isNeg) v else -v
-    }
-
-    loop(rest.next, v, 1)
+      // the max number of digits we are reading only allows for
+      // a long to wrap once, so we can just check if the sign is
+      // what is expected to detect an overflow.
+      valState = if (v <= 0) LONG else BIGNUMBER
+      // -0 is allowed by the spec
+      if (isNeg) v else -v
   }
 
   // read digits right of decimal point
   private def readFrac(chars: CharArray, max: Int): Int = {
     numState = HAS_FRACTION  // deliberate set instead of '|'
 
-    @tailrec
-    def loop(chars: CharArray, max: Int, c: Char): Int = c match {
-      case _ if max < 0 => BIGNUMBER
-      case c if isDigit(c) =>
-        chars.put(c)
-        loop(chars, max - 1, rest.next)
-      case 'e' | 'E' =>
-        chars.put(c)
-        readExp(chars, max - 1)
-      case  _ =>
-        if (c != rest.EOF) rest.backup(1)
-        NUMBER
-    }
-
-    loop(chars, max - 1, rest.next)
+    loopInReadFrac(chars, max - 1, rest.next)
+  }
+  
+  @tailrec
+  private def loopInReadFrac(chars: CharArray, max: Int, c: Char): Int = c match {
+    case _ if max < 0 => BIGNUMBER
+    case c if isDigit(c) =>
+      chars.put(c)
+      loopInReadFrac(chars, max - 1, rest.next)
+    case 'e' | 'E' =>
+      chars.put(c)
+      readExp(chars, max - 1)
+    case  _ =>
+      if (c != rest.EOF) rest.backup(1)
+      NUMBER
   }
 
   // call after 'e' or 'E' has been seen to read the rest of the exponent
@@ -334,23 +360,24 @@ class JsonParser(val rest: RestReader) {
     } else if (numState != 0) {
       readFrac(chars, Integer.MAX_VALUE)
     } else {
-      @tailrec
-      def loop(chars: CharArray, c: Char): Unit = c match {
-        case _ if isDigit(c) =>
-          chars.put(c)
-          loop(chars, rest.next)
-        case '.' =>
-          chars.put(c)
-          readFrac(chars, Integer.MAX_VALUE)
-        case 'e' | 'E' =>
-          chars.put(c)
-          readExp(chars, Integer.MAX_VALUE)
-        case _ => if (c != rest.EOF) rest.backup(1)
-      }
-
-      loop(chars, rest.next)
+      loopInContinueNumber(chars, rest.next)
     }
   }
+  
+  @tailrec
+  private def loopInContinueNumber(chars: CharArray, c: Char): Unit = c match {
+    case _ if isDigit(c) =>
+      chars.put(c)
+      loopInContinueNumber(chars, rest.next)
+    case '.' =>
+      chars.put(c)
+      readFrac(chars, Integer.MAX_VALUE)
+    case 'e' | 'E' =>
+      chars.put(c)
+      readExp(chars, Integer.MAX_VALUE)
+    case _ => if (c != rest.EOF) rest.backup(1)
+  }
+
 
   // backslash has already been read when this is called
   private def readEscapedChar: Char = {
@@ -372,27 +399,28 @@ class JsonParser(val rest: RestReader) {
   }
 
   private def readStringChars: CharArray = {
-    // @Note should be aware that when call rest.charAt(i), i should < rest.end
-    @tailrec
-    def loop(i: Int): CharArray = {
-      if (i >= rest.end || rest.charAt(i) == '\\') {
-        // could not decide yet, need going on use a bigger buffer
-        out.reset
-        readStringChars(out, i)
-        out
-      } else if (rest.charAt(i) == '"') {
-        // found end of string, task finish
-        val tmp = new CharArray(rest.data, rest.pos, i) // directly use input buffer, batch copy data
-        rest.seek(i + 1) // move pos till consumer this '"'
-        tmp
-      } else {
-        loop(i + 1)
-      }
-    }
-
     val start = rest.pos
-    loop(start)
+    loopInReadStringChars(start)
   }
+
+  // @Note should be aware that when call rest.charAt(i), i should < rest.end
+  @tailrec
+  private def loopInReadStringChars(i: Int): CharArray = {
+    if (i >= rest.end || rest.charAt(i) == '\\') {
+      // could not decide yet, need going on use a bigger buffer
+      out.reset
+      readStringChars(out, i)
+      out
+    } else if (rest.charAt(i) == '"') {
+      // found end of string, task finish
+      val tmp = new CharArray(rest.data, rest.pos, i) // directly use input buffer, batch copy data
+      rest.seek(i + 1) // move pos till consumer this '"'
+      tmp
+    } else {
+      loopInReadStringChars(i + 1)
+    }
+  }
+
 
   /**
    * from is the pointer to the middle of a buffer to start scanning for a

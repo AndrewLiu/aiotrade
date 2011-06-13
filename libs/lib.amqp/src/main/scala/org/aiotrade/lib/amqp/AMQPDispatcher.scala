@@ -25,6 +25,7 @@ import java.util.logging.Level
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
+import org.aiotrade.lib.util.actors.Msg
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.reactors.Event
@@ -98,7 +99,7 @@ object AMQPExchange {
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
  */
-abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher with Serializer {
+abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher {
   private val log = Logger.getLogger(getClass.getName)
 
   case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
@@ -205,7 +206,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       if (conn.isOpen) {
         try {
           conn.close
-          //log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
+          log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         } catch {
           case _ =>
         }
@@ -224,38 +225,59 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def configure(channel: Channel): Option[Consumer]
 
   @throws(classOf[IOException])
-  def publish(exchange: String, routingKey: String, $props: AMQP.BasicProperties, content: Any) {
+  def publish(exchange: String, routingKey: String, props: AMQP.BasicProperties, content: Any) {
     channel foreach {ch =>
       import ContentType._
 
-      val props = if ($props == null) new AMQP.BasicProperties else $props
+      val props1 = if (props == null) new AMQP.BasicProperties else props
 
-      val contentType = props.getContentType match {
-        case null | "" => JAVA_SERIALIZED_OBJECT
+      val contentType = props1.getContentType match {
+        case null | "" => JAVA_SERIALIZED_OBJECT // AVRO // 
         case x => ContentType(x)
       }
 
       val body = contentType.mimeType match {
+        case JSON.mimeType => 
+          content match {
+            case msg: Msg[_] => 
+              val headers = props1.getHeaders match {
+                case null => new java.util.HashMap[String, AnyRef]
+                case x => x
+              }
+              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+              props1.setHeaders(headers)
+          }
+          Serializer.encodeJson(content)
+        case AVRO.mimeType => 
+          content match {
+            case msg: Msg[_] => 
+              val headers = props1.getHeaders match {
+                case null => new java.util.HashMap[String, AnyRef]
+                case x => x
+              }
+              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+              props1.setHeaders(headers)
+          }
+          Serializer.encodeAvro(content)  
+
+        case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
         case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
-        case JAVA_SERIALIZED_OBJECT.mimeType => encodeJava(content)
-        case JSON.mimeType => encodeJson(content)
-        case AVRO.mimeType => encodeAvro(content)  
-        case _ => encodeJava(content)
+        case _ => content.asInstanceOf[Array[Byte]]
       }
 
-      val contentEncoding = props.getContentEncoding match {
-        case null | "" => props.setContentEncoding("gzip"); "gzip"
+      val contentEncoding = props1.getContentEncoding match {
+        case null | "" => props1.setContentEncoding("gzip"); "gzip"
         case x => x
       }
     
       val body1 = contentEncoding match {
-        case "gzip" => gzip(body)
-        case "lzma" => lzma(body)
+        case "gzip" => Serializer.gzip(body)
+        case "lzma" => Serializer.lzma(body)
         case _ => body
       }
 
       log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-      ch.basicPublish(exchange, routingKey, props, body1)
+      ch.basicPublish(exchange, routingKey, props1, body1)
     }
   }
 
@@ -310,33 +332,45 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       // so should ack it. (Although prefetch may deliver more than one message to consumer)
       handleAck(isAutoAck, channel, envelope)
 
-      //log.info("Got amqp message: " + (body.length / 1024.0) + "k" )
+      log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       val body1 = props.getContentEncoding match {
-        case "gzip" => ungzip(body)
-        case "lzma" => unlzma(body)
+        case "gzip" => Serializer.ungzip(body)
+        case "lzma" => Serializer.unlzma(body)
         case _ => body
       }
 
       import ContentType._
       val contentType = props.getContentType match {
-        case null | "" => JAVA_SERIALIZED_OBJECT
+        case null | "" =>  JAVA_SERIALIZED_OBJECT // AVRO
         case x => ContentType(x)
       }
 
+      val headers = props.getHeaders match {
+        case null => java.util.Collections.emptyMap[String, AnyRef]
+        case x => x
+      }
+      
       try {
         val content = contentType.mimeType match {
+          case JSON.mimeType => headers.get("tag") match {
+              case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
+              case _ => null
+            }
+          case AVRO.mimeType => headers.get("tag") match {
+              case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
+              case _ => null
+            }
+            
+          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
           case OCTET_STREAM.mimeType => body1
-          case JSON.mimeType => decodeJson(body1)
-          case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
-          case AVRO.mimeType => decodeAvro(body1)    
-          case _ => decodeJava(body1)
+          case _ => body1
         }
 
         // send back to interested observers for further relay
         publish(AMQPMessage(content, props, envelope))
-        //log.info("Published amqp message: " + content)
-        //log.info(processors.map(_.getState.toString).mkString("(", ",", ")"))
+        log.fine("Published amqp message: " + content)
+        log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
@@ -457,8 +491,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       delivery match {
         case Delivery(body, props, envelope) =>
           val body1 = props.getContentEncoding match {
-            case "gzip" => ungzip(body)
-            case "lzma" => unlzma(body)
+            case "gzip" => Serializer.ungzip(body)
+            case "lzma" => Serializer.unlzma(body)
             case _ => body
           }
 
@@ -468,13 +502,24 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
             case x => ContentType(x)
           }
 
+          val headers = props.getHeaders match {
+            case null => java.util.Collections.emptyMap[String, AnyRef]
+            case x => x
+          }
+      
           try {
             val content = contentType.mimeType match {
+              case JSON.mimeType => headers.get("tag") match {
+                  case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
+                  case _ => null
+                }
+              case AVRO.mimeType => headers.get("tag") match {
+                  case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
+                  case _ => null
+                }
+                
+              case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
               case OCTET_STREAM.mimeType => body1
-              case JAVA_SERIALIZED_OBJECT.mimeType => decodeJava(body1)
-              case JSON.mimeType => decodeJson(body1)
-              case AVRO.mimeType => decodeAvro(body1)                    
-              case _ => decodeJava(body1)
             }
 
             publish(AMQPMessage(content, props, envelope))

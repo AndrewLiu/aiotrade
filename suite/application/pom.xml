@@ -78,6 +78,12 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-avro</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-charting</artifactId>
             <version>${project.version}</version>
             <type>nbm</type>

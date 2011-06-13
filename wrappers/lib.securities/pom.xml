@@ -47,10 +47,6 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.aiotrade</groupId>
-                    <artifactId>lib-json</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.aiotrade</groupId>
                     <artifactId>lib-math</artifactId>
                 </exclusion>
                 <exclusion>
@@ -71,11 +67,6 @@
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>org-aiotrade-lib-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aiotrade</groupId>
-            <artifactId>org-aiotrade-lib-json</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

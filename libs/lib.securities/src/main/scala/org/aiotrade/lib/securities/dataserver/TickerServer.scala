@@ -38,7 +38,6 @@ import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Executions
-import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.PriceDistribution
 import org.aiotrade.lib.securities.model.MarketDepth
@@ -64,10 +63,12 @@ case class DepthSnap (
 
 object TickerServer extends Publisher {
   // snap evts
-  object TickerEvt     extends Evt[Ticker](0, "ticker") {override def schema = "todo"}
-  object TickersEvt    extends Evt[Array[LightTicker]](1, "tickers")
+  object TickerEvt     extends Evt[Ticker](0, "ticker")
+  object TickersEvt    extends Evt[Array[Ticker]](1, "tickers")
   object ExecutionEvt  extends Evt[(Double, Execution)](2, "prevClose, execution")
-  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)  
+  object DepthSnapsEvt extends Evt[Array[DepthSnap]](3)
+  object DelimiterEvt  extends Evt[Unit](9, "A delimiter to notice batch tickers got.")
+
   
   // update evts
   object QuoteEvt      extends Evt[(TFreq, Quote)](10, "freq, quote")
@@ -110,10 +111,11 @@ abstract class TickerServer extends DataServer[Ticker] {
   private def toSecSnaps(values: Array[Ticker]): (Seq[SecSnap], Seq[Ticker]) = {
     val processedSymbols = mutable.Set[String]() // used to avoid duplicate symbols of each refreshing
 
-    val secSnaps = new ArrayList[SecSnap]
-    val tickersLast = new ArrayList[Ticker]
-    var i = 0
-    while (i < values.length) {
+    val length = values.length
+    val secSnaps = new ArrayList[SecSnap](length)
+    val tickersLast = new ArrayList[Ticker](length)
+    var i = -1
+    while ({i += 1; i < length}) {
       val ticker = values(i)
       val symbol = ticker.symbol
 
@@ -137,8 +139,6 @@ abstract class TickerServer extends DataServer[Ticker] {
       } else {
         log.info("Discard ticker: " + ticker.symbol)
       }
-
-      i += 1
     }
     
     (secSnaps, tickersLast)
@@ -167,8 +167,8 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     exchangeToLastTime.clear
 
-    var i = 0
-    while (i < secSnaps.length) {
+    var i = -1
+    while ({i += 1; i < secSnaps.length}) {
       val secSnap = secSnaps(i)
 
       val sec = secSnap.sec
@@ -313,8 +313,6 @@ abstract class TickerServer extends DataServer[Ticker] {
         lastTicker.copyFrom(ticker)
         lastTime = math.max(lastTime, ticker.time)
       }
-
-      i += 1
     }
     
     /* else {
@@ -385,7 +383,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     // 1. to forward to remote message system, or
     // 2. to compute money flow etc.
     if (allTickers.length > 0) {
-      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray.asInstanceOf[Array[LightTicker]]))
+      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray))
     }
     if (allDepthSnaps.length > 0) {
       TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))

@@ -484,8 +484,10 @@ object TStampsFactory {
 
     override def iterator = delegateTimestamps.iterator
 
-    override def toArray[B >: Long : ClassManifest]: Array[B] = delegateTimestamps.toArray
+    override def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
         
+    override def toArray: Array[Long] = delegateTimestamps.toArray
+    
     override def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
 
     override def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)

@@ -300,7 +300,9 @@ object Exchange extends Publisher {
     val uniSymbolToName = new ArrayList[(String, String)]
     val secToName = new ArrayList[(Sec, String)]
     
-    for (ticker <- tickers) {
+    var i = -1
+    while ({i += 1; i < tickers.length}) {
+      val ticker = tickers(i)
       val uniSymbol = ticker.symbol
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
@@ -318,12 +320,17 @@ object Exchange extends Publisher {
     val secs = Exchanges.createSimpleSecs(uniSymbolToName.toArray, true)
     val secInfos = Exchanges.createSimpleSecInfos(secToName.toArray, true)
     
-    publish(SecsAddedToDb(secs))
-    for (sec <- secs) {
-      secAdded(sec)
+    if (secs.length > 0) {
+      publish(SecsAddedToDb(secs))
+      var i = -1
+      while ({i += 1; i < secs.length}) {
+        secAdded(secs(i))
+      }
     }
     
-    publish(SecInfosAddedToDb(secInfos))
+    if (secInfos.length > 0) {
+      publish(SecInfosAddedToDb(secInfos))
+    }
   }
 
   def secAdded(uniSymbol: String): Sec = {
@@ -606,13 +613,12 @@ class Exchange extends Ordered[Exchange] {
       } else if (timeInMinutes > lastClose) {
         status = Closed(time, timeInMinutes)
       } else {
-        var i = 0
-        while (i < openingPeriods.length && status == null) {
+        var i = -1
+        while ({i += 1; i < openingPeriods.length && status == null}) {
           val openingPeriod = openingPeriods(i)
           if (timeInMinutes >= openingPeriod._1 && timeInMinutes <= openingPeriod._2) {
             status = Opening(time, timeInMinutes)
           }
-          i += 1
         }
 
         if (status == null) {
@@ -720,8 +726,8 @@ class Exchange extends Ordered[Exchange] {
     if (quotesToClose.length > 0) {
       willCommit = true
 
-      var i = 0
-      while (i < quotesToClose.length) {
+      var i = -1
+      while ({i += 1; i < quotesToClose.length}) {
         val quote = quotesToClose(i)
         quote.closed_!
 
@@ -733,8 +739,6 @@ class Exchange extends Ordered[Exchange] {
             sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
           case _ =>
         }
-
-        i += 1
       }
 
       if (alsoSave) {
@@ -755,12 +759,10 @@ class Exchange extends Ordered[Exchange] {
     if (mfsToClose.length > 0) {
       willCommit = true
 
-      var i = 0
-      while (i < mfsToClose.length) {
+      var i = -1
+      while ({i += 1; i < mfsToClose.length}) {
         val mfs = mfsToClose(i)
         mfs.closed_!
-
-        i += 1
       }
 
       if (alsoSave) {

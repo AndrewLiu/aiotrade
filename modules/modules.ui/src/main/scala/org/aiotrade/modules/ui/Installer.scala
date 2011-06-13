@@ -141,6 +141,8 @@ class Installer extends ModuleInstall {
     val dataDir = new File(dataPath)
     if (dataDir != null && !dataDir.exists) {
       SyncUtil.extractDataTo(dataPath)      
+    } else {
+      SyncUtil.initLocalDataGit(dataPath)
     }
     
     // create database if does not exist

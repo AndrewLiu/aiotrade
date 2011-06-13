@@ -35,6 +35,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.JarURLConnection
 import java.net.URL
+import java.util.jar.JarFile
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.info.model.AnalysisReports
@@ -65,6 +66,7 @@ import org.aiotrade.lib.securities.model.SectorSecs
 import org.aiotrade.lib.securities.model.Sectors
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
+import org.eclipse.jgit.api.MergeResult
 import ru.circumflex.orm._
 
 /**
@@ -170,24 +172,36 @@ object SyncUtil {
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
   
+  private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
+    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
+  }
+
+  /**
+   * @Note
+   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
+   * this standalone function to get type right
+   */
+  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
+    val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
+    table.insertBatch(records.toArray, false)
+  }
+  
   /**
    * Extract data to destPath from jar file
    * @see http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/InstalledFileLocator.html
    */
   def extractDataTo(destPath: String) {
+    var jarFile: JarFile = null
     try {
       // locate jar 
-      val c = classOf[Locator]
+      val locator = classOf[Locator]
       // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
-      val fileUrl = c.getProtectionDomain.getCodeSource.getLocation
-      log.info("Initial data is located at: " + fileUrl)
+      val url = locator.getProtectionDomain.getCodeSource.getLocation
+      log.info("Initial data is located at: " + url)
 
-      val jarFile = fileUrl.openConnection match {
-        case x: JarURLConnection => x.getJarFile
-        case _ => 
-          val url = new URL("jar:" + fileUrl.toExternalForm + "!/")
-          url.openConnection.asInstanceOf[JarURLConnection].getJarFile
-      }
+      val urlStr = url.toExternalForm
+      val jarUrl = if (urlStr.startsWith("jar:")) url else new URL("jar:" + urlStr + "!/")
+      jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
 
       val t0 = System.currentTimeMillis
       val buf = new Array[Byte](1024)
@@ -231,13 +245,25 @@ object SyncUtil {
       val gitFile = new File(destPath, "dotgit")
       if (gitFile.exists) {
         gitFile.renameTo(new File(destPath, ".git"))
-        localDataGit = Option(Git.getGit(destPath + "/.git"))
+        initLocalDataGit(destPath)
       }
       
       log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
     } catch {
-      case e => log.log(Level.WARNING, e.getMessage, e)
+      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+    } finally {
+      if (jarFile != null) {
+        try {
+          jarFile.close
+        } catch {
+          case _ =>
+        }
+      }
     }
+  }
+  
+  def initLocalDataGit(destPath: String) {
+    localDataGit = Option(Git.getGit(destPath + "/.git"))
   }
   
   @throws(classOf[Exception])
@@ -245,25 +271,30 @@ object SyncUtil {
     localDataGit match {
       case None => // @todo, clone a new one
       case Some(git) =>
-        Git.pull(git)
-      
-        // refresh secs, secInfos, secDividends etc
-        Exchange.resetSearchTables
+        val pullResult = Git.pull(git)
+        if (pullResult != null) {
+          val willResetSearchTable = pullResult.getMergeResult match {
+            case null => false
+            case x => 
+              import MergeResult.MergeStatus
+              val status = x.getMergeStatus 
+              log.warning("Pull status is: " + status)
+              status match {
+                case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
+                case MergeStatus.ALREADY_UP_TO_DATE => false
+                case _ => false
+              }
+          }
+          
+          // refresh secs, secInfos, secDividends etc
+          if (willResetSearchTable) {
+            Exchange.resetSearchTables
+          }
+        } else {
+          log.warning("Pull result is null")
+        }
     }
   }
     
-  private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
-    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-  }
 
-  /**
-   * @Note
-   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
-   * this standalone function to get type right
-   */
-  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
-    val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-    table.insertBatch(records.toArray, false)
-  }
-  
 }
