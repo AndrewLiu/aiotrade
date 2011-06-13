@@ -92,7 +92,9 @@ object AMQPExchange {
 
 
 object AMQPDispatcher {
-  val DEFAULT_CONTENT_TYPE = ContentType.JAVA_SERIALIZED_OBJECT // AVRO 
+  val DEFAULT_CONTENT_TYPE = ContentType.JAVA_SERIALIZED_OBJECT
+
+  private val defaultReconnectDelay = 3000
 }
 
 /**
@@ -108,8 +110,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   private lazy val timer = new Timer("AMQPReconnectTimer")
 
-  private val defaultReconnectDelay = 3000
-  private var reconnectDelay: Long = defaultReconnectDelay
+  private var reconnectDelay: Long = AMQPDispatcher.defaultReconnectDelay
 
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,
@@ -159,7 +160,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         state = State(Option(conn), Option(channel), consumer)
 
         log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
-        reconnectDelay = defaultReconnectDelay
+        reconnectDelay = AMQPDispatcher.defaultReconnectDelay
         publish(AMQPConnected)
 
       case Right(ex) =>

@@ -83,7 +83,7 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
      */
     protected def process(msg: AMQPMessage) {
       msg match {
-        case AMQPMessage(req: Any, reqProps)  =>
+        case AMQPMessage(req, reqProps)  =>
           if (reqProps.getCorrelationId != null && reqProps.getReplyTo != null) {
             val reply = handle(req)
             // If replyPropreties is set to replyContent then we use it, otherwise create a new one
