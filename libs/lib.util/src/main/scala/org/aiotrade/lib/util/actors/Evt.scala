@@ -324,8 +324,8 @@ object Evt {
       IntEvt(8),
       ArrayEvt(Array("a", "b")),
       ListEvt(List("a", "b")),
-      TupleEvt(8, "a", 8.0),
-      TupleEvt(8, "a", 8)
+      TupleEvt(8, "a", 8.0, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))),
+      TupleEvt(8, "a", 8, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
     )
 
     val badEvtMsgs = List(
@@ -376,7 +376,7 @@ object Evt {
       case IntEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ArrayEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ListEvt(aval@List(a: String, b: String)) => println("Matched: " + v + " => " + aval); true
-      case TupleEvt(aint: Int, astr: String, adou: Double) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
+      case TupleEvt(aint: Int, astr: String, adou: Double, xs: Array[TestData]) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
       case BadEmpEvt => println("Matched emp evt"); true
       case _ => println("Unmatched: " + v); false
     }
@@ -406,7 +406,7 @@ object Evt {
     testMsg(DoubleEvt(1.0))
     testMsg(BooleanEvt(true))
     testMsg(StringEvt("abc"))
-    testMsg(TupleEvt(1, "a", 100000L))
+    testMsg(TupleEvt(1, "a", 100000L, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))))
   }
   
   private def testMsg[T](msg: Msg[T]) = msg match {
@@ -459,7 +459,7 @@ private[actors] object TestAPIs {
 
   val ListEvt = Evt[List[String]](-10)
   val ArrayEvt = Evt[Array[String]](-11)
-  val TupleEvt = Evt[(Int, String, Double)](-12, "id, name, value")
+  val TupleEvt = Evt[(Int, String, Double, Array[TestData])](-12, "id, name, value")
 
   val BadEmpEvt = Evt(-13) // T will be AnyRef
   
@@ -468,17 +468,17 @@ private[actors] object TestAPIs {
     {"type":"map","values":{"type":"array","items":["long","double","string",
      {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.TestAPIs$",
        "fields":[
-         {"name":"a","type":"string"},
-         {"name":"b","type":"int"},
-         {"name":"c","type":"double"},
-         {"name":"d","type":{"type":"array","items":"float"}}
+         {"name":"x1","type":"string"},
+         {"name":"x2","type":"int"},
+         {"name":"x3","type":"double"},
+         {"name":"x4","type":{"type":"array","items":"float"}}
        ]}
      ]}}
   """)
 
-  case class TestData(a: String, b: Int, c: Double, d: Array[Float]) {
+  case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
     def this() = this(null, 0, 0.0, Array())
-    override def toString = "TestData(" + a + "," + b + "," + c + "," + d.mkString("[", ",", "]")
+    override def toString = "TestData(" + x1 + "," + x2 + "," + x3 + "," + x4.mkString("[", ",", "]")
   }
 
 }
