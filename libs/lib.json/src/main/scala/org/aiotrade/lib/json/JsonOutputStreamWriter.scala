@@ -32,12 +32,16 @@ package org.aiotrade.lib.json
 
 import java.io.OutputStream
 import java.io.OutputStreamWriter
+import java.util.logging.Logger
 
 /**
  * 
  * @author Caoyuan Deng
  */
 class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends OutputStreamWriter(out, charsetName) {
+  
+  val log = Logger.getLogger(this.getClass.getName)
+
   def write(x: JsonSerializable) {
     write('{')
 
@@ -68,14 +72,19 @@ class JsonOutputStreamWriter(out: OutputStream, charsetName: String) extends Out
 
   def write(seq: collection.Seq[_]) {
     write('[')
-    val xs = seq.iterator
-    while (xs.hasNext) {
-      val x = xs.next
-      jsonWrite(x)
-      if (xs.hasNext) {
-        write(',')
+    try{
+      val xs = seq.iterator
+      while (xs.hasNext) {
+        val x = xs.next
+        jsonWrite(x)
+        if (xs.hasNext) {
+          write(',')
+        }
       }
+    } catch {
+      case e => log.severe("Failed to write " + seq + ", " + e.getMessage)
     }
+    
     write(']')
   }
 
