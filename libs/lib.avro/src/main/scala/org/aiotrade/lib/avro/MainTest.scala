@@ -36,7 +36,6 @@ import java.io.IOException
 import java.io.InputStream
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
@@ -93,7 +92,7 @@ object MainTest {
     println("\n==== encoded ===")
     println(new String(bytes, "UTF-8"))
     
-    val decoded = decode(bytes, schema, classOf[GenericRecord], true).get
+    val decoded = decode(bytes, schema, classOf[(String, Long)], true).get
     println("\n==== decoded ===")
     println(decoded)
   }
