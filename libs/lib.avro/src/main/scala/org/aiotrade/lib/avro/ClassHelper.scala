@@ -104,6 +104,14 @@ object ClassHelper {
       case _ => false
     }
   }
+  
+  def isCollectionClass(c: Class[_]): Boolean = {
+    JCollectionClass.isAssignableFrom(c) || SeqClass.isAssignableFrom(c)
+  }
+  
+  def isMapClass(c: Class[_]): Boolean = {
+    JMapClass.isAssignableFrom(c) || MapClass.isAssignableFrom(c)
+  }
 
   def isInstance(t: Class[_], v: Any): Boolean = {
     t match {

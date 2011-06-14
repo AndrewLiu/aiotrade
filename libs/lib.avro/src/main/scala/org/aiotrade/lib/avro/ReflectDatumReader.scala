@@ -16,7 +16,7 @@ object ReflectDatumReader {
   def apply[T](writer: Schema, reader: Schema, data: ReflectData): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, data)
   def apply[T](writer: Schema, reader: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, ReflectData.get)
   def apply[T](root: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](root, root, ReflectData.get)
-  def apply[T](c: Class[T]): ReflectDatumReader[T] = apply[T](ReflectData.get.getSchema(c))
+  def apply[T: Manifest](c: Class[T]): ReflectDatumReader[T] = apply[T](ReflectData.get.getSchema(c))
   def apply[T](): ReflectDatumReader[T] = new ReflectDatumReader[T](null, null, ReflectData.get)
 }
 

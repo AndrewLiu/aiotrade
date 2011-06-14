@@ -1,12 +1,14 @@
 package org.aiotrade.lib.avro
 
 import java.lang.reflect.Field
+import java.lang.reflect.GenericDeclaration
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.Type
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 
+import java.lang.reflect.TypeVariable
 import org.apache.avro.AvroRemoteException
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException
@@ -66,7 +68,7 @@ object ReflectData {
       } catch {
         case e: NoSuchFieldException =>
       }
-      clz = clz.getSuperclass()
+      clz = clz.getSuperclass
     } while (clz != null)
     throw new AvroRuntimeException("No field named "+name+" in: "+c)
   }
@@ -243,41 +245,53 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def createSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
+  protected def createSchema(tpe: GenericArrayType, names: java.util.Map[String, Schema]): Schema = {
+    import ClassHelper._
+    tpe.getGenericComponentType.asInstanceOf[Class[_]] match {
+      case ByteType => Schema.create(Schema.Type.BYTES) // byte array
+      case c: Class[_] => 
+        val schema = Schema.createArray(createSchema(c, names))
+        setElement(schema, c)
+        schema
+    }
+  }
+  
+  override
+  protected def createSchema(tpe: ParameterizedType, names: java.util.Map[String, Schema]): Schema = {
+    val raw = tpe.getRawType.asInstanceOf[Class[_]]
+    val params = tpe.getActualTypeArguments
+    if (classOf[java.util.Map[_, _]].isAssignableFrom(raw) || classOf[collection.Map[_, _]].isAssignableFrom(raw)) { // Map
+      val key = params(0)
+      val value = params(1).asInstanceOf[Class[_]]
+      if (key != classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
+      Schema.createMap(createSchema(value, names))
+    } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) { // Collection
+      if (params.length != 1) throw new AvroTypeException("No array type specified.")
+      val element = params(0).asInstanceOf[Class[_]]
+      val schema = Schema.createArray(createSchema(element, names))
+      schema.addProp(ReflectData.CLASS_PROP, raw.getName)
+      schema
+    } else {
+      super.createSchema(tpe, names)
+    }
+  }
+  
+  override
+  protected def createSchema[T <: GenericDeclaration](tpe: TypeVariable[T], names: java.util.Map[String, Schema]): Schema = {
+    throw new AvroTypeException("Unknown type: " + tpe)
+  }
+  
+  override
+  protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     import ClassHelper._
     tpe match {
-      case atype: GenericArrayType =>                  // generic array
-        val component = atype.getGenericComponentType
-        if (component eq java.lang.Byte.TYPE) {
-          Schema.create(Schema.Type.BYTES) // byte array
-        } else {
-          val schema = Schema.createArray(createSchema(component, names))
-          setElement(schema, component)
-          schema
-        }
-      case ptype: ParameterizedType =>
-        val raw = ptype.getRawType.asInstanceOf[Class[_]]
-        val params = ptype.getActualTypeArguments
-        if (classOf[java.util.Map[_, _]].isAssignableFrom(raw) || classOf[collection.Map[_, _]].isAssignableFrom(raw)) { // Map
-          val key = params(0)
-          val value = params(1)
-          if (key != classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
-          Schema.createMap(createSchema(value, names))
-        } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) { // Collection
-          if (params.length != 1) throw new AvroTypeException("No array type specified.")
-          val schema = Schema.createArray(createSchema(params(0), names))
-          schema.addProp(ReflectData.CLASS_PROP, raw.getName)
-          schema
-        } else {
-          super.createSchema(tpe, names)
-        }
       case ShortClass | JShortClass | ShortType =>
         val schema = Schema.create(Schema.Type.INT)
         schema.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
         schema
-      case c: Class[_] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
+      case c: Class[T] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
         super.createSchema(tpe, names)
-      case c: Class[_] if isTupleClass(c) =>
+      case c: Class[T] if isTupleClass(c) || isCollectionClass(c) || isMapClass(c) =>
         super.createSchema(tpe, names)
       case c: Class[_] if c.isArray =>
         c.getComponentType match {
@@ -288,9 +302,9 @@ class ReflectData protected() extends SpecificData {
             setElement(schema, component)
             schema
         }
-      case c: Class[_] if classOf[CharSequence].isAssignableFrom(c) => // String
+      case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
         Schema.create(Schema.Type.STRING) // String
-      case c: Class[_] => // other Class      
+      case c: Class[T] => // other Class      
         val fullName = c.getName
         names.get(fullName) match {
           case null =>
@@ -352,6 +366,7 @@ class ReflectData protected() extends SpecificData {
     }
   }
 
+
   // if array element type is a class with a union annotation, note it
   // this is required because we cannot set a property on the union itself 
   private def setElement(schema: Schema, element: Type) {
@@ -403,7 +418,13 @@ class ReflectData protected() extends SpecificData {
 
   /** Create a schema for a field. */
   protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
-    val schema = createSchema(field.getGenericType, names)
+    val schema = field.getGenericType match {
+      case x: GenericArrayType => createSchema(x, names)
+      case x: ParameterizedType => createSchema(x, names)
+      case x: TypeVariable[_] => createSchema(x, names)
+      case x: Class[_] => val c = x.asInstanceOf[Class[_]]; createSchema(c, names)
+    }
+    
     if (field.isAnnotationPresent(classOf[Nullable])) // nullable
       ReflectData.makeNullable(schema)
     else
@@ -486,7 +507,12 @@ class ReflectData protected() extends SpecificData {
 
   private def getSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
     try {
-      return createSchema(tpe, names)
+      tpe match {
+        case x: GenericArrayType => createSchema(x, names)
+        case x: ParameterizedType => createSchema(x, names)
+        case x: TypeVariable[_] => createSchema(x, names)
+        case x: Class[_] => val c = x.asInstanceOf[Class[_]]; createSchema(c, names)
+      }
     } catch {
       case ex: AvroTypeException => throw new AvroTypeException("Error getting schema for "+tpe+": " +ex.getMessage, ex)
     }

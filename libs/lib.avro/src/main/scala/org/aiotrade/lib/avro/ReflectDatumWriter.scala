@@ -9,10 +9,10 @@ object ReflectDatumWriter {
   def apply[T](root: Schema, data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](root, data)
   def apply[T](root: Schema): ReflectDatumWriter[T] = new ReflectDatumWriter[T](root, ReflectData.get)
   def apply[T](data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](null, data)
-  def apply[T]() : ReflectDatumWriter[T]= new ReflectDatumWriter[T](null, ReflectData.get)
+  def apply[T](): ReflectDatumWriter[T]= new ReflectDatumWriter[T](null, ReflectData.get)
   
-  def apply[T](c: Class[T], data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](data.getSchema(c), data)
-  def apply[T](c: Class[T]): ReflectDatumWriter[T] = apply[T](c, ReflectData.get)
+  def apply[T: Manifest](c: Class[T], data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](data.getSchema(c), data)
+  def apply[T: Manifest](c: Class[T]): ReflectDatumWriter[T] = apply[T](c, ReflectData.get)
 }
 
 /**

@@ -41,22 +41,26 @@ import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
 
 object MainTest {
-  
+
+  private val AVRO = 0
+  private val JSON = 1
+
   def main(args: Array[String]) {
     
-    
     testArrayBuffer
+    testAutoSchema(new java.util.HashMap[String, Array[_]])
     
-    val t0 = System.currentTimeMillis
-    testRecordToTuple
-    testJavaVMap
-    testScalaVMap
-    testReflectClass
-    testReflectArrayOfClass
-    println("Finished in " + (System.currentTimeMillis - t0) + "ms")
+    for (contentType <- List(JSON, AVRO)) {
+      testTuple(contentType)
+      testJavaVMap(contentType)
+      testScalaVMap(contentType)
+      testReflectClass(contentType)
+      testReflectArrayOfClass(contentType)
+    }
   }
   
   def testArrayBuffer {
+    println("\n==== testArrayBuffer: debug on it to see type of field array ====")
     // debug on it to see type of field array
     val alist = new ArrayList[Double]()
     val primitiveArray = alist.toArray
@@ -77,45 +81,65 @@ object MainTest {
     }
   }
   
-  def testRecordToTuple {
+  def testAutoSchema(value: AnyRef) {
+    println("\n==== test auto schema ====")
+
+    println(ReflectData.get.getSchema(classOf[java.util.HashMap[String, Array[_]]]))
+    println(ReflectData.get.getSchema(value.getClass))
+    
+    println(ReflectData.get.getSchema(classOf[(String, Long)]))
+  }
+  
+  def testTuple(contentType: Int) {
+
     val schemaJson = """
-    {"type": "record", "name": "Tuple", "fields": [
-      {"name":"a", "type":"string"},
-      {"name":"b", "type":"long"}
+    {"type": "record", "name": "tuple", "fields": [
+      {"name":"_1", "type":"string"},
+      {"name":"_2", "type":"long"},
+      {"name":"_3", "type":"Int"},    
     ]}
     """
-    val schema = Schema.parse(schemaJson)
+    
+    val schema = ReflectData.get.getSchema(classOf[(String, Long, Int)]) //Schema.parse(schemaJson)
+    println(schema)
+    
+    println("\n==== test record to tuple ====")
+    // IndexedRecord will be converted to Tuple 
     val record = new GenericData.Record(schema)
     record.put(0, "a")
     record.put(1, 1L)
+    record.put(2, 1)
     
-    println("\n==== test tuple ====")
-    val bytes= encode(record, schema, true)
-    println("\n==== encoded ===")
-    println(new String(bytes, "UTF-8"))
-    
-    val decoded = decode(bytes, schema, classOf[(String, Long)], true).get
-    println("\n==== decoded ===")
-    println(decoded)
+    val recordBytes= encode(record, schema, contentType)
+    println(new String(recordBytes, "UTF-8"))
+    val decodedRecord = decode(recordBytes, schema, classOf[(String, Long, Int)], contentType).get
+    println(decodedRecord)    
+
+    println("\n==== test tuple to tuple ====")
+    val tuple = ("a", 1L, 1)
+    val tupleBytes= encode(tuple, schema, contentType)
+    println(new String(tupleBytes, "UTF-8"))
+    val decodedTuple = decode(tupleBytes, schema, classOf[(String, Long, Int)], contentType).get
+    println(decodedTuple)
   }
   
-  def testJavaVMap {
+  def testJavaVMap(contentType: Int) {
+    println("\n==== test java vmap ====")
+
     val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double"]}}
     """
     
-    
     val vmap = new java.util.HashMap[String, Array[_]]
-    //println(ReflectData.get.getSchema(classOf[java.util.HashMap[String, Array[_]]]))
-    //println(ReflectData.get.getSchema(vmap.getClass))
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
 
-    testJsonMap(schemaJson, vmap)
-    testAvroMap(schemaJson, vmap)
+    testMap(schemaJson, vmap, contentType)
   }
   
-  def testScalaVMap {
+  def testScalaVMap(contentType: Int) {
+    println("\n==== test scala vmap ====")
+
     val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
     """
@@ -125,45 +149,28 @@ object MainTest {
     vmap.put("a", Array(1.0, 2.0, 3.0))
     vmap.put("b", Array("a", "b", "c"))
 
-    testJsonMap(schemaJson, vmap)
-    testAvroMap(schemaJson, vmap)
+    testMap(schemaJson, vmap, contentType)
   }
   
-  def testJsonMap[T](schemaDesc: String, vmap: T) {
-    println("\n========= Json ============= ")
+  def testMap[T](schemaDesc: String, vmap: T, contentType: Int) {
+    println("\n========= Map ============= ")
     //val schema = ReflectData.get.getSchema(vmap.getClass)
     val schema = Schema.parse(schemaDesc)
     println(schema.toString)
     
     // encode a map
-    val bytes = encode(vmap, schema, true)
+    val bytes = encode(vmap, schema, contentType)
     val json = new String(bytes, "UTF-8")
     println(json)
     
     // decode to scala map
-    val map = decode(bytes, schema, classOf[collection.Map[String, Array[_]]], true).get
+    val map = decode(bytes, schema, classOf[collection.Map[String, Array[_]]], contentType).get
+    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
+  }
+  
+  def testReflectClass(contentType: Int) {
+    println("\n==== test reflect class ====")
 
-    println("\ndecoded ==>")
-    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
-  }
-  
-  def testAvroMap[T](schemaDesc: String, vmap: T) {
-    println("\n========= Avro ============= ")
-    //val schema = ReflectData.get.getSchema(vmap.getClass)
-    val schema = Schema.parse(schemaDesc)
-    println(schema.toString)
-    
-    // encode a map
-    val bytes = encode(vmap, schema, false)
-    
-    // decode to scala map
-    val map = decode(bytes, schema, classOf[collection.Map[String, Array[_]]], false).get
-    
-    println("\ndecoded ==>")
-    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
-  }
-  
-  def testReflectClass {
     val instance = new Ticker
     instance.flag = 0
     println("\n==== before ===")
@@ -173,16 +180,16 @@ object MainTest {
     println(schema.toString)
     
     // encode
-    val bytes = encode(instance, schema, true)
+    val bytes = encode(instance, schema, contentType)
     
     // decode
-    val decoded = decode(bytes, schema, classOf[Ticker], true).get
-
-    println("\n==== after ===")
+    val decoded = decode(bytes, schema, classOf[Ticker], contentType).get
     println(decoded)
   }
   
-  def testReflectArrayOfClass {
+  def testReflectArrayOfClass(contentType: Int) {
+    println("\n==== test array of reflect class ====")
+
     val instance = new Ticker
     instance.flag = 0
     println("\n==== before ===")
@@ -194,28 +201,25 @@ object MainTest {
     println(schema.toString)
     
     // encode
-    val bytes = encode(instances, schema, true)
+    val bytes = encode(instances, schema, contentType)
     println(new String(bytes, "UTF-8"))
     
     // decode
-    val decoded = decode(bytes, schema, classOf[Array[Ticker]], true).get
-
-    println("\n==== after ===")
+    val decoded = decode(bytes, schema, classOf[Array[Ticker]], contentType).get
     println(decoded)
   }
   
   
-  private def encode[T](value: T, schema: Schema, forJson: Boolean): Array[Byte] = {
+  private def encode[T](value: T, schema: Schema, contentType: Int): Array[Byte] = {
+    println("==== encoded ===")
     var out: ByteArrayOutputStream = null
     try {
       out = new ByteArrayOutputStream()
     
-      val encoder = 
-        if (forJson) {
-          JsonEncoder(schema, out)
-        } else {
-          EncoderFactory.get.binaryEncoder(out, null)
-        }
+      val encoder = contentType match {
+        case JSON => JsonEncoder(schema, out)
+        case AVRO => EncoderFactory.get.binaryEncoder(out, null)
+      }
       
       val writer = ReflectDatumWriter[T](schema)
       writer.write(value, encoder)
@@ -230,17 +234,16 @@ object MainTest {
   }
   
   @throws(classOf[IOException])
-  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], forJson: Boolean): Option[T] = {
+  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], contentType: Int): Option[T] = {
+    println("==== decoded ===")
     var in: InputStream = null
     try {
       in = new ByteArrayInputStream(bytes)
       
-      val decoder = 
-        if (forJson) {
-          JsonDecoder(schema, in)
-        } else {
-          DecoderFactory.get.binaryDecoder(in, null)
-        }
+      val decoder = contentType match {
+        case JSON => JsonDecoder(schema, in)
+        case AVRO => DecoderFactory.get.binaryDecoder(in, null)
+      }
       
       val reader = ReflectDatumReader[T](schema)
       val value = reader.read(null.asInstanceOf[T], decoder)
