@@ -159,6 +159,8 @@ object Evt {
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
   private val NullSchema = Schema.create(Schema.Type.NULL)
   
+  private val AVRO = 0
+  private val JSON = 1
   val NO_TAG = Int.MinValue
   
   def exists(tag: Int): Boolean = tagToEvt.get(tag).isDefined
@@ -168,26 +170,24 @@ object Evt {
   def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1))}
  
   def toAvro[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
-    case Some(schema) => encode(value, schema, forJson = false)
+    case Some(schema) => encode(value, schema, AVRO)
     case None => Array[Byte]()
   }
   
   def toJson[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
-    case Some(schema) => encode(value, schema, forJson = true)
+    case Some(schema) => encode(value, schema, JSON)
     case None => Array[Byte]()
   }
   
-  private def encode[T](value: T, schema: Schema, forJson: Boolean): Array[Byte] = {
+  private def encode[T](value: T, schema: Schema, contentType: Int): Array[Byte] = {
     var out: ByteArrayOutputStream = null
     try {
       out = new ByteArrayOutputStream()
     
-      val encoder = 
-        if (forJson) {
-          JsonEncoder(schema, out)
-        } else {
-          EncoderFactory.get.binaryEncoder(out, null)
-        }
+      val encoder = contentType match {
+        case JSON => JsonEncoder(schema, out)
+        case AVRO => EncoderFactory.get.binaryEncoder(out, null)
+      }
       
       val writer = ReflectDatumWriter[T](schema)
       writer.write(value, encoder)
@@ -202,27 +202,25 @@ object Evt {
   }
   
   def fromAvro(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, forJson = false)
+    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, AVRO)
     case None => None
   }
 
   def fromJson(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, forJson = true)
+    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, JSON)
     case None => None
   }
   
   @throws(classOf[IOException])
-  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], forJson: Boolean): Option[T] = {
+  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], contentType: Int): Option[T] = {
     var in: InputStream = null
     try {
       in = new ByteArrayInputStream(bytes)
       
-      val decoder = 
-        if (forJson) {
-          JsonDecoder(schema, in)
-        } else {
-          DecoderFactory.get.binaryDecoder(in, null)
-        }
+      val decoder = contentType match {
+        case JSON => JsonDecoder(schema, in)
+        case AVRO => DecoderFactory.get.binaryDecoder(in, null)
+      }
       
       val reader = ReflectDatumReader[T](schema)
       reader.read(null.asInstanceOf[T], decoder) match {
@@ -408,19 +406,21 @@ object Evt {
     testMsg(DoubleEvt(1.0))
     testMsg(BooleanEvt(true))
     testMsg(StringEvt("abc"))
+    testMsg(TupleEvt(1, "a", 100000L))
   }
   
   private def testMsg[T](msg: Msg[T]) = msg match {
     case Msg(tag, value) =>
       println(schemaOf(tag))
 
-      val avroBytes = toAvro(value, tag)
-      val avroDatum = fromAvro(avroBytes, tag).get
-      println(avroDatum)
-    
       val jsonBytes = toJson(value, tag)
-      val jsonDatum = fromJson(jsonBytes, tag).get
+      println(new String(jsonBytes, "UTF-8"))
+      val jsonDatum = fromJson(jsonBytes, tag).get.asInstanceOf[T]
       println(jsonDatum)    
+
+      val avroBytes = toAvro(value, tag)
+      val avroDatum = fromAvro(avroBytes, tag).get.asInstanceOf[T]
+      println(avroDatum)
   }
 
   private def testVmap {
@@ -459,9 +459,7 @@ private[actors] object TestAPIs {
 
   val ListEvt = Evt[List[String]](-10)
   val ArrayEvt = Evt[Array[String]](-11)
-  val TupleEvt = Evt[(Int, String, Double)](-12, "id, name, value", schemaJson = """
-    {"type": "array", "items":["int", "double", "string"]}
-  """)
+  val TupleEvt = Evt[(Int, String, Double)](-12, "id, name, value")
 
   val BadEmpEvt = Evt(-13) // T will be AnyRef
   
