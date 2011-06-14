@@ -32,8 +32,6 @@ package org.aiotrade.lib.util.actors
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -165,24 +163,24 @@ object Evt {
   
   def exists(tag: Int): Boolean = tagToEvt.get(tag).isDefined
   def evtOf(tag: Int): Option[Evt[_]] = tagToEvt.get(tag)
-  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map {_.valueType}
-  def schemaOf(tag: Int): Schema = tagToEvt.get(tag) map {_.valueSchema} getOrElse NullSchema
-  def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1).toString)}
+  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map (_.valueType)
+  def schemaOf(tag: Int): Option[Schema] = tagToEvt.get(tag) map (_.valueSchema)
+  def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1))}
  
-  def toAvro[T](tag: Int, value: T): Array[Byte] = {
-    encode(tag, value, forJson = false)
+  def toAvro[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
+    case Some(schema) => encode(value, schema, forJson = false)
+    case None => Array[Byte]()
   }
   
-  def toJson[T](tag: Int, value: T): Array[Byte] = {
-    encode(tag, value, forJson = true)
+  def toJson[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
+    case Some(schema) => encode(value, schema, forJson = true)
+    case None => Array[Byte]()
   }
   
-  private def encode[T](tag: Int, value: T, forJson: Boolean): Array[Byte] = {
-    val schema = schemaOf(tag)
-    var out: OutputStream = null
+  private def encode[T](value: T, schema: Schema, forJson: Boolean): Array[Byte] = {
+    var out: ByteArrayOutputStream = null
     try {
-      val bao = new ByteArrayOutputStream()
-      out = new DataOutputStream(bao)
+      out = new ByteArrayOutputStream()
     
       val encoder = 
         if (forJson) {
@@ -195,7 +193,7 @@ object Evt {
       writer.write(value, encoder)
       encoder.flush()
       
-      bao.toByteArray
+      out.toByteArray
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
     } finally {
@@ -217,7 +215,7 @@ object Evt {
   private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], forJson: Boolean): Option[T] = {
     var in: InputStream = null
     try {
-      in = new DataInputStream(new ByteArrayInputStream(bytes))
+      in = new ByteArrayInputStream(bytes)
       
       val decoder = 
         if (forJson) {
@@ -416,11 +414,11 @@ object Evt {
     case Msg(tag, value) =>
       println(schemaOf(tag))
 
-      val avroBytes = toAvro(tag, value)
+      val avroBytes = toAvro(value, tag)
       val avroDatum = fromAvro(avroBytes, tag).get
       println(avroDatum)
     
-      val jsonBytes = toJson(tag, value)
+      val jsonBytes = toJson(value, tag)
       val jsonDatum = fromJson(jsonBytes, tag).get
       println(jsonDatum)    
   }
@@ -436,12 +434,12 @@ object Evt {
     
     val msg = TestVmapEvt(vmap)
 
-    val avroBytes = toAvro(msg.tag, msg.value)
+    val avroBytes = toAvro(msg.value, msg.tag)
     val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(avroDatum)
     avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
-    val jsonBytes = toJson(msg.tag, msg.value)
+    val jsonBytes = toJson(msg.value, msg.tag)
     val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
     println(jsonDatum)    
     jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}

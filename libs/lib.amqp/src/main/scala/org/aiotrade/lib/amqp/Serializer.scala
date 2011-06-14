@@ -73,7 +73,7 @@ object Serializer {
 
   def encodeAvro(content: Any): Array[Byte] = {
     content match {
-      case Msg(tag, value) => Evt.toAvro(tag, value)
+      case Msg(tag, value) => Evt.toAvro(value, tag)
       case _ =>
         // best trying
         val schema = ReflectData.get.getSchema(content.asInstanceOf[AnyRef].getClass)
@@ -97,7 +97,7 @@ object Serializer {
   
   def encodeJson(content: Any): Array[Byte] = {
     content match {
-      case Msg(tag, value) => Evt.toJson(tag, value)
+      case Msg(tag, value) => Evt.toJson(value, tag)
       case _ => Array[Byte]()
     }
   }

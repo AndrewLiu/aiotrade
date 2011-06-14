@@ -30,8 +30,13 @@
  */
 package org.aiotrade.lib.avro
 
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
@@ -42,6 +47,7 @@ object MainTest {
     testArrayBuffer
     
     val t0 = System.currentTimeMillis
+    testTuple
     testJavaVMap
     testScalaVMap
     testReflectClass
@@ -70,7 +76,27 @@ object MainTest {
     }
   }
   
-  
+  def testTuple {
+    val schemaJson = """
+    {"type": "record", "name": "Tuple", "fields": [
+      {"name":"a", "type":"string"},
+      {"name":"b", "type":"long"}
+    ]}
+    """
+    val schema = Schema.parse(schemaJson)
+    val record = new GenericData.Record(schema)
+    record.put(0, "a")
+    record.put(1, 1L)
+    
+    println("\n==== test tuple ====")
+    val bytes= encode(record, schema, true)
+    println("\n==== encoded ===")
+    println(new String(bytes, "UTF-8"))
+    
+    val decoded = decode(bytes, schema, classOf[GenericRecord], true).get
+    println("\n==== decoded ===")
+    println(decoded)
+  }
   
   def testJavaVMap {
     val schemaJson = """
@@ -91,7 +117,6 @@ object MainTest {
     {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
     """
     
-    
     val vmap = new mutable.HashMap[String, Array[_]]
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
@@ -108,18 +133,12 @@ object MainTest {
     println(schema.toString)
     
     // encode a map
-    val bao = new ByteArrayOutputStream()
-    val encoder = JsonEncoder(schema, bao)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(vmap, encoder)
-    encoder.flush()
-    val json = new String(bao.toByteArray, "UTF-8")
+    val bytes = encode(vmap, schema, true)
+    val json = new String(bytes, "UTF-8")
     println(json)
     
     // decode to scala map
-    val decoder = JsonDecoder(schema, json)
-    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
-    val map = reader.read(null, decoder)
+    val map = decode(bytes, schema, classOf[collection.Map[String, Array[_]]], true).get
 
     println("\ndecoded ==>")
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
@@ -132,17 +151,10 @@ object MainTest {
     println(schema.toString)
     
     // encode a map
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(vmap, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
+    val bytes = encode(vmap, schema, false)
     
     // decode to scala map
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
-    val map = reader.read(null, decoder)
+    val map = decode(bytes, schema, classOf[collection.Map[String, Array[_]]], false).get
     
     println("\ndecoded ==>")
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
@@ -158,17 +170,10 @@ object MainTest {
     println(schema.toString)
     
     // encode
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[Ticker](schema)
-    writer.write(instance, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
+    val bytes = encode(instance, schema, true)
     
     // decode
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[Ticker](schema)
-    val decoded = reader.read(null, decoder)
+    val decoded = decode(bytes, schema, classOf[Ticker], true).get
 
     println("\n==== after ===")
     println(decoded)
@@ -186,22 +191,63 @@ object MainTest {
     println(schema.toString)
     
     // encode
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[Array[Ticker]](schema)
-    writer.write(instances, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
+    val bytes = encode(instances, schema, true)
+    println(new String(bytes, "UTF-8"))
     
     // decode
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[Array[Ticker]](schema)
-    val decoded = reader.read(null, decoder)
+    val decoded = decode(bytes, schema, classOf[Array[Ticker]], true).get
 
     println("\n==== after ===")
     println(decoded)
   }
   
+  
+  private def encode[T](value: T, schema: Schema, forJson: Boolean): Array[Byte] = {
+    var out: ByteArrayOutputStream = null
+    try {
+      out = new ByteArrayOutputStream()
+    
+      val encoder = 
+        if (forJson) {
+          JsonEncoder(schema, out)
+        } else {
+          EncoderFactory.get.binaryEncoder(out, null)
+        }
+      
+      val writer = ReflectDatumWriter[T](schema)
+      writer.write(value, encoder)
+      encoder.flush()
+      
+      out.toByteArray
+    } catch {
+      case ex => println(ex.getMessage); Array[Byte]()
+    } finally {
+      if (out != null) try {out.close} catch {case _ =>}
+    }
+  }
+  
+  @throws(classOf[IOException])
+  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], forJson: Boolean): Option[T] = {
+    var in: InputStream = null
+    try {
+      in = new ByteArrayInputStream(bytes)
+      
+      val decoder = 
+        if (forJson) {
+          JsonDecoder(schema, in)
+        } else {
+          DecoderFactory.get.binaryDecoder(in, null)
+        }
+      
+      val reader = ReflectDatumReader[T](schema)
+      val value = reader.read(null.asInstanceOf[T], decoder)
+      Some(value)
+    } catch {
+      case ex => println(ex.getMessage); None
+    } finally {
+      if (in != null) try {in.close} catch {case _ =>}
+    }
+  }
   
   class Ticker {
     private val data = Array(1.0, 2.0)
