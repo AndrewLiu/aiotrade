@@ -104,7 +104,9 @@ class SpecificData protected () extends GenericData {
       case FloatType   | FloatClass   | JFloatClass   => Schema.create(Type.FLOAT)
       case DoubleType  | DoubleClass  | JDoubleClass  => Schema.create(Type.DOUBLE)
       case BooleanType | BooleanClass | JBooleanClass => Schema.create(Type.BOOLEAN)
-      case ptype: ParameterizedType =>
+/*       case c: Class[_] if ClassHelper.isTupleClass(c) =>
+        val params = c.getTypeParameters
+ */      case ptype: ParameterizedType =>
         val raw = ptype.getRawType.asInstanceOf[Class[_]]
         val params = ptype.getActualTypeArguments
 
@@ -142,62 +144,6 @@ class SpecificData protected () extends GenericData {
         schema
       case _ => throw new AvroTypeException("Unknown type: " + tpe)
     }
-  }
-
-  protected def createSchema_old(tpe: java.lang.reflect.Type, names: java.util.Map[String, Schema]): Schema = {
-    tpe match {
-      case x: Class[_] if classOf[java.lang.CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]]) =>
-    }
-    if (tpe.isInstanceOf[Class[_]] && classOf[java.lang.CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]]))
-      Schema.create(Type.STRING)
-    else if (tpe == classOf[java.nio.ByteBuffer])
-      Schema.create(Type.BYTES)
-    else if (tpe == classOf[java.lang.Integer] || tpe == java.lang.Integer.TYPE)
-      Schema.create(Type.INT)
-    else if (tpe == classOf[java.lang.Long] || tpe == java.lang.Long.TYPE)
-      Schema.create(Type.LONG)
-    else if (tpe == classOf[Float] || tpe == java.lang.Float.TYPE)
-      Schema.create(Type.FLOAT)
-    else if (tpe == classOf[java.lang.Double] || tpe == java.lang.Double.TYPE)
-      Schema.create(Type.DOUBLE)
-    else if (tpe == classOf[java.lang.Boolean] || tpe == java.lang.Boolean.TYPE)
-      Schema.create(Type.BOOLEAN)
-    else if (tpe == classOf[java.lang.Void] || tpe == java.lang.Void.TYPE)
-      Schema.create(Type.NULL)
-    else if (tpe.isInstanceOf[ParameterizedType]) {
-      val ptype = tpe.asInstanceOf[ParameterizedType]
-      val raw = ptype.getRawType.asInstanceOf[Class[_]]
-      val params = ptype.getActualTypeArguments
-      if (classOf[java.util.Collection[_]].isAssignableFrom(raw)) { // array
-        if (params.length != 1)
-          throw new AvroTypeException("No array type specified.")
-        Schema.createArray(createSchema(params(0), names))
-      } else if (classOf[java.util.Map[_, _]].isAssignableFrom(raw)) {   // map
-        val key = params(0)
-        val value = params(1)
-        if (!(tpe.isInstanceOf[Class[_]] && classOf[CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]])))
-          throw new AvroTypeException("Map key class not CharSequence: " + key)
-        Schema.createMap(createSchema(value, names))
-      } else {
-        createSchema(raw, names)
-      }
-    } else if (tpe.isInstanceOf[Class[_]]) {               // class
-      val c = tpe.asInstanceOf[Class[_]]
-      val fullName = c.getName
-      val schema = names.get(fullName) match {
-        case null =>
-          try {
-            c.getDeclaredField("SCHEMA$").get(null).asInstanceOf[Schema]
-          } catch {
-            case e: NoSuchFieldException => throw new AvroRuntimeException(e)
-            case e: IllegalAccessException => throw new AvroRuntimeException(e)
-          }
-        case schema => schema
-      }
-      names.put(fullName, schema)
-      schema
-    } else
-      throw new AvroTypeException("Unknown type: " + tpe)
   }
 
   /** Return the protocol for a Java interface. */

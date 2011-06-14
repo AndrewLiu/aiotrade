@@ -96,8 +96,10 @@ object ClassHelper {
   // --- helpers
   
   private val TupleNameRegex = """scala\.Tuple(\d\d?)""".r
-  def isTuple(v: AnyRef): Boolean = {
-    v.getClass.getName match {
+  def isTuple(v: AnyRef): Boolean = isTupleClass(v.getClass)
+  
+  def isTupleClass(c: Class[_]): Boolean = {
+    c.getName match {
       case TupleNameRegex(count) => val i = count.toInt; i >= 1 && i < 23
       case _ => false
     }

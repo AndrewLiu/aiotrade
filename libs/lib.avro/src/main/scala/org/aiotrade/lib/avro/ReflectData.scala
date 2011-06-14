@@ -251,9 +251,9 @@ class ReflectData protected() extends SpecificData {
         if (component eq java.lang.Byte.TYPE) {
           Schema.create(Schema.Type.BYTES) // byte array
         } else {
-          val result = Schema.createArray(createSchema(component, names))
-          setElement(result, component)
-          result
+          val schema = Schema.createArray(createSchema(component, names))
+          setElement(schema, component)
+          schema
         }
       case ptype: ParameterizedType =>
         val raw = ptype.getRawType.asInstanceOf[Class[_]]
@@ -261,84 +261,95 @@ class ReflectData protected() extends SpecificData {
         if (classOf[java.util.Map[_, _]].isAssignableFrom(raw) || classOf[collection.Map[_, _]].isAssignableFrom(raw)) { // Map
           val key = params(0)
           val value = params(1)
-          if (key ne classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
-          return Schema.createMap(createSchema(value, names))
-        } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) {   // Collection
+          if (key != classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
+          Schema.createMap(createSchema(value, names))
+        } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) { // Collection
           if (params.length != 1) throw new AvroTypeException("No array type specified.")
           val schema = Schema.createArray(createSchema(params(0), names))
           schema.addProp(ReflectData.CLASS_PROP, raw.getName)
-          return schema
+          schema
+        } else {
+          super.createSchema(tpe, names)
         }
       case ShortClass | JShortClass | ShortType =>
-        val result = Schema.create(Schema.Type.INT)
-        result.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
-        result
-      case c: Class[_] => // Class
-        if (c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass) // primitive
-          return super.createSchema(tpe, names)
-      
-        if (c.isArray) { // array
-          c.getComponentType match {
-            case ByteType => 
-              return Schema.create(Schema.Type.BYTES) // byte array
-            case component => 
-              val result = Schema.createArray(createSchema(component, names))
-              setElement(result, component)
-              return result
-          }
+        val schema = Schema.create(Schema.Type.INT)
+        schema.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
+        schema
+      case c: Class[_] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
+        super.createSchema(tpe, names)
+      case c: Class[_] if isTupleClass(c) =>
+        super.createSchema(tpe, names)
+      case c: Class[_] if c.isArray =>
+        c.getComponentType match {
+          case ByteType => 
+            Schema.create(Schema.Type.BYTES) // byte array
+          case component => 
+            val schema = Schema.createArray(createSchema(component, names))
+            setElement(schema, component)
+            schema
         }
-      
-        if (classOf[CharSequence].isAssignableFrom(c)) return Schema.create(Schema.Type.STRING) // String
-        
+      case c: Class[_] if classOf[CharSequence].isAssignableFrom(c) => // String
+        Schema.create(Schema.Type.STRING) // String
+      case c: Class[_] => // other Class      
         val fullName = c.getName
-        var schema = names.get(fullName)
-        if (schema == null) {
-          val name = c.getSimpleName
-          var space = if (c.getPackage == null) "" else c.getPackage.getName
-          if (c.getEnclosingClass != null) // nested class
-            space = c.getEnclosingClass.getName + "$"
-          val union = c.getAnnotation(classOf[Union])
-          if (union != null) { // union annotated
-            return getAnnotatedUnion(union, names)
-          } else if (c.isAnnotationPresent(classOf[Stringable])) { // Stringable
-            val result = Schema.create(Schema.Type.STRING)
-            result.addProp(ReflectData.CLASS_PROP, c.getName)
-            return result
-          } else if (c.isEnum) { // Enum
-            val symbols = new java.util.ArrayList[String]()
-            val constants = c.getEnumConstants.asInstanceOf[Array[Enum[_]]]
-            var i = -1
-            while ({i += 1; i < constants.length}) {
-              symbols.add(constants(i).name)
-            }
-            schema = Schema.createEnum(name, null /* doc */, space, symbols)
-          } else if (classOf[GenericFixed].isAssignableFrom(c)) { // fixed
-            val size = c.getAnnotation(classOf[FixedSize]).value
-            schema = Schema.createFixed(name, null /* doc */, space, size)
-          } else if (classOf[IndexedRecord].isAssignableFrom(c)) { // specific
-            return super.createSchema(tpe, names)
-          } else { // record
-            val fields = new java.util.ArrayList[Schema.Field]()
-            val error = classOf[Throwable].isAssignableFrom(c)
-            schema = Schema.createRecord(name, null /* doc */, space, error)
-            names.put(c.getName, schema)
-            val clzFields = getFields(c)
-            for (field <- clzFields) {
-              if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
-                val fieldSchema = createFieldSchema(field, names)
-                fields.add(new Schema.Field(field.getName, fieldSchema, null /* doc */, null))
+        names.get(fullName) match {
+          case null =>
+            val name = c.getSimpleName
+            val space = 
+              if (c.getEnclosingClass != null) { // nested class
+                c.getEnclosingClass.getName + "$"
+              } else {
+                if (c.getPackage == null) "" else c.getPackage.getName
               }
-            }
-            if (error) {                             // add Throwable message
-              fields.add(new Schema.Field("detailMessage", ReflectData.THROWABLE_MESSAGE, null, null))
-            }
-            schema.setFields(fields)
-          }
-          names.put(fullName, schema)
+            
+            val union = c.getAnnotation(classOf[Union])
+            if (union != null) { // union annotated
+              return getAnnotatedUnion(union, names)
+            } else if (c.isAnnotationPresent(classOf[Stringable])) { // Stringable
+              val result = Schema.create(Schema.Type.STRING)
+              result.addProp(ReflectData.CLASS_PROP, c.getName)
+              return result
+            } else if (classOf[IndexedRecord].isAssignableFrom(c)) { // specific
+              return super.createSchema(tpe, names)
+            } 
+
+            val schema = 
+              if (c.isEnum) { // Enum
+                val symbols = new java.util.ArrayList[String]()
+                val constants = c.getEnumConstants.asInstanceOf[Array[Enum[_]]]
+                var i = -1
+                while ({i += 1; i < constants.length}) {
+                  symbols.add(constants(i).name)
+                }
+                Schema.createEnum(name, null /* doc */, space, symbols)
+              } else if (classOf[GenericFixed].isAssignableFrom(c)) { // fixed
+                val size = c.getAnnotation(classOf[FixedSize]).value
+                Schema.createFixed(name, null /* doc */, space, size)
+              } else { // record
+                val fields = new java.util.ArrayList[Schema.Field]()
+                val error = classOf[Throwable].isAssignableFrom(c)
+                val schema = Schema.createRecord(name, null /* doc */, space, error)
+                names.put(c.getName, schema)
+                val clzFields = getFields(c)
+                for (field <- clzFields) {
+                  if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
+                    val fieldSchema = createFieldSchema(field, names)
+                    fields.add(new Schema.Field(field.getName, fieldSchema, null /* doc */, null))
+                  }
+                }
+                if (error) { // add Throwable message
+                  fields.add(new Schema.Field("detailMessage", ReflectData.THROWABLE_MESSAGE, null, null))
+                }
+                schema.setFields(fields)
+                schema
+              }
+            
+            names.put(fullName, schema)
+            schema
+          case schema => schema
         }
-        return schema
+      case _ => super.createSchema(tpe, names)
     }
-    super.createSchema(tpe, names)
   }
 
   // if array element type is a class with a union annotation, note it
@@ -392,7 +403,7 @@ class ReflectData protected() extends SpecificData {
 
   /** Create a schema for a field. */
   protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
-    val schema = createSchema(field.getGenericType(), names)
+    val schema = createSchema(field.getGenericType, names)
     if (field.isAnnotationPresent(classOf[Nullable])) // nullable
       ReflectData.makeNullable(schema)
     else

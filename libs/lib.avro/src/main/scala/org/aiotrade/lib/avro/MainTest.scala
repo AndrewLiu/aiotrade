@@ -43,10 +43,12 @@ import scala.collection.mutable
 object MainTest {
   
   def main(args: Array[String]) {
+    
+    
     testArrayBuffer
     
     val t0 = System.currentTimeMillis
-    testTuple
+    testRecordToTuple
     testJavaVMap
     testScalaVMap
     testReflectClass
@@ -75,7 +77,7 @@ object MainTest {
     }
   }
   
-  def testTuple {
+  def testRecordToTuple {
     val schemaJson = """
     {"type": "record", "name": "Tuple", "fields": [
       {"name":"a", "type":"string"},
@@ -104,6 +106,8 @@ object MainTest {
     
     
     val vmap = new java.util.HashMap[String, Array[_]]
+    //println(ReflectData.get.getSchema(classOf[java.util.HashMap[String, Array[_]]]))
+    //println(ReflectData.get.getSchema(vmap.getClass))
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
 
@@ -143,7 +147,7 @@ object MainTest {
     map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
-  def testAvroMap[T <: AnyRef](schemaDesc: String, vmap: T) {
+  def testAvroMap[T](schemaDesc: String, vmap: T) {
     println("\n========= Avro ============= ")
     //val schema = ReflectData.get.getSchema(vmap.getClass)
     val schema = Schema.parse(schemaDesc)
