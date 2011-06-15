@@ -92,8 +92,8 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def rpcCall(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties, timeout: Long = -1): Any = {
-    val syncVar = arpcCall(req, routingKey, props)
+  def rpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties, timeout: Long = -1): Any = {
+    val syncVar = arpc(req, routingKey, props)
 
     val res = if (timeout == -1) {
       syncVar.get
@@ -115,7 +115,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def arpcCall(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties): SyncVar[Any] = {
+  def arpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties): SyncVar[Any] = {
     val syncVar = new SyncVar[Any]
     val replyId = continuationMap synchronized {
       correlationId += 1
