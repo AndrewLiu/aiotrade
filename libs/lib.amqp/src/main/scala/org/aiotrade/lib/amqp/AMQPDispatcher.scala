@@ -94,11 +94,6 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  * whereas queues *round-robin* message delivery to consumers.
  */
 
-/**
- * Encapsulates an arbitrary message - simple "bean" holder structure.
- */
-case class Delivery(body: Array[Byte], properties: AMQP.BasicProperties, envelope: Envelope) extends Event
-
 case class AMQPAcknowledge(deliveryTag: Long) extends Event
 
 case object AMQPConnected
@@ -191,7 +186,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         state = State(Option(conn), Option(channel), consumer)
 
-        log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
+        log.info("Successfully connected at: " + conn.getAddress.getHostAddress + ":" + conn.getPort)
         reconnectDelay = AMQPDispatcher.defaultReconnectDelay
         publish(AMQPConnected)
 
@@ -254,33 +249,27 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def configure(channel: Channel): Option[Consumer]
 
   @throws(classOf[IOException])
-  def publish(exchange: String, routingKey: String, props: AMQP.BasicProperties, content: Any) {
+  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build) {
     channel foreach {_ch =>
-      val props1 = Option(props) getOrElse new AMQP.BasicProperties
-
-      val contentType = props1.getContentType match {
+      val contentType = props.getContentType match {
         case null | "" => AMQPDispatcher.DEFAULT_CONTENT_TYPE 
         case x => ContentType(x)
       }
-
+      
+      val headers = Option(props.getHeaders) getOrElse new java.util.HashMap[String, AnyRef](1)
+    
       try {
         import ContentType._
-        val body = contentType.mimeType match {
+        val encodedBody = contentType.mimeType match {
           case JSON.mimeType => 
             content match {
-              case msg: Msg[_] => 
-                val headers = Option(props1.getHeaders) getOrElse new java.util.HashMap[String, AnyRef]
-                headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-                props1.setHeaders(headers)
+              case msg: Msg[_] => headers.put("tag", msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
             Serializer.encodeJson(content)
           case AVRO.mimeType => 
             content match {
-              case msg: Msg[_] => 
-                val headers = Option(props1.getHeaders) getOrElse new java.util.HashMap[String, AnyRef]
-                headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-                props1.setHeaders(headers)
+              case msg: Msg[_] => headers.put("tag", msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
             Serializer.encodeAvro(content)  
@@ -290,20 +279,22 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           case _ => content.asInstanceOf[Array[Byte]]
         }
 
-        val contentEncoding = props1.getContentEncoding match {
-          case null | "" => props1.setContentEncoding("gzip"); "gzip"
+        val contentEncoding = props.getContentEncoding match {
+          case null | "" => "gzip"
           case x => x
         }
-    
-        val body1 = contentEncoding match {
-          case "gzip" => Serializer.gzip(body)
-          case "lzma" => Serializer.lzma(body)
-          case _ => body
+      
+        val body = contentEncoding match {
+          case "gzip" => Serializer.gzip(encodedBody)
+          case "lzma" => Serializer.lzma(encodedBody)
+          case _ => encodedBody
         }
-
-        log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
         
-        _ch.basicPublish(exchange, routingKey, props1, body1)
+        val pubProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
+        
+        log.info(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+        
+        _ch.basicPublish(exchange, routingKey, pubProps, body)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
@@ -363,7 +354,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
       log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
 
-      val body1 = props.getContentEncoding match {
+      val unzippedBody = props.getContentEncoding match {
         case "gzip" => Serializer.ungzip(body)
         case "lzma" => Serializer.unlzma(body)
         case _ => body
@@ -381,26 +372,27 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         val content = contentType.mimeType match {
           case JSON.mimeType => headers.get("tag") match {
               case tag: java.lang.Integer => 
-                val value = Serializer.decodeJson(body1, tag.intValue)
+                val value = Serializer.decodeJson(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)
               case _ => null
             }
           case AVRO.mimeType => headers.get("tag") match {
               case tag: java.lang.Integer => 
-                val value = Serializer.decodeAvro(body1, tag.intValue)
+                val value = Serializer.decodeAvro(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)
               case _ => null
             }
             
-          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
-          case OCTET_STREAM.mimeType => body1
-          case _ => body1
+          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(unzippedBody)
+          case OCTET_STREAM.mimeType => unzippedBody
+          case _ => unzippedBody
         }
 
-        // send back to interested observers for further relay
-        publish(AMQPMessage(content, props, envelope))
+        val fwProps = props.builder.contentType(contentType.mimeType).headers(headers).build
+        // forward to interested observers for further relay
+        publish(AMQPMessage(content, fwProps, envelope))
         
-        log.fine("Delivered amqp message: " + content)
+        log.fine("Forward amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.

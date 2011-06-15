@@ -20,7 +20,7 @@ object RpcResponse {
 
 @serializable
 @SerialVersionUID(-9115442645150361620L)
-class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: Envelope) extends Event {
+class RpcResponse(val body: Any, val props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, val envelope: Envelope = null) extends Event {
   override def toString = if (body == null) "null" else body.toString
 }
 
@@ -33,4 +33,4 @@ class RpcResponse(val body: Any, val props: AMQP.BasicProperties, val envelope: 
  * register a listener, this is the case class that you will be matching on.
  */
 @serializable
-case class AMQPMessage(body: Any, props: AMQP.BasicProperties = null, envelope: Envelope = null)
+case class AMQPMessage(body: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null)

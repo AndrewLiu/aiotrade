@@ -69,11 +69,9 @@ class FilePublisher(factory: ConnectionFactory, exchange: String, routingKey: St
     val headers: java.util.Map[String, AnyRef] = new java.util.HashMap
     headers.put("filename", toName)
     headers.put("length", body.length.asInstanceOf[AnyRef])
-    val props = new BasicProperties
-    props.setHeaders(headers)
-    props.setContentType(ContentType.OCTET_STREAM.mimeType)
-    if (durable) props.setDeliveryMode(2) // persistent
-    publish(exchange, routingKey, props, body)
+    val propsbd = new BasicProperties.Builder().headers(headers).contentType(ContentType.OCTET_STREAM.mimeType)
+    if (durable) propsbd.deliveryMode(2) // persistent
+    publish(body, exchange, routingKey, propsbd.build)
   }
 
 }

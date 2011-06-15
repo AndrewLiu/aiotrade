@@ -170,7 +170,7 @@ class RelayPublisher(factory: ConnectionFactory, exchange: String, queue: String
       val now = System.currentTimeMillis
       
       //Publish the msg to the slave AMQP
-      publish(exchange, bindingKey, msg.props, msg.body)
+      publish(msg.body, exchange, bindingKey, msg.props)
       //Then acknowledge the delivery to master AMQP
       log.fine(msg.envelope.getDeliveryTag + " relayed")
       publish(AMQPAcknowledge(msg.envelope.getDeliveryTag))

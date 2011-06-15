@@ -1,6 +1,5 @@
 package org.aiotrade.lib.amqp
 
-import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
@@ -89,13 +88,13 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
           if (correlationId != null && replyTo != null) {
             handle(req) match {
               case AMQPMessage(body, props, env) =>
-                // If replyProps is set, then use it, otherwise create a new one
-                val replyProps = Option(props) getOrElse new AMQP.BasicProperties
-                replyProps.setContentType(reqProps.getContentType)
-                replyProps.setContentEncoding(reqProps.getContentEncoding)
-                replyProps.setCorrelationId(correlationId)
-            
-                publish("", replyTo, replyProps, body)
+                val replyProps = props.builder
+                .contentType(reqProps.getContentType)
+                .contentEncoding(reqProps.getContentEncoding)
+                .correlationId(correlationId)
+                .build
+                
+                publish(body, "", replyTo, replyProps)
             }
           }
       }
