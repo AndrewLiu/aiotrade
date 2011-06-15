@@ -45,6 +45,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
 import java.util.logging.Level
+
 /**
  * @Note If we use plain sync Publisher/Reactor instead of actor based async model, it will because:
  * 1. It seems that when actor model is mixed with a hard coded thread (AMQPConnection has a MainLoop thread),
