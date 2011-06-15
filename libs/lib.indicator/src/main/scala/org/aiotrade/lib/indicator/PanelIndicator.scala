@@ -142,10 +142,9 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     
     val lastTime = lastTimeOf(indicators)
 
-    log.info("Compute " + fromTime1 + " - " + lastTime)
     val start = System.currentTimeMillis
     compute(fromTime1, lastTime)
-    log.info("Computed in " + (System.currentTimeMillis - start) + "ms")
+    log.fine("Computed "+ fromTime1 + " - " + lastTime+" in " + (System.currentTimeMillis - start) + "ms")
   }
   
   /**
