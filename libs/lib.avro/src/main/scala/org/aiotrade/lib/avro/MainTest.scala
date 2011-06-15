@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
+import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.apache.avro.io.DecoderFactory

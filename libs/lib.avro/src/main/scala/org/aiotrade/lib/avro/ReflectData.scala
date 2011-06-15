@@ -9,6 +9,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 
 import java.lang.reflect.TypeVariable
+import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.AvroRemoteException
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException

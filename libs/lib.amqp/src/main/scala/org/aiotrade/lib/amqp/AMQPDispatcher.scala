@@ -51,7 +51,7 @@ import java.util.logging.Level
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
-import org.aiotrade.lib.util.actors.Msg
+import org.aiotrade.lib.avro.Msg
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.reactors.Event

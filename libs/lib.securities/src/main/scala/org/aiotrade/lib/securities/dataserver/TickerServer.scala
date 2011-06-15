@@ -31,6 +31,7 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
+import org.aiotrade.lib.avro.Evt
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.TickerSnapshot
@@ -44,7 +45,6 @@ import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
-import org.aiotrade.lib.util.actors.Evt
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._

@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.util.actors
+package org.aiotrade.lib.avro
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -38,11 +38,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.avro.JsonDecoder
-import org.aiotrade.lib.avro.JsonEncoder
-import org.aiotrade.lib.avro.ReflectData
-import org.aiotrade.lib.avro.ReflectDatumReader
-import org.aiotrade.lib.avro.ReflectDatumWriter
 import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.io.BinaryData
@@ -94,18 +89,20 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
   assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
   Evt.tagToEvt(tag) = this
     
-  private val valueTypeParams = m.typeArguments map (_.erasure)
-  val valueType: Class[T] = m.erasure.asInstanceOf[Class[T]]
+  /** typeParams of msg value */
+  private val typeParams = m.typeArguments map (_.erasure)
+  /** class of msg value */
+  val tpe: Class[T] = m.erasure.asInstanceOf[Class[T]]
   
   /**
    * Avro schema of evt value: we've implemented a reflect schema.
    * you can also override 'schemaJson' to get custom json
    */
-  lazy val valueSchema: Schema = {
+  lazy val schema: Schema = {
     if (schemaJson != null) {
       Schema.parse(schemaJson)
     } else {
-      ReflectData.get.getSchema(valueType)
+      ReflectData.AllowNull.getSchema(tpe)
     }
   }
   
@@ -124,11 +121,11 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
    *    msg match {case => StrEvt("") => ... } doesn't work
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
-    case Msg(`tag`, value: T) if ClassHelper.isInstance(valueType, value) =>
+    case Msg(`tag`, value: T) if ClassHelper.isInstance(tpe, value) =>
       // we will do 1-level type arguments check, and won't deep check it's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
-          val t = valueTypeParams.head
+          val t = typeParams.head
           val vs = x.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(t, vs.next)) 
@@ -137,7 +134,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
           Some(value)
         case x: Product if ClassHelper.isTuple(x) =>
           val vs = x.productIterator
-          val ts = valueTypeParams.iterator
+          val ts = typeParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
@@ -149,7 +146,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
   }
   
   override def toString = {
-    "Evt(tag=" + tag + ", tpe=" + valueType + ", doc=\"" + doc + "\")"
+    "Evt(tag=" + tag + ", tpe=" + tpe + ", doc=\"" + doc + "\")"
   }
 }
 
@@ -157,7 +154,6 @@ object Evt {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
-  private val NullSchema = Schema.create(Schema.Type.NULL)
   
   private val AVRO = 0
   private val JSON = 1
@@ -165,8 +161,8 @@ object Evt {
   
   def exists(tag: Int): Boolean = tagToEvt.get(tag).isDefined
   def evtOf(tag: Int): Option[Evt[_]] = tagToEvt.get(tag)
-  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map (_.valueType)
-  def schemaOf(tag: Int): Option[Schema] = tagToEvt.get(tag) map (_.valueSchema)
+  def typeOf(tag: Int): Option[Class[_]] = tagToEvt.get(tag) map (_.tpe)
+  def schemaOf(tag: Int): Option[Schema] = tagToEvt.get(tag) map (_.schema)
   def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1))}
  
   def toAvro[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
@@ -202,12 +198,12 @@ object Evt {
   }
   
   def fromAvro(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, AVRO)
+    case Some(evt) => decode(bytes, evt.schema, evt.tpe, AVRO)
     case None => None
   }
 
   def fromJson(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.valueSchema, evt.valueType, JSON)
+    case Some(evt) => decode(bytes, evt.schema, evt.tpe, JSON)
     case None => None
   }
   
@@ -273,7 +269,7 @@ object Evt {
    * A utility method to see the reflected schema of a class
    */
   def printSchema(x: Class[_]) {
-    val schema = ReflectData.get.getSchema(x)
+    val schema = ReflectData.AllowNull.getSchema(x)
     println(schema)
   }
   
@@ -284,9 +280,9 @@ object Evt {
     evts foreach {evt =>
       sb.append("\n==============================")
       sb.append("\n\nName:       \n    ").append(evt.getClass.getName)
-      sb.append("\n\nValue Class:\n    ").append(evt.valueType.getName)
+      sb.append("\n\nValue Class:\n    ").append(evt.tpe.getName)
       sb.append("\n\nParamters:  \n    ").append(evt.doc)
-      sb.append("\n\nSchema:     \n    ").append(evt.valueSchema.toString)
+      sb.append("\n\nSchema:     \n    ").append(evt.schema.toString)
       sb.append("\n\n")
     }
     sb.append("\n================ End of APIs ==============")
@@ -447,7 +443,7 @@ object Evt {
   
 }
 
-private[actors] object TestAPIs {
+private[avro] object TestAPIs {
   
   val EmpEvt = Evt[Unit](-1)
   val IntEvt = Evt[Int](-2)
@@ -466,7 +462,7 @@ private[actors] object TestAPIs {
   val TestDataEvt =  Evt[TestData](-100)
   val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-101, schemaJson = """
     {"type":"map","values":{"type":"array","items":["long","double","string",
-     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.util.actors.TestAPIs$",
+     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.avro.TestAPIs$",
        "fields":[
          {"name":"x1","type":"string"},
          {"name":"x2","type":"int"},

@@ -41,8 +41,8 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import org.aiotrade.lib.avro.ReflectData
 import org.aiotrade.lib.avro.ReflectDatumWriter
-import org.aiotrade.lib.util.actors.Evt
-import org.aiotrade.lib.util.actors.Msg
+import org.aiotrade.lib.avro.Evt
+import org.aiotrade.lib.avro.Msg
 import org.apache.avro.io.EncoderFactory
 
 /**

@@ -3,6 +3,7 @@ package org.aiotrade.lib.avro
 import java.io.IOException
 
 import java.nio.ByteBuffer
+import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericArray

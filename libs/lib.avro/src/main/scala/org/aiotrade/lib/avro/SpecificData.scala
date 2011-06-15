@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType
 import org.apache.avro.Schema
 import org.apache.avro.Protocol
 import java.lang.reflect.TypeVariable
+import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException
 import org.apache.avro.Schema.Type
@@ -144,6 +145,8 @@ class SpecificData protected () extends GenericData {
         var i = 1 // tuple indexed from 1
         for (param <- m.typeArguments) {
           val fieldSchema = createSchema(param.erasure, names)
+          // make nullable
+          Schema.createUnion(java.util.Arrays.asList(Schema.create(Schema.Type.NULL), fieldSchema))
           fields.add(new Schema.Field("_" + i, fieldSchema, null /* doc */, null))
           i += 1
         }
