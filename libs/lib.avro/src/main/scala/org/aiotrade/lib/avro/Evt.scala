@@ -49,8 +49,9 @@ import scala.collection.mutable
  * A sketch of business message protocals (APIs) design
  * 
  * 'Evt' is actually the evt definition, or the API definition
- * 'T' is the type of evt value
- * 'Msg[T](Int, T)' is the type of each evt message
+ * 'T' is the type of evt Msg's value
+ * 'Msg[T](tag: Int, value: T)' is the type of each evt message, each type of Evt 
+ *   may carray msgs with diffrent msg value, but these msgs have same tag.
  * 
  * Instead of using case class as each evt , the design here uses combination of 
  * object Evt and case class Msg, so:
@@ -60,15 +61,15 @@ import scala.collection.mutable
  * 3. The serialization size of evt message is smaller.
  * 4. We can pattern match it via named extract, or via regural Tuple match 
  * 
- * @param [T] the type of the evt value. 
- *        For list, although we support collection.Seq[_] type of T, but it's better 
- *        to use JVM type safed Array[_], since we here have to check all elements 
- *        of value to make sure the pattern match won't be cheated. 
+ * @param [T] the type of the evt msg's value. 
+ *        For list, Although we support collection.Seq[_] type of T, but it's 
+ *        better to use JVM type safed Array[_], since we here have to check each 
+ *        elements of value to make sure the pattern match won't be cheated. 
  *        For varargs, use type safed Tuple instead of List.
  *        @see unapply
- * @param tag an unique id in int for this type of Evt
+ * @param tag an unique int id for this type of Evt
  * @param doc the document of this Evt
- * @param schemaJson as the custom schema 
+ * @param schemaJson the custom schema 
  * 
  * @author Caoyuan Deng
  */
@@ -76,11 +77,11 @@ import scala.collection.mutable
 case class Msg[T](tag: Int, value: T)
 
 /**
- * We don't encourage to use 'object anApi extends Evt[T](..)' to define an Evt, instead,
- * use 'val anApi = Evt[T](..)' to define new api. Since object is something lazy val, 
- * which should be explicitly referred to invoke initializing code, that is, it may
- * not be regirtered in Evt.tagToEvt yet when you call its static 'apply', 'unapply' 
- * methods.
+ * We don't encourage to use 'object anApi extends Evt[T](..)' to define an Evt, 
+ * instead, should use 'val anApi = Evt[T](..)' to define new api. The reason 
+ * here is that object is something lazy val, which should be explicitly referred 
+ * to invoke initializing code, that is, it may not be regirtered in Evt.tagToEvt 
+ * yet when you call its static 'apply', 'unapply' methods.
  */
 final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: String)(implicit m: Manifest[T]) {
   type ValType = T
