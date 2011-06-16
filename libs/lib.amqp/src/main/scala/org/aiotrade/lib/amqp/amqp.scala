@@ -28,20 +28,49 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.amqp
+package org.aiotrade.lib
 
-/**
- * @param content A deserialized value received via AMQP.
- * @param props
- * @param envelope of AMQP
- *
- * Messages received from AMQP are wrapped in this case class. When you
- * register a listener, this is the case class that you will be matching on.
- * 
- * @Note we don't put it to package object amqp, since it may be accessed by Java code.
- */
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Envelope
 
-@serializable
-case class AMQPMessage(body: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null)
+/**
+ * 
+ * @author Caoyuan Deng
+ */
+package object amqp {
+
+  case object AMQPConnected
+  case object AMQPDisconnected
+
+  case class AMQPAcknowledge(deliveryTag: Long)
+  
+  object AMQPExchange {
+    
+    /**
+     * Each AMQP broker declares one instance of each supported exchange type on it's
+     * own (for every virtual host). These exchanges are named after the their type
+     * with a prefix of amq., e.g. amq.fanout. The empty exchange name is an alias
+     * for amq.direct. For this default direct exchange (and only for that) the broker
+     * also declares a binding for every queue in the system with the binding key
+     * being identical to the queue name.
+     *
+     * This behaviour implies that any queue on the system can be written into by
+     * publishing a message to the default direct exchange with it's routing-key
+     * property being equal to the name of the queue.
+     */
+    val defaultDirect = "" // amp.direct
+
+    sealed trait AMQPExchange
+    case object Direct extends AMQPExchange {override def toString = "direct"}
+    case object Topic  extends AMQPExchange {override def toString = "topic" }
+    case object Fanout extends AMQPExchange {override def toString = "fanout"}
+    case object Match  extends AMQPExchange {override def toString = "match" }
+  }
+
+  val DEFAULT_CONTENT_TYPE = ContentType.AVRO
+
+  val LZMA = "lzma"
+  val GZIP = "gzip"
+  
+  val TAG = "tag"
+}

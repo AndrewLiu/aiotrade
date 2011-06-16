@@ -284,12 +284,12 @@ abstract class TickersTable extends Table[Ticker] {
 }
 
 object Ticker {
-  def importFrom(v: (Long, List[Array[Double]])): LightTicker = v match {
-    case (time: Long, List(data, bidAsks)) =>
+  def importFrom(v: (Long, collection.Seq[Array[Double]])): LightTicker = v match {
+    case (time: Long, Seq(data, bidAsks)) =>
       val x = new Ticker(data, new MarketDepth(bidAsks))
       x.time = time
       x
-    case (time: Long, List(data)) =>
+    case (time: Long, collection.Seq(data)) =>
       val x = new LightTicker(data)
       x.time = time
       x

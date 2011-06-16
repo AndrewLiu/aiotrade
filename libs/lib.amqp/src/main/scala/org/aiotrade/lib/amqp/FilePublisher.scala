@@ -38,7 +38,6 @@ import com.rabbitmq.client.Consumer
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import org.aiotrade.lib.amqp.datatype.ContentType
 
 object FilePublisher {
 

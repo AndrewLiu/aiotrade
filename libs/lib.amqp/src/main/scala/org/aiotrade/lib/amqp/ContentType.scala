@@ -1,4 +1,4 @@
-package org.aiotrade.lib.amqp.datatype
+package org.aiotrade.lib.amqp
 
 import java.util.regex.Pattern
 import scala.collection.mutable.Map

@@ -55,8 +55,6 @@ import java.util.logging.Level
 import org.aiotrade.lib.avro.Msg
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
-import org.aiotrade.lib.util.reactors.Event
-import org.aiotrade.lib.amqp.datatype.ContentType
 
 /*_ rabbitmqctl common usages:
  sudo rabbitmq-server -n rabbit@localhost &
@@ -95,32 +93,10 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  * whereas queues *round-robin* message delivery to consumers.
  */
 
-case class AMQPAcknowledge(deliveryTag: Long) extends Event
-
-case object AMQPConnected
-case object AMQPDisconnected
-
-object AMQPExchange {
-  /**
-   * Each AMQP broker declares one instance of each supported exchange type on it's
-   * own (for every virtual host). These exchanges are named after the their type
-   * with a prefix of amq., e.g. amq.fanout. The empty exchange name is an alias
-   * for amq.direct. For this default direct exchange (and only for that) the broker
-   * also declares a binding for every queue in the system with the binding key
-   * being identical to the queue name.
-   *
-   * This behaviour implies that any queue on the system can be written into by
-   * publishing a message to the default direct exchange with it's routing-key
-   * property being equal to the name of the queue.
-   */
-  val defaultDirect = "" // amp.direct
-}
-
 
 object AMQPDispatcher {
-  val DEFAULT_CONTENT_TYPE = ContentType.JAVA_SERIALIZED_OBJECT
-
   private val defaultReconnectDelay = 3000
+  private lazy val timer = new Timer("AMQPReconnectTimer")
 }
 
 /**
@@ -135,8 +111,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
   private var state = State(None, None, None)
-
-  private lazy val timer = new Timer("AMQPReconnectTimer")
 
   private var reconnectDelay: Long = AMQPDispatcher.defaultReconnectDelay
 
@@ -155,9 +129,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     this
   }
 
-  def connection = state.connection
-  def channel = state.channel
-  def consumer = state.consumer
+  final def connection = state.connection
+  final def consumer = state.consumer
+  final def channel = state.channel
 
   @throws(classOf[IOException])
   private def doConnect {
@@ -205,7 +179,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
     disconnect
     
-    timer.schedule(new TimerTask {
+    AMQPDispatcher.timer.schedule(new TimerTask {
         def run {
           try {
             reconnectDelay *= 2
@@ -253,7 +227,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build) {
     channel foreach {_ch =>
       val contentType = props.getContentType match {
-        case null | "" => AMQPDispatcher.DEFAULT_CONTENT_TYPE 
+        case null | "" => DEFAULT_CONTENT_TYPE 
         case x => ContentType(x)
       }
       
@@ -264,13 +238,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         val encodedBody = contentType.mimeType match {
           case JSON.mimeType => 
             content match {
-              case msg: Msg[_] => headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+              case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
             Serializer.encodeJson(content)
           case AVRO.mimeType => 
             content match {
-              case msg: Msg[_] => headers.put("tag", msg.tag.asInstanceOf[AnyRef])
+              case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
             Serializer.encodeAvro(content)  
@@ -281,13 +255,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
 
         val contentEncoding = props.getContentEncoding match {
-          case null | "" => "gzip"
+          case null | "" => GZIP
           case x => x
         }
       
         val body = contentEncoding match {
-          case "gzip" => Serializer.gzip(encodedBody)
-          case "lzma" => Serializer.lzma(encodedBody)
+          case GZIP => Serializer.gzip(encodedBody)
+          case LZMA => Serializer.lzma(encodedBody)
           case _ => encodedBody
         }
         
@@ -356,13 +330,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
 
       val unzippedBody = props.getContentEncoding match {
-        case "gzip" => Serializer.ungzip(body)
-        case "lzma" => Serializer.unlzma(body)
+        case GZIP => Serializer.ungzip(body)
+        case LZMA => Serializer.unlzma(body)
         case _ => body
       }
 
       val contentType = props.getContentType match {
-        case null | "" =>  AMQPDispatcher.DEFAULT_CONTENT_TYPE
+        case null | "" =>  DEFAULT_CONTENT_TYPE
         case x => ContentType(x)
       }
 
@@ -371,13 +345,13 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       try {
         import ContentType._
         val content = contentType.mimeType match {
-          case JSON.mimeType => headers.get("tag") match {
+          case JSON.mimeType => headers.get(TAG) match {
               case tag: java.lang.Integer => 
                 val value = Serializer.decodeJson(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)
               case _ => null
             }
-          case AVRO.mimeType => headers.get("tag") match {
+          case AVRO.mimeType => headers.get(TAG) match {
               case tag: java.lang.Integer => 
                 val value = Serializer.decodeAvro(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)

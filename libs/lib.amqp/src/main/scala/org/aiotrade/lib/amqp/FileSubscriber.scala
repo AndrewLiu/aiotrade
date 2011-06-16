@@ -30,10 +30,10 @@
  */
 package org.aiotrade.lib.amqp
 
+import com.rabbitmq.client.ConnectionFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.util.logging.Logger
-import com.rabbitmq.client.ConnectionFactory
 
 object FileSubscriber {
 

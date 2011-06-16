@@ -159,6 +159,7 @@ object Evt {
   private val AVRO = 0
   private val JSON = 1
   val NO_TAG = Int.MinValue
+  val Error = Evt[String](Int.MaxValue)
   
   def exists(tag: Int): Boolean = tagToEvt.get(tag).isDefined
   def evtOf(tag: Int): Option[Evt[_]] = tagToEvt.get(tag)

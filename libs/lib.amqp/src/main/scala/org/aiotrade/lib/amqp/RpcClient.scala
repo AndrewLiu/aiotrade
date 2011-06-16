@@ -37,6 +37,7 @@ import com.rabbitmq.client.Consumer
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
+import org.aiotrade.lib.avro.Evt
 import scala.collection.mutable
 import scala.concurrent.SyncVar
 import java.util.logging.Logger
@@ -128,7 +129,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
     val res = if (timeout == -1) {
       syncVar.get
     } else {
-      syncVar.get(timeout) getOrElse RpcTimeout
+      syncVar.get(timeout) getOrElse Evt.Error("Rpc timeout")
     }
 
     res
@@ -159,7 +160,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
     } catch {
       case ex =>
         log.warning(ex.getMessage)
-        syncVar.set(RpcResponse(ex.getMessage))
+        syncVar.set(Evt.Error(ex.getMessage))
         return syncVar
     }
 
