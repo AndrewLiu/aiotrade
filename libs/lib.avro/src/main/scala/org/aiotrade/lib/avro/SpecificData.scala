@@ -87,13 +87,17 @@ class SpecificData protected () extends GenericData {
   }
 
   /** Find the schema for a Java type. */
-  def getSchema[T: Manifest](tpe: Class[T]): Schema = {
-    schemaCache.get(tpe) match {
-      case null =>
-        val schema = createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
-        schemaCache.put(tpe, schema)
-        schema
-      case x => x
+  def getSchema[T](tpe: Class[T])(implicit m: Manifest[T]): Schema = {
+    if (m.typeArguments.isEmpty) { // don't cache Type what has type parameters
+      schemaCache.get(tpe) match {
+        case null =>
+          val schema = createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
+          schemaCache.put(tpe, schema)
+          schema
+        case x => x
+      }
+    } else {
+      createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
     }
   }
   
