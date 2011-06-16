@@ -93,6 +93,33 @@ import org.aiotrade.lib.util.actors.Reactor
  * whereas queues *round-robin* message delivery to consumers.
  */
 
+case object AMQPConnected
+case object AMQPDisconnected
+
+case class AMQPAcknowledge(deliveryTag: Long)
+  
+object AMQPExchange {
+    
+  /**
+   * Each AMQP broker declares one instance of each supported exchange type on it's
+   * own (for every virtual host). These exchanges are named after the their type
+   * with a prefix of amq., e.g. amq.fanout. The empty exchange name is an alias
+   * for amq.direct. For this default direct exchange (and only for that) the broker
+   * also declares a binding for every queue in the system with the binding key
+   * being identical to the queue name.
+   *
+   * This behaviour implies that any queue on the system can be written into by
+   * publishing a message to the default direct exchange with it's routing-key
+   * property being equal to the name of the queue.
+   */
+  val defaultDirect = "" // amp.direct
+
+  sealed trait AMQPExchange
+  case object Direct extends AMQPExchange {override def toString = "direct"}
+  case object Topic  extends AMQPExchange {override def toString = "topic" }
+  case object Fanout extends AMQPExchange {override def toString = "fanout"}
+  case object Match  extends AMQPExchange {override def toString = "match" }
+}
 
 object AMQPDispatcher {
   private val defaultReconnectDelay = 3000
