@@ -294,7 +294,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         
         val pubProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
         
-        log.info(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+        log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
         
         _ch.basicPublish(exchange, routingKey, pubProps, body)
       } catch {

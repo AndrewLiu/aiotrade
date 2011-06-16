@@ -72,8 +72,8 @@ object TickerServer extends Publisher {
   // update evts
   val QuoteEvt      = Evt[(String, Quote)](10, "freq, quote")
   val QuotesEvt     = Evt[(String, Array[Quote])](11)
-  val MoneyFlowEvt  = Evt[(String, MoneyFlow)](12, "freq, moneyflow")
-  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](13)  
+  val MoneyFlowEvt  = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
+  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)  
 
   private val log = Logger.getLogger(this.getClass.getName)
 
