@@ -29,7 +29,7 @@ class FreqSearchProvider extends SearchProvider {
                           TFreq.ONE_YEAR -> "年线",
                           TFreq.ONE_SEC -> "分时"
   )
-  private val textToFreq = (freqs map (x => (x._1.shortDescription -> x._1))) ++ Map(
+  private val textToFreq = (freqs map (x => (x._1.shortName -> x._1))) ++ Map(
     "rt" -> TFreq.ONE_SEC,
     "fs" -> TFreq.ONE_SEC,
     "fz" -> TFreq.ONE_MIN,

@@ -219,25 +219,25 @@ class Sec extends SerProvider with Ordered[Sec] {
   reactions += {
     case TickerServer.QuoteEvt(freq, quote) =>
       freq match {
-        case TFreq.ONE_MIN =>
+        case TFreq.ONE_MIN.shortName =>
           if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
             realtimeSer.updateFrom(quote)
           }
           if (isSerCreated(TFreq.ONE_MIN)) {
             serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
           }
-        case TFreq.DAILY =>
+        case TFreq.DAILY.shortName =>
           if (isSerCreated(TFreq.DAILY)) {
             serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
           }
       }
     case TickerServer.MoneyFlowEvt(freq, moneyFlow) =>
       freq match {
-        case TFreq.ONE_MIN =>
+        case TFreq.ONE_MIN.shortName =>
           if (isSerCreated(TFreq.ONE_MIN)) {
             moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
           }
-        case TFreq.DAILY =>
+        case TFreq.DAILY.shortName =>
           if (isSerCreated(TFreq.DAILY)) {
             moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
           }

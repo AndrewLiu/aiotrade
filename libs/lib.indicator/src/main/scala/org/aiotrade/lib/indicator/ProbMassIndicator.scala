@@ -65,7 +65,7 @@ class ProbMassIndicator($baseSer: BaseTSer) extends SpotIndicator($baseSer) {
     MASS3(time) = probability_mass3
   }
 
-  override def shortDescription: String =  {
+  override def shortName: String =  {
     if (baseVar != null) {
       "PM: " + baseVar.name
     } else "PM"

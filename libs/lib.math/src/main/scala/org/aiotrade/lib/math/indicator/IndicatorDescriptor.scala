@@ -96,12 +96,12 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
   }
 
   override def displayName: String = {
-    val description = lookupServiceTemplate(classOf[Indicator], "Indicators") match {
-      case Some(tpInstance) => tpInstance.shortDescription
+    val name = lookupServiceTemplate(classOf[Indicator], "Indicators") match {
+      case Some(tpInstance) => tpInstance.shortName
       case None => serviceClassName
     }
         
-    Indicator.displayName(description, factors)
+    Indicator.displayName(name, factors)
   }
 
   /**

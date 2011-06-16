@@ -70,10 +70,10 @@ object TickerServer extends Publisher {
 
   
   // update evts
-  val QuoteEvt      = Evt[(TFreq, Quote)](10, "freq, quote")
-  val QuotesEvt     = Evt[(TFreq, Array[Quote])](11)
-  val MoneyFlowEvt  = Evt[(TFreq, MoneyFlow)](12, "freq, moneyflow")
-  val MoneyFlowsEvt = Evt[(TFreq, Array[MoneyFlow])](13)  
+  val QuoteEvt      = Evt[(String, Quote)](10, "freq, quote")
+  val QuotesEvt     = Evt[(String, Array[Quote])](11)
+  val MoneyFlowEvt  = Evt[(String, MoneyFlow)](12, "freq, moneyflow")
+  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](13)  
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -300,8 +300,8 @@ abstract class TickerServer extends DataServer[Ticker] {
         dayQuote.updateDailyQuoteByTicker(ticker)
 
         // send updated quote to sec to update chain ser
-        sec ! TickerServer.QuoteEvt(TFreq.DAILY, dayQuote)
-        sec ! TickerServer.QuoteEvt(TFreq.ONE_MIN, minQuote)
+        sec ! TickerServer.QuoteEvt(TFreq.DAILY.shortName, dayQuote)
+        sec ! TickerServer.QuoteEvt(TFreq.ONE_MIN.shortName, minQuote)
         
         allUpdatedDailyQuotes += dayQuote
         allUpdatedMinuteQuotes += minQuote
@@ -387,10 +387,10 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
     }
     if (allUpdatedDailyQuotes.length > 0) {
-      TickerServer.publish(TickerServer.QuotesEvt(TFreq.DAILY, allUpdatedDailyQuotes.toArray))
+      TickerServer.publish(TickerServer.QuotesEvt(TFreq.DAILY.shortName, allUpdatedDailyQuotes.toArray))
     }
     if (allUpdatedMinuteQuotes.length > 0) {
-      TickerServer.publish(TickerServer.QuotesEvt(TFreq.ONE_MIN, allUpdatedMinuteQuotes.toArray))
+      TickerServer.publish(TickerServer.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
     }
     
     // Try to close and save updated quotes, moneyflows 

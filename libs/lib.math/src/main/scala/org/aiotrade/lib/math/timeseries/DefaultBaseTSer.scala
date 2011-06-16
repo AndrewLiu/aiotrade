@@ -215,7 +215,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           i += 1
       }
 
-      publish(TSerEvent.Updated(this, shortDescription, frTime, toTime))
+      publish(TSerEvent.Updated(this, shortName, frTime, toTime))
 
     } finally {
       writeLock.unlock

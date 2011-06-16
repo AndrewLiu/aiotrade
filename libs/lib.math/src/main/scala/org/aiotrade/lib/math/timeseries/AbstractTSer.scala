@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
 
 /**
