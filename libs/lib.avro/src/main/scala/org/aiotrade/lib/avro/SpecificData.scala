@@ -173,7 +173,7 @@ class SpecificData protected () extends GenericData {
             } else {
               throw new AvroTypeException("Map key class not CharSequence: " + key)
             }
-          case _ => throw new AvroTypeException("No map type specified.")
+          case _ => throw new AvroTypeException("No map type paramters specified.")
         }
       case c: Class[T] =>
         val fullName = c.getName

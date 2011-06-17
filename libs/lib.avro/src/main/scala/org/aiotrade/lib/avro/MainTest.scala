@@ -46,10 +46,9 @@ object MainTest {
   private val AVRO = 0
   private val JSON = 1
 
-  def main(args: Array[String]) {
-    
+  def main(args: Array[String]) {    
     testArrayBuffer
-    testAutoSchema(new java.util.HashMap[String, Array[_]])
+    testAutoSchema
     
     for (contentType <- List(JSON, AVRO)) {
       testTuple(contentType)
@@ -65,11 +64,13 @@ object MainTest {
     // debug on it to see type of field array
     val alist = new ArrayList[Double]()
     val primitiveArray = alist.toArray
-    println("The type of field array  should be double[]")
+    println("The type of field array in ArrayList should be double[]")
+    println(ReflectData.AllowNull.getSchema(classOf[ArrayList[Double]]))
     
     val abuff = new collection.mutable.ArrayBuffer[Double]()
     val objectArray = abuff.toArray
-    println("The type of field array is still Object[]")
+    println("The type of field array in ArrayBuffer is still Object[]")
+    println(ReflectData.AllowNull.getSchema(classOf[collection.mutable.ArrayBuffer[Double]]))
     
     
     val tickers = new ArrayList[Ticker]()
@@ -80,13 +81,30 @@ object MainTest {
       val ticker = arr(i)
       println(ticker)
     }
+    
+    val schemaArrayList = """{"type":"array","items":"double","java-class":"org.aiotrade.lib.collection.ArrayList"}"""
+    val schema = Schema.parse(schemaArrayList)
+    println(schema)
+    val xs = new ArrayList[Double](100)
+    xs ++= Array(1.0, 2.0, 3.0)
+    // encode
+    val bytes = encode(xs, schema, JSON)
+    println(new String(bytes, "UTF-8"))
+    // decode
+    val decoded = decode(bytes, schema, classOf[ArrayList[Double]], JSON).get
+    println(decoded)
   }
   
-  def testAutoSchema(value: AnyRef) {
+  def testAutoSchema {
     println("\n==== test auto schema ====")
 
     println(ReflectData.get.getSchema(classOf[java.util.HashMap[String, Array[_]]]))
-    println(ReflectData.get.getSchema(value.getClass))
+    val v = new java.util.HashMap[String, Array[_]]
+    try {
+    println(ReflectData.get.getSchema(v.getClass))
+    } catch {
+      case ex => println("Error: " + ex.getMessage)
+    }
     
     println(ReflectData.get.getSchema(classOf[(String, Long)]))
   }
@@ -182,7 +200,6 @@ object MainTest {
     
     // encode
     val bytes = encode(instance, schema, contentType)
-    
     // decode
     val decoded = decode(bytes, schema, classOf[Ticker], contentType).get
     println(decoded)
@@ -204,7 +221,6 @@ object MainTest {
     // encode
     val bytes = encode(instances, schema, contentType)
     println(new String(bytes, "UTF-8"))
-    
     // decode
     val decoded = decode(bytes, schema, classOf[Array[Ticker]], contentType).get
     println(decoded)

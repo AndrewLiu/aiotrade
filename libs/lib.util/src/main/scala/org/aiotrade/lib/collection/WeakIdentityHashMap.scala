@@ -11,7 +11,7 @@ object WeakIdentityHashMap extends MutableMapFactory[WeakIdentityHashMap] {
 }
 
 @serializable @SerialVersionUID(1L)
-class WeakIdentityHashMap[@specialized A, @specialized B](
+class WeakIdentityHashMap[A, B](
   protected implicit val m: Manifest[A]
 ) extends Map[A, B]
      with MapLike[A, B, WeakIdentityHashMap[A, B]]
