@@ -29,9 +29,9 @@ import scala.collection.mutable.IndexedSeqOptimized
  *  @version 2.8
  *  @since   1
  */
-trait ResizableArray[@specialized A] extends IndexedSeq[A]
-                                        with GenericTraversableTemplate[A, ResizableArray]
-                                        with IndexedSeqOptimized[A, ResizableArray[A]] {
+trait ResizableArray[A] extends IndexedSeq[A]
+                           with GenericTraversableTemplate[A, ResizableArray]
+                           with IndexedSeqOptimized[A, ResizableArray[A]] {
 
   protected implicit val m: Manifest[A]
   

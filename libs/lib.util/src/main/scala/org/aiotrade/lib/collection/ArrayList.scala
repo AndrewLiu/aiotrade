@@ -35,7 +35,7 @@ import scala.collection.mutable.WrappedArray
  *  @since   1
  */
 @serializable @SerialVersionUID(1529165946227428979L)
-class ArrayList[@specialized A](override protected val initialSize: Int)(protected implicit val m: Manifest[A]
+class ArrayList[A](override protected val initialSize: Int)(protected implicit val m: Manifest[A]
 ) extends Buffer[A]
      with GenericTraversableTemplate[A, ArrayList]
      with BufferLike[A, ArrayList[A]]

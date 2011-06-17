@@ -13,7 +13,7 @@ object WeakIdentityBiHashMapTest {
     testLots
   }
 
-  def test[@specialized T: Manifest](keys: Array[T]) {
+  def test[T: Manifest](keys: Array[T]) {
     var k1 = keys(0)
     var k2 = keys(1)
     var k3 = keys(2)
