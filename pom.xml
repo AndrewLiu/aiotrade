@@ -66,27 +66,44 @@
             <id>scala-tools.release</id>
             <name>Scala-Tools Release Repository</name>
             <url>http://scala-tools.org/repo-releases</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>scala-tools.snapshot</id>
             <name>Scala-Tools Snapshot Repository</name>
             <url>http://scala-tools.org/repo-snapshots</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>repo1.maven</id>
             <name>Maven Main Repository</name>
             <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>codehaus</id>
             <name>codehaus</name>
             <url>https://nexus.codehaus.org/content/groups/public</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>gson</id>
             <url>http://google-gson.googlecode.com/svn/mavenrepo</url>
             <snapshots>
                 <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
             </snapshots>
             <releases>
                 <enabled>true</enabled>
@@ -96,6 +113,10 @@
             <id>jboss-public-repository-group</id>
             <name>JBoss Public Maven Repository Group</name>
             <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
         <!-- this is a remote repository hosting the netbeans api artifacts.
@@ -106,6 +127,10 @@
             <id>netbeans</id>
             <name>repository hosting netbeans.org api artifacts</name>
             <url>http://bits.netbeans.org/maven2</url>
+            <snapshots>
+                <updatePolicy>never</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
