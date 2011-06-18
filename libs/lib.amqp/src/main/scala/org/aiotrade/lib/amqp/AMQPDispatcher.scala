@@ -96,8 +96,6 @@ import org.aiotrade.lib.util.actors.Reactor
 case object AMQPConnected
 case object AMQPDisconnected
 
-case class AMQPAcknowledge(deliveryTag: Long)
-  
 object AMQPExchange {
     
   /**

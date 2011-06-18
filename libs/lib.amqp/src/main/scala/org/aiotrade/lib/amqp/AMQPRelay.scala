@@ -13,7 +13,8 @@ import java.io.IOException
  * 
  * @author guibin
  */
-
+case class AMQPAcknowledge(deliveryTag: Long)
+  
 object AMQPRelay {
 
   val log = Logger.getLogger(getClass.getName)
