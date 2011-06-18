@@ -35,35 +35,46 @@ package org.aiotrade.lib.math.signal
  * @author Caoyuan Deng
  */
 object Kind {
-  def withId(id: Byte): Kind = {
+  def withId(id: Int): Kind = {
     if (isSign(id)) Direction.withId(id) else Position.withId(id)
   }
 
-  def isSign(id: Byte): Boolean = id > 0
+  def isSign(id: Int): Boolean = id > 0
 }
 
-class Kind(protected val id: Byte) {
+class Kind(_id: Int) {
   /* for serializable */
   def this() = this(0) 
 
-  override def hashCode = id
+  protected[signal] def id: Int = _id
+  override def hashCode = _id
   
   override def equals(a: Any) = {
     a match {
-      case x: Kind => x.id == id
+      case x: Kind => x.id == _id
       case _ => false
     }
   }
 }
 
-class Direction(id: => Byte) extends Kind(id) {def this() = this(0) /* for serializable */}
+class Direction(_id: => Int) extends Kind(_id) {
+  def this() = this(0) /* for serializable */
+  
+  override def toString = id match {
+    case 1 => "Enter long"
+    case 2 => "Exit long"
+    case 3 => "Enter short"
+    case 4 => "Exit short"
+  }
+
+}
 object Direction {
   val EnterLong  = new Direction(1)
   val ExitLong   = new Direction(2)
   val EnterShort = new Direction(3)
   val ExitShort  = new Direction(4)
 
-  def withId(id: Byte): Direction = id match {
+  def withId(id: Int): Direction = id match {
     case 1 => Direction.EnterLong
     case 2 => Direction.ExitLong
     case 3 => Direction.EnterShort
@@ -71,12 +82,19 @@ object Direction {
   }
 }
 
-class Position(id: => Byte) extends Kind(id) {def this() = this(0) /* for serializable */}
+class Position(_id: => Int) extends Kind(_id) {
+  def this() = this(0) /* for serializable */
+  
+  override def toString = id match {
+    case -1 => "Upper"
+    case -2 => "Lower"
+  }
+}
 object Position {
   val Upper = new Position(-1)
   val Lower = new Position(-2)
 
-  def withId(id: Byte): Position = id match {
+  def withId(id: Int): Position = id match {
     case -1 => Position.Upper
     case -2 => Position.Lower
   }
