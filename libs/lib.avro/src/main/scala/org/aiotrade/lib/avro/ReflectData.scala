@@ -259,11 +259,16 @@ class ReflectData protected() extends SpecificData {
   override
   protected def createSchema(tpe: GenericArrayType, names: java.util.Map[String, Schema]): Schema = {
     import ClassHelper._
-    tpe.getGenericComponentType.asInstanceOf[Class[_]] match {
+    tpe.getGenericComponentType match {
       case ByteType => Schema.create(Schema.Type.BYTES) // byte array
       case c: Class[_] => 
-        val schema = Schema.createArray(createSchema(c, names))
+        val c1 = c.asInstanceOf[Class[_]] // cheat createSchema for lack of Manifest
+        val schema = Schema.createArray(createSchema(c1, names))
         setElement(schema, c)
+        schema
+      case ptype: ParameterizedType =>
+        val schema = Schema.createArray(createSchema(ptype, names))
+        setElement(schema, ptype)
         schema
     }
   }
@@ -290,7 +295,10 @@ class ReflectData protected() extends SpecificData {
   
   override
   protected def createSchema[T <: GenericDeclaration](tpe: TypeVariable[T], names: java.util.Map[String, Schema]): Schema = {
-    throw new AvroTypeException("Unknown type: " + tpe)
+    tpe.getGenericDeclaration match {
+      case c: Class[_] => val c1 = c.asInstanceOf[Class[_]]; createSchema(c1, names)
+      case gtype => throw new AvroTypeException("Unknown type: " + gtype)
+    }
   }
   
   override
