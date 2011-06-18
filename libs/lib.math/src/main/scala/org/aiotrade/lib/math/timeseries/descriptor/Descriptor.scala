@@ -53,7 +53,22 @@ abstract class Descriptor[S](
   private var _freq: TFreq,
   private var _active: Boolean
 )(protected implicit val m: Manifest[S]) extends WithActions with Cloneable {
+
   private val log = Logger.getLogger(this.getClass.getName)
+
+  /**
+   * @note According to http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/doc-files/classpath.html:
+   * The basic thing you need to understand about how modules control class loading is this:
+   *   If module B has a declared dependency on module A, then classes in B can refer to classes in A 
+   *   (but A cannot refer to B). If B does not have a declared dependency on A, it cannot refer to A. 
+   *   Furthermore, dependencies are not considered transitive for purposes of classloading: if C has 
+   *   a declared dependency on B, it can refer to classes in B, but not to A (unless it also declares 
+   *   an explicit dependency on A).
+   *   
+   * Also @see http://wiki.netbeans.org/DevFaqModuleCCE
+   * Also @see http://netbeans-org.1045718.n5.nabble.com/Class-forName-otherModuleClass-in-library-modules-td3021534.html   
+   */
+  private val classLoader = Thread.currentThread.getContextClassLoader
 
   private val withActionsHelper = new WithActionsHelper(this)
 
@@ -135,7 +150,7 @@ abstract class Descriptor[S](
                       folderName + "': " + services.map(_.asInstanceOf[AnyRef].getClass.getName) +
                       ", try Class.forName call: serviceClassName=" + serviceClassName)
 
-          val klass = Class.forName(serviceClassName)
+          val klass = Class.forName(serviceClassName, true, classLoader)
           
           getScalaSingletonInstance(klass) match {
             case Some(x) if x.isInstanceOf[S] => Option(x.asInstanceOf[S])

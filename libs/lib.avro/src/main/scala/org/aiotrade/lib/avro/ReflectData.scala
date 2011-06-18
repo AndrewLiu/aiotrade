@@ -41,6 +41,7 @@ object ReflectData {
   /** Return the singleton instance. */
   def get() = INSTANCE
   
+  private val classLoader = Thread.currentThread.getContextClassLoader
   private val FIELD_CACHE = new java.util.concurrent.ConcurrentHashMap[Class[_], java.util.Map[String, Field]]()
 
   /** Return the named field of the provided class.  Implementation caches
@@ -81,7 +82,7 @@ object ReflectData {
     val name = schema.getProp(prop)
     if (name == null) return null
     try {
-      return Class.forName(name)
+      return Class.forName(name, true, classLoader)
     } catch {
       case ex: ClassNotFoundException =>  throw new AvroRuntimeException(ex)
     }
@@ -328,10 +329,10 @@ class ReflectData protected() extends SpecificData {
             } else c.getSimpleName
             
             val space = if (c.getEnclosingClass != null) { // nested class
-                c.getEnclosingClass.getName + "$"
-              } else {
-                if (c.getPackage == null) "" else c.getPackage.getName
-              }
+              c.getEnclosingClass.getName + "$"
+            } else {
+              if (c.getPackage == null) "" else c.getPackage.getName
+            }
             
             val union = c.getAnnotation(classOf[Union])
             if (union != null) { // union annotated

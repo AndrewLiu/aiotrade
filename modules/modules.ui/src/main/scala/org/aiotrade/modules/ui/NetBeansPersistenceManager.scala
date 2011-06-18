@@ -85,6 +85,7 @@ object NetBeansPersistenceManager {
 
 import NetBeansPersistenceManager._
 class NetBeansPersistenceManager extends PersistenceManager {
+  private val classLoader = Thread.currentThread.getContextClassLoader
 
   /** @TODO
    * WindowManager.getDefault()
@@ -310,7 +311,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         if (lafStr != null) {
           try {
-            val laf = Class.forName(lafStr.trim).newInstance.asInstanceOf[LookFeel]
+            val laf = Class.forName(lafStr.trim, true, classLoader).newInstance.asInstanceOf[LookFeel]
             LookFeel() = laf
           } catch {case ex: Exception => ErrorManager.getDefault.notify(ex)}
 
@@ -386,7 +387,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     dbDriver = props.getProperty("org.aiotrade.platform.jdbc.driver")
 
     try {
-      Class.forName(dbDriver)
+      Class.forName(dbDriver, true, classLoader)
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
 
     val strUserDir = System.getProperty("netbeans.user")
