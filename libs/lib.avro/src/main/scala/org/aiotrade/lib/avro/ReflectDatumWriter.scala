@@ -39,12 +39,15 @@ class ReflectDatumWriter[T] protected (root: Schema, reflectData: ReflectData) e
   @throws(classOf[IOException])
   override protected def write(schema: Schema, datum: Any, out: Encoder) {
     val datum1 = datum match {
+      case x: Byte => x.toInt
+      case x: java.lang.Byte => x.intValue
       case x: Short => x.toInt
       case x: java.lang.Short => x.intValue
       case _ => datum
     }
+    
     try {
-      super.write(schema, datum, out);
+      super.write(schema, datum1, out)
     } catch {
       case ex: NullPointerException =>           // improve error message
         val result = new NullPointerException("in " + schema.getFullName + " " + ex.getMessage)

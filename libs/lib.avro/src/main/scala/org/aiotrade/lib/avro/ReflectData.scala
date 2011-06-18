@@ -101,12 +101,22 @@ object ReflectData {
 class ReflectData protected() extends SpecificData {
   
   override
-  def setField(record: Object, name: String, position: Int, o: Object) {
+  def setField(record: AnyRef, name: String, position: Int, o: AnyRef) {
     record match {
       case x: IndexedRecord => super.setField(record, name, position, o)
       case _ =>
         try {
-          ReflectData.getField(record.getClass, name).set(record, o)
+          import ClassHelper._
+          val field = ReflectData.getField(record.getClass, name)
+          val value = if (o.isInstanceOf[Int] || o.isInstanceOf[java.lang.Integer]) {
+            field.getGenericType match {
+              case ByteType  | ByteClass  | JByteClass    => o.asInstanceOf[java.lang.Integer].byteValue
+              case ShortType | ShortClass | JShortClass   => o.asInstanceOf[java.lang.Integer].shortValue
+              case _ => o
+            }
+          } else o
+          
+          field.set(record, value)
         } catch {
           case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
         }
@@ -114,7 +124,7 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  def getField(record: Object, name: String, position: Int): Object = {
+  def getField(record: AnyRef, name: String, position: Int): AnyRef = {
     record match {
       case x: IndexedRecord => return super.getField(record, name, position)
       case _ =>    
@@ -127,24 +137,24 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def isRecord(datum: Object): Boolean = {
+  protected def isRecord(datum: AnyRef): Boolean = {
     if (datum == null) return false
     getSchema(datum.getClass).getType == Schema.Type.RECORD
   }
 
   override
-  protected def isArray(datum: Object): Boolean = {
+  protected def isArray(datum: AnyRef): Boolean = {
     if (datum == null) return false
     datum.isInstanceOf[java.util.Collection[_]] || datum.isInstanceOf[collection.Seq[_]] || datum.getClass.isArray()
   }
 
   override 
-  protected def isMap(datum: Object): Boolean = {
+  protected def isMap(datum: AnyRef): Boolean = {
     datum.isInstanceOf[java.util.Map[_, _]] || datum.isInstanceOf[collection.Map[_, _]]
   }
 
   override
-  protected def isBytes(datum: Object): Boolean = {
+  protected def isBytes(datum: AnyRef): Boolean = {
     if (datum == null) return false
     if (super.isBytes(datum)) return true
     val c = datum.getClass
@@ -152,12 +162,12 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def getRecordSchema(record: Object): Schema = {
+  protected def getRecordSchema(record: AnyRef): Schema = {
     getSchema(record.getClass)
   }
 
   override
-  def validate(schema: Schema, datum: Object): Boolean = {
+  def validate(schema: Schema, datum: AnyRef): Boolean = {
     import Schema.Type._
     schema.getType match {
       case RECORD =>
@@ -290,10 +300,7 @@ class ReflectData protected() extends SpecificData {
         val schema = Schema.create(Schema.Type.INT)
         schema.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
         schema
-      case c: Class[T] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
-        super.createSchema(tpe, names)
-      case c: Class[T] if isTupleClass(c) || isCollectionClass(c) || isMapClass(c) =>
-        super.createSchema(tpe, names)
+      
       case c: Class[_] if c.isArray =>
         c.getComponentType match {
           case ByteType => 
@@ -305,13 +312,22 @@ class ReflectData protected() extends SpecificData {
         }
       case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
         Schema.create(Schema.Type.STRING) // String
+      
+      case c: Class[T] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
+        super.createSchema(tpe, names)
+      
+      case c: Class[T] if isTupleClass(c) || isCollectionClass(c) || isMapClass(c) =>
+        super.createSchema(tpe, names)
+        
       case c: Class[T] => // other Class      
         val fullName = c.getName
         names.get(fullName) match {
           case null =>
-            val name = c.getSimpleName
-            val space = 
-              if (c.getEnclosingClass != null) { // nested class
+            val name = if (isScalaSingletonObject(c)) { // scala singleton object
+              c.getSimpleName.replace("$", "_DOLLAR_")
+            } else c.getSimpleName
+            
+            val space = if (c.getEnclosingClass != null) { // nested class
                 c.getEnclosingClass.getName + "$"
               } else {
                 if (c.getPackage == null) "" else c.getPackage.getName
@@ -363,6 +379,7 @@ class ReflectData protected() extends SpecificData {
             schema
           case schema => schema
         }
+        
       case _ => super.createSchema(tpe, names)
     }
   }

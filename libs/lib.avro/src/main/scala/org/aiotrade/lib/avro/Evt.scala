@@ -30,19 +30,14 @@
  */
 package org.aiotrade.lib.avro
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.io.BinaryData
-import org.apache.avro.io.DecoderFactory
-import org.apache.avro.io.EncoderFactory
 import scala.collection.mutable
 
 /**
@@ -156,8 +151,6 @@ object Evt {
   
   private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
   
-  private val AVRO = 0
-  private val JSON = 1
   val NO_TAG = Int.MinValue
   val Error = Evt[String](Int.MaxValue)
   
@@ -168,74 +161,23 @@ object Evt {
   def tagToSchema = tagToEvt map {x => (x._1 -> schemaOf(x._1))}
  
   def toAvro[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
-    case Some(schema) => encode(value, schema, AVRO)
+    case Some(schema) => Avro.encode(value, schema, Avro.AVRO)
     case None => Array[Byte]()
   }
   
   def toJson[T](value: T, tag: Int): Array[Byte] = schemaOf(tag) match {
-    case Some(schema) => encode(value, schema, JSON)
+    case Some(schema) => Avro.encode(value, schema, Avro.JSON)
     case None => Array[Byte]()
   }
   
-  private def encode[T](value: T, schema: Schema, contentType: Int): Array[Byte] = {
-    var out: ByteArrayOutputStream = null
-    try {
-      out = new ByteArrayOutputStream()
-    
-      val encoder = contentType match {
-        case JSON => JsonEncoder(schema, out)
-        case AVRO => EncoderFactory.get.binaryEncoder(out, null)
-      }
-      
-      val writer = ReflectDatumWriter[T](schema)
-      writer.write(value, encoder)
-      encoder.flush()
-      
-      out.toByteArray
-    } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
-    } finally {
-      if (out != null) try {out.close} catch {case _ =>}
-    }
-  }
-  
   def fromAvro(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.schema, evt.tpe, AVRO)
+    case Some(evt) => Avro.decode(bytes, evt.schema, evt.tpe, Avro.AVRO)
     case None => None
   }
 
   def fromJson(bytes: Array[Byte], tag: Int): Option[_] = evtOf(tag) match {
-    case Some(evt) => decode(bytes, evt.schema, evt.tpe, JSON)
+    case Some(evt) => Avro.decode(bytes, evt.schema, evt.tpe, Avro.JSON)
     case None => None
-  }
-  
-  @throws(classOf[IOException])
-  private def decode[T](bytes: Array[Byte], schema: Schema, valueType: Class[T], contentType: Int): Option[T] = {
-    var in: InputStream = null
-    try {
-      in = new ByteArrayInputStream(bytes)
-      
-      val decoder = contentType match {
-        case JSON => JsonDecoder(schema, in)
-        case AVRO => DecoderFactory.get.binaryDecoder(in, null)
-      }
-      
-      val reader = ReflectDatumReader[T](schema)
-      reader.read(null.asInstanceOf[T], decoder) match {
-        case null => 
-          import ClassHelper._
-          valueType match {
-            case UnitClass | JVoidClass  => Some(().asInstanceOf[T])
-            case NullClass => Some(null.asInstanceOf[T])
-            case _ => None
-          }
-        case value => Some(value)
-      }
-    } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); None
-    } finally {
-      if (in != null) try {in.close} catch {case _ =>}
-    }
   }
   
   @throws(classOf[IOException])

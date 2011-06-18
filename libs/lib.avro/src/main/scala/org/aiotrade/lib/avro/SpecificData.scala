@@ -3,11 +3,12 @@ package org.aiotrade.lib.avro
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.GenericDeclaration
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.TypeVariable
 
+import java.util.logging.Logger
+import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.Protocol
-import java.lang.reflect.TypeVariable
-import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException
 import org.apache.avro.Schema.Type
@@ -29,6 +30,9 @@ class SpecificData protected () extends GenericData {
   import SpecificData._
   import Schema.Type._
 
+  private val log = Logger.getLogger(this.getClass().getName)
+  private val classLoader = Thread.currentThread.getContextClassLoader
+  
   private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]]()
   private val schemaCache = new java.util.WeakHashMap[java.lang.reflect.Type, Schema]()
 
@@ -36,7 +40,26 @@ class SpecificData protected () extends GenericData {
     datum.isInstanceOf[Enum[_]] || super.isEnum(datum)
   }
 
-
+  /** Called by {@link #resolveUnion(Schema,Object)}. @see #createSchema */
+  override protected def instanceOf(schema: Schema, datum: AnyRef): Boolean = {
+    schema.getType match {
+      case INT => datum.isInstanceOf[java.lang.Integer] || datum.isInstanceOf[java.lang.Short] || datum.isInstanceOf[java.lang.Byte]
+      case RECORD =>
+        if (!isRecord(datum)) return false
+        if (schema.getFullName == null) {
+          getRecordSchema(datum).getFullName == null
+        } else {
+          val datumSchema = getRecordSchema(datum)
+          if (schema.getFullName == datumSchema.getFullName) {
+            true 
+          } else {
+            getClass(schema).isInstance(datum)
+          }
+        }
+      case _ => super.instanceOf(schema, datum)
+    }
+  }
+  
   /** Return the class that implements a schema, or null if none exists. */
   def getClass(schema: Schema): Class[_] = {
     schema.getType match {
@@ -45,9 +68,9 @@ class SpecificData protected () extends GenericData {
         val c = classCache.get(name) match {
           case null =>
             try {
-              Class.forName(getClassName(schema))
+              Class.forName(getClassName(schema), true, classLoader)
             } catch {
-              case e: ClassNotFoundException => NO_CLASS
+              case ex: ClassNotFoundException => log.warning(ex.getMessage); NO_CLASS
             }
           case x => x
         }
@@ -78,12 +101,13 @@ class SpecificData protected () extends GenericData {
   def getClassName(schema: Schema): String = {
     val namespace = schema.getNamespace
     val name = schema.getName
-    if (namespace == null) {
+    val className = if (namespace == null) {
       name
     } else {
       val dot = if (namespace.endsWith("$")) "" else "."
       namespace + dot + name
     }
+    className.replace("_DOLLAR_", "$")
   }
 
   /** Find the schema for a Java type. */
@@ -136,6 +160,8 @@ class SpecificData protected () extends GenericData {
   protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     tpe match {
       case VoidType    | JVoidClass => Schema.create(Type.NULL)
+      case ByteType    | ByteClass    | JByteClass    => Schema.create(Type.INT)
+      case ShortType   | ShortClass   | JShortClass   => Schema.create(Type.INT)
       case IntegerType | IntClass     | JIntegerClass => Schema.create(Type.INT)
       case LongType    | LongClass    | JLongClass    => Schema.create(Type.LONG)
       case FloatType   | FloatClass   | JFloatClass   => Schema.create(Type.FLOAT)
