@@ -42,7 +42,6 @@ import org.aiotrade.lib.securities.model.Sec
 class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   private var _shortName: String = ""
-  var adjusted: Boolean = false
 
   val totalVolume = TVar[Double]("TV", Plot.None)
   val totalAmount = TVar[Double]("TA", Plot.None)
