@@ -34,6 +34,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
@@ -78,17 +79,33 @@ case class Msg[T](tag: Int, value: T)
  * to invoke initializing code, that is, it may not be regirtered in Evt.tagToEvt 
  * yet when you call its static 'apply', 'unapply' methods.
  */
+@throws(classOf[RuntimeException])
 final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: String)(implicit m: Manifest[T]) {
   type ValType = T
   type MsgType = Msg[T]
   
-  assert(!Evt.tagToEvt.contains(tag), "Tag: " + tag + " already existed!")
-  Evt.tagToEvt(tag) = this
-    
-  /** typeParams of msg value */
-  private val typeParams = m.typeArguments map (_.erasure)
+  private val log = Logger.getLogger(this.getClass.getName)
+  
+  checkRegister
+  
   /** class of msg value */
   val tpe: Class[T] = m.erasure.asInstanceOf[Class[T]]
+  /** typeParams of msg value */
+  private val tpeParams = m.typeArguments map (_.erasure)
+  
+  @throws(classOf[RuntimeException])
+  private def checkRegister {
+    Evt.tagToEvt.get(tag) match {
+      case Some(evt) =>
+        if (evt ne this) {
+          val ex = new RuntimeException("Tag: " + tag + " already existed!")
+          log.log(Level.SEVERE, ex.getMessage, ex)
+          throw ex
+        }
+      case None =>
+        Evt.tagToEvt(tag) = this
+    }
+  }
   
   /**
    * Avro schema of evt value: we've implemented a reflect schema.
@@ -121,7 +138,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
       // we will do 1-level type arguments check, and won't deep check it's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
-          val t = typeParams.head
+          val t = tpeParams.head
           val vs = x.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(t, vs.next)) 
@@ -130,7 +147,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
           Some(value)
         case x: Product if ClassHelper.isTuple(x) =>
           val vs = x.productIterator
-          val ts = typeParams.iterator
+          val ts = tpeParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
@@ -149,7 +166,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
 object Evt {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private val tagToEvt = new mutable.HashMap[Int, Evt[_]]
+  private val tagToEvt = new mutable.HashMap[Int, Evt[_]]()
   
   val NO_TAG = Int.MinValue
   val Error = Evt[String](Int.MaxValue)
