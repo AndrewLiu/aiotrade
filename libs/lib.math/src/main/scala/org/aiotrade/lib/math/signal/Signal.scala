@@ -42,13 +42,21 @@ case class SignalEvent(source: SignalIndicator, signal: Signal)
 case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
 
 /** A helper class to carray full infomation of signal */
-case class SignalX(symbol: String, name: String, freq: String, signal: Signal)
-case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal])
+case class SignalX(symbol: String, name: String, freq: String, signal: Signal) {
+  def this() = this(null, null, null, null) /* for serializable */
+}
+case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal]) {
+  def this() = this(null, null, null, null) /* for serializable */
+}
 
 object Signal extends Publisher
 
-case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, @transient color: Color = null) extends Signal
-case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, @transient color: Color = null) extends Signal
+case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, @transient color: Color = null) extends Signal {
+  def this() = this(0L, Direction.EnterLong) /* for serializable */
+}
+case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, @transient color: Color = null) extends Signal {
+  def this() = this(0L, Position.Lower) /* for serializable */
+}
 
 abstract class Signal {
   def time: Long
