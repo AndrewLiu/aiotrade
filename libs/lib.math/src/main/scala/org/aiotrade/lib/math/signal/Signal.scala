@@ -41,37 +41,14 @@ import java.awt.Color
 case class SignalEvent(source: SignalIndicator, signal: Signal)
 case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
 
-case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal)
-case class SubSignalsEvent(uniSymbol: String, name: String, freq: String, signals: Array[Signal])
+/** A helper class to carray full infomation of signal */
+case class SignalX(symbol: String, name: String, freq: String, signal: Signal)
+case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal])
 
-object Signal extends Publisher {  
-  def importFrom(v: (Long, Array[Any])): Signal = {
-    v match {
-      case (time: Long, Array(kindId: Byte, text: String, id: Int)) =>
-        if (Kind.isSign(kindId)) {
-          Sign(time, Direction.withId(kindId), id, text)
-        } else {
-          Mark(time, Position.withId(kindId), id, text)
-        }
-      case (time: Long, Array(kindId: Byte, id: Int)) =>
-        if (Kind.isSign(kindId)) {
-          Sign(time, Direction.withId(kindId), id)
-        } else {
-          Mark(time, Position.withId(kindId), id)
-        }
-      case (time: Long, Array(kindId: Double, id: Double)) =>
-        if (Kind.isSign(kindId.toByte)) {
-          Sign(time, Direction.withId(kindId.toByte), id.toInt)
-        } else {
-          Mark(time, Position.withId(kindId.toByte), id.toInt)
-        }
-      case _ => null
-    }
-  }
-}
+object Signal extends Publisher
 
-case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) extends Signal
-case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, color: Color = null) extends Signal
+case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, @transient color: Color = null) extends Signal
+case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, @transient color: Color = null) extends Signal
 
 abstract class Signal {
   def time: Long
@@ -81,14 +58,6 @@ abstract class Signal {
   def color: Color
 
   def hasText = text != null
-
-  def export: (Long, Array[Any]) = {
-    if (text != null) {
-      (time, Array[Any](kind.id, text, id))
-    } else {
-      (time, Array[Any](kind.id, id))
-    }
-  }
 
   override def hashCode: Int = {
     var h = 17

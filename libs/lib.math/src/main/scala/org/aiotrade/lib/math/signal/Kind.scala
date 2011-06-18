@@ -42,14 +42,26 @@ object Kind {
   def isSign(id: Byte): Boolean = id > 0
 }
 
-abstract class Kind {def id: Byte}
+class Kind(protected val id: Byte) {
+  /* for serializable */
+  def this() = this(0) 
 
-abstract class Direction(val id: Byte) extends Kind
+  override def hashCode = id
+  
+  override def equals(a: Any) = {
+    a match {
+      case x: Kind => x.id == id
+      case _ => false
+    }
+  }
+}
+
+class Direction(id: => Byte) extends Kind(id) {def this() = this(0) /* for serializable */}
 object Direction {
-  case object EnterLong  extends Direction(1)
-  case object ExitLong   extends Direction(2)
-  case object EnterShort extends Direction(3)
-  case object ExitShort  extends Direction(4)
+  val EnterLong  = new Direction(1)
+  val ExitLong   = new Direction(2)
+  val EnterShort = new Direction(3)
+  val ExitShort  = new Direction(4)
 
   def withId(id: Byte): Direction = id match {
     case 1 => Direction.EnterLong
@@ -59,10 +71,10 @@ object Direction {
   }
 }
 
-abstract class Position(val id: Byte) extends Kind
+class Position(id: => Byte) extends Kind(id) {def this() = this(0) /* for serializable */}
 object Position {
-  case object Upper extends Position(-1)
-  case object Lower extends Position(-2)
+  val Upper = new Position(-1)
+  val Lower = new Position(-2)
 
   def withId(id: Byte): Position = id match {
     case -1 => Position.Upper
