@@ -23,7 +23,7 @@ import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Signal
-import org.aiotrade.lib.math.signal.SubSignalEvent
+import org.aiotrade.lib.math.signal.SignalX
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.view.securities.Comparators
@@ -39,7 +39,7 @@ class SignalTopComponent extends TopComponent with Reactor {
   private var table: JTable = _
   private var model: AbstractTableModel = _
 
-  private val signalEvents = new ArrayList[SubSignalEvent]
+  private val signalEvents = new ArrayList[SignalX]
 
 
   private val TIME = "time"
@@ -57,7 +57,7 @@ class SignalTopComponent extends TopComponent with Reactor {
   initComponent
 
   reactions += {
-    case x@SubSignalEvent(uniSymbol, name, freq, signal) =>
+    case x: SignalX =>
       requestActive
       updateSignalTable(x)
       table.repaint()
@@ -84,7 +84,7 @@ class SignalTopComponent extends TopComponent with Reactor {
         val event = signalEvents(row)
         col match {
           case 0 =>
-            val sec = Exchange.secOf(event.uniSymbol).getOrElse(return null)
+            val sec = Exchange.secOf(event.symbol).getOrElse(return null)
             val timeZone = sec.exchange.timeZone
             val df = event.freq match {
               case "1D" => new SimpleDateFormat("MM-dd")
@@ -96,7 +96,7 @@ class SignalTopComponent extends TopComponent with Reactor {
             val cal = Calendar.getInstance(timeZone)
             cal.setTimeInMillis(event.signal.time)
             df format cal.getTime
-          case 1 => event.uniSymbol
+          case 1 => event.symbol
           case 2 => event.signal.kind match {
               case Direction.EnterLong  => BUNDLE.getString("enterLong")
               case Direction.ExitLong   => BUNDLE.getString("exitLong")
@@ -188,7 +188,7 @@ class SignalTopComponent extends TopComponent with Reactor {
   /**
    * Update last execution row in depth table
    */
-  private def updateSignalTable(event: SubSignalEvent) {
+  private def updateSignalTable(event: SignalX) {
     signalEvents += event
     model.fireTableDataChanged
     scrollToLastRow(table)

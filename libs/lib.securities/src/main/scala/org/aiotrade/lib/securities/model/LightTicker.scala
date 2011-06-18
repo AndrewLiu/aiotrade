@@ -61,12 +61,17 @@ object LightTicker {
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val data: Array[Double]) extends TVal {
+class LightTicker(private var _data: Array[Double]) extends TVal {
   @transient final var sec: Sec = _
   @transient final protected var _isChanged: Boolean = _
 
   def this() = this(new Array[Double](FIELD_LENGTH))
 
+  final protected def data = _data
+  final protected def data_=(data: Array[Double]) {
+    this._data = data
+  }
+  
   final var symbol: String = _
 
   final def prevClose = data(PREV_CLOSE)
@@ -144,9 +149,17 @@ class LightTicker(val data: Array[Double]) extends TVal {
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
+  def importFrom(v: (Long, Array[Double], Array[Double])): this.type = {
+    this.time = v._1
+    this.data = v._2
+    this
+  }
+  
   /** export to tuple */
-  def export: (Long, List[Array[Double]]) = (time, List(data))
-
+  def exportTo: (Long, Array[Double], Array[Double]) = {
+    (time, data, Array())
+  }
+  
   def isValueChanged(another: LightTicker): Boolean = {
     var i = -1
     while ({i += 1; i < data.length}) {
@@ -163,28 +176,6 @@ class LightTicker(val data: Array[Double]) extends TVal {
     cloneOne.copyFrom(this)
     cloneOne
   }
-
-//  @throws(classOf[IOException])
-//  def writeJson(out: JsonOutputStreamWriter) {
-//    out.write("s", symbol)
-//    out.write(',')
-//    out.write("t", time / 1000)
-//    out.write(',')
-//    out.write("v", data)
-//  }
-//
-//  @throws(classOf[IOException])
-//  def readJson(fields: collection.Map[String, _]) {
-//    symbol  = fields("s").asInstanceOf[String]
-//    time    = fields("t").asInstanceOf[Long] * 1000
-//    var vs  = fields("v").asInstanceOf[List[Number]]
-//    var i = 0
-//    while (!vs.isEmpty) {
-//      data(i) = vs.head.doubleValue
-//      vs = vs.tail
-//      i += 1
-//    }
-//  }
 
   override def toString = {
     "LightTicker(" + "symbol=" + symbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"

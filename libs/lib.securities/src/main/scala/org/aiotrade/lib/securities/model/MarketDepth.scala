@@ -55,5 +55,9 @@ final class MarketDepth(_bidAsks: Array[Double]) {
     }
     _bidAsks(idx) = v
   }
+  
+  override def toString = {
+    "MarketDepth(" + _bidAsks.mkString("[", ",", "]") + ")"
+  }
 
 }
