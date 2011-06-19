@@ -12,6 +12,7 @@ import scala.collection.mutable
 import java.io.IOException
 
 object MoneyFlows1d extends MoneyFlows {
+  override def config = org.aiotrade.lib.util.config.Config()
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
@@ -70,7 +71,7 @@ object MoneyFlows1d extends MoneyFlows {
 }
 
 object MoneyFlows1m extends MoneyFlows {
-  private val config = org.aiotrade.lib.util.config.Config()
+  override def config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
   val loadDaysInMilsec = config.getInt("dataserver.loadDaysOfSer1m", 5) * 1000*60*60*24
 
@@ -146,6 +147,7 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
+  def config: Config
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
