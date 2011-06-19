@@ -59,5 +59,28 @@ class SecDividend {
   
   final def forwardAdjust(price: Double) = adjust(price)
   final def backwradAdjust(price: Double) = unadjust(price)
+  
+  def copyFrom(another: SecDividend) {
+    this.cashBonus = another.cashBonus
+    this.dividendDate = another.dividendDate
+    this.registerDate = another.registerDate
+    this.shareBonus = another.shareBonus
+    this.shareRightPrice = another.shareRightPrice
+    this.shareRight = another.shareRight
+  }
+  
+  override def equals(a: Any): Boolean = a match {
+    case x: SecDividend =>
+      this.sec == x.sec && 
+      this.dividendDate == x.dividendDate && 
+      equals(this.cashBonus, x.cashBonus) && 
+      equals(this.adjWeight, x.adjWeight) &&
+      equals(this.shareBonus - x.shareBonus) && 
+      equals(this.shareRightPrice - x.shareRightPrice) &&
+      equals(this.shareRight - x.shareRight)
+    case _ => false
+  }
+  
+  private def equals(a: Double, b: Double) = math.abs(a - b) < 1e-6
 }
 
