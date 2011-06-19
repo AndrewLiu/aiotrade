@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.model
 
+import net.lag.configgy.Config
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
@@ -71,6 +72,7 @@ object MoneyFlows1d extends MoneyFlows {
 object MoneyFlows1m extends MoneyFlows {
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
+  val loadDaysInMilsec = config.getInt("dataserver.loadDaysOfSer1m", 5) * 1000*60*60*24
 
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
@@ -133,6 +135,13 @@ object MoneyFlows1m extends MoneyFlows {
         sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
         newone
     }
+  }
+
+  override def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND
+      (this.time GE System.currentTimeMillis - loadDaysInMilsec)
+    ) ORDER_BY (this.time) list
   }
 }
 

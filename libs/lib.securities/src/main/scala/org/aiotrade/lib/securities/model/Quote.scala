@@ -131,6 +131,7 @@ object Quotes1d extends Quotes {
 object Quotes1m extends Quotes {
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
+  val loadDaysInMilsec = config.getInt("dataserver.loadDaysOfSer1m", 5) * 1000*60*60*24
 
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -181,6 +182,14 @@ object Quotes1m extends Quotes {
         newone
     }
   }
+
+  override def quotesOf(sec: Sec): Seq[Quote] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND
+      (this.time GE System.currentTimeMillis - loadDaysInMilsec)
+    ) ORDER_BY (this.time) list
+  }
+  
 
   def minuteQuoteOf_oncached(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
