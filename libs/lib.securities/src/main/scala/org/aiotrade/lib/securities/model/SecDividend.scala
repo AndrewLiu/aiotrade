@@ -16,9 +16,8 @@ object SecDividends extends Table[SecDividend] {
   val dividendDate = "dividendDate" BIGINT()
 }
 
-class SecDividend {
-  var sec: Sec = _
-
+class SecDividend extends BelongsToSec {
+  
   var prevClose: Double = _
   var adjWeight: Double = _
   var adjOffset: Double = _

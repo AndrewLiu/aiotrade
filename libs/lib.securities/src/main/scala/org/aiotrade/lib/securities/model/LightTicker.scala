@@ -46,23 +46,17 @@ import org.aiotrade.lib.math.timeseries.TVal
  * @author Caoyuan Deng
  */
 
-object LightTicker {
-  private val PREV_CLOSE = 0
-  private val LAST_PRICE = 1
-  private val DAY_OPEN   = 2
-  private val DAY_HIGH   = 3
-  private val DAY_LOW    = 4
-  private val DAY_VOLUME = 5
-  private val DAY_AMOUNT = 6
-  private val DAY_CHANGE = 7
-
-  val FIELD_LENGTH = 8
-}
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(private var _data: Array[Double]) extends TVal {
-  @transient final var sec: Sec = _
+class LightTicker(private var _data: Array[Double]) extends BelongsToSec with TVal {
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
   @transient final protected var _isChanged: Boolean = _
 
   def this() = this(new Array[Double](FIELD_LENGTH))
@@ -72,8 +66,6 @@ class LightTicker(private var _data: Array[Double]) extends TVal {
     this._data = data
   }
   
-  final var symbol: String = _
-
   final def prevClose = data(PREV_CLOSE)
   final def lastPrice = data(LAST_PRICE)
   final def dayOpen   = data(DAY_OPEN)
@@ -145,7 +137,7 @@ class LightTicker(private var _data: Array[Double]) extends TVal {
   def copyFrom(another: LightTicker) {
     this.sec    = another.sec
     this.time   = another.time
-    this.symbol = another.symbol
+    this.uniSymbol = another.uniSymbol
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
@@ -178,7 +170,20 @@ class LightTicker(private var _data: Array[Double]) extends TVal {
   }
 
   override def toString = {
-    "LightTicker(" + "symbol=" + symbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"
+    "LightTicker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"
   }
+}
+
+object LightTicker {
+  private val PREV_CLOSE = 0
+  private val LAST_PRICE = 1
+  private val DAY_OPEN   = 2
+  private val DAY_HIGH   = 3
+  private val DAY_LOW    = 4
+  private val DAY_VOLUME = 5
+  private val DAY_AMOUNT = 6
+  private val DAY_CHANGE = 7
+
+  val FIELD_LENGTH = 8
 }
 

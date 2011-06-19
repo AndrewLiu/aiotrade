@@ -64,9 +64,8 @@ import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.ChartViewContainer
 import org.aiotrade.lib.charting.view.ChartingController
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.dataserver.TickerContract
-import org.aiotrade.lib.securities.dataserver.TickerServer.TickerEvt
-import org.aiotrade.lib.securities.dataserver.TickerServer.ExecutionEvt
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
@@ -166,7 +165,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   viewContainer.setFocusable(false)
 
   reactions += {
-    case TickerEvt(ticker) =>
+    case api.TickerEvt(ticker) =>
       // symbol.value = if (src.secInfo != null) src.secInfo.uniSymbol else ticker.symbol
       // @Note ticker.time may only correct to minute, so tickers in same minute may has same time
       if (ticker.isValueChanged(prevTicker)) {
@@ -176,7 +175,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
         infoTable.repaint()
         depthTable.repaint()
       }
-    case ExecutionEvt(prevClose, execution) =>
+    case api.ExecutionEvt(prevClose, execution) =>
       updateExecutionTable(prevClose, execution)
       executionTable.repaint()
   }

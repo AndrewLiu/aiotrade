@@ -42,9 +42,9 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.view.pane.Pane
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Ticker
-import org.aiotrade.lib.securities.dataserver.TickerServer.TickerEvt
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.swing.GBC
@@ -91,7 +91,7 @@ class RealTimeChartView($controller: ChartingController,
     RealTimeChartView.quoteChartType = QuoteChart.Type.Line
 
     reactions += {
-      case TickerEvt(ticker) => updateByTicker(ticker)
+      case api.TickerEvt(ticker) => updateByTicker(ticker)
     }
     listenTo(sec)
     listenTo(mainSer)

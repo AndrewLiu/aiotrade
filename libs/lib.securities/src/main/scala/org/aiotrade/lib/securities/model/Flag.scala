@@ -19,7 +19,10 @@ object Flag {
 
 import Flag._
 trait Flag {
-  var flag: Int = 1 // dafault is closed
+  
+  /** dafault could be set to 1, which is closed_! */
+  def flag: Int 
+  def flag_=(flag: Int)
 
   def closed_? : Boolean = (flag & MaskClosed) == MaskClosed
   def closed_!   {flag |=  MaskClosed}
@@ -33,4 +36,5 @@ trait Flag {
   def fromMe_? : Boolean = (flag & MaskFromMe) == MaskFromMe
   def fromMe_!   {flag |=  MaskFromMe}
   def unfromMe_! {flag &= ~MaskFromMe}
+  
 }

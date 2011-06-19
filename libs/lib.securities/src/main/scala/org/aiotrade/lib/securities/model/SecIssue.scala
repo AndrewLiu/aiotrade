@@ -12,9 +12,7 @@ object SecIssues extends Table[SecIssue] {
   val listDate = "listDate" BIGINT()
 }
 
-class SecIssue {
-  var sec: Sec = _
-
+class SecIssue extends BelongsToSec {
   var par: Double = _
   var price: Double = _
   var totalShare: Long = _

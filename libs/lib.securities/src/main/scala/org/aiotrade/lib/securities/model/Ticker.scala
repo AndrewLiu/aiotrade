@@ -406,7 +406,7 @@ class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extend
   }
   
   override def toString = {
-    "Ticker(" + "symbol=" + symbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ", depth=" + marketDepth +  ")"
+    "Ticker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ", depth=" + marketDepth +  ")"
   }
 }
 

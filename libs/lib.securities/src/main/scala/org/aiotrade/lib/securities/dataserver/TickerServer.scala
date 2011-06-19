@@ -31,15 +31,14 @@
 package org.aiotrade.lib.securities.dataserver
 
 import java.util.logging.Logger
-import org.aiotrade.lib.avro.Evt
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Executions
-import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecSnap
@@ -61,20 +60,6 @@ case class DepthSnap (
 )
 
 object TickerServer extends Publisher {
-  // snap evts
-  val TickerEvt     = Evt[Ticker](0, "ticker")
-  val TickersEvt    = Evt[Array[Ticker]](1, "tickers")
-  val ExecutionEvt  = Evt[(Double, Execution)](2, "prevClose, execution")
-  val DepthSnapsEvt = Evt[Array[DepthSnap]](3)
-  val DelimiterEvt  = Evt[Unit](9, "A delimiter to notice batch tickers got.")
-
-  
-  // update evts
-  val QuoteEvt      = Evt[(String, Quote)](10, "freq, quote")
-  val QuotesEvt     = Evt[(String, Array[Quote])](11)
-  val MoneyFlowEvt  = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
-  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)  
-
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val config = org.aiotrade.lib.util.config.Config()
@@ -93,7 +78,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     uniSymbolToTickerSnapshot.get(uniSymbol).getOrElse{
       val newOne = new TickerSnapshot
       uniSymbolToTickerSnapshot += (uniSymbol -> newOne)
-      newOne.symbol = uniSymbol
+      newOne.uniSymbol = uniSymbol
       newOne
     }
   }
@@ -115,7 +100,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     var i = -1
     while ({i += 1; i < length}) {
       val ticker = values(i)
-      val symbol = ticker.symbol
+      val symbol = ticker.uniSymbol
 
       if (!processedSymbols.contains(symbol) && ticker.dayHigh != 0 && ticker.dayLow != 0) {
         processedSymbols.add(symbol)
@@ -135,7 +120,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           case None => log.warning("No sec for " + symbol)
         }
       } else {
-        log.info("Discard ticker: " + ticker.symbol)
+        log.info("Discard ticker: " + ticker.uniSymbol)
       }
     }
     
@@ -276,13 +261,13 @@ abstract class TickerServer extends DataServer[Ticker] {
           }
 
         } else {
-          log.warning("Discard invalid ticker: symbol=" + ticker.symbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
+          log.warning("Discard invalid ticker: symbol=" + ticker.uniSymbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
         }
       }
 
 
       if (tickerValid) {
-        sec.publish(TickerServer.TickerEvt(ticker))
+        sec.publish(api.TickerEvt(ticker))
         allTickers += ticker
 
         if (execution != null) {
@@ -290,7 +275,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           val prevDepth = if (isDayFirst) MarketDepth.Empty else MarketDepth(lastTicker.bidAsks, copy = true)
           execution.setDirection(prevPrice, prevDepth)
 
-          sec.publish(TickerServer.ExecutionEvt(ticker.prevClose, execution))
+          sec.publish(api.ExecutionEvt(ticker.prevClose, execution))
           allExecutions += execution
 
           allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
@@ -300,8 +285,8 @@ abstract class TickerServer extends DataServer[Ticker] {
         dayQuote.updateDailyQuoteByTicker(ticker)
 
         // send updated quote to sec to update chain ser
-        sec ! TickerServer.QuoteEvt(TFreq.DAILY.shortName, dayQuote)
-        sec ! TickerServer.QuoteEvt(TFreq.ONE_MIN.shortName, minQuote)
+        sec ! api.QuoteEvt(TFreq.DAILY.shortName, dayQuote)
+        sec ! api.QuoteEvt(TFreq.ONE_MIN.shortName, minQuote)
         
         allUpdatedDailyQuotes += dayQuote
         allUpdatedMinuteQuotes += minQuote
@@ -381,16 +366,16 @@ abstract class TickerServer extends DataServer[Ticker] {
     // 1. to forward to remote message system, or
     // 2. to compute money flow etc.
     if (allTickers.length > 0) {
-      TickerServer.publish(TickerServer.TickersEvt(allTickers.toArray))
+      TickerServer.publish(api.TickersEvt(allTickers.toArray))
     }
     if (allDepthSnaps.length > 0) {
-      TickerServer.publish(TickerServer.DepthSnapsEvt(allDepthSnaps.toArray))
+      TickerServer.publish(api.DepthSnapsEvt(allDepthSnaps.toArray))
     }
     if (allUpdatedDailyQuotes.length > 0) {
-      TickerServer.publish(TickerServer.QuotesEvt(TFreq.DAILY.shortName, allUpdatedDailyQuotes.toArray))
+      TickerServer.publish(api.QuotesEvt(TFreq.DAILY.shortName, allUpdatedDailyQuotes.toArray))
     }
     if (allUpdatedMinuteQuotes.length > 0) {
-      TickerServer.publish(TickerServer.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
+      TickerServer.publish(api.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
     }
     
     // Try to close and save updated quotes, moneyflows 

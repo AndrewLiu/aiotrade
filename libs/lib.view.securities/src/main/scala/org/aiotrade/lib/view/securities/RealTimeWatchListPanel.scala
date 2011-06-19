@@ -56,8 +56,8 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.charting.laf.LookFeel
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.dataserver.TickerServer
-import org.aiotrade.lib.securities.dataserver.TickerServer.TickersEvt
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.LightTicker
 import org.aiotrade.lib.securities.model.Sec
@@ -144,7 +144,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   add(BorderLayout.CENTER, scrollPane)
 
   reactions += {
-    case TickersEvt(tickers) => updateByTickers(tickers)
+    case api.TickersEvt(tickers) => updateByTickers(tickers)
   }
 
   listenTo(TickerServer)
@@ -280,7 +280,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
           var i = 0
           while (i < tickers.length) {
             val ticker = tickers(i)
-            if (watchingSymbols.contains(ticker.symbol)) {
+            if (watchingSymbols.contains(ticker.uniSymbol)) {
               updated = updateByTicker(ticker) | updated // don't use shortcut one: "||"
             }
             i += 1
@@ -294,7 +294,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
 
   private def updateByTicker(ticker: LightTicker): Boolean = {
-    val symbol = ticker.symbol
+    val symbol = ticker.uniSymbol
     if (!uniSymbols.contains(symbol)) {
       uniSymbols += symbol
     }

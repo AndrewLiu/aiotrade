@@ -369,7 +369,7 @@ object IBWrapper extends IBWrapper {
 
     if (snapshot.isChanged) {
       val ticker = new Ticker
-      ticker.symbol = tickerId.toString // @TODO
+      ticker.uniSymbol = tickerId.toString // @TODO
       ticker.copyFrom(snapshot)
       tickers += ticker
     }

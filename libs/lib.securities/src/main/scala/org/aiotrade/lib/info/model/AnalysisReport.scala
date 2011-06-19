@@ -17,6 +17,19 @@ object AnalysisReports extends Table[AnalysisReport]{
 }
 
 class AnalysisReport extends TVal with Flag {
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
+  private var _flag: Int = 1
+  def flag = _flag // 1 // dafault is closed
+  def flag_=(flag: Int) {
+    this._flag = flag
+  }
+
   private val log = Logger.getLogger(this.getClass.getName)
   var generalInfo : GeneralInfo = _
   

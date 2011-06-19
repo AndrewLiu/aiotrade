@@ -189,7 +189,7 @@ object YahooTickerServer extends TickerServer with Singleton {
             log.fine("tickerSnapshot.isChanged : " + tickerSnapshot.isChanged + ", subscribedSrcSymbols.contains " + symbol + ": " + this.subscribedSrcSymbols.contains(symbol))
             if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
               val ticker = new Ticker
-              ticker.symbol = symbol
+              ticker.uniSymbol = symbol
               ticker.copyFrom(tickerSnapshot)
               tickers += ticker
             }

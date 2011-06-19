@@ -303,7 +303,7 @@ object Exchange extends Publisher {
     var i = -1
     while ({i += 1; i < tickers.length}) {
       val ticker = tickers(i)
-      val uniSymbol = ticker.symbol
+      val uniSymbol = ticker.uniSymbol
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
         case Some(sec) =>
@@ -437,7 +437,7 @@ class Exchange extends Ordered[Exchange] {
 
     for ((sec, ticker) <- TickersLast.lastTickersOf(this) if sec != null) {
       val symbol = sec.uniSymbol
-      ticker.symbol = symbol
+      ticker.uniSymbol = symbol
       symbolToTicker.put(symbol, ticker)
     }
 
@@ -449,7 +449,7 @@ class Exchange extends Ordered[Exchange] {
 
     for ((sec, ticker) <- TickersLast.lastTradingDayTickersOf(this) if sec != null) {
       val symbol = sec.uniSymbol
-      ticker.symbol = symbol
+      ticker.uniSymbol = symbol
       symbolToTicker.put(symbol, ticker)
     }
 
@@ -478,7 +478,7 @@ class Exchange extends Ordered[Exchange] {
    * @return the ticker should be updated/saved to TickersLast
    */
   def gotLastTicker(ticker: Ticker): Ticker = {
-    val uniSymbol = ticker.symbol
+    val uniSymbol = ticker.uniSymbol
 
     _uniSymbolToLastTicker synchronized {
       _uniSymbolToLastTicker.get(uniSymbol) match {

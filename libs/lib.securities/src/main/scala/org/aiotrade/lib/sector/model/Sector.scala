@@ -37,6 +37,19 @@ object Sectors extends Table[Sector] {
 
 class Sector extends TVal with Flag {
   private val log = Logger.getLogger(this.getClass.getName)
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
+  private var _flag: Int = 1
+  def flag = _flag // 1 // dafault is closed
+  def flag_=(flag: Int) {
+    this._flag = flag
+  }
+
   var name : String = ""
   var code : String = ""
   var portfolio : Portfolio = _
