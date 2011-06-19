@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.model
 
+import net.lag.configgy.Config
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
@@ -11,6 +12,7 @@ import scala.collection.mutable
 import java.io.IOException
 
 object MoneyFlows1d extends MoneyFlows {
+  override def config = org.aiotrade.lib.util.config.Config()
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
@@ -69,7 +71,7 @@ object MoneyFlows1d extends MoneyFlows {
 }
 
 object MoneyFlows1m extends MoneyFlows {
-  private val config = org.aiotrade.lib.util.config.Config()
+  override def config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
@@ -137,6 +139,7 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
+  def config: Config
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
@@ -173,9 +176,16 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
+//  def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
+//    SELECT (this.*) FROM (this) WHERE (
+//      this.sec.field EQ Secs.idOf(sec)
+//    ) ORDER_BY (this.time) list
+//  }
+
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
     SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec)
+      (this.sec.field EQ Secs.idOf(sec)) AND
+      (this.time GE System.currentTimeMillis - 1000*60*60*24*config.getInt("dataserver.loadDaysOfMoneyflow1m", 5))
     ) ORDER_BY (this.time) list
   }
 
