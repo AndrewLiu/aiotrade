@@ -220,60 +220,60 @@ abstract class TickerServer extends DataServer[Ticker] {
          *          |<----- 1000 ----->|
          */
 //        if (ticker.time + 1000 > lastTicker.time) { // 1000ms, @Note: we may add +1 to ticker.time later
-          // some datasources only count on second, but we may truly have a new ticker
-          if (ticker.time <= lastTicker.time) {
-            ticker.time = lastTicker.time + 1 // avoid duplicate key
-          }
+        // some datasources only count on second, but we may truly have a new ticker
+        if (ticker.time <= lastTicker.time) {
+          ticker.time = lastTicker.time + 1 // avoid duplicate key
+        }
 
-          tickerValid = true
+        tickerValid = true
 
-          if (ticker.dayVolume > lastTicker.dayVolume) {
-            execution = new Execution
-            execution.sec = sec
-            execution.time = ticker.time
-            execution.price = ticker.lastPrice
-            execution.volume = ticker.dayVolume - lastTicker.dayVolume
-            execution.amount = ticker.dayAmount - lastTicker.dayAmount
-          } else {
-            log.fine("dayVolome curr: " + ticker.dayVolume + ", last: " + lastTicker.dayVolume)
-          }
+        if (ticker.dayVolume > lastTicker.dayVolume) {
+          execution = new Execution
+          execution.sec = sec
+          execution.time = ticker.time
+          execution.price = ticker.lastPrice
+          execution.volume = ticker.dayVolume - lastTicker.dayVolume
+          execution.amount = ticker.dayAmount - lastTicker.dayAmount
+        } else {
+          log.fine("dayVolome curr: " + ticker.dayVolume + ", last: " + lastTicker.dayVolume)
+        }
 
-          if (minQuote.justOpen_?) {
-            minQuote.unjustOpen_!
+        if (minQuote.justOpen_?) {
+          minQuote.unjustOpen_!
             
-            // init minQuote values:
-            minQuote.open = ticker.lastPrice
-            minQuote.high = ticker.lastPrice
-            minQuote.low  = ticker.lastPrice
-            minQuote.volume = 0
-            minQuote.amount = 0
-          } 
+          // init minQuote values:
+          minQuote.open = ticker.lastPrice
+          minQuote.high = ticker.lastPrice
+          minQuote.low  = ticker.lastPrice
+          minQuote.volume = 0
+          minQuote.amount = 0
+        }
 
-          if (lastTicker.dayHigh > 0 && ticker.dayHigh > 0) {
-            if (ticker.dayHigh > lastTicker.dayHigh) {
-              // this is a new day high happened during prevTicker to this ticker
-              minQuote.high = ticker.dayHigh
-            }
+        if (lastTicker.dayHigh > 0 && ticker.dayHigh > 0) {
+          if (ticker.dayHigh > lastTicker.dayHigh) {
+            // this is a new day high happened during prevTicker to this ticker
+            minQuote.high = ticker.dayHigh
           }
-          if (ticker.lastPrice > 0) {
-            minQuote.high = math.max(minQuote.high, ticker.lastPrice)
-          }
+        }
+        if (ticker.lastPrice > 0) {
+          minQuote.high = math.max(minQuote.high, ticker.lastPrice)
+        }
 
-          if (lastTicker.dayLow > 0 && ticker.dayLow > 0) {
-            if (ticker.dayLow < lastTicker.dayLow) {
-              // this is a new day low happened during prevTicker to this ticker
-              minQuote.low = ticker.dayLow
-            }
+        if (lastTicker.dayLow > 0 && ticker.dayLow > 0) {
+          if (ticker.dayLow < lastTicker.dayLow) {
+            // this is a new day low happened during prevTicker to this ticker
+            minQuote.low = ticker.dayLow
           }
-          if (ticker.lastPrice > 0) {
-            minQuote.low = math.min(minQuote.low, ticker.lastPrice)
-          }
+        }
+        if (ticker.lastPrice > 0) {
+          minQuote.low = math.min(minQuote.low, ticker.lastPrice)
+        }
           
-          minQuote.close = ticker.lastPrice
-          if (execution != null && execution.volume > 0) {
-            minQuote.volume += execution.volume
-            minQuote.amount += execution.amount
-          }
+        minQuote.close = ticker.lastPrice
+        if (execution != null && execution.volume > 0) {
+          minQuote.volume += execution.volume
+          minQuote.amount += execution.amount
+        }
 
 //        } else {
 //          log.warning("Discard invalid ticker: symbol=" + ticker.symbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
@@ -342,39 +342,43 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
     log.info("Going to save to db ...")
-    var willCommit = false
-    var start = System.currentTimeMillis
-    if (tickersLastToInsert.length > 0) {
-      TickersLast.insertBatch_!(tickersLastToInsert.toArray)
-      willCommit = true
-    }
-    if (tickersLastToUpdate.length > 0) {
-      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
-      willCommit = true
-    }
-    if (willCommit) {
-      log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
-    }
-
-    if (TickerServer.isServer) {
-      start = System.currentTimeMillis
-      if (allTickers.length > 0) {
-        Tickers.insertBatch_!(allTickers.toArray)
+    try {
+      var willCommit = false
+      var start = System.currentTimeMillis
+      if (tickersLastToInsert.length > 0) {
+        TickersLast.insertBatch_!(tickersLastToInsert.toArray)
         willCommit = true
       }
-      if (allExecutions.length > 0) {
-        Executions.insertBatch_!(allExecutions.toArray)
+      if (tickersLastToUpdate.length > 0) {
+        TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
         willCommit = true
       }
       if (willCommit) {
-        log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
       }
-    }
 
-    // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
-    if (willCommit) {
-      COMMIT
-      log.info("Committed")
+      if (TickerServer.isServer) {
+        start = System.currentTimeMillis
+        if (allTickers.length > 0) {
+          Tickers.insertBatch_!(allTickers.toArray)
+          willCommit = true
+        }
+        if (allExecutions.length > 0) {
+          Executions.insertBatch_!(allExecutions.toArray)
+          willCommit = true
+        }
+        if (willCommit) {
+          log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        }
+      }
+
+      // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
+      if (willCommit) {
+        COMMIT
+        log.info("Committed")
+      }
+    } catch {
+      case e => log.severe("Failed to save tickers due to " + e.getMessage)
     }
 
     // broadcast events via TickerServer, the interesting listener can use them:

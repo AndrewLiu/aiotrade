@@ -76,40 +76,49 @@ object Exchanges extends Table[Exchange] {
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
     val exchange = Exchange.exchangeOf(uniSymbol)
     val sec = new Sec
-    sec.exchange = exchange
-    Secs.save_!(sec)
+    try{
+      sec.exchange = exchange
+      Secs.save_!(sec)
 
-    val secInfo = new SecInfo
-    secInfo.sec = sec
-    secInfo.uniSymbol = uniSymbol
-    secInfo.name = name
-    SecInfos.save_!(secInfo)
+      val secInfo = new SecInfo
+      secInfo.sec = sec
+      secInfo.uniSymbol = uniSymbol
+      secInfo.name = name
+      SecInfos.save_!(secInfo)
 
-    sec.secInfo = secInfo
-    Secs.update_!(sec, Secs.secInfo)
+      sec.secInfo = secInfo
+      Secs.update_!(sec, Secs.secInfo)
 
-    if (willCommit) {
-      COMMIT
-      log.info("Committed: sec_infos" + name)
+      if (willCommit) {
+        COMMIT
+        log.info("Committed: sec_infos" + name)
+      }
+    } catch {
+      case e => log.severe("Failed to createSimpleSec for " + uniSymbol + " due to " + e.getMessage)
     }
+    
 
     sec
   }
 
   def createSimpleSecInfo(sec: Sec, name: String, isCurrent: Boolean = true): SecInfo = {
     val secInfo = new SecInfo
-    secInfo.sec = sec
-    secInfo.uniSymbol = sec.uniSymbol
-    secInfo.name = name
-    SecInfos.save_!(secInfo)
+    try{
+      secInfo.sec = sec
+      secInfo.uniSymbol = sec.uniSymbol
+      secInfo.name = name
+      SecInfos.save_!(secInfo)
 
-    if (isCurrent) {
-      sec.secInfo = secInfo
-      Secs.update_!(sec, Secs.secInfo)
+      if (isCurrent) {
+        sec.secInfo = secInfo
+        Secs.update_!(sec, Secs.secInfo)
+      }
+
+      COMMIT
+      log.info("Committed: sec_infos" + name)
+    } catch {
+      case e => log.severe("Failed to createSimpleSecInfo for " + sec.uniSymbol + " due to " + e.getMessage)
     }
-
-    COMMIT
-    log.info("Committed: sec_infos" + name)
 
     secInfo
   }
@@ -135,13 +144,17 @@ object Exchanges extends Table[Exchange] {
     
     val secInfosA = secInfos.toArray
     val secsA = secs.toArray
-    Secs.insertBatch_!(secsA)
-    SecInfos.insertBatch_!(secInfosA)
-    Secs.updateBatch_!(secsA, Secs.secInfo)
-    
-    if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
-      COMMIT
-      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+    try{
+      Secs.insertBatch_!(secsA)
+      SecInfos.insertBatch_!(secInfosA)
+      Secs.updateBatch_!(secsA, Secs.secInfo)
+
+      if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
+        COMMIT
+        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      }
+    } catch {
+      case e => log.severe("Failed to createSimpleSecs due to " + e.getMessage)
     }
     
     secsA
@@ -166,12 +179,16 @@ object Exchanges extends Table[Exchange] {
     
     val secInfosA = secInfos.toArray
     val secsA = secs.toArray
-    SecInfos.insertBatch_!(secInfosA)
-    Secs.updateBatch_!(secsA, Secs.secInfo)
-    
-    if (secsA.length > 0 | secInfosA.length > 0) {
-      COMMIT
-      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+    try {
+      SecInfos.insertBatch_!(secInfosA)
+      Secs.updateBatch_!(secsA, Secs.secInfo)
+
+      if (secsA.length > 0 | secInfosA.length > 0) {
+        COMMIT
+        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      }
+    } catch {
+      case e => log.severe("Failed to createSimpleSecInfos due to " + e.getMessage)
     }
     
     secInfosA
@@ -786,8 +803,12 @@ class Exchange extends Ordered[Exchange] {
     }
     
     if (willCommit) {
-      COMMIT
-      log.info(this.code + " doClosing: committed.")
+      try{
+        COMMIT
+        log.info(this.code + " doClosing: committed.")
+      } catch {
+        case e => log.severe("Failed to doClosing due to " + e.getMessage)
+      }
     }
   }
 

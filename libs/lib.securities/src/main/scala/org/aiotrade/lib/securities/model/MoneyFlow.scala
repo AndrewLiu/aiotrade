@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Logger
 import net.lag.configgy.Config
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -147,6 +148,7 @@ object MoneyFlows1m extends MoneyFlows {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
+  val log = Logger.getLogger(this.getClass.getName)
   def config: Config
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
@@ -207,24 +209,28 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   def saveBatch(sec: Sec, sortedMfs: Seq[MoneyFlow]) {
     if (sortedMfs.isEmpty) return
 
-    val head = sortedMfs.head
-    val last = sortedMfs.last
-    val frTime = math.min(head.time, last.time)
-    val toTime = math.max(head.time, last.time)
-    val exists = mutable.Map[Long, MoneyFlow]()
-    (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
-      ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
+    try{
+      val head = sortedMfs.head
+      val last = sortedMfs.last
+      val frTime = math.min(head.time, last.time)
+      val toTime = math.max(head.time, last.time)
+      val exists = mutable.Map[Long, MoneyFlow]()
+      (SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
+        ) ORDER_BY (this.time) list
+      ) foreach {x => exists.put(x.time, x)}
 
-    val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
+      val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
+
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case e => log.severe("Failed to saveBatch moneyflow due to " + e.getMessage)
     }
-
-    this.insertBatch_!(inserts.toArray)
   }
 }
 

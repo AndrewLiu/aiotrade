@@ -214,6 +214,7 @@ object Quotes1m extends Quotes {
 }
 
 abstract class Quotes extends Table[Quote] {
+  val log = Logger.getLogger(this.getClass.getName)
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
@@ -252,25 +253,28 @@ abstract class Quotes extends Table[Quote] {
 
   def saveBatch(sec: Sec, sortedQuotes: Seq[Quote]) {
     if (sortedQuotes.isEmpty) return
+    try {
+      val head = sortedQuotes.head
+      val last = sortedQuotes.last
+      val frTime = math.min(head.time, last.time)
+      val toTime = math.max(head.time, last.time)
+      val exists = mutable.Map[Long, Quote]()
+      (SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
+        ) ORDER_BY (this.time) list
+      ) foreach {x => exists.put(x.time, x)}
 
-    val head = sortedQuotes.head
-    val last = sortedQuotes.last
-    val frTime = math.min(head.time, last.time)
-    val toTime = math.max(head.time, last.time)
-    val exists = mutable.Map[Long, Quote]()
-    (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
-      ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
+      val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
 
-    val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case e => log.severe("Failed to saveBatch quote due to " + e.getMessage)
     }
-
-    this.insertBatch_!(inserts.toArray)
   }
 }
 
