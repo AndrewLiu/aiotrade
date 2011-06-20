@@ -43,7 +43,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
   protected def initialSize: Int = 16
   protected[collection] var array: Array[A] = makeArray(initialSize)
 
-  protected def makeArray(size: Int) = {
+  final protected def makeArray(size: Int) = {
     if (elementClass != null) {
       java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
     } else {
@@ -107,7 +107,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
   }
 
   /** ensure that the internal array has at n cells */
-  protected def ensureSize(n: Int) {
+  final protected def ensureSize(n: Int) {
     if (n > array.length) {
       var newsize = array.length * 2
       while (n > newsize)
