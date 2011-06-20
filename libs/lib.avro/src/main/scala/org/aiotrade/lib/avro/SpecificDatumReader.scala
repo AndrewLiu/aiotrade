@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.avro.Schema;import org.apache.avro.generic.IndexedRecord
-import org.apache.avro.io.Decoder
 import org.apache.avro.io.ResolvingDecoder
 
 

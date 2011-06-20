@@ -115,10 +115,10 @@ class ReflectData protected() extends SpecificData {
         try {
           import ClassHelper._
           val field = ReflectData.getField(record.getClass, name)
-          val value = if (o.isInstanceOf[Int] || o.isInstanceOf[java.lang.Integer]) {
+          val value = if (o.isInstanceOf[java.lang.Integer] || o.isInstanceOf[Int]) {
             field.getGenericType match {
-              case ByteType  | ByteClass  | JByteClass    => o.asInstanceOf[java.lang.Integer].byteValue
-              case ShortType | ShortClass | JShortClass   => o.asInstanceOf[java.lang.Integer].shortValue
+              case JByteClass  | ByteType  | ByteClass  => o.asInstanceOf[java.lang.Integer].byteValue
+              case JShortClass | ShortType | ShortClass => o.asInstanceOf[java.lang.Integer].shortValue
               case _ => o
             }
           } else o

@@ -126,8 +126,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     }
     resolver = cache.get(expected)
     if (resolver == null) {
-      resolver = DecoderFactory.get.resolvingDecoder(
-        Schema.applyAliases(actual, expected), expected, null)
+      resolver = DecoderFactory.get.resolvingDecoder(Schema.applyAliases(actual, expected), expected, null)
       cache.put(expected, resolver)
     }
     

@@ -40,6 +40,7 @@ package org.aiotrade.lib.securities.model
  * 
  * @author Caoyuan Deng
  */
+@serializable
 abstract class BelongsToSec {
   
   private var _uniSymbol: String = _
