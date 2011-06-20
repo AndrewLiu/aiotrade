@@ -39,6 +39,7 @@ import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MoneyFlow
+import org.aiotrade.lib.securities.model.PriceCollection
 import org.aiotrade.lib.securities.model.PriceDistribution
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
@@ -75,7 +76,8 @@ object TickerServer extends Publisher {
   object QuotesEvt     extends Evt[(TFreq, Array[Quote])](11)
   object MoneyFlowEvt  extends Evt[(TFreq, MoneyFlow)](12, "freq, moneyflow")
   object MoneyFlowsEvt extends Evt[(TFreq, Array[MoneyFlow])](13)
-  object PriceDistributionEvt extends Evt[PriceDistribution](14)
+  object PriceDistributionEvt extends Evt[PriceCollection](14)
+  object PriceDistributionsEvt extends Evt[Array[PriceCollection]](14)
 
   private val log = Logger.getLogger(this.getClass.getName)
 

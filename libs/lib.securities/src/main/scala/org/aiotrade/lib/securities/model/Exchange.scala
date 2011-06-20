@@ -458,6 +458,7 @@ class Exchange extends Ordered[Exchange] {
 
   private val freqToUnclosedQuotes = mutable.Map[TFreq, ArrayList[Quote]]()
   private val freqToUnclosedMoneyFlows = mutable.Map[TFreq, ArrayList[MoneyFlow]]()
+  private val freqToUnclosedPriceDistributions = mutable.Map[TFreq, ArrayList[PriceCollection]]()
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
@@ -527,6 +528,15 @@ class Exchange extends Ordered[Exchange] {
         xs
       }
     ) += mf
+  }
+
+  def addNewPriceDistribution(freq: TFreq, pd: PriceCollection) = freqToUnclosedPriceDistributions synchronized {
+    (freqToUnclosedPriceDistributions.get(freq) getOrElse {
+        val xs = new ArrayList[PriceCollection]
+        freqToUnclosedPriceDistributions.put(freq, xs)
+        xs
+      }
+    ) += pd
   }
 
   def tradingStatus = _tradingStatus
@@ -632,6 +642,7 @@ class Exchange extends Ordered[Exchange] {
 
   private val emptyQuotes = ArrayList[Quote]()
   private val emptyMoneyFlows = ArrayList[MoneyFlow]()
+  private val emptyPriceDistributions = ArrayList[PriceCollection]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
   private var timeInMinutesToClose = -1
 
@@ -701,17 +712,30 @@ class Exchange extends Ordered[Exchange] {
         }
       }
 
-      if (quotesToClose.length > 0 || mfsToClose.length > 0) {
+      val pdsToClose = freqToUnclosedPriceDistributions synchronized {
+        freqToUnclosedPriceDistributions.get(freq) match {
+          case Some(unclosed) if freq == TFreq.DAILY =>
+            freqToUnclosedPriceDistributions.put(freq, emptyPriceDistributions)
+            unclosed
+          case Some(unclosed) =>
+            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+            freqToUnclosedPriceDistributions.put(freq, other)
+            toClose
+          case None => emptyPriceDistributions
+        }
+      }
+
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
         val isDailyClose = freqs.contains(TFreq.DAILY)
         if (isDailyClose) {
-          log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
+          log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
           (new Timer).schedule(new TimerTask {
               def run {
-                doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+                doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
               }
             }, dailyCloseDelay)
         } else {
-          doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+          doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
         }
       }
     }
@@ -720,7 +744,7 @@ class Exchange extends Ordered[Exchange] {
   /**
    * Close and insert daily quotes/moneyflows
    */
-  private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], alsoSave: Boolean) {
+  private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], pdsToClose: ArrayList[PriceCollection], alsoSave: Boolean) {
     var willCommit = false
 
     if (quotesToClose.length > 0) {
@@ -779,7 +803,43 @@ class Exchange extends Ordered[Exchange] {
 
       }
     }
-    
+
+    if (pdsToClose.length > 0) {
+      willCommit = true
+
+      var i = -1
+      while ({i += 1; i < pdsToClose.length}) {
+        val pd = pdsToClose(i)
+        pd.closed_!
+      }
+
+      if (alsoSave) {
+        val (toInsert, toUpdate) = pdsToClose.partition(_.isTransient)
+
+        var inserts = new ArrayList[PriceDistribution]()
+        toInsert.foreach{pc =>
+          pc.values.foreach{pd =>
+            inserts += pd
+          }
+        }
+
+        var updates = new ArrayList[PriceDistribution]()
+        toUpdate.foreach{pc =>
+          pc.values.foreach{pd =>
+            updates += pd
+          }
+        }
+
+        freq match {
+          case TFreq.DAILY =>
+            log.info(this.code + " closed, inserting " + freq + " price distributions: " + pdsToClose.length)
+            if (inserts.length > 0) PriceDistributions.insertBatch_!(inserts.toArray)
+            if (updates.length > 0) PriceDistributions.updateBatch_!(updates.toArray)
+        }
+
+      }
+    }
+
     if (willCommit) {
       COMMIT
       log.info(this.code + " doClosing: committed.")

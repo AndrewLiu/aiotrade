@@ -49,6 +49,7 @@ import org.aiotrade.lib.securities.PriceDistributionSer
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.QuoteSerCombiner
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
+import org.aiotrade.lib.securities.dataserver.PriceDistributionContract
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.securities.dataserver.RichInfoHisContract
 import org.aiotrade.lib.securities.dataserver.TickerContract
@@ -89,6 +90,8 @@ object Secs extends Table[Sec] {
 
   def minuteQuotes = inverse(Quotes1m.sec)
   def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
+
+  def priceDistribution = inverse(PriceDistributions.sec)
 
   def tickers = inverse(Tickers.sec)
   def executions = inverse(Executions.sec)
@@ -484,6 +487,24 @@ class Sec extends SerProvider with Ordered[Sec] {
     true
   }
 
+  /**
+   * synchronized this method to avoid conflict on variable: loadBeginning and
+   * concurrent accessing to varies maps.
+   */
+  def loadPriceDistributionSer(ser: PriceDistributionSer): Boolean = {
+    if (ser.isInLoading) return true
+
+    ser.isInLoading = true
+
+    val isRealTime = ser eq realtimeMoneyFlowSer
+    // load from persistence
+    val wantTime = loadPriceDistributionSerFromPersistence(ser, isRealTime)
+    // try to load from quote server
+    loadFromPriceDistributionServer(ser, wantTime, isRealTime)
+
+    true
+  }
+
   def resetSers: Unit = mutex synchronized {
     _realtimeSer = null
     freqToQuoteSer.clear
@@ -634,6 +655,7 @@ class Sec extends SerProvider with Ordered[Sec] {
 
     0L
   }
+
   /**
    * All values in persistence should have been properly rounded to 00:00 of exchange's local time
    */
@@ -679,6 +701,62 @@ class Sec extends SerProvider with Ordered[Sec] {
 
       wantTime
     } else 0L
+  }
+
+  /**
+   * All values in persistence should have been properly rounded to 00:00 of exchange's local time
+   */
+  def loadPriceDistributionSerFromPersistence(ser: PriceDistributionSer, isRealTime: Boolean): Long = {
+    val pds = ser.freq match {
+      case TFreq.DAILY   => PriceDistributions.closedDistribuOf(this)
+      case _ => return 0L
+    }
+
+    ser ++= pds.values.toArray
+    0L
+
+    /**
+     * get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    if (!pds.isEmpty) {
+      val (max,min) = this.getMaxMinValue(pds.keys.toArray)
+      val first = pds.get(min).getOrElse(null)
+      val last = pds.get(max).getOrElse(null)
+
+      ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
+
+      // should load earlier quotes from data source?
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: PriceCollection = null
+        var maxTime = 0L
+        pds.values.foreach{pc =>
+          if (pc.fromMe_? && pc.time >= maxTime) lastFromMe = pc; maxTime = pc.time
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got Price distributions=" + pds.size +
+               ", loaded: time=" + last.time + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
+
+      wantTime
+    } else 0L
+  }
+
+  private def getMaxMinValue(times: Array[Long]) = {
+    var max = 0L
+    var min = System.currentTimeMillis
+    times.foreach{value =>
+      if (value > max) max = value
+      if (value < min) min = value
+    }
+
+    (max, min)
   }
 
   def loadInfoSerFromPersistence(ser: InfoSer): Long = {
@@ -795,7 +873,41 @@ class Sec extends SerProvider with Ordered[Sec] {
       case _ => ser.isLoaded = true
     }
   }
-  
+
+  private def loadFromPriceDistributionServer(ser: PriceDistributionSer, fromTime: Long, isRealTime: Boolean) {
+    val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
+
+    dataContractOf(classOf[PriceDistributionContract], freq) match {
+      case Some(contract) =>
+        contract.serviceInstance() match {
+          case Some(priceDistributionServer) =>
+            contract.srcSymbol = priceDistributionServer.toSrcSymbol(uniSymbol)
+            contract.freq = freq
+
+            if (contract.isRefreshable) {
+              priceDistributionServer.subscribe(contract)
+            }
+
+            // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+            var reaction: Reactions.Reaction = null
+            reaction = {
+              case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
+                reactions -= reaction
+                deafTo(ser)
+                ser.isLoaded = true
+            }
+            reactions += reaction
+            listenTo(ser)
+
+            priceDistributionServer.loadData(fromTime - 1, List(contract))
+
+          case _ => ser.isLoaded = true
+        }
+
+      case _ => ser.isLoaded = true
+    }
+  }
+
   def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {
@@ -923,6 +1035,8 @@ class SecSnap(val sec: Sec) {
   var dailyMoneyFlow: MoneyFlow = _
   var minuteMoneyFlow: MoneyFlow = _
 
+  var priceDistribution = new PriceCollection
+
   // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker
   private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
@@ -935,6 +1049,7 @@ class SecSnap(val sec: Sec) {
     checkMinuteQuoteAt(time)
     checkDailyMoneyFlowAt(time)
     checkMinuteMoneyFlowAt(time)
+    checkPriceDistributionAt(time)
     this
   }
 
@@ -951,7 +1066,7 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  private def checkDailyMoneyFlowAt(time: Long): MoneyFlow = {
+  private def checkDailyMoneyFlowAt(time: Long): MoneyFlow= {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
     dailyMoneyFlow match {
@@ -960,6 +1075,18 @@ class SecSnap(val sec: Sec) {
       case _ => // day changes or null
         val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
         dailyMoneyFlow = newone
+        newone
+    }
+  }
+
+  private def checkPriceDistributionAt(time: Long): PriceCollection  = {
+    assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
+    val rounded = TFreq.DAILY.round(time, cal)
+    if (priceDistribution.isEmpty || priceDistribution.values.last.time == rounded){
+      return priceDistribution
+    }else {
+      val newone = PriceDistributions.dailyDistribuOf(sec, rounded)
+      priceDistribution = newone
         newone
     }
   }
