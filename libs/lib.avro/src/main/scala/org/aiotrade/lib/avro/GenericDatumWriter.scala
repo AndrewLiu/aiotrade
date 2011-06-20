@@ -50,7 +50,7 @@ class GenericDatumWriter[T] protected (private var root: Schema, data: GenericDa
         case FLOAT =>   out.writeFloat(datum.asInstanceOf[Float])
         case DOUBLE=>   out.writeDouble(datum.asInstanceOf[Double])
         case BOOLEAN => out.writeBoolean(datum.asInstanceOf[Boolean])
-        case NULL    =>    out.writeNull()
+        case NULL    => out.writeNull()
         case _ => error(schema, datum)
       }
     } catch {
