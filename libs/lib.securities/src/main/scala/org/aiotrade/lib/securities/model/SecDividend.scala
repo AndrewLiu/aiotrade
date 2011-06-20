@@ -28,36 +28,44 @@ class SecDividend extends BelongsToSec {
   var registerDate: Long = _
   var dividendDate: Long = _
   
-  final def dividedClose = accurateAdjust(prevClose)
+  final 
+  def dividedClose = accurateAdjust(prevClose)
   
   /**
    * p' = (p - offset) / weight 
    * weight = (p - offset) / p'
    * offset = p - p' * weight
    */
-  final def setAdjParams(p1: Double, p1Adj: Double, p2: Double, p2Adj: Double) {
+  final 
+  def setAdjParams(p1: Double, p1Adj: Double, p2: Double, p2Adj: Double) {
     adjWeight = (p1 - p2) / (p1Adj - p2Adj)
     adjOffset = p1 - p1Adj * adjWeight
   }
   
-  private def cashAfterwards = cashBonus - shareRight * shareRightPrice  // adjWeight
-  private def shareAfterwards = 1 + shareRight + shareBonus         // adjOffset
+  private def cashAfterward = cashBonus - shareRight * shareRightPrice  // adjWeight
+  private def shareAfterward = 1 + shareRight + shareBonus              // adjOffset
 
-  final def accurateAdjust(price: Double)   = (price - cashBonus + shareRight * shareRightPrice) / (1 + shareRight + shareBonus)
-  final def accurateUnadjust(price: Double) = price * (1 + shareRight + shareBonus) + (cashBonus - shareRight * shareRightPrice)
+  final 
+  def accurateAdjust(price: Double) = (price - cashAfterward) / shareAfterward
+  final 
+  def accurateUnadjust(price: Double) = price * shareAfterward + cashAfterward
   
-  final def adjust(price: Double) = {
+  final 
+  def adjust(price: Double) = {
     val p = accurateAdjust(price)
     if (p != price) p else (if (adjWeight != 0) (price - adjOffset) / adjWeight else price)
   }
   
-  final def unadjust(price: Double) = {
+  final 
+  def unadjust(price: Double) = {
     val p = accurateUnadjust(price)
     if (p != price) p else (if (adjWeight != 0) price * adjWeight + adjOffset else price)
   }
   
-  final def forwardAdjust(price: Double) = adjust(price)
-  final def backwradAdjust(price: Double) = unadjust(price)
+  final 
+  def forwardAdjust(price: Double) = adjust(price)
+  final 
+  def backwradAdjust(price: Double) = unadjust(price)
   
   def copyFrom(another: SecDividend) {
     this.cashBonus = another.cashBonus
@@ -68,7 +76,8 @@ class SecDividend extends BelongsToSec {
     this.shareRight = another.shareRight
   }
   
-  override def equals(a: Any): Boolean = a match {
+  override 
+  def equals(a: Any): Boolean = a match {
     case x: SecDividend =>
       this.sec == x.sec && 
       this.dividendDate == x.dividendDate && 

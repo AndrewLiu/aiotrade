@@ -6,6 +6,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.TypeVariable
 
 import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.Protocol
@@ -13,6 +14,7 @@ import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException
 import org.apache.avro.Schema.Type
 import org.apache.avro.generic.GenericData
+import scala.collection.mutable
 
 object SpecificData {
   private val INSTANCE = new SpecificData
@@ -78,8 +80,8 @@ class SpecificData protected () extends GenericData {
         }
         
         if (clz == NO_CLASS) null else clz
-      case ARRAY => classOf[java.util.List[_]]
-      case MAP => classOf[java.util.Map[_, _]]
+      case ARRAY => classOf[ArrayList[_]]
+      case MAP => classOf[mutable.HashMap[_, _]]
       case UNION =>
         val types = schema.getTypes     // elide unions with null
         if ((types.size == 2) && types.contains(NULL_SCHEMA))
@@ -159,7 +161,7 @@ class SpecificData protected () extends GenericData {
   /** Create the schema for a Java class. */
   protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     tpe match {
-      case VoidType    | JVoidClass => Schema.create(Type.NULL)
+      case VoidType    | JVoidClass                   => Schema.create(Type.NULL)
       case ByteType    | ByteClass    | JByteClass    => Schema.create(Type.INT)
       case ShortType   | ShortClass   | JShortClass   => Schema.create(Type.INT)
       case IntegerType | IntClass     | JIntegerClass => Schema.create(Type.INT)
