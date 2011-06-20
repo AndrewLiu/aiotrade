@@ -52,10 +52,11 @@ object ReflectData {
       fields = new java.util.concurrent.ConcurrentHashMap[String, Field]()
       FIELD_CACHE.put(c, fields)
     }
-    var field = fields.get(name)
+    val realName = name.replace("_DOLLAR_", "$")
+    var field = fields.get(realName)
     if (field == null) {
-      field = findField(c, name)
-      fields.put(name, field)
+      field = findField(c, realName)
+      fields.put(realName, field)
     }
     field
   }
@@ -319,6 +320,7 @@ class ReflectData protected() extends SpecificData {
             setElement(schema, component)
             schema
         }
+        
       case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
         Schema.create(Schema.Type.STRING) // String
       
@@ -374,7 +376,9 @@ class ReflectData protected() extends SpecificData {
                 for (field <- clzFields) {
                   if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
                     val fieldSchema = createFieldSchema(field, names)
-                    fields.add(new Schema.Field(field.getName, fieldSchema, null /* doc */, null))
+                    // schema name only allows leffter and digit
+                    val fieleName = field.getName.replace("$", "_DOLLAR_")
+                    fields.add(new Schema.Field(fieleName, fieldSchema, null /* doc */, null))
                   }
                 }
                 if (error) { // add Throwable message
