@@ -101,7 +101,12 @@ object ReflectData {
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
 class ReflectData protected() extends SpecificData {
-  
+
+  override 
+  def getClassName(schema: Schema): String = {
+    super.getClassName(schema).replace("_DOLLAR_", "$")
+  }
+
   override
   def setField(record: AnyRef, name: String, position: Int, o: AnyRef) {
     record match {

@@ -101,13 +101,12 @@ class SpecificData protected () extends GenericData {
   def getClassName(schema: Schema): String = {
     val namespace = schema.getNamespace
     val name = schema.getName
-    val className = if (namespace == null) {
+    if (namespace == null) {
       name
     } else {
       val dot = if (namespace.endsWith("$")) "" else "."
       namespace + dot + name
     }
-    className.replace("_DOLLAR_", "$")
   }
 
   /** Find the schema for a Java type. */
