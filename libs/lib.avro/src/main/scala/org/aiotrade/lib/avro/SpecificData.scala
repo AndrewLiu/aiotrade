@@ -65,18 +65,19 @@ class SpecificData protected () extends GenericData {
     schema.getType match {
       case FIXED | RECORD | ENUM =>
         val name = schema.getFullName
-        val c = classCache.get(name) match {
+        val clz = classCache.get(name) match {
           case null =>
-            try {
+            val c = try {
               Class.forName(getClassName(schema), true, classLoader)
             } catch {
               case ex: ClassNotFoundException => log.warning(ex.getMessage); NO_CLASS
             }
-          case x => x
+            classCache.put(name, c)
+            c
+          case c => c
         }
-        classCache.put(name, c)
         
-        if (c == NO_CLASS) null else c
+        if (clz == NO_CLASS) null else clz
       case ARRAY => classOf[java.util.List[_]]
       case MAP => classOf[java.util.Map[_, _]]
       case UNION =>
