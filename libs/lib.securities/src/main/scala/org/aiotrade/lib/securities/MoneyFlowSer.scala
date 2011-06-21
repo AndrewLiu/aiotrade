@@ -205,13 +205,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
-  /**
-   * This function adjusts linear according to a norm
-   */
-  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
-    ((value - prevNorm) / prevNorm) * postNorm + postNorm
-  }
-
   override def shortName =  _shortName
   override def shortName_=(name: String) {
     this._shortName = name

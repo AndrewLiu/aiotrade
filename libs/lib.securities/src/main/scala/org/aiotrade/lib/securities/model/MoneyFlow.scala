@@ -292,14 +292,14 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallAmountEven_=(v: Double) {data(23) = v}
   
   // --- no db fields
-  def totalVolume: Double = totalVolumeIn - totalVolumeOut
-  def totalAmount: Double = totalAmountIn - totalAmountOut
-  def superVolume: Double = superVolumeIn - superVolumeOut
-  def superAmount: Double = superAmountIn - superAmountOut
-  def largeVolume: Double = largeVolumeIn - largeVolumeOut
-  def largeAmount: Double = largeAmountIn - largeAmountOut
-  def smallVolume: Double = smallVolumeIn - smallVolumeOut
-  def smallAmount: Double = smallAmountIn - smallAmountOut
+  def totalVolume: Double = totalVolumeIn + totalVolumeOut
+  def totalAmount: Double = totalAmountIn + totalAmountOut
+  def superVolume: Double = superVolumeIn + superVolumeOut
+  def superAmount: Double = superAmountIn + superAmountOut
+  def largeVolume: Double = largeVolumeIn + largeVolumeOut
+  def largeAmount: Double = largeAmountIn + largeAmountOut
+  def smallVolume: Double = smallVolumeIn + smallVolumeOut
+  def smallAmount: Double = smallAmountIn + smallAmountOut
   
   var isTransient = true
 
