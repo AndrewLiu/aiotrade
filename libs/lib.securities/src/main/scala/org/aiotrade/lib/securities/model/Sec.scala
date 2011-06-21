@@ -67,33 +67,6 @@ import org.aiotrade.lib.info.model.InfoSecs
 import ru.circumflex.orm._
 
 
-object Secs extends Table[Sec] {
-  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
-
-  val validFrom = "validFrom" BIGINT() 
-  val validTo = "validTo" BIGINT()
-
-  val company = "companies_id" BIGINT() REFERENCES(Companies)
-  def companyHists = inverse(Companies.sec)
-
-  val secInfo = "secInfos_id" BIGINT() REFERENCES(SecInfos)
-  def secInfoHists = inverse(SecInfos.sec)
-  val secStatus = "secStatuses_id" BIGINT() REFERENCES(SecStatuses)
-  def secStatusHists = inverse(SecStatuses.sec)
-
-  val secIssue = "secIssues_id" BIGINT() REFERENCES(SecIssues)
-  def secDividends = inverse(SecDividends.sec)
-
-  def dailyQuotes = inverse(Quotes1d.sec)
-  def dailyMoneyFlow = inverse(MoneyFlows1d.sec)
-
-  def minuteQuotes = inverse(Quotes1m.sec)
-  def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
-
-  def tickers = inverse(Tickers.sec)
-  def executions = inverse(Executions.sec)
-}
-
 
 /**
  * Securities: Stock, Options, Futures, Index, Currency etc.
@@ -110,58 +83,9 @@ object Secs extends Table[Sec] {
  * @author Caoyuan Deng
  */
 
-object Sec {
-  trait Kind
-  object Kind {
-    case object Stock extends Kind
-    case object Index extends Kind
-    case object Option extends Kind
-    case object Future extends Kind
-    case object FutureOption extends Kind
-    case object Currency extends Kind
-    case object Bag extends Kind
-    case object Bonds extends Kind
-    case object Equity extends Kind
-
-    def withName(name: String): Kind = {
-      name match {
-        case "Stock" => Stock
-        case "Index" => Index
-        case "Option" => Option
-        case "Future" => Future
-        case "FutureOption" => FutureOption
-        case "Currency" => Currency
-        case "Bag" => Bag
-        case _ => null
-      }
-    }
-  }
-  
-  /**
-   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
-   * since it returns same value of function CRC32(String) in mysql.
-   * 
-   * @note 
-   * 1. Check conflict by:
-   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
-   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
-   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
-   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
-   * 2. Select data of uniSymbol:
-   *    select * from quotes1d where secs_id = crc32(uniSymbol)
-   * 3. How about when uniSymbol changed of a sec?
-   *    we need to use its original uniSymbol, or create a new sec
-   */ 
-  def longId(uniSymbol: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
-    c.getValue
-  }
-  
-}
-
-import Sec._
 class Sec extends SerProvider with Ordered[Sec] {
+  import Sec._
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
@@ -977,3 +901,83 @@ class SecSnap(val sec: Sec) {
     }
   }
 }
+
+object Sec {
+  trait Kind
+  object Kind {
+    case object Stock extends Kind
+    case object Index extends Kind
+    case object Option extends Kind
+    case object Future extends Kind
+    case object FutureOption extends Kind
+    case object Currency extends Kind
+    case object Bag extends Kind
+    case object Bonds extends Kind
+    case object Equity extends Kind
+
+    def withName(name: String): Kind = {
+      name match {
+        case "Stock" => Stock
+        case "Index" => Index
+        case "Option" => Option
+        case "Future" => Future
+        case "FutureOption" => FutureOption
+        case "Currency" => Currency
+        case "Bag" => Bag
+        case _ => null
+      }
+    }
+  }
+  
+  /**
+   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
+   * since it returns same value of function CRC32(String) in mysql.
+   * 
+   * @note 
+   * 1. Check conflict by:
+   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
+   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
+   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
+   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
+   * 2. Select data of uniSymbol:
+   *    select * from quotes1d where secs_id = crc32(uniSymbol)
+   * 3. How about when uniSymbol changed of a sec?
+   *    we need to use its original uniSymbol, or create a new sec
+   */ 
+  def longId(uniSymbol: String): Long = {
+    val c = new java.util.zip.CRC32
+    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
+    c.getValue
+  }
+  
+}
+
+
+// --- table
+object Secs extends Table[Sec] {
+  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
+
+  val validFrom = "validFrom" BIGINT() 
+  val validTo = "validTo" BIGINT()
+
+  val company = "companies_id" BIGINT() REFERENCES(Companies)
+  def companyHists = inverse(Companies.sec)
+
+  val secInfo = "secInfos_id" BIGINT() REFERENCES(SecInfos)
+  def secInfoHists = inverse(SecInfos.sec)
+  val secStatus = "secStatuses_id" BIGINT() REFERENCES(SecStatuses)
+  def secStatusHists = inverse(SecStatuses.sec)
+
+  val secIssue = "secIssues_id" BIGINT() REFERENCES(SecIssues)
+  def secDividends = inverse(SecDividends.sec)
+
+  def dailyQuotes = inverse(Quotes1d.sec)
+  def dailyMoneyFlow = inverse(MoneyFlows1d.sec)
+
+  def minuteQuotes = inverse(Quotes1m.sec)
+  def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
+
+  def tickers = inverse(Tickers.sec)
+  def executions = inverse(Executions.sec)
+}
+

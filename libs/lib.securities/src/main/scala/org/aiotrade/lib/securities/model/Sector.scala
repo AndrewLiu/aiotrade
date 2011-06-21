@@ -28,7 +28,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.aiotrade.lib.securities.model
 
 import scala.collection
@@ -43,6 +42,18 @@ import ru.circumflex.orm._
  * 
  * @author Caoyuan Deng
  */
+
+
+class Sector {
+  var category: String = ""
+  var code: String = ""
+  var name: String = ""
+  
+  var secs: List[Sec] = Nil
+  
+  lazy val key = category + "." + code
+}
+
 object Sector {
 
   object Category {
@@ -117,16 +128,8 @@ object Sector {
   }
 }
 
-class Sector {
-  var category: String = ""
-  var code: String = ""
-  var name: String = ""
-  
-  var secs: List[Sec] = Nil
-  
-  lazy val key = category + "." + code
-}
 
+// --- table
 object Sectors extends Table[Sector] {
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")

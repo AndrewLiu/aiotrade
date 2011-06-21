@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,9 @@ import org.aiotrade.lib.math.timeseries.TVal
  * @author Caoyuan Deng
  */
 
-
-import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
 class LightTicker(private var _data: Array[Double]) extends BelongsToSec with TVal {
+  import LightTicker._
   
   private var _time: Long = _
   def time = _time
@@ -59,7 +58,7 @@ class LightTicker(private var _data: Array[Double]) extends BelongsToSec with TV
 
   @transient final protected var _isChanged: Boolean = _
 
-  def this() = this(new Array[Double](FIELD_LENGTH))
+  def this() = this(new Array[Double](LightTicker.FIELD_LENGTH))
 
   final protected def data = _data
   final protected def data_=(data: Array[Double]) {
