@@ -7,7 +7,7 @@ object SecDividends extends Table[SecDividend] {
 
   val prevClose = "prevClose" DOUBLE()
   val adjWeight = "adjWeight" DOUBLE()
-  //val adjOffset = "adjOffset" DOUBLE()
+  val adjOffset = "adjOffset" DOUBLE()
   val cashBonus = "cashBonus" DOUBLE()
   val shareBonus = "shareBonus" DOUBLE()
   val shareRight = "shareRight" DOUBLE()
