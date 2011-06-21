@@ -93,6 +93,12 @@ object Sector {
     case None => Nil
   }
   
+  def longId(key: String): Long = {
+    val c = new java.util.zip.CRC32
+    c.update(key.toUpperCase.getBytes("UTF-8"))
+    c.getValue
+  }
+
   def withKey(key: String) = Sectors.withKey(key)
   def withCategoryCode(category: String, code: String): Option[Sector] = Sectors.withCategoryCode(category, code)
   

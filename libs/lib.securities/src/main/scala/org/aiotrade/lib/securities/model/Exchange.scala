@@ -256,7 +256,13 @@ object Exchange extends Publisher {
   def searchTextToSecs: Map[String, Set[Sec]] = _searchTextToSecs
 
   // ----- Major methods
-  
+
+  def longId(code: String): Long = {
+    val c = new java.util.zip.CRC32
+    c.update(code.toUpperCase.getBytes("UTF-8"))
+    c.getValue
+  }
+
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
