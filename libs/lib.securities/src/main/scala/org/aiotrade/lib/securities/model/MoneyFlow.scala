@@ -138,33 +138,33 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   val time = "time" BIGINT()
 
-  val totalVolumeIn = "totalVolumeIn" DOUBLE()
-  val totalAmountIn = "totalAmountIn" DOUBLE()
-  val totalVolumeOut = "totalVolumeOut" DOUBLE()
-  val totalAmountOut = "totalAmountOut" DOUBLE()
-  val totalVolumeEven = "totalVolumeEven" DOUBLE()
-  val totalAmountEven = "totalAmountEven" DOUBLE()
+  val superVolumeIn = "suVi" DOUBLE()
+  val superAmountIn = "suAi" DOUBLE()
+  val superVolumeOut = "suVo" DOUBLE()
+  val superAmountOut = "suAo" DOUBLE()
+  val superVolumeEven = "suVe" DOUBLE()
+  val superAmountEven = "suAe" DOUBLE()
 
-  val superVolumeIn = "superVolumeIn" DOUBLE()
-  val superAmountIn = "superAmountIn" DOUBLE()
-  val superVolumeOut = "superVolumeOut" DOUBLE()
-  val superAmountOut = "superAmountOut" DOUBLE()
-  val superVolumeEven = "superVolumeEven" DOUBLE()
-  val superAmountEven = "superAmountEven" DOUBLE()
+  val largeVolumeIn = "laVi" DOUBLE()
+  val largeAmountIn = "laAi" DOUBLE()
+  val largeVolumeOut = "laVo" DOUBLE()
+  val largeAmountOut = "laAo" DOUBLE()
+  val largeVolumeEven = "laVe" DOUBLE()
+  val largeAmountEven = "laAe" DOUBLE()
 
-  val largeVolumeIn = "largeVolumeIn" DOUBLE()
-  val largeAmountIn = "largeAmountIn" DOUBLE()
-  val largeVolumeOut = "largeVolumeOut" DOUBLE()
-  val largeAmountOut = "largeAmountOut" DOUBLE()
-  val largeVolumeEven = "largeVolumeEven" DOUBLE()
-  val largeAmountEven = "largeAmountEven" DOUBLE()
+  val mediumVolumeIn = "meVi" DOUBLE()
+  val mediumAmountIn = "meAi" DOUBLE()
+  val mediumVolumeOut = "meVo" DOUBLE()
+  val mediumAmountOut = "meAo" DOUBLE()
+  val mediumVolumeEven = "meVe" DOUBLE()
+  val mediumAmountEven = "meAe" DOUBLE()
 
-  val smallVolumeIn = "smallVolumeIn" DOUBLE()
-  val smallAmountIn = "smallAmountIn" DOUBLE()
-  val smallVolumeOut = "smallVolumeOut" DOUBLE()
-  val smallAmountOut = "smallAmountOut" DOUBLE()
-  val smallVolumeEven = "smallVolumeEven" DOUBLE()
-  val smallAmountEven = "smallAmountEven" DOUBLE()
+  val smallVolumeIn = "smVi" DOUBLE()
+  val smallAmountIn = "smAi" DOUBLE()
+  val smallVolumeOut = "smVo" DOUBLE()
+  val smallAmountOut = "smAo" DOUBLE()
+  val smallVolumeEven = "smVe" DOUBLE()
+  val smallAmountEven = "smAe" DOUBLE()
   
   val flag = "flag" INTEGER()
 
@@ -235,26 +235,26 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 
   private val data = new Array[Double](24)
   
-  def totalVolumeIn = data(0)
-  def totalAmountIn = data(1)
-  def totalVolumeOut = data(2)
-  def totalAmountOut = data(3)
-  def totalVolumeEven = data(4)
-  def totalAmountEven = data(5)
+  def superVolumeIn = data(0)
+  def superAmountIn = data(1)
+  def superVolumeOut = data(2)
+  def superAmountOut = data(3)
+  def superVolumeEven = data(4)
+  def superAmountEven = data(5)
 
-  def superVolumeIn = data(6)
-  def superAmountIn = data(7)
-  def superVolumeOut = data(8)
-  def superAmountOut = data(9)
-  def superVolumeEven = data(10)
-  def superAmountEven = data(11)
+  def largeVolumeIn = data(6)
+  def largeAmountIn = data(7)
+  def largeVolumeOut = data(8)
+  def largeAmountOut = data(9)
+  def largeVolumeEven = data(10)
+  def largeAmountEven = data(11)
 
-  def largeVolumeIn = data(12)
-  def largeAmountIn = data(13)
-  def largeVolumeOut = data(14)
-  def largeAmountOut = data(15)
-  def largeVolumeEven = data(16)
-  def largeAmountEven = data(17)
+  def mediumVolumeIn = data(12)
+  def mediumAmountIn = data(13)
+  def mediumVolumeOut = data(14)
+  def mediumAmountOut = data(15)
+  def mediumVolumeEven = data(16)
+  def mediumAmountEven = data(17)
 
   def smallVolumeIn = data(18)
   def smallAmountIn = data(19)
@@ -263,26 +263,26 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallVolumeEven = data(22)
   def smallAmountEven = data(23)
 
-  def totalVolumeIn_=(v: Double) {data(0) = v}
-  def totalAmountIn_=(v: Double) {data(1) = v}
-  def totalVolumeOut_=(v: Double) {data(2) = v}
-  def totalAmountOut_=(v: Double) {data(3) = v}
-  def totalVolumeEven_=(v: Double) {data(4) = v}
-  def totalAmountEven_=(v: Double) {data(5) = v}
+  def superVolumeIn_=(v: Double) {data(0) = v}
+  def superAmountIn_=(v: Double) {data(1) = v}
+  def superVolumeOut_=(v: Double) {data(2) = v}
+  def superAmountOut_=(v: Double) {data(3) = v}
+  def superVolumeEven_=(v: Double) {data(4) = v}
+  def superAmountEven_=(v: Double) {data(5) = v}
 
-  def superVolumeIn_=(v: Double) {data(6) = v}
-  def superAmountIn_=(v: Double) {data(7) = v}
-  def superVolumeOut_=(v: Double) {data(8) = v}
-  def superAmountOut_=(v: Double) {data(9) = v}
-  def superVolumeEven_=(v: Double) {data(10) = v}
-  def superAmountEven_=(v: Double) {data(11) = v}
+  def largeVolumeIn_=(v: Double) {data(6) = v}
+  def largeAmountIn_=(v: Double) {data(7) = v}
+  def largeVolumeOut_=(v: Double) {data(8) = v}
+  def largeAmountOut_=(v: Double) {data(9) = v}
+  def largeVolumeEven_=(v: Double) {data(10) = v}
+  def largeAmountEven_=(v: Double) {data(11) = v}
 
-  def largeVolumeIn_=(v: Double) {data(12) = v}
-  def largeAmountIn_=(v: Double) {data(13) = v}
-  def largeVolumeOut_=(v: Double) {data(14) = v}
-  def largeAmountOut_=(v: Double) {data(15) = v}
-  def largeVolumeEven_=(v: Double) {data(16) = v}
-  def largeAmountEven_=(v: Double) {data(17) = v}
+  def mediumVolumeIn_=(v: Double) {data(12) = v}
+  def mediumAmountIn_=(v: Double) {data(13) = v}
+  def mediumVolumeOut_=(v: Double) {data(14) = v}
+  def mediumAmountOut_=(v: Double) {data(15) = v}
+  def mediumVolumeEven_=(v: Double) {data(16) = v}
+  def mediumAmountEven_=(v: Double) {data(17) = v}
 
   def smallVolumeIn_=(v: Double) {data(18) = v}
   def smallAmountIn_=(v: Double) {data(19) = v}
@@ -292,14 +292,34 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallAmountEven_=(v: Double) {data(23) = v}
   
   // --- no db fields
-  def totalVolume: Double = totalVolumeIn + totalVolumeOut
-  def totalAmount: Double = totalAmountIn + totalAmountOut
-  def superVolume: Double = superVolumeIn + superVolumeOut
-  def superAmount: Double = superAmountIn + superAmountOut
-  def largeVolume: Double = largeVolumeIn + largeVolumeOut
-  def largeAmount: Double = largeAmountIn + largeAmountOut
-  def smallVolume: Double = smallVolumeIn + smallVolumeOut
-  def smallAmount: Double = smallAmountIn + smallAmountOut
+  
+  // sum
+  def volumeIn = superVolumeIn + largeVolumeIn + mediumVolumeIn + smallVolumeIn
+  def amountIn = superAmountIn + largeAmountIn + mediumAmountIn + smallAmountIn
+  def volumeOut = superVolumeOut + largeVolumeOut + mediumVolumeOut + smallVolumeOut
+  def amountOut = superAmountOut + largeAmountOut + mediumAmountOut + smallAmountOut
+  def volumeEven = superVolumeEven + largeVolumeEven + mediumVolumeEven + smallVolumeEven
+  def amountEven = superAmountEven + largeAmountEven + mediumAmountEven + smallAmountEven
+
+  // net sum
+  def volumeNet = volumeIn + volumeOut
+  def amountNet = amountIn + amountOut
+  
+  // net super
+  def superVolumeNet = superVolumeIn + superVolumeOut
+  def superAmountNet = superAmountIn + superAmountOut
+  
+  // net large
+  def largeVolumeNet = largeVolumeIn + largeVolumeOut
+  def largeAmountNet = largeAmountIn + largeAmountOut
+  
+  // net meduam
+  def mediumVolumeNet = mediumVolumeIn + mediumVolumeOut
+  def mediumAmountNet = mediumAmountIn + mediumAmountOut
+  
+  // net small
+  def smallVolumeNet = smallVolumeIn + smallVolumeOut
+  def smallAmountNet = smallAmountIn + smallAmountOut
   
   var isTransient = true
 
@@ -308,3 +328,4 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   }
 
 }
+

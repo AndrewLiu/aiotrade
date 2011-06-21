@@ -31,6 +31,7 @@
 package org.aiotrade.lib.securities
 
 import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Exchanges
@@ -106,17 +107,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     val time = quote.time
     createOrClear(time)
 
-    open(time)   = quote.open
-    high(time)   = quote.high
-    low(time)    = quote.low
-    close(time)  = quote.close
-    volume(time) = quote.volume
-    amount(time) = quote.amount
-
-    close_ori(time) = quote.close
-    close_adj(time) = quote.close
-
-    isClosed(time) = quote.closed_?
+    assignValue(quote)
 
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
@@ -203,7 +194,45 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
 
 }
 
+object QuoteSer {
+  
+  def importFrom(vmap: collection.Map[String, Array[_]]): Array[Quote] = {
+    val quotes = new ArrayList[Quote]()
+    for (times   <- vmap.get(".");
+         opens   <- vmap.get("O");
+         highs   <- vmap.get("H");
+         lows    <- vmap.get("L");
+         closes  <- vmap.get("C");
+         volumes <- vmap.get("V");
+         amounts <- vmap.get("A");
+         adjweis <- vmap.get("W")
+    ) {
+      var i = -1
+      while ({i += 1; i < times.length}) {
+        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
+        val time = times(i).asInstanceOf[Long]
+        val quote = new Quote
 
+        quote.time   = time
+        quote.open   = opens(i).asInstanceOf[Double]
+        quote.high   = highs(i).asInstanceOf[Double]
+        quote.low    = lows(i).asInstanceOf[Double]
+        quote.close  = closes(i).asInstanceOf[Double]
+        quote.volume = volumes(i).asInstanceOf[Double]
+        quote.amount = amounts(i).asInstanceOf[Double]
+
+        if (quote.high * quote.low * quote.close == 0) {
+          // bad quote, do nothing
+        } else {
+          quotes += quote
+        }
+      }
+    }
+
+    quotes.toArray
+  }
+  
+}
 
 
 
