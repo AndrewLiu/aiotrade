@@ -82,8 +82,7 @@ import ru.circumflex.orm._
 
  * @author Caoyuan Deng
  */
-
-class Sec extends SerProvider with Ordered[Sec] {
+class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   import Sec._
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -932,7 +931,7 @@ object Sec {
 
 
 // --- table
-object Secs extends Table[Sec] {
+object Secs extends Table[Sec] with CRCLongPK[Sec] {
   val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
   val validFrom = "validFrom" BIGINT() 

@@ -64,7 +64,7 @@ object TradingStatus {
 }
 
 
-class Exchange extends Ordered[Exchange] {
+class Exchange extends CRCLongId with Ordered[Exchange] {
   import Exchange._
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -696,7 +696,7 @@ object Exchange extends Publisher {
 }
 
 // --- table
-object Exchanges extends Table[Exchange] {
+object Exchanges extends Table[Exchange] with CRCLongPK[Exchange] {
   private val log = Logger.getLogger(this.getClass.getName)
   private val config = org.aiotrade.lib.util.config.Config()
   private val isServer = !config.getBool("dataserver.client", false)

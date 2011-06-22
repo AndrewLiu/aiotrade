@@ -48,9 +48,11 @@ package org.aiotrade.lib.securities.model
  * @note When corresponding code/unisymbol etc changes, the crckey may keep unchanged to keep the same long id,
  * if you change the crckey, you should also change long id.
  *    
+ * Used by model class   
+ *    
  * @author Caoyuan Deng
  */ 
-object CRCLongId {
+trait CRCLongId {
   /** 
    * 
    * @param key string that was used to  generate crc32 long id, for:
@@ -58,9 +60,27 @@ object CRCLongId {
    *    Exchange: code
    *    Sector: category + "." + code // CONCAT(categoty, '.', code) in mysql     
    */
-  def longId(crckey: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(crckey.toUpperCase.getBytes("UTF-8"))
-    c.getValue
+  var crckey: String = ""
+
+  private var _id: Long = Long.MinValue
+  def id: Long = {
+    if (_id != Long.MinValue) {
+      _id
+    } else {
+      val c = new java.util.zip.CRC32
+      c.update(crckey.toUpperCase.getBytes("UTF-8"))
+      c.getValue
+    }
   }
+  def id_=(id: Long) {
+    this._id = id
+  }
+}
+
+/**
+ * 
+ * Used by Table
+ */
+trait CRCLongPK[R <: CRCLongId] {self: ru.circumflex.orm.Table[R] => 
+  val crckey = "crckey" VARCHAR(30)
 }

@@ -44,7 +44,7 @@ import ru.circumflex.orm._
  */
 
 
-class Sector {
+class Sector extends CRCLongId {
   var category: String = ""
   var code: String = ""
   var name: String = ""
@@ -130,7 +130,7 @@ object Sector {
 
 
 // --- table
-object Sectors extends Table[Sector] {
+object Sectors extends Table[Sector] with CRCLongPK[Sector] {
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
