@@ -148,6 +148,7 @@ abstract class TickerServer extends DataServer[Ticker] {
    */
   protected def processData(values: Array[Ticker], Contract: TickerContract): Long = {
     var lastTime = Long.MinValue
+    val duration = System.currentTimeMillis
 
     log.info("Composing quote from tickers: " + values.length)
     if (values.length == 0) return lastTime
@@ -356,8 +357,9 @@ abstract class TickerServer extends DataServer[Ticker] {
       if (willCommit) {
         log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
       }
-
-      if (TickerServer.isServer) {
+      
+      import TickerServer.config
+      if (TickerServer.isServer && config.getBool("dataserver.persistTickers", true)) {
         start = System.currentTimeMillis
         if (allTickers.length > 0) {
           Tickers.insertBatch_!(allTickers.toArray)
@@ -406,7 +408,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       val alsoSave = TickerServer.isServer
       exchange.tryClosing(alsoSave)
     }
-
+    log.info("Composing tickers, spend: " + (System.currentTimeMillis - duration) + " ms")
     lastTime
   }
   
