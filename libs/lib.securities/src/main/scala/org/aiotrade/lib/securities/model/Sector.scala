@@ -44,8 +44,7 @@ import ru.circumflex.orm._
  */
 
 
-class Sector extends CRCLongId {
-  var crckey: String = "" // key string that was used to generate crc32 long id, for Sector, it's catygory + "." + code
+class Sector {
   var category: String = ""
   var code: String = ""
   var name: String = ""
@@ -132,7 +131,6 @@ object Sector {
 
 // --- table
 object Sectors extends Table[Sector] {
-  val crckey = "crckey" VARCHAR(30)
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")

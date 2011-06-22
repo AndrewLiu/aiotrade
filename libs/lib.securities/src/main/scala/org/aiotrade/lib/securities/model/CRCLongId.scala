@@ -44,21 +44,21 @@ package org.aiotrade.lib.securities.model
  *    select * from quotes1d where secs_id = crc32(uniSymbol)
  * 3. How about when uniSymbol changed of a sec?
  *    we need to use its original uniSymbol, or create a new sec
- * 4. crckey for:
- *    Sec: uniSymbol
- *    Exchange: code
- *    Sector: category + "." + code // CONCAT(categoty, '.', code) in mysql  
  *    
  * @note When corresponding code/unisymbol etc changes, the crckey may keep unchanged to keep the same long id,
  * if you change the crckey, you should also change long id.
  *    
- * @author Caoyuan Dend
+ * @author Caoyuan Deng
  */ 
-trait CRCLongId {
-  /** key string that was used to  generate crc32 long id */
-  def crckey: String
-  
-  def longId: Long = {
+object CRCLongId {
+  /** 
+   * 
+   * @param key string that was used to  generate crc32 long id, for:
+   *    Sec: the original uniSymbol
+   *    Exchange: code
+   *    Sector: category + "." + code // CONCAT(categoty, '.', code) in mysql     
+   */
+  def longId(crckey: String): Long = {
     val c = new java.util.zip.CRC32
     c.update(crckey.toUpperCase.getBytes("UTF-8"))
     c.getValue

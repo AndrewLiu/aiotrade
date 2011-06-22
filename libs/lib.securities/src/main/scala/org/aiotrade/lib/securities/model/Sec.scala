@@ -83,13 +83,12 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 
-class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
+class Sec extends SerProvider with Ordered[Sec] {
   import Sec._
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
-  var crckey: String = "" // key string that was used to generate crc32 long id, for Sec, it's an unisymbol
   var exchange: Exchange = _
 
   var validFrom: Long = 0
@@ -934,8 +933,6 @@ object Sec {
 
 // --- table
 object Secs extends Table[Sec] {
-  val crckey = "crckey" VARCHAR(30)
-  
   val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
   val validFrom = "validFrom" BIGINT() 
