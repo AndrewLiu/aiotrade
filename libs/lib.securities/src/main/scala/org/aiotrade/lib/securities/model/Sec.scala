@@ -83,12 +83,13 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 
-class Sec extends SerProvider with Ordered[Sec] {
+class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   import Sec._
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
+  var crckey: String = "" // key string that was used to generate crc32 long id, for Sec, it's an unisymbol
   var exchange: Exchange = _
 
   var validFrom: Long = 0
@@ -927,34 +928,14 @@ object Sec {
         case _ => null
       }
     }
-  }
-  
-  /**
-   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
-   * since it returns same value of function CRC32(String) in mysql.
-   * 
-   * @note 
-   * 1. Check conflict by:
-   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
-   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
-   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
-   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
-   * 2. Select data of uniSymbol:
-   *    select * from quotes1d where secs_id = crc32(uniSymbol)
-   * 3. How about when uniSymbol changed of a sec?
-   *    we need to use its original uniSymbol, or create a new sec
-   */ 
-  def longId(uniSymbol: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
-    c.getValue
-  }
-  
+  }  
 }
 
 
 // --- table
 object Secs extends Table[Sec] {
+  val crckey = "crckey" VARCHAR(30)
+  
   val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
   val validFrom = "validFrom" BIGINT() 

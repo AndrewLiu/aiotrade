@@ -92,6 +92,50 @@ default-character-set=utf8
  * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies --fields-terminated-by=,
  *
  * mysql> load data infile '/Users/dcaoyuan/tmp/tmp/secs.txt' into table secs;
+ * 
+ * Dump tables except tickers/executions:
+nohup time -o timer.txt mysqldump --opt --default-character-set=utf8 -uroot faster \
+analysis_reports         \
+companies                \
+content_abstracts        \
+content_categories       \
+contents                 \
+exchange_close_dates     \
+exchanges                \
+filings                  \
+general_infos            \
+info_content_categories  \
+info_secs                \
+money_flows1d            \
+money_flows1m            \
+newses                   \
+quotes1d                 \
+quotes1m                 \
+sec_dividends            \
+sec_infos                \
+sec_issues               \
+sec_statuses             \
+secs                     \
+sector_secs              \
+sectors                  \
+tickers_last             \
+| gzip > faster20110622.dump.gz &
+
+ * Gzip:
+ *  $ nohup time -o timer.txt cat filename | gzip > filename.gz &
+ * Gunzip:
+ *  $ nohup time -o timer.txt gzip -dc filename.gz > filename &
+ * 
+ * Dump tables structure of tickers/executions:
+ 
+nohup time -o timer.txt mysqldump --no-data --opt --default-character-set=utf8 -uroot faster exeutions tickers > faster_somestruc.sql
+
+ *
+ *
+ * Restart mysqld on freebsd
+ *   $ sudo /usr/local/etc/rc.d/mysql-server restart
+ * Restart mysqld on macports
+ *   $ sudo /opt/local/etc/LaunchDaemons/org.macports.mysql5/mysql5.wrapper restart  
  */
 
 @deprecated("Use SyncUtil, this class is for reference only")

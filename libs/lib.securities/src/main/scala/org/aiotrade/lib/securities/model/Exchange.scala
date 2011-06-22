@@ -64,12 +64,13 @@ object TradingStatus {
 }
 
 
-class Exchange extends Ordered[Exchange] {
+class Exchange extends CRCLongId with Ordered[Exchange] {
   import Exchange._
 
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
+  var crckey: String = "" // key string that was used to generate crc32 long id, for Exchange, it's code
   var code: String = "SS"
   var name: String = ""
   var fullName: String = ""
@@ -576,12 +577,6 @@ object Exchange extends Publisher {
 
   // ----- Major methods
 
-  def longId(code: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(code.toUpperCase.getBytes("UTF-8"))
-    c.getValue
-  }
-
   def withCode(code: String): Option[Exchange] = codeToExchange.get(code)
 
   def exchangeOf(uniSymbol: String): Exchange = {
@@ -707,7 +702,7 @@ object Exchanges extends Table[Exchange] {
   private val config = org.aiotrade.lib.util.config.Config()
   private val isServer = !config.getBool("dataserver.client", false)
 
-
+  val crckey = "crckey" VARCHAR(30)
   val code = "code" VARCHAR(4)
   val name = "name" VARCHAR(10)
   val fullName = "fullName" VARCHAR(30)

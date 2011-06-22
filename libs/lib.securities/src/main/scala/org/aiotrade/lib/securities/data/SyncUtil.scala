@@ -102,10 +102,17 @@ object SyncUtil {
   )
 
   def main(args: Array[String]) {
-    //exportAvroDataFileFromProductionMysql
-    importAvroDataFileToTestMysql
-    println("Finished!")
-    System.exit(0)
+    try {
+      //exportAvroDataFileFromProductionMysql
+      importAvroDataFileToTestMysql
+      println("Finished!")
+      System.exit(0)
+    } catch {
+      case ex => 
+        ex.printStackTrace
+        println("Error! see aiotrade.log at project root for more information.")
+        System.exit(1)
+    }
   }
   
   def exportAvroDataFileFromProductionMysql {
