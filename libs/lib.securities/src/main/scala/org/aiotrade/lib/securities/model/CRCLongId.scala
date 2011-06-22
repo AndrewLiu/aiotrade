@@ -81,6 +81,7 @@ trait CRCLongId {
  * 
  * Used by Table
  */
-trait CRCLongPK[R <: CRCLongId] {self: ru.circumflex.orm.Table[R] => 
+abstract class CRCLongPKTable[R <: CRCLongId: Manifest] extends ru.circumflex.orm.Table[R] { 
+  override val id = "id" BIGINT()
   val crckey = "crckey" VARCHAR(30)
 }

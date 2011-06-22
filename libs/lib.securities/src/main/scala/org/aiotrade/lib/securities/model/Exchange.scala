@@ -39,7 +39,6 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util.actors.Publisher
 
 import org.aiotrade.lib.util.pinyin.PinYin
-import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
 
@@ -696,7 +695,7 @@ object Exchange extends Publisher {
 }
 
 // --- table
-object Exchanges extends Table[Exchange] with CRCLongPK[Exchange] {
+object Exchanges extends CRCLongPKTable[Exchange] {
   private val log = Logger.getLogger(this.getClass.getName)
   private val config = org.aiotrade.lib.util.config.Config()
   private val isServer = !config.getBool("dataserver.client", false)
@@ -753,6 +752,7 @@ object Exchanges extends Table[Exchange] with CRCLongPK[Exchange] {
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
     val exchange = Exchange.exchangeOf(uniSymbol)
     val sec = new Sec
+    sec.crckey = uniSymbol
     sec.exchange = exchange
     Secs.save_!(sec)
 
@@ -798,6 +798,7 @@ object Exchanges extends Table[Exchange] with CRCLongPK[Exchange] {
     for ((uniSymbol, name) <- uniSymbolToName) {
       val exchange = Exchange.exchangeOf(uniSymbol)
       val sec = new Sec
+      sec.crckey = uniSymbol
       sec.exchange = exchange
       secs += sec
 

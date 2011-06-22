@@ -59,7 +59,6 @@ import org.aiotrade.lib.securities.dataserver.RichInfoDataServer
 import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable
-import ru.circumflex.orm.Table
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.GeneralInfos
 import org.aiotrade.lib.info.model.GeneralInfo
@@ -78,8 +77,6 @@ import ru.circumflex.orm._
  * You may put ser from outside, to the freq-ser map, so each sofic may have multiple
  * freq sers, but only per freq pre ser is allowed.
  *
- * @param uniSymbol a globe uniSymbol, may have different source uniSymbol.
-
  * @author Caoyuan Deng
  */
 class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
@@ -931,7 +928,7 @@ object Sec {
 
 
 // --- table
-object Secs extends Table[Sec] with CRCLongPK[Sec] {
+object Secs extends CRCLongPKTable[Sec] {
   val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
 
   val validFrom = "validFrom" BIGINT() 

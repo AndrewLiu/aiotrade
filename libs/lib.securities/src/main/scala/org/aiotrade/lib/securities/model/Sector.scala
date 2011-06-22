@@ -34,7 +34,6 @@ import scala.collection
 import scala.collection.mutable
 import scala.collection.immutable
 import org.aiotrade.lib.util.ValidTime
-import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 /**
@@ -104,12 +103,6 @@ object Sector {
     case None => Nil
   }
   
-  def longId(key: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(key.toUpperCase.getBytes("UTF-8"))
-    c.getValue
-  }
-
   def withKey(key: String) = Sectors.withKey(key)
   def withCategoryCode(category: String, code: String): Option[Sector] = Sectors.withCategoryCode(category, code)
   
@@ -130,7 +123,7 @@ object Sector {
 
 
 // --- table
-object Sectors extends Table[Sector] with CRCLongPK[Sector] {
+object Sectors extends CRCLongPKTable[Sector] {
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
