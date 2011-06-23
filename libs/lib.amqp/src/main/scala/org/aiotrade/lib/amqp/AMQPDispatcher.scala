@@ -251,6 +251,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       val body1 = contentEncoding match {
         case "gzip" => gzip(body)
         case "lzma" => lzma(body)
+        case "zlib" => zlib(body)
         case _ => body
       }
 
@@ -315,6 +316,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       val body1 = props.getContentEncoding match {
         case "gzip" => ungzip(body)
         case "lzma" => unlzma(body)
+        case "zlib" => unzlib(body)
         case _ => body
       }
 
@@ -459,6 +461,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           val body1 = props.getContentEncoding match {
             case "gzip" => ungzip(body)
             case "lzma" => unlzma(body)
+            case "zlib" => unzlib(body)
             case _ => body
           }
 
