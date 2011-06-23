@@ -78,8 +78,9 @@ trait Serializer {
   }
 
   def decodeJson(body: Array[Byte]): Any = {
-    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
-    jin.readObject
+//    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
+//    jin.readObject
+    Json.decode(new String(body, "utf-8"))
   }
 
   @throws(classOf[IOException])
