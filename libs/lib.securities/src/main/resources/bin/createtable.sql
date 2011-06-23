@@ -1,5 +1,6 @@
 CREATE TABLE `sectors` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `crckey` varchar(30) NOT NULL DEFAULT '',
   `category` varchar(6) NOT NULL DEFAULT '',
   `code` varchar(20) NOT NULL DEFAULT '',
   `name` varchar(60) NOT NULL DEFAULT '',

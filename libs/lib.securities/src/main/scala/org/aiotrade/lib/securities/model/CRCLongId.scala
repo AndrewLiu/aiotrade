@@ -55,10 +55,11 @@ package org.aiotrade.lib.securities.model
 trait CRCLongId {
   /** 
    * 
-   * @param key string that was used to  generate crc32 long id, for:
-   *    Sec: the original uniSymbol
-   *    Exchange: code
-   *    Sector: category + "." + code // CONCAT(categoty, '.', code) in mysql     
+   * @param key string that was used to generate crc32 long id when the id was 
+   *   created and insert into database. For:
+   *     Sec: the original uniSymbol
+   *     Exchange: code
+   *     Sector: category + "." + code // concat(category, '.', code) in mysql     
    */
   var crckey: String = ""
 
@@ -79,7 +80,7 @@ trait CRCLongId {
 
 /**
  * 
- * Used by Table
+ * Table with the corresponding id and crckey column.
  */
 abstract class CRCLongPKTable[R <: CRCLongId: Manifest] extends ru.circumflex.orm.Table[R] { 
   override val id = "id" BIGINT()
