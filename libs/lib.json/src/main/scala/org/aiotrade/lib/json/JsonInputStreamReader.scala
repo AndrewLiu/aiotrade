@@ -32,6 +32,7 @@ package org.aiotrade.lib.json
 
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.logging.Logger
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -39,12 +40,19 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 class JsonInputStreamReader(in: InputStream, charsetName: String)  extends InputStreamReader(in, charsetName) {
+  val logger = Logger.getLogger(this.getClass.getName)
   
   private lazy val ret = {
     JsonBuilder.readJson(new InputStreamReader(in)) match {
       case map: Json.Object if map.size == 1 =>
-        val (name, fields) = map.iterator.next
-        readObject(name, fields)
+        try{
+          val (name, fields) = map.iterator.next
+          readObject(name, fields)
+        } catch {
+          case e => logger.info(e.getMessage + ", Failed to readObject, just return original type")
+            map
+        }
+        
       case seq: collection.Seq[_] =>
         val ret = new ArrayBuffer[Any]
         val xs = seq.iterator
@@ -58,7 +66,7 @@ class JsonInputStreamReader(in: InputStream, charsetName: String)  extends Input
         }
         ret.toArray
       case x =>
-        println(x)
+        logger.warning("Failed to readJson by JsonBuilder: " + x)
         x
     }
   }
@@ -67,7 +75,7 @@ class JsonInputStreamReader(in: InputStream, charsetName: String)  extends Input
     try {
       Class.forName(clzName).newInstance match {
         case x: JsonSerializable => x.readJson(fields); x
-        case _ => null
+        case y => y
       }
     } catch {
       case ex: ClassNotFoundException => null
