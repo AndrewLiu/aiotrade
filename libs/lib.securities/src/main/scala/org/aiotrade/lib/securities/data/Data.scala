@@ -91,7 +91,7 @@ default-character-set=utf8
  * cd tmp
  * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ faster secs sec_infos companies --fields-terminated-by=,
  *
- * mysql> load data infile '/Users/dcaoyuan/tmp/tmp/secs.txt' into table secs character set utf8 fields terminated by ',';
+ * mysql> load data infile '/Users/dcaoyuan/tmp/secs.txt' into table secs character set utf8 fields terminated by ',';
  * 
  * Dump tables except tickers/executions:
 nohup time -o timer.txt mysqldump --opt --default-character-set=utf8 -uroot faster \

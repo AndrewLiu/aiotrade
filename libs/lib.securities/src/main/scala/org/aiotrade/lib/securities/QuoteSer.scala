@@ -195,18 +195,20 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
 }
 
 object QuoteSer {
+  private val log = Logger.getLogger(this.getClass.getName)
   
   def importFrom(vmap: collection.Map[String, Array[_]]): Array[Quote] = {
     val quotes = new ArrayList[Quote]()
-    for (times   <- vmap.get(".");
-         opens   <- vmap.get("O");
-         highs   <- vmap.get("H");
-         lows    <- vmap.get("L");
-         closes  <- vmap.get("C");
-         volumes <- vmap.get("V");
-         amounts <- vmap.get("A");
-         adjweis <- vmap.get("W")
-    ) {
+    try {
+      val times   = vmap(".")
+      val opens   = vmap("O")
+      val highs   = vmap("H")
+      val lows    = vmap("L")
+      val closes  = vmap("C")
+      val volumes = vmap("V")
+      val amounts = vmap("A")
+      val adjweis = vmap("W")
+    
       var i = -1
       while ({i += 1; i < times.length}) {
         // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
@@ -227,6 +229,8 @@ object QuoteSer {
           quotes += quote
         }
       }
+    } catch {
+      case ex => log.warning(ex.getMessage)
     }
 
     quotes.toArray

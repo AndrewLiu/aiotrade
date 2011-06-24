@@ -54,7 +54,7 @@ object Model {
     val companies = (SELECT (Companies.*) FROM Companies list)
     val exchanges = (SELECT (Exchanges.*) FROM Exchanges list)
     val categories = (SELECT (ContentCategories.*) FROM ContentCategories list)
-    val secinfos = (SELECT (SecInfos.*,Secs.*) FROM (SecInfos JOIN Secs) list)
+    val secinfos = (SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list) // @todo got exception that secs primiry key is null
   }
 
   val secs = mutable.Map[String, Sec]()

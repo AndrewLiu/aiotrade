@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities
 
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, DefaultBaseTSer, TFreq}
@@ -83,7 +84,7 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   val amountNet = TVar[Double]("A", Plot.None)
   val superVolumeNet  = TVar[Double]("suV", Plot.None)
   val superAmountNet  = TVar[Double]("suA", Plot.None)
-  val largeVolumeNet  = TVar[Double]("LaV", Plot.None)
+  val largeVolumeNet  = TVar[Double]("laV", Plot.None)
   val largeAmountNet  = TVar[Double]("laA", Plot.None)
   val mediumVolumeNet = TVar[Double]("meV", Plot.None)
   val mediumAmountNet = TVar[Double]("meA", Plot.None)
@@ -200,56 +201,58 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
 }
 
 object MoneyFlowSer {
+  private val log = Logger.getLogger(this.getClass.getName)
   
   def importFrom(vmap: collection.Map[String, Array[_]]): Array[MoneyFlow] = {
     val mfs = new ArrayList[MoneyFlow]()
-    for (times <- vmap.get(".");
-         volumeIns <- vmap.get("Vi");
-         amountIns <- vmap.get("Ai");
-         volumeOuts <- vmap.get("Vo");
-         amountOuts <- vmap.get("Ao");
-         volumeEvens <- vmap.get("Ve");
-         amountEvens <- vmap.get("Ae");
+    try {
+      val times = vmap(".")
+      val volumeIns = vmap("Vi")
+      val amountIns = vmap("Ai")
+      val volumeOuts = vmap("Vo")
+      val amountOuts = vmap("Ao")
+      val volumeEvens = vmap("Ve")
+      val amountEvens = vmap("Ae")
   
-         superVolumeIns <- vmap.get("suVi");
-         superAmountIns <- vmap.get("suAi");
-         superVolumeOuts <- vmap.get("suVo");
-         superAmountOuts <- vmap.get("suAo");
-         superVolumeEvens <- vmap.get("suVe");
-         superAmountEvens <- vmap.get("suAe");
+      val superVolumeIns = vmap("suVi")
+      val superAmountIns = vmap("suAi")
+      val superVolumeOuts = vmap("suVo")
+      val superAmountOuts = vmap("suAo")
+      val superVolumeEvens = vmap("suVe")
+      val superAmountEvens = vmap("suAe")
 
-         largeVolumeIns <- vmap.get("laVi");
-         largeAmountIns <- vmap.get("laAi");
-         largeVolumeOuts <- vmap.get("laVo");
-         largeAmountOuts <- vmap.get("laAo");
-         largeVolumeEvens <- vmap.get("laVe");
-         largeAmountEvens <- vmap.get("laAe");
+      val largeVolumeIns = vmap("laVi")
+      val largeAmountIns = vmap("laAi")
+      val largeVolumeOuts = vmap("laVo")
+      val largeAmountOuts = vmap("laAo")
+      val largeVolumeEvens = vmap("laVe")
+      val largeAmountEvens = vmap("laAe")
 
-         mediumVolumeIns <- vmap.get("meVi");
-         mediumAmountIns <- vmap.get("meAi");
-         mediumVolumeOuts <- vmap.get("meVo");
-         mediumAmountOuts <- vmap.get("meAo");
-         mediumVolumeEvens <- vmap.get("meVe");
-         mediumAmountEvens <- vmap.get("meAe");
+      val mediumVolumeIns = vmap("meVi")
+      val mediumAmountIns = vmap("meAi")
+      val mediumVolumeOuts = vmap("meVo")
+      val mediumAmountOuts = vmap("meAo")
+      val mediumVolumeEvens = vmap("meVe")
+      val mediumAmountEvens = vmap("meAe")
 
-         smallVolumeIns <- vmap.get("smVi");
-         smallAmountIns <- vmap.get("smAi");
-         smallVolumeOuts <- vmap.get("smVo");
-         smallAmountOuts <- vmap.get("smAo");
-         smallVolumeEvens <- vmap.get("smVe");
-         smallAmountEvens <- vmap.get("smAe");
+      val smallVolumeIns = vmap("smVi")
+      val smallAmountIns = vmap("smAi")
+      val smallVolumeOuts = vmap("smVo")
+      val smallAmountOuts = vmap("smAo")
+      val smallVolumeEvens = vmap("smVe")
+      val smallAmountEvens = vmap("smAe")
 
-         volumeNets <- vmap.get("V");
-         amountNets <- vmap.get("A");
-         superVolumeNets <- vmap.get("suV");
-         superAmountNets <- vmap.get("suA");
-         largeVolumeNets <- vmap.get("laV");
-         largeAmountNets <- vmap.get("laA");
-         mediumVolumeNets <- vmap.get("meV");
-         mediumAmountNets <- vmap.get("meA");
-         smallVolumeNets <- vmap.get("smV");
-         smallAmountNets <- vmap.get("smA")
-    ) {
+      val volumeNets = vmap("V")
+      val amountNets = vmap("A")
+      val superVolumeNets = vmap("suV")
+      val superAmountNets = vmap("suA")
+      val largeVolumeNets = vmap("laV")
+      val largeAmountNets = vmap("laA")
+      val mediumVolumeNets = vmap("meV")
+      val mediumAmountNets = vmap("meA")
+      val smallVolumeNets = vmap("smV")
+      val smallAmountNets = vmap("smA")
+      
       var i = -1
       while ({i += 1; i < times.length}) {
         // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
@@ -288,6 +291,8 @@ object MoneyFlowSer {
 
         mfs += mf
       }
+    } catch {
+      case ex => log.warning(ex.getMessage)
     }
 
     mfs.toArray
