@@ -131,14 +131,15 @@ abstract class TickerServer extends DataServer[Ticker] {
    * compose ser using data from Tickers
    * @param Tickers
    */
-  protected def processData(values: Array[Ticker], Contract: TickerContract): Long = {
+  protected def processData(tickers: Array[Ticker], Contract: TickerContract): Long = {
     var lastTime = Long.MinValue
 
-    log.info("Composing quote from tickers: " + values.length)
-    if (values.length == 0) return lastTime
-    //values.foreach{ticker => if(ticker.symbol == "399001.SZ"){log.fine("Composing " + ticker.symbol + ": " + ticker)}}
+    log.info("Composing quote from tickers: " + tickers.length)
+    if (tickers.length == 0) return lastTime
 
-    val (secSnaps, tickersLast) = toSecSnaps(values)
+    Exchange.checkIfSomethingNew(tickers)
+    
+    val (secSnaps, tickersLast) = toSecSnaps(tickers)
     log.info("Composing quote from secSnaps: " + secSnaps.length)
     if (secSnaps.length == 0) return lastTime
 
