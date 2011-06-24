@@ -9,9 +9,15 @@ object TestReader {
   val filename = "show2003.dbf"
   
   def main(args: Array[String]) {
-    test1
-    println("==============")
-    test2
+    try {
+      test1
+      println("==============")
+      test2
+    
+      System.exit(0)
+    } catch {
+      case ex => ex.printStackTrace; System.exit(-1)
+    }
   }
 
   def test1 {
@@ -20,8 +26,7 @@ object TestReader {
     while (i < times) {
       if (i == warmTimes) t0 = System.currentTimeMillis // warm using the first warmTimes reading
 
-      val reader = DBFReader(filename)
-      reader.charsetName_=("GBK")
+      val reader = DBFReader(filename, "GBK")
 
       readRecords(reader)
       reader.close
@@ -35,8 +40,7 @@ object TestReader {
 
   def test2 {
     var t0 = System.currentTimeMillis
-    val reader = DBFReader(filename)
-      reader.charsetName_=("GBK")
+    val reader = DBFReader(filename, "GBK")
       
     var i = 0
     while (i < times) {

@@ -50,7 +50,7 @@ object Utils {
 
     sb.toString.getBytes
   }
-
+  
   def littleEndian(value: Short): Short = {
     val num1 = value
     var mask = 0xff

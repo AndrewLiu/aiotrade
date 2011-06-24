@@ -8,56 +8,19 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.RandomAccessFile
+import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
+import java.nio.charset.Charset
 import java.util.Calendar
 
-object DBFReader {
-  val END_OF_DATA = 0x1A
 
-  @throws(classOf[IOException])
-  def apply(is: InputStream): DBFReader = is match {
-    case x: FileInputStream =>
-      val fileChannel = x.getChannel
-      apply(fileChannel)
-    case _ => new DBFReader(Right(is))
-  }
-
-  @throws(classOf[IOException])
-  def apply(file: File): DBFReader = {
-    val fileChannel = (new FileInputStream(file)).getChannel
-    apply(fileChannel)
-  }
-
-  @throws(classOf[IOException])
-  def apply(fileName: String): DBFReader = {
-    val fileChannel = (new RandomAccessFile(fileName, "r")).getChannel
-    apply(fileChannel)
-  }
-  
-  def apply(fileChannel: FileChannel): DBFReader = {
-    try {
-      new DBFReader(Left(fileChannel))
-    } catch {
-      case ex => tryCloseFileChannel(fileChannel); throw ex
-    }
-  }
-
-  private def tryCloseFileChannel(fileChannel: FileChannel) {
-    if (fileChannel != null) {
-      try {
-        fileChannel.close
-      } catch {
-        case ex =>
-      }
-    }
-  }
-}
-
-import DBFReader._
 @throws(classOf[IOException])
-class DBFReader private (input: Either[FileChannel, InputStream]) {
-  var charsetName = "8859_1"
+@throws(classOf[UnsupportedEncodingException])
+class DBFReader private (input: Either[FileChannel, InputStream], charsetName: String) {
+  import DBFReader._
+  
+  val charset = Charset.forName(if (charsetName == null) defaultCharsetName else charsetName)
   var isClosed = false
 
   private var bBuf: ByteBuffer = _
@@ -189,29 +152,33 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 //        isDeleted = (b == '*')
 //      } while (isDeleted)
 
-      var i = 0
-      while (i < header.fields.length) {
+      val bytes2 = new Array[Byte](2)
+      val bytes3 = new Array[Byte](3)
+      val bytes4 = new Array[Byte](4)
+      var i = -1
+      while ({i += 1; i < header.fields.length}) {
         val obj = header.fields(i).dataType match {
           case 'C' =>
-            try{
+            try {
               val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
               new String(bytes, charsetName)
-            } catch{
-              case ex:Exception => new String("".getBytes, charsetName)
+            } catch {
+              case ex:Exception => ""
             }
           case 'D' =>
             try {
-              val y = new Array[Byte](4)
-              bBuf.get(y)
-              val m = new Array[Byte](2)
-              bBuf.get(m)
-              val d = new Array[Byte](2)
-              bBuf.get(d)
               val cal = Calendar.getInstance
-              cal.set(Calendar.YEAR, (new String(y)).toInt)
-              cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
-              cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
+              
+              bBuf.get(bytes4)
+              cal.set(Calendar.YEAR, (new String(bytes4)).toInt)
+              
+              bBuf.get(bytes2)
+              cal.set(Calendar.MONTH, (new String(bytes2)).toInt - 1)
+              
+              bBuf.get(bytes2)
+              cal.set(Calendar.DAY_OF_MONTH, (new String(bytes2)).toInt)
+
               cal.getTime
             } catch {
               case ex: Exception => null // this field may be empty or may have improper value set
@@ -219,12 +186,12 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
           case 'F' =>
             try {
-              var bytes = new Array[Byte](header.fields(i).length)
+              val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
-              bytes = Utils.trimLeftSpaces(bytes)
-            
-              if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
-                (new String(bytes)).toFloat
+              
+              val bytes1 = Utils.trimLeftSpaces(bytes)
+              if (bytes1.length > 0 && !Utils.contains(bytes1, '?')) {
+                (new String(bytes1, "ASCII")).toFloat
               } else null
             } catch {
               case ex: NumberFormatException => 0.0F // throw new IOException("Failed to parse Float: " + ex.getMessage)
@@ -233,12 +200,12 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
           case 'N' =>
             try {
-              var bytes = new Array[Byte](header.fields(i).length)
+              val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
-              bytes = Utils.trimLeftSpaces(bytes)
-            
-              if (bytes.length > 0 && !Utils.contains(bytes, '?')) {
-                (new String(bytes)).toDouble
+              
+              val bytes1 = Utils.trimLeftSpaces(bytes)
+              if (bytes1.length > 0 && !Utils.contains(bytes1, '?')) {
+                (new String(bytes1, "ASCII")).toDouble
               } else null
             } catch {
               case ex: NumberFormatException => 0.0 // throw new IOException("Failed to parse Number: " + ex.getMessage)
@@ -255,38 +222,39 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
           case 'T' =>
             try {
-              val y = new Array[Byte](4)
-              bBuf.get(y)
-              val m = new Array[Byte](2)
-              bBuf.get(m)
-              val d = new Array[Byte](2)
-              bBuf.get(d)
-              val h = new Array[Byte](2)
-              bBuf.get(h)
-              val min = new Array[Byte](2)
-              bBuf.get(min)
-              val sec = new Array[Byte](2)
-              bBuf.get(sec)
-              val milsec = new Array[Byte](3)
-              bBuf.get(milsec)
               val cal = Calendar.getInstance
-              cal.set(Calendar.YEAR, (new String(y)).toInt)
-              cal.set(Calendar.MONTH, (new String(m)).toInt - 1)
-              cal.set(Calendar.DAY_OF_MONTH, (new String(d)).toInt)
-              cal.set(Calendar.HOUR_OF_DAY, new String(h).toInt)
-              cal.set(Calendar.MINUTE, new String(min).toInt)
-              cal.set(Calendar.SECOND, new String(sec).toInt)
-              cal.set(Calendar.MILLISECOND, new String(milsec).toInt)
+
+              bBuf.get(bytes4)
+              cal.set(Calendar.YEAR, (new String(bytes4, "ASCII")).toInt)
+
+              val bytes = new Array[Byte](2) // month
+              bBuf.get(bytes2)
+              cal.set(Calendar.MONTH, (new String(bytes2, "ASCII")).toInt - 1)
+
+              bBuf.get(bytes2) // day
+              cal.set(Calendar.DAY_OF_MONTH, (new String(bytes2, "ASCII")).toInt)
+
+              bBuf.get(bytes2) // hour
+              cal.set(Calendar.HOUR_OF_DAY, new String(bytes2, "ASCII").toInt)
+              
+              bBuf.get(bytes2) // min
+              cal.set(Calendar.MINUTE, new String(bytes2, "ASCII").toInt)
+
+              bBuf.get(bytes2) // sec
+              cal.set(Calendar.SECOND, new String(bytes2, "ASCII").toInt)
+              
+              bBuf.get(bytes3)
+              cal.set(Calendar.MILLISECOND, new String(bytes3, "ASCII").toInt)
+              
               cal.getTime
             } catch {
               case ex: Exception => null // this field may be empty or may have improper value set
             }
           case 'I' =>
             try{
-              var bytes = new Array[Byte](header.fields(i).length)
+              val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
-              bytes = Utils.trimLeftSpaces(bytes)
-              (new String(bytes)).toInt
+              (new String(Utils.trimLeftSpaces(bytes), "ASCII")).toInt
             } catch{
               case ex:Exception => 0
             }
@@ -294,7 +262,6 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
         }
         
         values(i) = obj
-        i += 1
       }
     } catch {
       case ex: EOFException => return null
@@ -303,7 +270,7 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
 
     values
   }
-
+  
   def close {
     isClosed = true
     try {
@@ -316,4 +283,54 @@ class DBFReader private (input: Either[FileChannel, InputStream]) {
     }
   }
 
+}
+
+object DBFReader {
+  private val defaultCharsetName = "8859_1"
+  
+  private val END_OF_DATA = 0x1A
+
+  @throws(classOf[UnsupportedEncodingException])
+  @throws(classOf[IOException])
+  def apply(is: InputStream, charsetName: String): DBFReader = is match {
+    case x: FileInputStream => createFileChannelDBFReader(x.getChannel, charsetName)
+    case _ => new DBFReader(Right(is), charsetName)
+  }
+
+  @throws(classOf[UnsupportedEncodingException])
+  @throws(classOf[IOException])
+  def apply(file: File, charsetName: String): DBFReader = {
+    createFileChannelDBFReader(new FileInputStream(file).getChannel, charsetName)
+  }
+
+  @throws(classOf[UnsupportedEncodingException])
+  @throws(classOf[IOException])
+  def apply(fileName: String, charsetName: String): DBFReader = {
+    createFileChannelDBFReader(new RandomAccessFile(fileName, "r").getChannel, charsetName)
+  }
+  
+  @throws(classOf[UnsupportedEncodingException])
+  @throws(classOf[IOException])
+  def apply(fileChannel: FileChannel, charsetName: String): DBFReader = {
+    createFileChannelDBFReader(fileChannel, charsetName)
+  }
+  
+  @throws(classOf[UnsupportedEncodingException])
+  @throws(classOf[IOException])
+  private def createFileChannelDBFReader(fileChannel: FileChannel, charsetName: String): DBFReader = {
+    try {
+      new DBFReader(Left(fileChannel), charsetName)
+    } catch {
+      case ex => 
+        if (fileChannel != null) {
+          try {
+            fileChannel.close
+          } catch {
+            case _ =>
+          }
+        }
+
+        throw ex
+    }
+  }
 }

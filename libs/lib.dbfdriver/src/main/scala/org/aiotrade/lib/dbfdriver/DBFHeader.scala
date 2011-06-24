@@ -6,39 +6,10 @@ import java.nio.ByteBuffer
 import java.util.Calendar
 import scala.collection.mutable.ArrayBuffer
 
-/**
- * http://www.clicketyclick.dk/databases/xbase/format/dbf.html#DBF_STRUCT
- */
-object DBFHeader {
-  val DBASE_III: Byte = 0x03
-  
-  /**
-   * Fixed part of head length, which is the length except variable 32 * fields.length
-   */
-  val headLengthFixedPart = (
-    1 + // versionNumber
-    3 +
-    4 +
-    2 +
-    2 +
-    2 +
-    1 +
-    1 +
-    4 +
-    4 +
-    4 +
-    1 +
-    1 +
-    2 + // reserved4
-    1   // terminator
-  )
-  
-  @throws(classOf[IOException])
-  def read(in: ByteBuffer): DBFHeader = (new DBFHeader).read(in)
-}
 
-import DBFHeader._
 class DBFHeader {
+  import DBFHeader._
+
   /* DBF structure start here */
   var versionNumber: Byte = DBASE_III   // 0
   var year: Byte = _                    // 1
@@ -135,4 +106,35 @@ class DBFHeader {
 
     (recordLength + 1).toShort
   }
+}
+
+/**
+ * http://www.clicketyclick.dk/databases/xbase/format/dbf.html#DBF_STRUCT
+ */
+object DBFHeader {
+  val DBASE_III: Byte = 0x03
+  
+  /**
+   * Fixed part of head length, which is the length except variable 32 * fields.length
+   */
+  val headLengthFixedPart = (
+    1 + // versionNumber
+    3 +
+    4 +
+    2 +
+    2 +
+    2 +
+    1 +
+    1 +
+    4 +
+    4 +
+    4 +
+    1 +
+    1 +
+    2 + // reserved4
+    1   // terminator
+  )
+  
+  @throws(classOf[IOException])
+  def read(in: ByteBuffer): DBFHeader = (new DBFHeader).read(in)
 }

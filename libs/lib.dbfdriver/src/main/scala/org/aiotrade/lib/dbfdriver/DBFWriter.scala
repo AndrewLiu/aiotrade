@@ -21,13 +21,11 @@ import scala.collection.mutable.ArrayBuffer
  add records using the addRecord() method and then<br>
  call write() method.
  */
-object DBFWriter {
-  val END_OF_DATA = 0x1A
-}
 
-import DBFWriter._
 @throws(classOf[IOException])
 class DBFWriter(dbfFile: File)  {
+  import DBFWriter._
+  
   var charsetName = "8859_1"
 
   private var records = new ArrayBuffer[Array[Any]]
@@ -265,4 +263,8 @@ class DBFWriter(dbfFile: File)  {
       file.close
     } catch {case ex: IOException => throw ex}
   }
+}
+
+object DBFWriter {
+  private val END_OF_DATA = 0x1A
 }
