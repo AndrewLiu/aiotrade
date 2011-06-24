@@ -152,7 +152,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   def uniSymbolToLastTicker: collection.Map[String, Ticker] = _uniSymbolToLastTicker synchronized {_uniSymbolToLastTicker}
   def uniSymbolToLastTradingDayTicker: collection.Map[String, Ticker] = _uniSymbolToLastTradingDayTicker synchronized {_uniSymbolToLastTradingDayTicker}
-  def uniSymbols: collection.Set[String] = Exchange.symbolsOf(this)
+  def uniSymbols: collection.Seq[String] = Exchange.symbolsOf(this)
   
   /** @Todo */
   def primaryIndex: Option[Sec] = code match {
@@ -512,10 +512,10 @@ object Exchange extends Publisher {
   private var _allExchanges: Seq[Exchange] = Nil
   private var _activeExchanges: Seq[Exchange] = Nil
   private var _codeToExchange = Map[String, Exchange]()
-  private var _exchangeToSecs = Map[Exchange, Set[Sec]]()
-  private var _exchangeToUniSymbols = Map[Exchange, Set[String]]()
+  private var _exchangeToSecs = Map[Exchange, Seq[Sec]]()
+  private var _exchangeToUniSymbols = Map[Exchange, Seq[String]]()
   private var _uniSymbolToSec = Map[String, Sec]()
-  private var _searchTextToSecs = Map[String, Set[Sec]]()
+  private var _searchTextToSecs = Map[String, Seq[Sec]]()
 
   
   // Init all searching tables
@@ -548,16 +548,16 @@ object Exchange extends Publisher {
 
       _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
 
-      val exchgToGoodSecs = _exchangeToSecs map {case (exchg, secs) => (exchg, secs filter (_.secInfo != null))}
+      val exchgToSecInfos = Exchanges.exchangeToSecInfo()
     
-      _exchangeToUniSymbols = exchgToGoodSecs map {case (exchg, secs) => (exchg, secs map (_.secInfo.uniSymbol.toUpperCase))}
+      _exchangeToUniSymbols = exchgToSecInfos map {case (exchg, secInfos) => (exchg, secInfos map (_.uniSymbol.toUpperCase))}
     
-      _uniSymbolToSec = exchgToGoodSecs flatMap {case (exchg, secs) => secs map (x => (x.secInfo.uniSymbol.toUpperCase, x))}
+      _uniSymbolToSec = exchgToSecInfos flatMap {case (exchg, secInfos) => secInfos map (x => (x.uniSymbol.toUpperCase, x.sec))}
     
       // _searchTextToSecs
       _uniSymbolToSec foreach {case (symbol, sec) => 
-          _searchTextToSecs ++= Map(symbol.toUpperCase -> Set(sec)) ++ (
-            PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Set()) + sec)}
+          _searchTextToSecs ++= Map(symbol.toUpperCase -> List(sec)) ++ (
+            PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Nil) :+ sec)}
           )
       }
       
@@ -573,10 +573,10 @@ object Exchange extends Publisher {
   }
 
   def codeToExchange: Map[String, Exchange] = _codeToExchange
-  def exchangeToSecs: Map[Exchange, Set[Sec]] = _exchangeToSecs
-  def exchangeToUniSymbols: Map[Exchange, Set[String]] = _exchangeToUniSymbols
+  def exchangeToSecs: Map[Exchange, Seq[Sec]] = _exchangeToSecs
+  def exchangeToUniSymbols: Map[Exchange, Seq[String]] = _exchangeToUniSymbols
   def uniSymbolToSec: Map[String, Sec] = _uniSymbolToSec
-  def searchTextToSecs: Map[String, Set[Sec]] = _searchTextToSecs
+  def searchTextToSecs: Map[String, Seq[Sec]] = _searchTextToSecs
 
   // ----- Major methods
 
@@ -607,12 +607,12 @@ object Exchange extends Publisher {
     }
   }
 
-  def secsOf(exchange: Exchange): Set[Sec] = {
-    exchangeToSecs.getOrElse(exchange, Set())
+  def secsOf(exchange: Exchange): Seq[Sec] = {
+    exchangeToSecs.getOrElse(exchange, Nil)
   }
 
-  def symbolsOf(exchange: Exchange): Set[String] = {
-    exchangeToUniSymbols.getOrElse(exchange, Set())
+  def symbolsOf(exchange: Exchange): Seq[String] = {
+    exchangeToUniSymbols.getOrElse(exchange, Nil)
   }
 
   def secOf(uniSymbol: String): Option[Sec] = {
@@ -668,8 +668,8 @@ object Exchange extends Publisher {
     val exchg = sec.exchange
     val symbol= sec.uniSymbol
 
-    _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Set()) + symbol))
-    _exchangeToSecs += (exchg -> (_exchangeToSecs.getOrElse(exchg, Set()) + sec))
+    _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Nil) :+ symbol))
+    _exchangeToSecs += (exchg -> (_exchangeToSecs.getOrElse(exchg, Nil) :+ sec))
     _uniSymbolToSec += (symbol -> sec)
 
     publish(SecAdded(sec))
@@ -717,9 +717,9 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
 
   // --- helper methods
-  def secsOf(exchange: Exchange): Set[Sec] = {
-    val t0 = System.currentTimeMillis
+  def secsOf(exchange: Exchange): Seq[Sec] = {
     val exchangeId = Exchanges.idOf(exchange)
+    val t0 = System.currentTimeMillis
     
     val secs = if (isServer) {
       SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
@@ -730,7 +730,37 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     
-    Set() ++ secs
+    secs
+  }
+
+  def exchangeToSec(): Map[Exchange, Seq[Sec]] = {
+    val t0 = System.currentTimeMillis
+    
+    val secs = if (isServer) {
+      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) list() map (_._1)
+    } else {
+      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+      SELECT (Secs.*) FROM (AVRO(Secs)) list()
+    }
+    
+    log.info("Secs number is "  + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
+    
+    secs.groupBy(x => x.exchange)
+  }
+
+  def exchangeToSecInfo(): Map[Exchange, Seq[SecInfo]] = {
+    val t0 = System.currentTimeMillis
+    
+    val secInfos = if (isServer) {
+      SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list() map (_._1)
+    } else {
+      val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
+      SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+    }
+    
+    log.info("SecInfos number " +  " is " + secInfos.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
+
+    secInfos.groupBy(x => x.sec.exchange)
   }
 
   /**
