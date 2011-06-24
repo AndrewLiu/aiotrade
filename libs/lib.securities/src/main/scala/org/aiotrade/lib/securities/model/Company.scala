@@ -40,6 +40,10 @@ class Company {
   var shortName: String = ""
   var fullName: String = ""
   var listDate: Long = _
+  
+  override def toString = {
+    "Company(sec=" + sec + ", shortName=" + shortName + ")"
+  }
 }
 
 object Companies extends Table[Company] {

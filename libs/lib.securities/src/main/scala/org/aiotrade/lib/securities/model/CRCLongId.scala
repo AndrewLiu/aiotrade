@@ -59,7 +59,8 @@ trait CRCLongId {
    *   created and insert into database. For:
    *     Sec: the original uniSymbol
    *     Exchange: code
-   *     Sector: category + "." + code // concat(category, '.', code) in mysql     
+   *     Sector: category + "." + code // concat(category, '.', code) in mysql 
+   *     @note the crckey should be upper case  
    */
   var crckey: String = ""
 

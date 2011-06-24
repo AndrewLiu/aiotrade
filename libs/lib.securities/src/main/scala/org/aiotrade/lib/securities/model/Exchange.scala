@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
 import org.aiotrade.lib.collection.ArrayList
@@ -540,26 +541,30 @@ object Exchange extends Publisher {
   }
   
   def resetSearchTables() {
-    val t0 = System.currentTimeMillis
+    try {
+      val t0 = System.currentTimeMillis
     
-    _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
+      _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
 
-    _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
+      _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
 
-    val exchgToGoodSecs = _exchangeToSecs map {case (exchg, secs) => (exchg, secs filter (_.secInfo != null))}
+      val exchgToGoodSecs = _exchangeToSecs map {case (exchg, secs) => (exchg, secs filter (_.secInfo != null))}
     
-    _exchangeToUniSymbols = exchgToGoodSecs map {case (exchg, secs) => (exchg, secs map (_.secInfo.uniSymbol))}
+      _exchangeToUniSymbols = exchgToGoodSecs map {case (exchg, secs) => (exchg, secs map (_.secInfo.uniSymbol.toUpperCase))}
     
-    _uniSymbolToSec = exchgToGoodSecs flatMap {case (exchg, secs) => secs map (x => (x.secInfo.uniSymbol, x))}
+      _uniSymbolToSec = exchgToGoodSecs flatMap {case (exchg, secs) => secs map (x => (x.secInfo.uniSymbol.toUpperCase, x))}
     
-    // _searchTextToSecs
-    _uniSymbolToSec foreach {case (symbol, sec) => 
-        _searchTextToSecs ++= Map(symbol.toUpperCase -> Set(sec)) ++ (
-          PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Set()) + sec)}
-        )
+      // _searchTextToSecs
+      _uniSymbolToSec foreach {case (symbol, sec) => 
+          _searchTextToSecs ++= Map(symbol.toUpperCase -> Set(sec)) ++ (
+            PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Set()) + sec)}
+          )
+      }
+      
+      log.info("Reset search table in " + (System.currentTimeMillis - t0) + "ms.")
+    } catch {
+      case ex => log.severe(ex.getMessage)
     }
-    
-    log.info("Reset search table in " + (System.currentTimeMillis - t0) + "ms.")
   }
 
   def activeExchanges = _activeExchanges
@@ -611,7 +616,7 @@ object Exchange extends Publisher {
   }
 
   def secOf(uniSymbol: String): Option[Sec] = {
-    uniSymbolToSec.get(uniSymbol)
+    uniSymbolToSec.get(uniSymbol.toUpperCase)
   }
 
   def checkIfSomethingNew(tickers: Array[Ticker]) {
@@ -621,7 +626,7 @@ object Exchange extends Publisher {
     var i = -1
     while ({i += 1; i < tickers.length}) {
       val ticker = tickers(i)
-      val uniSymbol = ticker.uniSymbol
+      val uniSymbol = ticker.uniSymbol.toUpperCase
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
         case Some(sec) =>
@@ -750,15 +755,16 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   }
 
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
-    val exchange = Exchange.exchangeOf(uniSymbol)
+    val symbol = uniSymbol.toUpperCase
+    val exchange = Exchange.exchangeOf(symbol)
     val sec = new Sec
-    sec.crckey = uniSymbol
+    sec.crckey = symbol
     sec.exchange = exchange
     Secs.save_!(sec)
 
     val secInfo = new SecInfo
     secInfo.sec = sec
-    secInfo.uniSymbol = uniSymbol
+    secInfo.uniSymbol = symbol
     secInfo.name = name
     SecInfos.save_!(secInfo)
 
@@ -796,10 +802,9 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val secs = new ArrayList[Sec]
     
     for ((uniSymbol, name) <- uniSymbolToName) {
-      val exchange = Exchange.exchangeOf(uniSymbol)
       val sec = new Sec
       sec.crckey = uniSymbol
-      sec.exchange = exchange
+      sec.exchange = Exchange.exchangeOf(uniSymbol)
       secs += sec
 
       val secInfo = new SecInfo
@@ -813,16 +818,21 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     
     val secInfosA = secInfos.toArray
     val secsA = secs.toArray
-    Secs.insertBatch_!(secsA)
-    SecInfos.insertBatch_!(secInfosA)
-    Secs.updateBatch_!(secsA, Secs.secInfo)
+    try {
+      Secs.insertBatch_!(secsA, false) // not use auto increamnent id
+      SecInfos.insertBatch_!(secInfosA)
+      Secs.updateBatch_!(secsA, Secs.secInfo)
     
-    if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
-      COMMIT
-      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
+        COMMIT
+        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      }
+      
+      secsA
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array()
     }
     
-    secsA
   }
   
   def createSimpleSecInfos(secToName: Array[(Sec, String)], isCurrent: Boolean = true): Array[SecInfo] = {
@@ -844,15 +854,19 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     
     val secInfosA = secInfos.toArray
     val secsA = secs.toArray
-    SecInfos.insertBatch_!(secInfosA)
-    Secs.updateBatch_!(secsA, Secs.secInfo)
+    try {
+      SecInfos.insertBatch_!(secInfosA)
+      Secs.updateBatch_!(secsA, Secs.secInfo)
     
-    if (secsA.length > 0 | secInfosA.length > 0) {
-      COMMIT
-      log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      if (secsA.length > 0 | secInfosA.length > 0) {
+        COMMIT
+        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+      }
+    
+      secInfosA
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array()
     }
-    
-    secInfosA
   }
   
 }

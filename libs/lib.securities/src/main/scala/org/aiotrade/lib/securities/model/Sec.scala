@@ -686,14 +686,14 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
     }
   }
   
-  def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else " "
+  def uniSymbol: String = if (secInfo != null) secInfo.uniSymbol else ""
   def uniSymbol_=(uniSymbol: String) {
     if (secInfo != null) {
       secInfo.uniSymbol = uniSymbol
     }
   }
 
-  override def name: String = {
+  def name: String = {
     if (secInfo != null) secInfo.name else uniSymbol
   }
 

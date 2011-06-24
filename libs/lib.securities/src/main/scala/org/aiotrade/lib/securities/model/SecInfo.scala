@@ -36,6 +36,14 @@ import ru.circumflex.orm._
 
 class SecInfo extends BelongsToSec {
   
+  /** 
+   * @note in case of BelongsToSec.self is SecInfo, the sec.uniSymbol will be fetched from its secInfo
+   * i.e. cycle assignment will occur, we should avoid this by override sec_=(Sec) 
+   */
+  override def sec_=(sec: Sec) {
+    _sec = sec
+  }
+
   var validFrom: Long = _
   var validTo: Long = _
   var name: String = ""
