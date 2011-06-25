@@ -62,12 +62,21 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
-    //temporaryTest
-    //test
-    //createSamples
+    try {
+      val symbols = Set("000008.SZ", "600004.SS", "000004.SZ", "000024.SZ", "000010.SZ", "000015.SZ", "000023.SZ", "000019.SZ", "000030.SZ", "000002.SZ", "000012.SZ", "000013.SZ", "000006.SZ", "000018.SZ", "600028.SS", "600019.SS", "000009.SZ", "000001.SS", "600030.SS", "600005.SS", "600020.SS", "000025.SZ", "600016.SS"," 600010.SS", "600022.SS", "000003.SZ", "600003.SS", "000029.SZ")
 
-    Scheduler.shutdown
-    System.exit(0)
+      val a = Exchange.uniSymbolToSec
+      println(a)
+      val secs = (symbols map Exchange.secOf).flatten
+      println(secs)
+      //temporaryTest
+      //test
+      //createSamples
+
+      System.exit(0)
+    } catch {
+      case ex => ex.printStackTrace; System.exit(-1)
+    }
   }
 
   private def temporaryTest {

@@ -152,7 +152,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   def uniSymbolToLastTicker: collection.Map[String, Ticker] = _uniSymbolToLastTicker synchronized {_uniSymbolToLastTicker}
   def uniSymbolToLastTradingDayTicker: collection.Map[String, Ticker] = _uniSymbolToLastTradingDayTicker synchronized {_uniSymbolToLastTradingDayTicker}
-  def uniSymbols: collection.Seq[String] = Exchange.symbolsOf(this)
+  def uniSymbols: collection.Set[String] = Exchange.symbolsOf(this)
   
   /** @Todo */
   def primaryIndex: Option[Sec] = code match {
@@ -480,11 +480,9 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   override def equals(that: Any) = that match {
-    case x: Exchange => this.code == x.code
+    case x: Exchange => this.id == x.id
     case _ => false
   }
-
-  override def hashCode = this.code.hashCode
 
   def compare(that: Exchange): Int = {
     (this.code, that.code) match {
@@ -513,7 +511,7 @@ object Exchange extends Publisher {
   private var _activeExchanges: Seq[Exchange] = Nil
   private var _codeToExchange = Map[String, Exchange]()
   private var _exchangeToSecs = Map[Exchange, Seq[Sec]]()
-  private var _exchangeToUniSymbols = Map[Exchange, Seq[String]]()
+  private var _exchangeToUniSymbols = Map[Exchange, Set[String]]()
   private var _uniSymbolToSec = Map[String, Sec]()
   private var _searchTextToSecs = Map[String, Seq[Sec]]()
 
@@ -546,19 +544,26 @@ object Exchange extends Publisher {
     
       _codeToExchange = Map() ++ (_allExchanges map {x => (x.code, x)})
 
-      _exchangeToSecs = Map() ++ (_allExchanges map {x => (x, Exchanges.secsOf(x))})
+      _exchangeToSecs = Exchanges.exchangeToSec()
 
       val exchgToSecInfos = Exchanges.exchangeToSecInfo()
-    
-      _exchangeToUniSymbols = exchgToSecInfos map {case (exchg, secInfos) => (exchg, secInfos map (_.uniSymbol.toUpperCase))}
+      
+      _exchangeToUniSymbols = exchgToSecInfos map {case (exchg, secInfos) => (exchg, secInfos map (_.uniSymbol.toUpperCase) toSet)}
     
       _uniSymbolToSec = exchgToSecInfos flatMap {case (exchg, secInfos) => secInfos map (x => (x.uniSymbol.toUpperCase, x.sec))}
     
+      // deal with the worst case: a sec has been in db (with crckey) but lacks secInfo (wrongly deleted or other cases)
+      // we should add these crckey as unisymbol, to avoid a new sec being created on this crckey(unisymol)
+      for ((exchg, secs) <- _exchangeToSecs) {
+        _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Set()) ++ (secs map (_.crckey.toUpperCase))))
+        _uniSymbolToSec ++= (secs map (sec => sec.crckey.toUpperCase -> sec))
+      }
+      
       // _searchTextToSecs
-      _uniSymbolToSec foreach {case (symbol, sec) => 
-          _searchTextToSecs ++= Map(symbol.toUpperCase -> List(sec)) ++ (
-            PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Nil) :+ sec)}
-          )
+      for ((symbol, sec) <- _uniSymbolToSec) {
+        _searchTextToSecs ++= Map(symbol.toUpperCase -> List(sec)) ++ (
+          PinYin.getFirstSpells(sec.name) map {spell => (spell, _searchTextToSecs.getOrElse(spell, Nil) :+ sec)}
+        )
       }
       
       log.info("Reset search table in " + (System.currentTimeMillis - t0) + "ms.")
@@ -574,7 +579,7 @@ object Exchange extends Publisher {
 
   def codeToExchange: Map[String, Exchange] = _codeToExchange
   def exchangeToSecs: Map[Exchange, Seq[Sec]] = _exchangeToSecs
-  def exchangeToUniSymbols: Map[Exchange, Seq[String]] = _exchangeToUniSymbols
+  def exchangeToUniSymbols: Map[Exchange, Set[String]] = _exchangeToUniSymbols
   def uniSymbolToSec: Map[String, Sec] = _uniSymbolToSec
   def searchTextToSecs: Map[String, Seq[Sec]] = _searchTextToSecs
 
@@ -611,8 +616,8 @@ object Exchange extends Publisher {
     exchangeToSecs.getOrElse(exchange, Nil)
   }
 
-  def symbolsOf(exchange: Exchange): Seq[String] = {
-    exchangeToUniSymbols.getOrElse(exchange, Nil)
+  def symbolsOf(exchange: Exchange): Set[String] = {
+    exchangeToUniSymbols.getOrElse(exchange, Set())
   }
 
   def secOf(uniSymbol: String): Option[Sec] = {
@@ -630,8 +635,9 @@ object Exchange extends Publisher {
       val name = ticker.name
       uniSymbolToSec.get(uniSymbol) match {
         case Some(sec) =>
-          if (sec.name != name) {
-            log.info("Found new name of symbol: " + uniSymbol + ", new name: " + name + ", old name: " + sec.name)
+          val secInfo = sec.secInfo
+          if (secInfo == null || secInfo.name != name) {
+            log.info("Found new name or changed name of symbol: " + uniSymbol + ", new name: " + name + (if (secInfo != null) ", old name: " + secInfo.name else ", no secInfo yet"))
             secToName += (sec -> name)
           }
         case None =>
@@ -668,7 +674,7 @@ object Exchange extends Publisher {
     val exchg = sec.exchange
     val symbol= sec.uniSymbol
 
-    _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Nil) :+ symbol))
+    _exchangeToUniSymbols += (exchg -> (_exchangeToUniSymbols.getOrElse(exchg, Set()) + symbol))
     _exchangeToSecs += (exchg -> (_exchangeToSecs.getOrElse(exchg, Nil) :+ sec))
     _uniSymbolToSec += (symbol -> sec)
 
@@ -849,7 +855,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val secInfosA = secInfos.toArray
     val secsA = secs.toArray
     try {
-      Secs.insertBatch_!(secsA, false) // not use auto increamnent id
+      Secs.insertBatch_!(secsA, false) // do not use auto increamnent id
       SecInfos.insertBatch_!(secInfosA)
       Secs.updateBatch_!(secsA, Secs.secInfo)
     

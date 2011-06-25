@@ -49,6 +49,12 @@ class Sector extends CRCLongId {
   var secs: List[Sec] = Nil
   
   lazy val key = category + "." + code
+  
+  override def equals(that: Any) = that match {
+    case x: Sector => this.id == x.id
+    case _ => false
+  }
+
 }
 
 object Sector {

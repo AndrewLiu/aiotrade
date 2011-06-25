@@ -77,6 +77,12 @@ trait CRCLongId {
   def id_=(id: Long) {
     this._id = id
   }
+  
+  override def hashCode = {
+    val iv = id.intValue
+    val lv = id.longValue
+    if (iv == id.longValue) iv else (lv ^ (lv >>> 32)).toInt
+  }
 }
 
 /**

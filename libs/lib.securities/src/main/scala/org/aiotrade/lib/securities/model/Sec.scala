@@ -772,11 +772,9 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   }
 
   override def equals(that: Any) = that match {
-    case x: Sec => this.uniSymbol == x.uniSymbol
+    case x: Sec => this.id == x.id
     case _ => false
   }
-
-  override def hashCode = this.uniSymbol.hashCode
 
   def compare(that: Sec): Int = {
     this.exchange.compare(that.exchange) match {
