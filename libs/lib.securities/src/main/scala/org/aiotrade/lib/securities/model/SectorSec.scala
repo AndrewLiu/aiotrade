@@ -42,6 +42,10 @@ class SectorSec {
   var weight: Float = _
   var validFrom: Long = _
   var validTo: Long = _
+  
+  override def toString = {
+    "SectorSec(sector.key=" + sector.key + ", " + (if (sec == null) "with null sec ?" else " with good sec") + ")"
+  }
 }
 
 object SectorSecs extends Table[SectorSec] {

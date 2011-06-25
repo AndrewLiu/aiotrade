@@ -33,6 +33,7 @@ package org.aiotrade.lib.securities.model
 import scala.collection
 import scala.collection.mutable
 import scala.collection.immutable
+import java.util.logging.Logger
 import org.aiotrade.lib.util.ValidTime
 import ru.circumflex.orm._
 
@@ -128,6 +129,8 @@ object Sector {
 
 // --- table
 object Sectors extends CRCLongPKTable[Sector] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
@@ -167,20 +170,25 @@ object Sectors extends CRCLongPKTable[Sector] {
   private[model] def sectorToSecValidTimes = {
     val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()
     
+    val secsHolder = SELECT(Secs.*) FROM (Secs) list()
     val sectorsHolder = SELECT(Sectors.*) FROM (Sectors) list()
     val sectorSecs = SELECT (SectorSecs.*) FROM (SectorSecs) list()
     for (sectorSec <- sectorSecs) {
-      val key = sectorSec.sector.key
-      val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
-      val validTimes = result.get(key) match {
-        case None => 
-          val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
-          result += (key -> validTimes)
-          validTimes
-        case Some(x) => x
-      }
+      if (sectorSec.sec ne null) {
+        val key = sectorSec.sector.key
+        val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
+        val validTimes = result.get(key) match {
+          case None => 
+            val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
+            result += (key -> validTimes)
+            validTimes
+          case Some(x) => x
+        }
       
-      validTimes += validTime
+        validTimes += validTime
+      } else {
+        log.warning("SectorSec: " + sectorSec + " has null sec. The id of this sectorSec is: " + SectorSecs.idOf(sectorSec))
+      }
     }
     
     result
