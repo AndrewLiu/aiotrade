@@ -115,12 +115,16 @@ abstract class TickerServer extends DataServer[Ticker] {
               tickersLast += tickerx
               secSnaps += sec.secSnap.setByTicker(ticker)
             } else {
-              log.fine("subscribedSrcSymbols doesn't contain " + symbol)
+              log.info("Discard ticker: " + ticker.uniSymbol + " -> subscribedSrcSymbols doesn't contain it")
             }
           case None => log.warning("No sec for " + symbol)
         }
       } else {
-        log.info("Discard ticker: " + ticker.uniSymbol)
+        if (ticker.dayHigh == 0 || ticker.dayLow == 0) {
+          log.info("Discard ticker: " + ticker.uniSymbol + " -> dayHigh=" + ticker.dayHigh + ", dayLow=" + ticker.dayLow)
+        } else {
+          log.info("Discard ticker: " + ticker.uniSymbol + " -> duplicate in this batch processing")
+        }
       }
     }
     
