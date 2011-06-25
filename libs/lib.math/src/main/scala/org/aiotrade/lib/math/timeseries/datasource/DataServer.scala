@@ -232,54 +232,54 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * ...
    * @return source id
    */
-   def id: Long = {
-      val sn = serialNumber
-      assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
+  def id: Long = {
+    val sn = serialNumber
+    assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
-      if (sn == 0) 0 else 1 << (sn - 1)
-    }
+    if (sn == 0) 0 else 1 << (sn - 1)
+  }
 
-   // -- end of public interfaces
+  // -- end of public interfaces
 
-   /** @Note DateFormat is not thread safe, so we always return a new instance */
-   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-      val pattern = defaultDatePattern
-      val dateFormat = new SimpleDateFormat(pattern)
-      dateFormat.setTimeZone(timeZone)
-      dateFormat
-    }
+  /** @Note DateFormat is not thread safe, so we always return a new instance */
+  protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
+    val pattern = defaultDatePattern
+    val dateFormat = new SimpleDateFormat(pattern)
+    dateFormat.setTimeZone(timeZone)
+    dateFormat
+  }
 
-   protected def isAscending(values: Array[_ <: TVal]): Boolean = {
-      val size = values.length
-      if (size <= 1) {
-        true
-      } else {
-        var i = -1
-        while ({i += 1; i < size - 1}) {
-          if (values(i).time < values(i + 1).time) {
-            return true
-          } else if (values(i).time > values(i + 1).time) {
-            return false
-          }
+  protected def isAscending(values: Array[_ <: TVal]): Boolean = {
+    val size = values.length
+    if (size <= 1) {
+      true
+    } else {
+      var i = -1
+      while ({i += 1; i < size - 1}) {
+        if (values(i).time < values(i + 1).time) {
+          return true
+        } else if (values(i).time > values(i + 1).time) {
+          return false
         }
-        false
       }
+      false
     }
+  }
 
-   protected def cancelRequest(contract: C) {}
+  protected def cancelRequest(contract: C) {}
 
-   override def compare(another: DataServer[V]): Int = {
-      if (this.displayName.equalsIgnoreCase(another.displayName)) {
-        if (this.hashCode < another.hashCode) -1
-        else if (this.hashCode == another.hashCode) 0
-        else 1
-      } else {
-        this.displayName.compareTo(another.displayName)
-      }
+  override def compare(another: DataServer[V]): Int = {
+    if (this.displayName.equalsIgnoreCase(another.displayName)) {
+      if (this.hashCode < another.hashCode) -1
+      else if (this.hashCode == another.hashCode) 0
+      else 1
+    } else {
+      this.displayName.compareTo(another.displayName)
     }
+  }
 
-   override def toString: String = displayName
-   }
+  override def toString: String = displayName
+}
 
 
 
