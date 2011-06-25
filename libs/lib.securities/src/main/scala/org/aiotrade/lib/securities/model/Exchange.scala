@@ -625,8 +625,8 @@ object Exchange extends Publisher {
   }
 
   def checkIfSomethingNew(tickers: Array[Ticker]) {
-    val uniSymbolToName = new ArrayList[(String, String)]
-    val secToName = new ArrayList[(Sec, String)]
+    val symbol_name_xs = new ArrayList[(String, String)]
+    val sec_symbol_name_xs = new ArrayList[(Sec, String, String)]
     
     var i = -1
     while ({i += 1; i < tickers.length}) {
@@ -637,17 +637,17 @@ object Exchange extends Publisher {
         case Some(sec) =>
           val secInfo = sec.secInfo
           if (secInfo == null || secInfo.name != name) {
-            log.info("Found new name or changed name of symbol: " + uniSymbol + ", new name: " + name + (if (secInfo != null) ", old name: " + secInfo.name else ", no secInfo yet"))
-            secToName += (sec -> name)
+            log.info("Found new name of symbol: " + uniSymbol + ", new name: " + name + (if (secInfo != null) ", old name: " + secInfo.name else ", no secInfo yet"))
+            sec_symbol_name_xs += ((sec, uniSymbol, name))
           }
         case None =>
           log.info("Found new symbol: " + uniSymbol + ", name: " + name)
-          uniSymbolToName += (uniSymbol -> name)
+          symbol_name_xs += ((uniSymbol, name))
       }
     }
     
-    val secs = Exchanges.createSimpleSecs(uniSymbolToName.toArray, true)
-    val secInfos = Exchanges.createSimpleSecInfos(secToName.toArray, true)
+    val secs = Exchanges.createSimpleSecs(symbol_name_xs.toArray, true)
+    val secInfos = Exchanges.createSimpleSecInfos(sec_symbol_name_xs.toArray, true)
     
     if (secs.length > 0) {
       publish(SecsAddedToDb(secs))
@@ -833,11 +833,11 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     secInfo
   }
 
-  def createSimpleSecs(uniSymbolToName: Array[(String, String)], willCommit: Boolean = false): Array[Sec] = {
+  def createSimpleSecs(symbol_name_xs: Array[(String, String)], willCommit: Boolean = false): Array[Sec] = {
     val secInfos = new ArrayList[SecInfo]
     val secs = new ArrayList[Sec]
     
-    for ((uniSymbol, name) <- uniSymbolToName) {
+    for ((uniSymbol, name) <- symbol_name_xs) {
       val sec = new Sec
       sec.crckey = uniSymbol
       sec.exchange = Exchange.exchangeOf(uniSymbol)
@@ -871,14 +871,14 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     
   }
   
-  def createSimpleSecInfos(secToName: Array[(Sec, String)], isCurrent: Boolean = true): Array[SecInfo] = {
+  def createSimpleSecInfos(sec_symbol_name_xs: Array[(Sec, String, String)], isCurrent: Boolean = true): Array[SecInfo] = {
     val secInfos = new ArrayList[SecInfo]
     val secs = new ArrayList[Sec]
     
-    for ((sec, name) <- secToName) {
+    for ((sec, uniSymbol, name) <- sec_symbol_name_xs) {
       val secInfo = new SecInfo
       secInfo.sec = sec
-      secInfo.uniSymbol = sec.uniSymbol
+      secInfo.uniSymbol = uniSymbol // we cannot trust sec.uniSymbol here, since it may lack secInfo 
       secInfo.name = name
       secInfos += secInfo
 
