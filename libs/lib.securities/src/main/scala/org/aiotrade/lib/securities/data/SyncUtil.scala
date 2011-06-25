@@ -144,28 +144,28 @@ object SyncUtil {
 
   def exportAvroDataFileFromProductionMysql() {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_fr_prod.conf")
-    exportToAvro(exportDataDirPath, baseTables)
+    exportToAvro(exportDataDirPath)
   }
   
   def importAvroDataFileToTestMysql() {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
-    importDataFrom(exportDataDirPath, baseTables)
+    importDataFrom(exportDataDirPath)
   }
 
 
   // --- API methods
 
   def exportBaseTablesToAvro(destDirPath: String) {
-    exportToAvro(destDirPath, baseTables)
+    exportToAvro(destDirPath)
   }
   
   /**
    * all avro file size is about 1708959
    */
-  def exportToAvro(destDirPath: String, tables: Seq[Table[_]]) {
+  def exportToAvro(destDirPath: String) {
     val t0 = System.currentTimeMillis
-    val holdingRecords = tables map {x => SELECT (x.*) FROM (x) list()}
-    tables foreach {x => exportToAvro(destDirPath, x)}
+    val holdingRecords = baseTables map {x => SELECT (x.*) FROM (x) list()}
+    baseTables foreach {x => exportToAvro(destDirPath, x)}
     log.info("Exported to avro in " + (System.currentTimeMillis - t0) + " ms.")
   }
 
@@ -173,14 +173,14 @@ object SyncUtil {
     SELECT (x.*) FROM (x) toAvro(destDirPath + File.separator + x.relationName + ".avro")
   }
 
-  def importDataFrom(dataDir: String, tables: Seq[Table[_]]) {
+  def importDataFrom(dataDir: String) {
     var t0 = System.currentTimeMillis
     schema()
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = tables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
-    tables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
+    val holdingRecords = baseTables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    baseTables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
@@ -196,8 +196,6 @@ object SyncUtil {
    */
   private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
     val records = selectAvroRecords(avroFile, table).toArray
-    records foreach println
-    println("Total: " + records.length)
     table.insertBatch(records, false)
   }
   
