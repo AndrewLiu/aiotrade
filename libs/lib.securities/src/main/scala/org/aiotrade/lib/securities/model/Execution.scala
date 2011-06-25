@@ -30,22 +30,21 @@
  */
 package org.aiotrade.lib.securities.model
 
+import org.aiotrade.lib.math.timeseries.TVal
 import ru.circumflex.orm._
 
-class Execution {
+/**
+ * 
+ * @author Caoyuan Deng
+ */
+class Execution extends BelongsToSec with TVal {
   import Execution._
 
-  @transient var _sec: Sec = _
-  def sec = _sec
-  def sec_=(sec: Sec) {
-    _uniSymbol = sec.uniSymbol
-    _sec = sec
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
   }
-  
-  private var _uniSymbol: String = _
-  def uniSymbol = _uniSymbol
-  
-  var time: Long = -1
 
   var price:  Double = _
   var volume: Double = _
