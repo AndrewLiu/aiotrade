@@ -68,6 +68,7 @@ import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.TickersLast
 import org.eclipse.jgit.api.MergeResult
 import ru.circumflex.orm._
+import ru.circumflex.orm.avro.AvroReader
 
 /**
  * An empty class to support locating this module, @see org.openide.modules.InstalledFileLocator
@@ -103,26 +104,52 @@ object SyncUtil {
 
   def main(args: Array[String]) {
     try {
-      //exportAvroDataFileFromProductionMysql
-      importAvroDataFileToTestMysql
+      //exportAvroDataFileFromProductionMysql()
+      importAvroDataFileToTestMysql()
+      //test()
       println("Finished!")
       System.exit(0)
     } catch {
       case ex => 
         ex.printStackTrace
         println("Error! see aiotrade.log at project root for more information.")
-        System.exit(1)
+        System.exit(-1)
     }
   }
+
+  def test() {
+    test(Secs)
+    test(SecInfos)
+    test(Secs)
+    test(SecInfos)
+  }
   
-  def exportAvroDataFileFromProductionMysql {
+  private def test[R: Manifest](table: Table[R]) {
+    //org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
+    val records = selectAvroRecords(exportDataDirPath + File.separator + table.relationName + ".avro", table).toArray
+    records foreach println
+    println("Total: " + records.length)
+    //table.insertBatch(records, false)
+  }
+  
+  
+  private def testPrint(table: Table[_]) {
+    val tableName = table.relationName
+    val fileName = SyncUtil.exportDataDirPath + "/" + tableName + ".avro"
+    AvroReader.read(fileName) {
+      case null => println("null")
+      case row =>  println(row.mkString(" \t| "))
+    }
+  } 
+
+  def exportAvroDataFileFromProductionMysql() {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "export_fr_prod.conf")
     exportToAvro(exportDataDirPath, baseTables)
   }
   
-  def importAvroDataFileToTestMysql {
+  def importAvroDataFileToTestMysql() {
     org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
-    importDataFrom(exportDataDirPath)
+    importDataFrom(exportDataDirPath, baseTables)
   }
 
 
@@ -137,6 +164,7 @@ object SyncUtil {
    */
   def exportToAvro(destDirPath: String, tables: Seq[Table[_]]) {
     val t0 = System.currentTimeMillis
+    val holdingRecords = tables map {x => SELECT (x.*) FROM (x) list()}
     tables foreach {x => exportToAvro(destDirPath, x)}
     log.info("Exported to avro in " + (System.currentTimeMillis - t0) + " ms.")
   }
@@ -145,11 +173,39 @@ object SyncUtil {
     SELECT (x.*) FROM (x) toAvro(destDirPath + File.separator + x.relationName + ".avro")
   }
 
+  def importDataFrom(dataDir: String, tables: Seq[Table[_]]) {
+    var t0 = System.currentTimeMillis
+    schema()
+    log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
+    
+    t0 = System.currentTimeMillis
+    val holdingRecords = tables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    tables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
+    COMMIT
+    log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
+  }
+  
+  private def selectAvroRecords[R](avroFile: String, table: Table[R]) = {
+    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
+  }
+
+  /**
+   * @Note
+   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
+   * this standalone function to get type right
+   */
+  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
+    val records = selectAvroRecords(avroFile, table).toArray
+    records foreach println
+    println("Total: " + records.length)
+    table.insertBatch(records, false)
+  }
+  
   /**
    * @Note All tables should be ddl.dropCreate together, since schema will be
    * droped before create tables each time.
    */
-  def schema {
+  def schema() {
     val tables = List(
       // -- basic tables
       Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
@@ -165,32 +221,6 @@ object SyncUtil {
 
     val ddl = new DDLUnit(tables: _*)
     ddl.dropCreate.messages.foreach(msg => log.info(msg.body))
-  }
-
-  def importDataFrom(dataDir: String) {
-    var t0 = System.currentTimeMillis
-    schema
-    log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
-    
-    t0 = System.currentTimeMillis
-    val holdingRecords = baseTables map {x => holdAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
-    baseTables foreach {x => importAvroToDb(dataDir + File.separator +  x.relationName + ".avro", x)}
-    COMMIT
-    log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
-  }
-  
-  private def holdAvroRecords[R](avroFile: String, table: Table[R]) = {
-    SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-  }
-
-  /**
-   * @Note
-   * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
-   * this standalone function to get type right
-   */
-  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
-    val records = SELECT (table.*) FROM (AVRO(table, avroFile)) list()
-    table.insertBatch(records.toArray, false)
   }
   
   /**
