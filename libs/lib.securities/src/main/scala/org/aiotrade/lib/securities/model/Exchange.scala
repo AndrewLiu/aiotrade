@@ -276,20 +276,18 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   def tradingStatusOf(time: Long): TradingStatus = {
     import TradingStatus._
 
-    var status: TradingStatus = null
-
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+    
     if (this == SZ || this == SS) {
-      val cnStatus = tradingStatusCN(timeInMinutes, time)
-      cnStatus match {
-        case Some(s) => return s
+      tradingStatusCN(timeInMinutes, time) match {
+        case Some(status) => return status
         case None =>
       }
     }
     
-
+    var status: TradingStatus = null
     if (time == 0) {
       status = Closed(time, timeInMinutes)
     } else {
