@@ -186,6 +186,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     }
 
     adjusted = b
+    
+    log.info(if (adjusted) "Adjusted!" else "Unadjusted!")
         
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
@@ -245,7 +247,6 @@ object QuoteSer {
       val closes  = vmap("C")
       val volumes = vmap("V")
       val amounts = vmap("A")
-      val adjweis = vmap("W")
     
       var i = -1
       while ({i += 1; i < times.length}) {
