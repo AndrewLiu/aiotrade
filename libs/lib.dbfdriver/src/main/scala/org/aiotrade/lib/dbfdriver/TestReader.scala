@@ -1,18 +1,24 @@
 package org.aiotrade.lib.dbfdriver
 import java.util.Date
 import java.text.SimpleDateFormat
+
 object TestReader {
-  val willPrintRecord = true
+  val isPrintOnly = true
 
   val warmTimes = 5
-  val times = if (willPrintRecord) 1 else 30
-  val filename = "show2003.dbf"
+  val times = if (isPrintOnly) 1 else 30
+  val fileNames = List("show2003.dbf", "sjshq.dbf")
   
   def main(args: Array[String]) {
     try {
-      test1
-      println("==============")
-      test2
+      for (fileName <- fileNames) {
+        println("==== " + fileName + " ====")
+        test1(fileName)
+        if (!isPrintOnly) {
+          println("==============")
+          test2(fileName)
+        }
+      }
     
       System.exit(0)
     } catch {
@@ -20,36 +26,35 @@ object TestReader {
     }
   }
 
-  def test1 {
+  def test1(fileName: String) {
+    println("Use new DBFReader instance each time")
+    
     var t0 = System.currentTimeMillis
-    var i = 0
-    while (i < times) {
+    var i = -1
+    while ({i += 1; i < times}) {
       if (i == warmTimes) t0 = System.currentTimeMillis // warm using the first warmTimes reading
 
-      val reader = DBFReader(filename, "GBK")
+      val reader = DBFReader(fileName, "GBK")
 
       readRecords(reader)
       reader.close
-
-      i += 1
     }
 
     val countTimes = if (times > warmTimes) (times - warmTimes) else times
     println("Averagy time: " + (System.currentTimeMillis - t0) / countTimes + " ms")
   }
 
-  def test2 {
+  def test2(fileName: String) {
+    println("Use same DBFReader instance")
     var t0 = System.currentTimeMillis
-    val reader = DBFReader(filename, "GBK")
+    val reader = DBFReader(fileName, "GBK")
       
-    var i = 0
-    while (i < times) {
+    var i = -1
+    while ({i += 1; i < times}) {
       if (i == warmTimes) t0 = System.currentTimeMillis // warm using the first warmTimes reading
 
       reader.load
       readRecords(reader)
-
-      i += 1
     }
     reader.close
 
@@ -58,16 +63,16 @@ object TestReader {
   }
 
   def readRecords(reader: DBFReader) {
-    if (willPrintRecord) {
-      reader.header.fields foreach {x => print(x.name + " | ")}
+    if (isPrintOnly) {
+      reader.header.fields foreach {x => print(x + " | ")}
       println
     }
 
-    var i = 0
+    var i = -1
     val l = reader.recordCount
-    while (i < l) {
+    while ({i += 1; i < l}) {
       val recordObjs = reader.nextRecord
-      if (willPrintRecord) {
+      if (isPrintOnly) {
         recordObjs foreach {x => x match {
             case x: String => print( x + " | ")
             case x: Date => print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(x) + " | ")
@@ -77,7 +82,6 @@ object TestReader {
       } else {
         recordObjs foreach {x =>}
       }
-      i += 1
     }
     
     println("Total Count: " + i)

@@ -19,12 +19,13 @@ import java.util.Calendar
 @throws(classOf[UnsupportedEncodingException])
 class DBFReader private (input: Either[FileChannel, InputStream], charsetName: String) {
   import DBFReader._
-  
   val charset = Charset.forName(if (charsetName == null) defaultCharsetName else charsetName)
   var isClosed = false
 
   private var bBuf: ByteBuffer = _
   var header: DBFHeader = _
+
+  private val cal = Calendar.getInstance
 
   load
 
@@ -164,24 +165,24 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               bBuf.get(bytes)
               new String(bytes, charsetName)
             } catch {
-              case ex:Exception => ""
+              case _ => ""
             }
           case 'D' =>
             try {
-              val cal = Calendar.getInstance
+              cal.clear()
               
               bBuf.get(bytes4)
-              cal.set(Calendar.YEAR, (new String(bytes4)).toInt)
+              cal.set(Calendar.YEAR, parseInt(bytes4))
               
               bBuf.get(bytes2)
-              cal.set(Calendar.MONTH, (new String(bytes2)).toInt - 1)
+              cal.set(Calendar.MONTH, parseInt(bytes2) - 1)
               
               bBuf.get(bytes2)
-              cal.set(Calendar.DAY_OF_MONTH, (new String(bytes2)).toInt)
+              cal.set(Calendar.DAY_OF_MONTH, parseInt(bytes2))
 
               cal.getTime
             } catch {
-              case ex: Exception => null // this field may be empty or may have improper value set
+              case _ => null // this field may be empty or may have improper value set
             } 
 
           case 'F' =>
@@ -189,13 +190,10 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
               
-              val bytes1 = Utils.trimLeftSpaces(bytes)
-              if (bytes1.length > 0 && !Utils.contains(bytes1, '?')) {
-                (new String(bytes1, "ASCII")).toFloat
-              } else null
+              parseFloat(bytes)
             } catch {
               case ex: NumberFormatException => 0.0F // throw new IOException("Failed to parse Float: " + ex.getMessage)
-              case ex: Exception => 0.0F
+              case _ => 0.0F
             }
 
           case 'N' =>
@@ -203,13 +201,10 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
               
-              val bytes1 = Utils.trimLeftSpaces(bytes)
-              if (bytes1.length > 0 && !Utils.contains(bytes1, '?')) {
-                (new String(bytes1, "ASCII")).toDouble
-              } else null
+              parseDouble(bytes)
             } catch {
               case ex: NumberFormatException => 0.0 // throw new IOException("Failed to parse Number: " + ex.getMessage)
-              case ex: Exception => 0.0
+              case _ => 0.0
             }
 
           case 'L' =>
@@ -222,41 +217,41 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
 
           case 'T' =>
             try {
-              val cal = Calendar.getInstance
-
+              cal.clear()
+              
               bBuf.get(bytes4)
-              cal.set(Calendar.YEAR, (new String(bytes4, "ASCII")).toInt)
+              cal.set(Calendar.YEAR, parseInt(bytes4))
 
               val bytes = new Array[Byte](2) // month
               bBuf.get(bytes2)
-              cal.set(Calendar.MONTH, (new String(bytes2, "ASCII")).toInt - 1)
+              cal.set(Calendar.MONTH, parseInt(bytes2) - 1)
 
               bBuf.get(bytes2) // day
-              cal.set(Calendar.DAY_OF_MONTH, (new String(bytes2, "ASCII")).toInt)
+              cal.set(Calendar.DAY_OF_MONTH, parseInt(bytes2))
 
               bBuf.get(bytes2) // hour
-              cal.set(Calendar.HOUR_OF_DAY, new String(bytes2, "ASCII").toInt)
+              cal.set(Calendar.HOUR_OF_DAY, parseInt(bytes2))
               
               bBuf.get(bytes2) // min
-              cal.set(Calendar.MINUTE, new String(bytes2, "ASCII").toInt)
+              cal.set(Calendar.MINUTE, parseInt(bytes2))
 
               bBuf.get(bytes2) // sec
-              cal.set(Calendar.SECOND, new String(bytes2, "ASCII").toInt)
+              cal.set(Calendar.SECOND, parseInt(bytes2))
               
               bBuf.get(bytes3)
-              cal.set(Calendar.MILLISECOND, new String(bytes3, "ASCII").toInt)
+              cal.set(Calendar.MILLISECOND, parseInt(bytes3))
               
               cal.getTime
             } catch {
-              case ex: Exception => null // this field may be empty or may have improper value set
+              case _ => null // this field may be empty or may have improper value set
             }
           case 'I' =>
             try{
               val bytes = new Array[Byte](header.fields(i).length)
               bBuf.get(bytes)
-              (new String(Utils.trimLeftSpaces(bytes), "ASCII")).toInt
+              parseInt(bytes)
             } catch{
-              case ex:Exception => 0
+              case _ => 0
             }
           case _ => "null"
         }
@@ -282,7 +277,49 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
       case ex: IOException => throw ex
     }
   }
+  
+  // --- helper
+  
+  /**
+   * filter space char ' ' and convert to a char array, then a string.
+   * 
+   * new String(chars: Char[Array]) is the direct and fastest way for ascii 
+   * encoded bytes
+   */
+  private def asciiNumberBytesToString(bytes: Array[Byte]): String = {
+    val chars = new Array[Char](bytes.length)
+    var i = -1
+    var j = -1
+    while ({i += 1; i < bytes.length}) {
+      val byte = bytes(i)
+      if (byte == '?') return null // invalid char
+      
+      if (byte != ' ') {
+        j += 1
+        chars(j) = byte.asInstanceOf[Char]
+      }
+    }
+    if (j >= 0) new String(chars, 0, j + 1) else null
+  }
 
+  @throws(classOf[NumberFormatException])
+  final def parseInt(bytes: Array[Byte]): Int = {
+    val str = asciiNumberBytesToString(bytes)
+    if (str ne null) java.lang.Integer.parseInt(str) else 0
+  }
+  
+  @throws(classOf[NumberFormatException])
+  final def parseFloat(bytes: Array[Byte]): Float = {
+    val str = asciiNumberBytesToString(bytes)
+    if (str ne null) java.lang.Float.parseFloat(str) else 0.0F
+  }
+
+  @throws(classOf[NumberFormatException])
+  final def parseDouble(bytes: Array[Byte]): Double = {
+    val str = asciiNumberBytesToString(bytes)
+    if (str ne null) java.lang.Double.parseDouble(str) else 0.0
+  }
+  
 }
 
 object DBFReader {
