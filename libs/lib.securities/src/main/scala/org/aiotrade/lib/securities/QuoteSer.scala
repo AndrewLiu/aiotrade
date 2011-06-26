@@ -38,6 +38,7 @@ import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.reactors.Reactions
+import scala.collection.mutable
 
 /**
  *
@@ -56,10 +57,15 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   val volume = TVar[Double]("V", Plot.Volume)
   val amount = TVar[Double]("A", Plot.Volume)
     
-  val close_adj = TVar[Double]("W")
-  val close_ori = TVar[Double]()
+  // unadjusted values
+  val open_ori  = TVar[Double]("O")
+  val high_ori  = TVar[Double]("H")
+  val low_ori   = TVar[Double]("L")
+  val close_ori = TVar[Double]("C")
 
   val isClosed = TVar[Boolean]()
+  
+  private val exportVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount)
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -74,11 +80,11 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         volume(time) = quote.volume
         amount(time) = quote.amount
 
+        open_ori(time)  = quote.open
+        high_ori(time)  = quote.high
+        low_ori(time)   = quote.low
         close_ori(time) = quote.close
 
-        val adjuestedClose = /* if (quote.adjWeight != 0 ) quote.adjWeight else */ quote.close
-        close_adj(time) = quote.close
-        
         isClosed(time) = quote.closed_?
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
@@ -184,6 +190,38 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
+  override def export(fromTime: Long, toTime: Long): collection.Map[String, Any] = {
+    try {
+      readLock.lock
+      timestamps.readLock.lock
+
+      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+      var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      toIdx = exportVars.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
+      val len = toIdx - frIdx + 1
+      
+      if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
+        val vmap = new mutable.HashMap[String, Array[_]]()
+
+        val times = timestamps.sliceToArray(frIdx, len)
+        vmap.put(".", times)
+
+        for (v <- exportVars) {
+          val values = v.values.sliceToArray(frIdx, len)
+          vmap.put(v.name, values)
+        }
+
+        vmap
+      } else {
+        Map()
+      }
+
+    } finally {
+      timestamps.readLock.unlock
+      readLock.unlock
+    }
+  }
+  
   override def shortName: String = {
     if (adjusted) {
       _shortName + "(*)"
