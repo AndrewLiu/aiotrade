@@ -35,25 +35,36 @@ import ru.circumflex.orm.Table
 class SecDividend extends BelongsToSec {
   
   var prevClose: Double = _
-  var adjWeight: Double = _
-  var adjOffset: Double = _
   var cashBonus: Double = _
   var shareBonus: Double = _ // bonus issue, entitle bonus share
   var shareRight: Double = _ // allotment of shares in sharePrice
   var shareRightPrice: Double = _ // price of allotment of share
   var registerDate: Long = _
   var dividendDate: Long = _
+
+  private var _adjWeight: Double = _
+  private var _adjOffset: Double = _
+  def adjWeight = if (hasAccurateParams) shareAfterward else _adjWeight
+  def adjWeight_=(adjWeight: Double) {
+    this._adjWeight = adjWeight
+  }
+  def adjOffset = if (hasAccurateParams) cashAfterward else _adjOffset
+  def adjOffset_=(adjOffset: Double) {
+    this._adjOffset = adjOffset
+  }
   
-  final 
-  def dividedClose = accurateAdjust(prevClose)
+  private def hasAccurateParams = {
+    math.abs(cashBonus) + math.abs(shareRight) + math.abs(shareRightPrice) + math.abs(shareRight) + math.abs(shareBonus) != 0
+  }
+  
+  final def adjustedClose = adjust(prevClose)
   
   /**
    * p' = (p - offset) / weight 
    * weight = (p - offset) / p'
    * offset = p - p' * weight
    */
-  final 
-  def setAdjParams(p1: Double, p1Adj: Double, p2: Double, p2Adj: Double) {
+  final def setAdjParams(p1: Double, p1Adj: Double, p2: Double, p2Adj: Double) {
     adjWeight = (p1 - p2) / (p1Adj - p2Adj)
     adjOffset = p1 - p1Adj * adjWeight
   }
@@ -61,29 +72,23 @@ class SecDividend extends BelongsToSec {
   private def cashAfterward = cashBonus - shareRight * shareRightPrice  // adjWeight
   private def shareAfterward = 1 + shareRight + shareBonus              // adjOffset
 
-  final 
-  def accurateAdjust(price: Double) = (price - cashAfterward) / shareAfterward
-  final 
-  def accurateUnadjust(price: Double) = price * shareAfterward + cashAfterward
+  private  def accurateAdjust(price: Double) = (price - cashAfterward) / shareAfterward
+  private  def accurateUnadjust(price: Double) = price * shareAfterward + cashAfterward
   
-  final 
-  def adjust(price: Double) = {
+  final def adjust(price: Double) = {
     val p = accurateAdjust(price)
     if (p != price) p else (if (adjWeight != 0) (price - adjOffset) / adjWeight else price)
   }
   
-  final 
-  def unadjust(price: Double) = {
+  final def unadjust(price: Double) = {
     val p = accurateUnadjust(price)
     if (p != price) p else (if (adjWeight != 0) price * adjWeight + adjOffset else price)
   }
   
-  final 
-  def forwardAdjust(price: Double) = adjust(price)
-  final 
-  def backwradAdjust(price: Double) = unadjust(price)
+  final def forwardAdjust(price: Double) = adjust(price)
+  final def backwradAdjust(price: Double) = unadjust(price)
   
-  def copyFrom(another: SecDividend) {
+  final def copyFrom(another: SecDividend) {
     this.cashBonus = another.cashBonus
     this.dividendDate = another.dividendDate
     this.registerDate = another.registerDate
@@ -92,20 +97,39 @@ class SecDividend extends BelongsToSec {
     this.shareRight = another.shareRight
   }
   
-  override 
-  def equals(a: Any): Boolean = a match {
-    case x: SecDividend =>
-      this.sec == x.sec && 
-      this.dividendDate == x.dividendDate && 
-      equals(this.cashBonus, x.cashBonus) && 
-      equals(this.adjWeight, x.adjWeight) &&
-      equals(this.shareBonus - x.shareBonus) && 
-      equals(this.shareRightPrice - x.shareRightPrice) &&
-      equals(this.shareRight - x.shareRight)
+  override def equals(a: Any): Boolean = a match {
+    case that: SecDividend => (this.sec eq that.sec) && this.dividendDate == that.dividendDate
     case _ => false
   }
   
-  private def equals(a: Double, b: Double) = math.abs(a - b) < 1e-6
+  final def valueNonEquals(that : SecDividend): Boolean = !valueEquals(that)
+  final def valueEquals(that: SecDividend): Boolean = {
+    valueEquals(this.cashBonus, that.cashBonus) && 
+    valueEquals(this.shareBonus, that.shareBonus) && 
+    valueEquals(this.shareRightPrice, that.shareRightPrice) &&
+    valueEquals(this.shareRight, that.shareRight)
+  }
+  
+  final def diffValues(that: SecDividend): List[(String, Double, Double)] = {
+    var result: List[(String, Double, Double)] = Nil
+    
+    if (valueNonEquals(this.cashBonus, that.cashBonus)) 
+      result = ("cashBonus", this.cashBonus, that.cashBonus) :: result
+    
+    if (valueNonEquals(this.shareBonus, that.shareBonus)) 
+      result = ("shareBonus", this.shareBonus, that.shareBonus) :: result
+    
+    if (valueNonEquals(this.shareRightPrice, that.shareRightPrice)) 
+      result = ("shareRightPrice", this.shareRightPrice, that.shareRightPrice) :: result
+    
+    if (valueNonEquals(this.shareRight, that.shareRight)) 
+      result = ("shareRight", this.shareRight, that.shareRight) :: result
+    
+    result
+  }
+
+  private def valueNonEquals(a: Double, b: Double) = !valueEquals(a, b)
+  private def valueEquals(a: Double, b: Double) = math.abs(a - b) < 1e-6
 }
 
 object SecDividends extends Table[SecDividend] {
