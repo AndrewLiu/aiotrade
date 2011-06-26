@@ -316,7 +316,7 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
 
     private val isRealtime = contractFreq == TFreq.ONE_SEC
     if (!isRealtime) {
-      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust(true)
+      if (SwitchAdjustQuoteAction.isAdjusted) ser.adjust()
     }
     sec.subscribeTickerServer(true)
     

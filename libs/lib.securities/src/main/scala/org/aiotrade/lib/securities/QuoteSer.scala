@@ -48,7 +48,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _shortName: String = _sec.uniSymbol
-  var adjusted: Boolean = false
+  var isAdjusted: Boolean = false
     
   val open   = TVar[Double]("O", Plot.Quote)
   val high   = TVar[Double]("H", Plot.Quote)
@@ -119,14 +119,17 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
-  def adjust(b: Boolean) {
+  def adjust() {adjust(true)}
+  def unadjust() {adjust(false)}
+  
+  private def adjust(b: Boolean) {
     if (isLoaded) {
       doAdjust(b)
     } else {
       // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
       var reaction: Reactions.Reaction = null
       reaction = {
-        case TSerEvent.Loaded(ser: QuoteSer, uniSymbol, frTime, toTime, _, _) if ser eq this =>
+        case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
           reactions -= reaction
           doAdjust(b)
       }
@@ -144,11 +147,11 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
    * @param boolean b: if true, do adjust, else, de adjust
    */
   private def doAdjust(b: Boolean) {
-    if (adjusted && b || !adjusted && !b) return
+    if (isAdjusted && b || !isAdjusted && !b) return
     
     val divs = Exchanges.dividendsOf(serProvider)
     if (divs.isEmpty) {
-      adjusted = b
+      isAdjusted = b
       return
     }
     
@@ -185,9 +188,9 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       }
     }
 
-    adjusted = b
+    isAdjusted = b
     
-    log.info(if (adjusted) "Adjusted!" else "Unadjusted!")
+    log.info(serProvider + (if (isAdjusted) " adjusted." else " unadjusted."))
         
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
@@ -225,7 +228,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   }
   
   override def shortName: String = {
-    if (adjusted) {
+    if (isAdjusted) {
       _shortName + "(*)"
     } else {
       _shortName

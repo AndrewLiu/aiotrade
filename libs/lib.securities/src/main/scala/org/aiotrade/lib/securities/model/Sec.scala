@@ -617,6 +617,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
 
   /**
    * @Note Since we use same quoteServer and contract to load varies freq data , we should guarantee that quoteServer is thread safe
+   * 
+   * @todo If there is no QuoteServer for this sec, who will fire the TSerEvent.Loaded to avoid evt chain broken?
    */
   private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
@@ -635,7 +637,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: Reactions.Reaction = null
             reaction = {
-              case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
+              case TSerEvent.Loaded(serx, _, _, _, _, _) if serx eq ser =>
                 reactions -= reaction
                 deafTo(ser)
                 ser.isLoaded = true
