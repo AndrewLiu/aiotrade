@@ -48,45 +48,6 @@ import org.aiotrade.lib.util.actors.Publisher
 /**
  * @author Caoyuan Deng
  */
-object PanelIndicator extends Publisher {
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private val idToIndicator = new ConcurrentHashMap[Id, PanelIndicator[_]]
-  
-  private case object PanelHeartBeat
-  private val interval = 10000L // 10 seconds
-  private val timer = new Timer("PanelIndictorTimer")
-  timer.scheduleAtFixedRate(new TimerTask {
-      def run {
-        publish(PanelHeartBeat)
-      }
-    }, 1000, interval)
-
-  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): T = {
-    val factorArr = factors.toArray
-    val factorLen = factorArr.length
-    val args = new Array[Any](factorLen + 1)
-    args(0) = freq
-    System.arraycopy(factorArr, 0, args, 1, factorLen)
-    
-    val id = Id(klass, sectorKey, args: _*)
-    
-    idToIndicator.get(id) match {
-      case null =>
-        /** if got none from idToIndicator, try to create new one */
-        try {
-          val indicator = klass.getConstructor(classOf[TFreq]).newInstance(freq)
-          indicator.factors = factors.toArray
-          idToIndicator.putIfAbsent(id, indicator)
-          indicator
-        } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
-        }
-      case x => x.asInstanceOf[T]
-    }
-  }
-}
-
 abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -137,15 +98,15 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     var fromTime1 = fromTime
     if (fromTime == 0 | fromTime == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)
       val firstTime = firstTimeOf(indicators)
-      if (firstTime == Long.MinValue) return else fromTime1 = firstTime
+      if (firstTime != Long.MinValue) fromTime1 = firstTime else return
     }
     
     val lastTime = lastTimeOf(indicators)
 
-    log.info(freq.shortName + ": compute " + fromTime1 + " - " + lastTime)
-    val start = System.currentTimeMillis
+    log.info(freq.shortName + ", compute " + fromTime1 + " - " + lastTime)
+    val t0 = System.currentTimeMillis
     compute(fromTime1, lastTime)
-    log.info(freq.shortName + ": computed in " + (System.currentTimeMillis - start) + "ms")
+    log.info(freq.shortName + ", computed in " + (System.currentTimeMillis - t0) + "ms")
   }
   
   /**
@@ -158,14 +119,13 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   protected def firstTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
     var firstTime = Long.MinValue
 
-    var i = 0
-    while (i < inds.length) {
+    var i = -1
+    while ({i += 1; i < inds.length}) {
       val ind = inds(i)._1
       if (ind != null && ind.timestamps.size > 0) {
         val fTime = ind.timestamps(0)
         firstTime = if (firstTime == Long.MinValue) fTime else math.min(firstTime, fTime)
       }
-      i += 1
     }
 
     firstTime
@@ -173,5 +133,44 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 
   protected def lastTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
     if (inds.isEmpty) 0 else inds.map(_._1.lastOccurredTime).max
+  }
+}
+
+object PanelIndicator extends Publisher {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private val idToIndicator = new ConcurrentHashMap[Id, PanelIndicator[_]]
+  
+  private case object PanelHeartBeat
+  private val interval = 30000L // 30 seconds
+  private val timer = new Timer("PanelIndictorTimer")
+  timer.scheduleAtFixedRate(new TimerTask {
+      def run {
+        publish(PanelHeartBeat)
+      }
+    }, 1000, interval)
+
+  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): T = {
+    val factorArr = factors.toArray
+    val factorLen = factorArr.length
+    val args = new Array[Any](factorLen + 1)
+    args(0) = freq
+    System.arraycopy(factorArr, 0, args, 1, factorLen)
+    
+    val id = Id(klass, sectorKey, args: _*)
+    
+    idToIndicator.get(id) match {
+      case null =>
+        /** if got none from idToIndicator, try to create new one */
+        try {
+          val indicator = klass.getConstructor(classOf[TFreq]).newInstance(freq)
+          indicator.factors = factors.toArray
+          idToIndicator.putIfAbsent(id, indicator)
+          indicator
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
+        }
+      case x => x.asInstanceOf[T]
+    }
   }
 }

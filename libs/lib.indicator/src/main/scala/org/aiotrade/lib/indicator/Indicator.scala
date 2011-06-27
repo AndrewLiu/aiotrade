@@ -37,26 +37,14 @@ import org.aiotrade.lib.math.indicator.IndicatorHelper
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TVar, BaseTSer}
 import org.aiotrade.lib.securities.QuoteSer
 
-/**
- *
- * @author Caoyuan Deng
- */
-object Indicator {
-  /** a static global session id */
-  protected var sessionId: Long = _
-
-  protected def setSessionId {
-    sessionId += 1
-  }
-}
 
 /**
  * @param base series to compute this
  */
-import Indicator._
 abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
                                                               with org.aiotrade.lib.math.indicator.Indicator
                                                               with IndicatorHelper {
+  import Indicator._
 
   /**
    * Make sure this null args contructor only be called and return instance to
@@ -89,7 +77,7 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
 
   def uniSymbol = _uniSymbol
   def uniSymbol_=(uniSymbol: String) {
-     _uniSymbol = uniSymbol match {
+    _uniSymbol = uniSymbol match {
       case null | "" => None
       case _ => Some(uniSymbol)
     }
@@ -405,4 +393,17 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
    * End of Functions
    */
         
+}
+
+/**
+ *
+ * @author Caoyuan Deng
+ */
+object Indicator {
+  /** a static global session id */
+  protected var sessionId: Long = _
+
+  protected def setSessionId {
+    sessionId += 1
+  }
 }
