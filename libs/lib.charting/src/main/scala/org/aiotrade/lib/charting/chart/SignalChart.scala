@@ -81,8 +81,8 @@ class SignalChart extends AbstractChart {
     var bar = 1
     while (bar <= nBars) {
             
-      var i = 0
-      while (i < nBarsCompressed) {
+      var i = -1
+      while ({i += 1; i < nBarsCompressed}) {
         val time = tb(bar + i)
         if (ser.exists(time)) {
           var signals = m.signalVar(time)
@@ -115,7 +115,7 @@ class SignalChart extends AbstractChart {
                   case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
                     var height = 12
                     var filled = false
-                    if (signal.isInstanceOf[Sign]) {
+                    if (signal.isSign) {
                       arrow.setForeground(color)
                       arrow.model.set(x, y + dyUp, true, true)
                       height = math.max(height, 12)
@@ -133,11 +133,11 @@ class SignalChart extends AbstractChart {
                     }
 
                     dyUp += (1 + height)
+                    
                   case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
-
                     var height = 12
                     var filled = false
-                    if (signal.isInstanceOf[Sign]) {
+                    if (signal.isSign) {
                       arrow.setForeground(color)
                       arrow.model.set(x, y - dyDn, false, true)
                       height = math.max(height, 12)
@@ -158,7 +158,7 @@ class SignalChart extends AbstractChart {
                   case _ =>
                 }
                 
-                if (signal.isInstanceOf[Sign]) {
+                if (signal.isSign) {
                   arrow.plot
                   pathsWidget.appendFrom(arrow)
                 }
@@ -169,8 +169,6 @@ class SignalChart extends AbstractChart {
             j += 1
           }
         }
-
-        i += 1
       }
 
       bar += nBarsCompressed

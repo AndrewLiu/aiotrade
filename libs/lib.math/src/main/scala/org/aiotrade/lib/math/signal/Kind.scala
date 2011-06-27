@@ -34,19 +34,14 @@ package org.aiotrade.lib.math.signal
  *
  * @author Caoyuan Deng
  */
-object Kind {
-  def withId(id: Int): Kind = {
-    if (isSign(id)) Direction.withId(id) else Position.withId(id)
-  }
-
-  def isSign(id: Int): Boolean = id > 0
-}
-
 class Kind(_id: Int) {
-  /* for serializable */
-  def this() = this(0) 
+  def this() = this(0) /* for serializable */
 
   protected[signal] def id: Int = _id
+  
+  def isDirection: Boolean = Kind.isDirection(id)
+  def isPosition:  Boolean = Kind.isPosition(id)
+  
   override def hashCode = _id
   
   override def equals(a: Any) = {
@@ -55,6 +50,15 @@ class Kind(_id: Int) {
       case _ => false
     }
   }
+}
+
+object Kind {
+  def withId(id: Int): Kind = {
+    if (isDirection(id)) Direction.withId(id) else Position.withId(id)
+  }
+
+  private def isDirection(id: Int): Boolean = id > 0
+  private def isPosition (id: Int): Boolean = id < 0
 }
 
 class Direction(_id: => Int) extends Kind(_id) {
@@ -66,8 +70,8 @@ class Direction(_id: => Int) extends Kind(_id) {
     case 3 => "Enter short"
     case 4 => "Exit short"
   }
-
 }
+
 object Direction {
   val EnterLong  = new Direction(1)
   val ExitLong   = new Direction(2)
@@ -90,6 +94,7 @@ class Position(_id: => Int) extends Kind(_id) {
     case -2 => "Lower"
   }
 }
+
 object Position {
   val Upper = new Position(-1)
   val Lower = new Position(-2)
