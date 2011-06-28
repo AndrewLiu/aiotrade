@@ -69,17 +69,9 @@ import scala.collection.mutable
  *
  * @author  Caoyuan Deng
  */
-object RealTimeWatchListPanel {
-  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
-
-  val orig_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP.toChar)   // Fn + UP   in mac
-  val orig_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN.toChar) // Fn + DOWN in mac
-  val meta_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_UP.toChar,   InputEvent.META_MASK)
-  val meta_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN.toChar, InputEvent.META_MASK)
-}
-
-import RealTimeWatchListPanel._
 class RealTimeWatchListPanel extends JPanel with Reactor {
+  import RealTimeWatchListPanel._
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val SYMBOL     = "Symbol"
@@ -109,6 +101,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     DAY_LOW,
     DAY_OPEN
   )
+  
+  private val SYMBOL_COL = colKeys.indexOf(SYMBOL) // @todo, update when columns order changed
 
   private val uniSymbols = new ArrayList[String]
   private val watchingSymbols = mutable.Set[String]() // symbols will list in this pael
@@ -130,7 +124,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   initTable
 
-  val scrollPane = new JScrollPane
+  val scrollPane = new JScrollPane()
   scrollPane.setViewportView(table)
   scrollPane.setBackground(LookFeel().backgroundColor)
   scrollPane.setFocusable(true)
@@ -262,6 +256,25 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     override def isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
   }
 
+  private val updateTask = new Runnable {
+    var tickers: Array[Ticker] = Array()
+    def run {
+      log.info("Batch updating, tickers: " + tickers.length)
+      var isUpdated = false
+      var i = -1
+      while ({i += 1; i < tickers.length}) {
+        val ticker = tickers(i)
+        if (watchingSymbols.contains(ticker.uniSymbol)) {
+          isUpdated = updateByTicker(ticker) | isUpdated // don't use shortcut one: "||"
+        }
+      }
+
+      if (isUpdated) {
+        table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
+      }
+    }
+  }
+  
   def updateByTickers(tickers: Array[Ticker]) {
     /*
      * To avoid:
@@ -273,24 +286,8 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
      at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
      * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
      */
-    SwingUtilities.invokeLater(new Runnable {
-        def run {
-          log.info("Batch updating, tickers: " + tickers.length)
-          var updated = false
-          var i = 0
-          while (i < tickers.length) {
-            val ticker = tickers(i)
-            if (watchingSymbols.contains(ticker.uniSymbol)) {
-              updated = updateByTicker(ticker) | updated // don't use shortcut one: "||"
-            }
-            i += 1
-          }
-
-          if (updated) {
-            table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
-          }
-        }
-      })
+    updateTask.tickers = tickers
+    SwingUtilities.invokeLater(updateTask)
   }
 
   private def updateByTicker(ticker: LightTicker): Boolean = {
@@ -335,6 +332,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   private val SWITCH_COLOR_A = LookFeel().nameColor
   private val SWITCH_COLOR_B = new Color(128, 192, 192) //Color.CYAN;
 
+  private def neuColor = LookFeel().getNeutralBgColor
+  private def posColor = LookFeel().getPositiveBgColor
+  private def negColor = LookFeel().getNegativeBgColor
+
   private def setColColorsByTicker(info: Info, ticker: LightTicker) {
     val fgColor = LookFeel().nameColor
 
@@ -342,10 +343,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     for (key <- colKeyToColor.keysIterator) {
       colKeyToColor(key) = fgColor
     }
-
-    val neuColor  = LookFeel().getNeutralBgColor
-    val posColor = LookFeel().getPositiveBgColor
-    val negColor = LookFeel().getNegativeBgColor
 
     /** color of volume should be recorded for switching between two colors */
     colKeyToColor(DAY_VOLUME) = fgColor
@@ -362,20 +359,10 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         colKeyToColor(PERCENT)    = neuColor
       }
 
-      def setColorByPrevClose(value: Double, columnName: String) {
-        if (value > ticker.prevClose) {
-          colKeyToColor(columnName) = posColor
-        } else if (value < ticker.prevClose) {
-          colKeyToColor(columnName) = negColor
-        } else {
-          colKeyToColor(columnName) = neuColor
-        }
-      }
-
-      setColorByPrevClose(ticker.dayOpen,   DAY_OPEN)
-      setColorByPrevClose(ticker.dayHigh,   DAY_HIGH)
-      setColorByPrevClose(ticker.dayLow,    DAY_LOW)
-      setColorByPrevClose(ticker.lastPrice, LAST_PRICE)
+      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayOpen,   DAY_OPEN)
+      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayHigh,   DAY_HIGH)
+      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayLow,    DAY_LOW)
+      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.lastPrice, LAST_PRICE)
 
       if (ticker.isDayVolumeChanged(info.prevTicker)) {
         /** lastPrice's color */
@@ -399,6 +386,16 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
   }
 
+  private def setColorByPrevClose(colKeyToColor: mutable.Map[String, Color], prevClose: Double, value: Double, columnName: String) {
+    if (value > prevClose) {
+      colKeyToColor(columnName) = posColor
+    } else if (value < prevClose) {
+      colKeyToColor(columnName) = negColor
+    } else {
+      colKeyToColor(columnName) = neuColor
+    }
+  }
+
 
   def watch(sec: Sec) {
     val uniSymbol = sec.uniSymbol
@@ -416,7 +413,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
 
   def symbolAtRow(row: Int): String = {
     if (row >= 0 && row < model.getRowCount) {
-      table.getValueAt(row, colKeys.findIndexOf(_ == SYMBOL)).asInstanceOf[String]
+      table.getValueAt(row, SYMBOL_COL).asInstanceOf[String]
     } else null
   }
   
@@ -469,3 +466,13 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
 
 }
+
+object RealTimeWatchListPanel {
+  private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
+
+  val orig_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP.toChar)   // Fn + UP   in mac
+  val orig_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN.toChar) // Fn + DOWN in mac
+  val meta_pgup = KeyStroke.getKeyStroke(KeyEvent.VK_UP.toChar,   InputEvent.META_MASK)
+  val meta_pgdn = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN.toChar, InputEvent.META_MASK)
+}
+
