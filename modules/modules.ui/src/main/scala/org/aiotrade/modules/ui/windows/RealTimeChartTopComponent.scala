@@ -49,49 +49,21 @@ import org.openide.windows.WindowManager
 import scala.collection.mutable
 
 /**
- *
- * @author Caoyuan Deng
- */
-
-
-/**
  * This class implements serializbale by inheriting TopComponent, but should
  * overide writeExternal() and readExternal() to implement own serializable
  * instead of via transient modifies.
  *
- * @NOTICE:
+ * @note
  * when run/debug modules in NetBeans' IDE, the module will be
  * reloaded always, thus, when moduel has been disable but the reloading
  * procedure still not finished yet, deserialization will fail and throws
  * exception. So, it's better to test serialization out of the IDE.
+ * 
+ * @author Caoyuan Deng
  */
-object RealTimeChartTopComponent {
-  private val instanceRefs = mutable.WeakHashMap[RealTimeChartTopComponent, AnyRef]()
-  def instances = instanceRefs.keys
-
-  private val MODE = "chart"
-
-  def apply(sec: Sec): RealTimeChartTopComponent = {
-    val instance = instances find (_.sec eq sec) getOrElse new RealTimeChartTopComponent(sec)
-    
-    if (!instance.isOpened) {
-      instance.open
-    }
-
-    instance
-  }
-
-  def selected: Option[RealTimeChartTopComponent] = {
-    TopComponent.getRegistry.getActivated match {
-      case x: RealTimeChartTopComponent => Some(x)
-      case _ => instances find (_.isShowing)
-    }
-  }
-
-}
-
-import RealTimeChartTopComponent._
 class RealTimeChartTopComponent private (val sec: Sec) extends TopComponent {
+  import RealTimeChartTopComponent._
+
   instanceRefs.put(this, null)
 
   private val symbol = sec.uniSymbol
@@ -213,5 +185,30 @@ class RealTimeChartTopComponent private (val sec: Sec) extends TopComponent {
    );
    */
     
+}
+
+object RealTimeChartTopComponent {
+  private val instanceRefs = mutable.WeakHashMap[RealTimeChartTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
+
+  private val MODE = "chart"
+
+  def apply(sec: Sec): RealTimeChartTopComponent = {
+    val instance = instances find (_.sec eq sec) getOrElse new RealTimeChartTopComponent(sec)
+    
+    if (!instance.isOpened) {
+      instance.open
+    }
+
+    instance
+  }
+
+  def selected: Option[RealTimeChartTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: RealTimeChartTopComponent => Some(x)
+      case _ => instances find (_.isShowing)
+    }
+  }
+
 }
 

@@ -87,66 +87,9 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-object AnalysisChartTopComponent {
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private val instanceRefs = mutable.WeakHashMap[AnalysisChartTopComponent, AnyRef]()
-  def instances = instanceRefs.keys
-
-
-  val STANDALONE = "STANDALONE"
-
-  private var singleton: AnalysisChartTopComponent = _
-  private var defaultFreq = TFreq.DAILY
-
-  // The Mode this component will live in.
-  val MODE = "chart"
-
-  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
-
-  def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
-    instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
-  }
-
-  def apply(sec: Sec, standalone: Boolean = false): AnalysisChartTopComponent = {
-    val content = sec.content
-    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
-    val freq = quoteContract.freq
-    
-    if (standalone) {
-      val instance = instances find {x =>
-        (x.sec eq sec) && x.freq == freq
-      } match {
-        case Some(tc) => tc.init(sec); tc
-        case None => new AnalysisChartTopComponent(sec)
-      }
-
-      if (!instance.isOpened) {
-        instance.open
-      }
-
-      instance
-    } else {
-      if (singleton == null) {
-        singleton = new AnalysisChartTopComponent(sec)
-      } else {
-        singleton.init(sec)
-      }
-
-      singleton
-    }
-  }
-
-  def selected: Option[AnalysisChartTopComponent] = {
-    TopComponent.getRegistry.getActivated match {
-      case x: AnalysisChartTopComponent => Some(x)
-      case _ => instances find (_.isShowing)
-    }
-  }
-}
-
-import AnalysisChartTopComponent._
 class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
+  import AnalysisChartTopComponent._
+
   instanceRefs.put(this, null)
 
   private var addToFavActionMenuItem: JMenuItem = _
@@ -386,3 +329,62 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
     }
   }
 }
+
+object AnalysisChartTopComponent {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private val instanceRefs = mutable.WeakHashMap[AnalysisChartTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
+
+
+  val STANDALONE = "STANDALONE"
+
+  private var singleton: AnalysisChartTopComponent = _
+  private var defaultFreq = TFreq.DAILY
+
+  // The Mode this component will live in.
+  val MODE = "chart"
+
+  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
+
+  def instanceOf(symbol: String): Option[AnalysisChartTopComponent] = {
+    instances find {_.sec.uniSymbol.equalsIgnoreCase(symbol)}
+  }
+
+  def apply(sec: Sec, standalone: Boolean = false): AnalysisChartTopComponent = {
+    val content = sec.content
+    val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
+    val freq = quoteContract.freq
+    
+    if (standalone) {
+      val instance = instances find {x =>
+        (x.sec eq sec) && x.freq == freq
+      } match {
+        case Some(tc) => tc.init(sec); tc
+        case None => new AnalysisChartTopComponent(sec)
+      }
+
+      if (!instance.isOpened) {
+        instance.open
+      }
+
+      instance
+    } else {
+      if (singleton == null) {
+        singleton = new AnalysisChartTopComponent(sec)
+      } else {
+        singleton.init(sec)
+      }
+
+      singleton
+    }
+  }
+
+  def selected: Option[AnalysisChartTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: AnalysisChartTopComponent => Some(x)
+      case _ => instances find (_.isShowing)
+    }
+  }
+}
+
