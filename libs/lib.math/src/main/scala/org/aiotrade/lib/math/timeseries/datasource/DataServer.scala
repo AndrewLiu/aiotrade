@@ -45,38 +45,18 @@ import scala.collection.mutable
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
- *
+ * 
+ * @param [V] data storege type
  * @author Caoyuan Deng
  */
-object DataServer extends Publisher {
-  private lazy val DEFAULT_ICON: Option[Image] = {
-    Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
-  }
-
-  private val config = org.aiotrade.lib.util.config.Config()
-  private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
-  case class HeartBeat(interval: Long) 
-  
-  // in context of applet, a page refresh may cause timer into a unpredict status,
-  // so it's always better to restart this timer? , if so, cancel it first.
-  //    if (timer != null) {
-  //      timer.cancel
-  //    }
-  private val timer = new Timer("DataServer Heart Beat Timer")
-  timer.schedule(new TimerTask {
-      def run = publish(HeartBeat(heartBeatInterval))
-    }, 1000, heartBeatInterval)
-}
-
-/**
- * V data storege type
- */
-import DataServer._
 abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publisher {
+  import DataServer._
+
   type C <: DataContract[_]
 
-  case object DataProcessed
+  private case class AskLoadData(afterTime: Long, contract: Iterable[C])
   case class DataLoaded(values: Array[V], contract: C)
+  case object DataProcessed
 
   protected val EmptyValues = Array[V]()
 
@@ -97,8 +77,21 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   private var isRefreshable = false
   private var inLoading = false
 
-  private case class AskLoadData(afterTime: Long, contract: Iterable[C])
 
+  /**
+   * @note Beware of a case in producer-consumer module:
+   * The producer is the one who implements requestData(...) and publishs DataLoaded,
+   * after data collected. For example, who reads the data file and produces values;
+   * The consumer is the one who accept DataLoaded and implements processData(...).
+   * When producer collects data very quickly, (much) faster than consumer, the
+   * values that are carried by DataLoaded will be blocked and the datum are stored
+   * in actor's mailbox, i.e. the memory. In extreme cases, the memory will be exhausted
+   * finally. 
+   * 
+   * You have to balance in this case, if the data that to be collected are very
+   * important, that cannot be lost, you should have to increase the memory. Otherwise,
+   * you can try to sync the producer and the consumer.
+   */
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
     // refreshing requests, if consumer can not catch up the producer, will drop
@@ -281,5 +274,23 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   override def toString: String = displayName
 }
 
+object DataServer extends Publisher {
+  private lazy val DEFAULT_ICON: Option[Image] = {
+    Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
+  }
 
+  private val config = org.aiotrade.lib.util.config.Config()
+  private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
+  case class HeartBeat(interval: Long) 
+  
+  // in context of applet, a page refresh may cause timer into a unpredict status,
+  // so it's always better to restart this timer? , if so, cancel it first.
+  //    if (timer != null) {
+  //      timer.cancel
+  //    }
+  private val timer = new Timer("DataServer Heart Beat Timer")
+  timer.schedule(new TimerTask {
+      def run = publish(HeartBeat(heartBeatInterval))
+    }, 1000, heartBeatInterval)
+}
 
