@@ -321,7 +321,8 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   private val emptyMoneyFlows = ArrayList[MoneyFlow]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
   private var timeInMinutesToClose = -1
-
+  private val closingTimer = new Timer("ExchangeClosingTimer")
+  
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
     tradingStatusTime >= roundedTime + freq.interval
   }
@@ -392,7 +393,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         val isDailyClose = freqs.contains(TFreq.DAILY)
         if (isDailyClose) {
           log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
-          (new Timer).schedule(new TimerTask {
+          closingTimer.schedule(new TimerTask {
               def run {
                 doClosing(freq, quotesToClose, mfsToClose, alsoSave)
               }
