@@ -162,22 +162,23 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   private def doConnect {
     log.info("Begin to connect " + factory.getHost + ":" + factory.getPort + "...")
 
-    (try {
-        val conn = factory.newConnection
-        // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-        // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-        conn.addShutdownListener(new ShutdownListener {
-            def shutdownCompleted(cause: ShutdownSignalException) {
-              publish(AMQPDisconnected)
-              reconnect(cause)
-            }
-          })
+    val connectTry = try {
+      val conn = factory.newConnection
+      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+      conn.addShutdownListener(new ShutdownListener {
+          def shutdownCompleted(cause: ShutdownSignalException) {
+            publish(AMQPDisconnected)
+            reconnect(cause)
+          }
+        })
 
-        Left(conn)
-      } catch {
-        case ex => Right(ex)
-      }
-    ) match {
+      Left(conn)
+    } catch {
+      case ex => Right(ex)
+    }
+      
+    connectTry match {
       case Left(conn) =>
         // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
         
@@ -290,11 +291,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           case _ => encodedBody
         }
         
-        val pubProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
+        val outProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
         
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
         
-        _ch.basicPublish(exchange, routingKey, pubProps, body)
+        _ch.basicPublish(exchange, routingKey, outProps, body)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
