@@ -55,13 +55,13 @@ object TUnit {
   private val ONE_MONTH:  Long = 30 * ONE_DAY
   private val ONE_YEAR:   Long = (365.24 * ONE_DAY).toLong
 
-  case object Second extends TUnit(ONE_SECOND)
-  case object Minute extends TUnit(ONE_MINUTE)
-  case object Hour   extends TUnit(ONE_HOUR)
-  case object Day    extends TUnit(ONE_DAY)
-  case object Week   extends TUnit(ONE_WEEK)
-  case object Month  extends TUnit(ONE_MONTH)
-  case object Year   extends TUnit(ONE_YEAR)
+  case object Second extends TUnit(ONE_SECOND) {val name = "Second"; val shortName = "s"; val compactName = "Sec";   val longName = "Second" }
+  case object Minute extends TUnit(ONE_MINUTE) {val name = "Minute"; val shortName = "m"; val compactName = "Min";   val longName = "Minute" }
+  case object Hour   extends TUnit(ONE_HOUR)   {val name = "Hour";   val shortName = "h"; val compactName = "Hour";  val longName = "Hourly" }
+  case object Day    extends TUnit(ONE_DAY)    {val name = "Day";    val shortName = "D"; val compactName = "Day";   val longName = "Daily"  }
+  case object Week   extends TUnit(ONE_WEEK)   {val name = "Week";   val shortName = "W"; val compactName = "Week";  val longName = "Weekly" }
+  case object Month  extends TUnit(ONE_MONTH)  {val name = "Month";  val shortName = "M"; val compactName = "Month"; val longName = "Monthly"}
+  case object Year   extends TUnit(ONE_YEAR)   {val name = "Year";   val shortName = "Y"; val compactName = "Year";  val longName = "Yearly" }
 
   def values: Array[TUnit] = Array(
     Second,
@@ -168,53 +168,13 @@ abstract class TUnit(val interval: Long) {
     cal.setTimeInMillis(time)
   }
 
-  def name: String = {
-    this match {
-      case Second => "Second"
-      case Minute => "Minute"
-      case Hour   => "Hour"
-      case Day    => "Day"
-      case Week   => "Week"
-      case Month  => "Month"
-      case Year   => "Year"
-    }
-  }
+  def name: String
 
-  def shortDescription = {
-    this match {
-      case Second => "s"
-      case Minute => "m"
-      case Hour   => "h"
-      case Day    => "D"
-      case Week   => "W"
-      case Month  => "M"
-      case Year   => "Y"
-    }
-  }
+  def shortName: String
 
-  def compactDescription: String = {
-    this match {
-      case Second => "Sec"
-      case Minute => "Min"
-      case Hour   => "Hour"
-      case Day    => "Day"
-      case Week   => "Week"
-      case Month  => "Month"
-      case Year   => "Year"
-    }
-  }
+  def compactName: String 
 
-  def longDescription: String = {
-    this match {
-      case Second => "Second"
-      case Minute => "Minute"
-      case Hour   => "Hourly"
-      case Day    => "Daily"
-      case Week   => "Weekly"
-      case Month  => "Monthly"
-      case Year   => "Yearly"
-    }
-  }
+  def longName: String 
 
   def nUnitsBetween(fromTime: Long, toTime: Long): Int = {
     this match {

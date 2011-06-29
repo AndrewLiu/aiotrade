@@ -44,6 +44,10 @@
 
                 <exclusion>
                     <groupId>org.aiotrade</groupId>
+                    <artifactId>lib-avro</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.aiotrade</groupId>
                     <artifactId>lib-util</artifactId>
                 </exclusion>
                 <exclusion>
@@ -77,6 +81,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-aiotrade-lib-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org-aiotrade-lib-util</artifactId>

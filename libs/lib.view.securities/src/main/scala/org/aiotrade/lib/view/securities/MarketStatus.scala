@@ -35,7 +35,7 @@ import javax.swing.Box
 import javax.swing.JLabel
 import javax.swing.JPanel
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.securities.dataserver.TickerServer.TickerEvt
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.util.awt.StatusLineElementProvider
 import org.aiotrade.lib.securities.model.Ticker
@@ -72,12 +72,12 @@ class MarketStatus extends StatusLineElementProvider {
 
   private val SSReactor = new Reactor {
     reactions += {
-      case TickerEvt(ticker) => setSSValue(ticker)
+      case api.TickerEvt(ticker) => setSSValue(ticker)
     }
   }
   private val SZReactor = new Reactor {
     reactions += {
-      case TickerEvt(ticker) => setSZValue(ticker)
+      case api.TickerEvt(ticker) => setSZValue(ticker)
     }
   }
 

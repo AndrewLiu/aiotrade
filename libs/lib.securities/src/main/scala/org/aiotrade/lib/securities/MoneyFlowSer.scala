@@ -41,8 +41,12 @@ import org.aiotrade.lib.securities.model.Sec
  */
 class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
-  private var _shortDescription: String = ""
-  var adjusted: Boolean = false
+  private var _shortName: String = ""
+  
+  val amountInCount = TVar[Int]("aIC", Plot.None)
+  val amountOutCount = TVar[Int]("aOC", Plot.None)
+
+  val relativeAmount = TVar[Double]("RA", Plot.None)
 
   val totalVolume = TVar[Double]("TV", Plot.None)
   val totalAmount = TVar[Double]("TA", Plot.None)
@@ -93,6 +97,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     val time = tval.time
     tval match {
       case mf: MoneyFlow =>
+        relativeAmount(time) = mf.relativeAmount
+        amountInCount(time) = mf.amountInCount
+        amountOutCount(time) = mf.amountOutCount
+
         totalVolume(time) = mf.totalVolume
         totalAmount(time) = mf.totalAmount
         totalVolumeIn(time) = mf.totalVolumeIn
@@ -144,6 +152,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   def valueOf(time: Long): Option[MoneyFlow] = {
     if (exists(time)) {
       val mf = new MoneyFlow
+      mf.relativeAmount = relativeAmount(time)
+      mf.amountInCount = amountInCount(time)
+      mf.amountOutCount = amountOutCount(time)
+
       mf.totalVolumeIn = totalVolumeIn(time)
       mf.totalAmountIn = totalAmountIn(time)
       mf.totalVolumeOut = totalVolumeOut(time)
@@ -190,6 +202,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   def updateFrom(mf: MoneyFlow) {
     val time = mf.time
     createOrClear(time)
+
+    relativeAmount(time) = mf.relativeAmount
+    amountInCount(time) = mf.amountInCount
+    amountOutCount(time) = mf.amountOutCount
     
     totalVolume(time) = mf.totalVolume
     totalAmount(time) = mf.totalAmount
@@ -241,48 +257,15 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   }
 
   /**
-   * @param boolean b: if true, do adjust, else, de adjust
-   */
-//  def adjust(b: Boolean) {
-//    var i = 0
-//    while (i < size) {
-//
-//      var prevNorm = close(i)
-//      var postNorm = if (b) {
-//        /** do adjust */
-//        close_adj(i)
-//      } else {
-//        /** de adjust */
-//        close_ori(i)
-//      }
-//
-//      high(i)  = linearAdjust(high(i),  prevNorm, postNorm)
-//      low(i)   = linearAdjust(low(i),   prevNorm, postNorm)
-//      open(i)  = linearAdjust(open(i),  prevNorm, postNorm)
-//      close(i) = linearAdjust(close(i), prevNorm, postNorm)
-//
-//      i += 1
-//    }
-//
-//    adjusted = b
-//
-//    val evt = TSerEvent.Updated(this, null, 0, lastOccurredTime)
-//    publish(evt)
-//  }
-    
-  /**
    * This function adjusts linear according to a norm
    */
   private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
     ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 
-  override def shortDescription_=(desc: String): Unit = {
-    this._shortDescription = desc
-  }
-    
-  override def shortDescription: String = {
-    _shortDescription
+  override def shortName =  _shortName
+  override def shortName_=(name: String) {
+    this._shortName = name
   }
     
 }

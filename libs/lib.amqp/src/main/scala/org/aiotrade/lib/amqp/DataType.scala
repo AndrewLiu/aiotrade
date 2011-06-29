@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.aiotrade.lib.amqp.api
+package org.aiotrade.lib.amqp
 
 object DataType {
   val NULL        = 0x40.toByte // fixed/0 The null value.
@@ -38,8 +38,9 @@ object DataType {
   val MAP32       = 0xd1.toByte // compound/4 Up to 2^32 - 1 octets of encoded map data. See map8 above for a definition of encoded map data.
 }
 
-import DataType._
 class DataType {
+  import DataType._
+
   val a = Array[Byte]()
   a match {
     case Array(TRUE, _*) =>

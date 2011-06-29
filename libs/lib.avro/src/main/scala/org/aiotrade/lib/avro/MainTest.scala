@@ -30,34 +30,39 @@
  */
 package org.aiotrade.lib.avro
 
-import java.io.ByteArrayOutputStream
+import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.Schema
-import org.apache.avro.io.DecoderFactory
-import org.apache.avro.io.EncoderFactory
+import org.apache.avro.generic.GenericData
 import scala.collection.mutable
 
 object MainTest {
-  
-  def main(args: Array[String]) {
+
+  def main(args: Array[String]) {    
     testArrayBuffer
+    testAutoSchema
     
-    val t0 = System.currentTimeMillis
-    testJavaVMap
-    testScalaVMap
-    testReflectClass
-    testReflectArrayOfClass
-    println("Finished in " + (System.currentTimeMillis - t0) + "ms")
+    for (contentType <- List(Avro.JSON, Avro.AVRO)) {
+      testTuple(contentType)
+      testJavaVMap(contentType)
+      testScalaVMap(contentType)
+      testReflectClass(contentType)
+      testReflectArrayOfClass(contentType)
+      testCaseObject(contentType)
+    }
   }
   
   def testArrayBuffer {
+    println("\n==== testArrayBuffer: debug on it to see type of field array ====")
     // debug on it to see type of field array
     val alist = new ArrayList[Double]()
     val primitiveArray = alist.toArray
-    println("The type of field array  should be double[]")
+    println("The type of field array in ArrayList should be double[]")
+    println(getSchema(classOf[ArrayList[Double]]))
     
     val abuff = new collection.mutable.ArrayBuffer[Double]()
     val objectArray = abuff.toArray
-    println("The type of field array is still Object[]")
+    println("The type of field array in ArrayBuffer is still Object[]")
+    println(getSchema(classOf[collection.mutable.ArrayBuffer[Double]]))
     
     
     val tickers = new ArrayList[Ticker]()
@@ -68,113 +73,136 @@ object MainTest {
       val ticker = arr(i)
       println(ticker)
     }
+    
+    val schemaArrayList = """{"type":"array","items":"double","java-class":"org.aiotrade.lib.collection.ArrayList"}"""
+    val schema = Schema.parse(schemaArrayList)
+    println(schema)
+    val xs = new ArrayList[Double](100)
+    xs ++= Array(1.0, 2.0, 3.0)
+    // encode
+    val bytes = Avro.encode(xs, schema, Avro.JSON)
+    println(new String(bytes, "UTF-8"))
+    // decode
+    val decoded = Avro.decode(bytes, schema, classOf[ArrayList[Double]], Avro.JSON).get
+    println(decoded)
   }
   
+  def testAutoSchema {
+    println("\n==== test auto schema ====")
+
+    println(getSchema(classOf[java.util.HashMap[String, Array[_]]]))
+    val v = new java.util.HashMap[String, Array[_]]
+    try {
+      println(getSchema(v.getClass))
+    } catch {
+      case ex => println("Error: " + ex.getMessage)
+    }
+    
+    println(getSchema(classOf[(String, Long)]))
+    
+    println(getSchema(classOf[Kind]))
+    
+  }
   
+  def testTuple(contentType: Int) {
+
+    val schemaJson = """
+    {"type": "record", "name": "tuple", "fields": [
+      {"name":"_1", "type":"string"},
+      {"name":"_2", "type":"long"},
+      {"name":"_3", "type":"Int"},    
+    ]}
+    """
+    
+    val schema = getSchema(classOf[(String, Long, Int)]) //Schema.parse(schemaJson)
+    println(schema)
+    
+    println("\n==== test record to tuple ====")
+    // IndexedRecord will be converted to Tuple 
+    val record = new GenericData.Record(schema)
+    record.put(0, "a")
+    record.put(1, 1L)
+    record.put(2, 1)
+    
+    val recordBytes= Avro.encode(record, schema, contentType)
+    println(new String(recordBytes, "UTF-8"))
+    val decodedRecord = Avro.decode(recordBytes, schema, classOf[(String, Long, Int)], contentType).get
+    println(decodedRecord)    
+
+    println("\n==== test tuple to tuple ====")
+    val tuple = ("a", 1L, 1)
+    val tupleBytes= Avro.encode(tuple, schema, contentType)
+    println(new String(tupleBytes, "UTF-8"))
+    val decodedTuple = Avro.decode(tupleBytes, schema, classOf[(String, Long, Int)], contentType).get
+    println(decodedTuple)
+  }
   
-  def testJavaVMap {
+  def testJavaVMap(contentType: Int) {
+    println("\n==== test java vmap ====")
+
     val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double"]}}
     """
-    
     
     val vmap = new java.util.HashMap[String, Array[_]]
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
 
-    testJsonMap(schemaJson, vmap)
-    testAvroMap(schemaJson, vmap)
+    testMap(schemaJson, vmap, contentType)
   }
   
-  def testScalaVMap {
+  def testScalaVMap(contentType: Int) {
+    println("\n==== test scala vmap ====")
+
     val schemaJson = """
     {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
     """
-    
     
     val vmap = new mutable.HashMap[String, Array[_]]
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
     vmap.put("b", Array("a", "b", "c"))
 
-    testJsonMap(schemaJson, vmap)
-    testAvroMap(schemaJson, vmap)
+    testMap(schemaJson, vmap, contentType)
   }
   
-  def testJsonMap[T](schemaDesc: String, vmap: T) {
-    println("\n========= Json ============= ")
+  def testMap[T](schemaDesc: String, vmap: T, contentType: Int) {
+    println("\n========= Map ============= ")
     //val schema = ReflectData.get.getSchema(vmap.getClass)
     val schema = Schema.parse(schemaDesc)
     println(schema.toString)
     
     // encode a map
-    val bao = new ByteArrayOutputStream()
-    val encoder = JsonEncoder(schema, bao)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(vmap, encoder)
-    encoder.flush()
-    val json = new String(bao.toByteArray, "UTF-8")
+    val bytes = Avro.encode(vmap, schema, contentType)
+    val json = new String(bytes, "UTF-8")
     println(json)
     
     // decode to scala map
-    val decoder = JsonDecoder(schema, json)
-    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
-    val map = reader.read(null, decoder)
+    val map = Avro.decode(bytes, schema, classOf[collection.Map[String, Array[_]]], contentType).get
+    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
+  }
+  
+  def testReflectClass(contentType: Int) {
+    println("\n==== test reflect class ====")
 
-    println("\ndecoded ==>")
-    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
-  }
-  
-  def testAvroMap[T <: AnyRef](schemaDesc: String, vmap: T) {
-    println("\n========= Avro ============= ")
-    //val schema = ReflectData.get.getSchema(vmap.getClass)
-    val schema = Schema.parse(schemaDesc)
-    println(schema.toString)
-    
-    // encode a map
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[T](schema)
-    writer.write(vmap, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
-    
-    // decode to scala map
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[collection.Map[String, Array[_]]](schema)
-    val map = reader.read(null, decoder)
-    
-    println("\ndecoded ==>")
-    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
-  }
-  
-  def testReflectClass {
     val instance = new Ticker
     instance.flag = 0
     println("\n==== before ===")
     println(instance)
 
-    val schema = ReflectData.get.getSchema(instance.getClass)
+    val schema = getSchema(instance.getClass)
     println(schema.toString)
     
     // encode
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[Ticker](schema)
-    writer.write(instance, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
-    
+    val bytes = Avro.encode(instance, schema, contentType)
     // decode
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[Ticker](schema)
-    val decoded = reader.read(null, decoder)
-
-    println("\n==== after ===")
+    val decoded = Avro.decode(bytes, schema, classOf[Ticker], contentType).get
     println(decoded)
   }
   
-  def testReflectArrayOfClass {
+  def testReflectArrayOfClass(contentType: Int) {
+    println("\n==== test array of reflect class ====")
+
     val instance = new Ticker
     instance.flag = 0
     println("\n==== before ===")
@@ -182,32 +210,46 @@ object MainTest {
     
     val instances = Array(instance)
 
-    val schema = ReflectData.get.getSchema(instances.getClass)
+    val schema = getSchema(instances.getClass)
     println(schema.toString)
     
     // encode
-    val bao = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get.binaryEncoder(bao, null)
-    val writer = ReflectDatumWriter[Array[Ticker]](schema)
-    writer.write(instances, encoder)
-    encoder.flush()
-    val bytes= bao.toByteArray
-    
+    val bytes = Avro.encode(instances, schema, contentType)
+    println(new String(bytes, "UTF-8"))
     // decode
-    val decoder = DecoderFactory.get.binaryDecoder(bytes, null)
-    val reader = ReflectDatumReader[Array[Ticker]](schema)
-    val decoded = reader.read(null, decoder)
-
-    println("\n==== after ===")
+    val decoded = Avro.decode(bytes, schema, classOf[Array[Ticker]], contentType).get
     println(decoded)
   }
   
+  def testCaseObject(contentType: Int) {
+    println("\n==== test case object ====")
+    
+    val schema = getSchema(classOf[Position])
+    println(schema.toString)
+    
+    // encode
+    val bytes = Avro.encode(Position.Lower, schema, contentType)
+    println(new String(bytes, "UTF-8"))
+    // decode
+    val decoded = Avro.decode(bytes, schema, classOf[Kind], contentType).get
+    println(decoded)
+    
+    decoded match {
+      case Position.Lower => println("Sucess")
+      case _ => println("Failure")
+    }
+  }
   
+  
+  private def getSchema[T: Manifest](c: Class[T]) = {
+    ReflectData.AllowNull.getSchema(c)
+  }
+  
+  // test data --- ticker
   class Ticker {
     private val data = Array(1.0, 2.0)
     
-    @transient
-    var flag: Byte = 10
+    @transient var flag: Byte = 10
     
     val open = 8.0
     private val high = 10.0f
@@ -215,7 +257,47 @@ object MainTest {
     var close = 10.1
     private var volumn = 100
     
+    @transient private var position: Position = Position.Lower // todo, it's difficult to avro scala singleton object
+    
     override def toString = 
-      "Ticker(data=" + data.mkString("[", ",", "]") + ", flag=" + flag + ", open=" + open + ", close=" + close + ", high=" + high +  ")"
+      "Ticker(data=" + data.mkString("[", ",", "]") + ", flag=" + flag + ", open=" + open + ", close=" + close + ", high=" + high + ", postion=" + position + ")"
+  }
+  
+  
+  // test data --- case object
+  object Kind {
+    def withId(id: Byte): Kind = {
+      if (isSign(id)) Direction.withId(id) else Position.withId(id)
+    }
+
+    def isSign(id: Byte): Boolean = id > 0
+  }
+
+  abstract class Kind {def id: Byte}
+
+  class Direction(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
+  object Direction {
+    case object EnterLong  extends Direction(1)
+    case object ExitLong   extends Direction(2)
+    case object EnterShort extends Direction(3)
+    case object ExitShort  extends Direction(4)
+
+    def withId(id: Byte): Direction = id match {
+      case 1 => Direction.EnterLong
+      case 2 => Direction.ExitLong
+      case 3 => Direction.EnterShort
+      case 4 => Direction.ExitShort
+    }
+  }
+
+  class Position(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
+  object Position {
+    case object Upper extends Position(-1)
+    case object Lower extends Position(-2)
+
+    def withId(id: Byte): Position = id match {
+      case -1 => Position.Upper
+      case -2 => Position.Lower
+    }
   }
 }

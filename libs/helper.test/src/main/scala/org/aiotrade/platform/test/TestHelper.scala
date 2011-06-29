@@ -114,7 +114,7 @@ trait TestHelper {
       case _ =>
         val t0 = System.currentTimeMillis
         indicator.computeFrom(0)
-        println("Computing " + indicator.shortDescription + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
+        println("Computing " + indicator.shortName + "(" + indicator.freq + ", size=" + indicator.size +  "): " + (System.currentTimeMillis - t0) + " ms")
     }
   }
 
@@ -128,7 +128,7 @@ trait TestHelper {
   def printValuesOf(indicator: Indicator): Unit = {
     println
     println(indicator.freq)
-    println(indicator.shortDescription + ":" + indicator.size)
+    println(indicator.shortName + ":" + indicator.size)
     for (v <- indicator.vars) {
       print(v.name + ": ")
       v.values.reverse foreach {x => print(x + ",")}
@@ -138,7 +138,7 @@ trait TestHelper {
 
   def printLastValueOf(indicator: Indicator) {
     println
-    println(indicator.freq + "-" +indicator.shortDescription + ":" + indicator.size)
+    println(indicator.freq + "-" +indicator.shortName + ":" + indicator.size)
     for (v <- indicator.vars if v.size > 0) {
       println(v.name + ": " + v.values.last)
     }

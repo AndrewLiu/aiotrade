@@ -19,8 +19,20 @@ object BullVSBears extends Table[BullVSBear]{
 }
 
 class BullVSBear extends TVal with Flag {
-//    var time : Long = _
-    var ratio : Float = _
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
+  private var _flag: Int = 1
+  def flag = _flag // 1 // dafault is closed
+  def flag_=(flag: Int) {
+    this._flag = flag
+  }
+
+  var ratio : Float = _
     var summary : String = ""
 
   def publishTime: Long = this.time

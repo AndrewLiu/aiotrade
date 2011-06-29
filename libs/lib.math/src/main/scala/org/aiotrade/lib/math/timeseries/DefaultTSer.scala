@@ -161,13 +161,13 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
    */
   protected def createItem(time: Long): Holder = true
 
-  def longDescription: String = lname
-  def shortDescription: String = sname
-  def shortDescription_=(description: String) {
-    this.sname = description
+  def longName: String = lname
+  def shortName: String = sname
+  def shortName_=(sname: String) {
+    this.sname = sname
   }
 
-  def displayName = shortDescription + " - (" + longDescription + ")"
+  def displayName = shortName + " - (" + longName + ")"
 
   /**
    * @Note:
@@ -217,7 +217,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
                 i += 1
               }
               holders.insertAll(begIdx1, newHolders)
-              log.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + holders.size)
+              log.fine(shortName + "(" + freq + ") Log check: cursor=" + checkingCursor + ", insertSize=" + insertSize + ", begIdx=" + begIdx1 + " => newSize=" + holders.size)
                             
             case TStampsLog.APPEND =>
               val begIdx = holders.size
@@ -235,7 +235,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
                 i += 1
               }
               holders ++= newHolders
-              log.fine(shortDescription + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + holders.size)
+              log.fine(shortName + "(" + freq + ") Log check: cursor=" + checkingCursor + ", appendSize=" + appendSize + ", begIdx=" + begIdx + " => newSize=" + holders.size)
 
             case x => assert(false, "Unknown log type: " + x)
           }
@@ -282,7 +282,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
       //timestamps.readLock.unlock
     }
 
-    publish(TSerEvent.Cleared(this, shortDescription, fromTime, Long.MaxValue))
+    publish(TSerEvent.Cleared(this, shortName, fromTime, Long.MaxValue))
   }
 
   def indexOfOccurredTime(time: Long): Int = {
@@ -312,7 +312,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
   override def toString = {
     val sb = new StringBuilder(20)
     val len = timestamps.length
-    sb.append(shortDescription).append("(").append(freq).append("): size=").append(size).append(", ")
+    sb.append(shortName).append("(").append(freq).append("): size=").append(size).append(", ")
     if (timestamps != null && timestamps.length > 0) {
 
       val first = timestamps(0)

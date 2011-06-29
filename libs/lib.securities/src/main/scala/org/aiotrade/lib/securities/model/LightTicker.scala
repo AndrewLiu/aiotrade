@@ -46,29 +46,26 @@ import org.aiotrade.lib.math.timeseries.TVal
  * @author Caoyuan Deng
  */
 
-object LightTicker {
-  private val PREV_CLOSE = 0
-  private val LAST_PRICE = 1
-  private val DAY_OPEN   = 2
-  private val DAY_HIGH   = 3
-  private val DAY_LOW    = 4
-  private val DAY_VOLUME = 5
-  private val DAY_AMOUNT = 6
-  private val DAY_CHANGE = 7
-
-  val FIELD_LENGTH = 8
-}
 
 import LightTicker._
 @cloneable @serializable @SerialVersionUID(1L)
-class LightTicker(val data: Array[Double]) extends TVal {
-  @transient final var sec: Sec = _
+class LightTicker(private var _data: Array[Double]) extends BelongsToSec with TVal {
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
   @transient final protected var _isChanged: Boolean = _
 
   def this() = this(new Array[Double](FIELD_LENGTH))
 
-  final var symbol: String = _
-
+  final protected def data = _data
+  final protected def data_=(data: Array[Double]) {
+    this._data = data
+  }
+  
   final def prevClose = data(PREV_CLOSE)
   final def lastPrice = data(LAST_PRICE)
   final def dayOpen   = data(DAY_OPEN)
@@ -140,13 +137,21 @@ class LightTicker(val data: Array[Double]) extends TVal {
   def copyFrom(another: LightTicker) {
     this.sec    = another.sec
     this.time   = another.time
-    this.symbol = another.symbol
+    this.uniSymbol = another.uniSymbol
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
+  def importFrom(v: (Long, Array[Double], Array[Double])): this.type = {
+    this.time = v._1
+    this.data = v._2
+    this
+  }
+  
   /** export to tuple */
-  def export: (Long, List[Array[Double]]) = (time, List(data))
-
+  def exportTo: (Long, Array[Double], Array[Double]) = {
+    (time, data, Array())
+  }
+  
   def isValueChanged(another: LightTicker): Boolean = {
     var i = -1
     while ({i += 1; i < data.length}) {
@@ -164,30 +169,21 @@ class LightTicker(val data: Array[Double]) extends TVal {
     cloneOne
   }
 
-//  @throws(classOf[IOException])
-//  def writeJson(out: JsonOutputStreamWriter) {
-//    out.write("s", symbol)
-//    out.write(',')
-//    out.write("t", time / 1000)
-//    out.write(',')
-//    out.write("v", data)
-//  }
-//
-//  @throws(classOf[IOException])
-//  def readJson(fields: collection.Map[String, _]) {
-//    symbol  = fields("s").asInstanceOf[String]
-//    time    = fields("t").asInstanceOf[Long] * 1000
-//    var vs  = fields("v").asInstanceOf[List[Number]]
-//    var i = 0
-//    while (!vs.isEmpty) {
-//      data(i) = vs.head.doubleValue
-//      vs = vs.tail
-//      i += 1
-//    }
-//  }
-
   override def toString = {
-    "LightTicker(" + "symbol=" + symbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"
+    "LightTicker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ")"
   }
+}
+
+object LightTicker {
+  private val PREV_CLOSE = 0
+  private val LAST_PRICE = 1
+  private val DAY_OPEN   = 2
+  private val DAY_HIGH   = 3
+  private val DAY_LOW    = 4
+  private val DAY_VOLUME = 5
+  private val DAY_AMOUNT = 6
+  private val DAY_CHANGE = 7
+
+  val FIELD_LENGTH = 8
 }
 

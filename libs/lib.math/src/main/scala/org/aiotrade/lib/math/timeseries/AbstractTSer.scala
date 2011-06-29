@@ -31,7 +31,6 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
 
 /**
@@ -87,14 +86,14 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       val len = toIdx - frIdx + 1
       
       if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
-        var vmap = new mutable.HashMap[String, Array[_]]()
+        val vmap = new mutable.HashMap[String, Array[_]]()
 
-        val timesx = timestamps.sliceToArray(frIdx, len)
-        vmap.put(".", timesx)
+        val times = timestamps.sliceToArray(frIdx, len)
+        vmap.put(".", times)
 
         for (v <- vs) {
-          val valuesx = v.values.sliceToArray(frIdx, len)
-          vmap.put(v.name, valuesx)
+          val values = v.values.sliceToArray(frIdx, len)
+          vmap.put(v.name, values)
         }
 
         vmap

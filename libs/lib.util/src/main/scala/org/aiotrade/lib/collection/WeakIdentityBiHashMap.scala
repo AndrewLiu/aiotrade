@@ -12,11 +12,9 @@ object WeakIdentityBiHashMap extends MutableMapFactory[WeakIdentityBiHashMap] {
 }
 
 @serializable @SerialVersionUID(1L)
-class WeakIdentityBiHashMap[@specialized A, @specialized B](
-  protected implicit val m: Manifest[A]
-) extends Map[A, B]
-     with MapLike[A, B, WeakIdentityBiHashMap[A, B]]
-     with WeakIdentityBiHashTable[A, B] {
+class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends Map[A, B]
+                                                                            with MapLike[A, B, WeakIdentityBiHashMap[A, B]]
+                                                                            with WeakIdentityBiHashTable[A, B] {
 
   private val readWriteLock = new ReentrantReadWriteLock
   val readLock  = readWriteLock.readLock

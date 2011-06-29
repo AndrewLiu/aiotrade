@@ -229,16 +229,27 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
  * The definition of "super/large/middle/small block" will depond on amount
  */
 @serializable
-class MoneyFlow extends TVal with Flag {
-  @transient var _sec: Sec = _
-  def sec = _sec
-  def sec_=(sec: Sec) {
-    _uniSymbol = sec.uniSymbol
-    _sec = sec
+class MoneyFlow extends BelongsToSec with TVal with Flag {
+
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
   }
-  
-  private var _uniSymbol: String = _
-  def uniSymbol = _uniSymbol
+
+  private var _flag: Int = 1 // dafault is closed
+  def flag = _flag 
+  def flag_=(flag: Int) {
+    this._flag = flag
+  }
+
+  var amountInCount = 0
+  var amountOutCount = 0
+
+  /**
+   * Weighted average relative amount.
+   */
+  var relativeAmount = 0.0
 
   private val data = new Array[Double](30)
   

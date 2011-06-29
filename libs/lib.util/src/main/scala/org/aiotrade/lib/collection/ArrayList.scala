@@ -34,9 +34,11 @@ import scala.collection.mutable.WrappedArray
  *  @author  Caoyuan Deng
  *  @version 2.8
  *  @since   1
+ *  
+ *  @note Don't add @specialized in front of A, which will generate a shadow array and waste memory
  */
 @serializable @SerialVersionUID(1529165946227428979L)
-class ArrayList[@specialized A](override protected val initialSize: Int, protected val elementClass: Class[A] = null)(protected implicit val m: Manifest[A]
+class ArrayList[A](override protected val initialSize: Int, protected val elementClass: Class[A] = null)(protected implicit val m: Manifest[A]
 ) extends Buffer[A]
      with GenericTraversableTemplate[A, ArrayList]
      with BufferLike[A, ArrayList[A]]

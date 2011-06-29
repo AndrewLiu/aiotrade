@@ -182,6 +182,12 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>org-eclipse-jgit</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>com-mysql-jdbc</artifactId>
             <version>${project.version}</version>
             <type>nbm</type>

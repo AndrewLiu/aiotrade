@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 import org.aiotrade.lib.math.timeseries.descriptor.Content
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
 import org.aiotrade.lib.securities.MoneyFlowSer
@@ -223,32 +224,32 @@ class Sec extends SerProvider with Ordered[Sec] {
   
   // reactions for QuoteEvt, MoneyFlowEvt to update chainsers
   reactions += {
-    case TickerServer.QuoteEvt(freq, quote) =>
+    case api.QuoteEvt(freq, quote) =>
       freq match {
-        case TFreq.ONE_MIN =>
+        case TFreq.ONE_MIN.shortName =>
           if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
             realtimeSer.updateFrom(quote)
           }
           if (isSerCreated(TFreq.ONE_MIN)) {
             serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
           }
-        case TFreq.DAILY =>
+        case TFreq.DAILY.shortName =>
           if (isSerCreated(TFreq.DAILY)) {
             serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
           }
       }
-    case TickerServer.MoneyFlowEvt(freq, moneyFlow) =>
+    case api.MoneyFlowEvt(freq, moneyFlow) =>
       freq match {
-        case TFreq.ONE_MIN =>
+        case TFreq.ONE_MIN.shortName =>
           if (isSerCreated(TFreq.ONE_MIN)) {
             moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
           }
-        case TFreq.DAILY =>
+        case TFreq.DAILY.shortName =>
           if (isSerCreated(TFreq.DAILY)) {
             moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
           }
       }
-    case TickerServer.PriceDistributionEvt(pd) =>
+    case api.PriceDistributionEvt(pd) =>
       if (isSerCreated(TFreq.DAILY)) {
         priceDistributionSerOf(TFreq.DAILY).foreach(_.updateFrom(pd))
       }

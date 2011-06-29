@@ -91,7 +91,7 @@ class RealTimeChartViewContainer extends ChartViewContainer {
     setLayout(new GridBagLayout)
 
     val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
-    quoteSer.shortDescription = controller.serProvider.uniSymbol
+    quoteSer.shortName = controller.serProvider.uniSymbol
     setMasterView(new RealTimeChartView(controller, quoteSer), GBC(0, 0).
                   setFill(GridBagConstraints.BOTH).
                   setWeight(100, 618))

@@ -558,7 +558,7 @@ object ChartingController {
       val h = dim.height
       val frame = new JFrame//new JDialog (), true);
       frame.setAlwaysOnTop(alwaysOnTop)
-      frame.setTitle(popupView.mainSer.shortDescription)
+      frame.setTitle(popupView.mainSer.shortName)
       frame.add(popupView, BorderLayout.CENTER)
       val screenSize = Toolkit.getDefaultToolkit.getScreenSize
       frame.setBounds((screenSize.width - w) / 2, (screenSize.height - h) / 2, w, h)

@@ -43,9 +43,14 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>0.12.1</version>
+            <version>${jgit.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>lib-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-util</artifactId>

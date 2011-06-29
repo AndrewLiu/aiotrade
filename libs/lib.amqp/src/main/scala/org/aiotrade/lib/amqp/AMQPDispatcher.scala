@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *  o Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ *    
+ *  o Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution. 
+ *    
+ *  o Neither the name of AIOTrade Computing Co. nor the names of 
+ *    its contributors may be used to endorse or promote products derived 
+ *    from this software without specific prior written permission. 
+ *    
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.aiotrade.lib.amqp
 
 import com.rabbitmq.client.AMQP
@@ -9,27 +39,22 @@ import com.rabbitmq.client.DefaultConsumer
 import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownListener
 import com.rabbitmq.client.ShutdownSignalException
-import com.rabbitmq.utility.Utility
 import java.io.IOException
 import java.io.InvalidClassException
 import java.util.Timer
 import java.util.TimerTask
 import java.util.logging.Logger
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import java.util.logging.Level
+
 /**
  * @Note If we use plain sync Publisher/Reactor instead of actor based async model, it will because:
  * 1. It seems that when actor model is mixed with a hard coded thread (AMQPConnection has a MainLoop thread),
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
-import org.aiotrade.lib.util.actors.Msg
+import org.aiotrade.lib.avro.Msg
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
-import org.aiotrade.lib.util.reactors.Event
-import org.aiotrade.lib.amqp.datatype.ContentType
 
 /*_ rabbitmqctl common usages:
  sudo rabbitmq-server -n rabbit@localhost &
@@ -68,17 +93,11 @@ import org.aiotrade.lib.amqp.datatype.ContentType
  * whereas queues *round-robin* message delivery to consumers.
  */
 
-/**
- * Encapsulates an arbitrary message - simple "bean" holder structure.
- */
-case class Delivery(body: Array[Byte], properties: AMQP.BasicProperties, envelope: Envelope) extends Event
-
-case class AMQPAcknowledge(deliveryTag: Long) extends Event
-
 case object AMQPConnected
 case object AMQPDisconnected
 
 object AMQPExchange {
+    
   /**
    * Each AMQP broker declares one instance of each supported exchange type on it's
    * own (for every virtual host). These exchanges are named after the their type
@@ -92,12 +111,25 @@ object AMQPExchange {
    * property being equal to the name of the queue.
    */
   val defaultDirect = "" // amp.direct
+
+  sealed trait AMQPExchange
+  case object Direct extends AMQPExchange {override def toString = "direct"}
+  case object Topic  extends AMQPExchange {override def toString = "topic" }
+  case object Fanout extends AMQPExchange {override def toString = "fanout"}
+  case object Match  extends AMQPExchange {override def toString = "match" }
+}
+
+object AMQPDispatcher {
+  private val defaultReconnectDelay = 3000
+  private lazy val timer = new Timer("AMQPReconnectTimer")
 }
 
 /**
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
+ * 
+ * @author Caoyuan Deng
  */
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher {
   private val log = Logger.getLogger(getClass.getName)
@@ -105,10 +137,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
   private var state = State(None, None, None)
 
-  private lazy val timer = new Timer("AMQPReconnectTimer")
-
-  private val defaultReconnectDelay = 3000
-  private var reconnectDelay: Long = defaultReconnectDelay
+  private var reconnectDelay: Long = AMQPDispatcher.defaultReconnectDelay
 
   /**
    * Connect only when start, so we can control it to connect at a appropriate time,
@@ -125,9 +154,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     this
   }
 
-  def connection = state.connection
-  def channel = state.channel
-  def consumer = state.consumer
+  final def connection = state.connection
+  final def consumer = state.consumer
+  final def channel = state.channel
 
   @throws(classOf[IOException])
   private def doConnect {
@@ -157,13 +186,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         state = State(Option(conn), Option(channel), consumer)
 
-        consumer match {
-          case Some(qConsumer: QueueingConsumer) => QueueingConsumer.startConsumer(qConsumer)
-          case _ =>
-        }
-
-        log.info("Successfully connected at: " + conn.getHost + ":" + conn.getPort)
-        reconnectDelay = defaultReconnectDelay
+        log.info("Successfully connected at: " + conn.getAddress.getHostAddress + ":" + conn.getPort)
+        reconnectDelay = AMQPDispatcher.defaultReconnectDelay
         publish(AMQPConnected)
 
       case Right(ex) =>
@@ -180,7 +204,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
     disconnect
     
-    timer.schedule(new TimerTask {
+    AMQPDispatcher.timer.schedule(new TimerTask {
         def run {
           try {
             reconnectDelay *= 2
@@ -193,19 +217,19 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   }
 
   private def disconnect {
-    channel foreach {ch =>
+    channel foreach {_ch =>
       try {
-        consumer foreach {case x: DefaultConsumer => ch.basicCancel(x.getConsumerTag)}
-        ch.close
+        consumer foreach {case x: DefaultConsumer => _ch.basicCancel(x.getConsumerTag)}
+        _ch.close
       } catch {
         case _ =>
       }
     }
 
-    connection foreach {conn =>
-      if (conn.isOpen) {
+    connection foreach {_conn =>
+      if (_conn.isOpen) {
         try {
-          conn.close
+          _conn.close
           log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         } catch {
           case _ =>
@@ -225,70 +249,66 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def configure(channel: Channel): Option[Consumer]
 
   @throws(classOf[IOException])
-  def publish(exchange: String, routingKey: String, props: AMQP.BasicProperties, content: Any) {
-    channel foreach {ch =>
-      import ContentType._
-
-      val props1 = if (props == null) new AMQP.BasicProperties else props
-
-      val contentType = props1.getContentType match {
-        case null | "" => JAVA_SERIALIZED_OBJECT // AVRO // 
+  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build) {
+    channel foreach {_ch =>
+      val contentType = props.getContentType match {
+        case null | "" => DEFAULT_CONTENT_TYPE 
         case x => ContentType(x)
       }
-
-      val body = contentType.mimeType match {
-        case JSON.mimeType => 
-          content match {
-            case msg: Msg[_] => 
-              val headers = props1.getHeaders match {
-                case null => new java.util.HashMap[String, AnyRef]
-                case x => x
-              }
-              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-              props1.setHeaders(headers)
-          }
-          Serializer.encodeJson(content)
-        case AVRO.mimeType => 
-          content match {
-            case msg: Msg[_] => 
-              val headers = props1.getHeaders match {
-                case null => new java.util.HashMap[String, AnyRef]
-                case x => x
-              }
-              headers.put("tag", msg.tag.asInstanceOf[AnyRef])
-              props1.setHeaders(headers)
-          }
-          Serializer.encodeAvro(content)  
-
-        case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
-        case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
-        case _ => content.asInstanceOf[Array[Byte]]
-      }
-
-      val contentEncoding = props1.getContentEncoding match {
-        case null | "" => props1.setContentEncoding("gzip"); "gzip"
-        case x => x
-      }
+      
+      val headers = Option(props.getHeaders) getOrElse new java.util.HashMap[String, AnyRef](1)
     
-      val body1 = contentEncoding match {
-        case "gzip" => Serializer.gzip(body)
-        case "lzma" => Serializer.lzma(body)
-        case _ => body
-      }
+      try {
+        import ContentType._
+        val encodedBody = contentType.mimeType match {
+          case JSON.mimeType => 
+            content match {
+              case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
+              case _ => // todo
+            }
+            Serializer.encodeJson(content)
+          case AVRO.mimeType => 
+            content match {
+              case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
+              case _ => // todo
+            }
+            Serializer.encodeAvro(content)  
 
-      log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-      ch.basicPublish(exchange, routingKey, props1, body1)
+          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
+          case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
+          case _ => content.asInstanceOf[Array[Byte]]
+        }
+
+        val contentEncoding = props.getContentEncoding match {
+          case null | "" => GZIP
+          case x => x
+        }
+      
+        val body = contentEncoding match {
+          case GZIP => Serializer.gzip(encodedBody)
+          case LZMA => Serializer.lzma(encodedBody)
+          case _ => encodedBody
+        }
+        
+        val pubProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
+        
+        log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
+        
+        _ch.basicPublish(exchange, routingKey, pubProps, body)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
     }
   }
 
   protected def deleteQueue(queue: String) {
-    channel foreach {ch =>
+    channel foreach {_ch =>
       try {
         // Check if the queue existed, if existed, will return a declareOk object, otherwise will throw IOException
-        val declareOk = ch.queueDeclarePassive(queue)
+        val declareOk = _ch.queueDeclarePassive(queue)
         try {
           // the exception thrown here will destroy the connection too, so use it carefully
-          ch.queueDelete(queue)
+          _ch.queueDelete(queue)
           log.info("Deleted queue: " + queue)
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -334,201 +354,50 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
       log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
 
-      val body1 = props.getContentEncoding match {
-        case "gzip" => Serializer.ungzip(body)
-        case "lzma" => Serializer.unlzma(body)
+      val unzippedBody = props.getContentEncoding match {
+        case GZIP => Serializer.ungzip(body)
+        case LZMA => Serializer.unlzma(body)
         case _ => body
       }
 
-      import ContentType._
       val contentType = props.getContentType match {
-        case null | "" =>  JAVA_SERIALIZED_OBJECT // AVRO
+        case null | "" =>  DEFAULT_CONTENT_TYPE
         case x => ContentType(x)
       }
 
-      val headers = props.getHeaders match {
-        case null => java.util.Collections.emptyMap[String, AnyRef]
-        case x => x
-      }
-      
+      val headers = Option(props.getHeaders) getOrElse java.util.Collections.emptyMap[String, AnyRef]
+
       try {
+        import ContentType._
         val content = contentType.mimeType match {
-          case JSON.mimeType => headers.get("tag") match {
-              case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
+          case JSON.mimeType => headers.get(TAG) match {
+              case tag: java.lang.Integer => 
+                val value = Serializer.decodeJson(unzippedBody, tag.intValue)
+                Msg(tag.intValue, value)
               case _ => null
             }
-          case AVRO.mimeType => headers.get("tag") match {
-              case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
+          case AVRO.mimeType => headers.get(TAG) match {
+              case tag: java.lang.Integer => 
+                val value = Serializer.decodeAvro(unzippedBody, tag.intValue)
+                Msg(tag.intValue, value)
               case _ => null
             }
             
-          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
-          case OCTET_STREAM.mimeType => body1
-          case _ => body1
+          case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(unzippedBody)
+          case OCTET_STREAM.mimeType => unzippedBody
+          case _ => unzippedBody
         }
 
-        // send back to interested observers for further relay
-        publish(AMQPMessage(content, props, envelope))
-        log.fine("Published amqp message: " + content)
+        val fwProps = props.builder.contentType(contentType.mimeType).headers(headers).build
+        // forward to interested observers for further relay
+        publish(AMQPMessage(content, fwProps, envelope))
+        
+        log.fine("Forward amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
-      }
-    }
-  }
-
-  object QueueingConsumer {
-    // Marker object used to signal the queue is in shutdown mode.
-    // It is only there to wake up consumers. The canonical representation
-    // of shutting down is the presence of _shutdown.
-    // Invariant: This is never on _queue unless _shutdown != null.
-    private val POISON = Delivery(null, null, null)
-
-    def startConsumer(consumer: QueueingConsumer) {
-      val consumerRunner = new Runnable {
-        def run {
-          while (true) {
-            val delivery = consumer.nextDelivery // blocked here
-            consumer.relay(delivery)
-          }
-        }
-      }
-      (new Thread(consumerRunner)).start
-    }
-  }
-  class QueueingConsumer(channel: Channel, val isAutoAck: Boolean) extends DefaultConsumer(channel) {
-    import QueueingConsumer._
-    
-    private val _queue: BlockingQueue[Delivery] = new LinkedBlockingQueue[Delivery]
-
-    // When this is non-null the queue is in shutdown mode and nextDelivery should
-    // throw a shutdown signal exception.
-    @volatile private var _shutdown: ShutdownSignalException = _
-
-    override def handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException ) {
-      _shutdown = sig
-      _queue.add(POISON)
-    }
-
-    @throws(classOf[IOException])
-    override def handleDelivery(consumerTag: String,
-                                envelope: Envelope ,
-                                props: AMQP.BasicProperties,
-                                body: Array[Byte]
-    ) {
-      checkShutdown
-
-      if (!isAutoAck) {
-        try {
-          // Params:
-          //   deliveryTag - the tag from the received AMQP.Basic.GetOk or AMQP.Basic.Deliver
-          //   multiple - true  to acknowledge all messages up to and including the supplied delivery tag;
-          //              false to acknowledge just the supplied delivery tag.
-          channel.basicAck(envelope.getDeliveryTag, false)
-        } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
-        }
-      }
-
-      this._queue.add(Delivery(body, props, envelope))
-    }
-
-    /**
-     * Check if we are in shutdown mode and if so throw an exception.
-     */
-    private def checkShutdown {
-      if (_shutdown != null) throw Utility.fixStackTrace(_shutdown)
-    }
-
-    /**
-     * If this is a non-POISON non-null delivery simply return it.
-     * If this is POISON we are in shutdown mode, throw _shutdown
-     * If this is null, we may be in shutdown mode. Check and see.
-     */
-    private def handle(delivery: Delivery): Delivery = {
-      if (delivery == POISON || delivery == null && _shutdown != null) {
-        if (delivery == POISON) {
-          _queue.add(POISON)
-          if (_shutdown == null) {
-            throw new IllegalStateException(
-              "POISON in queue, but null _shutdown. " +
-              "This should never happen, please report as a BUG")
-          }
-        }
-        throw Utility.fixStackTrace(_shutdown)
-      }
-      delivery
-    }
-
-    /**
-     * Main application-side API: wait for the next message delivery and return it.
-     * @return the next message
-     * @throws InterruptedException if an interrupt is received while waiting
-     * @throws ShutdownSignalException if the connection is shut down while waiting
-     */
-    @throws(classOf[InterruptedException])
-    @throws(classOf[ShutdownSignalException])
-    def nextDelivery: Delivery = {
-      handle(_queue.take)
-    }
-
-    /**
-     * Main application-side API: wait for the next message delivery and return it.
-     * @param timeout timeout in millisecond
-     * @return the next message or null if timed out
-     * @throws InterruptedException if an interrupt is received while waiting
-     * @throws ShutdownSignalException if the connection is shut down while waiting
-     */
-    @throws(classOf[InterruptedException])
-    @throws(classOf[ShutdownSignalException])
-    def nextDelivery(timeout: Long): Delivery = {
-      handle(_queue.poll(timeout, TimeUnit.MILLISECONDS))
-    }
-
-    def relay(delivery: Delivery) {
-      delivery match {
-        case Delivery(body, props, envelope) =>
-          val body1 = props.getContentEncoding match {
-            case "gzip" => Serializer.ungzip(body)
-            case "lzma" => Serializer.unlzma(body)
-            case _ => body
-          }
-
-          import ContentType._
-          val contentType = props.getContentType match {
-            case null | "" => JAVA_SERIALIZED_OBJECT
-            case x => ContentType(x)
-          }
-
-          val headers = props.getHeaders match {
-            case null => java.util.Collections.emptyMap[String, AnyRef]
-            case x => x
-          }
-      
-          try {
-            val content = contentType.mimeType match {
-              case JSON.mimeType => headers.get("tag") match {
-                  case tag: java.lang.Integer => Serializer.decodeJson(body1, tag.intValue)
-                  case _ => null
-                }
-              case AVRO.mimeType => headers.get("tag") match {
-                  case tag: java.lang.Integer => Serializer.decodeAvro(body1, tag.intValue)
-                  case _ => null
-                }
-                
-              case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(body1)
-              case OCTET_STREAM.mimeType => body1
-            }
-
-            publish(AMQPMessage(content, props, envelope))
-          } catch {
-            // should catch it when old version classes were sent by old version of clients.
-            case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
-            case ex => log.log(Level.WARNING, ex.getMessage, ex)
-          }
-        case _ =>
       }
     }
   }
@@ -546,7 +415,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     processors ::= this
     
     reactions += {
-      case msg: AMQPMessage => process(msg)
+      case amqpMsg: AMQPMessage => process(amqpMsg)
     }
     listenTo(AMQPDispatcher.this)
 

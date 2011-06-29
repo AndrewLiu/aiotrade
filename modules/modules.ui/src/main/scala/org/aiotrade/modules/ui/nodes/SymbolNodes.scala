@@ -859,7 +859,7 @@ object SymbolNodes {
 
         val baseSer = viewContainer.controller.baseSer
         val quoteCompareIndicator = new QuoteCompareIndicator(baseSer)
-        quoteCompareIndicator.shortDescription = sec.uniSymbol
+        quoteCompareIndicator.shortName = sec.uniSymbol
         quoteCompareIndicator.serToBeCompared = serToCompare
         quoteCompareIndicator.computeFrom(0)
 

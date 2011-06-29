@@ -45,7 +45,7 @@ import org.aiotrade.lib.util.reactors.Reactions
 class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private var _shortDescription: String = _sec.uniSymbol
+  private var _shortName: String = _sec.uniSymbol
   var adjusted: Boolean = false
     
   val open   = TVar[Double]("O", Plot.Quote)
@@ -144,10 +144,6 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   }
 
   /**
-   * adjWeight = (close of the day before dividend) / (prevClose of dividend day)
-   *
-   * ((value - prevNorm) / prevNorm) * postNorm + postNorm = value * (postNorm / prevNorm)
-   * 
    * @param boolean b: if true, do adjust, else, de adjust
    */
   private def doAdjust(b: Boolean) {
@@ -159,8 +155,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       return
     }
     
-    var i = 0
-    while (i < size) {
+    var i = -1
+    while ({i += 1; i < size}) {
       val time = timestamps(i)
 
       var h = high(i)
@@ -190,8 +186,6 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
           close(i) = c
         }
       }
-      
-      i += 1
     }
 
     adjusted = b
@@ -199,11 +193,11 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
-  override def shortDescription: String = {
+  override def shortName: String = {
     if (adjusted) {
-      _shortDescription + "(*)"
+      _shortName + "(*)"
     } else {
-      _shortDescription
+      _shortName
     }
   }
 

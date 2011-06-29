@@ -28,20 +28,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.amqp
+package org.aiotrade.lib.util
 
 /**
- * @param content A deserialized value received via AMQP.
- * @param props
- * @param envelope of AMQP
- *
- * Messages received from AMQP are wrapped in this case class. When you
- * register a listener, this is the case class that you will be matching on.
  * 
- * @Note we don't put it to package object amqp, since it may be accessed by Java code.
+ * @author Caoyuan Deng
  */
-import com.rabbitmq.client.AMQP
-import com.rabbitmq.client.Envelope
-
-@serializable
-case class AMQPMessage(body: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null)
+trait Exportable[V] {
+  /** export to array, map, primitive value etc */
+  def exportTo: V
+  /** import from array, map, primitive value etc */
+  def importFrom(v: V): this.type
+}

@@ -41,54 +41,61 @@ import java.awt.Color
 case class SignalEvent(source: SignalIndicator, signal: Signal)
 case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
 
-case class SubSignalEvent(uniSymbol: String, name: String, freq: String, signal: Signal)
-case class SubSignalsEvent(uniSymbol: String, name: String, freq: String, signals: Array[Signal])
+/** Helper classes to carray full information of signal/signals */
+case class SignalX(symbol: String, name: String, freq: String, signal: Signal) {
+  def this() = this(null, null, null, null) /* for serializable */
+}
+case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal]) {
+  def this() = this(null, null, null, null) /* for serializable */
+}
 
-object Signal extends Publisher {  
-  def importFrom(v: (Long, List[Any])): Signal = {
-    v match {
-      case (time: Long, List(kindId: Byte, text: String, id: Int)) =>
-        if (Kind.isSign(kindId)) {
-          Sign(time, Direction.withId(kindId), id, text)
-        } else {
-          Mark(time, Position.withId(kindId), id, text)
-        }
-      case (time: Long, List(kindId: Byte, id: Int)) =>
-        if (Kind.isSign(kindId)) {
-          Sign(time, Direction.withId(kindId), id)
-        } else {
-          Mark(time, Position.withId(kindId), id)
-        }
-      case (time: Long, List(kindId: Double, id: Double)) =>
-        if (Kind.isSign(kindId.toByte)) {
-          Sign(time, Direction.withId(kindId.toByte), id.toInt)
-        } else {
-          Mark(time, Position.withId(kindId.toByte), id.toInt)
-        }
-      case _ => null
-    }
+/**
+ * @note We have to write Signal and Sign/Mark as here for avro serializer:
+ *   Signal coundn't be abstract class 
+ *   Don't write Sign/Mark as case class
+ */
+class Sign private (time: => Long, 
+                    kind: => Direction, 
+                    id: => Int, 
+                    text: => String, 
+                    color: => Color
+) extends Signal(time, kind, id, text, color) {
+  def this() = this(0L, Direction.EnterLong, 0, null, null) /* for serializable */
+  override def kind = super.kind.asInstanceOf[Direction]
+}
+
+object Sign {
+  def apply(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) = new Sign(time, kind, id, text, color)
+  def unapply(v: Signal): Option[(Long, Direction, Int, String, Color)] = v.kind match {
+    case k: Direction => Some((v.time, k, v.id, v.text, v.color))
+    case _ => None
   }
 }
 
-case class Sign(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) extends Signal
-case class Mark(time: Long, kind: Position,  id: Int = 0, text: String = null, color: Color = null) extends Signal
+class Mark private (time: => Long, 
+                    kind: => Position, 
+                    id: => Int, 
+                    text: => String, 
+                    color: => Color
+) extends Signal(time, kind, id, text, color) {
+  def this() = this(0L, Position.Lower, 0, null, null) /* for serializable */
+  override def kind = super.kind.asInstanceOf[Position]
+}
 
-abstract class Signal {
-  def time: Long
-  def kind: Kind
-  def id: Int
-  def text: String
-  def color: Color
-
-  def hasText = text != null
-
-  def export: (Long, List[Any]) = {
-    if (text != null) {
-      (time, List[Any](kind.id, text, id))
-    } else {
-      (time, List[Any](kind.id, id))
-    }
+object Mark {
+  def apply(time: Long, kind: Position, id: Int = 0, text: String = null, color: Color = null) = new Mark(time, kind, id, text, color)
+  def unapply(v: Signal): Option[(Long, Position, Int, String, Color)] = v.kind match {
+    case k: Position => Some((v.time, k, v.id, v.text, v.color))
+    case _ => None
   }
+}
+
+class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = null, @transient val color: Color = null) {
+  def this() = this(0L, null) /* for serializable */
+
+  def kind: Kind = _kind
+  
+  def hasText = text != null
 
   override def hashCode: Int = {
     var h = 17
@@ -106,4 +113,51 @@ abstract class Signal {
       case _ => false
     }
   }
+}
+
+object Signal extends Publisher {
+  
+  // --- simple test
+  def main(args: Array[String]) {
+    try {
+      val posi = new Position(-1)
+      val matchPosi = posi match {
+        case Position.Lower => false
+        case Position.Upper => true
+      }
+      assert(matchPosi)
+      println(matchPosi)
+
+      val dire = new Direction(4)
+      val matchDire = dire match {
+        case Direction.EnterLong => false
+        case Direction.ExitShort => true
+      }
+      assert(matchDire)
+      println(matchDire)
+    
+      val sign = new Signal(0, Direction.EnterLong)
+      val matchSign = sign match {
+        case Mark(time, kind, _, _, _) => println(kind); false
+        case Sign(time, kind, _, _, _) => println(kind); true
+        case _ => false
+      }
+      assert(matchSign)
+      println(matchSign)
+    
+      val mark = new Signal(0, Position.Lower)
+      val matchMark = mark match {
+        case Sign(time, kind, _, _, _) => println(kind); false
+        case Mark(time, kind, _, _, _) => println(kind); true
+        case _ => false
+      }
+      assert(matchMark)
+      println(matchMark)
+
+      System.exit(0)
+    } catch {
+      case ex => ex.printStackTrace; System.exit(1)
+    }
+  }
+
 }

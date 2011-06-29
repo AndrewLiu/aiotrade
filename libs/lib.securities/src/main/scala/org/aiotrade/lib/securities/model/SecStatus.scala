@@ -12,8 +12,7 @@ object SecStatuses extends Table[SecStatus] {
   val dividStatus = "dividStatus" INTEGER()
 }
 
-class SecStatus {
-  var sec: Sec = _
+class SecStatus extends BelongsToSec {
 
   var validFrom: Long = _
   var validTo: Long = _

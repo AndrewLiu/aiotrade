@@ -85,9 +85,9 @@ trait TSer extends Publisher {
   /** public clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage */
   def clear(fromTime: Long)
 
-  def longDescription: String
-  def shortDescription: String
-  def shortDescription_=(description: String)
+  def longName: String
+  def shortName: String
+  def shortName_=(shortName: String)
   def displayName: String
     
   def isInLoading: Boolean

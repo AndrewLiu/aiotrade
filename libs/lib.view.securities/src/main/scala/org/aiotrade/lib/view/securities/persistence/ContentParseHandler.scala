@@ -60,7 +60,9 @@ import scala.collection.mutable
  */
 class ContentParseHandler extends DefaultHandler {
   private val NUMBER_FORMAT = NumberFormat.getInstance
-    
+  
+  private val classLoader = Thread.currentThread.getContextClassLoader
+
   private var content: Content = _
     
   private var indicatorDescriptor: IndicatorDescriptor = _
@@ -216,7 +218,7 @@ class ContentParseHandler extends DefaultHandler {
         
     val handledChart =
       try {
-        Class.forName(handledChartClassName).newInstance.asInstanceOf[HandledChart]
+        Class.forName(handledChartClassName, true, classLoader).newInstance.asInstanceOf[HandledChart]
       } catch {case ex: Exception => ex.printStackTrace; null}
     
     if (handledChart !=null) {

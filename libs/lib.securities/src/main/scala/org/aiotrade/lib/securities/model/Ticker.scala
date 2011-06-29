@@ -283,20 +283,6 @@ abstract class TickersTable extends Table[Ticker] {
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 }
 
-object Ticker {
-  def importFrom(v: (Long, List[Array[Double]])): LightTicker = v match {
-    case (time: Long, List(data, bidAsks)) =>
-      val x = new Ticker(data, new MarketDepth(bidAsks))
-      x.time = time
-      x
-    case (time: Long, List(data)) =>
-      val x = new LightTicker(data)
-      x.time = time
-      x
-    case _ => null
-  }
-}
-
 /**
  *
  * A stock ticker is a running report of the prices and trading volume of securities
@@ -317,11 +303,16 @@ object Ticker {
  * @author Caoyuan Deng
  */
 @serializable @cloneable
-class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTicker($data) {
+class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extends LightTicker($data) {
 
   def this(depth: Int) = this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](depth * 4)))
   def this() = this(5)
 
+  def marketDepth = _marketDepth
+  def marketDepth_=(marketDepth: MarketDepth) {
+    this._marketDepth = marketDepth
+  }
+  
   def depth = marketDepth.depth
 
   def bidAsks = marketDepth.bidAsks
@@ -375,8 +366,16 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
     }
   }
 
-  override def export = (time, List(data, marketDepth.bidAsks))
-
+  override def importFrom(v: (Long, Array[Double], Array[Double])): this.type = {
+    this.time = v._1
+    this.data = v._2
+    this.marketDepth = MarketDepth(v._3)
+    this
+  }
+  override def exportTo: (Long, Array[Double], Array[Double]) = {
+    (time, data, marketDepth.bidAsks)
+  }
+  
   final def isValueChanged(another: Ticker): Boolean = {
     if (super.isValueChanged(another)) {
       return true
@@ -404,6 +403,10 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
     } catch {case ex: CloneNotSupportedException => ex.printStackTrace}
 
     null
+  }
+  
+  override def toString = {
+    "Ticker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ", depth=" + marketDepth +  ")"
   }
 }
 

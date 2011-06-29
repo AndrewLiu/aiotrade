@@ -1,7 +1,12 @@
 package org.aiotrade.lib.avro
 
+import java.lang.reflect.GenericArrayType
+import java.lang.reflect.GenericDeclaration
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.TypeVariable
 
+import java.util.logging.Logger
+import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.Protocol
 import org.apache.avro.AvroRuntimeException
@@ -25,6 +30,9 @@ class SpecificData protected () extends GenericData {
   import SpecificData._
   import Schema.Type._
 
+  private val log = Logger.getLogger(this.getClass().getName)
+  private val classLoader = Thread.currentThread.getContextClassLoader
+  
   private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]]()
   private val schemaCache = new java.util.WeakHashMap[java.lang.reflect.Type, Schema]()
 
@@ -32,7 +40,26 @@ class SpecificData protected () extends GenericData {
     datum.isInstanceOf[Enum[_]] || super.isEnum(datum)
   }
 
-
+  /** Called by {@link #resolveUnion(Schema,Object)}. @see #createSchema */
+  override protected def instanceOf(schema: Schema, datum: AnyRef): Boolean = {
+    schema.getType match {
+      case INT => datum.isInstanceOf[java.lang.Integer] || datum.isInstanceOf[java.lang.Short] || datum.isInstanceOf[java.lang.Byte]
+      case RECORD =>
+        if (!isRecord(datum)) return false
+        if (schema.getFullName == null) {
+          getRecordSchema(datum).getFullName == null
+        } else {
+          val datumSchema = getRecordSchema(datum)
+          if (schema.getFullName == datumSchema.getFullName) {
+            true 
+          } else {
+            getClass(schema).isInstance(datum)
+          }
+        }
+      case _ => super.instanceOf(schema, datum)
+    }
+  }
+  
   /** Return the class that implements a schema, or null if none exists. */
   def getClass(schema: Schema): Class[_] = {
     schema.getType match {
@@ -41,9 +68,9 @@ class SpecificData protected () extends GenericData {
         val c = classCache.get(name) match {
           case null =>
             try {
-              Class.forName(getClassName(schema))
+              Class.forName(getClassName(schema), true, classLoader)
             } catch {
-              case e: ClassNotFoundException => NO_CLASS
+              case ex: ClassNotFoundException => log.warning(ex.getMessage); NO_CLASS
             }
           case x => x
         }
@@ -74,59 +101,107 @@ class SpecificData protected () extends GenericData {
   def getClassName(schema: Schema): String = {
     val namespace = schema.getNamespace
     val name = schema.getName
-    if (namespace == null) {
+    val className = if (namespace == null) {
       name
     } else {
       val dot = if (namespace.endsWith("$")) "" else "."
       namespace + dot + name
     }
+    className.replace("_DOLLAR_", "$")
   }
 
   /** Find the schema for a Java type. */
-  def getSchema(tpe: java.lang.reflect.Type): Schema = {
-    schemaCache.get(tpe) match {
-      case null =>
-        val schema = createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
-        schemaCache.put(tpe, schema)
-        schema
-      case x => x
+  def getSchema[T](tpe: Class[T])(implicit m: Manifest[T]): Schema = {
+    if (m.typeArguments.isEmpty) { // don't cache Type what has type parameters
+      schemaCache.get(tpe) match {
+        case null =>
+          val schema = createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
+          schemaCache.put(tpe, schema)
+          schema
+        case x => x
+      }
+    } else {
+      createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
+    }
+  }
+  
+  /** Create the schema for a Java type. */
+  protected def createSchema(tpe: ParameterizedType, names: java.util.Map[String, Schema]): Schema = {
+    val raw = tpe.getRawType.asInstanceOf[Class[_]]
+    val params = tpe.getActualTypeArguments
+    if (isCollectionClass(raw)) { 
+      // array
+      if (params.length != 1) throw new AvroTypeException("No array type specified.")
+      val etype = params(0).asInstanceOf[Class[_]]
+      Schema.createArray(createSchema(etype, names))
+    } else if (isMapClass(raw)) {   
+      // map
+      val key = params(0).asInstanceOf[Class[_]]
+      val value = params(1).asInstanceOf[Class[_]]
+      if (CharSequenceClass.isAssignableFrom(key)) {
+        Schema.createMap(createSchema(value, names))
+      } else {
+        throw new AvroTypeException("Map key class not CharSequence: " + key)
+      }
+    } else {
+      createSchema(raw, names)
     }
   }
 
-  /** Create the schema for a Java type. */
-  protected def createSchema(tpe: java.lang.reflect.Type, names: java.util.Map[String, Schema]): Schema = {
+  protected def createSchema(tpe: GenericArrayType, names: java.util.Map[String, Schema]): Schema = {
+    throw new AvroTypeException("Unknown type: " + tpe)
+  }
+  
+  protected def createSchema[T <: GenericDeclaration](tpe: TypeVariable[T], names: java.util.Map[String, Schema]): Schema = {
+    throw new AvroTypeException("Unknown type: " + tpe)
+  }
+  
+  /** Create the schema for a Java class. */
+  protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     tpe match {
-      case c: Class[_] if CharSequenceClass.isAssignableFrom(c) => Schema.create(Type.STRING)
-      case ByteBufferClass => Schema.create(Type.BYTES)
       case VoidType    | JVoidClass => Schema.create(Type.NULL)
+      case ByteType    | ByteClass    | JByteClass    => Schema.create(Type.INT)
+      case ShortType   | ShortClass   | JShortClass   => Schema.create(Type.INT)
       case IntegerType | IntClass     | JIntegerClass => Schema.create(Type.INT)
       case LongType    | LongClass    | JLongClass    => Schema.create(Type.LONG)
       case FloatType   | FloatClass   | JFloatClass   => Schema.create(Type.FLOAT)
       case DoubleType  | DoubleClass  | JDoubleClass  => Schema.create(Type.DOUBLE)
       case BooleanType | BooleanClass | JBooleanClass => Schema.create(Type.BOOLEAN)
-      case ptype: ParameterizedType =>
-        val raw = ptype.getRawType.asInstanceOf[Class[_]]
-        val params = ptype.getActualTypeArguments
-
-        if (JCollectionClass.isAssignableFrom(raw) || SeqClass.isAssignableFrom(raw)) { 
-          // array
-          if (params.length != 1) throw new AvroTypeException("No array type specified.")
-          Schema.createArray(createSchema(params(0), names))
-
-        } else if (JMapClass.isAssignableFrom(raw) || MapClass.isAssignableFrom(raw)) {   
-          // map
-          val key = params(0)
-          val value = params(1)
-          tpe match {
-            case c: Class[_] if CharSequenceClass.isAssignableFrom(c) =>
-              Schema.createMap(createSchema(value, names))
-            case _ => throw new AvroTypeException("Map key class not CharSequence: " + key)
-          }
-          
-        } else {
-          createSchema(raw, names)
+      case ByteBufferClass => Schema.create(Type.BYTES)
+      case c: Class[T] if CharSequenceClass.isAssignableFrom(c) => Schema.create(Type.STRING)
+      case c: Class[T] if isTupleClass(c) => // tuple
+        val schema = Schema.createRecord("tuple", null, "", false)
+        val fields = new java.util.ArrayList[Schema.Field]()
+        var i = 1 // tuple indexed from 1
+        for (param <- m.typeArguments) {
+          val fieldSchema = createSchema(param.erasure, names)
+          // make nullable
+          Schema.createUnion(java.util.Arrays.asList(Schema.create(Schema.Type.NULL), fieldSchema))
+          fields.add(new Schema.Field("_" + i, fieldSchema, null /* doc */, null))
+          i += 1
         }
-      case c: Class[_] =>
+        schema.setFields(fields)
+        schema
+      case c: Class[T] if isCollectionClass(c) => // array
+        m.typeArguments.headOption match {
+          case Some(etype) => 
+            val etypex = etype.erasure.asInstanceOf[Class[_]]
+            Schema.createArray(createSchema(etypex, names))
+          case None => throw new AvroTypeException("No array type specified.")
+        }
+      case c: Class[T] if isMapClass(c) => // map
+        m.typeArguments match {
+          case List(key, value) => 
+            val keyx = key.erasure.asInstanceOf[Class[_]]
+            val valuex = value.erasure.asInstanceOf[Class[_]]
+            if (CharSequenceClass.isAssignableFrom(keyx)) {
+              Schema.createMap(createSchema(valuex, names))
+            } else {
+              throw new AvroTypeException("Map key class not CharSequence: " + key)
+            }
+          case _ => throw new AvroTypeException("No map type paramters specified.")
+        }
+      case c: Class[T] =>
         val fullName = c.getName
         val schema = names.get(fullName) match {
           case null =>
@@ -144,61 +219,7 @@ class SpecificData protected () extends GenericData {
     }
   }
 
-  protected def createSchema_old(tpe: java.lang.reflect.Type, names: java.util.Map[String, Schema]): Schema = {
-    tpe match {
-      case x: Class[_] if classOf[java.lang.CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]]) =>
-    }
-    if (tpe.isInstanceOf[Class[_]] && classOf[java.lang.CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]]))
-      Schema.create(Type.STRING)
-    else if (tpe == classOf[java.nio.ByteBuffer])
-      Schema.create(Type.BYTES)
-    else if (tpe == classOf[java.lang.Integer] || tpe == java.lang.Integer.TYPE)
-      Schema.create(Type.INT)
-    else if (tpe == classOf[java.lang.Long] || tpe == java.lang.Long.TYPE)
-      Schema.create(Type.LONG)
-    else if (tpe == classOf[Float] || tpe == java.lang.Float.TYPE)
-      Schema.create(Type.FLOAT)
-    else if (tpe == classOf[java.lang.Double] || tpe == java.lang.Double.TYPE)
-      Schema.create(Type.DOUBLE)
-    else if (tpe == classOf[java.lang.Boolean] || tpe == java.lang.Boolean.TYPE)
-      Schema.create(Type.BOOLEAN)
-    else if (tpe == classOf[java.lang.Void] || tpe == java.lang.Void.TYPE)
-      Schema.create(Type.NULL)
-    else if (tpe.isInstanceOf[ParameterizedType]) {
-      val ptype = tpe.asInstanceOf[ParameterizedType]
-      val raw = ptype.getRawType.asInstanceOf[Class[_]]
-      val params = ptype.getActualTypeArguments
-      if (classOf[java.util.Collection[_]].isAssignableFrom(raw)) { // array
-        if (params.length != 1)
-          throw new AvroTypeException("No array type specified.")
-        Schema.createArray(createSchema(params(0), names))
-      } else if (classOf[java.util.Map[_, _]].isAssignableFrom(raw)) {   // map
-        val key = params(0)
-        val value = params(1)
-        if (!(tpe.isInstanceOf[Class[_]] && classOf[CharSequence].isAssignableFrom(tpe.asInstanceOf[Class[_]])))
-          throw new AvroTypeException("Map key class not CharSequence: " + key)
-        Schema.createMap(createSchema(value, names))
-      } else {
-        createSchema(raw, names)
-      }
-    } else if (tpe.isInstanceOf[Class[_]]) {               // class
-      val c = tpe.asInstanceOf[Class[_]]
-      val fullName = c.getName
-      val schema = names.get(fullName) match {
-        case null =>
-          try {
-            c.getDeclaredField("SCHEMA$").get(null).asInstanceOf[Schema]
-          } catch {
-            case e: NoSuchFieldException => throw new AvroRuntimeException(e)
-            case e: IllegalAccessException => throw new AvroRuntimeException(e)
-          }
-        case schema => schema
-      }
-      names.put(fullName, schema)
-      schema
-    } else
-      throw new AvroTypeException("Unknown type: " + tpe)
-  }
+
 
   /** Return the protocol for a Java interface. */
   def getProtocol(iface: Class[_]): Protocol = {

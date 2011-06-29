@@ -31,33 +31,31 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.Calendar
+import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
 
 /**
  * @author Caoyuan Deng
  */
 object TimeQueue {
-  type TimeTuple = (Long, Any)
-  type KeyTuple[T] = (String, T)
-
   // --- simple test
   def main(args: Array[String]) {
-    val tq = new TimeQueue[(Long, Int)](2)
+    val tq = new TimeQueue[Int](2)
 
     val cal = Calendar.getInstance
     cal.setTimeInMillis(0)
     cal.set(1990, 0, 1)
     for (i <- 0 until 10) {
       cal.add(Calendar.DAY_OF_MONTH, 1)
-      tq.put(("a", (cal.getTimeInMillis, i)))
-      tq.put(("b", (cal.getTimeInMillis, i)))
+      tq.put("a", cal.getTimeInMillis, i)
+      tq.put("b", cal.getTimeInMillis, i)
     }
 
     println(tq._dayToXs(0))
     println(tq._dayToXs(1))
     val ok = {
-      tq._dayToXs(0) == (7314, Map("a" -> List((631929600000L, 8)), "b" -> List((631929600000L, 8)))) &&
-      tq._dayToXs(1) == (7315, Map("a" -> List((632016000000L, 9)), "b" -> List((632016000000L, 9))))
+      tq._dayToXs(0) == (7314, Map("a" -> ArrayList(8), "b" -> ArrayList(8))) &&
+      tq._dayToXs(1) == (7315, Map("a" -> ArrayList(9), "b" -> ArrayList(9)))
     }
     println(ok)
     assert(ok, "Error.")
@@ -65,47 +63,45 @@ object TimeQueue {
 }
 
 import TimeQueue._
-final class TimeQueue[T <: TimeTuple](fixedSize: Int) {
+final class TimeQueue[V: Manifest](fixedSize: Int) {
 
   private val lastIdx = fixedSize - 1
-  private var _dayToXs = new Array[(Int, mutable.Map[String, List[T]])](fixedSize)
+  private var _dayToXs = new Array[(Int, mutable.HashMap[String, ArrayList[V]])](fixedSize)
 
   val length = fixedSize
-  def apply(i: Int) = _dayToXs synchronized {_dayToXs(i)}
+  def apply(i: Int): (Int, collection.Map[String, ArrayList[V]]) = _dayToXs synchronized {_dayToXs(i)}
 
-  def put(x: KeyTuple[T]): Unit = _dayToXs synchronized  {
-    x match {
-      case (key, (time: Long, _)) =>
-        val day = daysFrom1970(time)
+  def put(key: String, time: Long, value: V): Unit = _dayToXs synchronized  {
+    val day = daysFrom1970(time)
 
-        var willAdd = true
-        val lastKeyToXs = _dayToXs(lastIdx) match {
-          case null => null
-          case (dayMax, keyToXs) =>
-            if (day == dayMax) {
-              keyToXs
-            } else if (day > dayMax) {
-              val newDayToXs = new Array[(Int, mutable.Map[String, List[T]])](fixedSize)
-              System.arraycopy(_dayToXs, 1, newDayToXs, 0, lastIdx)
-              _dayToXs = newDayToXs
-              _dayToXs(lastIdx) = null
-              null
-            } else {
-              willAdd = false
-              null
-            }
+    var willAdd = true
+    var lastKeyToXs = _dayToXs(lastIdx) match {
+      case null => null
+      case (dayMax, keyToXs) =>
+        if (day == dayMax) {
+          keyToXs
+        } else if (day > dayMax) {
+          val newDayToXs = new Array[(Int, mutable.HashMap[String, ArrayList[V]])](fixedSize)
+          System.arraycopy(_dayToXs, 1, newDayToXs, 0, lastIdx)
+          _dayToXs = newDayToXs
+          _dayToXs(lastIdx) = null
+          null
+        } else {
+          willAdd = false
+          null
         }
+    }
 
-        if (willAdd) {
-          if (lastKeyToXs == null) {
-            val newMap = mutable.Map[String, List[T]](key -> List(x._2))
-            _dayToXs(lastIdx) = (day, newMap)
-          } else {
-            val xs = lastKeyToXs.get(key).getOrElse(Nil)
-            lastKeyToXs.put(key, x._2 :: xs)
-          }
-        }
-      case _ =>
+    if (willAdd) {
+      if (lastKeyToXs == null) {
+        val newXs = new ArrayList[V]
+        newXs += value
+        val newMap = mutable.HashMap[String, ArrayList[V]](key -> newXs)
+        _dayToXs(lastIdx) = (day, newMap)
+      } else {
+        val xs = lastKeyToXs.get(key).getOrElse(new ArrayList[V]())
+        lastKeyToXs.put(key, xs += value)
+      }
     }
   }
 

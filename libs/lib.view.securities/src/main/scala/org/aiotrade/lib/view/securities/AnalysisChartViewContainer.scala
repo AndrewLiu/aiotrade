@@ -59,7 +59,7 @@ class AnalysisChartViewContainer extends ChartViewContainer {
     val gbc = GBC(0).setFill(GridBagConstraints.BOTH).setWeight(100, 618)
     
     val quoteSer = controller.baseSer.asInstanceOf[QuoteSer]
-    quoteSer.shortDescription = controller.serProvider.uniSymbol
+    quoteSer.shortName = controller.serProvider.uniSymbol
     val quoteChartView = new AnalysisChartView(controller, quoteSer)
     setMasterView(quoteChartView, gbc)
         

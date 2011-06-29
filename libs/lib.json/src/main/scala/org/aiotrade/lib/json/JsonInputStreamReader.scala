@@ -39,7 +39,8 @@ import scala.collection.mutable.ArrayBuffer
  * @author Caoyuan Deng
  */
 class JsonInputStreamReader(in: InputStream, charsetName: String)  extends InputStreamReader(in, charsetName) {
-  
+  private val classLoader = Thread.currentThread.getContextClassLoader
+
   private lazy val ret = {
     JsonBuilder.readJson(new InputStreamReader(in)) match {
       case map: Json.Object if map.size == 1 =>
@@ -65,7 +66,7 @@ class JsonInputStreamReader(in: InputStream, charsetName: String)  extends Input
 
   private def readObject(clzName: String, fields: collection.Map[String, _]): Any = {
     try {
-      Class.forName(clzName).newInstance match {
+      Class.forName(clzName, true, classLoader).newInstance match {
         case x: JsonSerializable => x.readJson(fields); x
         case _ => null
       }

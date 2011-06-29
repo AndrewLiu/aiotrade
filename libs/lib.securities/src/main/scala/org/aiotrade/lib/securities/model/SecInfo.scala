@@ -20,15 +20,10 @@ object SecInfos extends Table[SecInfo] {
   val lowerLimit = "lowerLimit" DOUBLE()
 }
 
-class SecInfo {
-  /**
-   * Belongs to one Sec
-   */
-  var sec: Sec = _
+class SecInfo extends BelongsToSec {
   
   var validFrom: Long = _
   var validTo: Long = _
-  var uniSymbol: String = ""
   var name: String = ""
   var totalShare: Long = _
   var freeFloat: Long = _

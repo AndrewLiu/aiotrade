@@ -40,7 +40,8 @@ import org.openide.util.actions.CallableSystemAction;
  * @author Caoyuan Deng
  */
 class TestAction extends CallableSystemAction {
-    
+  private val classLoader = Thread.currentThread.getContextClassLoader
+
   def performAction {
     try {
       java.awt.EventQueue.invokeLater(new Runnable {
@@ -55,7 +56,7 @@ class TestAction extends CallableSystemAction {
   private def testHsqldb {
     val userDir = System.getProperty("netbeans.user");
     try {
-      Class.forName("org.hsqldb.jdbcDriver");
+      Class.forName("org.hsqldb.jdbcDriver", true, classLoader);
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
         
     try {

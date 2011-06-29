@@ -68,8 +68,8 @@ object Indicator {
   }
 
   def displayName(ser: TSer): String = ser match {
-    case x: Indicator => displayName(ser.shortDescription, x.factors)
-    case _ => ser.shortDescription
+    case x: Indicator => displayName(ser.shortName, x.factors)
+    case _ => ser.shortName
   }
 
   def displayName(name: String, factors: Array[Factor]): String = {
@@ -105,10 +105,10 @@ trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
   def dispose
 
   def compare(another: Indicator): Int = {
-    if (this.shortDescription.equalsIgnoreCase(another.shortDescription)) {
+    if (this.shortName.equalsIgnoreCase(another.shortName)) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
     } else {
-      this.shortDescription.compareTo(another.shortDescription)
+      this.shortName.compareTo(another.shortName)
     }
   }
 

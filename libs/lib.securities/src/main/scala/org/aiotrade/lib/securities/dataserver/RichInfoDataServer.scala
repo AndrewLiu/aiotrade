@@ -20,6 +20,13 @@ import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm._
 
 class RichInfo extends TVal {
+  
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
   var generalInfo : GeneralInfo =  new GeneralInfo()
   var content : String = ""
   var summary : String = ""

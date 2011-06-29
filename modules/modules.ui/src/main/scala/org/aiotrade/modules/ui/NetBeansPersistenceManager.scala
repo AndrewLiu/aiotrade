@@ -85,6 +85,7 @@ object NetBeansPersistenceManager {
 
 import NetBeansPersistenceManager._
 class NetBeansPersistenceManager extends PersistenceManager {
+  private val classLoader = Thread.currentThread.getContextClassLoader
 
   /** @TODO
    * WindowManager.getDefault()
@@ -310,7 +311,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
         if (lafStr != null) {
           try {
-            val laf = Class.forName(lafStr.trim).newInstance.asInstanceOf[LookFeel]
+            val laf = Class.forName(lafStr.trim, true, classLoader).newInstance.asInstanceOf[LookFeel]
             LookFeel() = laf
           } catch {case ex: Exception => ErrorManager.getDefault.notify(ex)}
 
@@ -386,7 +387,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
     dbDriver = props.getProperty("org.aiotrade.platform.jdbc.driver")
 
     try {
-      Class.forName(dbDriver)
+      Class.forName(dbDriver, true, classLoader)
     } catch {case ex: ClassNotFoundException => ex.printStackTrace}
 
     val strUserDir = System.getProperty("netbeans.user")
@@ -903,7 +904,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
       stmt2 = conn.prepareStatement(sql2)
       for (ticker <- tickers) {
         stmt1 setLong   (1, ticker.time)
-        stmt1 setString (2, ticker.symbol)
+        stmt1 setString (2, ticker.uniSymbol)
         stmt1 setDouble (3, ticker.prevClose)
         stmt1 setDouble (4, ticker.lastPrice)
         stmt1 setDouble (5, ticker.dayOpen)
@@ -975,10 +976,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
       var ticker: Ticker = null
       while (rs.next) {
         val symbol = rs.getString("tsymbol")
-        if (ticker == null || ticker.symbol != symbol) {
+        if (ticker == null || ticker.uniSymbol != symbol) {
           // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
           ticker = new Ticker
-          ticker.symbol    = symbol
+          ticker.uniSymbol = symbol
           ticker.time      = rs getLong  ("ttime")
           ticker.prevClose = rs getDouble ("prevclose")
           ticker.lastPrice = rs getDouble ("lastprice")
@@ -1037,10 +1038,10 @@ class NetBeansPersistenceManager extends PersistenceManager {
       var ticker: Ticker = null
       while (rs.next) {
         val symbol = rs.getString("tsymbol")
-        if (ticker == null || ticker.symbol != symbol) {
+        if (ticker == null || ticker.uniSymbol != symbol) {
           // (ttime, tsymbol, prevclose, lastprice, dayopen, dayhigh, daylow, dayvolume, dayamount, daychange, tsourceid)
           ticker = new Ticker
-          ticker.symbol    = symbol
+          ticker.uniSymbol = symbol
           ticker.time      = rs getLong   ("ttime")
           ticker.prevClose = rs getDouble ("prevclose")
           ticker.lastPrice = rs getDouble ("lastprice")
@@ -1110,7 +1111,7 @@ class NetBeansPersistenceManager extends PersistenceManager {
   }
 
   private def propTableName(symbol: String, freq: TFreq): String = {
-    propSymbol(symbol) + "_" + freq.compactDescription
+    propSymbol(symbol) + "_" + freq.compactName
   }
 
   /**

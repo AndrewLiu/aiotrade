@@ -14,11 +14,12 @@ object SpecificDatumWriter {
 
 /** {@link org.apache.avro.io.DatumWriter DatumWriter} for generated Java classes. */
 class SpecificDatumWriter[T] protected (root: Schema, specificData: SpecificData) extends GenericDatumWriter[T](root, specificData) {
+
   @throws(classOf[IOException])
   override protected def writeEnum(schema: Schema, datum: Any, out: Encoder) {
     datum match {
       case x: Enum[_] => out.writeEnum(x.ordinal)
       case _ => super.writeEnum(schema, datum, out)
     }
-  }
+  }  
 }
