@@ -54,7 +54,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   type C <: DataContract[_]
 
-  private case class AskLoadData(afterTime: Long, contract: Iterable[C])
+  private case class RequestData(afterTime: Long, contract: Iterable[C])
   case class DataLoaded(values: Array[V], contract: C)
   case object DataProcessed
 
@@ -89,8 +89,9 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * finally. 
    * 
    * You have to balance in this case, if the data that to be collected are very
-   * important, that cannot be lost, you should have to increase the memory. Otherwise,
-   * you can try to sync the producer and the consumer.
+   * important, that cannot be lost, you should increase the memory or store data
+   * in persistence cache first. Otherwise, you have to try to sync the producer and 
+   * the consumer.
    */
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
@@ -99,10 +100,10 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
     case HeartBeat(interval) =>
       if (isRefreshable && !inLoading) {
         // refresh from loadedTime for subscribedContracts
-        publish(AskLoadData(loadedTime, subscribedContracts))
+        publish(RequestData(loadedTime, subscribedContracts))
       }
       
-    case AskLoadData(afterTime, contracts) =>
+    case RequestData(afterTime, contracts) =>
       inLoading = true
       try {
         requestData(afterTime, contracts)
@@ -129,10 +130,8 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   def loadData(afterTime: Long, contracts: Iterable[C]) {
     log.info("Fired LoadData message")
-    /**
-     * Transit to async load reactor to avoid shared variables lock (loadedTime etc)
-     */
-    publish(AskLoadData(afterTime, contracts))
+    // transit to async load reactor to avoid shared variables lock (loadedTime etc)
+    publish(RequestData(afterTime, contracts))
   }
 
   /**
