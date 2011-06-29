@@ -113,17 +113,19 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       }
       isInLoading = false
 
-    case DataLoaded(values: Array[V], contract) => // don't specify contract type as C, which won't match 'null'
+    case DataLoaded(values, contract) =>
+      flowCount += 1
       log.info("Received DataLoaded message")
       isInLoading = true
       try {
-        loadedTime = math.max(processData(values, contract.asInstanceOf[C]), loadedTime)
+        loadedTime = math.max(processData(values, contract), loadedTime)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
       isInLoading = false
       
       publish(DataProcessed)
+      flowCount -= 1
   }
   listenTo(DataServer)
 
