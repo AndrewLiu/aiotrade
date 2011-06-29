@@ -51,6 +51,7 @@ import scala.collection.mutable
  */
 abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publisher {
   import DataServer._
+  private val log = Logger.getLogger(this.getClass.getName)
 
   type C <: DataContract[_]
 
@@ -60,7 +61,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   protected val EmptyValues = Array[V]()
 
-  private val log = Logger.getLogger(this.getClass.getName)
 
   protected val ANCIENT_TIME: Long = Long.MinValue
 
@@ -75,7 +75,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   protected var loadedTime: Long = _
 
   private var isRefreshable = false
-  private var inLoading = false
+  private var isInLoading = false
 
 
   /**
@@ -93,34 +93,35 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * in persistence cache first. Otherwise, you have to try to sync the producer and 
    * the consumer.
    */
+  private var flowCount: Int = _ // flow control count
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
     // refreshing requests, if consumer can not catch up the producer, will drop
     // some requests.
     case HeartBeat(interval) =>
-      if (isRefreshable && !inLoading) {
+      if (isRefreshable && !isInLoading && flowCount < 5) {
         // refresh from loadedTime for subscribedContracts
         publish(RequestData(loadedTime, subscribedContracts))
       }
       
     case RequestData(afterTime, contracts) =>
-      inLoading = true
+      isInLoading = true
       try {
         requestData(afterTime, contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      inLoading = false
+      isInLoading = false
 
     case DataLoaded(values: Array[V], contract) => // don't specify contract type as C, which won't match 'null'
-      log.info("Received DataLoaded event")
-      inLoading = true
+      log.info("Received DataLoaded message")
+      isInLoading = true
       try {
-        loadedTime = processData(values, contract.asInstanceOf[C])
+        loadedTime = math.max(processData(values, contract.asInstanceOf[C]), loadedTime)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      inLoading = false
+      isInLoading = false
       
       publish(DataProcessed)
   }
@@ -129,17 +130,18 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   // --- public interfaces
 
   def loadData(afterTime: Long, contracts: Iterable[C]) {
-    log.info("Fired LoadData message")
+    log.info("Fired RequestData message")
     // transit to async load reactor to avoid shared variables lock (loadedTime etc)
     publish(RequestData(afterTime, contracts))
   }
 
   /**
    * Implement this method to request data from data source.
-   * It should publish DataLoaded event to enable processData
+   * It should publish DataLoaded event to enable processData and fire chained events, 
+   * such as TSerEvent.Loaded etc.
    *
-   * @param afterThisTime When afterThisTime equals ANCIENT_TIME, you should process this condition.
-   *        contracts
+   * @param afterThisTime. When afterThisTime equals ANCIENT_TIME, you should process this condition.
+   * @param contracts
    * @publish DataLoaded
    */
   protected def requestData(afterThisTime: Long, contracts: Iterable[C])
@@ -163,7 +165,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   protected def processData(values: Array[V], contract: C): Long
 
   def startRefresh {isRefreshable = true}
-  def stopRefresh {isRefreshable = false}
+  def stopRefresh  {isRefreshable = false}
 
   // ----- subscribe/unsubscribe is used for refresh only
 
