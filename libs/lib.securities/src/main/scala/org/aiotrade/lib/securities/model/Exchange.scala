@@ -37,6 +37,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.util
 import org.aiotrade.lib.util.actors.Publisher
 
 import org.aiotrade.lib.util.pinyin.PinYin
@@ -48,28 +49,11 @@ case class SecInfosAddedToDb(secInfo: Array[SecInfo])
 case class SecAdded(sec: Sec)
 case class SecInfoAdded(secInfo: SecInfo)
 
-trait TradingStatus {
-  def time: Long
-  def timeInMinutes: Int
-}
-object TradingStatus {
-  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Unknown(time: Long, timeInMinutes: Int) extends TradingStatus
-}
-
-
 class Exchange extends CRCLongId with Ordered[Exchange] {
   import Exchange._
-
   private val log = Logger.getLogger(this.getClass.getName)
 
-  // --- database fields
+  // --- db fields
   var code: String = "SS"
   var name: String = ""
   var fullName: String = ""
@@ -78,15 +62,33 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   var closeDates: List[ExchangeCloseDate] = Nil
   var secs: List[Sec] = Nil
-  // --- end database fields
+  // --- end db fields
 
   log.info("Create exchange: identityHashCode=" + System.identityHashCode(this))
-
-  private var _tradingStatus: TradingStatus = TradingStatus.Unknown(-1, -1)
 
   lazy val longDescription:  String = BUNDLE.getString(code + "_Long")
   lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
+
+  trait TradingStatus {
+    def time: Long
+    def timeInMinutes: Int
+    override def toString = {
+      val cal = util.calendarOf(timeZone)
+      cal.setTimeInMillis(time)
+      this.getClass.getSimpleName + "(" + time + "," + timeInMinutes + "," + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + ")"
+    }
+  }
+  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
+  
+  private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
 
   private lazy val openHour  = openCloseHMs(0)
   private lazy val openMin   = openCloseHMs(1)
@@ -189,7 +191,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def lastDailyRoundedTradingTime: Option[Long] = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     val dailyRoundedTimeOfToday = TFreq.DAILY.round(System.currentTimeMillis, cal)
     if (_lastDailyRoundedTradingTime.isEmpty || _lastDailyRoundedTradingTime.get != dailyRoundedTimeOfToday) {
       TickersLast.lastTradingTimeOf(this) match {
@@ -224,21 +226,21 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def open: Calendar = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.set(Calendar.HOUR_OF_DAY, openHour)
     cal.set(Calendar.MINUTE, openMin)
     cal
   }
 
   def close: Calendar = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
     cal
   }
 
   def openTime(time: Long): Long = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, openHour)
     cal.set(Calendar.MINUTE, openMin)
@@ -246,7 +248,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def closeTime(time: Long): Long = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
@@ -254,8 +256,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
-    import TradingStatus._
-
     if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
       Some(PreOpen(time, timeInMinutes))
     } else if (timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
@@ -274,8 +274,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
   
   def tradingStatusOf(time: Long): TradingStatus = {
-    import TradingStatus._
-
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
@@ -309,7 +307,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
 
         if (status == null) {
-          status = Unknown(time, timeInMinutes)
+          status = UnknownStatus(time, timeInMinutes)
         }
       }
     }
@@ -332,7 +330,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * nothing and return at once.
    */
   private[securities] def tryClosing(alsoSave: Boolean) {
-    import TradingStatus._
 
     val closeTimeInMinutes = timeInMinutesToClose
     val statusTime = tradingStatus.time
@@ -501,9 +498,6 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
-
-  case class Opened(exchange: Exchange)
-  case class Closed(exchange: Exchange)
 
   // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil

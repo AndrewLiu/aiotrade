@@ -5,7 +5,6 @@ import scala.collection.mutable
 import junit.framework.Assert._
 import java.text.SimpleDateFormat
 import java.util.TimeZone
-import TradingStatus._
 
 class TestExchangeUnit extends TestCase {
 
@@ -16,28 +15,28 @@ class TestExchangeUnit extends TestCase {
   private lazy val HK  = Exchange.HK
   private lazy val OQ  = Exchange.OQ
   
-  private val timeToTradingStatus = mutable.Map[Long, TradingStatus]()
+  private val timeToTradingStatus = mutable.Map[Long, SS.TradingStatus]()
 
   private val dateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
   protected val timeZone = TimeZone.getTimeZone("Asia/Shanghai")
 
 
   override def setUp() {
-    timeToTradingStatus.put(parseDateStr("20100915091000"), PreOpen(parseDateStr("20100915091000"),9*60+10))
-    timeToTradingStatus.put(parseDateStr("20100915091500"), OpeningCallAcution(parseDateStr("20100915091500"),9*60+15))
-    timeToTradingStatus.put(parseDateStr("20100915092000"), OpeningCallAcution(parseDateStr("20100915092000"),9*60+20))
-    timeToTradingStatus.put(parseDateStr("20100915092500"), OpeningCallAcution(parseDateStr("20100915092500"),9*60+25))
-    timeToTradingStatus.put(parseDateStr("20100915092700"), Break(parseDateStr("20100915092700"),9*60+27))
-    timeToTradingStatus.put(parseDateStr("20100915093000"), Open(parseDateStr("20100915093000"),9*60+30))
-    timeToTradingStatus.put(parseDateStr("20100915093500"), Opening(parseDateStr("20100915093500"),9*60+35))
-    timeToTradingStatus.put(parseDateStr("20100915113000"), Opening(parseDateStr("20100915113000"),11*60+30))
-    timeToTradingStatus.put(parseDateStr("20100915114500"), Unknown(parseDateStr("20100915114500"),11*60+45))
-    timeToTradingStatus.put(parseDateStr("20100915130000"), Opening(parseDateStr("20100915130000"),13*60+00))
-    timeToTradingStatus.put(parseDateStr("20100915134500"), Opening(parseDateStr("20100915134500"),13*60+45))
-    timeToTradingStatus.put(parseDateStr("20100915150000"), Close(parseDateStr("20100915150000"),15*60+00))
-    timeToTradingStatus.put(parseDateStr("20100915150100"), Close(parseDateStr("20100915150100"),15*60+01))
-    timeToTradingStatus.put(parseDateStr("20100915150200"), Close(parseDateStr("20100915150200"),15*60+02))
-    timeToTradingStatus.put(parseDateStr("20100915150300"), Closed(parseDateStr("20100915150300"),15*60+03))
+    timeToTradingStatus.put(parseDateStr("20100915091000"), SS.PreOpen(parseDateStr("20100915091000"),9*60+10))
+    timeToTradingStatus.put(parseDateStr("20100915091500"), SS.OpeningCallAcution(parseDateStr("20100915091500"),9*60+15))
+    timeToTradingStatus.put(parseDateStr("20100915092000"), SS.OpeningCallAcution(parseDateStr("20100915092000"),9*60+20))
+    timeToTradingStatus.put(parseDateStr("20100915092500"), SS.OpeningCallAcution(parseDateStr("20100915092500"),9*60+25))
+    timeToTradingStatus.put(parseDateStr("20100915092700"), SS.Break(parseDateStr("20100915092700"),9*60+27))
+    timeToTradingStatus.put(parseDateStr("20100915093000"), SS.Open(parseDateStr("20100915093000"),9*60+30))
+    timeToTradingStatus.put(parseDateStr("20100915093500"), SS.Opening(parseDateStr("20100915093500"),9*60+35))
+    timeToTradingStatus.put(parseDateStr("20100915113000"), SS.Opening(parseDateStr("20100915113000"),11*60+30))
+    timeToTradingStatus.put(parseDateStr("20100915114500"), SS.UnknownStatus(parseDateStr("20100915114500"),11*60+45))
+    timeToTradingStatus.put(parseDateStr("20100915130000"), SS.Opening(parseDateStr("20100915130000"),13*60+00))
+    timeToTradingStatus.put(parseDateStr("20100915134500"), SS.Opening(parseDateStr("20100915134500"),13*60+45))
+    timeToTradingStatus.put(parseDateStr("20100915150000"), SS.Close(parseDateStr("20100915150000"),15*60+00))
+    timeToTradingStatus.put(parseDateStr("20100915150100"), SS.Close(parseDateStr("20100915150100"),15*60+01))
+    timeToTradingStatus.put(parseDateStr("20100915150200"), SS.Close(parseDateStr("20100915150200"),15*60+02))
+    timeToTradingStatus.put(parseDateStr("20100915150300"), SS.Closed(parseDateStr("20100915150300"),15*60+03))
     dateFormat.setTimeZone(timeZone)
   }
 
