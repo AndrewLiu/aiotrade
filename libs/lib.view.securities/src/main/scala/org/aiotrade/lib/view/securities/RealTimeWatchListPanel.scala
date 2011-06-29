@@ -116,25 +116,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
   private val symbolToInfo = mutable.Map[String, Info]()
   
-  private val updateTask = new Runnable {
-    var tickers: Array[Ticker] = Array()
-    def run {
-      log.info("Batch updating, tickers: " + tickers.length)
-      var isUpdated = false
-      var i = -1
-      while ({i += 1; i < tickers.length}) {
-        val ticker = tickers(i)
-        if (watchingSymbols.contains(ticker.uniSymbol)) {
-          isUpdated = updateByTicker(ticker) | isUpdated // don't use shortcut one: "||"
-        }
-      }
-
-      if (isUpdated) {
-        table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
-      }
-    }
-  }
-  
   val table = new JTable
   private val model = new WatchListTableModel
   private val df = new SimpleDateFormat("HH:mm:ss")
@@ -286,8 +267,23 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
      at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
      * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
      */
-    updateTask.tickers = tickers
-    SwingUtilities.invokeLater(updateTask)
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          log.info("Batch updating, tickers: " + tickers.length)
+          var isUpdated = false
+          var i = -1
+          while ({i += 1; i < tickers.length}) {
+            val ticker = tickers(i)
+            if (watchingSymbols.contains(ticker.uniSymbol)) {
+              isUpdated = updateByTicker(ticker) | isUpdated // don't use shortcut one: "||"
+            }
+          }
+
+          if (isUpdated) {
+            table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
+          }
+        }
+      })
   }
 
   private def updateByTicker(ticker: LightTicker): Boolean = {

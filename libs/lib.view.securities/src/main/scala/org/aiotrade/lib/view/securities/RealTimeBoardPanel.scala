@@ -141,13 +141,6 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)
   
-  private val scrollToLastRowTask = new Runnable {
-    var table: JTable = null
-    def run {
-      showCell(table, table.getRowCount - 1, 0)
-    }
-  }
-  
   chartPane.setLayout(new BorderLayout)
   chartPane.add(viewContainer, BorderLayout.CENTER)
 
@@ -432,8 +425,11 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
     if (table.getRowCount < 1) return
     
     // wrap in EDT to wait enough time to get rowCount updated
-    scrollToLastRowTask.table = table
-    SwingUtilities.invokeLater(scrollToLastRowTask)
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          showCell(table, table.getRowCount - 1, 0)
+        }
+      })
   }
 
   private def showCell(table: JTable, row: Int, column: Int) {

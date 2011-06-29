@@ -150,7 +150,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * @Note this DataServer will react to DataLoaded with processData automatically if it
    * received this event
    * @See reactions += {...}
-   * 
    */
   protected def publishData(msg: Any) {
     publish(msg)
