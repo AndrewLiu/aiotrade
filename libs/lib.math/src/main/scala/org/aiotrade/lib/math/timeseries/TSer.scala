@@ -61,6 +61,11 @@ trait TSer extends Publisher {
   def vars: Seq[TVar[_]]
 
   /**
+   * The vars that will be exported by export(...)
+   */
+  def exportableVars: Seq[TVar[_]]
+
+  /**
    * Export times and vars to map. Only Var with no-empty name can be exported.
    * The key of times is always "."
    * 
@@ -77,6 +82,7 @@ trait TSer extends Publisher {
   def nonExists(time: Long): Boolean
   def exists(time: Long): Boolean
     
+  def firstOccurredTime: Long
   def lastOccurredTime: Long
     
   def size: Int

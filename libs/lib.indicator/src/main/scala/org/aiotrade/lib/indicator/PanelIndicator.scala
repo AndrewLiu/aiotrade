@@ -129,7 +129,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     while ({i += 1; i < inds.length}) {
       val ind = inds(i)._1
       if (ind != null && ind.timestamps.length > 0) {
-        val fTime = ind.timestamps(0)
+        val fTime = ind.firstOccurredTime
         firstTime = math.min(firstTime, fTime)
       }
     }

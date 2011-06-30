@@ -255,11 +255,10 @@ object MoneyFlowSer {
       
       var i = -1
       while ({i += 1; i < times.length}) {
-        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
-        val time = times(i).asInstanceOf[Long]
         val mf = new MoneyFlow
 
-        mf.time = time
+        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
+        mf.time = times(i).asInstanceOf[Long]
         
         mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
         mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]
