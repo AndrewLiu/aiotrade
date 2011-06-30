@@ -46,10 +46,12 @@ object Indicator {
 
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  private val idToIndicator = new ConcurrentHashMap[Id, Indicator]
+  private val idToIndicator = new ConcurrentHashMap[Id[_ <: Indicator], Indicator]
 
+  def idOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*) = Id[T](klass, baseSer, factors: _*)
+  
   def apply[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*): T = {
-    val id = Id(klass, baseSer, factors: _*)
+    val id = idOf(klass, baseSer, factors: _*)
     idToIndicator.get(id) match {
       case null =>
         /** if got none from idToIndicator, try to create new one */
@@ -80,7 +82,7 @@ object Indicator {
 
 trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
 
-  val Plot = org.aiotrade.lib.math.indicator.Plot
+  protected val Plot = org.aiotrade.lib.math.indicator.Plot
   
   reactions += {
     case ComputeFrom(time) => computeFrom(time)
@@ -103,7 +105,7 @@ trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
   def computedTime: Long
 
   def dispose
-
+  
   def compare(another: Indicator): Int = {
     if (this.shortName.equalsIgnoreCase(another.shortName)) {
       if (this.hashCode < another.hashCode) -1 else (if (this.hashCode == another.hashCode) 0 else 1)
