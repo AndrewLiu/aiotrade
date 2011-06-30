@@ -76,7 +76,7 @@ final class MarketDepth(_bidAsks: Array[Double]) {
   }
   
   override def toString = {
-    "MarketDepth(" + _bidAsks.mkString("[", ",", "]") + ")"
+    new StringBuilder().append("MarketDepth(").append(_bidAsks.mkString("[", ",", "]")).append(")").toString
   }
 
 }

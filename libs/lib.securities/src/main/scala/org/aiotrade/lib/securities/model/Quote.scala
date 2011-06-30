@@ -38,6 +38,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.util
 import scala.collection.mutable
 
 
@@ -119,15 +120,14 @@ class Quote extends BelongsToSec with TVal with Flag {
   }
 
   override def toString = {
-    val cal = Calendar.getInstance
-    cal.setTimeInMillis(time)
-    
-    this.getClass.getSimpleName + ": " + cal.getTime +
-    " O: " + open +
-    " H: " + high +
-    " L: " + low +
-    " C: " + close +
-    " V: " + volume
+    val sb = new StringBuilder()
+    sb.append("Quote(").append(util.formatTime(time))
+    sb.append(",O:").append(open)
+    sb.append(",H:").append(high)
+    sb.append(",L:").append(low)
+    sb.append(",C:").append(close)
+    sb.append(",V:").append(volume)
+    sb.append(")").toString
   }
 
 }

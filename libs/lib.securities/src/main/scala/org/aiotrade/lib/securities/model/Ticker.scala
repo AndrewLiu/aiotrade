@@ -33,6 +33,7 @@ package org.aiotrade.lib.securities.model
 import java.util.Calendar
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.util
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
@@ -161,7 +162,11 @@ class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extend
   }
   
   override def toString = {
-    "Ticker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ", depth=" + marketDepth +  ")"
+    val sb = new StringBuilder()
+    sb.append("Ticker(").append(uniSymbol).append(util.formatTime(time)).append(",")
+    sb.append(data.mkString("[", ",", "]")).append(",")
+    sb.append(marketDepth)
+    sb.append(")")toString
   }
 }
 

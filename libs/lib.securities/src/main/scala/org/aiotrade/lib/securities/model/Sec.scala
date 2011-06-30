@@ -136,7 +136,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
   
-  // reactions for QuoteEvt, MoneyFlowEvt to update chainsers
+  // reactions for QuoteEvt, MoneyFlowEvt to update chain sers
   reactions += {
     case api.QuoteEvt(freq, quote) =>
       freq match {

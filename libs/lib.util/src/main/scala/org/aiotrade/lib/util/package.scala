@@ -41,8 +41,9 @@ import java.util.TimeZone
  */
 package object util {
 
+  private val defaultDfPattern = "yyyy-MM-dd HH:mm:ss"
   private val dfTl = new ThreadLocal[SoftReference[DateFormat]]()
-  def dateFormatOf(tz: TimeZone, pattern: String = "yyyy-MM-dd HH:mm:ss"): DateFormat = {
+  def dateFormatOf(tz: TimeZone = TimeZone.getDefault, pattern: String = defaultDfPattern): DateFormat = {
     val ref = dfTl.get
     if (ref != null) {
       val instance = ref.get
@@ -60,7 +61,7 @@ package object util {
   }
   
   private val calTl = new ThreadLocal[SoftReference[Calendar]]()
-  def calendarOf(tz: TimeZone): Calendar = {
+  def calendarOf(tz: TimeZone = TimeZone.getDefault): Calendar = {
     val ref = calTl.get
     if (ref != null) {
       val instance = ref.get
@@ -73,5 +74,11 @@ package object util {
     val instance = Calendar.getInstance(tz)
     calTl.set(new SoftReference[Calendar](instance))
     instance
+  }
+  
+  def formatTime(long: Long, tz: TimeZone = TimeZone.getDefault, pattern: String = defaultDfPattern): String = {
+    val cal = calendarOf(tz)
+    cal.setTimeInMillis(long)
+    dateFormatOf(tz, pattern).format(cal.getTime)
   }
 }
