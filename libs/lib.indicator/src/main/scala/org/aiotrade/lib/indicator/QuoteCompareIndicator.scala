@@ -81,13 +81,13 @@ class QuoteCompareIndicator($baseSer: BaseTSer) extends Indicator($baseSer) {
       return
     }
         
-    if (baseSer.asInstanceOf[QuoteSer].adjusted) {
-      if (!serToBeCompared.adjusted) {
-        serToBeCompared.adjust(true)
+    if (baseSer.asInstanceOf[QuoteSer].isAdjusted) {
+      if (!serToBeCompared.isAdjusted) {
+        serToBeCompared.adjust()
       }
     } else {
-      if (serToBeCompared.adjusted) {
-        serToBeCompared.adjust(false)
+      if (serToBeCompared.isAdjusted) {
+        serToBeCompared.unadjust()
       }
     }
         

@@ -52,10 +52,11 @@ object ReflectData {
       fields = new java.util.concurrent.ConcurrentHashMap[String, Field]()
       FIELD_CACHE.put(c, fields)
     }
-    var field = fields.get(name)
+    val realName = name.replace("_DOLLAR_", "$")
+    var field = fields.get(realName)
     if (field == null) {
-      field = findField(c, name)
-      fields.put(name, field)
+      field = findField(c, realName)
+      fields.put(realName, field)
     }
     field
   }
@@ -100,22 +101,27 @@ object ReflectData {
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
 class ReflectData protected() extends SpecificData {
-  
+
+  override 
+  def getClassName(schema: Schema): String = {
+    super.getClassName(schema).replace("_DOLLAR_", "$")
+  }
+
   override
-  def setField(record: AnyRef, name: String, position: Int, o: AnyRef) {
+  def setField(record: AnyRef, name: String, position: Int, v: AnyRef) {
     record match {
-      case x: IndexedRecord => super.setField(record, name, position, o)
+      case x: IndexedRecord => super.setField(record, name, position, v)
       case _ =>
         try {
           import ClassHelper._
           val field = ReflectData.getField(record.getClass, name)
-          val value = if (o.isInstanceOf[Int] || o.isInstanceOf[java.lang.Integer]) {
+          val value = if (v.isInstanceOf[java.lang.Integer] || v.isInstanceOf[Int]) {
             field.getGenericType match {
-              case ByteType  | ByteClass  | JByteClass    => o.asInstanceOf[java.lang.Integer].byteValue
-              case ShortType | ShortClass | JShortClass   => o.asInstanceOf[java.lang.Integer].shortValue
-              case _ => o
+              case JByteClass  | ByteType  | ByteClass  => v.asInstanceOf[java.lang.Integer].byteValue
+              case JShortClass | ShortType | ShortClass => v.asInstanceOf[java.lang.Integer].shortValue
+              case _ => v
             }
-          } else o
+          } else v
           
           field.set(record, value)
         } catch {
@@ -127,10 +133,10 @@ class ReflectData protected() extends SpecificData {
   override
   def getField(record: AnyRef, name: String, position: Int): AnyRef = {
     record match {
-      case x: IndexedRecord => return super.getField(record, name, position)
+      case x: IndexedRecord => super.getField(record, name, position)
       case _ =>    
         try {
-          return ReflectData.getField(record.getClass, name).get(record)
+          ReflectData.getField(record.getClass, name).get(record)
         } catch {
           case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
         }
@@ -319,6 +325,7 @@ class ReflectData protected() extends SpecificData {
             setElement(schema, component)
             schema
         }
+        
       case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
         Schema.create(Schema.Type.STRING) // String
       
@@ -374,7 +381,9 @@ class ReflectData protected() extends SpecificData {
                 for (field <- clzFields) {
                   if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
                     val fieldSchema = createFieldSchema(field, names)
-                    fields.add(new Schema.Field(field.getName, fieldSchema, null /* doc */, null))
+                    // schema name only allows leffter and digit
+                    val fieleName = field.getName.replace("$", "_DOLLAR_")
+                    fields.add(new Schema.Field(fieleName, fieldSchema, null /* doc */, null))
                   }
                 }
                 if (error) { // add Throwable message

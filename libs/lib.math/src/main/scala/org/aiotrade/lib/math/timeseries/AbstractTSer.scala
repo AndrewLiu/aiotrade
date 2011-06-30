@@ -79,24 +79,28 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       readLock.lock
       timestamps.readLock.lock
 
-      val vs = vars filter (v => v.name != "" && v.name != null)
-      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-      var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-      toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
-      val len = toIdx - frIdx + 1
+      if (size != 0) {
+        val vs = vars filter (v => v.name != null && v.name != "")
+        val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+        var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+        toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
+        val len = toIdx - frIdx + 1
       
-      if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
-        val vmap = new mutable.HashMap[String, Array[_]]()
+        if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
+          val vmap = new mutable.HashMap[String, Array[_]]()
 
-        val times = timestamps.sliceToArray(frIdx, len)
-        vmap.put(".", times)
+          val times = timestamps.sliceToArray(frIdx, len)
+          vmap.put(".", times)
 
-        for (v <- vs) {
-          val values = v.values.sliceToArray(frIdx, len)
-          vmap.put(v.name, values)
+          for (v <- vs) {
+            val values = v.values.sliceToArray(frIdx, len)
+            vmap.put(v.name, values)
+          }
+
+          vmap
+        } else {
+          Map()
         }
-
-        vmap
       } else {
         Map()
       }
@@ -112,18 +116,19 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     if (size <= 1) {
       true
     } else {
-      var i = 0
-      while (i < size - 1) {
+      var i = -1
+      while ({i += 1; i < size - 1}) {
         if (values(i).time < values(i + 1).time) {
           return true
         } else if (values(i).time > values(i + 1).time) {
           return false
         }
-        i += 1
       }
       false
     }
   }
+
+  def nonExists(time: Long) = !exists(time)
 
   var grids: Array[Double] = Array()
   var isOverlapping = false

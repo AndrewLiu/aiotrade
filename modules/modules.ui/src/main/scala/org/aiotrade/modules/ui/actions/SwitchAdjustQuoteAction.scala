@@ -53,7 +53,7 @@ object SwitchAdjustQuoteAction {
 
   def updateToolbar(selectedViewContainer: ChartViewContainer) {
     if (selectedViewContainer.controller.baseSer.isInstanceOf[QuoteSer]) {
-      val selected = selectedViewContainer.controller.baseSer.asInstanceOf[QuoteSer].adjusted
+      val selected = selectedViewContainer.controller.baseSer.asInstanceOf[QuoteSer].isAdjusted
       toggleButton.setSelected(selected)
     }
   }
@@ -115,12 +115,12 @@ class SwitchAdjustQuoteAction extends CallableSystemAction {
           val quoteSeries = analysisTc.viewContainer.masterView.asInstanceOf[WithQuoteChart].quoteSer
                 
           if (state == ItemEvent.SELECTED) {
-            if (!quoteSeries.adjusted) {
-              quoteSeries.adjust(true)
+            if (!quoteSeries.isAdjusted) {
+              quoteSeries.adjust()
             }
           } else {
-            if (quoteSeries.adjusted) {
-              quoteSeries.adjust(false)
+            if (quoteSeries.isAdjusted) {
+              quoteSeries.unadjust()
             }
           }
                 

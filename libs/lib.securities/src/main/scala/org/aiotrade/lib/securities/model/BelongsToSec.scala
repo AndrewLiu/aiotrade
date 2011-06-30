@@ -40,18 +40,24 @@ package org.aiotrade.lib.securities.model
  * 
  * @author Caoyuan Deng
  */
+@serializable
 abstract class BelongsToSec {
   
-  private var _uniSymbol: String = _
+  protected var _uniSymbol: String = _
   def uniSymbol = _uniSymbol
   def uniSymbol_=(uniSymbol: String) {
     this._uniSymbol = uniSymbol
   }
 
-  @transient private var _sec: Sec = _
+  @transient protected var _sec: Sec = _
   def sec = _sec
   def sec_=(sec: Sec) {
-    _uniSymbol = if (sec != null) sec.uniSymbol else null
+    if (sec != null) {
+      sec.uniSymbol match {
+        case null | "" => // skip this
+        case x => _uniSymbol = x
+      }
+    }
     _sec = sec
   }
   

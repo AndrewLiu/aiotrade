@@ -56,15 +56,11 @@ import org.openide.windows.WindowManager
  *
  * @author Caoyuan Deng
  */
-object ExplorerTopComponent {
-  private var instance: Option[ExplorerTopComponent] = None
-  def apply() = instance getOrElse new ExplorerTopComponent
-}
-
-import ExplorerTopComponent._
 @serializable
 @SerialVersionUID(1L)
 class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider with Lookup.Provider {
+  import ExplorerTopComponent._
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   instance = Some(this)
@@ -160,3 +156,9 @@ class ExplorerTopComponent extends TopComponent with ExplorerManager.Provider wi
   }
 
 }
+
+object ExplorerTopComponent {
+  private var instance: Option[ExplorerTopComponent] = None
+  def apply() = instance getOrElse new ExplorerTopComponent
+}
+

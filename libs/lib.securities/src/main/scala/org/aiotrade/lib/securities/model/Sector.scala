@@ -28,14 +28,13 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.aiotrade.lib.securities.model
 
 import scala.collection
 import scala.collection.mutable
 import scala.collection.immutable
+import java.util.logging.Logger
 import org.aiotrade.lib.util.ValidTime
-import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 /**
@@ -43,6 +42,22 @@ import ru.circumflex.orm._
  * 
  * @author Caoyuan Deng
  */
+class Sector extends CRCLongId {
+  var category: String = ""
+  var code: String = ""
+  var name: String = ""
+  
+  var secs: List[Sec] = Nil
+  
+  lazy val key = category + "." + code
+  
+  override def equals(that: Any) = that match {
+    case x: Sector => this.id == x.id
+    case _ => false
+  }
+
+}
+
 object Sector {
 
   object Category {
@@ -111,17 +126,11 @@ object Sector {
   }
 }
 
-class Sector {
-  var category: String = ""
-  var code: String = ""
-  var name: String = ""
-  
-  var secs: List[Sec] = Nil
-  
-  lazy val key = category + "." + code
-}
 
-object Sectors extends Table[Sector] {
+// --- table
+object Sectors extends CRCLongPKTable[Sector] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
@@ -161,20 +170,25 @@ object Sectors extends Table[Sector] {
   private[model] def sectorToSecValidTimes = {
     val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()
     
+    val secsHolder = SELECT(Secs.*) FROM (Secs) list()
     val sectorsHolder = SELECT(Sectors.*) FROM (Sectors) list()
     val sectorSecs = SELECT (SectorSecs.*) FROM (SectorSecs) list()
     for (sectorSec <- sectorSecs) {
-      val key = sectorSec.sector.key
-      val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
-      val validTimes = result.get(key) match {
-        case None => 
-          val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
-          result += (key -> validTimes)
-          validTimes
-        case Some(x) => x
-      }
+      if (sectorSec.sec ne null) {
+        val key = sectorSec.sector.key
+        val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
+        val validTimes = result.get(key) match {
+          case None => 
+            val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
+            result += (key -> validTimes)
+            validTimes
+          case Some(x) => x
+        }
       
-      validTimes += validTime
+        validTimes += validTime
+      } else {
+        log.warning("SectorSec: " + sectorSec + " has null sec. The id of this sectorSec is: " + SectorSecs.idOf(sectorSec))
+      }
     }
     
     result

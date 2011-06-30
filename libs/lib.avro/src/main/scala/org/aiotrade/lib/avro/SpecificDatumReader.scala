@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.avro.Schema;import org.apache.avro.generic.IndexedRecord
-import org.apache.avro.io.Decoder
 import org.apache.avro.io.ResolvingDecoder
 
 
@@ -34,7 +33,7 @@ object SpecificDatumReader {
         constructor.setAccessible(true)
         CTOR_CACHE.put(c, constructor)
       }
-      val args = if (useSchema) Array(s) else Array[AnyRef]()
+      val args = if (useSchema) Array(s) else NO_ARG
       constructor.newInstance(args :_*).asInstanceOf[T]
     } catch {
       case ex: Exception => throw new RuntimeException(ex); null.asInstanceOf[T]

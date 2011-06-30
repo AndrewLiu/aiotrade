@@ -40,6 +40,160 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
 import scala.collection.mutable
 
+
+
+/**
+ * Quote value object
+ *
+ * @author Caoyuan Deng
+ */
+@serializable
+class Quote extends BelongsToSec with TVal with Flag {
+
+  private var _time: Long = _
+  def time = _time
+  def time_=(time: Long) {
+    this._time = time
+  }
+
+  private var _flag: Int = 1 // dafault is closed
+  def flag = _flag 
+  def flag_=(flag: Int) {
+    this._flag = flag
+  }
+
+  @transient var sourceId = 0L
+
+  var hasGaps = false
+  
+  private val data = new Array[Double](7)
+  
+  def open      = data(0)
+  def high      = data(1)
+  def low       = data(2)
+  def close     = data(3)
+  def volume    = data(4)
+  def amount    = data(5)
+  def vwap      = data(6)
+
+  def open_=   (v: Double) {data(0) = v}
+  def high_=   (v: Double) {data(1) = v}
+  def low_=    (v: Double) {data(2) = v}
+  def close_=  (v: Double) {data(3) = v}
+  def volume_= (v: Double) {data(4) = v}
+  def amount_= (v: Double) {data(5) = v}
+  def vwap_=   (v: Double) {data(6) = v}
+
+  // Foreign keys
+  @transient var tickers: List[Ticker] = Nil
+  @transient var executions: List[Execution] = Nil
+
+  
+  // --- no db fields:
+  var isTransient: Boolean = true
+  
+  def copyFrom(another: Quote) {
+    System.arraycopy(another.data, 0, data, 0, data.length)
+  }
+
+  def reset {
+    time = 0
+    sourceId = 0
+    var i = -1
+    while ({i += 1; i < data.length}) {
+      data(i) = 0
+    }
+    hasGaps = false
+  }
+  
+  /**
+   * This quote must be a daily quote
+   */
+  def updateDailyQuoteByTicker(ticker: Ticker) {
+    open   = ticker.dayOpen
+    high   = ticker.dayHigh
+    low    = ticker.dayLow
+    close  = ticker.lastPrice
+    volume = ticker.dayVolume
+    amount = ticker.dayAmount
+  }
+
+  override def toString = {
+    val cal = Calendar.getInstance
+    cal.setTimeInMillis(time)
+    
+    this.getClass.getSimpleName + ": " + cal.getTime +
+    " O: " + open +
+    " H: " + high +
+    " L: " + low +
+    " C: " + close +
+    " V: " + volume
+  }
+
+}
+
+// --- table
+abstract class Quotes extends Table[Quote] {
+  val sec = "secs_id" BIGINT() REFERENCES(Secs)
+
+  val time = "time" BIGINT()
+
+  val open   = "open"   DOUBLE()
+  val high   = "high"   DOUBLE()
+  val low    = "low"    DOUBLE()
+  val close  = "close"  DOUBLE()
+  val volume = "volume" DOUBLE()
+  val amount = "amount" DOUBLE()
+  val vwap   = "vwap"   DOUBLE()
+
+  val flag = "flag" INTEGER()
+
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
+
+  def quotesOf(sec: Sec): Seq[Quote] = {
+    SELECT (this.*) FROM (this) WHERE (
+      this.sec.field EQ Secs.idOf(sec)
+    ) ORDER_BY (this.time) list
+  }
+
+  def closedQuotesOf(sec: Sec): Seq[Quote] = {
+    val xs = new ArrayList[Quote]()
+    for (x <- quotesOf(sec) if x.closed_?) {
+      xs += x
+    }
+    xs
+  }
+
+  def closedQuotesOf_filterByDB(sec: Sec): Seq[Quote] = {
+    SELECT (this.*) FROM (this) WHERE (
+      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+    ) ORDER_BY (this.time) list
+  }
+
+  def saveBatch(sec: Sec, sortedQuotes: Seq[Quote]) {
+    if (sortedQuotes.isEmpty) return
+
+    val head = sortedQuotes.head
+    val last = sortedQuotes.last
+    val frTime = math.min(head.time, last.time)
+    val toTime = math.max(head.time, last.time)
+    val exists = mutable.Map[Long, Quote]()
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
+      ) ORDER_BY (this.time) list
+    ) foreach {x => exists.put(x.time, x)}
+
+    val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
+    for (x <- updates) {
+      val existOne = exists(x.time)
+      existOne.copyFrom(x)
+      this.update_!(existOne)
+    }
+
+    this.insertBatch_!(inserts.toArray)
+  }
+}
+
 object Quotes1d extends Quotes {
   private val logger = Logger.getLogger(this.getClass.getSimpleName)
 
@@ -199,155 +353,4 @@ object Quotes1m extends Quotes {
         newone
     }
   }
-}
-
-abstract class Quotes extends Table[Quote] {
-  val sec = "secs_id" BIGINT() REFERENCES(Secs)
-
-  val time = "time" BIGINT()
-
-  val open   = "open"   DOUBLE()
-  val high   = "high"   DOUBLE()
-  val low    = "low"    DOUBLE()
-  val close  = "close"  DOUBLE()
-  val volume = "volume" DOUBLE()
-  val amount = "amount" DOUBLE()
-  val vwap   = "vwap"   DOUBLE()
-
-  val flag = "flag" INTEGER()
-
-  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
-
-  def quotesOf(sec: Sec): Seq[Quote] = {
-    SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec)
-    ) ORDER_BY (this.time) list
-  }
-
-  def closedQuotesOf(sec: Sec): Seq[Quote] = {
-    val xs = new ArrayList[Quote]()
-    for (x <- quotesOf(sec) if x.closed_?) {
-      xs += x
-    }
-    xs
-  }
-
-  def closedQuotesOf_filterByDB(sec: Sec): Seq[Quote] = {
-    SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-    ) ORDER_BY (this.time) list
-  }
-
-  def saveBatch(sec: Sec, sortedQuotes: Seq[Quote]) {
-    if (sortedQuotes.isEmpty) return
-
-    val head = sortedQuotes.head
-    val last = sortedQuotes.last
-    val frTime = math.min(head.time, last.time)
-    val toTime = math.max(head.time, last.time)
-    val exists = mutable.Map[Long, Quote]()
-    (SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
-      ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
-
-    val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
-    }
-
-    this.insertBatch_!(inserts.toArray)
-  }
-}
-
-/**
- * Quote value object
- *
- * @author Caoyuan Deng
- */
-@serializable
-class Quote extends BelongsToSec with TVal with Flag {
-
-  private var _time: Long = _
-  def time = _time
-  def time_=(time: Long) {
-    this._time = time
-  }
-
-  private var _flag: Int = 1 // dafault is closed
-  def flag = _flag 
-  def flag_=(flag: Int) {
-    this._flag = flag
-  }
-
-  @transient var sourceId = 0L
-
-  var hasGaps = false
-  
-  private val data = new Array[Double](7)
-  
-  def open      = data(0)
-  def high      = data(1)
-  def low       = data(2)
-  def close     = data(3)
-  def volume    = data(4)
-  def amount    = data(5)
-  def vwap      = data(6)
-
-  def open_=   (v: Double) {data(0) = v}
-  def high_=   (v: Double) {data(1) = v}
-  def low_=    (v: Double) {data(2) = v}
-  def close_=  (v: Double) {data(3) = v}
-  def volume_= (v: Double) {data(4) = v}
-  def amount_= (v: Double) {data(5) = v}
-  def vwap_=   (v: Double) {data(6) = v}
-
-  // Foreign keys
-  @transient var tickers: List[Ticker] = Nil
-  @transient var executions: List[Execution] = Nil
-
-  
-  // --- no db fields:
-  var isTransient: Boolean = true
-  
-  def copyFrom(another: Quote) {
-    System.arraycopy(another.data, 0, data, 0, data.length)
-  }
-
-  def reset {
-    time = 0
-    sourceId = 0
-    var i = -1
-    while ({i += 1; i < data.length}) {
-      data(i) = 0
-    }
-    hasGaps = false
-  }
-  
-  /**
-   * This quote must be a daily quote
-   */
-  def updateDailyQuoteByTicker(ticker: Ticker) {
-    open   = ticker.dayOpen
-    high   = ticker.dayHigh
-    low    = ticker.dayLow
-    close  = ticker.lastPrice
-    volume = ticker.dayVolume
-    amount = ticker.dayAmount
-  }
-
-  override def toString = {
-    val cal = Calendar.getInstance
-    cal.setTimeInMillis(time)
-    
-    this.getClass.getSimpleName + ": " + cal.getTime +
-    " O: " + open +
-    " H: " + high +
-    " L: " + low +
-    " C: " + close +
-    " V: " + volume
-  }
-
 }

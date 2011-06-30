@@ -10,7 +10,8 @@ import org.aiotrade.lib.securities.model.SecDividend
 import org.aiotrade.lib.securities.model.Ticker
 
 package object api {
-  // snap evts
+
+  // snapshot evts
   val TickerEvt     = Evt[Ticker](0, "ticker")
   val TickersEvt    = Evt[Array[Ticker]](1, "tickers")
   val ExecutionEvt  = Evt[(Double, Execution)](2, "prevClose, execution")
@@ -30,4 +31,8 @@ package object api {
   val SecDividendAddedEvt   = Evt[SecDividend](6000)
   val SecDividendUpdatedEvt = Evt[SecDividend](6001)
   val SecDividendDeletedEvt = Evt[SecDividend](6002)
+  
+  
+  /** Refer this last method to load this object and all vals in object */
+  def load() = true 
 }

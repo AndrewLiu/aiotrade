@@ -67,7 +67,7 @@ class Sign private (time: => Long,
 object Sign {
   def apply(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) = new Sign(time, kind, id, text, color)
   def unapply(v: Signal): Option[(Long, Direction, Int, String, Color)] = v.kind match {
-    case k: Direction => Some((v.time, k, v.id, v.text, v.color))
+    case dire: Direction => Some((v.time, dire, v.id, v.text, v.color))
     case _ => None
   }
 }
@@ -85,7 +85,7 @@ class Mark private (time: => Long,
 object Mark {
   def apply(time: Long, kind: Position, id: Int = 0, text: String = null, color: Color = null) = new Mark(time, kind, id, text, color)
   def unapply(v: Signal): Option[(Long, Position, Int, String, Color)] = v.kind match {
-    case k: Position => Some((v.time, k, v.id, v.text, v.color))
+    case posi: Position => Some((v.time, posi, v.id, v.text, v.color))
     case _ => None
   }
 }
@@ -95,6 +95,9 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
 
   def kind: Kind = _kind
   
+  def isSign = kind.isDirection
+  def isMark = kind.isPosition
+    
   def hasText = text != null
 
   override def hashCode: Int = {
@@ -107,8 +110,8 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
     h
   }
   
-  override def equals(o: Any): Boolean = {
-    o match {
+  override def equals(a: Any): Boolean = {
+    a match {
       case x: Signal => x.time == time && x.kind == kind && x.id == id && x.text == text && x.color == color
       case _ => false
     }

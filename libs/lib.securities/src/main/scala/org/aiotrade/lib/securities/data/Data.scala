@@ -42,25 +42,16 @@ import scala.actors.Scheduler
 import scala.collection.mutable
 
 /**
- * Dump table to txt using ',' to separat fields
- * mkdir tmp
- * chmod 777 tmp
- * cd tmp
- * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ --database faster --tables secs sec_infos companies --fields-terminated-by=,
- *
- * mysql> load data infile '/Users/dcaoyuan/tmp/tmp/secs.txt' into table secs;
- *
- * Don't forget to set (in /etc/my.cnf):
+ * Set /usr/local/etc/my.cnf:
 
 [mysqld]
-default-character-set=utf8
+default-storage-engine = innodb
 character-set-server=utf8
 collation-server=utf8_general_ci
 init-connect='SET NAMES utf8'
 [mysql]
 default-character-set=utf8
 
- *
  * and check:
  *   mysql> SHOW VARIABLES LIKE 'character%';
  *   mysql> SHOW VARIABLES LIKE 'collation_%';
@@ -73,6 +64,78 @@ default-character-set=utf8
  *
  * and under mysql jdbc url:
  *   jdbc:mysql://localhost:3306/aiotrade?useUnicode=true
+ *   
+ *   
+ * Dump all db
+ * nohup time mysqldump --opt --default-character-set=utf8 -ufaster -pfaster faster | gzip > faster.dump.gz
+ * 
+ * Import dump db
+ * mysql > create database faster
+ * $ nohup time mysql -uuser -ppasswd faster < faster.dump &
+ * 
+ * Check msyql err log:
+ * /var/db/mysql/xxxhostxx.err
+ *
+ * Restart mysql:
+ * $ /usr/local/etc/rc.d/mysql-server restart
+ *
+ * Show progress
+ * $ mysql -e 'show processlist'
+ * 
+ * 
+ * ******************************
+ * 
+ * Dump table to txt using ',' to separat fields
+ * mkdir tmp
+ * chmod 777 tmp
+ * cd tmp
+ * mysqldump --opt --default-character-set=utf8 -ufaster -pfaster -T ./ faster secs sec_infos companies --fields-terminated-by=,
+ *
+ * mysql> load data infile '/Users/dcaoyuan/tmp/secs.txt' into table secs character set utf8 fields terminated by ',';
+ * 
+ * Dump tables except tickers/executions:
+nohup time -o timer.txt mysqldump --opt --default-character-set=utf8 -uroot faster \
+analysis_reports         \
+companies                \
+content_abstracts        \
+content_categories       \
+contents                 \
+exchange_close_dates     \
+exchanges                \
+filings                  \
+general_infos            \
+info_content_categories  \
+info_secs                \
+money_flows1d            \
+money_flows1m            \
+newses                   \
+quotes1d                 \
+quotes1m                 \
+sec_dividends            \
+sec_infos                \
+sec_issues               \
+sec_statuses             \
+secs                     \
+sector_secs              \
+sectors                  \
+tickers_last             \
+| gzip > faster20110622.dump.gz &
+
+ * Gzip:
+ *  $ nohup time -o timer.txt cat filename | gzip > filename.gz &
+ * Gunzip:
+ *  $ nohup time -o timer.txt gzip -dc filename.gz > filename &
+ * 
+ * Dump tables structure of tickers/executions:
+ 
+nohup mysqldump --no-data --opt --default-character-set=utf8 -uroot faster executions tickers > faster_somestruc.sql
+
+ *
+ *
+ * Restart mysqld on freebsd
+ *   $ sudo /usr/local/etc/rc.d/mysql-server restart
+ * Restart mysqld on macports
+ *   $ sudo /opt/local/etc/LaunchDaemons/org.macports.mysql5/mysql5.wrapper restart  
  */
 
 @deprecated("Use SyncUtil, this class is for reference only")

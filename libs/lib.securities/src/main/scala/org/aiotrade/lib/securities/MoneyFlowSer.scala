@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.securities
 
+import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, DefaultBaseTSer, TFreq}
 import org.aiotrade.lib.securities.model.MoneyFlow
@@ -48,51 +50,52 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
 
   val relativeAmount = TVar[Double]("RA", Plot.None)
 
-  val totalVolume = TVar[Double]("TV", Plot.None)
-  val totalAmount = TVar[Double]("TA", Plot.None)
-  val totalVolumeIn = TVar[Double]("TVi", Plot.None)
-  val totalAmountIn = TVar[Double]("TAi", Plot.None)
-  val totalVolumeOut = TVar[Double]("TVo", Plot.None)
-  val totalAmountOut = TVar[Double]("TAo", Plot.None)
-  val totalVolumeEven = TVar[Double]("TVe", Plot.None)
-  val totalAmountEven = TVar[Double]("TAe", Plot.None)
+  val volumeIn = TVar[Double]("Vi", Plot.None)
+  val amountIn = TVar[Double]("Ai", Plot.None)
+  val volumeOut = TVar[Double]("Vo", Plot.None)
+  val amountOut = TVar[Double]("Ao", Plot.None)
+  val volumeEven = TVar[Double]("Ve", Plot.None)
+  val amountEven = TVar[Double]("Ae", Plot.None)
   
-  val superVolume = TVar[Double]("SV", Plot.None)
-  val superAmount = TVar[Double]("SA", Plot.None)
-  val superVolumeIn = TVar[Double]("SVi", Plot.None)
-  val superAmountIn = TVar[Double]("SAi", Plot.None)
-  val superVolumeOut = TVar[Double]("SVo", Plot.None)
-  val superAmountOut = TVar[Double]("SAo", Plot.None)
-  val superVolumeEven = TVar[Double]("SVe", Plot.None)
-  val superAmountEven = TVar[Double]("SAe", Plot.None)
+  val superVolumeIn = TVar[Double]("suVi", Plot.None)
+  val superAmountIn = TVar[Double]("suAi", Plot.None)
+  val superVolumeOut = TVar[Double]("suVo", Plot.None)
+  val superAmountOut = TVar[Double]("suAo", Plot.None)
+  val superVolumeEven = TVar[Double]("suVe", Plot.None)
+  val superAmountEven = TVar[Double]("suAe", Plot.None)
 
-  val largeVolume = TVar[Double]("LV", Plot.None)
-  val largeAmount = TVar[Double]("LA", Plot.None)
-  val largeVolumeIn = TVar[Double]("LVi", Plot.None)
-  val largeAmountIn = TVar[Double]("LAi", Plot.None)
-  val largeVolumeOut = TVar[Double]("LVo", Plot.None)
-  val largeAmountOut = TVar[Double]("LAo", Plot.None)
-  val largeVolumeEven = TVar[Double]("LVe", Plot.None)
-  val largeAmountEven = TVar[Double]("LAe", Plot.None)
+  val largeVolumeIn = TVar[Double]("laVi", Plot.None)
+  val largeAmountIn = TVar[Double]("laAi", Plot.None)
+  val largeVolumeOut = TVar[Double]("laVo", Plot.None)
+  val largeAmountOut = TVar[Double]("laAo", Plot.None)
+  val largeVolumeEven = TVar[Double]("laVe", Plot.None)
+  val largeAmountEven = TVar[Double]("laAe", Plot.None)
 
-  val middleVolume = TVar[Double]("MV", Plot.None)
-  val middleAmount = TVar[Double]("MA", Plot.None)
-  val middleVolumeIn = TVar[Double]("MVi", Plot.None)
-  val middleAmountIn = TVar[Double]("MAi", Plot.None)
-  val middleVolumeOut = TVar[Double]("MVo", Plot.None)
-  val middleAmountOut = TVar[Double]("MAo", Plot.None)
-  val middleVolumeEven = TVar[Double]("MVe", Plot.None)
-  val middleAmountEven = TVar[Double]("MAe", Plot.None)
+  val mediumVolumeIn = TVar[Double]("meVi", Plot.None)
+  val mediumAmountIn = TVar[Double]("meAi", Plot.None)
+  val mediumVolumeOut = TVar[Double]("meVo", Plot.None)
+  val mediumAmountOut = TVar[Double]("meAo", Plot.None)
+  val mediumVolumeEven = TVar[Double]("meVe", Plot.None)
+  val mediumAmountEven = TVar[Double]("meAe", Plot.None)
 
-  val smallVolume = TVar[Double]("sV", Plot.None)
-  val smallAmount = TVar[Double]("sA", Plot.None)
-  val smallVolumeIn = TVar[Double]("sVi", Plot.None)
-  val smallAmountIn = TVar[Double]("sAi", Plot.None)
-  val smallVolumeOut = TVar[Double]("sVo", Plot.None)
-  val smallAmountOut = TVar[Double]("sAo", Plot.None)
-  val smallVolumeEven = TVar[Double]("sVe", Plot.None)
-  val smallAmountEven = TVar[Double]("sAe", Plot.None)
-
+  val smallVolumeIn = TVar[Double]("smVi", Plot.None)
+  val smallAmountIn = TVar[Double]("smAi", Plot.None)
+  val smallVolumeOut = TVar[Double]("smVo", Plot.None)
+  val smallAmountOut = TVar[Double]("smAo", Plot.None)
+  val smallVolumeEven = TVar[Double]("smVe", Plot.None)
+  val smallAmountEven = TVar[Double]("smAe", Plot.None)
+  
+  val volumeNet = TVar[Double]("V", Plot.None)
+  val amountNet = TVar[Double]("A", Plot.None)
+  val superVolumeNet  = TVar[Double]("suV", Plot.None)
+  val superAmountNet  = TVar[Double]("suA", Plot.None)
+  val largeVolumeNet  = TVar[Double]("laV", Plot.None)
+  val largeAmountNet  = TVar[Double]("laA", Plot.None)
+  val mediumVolumeNet = TVar[Double]("meV", Plot.None)
+  val mediumAmountNet = TVar[Double]("meA", Plot.None)
+  val smallVolumeNet  = TVar[Double]("smV", Plot.None)
+  val smallAmountNet  = TVar[Double]("smA", Plot.None)
+  
   override protected def assignValue(tval: TVal) {
     val time = tval.time
     tval match {
@@ -100,18 +103,14 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         relativeAmount(time) = mf.relativeAmount
         amountInCount(time) = mf.amountInCount
         amountOutCount(time) = mf.amountOutCount
-
-        totalVolume(time) = mf.totalVolume
-        totalAmount(time) = mf.totalAmount
-        totalVolumeIn(time) = mf.totalVolumeIn
-        totalAmountIn(time) = mf.totalAmountIn
-        totalVolumeOut(time) = mf.totalVolumeOut
-        totalAmountOut(time) = mf.totalAmountOut
-        totalVolumeEven(time) = mf.totalVolumeEven
-        totalAmountEven(time) = mf.totalAmountEven
+	
+        volumeIn(time) = mf.volumeIn
+        amountIn(time) = mf.amountIn
+        volumeOut(time) = mf.volumeOut
+        amountOut(time) = mf.amountOut
+        volumeEven(time) = mf.volumeEven
+        amountEven(time) = mf.amountEven
         
-        superVolume(time) = mf.superVolume
-        superAmount(time) = mf.superAmount
         superVolumeIn(time) = mf.superVolumeIn
         superAmountIn(time) = mf.superAmountIn
         superVolumeOut(time) = mf.superVolumeOut
@@ -119,8 +118,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         superVolumeEven(time) = mf.superVolumeEven
         superAmountEven(time) = mf.superAmountEven
 
-        largeVolume(time) = mf.largeVolume
-        largeAmount(time) = mf.largeAmount
         largeVolumeIn(time) = mf.largeVolumeIn
         largeAmountIn(time) = mf.largeAmountIn
         largeVolumeOut(time) = mf.largeVolumeOut
@@ -128,23 +125,30 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         largeVolumeEven(time) = mf.largeVolumeEven
         largeAmountEven(time) = mf.largeAmountEven
 
-        middleVolume(time) = mf.middleVolume
-        middleAmount(time) = mf.middleAmount
-        middleVolumeIn(time) = mf.middleVolumeIn
-        middleAmountIn(time) = mf.middleAmountIn
-        middleVolumeOut(time) = mf.middleVolumeOut
-        middleAmountOut(time) = mf.middleAmountOut
-        middleVolumeEven(time) = mf.middleVolumeEven
-        middleAmountEven(time) = mf.middleAmountEven
+        mediumVolumeIn(time) = mf.mediumVolumeIn
+        mediumAmountIn(time) = mf.mediumAmountIn
+        mediumVolumeOut(time) = mf.mediumVolumeOut
+        mediumAmountOut(time) = mf.mediumAmountOut
+        mediumVolumeEven(time) = mf.mediumVolumeEven
+        mediumAmountEven(time) = mf.mediumAmountEven
 
-        smallVolume(time) = mf.smallVolume
-        smallAmount(time) = mf.smallAmount
         smallVolumeIn(time) = mf.smallVolumeIn
         smallAmountIn(time) = mf.smallAmountIn
         smallVolumeOut(time) = mf.smallVolumeOut
         smallAmountOut(time) = mf.smallAmountOut
         smallVolumeEven(time) = mf.smallVolumeEven
         smallAmountEven(time) = mf.smallAmountEven
+        
+        volumeNet(time) = mf.volumeNet
+        amountNet(time) = mf.amountNet
+        superVolumeNet(time) = mf.superVolumeNet
+        superAmountNet(time) = mf.superAmountNet
+        largeVolumeNet(time) = mf.largeVolumeNet
+        largeAmountNet(time) = mf.largeAmountNet
+        mediumVolumeNet(time) = mf.mediumVolumeNet
+        mediumAmountNet(time) = mf.mediumAmountNet
+        smallVolumeNet(time) = mf.smallVolumeNet
+        smallAmountNet(time) = mf.smallAmountNet
       case _ =>
     }
   }
@@ -152,16 +156,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   def valueOf(time: Long): Option[MoneyFlow] = {
     if (exists(time)) {
       val mf = new MoneyFlow
+
       mf.relativeAmount = relativeAmount(time)
       mf.amountInCount = amountInCount(time)
       mf.amountOutCount = amountOutCount(time)
-
-      mf.totalVolumeIn = totalVolumeIn(time)
-      mf.totalAmountIn = totalAmountIn(time)
-      mf.totalVolumeOut = totalVolumeOut(time)
-      mf.totalAmountOut = totalAmountOut(time)
-      mf.totalVolumeEven = totalVolumeEven(time)
-      mf.totalAmountEven = totalAmountEven(time)
 
       mf.superVolumeIn = superVolumeIn(time)
       mf.superAmountIn = superAmountIn(time)
@@ -177,12 +175,12 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.largeVolumeEven = largeVolumeOut(time)
       mf.largeAmountEven = largeAmountOut(time)
 
-      mf.middleVolumeIn = middleVolumeIn(time)
-      mf.middleAmountIn = middleAmountIn(time)
-      mf.middleVolumeOut = middleVolumeOut(time)
-      mf.middleAmountOut = middleAmountOut(time)
-      mf.middleAmountEven = middleVolumeEven(time)
-      mf.middleVolumeEven = middleAmountEven(time)
+      mf.mediumVolumeIn = mediumVolumeIn(time)
+      mf.mediumAmountIn = mediumAmountIn(time)
+      mf.mediumVolumeOut = mediumVolumeOut(time)
+      mf.mediumAmountOut = mediumAmountOut(time)
+      mf.mediumAmountEven = mediumVolumeEven(time)
+      mf.mediumVolumeEven = mediumAmountEven(time)
 
       mf.smallVolumeIn = smallVolumeIn(time)
       mf.smallAmountIn = smallAmountIn(time)
@@ -207,60 +205,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     amountInCount(time) = mf.amountInCount
     amountOutCount(time) = mf.amountOutCount
     
-    totalVolume(time) = mf.totalVolume
-    totalAmount(time) = mf.totalAmount
-    totalVolumeIn(time) = mf.totalVolumeIn
-    totalAmountIn(time) = mf.totalAmountIn
-    totalVolumeOut(time) = mf.totalVolumeOut
-    totalAmountOut(time) = mf.totalAmountOut
-    totalVolumeEven(time) = mf.totalVolumeEven
-    totalAmountEven(time) = mf.totalAmountEven
-        
-    superVolume(time) = mf.superVolume
-    superAmount(time) = mf.superAmount
-    superVolumeIn(time) = mf.superVolumeIn
-    superAmountIn(time) = mf.superAmountIn
-    superVolumeOut(time) = mf.superVolumeOut
-    superAmountOut(time) = mf.superAmountOut
-    superVolumeEven(time) = mf.superVolumeEven
-    superAmountEven(time) = mf.superAmountEven
-
-    largeVolume(time) = mf.largeVolume
-    largeAmount(time) = mf.largeAmount
-    largeVolumeIn(time) = mf.largeVolumeIn
-    largeAmountIn(time) = mf.largeAmountIn
-    largeVolumeOut(time) = mf.largeVolumeOut
-    largeAmountOut(time) = mf.largeAmountOut
-    largeVolumeEven(time) = mf.largeVolumeEven
-    largeAmountEven(time) = mf.largeAmountEven
-
-    middleVolume(time) = mf.middleVolume
-    middleAmount(time) = mf.middleAmount
-    middleVolumeIn(time) = mf.middleVolumeIn
-    middleAmountIn(time) = mf.middleAmountIn
-    middleVolumeOut(time) = mf.middleVolumeOut
-    middleAmountOut(time) = mf.middleAmountOut
-    middleVolumeEven(time) = mf.middleVolumeEven
-    middleAmountEven(time) = mf.middleAmountEven
-
-    smallVolume(time) = mf.smallVolume
-    smallAmount(time) = mf.smallAmount
-    smallVolumeIn(time) = mf.smallVolumeIn
-    smallAmountIn(time) = mf.smallAmountIn
-    smallVolumeOut(time) = mf.smallVolumeOut
-    smallAmountOut(time) = mf.smallAmountOut
-    smallVolumeEven(time) = mf.smallVolumeEven
-    smallAmountEven(time) = mf.smallAmountEven
+    assignValue(mf)
         
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
-  }
-
-  /**
-   * This function adjusts linear according to a norm
-   */
-  private def linearAdjust(value: Double, prevNorm: Double, postNorm: Double): Double = {
-    ((value - prevNorm) / prevNorm) * postNorm + postNorm
   }
 
   override def shortName =  _shortName
@@ -270,6 +218,104 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     
 }
 
+object MoneyFlowSer {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
+  def importFrom(vmap: collection.Map[String, Array[_]]): Array[MoneyFlow] = {
+    val mfs = new ArrayList[MoneyFlow]()
+    try {
+      val times = vmap(".")
+      val volumeIns = vmap("Vi")
+      val amountIns = vmap("Ai")
+      val volumeOuts = vmap("Vo")
+      val amountOuts = vmap("Ao")
+      val volumeEvens = vmap("Ve")
+      val amountEvens = vmap("Ae")
+  
+      val superVolumeIns = vmap("suVi")
+      val superAmountIns = vmap("suAi")
+      val superVolumeOuts = vmap("suVo")
+      val superAmountOuts = vmap("suAo")
+      val superVolumeEvens = vmap("suVe")
+      val superAmountEvens = vmap("suAe")
+
+      val largeVolumeIns = vmap("laVi")
+      val largeAmountIns = vmap("laAi")
+      val largeVolumeOuts = vmap("laVo")
+      val largeAmountOuts = vmap("laAo")
+      val largeVolumeEvens = vmap("laVe")
+      val largeAmountEvens = vmap("laAe")
+
+      val mediumVolumeIns = vmap("meVi")
+      val mediumAmountIns = vmap("meAi")
+      val mediumVolumeOuts = vmap("meVo")
+      val mediumAmountOuts = vmap("meAo")
+      val mediumVolumeEvens = vmap("meVe")
+      val mediumAmountEvens = vmap("meAe")
+
+      val smallVolumeIns = vmap("smVi")
+      val smallAmountIns = vmap("smAi")
+      val smallVolumeOuts = vmap("smVo")
+      val smallAmountOuts = vmap("smAo")
+      val smallVolumeEvens = vmap("smVe")
+      val smallAmountEvens = vmap("smAe")
+
+      val volumeNets = vmap("V")
+      val amountNets = vmap("A")
+      val superVolumeNets = vmap("suV")
+      val superAmountNets = vmap("suA")
+      val largeVolumeNets = vmap("laV")
+      val largeAmountNets = vmap("laA")
+      val mediumVolumeNets = vmap("meV")
+      val mediumAmountNets = vmap("meA")
+      val smallVolumeNets = vmap("smV")
+      val smallAmountNets = vmap("smA")
+      
+      var i = -1
+      while ({i += 1; i < times.length}) {
+        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
+        val time = times(i).asInstanceOf[Long]
+        val mf = new MoneyFlow
+
+        mf.time = time
+        
+        mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
+        mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]
+        mf.superVolumeOut = superVolumeOuts(i).asInstanceOf[Double]
+        mf.superAmountOut = superAmountOuts(i).asInstanceOf[Double]
+        mf.superVolumeEven = superVolumeEvens(i).asInstanceOf[Double]
+        mf.superAmountEven = superAmountEvens(i).asInstanceOf[Double]
+
+        mf.largeVolumeIn = largeVolumeIns(i).asInstanceOf[Double]
+        mf.largeAmountIn = largeAmountIns(i).asInstanceOf[Double]
+        mf.largeVolumeOut = largeVolumeOuts(i).asInstanceOf[Double]
+        mf.largeAmountOut = largeAmountOuts(i).asInstanceOf[Double]
+        mf.largeVolumeEven = largeVolumeEvens(i).asInstanceOf[Double]
+        mf.largeAmountEven = largeAmountEvens(i).asInstanceOf[Double]
+
+        mf.mediumVolumeIn = mediumVolumeIns(i).asInstanceOf[Double]
+        mf.mediumAmountIn = mediumAmountIns(i).asInstanceOf[Double]
+        mf.mediumVolumeOut = mediumVolumeOuts(i).asInstanceOf[Double]
+        mf.mediumAmountOut = mediumAmountOuts(i).asInstanceOf[Double]
+        mf.mediumVolumeEven = mediumVolumeEvens(i).asInstanceOf[Double]
+        mf.mediumAmountEven = mediumAmountEvens(i).asInstanceOf[Double]
+
+        mf.smallVolumeIn = smallVolumeIns(i).asInstanceOf[Double]
+        mf.smallAmountIn = smallAmountIns(i).asInstanceOf[Double]
+        mf.smallVolumeOut = smallVolumeOuts(i).asInstanceOf[Double]
+        mf.smallAmountOut = smallAmountOuts(i).asInstanceOf[Double]
+        mf.smallVolumeEven = smallVolumeEvens(i).asInstanceOf[Double]
+        mf.smallAmountEven = smallAmountEvens(i).asInstanceOf[Double]
+
+        mfs += mf
+      }
+    } catch {
+      case ex => log.warning(ex.getMessage)
+    }
+
+    mfs.toArray
+  }
+}
 
 
 

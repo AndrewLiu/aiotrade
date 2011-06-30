@@ -74,6 +74,7 @@ trait TSer extends Publisher {
    */
   def export(fromTime: Long, toTime: Long): collection.Map[String, Any]
 
+  def nonExists(time: Long): Boolean
   def exists(time: Long): Boolean
     
   def lastOccurredTime: Long

@@ -73,44 +73,9 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-object RealTimeWatchListTopComponent {
-  private val instanceRefs = mutable.WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
-  def instances = instanceRefs.keys
-
-  // The Mode this component will live in.
-  val MODE = "info"
-
-  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
-
-  private val watchingSecs = mutable.Set[Sec]()
-
-  def getInstance(node: SymbolNodes.SectorNode): RealTimeWatchListTopComponent = {
-    val instance = instances find (_.getActivatedNodes.contains(node)) getOrElse {
-      new RealTimeWatchListTopComponent(node)
-    }
-
-    if (!instance.isOpened) {
-      instance.open
-    }
-
-    instance
-  }
-
-  def instanceOf(node: SymbolNodes.SectorNode): Option[RealTimeWatchListTopComponent] = {
-    instances find (_.getActivatedNodes.contains(node))
-  }
-
-  def selected: Option[RealTimeWatchListTopComponent] = {
-    TopComponent.getRegistry.getActivated match {
-      case x: RealTimeWatchListTopComponent => Some(x)
-      case _ => instances find (_.isShowing)
-    }
-  }
-
-}
-
-import RealTimeWatchListTopComponent._
 class RealTimeWatchListTopComponent private (val sectorNode: SymbolNodes.SectorNode) extends TopComponent {
+  import RealTimeWatchListTopComponent._
+
   instanceRefs.put(this, null)
 
   private val log = Logger.getLogger(this.getClass.getName)
@@ -379,5 +344,39 @@ class RealTimeWatchListTopComponent private (val sectorNode: SymbolNodes.SectorN
 
 }
 
+object RealTimeWatchListTopComponent {
+  private val instanceRefs = mutable.WeakHashMap[RealTimeWatchListTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
 
+  // The Mode this component will live in.
+  val MODE = "info"
+
+  private val iconImage = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
+
+  private val watchingSecs = mutable.Set[Sec]()
+
+  def getInstance(node: SymbolNodes.SectorNode): RealTimeWatchListTopComponent = {
+    val instance = instances find (_.getActivatedNodes.contains(node)) getOrElse {
+      new RealTimeWatchListTopComponent(node)
+    }
+
+    if (!instance.isOpened) {
+      instance.open
+    }
+
+    instance
+  }
+
+  def instanceOf(node: SymbolNodes.SectorNode): Option[RealTimeWatchListTopComponent] = {
+    instances find (_.getActivatedNodes.contains(node))
+  }
+
+  def selected: Option[RealTimeWatchListTopComponent] = {
+    TopComponent.getRegistry.getActivated match {
+      case x: RealTimeWatchListTopComponent => Some(x)
+      case _ => instances find (_.isShowing)
+    }
+  }
+
+}
 

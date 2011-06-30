@@ -66,31 +66,9 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-object RealTimeChartsTopComponent {
-  private val instanceRefs = mutable.WeakHashMap[RealTimeChartsTopComponent, AnyRef]()
-  def instances = instanceRefs.keys
-
-  private val SCROLL_SPEED_THROTTLE = 2400 // delay in milli seconds
-
-  /** The Mode this component will live in. */
-  private val MODE = "chart"
-
-
-  def apply(): RealTimeChartsTopComponent = {
-    val instance = if (instances.isEmpty) {
-      new RealTimeChartsTopComponent
-    } else instances.head
-
-    if (!instance.isOpened) {
-      instance.open
-    }
-
-    instance
-  }
-}
-
-import RealTimeChartsTopComponent._
 class RealTimeChartsTopComponent private () extends TopComponent {
+  import RealTimeChartsTopComponent._
+
   instanceRefs.put(this, null)
     
   private val tc_id = "RealtimeCharts"
@@ -265,4 +243,27 @@ class RealTimeChartsTopComponent private () extends TopComponent {
     
 }
 
+
+object RealTimeChartsTopComponent {
+  private val instanceRefs = mutable.WeakHashMap[RealTimeChartsTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
+
+  private val SCROLL_SPEED_THROTTLE = 2400 // delay in milli seconds
+
+  /** The Mode this component will live in. */
+  private val MODE = "chart"
+
+
+  def apply(): RealTimeChartsTopComponent = {
+    val instance = if (instances.isEmpty) {
+      new RealTimeChartsTopComponent
+    } else instances.head
+
+    if (!instance.isOpened) {
+      instance.open
+    }
+
+    instance
+  }
+}
 

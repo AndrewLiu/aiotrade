@@ -51,8 +51,8 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
         super.newArray(old, size, schema, elementClass)
       case collectionClass => 
         old match {
-          case xs: java.util.Collection[_] => xs.clear; xs
           case xs: ArrayList[_] => xs.clear; xs
+          case xs: java.util.Collection[_] => xs.clear; xs
           case xs: mutable.ListBuffer[_] => xs.clear; xs
           case _ =>
             if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]])) {
@@ -73,8 +73,8 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
    */
   override protected def addToArray(array: Any, pos: Long, e: Any): Any = {
     array match {
-      case xs: java.util.Collection[AnyRef] => xs.add(e.asInstanceOf[AnyRef]); xs
       case xs: ArrayList[Any] => xs += e
+      case xs: java.util.Collection[AnyRef] => xs.add(e.asInstanceOf[AnyRef]); xs
       case xs: mutable.Seq[_]   => xs.:+(e) // append to end
       case xs: immutable.Seq[_] => xs.+:(e) // insert in front
       case xs => java.lang.reflect.Array.set(array, pos.toInt, e); xs // it's better not use it (for json)

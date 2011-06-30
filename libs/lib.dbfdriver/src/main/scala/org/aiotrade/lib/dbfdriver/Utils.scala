@@ -24,7 +24,7 @@ object Utils {
     var shiftBy = 0
     while (shiftBy < 32) {
       bigEndian |= (in.get & 0xff) << shiftBy
-      shiftBy+=8
+      shiftBy += 8
     }
 
     bigEndian
@@ -39,18 +39,16 @@ object Utils {
   }
 
   def trimLeftSpaces(bytes: Array[Byte]): Array[Byte] = {
-    val sb = new StringBuilder(bytes.length)
-    var i = 0
-    while (i < bytes.length) {
-      if (bytes(i) != ' ') {
-        sb.append(bytes(i).toChar)
-      }
-      i += 1
+    var i = -1
+    while ({i += 1; i < bytes.length && bytes(i) != ' '}) {
+      // skip
     }
-
-    sb.toString.getBytes
+    
+    val outBytes = new Array[Byte](bytes.length - i)
+    System.arraycopy(bytes, i, outBytes, 0, bytes.length - i)
+    outBytes
   }
-
+  
   def littleEndian(value: Short): Short = {
     val num1 = value
     var mask = 0xff
@@ -70,12 +68,11 @@ object Utils {
 
     num2 |= num1 & mask
 
-    var i = 1
-    while (i < 4) {
+    var i = -1
+    while ({i += 1; i < 4}) {
       num2 <<= 8
       mask <<= 8
       num2 |= (num1 & mask) >> (8 * i)
-      i += 1
     }
 
     num2
@@ -83,7 +80,6 @@ object Utils {
 
   @throws(classOf[UnsupportedEncodingException])
   def textPadding(text: String, charsetName: String, length: Int, alignment: Int = ALIGN_LEFT, paddingByte: Byte = ' '.toByte): Array[Byte] = {
-
     val bytes = new Array[Byte](length)
     val srcLength = text.getBytes(charsetName).length
 
@@ -109,32 +105,20 @@ object Utils {
     val sizeWholePart = fieldLength - (if (sizeDecimalPart > 0) sizeDecimalPart + 1 else 0)
 
     val sb = new StringBuilder(fieldLength)
-    var i = 0
-    while (i < sizeWholePart) {
+    var i = -1
+    while ({i += 1; i < sizeWholePart}) {
       sb.append("#")
-      i += 1
     }
 
     if (sizeDecimalPart > 0) {
       sb.append(".")
-      var i = 0
-      while (i < sizeDecimalPart) {
+      var i = -1
+      while ({i += 1; i < sizeDecimalPart}) {
         sb.append("0")
-        i += 1
       }
     }
 
     val df = new DecimalFormat(sb.toString)
     textPadding(df.format(doubleNum), characterSetName, fieldLength, ALIGN_RIGHT)
-  }
-
-  def contains(bytes: Array[Byte], value: Byte): Boolean = {
-    var i = 0
-    while (i < bytes.length) {
-      if (bytes(i) == value) return true
-      i += 1
-    }
-
-    false
   }
 }

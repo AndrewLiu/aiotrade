@@ -4,32 +4,6 @@ import java.io.DataOutput
 import java.io.IOException
 import java.nio.ByteBuffer
 
-object DBFField {
-
-  /**
-   * Creates a DBFField object from the data read from the given DataInputStream.
-   *
-   * The data in the DataInputStream object is supposed to be organised correctly
-   * and the stream "pointer" is supposed to be positioned properly.
-   *
-   * @param in DataInputStream
-   * @return Returns the created DBFField object.
-   * @throws IOException If any stream reading problems occures.
-   */
-  @throws(classOf[IOException])
-  def read(in: ByteBuffer): DBFField = (new DBFField).read(in)
-
-  def apply(name: String, dataType: Char, length: Int, decimalCount: Int) = {
-    val field = new DBFField
-
-    field.name = name
-    field.dataType = dataType.toByte
-    field.length = length
-    field.decimalCount = decimalCount
-
-    field
-  }
-}
 
 class DBFField {
   /* Field struct variables start here */
@@ -201,5 +175,32 @@ class DBFField {
     val sb = new StringBuilder
     sb.append(name).append(":").append(dataType.toChar).append("(").append(length).append(",").append(decimalCount).append(")")
     sb.toString
+  }
+}
+
+object DBFField {
+
+  /**
+   * Creates a DBFField object from the data read from the given DataInputStream.
+   *
+   * The data in the DataInputStream object is supposed to be organised correctly
+   * and the stream "pointer" is supposed to be positioned properly.
+   *
+   * @param in DataInputStream
+   * @return Returns the created DBFField object.
+   * @throws IOException If any stream reading problems occures.
+   */
+  @throws(classOf[IOException])
+  def read(in: ByteBuffer): DBFField = (new DBFField).read(in)
+
+  def apply(name: String, dataType: Char, length: Int, decimalCount: Int) = {
+    val field = new DBFField
+
+    field.name = name
+    field.dataType = dataType.toByte
+    field.length = length
+    field.decimalCount = decimalCount
+
+    field
   }
 }

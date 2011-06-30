@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  o Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  o Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  o Neither the name of AIOTrade Computing Co. nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
@@ -24,7 +54,7 @@ object Model {
     val companies = (SELECT (Companies.*) FROM Companies list)
     val exchanges = (SELECT (Exchanges.*) FROM Exchanges list)
     val categories = (SELECT (ContentCategories.*) FROM ContentCategories list)
-    val secinfos = (SELECT (SecInfos.*,Secs.*) FROM (SecInfos JOIN Secs) list)
+    val secinfos = (SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list) // @todo got exception that secs primiry key is null
   }
 
   val secs = mutable.Map[String, Sec]()
@@ -32,12 +62,21 @@ object Model {
   var exchanges: Seq[Exchange] = Nil
   
   def main(args: Array[String]) {
-    //temporaryTest
-    //test
-    //createSamples
+    try {
+      val symbols = Set("000008.SZ", "600004.SS", "000004.SZ", "000024.SZ", "000010.SZ", "000015.SZ", "000023.SZ", "000019.SZ", "000030.SZ", "000002.SZ", "000012.SZ", "000013.SZ", "000006.SZ", "000018.SZ", "600028.SS", "600019.SS", "000009.SZ", "000001.SS", "600030.SS", "600005.SS", "600020.SS", "000025.SZ", "600016.SS"," 600010.SS", "600022.SS", "000003.SZ", "600003.SS", "000029.SZ")
 
-    Scheduler.shutdown
-    System.exit(0)
+      val a = Exchange.uniSymbolToSec
+      println(a)
+      val secs = (symbols map Exchange.secOf).flatten
+      println(secs)
+      //temporaryTest
+      //test
+      //createSamples
+
+      System.exit(0)
+    } catch {
+      case ex => ex.printStackTrace; System.exit(-1)
+    }
   }
 
   private def temporaryTest {

@@ -61,42 +61,11 @@ import org.aiotrade.lib.securities.dataserver.RichInfoDataServer
 import org.aiotrade.lib.util.reactors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable
-import ru.circumflex.orm.Table
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.GeneralInfos
 import org.aiotrade.lib.info.model.GeneralInfo
 import org.aiotrade.lib.info.model.InfoSecs
 import ru.circumflex.orm._
-
-
-object Secs extends Table[Sec] {
-  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
-
-  val validFrom = "validFrom" BIGINT() 
-  val validTo = "validTo" BIGINT()
-
-  val company = "companies_id" BIGINT() REFERENCES(Companies)
-  def companyHists = inverse(Companies.sec)
-
-  val secInfo = "secInfos_id" BIGINT() REFERENCES(SecInfos)
-  def secInfoHists = inverse(SecInfos.sec)
-  val secStatus = "secStatuses_id" BIGINT() REFERENCES(SecStatuses)
-  def secStatusHists = inverse(SecStatuses.sec)
-
-  val secIssue = "secIssues_id" BIGINT() REFERENCES(SecIssues)
-  def secDividends = inverse(SecDividends.sec)
-
-  def dailyQuotes = inverse(Quotes1d.sec)
-  def dailyMoneyFlow = inverse(MoneyFlows1d.sec)
-
-  def minuteQuotes = inverse(Quotes1m.sec)
-  def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
-
-  def priceDistribution = inverse(PriceDistributions.sec)
-
-  def tickers = inverse(Tickers.sec)
-  def executions = inverse(Executions.sec)
-}
 
 
 /**
@@ -109,63 +78,11 @@ object Secs extends Table[Sec] {
  * You may put ser from outside, to the freq-ser map, so each sofic may have multiple
  * freq sers, but only per freq pre ser is allowed.
  *
- * @param uniSymbol a globe uniSymbol, may have different source uniSymbol.
-
  * @author Caoyuan Deng
  */
+class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
+  import Sec._
 
-object Sec {
-  trait Kind
-  object Kind {
-    case object Stock extends Kind
-    case object Index extends Kind
-    case object Option extends Kind
-    case object Future extends Kind
-    case object FutureOption extends Kind
-    case object Currency extends Kind
-    case object Bag extends Kind
-    case object Bonds extends Kind
-    case object Equity extends Kind
-
-    def withName(name: String): Kind = {
-      name match {
-        case "Stock" => Stock
-        case "Index" => Index
-        case "Option" => Option
-        case "Future" => Future
-        case "FutureOption" => FutureOption
-        case "Currency" => Currency
-        case "Bag" => Bag
-        case _ => null
-      }
-    }
-  }
-  
-  /**
-   * Try to generate an unique long id from a given uniSymbol, we choose java.util.zip.CRC32
-   * since it returns same value of function CRC32(String) in mysql.
-   * 
-   * @note 
-   * 1. Check conflict by:
-   *    select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1;
-   *    select a.secs_id, a.uniSymbol, crc32(a.uniSymbol) from sec_infos as a inner join (
-   *      select secs_id, uniSymbol, crc32(unisymbol) as crc, count(*) from sec_infos group by crc having count(*) > 1
-   *    ) as b on a.uniSymbol = b.uniSymbol order by a.uniSymbol;
-   * 2. Select data of uniSymbol:
-   *    select * from quotes1d where secs_id = crc32(uniSymbol)
-   * 3. How about when uniSymbol changed of a sec?
-   *    we need to use its original uniSymbol, or create a new sec
-   */ 
-  def longId(uniSymbol: String): Long = {
-    val c = new java.util.zip.CRC32
-    c.update(uniSymbol.toUpperCase.getBytes("UTF-8"))
-    c.getValue
-  }
-  
-}
-
-import Sec._
-class Sec extends SerProvider with Ordered[Sec] {
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
@@ -806,6 +723,8 @@ class Sec extends SerProvider with Ordered[Sec] {
 
   /**
    * @Note Since we use same quoteServer and contract to load varies freq data , we should guarantee that quoteServer is thread safe
+   * 
+   * @todo If there is no QuoteServer for this sec, who will fire the TSerEvent.Loaded to avoid evt chain broken?
    */
   private def loadFromQuoteServer(ser: QuoteSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
@@ -824,7 +743,7 @@ class Sec extends SerProvider with Ordered[Sec] {
             // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
             var reaction: Reactions.Reaction = null
             reaction = {
-              case TSerEvent.Loaded(serx, uniSymbol, frTime, toTime, _, _) if serx eq ser =>
+              case TSerEvent.Loaded(serx, _, _, _, _, _) if serx eq ser =>
                 reactions -= reaction
                 deafTo(ser)
                 ser.isLoaded = true
@@ -916,7 +835,7 @@ class Sec extends SerProvider with Ordered[Sec] {
     }
   }
 
-  override def name: String = {
+  def name: String = {
     if (secInfo != null) secInfo.name else uniSymbol
   }
 
@@ -995,11 +914,9 @@ class Sec extends SerProvider with Ordered[Sec] {
   }
 
   override def equals(that: Any) = that match {
-    case x: Sec => this.uniSymbol == x.uniSymbol
+    case x: Sec => this.id == x.id
     case _ => false
   }
-
-  override def hashCode = this.uniSymbol.hashCode
 
   def compare(that: Sec): Int = {
     this.exchange.compare(that.exchange) match {
@@ -1135,3 +1052,63 @@ class SecSnap(val sec: Sec) {
     }
   }
 }
+
+object Sec {
+  trait Kind
+  object Kind {
+    case object Stock extends Kind
+    case object Index extends Kind
+    case object Option extends Kind
+    case object Future extends Kind
+    case object FutureOption extends Kind
+    case object Currency extends Kind
+    case object Bag extends Kind
+    case object Bonds extends Kind
+    case object Equity extends Kind
+
+    def withName(name: String): Kind = {
+      name match {
+        case "Stock" => Stock
+        case "Index" => Index
+        case "Option" => Option
+        case "Future" => Future
+        case "FutureOption" => FutureOption
+        case "Currency" => Currency
+        case "Bag" => Bag
+        case _ => null
+      }
+    }
+  }  
+}
+
+
+// --- table
+object Secs extends CRCLongPKTable[Sec] {
+  val exchange = "exchanges_id" BIGINT() REFERENCES(Exchanges)
+
+  val validFrom = "validFrom" BIGINT() 
+  val validTo = "validTo" BIGINT()
+
+  val company = "companies_id" BIGINT() REFERENCES(Companies)
+  def companyHists = inverse(Companies.sec)
+
+  val secInfo = "secInfos_id" BIGINT() REFERENCES(SecInfos)
+  def secInfoHists = inverse(SecInfos.sec)
+  val secStatus = "secStatuses_id" BIGINT() REFERENCES(SecStatuses)
+  def secStatusHists = inverse(SecStatuses.sec)
+
+  val secIssue = "secIssues_id" BIGINT() REFERENCES(SecIssues)
+  def secDividends = inverse(SecDividends.sec)
+
+  def dailyQuotes = inverse(Quotes1d.sec)
+  def dailyMoneyFlow = inverse(MoneyFlows1d.sec)
+
+  def minuteQuotes = inverse(Quotes1m.sec)
+  def minuteMoneyFlow = inverse(MoneyFlows1m.sec)
+
+  def priceDistribution = inverse(PriceDistributions.sec)
+
+  def tickers = inverse(Tickers.sec)
+  def executions = inverse(Executions.sec)
+}
+

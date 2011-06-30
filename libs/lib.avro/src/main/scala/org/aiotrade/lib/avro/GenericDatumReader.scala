@@ -126,8 +126,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     }
     resolver = cache.get(expected)
     if (resolver == null) {
-      resolver = DecoderFactory.get.resolvingDecoder(
-        Schema.applyAliases(actual, expected), expected, null)
+      resolver = DecoderFactory.get.resolvingDecoder(Schema.applyAliases(actual, expected), expected, null)
       cache.put(expected, resolver)
     }
     
@@ -326,13 +325,13 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): Any = {
     import Schema.Type._
     schema.getElementType.getType match {
-      case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)
       case INT =>     new ArrayList[Int](size)
       case ENUM =>    new ArrayList[Int](size)
       case LONG =>    new ArrayList[Long](size)
       case FLOAT =>   new ArrayList[Float](size)
       case DOUBLE =>  new ArrayList[Double](size)
       case BOOLEAN => new ArrayList[Boolean](size)
+      case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
   }

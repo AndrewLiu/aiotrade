@@ -24,7 +24,7 @@ posix=$RANDOM
 
 #sql="select ${utimestamp};"
 #sql2="select ${utimestamp1000};"
-wheretime="time > ${utimestamp1000}"
+wheretime="time >= ${utimestamp1000}"
 
 #cmd="/usr/local/mysql/bin/mysql --user=faster --password=faster --database=faster --host=${host} --execute=${sql}"
 
@@ -54,14 +54,14 @@ echo "delete tickers_last: success!"
 
 #------------------------delete money_flows1m
 
-sqldelmf1m="delete  from money_flows1m where secs_id between 1 and 6000 and ${wheretime};commit;"
+sqldelmf1m="delete  from money_flows1m where secs_id between 1 and 5000000000 and ${wheretime};commit;"
 echo "to execute: ${sqldelmf1m}"
 time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelmf1m}"
 echo "delete money_flows1m: success!"
 
 #------------------------delete quotes1m
 
-sqldelquotes1m="delete  from quotes1m where secs_id between 1 and 6000 and ${wheretime};commit;"
+sqldelquotes1m="delete  from quotes1m where secs_id between 1 and 5000000000 and ${wheretime};commit;"
 echo "to execute: ${sqldelquotes1m}"
 time mysql --user=${user} --password=${password} --database=faster --host=${host} --execute="${sqldelquotes1m}"
 echo "delete quotes1m: success!"

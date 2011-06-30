@@ -46,6 +46,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.ResourceBundle
+import java.util.logging.Level
 import java.util.logging.Logger
 import javax.swing.Box
 import javax.swing.CellRendererPane
@@ -84,27 +85,10 @@ import scala.collection.mutable.WeakHashMap
  *
  * @author Caoyuan Deng
  */
-object RealTimeBoardPanel {
-  private val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
-  private val NUMBER_FORMAT = NumberFormat.getInstance
-  val DIM = new Dimension(230, 100000)
-
-  private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
-  def instances = instanceRefs.keys
-
-  def instanceOf(sec: Sec): RealTimeBoardPanel = instanceRefs synchronized {
-    instances find {_.sec eq sec} match {
-      case Some(x) => instanceRefs.remove(x)
-      case None => 
-    }
-    new RealTimeBoardPanel(sec)
-  }
-
-  private val log = Logger.getLogger(this.getClass.getSimpleName)
-}
-
-import RealTimeBoardPanel._
 class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
+  import RealTimeBoardPanel._
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
+
   instanceRefs.put(this, null)
   log.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
@@ -156,7 +140,14 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   private val viewContainer = controller.createChartViewContainer(classOf[RealTimeChartViewMiniContainer], this)
   private val tabbedPane = new JTabbedPane(SwingConstants.BOTTOM)
   tabbedPane.setFocusable(false)
-
+  
+  private val scrollToLastRowTask = new Runnable {
+    var table: JTable = null
+    def run {
+      showCell(table, table.getRowCount - 1, 0)
+    }
+  }
+  
   chartPane.setLayout(new BorderLayout)
   chartPane.add(viewContainer, BorderLayout.CENTER)
 
@@ -262,15 +253,14 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
     )
 
     val level = 5
-    var i = 0
-    while (i < level) {
+    var i = -1
+    while ({i += 1; i < level}) {
       val bidIdx = level - 1 - i
       val bidRow = i
       depthModel.setValueAt(Bundle.getString("bid") + numberStrs(bidIdx), bidRow, 0)
       val askIdx = i
       val askRow = level + i
       depthModel.setValueAt(Bundle.getString("ask") + numberStrs(askIdx), askRow, 0)
-      i += 1
     }
 
     depthCellAttr = depthModel.cellAttribute.asInstanceOf[DefaultCellAttribute]
@@ -357,11 +347,12 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
     add(tickerPane, GBC(0, 1).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
     add(chartPane,  GBC(0, 2).setFill(GridBagConstraints.BOTH).setWeight(100, 100))
   }
+  
+  private def neuColor = LookFeel().getNeutralColor
+  private def posColor = LookFeel().getPositiveColor
+  private def negColor = LookFeel().getNegativeColor
 
   private def updateInfoTable(ticker: Ticker) {
-    val neuColor = LookFeel().getNeutralColor
-    val posColor = LookFeel().getPositiveColor
-    val negColor = LookFeel().getNegativeColor
 
     cal.setTimeInMillis(System.currentTimeMillis)
     val now = cal.getTime
@@ -375,40 +366,41 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
     dayPercent.value  = "%+3.2f%%" format ticker.changeInPercent
     dayVolume.value   = "%10.2f"   format ticker.dayVolume / 100.0
 
-    def setInfoCellColorByPrevCls(value: Double, cell: ValueCell) {
-      val bgColor = LookFeel().backgroundColor
-      val fgColor = (
-        if (value > ticker.prevClose) posColor
-        else if (value < ticker.prevClose) negColor
-        else neuColor
-      )
-      infoCellAttr.setForeground(fgColor, cell.row, cell.col)
-      infoCellAttr.setBackground(bgColor, cell.row, cell.col)
-    }
 
-    def setInfoCellColorByZero(value: Double, cell: ValueCell) {
-      val bgColor = LookFeel().backgroundColor
-      val fgColor = (
-        if (value > 0) posColor
-        else if (value < 0) negColor
-        else neuColor
-      )
-      infoCellAttr.setForeground(fgColor, cell.row, cell.col)
-      infoCellAttr.setBackground(bgColor, cell.row, cell.col)
-    }
-
-    setInfoCellColorByPrevCls(ticker.dayOpen, dayOpen)
-    setInfoCellColorByPrevCls(ticker.dayLow, dayLow)
-    setInfoCellColorByPrevCls(ticker.dayHigh, dayHigh)
-    setInfoCellColorByPrevCls(ticker.lastPrice, lastPrice)
+    setInfoCellColorByPrevCls(ticker.prevClose, ticker.dayOpen, dayOpen)
+    setInfoCellColorByPrevCls(ticker.prevClose, ticker.dayLow, dayLow)
+    setInfoCellColorByPrevCls(ticker.prevClose, ticker.dayHigh, dayHigh)
+    setInfoCellColorByPrevCls(ticker.prevClose, ticker.lastPrice, lastPrice)
     setInfoCellColorByZero(ticker.dayChange, dayChange)
     setInfoCellColorByZero(ticker.dayChange, dayPercent)
   }
   
+  private def setInfoCellColorByPrevCls(prevClose: Double, value: Double, cell: ValueCell) {
+    val bgColor = LookFeel().backgroundColor
+    val fgColor = (
+      if (value > prevClose) posColor
+      else if (value < prevClose) negColor
+      else neuColor
+    )
+    infoCellAttr.setForeground(fgColor, cell.row, cell.col)
+    infoCellAttr.setBackground(bgColor, cell.row, cell.col)
+  }
+
+  private def setInfoCellColorByZero(value: Double, cell: ValueCell) {
+    val bgColor = LookFeel().backgroundColor
+    val fgColor = (
+      if (value > 0) posColor
+      else if (value < 0) negColor
+      else neuColor
+    )
+    infoCellAttr.setForeground(fgColor, cell.row, cell.col)
+    infoCellAttr.setBackground(bgColor, cell.row, cell.col)
+  }
+
   private def updateDepthTable(marketDepth: MarketDepth) {
     val depth = marketDepth.depth
-    var i = 0
-    while (i < depth) {
+    var i = -1
+    while ({i += 1; i < depth}) {
       val bidIdx = depth - 1 - i
       val bidRow = i
       depthModel.setValueAt(priceDf  format marketDepth.bidPrice(bidIdx), bidRow, 1)
@@ -418,17 +410,11 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
       val askRow = depth + i
       depthModel.setValueAt(priceDf  format marketDepth.askPrice(askIdx), askRow, 1)
       depthModel.setValueAt("%10.0f" format marketDepth.askSize(askIdx) / 100.0,  askRow, 2)
-
-      i += 1
     }
   }
 
   private def updateExecutionTable(prevClose: Double, execution: Execution) {
     // update last execution row in depth table
-    val neuColor = LookFeel().getNeutralColor
-    val posColor = LookFeel().getPositiveColor
-    val negColor = LookFeel().getNegativeColor
-
     val bgColor = LookFeel().backgroundColor
     val fgColor = (
       if (execution.price > prevClose) posColor
@@ -446,11 +432,8 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
     if (table.getRowCount < 1) return
     
     // wrap in EDT to wait enough time to get rowCount updated
-    SwingUtilities.invokeLater(new Runnable {
-        def run {
-          showCell(table, table.getRowCount - 1, 0)
-        }
-      })
+    scrollToLastRowTask.table = table
+    SwingUtilities.invokeLater(scrollToLastRowTask)
   }
 
   private def showCell(table: JTable, row: Int, column: Int) {
@@ -532,7 +515,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
                     setBackground(LookFeel().backgroundColor)
                   }
                 }
-              } catch {case ex: ParseException => ex.printStackTrace}
+              } catch {case ex: ParseException => log.log(Level.WARNING, ex.getMessage, ex)}
             }
           case 2 => // Size
             setHorizontalAlignment(SwingConstants.TRAILING)
@@ -546,7 +529,7 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   }
 
   def realTimeChartViewContainer: Option[ChartViewContainer] = {
-    if (viewContainer == null) None else Some(viewContainer)
+    Option(viewContainer)
   }
 
   private def test {
@@ -559,27 +542,47 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   }
 }
 
-object ValueCell {
-  def setRowCol(modelData: Array[Array[Object]]) {
-    for (i <- 0 until modelData.length; rows = modelData(i);
-         j <- 0 until rows.length; cell = rows(j)
-    ) {
-      cell match {
-        case x: ValueCell =>
-          x.row = i
-          x.col = j
-        case _ =>
-      }
+object RealTimeBoardPanel {
+  private val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
+  private val NUMBER_FORMAT = NumberFormat.getInstance
+  val DIM = new Dimension(230, 100000)
+
+  private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
+  def instances = instanceRefs.keys
+
+  def instanceOf(sec: Sec): RealTimeBoardPanel = instanceRefs synchronized {
+    instances find {_.sec eq sec} match {
+      case Some(x) => instanceRefs.remove(x)
+      case None => 
     }
+    new RealTimeBoardPanel(sec)
   }
 }
+
 
 class ValueCell(var row: Int, var col: Int) {
   var value: String = _
 
   def this() = this(0, 0)
 
-  override def toString = {
-    value
+  override def toString = value
+}
+
+object ValueCell {
+  def setRowCol(modelData: Array[Array[Object]]) {
+    var i = -1
+    while ({i += 1; i < modelData.length}) {
+      val rows = modelData(i)
+      var j = -1
+      while ({j += 1; j < rows.length}) {
+        rows(j) match {
+          case cell: ValueCell =>
+            cell.row = i
+            cell.col = j
+          case _ =>
+        }
+      }
+    }
   }
 }
+

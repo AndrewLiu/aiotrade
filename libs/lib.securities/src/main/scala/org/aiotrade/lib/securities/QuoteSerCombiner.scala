@@ -42,15 +42,12 @@ import scala.collection.mutable.WeakHashMap
 /**
  * @Note to get this Combiner react to srcSer, it should be held as strong ref by some instances
  *
+ * @todo deal with adjusted
  * @author Caoyuan Deng
  */
-object QuoteSerCombiner {
-  // Holding strong reference to ser combiner etc, see @QuoteSerCombiner
-  private val strongRefHolders = WeakHashMap[QuoteSer, QuoteSerCombiner]()
-}
-
-import QuoteSerCombiner._
 class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {
+  import QuoteSerCombiner._
+
   private val log = Logger.getLogger(this.getClass.getName)
 
   strongRefHolders.put(tarSer, this)
@@ -93,7 +90,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
         tarSer.createOrClear(intervalBegin)
             
         var prevNorm = srcSer.close(time_i)
-        var postNorm = srcSer.close_adj(time_i)
+        var postNorm = srcSer.close(time_i) //srcSer.close_adj(time_i)
             
         tarSer.open(intervalBegin)   = linearAdjust(srcSer.open(time_i),  prevNorm, postNorm)
         tarSer.high(intervalBegin)   = Double.MinValue
@@ -123,13 +120,13 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
              * when combine, do adjust on source's value, then de adjust on combined quote data.
              * this will prevent bad high, open, and low into combined quote data:
              *
-             * Duaring the combining period, an adjust may happened, but we only record last
+             * During the combining period, an adjust may happened, but we only record last
              * close_adj, the high, low, and open of the data before adjusted acutally may has
              * different scale close_adj, so must do adjust with its own close_adj firstly. then
              * use the last close_orj to de-adjust it.
              */
             prevNorm = srcSer.close(time_j)
-            postNorm = srcSer.close_adj(time_j)
+            postNorm = srcSer.close(time_j) //srcSer.close_adj(time_j)
 
             tarSer.high(intervalBegin)  = math.max(tarSer.high(intervalBegin), linearAdjust(srcSer.high(time_j),  prevNorm, postNorm))
             tarSer.low(intervalBegin)   = math.min(tarSer.low(intervalBegin),  linearAdjust(srcSer.low(time_j),   prevNorm, postNorm))
@@ -139,7 +136,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
             tarSer.amount(intervalBegin) = tarSer.amount(intervalBegin) + srcSer.amount(time_j)
 
             tarSer.close_ori(intervalBegin) = srcSer.close_ori(time_j)
-            tarSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
+            //tarSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
 
             j += 1
           } else {
@@ -184,14 +181,14 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
         val quote = quoteOf(time_i)
 
         var prevNorm = srcSer.close(time_i)
-        var postNorm = srcSer.close_adj(time_i)
+        var postNorm = srcSer.close(time_i)//srcSer.close_adj(time_i) @todo deal with adjusted
         
         /**
          * @TIPS
          * when combine, do adjust on source's value, then de adjust on combined quote data.
          * this will prevent bad high, open, and low into combined quote data:
          *
-         * Duaring the combining period, an adjust may happened, but we only record last
+         * During the combining period, an adjust may happened, but we only record last
          * close_adj, the high, low, and open of the data before adjusted acutally may has
          * different scale close_adj, so must do adjust with its own close_adj firstly. then
          * use the last close_orj to de-adjust it.
@@ -251,3 +248,10 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     
   def dispose {}
 }
+
+object QuoteSerCombiner {
+  // Holding strong reference to ser combiner etc, see @QuoteSerCombiner
+  private val strongRefHolders = WeakHashMap[QuoteSer, QuoteSerCombiner]()
+}
+
+

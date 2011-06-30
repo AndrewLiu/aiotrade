@@ -51,27 +51,9 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-object RealTimeBoardTopComponent {
-  private val instanceRefs = mutable.WeakHashMap[RealTimeBoardTopComponent, AnyRef]()
-  def instances = instanceRefs.keys
-
-  /** The Mode this component will live in */
-  val MODE = "board"
-
-  def apply(sec: Sec): RealTimeBoardTopComponent = {
-    val instance = instances find (_.sec eq sec) getOrElse RealTimeBoardTopComponent(sec)
-
-    if (!instance.isOpened) {
-      instance.open
-    }
-
-    instance
-  }
-
-}
-
-import RealTimeBoardTopComponent._
 class RealTimeBoardTopComponent private (val sec: Sec) extends TopComponent {
+  import RealTimeBoardTopComponent._
+
   instanceRefs.put(this, null)
     
 
@@ -152,4 +134,23 @@ class RealTimeBoardTopComponent private (val sec: Sec) extends TopComponent {
     
 }
 
+
+object RealTimeBoardTopComponent {
+  private val instanceRefs = mutable.WeakHashMap[RealTimeBoardTopComponent, AnyRef]()
+  def instances = instanceRefs.keys
+
+  /** The Mode this component will live in */
+  val MODE = "board"
+
+  def apply(sec: Sec): RealTimeBoardTopComponent = {
+    val instance = instances find (_.sec eq sec) getOrElse RealTimeBoardTopComponent(sec)
+
+    if (!instance.isOpened) {
+      instance.open
+    }
+
+    instance
+  }
+
+}
 

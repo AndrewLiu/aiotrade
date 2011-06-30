@@ -53,6 +53,13 @@ class SignalTopComponent extends TopComponent with Reactor {
     SIGN,
     NAME
   )
+  
+  private val scrollToLastRowTask = new Runnable {
+    var table: JTable = null
+    def run {
+      showCell(table, table.getRowCount - 1, 0)
+    }
+  }
 
   initComponent
 
@@ -196,13 +203,10 @@ class SignalTopComponent extends TopComponent with Reactor {
 
   private def scrollToLastRow(table: JTable) {
     if (table.getRowCount < 1) return
-
+    
     // wrap in EDT to wait enough time to get rowCount updated
-    SwingUtilities.invokeLater(new Runnable {
-        def run {
-          showCell(table, table.getRowCount - 1, 0)
-        }
-      })
+    scrollToLastRowTask.table = table
+    SwingUtilities.invokeLater(scrollToLastRowTask)
   }
 
   private def showCell(table: JTable, row: Int, column: Int) {
