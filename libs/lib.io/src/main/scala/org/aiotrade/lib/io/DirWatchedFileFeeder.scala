@@ -103,11 +103,17 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
     }
   }
 
-  private def getZipEntries(zFile: ZipFile) = {
+  private def getZipEntries(zFile: ZipFile): java.util.LinkedList[String] = {
     val zFileList = new java.util.LinkedList[String]()
     val entries = zFile.entries
     while (entries.hasMoreElements){
-      zFileList.add(entries.nextElement.getName)
+      try {
+        val entry = entries.nextElement
+        zFile.getEntry(entry.getName) // test if it's corrupted, if no, may throws Exception
+        zFileList.add(entry.getName)
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
     }
     // sort by the file name.
     java.util.Collections.sort(zFileList)
