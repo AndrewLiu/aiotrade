@@ -76,7 +76,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     override def toString = {
       val cal = util.calendarOf(timeZone)
       cal.setTimeInMillis(time)
-      this.getClass.getSimpleName + "(" + time + "," + timeInMinutes + "," + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + ")"
+      this.getClass.getSimpleName + "(" + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + "," + time + "," + timeInMinutes + ")"
     }
   }
   case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
