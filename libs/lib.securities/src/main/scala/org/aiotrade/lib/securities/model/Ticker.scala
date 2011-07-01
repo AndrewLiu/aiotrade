@@ -221,7 +221,7 @@ object Tickers extends TickersTable {
   private val lastTickersCache = mutable.Map[Long, mutable.Map[Sec, Ticker]]()
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Ticker = {
-    if (isServer) lastTickerOf_nocached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
+    if (isServer) lastTickerOf_nonCached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
   }
 
   /**
@@ -251,7 +251,7 @@ object Tickers extends TickersTable {
     }
   }
 
-  def lastTickerOf_nocached(sec: Sec, dailyRoundedTime: Long): Ticker = {
+  def lastTickerOf_nonCached(sec: Sec, dailyRoundedTime: Long): Ticker = {
     (SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list

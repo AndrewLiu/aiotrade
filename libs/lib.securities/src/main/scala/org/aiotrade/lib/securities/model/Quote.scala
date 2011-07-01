@@ -237,7 +237,7 @@ object Quotes1d extends Quotes {
     }
   }
 
-  def dailyQuoteOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): Quote = {
+  def dailyQuoteOf_nonCached(sec: Sec, dailyRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
@@ -294,7 +294,7 @@ object Quotes1m extends Quotes {
   }
 
   def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
-    if (isServer) minuteQuoteOf_oncached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
+    if (isServer) minuteQuoteOf_nonCached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
   }
   
   /**
@@ -333,7 +333,7 @@ object Quotes1m extends Quotes {
     }
   }
 
-  def minuteQuoteOf_oncached(sec: Sec, minuteRoundedTime: Long): Quote = {
+  def minuteQuoteOf_nonCached(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list

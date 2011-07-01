@@ -271,7 +271,7 @@ object MoneyFlows1d extends MoneyFlows {
     }
   }
 
-  def dailyMoneyFlowOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
+  def dailyMoneyFlowOf_nonCached(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
@@ -300,7 +300,7 @@ object MoneyFlows1m extends MoneyFlows {
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
-    if (isServer) minuteMoneyFlowOf_nocached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
+    if (isServer) minuteMoneyFlowOf_nonCached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
   }
 
   /**
@@ -339,7 +339,7 @@ object MoneyFlows1m extends MoneyFlows {
     }
   }
 
-  def minuteMoneyFlowOf_nocached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
+  def minuteMoneyFlowOf_nonCached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
