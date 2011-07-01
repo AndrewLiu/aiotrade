@@ -100,7 +100,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     }
   }
   
-  protected def descriptor = "(" + sname + "," + sectorKey + "," + freq.shortName + ")"
+  protected def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
   
   override def computeFrom(fromTime0: Long) {
     val fromTime = if (fromTime0 == 0 | fromTime0 == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)
