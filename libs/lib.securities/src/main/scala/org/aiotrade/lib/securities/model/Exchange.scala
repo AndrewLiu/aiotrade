@@ -453,7 +453,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
           case TFreq.ONE_MIN =>
             Quotes1m.saveBatch(time, quotesToClose)
         }
-        log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: quotes=" + quotesToClose.length + ", freq=" + freq.shortName)
+        log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: size=" + quotesToClose.length + ", freq=" + freq.shortName)
       }
     }
 
@@ -475,7 +475,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
           case TFreq.ONE_MIN =>
             MoneyFlows1m.saveBatch(time, mfsToClose)
         }
-        log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms: quotes=" + mfsToClose.length + ", freq=" + freq.shortName)
+        log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + mfsToClose.length + ", freq=" + freq.shortName)
       }
     }
     
