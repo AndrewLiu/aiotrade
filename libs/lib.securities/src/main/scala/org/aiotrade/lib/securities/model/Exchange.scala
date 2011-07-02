@@ -319,7 +319,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
   private var timeInMinutesToClose = -1
-  private val closingTimer = new Timer("ExchangeClosingTimer")
   
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
     tradingStatusTime >= roundedTime + freq.interval
@@ -356,9 +355,10 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       case _ => Nil
     }
 
-    log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closeTimeInMinutes)
-
+    val isDailyClose = freqs.contains(TFreq.DAILY)
     for (freq <- freqs) {
+      log.info("Try closing quotes: freq=" + freq.shortName + ", closingTimeInMinutes=" + closeTimeInMinutes)
+
       val quotesToClose = freqToUnclosedQuotes synchronized {
         if (freq == TFreq.DAILY) {
           freqToUnclosedQuotes.get(freq) match {
@@ -398,7 +398,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0) {
-        val isDailyClose = freqs.contains(TFreq.DAILY)
         if (isDailyClose) {
           log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
           closingTimer.schedule(new TimerTask {
@@ -417,10 +416,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * Close and insert daily quotes/moneyflows
    */
   private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], alsoSave: Boolean) {
-    var willCommit = false
-
     if (quotesToClose.length > 0) {
-      willCommit = true
       val time = quotesToClose(0).time
       
       var i = -1
@@ -453,7 +449,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     }
 
     if (mfsToClose.length > 0) {
-      willCommit = true
       val time = mfsToClose(0).time
       
       var i = -1
@@ -475,7 +470,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
     }
     
-    if (willCommit) {
+    if (quotesToClose.length > 0 || mfsToClose.length > 0) {
       COMMIT
       log.info(this.code + " doClosing: committed.")
     }
@@ -508,6 +503,7 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
+  private val closingTimer = new Timer("ExchangeClosingTimer")
 
   // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil
