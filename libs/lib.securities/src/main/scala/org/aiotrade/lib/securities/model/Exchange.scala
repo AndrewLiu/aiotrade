@@ -30,9 +30,11 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
-import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
+import java.util.{Calendar, TimeZone, ResourceBundle}
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
@@ -317,7 +319,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   private val EmptyQuotes = ArrayList[Quote]()
   private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
-  private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
+  private val dailyCloseDelay = 5L // 5 minutes
   private var timeInMinutesToClose = -1
   
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
@@ -398,15 +400,22 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0) {
-        if (isDailyClose) {
-          log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
-          closingTimer.schedule(new TimerTask {
-              def run {
-                doClosing(freq, quotesToClose, mfsToClose, alsoSave)
-              }
-            }, dailyCloseDelay)
-        } else {
-          doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+        // do closing async in scheduler
+        val closingTask = new Runnable {
+          def run {
+            doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+          }
+        }
+        
+        try {
+          if (isDailyClose) {
+            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
+            closingScheduler.schedule(closingTask, dailyCloseDelay, TimeUnit.MINUTES)
+          } else {
+            closingScheduler.execute(closingTask)
+          }
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
         }
       }
     }
@@ -503,7 +512,7 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
-  private val closingTimer = new Timer("ExchangeClosingTimer")
+  private val closingScheduler = new ScheduledThreadPoolExecutor(3)
 
   // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil
