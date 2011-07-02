@@ -315,8 +315,8 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     status
   }
 
-  private val emptyQuotes = ArrayList[Quote]()
-  private val emptyMoneyFlows = ArrayList[MoneyFlow]()
+  private val EmptyQuotes = ArrayList[Quote]()
+  private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
   private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
   private var timeInMinutesToClose = -1
   private val closingTimer = new Timer("ExchangeClosingTimer")
@@ -361,28 +361,40 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     for (freq <- freqs) {
 
       val quotesToClose = freqToUnclosedQuotes synchronized {
-        freqToUnclosedQuotes.get(freq) match {
-          case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedQuotes.put(freq, emptyQuotes)
-            unclosed
-          case Some(unclosed) =>
-            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-            freqToUnclosedQuotes.put(freq, other)
-            toClose
-          case None => emptyQuotes
+        if (freq == TFreq.DAILY) {
+          freqToUnclosedQuotes.get(freq) match {
+            case Some(unClosed) =>
+              freqToUnclosedQuotes.put(freq, EmptyQuotes)
+              unClosed // will close all of them
+            case None => EmptyQuotes
+          }
+        } else {
+          freqToUnclosedQuotes.get(freq) match {
+            case Some(unclosed) =>
+              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+              freqToUnclosedQuotes.put(freq, notYet)
+              toClose
+            case None => EmptyQuotes
+          }
         }
       }
 
       val mfsToClose = freqToUnclosedMoneyFlows synchronized {
-        freqToUnclosedMoneyFlows.get(freq) match {
-          case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedMoneyFlows.put(freq, emptyMoneyFlows)
-            unclosed
-          case Some(unclosed) =>
-            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-            freqToUnclosedMoneyFlows.put(freq, other)
-            toClose
-          case None => emptyMoneyFlows
+        if (freq == TFreq.DAILY) {
+          freqToUnclosedMoneyFlows.get(freq) match {
+            case Some(unclosed) =>
+              freqToUnclosedMoneyFlows.put(freq, EmptyMoneyFlows)
+              unclosed // will close all of them
+            case None => EmptyMoneyFlows
+          }
+        } else {
+          freqToUnclosedMoneyFlows.get(freq) match {
+            case Some(unclosed) =>
+              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+              freqToUnclosedMoneyFlows.put(freq, notYet)
+              toClose
+            case None => EmptyMoneyFlows
+          }
         }
       }
 
