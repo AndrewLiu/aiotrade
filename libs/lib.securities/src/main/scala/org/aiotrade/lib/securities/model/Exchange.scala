@@ -359,7 +359,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closeTimeInMinutes)
 
     for (freq <- freqs) {
-
       val quotesToClose = freqToUnclosedQuotes synchronized {
         if (freq == TFreq.DAILY) {
           freqToUnclosedQuotes.get(freq) match {
@@ -422,16 +421,18 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
     if (quotesToClose.length > 0) {
       willCommit = true
-
+      val time = quotesToClose(0).time
+      
       var i = -1
       while ({i += 1; i < quotesToClose.length}) {
         val quote = quotesToClose(i)
         quote.closed_!
 
         val sec = quote.sec
+        // update the ser's TVar 'isClosed'  
         freq match {
           case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
-            sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+            sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)} 
           case TFreq.ONE_MIN if alsoSave || sec.isSerCreated(TFreq.ONE_MIN) =>
             sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
           case _ =>
@@ -439,23 +440,31 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (alsoSave) {
-        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
-            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
+            Quotes1d.saveBatch(time, quotesToClose)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
+            Quotes1m.saveBatch(time, quotesToClose)
         }
+//        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
+//        freq match {
+//          case TFreq.DAILY =>
+//            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
+//            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
+//          case TFreq.ONE_MIN =>
+//            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
+//        }
 
       }
     }
 
     if (mfsToClose.length > 0) {
       willCommit = true
-
+      val time = mfsToClose(0).time
+      
       var i = -1
       while ({i += 1; i < mfsToClose.length}) {
         val mfs = mfsToClose(i)
@@ -463,16 +472,24 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (alsoSave) {
-        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
-            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
+            MoneyFlows1d.saveBatch(time, mfsToClose)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
+            MoneyFlows1m.saveBatch(time, mfsToClose)
         }
+        
+//        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
+//        freq match {
+//          case TFreq.DAILY =>
+//            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
+//            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
+//          case TFreq.ONE_MIN =>
+//            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
+//        }
 
       }
     }

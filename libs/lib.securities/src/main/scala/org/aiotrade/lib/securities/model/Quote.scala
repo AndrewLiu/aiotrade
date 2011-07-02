@@ -192,6 +192,37 @@ abstract class Quotes extends Table[Quote] {
 
     this.insertBatch_!(inserts.toArray)
   }
+  
+  def saveBatch(atSameTime: Long, quotes: ArrayList[Quote]) {
+    if (quotes.isEmpty) return
+
+    val exists = mutable.Map[Sec, Quote]()
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
+      ) list()
+    ) foreach {x => exists.put(x.sec, x)}
+
+    val updates = new ArrayList[Quote]()
+    val inserts = new ArrayList[Quote]()
+    var i = -1
+    while ({i += 1; i < quotes.length}) {
+      val quote = quotes(i)
+      exists.get(quote.sec) match {
+        case Some(existOne) => 
+          existOne.copyFrom(quote)
+          updates += existOne
+        case None =>
+          inserts += quote
+      }
+    }
+    
+    if (updates.length > 0) {
+      this.updateBatch_!(updates.toArray)
+    }
+    if (inserts.length > 0) {
+      this.insertBatch_!(inserts.toArray)
+    }
+  }
 }
 
 object Quotes1d extends Quotes {
@@ -203,6 +234,7 @@ object Quotes1d extends Quotes {
     (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
   }
 
+  @deprecated
   def dailyQuoteOf(sec: Sec, dailyRoundedTime: Long): Quote = {
     val cached = dailyCache.get(dailyRoundedTime) match {
       case Some(map) => map
@@ -237,6 +269,7 @@ object Quotes1d extends Quotes {
     }
   }
 
+  @deprecated
   def dailyQuoteOf_nonCached(sec: Sec, dailyRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
@@ -293,6 +326,7 @@ object Quotes1m extends Quotes {
     ) ORDER_BY (this.time DESC) list
   }
 
+  @deprecated
   def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
     if (isServer) minuteQuoteOf_nonCached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
   }
@@ -300,6 +334,7 @@ object Quotes1m extends Quotes {
   /**
    * @Note do not use it when table is partitioned on secs_id (for example, quotes1m on server side), since this qeury is only on time
    */
+  @deprecated
   def minuteQuoteOf_cached(sec: Sec, minuteRoundedTime: Long): Quote = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
@@ -333,6 +368,7 @@ object Quotes1m extends Quotes {
     }
   }
 
+  @deprecated
   def minuteQuoteOf_nonCached(sec: Sec, minuteRoundedTime: Long): Quote = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
