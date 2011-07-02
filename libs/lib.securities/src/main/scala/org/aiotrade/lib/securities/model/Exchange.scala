@@ -428,8 +428,8 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         val quote = quotesToClose(i)
         quote.closed_!
 
+        // update quoteSer's TVar 'isClosed'  
         val sec = quote.sec
-        // update the ser's TVar 'isClosed'  
         freq match {
           case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
             sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)} 
@@ -440,6 +440,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (alsoSave) {
+        val t0 = System.currentTimeMillis
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
@@ -447,17 +448,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
           case TFreq.ONE_MIN =>
             Quotes1m.saveBatch(time, quotesToClose)
         }
-//        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
-//        freq match {
-//          case TFreq.DAILY =>
-//            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
-//            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
-//            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
-//          case TFreq.ONE_MIN =>
-//            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
-//            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
-//        }
-
+        log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: quotes=" + quotesToClose.length + ", freq=" + freq.shortName)
       }
     }
 
@@ -472,6 +463,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       }
 
       if (alsoSave) {
+        val t0 = System.currentTimeMillis
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
@@ -479,18 +471,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
           case TFreq.ONE_MIN =>
             MoneyFlows1m.saveBatch(time, mfsToClose)
         }
-        
-//        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
-//        freq match {
-//          case TFreq.DAILY =>
-//            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
-//            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
-//            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
-//          case TFreq.ONE_MIN =>
-//            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
-//            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
-//        }
-
+        log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms: quotes=" + mfsToClose.length + ", freq=" + freq.shortName)
       }
     }
     
