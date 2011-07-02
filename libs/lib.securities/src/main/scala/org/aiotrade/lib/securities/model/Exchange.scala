@@ -448,7 +448,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         val t0 = System.currentTimeMillis
         freq match {
           case TFreq.DAILY =>
-            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
+            log.info(this.code + " closed, saving " + freq + " quotes: " + quotesToClose.length)
             Quotes1d.saveBatch(time, quotesToClose)
           case TFreq.ONE_MIN =>
             Quotes1m.saveBatch(time, quotesToClose)
@@ -471,7 +471,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         val t0 = System.currentTimeMillis
         freq match {
           case TFreq.DAILY =>
-            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
+            log.info(this.code + " closed, saving " + freq + " moneyflows: " + mfsToClose.length)
             MoneyFlows1d.saveBatch(time, mfsToClose)
           case TFreq.ONE_MIN =>
             MoneyFlows1m.saveBatch(time, mfsToClose)

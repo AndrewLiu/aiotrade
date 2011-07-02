@@ -135,36 +135,6 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
   
-  // reactions for QuoteEvt, MoneyFlowEvt to update chain sers
-  reactions += {
-    case api.QuoteEvt(freq, quote) =>
-      freq match {
-        case TFreq.ONE_MIN.shortName =>
-          if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
-            realtimeSer.updateFrom(quote)
-          }
-          if (isSerCreated(TFreq.ONE_MIN)) {
-            serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-          }
-        case TFreq.DAILY.shortName =>
-          if (isSerCreated(TFreq.DAILY)) {
-            serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
-          }
-      }
-    case api.MoneyFlowEvt(freq, moneyFlow) =>
-      freq match {
-        case TFreq.ONE_MIN.shortName =>
-          if (isSerCreated(TFreq.ONE_MIN)) {
-            moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
-          }
-        case TFreq.DAILY.shortName =>
-          if (isSerCreated(TFreq.DAILY)) {
-            moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
-          }
-      }
-  }
-
-
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
   def content = {
@@ -265,6 +235,35 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
       case _ => freqToMoneyFlowSer.get(freq) match {
           case None => None // @todo createCombinedSer(freq)
           case some => some
+        }
+    }
+  }
+  
+  def updateQuoteSer(freq: TFreq, quote: Quote) {
+    freq match {
+      case TFreq.ONE_MIN =>
+        if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
+          realtimeSer.updateFrom(quote)
+        }
+        if (isSerCreated(TFreq.ONE_MIN)) {
+          serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+        }
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+        }
+    }
+  }
+  
+  def updateMoneyFlowSer(freq: TFreq, moneyFlow: MoneyFlow) {
+    freq match {
+      case TFreq.ONE_MIN =>
+        if (isSerCreated(TFreq.ONE_MIN)) {
+          moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
+        }
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
         }
     }
   }
