@@ -393,11 +393,39 @@ abstract class TickerServer extends DataServer[Ticker] {
   def toUniSymbol(srcSymbol: String): String = srcSymbol
 }
 
-object TickerServer extends Publisher {
+/**
+ * To avoid singleton publisher's poor performance, we use more actors.
+ * To listen to it, listenTo(publishers: _*)
+ * To deaf to it, deafTo(publishers: _*)
+ */
+object TickerServer {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val config = org.aiotrade.lib.util.config.Config()
   val isServer = !config.getBool("dataserver.client", false)
   log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
+  
+  
+  val publishers = {
+    var xs: List[Publisher] = Nil
+    val numPublishers = config.getInt("dataserver.numpublisher", 10)
+    var i = -1
+    while ({i += 1; i < numPublishers}) xs ::= new Publisher {}
+    xs
+  }
+  
+  private var publisherRevolver: List[Publisher] = Nil
+  private def nextPublisher = publisherRevolver match {
+    case Nil => 
+      publisherRevolver = publishers.tail
+      publishers.head
+    case head :: tail =>
+      publisherRevolver = tail
+      head
+  }
+  
+  def publish(e: Any) {
+    nextPublisher.publish(e)
+  }
 }
 
