@@ -38,6 +38,7 @@ import java.util.{Calendar, TimeZone, ResourceBundle}
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util
 import org.aiotrade.lib.util.actors.Publisher
@@ -435,14 +436,9 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
         // update quoteSer's TVar 'isClosed'  
         val sec = quote.sec
-        freq match {
-          case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
-            sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)} 
-          case TFreq.ONE_MIN if alsoSave || sec.isSerCreated(TFreq.ONE_MIN) =>
-            sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-          case _ =>
-        }
+        sec.updateQuoteSer(freq, quote)
       }
+      TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose.toArray))
 
       if (alsoSave) {
         val t0 = System.currentTimeMillis
