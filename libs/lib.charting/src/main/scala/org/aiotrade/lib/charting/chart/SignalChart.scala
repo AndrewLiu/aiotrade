@@ -40,7 +40,6 @@ import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.signal.Direction
 import org.aiotrade.lib.math.signal.Position
-import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 
 /**

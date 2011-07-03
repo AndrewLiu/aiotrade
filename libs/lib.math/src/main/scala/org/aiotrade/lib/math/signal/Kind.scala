@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -39,37 +39,41 @@ class Kind(_id: Int) {
 
   protected[signal] def id: Int = _id
   
-  def isDirection: Boolean = Kind.isDirection(id)
-  def isPosition:  Boolean = Kind.isPosition(id)
+  def isDirection: Boolean = id > 0
+  def isPosition:  Boolean = id < 0
   
   override def hashCode = _id
   
-  override def equals(a: Any) = {
-    a match {
-      case x: Kind => x.id == _id
-      case _ => false
-    }
+  override def equals(a: Any) = a match {
+    case x: Kind => x.id == _id
+    case _ => false
+  }
+  
+  override def toString = id match {
+    case  1 => "Enter long"
+    case  2 => "Exit long"
+    case  3 => "Enter short"
+    case  4 => "Exit short"
+
+    case -1 => "Upper"
+    case -2 => "Lower"
   }
 }
 
 object Kind {
-  def withId(id: Int): Kind = {
-    if (isDirection(id)) Direction.withId(id) else Position.withId(id)
-  }
-
-  private def isDirection(id: Int): Boolean = id > 0
-  private def isPosition (id: Int): Boolean = id < 0
+  def withId(id: Int): Kind = id match {
+    case  1 => Direction.EnterLong
+    case  2 => Direction.ExitLong
+    case  3 => Direction.EnterShort
+    case  4 => Direction.ExitShort
+      
+    case -1 => Position.Upper
+    case -2 => Position.Lower
+  }  
 }
 
 class Direction(_id: => Int) extends Kind(_id) {
-  def this() = this(0) /* for serializable */
-  
-  override def toString = id match {
-    case 1 => "Enter long"
-    case 2 => "Exit long"
-    case 3 => "Enter short"
-    case 4 => "Exit short"
-  }
+  def this() = this(0) /* for serializable */  
 }
 
 object Direction {
@@ -78,31 +82,18 @@ object Direction {
   val EnterShort = new Direction(3)
   val ExitShort  = new Direction(4)
 
-  def withId(id: Int): Direction = id match {
-    case 1 => Direction.EnterLong
-    case 2 => Direction.ExitLong
-    case 3 => Direction.EnterShort
-    case 4 => Direction.ExitShort
-  }
+  def withId(id: Int): Direction = Kind.withId(id).asInstanceOf[Direction]
 }
 
 class Position(_id: => Int) extends Kind(_id) {
-  def this() = this(0) /* for serializable */
-  
-  override def toString = id match {
-    case -1 => "Upper"
-    case -2 => "Lower"
-  }
+  def this() = this(0) /* for serializable */  
 }
 
 object Position {
   val Upper = new Position(-1)
   val Lower = new Position(-2)
 
-  def withId(id: Int): Position = id match {
-    case -1 => Position.Upper
-    case -2 => Position.Lower
-  }
+  def withId(id: Int): Position = Kind.withId(id).asInstanceOf[Position]
 }
 
 
