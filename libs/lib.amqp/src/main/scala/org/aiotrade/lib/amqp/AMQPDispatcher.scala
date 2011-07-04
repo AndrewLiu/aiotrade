@@ -250,7 +250,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def configure(channel: Channel): Option[Consumer]
 
   @throws(classOf[IOException])
-  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build) {
+  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build,
+              mandatory: Boolean = false, immediate: Boolean = false
+  ) {
     channel foreach {_ch =>
       val contentType = props.getContentType match {
         case null | "" => DEFAULT_CONTENT_TYPE 
@@ -294,7 +296,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         val outProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
         
         
-        _ch.basicPublish(exchange, routingKey, outProps, body)
+        _ch.basicPublish(exchange, routingKey, mandatory, immediate, outProps, body)
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
