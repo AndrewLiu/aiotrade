@@ -193,9 +193,11 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.price  = ticker.lastPrice
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
-
+        
+         // re-init lastTime
+        lastTime = ticker.time
       } else {
-
+                
         /**
          *    ticker.time    prevTicker.time
          *          |------------------|------------------->

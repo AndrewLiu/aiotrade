@@ -277,7 +277,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
   
   def tradingStatusOf(time: Long): TradingStatus = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
     

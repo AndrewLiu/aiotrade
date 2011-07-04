@@ -134,8 +134,8 @@ class LightTicker(private var _data: Array[Double]) extends BelongsToSec with TV
   }
 
   def copyFrom(another: LightTicker) {
-    this.sec    = another.sec
-    this.time   = another.time
+    this.sec = another.sec
+    this.time = another.time
     this.uniSymbol = another.uniSymbol
     System.arraycopy(another.data, 0, data, 0, data.length)
   }

@@ -815,7 +815,7 @@ class SecSnap(val sec: Sec) {
   private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
   final def setByTicker(ticker: Ticker): SecSnap = {
-    this.newTicker = ticker
+    newTicker = ticker
     
     val time = ticker.time
     checkLastTickerAt(time)
