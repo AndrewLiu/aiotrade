@@ -101,6 +101,7 @@ object Sector {
   def allSectors = sectorToSecValidTimes.keys
   
   def sectorsOf(category: String) = Sectors.sectorsOf(category)
+  def sectorsOf = Sectors.sectorsOf
   
   def secsOf(sector: Sector): Seq[Sec] = Sectors.secsOf(sector)
   def secsOf(key: String): Seq[Sec] = withKey(key) match {
@@ -150,7 +151,11 @@ object Sectors extends CRCLongPKTable[Sector] {
   private[model] def sectorsOf(category: String): Seq[Sector] = {
     SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
   } 
-  
+
+  private[model] def sectorsOf(): Seq[Sector] = {
+    SELECT (Sectors.*) FROM (Sectors) list()
+  }
+
   private[model] def secsOf(sector: Sector): Seq[Sec] = {
     SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
   }

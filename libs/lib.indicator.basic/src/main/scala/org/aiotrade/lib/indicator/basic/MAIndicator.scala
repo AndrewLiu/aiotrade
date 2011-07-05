@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.basic
 
+import java.util.logging.Logger
 import org.aiotrade.lib.indicator.Indicator
 
 /**
@@ -37,6 +38,9 @@ import org.aiotrade.lib.indicator.Indicator
  * @author Caoyuan Deng
  */
 class MAIndicator extends Indicator {
+
+  val log = Logger.getLogger(getClass.getName)
+
   sname = "MA"
   lname = "Moving Average"
   isOverlapping = true
@@ -51,6 +55,8 @@ class MAIndicator extends Indicator {
     
   protected def compute(fromIdx: Int, size: Int): Unit = {
     var i = fromIdx
+
+    val time = System.currentTimeMillis
     while (i < size) {
       ma1(i) = ma(i, C, period1)
       ma2(i) = ma(i, C, period2)
@@ -58,6 +64,9 @@ class MAIndicator extends Indicator {
 
       i += 1
     }
+
+    val time1 = System.currentTimeMillis - time
+    log.info("MA computed " + time1)
   }
     
 }

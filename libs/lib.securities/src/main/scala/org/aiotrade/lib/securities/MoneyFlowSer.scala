@@ -47,7 +47,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   
   val amountInCount = TVar[Int]("aIC", Plot.None)
   val amountOutCount = TVar[Int]("aOC", Plot.None)
-
   val relativeAmount = TVar[Double]("RA", Plot.None)
 
   val volumeIn = TVar[Double]("Vi", Plot.None)
@@ -225,6 +224,11 @@ object MoneyFlowSer {
     val mfs = new ArrayList[MoneyFlow]()
     try {
       val times = vmap(".")
+
+      val amountInCount = vmap("aIC")
+      val amountOutCount = vmap("aOC")
+      val relativeAmount = vmap("RA")
+
       val volumeIns = vmap("Vi")
       val amountIns = vmap("Ai")
       val volumeOuts = vmap("Vo")
@@ -278,6 +282,10 @@ object MoneyFlowSer {
         val mf = new MoneyFlow
 
         mf.time = time
+
+        mf.amountInCount = amountInCount(i).asInstanceOf[Int]
+        mf.amountOutCount = amountOutCount(i).asInstanceOf[Int]
+        mf.relativeAmount = relativeAmount(i).asInstanceOf[Double]
         
         mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
         mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]
