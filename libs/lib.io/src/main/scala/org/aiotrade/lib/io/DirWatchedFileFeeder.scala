@@ -86,7 +86,7 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
     } else {
       val workingFile = fileQueue.poll
 
-      log.info("Reading dbf " + workingFile)
+      log.info("Reading file " + workingFile)
       (new FileInputStream(workingFile), workingFile.getName, Left(workingFile))
     }
   }

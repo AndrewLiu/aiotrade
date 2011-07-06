@@ -77,9 +77,9 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   private var isRefreshable = false
   private var isInLoading = false
 
-
   /**
    * @note Beware of a case in producer-consumer module:
+   * During process DataLoaded, we may have accepted lots HeartBeat.
    * The producer is the one who implements requestData(...) and publishs DataLoaded,
    * after data collected. For example, who reads the data file and produces values;
    * The consumer is the one who accept DataLoaded and implements processData(...).
@@ -93,18 +93,18 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * in persistence cache first. Otherwise, you have to try to sync the producer and 
    * the consumer.
    */
-  private var flowCount: Int = _ // flow control count
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
     // refreshing requests, if consumer can not catch up the producer, will drop
     // some requests.
     case HeartBeat(interval) =>
-      if (isRefreshable && !isInLoading && flowCount < 5) {
+      if (isRefreshable && !isInLoading) {
         // refresh from loadedTime for subscribedContracts
         publish(RequestData(loadedTime, subscribedContracts))
       }
       
     case RequestData(afterTime, contracts) =>
+      log.info("Received RequestData message")
       isInLoading = true
       try {
         requestData(afterTime, contracts)
@@ -114,7 +114,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       isInLoading = false
 
     case DataLoaded(values, contract) =>
-      flowCount += 1
       log.info("Received DataLoaded message")
       isInLoading = true
       try {
@@ -125,7 +124,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       isInLoading = false
       
       publish(DataProcessed)
-      flowCount -= 1
+      log.info("DataProcessed")
   }
   listenTo(DataServer)
 
