@@ -60,8 +60,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   case object DataProcessed
 
   protected val EmptyValues = Array[V]()
-
-
   protected val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
@@ -75,7 +73,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   protected var loadedTime: Long = _
 
   private var isRefreshable = false
-  private var isInLoading = false
 
   /**
    * @note Beware of a case in producer-consumer module:
@@ -93,38 +90,47 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * in persistence cache first. Otherwise, you have to try to sync the producer and 
    * the consumer.
    */
+  private var flowCount: Int = _ // flow control that tries to balance request and process
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
     // refreshing requests, if consumer can not catch up the producer, will drop
     // some requests.
     case HeartBeat(interval) =>
-      if (isRefreshable && !isInLoading) {
+      if (isRefreshable && flowCount < 5) {
         // refresh from loadedTime for subscribedContracts
-        publish(RequestData(loadedTime, subscribedContracts))
+        try {
+          flowCount += 1
+          log.info("Going to request data, flowCount=" + flowCount)
+          requestData(loadedTime, subscribedContracts)
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+      } else {
+        flowCount -= 1 // give chance to requestData
       }
+      flowCount = math.max(0, flowCount) // avoid too big gap
       
     case RequestData(afterTime, contracts) =>
-      log.info("Received RequestData message")
-      isInLoading = true
       try {
+        flowCount += 1
+        log.info("Going to request data, flowCount=" + flowCount)
         requestData(afterTime, contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      isInLoading = false
-
+      
     case DataLoaded(values, contract) =>
-      log.info("Received DataLoaded message")
-      isInLoading = true
+      val t0 = System.currentTimeMillis
       try {
-        loadedTime = math.max(processData(values, contract), loadedTime)
+        flowCount -= 1
+        log.info("Going to process data, flowCount=" + flowCount)
+        loadedTime = math.max(processData(values, contract), loadedTime) // @todo, loadedTime should be from requestData
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      isInLoading = false
       
       publish(DataProcessed)
-      log.info("DataProcessed")
+      log.info("Processed data in " + (System.currentTimeMillis - t0) + "ms")
   }
   listenTo(DataServer)
 
