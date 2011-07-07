@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
@@ -154,6 +156,8 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
@@ -191,9 +195,13 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
-    SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec)
-    ) ORDER_BY (this.time) list
+    try {
+      SELECT (this.*) FROM (this) WHERE (
+        this.sec.field EQ Secs.idOf(sec)
+      ) ORDER_BY (this.time) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def closedMoneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
@@ -205,9 +213,13 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   }
 
   def closedMoneyFlowOf__filterByDB(sec: Sec): Seq[MoneyFlow] = {
-    SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-    ) ORDER_BY (this.time) list
+    try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+      ) ORDER_BY (this.time) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
   
   def saveBatch(sec: Sec, sortedMfs: Seq[MoneyFlow]) {
@@ -218,29 +230,41 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
     val frTime = math.min(head.time, last.time)
     val toTime = math.max(head.time, last.time)
     val exists = mutable.Map[Long, MoneyFlow]()
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res foreach {x => exists.put(x.time, x)}
 
     val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
-    }
+    try {
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
 
-    this.insertBatch_!(inserts.toArray)
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
   }
   
   def saveBatch(atSameTime: Long, mfs: ArrayList[MoneyFlow]) {
     if (mfs.isEmpty) return
 
     val exists = mutable.Map[Sec, MoneyFlow]()
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
       ) list()
-    ) foreach {x => exists.put(x.sec, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res foreach {x => exists.put(x.sec, x)}
 
     val updates = new ArrayList[MoneyFlow]()
     val inserts = new ArrayList[MoneyFlow]()
@@ -256,17 +280,23 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
       }
     }
     
-    if (updates.length > 0) {
-      this.updateBatch_!(updates.toArray)
-    }
-    if (inserts.length > 0) {
-      this.insertBatch_!(inserts.toArray)
+    try {
+      if (updates.length > 0) {
+        this.updateBatch_!(updates.toArray)
+      }
+      if (inserts.length > 0) {
+        this.insertBatch_!(inserts.toArray)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 }
 
 // --- table
 object MoneyFlows1d extends MoneyFlows {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   @deprecated
@@ -278,10 +308,14 @@ object MoneyFlows1d extends MoneyFlows {
         val map = mutable.Map[Sec, MoneyFlow]()
         dailyCache.put(dailyRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ dailyRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        }
+        res foreach {x => map.put(x.sec, x)}
 
         map
     }
@@ -305,10 +339,14 @@ object MoneyFlows1d extends MoneyFlows {
 
   @deprecated
   def dailyMoneyFlowOf_nonCached(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res headOption match {
       case Some(one) =>
         one.isTransient = false
         one
@@ -327,6 +365,8 @@ object MoneyFlows1d extends MoneyFlows {
 }
 
 object MoneyFlows1m extends MoneyFlows {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
@@ -349,10 +389,14 @@ object MoneyFlows1m extends MoneyFlows {
         val map = mutable.Map[Sec, MoneyFlow]()
         minuteCache.put(minuteRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ minuteRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        } 
+        res foreach {x => map.put(x.sec, x)}
 
         map
     }
@@ -376,10 +420,14 @@ object MoneyFlows1m extends MoneyFlows {
 
   @deprecated
   def minuteMoneyFlowOf_nonCached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res headOption match {
       case Some(one) =>
         one.isTransient = false
         one

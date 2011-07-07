@@ -735,11 +735,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val exchangeId = Exchanges.idOf(exchange)
     val t0 = System.currentTimeMillis
     
-    val secs = if (isServer) {
-      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
-    } else {
-      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-      SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+    val secs = try {
+      if (isServer) {
+        SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
+      } else {
+        val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+        SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -750,11 +754,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   def exchangeToSec(): Map[Exchange, Seq[Sec]] = {
     val t0 = System.currentTimeMillis
     
-    val secs = if (isServer) {
-      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) list() map (_._1)
-    } else {
-      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-      SELECT (Secs.*) FROM (AVRO(Secs)) list()
+    val secs = try {
+      if (isServer) {
+        SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) list() map (_._1)
+      } else {
+        val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+        SELECT (Secs.*) FROM (AVRO(Secs)) list()
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("Secs number is "  + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -765,11 +773,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   def exchangeToSecInfo(): Map[Exchange, Seq[SecInfo]] = {
     val t0 = System.currentTimeMillis
     
-    val secInfos = if (isServer) {
-      SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list() map (_._1)
-    } else {
-      val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
-      SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+    val secInfos = try {
+      if (isServer) {
+        SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list() map (_._1)
+      } else {
+        val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
+        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("SecInfos number " +  " is " + secInfos.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -782,15 +794,24 @@ object Exchanges extends CRCLongPKTable[Exchange] {
    * private package method to avoid to be used no-aware expensive
    */
   private[model] def secOf(uniSymbol: String): Option[Sec] = {
-    (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
+    val res = try {
+      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique 
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+    }
+    res map (_._1)
   }
   
   def dividendsOf(sec: Sec): Seq[SecDividend] = {
-    val divs = if (TickerServer.isServer) {
-      val secId = Secs.idOf(sec)
-      SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
-    } else {
-      SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+    val divs = try {
+      if (TickerServer.isServer) {
+        val secId = Secs.idOf(sec)
+        SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
+      } else {
+        SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     val cal = Calendar.getInstance(sec.exchange.timeZone)
@@ -804,20 +825,24 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val sec = new Sec
     sec.crckey = symbol
     sec.exchange = exchange
-    Secs.save_!(sec)
+    
+    try {
+      Secs.save_!(sec)
 
-    val secInfo = new SecInfo
-    secInfo.sec = sec
-    secInfo.uniSymbol = symbol
-    secInfo.name = name
-    SecInfos.save_!(secInfo)
+      val secInfo = new SecInfo
+      secInfo.sec = sec
+      secInfo.uniSymbol = symbol
+      secInfo.name = name
+      SecInfos.save_!(secInfo)
 
-    sec.secInfo = secInfo
-    Secs.update_!(sec, Secs.secInfo)
+      sec.secInfo = secInfo
 
-    if (willCommit) {
-      COMMIT
-      log.info("Committed: sec_infos" + name)
+      if (willCommit) {
+        COMMIT
+        log.info("Committed: sec_infos" + name)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     sec
@@ -828,15 +853,20 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     secInfo.sec = sec
     secInfo.uniSymbol = sec.uniSymbol
     secInfo.name = name
-    SecInfos.save_!(secInfo)
+    
+    try {
+      SecInfos.save_!(secInfo)
 
-    if (isCurrent) {
-      sec.secInfo = secInfo
-      Secs.update_!(sec, Secs.secInfo)
+      if (isCurrent) {
+        sec.secInfo = secInfo
+        Secs.update_!(sec, Secs.secInfo)
+      }
+    
+      COMMIT
+      log.info("Committed: sec_infos" + name)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
-
-    COMMIT
-    log.info("Committed: sec_infos" + name)
 
     secInfo
   }

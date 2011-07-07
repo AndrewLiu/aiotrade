@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -194,7 +195,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
         
-         // re-init lastTime
+        // re-init lastTime
         lastTime = ticker.time
       } else {
                 
@@ -344,39 +345,43 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
     log.info("Going to save to db ...")
-    var willCommit = false
-    val t0 = System.currentTimeMillis
-    if (tickersLastToInsert.length > 0) {
-      TickersLast.insertBatch_!(tickersLastToInsert.toArray)
-      willCommit = true
-    }
-    if (tickersLastToUpdate.length > 0) {
-      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
-      willCommit = true
-    }
-    if (willCommit) {
-      log.info("Saved tickersLast in " + (System.currentTimeMillis - t0) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
-    }
-
-    if (TickerServer.isServer) {
-      val t1 = System.currentTimeMillis
-      if (allTickers.length > 0) {
-        Tickers.insertBatch_!(allTickers.toArray)
+    try {
+      var willCommit = false
+      val t0 = System.currentTimeMillis
+      if (tickersLastToInsert.length > 0) {
+        TickersLast.insertBatch_!(tickersLastToInsert.toArray)
         willCommit = true
       }
-      if (allExecutions.length > 0) {
-        Executions.insertBatch_!(allExecutions.toArray)
+      if (tickersLastToUpdate.length > 0) {
+        TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
         willCommit = true
       }
       if (willCommit) {
-        log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - t1) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        log.info("Saved tickersLast in " + (System.currentTimeMillis - t0) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
       }
-    }
 
-    // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
-    if (willCommit) {
-      COMMIT
-      log.info("Committed")
+      if (TickerServer.isServer) {
+        val t1 = System.currentTimeMillis
+        if (allTickers.length > 0) {
+          Tickers.insertBatch_!(allTickers.toArray)
+          willCommit = true
+        }
+        if (allExecutions.length > 0) {
+          Executions.insertBatch_!(allExecutions.toArray)
+          willCommit = true
+        }
+        if (willCommit) {
+          log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - t1) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        }
+      }
+
+      // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
+      if (willCommit) {
+        COMMIT
+        log.info("Committed")
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     // Try to close and save updated quotes, moneyflows 
