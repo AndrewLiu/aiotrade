@@ -426,60 +426,64 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * Close and insert daily quotes/moneyflows
    */
   private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], alsoSave: Boolean) {
-    if (quotesToClose.length > 0) {
-      val time = quotesToClose(0).time
+    try {
+      if (quotesToClose.length > 0) {
+        val time = quotesToClose(0).time
       
-      var i = -1
-      while ({i += 1; i < quotesToClose.length}) {
-        val quote = quotesToClose(i)
-        quote.closed_!
+        var i = -1
+        while ({i += 1; i < quotesToClose.length}) {
+          val quote = quotesToClose(i)
+          quote.closed_!
 
-        // update quoteSer's TVar 'isClosed'  
-        val sec = quote.sec
-        sec.updateQuoteSer(freq, quote)
-      }
-      TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose.toArray))
-
-      if (alsoSave) {
-        val t0 = System.currentTimeMillis
-        freq match {
-          case TFreq.DAILY =>
-            log.info(this.code + " closed, saving " + freq + " quotes: " + quotesToClose.length)
-            Quotes1d.saveBatch(time, quotesToClose)
-          case TFreq.ONE_MIN =>
-            Quotes1m.saveBatch(time, quotesToClose)
+          // update quoteSer's TVar 'isClosed'  
+          val sec = quote.sec
+          sec.updateQuoteSer(freq, quote)
         }
-        log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: size=" + quotesToClose.length + 
-                 ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
-      }
-    }
+        TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose.toArray))
 
-    if (mfsToClose.length > 0) {
-      val time = mfsToClose(0).time
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " quotes: " + quotesToClose.length)
+              Quotes1d.saveBatch(time, quotesToClose)
+            case TFreq.ONE_MIN =>
+              Quotes1m.saveBatch(time, quotesToClose)
+          }
+          log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: size=" + quotesToClose.length + 
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
+      }
+
+      if (mfsToClose.length > 0) {
+        val time = mfsToClose(0).time
       
-      var i = -1
-      while ({i += 1; i < mfsToClose.length}) {
-        val mfs = mfsToClose(i)
-        mfs.closed_!
-      }
-
-      if (alsoSave) {
-        val t0 = System.currentTimeMillis
-        freq match {
-          case TFreq.DAILY =>
-            log.info(this.code + " closed, saving " + freq + " moneyflows: " + mfsToClose.length)
-            MoneyFlows1d.saveBatch(time, mfsToClose)
-          case TFreq.ONE_MIN =>
-            MoneyFlows1m.saveBatch(time, mfsToClose)
+        var i = -1
+        while ({i += 1; i < mfsToClose.length}) {
+          val mfs = mfsToClose(i)
+          mfs.closed_!
         }
-        log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + mfsToClose.length + 
-                 ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " moneyflows: " + mfsToClose.length)
+              MoneyFlows1d.saveBatch(time, mfsToClose)
+            case TFreq.ONE_MIN =>
+              MoneyFlows1m.saveBatch(time, mfsToClose)
+          }
+          log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + mfsToClose.length + 
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
       }
-    }
     
-    if (quotesToClose.length > 0 || mfsToClose.length > 0) {
-      COMMIT
-      log.info(this.code + " doClosing: committed.")
+      if (quotesToClose.length > 0 || mfsToClose.length > 0) {
+        COMMIT
+        log.info(this.code + " doClosing: committed.")
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 
