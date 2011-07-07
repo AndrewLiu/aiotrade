@@ -100,7 +100,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
         // refresh from loadedTime for subscribedContracts
         try {
           flowCount += 1
-          log.info("Going to request data, flowCount=" + flowCount)
+          log.fine("Got HeartBeat message, going to request data, flowCount=" + flowCount)
           requestData(loadedTime, subscribedContracts)
         } catch {
           case ex => log.log(Level.WARNING, ex.getMessage, ex)
@@ -113,7 +113,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
     case RequestData(afterTime, contracts) =>
       try {
         flowCount += 1
-        log.info("Going to request data, flowCount=" + flowCount)
+        log.info("Got RequestData message, going to request data, flowCount=" + flowCount)
         requestData(afterTime, contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
@@ -123,7 +123,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       val t0 = System.currentTimeMillis
       try {
         flowCount -= 1
-        log.info("Going to process data, flowCount=" + flowCount)
+        log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
         loadedTime = math.max(processData(values, contract), loadedTime) // @todo, loadedTime should be from requestData
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
