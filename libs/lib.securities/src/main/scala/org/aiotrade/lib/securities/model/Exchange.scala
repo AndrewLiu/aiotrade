@@ -149,7 +149,7 @@ object Exchanges extends Table[Exchange] {
       SecInfos.insertBatch_!(secInfosA)
       Secs.updateBatch_!(secsA, Secs.secInfo)
 
-      if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
+      if (willCommit && (secsA.length > 0 || secInfosA.length > 0)) {
         COMMIT
         log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
       }
@@ -183,7 +183,7 @@ object Exchanges extends Table[Exchange] {
       SecInfos.insertBatch_!(secInfosA)
       Secs.updateBatch_!(secsA, Secs.secInfo)
 
-      if (secsA.length > 0 | secInfosA.length > 0) {
+      if (secsA.length > 0 || secInfosA.length > 0) {
         COMMIT
         log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
       }
