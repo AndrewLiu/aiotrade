@@ -416,11 +416,15 @@ class Exchange extends Ordered[Exchange] {
   lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
 
-  private lazy val openHour  = openCloseHMs(0)
-  private lazy val openMin   = openCloseHMs(1)
-  private lazy val closeHour = openCloseHMs(openCloseHMs.length - 2)
-  private lazy val closeMin  = openCloseHMs(openCloseHMs.length - 1)
+  private lazy val openHour  = openCloseHMs(0)//9
+  private lazy val openMin   = openCloseHMs(1)//30
+  private lazy val closeHour = openCloseHMs(openCloseHMs.length - 2)//15
+  private lazy val closeMin  = openCloseHMs(openCloseHMs.length - 1)//0
 
+  //(9:30,11:30)(13:00,15:00)
+  // |     |       |    |
+  // v     v       v    v
+  //(570,690)     (780,900)
   lazy val openingPeriods = {
     val periods = new Array[(Int, Int)](openCloseHMs.length / 4)
     
