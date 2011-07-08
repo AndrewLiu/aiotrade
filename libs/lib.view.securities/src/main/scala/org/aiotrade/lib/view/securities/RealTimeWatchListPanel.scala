@@ -147,7 +147,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     case TickersEvt(tickers) => updateByTickers(tickers)
   }
 
-  listenTo(TickerServer)
+  listenTo(TickerServer.publishers: _*)
 
   /** forward focus to scrollPane, so it can response UP/DOWN key event etc */
   override def requestFocusInWindow: Boolean = {
