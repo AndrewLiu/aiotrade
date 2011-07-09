@@ -818,7 +818,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val cal = util.calendarOf(sec.exchange.timeZone)
     divs foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
     divs.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
