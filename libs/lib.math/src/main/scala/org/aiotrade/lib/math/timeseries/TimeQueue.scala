@@ -70,6 +70,7 @@ final class TimeQueue[V: Manifest](fixedSize: Int) {
 
   val length = fixedSize
   def apply(i: Int): (Int, collection.Map[String, ArrayList[V]]) = _dayToXs synchronized {_dayToXs(i)}
+  def last = apply(lastIdx)
 
   def put(key: String, time: Long, value: V): Unit = _dayToXs synchronized  {
     val day = daysFrom1970(time)
@@ -100,7 +101,7 @@ final class TimeQueue[V: Manifest](fixedSize: Int) {
         _dayToXs(lastIdx) = (day, newMap)
       } else {
         val xs = lastKeyToXs.get(key).getOrElse(new ArrayList[V]())
-        lastKeyToXs.put(key, xs += value)
+        lastKeyToXs(key) = xs += value
       }
     }
   }
