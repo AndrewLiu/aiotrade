@@ -42,6 +42,7 @@ import org.aiotrade.lib.math.indicator.Id
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.util
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 
@@ -63,7 +64,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   reactions += {
     case PanelIndicator.PanelHeartBeat => 
       computeFrom(lastFromTime)
-      lastFromTime = computedTime + 1
+      lastFromTime = computedTime
     case ComputeFrom(time) => 
       lastFromTime = time
     case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) => 
@@ -112,7 +113,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 
     val t0 = System.currentTimeMillis
     compute(fromTime, lastTime)
-    log.info(descriptor + ": computed " + fromTime + " - " + lastTime + " in " + (System.currentTimeMillis - t0) + "ms")
+    log.info(descriptor + ", size=" + size + ", computed " + util.formatTime(fromTime) + " - " + util.formatTime(lastTime) + " in " + (System.currentTimeMillis - t0) + "ms")
   }
   
   /**
