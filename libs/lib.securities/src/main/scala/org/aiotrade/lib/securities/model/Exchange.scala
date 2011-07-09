@@ -89,6 +89,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
   case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
   case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class ClosedDate(time: Long, timeInMinutes: Int) extends TradingStatus
   case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
   
   private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
@@ -258,6 +259,22 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     cal.getTimeInMillis
   }
 
+  /**
+   * @todo
+   */
+  def isClosedDate(cal: Calendar): Boolean = {
+    cal.get(Calendar.DAY_OF_WEEK) match {
+      case Calendar.SUNDAY | Calendar.SATURDAY => true
+      case _ => false // @todo
+    }
+  }
+
+  def isClosedDate(time: Long): Boolean = {
+    val cal = util.calendarOf(timeZone)
+    cal.setTimeInMillis(time)
+    isClosedDate(cal)
+  }
+  
   protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
     if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
       Some(PreOpen(time, timeInMinutes))
@@ -281,7 +298,10 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
     
+    if (isClosedDate(cal)) return ClosedDate(time, timeInMinutes)
+    
     if (this == SZ || this == SS) {
+      
       tradingStatusCN(timeInMinutes, time) match {
         case Some(status) => return status
         case None =>
