@@ -44,7 +44,7 @@ final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
 
   val length = limit
   def apply(i: Int): (Long, collection.Map[String, ArrayList[V]]) = _time_xs synchronized {_time_xs(i)}
-  def last = apply(lastIdx)
+  def last() = apply(lastIdx)
 
   def put(key: String, time: Long, value: V): Unit = _time_xs synchronized  {
 
