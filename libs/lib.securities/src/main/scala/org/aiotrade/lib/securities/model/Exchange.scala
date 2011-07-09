@@ -642,12 +642,12 @@ object Exchange extends Publisher {
     while ({i += 1; i < tickers.length}) {
       val ticker = tickers(i)
       val uniSymbol = ticker.uniSymbol.toUpperCase
-      val name = ticker.name
-      if (name != null && name.trim != "") {
+      val name = ticker.name.trim
+      if (name != null && name != "") {
         uniSymbolToSec.get(uniSymbol) match {
           case Some(sec) =>
             val secInfo = sec.secInfo
-            if (secInfo == null || secInfo.name != name) {
+            if (secInfo == null || secInfo.name.trim != name) {
               log.info("Found new name of symbol: " + uniSymbol + ", new name: " + name + (if (secInfo != null) ", old name: " + secInfo.name else ", no secInfo yet"))
               sec_symbol_name_xs += ((sec, uniSymbol, name))
             }
