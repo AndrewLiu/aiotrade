@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator
 
+import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
@@ -144,7 +145,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 
     val start = System.currentTimeMillis
     compute(fromTime1, lastTime)
-    log.fine("Computed "+ fromTime1 + " - " + lastTime+" in " + (System.currentTimeMillis - start) + "ms")
+    log.fine("PanelIndicator " + $freq.shortDescription + " computed " + (new Date(fromTime1)) + " - " + (new Date(lastTime)) + " in " + (System.currentTimeMillis - start) + "ms")
   }
   
   /**
