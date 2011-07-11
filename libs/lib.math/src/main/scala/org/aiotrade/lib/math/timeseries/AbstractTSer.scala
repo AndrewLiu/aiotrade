@@ -63,6 +63,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
     _isInLoading = b
   }
 
+  def exportableVars: Seq[TVar[_]] = vars
   /**
    * Export times and vars to map. Only Var with no-empty name can be exported.
    * The key of times is always "."
@@ -80,13 +81,13 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       timestamps.readLock.lock
 
       if (size != 0) {
-        val vs = vars filter (v => v.name != null && v.name != "")
-        val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+        val vs = exportableVars filter (v => v.name != null && v.name != "")
+        val frIdx = math.max(timestamps.indexOfNearestOccurredTimeBehind(fromTime), 0)
         var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
         toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
         val len = toIdx - frIdx + 1
-      
-        if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
+
+        if (frIdx >= 0 && len > 0) {
           val vmap = new mutable.HashMap[String, Array[_]]()
 
           val times = timestamps.sliceToArray(frIdx, len)

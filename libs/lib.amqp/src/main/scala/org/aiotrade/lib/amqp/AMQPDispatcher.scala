@@ -162,22 +162,23 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   private def doConnect {
     log.info("Begin to connect " + factory.getHost + ":" + factory.getPort + "...")
 
-    (try {
-        val conn = factory.newConnection
-        // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-        // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-        conn.addShutdownListener(new ShutdownListener {
-            def shutdownCompleted(cause: ShutdownSignalException) {
-              publish(AMQPDisconnected)
-              reconnect(cause)
-            }
-          })
+    val connectTry = try {
+      val conn = factory.newConnection
+      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+      conn.addShutdownListener(new ShutdownListener {
+          def shutdownCompleted(cause: ShutdownSignalException) {
+            publish(AMQPDisconnected)
+            reconnect(cause)
+          }
+        })
 
-        Left(conn)
-      } catch {
-        case ex => Right(ex)
-      }
-    ) match {
+      Left(conn)
+    } catch {
+      case ex => Right(ex)
+    }
+      
+    connectTry match {
       case Left(conn) =>
         // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
         
@@ -242,6 +243,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
   /**
    * Registers queue and consumer.
+   * @param mandatory means:
+   *    Put this message on at least one queue. If you can't, send it back to me.
+   * @param immediate means:
+   *    If there is at least one consumer connected to my queue that can take delivery of a message 
+   *    right this moment, deliver this message to them immediately. If there are no consumers 
+   *    connected then there's no point in having my message consumed later and they'll never see it. 
+   *    They snooze, they lose     
+   * 
    * @throws IOException if an error is encountered
    * @return the newly created and registered (queue, consumer)
    */
@@ -249,7 +258,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   protected def configure(channel: Channel): Option[Consumer]
 
   @throws(classOf[IOException])
-  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build) {
+  def publish(content: Any, exchange: String, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build,
+              mandatory: Boolean = false, immediate: Boolean = false
+  ) {
     channel foreach {_ch =>
       val contentType = props.getContentType match {
         case null | "" => DEFAULT_CONTENT_TYPE 
@@ -290,11 +301,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           case _ => encodedBody
         }
         
-        val pubProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
+        val outProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
         
+        
+        _ch.basicPublish(exchange, routingKey, mandatory, immediate, outProps, body)
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
-        
-        _ch.basicPublish(exchange, routingKey, pubProps, body)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }

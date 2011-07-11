@@ -30,13 +30,17 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
-import java.util.{Calendar, TimeZone, ResourceBundle, Timer, TimerTask}
+import java.util.{Calendar, TimeZone, ResourceBundle}
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TUnit
+import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.dataserver.TickerServer
+import org.aiotrade.lib.util
 import org.aiotrade.lib.util.actors.Publisher
 
 import org.aiotrade.lib.util.pinyin.PinYin
@@ -48,28 +52,11 @@ case class SecInfosAddedToDb(secInfo: Array[SecInfo])
 case class SecAdded(sec: Sec)
 case class SecInfoAdded(secInfo: SecInfo)
 
-trait TradingStatus {
-  def time: Long
-  def timeInMinutes: Int
-}
-object TradingStatus {
-  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Unknown(time: Long, timeInMinutes: Int) extends TradingStatus
-}
-
-
 class Exchange extends CRCLongId with Ordered[Exchange] {
   import Exchange._
-
   private val log = Logger.getLogger(this.getClass.getName)
 
-  // --- database fields
+  // --- db fields
   var code: String = "SS"
   var name: String = ""
   var fullName: String = ""
@@ -78,15 +65,33 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   var closeDates: List[ExchangeCloseDate] = Nil
   var secs: List[Sec] = Nil
-  // --- end database fields
+  // --- end db fields
 
   log.info("Create exchange: identityHashCode=" + System.identityHashCode(this))
-
-  private var _tradingStatus: TradingStatus = TradingStatus.Unknown(-1, -1)
 
   lazy val longDescription:  String = BUNDLE.getString(code + "_Long")
   lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
+
+  trait TradingStatus {
+    def time: Long
+    def timeInMinutes: Int
+    override def toString = {
+      val cal = util.calendarOf(timeZone)
+      cal.setTimeInMillis(time)
+      this.getClass.getSimpleName + "(" + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + "," + time + "," + timeInMinutes + ")"
+    }
+  }
+  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
+  
+  private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
 
   private lazy val openHour  = openCloseHMs(0)
   private lazy val openMin   = openCloseHMs(1)
@@ -190,7 +195,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def lastDailyRoundedTradingTime: Option[Long] = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     val dailyRoundedTimeOfToday = TFreq.DAILY.round(System.currentTimeMillis, cal)
     if (_lastDailyRoundedTradingTime.isEmpty || _lastDailyRoundedTradingTime.get != dailyRoundedTimeOfToday) {
       TickersLast.lastTradingTimeOf(this) match {
@@ -234,21 +239,21 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def open: Calendar = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.set(Calendar.HOUR_OF_DAY, openHour)
     cal.set(Calendar.MINUTE, openMin)
     cal
   }
 
   def close: Calendar = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
     cal
   }
 
   def openTime(time: Long): Long = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, openHour)
     cal.set(Calendar.MINUTE, openMin)
@@ -256,7 +261,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def closeTime(time: Long): Long = {
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     cal.set(Calendar.HOUR_OF_DAY, closeHour)
     cal.set(Calendar.MINUTE, closeMin)
@@ -264,8 +269,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
-    import TradingStatus._
-
     if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
       Some(PreOpen(time, timeInMinutes))
     } else if (timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
@@ -284,9 +287,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   }
   
   def tradingStatusOf(time: Long): TradingStatus = {
-    import TradingStatus._
-
-    val cal = Calendar.getInstance(timeZone)
+    val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
     
@@ -319,7 +320,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
 
         if (status == null) {
-          status = Unknown(time, timeInMinutes)
+          status = UnknownStatus(time, timeInMinutes)
         }
       }
     }
@@ -327,12 +328,11 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     status
   }
 
-  private val emptyQuotes = ArrayList[Quote]()
-  private val emptyMoneyFlows = ArrayList[MoneyFlow]()
+  private val EmptyQuotes = ArrayList[Quote]()
+  private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
+  private val dailyCloseDelay = 5L // 5 minutes
   private val emptyPriceDistributions = ArrayList[PriceCollection]()
-  private val dailyCloseDelay = 5 * 60 * 1000 // 5 minutes
   private var timeInMinutesToClose = -1
-  private val closingTimer = new Timer("ExchangeClosingTimer")
   
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
     tradingStatusTime >= roundedTime + freq.interval
@@ -343,7 +343,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * nothing and return at once.
    */
   private[securities] def tryClosing(alsoSave: Boolean) {
-    import TradingStatus._
 
     val closeTimeInMinutes = timeInMinutesToClose
     val statusTime = tradingStatus.time
@@ -370,33 +369,45 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       case _ => Nil
     }
 
-    log.info("Try closing quotes of freqs: " + freqs + ", closingTimeInMinutes=" + closeTimeInMinutes)
-
+    val isDailyClose = freqs.contains(TFreq.DAILY)
     for (freq <- freqs) {
+      log.info("Try closing quotes: freq=" + freq.shortName + ", closingTimeInMinutes=" + closeTimeInMinutes)
 
       val quotesToClose = freqToUnclosedQuotes synchronized {
-        freqToUnclosedQuotes.get(freq) match {
-          case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedQuotes.put(freq, emptyQuotes)
-            unclosed
-          case Some(unclosed) =>
-            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-            freqToUnclosedQuotes.put(freq, other)
-            toClose
-          case None => emptyQuotes
+        if (freq == TFreq.DAILY) {
+          freqToUnclosedQuotes.get(freq) match {
+            case Some(unClosed) =>
+              freqToUnclosedQuotes.put(freq, EmptyQuotes)
+              unClosed // will close all of them
+            case None => EmptyQuotes
+          }
+        } else {
+          freqToUnclosedQuotes.get(freq) match {
+            case Some(unclosed) =>
+              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+              freqToUnclosedQuotes.put(freq, notYet)
+              toClose
+            case None => EmptyQuotes
+          }
         }
       }
 
       val mfsToClose = freqToUnclosedMoneyFlows synchronized {
-        freqToUnclosedMoneyFlows.get(freq) match {
-          case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedMoneyFlows.put(freq, emptyMoneyFlows)
-            unclosed
-          case Some(unclosed) =>
-            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-            freqToUnclosedMoneyFlows.put(freq, other)
-            toClose
-          case None => emptyMoneyFlows
+        if (freq == TFreq.DAILY) {
+          freqToUnclosedMoneyFlows.get(freq) match {
+            case Some(unclosed) =>
+              freqToUnclosedMoneyFlows.put(freq, EmptyMoneyFlows)
+              unclosed // will close all of them
+            case None => EmptyMoneyFlows
+          }
+        } else {
+          freqToUnclosedMoneyFlows.get(freq) match {
+            case Some(unclosed) =>
+              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+              freqToUnclosedMoneyFlows.put(freq, notYet)
+              toClose
+            case None => EmptyMoneyFlows
+          }
         }
       }
 
@@ -417,16 +428,22 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       log.info("price distribution collection length: " + pdsToClose.length )
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
-        val isDailyClose = freqs.contains(TFreq.DAILY)
-        if (isDailyClose) {
-          log.info(this.code + " will do closing in " + (dailyCloseDelay / 60 / 1000) + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
-         closingTimer.schedule(new TimerTask {
-              def run {
-                doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
-              }
-            }, dailyCloseDelay)
-        } else {
-          doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
+        // do closing async in scheduler
+        val closingTask = new Runnable {
+          def run {
+            doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
+          }
+        }
+        
+        try {
+          if (isDailyClose) {
+            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
+            closingScheduler.schedule(closingTask, dailyCloseDelay, TimeUnit.MINUTES)
+          } else {
+            closingScheduler.execute(closingTask)
+          }
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
         }
       }
     }
@@ -436,104 +453,86 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * Close and insert daily quotes/moneyflows
    */
   private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], pdsToClose: ArrayList[PriceCollection], alsoSave: Boolean) {
-    var willCommit = false
 
-    if (quotesToClose.length > 0) {
-      willCommit = true
+    try {
+      if (quotesToClose.length > 0) {
+        val time = quotesToClose(0).time
+      
+        var i = -1
+        while ({i += 1; i < quotesToClose.length}) {
+          val quote = quotesToClose(i)
+          quote.closed_!
 
-      var i = -1
-      while ({i += 1; i < quotesToClose.length}) {
-        val quote = quotesToClose(i)
-        quote.closed_!
-
-        val sec = quote.sec
-        freq match {
-          case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
-            sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
-          case TFreq.ONE_MIN if alsoSave || sec.isSerCreated(TFreq.ONE_MIN) =>
-            sec.serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-          case _ =>
+          // update quoteSer's TVar 'isClosed'  
+          val sec = quote.sec
+          sec.updateQuoteSer(freq, quote)
         }
-      }
+        TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose.toArray))
 
-      if (alsoSave) {
-        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
-        freq match {
-          case TFreq.DAILY =>
-            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
-            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
-          case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
-        }
-
-      }
-    }
-
-    if (mfsToClose.length > 0) {
-      willCommit = true
-
-      var i = -1
-      while ({i += 1; i < mfsToClose.length}) {
-        val mfs = mfsToClose(i)
-        mfs.closed_!
-      }
-
-      if (alsoSave) {
-        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
-        freq match {
-          case TFreq.DAILY =>
-            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
-            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
-          case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
-        }
-
-      }
-    }
-
-    if (pdsToClose.length > 0) {
-      willCommit = true
-
-      var i = -1
-      while ({i += 1; i < pdsToClose.length}) {
-        val pd = pdsToClose(i)
-        pd.closed_!
-      }
-
-      if (alsoSave) {
-        val (toInsert, toUpdate) = pdsToClose.partition(_.isTransient)
-
-        var inserts = new ArrayList[PriceDistribution]()
-        toInsert.foreach{pc =>
-          pc.values.foreach{pd =>
-            inserts += pd
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " quotes: " + quotesToClose.length)
+              Quotes1d.saveBatch(time, quotesToClose)
+            case TFreq.ONE_MIN =>
+              Quotes1m.saveBatch(time, quotesToClose)
           }
+          log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: size=" + quotesToClose.length + 
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
         }
-
-        var updates = new ArrayList[PriceDistribution]()
-        toUpdate.foreach{pc =>
-          pc.values.foreach{pd =>
-            updates += pd
-          }
-        }
-
-        freq match {
-          case TFreq.DAILY =>
-            log.info(this.code + " closed, inserting " + freq + " price distributions: " + pdsToClose.length)
-            if (inserts.length > 0) PriceDistributions.insertBatch_!(inserts.toArray)
-            if (updates.length > 0) PriceDistributions.updateBatch_!(updates.toArray)
-        }
-
       }
-    }
 
-    if (willCommit) {
-      COMMIT
-      log.info(this.code + " doClosing: committed.")
+      if (mfsToClose.length > 0) {
+        val time = mfsToClose(0).time
+      
+        var i = -1
+        while ({i += 1; i < mfsToClose.length}) {
+          val mfs = mfsToClose(i)
+          mfs.closed_!
+        }
+
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " moneyflows: " + mfsToClose.length)
+              MoneyFlows1d.saveBatch(time, mfsToClose)
+            case TFreq.ONE_MIN =>
+              MoneyFlows1m.saveBatch(time, mfsToClose)
+          }
+          log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + mfsToClose.length + 
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
+      }
+
+      if (pdsToClose.length > 0) {
+        val time = pdsToClose(0).time
+
+        var i = -1
+        while ({i += 1; i < pdsToClose.length}) {
+          val pd = pdsToClose(i)
+          pd.closed_!
+        }
+
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " price distributions: " + pdsToClose.length)
+              PriceDistributions.saveBatch(time, pdsToClose)
+          }
+          log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + pdsToClose.length +
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
+      }
+    
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
+        COMMIT
+        log.info(this.code + " doClosing: committed.")
+      }
+    }catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 
@@ -564,9 +563,7 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
-
-  case class Opened(exchange: Exchange)
-  case class Closed(exchange: Exchange)
+  private val closingScheduler = new ScheduledThreadPoolExecutor(3)
 
   // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil
@@ -694,12 +691,12 @@ object Exchange extends Publisher {
     while ({i += 1; i < tickers.length}) {
       val ticker = tickers(i)
       val uniSymbol = ticker.uniSymbol.toUpperCase
-      val name = ticker.name
-      if (name != null && name.trim != "") {
+      val name = ticker.name.trim
+      if (name != null && name != "") {
         uniSymbolToSec.get(uniSymbol) match {
           case Some(sec) =>
             val secInfo = sec.secInfo
-            if (secInfo == null || secInfo.name != name) {
+            if (secInfo == null || secInfo.name.trim != name) {
               log.info("Found new name of symbol: " + uniSymbol + ", new name: " + name + (if (secInfo != null) ", old name: " + secInfo.name else ", no secInfo yet"))
               sec_symbol_name_xs += ((sec, uniSymbol, name))
             }
@@ -791,11 +788,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val exchangeId = Exchanges.idOf(exchange)
     val t0 = System.currentTimeMillis
     
-    val secs = if (isServer) {
-      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
-    } else {
-      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-      SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+    val secs = try {
+      if (isServer) {
+        SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
+      } else {
+        val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+        SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -806,11 +807,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   def exchangeToSec(): Map[Exchange, Seq[Sec]] = {
     val t0 = System.currentTimeMillis
     
-    val secs = if (isServer) {
-      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) list() map (_._1)
-    } else {
-      val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-      SELECT (Secs.*) FROM (AVRO(Secs)) list()
+    val secs = try {
+      if (isServer) {
+        SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) list() map (_._1)
+      } else {
+        val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+        SELECT (Secs.*) FROM (AVRO(Secs)) list()
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("Secs number is "  + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -821,11 +826,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   def exchangeToSecInfo(): Map[Exchange, Seq[SecInfo]] = {
     val t0 = System.currentTimeMillis
     
-    val secInfos = if (isServer) {
-      SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list() map (_._1)
-    } else {
-      val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
-      SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+    val secInfos = try {
+      if (isServer) {
+        SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) list() map (_._1)
+      } else {
+        val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
+        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("SecInfos number " +  " is " + secInfos.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -838,18 +847,27 @@ object Exchanges extends CRCLongPKTable[Exchange] {
    * private package method to avoid to be used no-aware expensive
    */
   private[model] def secOf(uniSymbol: String): Option[Sec] = {
-    (SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique) map (_._1)
+    val res = try {
+      SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique 
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+    }
+    res map (_._1)
   }
   
   def dividendsOf(sec: Sec): Seq[SecDividend] = {
-    val divs = if (TickerServer.isServer) {
-      val secId = Secs.idOf(sec)
-      SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
-    } else {
-      SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+    val divs = try {
+      if (TickerServer.isServer) {
+        val secId = Secs.idOf(sec)
+        SELECT (SecDividends.*) FROM (SecDividends) WHERE (SecDividends.sec.field EQ secId) list()
+      } else {
+        SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
-    val cal = Calendar.getInstance(sec.exchange.timeZone)
+    val cal = util.calendarOf(sec.exchange.timeZone)
     divs foreach {div => div.dividendDate = TFreq.DAILY.round(div.dividendDate, cal)}
     divs.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
@@ -860,20 +878,24 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val sec = new Sec
     sec.crckey = symbol
     sec.exchange = exchange
-    Secs.save_!(sec)
+    
+    try {
+      Secs.save_!(sec)
 
-    val secInfo = new SecInfo
-    secInfo.sec = sec
-    secInfo.uniSymbol = symbol
-    secInfo.name = name
-    SecInfos.save_!(secInfo)
+      val secInfo = new SecInfo
+      secInfo.sec = sec
+      secInfo.uniSymbol = symbol
+      secInfo.name = name
+      SecInfos.save_!(secInfo)
 
-    sec.secInfo = secInfo
-    Secs.update_!(sec, Secs.secInfo)
+      sec.secInfo = secInfo
 
-    if (willCommit) {
-      COMMIT
-      log.info("Committed: sec_infos" + name)
+      if (willCommit) {
+        COMMIT
+        log.info("Committed: sec_infos" + name)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     sec
@@ -884,15 +906,20 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     secInfo.sec = sec
     secInfo.uniSymbol = sec.uniSymbol
     secInfo.name = name
-    SecInfos.save_!(secInfo)
+    
+    try {
+      SecInfos.save_!(secInfo)
 
-    if (isCurrent) {
-      sec.secInfo = secInfo
-      Secs.update_!(sec, Secs.secInfo)
+      if (isCurrent) {
+        sec.secInfo = secInfo
+        Secs.update_!(sec, Secs.secInfo)
+      }
+    
+      COMMIT
+      log.info("Committed: sec_infos" + name)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
-
-    COMMIT
-    log.info("Committed: sec_infos" + name)
 
     secInfo
   }
@@ -923,7 +950,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       SecInfos.insertBatch_!(secInfosA)
       Secs.updateBatch_!(secsA, Secs.secInfo)
     
-      if (willCommit && (secsA.length > 0 | secInfosA.length > 0)) {
+      if (willCommit && (secsA.length > 0 || secInfosA.length > 0)) {
         COMMIT
         log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
       }

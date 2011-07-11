@@ -37,54 +37,29 @@ import scala.collection.mutable
 /**
  * @author Caoyuan Deng
  */
-object TimeQueue {
-  // --- simple test
-  def main(args: Array[String]) {
-    val tq = new TimeQueue[Int](2)
+final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
 
-    val cal = Calendar.getInstance
-    cal.setTimeInMillis(0)
-    cal.set(1990, 0, 1)
-    for (i <- 0 until 10) {
-      cal.add(Calendar.DAY_OF_MONTH, 1)
-      tq.put("a", cal.getTimeInMillis, i)
-      tq.put("b", cal.getTimeInMillis, i)
-    }
+  private val lastIdx = limit - 1
+  private var _time_xs = new Array[(Long, mutable.HashMap[String, ArrayList[V]])](limit)
 
-    println(tq._dayToXs(0))
-    println(tq._dayToXs(1))
-    val ok = {
-      tq._dayToXs(0) == (7314, Map("a" -> ArrayList(8), "b" -> ArrayList(8))) &&
-      tq._dayToXs(1) == (7315, Map("a" -> ArrayList(9), "b" -> ArrayList(9)))
-    }
-    println(ok)
-    assert(ok, "Error.")
-  }
-}
+  val length = limit
+  def apply(i: Int): (Long, collection.Map[String, ArrayList[V]]) = _time_xs synchronized {_time_xs(i)}
+  def last() = apply(lastIdx)
 
-import TimeQueue._
-final class TimeQueue[V: Manifest](fixedSize: Int) {
-
-  private val lastIdx = fixedSize - 1
-  private var _dayToXs = new Array[(Int, mutable.HashMap[String, ArrayList[V]])](fixedSize)
-
-  val length = fixedSize
-  def apply(i: Int): (Int, collection.Map[String, ArrayList[V]]) = _dayToXs synchronized {_dayToXs(i)}
-
-  def put(key: String, time: Long, value: V): Unit = _dayToXs synchronized  {
-    val day = daysFrom1970(time)
+  def put(key: String, time: Long, value: V): Unit = _time_xs synchronized  {
 
     var willAdd = true
-    var lastKeyToXs = _dayToXs(lastIdx) match {
+    var lastKeyToXs = _time_xs(lastIdx) match {
       case null => null
-      case (dayMax, keyToXs) =>
-        if (day == dayMax) {
+      case (timeMax, keyToXs) =>
+        val nFreqs = freq.nFreqsBetween(timeMax, time)
+        if (nFreqs == 0) {
           keyToXs
-        } else if (day > dayMax) {
-          val newDayToXs = new Array[(Int, mutable.HashMap[String, ArrayList[V]])](fixedSize)
-          System.arraycopy(_dayToXs, 1, newDayToXs, 0, lastIdx)
-          _dayToXs = newDayToXs
-          _dayToXs(lastIdx) = null
+        } else if (nFreqs > 0) {
+          val newTime_xs = new Array[(Long, mutable.HashMap[String, ArrayList[V]])](limit)
+          System.arraycopy(_time_xs, 1, newTime_xs, 0, lastIdx)
+          _time_xs = newTime_xs
+          _time_xs(lastIdx) = null
           null
         } else {
           willAdd = false
@@ -97,10 +72,10 @@ final class TimeQueue[V: Manifest](fixedSize: Int) {
         val newXs = new ArrayList[V]
         newXs += value
         val newMap = mutable.HashMap[String, ArrayList[V]](key -> newXs)
-        _dayToXs(lastIdx) = (day, newMap)
+        _time_xs(lastIdx) = (time, newMap)
       } else {
         val xs = lastKeyToXs.get(key).getOrElse(new ArrayList[V]())
-        lastKeyToXs.put(key, xs += value)
+        lastKeyToXs(key) = xs += value
       }
     }
   }
@@ -108,5 +83,30 @@ final class TimeQueue[V: Manifest](fixedSize: Int) {
   private def daysFrom1970(time: Long): Int = {
     (time / TUnit.Day.interval).toInt
   }
-
 }
+
+object TimeQueue {
+  // --- simple test
+  def main(args: Array[String]) {
+    val tq = new TimeQueue[Int](TFreq.DAILY, 2)
+
+    val cal = Calendar.getInstance
+    cal.setTimeInMillis(0)
+    cal.set(1990, 0, 1)
+    for (i <- 0 until 10) {
+      cal.add(Calendar.DAY_OF_MONTH, 1)
+      tq.put("a", cal.getTimeInMillis, i)
+      tq.put("b", cal.getTimeInMillis, i)
+    }
+
+    println(tq._time_xs(0))
+    println(tq._time_xs(1))
+    val ok = {
+      tq._time_xs(0) == (631929600000L, Map("a" -> ArrayList(8), "b" -> ArrayList(8))) &&
+      tq._time_xs(1) == (632016000000L, Map("a" -> ArrayList(9), "b" -> ArrayList(9)))
+    }
+    println(ok)
+    assert(ok, "Error.")
+  }
+}
+

@@ -36,30 +36,7 @@ package org.aiotrade.lib.math.indicator
  *       it could be baseSer or name string etc
  */
 
-object Id {
-  def apply(klass: Class[_], keyRef: AnyRef, args: Any*) = new Id(klass, keyRef, args: _*)
-  def unapplySeq(e: Id): Option[(Class[_], AnyRef, Seq[Any])] = Some((e.klass, e.keyRef, e.args))
-
-  // simple test
-  def main(args: Array[String]) {
-    val keya = "abc"
-    val keyb = "abc"
-
-    val id1 = Id(classOf[String], keya, 1)
-    val id2 = Id(classOf[String], keyb, 1)
-    println(id1 == id2)
-
-    val id3 = Id(classOf[String], keya)
-    val id4 = Id(classOf[String], keyb)
-    println(id3 == id4)
-
-    val id5 = Id(classOf[Indicator], keya, org.aiotrade.lib.math.timeseries.TFreq.ONE_MIN)
-    val id6 = Id(classOf[Indicator], keyb, org.aiotrade.lib.math.timeseries.TFreq.withName("1m").get)
-    println(id5 == id6)
-  }
-}
-
-final class Id(val klass: Class[_], val keyRef: AnyRef, val args: Any*) {
+final class Id[T](val klass: Class[T], val keyRef: AnyRef, val args: Any*) {
 
   @inline final override def equals(o: Any): Boolean = {
     o match {
@@ -102,5 +79,29 @@ final class Id(val klass: Class[_], val keyRef: AnyRef, val args: Any*) {
     h
   }
 
-  override def toString = "Id(" + klass.getName + ", " + keyRef + ", " + args + ")"
+  def keyString = "(" + klass.getSimpleName + "," + keyRef + "," + args.mkString(",") + ")"
+  override def toString = "Id(" + klass.getName + "," + keyRef + "," + args.mkString(",") + ")"
+}
+
+object Id {
+  def apply[T](klass: Class[T], keyRef: AnyRef, args: Any*) = new Id(klass, keyRef, args: _*)
+  def unapplySeq[T](e: Id[T]): Option[(Class[T], AnyRef, Seq[Any])] = Some((e.klass, e.keyRef, e.args))
+
+  // simple test
+  def main(args: Array[String]) {
+    val keya = "abc"
+    val keyb = "abc"
+
+    val id1 = Id(classOf[String], keya, 1)
+    val id2 = Id(classOf[String], keyb, 1)
+    println(id1 == id2)
+
+    val id3 = Id(classOf[String], keya)
+    val id4 = Id(classOf[String], keyb)
+    println(id3 == id4)
+
+    val id5 = Id(classOf[Indicator], keya, org.aiotrade.lib.math.timeseries.TFreq.ONE_MIN)
+    val id6 = Id(classOf[Indicator], keyb, org.aiotrade.lib.math.timeseries.TFreq.withName("1m").get)
+    println(id5 == id6)
+  }
 }

@@ -33,6 +33,7 @@ package org.aiotrade.lib.securities.model
 import scala.collection
 import scala.collection.mutable
 import scala.collection.immutable
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.ValidTime
 import ru.circumflex.orm._
@@ -145,11 +146,20 @@ object Sectors extends CRCLongPKTable[Sector] {
   // --- helpers:
   
   private[model] def allSectors: Seq[String] = {
-    SELECT (Sectors.*) FROM (Sectors) list() map (_.key)
+    val res = try {
+      SELECT (Sectors.*) FROM (Sectors) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res map (_.key)
   }
   
   private[model] def sectorsOf(category: String): Seq[Sector] = {
-    SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
+    try {
+      SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   } 
 
   private[model] def sectorsOf(): Seq[Sector] = {
@@ -157,7 +167,11 @@ object Sectors extends CRCLongPKTable[Sector] {
   }
 
   private[model] def secsOf(sector: Sector): Seq[Sec] = {
-    SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
+    try {
+      SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
   
   private[model] def withKey(key: String): Option[Sector] = {
@@ -166,7 +180,11 @@ object Sectors extends CRCLongPKTable[Sector] {
   }
   
   private[model] def withCategoryCode(category: String, code: String): Option[Sector] = {
-    SELECT (Sectors.*) FROM (Sectors) WHERE ((Sectors.category EQ category) AND (Sectors.code EQ code)) unique()
+    try {
+      SELECT (Sectors.*) FROM (Sectors) WHERE ((Sectors.category EQ category) AND (Sectors.code EQ code)) unique()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+    }
   } 
   
   /**
@@ -175,9 +193,21 @@ object Sectors extends CRCLongPKTable[Sector] {
   private[model] def sectorToSecValidTimes = {
     val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()
     
-    val secsHolder = SELECT(Secs.*) FROM (Secs) list()
-    val sectorsHolder = SELECT(Sectors.*) FROM (Sectors) list()
-    val sectorSecs = SELECT (SectorSecs.*) FROM (SectorSecs) list()
+    val secsHolder = try {
+      SELECT(Secs.*) FROM (Secs) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    val sectorsHolder = try {
+      SELECT(Sectors.*) FROM (Sectors) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    val sectorSecs = try {
+      SELECT (SectorSecs.*) FROM (SectorSecs) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
     for (sectorSec <- sectorSecs) {
       if (sectorSec.sec ne null) {
         val key = sectorSec.sector.key

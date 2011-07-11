@@ -65,7 +65,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
 
   val isClosed = TVar[Boolean]()
   
-  private val exportVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount)
+  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount)
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -135,7 +135,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       }
       reactions += reaction
 
-      // TSerEvent.Loaded may have missed during above produre, so confirm it
+      // TSerEvent.Loaded may have been missed during above procedure, so confirm it
       if (isLoaded) {
         reactions -= reaction
         doAdjust(b)
@@ -195,38 +195,6 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
-  override def export(fromTime: Long, toTime: Long): collection.Map[String, Any] = {
-    try {
-      readLock.lock
-      timestamps.readLock.lock
-
-      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-      var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-      toIdx = exportVars.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
-      val len = toIdx - frIdx + 1
-      
-      if (frIdx >= 0 && toIdx >= 0 && toIdx >= frIdx) {
-        val vmap = new mutable.HashMap[String, Array[_]]()
-
-        val times = timestamps.sliceToArray(frIdx, len)
-        vmap.put(".", times)
-
-        for (v <- exportVars) {
-          val values = v.values.sliceToArray(frIdx, len)
-          vmap.put(v.name, values)
-        }
-
-        vmap
-      } else {
-        Map()
-      }
-
-    } finally {
-      timestamps.readLock.unlock
-      readLock.unlock
-    }
-  }
-  
   override def shortName: String = {
     if (isAdjusted) {
       _shortName + "(*)"
@@ -253,11 +221,10 @@ object QuoteSer {
     
       var i = -1
       while ({i += 1; i < times.length}) {
-        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
-        val time = times(i).asInstanceOf[Long]
         val quote = new Quote
 
-        quote.time   = time
+        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
+        quote.time   = times(i).asInstanceOf[Long]
         quote.open   = opens(i).asInstanceOf[Double]
         quote.high   = highs(i).asInstanceOf[Double]
         quote.low    = lows(i).asInstanceOf[Double]

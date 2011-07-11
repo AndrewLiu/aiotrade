@@ -30,6 +30,8 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
@@ -162,6 +164,8 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
@@ -199,9 +203,28 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
-    SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec)
-    ) ORDER_BY (this.time) list
+    try {
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          this.sec.field EQ Secs.idOf(sec)
+        ) ORDER_BY (this.time) list}
+
+      mfs foreach {mf =>
+        if (mf.amountNet >= 0){
+          mf.amountInCount = 1
+          mf.amountOutCount = 0
+        }
+        else {
+          mf.amountInCount = 0
+          mf.amountOutCount = 1
+        }
+
+        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+      }
+
+      mfs
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def closedMoneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
@@ -213,9 +236,28 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
   }
 
   def closedMoneyFlowOf__filterByDB(sec: Sec): Seq[MoneyFlow] = {
-    SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-    ) ORDER_BY (this.time) list
+    try {
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+        ) ORDER_BY (this.time) list}
+
+      mfs foreach {mf =>
+        if (mf.amountNet >= 0){
+          mf.amountInCount = 1
+          mf.amountOutCount = 0
+        }
+        else {
+          mf.amountInCount = 0
+          mf.amountOutCount = 1
+        }
+
+        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+      }
+
+      mfs
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
   
   def saveBatch(sec: Sec, sortedMfs: Seq[MoneyFlow]) {
@@ -226,26 +268,76 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
     val frTime = math.min(head.time, last.time)
     val toTime = math.max(head.time, last.time)
     val exists = mutable.Map[Long, MoneyFlow]()
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res foreach {x => exists.put(x.time, x)}
 
     val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
-    }
+    try {
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
 
-    this.insertBatch_!(inserts.toArray)
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+  }
+  
+  def saveBatch(atSameTime: Long, mfs: ArrayList[MoneyFlow]) {
+    if (mfs.isEmpty) return
+
+    val exists = mutable.Map[Sec, MoneyFlow]()
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
+      ) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res foreach {x => exists.put(x.sec, x)}
+
+    val updates = new ArrayList[MoneyFlow]()
+    val inserts = new ArrayList[MoneyFlow]()
+    var i = -1
+    while ({i += 1; i < mfs.length}) {
+      val quote = mfs(i)
+      exists.get(quote.sec) match {
+        case Some(existOne) => 
+          existOne.copyFrom(quote)
+          updates += existOne
+        case None =>
+          inserts += quote
+      }
+    }
+    
+    try {
+      if (updates.length > 0) {
+        this.updateBatch_!(updates.toArray)
+      }
+      if (inserts.length > 0) {
+        this.insertBatch_!(inserts.toArray)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
   }
 }
 
 // --- table
 object MoneyFlows1d extends MoneyFlows {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
+  @deprecated
   def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
     val cached = dailyCache.get(dailyRoundedTime) match {
       case Some(map) => map
@@ -254,10 +346,26 @@ object MoneyFlows1d extends MoneyFlows {
         val map = mutable.Map[Sec, MoneyFlow]()
         dailyCache.put(dailyRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ dailyRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        }
+        res foreach {x =>
+          if (x.amountNet >= 0){
+            x.amountInCount = 1
+            x.amountOutCount = 0
+          }
+          else {
+            x.amountInCount = 0
+            x.amountOutCount = 1
+          }
+
+          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+
+          map.put(x.sec, x)}
 
         map
     }
@@ -279,13 +387,27 @@ object MoneyFlows1d extends MoneyFlows {
     }
   }
 
-  def dailyMoneyFlowOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
-    (SELECT (this.*) FROM (this) WHERE (
+  @deprecated
+  def dailyMoneyFlowOf_nonCached(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res headOption match {
       case Some(one) =>
         one.isTransient = false
+        if (one.amountNet >= 0){
+          one.amountInCount = 1
+          one.amountOutCount = 0
+        }
+        else {
+          one.amountInCount = 0
+          one.amountOutCount = 1
+        }
+        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow
@@ -302,18 +424,22 @@ object MoneyFlows1d extends MoneyFlows {
 }
 
 object MoneyFlows1m extends MoneyFlows {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
+  @deprecated
   def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
-    if (isServer) minuteMoneyFlowOf_nocached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
+    if (isServer) minuteMoneyFlowOf_nonCached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
   }
 
   /**
    * @Note do not use it when table is partitioned on secs_id, since this qeury is only on time
    */
+  @deprecated
   def minuteMoneyFlowOf_cached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
@@ -322,10 +448,26 @@ object MoneyFlows1m extends MoneyFlows {
         val map = mutable.Map[Sec, MoneyFlow]()
         minuteCache.put(minuteRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ minuteRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        } 
+        res foreach {x =>
+          if (x.amountNet >= 0){
+            x.amountInCount = 1
+            x.amountOutCount = 0
+          }
+          else {
+            x.amountInCount = 0
+            x.amountOutCount = 1
+          }
+
+          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+
+          map.put(x.sec, x)}
 
         map
     }
@@ -347,13 +489,27 @@ object MoneyFlows1m extends MoneyFlows {
     }
   }
 
-  def minuteMoneyFlowOf_nocached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
-    (SELECT (this.*) FROM (this) WHERE (
+  @deprecated
+  def minuteMoneyFlowOf_nonCached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res headOption match {
       case Some(one) =>
         one.isTransient = false
+        if (one.amountNet >= 0){
+          one.amountInCount = 1
+          one.amountOutCount = 0
+        }
+        else {
+          one.amountInCount = 0
+          one.amountOutCount = 1
+        }
+        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow

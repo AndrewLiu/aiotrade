@@ -297,6 +297,18 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
     }
   }
 
+  def firstOccurredTime: Long = {
+    try {
+      readLock.lock
+      //timestamps.readLock.lock
+
+      timestamps.firstOccurredTime
+    } finally {
+      readLock.unlock
+      //timestamps.readLock.unlock
+    }    
+  }
+  
   def lastOccurredTime: Long = {
     try {
       readLock.lock

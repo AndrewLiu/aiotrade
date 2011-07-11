@@ -38,70 +38,6 @@ import java.util.TimeZone
 
 /**
  *
- * @author Caoyuan Deng
- *
- * @credits:
- *     stebridev@users.sourceforge.net - fix case of Week : beginTimeOfUnitThatInclude(long)
- */
-object TUnit {
-  /**
-   * Interval of each Unit
-   */
-  private val ONE_SECOND: Int  = 1000
-  private val ONE_MINUTE: Int  = 60 * ONE_SECOND
-  private val ONE_HOUR:   Int  = 60 * ONE_MINUTE
-  private val ONE_DAY:    Long = 24 * ONE_HOUR
-  private val ONE_WEEK:   Long =  7 * ONE_DAY
-  private val ONE_MONTH:  Long = 30 * ONE_DAY
-  private val ONE_YEAR:   Long = (365.24 * ONE_DAY).toLong
-
-  case object Second extends TUnit(ONE_SECOND) {val name = "Second"; val shortName = "s"; val compactName = "Sec";   val longName = "Second" }
-  case object Minute extends TUnit(ONE_MINUTE) {val name = "Minute"; val shortName = "m"; val compactName = "Min";   val longName = "Minute" }
-  case object Hour   extends TUnit(ONE_HOUR)   {val name = "Hour";   val shortName = "h"; val compactName = "Hour";  val longName = "Hourly" }
-  case object Day    extends TUnit(ONE_DAY)    {val name = "Day";    val shortName = "D"; val compactName = "Day";   val longName = "Daily"  }
-  case object Week   extends TUnit(ONE_WEEK)   {val name = "Week";   val shortName = "W"; val compactName = "Week";  val longName = "Weekly" }
-  case object Month  extends TUnit(ONE_MONTH)  {val name = "Month";  val shortName = "M"; val compactName = "Month"; val longName = "Monthly"}
-  case object Year   extends TUnit(ONE_YEAR)   {val name = "Year";   val shortName = "Y"; val compactName = "Year";  val longName = "Yearly" }
-
-  def values: Array[TUnit] = Array(
-    Second,
-    Minute,
-    Hour,
-    Day,
-    Week,
-    Month,
-    Year
-  )
-
-  def withName(name: String) = {
-    name match {
-      case "Second" => Second
-      case "Minute" => Minute
-      case "Hour"   => Hour
-      case "Day"    => Day
-      case "Week"   => Week
-      case "Month"  => Month
-      case "Year"   => Year
-      case c => throw new Exception("Wrong unit: " + c)
-    }
-  }
-
-  def withShortName(shortName: String): Option[TUnit] = {
-    shortName match {
-      case "s" => Some(Second)
-      case "m" => Some(Minute)
-      case "h" => Some(Hour)
-      case "D" => Some(Day)
-      case "W" => Some(Week)
-      case "M" => Some(Month)
-      case "Y" => Some(Year)
-      case _ => None
-    }
-  }
-}
-
-/**
- *
  *
  *
  * @NOTICE: Should avoid declaring Calendar instance as static, it's not thread-safe
@@ -112,8 +48,12 @@ object TUnit {
  * so, if we declare class scope instance of Calendar in enum, we should also
  * synchronized each method that uses this instance or declare the cal
  * instance as volatile to share this instance by threads.
+ *
+ * @author Caoyuan Deng
+ *
+ * @credits:
+ *     stebridev@users.sourceforge.net - fix case of Week : beginTimeOfUnitThatInclude(long)
  */
-
 @serializable
 abstract class TUnit(val interval: Long) {
   import TUnit._
@@ -180,13 +120,12 @@ abstract class TUnit(val interval: Long) {
     this match {
       case Week  => nWeeksBetween(fromTime, toTime)
       case Month => nMonthsBetween(fromTime, toTime)
-      case _     => ((toTime - fromTime) / interval).asInstanceOf[Int]
+      case _     => ((toTime - fromTime) / interval).toInt
     }
-
   }
 
   private def nWeeksBetween(fromTime: Long, toTime: Long): Int = {
-    val between = ((toTime - fromTime) / ONE_WEEK).asInstanceOf[Int]
+    val between = ((toTime - fromTime) / ONE_WEEK).toInt
 
     /**
      * If between >= 1, between should be correct.
@@ -303,5 +242,62 @@ abstract class TUnit(val interval: Long) {
   override def hashCode: Int = {
     /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
     (interval ^ (interval >>> 32)).toInt
+  }
+}
+
+object TUnit {
+  /**
+   * Interval of each Unit
+   */
+  private val ONE_SECOND: Int  = 1000
+  private val ONE_MINUTE: Int  = 60 * ONE_SECOND
+  private val ONE_HOUR:   Int  = 60 * ONE_MINUTE
+  private val ONE_DAY:    Long = 24 * ONE_HOUR
+  private val ONE_WEEK:   Long =  7 * ONE_DAY
+  private val ONE_MONTH:  Long = 30 * ONE_DAY
+  private val ONE_YEAR:   Long = (365.24 * ONE_DAY).toLong
+
+  case object Second extends TUnit(ONE_SECOND) {val name = "Second"; val shortName = "s"; val compactName = "Sec";   val longName = "Second" }
+  case object Minute extends TUnit(ONE_MINUTE) {val name = "Minute"; val shortName = "m"; val compactName = "Min";   val longName = "Minute" }
+  case object Hour   extends TUnit(ONE_HOUR)   {val name = "Hour";   val shortName = "h"; val compactName = "Hour";  val longName = "Hourly" }
+  case object Day    extends TUnit(ONE_DAY)    {val name = "Day";    val shortName = "D"; val compactName = "Day";   val longName = "Daily"  }
+  case object Week   extends TUnit(ONE_WEEK)   {val name = "Week";   val shortName = "W"; val compactName = "Week";  val longName = "Weekly" }
+  case object Month  extends TUnit(ONE_MONTH)  {val name = "Month";  val shortName = "M"; val compactName = "Month"; val longName = "Monthly"}
+  case object Year   extends TUnit(ONE_YEAR)   {val name = "Year";   val shortName = "Y"; val compactName = "Year";  val longName = "Yearly" }
+
+  def values: Array[TUnit] = Array(
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year
+  )
+
+  def withName(name: String) = {
+    name match {
+      case "Second" => Second
+      case "Minute" => Minute
+      case "Hour"   => Hour
+      case "Day"    => Day
+      case "Week"   => Week
+      case "Month"  => Month
+      case "Year"   => Year
+      case c => throw new Exception("Wrong unit: " + c)
+    }
+  }
+
+  def withShortName(shortName: String): Option[TUnit] = {
+    shortName match {
+      case "s" => Some(Second)
+      case "m" => Some(Minute)
+      case "h" => Some(Hour)
+      case "D" => Some(Day)
+      case "W" => Some(Week)
+      case "M" => Some(Month)
+      case "Y" => Some(Year)
+      case _ => None
+    }
   }
 }

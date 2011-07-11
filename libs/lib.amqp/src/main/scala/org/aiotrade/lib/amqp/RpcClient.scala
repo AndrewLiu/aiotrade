@@ -124,15 +124,31 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
   def rpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, timeout: Long = -1): Any = {
-    val syncVar = arpc(req, routingKey, props)
+    val syncVar = asyncRpc(req, routingKey, props)
 
-    val res = if (timeout == -1) {
+    val res = if (timeout < 0) {
       syncVar.get
     } else {
       syncVar.get(timeout) getOrElse Evt.Error("Rpc timeout")
     }
 
     res
+  }
+  
+  @throws(classOf[IOException])
+  @throws(classOf[ShutdownSignalException])
+  def arpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, timeout: Long = -1)(action: Any => Unit) {
+    val syncVar = asyncRpc(req, routingKey, props)
+
+    scala.actors.Actor.actor {
+      val res = if (timeout < 0) {
+        syncVar.get
+      } else {
+        syncVar.get(timeout) getOrElse Evt.Error("Rpc timeout")
+      }
+
+      action(res)
+    }
   }
 
   /**
@@ -146,7 +162,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
    */
   @throws(classOf[IOException])
   @throws(classOf[ShutdownSignalException])
-  def arpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build): SyncVar[Any] = {
+  def asyncRpc(req: Any, routingKey: String, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build): SyncVar[Any] = {
     val syncVar = new SyncVar[Any]
     val replyId = continuationMap synchronized {
       correlationId += 1

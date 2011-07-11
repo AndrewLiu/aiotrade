@@ -82,7 +82,6 @@ import ru.circumflex.orm._
  */
 class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   import Sec._
-
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
@@ -138,41 +137,6 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoContract : RichInfoContract = _
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
-  
-  // reactions for QuoteEvt, MoneyFlowEvt to update chainsers
-  reactions += {
-    case api.QuoteEvt(freq, quote) =>
-      freq match {
-        case TFreq.ONE_MIN.shortName =>
-          if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
-            realtimeSer.updateFrom(quote)
-          }
-          if (isSerCreated(TFreq.ONE_MIN)) {
-            serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
-          }
-        case TFreq.DAILY.shortName =>
-          if (isSerCreated(TFreq.DAILY)) {
-            serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
-          }
-      }
-    case api.MoneyFlowEvt(freq, moneyFlow) =>
-      freq match {
-        case TFreq.ONE_MIN.shortName =>
-          if (isSerCreated(TFreq.ONE_MIN)) {
-            moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
-          }
-        case TFreq.DAILY.shortName =>
-          if (isSerCreated(TFreq.DAILY)) {
-            moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
-          }
-      }
-    case api.PriceDistributionEvt(pd) =>
-      if (isSerCreated(TFreq.DAILY)) {
-        priceDistributionSerOf(TFreq.DAILY).foreach(_.updateFrom(pd))
-      }
-  }
-
-
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
 
   def content = {
@@ -281,6 +245,35 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
       case _ => freqToMoneyFlowSer.get(freq) match {
           case None => None // @todo createCombinedSer(freq)
           case some => some
+        }
+    }
+  }
+  
+  def updateQuoteSer(freq: TFreq, quote: Quote) {
+    freq match {
+      case TFreq.ONE_MIN =>
+        if (!TickerServer.isServer && isSerCreated(TFreq.ONE_SEC)) {
+          realtimeSer.updateFrom(quote)
+        }
+        if (isSerCreated(TFreq.ONE_MIN)) {
+          serOf(TFreq.ONE_MIN) foreach {_.updateFrom(quote)}
+        }
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
+        }
+    }
+  }
+  
+  def updateMoneyFlowSer(freq: TFreq, moneyFlow: MoneyFlow) {
+    freq match {
+      case TFreq.ONE_MIN =>
+        if (isSerCreated(TFreq.ONE_MIN)) {
+          moneyFlowSerOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
+        }
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
         }
     }
   }
@@ -959,7 +952,7 @@ class SecSnap(val sec: Sec) {
   private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
   final def setByTicker(ticker: Ticker): SecSnap = {
-    this.newTicker = ticker
+    newTicker = ticker
     
     val time = ticker.time
     checkLastTickerAt(time)
@@ -978,7 +971,16 @@ class SecSnap(val sec: Sec) {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        val newone = Quotes1d.dailyQuoteOf(sec, rounded)
+        //val newone =  Quotes1d.dailyQuoteOf(sec, rounded)
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.DAILY, newone)
+
         dailyQuote = newone
         newone
     }
@@ -991,7 +993,16 @@ class SecSnap(val sec: Sec) {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
+        //val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.DAILY, newone)
+
         dailyMoneyFlow = newone
         newone
     }
@@ -1015,7 +1026,16 @@ class SecSnap(val sec: Sec) {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
+        //val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.ONE_MIN, newone)
+
         minuteQuote = newone
         newone
     }
@@ -1027,7 +1047,16 @@ class SecSnap(val sec: Sec) {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
+        //val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
+        
         minuteMoneyFlow = newone
         newone
     }

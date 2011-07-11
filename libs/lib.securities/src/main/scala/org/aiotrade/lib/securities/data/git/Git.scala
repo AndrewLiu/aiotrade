@@ -68,65 +68,60 @@ object Git {
   def clone(gitPath: String, sourceUri: String, 
             localName: String = null, 
             branch: String = null,
-            remote: String = Constants.DEFAULT_REMOTE_NAME) = {
-    
-    val gitDir = guessGitDir(gitPath, localName, sourceUri)    
-    if (gitDir.exists) {
-      log.info(gitDir.getAbsolutePath + " existed, will delete it first.")
-      try {
-        deleteDir(gitDir)
-        log.info(gitDir.getAbsolutePath + " deleted: " + !gitDir.exists)
-      } catch {
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
-      }
-    }
-    
+            remote: String = Constants.DEFAULT_REMOTE_NAME
+  ): Option[org.eclipse.jgit.api.Git] = {
+  
     try {
-      gitDir.mkdirs
-    } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
-    }
-
-    val cmd = new CloneCommand
-    cmd.setDirectory(gitDir)
-    cmd.setURI(sourceUri)
-    if (branch != null) {
-      cmd.setBranch(branch)
-      cmd.setBranchesToClone(java.util.Collections.singletonList(branch))
-    }
-    cmd.setRemote(remote)
-    cmd.setProgressMonitor(monitor)
+      val gitDir = guessGitDir(gitPath, localName, sourceUri)    
+      if (gitDir.exists) {
+        log.info(gitDir.getAbsolutePath + " existed, will delete it first.")
+        try {
+          deleteDir(gitDir)
+          log.info(gitDir.getAbsolutePath + " deleted: " + !gitDir.exists)
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
+        }
+      }
     
-    val t0 = System.currentTimeMillis
-    val git = try {
-      cmd.call
+      gitDir.mkdirs
+      
+      val cmd = new CloneCommand
+      cmd.setDirectory(gitDir)
+      cmd.setURI(sourceUri)
+      if (branch != null) {
+        cmd.setBranch(branch)
+        cmd.setBranchesToClone(java.util.Collections.singletonList(branch))
+      }
+      cmd.setRemote(remote)
+      cmd.setProgressMonitor(monitor)
+    
+      val t0 = System.currentTimeMillis
+      val git = cmd.call
+      log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
+      Option(git)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); null
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
-    log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
-    git
   }
   
-  @throws(classOf[Exception])
-  def pull(gitPath: String): PullResult = pull(getGit(gitPath))
+  def pull(gitPath: String): Option[PullResult] = getGit(gitPath) flatMap {pull(_)}
   
-  @throws(classOf[Exception])
-  def pull(git: org.eclipse.jgit.api.Git): PullResult = {
+  def pull(git: org.eclipse.jgit.api.Git): Option[PullResult] = {
     val cmd = git.pull
     cmd.setProgressMonitor(monitor)
 
     val t0 = System.currentTimeMillis
     val pullResult = try {
-      cmd.call
+      Option(cmd.call)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); throw ex
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
     log.info("Pulled in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     
     pullResult
   }
   
-  def addAll(gitPath: String) {addAll(getGit(gitPath))}
+  def addAll(gitPath: String) {getGit(gitPath) foreach {addAll(_)}}
   def addAll(git: org.eclipse.jgit.api.Git) {
     val cmd = git.add
     cmd.addFilepattern(".")
@@ -140,7 +135,7 @@ object Git {
     log.info("Added all in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
 
-  def commitAll(gitPath: String, msg: String) {commitAll(getGit(gitPath), msg)}
+  def commitAll(gitPath: String, msg: String) {getGit(gitPath) foreach {commitAll(_, msg)}}
   def commitAll(git: org.eclipse.jgit.api.Git, msg: String) {
     val cmd = git.commit
     cmd.setAll(true)
@@ -155,7 +150,7 @@ object Git {
     log.info("Committed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
   
-  def pushAll(gitPath: String) {pushAll(getGit(gitPath))}
+  def pushAll(gitPath: String) {getGit(gitPath) foreach {pushAll(_)}}
   def pushAll(git: org.eclipse.jgit.api.Git, remote: String = Constants.DEFAULT_REMOTE_NAME) {
     val cmd = git.push
     cmd.setRemote(remote).setPushAll
@@ -172,13 +167,18 @@ object Git {
   
   // --- helper
   
-  def getGit(gitPath: String, localName: String = null) = {
-    val gitDir = guessGitDir(gitPath, localName)    
-    val repo = openGitRepository(gitDir)
-    new org.eclipse.jgit.api.Git(repo)
+  def getGit(gitPath: String, localName: String = null): Option[org.eclipse.jgit.api.Git] = {
+    try {
+      val gitDir = guessGitDir(gitPath, localName)   
+      val repo = openGitRepository(gitDir)
+      Option(new org.eclipse.jgit.api.Git(repo))
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+    }
   }
   
-  def guessGitDir(gitPath: String, aLocalName: String = null, sourceUri: String = null): File = {
+  @throws(classOf[Exception])
+  private def guessGitDir(gitPath: String, aLocalName: String = null, sourceUri: String = null): File = {
     if (aLocalName != null && gitPath != null) {
       throw new RuntimeException(CLIText().conflictingUsageOf_git_dir_andArguments)
     }
@@ -198,20 +198,23 @@ object Git {
     new File(gitDir)
   }
   
-  @throws(classOf[IOException])
   private def deleteDir(dir: File) {
-    val files = dir.listFiles
-    var i = 0
-    while (i < files.length) {
-      val file = files(i)
-      if (file.isDirectory) {
-        deleteDir(file)
-      } else {
-        file.delete
+    try {
+      val files = dir.listFiles
+      var i = 0
+      while (i < files.length) {
+        val file = files(i)
+        if (file.isDirectory) {
+          deleteDir(file)
+        } else {
+          file.delete
+        }
+        i += 1
       }
-      i += 1
+      dir.delete
+    } catch {
+      case ex => log.log(Level.WARNING, ex.getMessage, ex)
     }
-    dir.delete
   }
   
   @throws(classOf[IOException])
@@ -271,7 +274,7 @@ object Git {
       clone(workPath, "file://" + tmpPath + "origin_test.git")
     }
     
-    val git = getGit(workPath + "/.git")
+    val git = getGit(workPath + "/.git").get
     pull(git)
     
     // --- change some contents

@@ -85,6 +85,10 @@ trait CRCLongId {
   }
 }
 
+object CRCLongId {
+  val MaxId = 0xFFFFFFFF // CRC32 is 32bit integer
+}
+
 /**
  * 
  * Table with the corresponding id and crckey column.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -115,6 +115,13 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
       case x: Signal => x.time == time && x.kind == kind && x.id == id && x.text == text && x.color == color
       case _ => false
     }
+  }
+  
+  override def toString = {
+    val sb = new StringBuilder()
+    sb.append(this.getClass.getSimpleName).append("(")
+    sb.append(time).append(",").append(kind).append(",").append(id).append(",").append(text).append(",").append(color)
+    sb.append(")").toString
   }
 }
 

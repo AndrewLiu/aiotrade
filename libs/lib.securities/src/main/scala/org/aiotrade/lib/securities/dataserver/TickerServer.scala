@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.dataserver
 
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
@@ -58,15 +59,6 @@ case class DepthSnap (
   prevDepth: MarketDepth,
   execution: Execution
 )
-
-object TickerServer extends Publisher {
-
-  private val log = Logger.getLogger(this.getClass.getName)
-
-  private val config = org.aiotrade.lib.util.config.Config()
-  val isServer = !config.getBool("dataserver.client", false)
-  log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
-}
 
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
@@ -202,9 +194,11 @@ abstract class TickerServer extends DataServer[Ticker] {
         execution.price  = ticker.lastPrice
         execution.volume = ticker.dayVolume
         execution.amount = ticker.dayAmount
-
+        
+        // re-init lastTime
+        lastTime = ticker.time
       } else {
-
+                
         /**
          *    ticker.time    prevTicker.time
          *          |------------------|------------------->
@@ -267,7 +261,7 @@ abstract class TickerServer extends DataServer[Ticker] {
           }
 
         } else {
-          log.warning("Discard invalid ticker: symbol=" + ticker.uniSymbol + ", time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
+          log.warning("Discard ticker: " + ticker.uniSymbol + " -> time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
         }
       }
 
@@ -290,9 +284,9 @@ abstract class TickerServer extends DataServer[Ticker] {
         // update daily quote and ser
         dayQuote.updateDailyQuoteByTicker(ticker)
 
-        // send updated quote to sec to update chain ser
-        sec ! api.QuoteEvt(TFreq.DAILY.shortName, dayQuote)
-        sec ! api.QuoteEvt(TFreq.ONE_MIN.shortName, minQuote)
+        // updated quote ser
+        sec.updateQuoteSer(TFreq.DAILY, dayQuote)
+        sec.updateQuoteSer(TFreq.ONE_MIN, minQuote)
         
         allUpdatedDailyQuotes += dayQuote
         allUpdatedMinuteQuotes += minQuote
@@ -329,47 +323,10 @@ abstract class TickerServer extends DataServer[Ticker] {
      }
      } */
 
-    // batch save to db
+    // broadcast events via TickerServer, don't wait until data saved to db. 
 
-    val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
-    log.info("Going to save to db ...")
-    var willCommit = false
-    var start = System.currentTimeMillis
-    if (tickersLastToInsert.length > 0) {
-      TickersLast.insertBatch_!(tickersLastToInsert.toArray)
-      willCommit = true
-    }
-    if (tickersLastToUpdate.length > 0) {
-      TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
-      willCommit = true
-    }
-    if (willCommit) {
-      log.info("Saved tickersLast in " + (System.currentTimeMillis - start) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
-    }
-
-    if (TickerServer.isServer) {
-      start = System.currentTimeMillis
-      if (allTickers.length > 0) {
-        Tickers.insertBatch_!(allTickers.toArray)
-        willCommit = true
-      }
-      if (allExecutions.length > 0) {
-        Executions.insertBatch_!(allExecutions.toArray)
-        willCommit = true
-      }
-      if (willCommit) {
-        log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - start) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
-      }
-    }
-
-    // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
-    if (willCommit) {
-      COMMIT
-      log.info("Committed")
-    }
-
-    // broadcast events via TickerServer, the interesting listener can use them:
-    // 1. to forward to remote message system, or
+    // the interesting listeners can use these evts:
+    // 1. to forward to remote message system;
     // 2. to compute money flow etc.
     if (allTickers.length > 0) {
       TickerServer.publish(api.TickersEvt(allTickers.toArray))
@@ -384,6 +341,49 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickerServer.publish(api.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
     }
     
+    // batch save to db
+
+    val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)
+    log.info("Going to save to db ...")
+    try {
+      var willCommit = false
+      val t0 = System.currentTimeMillis
+      if (tickersLastToInsert.length > 0) {
+        TickersLast.insertBatch_!(tickersLastToInsert.toArray)
+        willCommit = true
+      }
+      if (tickersLastToUpdate.length > 0) {
+        TickersLast.updateBatch_!(tickersLastToUpdate.toArray)
+        willCommit = true
+      }
+      if (willCommit) {
+        log.info("Saved tickersLast in " + (System.currentTimeMillis - t0) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
+      }
+
+      if (TickerServer.isServer) {
+        val t1 = System.currentTimeMillis
+        if (allTickers.length > 0) {
+          Tickers.insertBatch_!(allTickers.toArray)
+          willCommit = true
+        }
+        if (allExecutions.length > 0) {
+          Executions.insertBatch_!(allExecutions.toArray)
+          willCommit = true
+        }
+        if (willCommit) {
+          log.info("Saved Tickers/Executions in " + (System.currentTimeMillis - t1) + "ms: tickers=" + allTickers.length + ", executions=" + allExecutions.length)
+        }
+      }
+
+      // @Note if there is no update/insert on db, do not call commit, which may cause deadlock
+      if (willCommit) {
+        COMMIT
+        log.info("Committed")
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+
     // Try to close and save updated quotes, moneyflows 
     for ((exchange, lastTime) <- exchangeToLastTime) {
       val status = exchange.tradingStatusOf(lastTime)
@@ -399,3 +399,40 @@ abstract class TickerServer extends DataServer[Ticker] {
   def toSrcSymbol(uniSymbol: String): String = uniSymbol
   def toUniSymbol(srcSymbol: String): String = srcSymbol
 }
+
+/**
+ * To avoid singleton publisher's poor performance, we use more actors.
+ * To listen to it, listenTo(publishers: _*)
+ * To deaf to it, deafTo(publishers: _*)
+ */
+object TickerServer {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private val config = org.aiotrade.lib.util.config.Config()
+  val isServer = !config.getBool("dataserver.client", false)
+  log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
+  
+  
+  val publishers = {
+    var xs: List[Publisher] = Nil
+    val numPublishers = config.getInt("dataserver.numpublisher", 10)
+    var i = -1
+    while ({i += 1; i < numPublishers}) xs ::= new Publisher {}
+    xs
+  }
+  
+  private var publisherRevolver: List[Publisher] = Nil
+  private def nextPublisher = publisherRevolver match {
+    case Nil => 
+      publisherRevolver = publishers.tail
+      publishers.head
+    case head :: tail =>
+      publisherRevolver = tail
+      head
+  }
+  
+  def publish(e: Any) {
+    nextPublisher.publish(e)
+  }
+}
+

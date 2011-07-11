@@ -41,10 +41,12 @@ import org.aiotrade.lib.math.timeseries.TSer
 object Function {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val idToFunction = new ConcurrentHashMap[Id, Function]
+  private val idToFunction = new ConcurrentHashMap[Id[_ <: Function], Function]
 
+  def idOf[T <: Function](klass: Class[T], baseSer: BaseTSer, args: Any*) = Id[T](klass, baseSer, args: _*)
+  
   def apply[T <: Function](klass: Class[T], baseSer: BaseTSer, args: Any*): T = {
-    val id = Id(klass, baseSer, args: _*)
+    val id = idOf(klass, baseSer, args: _*)
     idToFunction.get(id) match {
       case null =>
         /** if got none from functionSet, try to create new one */
@@ -69,7 +71,7 @@ trait Function extends TSer {
    * @param baseSer, the ser that this function is based, ie. used to compute
    */
   def set(baseSer: BaseTSer, args: Any*)
-
+  
   /**
    * This method will compute from computedIdx <b>to</b> idx.
    *
@@ -80,5 +82,5 @@ trait Function extends TSer {
    *        such as an indicator
    * @param idx, the idx to be computed to
    */
-  def computeTo(sessionId: Long, idx: Int): Unit
+  def computeTo(sessionId: Long, idx: Int)
 }

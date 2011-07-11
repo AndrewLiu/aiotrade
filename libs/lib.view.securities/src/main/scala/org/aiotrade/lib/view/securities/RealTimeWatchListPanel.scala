@@ -116,25 +116,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
   }
   private val symbolToInfo = mutable.Map[String, Info]()
   
-  private val updateTask = new Runnable {
-    var tickers: Array[Ticker] = Array()
-    def run {
-      log.info("Batch updating, tickers: " + tickers.length)
-      var isUpdated = false
-      var i = -1
-      while ({i += 1; i < tickers.length}) {
-        val ticker = tickers(i)
-        if (watchingSymbols.contains(ticker.uniSymbol)) {
-          isUpdated = updateByTicker(ticker) | isUpdated // don't use shortcut one: "||"
-        }
-      }
-
-      if (isUpdated) {
-        table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort // force to re-sort all rows
-      }
-    }
-  }
-  
   val table = new JTable
   private val model = new WatchListTableModel
   private val df = new SimpleDateFormat("HH:mm:ss")
@@ -160,7 +141,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     case api.TickersEvt(tickers) => updateByTickers(tickers)
   }
 
-  listenTo(TickerServer)
+  listenTo(TickerServer.publishers: _*)
 
   /** forward focus to scrollPane, so it can response UP/DOWN key event etc */
   override def requestFocusInWindow: Boolean = {
@@ -286,11 +267,29 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
      at javax.swing.plaf.basic.BasicTableUI.paintCell(BasicTableUI.java:2072)
      * We should call addRow, removeRow, setValueAt etc in EventDispatchThread
      */
-    updateTask.tickers = tickers
-    SwingUtilities.invokeLater(updateTask)
+    SwingUtilities.invokeLater(new Runnable {
+        def run {
+          log.info("Batch updating, tickers: " + tickers.length)
+          var isUpdated = false
+          var i = -1
+          while ({i += 1; i < tickers.length}) {
+            val ticker = tickers(i)
+            if (watchingSymbols.contains(ticker.uniSymbol)) {
+              isUpdated = updateByTicker(ticker) | isUpdated // don't use shortcut one: "||"
+            }
+          }
+
+          if (isUpdated) {
+            table.getRowSorter.asInstanceOf[TableRowSorter[_]].sort() // force to re-sort all rows
+            table.getModel.asInstanceOf[AbstractTableModel].fireTableDataChanged()
+          }
+        }
+      })
   }
 
   private def updateByTicker(ticker: LightTicker): Boolean = {
+    if (ticker == null) return false
+
     val symbol = ticker.uniSymbol
     if (!uniSymbols.contains(symbol)) {
       uniSymbols += symbol
@@ -303,8 +302,6 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
         symbolToInfo.put(symbol, x)
         (x, true)
     }
-
-    if (ticker == null) return false
 
     val prevTicker = info.prevTicker
     /**
@@ -347,41 +344,39 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     /** color of volume should be recorded for switching between two colors */
     colKeyToColor(DAY_VOLUME) = fgColor
 
-    if (ticker != null) {
-      if (ticker.dayChange > 0) {
-        colKeyToColor(DAY_CHANGE) = posColor
-        colKeyToColor(PERCENT)    = posColor
-      } else if (ticker.dayChange < 0) {
-        colKeyToColor(DAY_CHANGE) = negColor
-        colKeyToColor(PERCENT)    = negColor
+    if (ticker.dayChange > 0) {
+      colKeyToColor(DAY_CHANGE) = posColor
+      colKeyToColor(PERCENT)    = posColor
+    } else if (ticker.dayChange < 0) {
+      colKeyToColor(DAY_CHANGE) = negColor
+      colKeyToColor(PERCENT)    = negColor
+    } else {
+      colKeyToColor(DAY_CHANGE) = neuColor
+      colKeyToColor(PERCENT)    = neuColor
+    }
+
+    setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayOpen,   DAY_OPEN)
+    setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayHigh,   DAY_HIGH)
+    setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayLow,    DAY_LOW)
+    setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.lastPrice, LAST_PRICE)
+
+    if (ticker.isDayVolumeChanged(info.prevTicker)) {
+      /** lastPrice's color */
+      /* ticker.compareLastCloseTo(prevTicker) match {
+       case 1 =>
+       symbolToColColor += (LAST_PRICE -> positiveColor)
+       case 0 =>
+       symbolToColColor += (LAST_PRICE -> neutralColor)
+       case -1 =>
+       symbolToColColor += (LAST_PRICE -> negativeColor)
+       case _ =>
+       } */
+
+      /** volumes color switchs between two colors if ticker renewed */
+      if (colKeyToColor(DAY_VOLUME) == SWITCH_COLOR_A) {
+        colKeyToColor(DAY_VOLUME) = SWITCH_COLOR_B
       } else {
-        colKeyToColor(DAY_CHANGE) = neuColor
-        colKeyToColor(PERCENT)    = neuColor
-      }
-
-      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayOpen,   DAY_OPEN)
-      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayHigh,   DAY_HIGH)
-      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.dayLow,    DAY_LOW)
-      setColorByPrevClose(colKeyToColor, ticker.prevClose, ticker.lastPrice, LAST_PRICE)
-
-      if (ticker.isDayVolumeChanged(info.prevTicker)) {
-        /** lastPrice's color */
-        /* ticker.compareLastCloseTo(prevTicker) match {
-         case 1 =>
-         symbolToColColor += (LAST_PRICE -> positiveColor)
-         case 0 =>
-         symbolToColColor += (LAST_PRICE -> neutralColor)
-         case -1 =>
-         symbolToColColor += (LAST_PRICE -> negativeColor)
-         case _ =>
-         } */
-
-        /** volumes color switchs between two colors if ticker renewed */
-        if (colKeyToColor(DAY_VOLUME) == SWITCH_COLOR_A) {
-          colKeyToColor(DAY_VOLUME) = SWITCH_COLOR_B
-        } else {
-          colKeyToColor(DAY_VOLUME) = SWITCH_COLOR_A
-        }
+        colKeyToColor(DAY_VOLUME) = SWITCH_COLOR_A
       }
     }
   }

@@ -34,10 +34,12 @@ package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
 import ru.circumflex.orm._
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.util
 import scala.collection.mutable
 
 
@@ -119,21 +121,22 @@ class Quote extends BelongsToSec with TVal with Flag {
   }
 
   override def toString = {
-    val cal = Calendar.getInstance
-    cal.setTimeInMillis(time)
-    
-    this.getClass.getSimpleName + ": " + cal.getTime +
-    " O: " + open +
-    " H: " + high +
-    " L: " + low +
-    " C: " + close +
-    " V: " + volume
+    val sb = new StringBuilder()
+    sb.append("Quote(").append(util.formatTime(time))
+    sb.append(",O:").append(open)
+    sb.append(",H:").append(high)
+    sb.append(",L:").append(low)
+    sb.append(",C:").append(close)
+    sb.append(",V:").append(volume)
+    sb.append(")").toString
   }
 
 }
 
 // --- table
 abstract class Quotes extends Table[Quote] {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
   val time = "time" BIGINT()
@@ -151,9 +154,13 @@ abstract class Quotes extends Table[Quote] {
   val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
 
   def quotesOf(sec: Sec): Seq[Quote] = {
-    SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec)
-    ) ORDER_BY (this.time) list
+    try {
+      SELECT (this.*) FROM (this) WHERE (
+        this.sec.field EQ Secs.idOf(sec)
+      ) ORDER_BY (this.time) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def closedQuotesOf(sec: Sec): Seq[Quote] = {
@@ -165,9 +172,13 @@ abstract class Quotes extends Table[Quote] {
   }
 
   def closedQuotesOf_filterByDB(sec: Sec): Seq[Quote] = {
-    SELECT (this.*) FROM (this) WHERE (
-      (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-    ) ORDER_BY (this.time) list
+    try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+      ) ORDER_BY (this.time) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def saveBatch(sec: Sec, sortedQuotes: Seq[Quote]) {
@@ -178,31 +189,84 @@ abstract class Quotes extends Table[Quote] {
     val frTime = math.min(head.time, last.time)
     val toTime = math.max(head.time, last.time)
     val exists = mutable.Map[Long, Quote]()
-    (SELECT (this.*) FROM (this) WHERE (
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
-    ) foreach {x => exists.put(x.time, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res foreach {x => exists.put(x.time, x)}
 
     val (updates, inserts) = sortedQuotes.partition(x => exists.contains(x.time))
-    for (x <- updates) {
-      val existOne = exists(x.time)
-      existOne.copyFrom(x)
-      this.update_!(existOne)
-    }
+    try {
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
 
-    this.insertBatch_!(inserts.toArray)
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+  }
+  
+  def saveBatch(atSameTime: Long, quotes: ArrayList[Quote]) {
+    if (quotes.isEmpty) return
+
+    val exists = mutable.Map[Sec, Quote]()
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
+      ) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res foreach {x => exists.put(x.sec, x)}
+
+    val updates = new ArrayList[Quote]()
+    val inserts = new ArrayList[Quote]()
+    var i = -1
+    while ({i += 1; i < quotes.length}) {
+      val quote = quotes(i)
+      exists.get(quote.sec) match {
+        case Some(existOne) => 
+          existOne.copyFrom(quote)
+          updates += existOne
+        case None =>
+          inserts += quote
+      }
+    }
+    
+    try {
+      if (updates.length > 0) {
+        this.updateBatch_!(updates.toArray)
+      }
+      if (inserts.length > 0) {
+        this.insertBatch_!(inserts.toArray)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
   }
 }
 
 object Quotes1d extends Quotes {
-  private val logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
 
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, Quote]]()
 
   def lastDailyQuoteOf(sec: Sec): Option[Quote] = {
-    (SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list) headOption
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res.headOption
   }
 
+  @deprecated
   def dailyQuoteOf(sec: Sec, dailyRoundedTime: Long): Quote = {
     val cached = dailyCache.get(dailyRoundedTime) match {
       case Some(map) => map
@@ -211,10 +275,14 @@ object Quotes1d extends Quotes {
         val map = mutable.Map[Sec, Quote]()
         dailyCache.put(dailyRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ dailyRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        } 
+        res foreach {x => map.put(x.sec, x)}
 
         map
     }
@@ -231,17 +299,22 @@ object Quotes1d extends Quotes {
         newone.justOpen_!
         newone.fromMe_!
         newone.isTransient = true
-        logger.fine("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
+        log.fine("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
         sec.exchange.addNewQuote(TFreq.DAILY, newone)
         newone
     }
   }
 
-  def dailyQuoteOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): Quote = {
-    (SELECT (this.*) FROM (this) WHERE (
+  @deprecated
+  def dailyQuoteOf_nonCached(sec: Sec, dailyRoundedTime: Long): Quote = {
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res.headOption match {
       case Some(one) =>
         one.isTransient = false
         one
@@ -253,7 +326,7 @@ object Quotes1d extends Quotes {
         newone.justOpen_!
         newone.fromMe_!
         newone.isTransient = true
-        logger.fine("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
+        log.fine("Start a new daily quote of sec(id=" + Secs.idOf(sec) + "), time=" + dailyRoundedTime)
         sec.exchange.addNewQuote(TFreq.DAILY, newone)
         newone
     }
@@ -264,22 +337,32 @@ object Quotes1d extends Quotes {
     val cal = Calendar.getInstance(exchange.timeZone)
     val rounded = TFreq.DAILY.round(time, cal)
 
-    SELECT (Quotes1d.*) FROM (Quotes1d JOIN Secs) WHERE (
-      (this.time EQ rounded) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
-    ) list
+    try {
+      SELECT (Quotes1d.*) FROM (Quotes1d JOIN Secs) WHERE (
+        (this.time EQ rounded) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
+      ) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def lastDailyQuotesOf(exchange: Exchange): Seq[Quote] = {
-    SELECT (Quotes1d.*) FROM Quotes1d WHERE (
-      Quotes1d.time EQ (
-        SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
-      )
-    ) list
+    try {
+      SELECT (Quotes1d.*) FROM Quotes1d WHERE (
+        Quotes1d.time EQ (
+          SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
+        )
+      ) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
 }
 
 object Quotes1m extends Quotes {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
@@ -288,18 +371,24 @@ object Quotes1m extends Quotes {
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, Quote]]()
 
   def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
-    SELECT (this.*) FROM (this) WHERE (
-      this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
-    ) ORDER_BY (this.time DESC) list
+    try {
+      SELECT (this.*) FROM (this) WHERE (
+        this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
+      ) ORDER_BY (this.time DESC) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
+  @deprecated
   def minuteQuoteOf(sec: Sec, minuteRoundedTime: Long): Quote = {
-    if (isServer) minuteQuoteOf_oncached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
+    if (isServer) minuteQuoteOf_nonCached(sec, minuteRoundedTime) else minuteQuoteOf_cached(sec, minuteRoundedTime)
   }
   
   /**
    * @Note do not use it when table is partitioned on secs_id (for example, quotes1m on server side), since this qeury is only on time
    */
+  @deprecated
   def minuteQuoteOf_cached(sec: Sec, minuteRoundedTime: Long): Quote = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
@@ -308,10 +397,14 @@ object Quotes1m extends Quotes {
         val map = mutable.Map[Sec, Quote]()
         minuteCache.put(minuteRoundedTime, map)
 
-        (SELECT (this.*) FROM (this) WHERE (
+        val res = try {
+          SELECT (this.*) FROM (this) WHERE (
             (this.time EQ minuteRoundedTime)
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        } 
+        res foreach {x => map.put(x.sec, x)}
 
         map
     }
@@ -333,11 +426,16 @@ object Quotes1m extends Quotes {
     }
   }
 
-  def minuteQuoteOf_oncached(sec: Sec, minuteRoundedTime: Long): Quote = {
-    (SELECT (this.*) FROM (this) WHERE (
+  @deprecated
+  def minuteQuoteOf_nonCached(sec: Sec, minuteRoundedTime: Long): Quote = {
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
-    ) match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res match {
       case Seq(one) =>
         one.isTransient = false
         one

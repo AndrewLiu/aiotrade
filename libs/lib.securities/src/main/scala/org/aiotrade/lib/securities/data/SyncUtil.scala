@@ -298,7 +298,7 @@ object SyncUtil {
   }
   
   def initLocalDataGit(destPath: String) {
-    localDataGit = Option(Git.getGit(destPath + "/.git"))
+    localDataGit = Git.getGit(destPath + "/.git")
   }
   
   @throws(classOf[Exception])
@@ -306,27 +306,27 @@ object SyncUtil {
     localDataGit match {
       case None => // @todo, clone a new one
       case Some(git) =>
-        val pullResult = Git.pull(git)
-        if (pullResult != null) {
-          val willResetSearchTable = pullResult.getMergeResult match {
-            case null => false
-            case x => 
-              import MergeResult.MergeStatus
-              val status = x.getMergeStatus 
-              log.warning("Pull status is: " + status)
-              status match {
-                case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
-                case MergeStatus.ALREADY_UP_TO_DATE => false
-                case _ => false
-              }
-          }
+        Git.pull(git) match {
+          case Some(pullResult) =>
+            val willResetSearchTable = pullResult.getMergeResult match {
+              case null => false
+              case x => 
+                import MergeResult.MergeStatus
+                val status = x.getMergeStatus 
+                log.warning("Pull status is: " + status)
+                status match {
+                  case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
+                  case MergeStatus.ALREADY_UP_TO_DATE => false
+                  case _ => false
+                }
+            }
           
-          // refresh secs, secInfos, secDividends etc
-          if (willResetSearchTable) {
-            Exchange.resetSearchTables
-          }
-        } else {
-          log.warning("Pull result is null")
+            // refresh secs, secInfos, secDividends etc
+            if (willResetSearchTable) {
+              Exchange.resetSearchTables
+            }
+            
+          case None => log.warning("Pull result is none")
         }
     }
   }

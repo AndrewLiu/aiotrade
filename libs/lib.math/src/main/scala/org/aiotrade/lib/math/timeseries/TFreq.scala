@@ -37,90 +37,6 @@ import org.w3c.dom.Element
 import java.util.regex.Pattern
 import org.aiotrade.lib.math.timeseries.TUnit._
 
-object TFreq {
-  val PREDEFINED = Set(ONE_MIN,
-                       TWO_MINS,
-                       THREE_MINS,
-                       FOUR_MINS,
-                       FIVE_MINS,
-                       FIFTEEN_MINS,
-                       THIRTY_MINS,
-                       DAILY,
-                       TWO_DAYS,
-                       THREE_DAYS,
-                       FOUR_DAYS,
-                       FIVE_DAYS,
-                       WEEKLY,
-                       MONTHLY)
-
-  case object SELF_DEFINED extends TFreq(TUnit.Second, 1)
-  case object ONE_SEC      extends TFreq(TUnit.Second, 1)
-  case object TWO_SECS     extends TFreq(TUnit.Second, 2)
-  case object THREE_SECS   extends TFreq(TUnit.Second, 3)
-  case object FOUR_SECS    extends TFreq(TUnit.Second, 3)
-  case object FIVE_SECS    extends TFreq(TUnit.Second, 5)
-  case object FIFTEEN_SECS extends TFreq(TUnit.Second, 15)
-  case object THIRTY_SECS  extends TFreq(TUnit.Second, 30)
-  case object ONE_MIN      extends TFreq(TUnit.Minute, 1)
-  case object TWO_MINS     extends TFreq(TUnit.Minute, 2)
-  case object THREE_MINS   extends TFreq(TUnit.Minute, 3)
-  case object FOUR_MINS    extends TFreq(TUnit.Minute, 4)
-  case object FIVE_MINS    extends TFreq(TUnit.Minute, 5)
-  case object FIFTEEN_MINS extends TFreq(TUnit.Minute, 15)
-  case object THIRTY_MINS  extends TFreq(TUnit.Minute, 30)
-  case object ONE_HOUR     extends TFreq(TUnit.Hour,   1)
-  case object DAILY        extends TFreq(TUnit.Day,    1)
-  case object TWO_DAYS     extends TFreq(TUnit.Day,    2)
-  case object THREE_DAYS   extends TFreq(TUnit.Day,    3)
-  case object FOUR_DAYS    extends TFreq(TUnit.Day,    4)
-  case object FIVE_DAYS    extends TFreq(TUnit.Day,    5)
-  case object WEEKLY       extends TFreq(TUnit.Week,   1)
-  case object MONTHLY      extends TFreq(TUnit.Month,  1)
-  case object THREE_MONTHS extends TFreq(TUnit.Month,  3)
-  case object ONE_YEAR     extends TFreq(TUnit.Year,   1)
-
-  private val shortNamePattern = Pattern.compile("([0-9]+)([smhDWMY])")
-  
-  def withName(shortName: String): Option[TFreq] = {
-    val matcher = shortNamePattern.matcher(shortName)
-    if (matcher.find && matcher.groupCount == 2) {
-      val nUnits = matcher.group(1).toInt
-      TUnit.withShortName(matcher.group(2)) match {
-        case Some(unit) => Some(TFreq(unit, nUnits))
-        case None => None
-      }
-    } else None
-  }
-
-  def apply(unit: TUnit, nUnit: Int) = new TFreq(unit, nUnit)
-
-  // simple test
-  def main(args: Array[String]) {
-    val tz = java.util.TimeZone.getTimeZone("America/New_York")
-
-    val df = new java.text.SimpleDateFormat("MM/dd/yyyy h:mma")
-    df.setTimeZone(tz)
-
-    val date0 = df.parse("6/18/2010 0:00am")
-    val time0 = date0.getTime // 1276833600000
-
-    val date1 = df.parse("6/18/2010 4:00pm")
-    val time1 = date1.getTime // 1276891200000
-
-    val cal = Calendar.getInstance(tz)
-    val rounded0 = TFreq.DAILY.round(time0, cal)
-    if (rounded0 == time0) 
-      println(time0 + " was properly rounded")
-    else
-      println("Error: " + time0 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded0 + " !!!")
-
-    val rounded1 = TFreq.DAILY.round(time1, cal)
-    if (rounded1 == time0) 
-      println(time1 + " was properly rounded")
-    else
-      println("Error: " + time1 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded1 + " !!!")
-  }
-}
 
 /**
  * Class combining Unit and nUnits.
@@ -255,5 +171,90 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
     
   def writeToJava(id: String): String = {
     "todo"//JavaDocument.create(id, classOf[Frequency], getUnit, getNUnits)
+  }
+}
+
+object TFreq {
+  val PREDEFINED = Set(ONE_MIN,
+                       TWO_MINS,
+                       THREE_MINS,
+                       FOUR_MINS,
+                       FIVE_MINS,
+                       FIFTEEN_MINS,
+                       THIRTY_MINS,
+                       DAILY,
+                       TWO_DAYS,
+                       THREE_DAYS,
+                       FOUR_DAYS,
+                       FIVE_DAYS,
+                       WEEKLY,
+                       MONTHLY)
+
+  case object SELF_DEFINED extends TFreq(TUnit.Second, 1)
+  case object ONE_SEC      extends TFreq(TUnit.Second, 1)
+  case object TWO_SECS     extends TFreq(TUnit.Second, 2)
+  case object THREE_SECS   extends TFreq(TUnit.Second, 3)
+  case object FOUR_SECS    extends TFreq(TUnit.Second, 3)
+  case object FIVE_SECS    extends TFreq(TUnit.Second, 5)
+  case object FIFTEEN_SECS extends TFreq(TUnit.Second, 15)
+  case object THIRTY_SECS  extends TFreq(TUnit.Second, 30)
+  case object ONE_MIN      extends TFreq(TUnit.Minute, 1)
+  case object TWO_MINS     extends TFreq(TUnit.Minute, 2)
+  case object THREE_MINS   extends TFreq(TUnit.Minute, 3)
+  case object FOUR_MINS    extends TFreq(TUnit.Minute, 4)
+  case object FIVE_MINS    extends TFreq(TUnit.Minute, 5)
+  case object FIFTEEN_MINS extends TFreq(TUnit.Minute, 15)
+  case object THIRTY_MINS  extends TFreq(TUnit.Minute, 30)
+  case object ONE_HOUR     extends TFreq(TUnit.Hour,   1)
+  case object DAILY        extends TFreq(TUnit.Day,    1)
+  case object TWO_DAYS     extends TFreq(TUnit.Day,    2)
+  case object THREE_DAYS   extends TFreq(TUnit.Day,    3)
+  case object FOUR_DAYS    extends TFreq(TUnit.Day,    4)
+  case object FIVE_DAYS    extends TFreq(TUnit.Day,    5)
+  case object WEEKLY       extends TFreq(TUnit.Week,   1)
+  case object MONTHLY      extends TFreq(TUnit.Month,  1)
+  case object THREE_MONTHS extends TFreq(TUnit.Month,  3)
+  case object ONE_YEAR     extends TFreq(TUnit.Year,   1)
+
+  private val shortNamePattern = Pattern.compile("([0-9]+)([smhDWMY])")
+  
+  def withName(shortName: String): Option[TFreq] = {
+    val matcher = shortNamePattern.matcher(shortName)
+    if (matcher.find && matcher.groupCount == 2) {
+      val nUnits = matcher.group(1).toInt
+      TUnit.withShortName(matcher.group(2)) match {
+        case Some(unit) => Some(TFreq(unit, nUnits))
+        case None => None
+      }
+    } else None
+  }
+
+  def apply(unit: TUnit, nUnit: Int) = new TFreq(unit, nUnit)
+
+  // simple test
+  def main(args: Array[String]) {
+    val tz = java.util.TimeZone.getTimeZone("America/New_York")
+
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy h:mma")
+    df.setTimeZone(tz)
+
+    val date0 = df.parse("6/18/2010 0:00am")
+    val time0 = date0.getTime // 1276833600000
+
+    val date1 = df.parse("6/18/2010 4:00pm")
+    val time1 = date1.getTime // 1276891200000
+
+    val cal = Calendar.getInstance(tz)
+    val rounded0 = TFreq.DAILY.round(time0, cal)
+    if (rounded0 == time0) 
+      println(time0 + " was properly rounded")
+    else
+      println("Error: " + time0 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded0 + " !!!")
+
+    val rounded1 = TFreq.DAILY.round(time1, cal)
+    if (rounded1 == time0) 
+      println(time1 + " was properly rounded")
+    else
+      println("Error: " + time1 + " should be rounded to " + time0 + ", but was wrongly rounded to " + rounded1 + " !!!")
   }
 }

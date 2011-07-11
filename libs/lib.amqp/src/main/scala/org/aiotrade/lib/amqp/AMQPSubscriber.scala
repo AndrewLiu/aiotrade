@@ -89,7 +89,7 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
       _defaultQueue = default
       _subscribedTopics foreach doSubscribeTopic
     case ConsumeQueue(queue: Queue, isDefault) =>
-      doConsumeQueue(queue)
+      doConsumeQueue(queue, isDefault)
     case SubscribeTopic(topic: Topic) =>
       doSubscribeTopic(topic)
     case UnsubscribeTopic(topic: Topic) =>
@@ -119,13 +119,15 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
     if (!isConnected) {
       log.severe("Should connect before consume " + queue)
     } else {
-      _defaultQueue = if (isDefault) {
-        Some(queue)
+      if (isDefault) {
+        _defaultQueue = Some(queue)
       } else {
-        Some(_defaultQueue.getOrElse(queue))
+        if (_defaultQueue.isEmpty) {
+          _defaultQueue = Some(queue)
+        }
       }
-
       _consumingQueues += (queue.name -> queue)
+      
       for (ch <- channel; cs <- consumer) {
         log.log(Level.INFO, "AMQPSubscriber exchange declaring [" + exchange + ", direct, " +  durable + "]")
         ch.exchangeDeclare(exchange, "direct", durable)
@@ -139,7 +141,7 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
         }
       
         ch.basicConsume(queue.name, cs.asInstanceOf[AMQPConsumer].isAutoAck, cs)
-        log.info("Declared queue: " + queue.name + ". The defaultQueue=" + _defaultQueue.map(_.name))
+        log.info("Declared and Consuming queue: " + queue.name + ". The defaultQueue=" + _defaultQueue.map(_.name))
       }
     }
   }

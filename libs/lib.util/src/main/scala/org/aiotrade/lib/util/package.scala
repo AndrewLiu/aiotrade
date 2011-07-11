@@ -28,72 +28,57 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.signal
+package org.aiotrade.lib
+
+import java.lang.ref.SoftReference
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.TimeZone
 
 /**
- *
  * @author Caoyuan Deng
  */
-class Kind(_id: Int) {
-  def this() = this(0) /* for serializable */
+package object util {
 
-  protected[signal] def id: Int = _id
-  
-  def isDirection: Boolean = id > 0
-  def isPosition:  Boolean = id < 0
-  
-  override def hashCode = _id
-  
-  override def equals(a: Any) = a match {
-    case x: Kind => x.id == _id
-    case _ => false
+  private val defaultDfPattern = "yyyy-MM-dd HH:mm:ss"
+  private val dfTl = new ThreadLocal[SoftReference[DateFormat]]()
+  def dateFormatOf(tz: TimeZone = TimeZone.getDefault, pattern: String = defaultDfPattern): DateFormat = {
+    val ref = dfTl.get
+    if (ref != null) {
+      val instance = ref.get
+      if (instance != null) {
+        instance.setTimeZone(tz)
+        instance.asInstanceOf[SimpleDateFormat].applyPattern(pattern)
+        return instance
+      }
+    } 
+    
+    val instance = new SimpleDateFormat(pattern)
+    instance.setTimeZone(tz)
+    dfTl.set(new SoftReference[DateFormat](instance))
+    instance  
   }
   
-  override def toString = id match {
-    case  1 => "Enter long"
-    case  2 => "Exit long"
-    case  3 => "Enter short"
-    case  4 => "Exit short"
-
-    case -1 => "Upper"
-    case -2 => "Lower"
+  private val calTl = new ThreadLocal[SoftReference[Calendar]]()
+  def calendarOf(tz: TimeZone = TimeZone.getDefault): Calendar = {
+    val ref = calTl.get
+    if (ref != null) {
+      val instance = ref.get
+      if (instance != null) {
+        instance.setTimeZone(tz)
+        return instance
+      }
+    }
+    
+    val instance = Calendar.getInstance(tz)
+    calTl.set(new SoftReference[Calendar](instance))
+    instance
+  }
+  
+  def formatTime(long: Long, tz: TimeZone = TimeZone.getDefault, pattern: String = defaultDfPattern): String = {
+    val cal = calendarOf(tz)
+    cal.setTimeInMillis(long)
+    dateFormatOf(tz, pattern).format(cal.getTime)
   }
 }
-
-object Kind {
-  def withId(id: Int): Kind = id match {
-    case  1 => Direction.EnterLong
-    case  2 => Direction.ExitLong
-    case  3 => Direction.EnterShort
-    case  4 => Direction.ExitShort
-      
-    case -1 => Position.Upper
-    case -2 => Position.Lower
-  }  
-}
-
-class Direction(_id: => Int) extends Kind(_id) {
-  def this() = this(0) /* for serializable */  
-}
-
-object Direction {
-  val EnterLong  = new Direction(1)
-  val ExitLong   = new Direction(2)
-  val EnterShort = new Direction(3)
-  val ExitShort  = new Direction(4)
-
-  def withId(id: Int): Direction = Kind.withId(id).asInstanceOf[Direction]
-}
-
-class Position(_id: => Int) extends Kind(_id) {
-  def this() = this(0) /* for serializable */  
-}
-
-object Position {
-  val Upper = new Position(-1)
-  val Lower = new Position(-2)
-
-  def withId(id: Int): Position = Kind.withId(id).asInstanceOf[Position]
-}
-
-

@@ -171,8 +171,8 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.largeAmountIn = largeAmountIn(time)
       mf.largeVolumeOut = largeVolumeOut(time)
       mf.largeAmountOut = largeAmountOut(time)
-      mf.largeVolumeEven = largeVolumeOut(time)
-      mf.largeAmountEven = largeAmountOut(time)
+      mf.largeVolumeEven = largeVolumeEven(time)
+      mf.largeAmountEven = largeAmountEven(time)
 
       mf.mediumVolumeIn = mediumVolumeIn(time)
       mf.mediumAmountIn = mediumAmountIn(time)
@@ -185,8 +185,8 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
       mf.smallAmountIn = smallAmountIn(time)
       mf.smallVolumeOut = smallVolumeOut(time)
       mf.smallAmountOut = smallAmountOut(time)
-      mf.smallAmountEven = smallVolumeEven(time)
-      mf.smallVolumeEven = smallAmountEven(time)
+      mf.smallVolumeEven = smallVolumeEven(time)
+      mf.smallAmountEven = smallAmountEven(time)
       
       Some(mf)
     } else None
@@ -277,16 +277,14 @@ object MoneyFlowSer {
       
       var i = -1
       while ({i += 1; i < times.length}) {
-        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
-        val time = times(i).asInstanceOf[Long]
         val mf = new MoneyFlow
 
-        mf.time = time
+        mf.time = times(i).asInstanceOf[Long]
 
         mf.amountInCount = amountInCount(i).asInstanceOf[Int]
         mf.amountOutCount = amountOutCount(i).asInstanceOf[Int]
         mf.relativeAmount = relativeAmount(i).asInstanceOf[Double]
-        
+
         mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
         mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]
         mf.superVolumeOut = superVolumeOuts(i).asInstanceOf[Double]

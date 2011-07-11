@@ -151,20 +151,20 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   protected def read(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
     import Schema.Type._
     expected.getType match {
-      case RECORD =>  readRecord(old, expected, in)
-      case ENUM =>    readEnum(expected, in)
-      case ARRAY =>   readArray(old, expected, in)
-      case MAP =>     readMap(old, expected, in)
       case UNION =>   read(old, expected.getTypes().get(in.readIndex()), in)
-      case FIXED =>   readFixed(old, expected, in)
-      case STRING =>  readString(old, expected, in)
-      case BYTES =>   readBytes(old, in)
-      case INT =>     readInt(old, expected, in)
       case LONG =>    in.readLong()
       case FLOAT =>   in.readFloat()
       case DOUBLE =>  in.readDouble()
       case BOOLEAN => in.readBoolean()
       case NULL =>    in.readNull(); null
+      case INT =>     readInt(old, expected, in)
+      case STRING =>  readString(old, expected, in)
+      case ARRAY =>   readArray(old, expected, in)
+      case RECORD =>  readRecord(old, expected, in)
+      case MAP =>     readMap(old, expected, in)
+      case ENUM =>    readEnum(expected, in)
+      case FIXED =>   readFixed(old, expected, in)
+      case BYTES =>   readBytes(old, in)
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
   }
@@ -204,13 +204,12 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   /** Called to read an array instance.  May be overridden for alternate array
    * representations.*/
   @throws(classOf[IOException])
-  protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
-    val xs = doReadArray(old, expected, in)
-    xs.asInstanceOf[ArrayList[_]].toArray
+  protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): AnyRef = {
+    doReadArray(old, expected, in).asInstanceOf[ArrayList[_]].toArray
   }
   
   final 
-  protected def doReadArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
+  protected def doReadArray(old: Any, expected: Schema, in: ResolvingDecoder): AnyRef = {
     val expectedType = expected.getElementType
     var l = in.readArrayStart()
     var base = 0L
@@ -246,9 +245,11 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
    * 
    * @Note for JsonEncoder, since the array length cannot be got in advance,  
    * we have to use appendable collection instead of a native array.
+   * 
+   * The input array may be immutable one, so we should return the new/old one
    */
-  protected def addToArray(array: Any, pos: Long, e: Any): Any = {
-    array.asInstanceOf[ArrayList[Any]] += e
+  protected def addToArray[T](array: AnyRef, pos: Long, e: T): AnyRef = {
+    array.asInstanceOf[ArrayList[T]] += e
   }
 
   /** Called to read a map instance.  May be overridden for alternate map
@@ -318,19 +319,19 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   /** Called to create new array instances.  Subclasses may override to use a
    * different array implementation.  By default, this returns a {@link Array}
    */
-  protected def newArray(old: Any, size: Int, schema: Schema): Any = {
-    newArray(old, size, schema, classOf[AnyRef])
+  protected def newArray(old: Any, size: Int, schema: Schema): AnyRef = {
+    newArray(old, size, schema, classOf[Any])
   }
   
-  protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): Any = {
+  protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): AnyRef = {
     import Schema.Type._
     schema.getElementType.getType match {
       case INT =>     new ArrayList[Int](size)
-      case ENUM =>    new ArrayList[Int](size)
       case LONG =>    new ArrayList[Long](size)
       case FLOAT =>   new ArrayList[Float](size)
       case DOUBLE =>  new ArrayList[Double](size)
       case BOOLEAN => new ArrayList[Boolean](size)
+      case ENUM =>    new ArrayList[Int](size)
       case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }

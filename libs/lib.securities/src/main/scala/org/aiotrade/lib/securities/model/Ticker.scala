@@ -31,8 +31,10 @@
 package org.aiotrade.lib.securities.model
 
 import java.util.Calendar
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.util
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
@@ -161,7 +163,11 @@ class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extend
   }
   
   override def toString = {
-    "Ticker(" + "symbol=" + uniSymbol + ", time=" + time + ", data=" + data.mkString("[", ",", "]") + ", depth=" + marketDepth +  ")"
+    val sb = new StringBuilder()
+    sb.append("Ticker(").append(uniSymbol).append(util.formatTime(time)).append(",")
+    sb.append(data.mkString("[", ",", "]")).append(",")
+    sb.append(marketDepth)
+    sb.append(")")toString
   }
 }
 
@@ -216,7 +222,7 @@ object Tickers extends TickersTable {
   private val lastTickersCache = mutable.Map[Long, mutable.Map[Sec, Ticker]]()
 
   def lastTickerOf(sec: Sec, dailyRoundedTime: Long): Ticker = {
-    if (isServer) lastTickerOf_nocached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
+    if (isServer) lastTickerOf_nonCached(sec, dailyRoundedTime) else lastTickerOf_cached(sec, dailyRoundedTime)
   }
 
   /**
@@ -246,11 +252,15 @@ object Tickers extends TickersTable {
     }
   }
 
-  def lastTickerOf_nocached(sec: Sec, dailyRoundedTime: Long): Ticker = {
-    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+  def lastTickerOf_nonCached(sec: Sec, dailyRoundedTime: Long): Ticker = {
+    val res = try {
+      SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
-    ) match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res match {
       case Seq(one) =>
         one.isTransient = false
         one
@@ -262,10 +272,14 @@ object Tickers extends TickersTable {
   }
 
   def lastTickerOf_reference(sec: Sec, dailyRoundedTime: Long, tillTime: Long): Ticker = {
-    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+    val res = try {
+      SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (2) list
-    ) match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res match {
       case Seq() =>
         val newone = new Ticker
         newone.isDayFirst = true
@@ -283,25 +297,35 @@ object Tickers extends TickersTable {
   }
 
   def tickersOf(sec: Sec, dailyRoundedTime: Long): Seq[Ticker] = {
-    (SELECT (Tickers.*) FROM (Tickers) WHERE (
+    try {
+      SELECT (Tickers.*) FROM (Tickers) WHERE (
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time) list
-    )
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def lastTraingDayTickersOf(sec: Sec): Seq[Ticker] = {
-    (SELECT (Tickers.time) FROM (Tickers) WHERE (
+    val res = try {
+      SELECT (Tickers.time) FROM (Tickers) WHERE (
         Tickers.sec.field EQ Secs.idOf(sec)
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
-    ) headOption match {
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res.headOption match {
       case Some(time) =>
         val cal = Calendar.getInstance(sec.exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
 
-        (SELECT (Tickers.*) FROM (Tickers) WHERE (
+        try {
+          SELECT (Tickers.*) FROM (Tickers) WHERE (
             (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1))
           ) ORDER_BY (Tickers.time) list
-        )
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        }
       case None => Nil
     }
   }
@@ -322,7 +346,8 @@ object Tickers extends TickersTable {
         val cal = Calendar.getInstance(exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
 
-        (new Select(Tickers.*) {
+        val res = try {
+          new Select(Tickers.*) {
             private val sqlTickersTab = ORM.dialect.relationQualifiedName(Tickers)
             private val sqlSecsTab = ORM.dialect.relationQualifiedName(Secs)
 
@@ -332,7 +357,10 @@ object Tickers extends TickersTable {
             " GROUP BY tickers.secs_id) AS x INNER JOIN + " + sqlTickersTab + " AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
 
           } list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        }
+        res foreach {x => map.put(x.sec, x)}
 
         log.info(exchange.code + ": Loaded last tickers between " + rounded + " - " + (rounded + ONE_DAY - 1) +
                  ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
@@ -348,7 +376,8 @@ object Tickers extends TickersTable {
     val start = System.currentTimeMillis
     val map = mutable.Map[Sec, Ticker]()
 
-    (new Select(Tickers.*) {
+    val res = try {
+      new Select(Tickers.*) {
         private val sqlTickersTab = ORM.dialect.relationQualifiedName(Tickers)
 
         override def toSql = "SELECT tickers.id AS this_1, tickers.bidAsks AS this_2, tickers.dayChange AS this_3, tickers.dayAmount AS this_4, tickers.dayVolume AS this_5, tickers.dayLow AS this_6, tickers.dayHigh AS this_7, tickers.dayOpen AS this_8, tickers.lastPrice AS this_9, tickers.prevClose AS this_10, tickers.time AS this_11, tickers.secs_id AS this_12" +
@@ -357,10 +386,14 @@ object Tickers extends TickersTable {
         " GROUP BY tickers.secs_id) AS x INNER JOIN " + sqlTickersTab + " AS tickers ON x.secs_id = tickers.secs_id AND x.maxtime = tickers.time;"
 
       } list
-    ) foreach {x => map.put(x.sec, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res foreach {x => map.put(x.sec, x)}
 
     log.info("Loaded last tickers between " + dailyRoundedTime + " - " + (dailyRoundedTime + ONE_DAY - 1) +
              ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
+    
     map
   }
 
@@ -386,7 +419,12 @@ object Tickers extends TickersTable {
   private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
     Exchange.uniSymbolToSec // force loaded all secs and secInfos
 
-    (SELECT (Tickers.time) FROM (Tickers JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) ORDER_BY (Tickers.time DESC) LIMIT (1) list) headOption
+    val res = try {
+      SELECT (Tickers.time) FROM (Tickers JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) ORDER_BY (Tickers.time DESC) LIMIT (1) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res.headOption
   }
 }
 
@@ -397,10 +435,13 @@ object TickersLast extends TickersTable {
 
     val start = System.currentTimeMillis
     val map = mutable.Map[Sec, Ticker]()
-    (SELECT(this.*) FROM (this JOIN Secs) WHERE (
+    val res = try {SELECT(this.*) FROM (this JOIN Secs) WHERE (
         (Secs.exchange.field EQ Exchanges.idOf(exchange))
       ) list
-    ) foreach {x => map.put(x.sec, x)}
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    } 
+    res foreach {x => map.put(x.sec, x)}
 
     log.info(exchange.code + ": Loaded all last tickers" +
              ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
@@ -419,10 +460,14 @@ object TickersLast extends TickersTable {
         val cal = Calendar.getInstance(exchange.timeZone)
         val rounded = TFreq.DAILY.round(time, cal)
 
-        (SELECT(this.*) FROM (this JOIN Secs) WHERE (
+        val res = try {
+          SELECT(this.*) FROM (this JOIN Secs) WHERE (
             (this.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
           ) list
-        ) foreach {x => map.put(x.sec, x)}
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        } 
+        res foreach {x => map.put(x.sec, x)}
 
         log.info(exchange.code + ": Loaded last tickers between " + rounded + " AND " + (rounded + ONE_DAY - 1) +
                  ": " + map.size + " in " + (System.currentTimeMillis - start) / 1000.0 + "s")
@@ -435,10 +480,14 @@ object TickersLast extends TickersTable {
   private[model] def lastTradingTimeOf(exchange: Exchange): Option[Long] = {
     Exchange.uniSymbolToSec // force all secs and secInfos loaded
 
-    (SELECT (this.time) FROM (this JOIN Secs) WHERE (
+    val res = try {
+      SELECT (this.time) FROM (this JOIN Secs) WHERE (
         Secs.exchange.field EQ Exchanges.idOf(exchange)
       ) ORDER_BY (this.time DESC) LIMIT (1) list
-    ) headOption
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res.headOption
   }
 }
 
