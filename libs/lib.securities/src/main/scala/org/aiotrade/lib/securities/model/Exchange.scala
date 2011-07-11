@@ -404,14 +404,17 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         freqToUnclosedPriceDistributions.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
             freqToUnclosedPriceDistributions.put(freq, emptyPriceDistributions)
+            log.info("price distribution unclosed," + TFreq.DAILY.name)
             unclosed
           case Some(unclosed) =>
             val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
             freqToUnclosedPriceDistributions.put(freq, other)
+            log.info("price distribution unclosed, Other freq")
             toClose
           case None => emptyPriceDistributions
         }
       }
+      log.info("price distribution collection length: " + pdsToClose.length )
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
         val isDailyClose = freqs.contains(TFreq.DAILY)

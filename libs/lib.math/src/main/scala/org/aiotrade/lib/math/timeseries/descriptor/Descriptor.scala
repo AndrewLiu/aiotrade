@@ -150,7 +150,6 @@ abstract class Descriptor[S](
                       folderName + "': " + services.map(_.asInstanceOf[AnyRef].getClass.getName) +
                       ", try Class.forName call: serviceClassName=" + serviceClassName)
 
-          services foreach(serv => log.warning(serv.asInstanceOf[AnyRef].getClass.getName))
           val klass = Class.forName(serviceClassName, true, classLoader)
           
           getScalaSingletonInstance(klass) match {
