@@ -21,6 +21,8 @@ import org.aiotrade.lib.util.actors.Msg
 import org.apache.avro.io.EncoderFactory
 import org.aiotrade.lib.json.Json
 import org.aiotrade.lib.json.JsonInputStreamReader
+import java.util.zip.Inflater
+import java.util.zip.Deflater;
 
 object Serializer {
   /**
@@ -76,8 +78,9 @@ trait Serializer {
   }
 
   def decodeJson(body: Array[Byte]): Any = {
-    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
-    jin.readObject
+//    val jin = new JsonInputStreamReader(new ByteArrayInputStream(body), "utf-8")
+//    jin.readObject
+    Json.decode(new String(body, "utf-8"))
   }
 
   @throws(classOf[IOException])
@@ -143,6 +146,48 @@ trait Serializer {
     val body = out.toByteArray
 
     in.close
+    out.close
+    body
+  }
+
+  @throws(classOf[IOException])
+  @throws(classOf[Exception])
+  def zlib(input: Array[Byte]): Array[Byte] = {
+    val compresser = new Deflater
+    compresser.reset
+    compresser.setInput(input)
+    compresser.finish
+    val out = new ByteArrayOutputStream
+    val buf = new Array[Byte](1024)
+    var len = -1
+    while({len = compresser.deflate(buf); len > 0}){
+      out.write(buf, 0, len)
+    }
+
+    val body = out.toByteArray
+
+    compresser.end
+    out.close
+    body
+  }
+
+  @throws(classOf[IOException])
+  @throws(classOf[Exception])
+  def unzlib(input: Array[Byte]): Array[Byte] = {
+    val decompresser = new Inflater
+    decompresser.reset
+    decompresser.setInput(input)
+    val out = new ByteArrayOutputStream
+
+    val buf = new Array[Byte](1024)
+    var len = -1
+    while({len = decompresser.inflate(buf); len > 0}){
+      out.write(buf, 0, len)
+    }
+
+    val body = out.toByteArray
+
+    decompresser.end
     out.close
     body
   }
