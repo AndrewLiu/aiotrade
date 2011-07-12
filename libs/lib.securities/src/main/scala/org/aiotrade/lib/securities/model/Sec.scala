@@ -914,7 +914,16 @@ class SecSnap(val sec: Sec) {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        val newone = Quotes1d.dailyQuoteOf(sec, rounded)
+//        val newone = Quotes1d.dailyQuoteOf(sec, rounded)
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.DAILY, newone)
+        
         dailyQuote = newone
         newone
     }
@@ -927,7 +936,16 @@ class SecSnap(val sec: Sec) {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
+//        val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.DAILY, newone)
+
         dailyMoneyFlow = newone
         newone
     }
@@ -939,7 +957,16 @@ class SecSnap(val sec: Sec) {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
+//        val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
+        val newone = new Quote
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewQuote(TFreq.ONE_MIN, newone)
+
         minuteQuote = newone
         newone
     }
@@ -951,7 +978,16 @@ class SecSnap(val sec: Sec) {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
+//        val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
+
         minuteMoneyFlow = newone
         newone
     }

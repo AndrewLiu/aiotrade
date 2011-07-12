@@ -748,12 +748,15 @@ class Exchange extends Ordered[Exchange] {
     if (quotesToClose.length > 0) {
       willCommit = true
 
+      val time = quotesToClose(0).time
+
       var i = 0
       while (i < quotesToClose.length) {
         val quote = quotesToClose(i)
         quote.closed_!
 
         val sec = quote.sec
+        // update the ser's TVar 'isClosed' 
         freq match {
           case TFreq.DAILY if alsoSave || sec.isSerCreated(TFreq.DAILY) =>
             sec.serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
@@ -765,23 +768,38 @@ class Exchange extends Ordered[Exchange] {
         i += 1
       }
 
-      if (alsoSave) {
-        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
+      if(alsoSave) {
+        
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
-            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
+            Quotes1d.saveBatch(time, quotesToClose)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
+            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
+            Quotes1m.saveBatch(time, quotesToClose)
         }
-
+        
       }
+
+//      if (alsoSave) {
+//        val (toInsert, toUpdate) = quotesToClose.partition(_.isTransient)
+//        freq match {
+//          case TFreq.DAILY =>
+//            log.info(this.code + " closed, inserting " + freq + " quotes: " + quotesToClose.length)
+//            if (toInsert.length > 0) Quotes1d.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) Quotes1d.updateBatch_!(toUpdate.toArray)
+//          case TFreq.ONE_MIN =>
+//            if (toInsert.length > 0) Quotes1m.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) Quotes1m.updateBatch_!(toUpdate.toArray)
+//        }
+//
+//      }
     }
 
     if (mfsToClose.length > 0) {
       willCommit = true
+
+      val time = mfsToClose(0).time
 
       var i = 0
       while (i < mfsToClose.length) {
@@ -791,19 +809,31 @@ class Exchange extends Ordered[Exchange] {
         i += 1
       }
 
-      if (alsoSave) {
-        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
+      if(alsoSave) {
+
         freq match {
           case TFreq.DAILY =>
             log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
-            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
+            MoneyFlows1d.saveBatch(time, mfsToClose)
           case TFreq.ONE_MIN =>
-            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
-            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
+            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
+            MoneyFlows1m.saveBatch(time, mfsToClose)
         }
-
       }
+
+//      if (alsoSave) {
+//        val (toInsert, toUpdate) = mfsToClose.partition(_.isTransient)
+//        freq match {
+//          case TFreq.DAILY =>
+//            log.info(this.code + " closed, inserting " + freq + " moneyflows: " + mfsToClose.length)
+//            if (toInsert.length > 0) MoneyFlows1d.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) MoneyFlows1d.updateBatch_!(toUpdate.toArray)
+//          case TFreq.ONE_MIN =>
+//            if (toInsert.length > 0) MoneyFlows1m.insertBatch_!(toInsert.toArray)
+//            if (toUpdate.length > 0) MoneyFlows1m.updateBatch_!(toUpdate.toArray)
+//        }
+//
+//      }
     }
     
     if (willCommit) {

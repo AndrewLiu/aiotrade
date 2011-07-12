@@ -16,6 +16,7 @@ object MoneyFlows1d extends MoneyFlows {
   override def config = org.aiotrade.lib.util.config.Config()
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
+  @deprecated
   def dailyMoneyFlowOf(sec: Sec, dailyRoundedTime: Long): MoneyFlow = {
     val cached = dailyCache.get(dailyRoundedTime) match {
       case Some(map) => map
@@ -49,6 +50,7 @@ object MoneyFlows1d extends MoneyFlows {
     }
   }
 
+  @deprecated
   def dailyMoneyFlowOf_ignoreCache(sec: Sec, dailyRoundedTime: Long): MoneyFlow = synchronized {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
@@ -78,6 +80,7 @@ object MoneyFlows1m extends MoneyFlows {
 
   private val minuteCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
+  @deprecated
   def minuteMoneyFlowOf(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     if (isServer) minuteMoneyFlowOf_nocached(sec, minuteRoundedTime) else minuteMoneyFlowOf_cached(sec, minuteRoundedTime)
   }
@@ -85,6 +88,7 @@ object MoneyFlows1m extends MoneyFlows {
   /**
    * @Note do not use it when table is partitioned on secs_id, since this qeury is only on time
    */
+  @deprecated
   def minuteMoneyFlowOf_cached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     val cached = minuteCache.get(minuteRoundedTime) match {
       case Some(map) => map
@@ -118,6 +122,7 @@ object MoneyFlows1m extends MoneyFlows {
     }
   }
 
+  @deprecated
   def minuteMoneyFlowOf_nocached(sec: Sec, minuteRoundedTime: Long): MoneyFlow = {
     (SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
@@ -230,6 +235,34 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
       this.insertBatch_!(inserts.toArray)
     } catch {
       case e => log.severe("Failed to saveBatch moneyflow due to " + e.getMessage)
+    }
+  }
+
+  def saveBatch(atSameTime: Long, mfs: ArrayList[MoneyFlow]) {
+    if (mfs.isEmpty) return
+    val exists = mutable.Map[Sec, MoneyFlow]()
+    (SELECT (this.*) FROM (this) WHERE (
+        (this.time EQ atSameTime)
+      ) list()
+    ) foreach {x => exists.put(x.sec, x)}
+    val updates = new ArrayList[MoneyFlow]()
+    val inserts = new ArrayList[MoneyFlow]()
+    var i = -1
+    while ({i += 1; i < mfs.length}) {
+      val quote = mfs(i)
+      exists.get(quote.sec) match {
+        case Some(existOne) =>
+          existOne.copyFrom(quote)
+          updates += existOne
+        case None =>
+          inserts += quote
+      }
+    }
+    if (updates.length > 0) {
+      this.updateBatch_!(updates.toArray)
+    }
+    if (inserts.length > 0) {
+      this.insertBatch_!(inserts.toArray)
     }
   }
 }
