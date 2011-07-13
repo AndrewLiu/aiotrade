@@ -192,4 +192,11 @@ trait Serializer {
     body
   }
 
+  def encodeString(content: Any): Array[Byte] = {
+    val out = new ByteArrayOutputStream
+    val oout = new java.io.OutputStreamWriter(out, "utf-8")
+    oout.write(content.asInstanceOf[String])
+    oout.close
+    out.toByteArray
+  }
 }

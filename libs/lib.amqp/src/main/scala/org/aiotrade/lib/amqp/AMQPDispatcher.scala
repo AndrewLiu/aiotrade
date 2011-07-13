@@ -239,7 +239,9 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
         case JAVA_SERIALIZED_OBJECT.mimeType => encodeJava(content)
         case JSON.mimeType => encodeJson(content)
-        case AVRO.mimeType => encodeAvro(content)  
+        case AVRO.mimeType => encodeAvro(content)
+        case TEXT_PLAIN.mimeType => encodeString(content)
+
         case _ => encodeJava(content)
       }
 
