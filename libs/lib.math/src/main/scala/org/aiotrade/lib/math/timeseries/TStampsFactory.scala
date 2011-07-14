@@ -227,8 +227,8 @@ object TStampsFactory {
             
       /**
        * if we reach here, that means the time should between (from) and (from + 1),
-       * and the 'length' should be 1 (end - start). So, just do following checking,
-       * if can't get exact index, just return -1.
+       * and the 'length' should be 1 (end - start). So, just do following checking.
+       * If can't get exact index, ﻿just return invalid value -1
        */
       if (apply(from) >= time) {
         from
@@ -271,8 +271,8 @@ object TStampsFactory {
             
       /**
        * if we reach here, that means the time should between (from) and (from + 1),
-       * and the 'length' should be 1 (end - start). So, just do following checking,
-       * if can't get exact index, just return -1.
+       * and the 'length' should be 1 (end - start). So, just do following checking.
+       * If can't get exact index, just return invalid -1.
        */
       if (apply(from + 1) <= time) {
         from + 1
