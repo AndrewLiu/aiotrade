@@ -89,6 +89,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
   case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
   case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  case class ClosedDate(time: Long, timeInMinutes: Int) extends TradingStatus
   case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
   
   private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
@@ -269,6 +270,22 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     cal.getTimeInMillis
   }
 
+  /**
+   * @todo
+   */
+  def isClosedDate(cal: Calendar): Boolean = {
+    cal.get(Calendar.DAY_OF_WEEK) match {
+      case Calendar.SUNDAY | Calendar.SATURDAY => true
+      case _ => false // @todo
+    }
+  }
+
+  def isClosedDate(time: Long): Boolean = {
+    val cal = util.calendarOf(timeZone)
+    cal.setTimeInMillis(time)
+    isClosedDate(cal)
+  }
+  
   protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
     if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
       Some(PreOpen(time, timeInMinutes))
@@ -292,7 +309,10 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
     
+    if (isClosedDate(cal)) return ClosedDate(time, timeInMinutes)
+    
     if (this == SZ || this == SS) {
+      
       tradingStatusCN(timeInMinutes, time) match {
         case Some(status) => return status
         case None =>
@@ -784,15 +804,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
 
   // --- helper methods
   def secsOf(exchange: Exchange): Seq[Sec] = {
-    val exchangeId = Exchanges.idOf(exchange)
     val t0 = System.currentTimeMillis
     
+    val exchangeId = Exchanges.idOf(exchange)
     val secs = try {
       if (isServer) {
         SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
       } else {
         val secInfos = SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-        SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (sec => sec.exchange.code == exchange.code)
+        SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (x => x.exchange.code == exchange.code)
       }
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
@@ -801,6 +821,20 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
     
     secs
+  }
+  
+  def secInfosOf(exchange: Exchange): Seq[SecInfo] = {
+    val exchangeId = Exchanges.idOf(exchange)
+    try {
+      if (isServer) {
+        SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
+      } else {
+        val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list() 
+        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list() filter (x => x.sec != null && x.sec.exchange.code == exchange.code)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
   }
 
   def exchangeToSec(): Map[Exchange, Seq[Sec]] = {

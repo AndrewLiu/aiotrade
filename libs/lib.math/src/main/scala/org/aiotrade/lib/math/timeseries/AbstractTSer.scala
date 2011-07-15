@@ -80,32 +80,32 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
       readLock.lock
       timestamps.readLock.lock
 
-      if (size != 0) {
-        val vs = exportableVars filter (v => v.name != null && v.name != "")
-        val frIdx = math.max(timestamps.indexOfNearestOccurredTimeBehind(fromTime), 0)
-        var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-        toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
-        val len = toIdx - frIdx + 1
+      if (size > 0) {
+        val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+        if (frIdx >= 0) {
+          var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+          if (toIdx >= 0) {
+            // best effort to avoid index out of bounds
+            val vs = exportableVars filter (v => v.name != null && v.name != "")
+            toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
+            if (toIdx >= frIdx) {
+              val len = toIdx - frIdx + 1
+              val vmap = new mutable.HashMap[String, Array[_]]()
 
-        if (frIdx >= 0 && len > 0) {
-          val vmap = new mutable.HashMap[String, Array[_]]()
+              val times = timestamps.sliceToArray(frIdx, len)
+              vmap.put(".", times)
 
-          val times = timestamps.sliceToArray(frIdx, len)
-          vmap.put(".", times)
+              for (v <- vs) {
+                val values = v.values.sliceToArray(frIdx, len)
+                vmap.put(v.name, values)
+              }
 
-          for (v <- vs) {
-            val values = v.values.sliceToArray(frIdx, len)
-            vmap.put(v.name, values)
-          }
-
-          vmap
-        } else {
-          Map()
-        }
-      } else {
-        Map()
-      }
-
+              vmap
+            } else Map()
+          } else Map()
+        } else Map()
+      } else Map()
+      
     } finally {
       timestamps.readLock.unlock
       readLock.unlock

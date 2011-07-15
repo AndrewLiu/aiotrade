@@ -79,10 +79,6 @@ final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
       }
     }
   }
-
-  private def daysFrom1970(time: Long): Int = {
-    (time / TUnit.Day.interval).toInt
-  }
 }
 
 object TimeQueue {
