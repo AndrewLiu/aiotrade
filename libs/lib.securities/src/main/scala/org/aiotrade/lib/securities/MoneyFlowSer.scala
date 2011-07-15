@@ -200,10 +200,6 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     val time = mf.time
     createOrClear(time)
 
-    relativeAmount(time) = mf.relativeAmount
-    amountInCount(time) = mf.amountInCount
-    amountOutCount(time) = mf.amountOutCount
-    
     assignValue(mf)
         
     /** be ware of fromTime here may not be same as ticker's event */

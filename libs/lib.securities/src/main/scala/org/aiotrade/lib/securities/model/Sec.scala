@@ -293,6 +293,15 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
     }
   }
 
+  def updatePriceDistributionSer(freq: TFreq, priceDistribution: PriceCollection) {
+    freq match {
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          priceDistributionSerOf(TFreq.DAILY) foreach (_.updateFrom(priceDistribution))
+        }
+    }
+  }
+
   def infoPointSerOf(freq: TFreq): Option[InfoPointSer] = mutex synchronized {
     freq match {
       case TFreq.ONE_SEC | TFreq.ONE_MIN | TFreq.DAILY => freqToInfoPointSer.get(freq) match {
@@ -407,10 +416,10 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
 
     ser.isInLoading = true
 
-    val isRealTime = ser eq realtimeMoneyFlowSer
+    val isRealTime = ser eq realtimePriceDistributionSer
     // load from persistence
     val wantTime = loadPriceDistributionSerFromPersistence(ser, isRealTime)
-    // try to load from quote server
+    // try to load from price distributions server
     loadFromPriceDistributionServer(ser, wantTime, isRealTime)
 
     true
@@ -618,23 +627,22 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
    * All values in persistence should have been properly rounded to 00:00 of exchange's local time
    */
   def loadPriceDistributionSerFromPersistence(ser: PriceDistributionSer, isRealTime: Boolean): Long = {
-    val pds = ser.freq match {
+    val pcs = ser.freq match {
       case TFreq.DAILY   => PriceDistributions.closedDistribuOf(this)
       case _ => return 0L
     }
 
-    ser ++= pds.values.toArray
-    0L
+    ser ++= pcs.values.toArray
 
     /**
-     * get the newest time which DataServer will load quotes after this time
-     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * get the newest time which DataServer will load price distributions after this time
+     * if price distributions is empty, means no data in db, so, let newestTime = 0, which
      * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
      */
-    if (!pds.isEmpty) {
-      val (max,min) = this.getMaxMinValue(pds.keys.toArray)
-      val first = pds.get(min).getOrElse(null)
-      val last = pds.get(max).getOrElse(null)
+    if (!pcs.isEmpty) {
+      val (max,min) = this.getMaxMinValue(pcs.keys.toArray)
+      val first = pcs(min)
+      val last = pcs(max)
 
       ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
 
@@ -643,14 +651,17 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         // search the lastFromMe one, if exist, should re-load quotes from data source to override them
         var lastFromMe: PriceCollection = null
         var maxTime = 0L
-        pds.values.foreach{pc =>
-          if (pc.fromMe_? && pc.time >= maxTime) lastFromMe = pc; maxTime = pc.time
+        pcs.values.foreach{pc =>
+          if (pc.fromMe_? && pc.time >= maxTime){
+            lastFromMe = pc;
+            maxTime = pc.time
+          }
         }
 
         if (lastFromMe != null) lastFromMe.time - 1 else last.time
       }
 
-      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got Price distributions=" + pds.size +
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got Price distributions=" + pcs.size +
                ", loaded: time=" + last.time + ", size=" + ser.size +
                ", will try to load from data source from: " + wantTime
       )
@@ -662,7 +673,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private def getMaxMinValue(times: Array[Long]) = {
     var max = 0L
     var min = System.currentTimeMillis
-    times.foreach{value =>
+    times foreach {value =>
       if (value > max) max = value
       if (value < min) min = value
     }
@@ -1011,11 +1022,19 @@ class SecSnap(val sec: Sec) {
   private def checkPriceDistributionAt(time: Long): PriceCollection  = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
-    if (priceDistribution.isEmpty || priceDistribution.values.last.time == rounded){
-      return priceDistribution
-    }else {
-      val newone = PriceDistributions.dailyDistribuOf(sec, rounded)
-      priceDistribution = newone
+    priceDistribution match {
+      case oldOne: PriceCollection if (oldOne.time == rounded && !oldOne.closed_?) => oldOne
+      case _ =>
+        val newone = new PriceCollection
+        newone.time = rounded
+        newone.sec = sec
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        sec.exchange.addNewPriceDistribution(TFreq.DAILY, newone)
+
+        priceDistribution = newone
         newone
     }
   }
