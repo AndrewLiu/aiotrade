@@ -45,43 +45,21 @@ import scala.collection.mutable
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
- *
+ * 
+ * @param [V] data storege type
  * @author Caoyuan Deng
  */
-object DataServer extends Publisher {
-  private lazy val DEFAULT_ICON: Option[Image] = {
-    Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
-  }
-
-  private val config = org.aiotrade.lib.util.config.Config()
-  private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
-  case class HeartBeat(interval: Long) 
-  
-  // in context of applet, a page refresh may cause timer into a unpredict status,
-  // so it's always better to restart this timer? , if so, cancel it first.
-  //    if (timer != null) {
-  //      timer.cancel
-  //    }
-  private val timer = new Timer("DataServer Heart Beat Timer")
-  timer.schedule(new TimerTask {
-      def run = publish(HeartBeat(heartBeatInterval))
-    }, 1000, heartBeatInterval)
-}
-
-/**
- * V data storege type
- */
-import DataServer._
 abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publisher {
-  type C <: DataContract[_]
-
-  case object DataProcessed
-  case class DataLoaded(values: Array[V], contract: C)
-
-  protected val EmptyValues = Array[V]()
-
+  import DataServer._
   private val log = Logger.getLogger(this.getClass.getName)
 
+  type C <: DataContract[_]
+
+  private case class RequestData(afterTime: Long, contract: Iterable[C])
+  case class DataLoaded(values: Array[V], contract: C)
+  case object DataProcessed
+
+  protected val EmptyValues = Array[V]()
   protected val ANCIENT_TIME: Long = Long.MinValue
 
   protected val subscribingMutex = new Object
@@ -95,59 +73,82 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   protected var loadedTime: Long = _
 
   private var isRefreshable = false
-  private var inLoading = false
 
-  private case class AskLoadData(afterTime: Long, contract: Iterable[C])
-
+  /**
+   * @note Beware of a case in producer-consumer module:
+   * During process DataLoaded, we may have accepted lots HeartBeat.
+   * The producer is the one who implements requestData(...) and publishs DataLoaded,
+   * after data collected. For example, who reads the data file and produces values;
+   * The consumer is the one who accept DataLoaded and implements processData(...).
+   * When producer collects data very quickly, (much) faster than consumer, the
+   * values that are carried by DataLoaded will be blocked and the datum are stored
+   * in actor's mailbox, i.e. the memory. In extreme cases, the memory will be exhausted
+   * finally. 
+   * 
+   * You have to balance in this case, if the data that to be collected are very
+   * important, that cannot be lost, you should increase the memory or store data
+   * in persistence cache first. Otherwise, you have to try to sync the producer and 
+   * the consumer.
+   */
+  private var flowCount: Int = _ // flow control that tries to balance request and process
   reactions += {
     // --- a proxy actor for HeartBeat event etc, which will detect the speed of
     // refreshing requests, if consumer can not catch up the producer, will drop
     // some requests.
     case HeartBeat(interval) =>
-      if (isRefreshable && !inLoading) {
+      if (isRefreshable && flowCount < 5) {
         // refresh from loadedTime for subscribedContracts
-        publish(AskLoadData(loadedTime, subscribedContracts))
+        try {
+          flowCount += 1
+          log.fine("Got HeartBeat message, going to request data, flowCount=" + flowCount)
+          requestData(loadedTime, subscribedContracts)
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+      } else {
+        flowCount -= 1 // give chance to requestData
       }
+      flowCount = math.max(0, flowCount) // avoid too big gap
       
-    case AskLoadData(afterTime, contracts) =>
-      inLoading = true
+    case RequestData(afterTime, contracts) =>
       try {
+        flowCount += 1
+        log.info("Got RequestData message, going to request data, flowCount=" + flowCount)
         requestData(afterTime, contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      inLoading = false
-
-    case DataLoaded(values: Array[V], contract) => // don't specify contract type as C, which won't match 'null'
-      log.info("Received DataLoaded event")
-      inLoading = true
+      
+    case DataLoaded(values, contract) =>
+      val t0 = System.currentTimeMillis
       try {
-        loadedTime = processData(values, contract.asInstanceOf[C])
+        flowCount -= 1
+        log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
+        loadedTime = math.max(processData(values, contract), loadedTime) // @todo, loadedTime should be from requestData
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
-      inLoading = false
       
       publish(DataProcessed)
+      log.info("Processed data in " + (System.currentTimeMillis - t0) + "ms")
   }
   listenTo(DataServer)
 
   // --- public interfaces
 
   def loadData(afterTime: Long, contracts: Iterable[C]) {
-    log.info("Fired LoadData message")
-    /**
-     * Transit to async load reactor to avoid shared variables lock (loadedTime etc)
-     */
-    publish(AskLoadData(afterTime, contracts))
+    log.info("Fired RequestData message")
+    // transit to async load reactor to avoid shared variables lock (loadedTime etc)
+    publish(RequestData(afterTime, contracts))
   }
 
   /**
    * Implement this method to request data from data source.
-   * It should publish DataLoaded event to enable processData
+   * It should publish DataLoaded event to enable processData and fire chained events, 
+   * such as TSerEvent.Loaded etc.
    *
-   * @param afterThisTime When afterThisTime equals ANCIENT_TIME, you should process this condition.
-   *        contracts
+   * @param afterThisTime. When afterThisTime equals ANCIENT_TIME, you should process this condition.
+   * @param contracts
    * @publish DataLoaded
    */
   protected def requestData(afterThisTime: Long, contracts: Iterable[C])
@@ -158,7 +159,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * @Note this DataServer will react to DataLoaded with processData automatically if it
    * received this event
    * @See reactions += {...}
-   * 
    */
   protected def publishData(msg: Any) {
     publish(msg)
@@ -172,7 +172,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   protected def processData(values: Array[V], contract: C): Long
 
   def startRefresh {isRefreshable = true}
-  def stopRefresh {isRefreshable = false}
+  def stopRefresh  {isRefreshable = false}
 
   // ----- subscribe/unsubscribe is used for refresh only
 
@@ -232,55 +232,72 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * ...
    * @return source id
    */
-   def id: Long = {
-      val sn = serialNumber
-      assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
+  def id: Long = {
+    val sn = serialNumber
+    assert(sn >= 0 && sn < 63, "source serial number should be between 0 to 63!")
 
-      if (sn == 0) 0 else 1 << (sn - 1)
-    }
+    if (sn == 0) 0 else 1 << (sn - 1)
+  }
 
-   // -- end of public interfaces
+  // -- end of public interfaces
 
-   /** @Note DateFormat is not thread safe, so we always return a new instance */
-   protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
-      val pattern = defaultDatePattern
-      val dateFormat = new SimpleDateFormat(pattern)
-      dateFormat.setTimeZone(timeZone)
-      dateFormat
-    }
+  /** @Note DateFormat is not thread safe, so we always return a new instance */
+  protected def dateFormatOf(timeZone: TimeZone): DateFormat = {
+    val pattern = defaultDatePattern
+    val dateFormat = new SimpleDateFormat(pattern)
+    dateFormat.setTimeZone(timeZone)
+    dateFormat
+  }
 
-   protected def isAscending(values: Array[_ <: TVal]): Boolean = {
-      val size = values.length
-      if (size <= 1) {
-        true
-      } else {
-        var i = 0
-        while (i < size - 1) {
-          if (values(i).time < values(i + 1).time) {
-            return true
-          } else if (values(i).time > values(i + 1).time) {
-            return false
-          }
-          i += 1
+  protected def isAscending(values: Array[_ <: TVal]): Boolean = {
+    val size = values.length
+    if (size <= 1) {
+      true
+    } else {
+      var i = -1
+      while ({i += 1; i < size - 1}) {
+        if (values(i).time < values(i + 1).time) {
+          return true
+        } else if (values(i).time > values(i + 1).time) {
+          return false
         }
-        false
       }
+      false
     }
+  }
 
-   protected def cancelRequest(contract: C) {}
+  protected def cancelRequest(contract: C) {}
 
-   override def compare(another: DataServer[V]): Int = {
-      if (this.displayName.equalsIgnoreCase(another.displayName)) {
-        if (this.hashCode < another.hashCode) -1
-        else if (this.hashCode == another.hashCode) 0
-        else 1
-      } else {
-        this.displayName.compareTo(another.displayName)
-      }
+  override def compare(another: DataServer[V]): Int = {
+    if (this.displayName.equalsIgnoreCase(another.displayName)) {
+      if (this.hashCode < another.hashCode) -1
+      else if (this.hashCode == another.hashCode) 0
+      else 1
+    } else {
+      this.displayName.compareTo(another.displayName)
     }
+  }
 
-   override def toString: String = displayName
-   }
+  override def toString: String = displayName
+}
 
+object DataServer extends Publisher {
+  private lazy val DEFAULT_ICON: Option[Image] = {
+    Option(classOf[DataServer[_]].getResource("defaultIcon.gif")) map {url => Toolkit.getDefaultToolkit.createImage(url)}
+  }
 
+  private val config = org.aiotrade.lib.util.config.Config()
+  private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
+  case class HeartBeat(interval: Long) 
+  
+  // in context of applet, a page refresh may cause timer into a unpredict status,
+  // so it's always better to restart this timer? , if so, cancel it first.
+  //    if (timer != null) {
+  //      timer.cancel
+  //    }
+  private val timer = new Timer("DataServer Heart Beat Timer")
+  timer.schedule(new TimerTask {
+      def run = publish(HeartBeat(heartBeatInterval))
+    }, 1000, heartBeatInterval)
+}
 

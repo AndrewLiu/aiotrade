@@ -331,9 +331,9 @@ abstract class TickerServer extends DataServer[Ticker] {
         // update daily quote and ser
         dayQuote.updateDailyQuoteByTicker(ticker)
 
-        // send updated quote to sec to update chain ser
-        sec ! TickerServer.QuoteEvt(TFreq.DAILY, dayQuote)
-        sec ! TickerServer.QuoteEvt(TFreq.ONE_MIN, minQuote)
+        // updated quote ser
+        sec.updateQuoteSer(TFreq.DAILY, dayQuote)
+        sec.updateQuoteSer(TFreq.ONE_MIN, minQuote)
         
         allUpdatedDailyQuotes += dayQuote
         allUpdatedMinuteQuotes += minQuote

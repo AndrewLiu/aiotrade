@@ -32,6 +32,14 @@
         </license>
     </licenses>
 
+    <distributionManagement>
+        <repository>
+            <id>repo.qa</id>
+            <name>Nyapc ${deploy.version} repository</name>
+            <url>http://repo.qa/content/repositories/${deploy.version}</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -83,9 +91,12 @@
     </reporting>
 
     <modules>
+        <module>lib.amqp</module>
+        <module>lib.avro</module>
         <module>lib.util</module>
         <module>lib.json</module>
         <module>lib.io</module>
+        <module>lib.sevenzip</module>
         <module>lib.math</module>
         <module>lib.securities</module>
         <module>lib.indicator</module>
@@ -95,10 +106,7 @@
         <module>lib.dataserver.ib</module>
         <module>lib.dataserver.yahoo</module>
         <module>lib.dbfdriver</module>
-        <module>lib.amqp</module>
-        <module>lib.avro</module>
         <module>helper.test</module>
-        <module>lib.sevenzip</module>
         <module>../../configgy</module>
         <module>../../circumflex/circumflex-orm</module>
     </modules>
