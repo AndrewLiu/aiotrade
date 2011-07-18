@@ -261,7 +261,7 @@ object Evt {
     //testPrimitives
     testVmap
     
-    println(prettyPrint(tagToEvt map (_._2)))
+//    println(prettyPrint(tagToEvt map (_._2)))
   }
   
   private def testMatch {
@@ -384,27 +384,38 @@ object Evt {
   private def testVmap {
     import TestAPIs._
     
-    val vmap = new mutable.HashMap[String, Array[_]]
+    val vmap = mutable.Map[String, Array[_]]()
     vmap.put(".", Array(1L, 2L, 3L))
-    vmap.put("a", Array(1.0, 2.0, 3.0))
-    vmap.put("b", Array("a", "b", "c"))
-    vmap.put("c", Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
+    val map1 = Map() + "123" -> "abc"
+    val map2 = Map() + "123" -> "abc"
+    vmap.put("d", Array(map1, map2))
+//    vmap.put("a", Array(1.0, 2.0, 3.0))
+//    vmap.put("b", Array("a", "b", "c"))
+//    vmap.put("c", Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
 
-    val pc = new PriceCollection
-    val pd = new PriceDistribution
-    pd.price = 23.6
-    pd.volumeDown=2334
-    pd.volumeUp = 9803
-    pc.put(pd.price.toString, pd)
-    val msg = PCEvt(pc)
+//    val pc = new PriceCollection
+//    val pd = new PriceDistribution
+//    pd.price = 23.6
+//    pd.volumeDown=2334
+//    pd.volumeUp = 9803
+//    pc.put(pd.price.toString, pd)
+//    val msg = PCEvt(pc)
 
+    val msg = TestVmapEvt(vmap)
+    println("print a map schema.")
+    printSchema(vmap.getClass)
+    
     val avroBytes = toAvro(msg.value, msg.tag)
-    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[PriceCollection]
+    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
+    println("" + avroDatum(".")(0).asInstanceOf[Long])
+    println("" + avroDatum("d")(0).asInstanceOf[collection.Map[String, String]])
+//    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[PriceCollection]
     println(avroDatum)
     //avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
     val jsonBytes = toJson(msg.value, msg.tag)
-    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[PriceCollection]
+    val jsonDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
+//    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[PriceCollection]
     println(jsonDatum)    
     //jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
@@ -428,17 +439,17 @@ private[avro] object TestAPIs {
   val BadEmpEvt = Evt(-13) // T will be AnyRef
   
   val TestDataEvt =  Evt[TestData](-100)
-  val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-101, schemaJson = """
-    {"type":"map","values":{"type":"array","items":["long","double","string",
-     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.avro.TestAPIs$",
-       "fields":[
-         {"name":"x1","type":"string"},
-         {"name":"x2","type":"int"},
-         {"name":"x3","type":"double"},
-         {"name":"x4","type":{"type":"array","items":"float"}}
-       ]}
-     ]}}
-  """)
+  val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-101)//, schemaJson = """
+//    {"type":"map","values":{"type":"array","items":["long","double","string",
+//     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.avro.TestAPIs$",
+//       "fields":[
+//         {"name":"x1","type":"string"},
+//         {"name":"x2","type":"int"},
+//         {"name":"x3","type":"double"},
+//         {"name":"x4","type":{"type":"array","items":"float"}}
+//       ]}
+//     ]}}
+//  """)
 
   val PCEvt = Evt[PriceCollection](-102)//, "", """
                                    //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
@@ -505,7 +516,6 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
   }
 }
 
-
 trait TVal extends Ordered[TVal] {
   def time: Long
   def time_=(time: Long)
@@ -520,6 +530,7 @@ trait TVal extends Ordered[TVal] {
     }
   }
 }
+
 @serializable
 abstract class BelongsToSec {
   
