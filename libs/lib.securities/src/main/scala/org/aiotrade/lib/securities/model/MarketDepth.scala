@@ -1,5 +1,7 @@
 package org.aiotrade.lib.securities.model
 
+import org.aiotrade.lib.collection.ArrayList
+
 object MarketDepth {
   val Empty = new MarketDepth(Array[Double]())
 
@@ -19,10 +21,39 @@ object MarketDepth {
  * 3 - ask size
  */
 @serializable @cloneable
-final class MarketDepth(_bidAsks: Array[Double]) {
+final class MarketDepth(_bidAsks: Array[Double], _bidOrders : ArrayList[Double], _askOrders : ArrayList[Double]) {
   @transient var isChanged: Boolean = _
 
-  def this() = this(null)
+  def this(_bidAsks: Array[Double]) = this(_bidAsks, null, null)
+  def this() = this(null, null, null)
+
+  def ordersExist_? = (_bidOrders != null) && (_askOrders != null)
+
+  def bidOrders = _bidOrders
+  def bidOrders_=(that: ArrayList[Double]) {
+    if (that.length == 0) {
+      return
+    }
+    var i = 0
+    val length = that.length
+    while (i < length) {
+      _bidOrders(i) = that(i)
+      i += 1
+    }
+  }
+
+  def askOrders = _askOrders
+  def askOrders_=(that: ArrayList[Double]) {
+    if (that.length == 0) {
+      return
+    }
+    var i = 0
+    val length = that.length
+    while (i < length) {
+      _askOrders(i) = that(i)
+      i += 1
+    }
+  }
 
   def depth = _bidAsks.length / 4
   
