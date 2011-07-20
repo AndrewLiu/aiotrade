@@ -121,14 +121,15 @@ sectors                  \
 tickers_last             \
 | gzip > faster20110622.dump.gz &
 
+ * Dump tables structure of tickers/executions:
+ 
+nohup mysqldump --no-data --opt --default-character-set=utf8 -uroot faster executions tickers > faster_excutions_tickers.sql &
+
  * Gzip:
  *  $ nohup time -o timer.txt cat filename | gzip > filename.gz &
  * Gunzip:
  *  $ nohup time -o timer.txt gzip -dc filename.gz > filename &
  * 
- * Dump tables structure of tickers/executions:
- 
-nohup mysqldump --no-data --opt --default-character-set=utf8 -uroot faster executions tickers > faster_somestruc.sql
 
  *
  *

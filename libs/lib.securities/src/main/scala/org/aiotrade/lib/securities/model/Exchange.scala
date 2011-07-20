@@ -910,8 +910,9 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   }
 
   def createSimpleSecs(symbol_name_xs: Array[(String, String)], willCommit: Boolean = false): Array[Sec] = {
-    val secInfos = new ArrayList[SecInfo]
     val secs = new ArrayList[Sec]
+    val secInfos = new ArrayList[SecInfo]
+    val sectorSecs = new ArrayList[SectorSec]
     
     for ((uniSymbol, name) <- symbol_name_xs) {
       val sec = new Sec
@@ -926,18 +927,27 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       secInfos += secInfo
 
       sec.secInfo = secInfo
+      
+      for (sectorKey <- Sector.cnSymbolToSectorKey(uniSymbol); sector <- Sector.withKey(sectorKey)) {
+        Sector.withKey(sectorKey)
+        val sectorSec = new SectorSec
+        sectorSec.sector = sector
+        sectorSec.sec = sec
+        sectorSecs += sectorSec
+      }
     }
     
-    val secInfosA = secInfos.toArray
     val secsA = secs.toArray
+    val secInfosA = secInfos.toArray
     try {
       Secs.insertBatch_!(secsA, false) // do not use auto increamnent id
       SecInfos.insertBatch_!(secInfosA)
       Secs.updateBatch_!(secsA, Secs.secInfo)
+      SectorSecs.insertBatch_!(sectorSecs.toArray)
     
       if (willCommit && (secsA.length > 0 || secInfosA.length > 0)) {
         COMMIT
-        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length)
+        log.info("Committed secs: " + secsA.length + ", sec_infos: " + secInfosA.length + ", sector_secs: " + sectorSecs.length)
       }
       
       secsA

@@ -39,7 +39,9 @@ import org.aiotrade.lib.util.ValidTime
 import ru.circumflex.orm._
 
 /**
- * fullcode is defined as two parts first part is caterogy (6 chars), second part is subcategory
+ * Fullcode is defined as two parts:
+ *   1st part is caterogy (6 chars), 
+ *   2nd part is code/subcategory (max 20 chars)
  * 
  * @author Caoyuan Deng
  */
@@ -50,44 +52,78 @@ class Sector extends CRCLongId {
   
   var secs: List[Sec] = Nil
   
-  lazy val key = category + "." + code
+  lazy val key = Sector.toKey(category, code)
+  
+  override def hashCode = id.hashCode
   
   override def equals(that: Any) = that match {
     case x: Sector => this.id == x.id
     case _ => false
   }
-
 }
 
 object Sector {
 
+  // max 6 chars
   object Category {
+    
     // security kind
-    val kind = "000000" 
+    val Kind = "KIND" 
+    
+    // exchange
+    val Exchange = "EXCHAN"
     
     // industries
-    val industryA = "008001"
+    val IndustryA = "008001"
     val IndustryB = "008002"
     val IndustryC = "008003"
     val IndustryD = "008004"
     val IndustryE = "008005"
+    
+    // boards
+    val Board = "BOARD"
+    
+    // joint
+    val Joint = "JOINT" 
+
+    // custom
+    val Custom = "CUSTOM"
   }
   
-  object Code {
-    // --- code of "kind"
-    val index = "000"
-    val stock = "001"
-    val fund = "002"
-    val option = "003"
-    val bond = "004"
-    val warrant = "005"
-    val forex = "006"
+  // --- subcategories/code
+  
+  object Kind {
+    val Index = "INDEX"                 // 指数
+    val Stock = "STOCK"                 // 股票
+    val Fund = "FUND"                  // 基金
+    val Bond = "BOND"                  // 债券
+    val Warrant = "WARRANT"               // 权证
+    val Future = "FUTURE"                // 期货
+    val Forex = "FOREX"                 // 外汇
+    val Option = "OPTION"                // 期权
+    val Treasury = "TREASURY"              // 国债
+    val AdditionalShareOffer = "ADDSHAOFFER"  // 增发
+    val ConvertibleBond = "CONVBOND"       // 可转换债券    
+    val TreasuryRepurchase = "TREASREP"    // 国债回购
+  }
+  
+  // --- code of 'board'
+  object Board {
+    val Main = "MAIN"
+    
+    val AShare = "ASHARE"
+    val BShare = "BSHARE"
+    val HShare = "HSHARE"
+
+    val SME = "SME" // Small and Medium-sized Enterprised board
+    val GEM = "GEM" // Growth Enterprises Market board
   }
   
   lazy val sectorToSecValidTimes: collection.Map[String, collection.Seq[ValidTime[Sec]]] = {
     Sectors.sectorToSecValidTimes
   }
 
+  def toKey(category: String, code: String): String = category + "." + code
   def toCategoryCode(key: String): (String, String) = {
     val separator = key.indexOf('.')
     if (separator > 0) {
@@ -109,8 +145,94 @@ object Sector {
     case None => Nil
   }
   
-  def withKey(key: String) = Sectors.withKey(key)
+  def withKey(key: String): Option[Sector] = Sectors.withKey(key)
   def withCategoryCode(category: String, code: String): Option[Sector] = Sectors.withCategoryCode(category, code)
+  
+  def cnSymbolToSectorKey(uniSymbol: String): Seq[String] = {
+    var sectorKeys = List[String]()
+    uniSymbol.toUpperCase.split('.') match {
+      case Array(symbol, "SS") => 
+        sectorKeys ::= toKey(Category.Exchange, "SS")
+        
+        if (symbol.startsWith("000")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Index)
+        } else if (symbol.startsWith("009") || symbol.startsWith("010") || symbol.startsWith("020")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Treasury)
+        } else if (symbol.startsWith("600") || symbol.startsWith("601")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Stock)
+          sectorKeys ::= toKey(Category.Board, Board.AShare)
+        } else if (symbol.startsWith("900")) { 
+          sectorKeys ::= toKey(Category.Kind, Kind.Stock)
+          sectorKeys ::= toKey(Category.Board, Board.BShare)
+        } else if (symbol.startsWith("500") || symbol.startsWith("510")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Fund)
+        } else if (symbol.startsWith("580")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
+        } else if (symbol.startsWith("100") || symbol.startsWith("110") || symbol.startsWith("112") || symbol.startsWith("113")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.ConvertibleBond)
+        } else if (symbol.startsWith("120") || symbol.startsWith("129")) { // enterprised bond
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond)
+        } else if (symbol.startsWith("1")) { 
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond)
+        }
+
+      case Array(symbol, "SZ") => 
+        sectorKeys ::= toKey(Category.Exchange, "SZ")
+        
+        if (symbol.startsWith("00")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Stock)
+          sectorKeys ::= toKey(Category.Board, Board.AShare)
+        } else if (symbol.startsWith("03")) { // 认购或认沽权证
+          sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
+          sectorKeys ::= toKey(Category.Board, Board.AShare)
+        } else if (symbol.startsWith("07")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.AdditionalShareOffer)
+          sectorKeys ::= toKey(Category.Board, Board.AShare)
+        } else if (symbol.startsWith("08")) { // 配股权证
+          sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
+          sectorKeys ::= toKey(Category.Board, Board.AShare)
+        } else if (symbol.startsWith("101")) { // 国债券挂牌分销
+          sectorKeys ::= toKey(Category.Kind, Kind.Treasury) 
+        } else if (symbol.startsWith("109")) { // 地方政府债券
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond) 
+        } else if (symbol.startsWith("10")) {  // 国债现货
+          sectorKeys ::= toKey(Category.Kind, Kind.Treasury)
+        } else if (symbol.startsWith("111")) { // 企业债券
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond)
+        } else if (symbol.startsWith("112")) { // 公司债券
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond)
+        } else if (symbol.startsWith("115")) { // 分离交易型可转债
+          sectorKeys ::= toKey(Category.Kind, Kind.ConvertibleBond)
+        } else if (symbol.startsWith("12")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.ConvertibleBond)
+        } else if (symbol.startsWith("13")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.TreasuryRepurchase)
+        } else if (symbol.startsWith("15") || symbol.startsWith("16") || symbol.startsWith("18")) { 
+          sectorKeys ::= toKey(Category.Kind, Kind.Fund)
+        } else if (symbol.startsWith("20")) { 
+          sectorKeys ::= toKey(Category.Kind, Kind.Stock)
+          sectorKeys ::= toKey(Category.Board, Board.BShare)
+        } else if (symbol.startsWith("28")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
+          sectorKeys ::= toKey(Category.Board, Board.BShare)
+        } else if (symbol.startsWith("30")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Stock)
+          sectorKeys ::= toKey(Category.Board, Board.GEM)
+        } else if (symbol.startsWith("37")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.AdditionalShareOffer)
+          sectorKeys ::= toKey(Category.Board, Board.GEM)
+        } else if (symbol.startsWith("38")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
+          sectorKeys ::= toKey(Category.Board, Board.GEM)
+        } else if (symbol.startsWith("39")) {
+          sectorKeys ::= toKey(Category.Kind, Kind.Index)
+        }
+      case _ => 
+    }
+    sectorKeys  
+  }
+  
+  def apply(category: String, code: String) = new Sector()
   
   // --- simple test
   def main(args: Array[String]) {
