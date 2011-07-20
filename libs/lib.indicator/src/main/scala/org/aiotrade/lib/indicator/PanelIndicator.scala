@@ -104,13 +104,14 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   protected def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
   
   override def computeFrom(fromTime0: Long) {
-    val fromTime = if (fromTime0 == 0 | fromTime0 == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)
-      val firstTime = firstTimeOf(indicators)
-      if (firstTime != Long.MaxValue) firstTime else return
+    val (firstTime, lastTime) = firstLastTimeOf(indicators)
+    
+    val fromTime = if (fromTime0 == 0 || fromTime0 == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)
+      firstTime
     } else fromTime0
-
-    val lastTime = lastTimeOf(indicators)
-
+    
+    if (fromTime == Long.MaxValue || lastTime == Long.MinValue) return
+    
     val t0 = System.currentTimeMillis
     compute(fromTime, lastTime)
     log.info(descriptor + ", size=" + size + ", computed " + util.formatTime(fromTime) + " - " + util.formatTime(lastTime) + " in " + (System.currentTimeMillis - t0) + "ms")
@@ -123,8 +124,9 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
    */
   protected def compute(fromTime: Long, toTime: Long)
   
-  protected def firstTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
+  protected def firstLastTimeOf(inds: ArrayList[(T, ValidTime[Sec])]): (Long, Long) = {
     var firstTime = Long.MaxValue
+    var lastTime = Long.MinValue
 
     var i = -1
     while ({i += 1; i < inds.length}) {
@@ -132,25 +134,13 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
       if (ind != null && ind.timestamps.length > 0) {
         val fTime = ind.firstOccurredTime
         firstTime = math.min(firstTime, fTime)
-      }
-    }
-
-    firstTime
-  }
-
-  protected def lastTimeOf(inds: ArrayList[(T, ValidTime[Sec])]) = {
-    var lastTime = Long.MinValue
-
-    var i = -1
-    while ({i += 1; i < inds.length}) {
-      val ind = inds(i)._1
-      if (ind != null && ind.timestamps.length > 0) {
+        
         val lTime = ind.lastOccurredTime
         lastTime = math.max(lastTime, lTime)
       }
     }
-      
-    lastTime
+
+    (firstTime, lastTime)
   }
 }
 
