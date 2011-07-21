@@ -3,6 +3,7 @@ package org.aiotrade.lib.securities.model
 import java.util.Calendar
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.collection.ArrayList
 import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
@@ -338,6 +339,14 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
   final def setBidSize (idx: Int, v: Double) = marketDepth.setBidSize (idx, v)
   final def setAskPrice(idx: Int, v: Double) = marketDepth.setAskPrice(idx, v)
   final def setAskSize (idx: Int, v: Double) = marketDepth.setAskSize (idx, v)
+
+  final def askOrders = marketDepth.askOrders
+  final def askOrders_=(values : ArrayList[Double]) {marketDepth.askOrders = values}
+
+  final def bidOrders = marketDepth.bidOrders
+  final def bidOrders_=(values : ArrayList[Double]) {marketDepth.bidOrders = values}
+
+  final def ordersExist_? = marketDepth.ordersExist_?
 
 
   // --- no db fields:
