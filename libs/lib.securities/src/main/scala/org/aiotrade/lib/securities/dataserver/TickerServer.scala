@@ -212,6 +212,9 @@ abstract class TickerServer extends DataServer[Ticker] {
       var execution: Execution = null
       if (isDayFirst) {
         log.fine("Got day's first ticker: " + ticker)
+
+        //@TODO Clear the history TickerSer in order to save memory space
+        //@TODO Clear the TickerSer.infiniBids and TickerSer.infiniAsks
         
         /**
          * this is today's first ticker we got when begin update data server,
