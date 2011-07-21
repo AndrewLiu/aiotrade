@@ -7,7 +7,10 @@ import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.collection.ArrayList
 
 class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
-  
+
+  val config = org.aiotrade.lib.util.config.Config()
+  val openInfiniBidAsk = config.getBool("dataserver.openInfiniBidAsk", false)
+
   private var _shortDescription: String = "TickerSer." + $sec.uniSymbol
   var adjusted: Boolean = false
 
@@ -27,8 +30,18 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val bidOrders = TVar[ArrayList[Double]]("BO", Plot.None)
   val askOrders = TVar[ArrayList[Double]]("AO", Plot.None)
 
-  //Consuct a type to store the price -> size
-  val priceToSize = collection.mutable.Map[Double, Int]()
+  val infiniBids = new InfiniPriceVolume
+  val infiniAsks = new InfiniPriceVolume
+
+  override def clear(frTime: Long) = {
+    super.clear(frTime)
+  }
+
+  def clearInfiniBidAdk = {
+    //@TODO recompute the bidPriceToSize & askPriceToSize
+    infiniBids.clear
+    infiniAsks.clear
+  }
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
@@ -56,6 +69,11 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
             bSizes(i) = ticker.bidSize(i)
             aPrices(i) = ticker.askPrice(i)
             aSizes(i) = ticker.askSize(i)
+            
+            if(openInfiniBidAsk) {
+              infiniBids ++= (bPrices(i) -> bSizes(i))
+              infiniAsks ++= (aPrices(i) -> aSizes(i))
+            }
           }
           
           bidPrice(time) = bPrices
@@ -153,4 +171,31 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
     publish(TSerEvent.Updated(this, $sec.uniSymbol, time, time))
   }
+}
+
+
+class InfiniPriceVolume {
+  private val priceToVolume : java.util.NavigableMap[Double, Double] = new java.util.TreeMap[Double, Double]
+
+  def clear = priceToVolume.clear
+
+  /**
+   * @param price -> volume
+   */
+  def ++= (pToV:(Double, Double)) {
+    val volume = priceToVolume.get(pToV._1)
+    if(volume != null) priceToVolume.put(pToV._1, pToV._2 + volume)
+    else priceToVolume.put(pToV._1, pToV._2)
+  }
+
+  def prices = priceToVolume.keySet
+
+  def volumeOf(price: Double): Option[Double] = {
+    val volume = priceToVolume.get(price)
+    
+    if(volume != null) Some(volume)
+    else None
+  }
+
+  
 }
