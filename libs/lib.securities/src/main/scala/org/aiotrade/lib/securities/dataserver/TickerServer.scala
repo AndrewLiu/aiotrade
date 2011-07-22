@@ -213,8 +213,11 @@ abstract class TickerServer extends DataServer[Ticker] {
       if (isDayFirst) {
         log.fine("Got day's first ticker: " + ticker)
 
-        //@TODO Clear the history TickerSer in order to save memory space
-        //@TODO Clear the TickerSer.infiniBids and TickerSer.infiniAsks
+        //Clear the history TickerSer, and TickerSer.hisAccumBidAdk in order to save memory space
+        for(tickerSer <- sec.tickerSerOf(TFreq.ONE_SEC)) {
+          tickerSer.clear(0)
+          tickerSer.clearHisAccumBidAdk
+        }
         
         /**
          * this is today's first ticker we got when begin update data server,
@@ -337,6 +340,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         // updated quote ser
         sec.updateQuoteSer(TFreq.DAILY, dayQuote)
         sec.updateQuoteSer(TFreq.ONE_MIN, minQuote)
+        sec.updateTickerSer(TFreq.ONE_SEC, ticker)
         
         allUpdatedDailyQuotes += dayQuote
         allUpdatedMinuteQuotes += minQuote
