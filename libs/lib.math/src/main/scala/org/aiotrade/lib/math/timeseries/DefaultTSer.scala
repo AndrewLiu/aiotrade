@@ -31,12 +31,12 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.awt.Color
-import java.util.Calendar
-import org.aiotrade.lib.collection.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.indicator.Plot
+import org.aiotrade.lib.util
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -323,29 +323,29 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
 
   override def toString = {
     val sb = new StringBuilder(20)
-    val len = timestamps.length
+    
     sb.append(shortName).append("(").append(freq).append("): size=").append(size).append(", ")
     if (timestamps != null && timestamps.length > 0) {
-
-      val first = timestamps(0)
-      val last = timestamps(len - 1)
-      val cal = Calendar.getInstance
-      cal.setTimeInMillis(first)
+      val len = timestamps.length
+      
+      val fst = timestamps(0)
+      val lst = timestamps(len - 1)
+      val cal = util.calendarOf()
+      cal.setTimeInMillis(fst)
       sb.append(cal.getTime)
       sb.append(" - ")
-      cal.setTimeInMillis(last)
+      cal.setTimeInMillis(lst)
       sb.append(cal.getTime)
-    }
-    
-    sb.append(", values=(\n")
-    for (v <- vars) {
-      sb.append(v.name).append(": ... ")
-      var i = math.max(0, len - 6) // print last 6 values
-      while (i < len) {
-        sb.append(v(i)).append(", ")
-        i += 1
+      sb.append(", values=(\n")
+      for (v <- vars) {
+        sb.append(v.name).append(": ... ")
+        var i = math.max(0, len - 6) // print last 6 values
+        while (i < len) {
+          sb.append(v(i)).append(", ")
+          i += 1
+        }
+        sb.append("\n")
       }
-      sb.append("\n")
     }
     sb.append(")")
     
