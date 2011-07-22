@@ -6,10 +6,13 @@ import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.collection.ArrayList
 
+/**
+ * @author Guibin Zhang
+ */
 class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   val config = org.aiotrade.lib.util.config.Config()
-  val openInfiniBidAsk = config.getBool("dataserver.openInfiniBidAsk", false)
+  val openHisAccumBidAsk = config.getBool("dataserver.openHisAccumBidAsk", false)
 
   private var _shortDescription: String = "TickerSer." + $sec.uniSymbol
   var adjusted: Boolean = false
@@ -30,22 +33,24 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
   val bidOrders = TVar[ArrayList[Double]]("BO", Plot.None)
   val askOrders = TVar[ArrayList[Double]]("AO", Plot.None)
 
-  val infiniBids = new InfiniPriceVolume
-  val infiniAsks = new InfiniPriceVolume
+  val hisBids = new HisAccumPriceVolume
+  val hisAsks = new HisAccumPriceVolume
 
   override def clear(frTime: Long) = {
     super.clear(frTime)
   }
 
-  def clearInfiniBidAdk = {
-    //@TODO recompute the bidPriceToSize & askPriceToSize
-    infiniBids.clear
-    infiniAsks.clear
+  def clearHisAccumBidAdk = {
+    //@TODO recompute the hisBids & hisAsks
+    hisBids.clear
+    hisAsks.clear
   }
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
-    
+    val bidsToBePub = scala.collection.mutable.ListBuffer[HisAccumBid]()
+    val asksToBePub = scala.collection.mutable.ListBuffer[HisAccumAsk]()
+
     tval match {
       case ticker: Ticker =>
         dayOpen = ticker.dayOpen
@@ -70,10 +75,18 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
             aPrices(i) = ticker.askPrice(i)
             aSizes(i) = ticker.askSize(i)
             
-            if(openInfiniBidAsk) {
-              infiniBids ++= (bPrices(i) -> bSizes(i))
-              infiniAsks ++= (aPrices(i) -> aSizes(i))
+            if(openHisAccumBidAsk) {
+              hisBids ++= (bPrices(i) -> bSizes(i))
+              hisAsks ++= (aPrices(i) -> aSizes(i))
+
+              bidsToBePub += HisAccumBid(bPrices(i), hisBids.volumeOf(bPrices(i)).get)
+              asksToBePub += HisAccumAsk(aPrices(i), hisAsks.volumeOf(aPrices(i)).get)
             }
+          }
+          
+          if(openHisAccumBidAsk) {
+            if(bidsToBePub.size > 0) publish(bidsToBePub.toArray)
+            if(asksToBePub.size > 0) publish(asksToBePub.toArray)
           }
           
           bidPrice(time) = bPrices
@@ -135,6 +148,9 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
     val time = ticker.time
     createOrClear(time)
 
+    val bidsToBePub = scala.collection.mutable.ListBuffer[HisAccumBid]()
+    val asksToBePub = scala.collection.mutable.ListBuffer[HisAccumAsk]()
+
     dayOpen = ticker.dayOpen
     dayHigh(time) = ticker.dayHigh
     dayLow(time) = ticker.dayLow
@@ -156,6 +172,19 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
         bSizes(i) = ticker.bidSize(i)
         aPrices(i) = ticker.askPrice(i)
         aSizes(i) = ticker.askSize(i)
+
+        if(openHisAccumBidAsk) {
+          hisBids ++= (bPrices(i) -> bSizes(i))
+          hisAsks ++= (aPrices(i) -> aSizes(i))
+
+          bidsToBePub += HisAccumBid(bPrices(i), hisBids.volumeOf(bPrices(i)).get)
+          asksToBePub += HisAccumAsk(aPrices(i), hisAsks.volumeOf(aPrices(i)).get)
+        }
+      }
+      
+      if(openHisAccumBidAsk) {
+        if(bidsToBePub.size > 0) publish(bidsToBePub.toArray)
+        if(asksToBePub.size > 0) publish(asksToBePub.toArray)
       }
 
       bidPrice(time) = bPrices
@@ -174,7 +203,9 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 }
 
 
-class InfiniPriceVolume {
+case class HisAccumBid(price: Double, volume: Double)
+case class HisAccumAsk(price: Double, volume: Double)
+class HisAccumPriceVolume {
   private val priceToVolume : java.util.NavigableMap[Double, Double] = new java.util.TreeMap[Double, Double]
 
   def clear = priceToVolume.clear
@@ -184,7 +215,7 @@ class InfiniPriceVolume {
    */
   def ++= (pToV:(Double, Double)) {
     val volume = priceToVolume.get(pToV._1)
-    if(volume != null) priceToVolume.put(pToV._1, pToV._2 + volume)
+    if(volume > 0) priceToVolume.put(pToV._1, pToV._2 + volume)
     else priceToVolume.put(pToV._1, pToV._2)
   }
 
@@ -193,9 +224,8 @@ class InfiniPriceVolume {
   def volumeOf(price: Double): Option[Double] = {
     val volume = priceToVolume.get(price)
     
-    if(volume != null) Some(volume)
+    if(volume > 0) Some(volume)
     else None
   }
 
-  
 }
