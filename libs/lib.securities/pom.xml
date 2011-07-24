@@ -27,10 +27,6 @@
             <id>jgit-repository</id>
             <url>http://download.eclipse.org/jgit/maven</url>
         </repository>
-        <!--repository>
-            <id>github-dcaoyuan</id>
-            <url>https://github.com/dcaoyuan/dcaoyuan-mvn-repo/raw/master/snapshots</url>
-        </repository-->
     </repositories>
    
     <dependencies>

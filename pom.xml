@@ -67,11 +67,23 @@
             <id>scala-tools.release</id>
             <name>Scala-Tools Release Repository</name>
             <url>http://scala-tools.org/repo-releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>scala-tools.snapshot</id>
             <name>Scala-Tools Snapshot Repository</name>
             <url>http://scala-tools.org/repo-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>repo1.maven</id>
@@ -86,12 +98,6 @@
         <repository>
             <id>gson</id>
             <url>http://google-gson.googlecode.com/svn/mavenrepo</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
         </repository>
         <repository>
             <id>jboss-public-repository-group</id>
@@ -107,6 +113,29 @@
             <id>netbeans</id>
             <name>repository hosting netbeans.org api artifacts</name>
             <url>http://bits.netbeans.org/maven2</url>
+        </repository>
+
+        <repository>
+            <id>aiotrade-com-releases</id>
+            <name>aiotrade-com-repository</name>
+            <url>http://aiotrade.com/mvn/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>aiotrade-com-snapshots</id>
+            <name>aiotrade-com-repository</name>
+            <url>http://aiotrade.com/mvn/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
