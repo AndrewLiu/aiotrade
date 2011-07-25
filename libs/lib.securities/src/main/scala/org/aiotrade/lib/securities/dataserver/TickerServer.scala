@@ -360,7 +360,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         log.info("Saved tickersLast in " + (System.currentTimeMillis - t0) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
       }
 
-      if (TickerServer.isServer) {
+      if (TickerServer.isServer && TickerServer.isSaveTickers) {
         val t1 = System.currentTimeMillis
         if (allTickers.length > 0) {
           Tickers.insertBatch_!(allTickers.toArray)
@@ -410,6 +410,7 @@ object TickerServer {
 
   private val config = org.aiotrade.lib.util.config.Config()
   val isServer = !config.getBool("dataserver.client", false)
+  val isSaveTickers = config.getBool("dataserver.savetickers", false)
   log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
   
   
