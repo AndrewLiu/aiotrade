@@ -156,8 +156,8 @@ abstract class TickerServer extends DataServer[Ticker] {
       val ticker = secSnap.newTicker
       val lastTicker = secSnap.lastTicker
       val isDayFirst = ticker.isDayFirst
-      val dayQuote = secSnap.dailyQuote
-      val minQuote = secSnap.minuteQuote
+      val dayQuote = secSnap.dayQuote
+      val minQuote = secSnap.minQuote
 
       log.fine("Composing from ticker: " + ticker + ", lasticker: " + lastTicker)
 
@@ -390,7 +390,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Trading status of " + exchange.code + ": " + status)
       exchange.tradingStatus = status
       val alsoSave = TickerServer.isServer
-      exchange.tryClosing(alsoSave)
+      exchange.tryClosing(status, alsoSave)
     }
 
     lastTime

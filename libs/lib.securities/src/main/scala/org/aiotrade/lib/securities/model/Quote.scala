@@ -212,7 +212,7 @@ abstract class Quotes extends Table[Quote] {
     }
   }
   
-  def saveBatch(atSameTime: Long, quotes: ArrayList[Quote]) {
+  def saveBatch(atSameTime: Long, quotes: Array[Quote]) {
     if (quotes.isEmpty) return
 
     val exists = mutable.Map[Sec, Quote]()
