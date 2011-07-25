@@ -38,6 +38,14 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
     this.volumeUp = another.volumeUp
     this.volumeDown = another.volumeDown
   }
+
+  override def toString() = {
+    val sp = new StringBuffer
+    sp.append(",price:").append(price)
+    sp.append(",volumeUp:").append(volumeUp)
+    sp.append(",volumeDown:").append(volumeDown)
+    sp.toString
+  }
 }
 
 @serializable
@@ -59,7 +67,10 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
   def get(price: String) = map.get(price)
     
   def put(price: String, pd: PriceDistribution) = {
-    if (map.isEmpty) this.time = pd.time
+    if (map.isEmpty){
+      this.time = pd.time
+      this.sec = pd.sec
+    }
 
     if (TFreq.DAILY.round(this.time, cal) == TFreq.DAILY.round(pd.time, cal)){
       map.put(price, pd)
@@ -103,6 +114,14 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
     super.unfromMe_!
     this.map.values foreach (_.unfromMe_!)
   }
+  
+  override def toString() ={
+    val sp = new StringBuffer
+    sp.append("\nunisymbol:").append(uniSymbol)
+    sp.append("\ntime:").append(time)
+    this.map.values foreach {value => sp.append("\n").append(value.toString)}
+    sp.toString
+  }
 }
 
 
@@ -128,8 +147,13 @@ object PriceDistributions  extends Table[PriceDistribution] {
 
         dailyCache.put(sec -> date, map)
 
-        (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
-        ) foreach {x => map.put(x.price.toString, x)}
+        try{
+          (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
+          ) foreach {x => map.put(x.price.toString, x)}
+        }
+        catch{
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        }
 
         map.isTransient = map.isEmpty
         map.time = date
@@ -147,8 +171,13 @@ object PriceDistributions  extends Table[PriceDistribution] {
   @deprecated
   def dailyDistribuOf_ignoreCache(sec: Sec, date: Long): PriceCollection ={
     val map = new PriceCollection
-    (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
-    ) foreach {x => map.put(x.price.toString, x)}
+    try{
+      (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
+      ) foreach {x => map.put(x.price.toString, x)}
+    }
+    catch{
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
 
     map.time = date
     map.sec = sec
@@ -165,17 +194,27 @@ object PriceDistributions  extends Table[PriceDistribution] {
   @deprecated
   def dailyDistribuOf(sec: Sec): mutable.Map[Long, PriceCollection] = {
     seqToMap(
-      (SELECT (this.*) FROM (this) WHERE (
-          this.sec.field EQ Secs.idOf(sec)
-        ) ORDER_BY (this.time) list
-      ))
+      try{
+        (SELECT (this.*) FROM (this) WHERE (
+            this.sec.field EQ Secs.idOf(sec)
+          ) ORDER_BY (this.time) list
+        )
+      }
+      catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      })
   }
 
   def closedDistribuOf(sec: Sec): mutable.Map[Long, PriceCollection] = {
     val map = mutable.Map[Long, PriceCollection]()
-    (SELECT (this.*) FROM (this) WHERE (
-        this.sec.field EQ Secs.idOf(sec)
-      ) ORDER_BY (this.time) list
+    (try{
+        SELECT (this.*) FROM (this) WHERE (
+          this.sec.field EQ Secs.idOf(sec)
+        ) ORDER_BY (this.time) list
+      }
+     catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      }
     ) foreach {x =>
       if (x.closed_?){
         map.get(x.time) match{
@@ -198,9 +237,14 @@ object PriceDistributions  extends Table[PriceDistribution] {
   @deprecated
   def closedDistribuOf__filterByDB(sec: Sec): mutable.Map[Long, PriceCollection]= {
     seqToMap(
-      SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-      ) ORDER_BY (this.time) list
+      try{
+        SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+        ) ORDER_BY (this.time) list
+      }
+      catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      }
     )
   }
 
@@ -301,11 +345,6 @@ object PriceDistributions  extends Table[PriceDistribution] {
       updates ++= u
       inserts ++= i
     }
-
-//    for (x <- updates) {
-//      val existOne = exists(x.sec -> x.price)
-//      existOne.copyFrom(x)
-//    }
 
     try {
       if (updates.length > 0) {

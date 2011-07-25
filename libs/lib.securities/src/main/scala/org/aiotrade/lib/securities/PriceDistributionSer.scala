@@ -5,7 +5,6 @@
 
 package org.aiotrade.lib.securities
 
-import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, DefaultBaseTSer, TFreq}
 import org.aiotrade.lib.securities.model.PriceCollection
@@ -14,7 +13,6 @@ import org.aiotrade.lib.securities.model.Sec
 
 class PriceDistributionSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)  {
 
-  val log = Logger.getLogger(getClass.getName)
   private var _shortName: String = ""
 
   val priceCollection = TVar[PriceCollection]("PR", Plot.None)
@@ -40,11 +38,9 @@ class PriceDistributionSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec
    */
   def updateFrom(pd: PriceCollection) {
     val time = pd.time
-    log.info("Price Collection Ser length of before update:" + this.size)
     createOrClear(time)
     priceCollection(time) = pd
 
-    log.info("Price Collection Ser length of after update:" + this.size)
     /** be ware of fromTime here may not be same as ticker's event */
     publish(TSerEvent.Updated(this, "", time, time))
   }
