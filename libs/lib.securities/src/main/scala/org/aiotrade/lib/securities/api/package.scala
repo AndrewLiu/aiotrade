@@ -4,6 +4,7 @@ import org.aiotrade.lib.avro.Evt
 import org.aiotrade.lib.securities.dataserver.DepthSnap
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.MoneyFlow
+import org.aiotrade.lib.securities.model.PriceCollection
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.SecDividend
 import org.aiotrade.lib.securities.model.Ticker
@@ -22,7 +23,9 @@ package object api {
   val QuoteEvt      = Evt[(String, Quote)](10, "freq, quote")
   val QuotesEvt     = Evt[(String, Array[Quote])](11)
   val MoneyFlowEvt  = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
-  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)  
+  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)
+  val PriceDistributionEvt = Evt[PriceCollection](30)
+  val PriceDistributionsEvt = Evt[Array[PriceCollection]](31)
 
   // ---
   val SecDividendAddedEvt   = Evt[SecDividend](6000)
