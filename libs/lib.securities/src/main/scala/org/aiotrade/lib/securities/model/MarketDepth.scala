@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities.model
 
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 
 object MarketDepth {
@@ -24,34 +25,22 @@ object MarketDepth {
 final class MarketDepth(_bidAsks: Array[Double], _bidOrders : ArrayList[Double], _askOrders : ArrayList[Double]) {
   @transient var isChanged: Boolean = _
 
+  private val log = Logger.getLogger(this.getClass.getName)
+
   def this(_bidAsks: Array[Double]) = this(_bidAsks, null, null)
   def this() = this(null, null, null)
 
-  def ordersExist_? = (_bidOrders != null) && (_askOrders != null)
-
   def bidOrders = _bidOrders
   def bidOrders_=(that: ArrayList[Double]) {
-    if (that.length == 0) {
-      return
-    }
-    var i = 0
-    val length = that.length
-    while (i < length) {
-      _bidOrders(i) = that(i)
-      i += 1
+    for(bid <- that) {
+      _bidOrders += bid
     }
   }
 
   def askOrders = _askOrders
   def askOrders_=(that: ArrayList[Double]) {
-    if (that.length == 0) {
-      return
-    }
-    var i = 0
-    val length = that.length
-    while (i < length) {
-      _askOrders(i) = that(i)
-      i += 1
+    for(ask <- that) {
+      _askOrders += ask
     }
   }
 
@@ -71,6 +60,7 @@ final class MarketDepth(_bidAsks: Array[Double], _bidOrders : ArrayList[Double],
   def bidAsks_=(that: Array[Double]) {
     isChanged = false
     if (that.length != _bidAsks.length) {
+      log.warning("Failed to set bidAsks, that.length = " + that.length + ",_bidAsks.length=" + _bidAsks.length)
       return
     }
     var i = 0

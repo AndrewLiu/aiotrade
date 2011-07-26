@@ -94,10 +94,8 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
           askPrice(time) = aPrices
           askSize(time) = aSizes
 
-          if(ticker.ordersExist_?) {
-            bidOrders(time) = ticker.bidOrders
-            askOrders(time) = ticker.askOrders
-          }
+          bidOrders(time) = ticker.bidOrders
+          askOrders(time) = ticker.askOrders
         }
         
       case _ =>
@@ -192,10 +190,8 @@ class TickerSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
       askPrice(time) = aPrices
       askSize(time) = aSizes
 
-      if(ticker.ordersExist_?) {
-        bidOrders(time) = ticker.bidOrders
-        askOrders(time) = ticker.askOrders
-      }
+      bidOrders(time) = ticker.bidOrders
+      askOrders(time) = ticker.askOrders
     }
 
     publish(TSerEvent.Updated(this, $sec.uniSymbol, time, time))
