@@ -700,7 +700,7 @@ class Exchange extends Ordered[Exchange] {
       val quotesToClose = freqToUnclosedQuotes synchronized {
         freqToUnclosedQuotes.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedQuotes.put(freq, emptyQuotes)
+            freqToUnclosedQuotes -= freq
             unclosed
           case Some(unclosed) =>
             val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
@@ -713,7 +713,7 @@ class Exchange extends Ordered[Exchange] {
       val mfsToClose = freqToUnclosedMoneyFlows synchronized {
         freqToUnclosedMoneyFlows.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedMoneyFlows.put(freq, emptyMoneyFlows)
+            freqToUnclosedMoneyFlows -= freq
             unclosed
           case Some(unclosed) =>
             val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
