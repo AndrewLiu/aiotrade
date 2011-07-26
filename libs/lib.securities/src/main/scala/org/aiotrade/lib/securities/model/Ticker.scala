@@ -322,6 +322,9 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
 
   def this(depth: Int) = this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](depth * 4)))
   def this() = this(5)
+  def this(isLevelII: Boolean = true) = {
+    this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](10 * 4), new ArrayList[Double], new ArrayList[Double]))
+  }
 
   def depth = marketDepth.depth
 
@@ -345,8 +348,6 @@ class Ticker($data: Array[Double], val marketDepth: MarketDepth) extends LightTi
 
   final def bidOrders = marketDepth.bidOrders
   final def bidOrders_=(values : ArrayList[Double]) {marketDepth.bidOrders = values}
-
-  final def ordersExist_? = marketDepth.ordersExist_?
 
 
   // --- no db fields:
