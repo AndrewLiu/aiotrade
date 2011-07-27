@@ -134,7 +134,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     log.info("Composing quote from tickers: " + tickers.length)
     if (tickers.length == 0) return lastTime
 
-    Exchange.checkIfSomethingNew(tickers)
+    if (TickerServer.isServer) Exchange.checkIfSomethingNew(tickers)
     
     val (secSnaps, tickersLast) = toSecSnaps(tickers)
     log.info("Composing quote from secSnaps: " + secSnaps.length)
