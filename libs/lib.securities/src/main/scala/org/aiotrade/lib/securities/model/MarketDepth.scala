@@ -25,8 +25,6 @@ object MarketDepth {
 final class MarketDepth(_bidAsks: Array[Double], _bidOrders : ArrayList[Double], _askOrders : ArrayList[Double]) {
   @transient var isChanged: Boolean = _
 
-  private val log = Logger.getLogger(this.getClass.getName)
-
   def this(_bidAsks: Array[Double]) = this(_bidAsks, null, null)
   def this() = this(null, null, null)
 
@@ -60,7 +58,6 @@ final class MarketDepth(_bidAsks: Array[Double], _bidOrders : ArrayList[Double],
   def bidAsks_=(that: Array[Double]) {
     isChanged = false
     if (that.length != _bidAsks.length) {
-      log.warning("Failed to set bidAsks, that.length = " + that.length + ",_bidAsks.length=" + _bidAsks.length)
       return
     }
     var i = 0
