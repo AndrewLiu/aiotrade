@@ -351,8 +351,8 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   private val EmptyQuotes = ArrayList[Quote]()
   private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
-  private val dailyCloseDelay = 5L // 5 minutes
   private val emptyPriceDistributions = ArrayList[PriceCollection]()
+  private val dailyCloseDelay = 5L // 5 minutes
   private var timeInMinutesToClose = -1
   
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
