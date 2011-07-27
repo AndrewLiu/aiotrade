@@ -324,7 +324,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
     }
   }
 
-  def saveBatch(atSameTime: Long, pcs: ArrayList[PriceCollection]) {
+  def saveBatch(atSameTime: Long, pcs: Array[PriceCollection]) {
     if (pcs.isEmpty) return
 
     val exists = mutable.Map[(Sec, Double),PriceDistribution]()

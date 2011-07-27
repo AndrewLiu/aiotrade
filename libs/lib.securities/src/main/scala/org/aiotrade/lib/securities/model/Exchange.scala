@@ -227,10 +227,10 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   def addNewPriceDistribution(freq: TFreq, pd: PriceCollection) = freqToUnclosedPriceDistributions synchronized {
     val xs = freqToUnclosedPriceDistributions.get(freq) getOrElse {
-        val xs = new ArrayList[PriceCollection]
-        freqToUnclosedPriceDistributions.put(freq, xs)
-        xs
-      }
+      val xs = new ArrayList[PriceCollection]
+      freqToUnclosedPriceDistributions.put(freq, xs)
+      xs
+    }
       
     xs += pd
   }
@@ -349,9 +349,9 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     status
   }
 
-  private val EmptyQuotes = ArrayList[Quote]()
-  private val EmptyMoneyFlows = ArrayList[MoneyFlow]()
-  private val emptyPriceDistributions = ArrayList[PriceCollection]()
+  private val EmptyQuotes = Array[Quote]()
+  private val EmptyMoneyFlows = Array[MoneyFlow]()
+  private val emptyPriceDistributions = Array[PriceCollection]()
   private val dailyCloseDelay = 5L // 5 minutes
   private var timeInMinutesToClose = -1
   
@@ -363,22 +363,22 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
    * Do closing in delay minutes. If quotesToClose/mfsToClose is empty, will do
    * nothing and return at once.
    */
-  private[securities] def tryClosing(alsoSave: Boolean) {
-
+  private[securities] def tryClosing(tradingStatus: TradingStatus, alsoSave: Boolean) {
     val closeTimeInMinutes = timeInMinutesToClose
     val statusTime = tradingStatus.time
 
     val freqs = tradingStatus match {
-      
-      case Opening(time, timeInMinutes) if timeInMinutesToClose <= 0 || timeInMinutes <  timeInMinutesToClose =>
-        // When processing legacy data, 'timeInMinutesToClose' may be set to previous date's larger timeInMinutes,
-        // so we add '|| timeInMinutes <  timeInMinutesToClose'
-        timeInMinutesToClose = timeInMinutes + 1
-        Nil
-      case Opening(time, timeInMinutes) if timeInMinutesToClose >  0 && timeInMinutes >= timeInMinutesToClose =>
-        // a new minute begins, will doClose on ONE_MIN after 1 minute
-        timeInMinutesToClose = timeInMinutes + 1
-        List(TFreq.ONE_MIN)
+      case Opening(time, timeInMinutes) => 
+        if (timeInMinutesToClose <= 0 || timeInMinutes <  timeInMinutesToClose) {
+          // When processing legacy data, 'timeInMinutesToClose' may be set to previous date's larger timeInMinutes,
+          // so we add '|| timeInMinutes <  timeInMinutesToClose'
+          timeInMinutesToClose = timeInMinutes + 1
+          Nil
+        } else if (timeInMinutesToClose > 0 && timeInMinutes >= timeInMinutesToClose) {
+          // a new minute begins, will doClose on ONE_MIN after 1 minute
+          timeInMinutesToClose = timeInMinutes + 1
+          List(TFreq.ONE_MIN)
+        } else Nil
         
       case Close(time, timeInMinutes) => 
         timeInMinutesToClose = -1
@@ -390,76 +390,80 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       case _ => Nil
     }
 
-    val isDailyClose = freqs.contains(TFreq.DAILY)
+    val isDailyClosing = freqs.contains(TFreq.DAILY)
     for (freq <- freqs) {
       log.info("Try closing quotes: freq=" + freq.shortName + ", closingTimeInMinutes=" + closeTimeInMinutes)
 
       val quotesToClose = freqToUnclosedQuotes synchronized {
-        if (freq == TFreq.DAILY) {
-          freqToUnclosedQuotes.get(freq) match {
-            case Some(unClosed) =>
-              freqToUnclosedQuotes.put(freq, EmptyQuotes)
-              unClosed // will close all of them
-            case None => EmptyQuotes
-          }
-        } else {
-          freqToUnclosedQuotes.get(freq) match {
-            case Some(unclosed) =>
-              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-              freqToUnclosedQuotes.put(freq, notYet)
-              toClose
-            case None => EmptyQuotes
-          }
+        freq match {
+          case TFreq.DAILY =>
+            freqToUnclosedQuotes.get(freq) match {
+              case Some(unclosed) =>
+                freqToUnclosedQuotes -= freq
+                unclosed.toArray // will close all of them
+              case None => EmptyQuotes
+            }
+          case _ =>
+            freqToUnclosedQuotes.get(freq) match {
+              case Some(unclosed) =>
+                val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+                freqToUnclosedQuotes(freq) = notYet
+                toClose.toArray
+              case None => EmptyQuotes
+            }
         }
       }
 
       val mfsToClose = freqToUnclosedMoneyFlows synchronized {
-        if (freq == TFreq.DAILY) {
-          freqToUnclosedMoneyFlows.get(freq) match {
-            case Some(unclosed) =>
-              freqToUnclosedMoneyFlows.put(freq, EmptyMoneyFlows)
-              unclosed // will close all of them
-            case None => EmptyMoneyFlows
-          }
-        } else {
-          freqToUnclosedMoneyFlows.get(freq) match {
-            case Some(unclosed) =>
-              val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-              freqToUnclosedMoneyFlows.put(freq, notYet)
-              toClose
-            case None => EmptyMoneyFlows
-          }
+        freq match {
+          case TFreq.DAILY =>
+            freqToUnclosedMoneyFlows.get(freq) match {
+              case Some(unclosed) =>
+                freqToUnclosedMoneyFlows -= freq
+                unclosed.toArray // will close all of them
+              case None => EmptyMoneyFlows
+            }
+          case _ =>
+            freqToUnclosedMoneyFlows.get(freq) match {
+              case Some(unclosed) =>
+                val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+                freqToUnclosedMoneyFlows(freq) = notYet
+                toClose.toArray
+              case None => EmptyMoneyFlows
+            }
         }
       }
 
       val pdsToClose = freqToUnclosedPriceDistributions synchronized {
         freqToUnclosedPriceDistributions.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
-            freqToUnclosedPriceDistributions.put(freq, emptyPriceDistributions)
+            freqToUnclosedPriceDistributions -= freq
             log.info("price distribution unclosed length:" + unclosed.length)
-            unclosed
+            unclosed.toArray
           case Some(unclosed) =>
             val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
             freqToUnclosedPriceDistributions.put(freq, other)
-            toClose
+            toClose.toArray
           case None => emptyPriceDistributions
         }
       }
 
       if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
-        // do closing async in scheduler
-        val closingTask = new Runnable {
-          def run {
-            doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
-          }
-        }
-        
         try {
-          if (isDailyClose) {
+          if (isDailyClosing) {
             log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
+
+            // do closing async in scheduler
+            val closingTask = new Runnable {
+              def run {
+                doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
+              }
+            }
+        
+            // we'll do daily closing after dailyCloseDelay minutes
             closingScheduler.schedule(closingTask, dailyCloseDelay, TimeUnit.MINUTES)
           } else {
-            closingScheduler.execute(closingTask)
+            doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
           }
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -471,8 +475,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   /**
    * Close and insert daily quotes/moneyflows
    */
-  private def doClosing(freq: TFreq, quotesToClose: ArrayList[Quote], mfsToClose: ArrayList[MoneyFlow], pdsToClose: ArrayList[PriceCollection], alsoSave: Boolean) {
-
+  private def doClosing(freq: TFreq, quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow], pdsToClose: Array[PriceCollection], alsoSave: Boolean) {
     try {
       if (quotesToClose.length > 0) {
         val time = quotesToClose(0).time
@@ -582,7 +585,7 @@ object Exchange extends Publisher {
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.lib.securities.model.Bundle")
   private val ONE_DAY = 24 * 60 * 60 * 1000
   private val config = org.aiotrade.lib.util.config.Config()
-  private val closingScheduler = new ScheduledThreadPoolExecutor(3)
+  private val closingScheduler = new ScheduledThreadPoolExecutor(1)
 
   // ----- search tables, always use immutable collections to avoid sync issue
   private var _allExchanges: Seq[Exchange] = Nil

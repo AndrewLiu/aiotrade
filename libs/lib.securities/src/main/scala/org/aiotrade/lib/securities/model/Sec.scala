@@ -946,20 +946,22 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
 }
 
 class SecSnap(val sec: Sec) {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   private val ONE_DAY = 24 * 60 * 60 * 1000
 
   var newTicker: Ticker = _
   var lastTicker: Ticker = _
 
-  var dailyQuote: Quote = _
-  var minuteQuote: Quote = _
+  var dayQuote: Quote = _
+  var minQuote: Quote = _
 
-  var dailyMoneyFlow: MoneyFlow = _
-  var minuteMoneyFlow: MoneyFlow = _
+  var dayMoneyFlow: MoneyFlow = _
+  var minMoneyFlow: MoneyFlow = _
 
   var priceDistribution = new PriceCollection
 
-  // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker
+  // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker(ticker)
   private val cal = Calendar.getInstance(sec.exchange.timeZone) 
 
   final def setByTicker(ticker: Ticker): SecSnap = {
@@ -967,22 +969,21 @@ class SecSnap(val sec: Sec) {
     
     val time = ticker.time
     checkLastTickerAt(time)
-    checkDailyQuoteAt(time)
-    checkMinuteQuoteAt(time)
-    checkDailyMoneyFlowAt(time)
-    checkMinuteMoneyFlowAt(time)
+    checkDayQuoteAt(time)
+    checkMinQuoteAt(time)
+    checkDayMoneyFlowAt(time)
+    checkMinMoneyFlowAt(time)
     checkPriceDistributionAt(time)
     this
   }
 
-  private def checkDailyQuoteAt(time: Long): Quote = {
+  private def checkDayQuoteAt(time: Long): Quote = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
-    dailyQuote match {
+    dayQuote match {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        //val newone =  Quotes1d.dailyQuoteOf(sec, rounded)
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
@@ -991,20 +992,20 @@ class SecSnap(val sec: Sec) {
         newone.fromMe_!
         newone.isTransient = true
         sec.exchange.addNewQuote(TFreq.DAILY, newone)
+        log.info("Created new daily quote for " + sec.uniSymbol)
 
-        dailyQuote = newone
+        dayQuote = newone
         newone
     }
   }
 
-  private def checkDailyMoneyFlowAt(time: Long): MoneyFlow= {
+  private def checkDayMoneyFlowAt(time: Long): MoneyFlow = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
-    dailyMoneyFlow match {
+    dayMoneyFlow match {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // day changes or null
-        //val newone = MoneyFlows1d.dailyMoneyFlowOf(sec, rounded)
         val newone = new MoneyFlow
         newone.time = rounded
         newone.sec = sec
@@ -1013,8 +1014,9 @@ class SecSnap(val sec: Sec) {
         newone.fromMe_!
         newone.isTransient = true
         sec.exchange.addNewMoneyFlow(TFreq.DAILY, newone)
+        log.info("Created new daily moneyflow for " + sec.uniSymbol)
 
-        dailyMoneyFlow = newone
+        dayMoneyFlow = newone
         newone
     }
   }
@@ -1039,13 +1041,12 @@ class SecSnap(val sec: Sec) {
     }
   }
 
-  private def checkMinuteQuoteAt(time: Long): Quote = {
+  private def checkMinQuoteAt(time: Long): Quote = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
-    minuteQuote match {
+    minQuote match {
       case oldone: Quote if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        //val newone =  Quotes1m.minuteQuoteOf(sec, rounded)
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
@@ -1055,18 +1056,17 @@ class SecSnap(val sec: Sec) {
         newone.isTransient = true
         sec.exchange.addNewQuote(TFreq.ONE_MIN, newone)
 
-        minuteQuote = newone
+        minQuote = newone
         newone
     }
   }
 
-  private def checkMinuteMoneyFlowAt(time: Long): MoneyFlow = {
+  private def checkMinMoneyFlowAt(time: Long): MoneyFlow = {
     val rounded = TFreq.ONE_MIN.round(time, cal)
-    minuteMoneyFlow match {
+    minMoneyFlow match {
       case oldone: MoneyFlow if oldone.time == rounded =>
         oldone
       case _ => // minute changes or null
-        //val newone = MoneyFlows1m.minuteMoneyFlowOf(sec, rounded)
         val newone = new MoneyFlow
         newone.time = rounded
         newone.sec = sec
@@ -1076,7 +1076,7 @@ class SecSnap(val sec: Sec) {
         newone.isTransient = true
         sec.exchange.addNewMoneyFlow(TFreq.ONE_MIN, newone)
         
-        minuteMoneyFlow = newone
+        minMoneyFlow = newone
         newone
     }
   }
