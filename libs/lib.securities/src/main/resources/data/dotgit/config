@@ -4,7 +4,7 @@
 	logallrefupdates = true
 	autocrlf = false
 [remote "origin"]
-	url = git://github.com/dcaoyuan/aiotrade-data.git
+	url = http://jc1.foundersc.com/git/aiotrade-data.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "test"]
 	remote = origin
