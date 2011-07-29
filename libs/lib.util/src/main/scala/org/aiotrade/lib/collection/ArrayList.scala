@@ -31,11 +31,14 @@ import scala.collection.mutable.WrappedArray
  *  
  *  @author  Matthias Zenger
  *  @author  Martin Odersky
+ *  @author  Caoyuan Deng
  *  @version 2.8
  *  @since   1
+ *  
+ *  @note Don't add @specialized in front of A, which will generate a shadow array and waste memory
  */
 @serializable @SerialVersionUID(1529165946227428979L)
-class ArrayList[A](override protected val initialSize: Int)(protected implicit val m: Manifest[A]
+class ArrayList[A](override protected val initialSize: Int, protected val elementClass: Class[A] = null)(protected implicit val m: Manifest[A]
 ) extends Buffer[A]
      with GenericTraversableTemplate[A, ArrayList]
      with BufferLike[A, ArrayList[A]]
@@ -184,6 +187,24 @@ class ArrayList[A](override protected val initialSize: Int)(protected implicit v
    */
   override def stringPrefix: String = "ArrayList"
 
+  /**
+   * We need this toArray to export an array with the original type element instead of
+   * scala.collection.TraversableOnce#toArray[B >: A : ClassManifest]: Array[B]:
+   * def toArray[B >: A : ClassManifest]: Array[B] = {
+   *   if (isTraversableAgain) {
+   *     val result = new Array[B](size)
+   *     copyToArray(result, 0)
+   *     result
+   *   }
+   *   else toBuffer.toArray
+   * }
+   */
+  def toArray: Array[A] = {
+    val res = makeArray(length)
+    Array.copy(array, 0, res, 0, length)
+    res
+  }
+  
   override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     Array.copy(array, start, xs, 0, len)
   }

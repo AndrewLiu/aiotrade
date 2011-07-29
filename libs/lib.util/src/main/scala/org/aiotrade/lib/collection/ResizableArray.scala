@@ -26,6 +26,7 @@ import scala.collection.mutable.IndexedSeqOptimized
  *  
  *  @author  Matthias Zenger, Burak Emir
  *  @author Martin Odersky
+ *  @author Caoyuan Deng
  *  @version 2.8
  *  @since   1
  */
@@ -35,14 +36,19 @@ trait ResizableArray[A] extends IndexedSeq[A]
 
   protected implicit val m: Manifest[A]
   
+  protected val elementClass: Class[A]
+  
   override def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
   protected[collection] var array: Array[A] = makeArray(initialSize)
 
-  protected def makeArray(size: Int) = {
-    val s = math.max(size, 1)
-    new Array[A](s) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+  final protected def makeArray(size: Int) = {
+    if (elementClass != null) {
+      java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
+    } else {
+      new Array[A](size) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    }
   }
 
   protected var size0: Int = 0
@@ -94,12 +100,14 @@ trait ResizableArray[A] extends IndexedSeq[A]
     require(sz <= size0)
     while (size0 > sz) {
       size0 -= 1
-      array(size0) = null.asInstanceOf[A]
+      if (!m.erasure.isPrimitive) {
+        array(size0) = null.asInstanceOf[A] 
+      }
     }
   }
 
   /** ensure that the internal array has at n cells */
-  protected def ensureSize(n: Int) {
+  final protected def ensureSize(n: Int) {
     if (n > array.length) {
       var newsize = array.length * 2
       while (n > newsize)

@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.aiotrade.lib.amqp
 
 import java.io.BufferedInputStream
@@ -16,8 +11,8 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import org.aiotrade.lib.avro.ReflectData
 import org.aiotrade.lib.avro.ReflectDatumWriter
-import org.aiotrade.lib.util.actors.Evt
-import org.aiotrade.lib.util.actors.Msg
+import org.aiotrade.lib.avro.Evt
+import org.aiotrade.lib.avro.Msg
 import org.apache.avro.io.EncoderFactory
 import org.aiotrade.lib.json.Json
 import org.aiotrade.lib.json.JsonInputStreamReader
@@ -51,7 +46,7 @@ trait Serializer {
 
   def encodeAvro(content: Any): Array[Byte] = {
     content match {
-      case msg: Msg[_] => Evt.toAvro(msg)
+      case Msg(tag, value) => Evt.toAvro(value, tag)
       case _ =>
         // best trying
         val schema = ReflectData.get.getSchema(content.asInstanceOf[AnyRef].getClass)
@@ -66,8 +61,8 @@ trait Serializer {
     }
   }
 
-  def decodeAvro(body: Array[Byte]): Any = {
-    Evt.fromAvro(body) match {
+  def decodeAvro(body: Array[Byte], tag: Int = Evt.NO_TAG): Any = {
+    Evt.fromAvro(body, tag) match {
       case Some(x) => x
       case None => null
     }

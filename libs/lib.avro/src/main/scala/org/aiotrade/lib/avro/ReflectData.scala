@@ -1,12 +1,15 @@
 package org.aiotrade.lib.avro
 
 import java.lang.reflect.Field
+import java.lang.reflect.GenericDeclaration
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.Type
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.GenericArrayType
 
+import java.lang.reflect.TypeVariable
+import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.AvroRemoteException
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.AvroTypeException
@@ -38,6 +41,7 @@ object ReflectData {
   /** Return the singleton instance. */
   def get() = INSTANCE
   
+  private val classLoader = Thread.currentThread.getContextClassLoader
   private val FIELD_CACHE = new java.util.concurrent.ConcurrentHashMap[Class[_], java.util.Map[String, Field]]()
 
   /** Return the named field of the provided class.  Implementation caches
@@ -48,10 +52,11 @@ object ReflectData {
       fields = new java.util.concurrent.ConcurrentHashMap[String, Field]()
       FIELD_CACHE.put(c, fields)
     }
-    var field = fields.get(name)
+    val realName = name.replace("_DOLLAR_", "$")
+    var field = fields.get(realName)
     if (field == null) {
-      field = findField(c, name)
-      fields.put(name, field)
+      field = findField(c, realName)
+      fields.put(realName, field)
     }
     field
   }
@@ -66,7 +71,7 @@ object ReflectData {
       } catch {
         case e: NoSuchFieldException =>
       }
-      clz = clz.getSuperclass()
+      clz = clz.getSuperclass
     } while (clz != null)
     throw new AvroRuntimeException("No field named "+name+" in: "+c)
   }
@@ -78,7 +83,7 @@ object ReflectData {
     val name = schema.getProp(prop)
     if (name == null) return null
     try {
-      return Class.forName(name)
+      return Class.forName(name, true, classLoader)
     } catch {
       case ex: ClassNotFoundException =>  throw new AvroRuntimeException(ex)
     }
@@ -96,14 +101,29 @@ object ReflectData {
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
 class ReflectData protected() extends SpecificData {
-  
+
+  override 
+  def getClassName(schema: Schema): String = {
+    super.getClassName(schema).replace("_DOLLAR_", "$")
+  }
+
   override
-  def setField(record: Object, name: String, position: Int, o: Object) {
+  def setField(record: AnyRef, name: String, position: Int, v: AnyRef) {
     record match {
-      case x: IndexedRecord => super.setField(record, name, position, o)
+      case x: IndexedRecord => super.setField(record, name, position, v)
       case _ =>
         try {
-          ReflectData.getField(record.getClass, name).set(record, o)
+          import ClassHelper._
+          val field = ReflectData.getField(record.getClass, name)
+          val value = if (v.isInstanceOf[java.lang.Integer] || v.isInstanceOf[Int]) {
+            field.getGenericType match {
+              case JByteClass  | ByteType  | ByteClass  => v.asInstanceOf[java.lang.Integer].byteValue
+              case JShortClass | ShortType | ShortClass => v.asInstanceOf[java.lang.Integer].shortValue
+              case _ => v
+            }
+          } else v
+          
+          field.set(record, value)
         } catch {
           case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
         }
@@ -111,12 +131,12 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  def getField(record: Object, name: String, position: Int): Object = {
+  def getField(record: AnyRef, name: String, position: Int): AnyRef = {
     record match {
-      case x: IndexedRecord => return super.getField(record, name, position)
+      case x: IndexedRecord => super.getField(record, name, position)
       case _ =>    
         try {
-          return ReflectData.getField(record.getClass, name).get(record)
+          ReflectData.getField(record.getClass, name).get(record)
         } catch {
           case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
         }
@@ -124,24 +144,24 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def isRecord(datum: Object): Boolean = {
+  protected def isRecord(datum: AnyRef): Boolean = {
     if (datum == null) return false
     getSchema(datum.getClass).getType == Schema.Type.RECORD
   }
 
   override
-  protected def isArray(datum: Object): Boolean = {
+  protected def isArray(datum: AnyRef): Boolean = {
     if (datum == null) return false
     datum.isInstanceOf[java.util.Collection[_]] || datum.isInstanceOf[collection.Seq[_]] || datum.getClass.isArray()
   }
 
   override 
-  protected def isMap(datum: Object): Boolean = {
+  protected def isMap(datum: AnyRef): Boolean = {
     datum.isInstanceOf[java.util.Map[_, _]] || datum.isInstanceOf[collection.Map[_, _]]
   }
 
   override
-  protected def isBytes(datum: Object): Boolean = {
+  protected def isBytes(datum: AnyRef): Boolean = {
     if (datum == null) return false
     if (super.isBytes(datum)) return true
     val c = datum.getClass
@@ -149,12 +169,12 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def getRecordSchema(record: Object): Schema = {
+  protected def getRecordSchema(record: AnyRef): Schema = {
     getSchema(record.getClass)
   }
 
   override
-  def validate(schema: Schema, datum: Object): Boolean = {
+  def validate(schema: Schema, datum: AnyRef): Boolean = {
     import Schema.Type._
     schema.getType match {
       case RECORD =>
@@ -243,103 +263,145 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def createSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
+  protected def createSchema(tpe: GenericArrayType, names: java.util.Map[String, Schema]): Schema = {
+    import ClassHelper._
+    tpe.getGenericComponentType match {
+      case ByteType => Schema.create(Schema.Type.BYTES) // byte array
+      case c: Class[_] => 
+        val c1 = c.asInstanceOf[Class[_]] // cheat createSchema for lack of Manifest
+        val schema = Schema.createArray(createSchema(c1, names))
+        setElement(schema, c)
+        schema
+      case ptype: ParameterizedType =>
+        val schema = Schema.createArray(createSchema(ptype, names))
+        setElement(schema, ptype)
+        schema
+    }
+  }
+  
+  override
+  protected def createSchema(tpe: ParameterizedType, names: java.util.Map[String, Schema]): Schema = {
+    val raw = tpe.getRawType.asInstanceOf[Class[_]]
+    val params = tpe.getActualTypeArguments
+    if (classOf[java.util.Map[_, _]].isAssignableFrom(raw) || classOf[collection.Map[_, _]].isAssignableFrom(raw)) { // Map
+      val key = params(0)
+      val value = params(1).asInstanceOf[Class[_]]
+      if (key != classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
+      Schema.createMap(createSchema(value, names))
+    } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) { // Collection
+      if (params.length != 1) throw new AvroTypeException("No array type specified.")
+      val element = params(0).asInstanceOf[Class[_]]
+      val schema = Schema.createArray(createSchema(element, names))
+      schema.addProp(ReflectData.CLASS_PROP, raw.getName)
+      schema
+    } else {
+      super.createSchema(tpe, names)
+    }
+  }
+  
+  override
+  protected def createSchema[T <: GenericDeclaration](tpe: TypeVariable[T], names: java.util.Map[String, Schema]): Schema = {
+    tpe.getGenericDeclaration match {
+      case c: Class[_] => val c1 = c.asInstanceOf[Class[_]]; createSchema(c1, names)
+      case gtype => throw new AvroTypeException("Unknown type: " + gtype)
+    }
+  }
+  
+  override
+  protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     import ClassHelper._
     tpe match {
-      case atype: GenericArrayType =>                  // generic array
-        val component = atype.getGenericComponentType
-        if (component eq java.lang.Byte.TYPE) {
-          Schema.create(Schema.Type.BYTES) // byte array
-        } else {
-          val result = Schema.createArray(createSchema(component, names))
-          setElement(result, component)
-          result
-        }
-      case ptype: ParameterizedType =>
-        val raw = ptype.getRawType.asInstanceOf[Class[_]]
-        val params = ptype.getActualTypeArguments
-        if (classOf[java.util.Map[_, _]].isAssignableFrom(raw) || classOf[collection.Map[_, _]].isAssignableFrom(raw)) { // Map
-          val key = params(0)
-          val value = params(1)
-          if (key ne classOf[String]) throw new AvroTypeException("Map key class not String: "+key)
-          return Schema.createMap(createSchema(value, names))
-        } else if (classOf[java.util.Collection[_]].isAssignableFrom(raw) || classOf[collection.Seq[_]].isAssignableFrom(raw)) {   // Collection
-          if (params.length != 1) throw new AvroTypeException("No array type specified.")
-          val schema = Schema.createArray(createSchema(params(0), names))
-          schema.addProp(ReflectData.CLASS_PROP, raw.getName)
-          return schema
-        }
       case ShortClass | JShortClass | ShortType =>
-        val result = Schema.create(Schema.Type.INT)
-        result.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
-        result
-      case c: Class[_] => // Class
-        if (c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass) // primitive
-          return super.createSchema(tpe, names)
+        val schema = Schema.create(Schema.Type.INT)
+        schema.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
+        schema
       
-        if (c.isArray) { // array
-          c.getComponentType match {
-            case ByteType => 
-              return Schema.create(Schema.Type.BYTES) // byte array
-            case component => 
-              val result = Schema.createArray(createSchema(component, names))
-              setElement(result, component)
-              return result
-          }
+      case c: Class[_] if c.isArray =>
+        c.getComponentType match {
+          case ByteType => 
+            Schema.create(Schema.Type.BYTES) // byte array
+          case component => 
+            val schema = Schema.createArray(createSchema(component, names))
+            setElement(schema, component)
+            schema
         }
-      
-        if (classOf[CharSequence].isAssignableFrom(c)) return Schema.create(Schema.Type.STRING) // String
         
+      case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
+        Schema.create(Schema.Type.STRING) // String
+      
+      case c: Class[T] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
+        super.createSchema(tpe, names)
+      
+      case c: Class[T] if isTupleClass(c) || isCollectionClass(c) || isMapClass(c) =>
+        super.createSchema(tpe, names)
+        
+      case c: Class[T] => // other Class      
         val fullName = c.getName
-        var schema = names.get(fullName)
-        if (schema == null) {
-          val name = c.getSimpleName
-          var space = if (c.getPackage == null) "" else c.getPackage.getName
-          if (c.getEnclosingClass != null) // nested class
-            space = c.getEnclosingClass.getName + "$"
-          val union = c.getAnnotation(classOf[Union])
-          if (union != null) { // union annotated
-            return getAnnotatedUnion(union, names)
-          } else if (c.isAnnotationPresent(classOf[Stringable])) { // Stringable
-            val result = Schema.create(Schema.Type.STRING)
-            result.addProp(ReflectData.CLASS_PROP, c.getName)
-            return result
-          } else if (c.isEnum) { // Enum
-            val symbols = new java.util.ArrayList[String]()
-            val constants = c.getEnumConstants.asInstanceOf[Array[Enum[_]]]
-            var i = -1
-            while ({i += 1; i < constants.length}) {
-              symbols.add(constants(i).name)
+        names.get(fullName) match {
+          case null =>
+            val name = if (isScalaSingletonObject(c)) { // scala singleton object
+              c.getSimpleName.replace("$", "_DOLLAR_")
+            } else c.getSimpleName
+            
+            val space = if (c.getEnclosingClass != null) { // nested class
+              c.getEnclosingClass.getName + "$"
+            } else {
+              if (c.getPackage == null) "" else c.getPackage.getName
             }
-            schema = Schema.createEnum(name, null /* doc */, space, symbols)
-          } else if (classOf[GenericFixed].isAssignableFrom(c)) { // fixed
-            val size = c.getAnnotation(classOf[FixedSize]).value
-            schema = Schema.createFixed(name, null /* doc */, space, size)
-          } else if (classOf[IndexedRecord].isAssignableFrom(c)) { // specific
-            return super.createSchema(tpe, names)
-          } else { // record
-            val fields = new java.util.ArrayList[Schema.Field]()
-            val error = classOf[Throwable].isAssignableFrom(c)
-            schema = Schema.createRecord(name, null /* doc */, space, error)
-            names.put(c.getName, schema)
-            val clzFields = getFields(c)
-            for (field <- clzFields) {
-              if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
-                val fieldSchema = createFieldSchema(field, names)
-                fields.add(new Schema.Field(field.getName, fieldSchema, null /* doc */, null))
+            
+            val union = c.getAnnotation(classOf[Union])
+            if (union != null) { // union annotated
+              return getAnnotatedUnion(union, names)
+            } else if (c.isAnnotationPresent(classOf[Stringable])) { // Stringable
+              val result = Schema.create(Schema.Type.STRING)
+              result.addProp(ReflectData.CLASS_PROP, c.getName)
+              return result
+            } else if (classOf[IndexedRecord].isAssignableFrom(c)) { // specific
+              return super.createSchema(tpe, names)
+            } 
+
+            val schema = 
+              if (c.isEnum) { // Enum
+                val symbols = new java.util.ArrayList[String]()
+                val constants = c.getEnumConstants.asInstanceOf[Array[Enum[_]]]
+                var i = -1
+                while ({i += 1; i < constants.length}) {
+                  symbols.add(constants(i).name)
+                }
+                Schema.createEnum(name, null /* doc */, space, symbols)
+              } else if (classOf[GenericFixed].isAssignableFrom(c)) { // fixed
+                val size = c.getAnnotation(classOf[FixedSize]).value
+                Schema.createFixed(name, null /* doc */, space, size)
+              } else { // record
+                val fields = new java.util.ArrayList[Schema.Field]()
+                val error = classOf[Throwable].isAssignableFrom(c)
+                val schema = Schema.createRecord(name, null /* doc */, space, error)
+                names.put(c.getName, schema)
+                val clzFields = getFields(c)
+                for (field <- clzFields) {
+                  if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0){
+                    val fieldSchema = createFieldSchema(field, names)
+                    // schema name only allows leffter and digit
+                    val fieleName = field.getName.replace("$", "_DOLLAR_")
+                    fields.add(new Schema.Field(fieleName, fieldSchema, null /* doc */, null))
+                  }
+                }
+                if (error) { // add Throwable message
+                  fields.add(new Schema.Field("detailMessage", ReflectData.THROWABLE_MESSAGE, null, null))
+                }
+                schema.setFields(fields)
+                schema
               }
-            }
-            if (error) {                             // add Throwable message
-              fields.add(new Schema.Field("detailMessage", ReflectData.THROWABLE_MESSAGE, null, null))
-            }
-            schema.setFields(fields)
-          }
-          names.put(fullName, schema)
+            
+            names.put(fullName, schema)
+            schema
+          case schema => schema
         }
-        return schema
+        
+      case _ => super.createSchema(tpe, names)
     }
-    super.createSchema(tpe, names)
   }
+
 
   // if array element type is a class with a union annotation, note it
   // this is required because we cannot set a property on the union itself 
@@ -392,7 +454,13 @@ class ReflectData protected() extends SpecificData {
 
   /** Create a schema for a field. */
   protected def createFieldSchema(field: Field, names: java.util.Map[String, Schema]): Schema = {
-    val schema = createSchema(field.getGenericType(), names)
+    val schema = field.getGenericType match {
+      case x: GenericArrayType => createSchema(x, names)
+      case x: ParameterizedType => createSchema(x, names)
+      case x: TypeVariable[_] => createSchema(x, names)
+      case x: Class[_] => val c = x.asInstanceOf[Class[_]]; createSchema(c, names)
+    }
+    
     if (field.isAnnotationPresent(classOf[Nullable])) // nullable
       ReflectData.makeNullable(schema)
     else
@@ -475,7 +543,12 @@ class ReflectData protected() extends SpecificData {
 
   private def getSchema(tpe: Type, names: java.util.Map[String, Schema]): Schema = {
     try {
-      return createSchema(tpe, names)
+      tpe match {
+        case x: GenericArrayType => createSchema(x, names)
+        case x: ParameterizedType => createSchema(x, names)
+        case x: TypeVariable[_] => createSchema(x, names)
+        case x: Class[_] => val c = x.asInstanceOf[Class[_]]; createSchema(c, names)
+      }
     } catch {
       case ex: AvroTypeException => throw new AvroTypeException("Error getting schema for "+tpe+": " +ex.getMessage, ex)
     }

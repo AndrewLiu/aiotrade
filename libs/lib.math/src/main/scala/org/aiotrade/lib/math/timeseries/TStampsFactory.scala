@@ -227,8 +227,8 @@ object TStampsFactory {
             
       /**
        * if we reach here, that means the time should between (from) and (from + 1),
-       * and the 'length' should be 1 (end - start). So, just do following checking,
-       * if can't get exact index, just return -1.
+       * and the 'length' should be 1 (end - start). So, just do following checking.
+       * If can't get exact index, ﻿just return invalid value -1
        */
       if (apply(from) >= time) {
         from
@@ -271,8 +271,8 @@ object TStampsFactory {
             
       /**
        * if we reach here, that means the time should between (from) and (from + 1),
-       * and the 'length' should be 1 (end - start). So, just do following checking,
-       * if can't get exact index, just return -1.
+       * and the 'length' should be 1 (end - start). So, just do following checking.
+       * If can't get exact index, just return invalid -1.
        */
       if (apply(from + 1) <= time) {
         from + 1
@@ -484,8 +484,10 @@ object TStampsFactory {
 
     override def iterator = delegateTimestamps.iterator
 
-    override def toArray[B >: Long : ClassManifest]: Array[B] = delegateTimestamps.toArray
+    override def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
         
+    override def toArray: Array[Long] = delegateTimestamps.toArray
+    
     override def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
 
     override def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)

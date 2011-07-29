@@ -3,6 +3,7 @@ package org.aiotrade.lib.avro
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 
+import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.io.Decoder
@@ -13,11 +14,11 @@ import scala.collection.immutable
 
 
 object ReflectDatumReader {
-  def apply[T](writer: Schema, reader: Schema, data: ReflectData) = new ReflectDatumReader[T](writer, reader, data)
-  def apply[T](writer: Schema, reader: Schema) = new ReflectDatumReader[T](writer, reader, ReflectData.get)
-  def apply[T](root: Schema) = new ReflectDatumReader[T](root, root, ReflectData.get)
-//  def apply[T](c: Class[T]) = apply[T](ReflectData.get.getSchema(c))
-  def apply[T]() = new ReflectDatumReader[T](null, null, ReflectData.get)
+  def apply[T](writer: Schema, reader: Schema, data: ReflectData): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, data)
+  def apply[T](writer: Schema, reader: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, ReflectData.get)
+  def apply[T](root: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](root, root, ReflectData.get)
+  def apply[T: Manifest](c: Class[T]): ReflectDatumReader[T] = apply[T](ReflectData.get.getSchema(c))
+  def apply[T](): ReflectDatumReader[T] = new ReflectDatumReader[T](null, null, ReflectData.get)
 }
 
 /**
@@ -27,31 +28,32 @@ object ReflectDatumReader {
 class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: ReflectData) extends SpecificDatumReader[T](writer, reader, data) {
 
   @throws(classOf[IOException])
-  override protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): Any = {
+  override protected def readArray(old: Any, expected: Schema, in: ResolvingDecoder): AnyRef = {
     super.doReadArray(old, expected, in) match {
-      case xs: immutable.Seq[Any] => xs.reverse
-      case xs => 
+      case xs: ArrayList[_] => 
         if (ReflectData.getClassProp(expected, ReflectData.CLASS_PROP) == null) {
           // expected native array @see GenericDatumReader#newArray
-          toNativeArray(expected.getElementType.getType, xs.asInstanceOf[mutable.ArrayBuffer[_]])
+          xs.toArray
         } else {
           xs
         }
+      case xs: immutable.Seq[_] => xs.reverse
+      case xs => xs
     }
   }
   
-  override protected def newArray(old: Any, size: Int, schema: Schema): Any = {
+  override protected def newArray(old: Any, size: Int, schema: Schema): AnyRef = {
     ReflectData.getClassProp(schema, ReflectData.CLASS_PROP) match {
       case null => // use native array
         val elementClass = ReflectData.getClassProp(schema, ReflectData.ELEMENT_PROP) match {
           case null => ReflectData.get.getClass(schema.getElementType)
           case x => x
         }
-        super.newArray(elementClass, old, size, schema)
+        super.newArray(old, size, schema, elementClass)
       case collectionClass => 
         old match {
+          case xs: ArrayList[_] => xs.clear; xs
           case xs: java.util.Collection[_] => xs.clear; xs
-          case xs: mutable.ArrayBuffer[_] => xs.clear; xs
           case xs: mutable.ListBuffer[_] => xs.clear; xs
           case _ =>
             if (collectionClass.isAssignableFrom(classOf[java.util.ArrayList[_]])) {
@@ -67,15 +69,12 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
     }
   }
 
-  /**
-   * @Todo how about immutable seq?
-   */
-  override protected def addToArray(array: Any, pos: Long, e: Any): Any = {
+  override protected def addToArray[T](array: AnyRef, pos: Long, e: T): AnyRef = {
     array match {
-      case xs: java.util.Collection[AnyRef] => xs.add(e.asInstanceOf[AnyRef]); xs
-      case xs: mutable.ArrayBuffer[Any] => xs += e
-      case xs: mutable.Seq[_]   => xs.:+(e) // append to end
-      case xs: immutable.Seq[_] => xs.+:(e) // insert in front
+      case xs: ArrayList[T] => xs += e; xs
+      case xs: java.util.Collection[T] => xs.add(e.asInstanceOf[T]); xs
+      case xs: mutable.Seq[T]   => xs.:+(e); xs // append to end
+      case xs: immutable.Seq[T] => xs.+:(e); xs // insert in front
       case xs => java.lang.reflect.Array.set(array, pos.toInt, e); xs // it's better not use it (for json)
     }
   }

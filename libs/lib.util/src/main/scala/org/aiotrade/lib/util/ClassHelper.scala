@@ -34,6 +34,8 @@ package org.aiotrade.lib.util
  * 
  * @author Caoyuan Deng
  */
+import java.lang.reflect.Modifier
+
 object ClassHelper {
   
   // --- classes
@@ -96,24 +98,58 @@ object ClassHelper {
   // --- helpers
   
   private val TupleNameRegex = """scala\.Tuple(\d\d?)""".r
-  def isTuple(v: AnyRef): Boolean = {
-    v.getClass.getName match {
+  def isTuple(v: AnyRef): Boolean = isTupleClass(v.getClass)
+  
+  def isTupleClass(c: Class[_]): Boolean = {
+    c.getName match {
       case TupleNameRegex(count) => val i = count.toInt; i >= 1 && i < 23
       case _ => false
     }
   }
+
+  def isCollectionClass(c: Class[_]): Boolean = {
+    JCollectionClass.isAssignableFrom(c) || SeqClass.isAssignableFrom(c)
+  }
   
-  def isInstance(t: Class[_], v: Any): Boolean = {
-    t match {
+  def isMapClass(c: Class[_]): Boolean = {
+    JMapClass.isAssignableFrom(c) || MapClass.isAssignableFrom(c)
+  }
+
+  def isInstance[T](c: Class[T], v: Any): Boolean = {
+    c match {
       case UnitClass => v.isInstanceOf[Unit] // corner case: classOf[Unit].isInstance(()) returns false, but, ().isInstanceOf[Unit] returns true
-      case ByteClass => JByteClass.isInstance(v) || ByteClass.isInstance(v)
-      case ShortClass => JShortClass.isInstance(v) || ShortClass.isInstance(v)
-      case IntClass => JIntegerClass.isInstance(v) || IntClass.isInstance(v)
-      case LongClass => JLongClass.isInstance(v) || LongClass.isInstance(v)
-      case FloatClass => JFloatClass.isInstance(v) || FloatClass.isInstance(v)
-      case DoubleClass => JDoubleClass.isInstance(v) || DoubleClass.isInstance(v)
+      case ByteClass =>    JByteClass.isInstance(v)    || ByteClass.isInstance(v)
+      case ShortClass =>   JShortClass.isInstance(v)   || ShortClass.isInstance(v)
+      case IntClass =>     JIntegerClass.isInstance(v) || IntClass.isInstance(v)
+      case LongClass =>    JLongClass.isInstance(v)    || LongClass.isInstance(v)
+      case FloatClass =>   JFloatClass.isInstance(v)   || FloatClass.isInstance(v)
+      case DoubleClass =>  JDoubleClass.isInstance(v)  || DoubleClass.isInstance(v)
       case BooleanClass => JBooleanClass.isInstance(v) || BooleanClass.isInstance(v)
-      case _ => t.isInstance(v)
+      case _ => c.isInstance(v)
     }
   }
+
+  def isScalaClass(c: Class[_]): Boolean = {
+    val interfaces = c.getInterfaces
+    var i = -1
+    while ({i += 1; i < interfaces.length}) {
+      if (interfaces(i).getName == "scala.ScalaObject") return true
+    }
+    
+    false
+  }
+  
+  def isScalaSingletonObject(c: Class[_]): Boolean = {
+    if (c.getSimpleName.endsWith("$")) {
+      try {
+        val field = c.getDeclaredField("MODULE$")
+        val modifiers = field.getModifiers
+        Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers) && isScalaClass(c)
+      } catch {
+        case ex: NoSuchFieldException => false
+      }
+    } else false
+  }
+  
 }
+

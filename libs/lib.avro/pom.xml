@@ -28,11 +28,11 @@
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
         </dependency>               
-<!--        <dependency>
+        <dependency>
             <groupId>org.aiotrade</groupId>
             <artifactId>lib-util</artifactId>
             <version>${project.version}</version>
-        </dependency> -->
+        </dependency> 
     </dependencies>
 
     <build>

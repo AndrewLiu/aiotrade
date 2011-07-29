@@ -6,13 +6,13 @@ import org.apache.avro.Schema
 import org.apache.avro.io.Encoder
 
 object ReflectDatumWriter {
-  def apply[T](root: Schema, data: ReflectData) = new ReflectDatumWriter[T](root, data)
-  def apply[T](root: Schema) = new ReflectDatumWriter[T](root, ReflectData.get)
-  def apply[T](data: ReflectData) = new ReflectDatumWriter[T](null, data)
-  def apply[T]() = new ReflectDatumWriter[T](null, ReflectData.get)
+  def apply[T](root: Schema, data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](root, data)
+  def apply[T](root: Schema): ReflectDatumWriter[T] = new ReflectDatumWriter[T](root, ReflectData.get)
+  def apply[T](data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](null, data)
+  def apply[T](): ReflectDatumWriter[T]= new ReflectDatumWriter[T](null, ReflectData.get)
   
-  def apply[T](c: Class[T], data: ReflectData) = new ReflectDatumWriter[T](data.getSchema(c), data)
-//  def apply[T](c: Class[T]) = apply[T](c, ReflectData.get)
+  def apply[T: Manifest](c: Class[T], data: ReflectData): ReflectDatumWriter[T] = new ReflectDatumWriter[T](data.getSchema(c), data)
+  def apply[T: Manifest](c: Class[T]): ReflectDatumWriter[T] = apply[T](c, ReflectData.get)
 }
 
 /**
@@ -39,12 +39,15 @@ class ReflectDatumWriter[T] protected (root: Schema, reflectData: ReflectData) e
   @throws(classOf[IOException])
   override protected def write(schema: Schema, datum: Any, out: Encoder) {
     val datum1 = datum match {
+      case x: Byte => x.toInt
+      case x: java.lang.Byte => x.intValue
       case x: Short => x.toInt
       case x: java.lang.Short => x.intValue
       case _ => datum
     }
+    
     try {
-      super.write(schema, datum, out);
+      super.write(schema, datum1, out)
     } catch {
       case ex: NullPointerException =>           // improve error message
         val result = new NullPointerException("in " + schema.getFullName + " " + ex.getMessage)

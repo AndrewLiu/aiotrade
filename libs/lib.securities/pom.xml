@@ -53,6 +53,11 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>lib-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>lib-math</artifactId>
             <version>${project.version}</version>
         </dependency>
