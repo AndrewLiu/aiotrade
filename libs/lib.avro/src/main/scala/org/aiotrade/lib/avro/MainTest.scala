@@ -155,13 +155,15 @@ object MainTest {
     println("\n==== test scala vmap ====")
 
     val schemaJson = """
-    {"type": "map", "values": {"type": "array", "items": ["long", "double", "string"]}}
+    {"type": "map", "values": [{"type": "array", "items": ["long", "double", "string"]}, "long", "string"]}
     """
     
-    val vmap = new mutable.HashMap[String, Array[_]]
+    val vmap = new mutable.HashMap[String, Any]
     vmap.put(".", Array(1L, 2L, 3L))
     vmap.put("a", Array(1.0, 2.0, 3.0))
     vmap.put("b", Array("a", "b", "c"))
+    vmap.put("c", 7984723984L)
+    vmap.put("d", "test-Str")
 
     testMap(schemaJson, vmap, contentType)
   }
@@ -178,8 +180,14 @@ object MainTest {
     println(json)
     
     // decode to scala map
-    val map = Avro.decode(bytes, schema, classOf[collection.Map[String, Array[_]]], contentType).get
-    map foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
+    val map = Avro.decode(bytes, schema, classOf[collection.Map[String, Any]], contentType).get
+    map foreach {
+      ent =>
+      ent match {
+        case (k, v: Array[_]) => println(k + " -> " + v.mkString("[", ",", "]"))
+        case (k, v) => println(k + " -> " + v)
+      }
+    }
   }
   
   def testReflectClass(contentType: Int) {
