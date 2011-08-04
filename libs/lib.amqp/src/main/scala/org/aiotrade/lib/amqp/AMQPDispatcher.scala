@@ -25,10 +25,12 @@ import java.util.logging.Level
  *    the scheduler of actor may deley delivery message, that causes unacceptable latency for amqp messages
  * 2. Unlick indicator, tser etc, we do not need async, parallel scale for amcp clients
  */
+import org.aiotrade.lib.avro.Avro
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
 import org.aiotrade.lib.util.reactors.Event
 import org.aiotrade.lib.amqp.datatype.ContentType
+import org.apache.avro.Schema
 
 /*_ rabbitmqctl common usages:
  sudo rabbitmq-server -n rabbit@localhost &
@@ -239,7 +241,15 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
         case JAVA_SERIALIZED_OBJECT.mimeType => encodeJava(content)
         case JSON.mimeType => encodeJson(content)
-        case AVRO.mimeType => encodeAvro(content)
+        case AVRO.mimeType =>
+
+            log.info(" --- avro schema -->[" + props.getHeaders.get("avroSchema") + "]")
+            props.getHeaders.get("avroSchema") match {
+              case null => encodeAvro(content)
+              case Some(x) => Avro.encode(content, Schema.parse(x.asInstanceOf[String]), 0)
+              case _ => encodeAvro(content)
+            }
+          
         case TEXT_PLAIN.mimeType => encodeString(content)
 
         case _ => encodeJava(content)
@@ -249,7 +259,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         case null | "" => props.setContentEncoding("gzip"); "gzip"
         case x => x
       }
-    
+
       val body1 = contentEncoding match {
         case "gzip" => gzip(body)
         case "lzma" => lzma(body)
