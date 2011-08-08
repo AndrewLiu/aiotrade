@@ -114,9 +114,9 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   private val lastTicker = sec.exchange.uniSymbolToLastTradingDayTicker.get(sec.uniSymbol)
   private val executions = sec.exchange.lastDailyRoundedTradingTime match {
     case Some(time) =>
-      new ArrayList[Execution] ++ Executions.executionsOf(sec, time)
+      new ArrayList[Execution]() ++ Executions.executionsOf(sec, time)
     case None =>
-      new ArrayList[Execution]
+      new ArrayList[Execution]()
   }
 
   private val prevTicker: Ticker = new Ticker
