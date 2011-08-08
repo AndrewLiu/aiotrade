@@ -245,9 +245,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
             log.info(" --- avro schema -->[" + props.getHeaders.get("avroSchema") + "]")
             props.getHeaders.get("avroSchema") match {
-              case null => encodeAvro(content)
-              case Some(x) => Avro.encode(content, Schema.parse(x.asInstanceOf[String]), 0)
-              case _ => encodeAvro(content)
+              case null | "" => encodeAvro(content)
+              case x: String => Avro.encode(content, Schema.parse(x), 0)
             }
           
         case TEXT_PLAIN.mimeType => encodeString(content)
