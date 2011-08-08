@@ -90,8 +90,6 @@ import scala.collection.mutable
 class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
   import AnalysisChartTopComponent._
 
-  instanceRefs.put(this, null)
-
   private var addToFavActionMenuItem: JMenuItem = _
 
   setFont(LookFeel().axisFont)
@@ -126,8 +124,7 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
       def focusLost(e: FocusEvent) {}
     })
 
-
-  private var state = init($sec)
+  private var state: State = _
   
   /**
    * Current sec of this tc, it may be different from original sec that was passed via constructor.
@@ -137,14 +134,14 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
   def realTimeBoard = state.realTimeBoard
   def freq = state.contractFreq
 
-  def init(currSec: Sec): State = {
+  def init(currSec: Sec) {
     if (state != null) {
       realTimeBoard.unWatch
       splitPane.remove(realTimeBoard)
       splitPane.remove(viewContainer)
 
       val prevSec = state.sec
-      if (currSec ne prevSec) {
+      if (currSec != prevSec) {
         prevSec.resetSers
         val prevContent = prevSec.content
         prevContent.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
@@ -154,7 +151,6 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
     }
     
     state = new State(currSec)
-    state
   }
 
   override def open {
@@ -251,7 +247,7 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
     sec.resetSers
     content.lookupDescriptors(classOf[IndicatorDescriptor]) foreach {_.resetInstance}
 
-    val realTimeBoard = RealTimeBoardPanel.instanceOf(sec)
+    val realTimeBoard = RealTimeBoardPanel(sec)
     realTimeBoard.watch
     
     private val ser = sec.serOf(contractFreq).get
@@ -336,7 +332,6 @@ object AnalysisChartTopComponent {
   private val instanceRefs = mutable.WeakHashMap[AnalysisChartTopComponent, AnyRef]()
   def instances = instanceRefs.keys
 
-
   val STANDALONE = "STANDALONE"
 
   private var singleton: AnalysisChartTopComponent = _
@@ -357,25 +352,23 @@ object AnalysisChartTopComponent {
     val freq = quoteContract.freq
     
     if (standalone) {
-      val instance = instances find {x =>
-        (x.sec eq sec) && x.freq == freq
-      } match {
-        case Some(tc) => tc.init(sec); tc
-        case None => new AnalysisChartTopComponent(sec)
+      val instance = instances find {x => x.sec == sec && x.freq == freq} getOrElse {
+        val x = new AnalysisChartTopComponent(sec)
+        instanceRefs.put(x, null)
+        x
       }
-
+      
+      instance.init(sec)
       if (!instance.isOpened) {
         instance.open
       }
-
       instance
     } else {
       if (singleton == null) {
         singleton = new AnalysisChartTopComponent(sec)
-      } else {
-        singleton.init(sec)
       }
 
+      singleton.init(sec)
       singleton
     }
   }
