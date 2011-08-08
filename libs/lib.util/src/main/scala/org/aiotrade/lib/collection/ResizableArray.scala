@@ -109,7 +109,8 @@ trait ResizableArray[A] extends IndexedSeq[A]
   /** ensure that the internal array has at n cells */
   final protected def ensureSize(n: Int) {
     if (n > array.length) {
-      var newsize = array.length * 2
+      // make sure newsize is not 0 by math.max(array.length, 1)
+      var newsize = math.max(array.length, 1) * 2 
       while (n > newsize)
         newsize = newsize * 2
       val newar: Array[A] = makeArray(newsize)
