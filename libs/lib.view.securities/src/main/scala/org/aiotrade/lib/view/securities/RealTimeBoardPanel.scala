@@ -79,7 +79,7 @@ import org.aiotrade.lib.util.swing.table.AttributiveCellRenderer
 import org.aiotrade.lib.util.swing.table.AttributiveCellTableModel
 import org.aiotrade.lib.util.swing.table.DefaultCellAttribute
 import org.aiotrade.lib.util.swing.table.MultiSpanCellTable
-import scala.collection.mutable.WeakHashMap
+import scala.collection.mutable
 
 /**
  *
@@ -87,10 +87,6 @@ import scala.collection.mutable.WeakHashMap
  */
 class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   import RealTimeBoardPanel._
-  private val log = Logger.getLogger(this.getClass.getSimpleName)
-
-  instanceRefs.put(this, null)
-  log.info("Instances of " + this.getClass.getSimpleName + " is " + instances.size)
 
   private val tickerContract: TickerContract = sec.tickerContract
   private val tickerPane = new JScrollPane
@@ -118,9 +114,9 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
   private val lastTicker = sec.exchange.uniSymbolToLastTradingDayTicker.get(sec.uniSymbol)
   private val executions = sec.exchange.lastDailyRoundedTradingTime match {
     case Some(time) =>
-      new ArrayList[Execution] ++ Executions.executionsOf(sec, time)
+      new ArrayList[Execution]() ++ Executions.executionsOf(sec, time)
     case None =>
-      new ArrayList[Execution]
+      new ArrayList[Execution]()
   }
 
   private val prevTicker: Ticker = new Ticker
@@ -539,19 +535,24 @@ class RealTimeBoardPanel private (val sec: Sec) extends JPanel with Reactor {
 }
 
 object RealTimeBoardPanel {
+  private val log = Logger.getLogger(this.getClass.getSimpleName)
   private val Bundle = ResourceBundle.getBundle("org.aiotrade.lib.view.securities.Bundle")
   private val NUMBER_FORMAT = NumberFormat.getInstance
   val DIM = new Dimension(230, 100000)
 
-  private val instanceRefs = WeakHashMap[RealTimeBoardPanel, AnyRef]()
-  def instances = instanceRefs.keys
+  private val instanceRefs = new mutable.WeakHashMap[RealTimeBoardPanel, AnyRef]()
+  private def instances = instanceRefs.keys
 
-  def instanceOf(sec: Sec): RealTimeBoardPanel = instanceRefs synchronized {
-    instances find {_.sec eq sec} match {
-      case Some(x) => instanceRefs.remove(x)
+  def apply(sec: Sec): RealTimeBoardPanel = {
+    instances find {_.sec == sec} match {
+      case Some(x) => instanceRefs.remove(x) // always remove old one
       case None => 
     }
-    new RealTimeBoardPanel(sec)
+    
+    val instance = new RealTimeBoardPanel(sec)
+    instanceRefs.put(instance, null)
+    log.info("Instances of " + instance.getClass.getSimpleName + " is " + instances.size)
+    instance
   }
 }
 

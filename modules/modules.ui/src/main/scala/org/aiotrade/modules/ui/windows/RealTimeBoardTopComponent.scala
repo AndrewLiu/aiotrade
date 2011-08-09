@@ -61,7 +61,7 @@ class RealTimeBoardTopComponent private (val sec: Sec) extends TopComponent {
     
   private val tc_id = sec.name + "_TK"
         
-  private val boardPanel = RealTimeBoardPanel.instanceOf(sec)
+  private val boardPanel = RealTimeBoardPanel(sec)
         
   setLayout(new BorderLayout)
         
