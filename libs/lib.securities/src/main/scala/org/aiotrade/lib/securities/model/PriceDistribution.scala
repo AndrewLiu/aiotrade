@@ -41,7 +41,7 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
 
   override def toString() = {
     val sp = new StringBuffer
-    sp.append(",price:").append(price)
+    sp.append("price:").append(price)
     sp.append(",volumeUp:").append(volumeUp)
     sp.append(",volumeDown:").append(volumeDown)
     sp.toString

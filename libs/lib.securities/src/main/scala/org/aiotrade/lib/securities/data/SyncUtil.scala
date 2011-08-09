@@ -55,6 +55,7 @@ import org.aiotrade.lib.securities.model.ExchangeCloseDates
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.MoneyFlows1m
+import org.aiotrade.lib.securities.model.PriceDistributions
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
 import org.aiotrade.lib.securities.model.SecIssues
@@ -100,11 +101,12 @@ object SyncUtil {
                                      SecStatuses,
                                      Sectors,
                                      SectorSecs
+                                     //PriceDistributions
   )
 
   def main(args: Array[String]) {
     try {
-      //exportAvroDataFileFromProductionMysql()
+//      exportAvroDataFileFromProductionMysql()
       importAvroDataFileToTestMysql()
       //test()
       println("Finished!")
