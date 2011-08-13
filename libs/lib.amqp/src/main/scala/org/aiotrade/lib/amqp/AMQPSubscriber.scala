@@ -35,7 +35,6 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
 import java.util.logging.Level
 import java.util.logging.Logger
-import org.aiotrade.lib.util.reactors.Event
 
 /**
  *
@@ -68,9 +67,9 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
     override def toString = "Topic(" + name + " ~> " + bindingQueue + ")"
   }
 
-  case class ConsumeQueue(queue: Queue, isDefult: Boolean) extends Event
-  case class SubscribeTopic(topic: Topic) extends Event
-  case class UnsubscribeTopic(topic: Topic) extends Event
+  case class ConsumeQueue(queue: Queue, isDefult: Boolean)
+  case class SubscribeTopic(topic: Topic)
+  case class UnsubscribeTopic(topic: Topic)
 
   private var _defaultQueue: Option[Queue] = None
   private var _consumingQueues = Map[String, Queue]()
@@ -88,11 +87,11 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
       _consumingQueues foreach {case (qname, queue) => doConsumeQueue(queue)}
       _defaultQueue = default
       _subscribedTopics foreach doSubscribeTopic
-    case ConsumeQueue(queue: Queue, isDefault) =>
+    case ConsumeQueue(queue, isDefault) =>
       doConsumeQueue(queue, isDefault)
-    case SubscribeTopic(topic: Topic) =>
+    case SubscribeTopic(topic) =>
       doSubscribeTopic(topic)
-    case UnsubscribeTopic(topic: Topic) =>
+    case UnsubscribeTopic(topic) =>
       doUnsubscribeTopic(topic)
   }
 
