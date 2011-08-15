@@ -346,6 +346,11 @@ object PriceDistributions  extends Table[PriceDistribution] {
       inserts ++= i
     }
 
+    for (x <- updates) {
+      val existOne = exists(x.sec -> x.price)
+      existOne.copyFrom(x)
+    }
+
     try {
       if (updates.length > 0) {
         this.updateBatch_!(updates.toArray)
