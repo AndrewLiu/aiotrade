@@ -27,10 +27,6 @@
             <id>jgit-repository</id>
             <url>http://download.eclipse.org/jgit/maven</url>
         </repository>
-        <!--repository>
-            <id>github-dcaoyuan</id>
-            <url>https://github.com/dcaoyuan/dcaoyuan-mvn-repo/raw/master/snapshots</url>
-        </repository-->
     </repositories>
    
     <dependencies>
@@ -168,8 +164,8 @@
                                             <mainClass>org.aiotrade.lib.securities.data.Packaging</mainClass>
                                             <args>
                                                 <arg>${basedir}/src/main/resources/data</arg>
-                                                <arg>git://github.com/dcaoyuan/aiotrade-data.git</arg> <!-- sourceUri -->
-                                                <arg>refs/heads/test</arg> <!-- the only branch to clone -->
+                                                <arg>http://jc1.foundersc.com/git/aiotrade-data.git</arg> <!-- sourceUri -->
+                                                <arg>refs/heads/test</arg> <!-- the default branch that will be checkedout after clone -->
                                             </args>
                                         </launcher>
                                     </launchers>

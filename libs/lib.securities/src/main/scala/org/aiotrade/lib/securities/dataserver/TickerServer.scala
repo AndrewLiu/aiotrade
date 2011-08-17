@@ -134,7 +134,7 @@ abstract class TickerServer extends DataServer[Ticker] {
     log.info("Composing quote from tickers: " + tickers.length)
     if (tickers.length == 0) return lastTime
 
-    Exchange.checkIfSomethingNew(tickers)
+    if (TickerServer.isServer) Exchange.checkIfSomethingNew(tickers)
     
     val (secSnaps, tickersLast) = toSecSnaps(tickers)
     log.info("Composing quote from secSnaps: " + secSnaps.length)
@@ -156,8 +156,8 @@ abstract class TickerServer extends DataServer[Ticker] {
       val ticker = secSnap.newTicker
       val lastTicker = secSnap.lastTicker
       val isDayFirst = ticker.isDayFirst
-      val dayQuote = secSnap.dailyQuote
-      val minQuote = secSnap.minuteQuote
+      val dayQuote = secSnap.dayQuote
+      val minQuote = secSnap.minQuote
 
       log.fine("Composing from ticker: " + ticker + ", lasticker: " + lastTicker)
 
@@ -360,7 +360,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         log.info("Saved tickersLast in " + (System.currentTimeMillis - t0) + "ms: tickersLastToInsert=" + tickersLastToInsert.length + ", tickersLastToUpdate=" + tickersLastToUpdate.length)
       }
 
-      if (TickerServer.isServer) {
+      if (TickerServer.isServer && TickerServer.isSaveTickers) {
         val t1 = System.currentTimeMillis
         if (allTickers.length > 0) {
           Tickers.insertBatch_!(allTickers.toArray)
@@ -390,7 +390,7 @@ abstract class TickerServer extends DataServer[Ticker] {
       log.info("Trading status of " + exchange.code + ": " + status)
       exchange.tradingStatus = status
       val alsoSave = TickerServer.isServer
-      exchange.tryClosing(alsoSave)
+      exchange.tryClosing(status, alsoSave)
     }
 
     lastTime
@@ -410,6 +410,7 @@ object TickerServer {
 
   private val config = org.aiotrade.lib.util.config.Config()
   val isServer = !config.getBool("dataserver.client", false)
+  val isSaveTickers = config.getBool("dataserver.savetickers", false)
   log.info("Ticker server is started as " + (if (TickerServer.isServer) "server" else "client"))
   
   

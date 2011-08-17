@@ -119,26 +119,26 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
-  def adjust() {adjust(true)}
-  def unadjust() {adjust(false)}
+  def adjust  (force: Boolean = false) {doAdjust(true,  force)}
+  def unadjust(force: Boolean = false) {doAdjust(false, force)}
   
-  private def adjust(b: Boolean) {
+  private def doAdjust(b: Boolean, force: Boolean) {
     if (isLoaded) {
-      doAdjust(b)
+      doAdjusting(b, force)
     } else {
       // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
       var reaction: Reactions.Reaction = null
       reaction = {
         case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
           reactions -= reaction
-          doAdjust(b)
+          doAdjusting(b, force)
       }
       reactions += reaction
 
       // TSerEvent.Loaded may have been missed during above procedure, so confirm it
       if (isLoaded) {
         reactions -= reaction
-        doAdjust(b)
+        doAdjusting(b, force)
       }
     }
   }
@@ -146,8 +146,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   /**
    * @param boolean b: if true, do adjust, else, de adjust
    */
-  private def doAdjust(b: Boolean) {
-    if (isAdjusted && b || !isAdjusted && !b) return
+  private def doAdjusting(b: Boolean, force: Boolean) {
+    if (!force && (isAdjusted && b || !isAdjusted && !b)) return
     
     val divs = Exchanges.dividendsOf(serProvider)
     if (divs.isEmpty) {
@@ -159,33 +159,28 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     while ({i += 1; i < size}) {
       val time = timestamps(i)
 
-      var h = high(i)
-      var l = low(i)
-      var o = open(i)
-      var c = close(i)
+      var h = high_ori(i)
+      var l = low_ori(i)
+      var o = open_ori(i)
+      var c = close_ori(i)
 
-      val divItr = divs.iterator
-      while (divItr.hasNext) {
-        val div = divItr.next
-        if (time < div.dividendDate) {
-          if (b) {
+      if (b) {
+        val divItr = divs.iterator
+        while (divItr.hasNext) {
+          val div = divItr.next
+          if (time < div.dividendDate) {
             h = div.adjust(h)
             l = div.adjust(l)
             o = div.adjust(o)
             c = div.adjust(c)
-          } else {
-            h = div.unadjust(h)
-            l = div.unadjust(l)
-            o = div.unadjust(o)
-            c = div.unadjust(c)
           }
-          
-          high (i) = h
-          low  (i) = l
-          open (i) = o
-          close(i) = c
-        }
+        }        
       }
+      
+      high (i) = h
+      low  (i) = l
+      open (i) = o
+      close(i) = c      
     }
 
     isAdjusted = b

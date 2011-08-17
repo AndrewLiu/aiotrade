@@ -20,15 +20,11 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
 
   private var _time: Long = _
   def time = _time
-  def time_=(time: Long) {
-    this._time = time
-  }
+  def time_=(time: Long) {this._time = time}
 
   private var _flag: Int = 1 // dafault is closed
   def flag = _flag
-  def flag_=(flag: Int) {
-    this._flag = flag
-  }
+  def flag_=(flag: Int) {this._flag = flag}
 
   var price: Double =_
   var volumeUp: Double =_
@@ -37,35 +33,43 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
   def copyFrom(another: PriceDistribution) {
     this.sec = another.sec
     this.time = another.time
+    this.flag = another.flag
     this.price = another.price
     this.volumeUp = another.volumeUp
     this.volumeDown = another.volumeDown
   }
+
+  override def toString() = {
+    val sp = new StringBuffer
+    sp.append(",price:").append(price)
+    sp.append(",volumeUp:").append(volumeUp)
+    sp.append(",volumeDown:").append(volumeDown)
+    sp.toString
+  }
 }
 
+@serializable
 class PriceCollection extends BelongsToSec with TVal with Flag  {
+  @transient
   val cal = Calendar.getInstance
-  private var map = mutable.Map[Double, PriceDistribution]()
+  private var map = mutable.Map[String, PriceDistribution]()
 
   var isTransient = true
 
   private var _time: Long = _
   def time = _time
-  def time_=(time: Long) {
-    this._time = time
-  }
+  def time_=(time: Long) {this._time = time}
 
   private var _flag: Int = 1 // dafault is closed
   def flag = _flag
-  def flag_=(flag: Int) {
-    this._flag = flag
-  }
+  def flag_=(flag: Int) {this._flag = flag}
 
-  def get(price: Double) = map.get(price)
+  def get(price: String) = map.get(price)
     
-  def put(price: Double, pd: PriceDistribution) = {
+  def put(price: String, pd: PriceDistribution) = {
     if (map.isEmpty){
       this.time = pd.time
+      this.sec = pd.sec
     }
 
     if (TFreq.DAILY.round(this.time, cal) == TFreq.DAILY.round(pd.time, cal)){
@@ -75,55 +79,49 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
     }
   }
 
-  def keys() = map.keys
+  def keys = map.keys
 
-  def values() = map.values
+  def values = map.values
 
-  def isEmpty() = map.isEmpty
+  def isEmpty = map.isEmpty
 
   override def closed_! = {
     super.closed_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).closed_!
-    }
+    this.map.values foreach (_.closed_!)
   }
 
   override def unclosed_! = {
     super.unclosed_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).unclosed_!
-    }
+    this.map.values foreach (_.unclosed_!)
   }
 
   override def justOpen_! = {
     super.justOpen_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).justOpen_!
-    }
+    this.map.values foreach (_.justOpen_!)
   }
 
   override def unjustOpen_! = {
     super.unjustOpen_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).unjustOpen_!
-    }
+    this.map.values foreach (_.unjustOpen_!)
   }
-
 
   override def fromMe_! = {
     super.fromMe_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).fromMe_!
-    }
+    this.map.values foreach (_.fromMe_!)
   }
 
   override def unfromMe_! = {
     super.unfromMe_!
-    this.map.keys.foreach{key =>
-      this.map.get(key).getOrElse(null).unfromMe_!
-    }
+    this.map.values foreach (_.unfromMe_!)
   }
-
+  
+  override def toString() ={
+    val sp = new StringBuffer
+    sp.append("\nunisymbol:").append(uniSymbol)
+    sp.append("\ntime:").append(time)
+    this.map.values foreach {value => sp.append("\n").append(value.toString)}
+    sp.toString
+  }
 }
 
 
@@ -139,6 +137,8 @@ object PriceDistributions  extends Table[PriceDistribution] {
   val flag = "flag" INTEGER()
 
   private val dailyCache = mutable.Map[(Sec, Long), PriceCollection]()
+
+  @deprecated
   def dailyDistribuOf(sec: Sec, date: Long): PriceCollection ={
     dailyCache.get(sec -> date) match {
       case Some(map) => map
@@ -147,62 +147,104 @@ object PriceDistributions  extends Table[PriceDistribution] {
 
         dailyCache.put(sec -> date, map)
 
-        (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
-        ) foreach {x => map.put(x.price, x)}
+        try{
+          (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
+          ) foreach {x => map.put(x.price.toString, x)}
+        }
+        catch{
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        }
 
         map.isTransient = map.isEmpty
+        map.time = date
+        map.sec = sec
         if (map.isTransient){
-          sec.exchange.addNewPriceDistribution(TFreq.DAILY, map)
+          map.unclosed_!
+          map.justOpen_!
+          map.fromMe_!
+          //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
         }
         map
     }
   }
 
+  @deprecated
   def dailyDistribuOf_ignoreCache(sec: Sec, date: Long): PriceCollection ={
     val map = new PriceCollection
-    (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
-    ) foreach {x => map.put(x.price, x)}
+    try{
+      (SELECT (this.*) FROM this WHERE ((this.time EQ date) AND (this.sec.field EQ Secs.idOf(sec))) list
+      ) foreach {x => map.put(x.price.toString, x)}
+    }
+    catch{
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
 
+    map.time = date
+    map.sec = sec
     map.isTransient = map.isEmpty
     if (map.isTransient){
-      sec.exchange.addNewPriceDistribution(TFreq.DAILY, map)
+      map.unclosed_!
+      map.justOpen_!
+      map.fromMe_!
+      //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
     }
     map
   }
 
-
+  @deprecated
   def dailyDistribuOf(sec: Sec): mutable.Map[Long, PriceCollection] = {
     seqToMap(
-      (SELECT (this.*) FROM (this) WHERE (
-          this.sec.field EQ Secs.idOf(sec)
-        ) ORDER_BY (this.time) list
-      ))
+      try{
+        (SELECT (this.*) FROM (this) WHERE (
+            this.sec.field EQ Secs.idOf(sec)
+          ) ORDER_BY (this.time) list
+        )
+      }
+      catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      })
   }
 
   def closedDistribuOf(sec: Sec): mutable.Map[Long, PriceCollection] = {
     val map = mutable.Map[Long, PriceCollection]()
-    (SELECT (this.*) FROM (this) WHERE (
-        this.sec.field EQ Secs.idOf(sec)
-      ) ORDER_BY (this.time) list
+    (try{
+        SELECT (this.*) FROM (this) WHERE (
+          this.sec.field EQ Secs.idOf(sec)
+        ) ORDER_BY (this.time) list
+      }
+     catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      }
     ) foreach {x =>
       if (x.closed_?){
         map.get(x.time) match{
-          case Some(m) => m.isTransient = false; m.put(x.price, x)
+          case Some(m) => m.isTransient = false; m.put(x.price.toString, x)
           case None =>
             val m = new PriceCollection
+            m.isTransient = false
             map.put(x.time, m)
-            m.put(x.price, x)
+            m.time = x.time
+            m.sec = sec
+            m.put(x.price.toString, x)
         }
       }
     }
+
+    log.info("Load price collection from DB:" + map.size)
     map
   }
 
+  @deprecated
   def closedDistribuOf__filterByDB(sec: Sec): mutable.Map[Long, PriceCollection]= {
     seqToMap(
-      SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-      ) ORDER_BY (this.time) list
+      try{
+        SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+        ) ORDER_BY (this.time) list
+      }
+      catch{
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      }
     )
   }
 
@@ -230,12 +272,14 @@ object PriceDistributions  extends Table[PriceDistribution] {
     val map = mutable.Map[Long, PriceCollection]()
     list foreach {x =>
       map.get(x.time) match{
-        case Some(m) => m.isTransient = false; m.put(x.price, x)
+        case Some(m) => m.isTransient = false; m.put(x.price.toString, x)
         case None =>
           val m = new PriceCollection
-          m.isTransient = false;
+          m.isTransient = false
           map.put(x.time, m)
-          m.put(x.price, x)
+          m.time = x.time
+          m.sec = x.sec
+          m.put(x.price.toString, x)
       }
     }
     map
@@ -280,8 +324,8 @@ object PriceDistributions  extends Table[PriceDistribution] {
     }
   }
 
-  def saveBatch(atSameTime: Long, pds: ArrayList[PriceCollection]) {
-    if (pds.isEmpty) return
+  def saveBatch(atSameTime: Long, pcs: Array[PriceCollection]) {
+    if (pcs.isEmpty) return
 
     val exists = mutable.Map[(Sec, Double),PriceDistribution]()
     val res = try {
@@ -296,15 +340,10 @@ object PriceDistributions  extends Table[PriceDistribution] {
     val updates = new ArrayList[PriceDistribution]()
     val inserts = new ArrayList[PriceDistribution]()
 
-    pds.foreach{pc =>
-      val (u, i) = pc.values.partition(x => exists.contains(x.sec -> x.price))
+    pcs.foreach{pc =>
+      val (u, i) = pc.values partition {x => exists.contains(x.sec -> x.price)}
       updates ++= u
       inserts ++= i
-    }
-
-    for (x <- updates) {
-      val existOne = exists(x.sec -> x.price)
-      existOne.copyFrom(x)
     }
 
     try {

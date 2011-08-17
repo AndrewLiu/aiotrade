@@ -291,7 +291,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
     }
   }
   
-  def saveBatch(atSameTime: Long, mfs: ArrayList[MoneyFlow]) {
+  def saveBatch(atSameTime: Long, mfs: Array[MoneyFlow]) {
     if (mfs.isEmpty) return
 
     val exists = mutable.Map[Sec, MoneyFlow]()
