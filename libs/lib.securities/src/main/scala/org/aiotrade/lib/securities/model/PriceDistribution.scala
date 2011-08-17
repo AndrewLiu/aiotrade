@@ -162,7 +162,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
           map.unclosed_!
           map.justOpen_!
           map.fromMe_!
-          sec.exchange.addNewPriceDistribution(TFreq.DAILY, map)
+          //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
         }
         map
     }
@@ -186,7 +186,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
       map.unclosed_!
       map.justOpen_!
       map.fromMe_!
-      sec.exchange.addNewPriceDistribution(TFreq.DAILY, map)
+      //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
     }
     map
   }
@@ -341,14 +341,9 @@ object PriceDistributions  extends Table[PriceDistribution] {
     val inserts = new ArrayList[PriceDistribution]()
 
     pcs.foreach{pc =>
-      val (u, i) = pc.values.partition(x => exists.contains(x.sec -> x.price))
+      val (u, i) = pc.values partition {x => exists.contains(x.sec -> x.price)}
       updates ++= u
       inserts ++= i
-    }
-
-    for (x <- updates) {
-      val existOne = exists(x.sec -> x.price)
-      existOne.copyFrom(x)
     }
 
     try {

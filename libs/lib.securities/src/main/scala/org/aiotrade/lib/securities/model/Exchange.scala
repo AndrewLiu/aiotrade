@@ -438,11 +438,12 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         freqToUnclosedPriceDistributions.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
             freqToUnclosedPriceDistributions -= freq
-            log.info("price distribution unclosed length:" + unclosed.length)
+            log.info("price distribution unclosed," + TFreq.DAILY.name)
             unclosed.toArray
           case Some(unclosed) =>
-            val (toClose, other) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
-            freqToUnclosedPriceDistributions.put(freq, other)
+            val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+            freqToUnclosedPriceDistributions(freq) = notYet
+            log.info("price distribution unclosed, Other freq")
             toClose.toArray
           case None => emptyPriceDistributions
         }
@@ -452,8 +453,6 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         try {
           if (isDailyClosing) {
             log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
-
-            // do closing async in scheduler
             val closingTask = new Runnable {
               def run {
                 doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
