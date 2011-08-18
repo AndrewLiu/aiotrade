@@ -155,7 +155,6 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallVolumeNet = smallVolumeIn + smallVolumeOut
   def smallAmountNet = smallAmountIn + smallAmountOut
 
-   @transient
   var isTransient = true
 
   def copyFrom(another: MoneyFlow) {
