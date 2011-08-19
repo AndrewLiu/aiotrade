@@ -43,14 +43,6 @@ import java.util.logging.Logger
 class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Boolean = true, durable: Boolean = false) extends AMQPDispatcher(factory, exchange) {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  object Queue {
-    def apply(name: String) = new Queue(name, false, false, true)
-    def apply(name: String, durable: Boolean, exclusive: Boolean, autoDelete: Boolean) =
-      new Queue(name, durable, exclusive, autoDelete)
-
-    def unapply(queue: Queue) = Some((queue.name, queue.durable, queue.exclusive, queue.autoDelete))
-  }
-
   class Queue private (val name: String, val durable: Boolean, val exclusive: Boolean, val autoDelete: Boolean) {
     override def equals(that: Any) = that match {
       case x: Queue => x.name == name
@@ -58,9 +50,15 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
     }
 
     override def hashCode = name.hashCode
+    override def toString = "Queue(" + name + ", durable=" + durable + ", exclusive=" + exclusive + ", autoDelete=" + autoDelete + ")"
+  }
 
-    override def toString =
-      "Queue(" + name + ", durable=" + durable + ", exclusive=" + exclusive + ", autoDelete=" + autoDelete + ")"
+  object Queue {
+    def apply(name: String) = new Queue(name, false, false, true)
+    def apply(name: String, durable: Boolean, exclusive: Boolean, autoDelete: Boolean) =
+      new Queue(name, durable, exclusive, autoDelete)
+
+    def unapply(queue: Queue) = Some((queue.name, queue.durable, queue.exclusive, queue.autoDelete))
   }
 
   case class Topic(name: String, bindingQueue: String) {
