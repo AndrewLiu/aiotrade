@@ -38,7 +38,10 @@ import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 
 
-
+/**
+ *
+ * @author Caoyuan Deng
+ */
 trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
 
   protected val Plot = org.aiotrade.lib.math.indicator.Plot
@@ -89,30 +92,30 @@ trait WithFactors {self: Indicator =>
       val values = new Array[Double](factors.length)
       var i = -1
       while ({i += 1; i < factors.length}) {
-        values(i) = _factors(i).value
+        values(i) = factors(i).value
       }
-      factorValues_=(values)
+      factorValues = values
     }
   }
 
+  
+  def factorValues: Array[Double] = factors map {_.value}
   /**
-   *
-   * @return if any value of factors changed, return true, else return false
+   * if any value of factors changed, will publish FactorEvent
    */
-  def factorValues_=(facValues: Array[Double]) {
+  def factorValues_=(values: Array[Double]) {
     var valueChanged = false
-    if (facValues != null) {
-      if (factors.length == facValues.length) {
-        var i = 0
-        while (i < facValues.length) {
+    if (values != null) {
+      if (factors.length == values.length) {
+        var i = -1
+        while ({i += 1; i < values.length}) {
           val myFactor = _factors(i)
-          val inValue = facValues(i)
+          val inValue = values(i)
           /** check if changed happens before set myFactor */
           if (myFactor.value != inValue) {
             valueChanged = true
           }
           myFactor.value = inValue
-          i += 1
         }
       }
     }
@@ -122,9 +125,9 @@ trait WithFactors {self: Indicator =>
 
   def replaceFactor(oldFactor: Factor, newFactor: Factor) {
     var idxOld = -1
-    var i = 0
+    var i = -1
     var break = false
-    while (i < factors.length && !break) {
+    while ({i += 1; i < factors.length} && !break) {
       val factor = factors(i)
       if (factor == oldFactor) {
         idxOld = i
@@ -171,10 +174,6 @@ trait WithFactors {self: Indicator =>
   }
 }
 
-/**
- *
- * @author Caoyuan Deng
- */
 object Indicator {
   private val log = Logger.getLogger(this.getClass.getName)
 
