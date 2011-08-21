@@ -30,7 +30,7 @@
  */
 package org.aiotrade.modules.ui.windows
 
-import java.awt.BorderLayout;
+import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -212,7 +212,7 @@ class AnalysisChartTopComponent private ($sec: Sec) extends TopComponent {
     
   def lookupIndicator(descriptor: IndicatorDescriptor): Option[Indicator] = {
     val a = viewContainer.lookupChartView(descriptor) foreach {chartView =>
-      chartView.allSers find {_.getClass.getName.equalsIgnoreCase(descriptor.serviceClassName)} match {
+      chartView.allSers find {_.getClass.getName == descriptor.serviceClassName} match {
         case None =>
         case some => return some.asInstanceOf[Option[Indicator]]
       }
@@ -366,6 +366,7 @@ object AnalysisChartTopComponent {
     } else {
       if (singleton == null) {
         singleton = new AnalysisChartTopComponent(sec)
+        instanceRefs.put(singleton, null)
       }
 
       singleton.init(sec)

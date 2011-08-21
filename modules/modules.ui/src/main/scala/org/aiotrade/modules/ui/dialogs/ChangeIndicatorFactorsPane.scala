@@ -259,8 +259,8 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
     
   private def transferValues() {
     for (i <- 0 until length) {
-      val factorValue = factorValueSpinners(i).getValue().asInstanceOf[Number]
-      factors(i).value = factorValue.doubleValue
+      val factorValue = factorValueSpinners(i).getValue().asInstanceOf[Number].doubleValue
+      factors(i).value = factorValue
     }
         
     saveAsDefault = saveAsDefaultCheckBox.isSelected

@@ -166,22 +166,21 @@ class NetBeansPersistenceManager extends PersistenceManager {
 
   /** Deserialize a Symbol from xml file */
   def restoreContent(uniSymbol: String): Content = {
-    val contentOpt = 
-      if (uniSymbol.equalsIgnoreCase("Default")) {
-        val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml");
-        if (defaultContentFile != null) {
-          readContent(defaultContentFile)
-        } else None
-      } else {
-        Option(symbolsFolder.getFileObject(uniSymbol, "sec")) match {
-          case Some(fo) => readContent(fo)
-          case None =>       
-            val content = defaultContent.clone
-            content.uniSymbol = uniSymbol
-            content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = uniSymbol}
-            Some(content)
-        }
+    val contentOpt = if (uniSymbol.equalsIgnoreCase("Default")) {
+      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml")
+      if (defaultContentFile != null) {
+        readContent(defaultContentFile)
+      } else None
+    } else {
+      Option(symbolsFolder.getFileObject(uniSymbol, "sec")) match {
+        case Some(fo) => readContent(fo)
+        case None =>       
+          val content = defaultContent.clone
+          content.uniSymbol = uniSymbol
+          content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = uniSymbol}
+          Some(content)
       }
+    }
 
     contentOpt getOrElse (null)
   }

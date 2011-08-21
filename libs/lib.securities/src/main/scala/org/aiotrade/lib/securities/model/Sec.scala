@@ -40,7 +40,6 @@ import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
-import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.InfoPointSer
 import org.aiotrade.lib.securities.InfoSer
@@ -112,7 +111,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   type T = QuoteSer
   type C = QuoteContract
 
-  private val mutex = new AnyRef
+  private val mutex = new AnyRef()
   private var _realtimeSer: QuoteSer = _
   private var _realtimeMoneyFlowSer: MoneyFlowSer = _
   private var _realtimePriceDistributionSer: PriceDistributionSer = _
@@ -127,9 +126,9 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
    */
   private lazy val tickerServer: Option[TickerServer] = tickerContract.serviceInstance()
   private lazy val richInfoServer: Option[RichInfoDataServer] = richInfoContract.serviceInstance()
+  private lazy val _content = PersistenceManager().restoreContent(uniSymbol)
 
   var description = ""
-  private var _content: Content = _
   private var _defaultFreq: TFreq = _
   private var _quoteContracts: Seq[QuoteContract] = Nil
   private var _moneyFlowContracts: Seq[MoneyFlowContract] = Nil
@@ -138,13 +137,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
-
-  def content = {
-    if (_content == null) {
-      _content = PersistenceManager().restoreContent(uniSymbol)
-    }
-    _content
-  }
+  def content = _content
   
   private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {
     val contracts = content.lookupDescriptors(tpe)
@@ -192,7 +185,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   }
 
   def realtimePriceDistributionSer = mutex synchronized {
-        if (_realtimePriceDistributionSer == null) {
+    if (_realtimePriceDistributionSer == null) {
       _realtimePriceDistributionSer = new PriceDistributionSer(this, TFreq.DAILY)
       freqToPriceDistribuSer.put(TFreq.ONE_SEC, _realtimePriceDistributionSer)
     }
@@ -287,9 +280,9 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
                 freqToPriceDistribuSer.put(freq, x)
                 Some(x)
               case None => None
-          }
+            }
           case _ => freqToPriceDistribuSer.get(freq)
-      }
+        }
     }
   }
 
@@ -1017,7 +1010,7 @@ class SecSnap(val sec: Sec) {
     }else {
       val newone = PriceDistributions.dailyDistribuOf(sec, rounded)
       priceDistribution = newone
-        newone
+      newone
     }
   }
 

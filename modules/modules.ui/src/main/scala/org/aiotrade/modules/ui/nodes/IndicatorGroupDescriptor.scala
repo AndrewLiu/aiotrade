@@ -93,7 +93,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     def execute {
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
             
-      var keyToResult = mutable.Map[String, Object]()
+      val keyToResult = mutable.Map[String, Object]()
             
       val dialog = new PickIndicatorDialog(
         WindowManager.getDefault.getMainWindow,
