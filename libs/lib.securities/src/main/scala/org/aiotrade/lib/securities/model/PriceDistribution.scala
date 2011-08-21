@@ -324,7 +324,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
     }
   }
 
-  def saveBatch(atSameTime: Long, pcs: ArrayList[PriceCollection]) {
+  def saveBatch(atSameTime: Long, pcs: Array[PriceCollection]) {
     if (pcs.isEmpty) return
 
     val exists = mutable.Map[(Sec, Double),PriceDistribution]()
@@ -341,7 +341,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
     val inserts = new ArrayList[PriceDistribution]()
 
     pcs.foreach{pc =>
-      val (u, i) = pc.values.partition(x => exists.contains(x.sec -> x.price))
+      val (u, i) = pc.values partition {x => exists.contains(x.sec -> x.price)}
       updates ++= u
       inserts ++= i
     }

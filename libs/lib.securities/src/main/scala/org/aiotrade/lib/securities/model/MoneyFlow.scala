@@ -59,6 +59,14 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._flag = flag
   }
 
+  var amountInCount = 0
+  var amountOutCount = 0
+
+  /**
+   * Weighted average relative amount.
+   */
+  var relativeAmount = 0.0
+
   private val data = new Array[Double](24)
   
   def superVolumeIn = data(0)
@@ -196,9 +204,24 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   def moneyFlowOf(sec: Sec): Seq[MoneyFlow] = {
     try {
-      SELECT (this.*) FROM (this) WHERE (
-        this.sec.field EQ Secs.idOf(sec)
-      ) ORDER_BY (this.time) list
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          this.sec.field EQ Secs.idOf(sec)
+        ) ORDER_BY (this.time) list}
+
+      mfs foreach {mf =>
+        if (mf.amountNet >= 0){
+          mf.amountInCount = 1
+          mf.amountOutCount = 0
+        }
+        else {
+          mf.amountInCount = 0
+          mf.amountOutCount = 1
+        }
+
+        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+      }
+
+      mfs
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -214,9 +237,24 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
 
   def closedMoneyFlowOf__filterByDB(sec: Sec): Seq[MoneyFlow] = {
     try {
-      SELECT (this.*) FROM (this) WHERE (
-        (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-      ) ORDER_BY (this.time) list
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+        ) ORDER_BY (this.time) list}
+
+      mfs foreach {mf =>
+        if (mf.amountNet >= 0){
+          mf.amountInCount = 1
+          mf.amountOutCount = 0
+        }
+        else {
+          mf.amountInCount = 0
+          mf.amountOutCount = 1
+        }
+
+        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+      }
+
+      mfs
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -315,7 +353,19 @@ object MoneyFlows1d extends MoneyFlows {
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         }
-        res foreach {x => map.put(x.sec, x)}
+        res foreach {x =>
+          if (x.amountNet >= 0){
+            x.amountInCount = 1
+            x.amountOutCount = 0
+          }
+          else {
+            x.amountInCount = 0
+            x.amountOutCount = 1
+          }
+
+          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+
+          map.put(x.sec, x)}
 
         map
     }
@@ -349,6 +399,15 @@ object MoneyFlows1d extends MoneyFlows {
     res headOption match {
       case Some(one) =>
         one.isTransient = false
+        if (one.amountNet >= 0){
+          one.amountInCount = 1
+          one.amountOutCount = 0
+        }
+        else {
+          one.amountInCount = 0
+          one.amountOutCount = 1
+        }
+        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow
@@ -396,7 +455,19 @@ object MoneyFlows1m extends MoneyFlows {
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
-        res foreach {x => map.put(x.sec, x)}
+        res foreach {x =>
+          if (x.amountNet >= 0){
+            x.amountInCount = 1
+            x.amountOutCount = 0
+          }
+          else {
+            x.amountInCount = 0
+            x.amountOutCount = 1
+          }
+
+          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+
+          map.put(x.sec, x)}
 
         map
     }
@@ -430,6 +501,15 @@ object MoneyFlows1m extends MoneyFlows {
     res headOption match {
       case Some(one) =>
         one.isTransient = false
+        if (one.amountNet >= 0){
+          one.amountInCount = 1
+          one.amountOutCount = 0
+        }
+        else {
+          one.amountInCount = 0
+          one.amountOutCount = 1
+        }
+        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow

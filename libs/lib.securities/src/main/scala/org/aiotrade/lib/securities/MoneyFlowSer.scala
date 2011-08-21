@@ -44,6 +44,10 @@ import org.aiotrade.lib.securities.model.Sec
 class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
 
   private var _shortName: String = ""
+  
+  val amountInCount = TVar[Int]("aIC", Plot.None)
+  val amountOutCount = TVar[Int]("aOC", Plot.None)
+  val relativeAmount = TVar[Double]("RA", Plot.None)
 
   val volumeIn = TVar[Double]("Vi", Plot.None)
   val amountIn = TVar[Double]("Ai", Plot.None)
@@ -90,11 +94,15 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   val mediumAmountNet = TVar[Double]("meA", Plot.None)
   val smallVolumeNet  = TVar[Double]("smV", Plot.None)
   val smallAmountNet  = TVar[Double]("smA", Plot.None)
-
+  
   override protected def assignValue(tval: TVal) {
     val time = tval.time
     tval match {
       case mf: MoneyFlow =>
+        relativeAmount(time) = mf.relativeAmount
+        amountInCount(time) = mf.amountInCount
+        amountOutCount(time) = mf.amountOutCount
+	
         volumeIn(time) = mf.volumeIn
         amountIn(time) = mf.amountIn
         volumeOut(time) = mf.volumeOut
@@ -147,6 +155,11 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   def valueOf(time: Long): Option[MoneyFlow] = {
     if (exists(time)) {
       val mf = new MoneyFlow
+
+      mf.relativeAmount = relativeAmount(time)
+      mf.amountInCount = amountInCount(time)
+      mf.amountOutCount = amountOutCount(time)
+
       mf.superVolumeIn = superVolumeIn(time)
       mf.superAmountIn = superAmountIn(time)
       mf.superVolumeOut = superVolumeOut(time)
@@ -186,6 +199,10 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   def updateFrom(mf: MoneyFlow) {
     val time = mf.time
     createOrClear(time)
+
+    relativeAmount(time) = mf.relativeAmount
+    amountInCount(time) = mf.amountInCount
+    amountOutCount(time) = mf.amountOutCount
     
     assignValue(mf)
         
@@ -207,6 +224,11 @@ object MoneyFlowSer {
     val mfs = new ArrayList[MoneyFlow]()
     try {
       val times = vmap(".")
+
+      val amountInCount = vmap("aIC")
+      val amountOutCount = vmap("aOC")
+      val relativeAmount = vmap("RA")
+
       val volumeIns = vmap("Vi")
       val amountIns = vmap("Ai")
       val volumeOuts = vmap("Vo")
@@ -257,9 +279,12 @@ object MoneyFlowSer {
       while ({i += 1; i < times.length}) {
         val mf = new MoneyFlow
 
-        // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
         mf.time = times(i).asInstanceOf[Long]
-        
+
+        mf.amountInCount = amountInCount(i).asInstanceOf[Int]
+        mf.amountOutCount = amountOutCount(i).asInstanceOf[Int]
+        mf.relativeAmount = relativeAmount(i).asInstanceOf[Double]
+
         mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
         mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]
         mf.superVolumeOut = superVolumeOuts(i).asInstanceOf[Double]

@@ -153,6 +153,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   private val freqToUnclosedQuotes = mutable.Map[TFreq, ArrayList[Quote]]()
   private val freqToUnclosedMoneyFlows = mutable.Map[TFreq, ArrayList[MoneyFlow]]()
+  private val freqToUnclosedPriceDistributions = mutable.Map[TFreq, ArrayList[PriceCollection]]()
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
 
@@ -222,6 +223,15 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         xs
       }
     ) += mf
+  }
+
+  def addNewPriceDistribution(freq: TFreq, pd: PriceCollection) = freqToUnclosedPriceDistributions synchronized {
+    (freqToUnclosedPriceDistributions.get(freq) getOrElse {
+        val xs = new ArrayList[PriceCollection]
+        freqToUnclosedPriceDistributions.put(freq, xs)
+        xs
+      }
+    ) += pd
   }
 
   def tradingStatus = _tradingStatus
@@ -341,6 +351,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   private val EmptyQuotes = Array[Quote]()
   private val EmptyMoneyFlows = Array[MoneyFlow]()
   private val dailyCloseDelay = 5L // 5 minutes
+  private val emptyPriceDistributions = Array[PriceCollection]()
   private var timeInMinutesToClose = -1
   
   private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
@@ -422,19 +433,35 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
       }
 
-      if (quotesToClose.length > 0 || mfsToClose.length > 0) {
+      val pdsToClose = freqToUnclosedPriceDistributions synchronized {
+        freqToUnclosedPriceDistributions.get(freq) match {
+          case Some(unclosed) if freq == TFreq.DAILY =>
+            freqToUnclosedPriceDistributions -= freq
+            log.info("price distribution unclosed," + TFreq.DAILY.name)
+            unclosed.toArray
+          case Some(unclosed) =>
+            val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+            freqToUnclosedPriceDistributions(freq) = notYet
+            log.info("price distribution unclosed, Other freq")
+            toClose.toArray
+          case None => emptyPriceDistributions
+        }
+      }
+      log.info("price distribution collection length: " + pdsToClose.length )
+
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
         try {
           if (isDailyClosing) {
-            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length)
+            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
             val closingTask = new Runnable {
               def run {
-                doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+                doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
               }
             }
             // we'll do daily closing after dailyCloseDelay minutes
             closingScheduler.schedule(closingTask, dailyCloseDelay, TimeUnit.MINUTES)
           } else {
-            doClosing(freq, quotesToClose, mfsToClose, alsoSave)
+            doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
           }
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -446,7 +473,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   /**
    * Close and insert daily quotes/moneyflows
    */
-  private def doClosing(freq: TFreq, quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow], alsoSave: Boolean) {
+  private def doClosing(freq: TFreq, quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow], pdsToClose: Array[PriceCollection], alsoSave: Boolean) {
     try {
       if (quotesToClose.length > 0) {
         val time = quotesToClose(0).time
@@ -498,12 +525,33 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
                    ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
         }
       }
+
+      if (pdsToClose.length > 0) {
+        val time = pdsToClose(0).time
+
+        var i = -1
+        while ({i += 1; i < pdsToClose.length}) {
+          val pd = pdsToClose(i)
+          pd.closed_!
+        }
+
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " price distributions: " + pdsToClose.length)
+              PriceDistributions.saveBatch(time, pdsToClose)
+          }
+          log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + pdsToClose.length +
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
+      }
     
-      if (quotesToClose.length > 0 || mfsToClose.length > 0) {
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
         COMMIT
         log.info(this.code + " doClosing: committed.")
       }
-    } catch {
+    }catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }

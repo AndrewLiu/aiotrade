@@ -30,10 +30,11 @@
  */
 package org.aiotrade.lib.securities.model
 
+import java.io.Serializable
 import ru.circumflex.orm.Table
 
-class SecDividend extends BelongsToSec {
-  
+@serializable
+class SecDividend extends BelongsToSec  {
   var prevClose: Double = _
   var cashBonus: Double = _
   var shareBonus: Double = _ // bonus issue, entitle bonus share
