@@ -37,48 +37,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TSer
 
-/**
- *
- * @author Caoyuan Deng
- */
-object Indicator {
-  private val log = Logger.getLogger(this.getClass.getName)
 
-  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
-
-  private val idToIndicator = new ConcurrentHashMap[Id[_ <: Indicator], Indicator]
-
-  def idOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*) = Id[T](klass, baseSer, factors: _*)
-  
-  def apply[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*): T = {
-    val id = idOf(klass, baseSer, factors: _*)
-    idToIndicator.get(id) match {
-      case null =>
-        /** if got none from idToIndicator, try to create new one */
-        try {
-          val indicator = klass.newInstance
-          /** don't forget to call set(baseSer) immediatley */
-          indicator.set(baseSer)
-          indicator.factors = factors.toArray
-          idToIndicator.putIfAbsent(id, indicator)
-          indicator
-        } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
-        }
-      case x => x.asInstanceOf[T]
-    }
-  }
-
-  def displayName(ser: TSer): String = ser match {
-    case x: Indicator => displayName(ser.shortName, x.factors)
-    case _ => ser.shortName
-  }
-
-  def displayName(name: String, factors: Array[Factor]): String = {
-    if (factors.length == 0) name
-    else factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString(name + "(", ",", ")")
-  }
-}
 
 trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
 
@@ -86,6 +45,7 @@ trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
   
   reactions += {
     case ComputeFrom(time) => computeFrom(time)
+    case FactorEvent => computeFrom(0)
   }
 
   def set(baseSer: BaseTSer)
@@ -127,10 +87,9 @@ trait WithFactors {self: Indicator =>
   def factors_=(factors: Array[Factor]) {
     if (factors != null) {
       val values = new Array[Double](factors.length)
-      var i = 0
-      while (i < factors.length) {
+      var i = -1
+      while ({i += 1; i < factors.length}) {
         values(i) = _factors(i).value
-        i += 1
       }
       factorValues_=(values)
     }
@@ -158,9 +117,7 @@ trait WithFactors {self: Indicator =>
       }
     }
 
-    if (valueChanged) {
-      factors foreach {x => publish(FactorEvent(x))}
-    }
+    if (valueChanged) publish(FactorEvent)
   }
 
   def replaceFactor(oldFactor: Factor, newFactor: Factor) {
@@ -169,38 +126,23 @@ trait WithFactors {self: Indicator =>
     var break = false
     while (i < factors.length && !break) {
       val factor = factors(i)
-      if (factor.equals(oldFactor)) {
+      if (factor == oldFactor) {
         idxOld = i
         break = true
       }
     }
 
     if (idxOld != -1) {
-      addFactorReactions(newFactor)
-
       factors(idxOld) = newFactor
     }
   }
 
   private def addFactor(factor: Factor) {
     /** add factor reaction to this factor */
-    addFactorReactions(factor)
-
-    val old = _factors
-    _factors = new Array[Factor](old.length + 1)
-    System.arraycopy(old, 0, _factors, 0, old.length)
+    val olds = _factors
+    _factors = new Array[Factor](olds.length + 1)
+    System.arraycopy(olds, 0, _factors, 0, olds.length)
     _factors(_factors.length - 1) = factor
-  }
-
-  private def addFactorReactions(factor: Factor) {
-    reactions += {
-      /**
-       * As any factor in factors changed will publish events for each factor
-       * in factors, we only need respond to the first one.
-       */
-      case FactorEvent(source) if source == _factors(0) => computeFrom(0)
-    }
-    listenTo(factor)
   }
 
   /**
@@ -209,21 +151,66 @@ trait WithFactors {self: Indicator =>
    * Fac can only lives in AbstractIndicator
    *
    *
-   * @see addFactor()
+   * @see addFactor(..)
    * --------------------------------------------------------------------
    */
+  protected class InnerFactor(name: => String, value: => Double, step: => Double, minValue: => Double, maxValue: => Double
+  ) extends Factor(name, value, step, minValue, maxValue) {
+    addFactor(this)
+  }
+
   object Factor {
     def apply(name: String, value: Double) =
       new InnerFactor(name, value, 1.0, Double.MinValue, Double.MaxValue)
+    
     def apply(name: String, value: Double, step: Double) =
       new InnerFactor(name, value, step, Double.MinValue, Double.MaxValue)
+    
     def apply(name: String, value: Double, step: Double, minValue: Double, maxValue: Double) =
       new InnerFactor(name, value, step, minValue, maxValue)
   }
+}
 
-  protected class InnerFactor(name: => String, value: => Double, step: => Double, minValue: => Double, maxValue: => Double
-  ) extends DefaultFactor(name, value, step, minValue, maxValue) {
-    addFactor(this)
+/**
+ *
+ * @author Caoyuan Deng
+ */
+object Indicator {
+  private val log = Logger.getLogger(this.getClass.getName)
+
+  private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
+
+  private val idToIndicator = new ConcurrentHashMap[Id[_ <: Indicator], Indicator]
+
+  def idOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*) = Id[T](klass, baseSer, factors: _*)
+  
+  def apply[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*): T = {
+    val id = idOf(klass, baseSer, factors: _*)
+    idToIndicator.get(id) match {
+      case null =>
+        /** if got none from idToIndicator, try to create new one */
+        try {
+          val indicator = klass.newInstance
+          /** don't forget to call set(baseSer) immediatley */
+          indicator.set(baseSer)
+          indicator.factors = factors.toArray
+          idToIndicator.putIfAbsent(id, indicator)
+          indicator
+        } catch {
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
+        }
+      case x => x.asInstanceOf[T]
+    }
+  }
+
+  def displayName(ser: TSer): String = ser match {
+    case x: Indicator => displayName(ser.shortName, x.factors)
+    case _ => ser.shortName
+  }
+
+  def displayName(name: String, factors: Array[Factor]): String = {
+    if (factors.length == 0) name
+    else factors map {x => FAC_DECIMAL_FORMAT.format(x.value)} mkString(name + "(", ",", ")")
   }
 }
 

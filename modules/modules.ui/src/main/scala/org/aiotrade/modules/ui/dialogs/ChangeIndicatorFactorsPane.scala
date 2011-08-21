@@ -69,7 +69,7 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
   }
   private val factorNameLables = new Array[JLabel](length)
   private val factorValueSpinners = new Array[JSpinner](length)
-  private val optSpinnerNumberModels = new Array[SpinnerNumberModel](length)
+  private val factorSpinnerNumberModels = new Array[SpinnerNumberModel](length)
     
   private val previewCheckBox = new JCheckBox()
   private val saveAsDefaultCheckBox = new JCheckBox()
@@ -165,11 +165,11 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
       factorNameLables(i).setText(factor.name)
       factorsPanel.add(factorNameLables(i), gbc)
             
-      optSpinnerNumberModels(i) = new SpinnerNumberModel()
-      optSpinnerNumberModels(i).setValue(factor.value)
-      optSpinnerNumberModels(i).setStepSize(factor.step)
-      optSpinnerNumberModels(i).setMaximum(factor.maxValue)
-      optSpinnerNumberModels(i).setMinimum(factor.minValue)
+      factorSpinnerNumberModels(i) = new SpinnerNumberModel()
+      factorSpinnerNumberModels(i).setValue(factor.value)
+      factorSpinnerNumberModels(i).setStepSize(factor.step)
+      factorSpinnerNumberModels(i).setMinimum(factor.minValue)
+      factorSpinnerNumberModels(i).setMaximum(factor.maxValue)
             
       gbc.gridx = 2
       gbc.gridy = i + 1
@@ -177,7 +177,7 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
       gbc.gridheight = 1
       factorValueSpinners(i) = new JSpinner()
       factorValueSpinners(i).setPreferredSize(new Dimension(50, 20))
-      factorValueSpinners(i).setModel(optSpinnerNumberModels(i))
+      factorValueSpinners(i).setModel(factorSpinnerNumberModels(i))
       factorsPanel.add(factorValueSpinners(i), gbc)
             
       factorValueSpinners(i).addChangeListener(spinnerChangeListener)
