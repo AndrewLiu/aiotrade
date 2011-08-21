@@ -38,44 +38,34 @@ import  org.aiotrade.lib.collection.ArrayList
  *
  * @author Caoyuan Deng
  */
-class WithActionsHelper(awrapper: WithActions) {
-  private val wrapper = awrapper
-  private var actions: Seq[Action] = Nil
-  private var defaultActionsAdded: Boolean = _
+class WithActionsHelper(wrapper: WithActions) {
+  private var _actions: Seq[Action] = Nil
+  private var isDefaultActionsAdded: Boolean = _
     
   def addAction(action: Action): Action = {
-    if (actions == Nil) {
-      actions = new ArrayList[Action]
+    if (_actions == Nil) {
+      _actions = new ArrayList[Action]
     }
     
-    actions.asInstanceOf[ArrayList[Action]] += action
+    _actions.asInstanceOf[ArrayList[Action]] += action
     action
   }
     
   def lookupAction[T <: Action](tpe: Class[T]): Option[T] = {
-    if (! defaultActionsAdded) {
+    if (!isDefaultActionsAdded) {
       addDefaultActions
-      defaultActionsAdded = true
+      isDefaultActionsAdded = true
     }
-        
-    for (action <- actions) {
-      if (tpe.isInstance(action)) {
-        return Some(action.asInstanceOf[T])
-      }
-    }
-
-    None
+    
+    (_actions find {tpe.isInstance(_)}).asInstanceOf[Option[T]]
   }
     
-  private def addDefaultActions: Unit = {
+  private def addDefaultActions {
     for (action <- wrapper.createDefaultActions) {
       addAction(action)
     }
   }
-    
-  def getActions: Seq[Action] = {
-    actions
-  }
-    
+
+  def getActions: Seq[Action] = _actions
 }
 
