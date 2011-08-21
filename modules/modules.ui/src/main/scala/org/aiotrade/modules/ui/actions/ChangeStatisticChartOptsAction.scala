@@ -36,7 +36,7 @@ import org.aiotrade.lib.indicator.Indicator
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
 import org.aiotrade.lib.indicator.ProbMassIndicator
 import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent;
-import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane;
+import org.aiotrade.modules.ui.dialogs.ChangeIndicatorFactorsPane;
 import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction;
@@ -62,7 +62,7 @@ class ChangeStatisticChartOptsAction extends CallableSystemAction {
             descriptor.serviceClassName = (indicator.getClass.getName)
             descriptor.factors = indicator.factors
                     
-            val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor)
+            val pane = new ChangeIndicatorFactorsPane(WindowManager.getDefault.getMainWindow, descriptor)
                     
             // added listener, so when spnner changed, could preview
             val spinnerChangeListener = new ChangeListener {

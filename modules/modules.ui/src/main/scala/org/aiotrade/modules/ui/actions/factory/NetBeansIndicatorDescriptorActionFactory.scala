@@ -47,7 +47,7 @@ import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
 import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
-import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane
+import org.aiotrade.modules.ui.dialogs.ChangeIndicatorFactorsPane
 import org.aiotrade.modules.ui.nodes.IndicatorGroupDescriptor
 import org.aiotrade.modules.ui.windows.ExplorerTopComponent
 import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent
@@ -165,7 +165,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
     putValue(Action.NAME,options)
         
     def execute {
-      val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor)
+      val pane = new ChangeIndicatorFactorsPane(WindowManager.getDefault.getMainWindow, descriptor)
             
       // added listener, so when spnner changed, could preview
       val spinnerChangeListener = new ChangeListener {
@@ -187,7 +187,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
           setIndicatorOpts(descriptor, descriptor.factors)
         }
                 
-        if (pane.isSaveAsDefault()) {
+        if (pane.isSaveAsDefault) {
           val defaultContent = PersistenceManager().defaultContent
           defaultContent.lookupDescriptor(classOf[IndicatorDescriptor],
                                           descriptor.serviceClassName,
