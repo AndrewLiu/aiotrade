@@ -176,7 +176,7 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
       gbc.gridwidth = 1
       gbc.gridheight = 1
       factorValueSpinners(i) = new JSpinner()
-      factorValueSpinners(i).setPreferredSize(new Dimension(50, 20))
+      factorValueSpinners(i).setPreferredSize(new Dimension(80, 20))
       factorValueSpinners(i).setModel(factorSpinnerNumberModels(i))
       factorsPanel.add(factorValueSpinners(i), gbc)
             
