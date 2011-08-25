@@ -108,8 +108,8 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
         } else super.stringToValue(text)
       }
     }
-    nf.setMinimum(0)
-    nf.setMaximum(65534)
+    nf.setMinimum(0.0)
+    nf.setMaximum(65534.0)
     nf.setValueClass(classOf[Double])
         
         
