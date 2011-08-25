@@ -168,8 +168,8 @@ class ChangeIndicatorFactorsPane(owner: Frame, descriptor: IndicatorDescriptor) 
       factorSpinnerNumberModels(i) = new SpinnerNumberModel()
       factorSpinnerNumberModels(i).setValue(factor.value)
       factorSpinnerNumberModels(i).setStepSize(factor.step)
-      factorSpinnerNumberModels(i).setMinimum(factor.minValue)
-      factorSpinnerNumberModels(i).setMaximum(factor.maxValue)
+      factorSpinnerNumberModels(i).setMinimum(factor.minValue.asInstanceOf[Comparable[_]])
+      factorSpinnerNumberModels(i).setMaximum(factor.maxValue.asInstanceOf[Comparable[_]])
             
       gbc.gridx = 2
       gbc.gridy = i + 1
