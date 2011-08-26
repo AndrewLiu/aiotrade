@@ -38,8 +38,6 @@ import org.aiotrade.lib.charting.view.WithDrawingPane
 import org.aiotrade.lib.charting.view.WithDrawingPaneHelper
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TSer
-import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.charting.chart.QuoteChart
 import org.aiotrade.lib.charting.view.pane.DrawingPane
@@ -180,10 +178,10 @@ class AnalysisChartView(acontroller: ChartingController,
     
   private def refreshQuoteCompareSer {
     val optsForCompareIndicator = Array(
-      new DefaultFactor("Begin of Time Frame", rb(1)),
-      new DefaultFactor("End of Time Frame",   rb(nBars)),
-      new DefaultFactor("Max Value", maxValue),
-      new DefaultFactor("Min Value", minValue)
+      new Factor("Begin of Time Frame", rb(1)),
+      new Factor("End of Time Frame",   rb(nBars)),
+      new Factor("Max Value", maxValue),
+      new Factor("Min Value", minValue)
     )
         
     for (ser <- getCompareIndicators) {
@@ -196,8 +194,8 @@ class AnalysisChartView(acontroller: ChartingController,
     var maxValue1 = maxValue
     var minValue1 = minValue
     for (ser <- getCompareIndicators) {
-      var i = 1
-      while (i <= nBars) {
+      var i = -1
+      while ({i += 1; i <= nBars}) {
         val time = tb(i)
         if (ser.exists(time)) {
           val compareHi = ser.high.double(time)
@@ -207,8 +205,6 @@ class AnalysisChartView(acontroller: ChartingController,
             minValue1 = math.min(minValue1, compareLo)
           }
         }
-
-        i += 1
       }
     }
         

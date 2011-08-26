@@ -56,7 +56,7 @@ class ChangeOptsAction extends CallableSystemAction {
             return
           }
 
-          var indicator: Indicator = if (selectedView.isInstanceOf[WithQuoteChart]) {
+          val indicator = if (selectedView.isInstanceOf[WithQuoteChart]) {
             val ind = selectedView.overlappingSers find (x => x.isInstanceOf[Indicator]) getOrElse null
             ind.asInstanceOf[Indicator]
           } else {

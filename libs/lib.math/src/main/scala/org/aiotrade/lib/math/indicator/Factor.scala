@@ -30,93 +30,35 @@
  */
 package org.aiotrade.lib.math.indicator
 
-import org.aiotrade.lib.util.actors.Publisher
-
 /**
  * Class for defining indicator's factor
  *
  * @author Caoyuan Deng
+ * @Note
+ * If you use Factor in indicator, please considerate AbstractIndicator#InnerFactor first
+ * which will be added to Indicator's factors automatically when new it.
  */
 @cloneable
-trait Factor extends Publisher {
-    
-  def name: String
-  def name_=(name: String)
-    
-  def value: Double
-  def value_=(value: Double)
-    
-  def step: Double
-  def step_=(step: Double)
-    
-  def maxValue: Double
-  def maxValue_=(maxValue: Double)
-    
-  def minValue: Double
-  def minValue_=(minValue: Double)
-
-  @inline final override def equals(a: Any): Boolean = a match {
-    case x: Factor => this.value.equals(x.value)
+class Factor(var name: String, 
+             var value: Double, 
+             var step: Double = 1.0, 
+             var minValue: Double = Double.MinValue, 
+             var maxValue: Double = Double.MaxValue
+) {
+  
+  @inline final override def equals(a: Any) = a match {
+    case x: Factor => this.value == x.value
     case _ => false
   }
 
   @inline final override def hashCode = value.hashCode
 
-  /** this should not be abstract method to get scalac knowing it's a override of @cloneable instead of java.lang.Object#clone */
+  /** this should not be abstract method to get scalac knowing it's an override of @cloneable instead of java.lang.Object#clone */
   override def clone: Factor = {
     try {
-      val newOne = super.clone.asInstanceOf[Factor]
-
-      newOne.name = name
-      newOne.value = value
-      newOne.step = step
-      newOne.minValue = minValue
-      newOne.maxValue = maxValue
-
-      return newOne
+      super.clone.asInstanceOf[Factor]
     } catch {case ex: CloneNotSupportedException => throw new InternalError(ex.toString)}
   }
-
-    
-  //    public static class Float extends AbstractOpt implements Opt {
-  //        private float value;
-  //        private float step;
-  //        private float minValue;
-  //        private float maxValue;
-  //
-  //        public void setValue(final Number value) {
-  //            this.value = value.floatValue();
-  //        }
-  //
-  //        public float value() {
-  //            return value;
-  //        }
-  //
-  //        public void setStep(final Number step) {
-  //            this.step = step.floatValue();
-  //        }
-  //
-  //        public float getStep() {
-  //            return step;
-  //        }
-  //
-  //        public void setMaxValue(final Number maxValue) {
-  //            this.maxValue = maxValue.floatValue();
-  //        }
-  //
-  //        public float getMaxValue() {
-  //            return maxValue;
-  //        }
-  //
-  //        public void setMinValue(final Number minValue) {
-  //            this.minValue = minValue.floatValue();
-  //        }
-  //
-  //        public float getMinValue() {
-  //            return minValue;
-  //        }
-  //
-  //    }
 }
 
-case class FactorEvent(source: Factor)
+case object FactorEvent

@@ -38,7 +38,6 @@ import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
 import org.aiotrade.lib.charting.descriptor.DrawingDescriptor
 import org.aiotrade.lib.math.indicator.IndicatorDescriptor
-import org.aiotrade.lib.math.indicator.DefaultFactor
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.Content
@@ -216,10 +215,9 @@ class ContentParseHandler extends DefaultHandler {
       System.err.println("end_chart()")
     }
         
-    val handledChart =
-      try {
-        Class.forName(handledChartClassName, true, classLoader).newInstance.asInstanceOf[HandledChart]
-      } catch {case ex: Exception => ex.printStackTrace; null}
+    val handledChart = try {
+      Class.forName(handledChartClassName, true, classLoader).newInstance.asInstanceOf[HandledChart]
+    } catch {case ex: Exception => ex.printStackTrace; null}
     
     if (handledChart !=null) {
       handledChartMapPoints.put(handledChart, points)
@@ -235,16 +233,16 @@ class ContentParseHandler extends DefaultHandler {
     val nameStr     = meta.getValue("name")
     val valueStr    = meta.getValue("value")
     val stepStr     = meta.getValue("step")
-    val maxValueStr = meta.getValue("maxvalue")
     val minValueStr = meta.getValue("minvalue")
+    val maxValueStr = meta.getValue("maxvalue")
         
     try {
       val value    = NUMBER_FORMAT.parse(valueStr.trim).doubleValue
       val step     = if (stepStr     == null) 1.0 else NUMBER_FORMAT.parse(stepStr.trim).doubleValue
-      val maxValue = if (maxValueStr == null) Double.MinValue else NUMBER_FORMAT.parse(maxValueStr.trim).doubleValue
-      val minValue = if (minValueStr == null) Double.MaxValue else NUMBER_FORMAT.parse(minValueStr.trim).doubleValue
+      val minValue = if (minValueStr == null) Double.MinValue else NUMBER_FORMAT.parse(minValueStr.trim).doubleValue
+      val maxValue = if (maxValueStr == null) Double.MaxValue else NUMBER_FORMAT.parse(maxValueStr.trim).doubleValue
             
-      val factor = new DefaultFactor(nameStr, value, step, minValue, maxValue)
+      val factor = new Factor(nameStr, value, step, minValue, maxValue)
       factors += factor
     } catch {case ex: ParseException => ex.printStackTrace}
   }

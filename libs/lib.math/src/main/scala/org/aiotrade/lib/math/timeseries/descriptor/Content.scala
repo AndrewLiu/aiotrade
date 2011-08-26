@@ -49,7 +49,7 @@ import scala.collection.mutable.ArrayBuffer
 class Content(var uniSymbol: String) extends WithActions with Cloneable {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private val withActionsHelper = new WithActionsHelper(this)
+  private var withActionsHelper = new WithActionsHelper(this)
 
   /** use List to store descriptor, so they can be ordered by index */
   private var descriptorBuf = ArrayBuffer[Descriptor[_]]()
@@ -76,7 +76,7 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
   }
     
   def lastIndexOf[T <: Descriptor[_]](clz: Class[T]): Int = {
-    var lastOne: T = null.asInstanceOf[T]
+    var lastOne = null.asInstanceOf[T]
     for (descriptor <- descriptorBuf if clz.isInstance(descriptor)) {
       lastOne = descriptor.asInstanceOf[T]
     }
@@ -144,7 +144,10 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
   
   override def clone: Content = {
     try {
-      super.clone.asInstanceOf[Content]
+      val newone = super.clone.asInstanceOf[Content]
+      newone.withActionsHelper = new WithActionsHelper(newone)
+      newone.descriptorBuf foreach {_.containerContent = newone}
+      newone
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); null 
     }

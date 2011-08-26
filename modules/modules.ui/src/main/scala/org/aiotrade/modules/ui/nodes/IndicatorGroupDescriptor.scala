@@ -31,6 +31,8 @@
 package org.aiotrade.modules.ui.nodes;
 
 import java.awt.Image;
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.aiotrade.lib.charting.laf.LookFeel;
@@ -58,14 +60,11 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-object IndicatorGroupDescriptor {
-//  val NAME = "Indicators"
-  val NAME = NbBundle.getMessage(this .getClass,"Indicators")
-  val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/indicators.gif")
-}
 class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
   import IndicatorGroupDescriptor._
 
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   def getBindClass: Class[IndicatorDescriptor] = {
     classOf[IndicatorDescriptor]
   }
@@ -74,17 +73,9 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     Array(new AddIndicatorAction(content))
   }
     
-  def getDisplayName = {
-    NAME
-  }
-    
-  def getTooltip = {
-    NAME
-  }
-    
-  def getIcon(tpe: Int): Image = {
-    ICON
-  }
+  def getDisplayName = NAME
+  def getTooltip = NAME
+  def getIcon(tpe: Int): Image = ICON
     
   private class AddIndicatorAction(content: Content) extends AddAction {
 //    putValue(Action.NAME, "Add Indicator")
@@ -93,7 +84,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
     def execute {
       val analysisTc = AnalysisChartTopComponent.selected getOrElse {return}
             
-      var keyToResult = mutable.Map[String, Object]()
+      val keyToResult = mutable.Map[String, Object]()
             
       val dialog = new PickIndicatorDialog(
         WindowManager.getDefault.getMainWindow,
@@ -136,7 +127,9 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
           content.lookupAction(classOf[SaveAction]) foreach {_.execute}
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         }
-      } catch {case _ => return}
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      }
             
     }
         
@@ -144,3 +137,8 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
 
 }
 
+object IndicatorGroupDescriptor {
+//  val NAME = "Indicators"
+  val NAME = NbBundle.getMessage(this .getClass,"Indicators")
+  val ICON = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/indicators.gif")
+}

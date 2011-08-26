@@ -47,7 +47,7 @@ import org.aiotrade.lib.util.swing.action.EditAction
 import org.aiotrade.lib.util.swing.action.HideAction
 import org.aiotrade.lib.util.swing.action.SaveAction
 import org.aiotrade.lib.util.swing.action.ViewAction
-import org.aiotrade.modules.ui.dialog.ChangeIndicatorOptsPane
+import org.aiotrade.modules.ui.dialogs.ChangeIndicatorFactorsPane
 import org.aiotrade.modules.ui.nodes.IndicatorGroupDescriptor
 import org.aiotrade.modules.ui.windows.ExplorerTopComponent
 import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent
@@ -63,6 +63,7 @@ import org.openide.windows.WindowManager
  */
 class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorActionFactory {
   private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.actions.Bundle")
+
   def createActions(descriptor: IndicatorDescriptor): Array[Action] = {
     Array(
       new IndicatorViewAction(descriptor),
@@ -122,8 +123,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
       descriptor.active = false
       descriptor.containerContent.lookupAction(classOf[SaveAction]) foreach {_.execute}
             
-      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol)
-      ) {
+      for (analysisTc <- AnalysisChartTopComponent.instanceOf(descriptor.containerContent.uniSymbol)) {
         val viewContainer = analysisTc.viewContainer
         viewContainer.removeSlaveView(descriptor)
                 
@@ -165,7 +165,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
     putValue(Action.NAME,options)
         
     def execute {
-      val pane = new ChangeIndicatorOptsPane(WindowManager.getDefault.getMainWindow, descriptor)
+      val pane = new ChangeIndicatorFactorsPane(WindowManager.getDefault.getMainWindow, descriptor)
             
       // added listener, so when spnner changed, could preview
       val spinnerChangeListener = new ChangeListener {
@@ -182,12 +182,12 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
         // apple to all ?
         if (pane.isApplyToAll) {
           val root = ExplorerTopComponent().rootNode
-          setIndicatorOptsRecursively(root, descriptor)
+          setIndicatorFactorsRecursively(root, descriptor)
         } else { // else, only apply to this one
-          setIndicatorOpts(descriptor, descriptor.factors)
+          setIndicatorFactors(descriptor, descriptor.factors)
         }
                 
-        if (pane.isSaveAsDefault()) {
+        if (pane.isSaveAsDefault) {
           val defaultContent = PersistenceManager().defaultContent
           defaultContent.lookupDescriptor(classOf[IndicatorDescriptor],
                                           descriptor.serviceClassName,
@@ -203,7 +203,7 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
           PersistenceManager().saveContent(defaultContent)
         }
       } else { // else, opts may have been changed when preview, so, should do setOpts to restore old opts to indicator instance
-        setIndicatorOpts(descriptor, descriptor.factors)
+        setIndicatorFactors(descriptor, descriptor.factors)
       }
             
     }
@@ -213,12 +213,12 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
      * If node not expanded yet, getChilder() seems return null, because the children will
      * not be created yet.
      */
-    private def setIndicatorOptsRecursively(rootNodeToBeSet: Node, descriptorWithOpts: IndicatorDescriptor) {
+    private def setIndicatorFactorsRecursively(rootNodeToBeSet: Node, descriptorWithOpts: IndicatorDescriptor) {
       // folder node ?
       if (rootNodeToBeSet.getLookup.lookup(classOf[DataFolder]) != null) {
         for (child <- rootNodeToBeSet.getChildren.getNodes) {
           // do recursive call
-          setIndicatorOptsRecursively(child, descriptorWithOpts)
+          setIndicatorFactorsRecursively(child, descriptorWithOpts)
         }
       } else { // else, a SecurityNode
         val content = rootNodeToBeSet.getLookup.lookup(classOf[Content])
@@ -229,13 +229,13 @@ class NetBeansIndicatorDescriptorActionFactory extends IndicatorDescriptorAction
                                                              descriptorWithOpts.freq);
                child <- indicatorGroupNode.getChildren.getNodes
           ) {
-            setIndicatorOpts(descriptorToBeSet, descriptorWithOpts.factors)
+            setIndicatorFactors(descriptorToBeSet, descriptorWithOpts.factors)
           }
         }
       }
     }
         
-    private def setIndicatorOpts(descriptorToBeSet: IndicatorDescriptor, factors: Array[Factor]) {
+    private def setIndicatorFactors(descriptorToBeSet: IndicatorDescriptor, factors: Array[Factor]) {
       descriptorToBeSet.factors = factors
       descriptorToBeSet.containerContent.lookupAction(classOf[SaveAction]) foreach (_.execute)
             

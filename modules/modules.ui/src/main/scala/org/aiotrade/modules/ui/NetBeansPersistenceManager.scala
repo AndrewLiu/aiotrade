@@ -118,24 +118,15 @@ class NetBeansPersistenceManager extends PersistenceManager {
    * 'symbols' folder in default file system, usually the 'config' dir in userdir.
    * Physical folder "symbols" is defined in layer.xml
    */
-  private def symbolsFolder =  FileUtil.getConfigFile("symbols")
+  private def symbolsFolder = FileUtil.getConfigFile("symbols")
+  
+  private def defualtContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml")
 
   def saveContent(content: Content) {
     if (content.uniSymbol.equalsIgnoreCase("Default")) {
-      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml")
-      if (defaultContentFile != null) {
-        var out: PrintStream = null
-        var lock: FileLock = null
-        try {
-          lock = defaultContentFile.lock
-
-          out = new PrintStream(defaultContentFile.getOutputStream(lock))
-          out.print(ContentPersistenceHandler.dumpContent(content))
-        } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
-          /** should remember to do out.close() here */
-          if (out  != null) out.close
-          if (lock != null) lock.releaseLock
-        }
+      val default = defualtContentFile
+      if (default != null) {
+        writeContent(default, content)
       }
     } else {
       SymbolNodes.findSymbolNode(content.uniSymbol) foreach {node =>
@@ -144,44 +135,56 @@ class NetBeansPersistenceManager extends PersistenceManager {
         for (child <- children.getNodes) {
           child.getLookup.lookup(classOf[RefreshAction]).execute
         }
-
+        
         val dob = node.getLookup.lookup(classOf[DataObject])
-        val writeTo = dob.getPrimaryFile
-        var out: PrintStream = null
-        var lock: FileLock = null
-        try {
-          lock = writeTo.lock
-
-          out = new PrintStream(writeTo.getOutputStream(lock))
-          out.print(ContentPersistenceHandler.dumpContent(content))
-        } catch {case ex: IOException => ErrorManager.getDefault.notify(ex)} finally {
-          /** should remember to do out.close() here */
-          if (out  != null) out.close
-          if (lock != null) lock.releaseLock
+        val writeTo = if (dob != null) {
+          dob.getPrimaryFile
+        } else {
+          // @todo, create a new one?
+          defualtContentFile // default one
+        } 
+        
+        if (writeTo != null) {
+          writeContent(writeTo, content)
         }
       }
+    }
+  }
+  
+  private def writeContent(writeTo: FileObject, content: Content) {
+    var out: PrintStream = null
+    var lock: FileLock = null
+    try {
+      lock = writeTo.lock
 
+      out = new PrintStream(writeTo.getOutputStream(lock))
+      out.print(ContentPersistenceHandler.dumpContent(content))
+    } catch {
+      case ex: IOException => ErrorManager.getDefault.notify(ex)
+    } finally {
+      /** should remember to do out.close() here */
+      if (out  != null) out.close
+      if (lock != null) lock.releaseLock
     }
   }
 
   /** Deserialize a Symbol from xml file */
   def restoreContent(uniSymbol: String): Content = {
-    val contentOpt = 
-      if (uniSymbol.equalsIgnoreCase("Default")) {
-        val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml");
-        if (defaultContentFile != null) {
-          readContent(defaultContentFile)
-        } else None
-      } else {
-        Option(symbolsFolder.getFileObject(uniSymbol, "sec")) match {
-          case Some(fo) => readContent(fo)
-          case None =>       
-            val content = defaultContent.clone
-            content.uniSymbol = uniSymbol
-            content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = uniSymbol}
-            Some(content)
-        }
+    val contentOpt = if (uniSymbol.equalsIgnoreCase("Default")) {
+      val defaultContentFile = FileUtil.getConfigFile("UserOptions/DefaultContent.xml")
+      if (defaultContentFile != null) {
+        readContent(defaultContentFile)
+      } else None
+    } else {
+      Option(symbolsFolder.getFileObject(uniSymbol, "sec")) match {
+        case Some(fo) => readContent(fo)
+        case None =>       
+          val content = defaultContent.clone
+          content.uniSymbol = uniSymbol
+          content.lookupDescriptors(classOf[DataContract[_]]) foreach {_.srcSymbol = uniSymbol}
+          Some(content)
       }
+    }
 
     contentOpt getOrElse (null)
   }
