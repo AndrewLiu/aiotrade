@@ -79,6 +79,9 @@ object Sector {
     val IndustryC = "008003"
     val IndustryD = "008004"
     val IndustryE = "008005"
+
+    // tdx industries
+    val TDXIndustries = Array("008011","008012","008013","008014","008015","008018")
     
     // boards
     val Board = "BOARD"

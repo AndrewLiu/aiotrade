@@ -206,7 +206,7 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
   }
   
   override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
-    Array.copy(array, start, xs, 0, len)
+    Array.copy(array, 0, xs, start, len)
   }
 
   def sliceToArray(start: Int, len: Int): Array[A] = {

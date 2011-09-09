@@ -31,23 +31,25 @@
 package org.aiotrade.lib.math.timeseries
 
 import java.util.Calendar
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
+import org.aiotrade.lib.math.signal._
 
 /**
  * @author Caoyuan Deng
  */
-final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
+final class TimeQueue[V: Manifest](freq: TFreq, limit: Int, onlyOneValue: Boolean = false) {
 
+  private val log = Logger.getLogger(getClass.getName)
   private val lastIdx = limit - 1
-  private var _time_xs = new Array[(Long, mutable.HashMap[String, ArrayList[V]])](limit)
+  private var _time_xs = new Array[(Long, mutable.HashMap[String, Set[V]])](limit)
 
   val length = limit
-  def apply(i: Int): (Long, collection.Map[String, ArrayList[V]]) = _time_xs synchronized {_time_xs(i)}
+  def apply(i: Int): (Long, collection.Map[String, Set[V]]) = _time_xs synchronized {_time_xs(i)}
   def last() = apply(lastIdx)
 
   def put(key: String, time: Long, value: V): Unit = _time_xs synchronized  {
-
     var willAdd = true
     var lastKeyToXs = _time_xs(lastIdx) match {
       case null => null
@@ -56,7 +58,7 @@ final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
         if (nFreqs == 0) {
           keyToXs
         } else if (nFreqs > 0) {
-          val newTime_xs = new Array[(Long, mutable.HashMap[String, ArrayList[V]])](limit)
+          val newTime_xs = new Array[(Long, mutable.HashMap[String, Set[V]])](limit)
           System.arraycopy(_time_xs, 1, newTime_xs, 0, lastIdx)
           _time_xs = newTime_xs
           _time_xs(lastIdx) = null
@@ -71,11 +73,13 @@ final class TimeQueue[V: Manifest](freq: TFreq, limit: Int) {
       if (lastKeyToXs == null) {
         val newXs = new ArrayList[V]
         newXs += value
-        val newMap = mutable.HashMap[String, ArrayList[V]](key -> newXs)
+        val newMap = mutable.HashMap[String, Set[V]](key -> newXs.toSet)
         _time_xs(lastIdx) = (time, newMap)
       } else {
-        val xs = lastKeyToXs.get(key).getOrElse(new ArrayList[V]())
-        lastKeyToXs(key) = xs += value
+        var xs = lastKeyToXs.get(key).getOrElse(new ArrayList[V]().toSet)
+        xs += value
+        if (onlyOneValue) xs = Array(value).toSet
+        lastKeyToXs(key) = xs
       }
     }
   }
@@ -92,14 +96,16 @@ object TimeQueue {
     for (i <- 0 until 10) {
       cal.add(Calendar.DAY_OF_MONTH, 1)
       tq.put("a", cal.getTimeInMillis, i)
+      tq.put("a", cal.getTimeInMillis, i + 10)
       tq.put("b", cal.getTimeInMillis, i)
+      tq.put("b", cal.getTimeInMillis, i + 10)
     }
 
     println(tq._time_xs(0))
     println(tq._time_xs(1))
     val ok = {
-      tq._time_xs(0) == (631929600000L, Map("a" -> ArrayList(8), "b" -> ArrayList(8))) &&
-      tq._time_xs(1) == (632016000000L, Map("a" -> ArrayList(9), "b" -> ArrayList(9)))
+      tq._time_xs(0) == (631929600000L, Map("a" -> Set(8), "b" -> Set(8))) &&
+      tq._time_xs(1) == (632016000000L, Map("a" -> Set(9), "b" -> Set(9)))
     }
     println(ok)
     assert(ok, "Error.")

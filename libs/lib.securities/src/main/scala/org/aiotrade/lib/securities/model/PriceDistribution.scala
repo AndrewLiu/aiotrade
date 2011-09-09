@@ -9,6 +9,8 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 import scala.collection.mutable
 import org.aiotrade.lib.math.timeseries.TVal
+import java.util.Collections
+import java.util.Random
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
@@ -127,6 +129,7 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
 
 object PriceDistributions  extends Table[PriceDistribution] {
   private val log = Logger.getLogger(this.getClass.getName)
+  private val SIZE = 200
 
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
@@ -303,8 +306,8 @@ object PriceDistributions  extends Table[PriceDistribution] {
 
     sortedPDs.foreach{pc =>
       val (u, i) = pc.values.partition(x => exists.contains(x.time -> x.price))
-      updates ++= u
-      inserts ++= i
+      updates ++= sortAndMergingPriceDistribution(u, SIZE)
+      inserts ++= sortAndMergingPriceDistribution(i, SIZE)
     }
 
     for (x <- updates) {
@@ -342,8 +345,8 @@ object PriceDistributions  extends Table[PriceDistribution] {
 
     pcs.foreach{pc =>
       val (u, i) = pc.values partition {x => exists.contains(x.sec -> x.price)}
-      updates ++= u
-      inserts ++= i
+      updates ++= sortAndMergingPriceDistribution(u, SIZE)
+      inserts ++= sortAndMergingPriceDistribution(i, SIZE)
     }
 
     try {
@@ -357,4 +360,49 @@ object PriceDistributions  extends Table[PriceDistribution] {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
+  
+  /**
+   * Merge the prices' size to size.
+   * @param list The price collection needed to be merge.
+   * @param size The limited size.
+   * @return The merged price collection.
+   */
+  def sortAndMergingPriceDistribution(list: Iterable[PriceDistribution], size: Int): Iterable[PriceDistribution] = {
+
+    if (list == null || list.size <= size) return list
+
+    val list1 = new java.util.ArrayList[PriceDistribution]()
+    val sec = list.head.sec
+    val time = list.head.time
+    list foreach {x =>
+      if (x.sec != sec || x.time != time) throw new Exception("The security and the time is not equal.")
+      list1.add(x)
+    }
+
+    val retnList = ArrayList[PriceDistribution]()
+    
+    Collections.sort[PriceDistribution](list1, null)
+    var i = 0
+    var j = 0
+    var pd1 = list1.get(0)
+    val interval = (list1.get(list1.size - 1).price - list1.get(0).price) / (size - 1)
+    while(i < size){
+      val pd = new PriceDistribution
+      pd.sec = sec
+      pd.time = time
+      pd.flag = pd1.flag
+      pd.price = list1.get(0).price + i * interval
+      while(j < list1.size && pd1.price <= pd.price + interval / 2){
+        pd.volumeDown += pd1.volumeDown
+        pd.volumeUp += pd1.volumeUp
+        j += 1
+        if (j < list1.size) pd1 = list1.get(j)
+      }
+
+      retnList += pd
+      i += 1
+    }
+    return retnList
+  }
+
 }

@@ -682,6 +682,20 @@ object Exchange extends Publisher {
     }
   }
 
+  def indexOfExchange(exchange: Exchange) = {
+    exchange match{
+      case SS =>
+        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("60"))
+        ("000001.SS", secs)
+      case SZ =>
+        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("00"))
+        ("399106.SZ", secs)
+      case _ =>
+        ("", secsOf(exchange))
+
+    }
+  }
+
   def exchangeOfIndex(uniSymbol: String): Option[Exchange] = {
     uniSymbol match {
       case "^DJI" => Some(N)
