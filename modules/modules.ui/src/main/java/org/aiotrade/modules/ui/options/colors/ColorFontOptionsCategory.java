@@ -48,7 +48,7 @@ public final class ColorFontOptionsCategory extends OptionsCategory {
     
     @Override
     public Icon getIcon() {
-        Image image = ImageUtilities.loadImage("org/netbeans/modules/options/resources/colors.png");
+        Image image = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/colors.png");
         return new ImageIcon(image);
     }
     
