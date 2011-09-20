@@ -68,6 +68,11 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   protected var V: TVar[Double] = _
   protected var A: TVar[Double] = _
   protected var E: TVar[Boolean] = _
+  // unadjusted
+  protected var OO: TVar[Double] = _
+  protected var HO: TVar[Double] = _
+  protected var LO: TVar[Double] = _
+  protected var CO: TVar[Double] = _
 
   private var _uniSymbol: Option[String] = None
 
@@ -122,6 +127,11 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
         V = x.volume
         A = x.amount
         E = x.isClosed
+        
+        OO = x.open_ori
+        HO = x.high_ori
+        LO = x.low_ori
+        CO = x.close_ori
       case _ =>
     }
   }
