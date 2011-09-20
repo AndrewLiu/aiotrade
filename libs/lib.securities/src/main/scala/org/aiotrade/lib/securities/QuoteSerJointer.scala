@@ -84,6 +84,7 @@ class QuoteSerJointer(srcSers: Map[QuoteSer, Double], targetSer: QuoteSer, timeZ
         targetSer.low (time_i)   = targetSer.low (time_i) + (srcSer.low (time_i) / serToBaseNorm(srcSer).get.low)  * weight
         targetSer.volume(time_i) = targetSer.volume(time_i) + srcSer.volume(time_i)
         targetSer.amount(time_i) = targetSer.amount(time_i) + srcSer.amount(time_i)
+        targetSer.execCount(time_i) = targetSer.execCount(time_i) + srcSer.execCount(time_i)
       }
       
       time_i = targetFreq.nextTime(time_i)

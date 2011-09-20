@@ -59,15 +59,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._flag = flag
   }
 
-  var amountInCount = 0.0
-  var amountOutCount = 0.0
-
-  /**
-   * Weighted average relative amount.
-   */
-  var relativeAmount = 0.0
-
-  private val data = new Array[Double](24)
+  private val data = new Array[Double](27)
   
   def superVolumeIn = data(0)
   def superAmountIn = data(1)
@@ -97,6 +89,14 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallVolumeEven = data(22)
   def smallAmountEven = data(23)
 
+  def amountInCount = data(24)
+  def amountOutCount = data(25)
+
+  /**
+   * Weighted average relative amount.
+   */
+  def relativeAmount = data(26)
+
   def superVolumeIn_=(v: Double) {data(0) = v}
   def superAmountIn_=(v: Double) {data(1) = v}
   def superVolumeOut_=(v: Double) {data(2) = v}
@@ -124,6 +124,14 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   def smallAmountOut_=(v: Double) {data(21) = v}
   def smallVolumeEven_=(v: Double) {data(22) = v}
   def smallAmountEven_=(v: Double) {data(23) = v}
+
+  def amountInCount_=(v: Double) {data(24) = v}
+  def amountOutCount_=(v: Double) {data(25) = v}
+
+  /**
+   * Weighted average relative amount.
+   */
+  def relativeAmount_=(v: Double) {data(26) = v}
   
   // --- no db fields
   
@@ -158,6 +166,11 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   var isTransient = true
 
   def copyFrom(another: MoneyFlow) {
+    this._sec = another._sec
+    this._uniSymbol = another._uniSymbol
+    this._time = another._time
+    this._flag = another._flag
+    this.isTransient = another.isTransient
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 

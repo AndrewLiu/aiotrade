@@ -28,9 +28,10 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
   def flag = _flag
   def flag_=(flag: Int) {this._flag = flag}
 
-  var price: Double =_
-  var volumeUp: Double =_
-  var volumeDown: Double =_
+  var price: Double = _
+  var volumeUp: Double = _
+  var volumeDown: Double = _
+  var volumeEven: Double = _
 
   def copyFrom(another: PriceDistribution) {
     this.sec = another.sec
@@ -39,6 +40,7 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
     this.price = another.price
     this.volumeUp = another.volumeUp
     this.volumeDown = another.volumeDown
+    this.volumeEven = another.volumeEven
   }
 
   override def toString() = {
@@ -46,6 +48,7 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
     sp.append("price:").append(price)
     sp.append(",volumeUp:").append(volumeUp)
     sp.append(",volumeDown:").append(volumeDown)
+    sp.append(",volumeEven:").append(volumeEven)
     sp.toString
   }
 }
@@ -66,6 +69,12 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
   def flag = _flag
   def flag_=(flag: Int) {this._flag = flag}
 
+  private var _avgPrice = 0.0
+  private var _totalVolume = 0.0
+
+  def avgPrice = _avgPrice
+  def totalVolume = _totalVolume
+
   def get(price: String) = map.get(price)
     
   def put(price: String, pd: PriceDistribution) = {
@@ -76,6 +85,9 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
 
     if (TFreq.DAILY.round(this.time, cal) == TFreq.DAILY.round(pd.time, cal)){
       map.put(price, pd)
+      val vol = pd.volumeUp + pd.volumeDown + pd.volumeEven
+      this._avgPrice = (_avgPrice * _totalVolume + pd.price * vol) / (_totalVolume + vol)
+      _totalVolume += vol
 
       if (this.closed_?) pd.closed_! else pd.unclosed_!
     }
@@ -84,6 +96,12 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
   def keys = map.keys
 
   def values = map.values
+
+  def clear = {
+    map.clear
+    this._avgPrice = 0.0
+    this._totalVolume = 0
+  }
 
   def isEmpty = map.isEmpty
 
@@ -135,8 +153,9 @@ object PriceDistributions  extends Table[PriceDistribution] {
 
   val time = "time" BIGINT()
   val price = "price" DOUBLE()
-  val volumeUp = "volumeUp" BIGINT()
-  val volumeDown = "volumeDown" BIGINT()
+  val volumeUp = "volumeUp" DOUBLE()
+  val volumeDown = "volumeDown" DOUBLE()
+  val volumeEven = "volumeEven" DOUBLE()
   val flag = "flag" INTEGER()
 
   private val dailyCache = mutable.Map[(Sec, Long), PriceCollection]()
@@ -255,21 +274,21 @@ object PriceDistributions  extends Table[PriceDistribution] {
    * Convert the data format
    * The Price Distribution's format is:
    *
-   *  -------------------------------------------------------------------
-   *  |    Security |    Date     |  Price  |  Volume up  | Volume down |
-   *  -------------------------------------------------------------------
-   *  |   600001.S  |  2011-01-01 |   9.05  |   100000    |     10000   |
-   *  |             |             |   9.04  |   100000    |     10000   |
-   *  |             |             |   9.03  |   100000    |     100000  |
-   *  |             -----------------------------------------------------
-   *  |             |  2011-01-02 |   9.04  |   100000    |     10000   |
-   *  |             |             |   9.03  |   100000    |     100000  |
-   *  -------------------------------------------------------------------
-   *  |  600002.SS  |  2011-01-01 |   10.87 |   10000     |     10000   |
-   *  |             |             |   10.88 |   10000     |     10000   |
-   *  |                           ......                                |
-   *  |                                                                 |
-   *  -------------------------------------------------------------------
+   *  ----------------------------------------------------------------------------------
+   *  |    Security |    Date     |  Price  |  Volume up  | Volume down | Volume even  |
+   *  ----------------------------------------------------------------------------------
+   *  |   600001.S  |  2011-01-01 |   9.05  |   100000    |     10000   |    10000     |
+   *  |             |             |   9.04  |   100000    |     10000   |    10000     |
+   *  |             |             |   9.03  |   100000    |     100000  |    10000     |
+   *  |             --------------------------------------------------------------------
+   *  |             |  2011-01-02 |   9.04  |   100000    |     10000   |    10000     |
+   *  |             |             |   9.03  |   100000    |     100000  |    10000     |
+   *  ----------------------------------------------------------------------------------
+   *  |  600002.SS  |  2011-01-01 |   10.87 |   10000     |     10000   |    10000     |
+   *  |             |             |   10.88 |   10000     |     10000   |    10000     |
+   *  |                           ......                                |              |
+   *  |                                                                 |              |
+   *  ----------------------------------------------------------------------------------
    */
   private def seqToMap(list: Seq[PriceDistribution]): mutable.Map[Long, PriceCollection] = {
     val map = mutable.Map[Long, PriceCollection]()
@@ -367,7 +386,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
    * @param size The limited size.
    * @return The merged price collection.
    */
-  def sortAndMergingPriceDistribution(list: Iterable[PriceDistribution], size: Int): Iterable[PriceDistribution] = {
+  def sortAndMergingPriceDistribution(list: Iterable[PriceDistribution], size: Int = 60): Iterable[PriceDistribution] = {
 
     if (list == null || list.size <= size) return list
 
@@ -393,6 +412,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
       pd.flag = pd1.flag
       pd.price = list1.get(0).price + i * interval
       while(j < list1.size && pd1.price <= pd.price + interval / 2){
+        pd.volumeEven += pd1.volumeEven
         pd.volumeDown += pd1.volumeDown
         pd.volumeUp += pd1.volumeUp
         j += 1

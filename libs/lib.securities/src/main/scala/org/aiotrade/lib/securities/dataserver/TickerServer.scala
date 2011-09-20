@@ -187,6 +187,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         minQuote.close  = ticker.lastPrice
         minQuote.volume = ticker.dayVolume
         minQuote.amount = ticker.dayAmount
+        minQuote.execCount += 1
 
         execution = new Execution
         execution.sec = sec
@@ -232,7 +233,10 @@ abstract class TickerServer extends DataServer[Ticker] {
             minQuote.low  = ticker.lastPrice
             minQuote.volume = 0
             minQuote.amount = 0
-          } 
+            minQuote.execCount = 0
+          }
+
+          minQuote.execCount += 1
 
           if (lastTicker.dayHigh > 0 && ticker.dayHigh > 0) {
             if (ticker.dayHigh > lastTicker.dayHigh) {

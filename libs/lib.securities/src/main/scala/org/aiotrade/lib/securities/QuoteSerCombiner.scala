@@ -97,6 +97,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
         tarSer.low(intervalBegin)    = Double.MaxValue
         tarSer.volume(intervalBegin) = 0
         tarSer.amount(intervalBegin) = 0
+        tarSer.execCount(intervalBegin) = 0
             
         /** compose followed source data of this interval to targetData */
         var j = 0
@@ -134,6 +135,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
 
             tarSer.volume(intervalBegin) = tarSer.volume(intervalBegin) + srcSer.volume(time_j)
             tarSer.amount(intervalBegin) = tarSer.amount(intervalBegin) + srcSer.amount(time_j)
+            tarSer.execCount(intervalBegin) = tarSer.execCount(intervalBegin) + srcSer.execCount(time_j)
 
             tarSer.close_ori(intervalBegin) = srcSer.close_ori(time_j)
             //tarSer.close_adj(intervalBegin) = srcSer.close_adj(time_j)
@@ -201,12 +203,14 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
           quote.close  = linearAdjust(srcSer.close(time_i), prevNorm, postNorm)
           quote.volume += srcSer.volume(time_i)
           quote.amount += srcSer.amount(time_i)
+          quote.execCount += srcSer.execCount(time_i)
         } else {
           quote.high   = math.max(quote.high, linearAdjust(srcSer.high(time_i),  prevNorm, postNorm))
           quote.low    = math.min(quote.low,  linearAdjust(srcSer.low(time_i),   prevNorm, postNorm))
           quote.close  = linearAdjust(srcSer.close(time_i), prevNorm, postNorm)
           quote.volume += srcSer.volume(time_i)
           quote.amount += srcSer.amount(time_i)
+          quote.execCount += srcSer.execCount(time_i)
         }
         
         tarSer.updateFrom(quote)

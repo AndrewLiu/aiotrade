@@ -56,6 +56,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   val close  = TVar[Double]("C", Plot.Quote)
   val volume = TVar[Double]("V", Plot.Volume)
   val amount = TVar[Double]("A", Plot.Volume)
+  val execCount = TVar[Double]("E", Plot.None)
     
   // unadjusted values
   val open_ori  = TVar[Double]("O")
@@ -65,7 +66,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
 
   val isClosed = TVar[Boolean]()
   
-  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount)
+  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, execCount)
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -79,6 +80,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         close(time)  = quote.close
         volume(time) = quote.volume
         amount(time) = quote.amount
+        execCount(time) = quote.execCount
 
         open_ori(time)  = quote.open
         high_ori(time)  = quote.high
@@ -99,6 +101,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       quote.close  = close(time)
       quote.volume = volume(time)
       quote.amount = amount(time)
+      quote.execCount = execCount(time)
       if (isClosed(time)) quote.closed_! else quote.unclosed_!
       
       Some(quote)
@@ -213,6 +216,7 @@ object QuoteSer {
       val closes  = vmap("C")
       val volumes = vmap("V")
       val amounts = vmap("A")
+      val execCounts = vmap("E")
     
       var i = -1
       while ({i += 1; i < times.length}) {
@@ -226,6 +230,7 @@ object QuoteSer {
         quote.close  = closes(i).asInstanceOf[Double]
         quote.volume = volumes(i).asInstanceOf[Double]
         quote.amount = amounts(i).asInstanceOf[Double]
+        quote.execCount = execCounts(i).asInstanceOf[Double]
 
         if (quote.high * quote.low * quote.close == 0) {
           // bad quote, do nothing

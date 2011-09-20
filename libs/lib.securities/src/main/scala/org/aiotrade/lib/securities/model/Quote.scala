@@ -68,7 +68,7 @@ class Quote extends BelongsToSec with TVal with Flag {
 
   var hasGaps = false
   
-  private val data = new Array[Double](7)
+  private val data = new Array[Double](9)
   
   def open      = data(0)
   def high      = data(1)
@@ -77,14 +77,22 @@ class Quote extends BelongsToSec with TVal with Flag {
   def volume    = data(4)
   def amount    = data(5)
   def vwap      = data(6)
+  def execCount = data(7)
+  def turnoverRate = data(8)
 
   def open_=   (v: Double) {data(0) = v}
   def high_=   (v: Double) {data(1) = v}
   def low_=    (v: Double) {data(2) = v}
   def close_=  (v: Double) {data(3) = v}
-  def volume_= (v: Double) {data(4) = v}
+  def volume_= (v: Double) {
+    data(4) = v
+    if (sec != null && sec.secInfo != null)
+      turnoverRate = v / sec.secInfo.freeFloat
+  }
   def amount_= (v: Double) {data(5) = v}
   def vwap_=   (v: Double) {data(6) = v}
+  def execCount_=(v: Double) {data(7) = v}
+  def turnoverRate_=(v: Double) {data(8) = v}
 
   // Foreign keys
   @transient var tickers: List[Ticker] = Nil
@@ -118,6 +126,7 @@ class Quote extends BelongsToSec with TVal with Flag {
     close  = ticker.lastPrice
     volume = ticker.dayVolume
     amount = ticker.dayAmount
+    execCount += 1
   }
 
   override def toString = {
@@ -128,6 +137,8 @@ class Quote extends BelongsToSec with TVal with Flag {
     sb.append(",L:").append(low)
     sb.append(",C:").append(close)
     sb.append(",V:").append(volume)
+    sb.append(",execCount:").append(execCount)
+    sb.append(",turnoverrate:").append(turnoverRate)
     sb.append(")").toString
   }
 
@@ -148,6 +159,7 @@ abstract class Quotes extends Table[Quote] {
   val volume = "volume" DOUBLE()
   val amount = "amount" DOUBLE()
   val vwap   = "vwap"   DOUBLE()
+  val execCount = "execCount" DOUBLE()
 
   val flag = "flag" INTEGER()
 

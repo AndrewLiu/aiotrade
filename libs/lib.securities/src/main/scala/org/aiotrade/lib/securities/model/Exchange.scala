@@ -683,17 +683,22 @@ object Exchange extends Publisher {
   }
 
   def indexOfExchange(exchange: Exchange) = {
+    val map = mutable.Map[String, Seq[Sec]]()
     exchange match{
       case SS =>
-        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("60"))
-        ("000001.SS", secs)
+        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("60") || x.uniSymbol.startsWith("90"))
+        map += "000001.SS" -> secs
       case SZ =>
-        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("00"))
-        ("399106.SZ", secs)
-      case _ =>
-        ("", secsOf(exchange))
+        val secs = secsOf(exchange) filter (x => x.uniSymbol.startsWith("00") || x.uniSymbol.startsWith("20"))
+        map += "399106.SZ" -> secs
 
+        val secs1 = secsOf(exchange) filter (x => x.uniSymbol.startsWith("00") || x.uniSymbol.startsWith("20") || x.uniSymbol.startsWith("30"))
+        map += "399001.SZ" -> secs1
+      case _ =>
+        map += "" -> secsOf(exchange)
     }
+
+    map
   }
 
   def exchangeOfIndex(uniSymbol: String): Option[Exchange] = {

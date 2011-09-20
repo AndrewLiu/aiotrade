@@ -771,7 +771,7 @@ class GlassPane($view: ChartView, $datumPlane: DatumPlane) extends {
               while (i <= rowEnd) {
                 val time = quoteSer.timeOfRow(i)
                 if (quoteSer.exists(time)) {
-                  amountSum += quoteSer.volume(time)
+                  amountSum += quoteSer.amount(time)
                 }
                 i += 1
               }

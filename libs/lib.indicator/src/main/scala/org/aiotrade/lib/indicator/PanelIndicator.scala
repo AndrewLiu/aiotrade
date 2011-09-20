@@ -86,6 +86,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 
   def addSecs(secValidTimes: collection.Seq[ValidTime[Sec]]) {
     secValidTimes foreach addSec
+    log.info("Add secs: " + secValidTimes.length)
     publish(ComputeFrom(0))
   }
 

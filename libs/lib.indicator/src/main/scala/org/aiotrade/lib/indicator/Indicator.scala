@@ -67,6 +67,7 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   protected var C: TVar[Double] = _
   protected var V: TVar[Double] = _
   protected var A: TVar[Double] = _
+  protected var EC: TVar[Double] = _
   protected var E: TVar[Boolean] = _
 
   private var _uniSymbol: Option[String] = None
@@ -121,6 +122,7 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
         C = x.close
         V = x.volume
         A = x.amount
+        EC = x.execCount
         E = x.isClosed
       case _ =>
     }

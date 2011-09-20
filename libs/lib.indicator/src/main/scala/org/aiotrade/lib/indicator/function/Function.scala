@@ -73,6 +73,7 @@ abstract class Function extends DefaultTSer
   protected var L: TVar[Double] = _
   protected var C: TVar[Double] = _
   protected var V: TVar[Double] = _
+  protected var E: TVar[Double] = _
 
   def set(baseSer: BaseTSer, args: Any*) {
     super.set(baseSer.freq)
@@ -92,6 +93,7 @@ abstract class Function extends DefaultTSer
         L = x.low
         C = x.close
         V = x.volume
+        E = x.execCount
       case _ =>
     }
   }
