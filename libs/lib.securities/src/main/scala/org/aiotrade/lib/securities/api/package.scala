@@ -1,7 +1,7 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.avro.Evt
-import org.aiotrade.lib.securities.dataserver.DepthSnap
+//import org.aiotrade.lib.securities.dataserver.DepthSnap
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.PriceCollection
@@ -15,7 +15,7 @@ package object api {
   val TickerEvt     = Evt[Ticker](0, "ticker")
   val TickersEvt    = Evt[Array[Ticker]](1, "tickers")
   val ExecutionEvt  = Evt[(Double, Execution)](2, "prevClose, execution")
-  val DepthSnapsEvt = Evt[Array[DepthSnap]](3)
+  val ExecutionsEvt = Evt[Array[Execution]](3)
   val DelimiterEvt  = Evt[Unit](9, "A delimiter to notice batch tickers got.")
 
   

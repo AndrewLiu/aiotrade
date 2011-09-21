@@ -53,6 +53,8 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _sectorKey: String = ""
+  def name: String
+  final lazy val key = name + "_" + sectorKey + "_" + freq.shortName
   def sectorKey = _sectorKey
   def sectorKey_=(sectorKey: String) {
     this._sectorKey = sectorKey

@@ -54,11 +54,11 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-case class DepthSnap (
-  prevPrice: Double,
-  prevDepth: MarketDepth,
-  execution: Execution
-)
+//case class DepthSnap (
+//  prevPrice: Double,
+//  prevDepth: MarketDepth,
+//  execution: Execution
+//)
 
 abstract class TickerServer extends DataServer[Ticker] {
   type C = TickerContract
@@ -78,7 +78,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   private val allTickers = new ArrayList[Ticker]
   private val allExecutions = new ArrayList[Execution]
-  private val allDepthSnaps = new ArrayList[DepthSnap]
   private val allUpdatedDailyQuotes = new ArrayList[Quote]
   private val allUpdatedMinuteQuotes = new ArrayList[Quote]
 
@@ -142,7 +141,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
     allTickers.clear
     allExecutions.clear
-    allDepthSnaps.clear
     allUpdatedDailyQuotes.clear
     allUpdatedMinuteQuotes.clear
 
@@ -281,8 +279,6 @@ abstract class TickerServer extends DataServer[Ticker] {
 
           sec.publish(api.ExecutionEvt(ticker.prevClose, execution))
           allExecutions += execution
-
-          allDepthSnaps += DepthSnap(prevPrice, prevDepth, execution)
         }
 
         // update daily quote and ser
@@ -335,8 +331,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (allTickers.length > 0) {
       TickerServer.publish(api.TickersEvt(allTickers.toArray))
     }
-    if (allDepthSnaps.length > 0) {
-      TickerServer.publish(api.DepthSnapsEvt(allDepthSnaps.toArray))
+    if (allExecutions.length > 0) {
+      TickerServer.publish(api.ExecutionsEvt(allExecutions.toArray))
     }
     if (allUpdatedDailyQuotes.length > 0) {
       TickerServer.publish(api.QuotesEvt(TFreq.DAILY.shortName, allUpdatedDailyQuotes.toArray))
