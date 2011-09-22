@@ -118,7 +118,6 @@
                     <publicPackages>
                         <publicPackage>ru.circumflex.orm</publicPackage>
                         <publicPackage>ru.circumflex.orm.avro</publicPackage>
-                        <publicPackage>com.mchange.v2.c3p0</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>
