@@ -10,7 +10,7 @@ import net.lag.configgy.Configgy
 import net.lag.configgy.ParseException
 import net.lag.logging.Logger
 
-class ConfigurationException(message: String) extends RuntimeException(message)
+case class ConfigurationException(message: String) extends RuntimeException(message)
 
 /**
  * Loads up the configuration (from the app.conf file).
