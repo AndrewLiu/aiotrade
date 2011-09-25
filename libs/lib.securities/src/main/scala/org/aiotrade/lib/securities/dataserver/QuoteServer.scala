@@ -58,7 +58,11 @@ abstract class QuoteServer extends DataServer[Quote] {
     var toTime = loadedTime
 
     val uniSymbol = toUniSymbol(contract.srcSymbol)
-    val sec = Exchange.secOf(uniSymbol).get
+    val sec = Exchange.secOf(uniSymbol) getOrElse {
+      log.warning("No sec for: " + uniSymbol)
+      return loadedTime
+    }
+    
     log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
     var i = -1
     while ({i += 1; i < quotes.length}) {
