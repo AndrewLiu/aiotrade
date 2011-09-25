@@ -53,13 +53,16 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   def this() = this(null)
 
   /**
-   * !NOTICE
+   * @Note
    * IndicatorHelper should be created here, because it will be used to
    * inject Factor(s): new Factor() will call addFac which delegated
    * by indicatorHelper.addFac(..)
    */
   private var _computedTime = Long.MinValue
-        
+  
+  /** Always use unadjusted values?, override it to get you want */
+  val isUsingUnadjusted = false
+  
   /** To store values of open, high, low, close, volume, amount, closed: */
   protected var O: TVar[Double] = _
   protected var H: TVar[Double] = _
@@ -120,10 +123,18 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   protected def initPredefinedVarsOfBaseSer {
     baseSer match {
       case x: QuoteSer =>
-        O = x.open
-        H = x.high
-        L = x.low
-        C = x.close
+        if (isUsingUnadjusted) {
+          O = x.open_ori
+          H = x.high_ori
+          L = x.low_ori
+          C = x.close_ori
+        } else {
+          O = x.open
+          H = x.high
+          L = x.low
+          C = x.close
+        }
+        
         V = x.volume
         A = x.amount
         E = x.isClosed
