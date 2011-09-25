@@ -59,8 +59,8 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._flag = flag
   }
 
-  var amountInCount = 0
-  var amountOutCount = 0
+  var amountInCount = 0.0
+  var amountOutCount = 0.0
 
   /**
    * Weighted average relative amount.
