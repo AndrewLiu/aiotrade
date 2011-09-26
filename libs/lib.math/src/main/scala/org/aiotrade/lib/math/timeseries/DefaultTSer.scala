@@ -62,6 +62,12 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
   protected val INIT_CAPACITY = 100
 
   /**
+   * The length of ONE_MIN is 15000/240 = 62.5 days, about 3 months
+   * The length of DAILY is 15000/ 250 = 60 years.
+   */
+  protected val MAX_DATA_SIZE = 15000
+
+  /**
    * a place holder plus flags
    */
   protected type Holder = Boolean

@@ -258,8 +258,8 @@ object Evt {
   def main(args: Array[String]) {
     //testMatch
     //testObject
-    //testPrimitives
-    testVmap
+    testPrimitives
+    //testVmap
     
 //    println(prettyPrint(tagToEvt map (_._2)))
   }
@@ -364,6 +364,11 @@ object Evt {
     testMsg(DoubleEvt(1.0))
     testMsg(BooleanEvt(true))
     testMsg(StringEvt("abc"))
+    println("test tuples")
+    val map = mutable.Map[String, Array[Int]]()
+    map += "123" -> Array(12)
+    printSchema((1, "a", map).getClass)
+//    testMsg(TEvt(1, "a", map))
     testMsg(TupleEvt(1, "a", 100000L, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))))
   }
   
@@ -435,6 +440,7 @@ private[avro] object TestAPIs {
   val ListEvt = Evt[List[String]](-10)
   val ArrayEvt = Evt[Array[String]](-11)
   val TupleEvt = Evt[(Int, String, Double, Array[TestData])](-12, "id, name, value")
+  val TEvt = Evt[(Int, String, collection.Map[String, Array[Int]])](-14, "")
 
   val BadEmpEvt = Evt(-13) // T will be AnyRef
   

@@ -16,7 +16,7 @@ package object api {
   val TickersEvt    = Evt[Array[Ticker]](1, "tickers")
   val ExecutionEvt  = Evt[(Double, Execution)](2, "prevClose, execution")
   val ExecutionsEvt = Evt[Array[Execution]](3)
-  val DelimiterEvt  = Evt[Unit](9, "A delimiter to notice batch tickers got.")
+//  val DelimiterEvt  = Evt[Unit](9, "A delimiter to notice batch tickers got.")
 
   
   // update evts

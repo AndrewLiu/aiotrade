@@ -54,7 +54,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   
   private var _sectorKey: String = ""
   def name: String
-  final lazy val key = name + "_" + sectorKey + "_" + freq.shortName
+  final lazy val key = name + "_" + sectorKey.trim + "_" + freq.shortName
   def sectorKey = _sectorKey
   def sectorKey_=(sectorKey: String) {
     this._sectorKey = sectorKey
@@ -66,7 +66,6 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   reactions += {
     case PanelIndicator.PanelHeartBeat => 
       computeFrom(lastFromTime)
-      lastFromTime = computedTime
     case ComputeFrom(time) => 
       lastFromTime = time
     case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) => 
@@ -117,7 +116,10 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     
     val t0 = System.currentTimeMillis
     compute(fromTime, lastTime)
+    val vmap = export(fromTime, lastTime)
     log.info(descriptor + ", size=" + size + ", computed " + util.formatTime(fromTime) + " - " + util.formatTime(lastTime) + " in " + (System.currentTimeMillis - t0) + "ms")
+    publish(key -> vmap)
+    lastFromTime = computedTime
   }
   
   /**
@@ -153,13 +155,16 @@ object PanelIndicator extends Publisher {
   private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_]], PanelIndicator[_]]
   
   private case object PanelHeartBeat
-  private val interval = 30000L // 30 seconds
-  private val timer = new Timer("PanelIndictorTimer")
-  timer.scheduleAtFixedRate(new TimerTask {
-      def run {
-        publish(PanelHeartBeat)
-      }
-    }, 1000, interval)
+  private val interval = 20000L // 20 seconds
+
+  def startTimer() = {
+    val timer = new Timer("PanelIndictorTimer")
+    timer.scheduleAtFixedRate(new TimerTask {
+        def run {
+          publish(PanelHeartBeat)
+        }
+      }, 1000, interval)
+  }
 
   def idOf[T](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*) = {
     val factorArr = factors.toArray
@@ -171,7 +176,7 @@ object PanelIndicator extends Publisher {
     Id(klass, sectorKey, args: _*)
   }
   
-  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): T = {
+  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): (T, Boolean) = {
     val id = idOf(klass, sectorKey, freq, factors: _*)
     
     idToIndicator.get(id) match {
@@ -182,11 +187,11 @@ object PanelIndicator extends Publisher {
           indicator.sectorKey = sectorKey
           indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
-          indicator
+          (indicator, true)
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
+          case ex => log.log(Level.SEVERE, ex.getMessage, ex); (null.asInstanceOf[T], true)
         }
-      case x => x.asInstanceOf[T]
+      case x => (x.asInstanceOf[T], false)
     }
   }
 }
