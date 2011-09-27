@@ -757,7 +757,7 @@ public class SampleFrame extends JFrame implements EWrapper {
     }
 
     public void historicalData(int reqId, String date, double open, double high, double low,
-                      double close, int volume, double WAP, boolean hasGaps) {
+                      double close, int volume, double execCount, double WAP, boolean hasGaps) {
         m_tickers.add( "id=" + reqId +
                         " date = " + date +
                         " open=" + open +
@@ -765,6 +765,7 @@ public class SampleFrame extends JFrame implements EWrapper {
                         " low=" + low +
                         " close=" + close +
                         " volume=" + volume +
+                        " execCount=" + execCount +
                         " WAP=" + WAP +
                         " hasGaps=" + hasGaps
                         );

@@ -468,7 +468,6 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
 
     ser ++= quotes.toArray
 
-    val uniSymbol = secInfo.uniSymbol
     /**
      * get the newest time which DataServer will load quotes after this time
      * if quotes is empty, means no data in db, so, let newestTime = 0, which

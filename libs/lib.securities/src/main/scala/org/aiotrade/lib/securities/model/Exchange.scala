@@ -886,14 +886,14 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       } else {
         val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list()
         SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
-      }
+      } filter {x => x.uniSymbol != null && x.uniSymbol.trim != ""}
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     
     log.info("SecInfos number " +  " is " + secInfos.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
 
-    secInfos.groupBy(x => x.sec.exchange)
+    secInfos groupBy {x => x.sec.exchange}
   }
 
   /**
