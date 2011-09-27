@@ -145,7 +145,7 @@ class Quote extends BelongsToSec with TVal with Flag {
 }
 
 // --- table
-abstract class Quotes extends Table[Quote] {
+abstract class Quotes extends Table[Quote] with TableEx {
   private val log = Logger.getLogger(this.getClass.getName)
   
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
@@ -169,7 +169,7 @@ abstract class Quotes extends Table[Quote] {
     try {
       SELECT (this.*) FROM (this) WHERE (
         this.sec.field EQ Secs.idOf(sec)
-      ) ORDER_BY (this.time) list
+      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -187,7 +187,7 @@ abstract class Quotes extends Table[Quote] {
     try {
       SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-      ) ORDER_BY (this.time) list
+      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -386,7 +386,7 @@ object Quotes1m extends Quotes {
     try {
       SELECT (this.*) FROM (this) WHERE (
         this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
-      ) ORDER_BY (this.time DESC) list
+      ) ORDER_BY (this.time DESC)  list
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }

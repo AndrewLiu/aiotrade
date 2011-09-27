@@ -116,9 +116,9 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     
     val t0 = System.currentTimeMillis
     compute(fromTime, lastTime)
-    val vmap = export(fromTime, lastTime)
     log.info(descriptor + ", size=" + size + ", computed " + util.formatTime(fromTime) + " - " + util.formatTime(lastTime) + " in " + (System.currentTimeMillis - t0) + "ms")
-    publish(key -> vmap)
+//    val vmap = export(fromTime, lastTime)
+//    if (vmap.nonEmpty && vmap.values.head.asInstanceOf[Array[_]].size != 0) publish(key -> vmap)
     lastFromTime = computedTime
   }
   
@@ -153,15 +153,24 @@ object PanelIndicator extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
 
   private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_]], PanelIndicator[_]]
-  
+
+  private val runtime = Runtime.getRuntime
   private case object PanelHeartBeat
-  private val interval = 20000L // 20 seconds
+  private val interval = 30000L // 30 seconds
+  private var count = 0
 
   def startTimer() = {
     val timer = new Timer("PanelIndictorTimer")
     timer.scheduleAtFixedRate(new TimerTask {
         def run {
           publish(PanelHeartBeat)
+          count += 1
+          if (count > 10){
+            count = 0
+            log.info("Before collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
+            System.gc
+            log.info("After collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
+          }
         }
       }, 1000, interval)
   }

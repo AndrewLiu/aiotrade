@@ -142,6 +142,12 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           vars foreach {x => x.put(time, x.NullVal)}
           holders.insert(idx, holder)
 
+          // @todo Not remove it now
+//          if (timestamps.size > MAX_DATA_SIZE){
+//            val length = timestamps.size - MAX_DATA_SIZE
+//            clearUntilIdx(length)
+//          }
+
         } finally {
           timestamps.writeLock.unlock
         }
@@ -157,6 +163,12 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
         vars foreach {x => x.put(time, x.NullVal)}
         holders += holder
+
+        // @todo Not remove it now.
+//        if (timestamps.size > MAX_DATA_SIZE){
+//          val length = timestamps.size - MAX_DATA_SIZE
+//          clearUntilIdx(length)
+//        }
 
       } finally {
         timestamps.writeLock.unlock
@@ -176,6 +188,11 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         // to avoid concurrent conflict, just do nothing here.
       }
     }
+  }
+
+  private def clearUntilIdx(idx: Int){
+    timestamps.remove(0, idx)
+    holders.remove(0, idx)
   }
 
   /**

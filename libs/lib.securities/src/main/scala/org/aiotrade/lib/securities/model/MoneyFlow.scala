@@ -176,7 +176,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 
 }
 
-abstract class MoneyFlows extends Table[MoneyFlow] {
+abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
   private val log = Logger.getLogger(this.getClass.getName)
   
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
@@ -219,7 +219,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
     try {
       val mfs = {SELECT (this.*) FROM (this) WHERE (
           this.sec.field EQ Secs.idOf(sec)
-        ) ORDER_BY (this.time) list}
+        ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list}
 
       mfs foreach {mf =>
         if (mf.amountNet >= 0){
@@ -252,7 +252,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] {
     try {
       val mfs = {SELECT (this.*) FROM (this) WHERE (
           (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-        ) ORDER_BY (this.time) list}
+        ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list}
 
       mfs foreach {mf =>
         if (mf.amountNet >= 0){
