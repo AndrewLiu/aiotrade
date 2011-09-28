@@ -53,10 +53,10 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
   strongRefHolders.put(tarSer, this)
   
   reactions += {
-    case TSerEvent.Loaded(_, _, fromTime, _, _, _) => computeFrom(fromTime)
-    case TSerEvent.Computed(_, _, fromTime, _, _, _) => computeFrom(fromTime)
-    case TSerEvent.Updated(_, _, fromTime, _, _, _) => computeFrom(fromTime)
-    case TSerEvent.Cleared(_, _, fromTime, _, _, _) => computeFrom(fromTime)
+    case TSerEvent.Loaded(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Computed(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Updated(_, _, fromTime, _, _, _) => compute(fromTime)
+    case TSerEvent.Cleared(_, _, fromTime, _, _, _) => compute(fromTime)
   }
   listenTo(srcSer)
 
@@ -164,7 +164,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     tarSer.publish(evt)
   }
 
-  def computeFrom(fromTime: Long) {
+  def compute(fromTime: Long) {
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
     val roundedFromTime = freq.round(fromTime, cal)
@@ -174,8 +174,8 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     // --- begin combining
 
     val n = srcSer.size
-    var i = srcFromIdx
-    while (i < n) {
+    var i = srcFromIdx - 1
+    while ({i += 1; i < n}) {
       val time_i = srcSer.timeOfIndex(i)
       if (time_i >= roundedFromTime) {
         val quote = quoteOf(time_i)
@@ -211,8 +211,6 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
         
         tarSer.updateFrom(quote)
       }
-      
-      i += 1
     }
 
 //    val evt = TSerEvent.Updated(tarSer, null, baseFromTime, tarSer.lastOccurredTime)
