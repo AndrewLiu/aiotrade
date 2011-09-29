@@ -194,6 +194,7 @@ object Indicator {
           indicator.set(baseSer)
           indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
+          indicator.computeFrom(0)
           indicator
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]

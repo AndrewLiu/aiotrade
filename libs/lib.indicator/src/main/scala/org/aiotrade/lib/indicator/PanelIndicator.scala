@@ -66,6 +66,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   reactions += {
     case PanelIndicator.PanelHeartBeat => 
       computeFrom(lastFromTime)
+      lastFromTime = computedTime
     case ComputeFrom(time) => 
       lastFromTime = time
     case TSerEvent.Loaded(_, _, fromTime, toTime, _, callback) => 
@@ -97,7 +98,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
         val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
         indicators += ((ind, secValidTime))
-        ind.computeFrom(0)
+//        ind.computeFrom(0)
         Some(ind)
       case _ => None
     }
@@ -119,7 +120,6 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     log.info(descriptor + ", size=" + size + ", computed " + util.formatTime(fromTime) + " - " + util.formatTime(lastTime) + " in " + (System.currentTimeMillis - t0) + "ms")
 //    val vmap = export(fromTime, lastTime)
 //    if (vmap.nonEmpty && vmap.values.head.asInstanceOf[Array[_]].size != 0) publish(key -> vmap)
-    lastFromTime = computedTime
   }
   
   /**
@@ -158,19 +158,21 @@ object PanelIndicator extends Publisher {
   private case object PanelHeartBeat
   private val interval = 30000L // 30 seconds
   private var count = 0
+  var indicatorCount = 0
 
   def startTimer() = {
     val timer = new Timer("PanelIndictorTimer")
     timer.scheduleAtFixedRate(new TimerTask {
         def run {
+          log.info("Publish panel heart beat: " + listeners.size)
           publish(PanelHeartBeat)
-          count += 1
-          if (count > 10){
-            count = 0
-            log.info("Before collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
-            System.gc
-            log.info("After collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
-          }
+//          count += 1
+//          if (count > 10){
+//            count = 0
+//            log.info("Before collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
+//            System.gc
+//            log.info("After collect garbage, Max memory:" + (runtime.maxMemory/1024.0f/1024) + "M, total memory:" + (runtime.totalMemory/1024.0f/1024 + "M, free memory:" + (runtime.freeMemory/1024.0f/1024) + "M" ))
+//          }
         }
       }, 1000, interval)
   }
@@ -196,6 +198,9 @@ object PanelIndicator extends Publisher {
           indicator.sectorKey = sectorKey
           indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
+          
+          indicatorCount += 1
+          log.info("Started panel indicator: " + indicator.descriptor + ", indicators count: " + indicatorCount)
           (indicator, true)
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); (null.asInstanceOf[T], true)

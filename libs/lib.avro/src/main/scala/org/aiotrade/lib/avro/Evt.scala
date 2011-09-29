@@ -357,19 +357,20 @@ object Evt {
   private def testPrimitives {
     import TestAPIs._
     
-    testMsg(EmpEvt())
-    testMsg(IntEvt(1))
-    testMsg(LongEvt(1L))
-    testMsg(FloatEvt(1.0f))
-    testMsg(DoubleEvt(1.0))
-    testMsg(BooleanEvt(true))
-    testMsg(StringEvt("abc"))
+//    testMsg(EmpEvt())
+//    testMsg(IntEvt(1))
+//    testMsg(LongEvt(1L))
+//    testMsg(FloatEvt(1.0f))
+//    testMsg(DoubleEvt(1.0))
+//    testMsg(BooleanEvt(true))
+//    testMsg(StringEvt("abc"))
     println("test tuples")
-    val map = mutable.Map[String, Array[Int]]()
-    map += "123" -> Array(12)
-    printSchema((1, "a", map).getClass)
+    testMsg(PanelEvt(1000000, 35000L))
+//    val map = mutable.Map[String, Array[Int]]()
+//    map += "123" -> Array(12)
+//    printSchema((1, "a", map).getClass)
 //    testMsg(TEvt(1, "a", map))
-    testMsg(TupleEvt(1, "a", 100000L, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))))
+//    testMsg(TupleEvt(1, "a", 100000L, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))))
   }
   
   private def testMsg[T](msg: Msg[T]) = msg match {
@@ -428,7 +429,8 @@ object Evt {
 }
 
 private[avro] object TestAPIs {
-  
+
+  val PanelEvt = Evt[(Int, Long)](-30)
   val EmpEvt = Evt[Unit](-1)
   val IntEvt = Evt[Int](-2)
   val LongEvt = Evt[Long](-3)

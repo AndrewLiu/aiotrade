@@ -848,8 +848,10 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val exchangeId = Exchanges.idOf(exchange)
     try {
       if (isServer) {
+        log.info("Get secinfo from data base.")
         SELECT (SecInfos.*, Secs.*) FROM (SecInfos JOIN Secs) WHERE (Secs.exchange.field EQ exchangeId) list() map (_._1)
       } else {
+        log.info("Get secinfo from avro.")
         val secs = SELECT (Secs.*) FROM (AVRO(Secs)) list() 
         SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list() filter (x => x.sec != null && x.sec.exchange.code == exchange.code)
       }
