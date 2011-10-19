@@ -56,7 +56,10 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   val close  = TVar[Double]("C", Plot.Quote)
   val volume = TVar[Double]("V", Plot.Volume)
   val amount = TVar[Double]("A", Plot.Volume)
+  val prevClose = TVar[Double]("PC", Plot.None)
+  val prev5Close = TVar[Double]("P5C", Plot.None)
   val execCount = TVar[Double]("E", Plot.None)
+  val turnoverRate = TVar[Double]("T", Plot.None)
     
   // unadjusted values
   val open_ori  = TVar[Double]("O")
@@ -66,7 +69,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
 
   val isClosed = TVar[Boolean]()
   
-  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, execCount)
+  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate)
 
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
@@ -80,7 +83,9 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         close(time)  = quote.close
         volume(time) = quote.volume
         amount(time) = quote.amount
+        prevClose(time) = quote.prevClose
         execCount(time) = quote.execCount
+        turnoverRate(time) = quote.turnoverRate
 
         open_ori(time)  = quote.open
         high_ori(time)  = quote.high
@@ -88,6 +93,9 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         close_ori(time) = quote.close
 
         isClosed(time) = quote.closed_?
+
+        val idx = timestamps.nearestIndexOfOccurredTime(time) - 5
+        prev5Close(time) = if (idx >= 0) prevClose(idx) else prevClose(0)
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
   }
@@ -101,7 +109,9 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       quote.close  = close(time)
       quote.volume = volume(time)
       quote.amount = amount(time)
+      quote.prevClose = prevClose(time)
       quote.execCount = execCount(time)
+      quote.turnoverRate = turnoverRate(time)
       if (isClosed(time)) quote.closed_! else quote.unclosed_!
       
       Some(quote)
@@ -193,6 +203,44 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
+  def doCalcTurnoverRate{
+    if (isLoaded) {
+      calcTurnoverRate
+    } else {
+      // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+      var reaction: Reactions.Reaction = null
+      reaction = {
+        case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
+          reactions -= reaction
+          calcTurnoverRate
+      }
+      reactions += reaction
+
+      // TSerEvent.Loaded may have been missed during above procedure, so confirm it
+      if (isLoaded) {
+        reactions -= reaction
+        calcTurnoverRate
+      }
+    }
+  }
+
+  private def calcTurnoverRate{
+    val infos = Exchanges.secInfosOf(serProvider)
+    if (infos.isEmpty) return
+    
+    val infoItr = infos.iterator
+    while (infoItr.hasNext) {
+      val info = infoItr.next
+      var i = size
+      while({i -= 1; i >= 0}){
+        val time = timestamps(i)
+        if (time > info.validFrom){
+          turnoverRate(time) = volume(time) / info.freeFloat
+        }
+      }
+    }
+  }
+
   override def shortName: String = {
     if (isAdjusted) {
       _shortName + "(*)"
@@ -216,7 +264,9 @@ object QuoteSer {
       val closes  = vmap("C")
       val volumes = vmap("V")
       val amounts = vmap("A")
+      val prevClose = vmap("PC")
       val execCounts = vmap("E")
+      val turnoverRates = vmap("T")
     
       var i = -1
       while ({i += 1; i < times.length}) {
@@ -230,7 +280,9 @@ object QuoteSer {
         quote.close  = closes(i).asInstanceOf[Double]
         quote.volume = volumes(i).asInstanceOf[Double]
         quote.amount = amounts(i).asInstanceOf[Double]
+        quote.prevClose = prevClose(i).asInstanceOf[Double]
         quote.execCount = execCounts(i).asInstanceOf[Double]
+        quote.turnoverRate = turnoverRates(i).asInstanceOf[Double]
 
         if (quote.high * quote.low * quote.close == 0) {
           // bad quote, do nothing

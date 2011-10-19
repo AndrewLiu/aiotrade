@@ -75,7 +75,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
    * 
    * @Todo a custom vmap
    */
-  def export(fromTime: Long, toTime: Long): collection.Map[String, Any] = {
+  def export(fromTime: Long, toTime: Long, limit: Int = Int.MaxValue): collection.Map[String, Any] = {
     try {
       readLock.lock
       timestamps.readLock.lock
@@ -89,7 +89,12 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
             val vs = exportableVars filter (v => v.name != null && v.name != "")
             toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
             if (toIdx >= frIdx) {
-              val len = toIdx - frIdx + 1
+              var len = toIdx - frIdx + 1
+              var retToTime = toTime
+              if (len > limit) {
+                len = limit
+                retToTime = timestamps(frIdx + len - 1)
+              }
               val vmap = new mutable.HashMap[String, Array[_]]()
 
               val times = timestamps.sliceToArray(frIdx, len)
@@ -104,7 +109,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
             } else {println("toIdx < frIdx"); Map()}
           } else {println("toIdx < 0"); Map()}
         } else {println("frIdx < 0"); Map()}
-      } else  Map()
+      } else  {println("size <= 0"); Map()}
       
     } finally {
       timestamps.readLock.unlock

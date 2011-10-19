@@ -104,7 +104,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
     }
   }
   
-  protected def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
+  def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
   
   override def computeFrom(fromTime0: Long) {
     val (firstTime, lastTime) = firstLastTimeOf(indicators)
@@ -203,7 +203,7 @@ object PanelIndicator extends Publisher {
           log.info("Started panel indicator: " + indicator.descriptor + ", indicators count: " + indicatorCount)
           (indicator, true)
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); (null.asInstanceOf[T], true)
+          case ex => log.log(Level.WARNING, ex.getMessage, ex); (null.asInstanceOf[T], false)
         }
       case x => (x.asInstanceOf[T], false)
     }

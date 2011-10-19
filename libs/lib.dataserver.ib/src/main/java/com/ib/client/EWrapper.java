@@ -29,8 +29,8 @@ public interface EWrapper {
     void updateNewsBulletin( int msgId, int msgType, String message, String origExchange);
     void managedAccounts( String accountsList);
     void receiveFA(int faDataType, String xml);
-    void historicalData(int reqId, String date, double open, double high, double low,
-                      double close, int volume, double execCount, double WAP, boolean hasGaps);
+    void historicalData(int reqId, String date, double open, double high, double low,double close, double prevClose,
+                       int volume, double execCount, double WAP, boolean hasGaps);
     void scannerParameters(String xml);
     void scannerData(int reqId, int rank, ContractDetails contractDetails, String distance, String benchmark, String projection);
 }

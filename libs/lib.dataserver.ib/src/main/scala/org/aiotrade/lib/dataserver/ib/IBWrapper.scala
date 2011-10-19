@@ -282,8 +282,8 @@ object IBWrapper extends IBWrapper {
   }
     
   /** A historical data arrived */
-  override def historicalData(reqId: Int, date: String,
-                              open: Double, high: Double, low: Double, close: Double, volume: Int, execCount: Double, WAP: Double, hasGaps: Boolean) {
+  override def historicalData(reqId: Int, date: String, open: Double, high: Double, low: Double, close: Double, prevClose: Double,
+                               volume: Int, execCount: Double, WAP: Double, hasGaps: Boolean) {
         
     val storage = quoteStorageOf(reqId)
     if (storage == null) {
@@ -315,6 +315,7 @@ object IBWrapper extends IBWrapper {
           quote.low    = low
           quote.close  = close
           quote.volume = volume
+          quote.prevClose = prevClose
           quote.execCount = execCount
                     
           quote.vwap = WAP

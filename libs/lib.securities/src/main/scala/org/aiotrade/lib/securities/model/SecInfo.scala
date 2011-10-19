@@ -56,6 +56,55 @@ class SecInfo extends BelongsToSec {
   override def toString = {
     "SecInfo(uniSymbol=" + uniSymbol + ")"
   }
+
+  final def copyFrom(another: SecInfo) {
+    this.validFrom = another.validFrom
+    this.validTo = another.validTo
+    this.name = another.name
+    this.totalShare = another.totalShare
+    this.freeFloat = another.freeFloat
+  }
+
+  def copyFromWithoutName(another: SecInfo) {
+    this.validFrom = another.validFrom
+    this.validTo = another.validTo
+    this.totalShare = another.totalShare
+    this.freeFloat = another.freeFloat
+  }
+
+  override def equals(a: Any): Boolean = a match {
+    case that: SecInfo => (this.sec eq that.sec) && this.validFrom == that.validFrom
+    case _ => false
+  }
+
+  final def valueNonEquals(that : SecInfo): Boolean = !valueEquals(that)
+  final def valueEquals(that: SecInfo): Boolean = {
+    valueEquals(this.validFrom, that.validFrom) &&
+    valueEquals(this.validTo, that.validTo) &&
+    valueEquals(this.totalShare, that.totalShare) &&
+    valueEquals(this.freeFloat, that.freeFloat)
+  }
+
+  final def diffValues(that: SecInfo): List[(String, Long, Long)] = {
+    var result: List[(String, Long, Long)] = Nil
+
+    if (valueNonEquals(this.validFrom, that.validFrom))
+      result = ("validFrom", this.validFrom, that.validFrom) :: result
+
+    if (valueNonEquals(this.validTo, that.validTo))
+      result = ("validTo", this.validTo, that.validTo) :: result
+
+    if (valueNonEquals(this.totalShare, that.totalShare))
+      result = ("totalShare", this.totalShare, that.totalShare) :: result
+
+    if (valueNonEquals(this.freeFloat, that.freeFloat))
+      result = ("freeFloat", this.freeFloat, that.freeFloat) :: result
+
+    result
+  }
+
+  private def valueNonEquals(a: Long, b: Long) = !valueEquals(a, b)
+  private def valueEquals(a: Long, b: Long) = math.abs(a - b) == 0
 }
 
 object SecInfos extends Table[SecInfo] {

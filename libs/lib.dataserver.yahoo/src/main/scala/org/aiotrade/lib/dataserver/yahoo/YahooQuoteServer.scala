@@ -187,6 +187,7 @@ object YahooQuoteServer extends QuoteServer with Singleton {
             quote.low    = lowX.trim.toDouble
             quote.close  = closeX.trim.toDouble
             quote.volume = volumeX.trim.toDouble
+            quote.prevClose = adjCloseX.trim.toDouble
             quote.amount = -1
             //quote.adjWeight = adjCloseX.trim
 

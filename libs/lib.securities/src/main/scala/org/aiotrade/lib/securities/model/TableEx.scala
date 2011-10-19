@@ -10,5 +10,5 @@ trait TableEx {
   /**
    * THE DATA LENGTH NEED TO LOAD FROM DATA BASE.
    */
-  val MAX_DATA_LENGTH = 15000
+  val MAX_DATA_LENGTH = 10000
 }

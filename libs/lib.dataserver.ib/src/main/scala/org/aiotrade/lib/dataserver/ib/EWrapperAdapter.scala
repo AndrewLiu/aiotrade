@@ -65,8 +65,8 @@ class EWrapperAdapter extends EWrapper {
   def updateNewsBulletin(msgId: Int, msgType: Int, message: String, origExchange: String) {}
   def managedAccounts(accountsList: String) {}
   def receiveFA(faDataType: Int, xml: String) {}
-  def historicalData(reqId: Int, date: String, open: Double, high: Double, low: Double,
-                     close: Double, volume: Int, execCount: Double, WAP: Double, hasGaps: Boolean) {}
+  def historicalData(reqId: Int, date: String, open: Double, high: Double, low: Double, close: Double, prevClose: Double,
+                     volume: Int, execCount: Double, WAP: Double, hasGaps: Boolean) {}
   def scannerParameters(xml: String) {}
   def scannerData(reqId: Int, rank: Int, contractDetails: ContractDetails, distance: String, benchmark: String, projection: String) {}
 }

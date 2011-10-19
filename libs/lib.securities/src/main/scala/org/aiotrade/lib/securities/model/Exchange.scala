@@ -928,6 +928,23 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     divs.sortWith((a, b) => a.dividendDate < b.dividendDate)
   }
 
+  def secInfosOf(sec: Sec): Seq[SecInfo] = {
+    val infos = try {
+      if (TickerServer.isServer) {
+        val secId = Secs.idOf(sec)
+        SELECT (SecInfos.*) FROM (SecInfos) WHERE (SecInfos.sec.field EQ secId) list()
+      } else {
+        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list() filter (info => info.sec eq sec)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+
+    val cal = util.calendarOf(sec.exchange.timeZone)
+    infos foreach {div => div.validFrom = TFreq.DAILY.round(div.validFrom, cal)}
+    infos.sortWith((a, b) => a.validFrom > b.validFrom)
+  }
+
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {
     val symbol = uniSymbol.toUpperCase
     val exchange = Exchange.exchangeOf(symbol)

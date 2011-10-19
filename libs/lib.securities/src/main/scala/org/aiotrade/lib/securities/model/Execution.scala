@@ -87,13 +87,36 @@ class Execution extends BelongsToSec with TVal {
     if (prevDepth.depth > 0) {
       val bidPrice0 = prevDepth.bidPrice(0)
       val askPrice0 = prevDepth.askPrice(0)
-      if (price >= bidPrice0) {
-        in_!
-      } else if (price <= askPrice0) {
+
+      /**
+       * If the price is up to limit or down to limit, the ask price or bid price will be 0,
+       * so we need to judge the askPrice0 or bidPrice0 whether is 0 or not.
+       * The price is always more than 0, so the expression "price <= askPrice0" equals "price <= askPrice0 && price > 0", then
+       * we needn't judge the askPrice or bidPrice whether is 0 or not.
+       * If our code is:
+       * if (price >= bidPrice0) {// we need judge the bidPrice0 whether is 0 or not.
+       *    in_!
+       * } else if (price <= askPrice0) { // we needn't judge the askPrice0 whether is 0 or not.
+       *    out_!
+       * }
+       * ...
+       */
+      if (price <= askPrice0) {
         out_!
+      } else if (price >= bidPrice0) {
+        in_!
       } else {
         even_!
       }
+      
+      
+//      if (price >= bidPrice0 && bidPrice0 != 0) {
+//        in_!
+//      } else if (price <= askPrice0 && askPrice0 != 0) {
+//        out_!
+//      } else {
+//        even_!
+//      }
     }
   }
   

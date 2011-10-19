@@ -979,6 +979,7 @@ class SecSnap(val sec: Sec) {
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
+        newone.prevClose = newTicker.prevClose
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!
@@ -1042,6 +1043,7 @@ class SecSnap(val sec: Sec) {
         val newone = new Quote
         newone.time = rounded
         newone.sec = sec
+        newone.prevClose = newTicker.prevClose
         newone.unclosed_!
         newone.justOpen_!
         newone.fromMe_!

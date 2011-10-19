@@ -77,7 +77,7 @@ trait TSer extends Publisher {
    * @Todo a custom vmap ?
    * @return usally a collection.Map[String, Array[_]]
    */
-  def export(fromTime: Long, toTime: Long): collection.Map[String, Any]
+  def export(fromTime: Long, toTime: Long, limit: Int = Int.MaxValue): collection.Map[String, Any]
 
   def nonExists(time: Long): Boolean
   def exists(time: Long): Boolean
