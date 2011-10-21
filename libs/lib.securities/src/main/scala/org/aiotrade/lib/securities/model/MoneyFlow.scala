@@ -231,7 +231,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
           mf.amountOutCount = 1
         }
 
-        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut) //(sec.secInfo.freeFloat * 10000)
       }
 
       mfs
@@ -264,7 +264,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
           mf.amountOutCount = 1
         }
 
-        mf.relativeAmount = mf.volumeNet / (sec.secInfo.freeFloat * 10000)
+        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut) //(sec.secInfo.freeFloat * 10000)
       }
 
       mfs
@@ -376,7 +376,7 @@ object MoneyFlows1d extends MoneyFlows {
             x.amountOutCount = 1
           }
 
-          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut) //(sec.secInfo.freeFloat * 10000)
 
           map.put(x.sec, x)}
 
@@ -420,7 +420,7 @@ object MoneyFlows1d extends MoneyFlows {
           one.amountInCount = 0
           one.amountOutCount = 1
         }
-        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
+        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut) //(sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow
@@ -478,7 +478,7 @@ object MoneyFlows1m extends MoneyFlows {
             x.amountOutCount = 1
           }
 
-          x.relativeAmount = x.volumeNet / (sec.secInfo.freeFloat * 10000)
+          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut) //(sec.secInfo.freeFloat * 10000)
 
           map.put(x.sec, x)}
 
@@ -522,7 +522,7 @@ object MoneyFlows1m extends MoneyFlows {
           one.amountInCount = 0
           one.amountOutCount = 1
         }
-        one.relativeAmount = one.volumeNet / (sec.secInfo.freeFloat * 10000)
+        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut) //(sec.secInfo.freeFloat * 10000)
         one
       case None =>
         val newone = new MoneyFlow

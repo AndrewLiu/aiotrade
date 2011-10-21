@@ -60,6 +60,7 @@ class SecInfo extends BelongsToSec {
   final def copyFrom(another: SecInfo) {
     this.validFrom = another.validFrom
     this.validTo = another.validTo
+    this.uniSymbol = another.uniSymbol
     this.name = another.name
     this.totalShare = another.totalShare
     this.freeFloat = another.freeFloat
