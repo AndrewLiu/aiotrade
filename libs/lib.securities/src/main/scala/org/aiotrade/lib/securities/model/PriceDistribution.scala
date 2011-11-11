@@ -28,24 +28,30 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
   def flag = _flag
   def flag_=(flag: Int) {this._flag = flag}
 
-  var price: Double = _
-  var volumeUp: Double = _
-  var volumeDown: Double = _
-  var volumeEven: Double = _
+  private val data = new Array[Double](4)
+
+  def price = data(0)
+  def volumeUp = data(1)
+  def volumeDown = data(2)
+  def volumeEven = data(3)
+
+  def price_= (value: Double){ data(0) = value}
+  def volumeUp_= (value: Double){ data(1) = value}
+  def volumeDown_= (value: Double){ data(2) = value}
+  def volumeEven_= (value: Double){ data(3) = value}
 
   def copyFrom(another: PriceDistribution) {
     this.sec = another.sec
     this.time = another.time
     this.flag = another.flag
-    this.price = another.price
-    this.volumeUp = another.volumeUp
-    this.volumeDown = another.volumeDown
-    this.volumeEven = another.volumeEven
+    System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
   override def toString() = {
     val sp = new StringBuffer
-    sp.append("price:").append(price)
+    sp.append("unisymbol:").append(uniSymbol)
+    sp.append(",time:").append(time)
+    sp.append(",price:").append(price)
     sp.append(",volumeUp:").append(volumeUp)
     sp.append(",volumeDown:").append(volumeDown)
     sp.append(",volumeEven:").append(volumeEven)
@@ -69,11 +75,13 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
   def flag = _flag
   def flag_=(flag: Int) {this._flag = flag}
 
-  private var _avgPrice = 0.0
-  private var _totalVolume = 0.0
+  private val data = new Array[Double](2)
 
-  def avgPrice = _avgPrice
-  def totalVolume = _totalVolume
+  def avgPrice = data(0)
+  def totalVolume = data(1)
+
+  private def avgPrice_= (value: Double){ data(0) = value}
+  private def totalVolume_= (value: Double){ data(1) = value}
 
   def get(price: String) = map.get(price)
     
@@ -81,13 +89,16 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
     if (map.isEmpty){
       this.time = pd.time
       this.sec = pd.sec
+      this.flag = pd.flag
     }
 
     if (TFreq.DAILY.round(this.time, cal) == TFreq.DAILY.round(pd.time, cal)){
       map.put(price, pd)
+
       val vol = pd.volumeUp + pd.volumeDown + pd.volumeEven
-      this._avgPrice = (_avgPrice * _totalVolume + pd.price * vol) / (_totalVolume + vol)
-      _totalVolume += vol
+      avgPrice = (avgPrice * totalVolume + pd.price * vol) / (totalVolume + vol)
+      totalVolume += vol
+      pd.flag = flag
 
       if (this.closed_?) pd.closed_! else pd.unclosed_!
     }
@@ -99,8 +110,8 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
 
   def clear = {
     map.clear
-    this._avgPrice = 0.0
-    this._totalVolume = 0
+    var i= -1
+    while ({i += 1; i< data.length}) data(i) = 0.0
   }
 
   def isEmpty = map.isEmpty
@@ -139,7 +150,9 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
     val sp = new StringBuffer
     sp.append("\nunisymbol:").append(uniSymbol)
     sp.append("\ntime:").append(time)
-    this.map.values foreach {value => sp.append("\n").append(value.toString)}
+    sp.append("\navgPrice:").append(avgPrice)
+    sp.append("\ntotalVolume:").append(totalVolume)
+    for((key, value) <- this.map) sp.append("\n").append(value.toString)
     sp.toString
   }
 }

@@ -103,6 +103,17 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
       case _ => None
     }
   }
+
+  def removeSec(secValidTime: ValidTime[Sec]): Option[T] = {
+    secValidTime.ref.serOf(freq) match {
+      case Some(baseSer) =>
+        val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
+        deafTo(ind)
+        indicators -= ((ind, secValidTime))
+        Some(ind)
+      case _ => None
+    }
+  }
   
   def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
   

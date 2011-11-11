@@ -106,10 +106,10 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
               }
 
               vmap
-            } else {println("toIdx < frIdx"); Map()}
-          } else {println("toIdx < 0"); Map()}
-        } else {println("frIdx < 0"); Map()}
-      } else  {println("size <= 0"); Map()}
+            } else {/*println("toIdx < frIdx"); */Map()}
+          } else {/*println("toIdx < 0");  */Map()}
+        } else {/*println("frIdx < 0");  */Map()}
+      } else  {/*println("size <= 0");  */Map()}
       
     } finally {
       timestamps.readLock.unlock

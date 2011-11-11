@@ -790,6 +790,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
     }
   }
 
+  def isIndex = Exchange.isIndex(this)
+
   private def loadFromPriceDistributionServer(ser: PriceDistributionSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq
 
@@ -951,7 +953,7 @@ class SecSnap(val sec: Sec) {
   var dayMoneyFlow: MoneyFlow = _
   var minMoneyFlow: MoneyFlow = _
 
-  var priceDistribution = new PriceCollection
+  var priceCollection = new PriceCollection
 
   // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker(ticker)
   private val cal = Calendar.getInstance(sec.exchange.timeZone) 
@@ -1017,8 +1019,8 @@ class SecSnap(val sec: Sec) {
   private def checkPriceDistributionAt(time: Long): PriceCollection  = {
     assert(Secs.idOf(sec).isDefined, "Sec: " + sec + " is transient")
     val rounded = TFreq.DAILY.round(time, cal)
-    priceDistribution match {
-      case oldOne: PriceCollection if (oldOne.time == rounded && !oldOne.closed_?) => oldOne
+    priceCollection match {
+      case oldOne: PriceCollection if oldOne.time == rounded => oldOne
       case _ =>
         val newone = new PriceCollection
         newone.time = rounded
@@ -1029,7 +1031,7 @@ class SecSnap(val sec: Sec) {
         newone.isTransient = true
         sec.exchange.addNewPriceDistribution(TFreq.DAILY, newone)
 
-        priceDistribution = newone
+        priceCollection = newone
         newone
     }
   }

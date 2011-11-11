@@ -192,10 +192,13 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
       amqpMsg match {
         case AMQPMessage(res, props, _) =>
           val replyId = props.getCorrelationId
-          val syncVar = continuationMap synchronized {
-            continuationMap.remove(replyId).get
+          continuationMap synchronized {
+            continuationMap.remove(replyId) match{
+              case Some(syncVar) => syncVar.set(res)
+              case None =>
+            }
           }
-          syncVar.set(res)
+          
         case x => log.warning("Wrong msg: " + x)
       }
     }

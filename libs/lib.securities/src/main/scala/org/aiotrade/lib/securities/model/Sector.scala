@@ -50,15 +50,24 @@ class Sector extends CRCLongId {
   var code: String = ""
   var name: String = ""
   
-  var secs: List[Sec] = Nil
+//  var secs: List[Sec] = Nil
+//  var Children: Seq[Sector] = Nil
+  var childrenString: String = ""
   
   lazy val key = Sector.toKey(category, code)
   
   override def hashCode = id.hashCode
   
   override def equals(that: Any) = that match {
-    case x: Sector => this.id == x.id
+    case x: Sector => this.crckey == x.crckey
     case _ => false
+  }
+
+  def copyFrom(another: Sector){
+    this.code = another.code
+    this.name = another.name
+    this.crckey = another.crckey
+    this.childrenString = another.childrenString
   }
 }
 
@@ -261,9 +270,10 @@ object Sectors extends CRCLongPKTable[Sector] {
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
+  val childrenString = "children" VARCHAR(2048) DEFAULT("''")
 
   def secs = inverse(SectorSecs.sector)
-  
+
   val categoryIdx = getClass.getSimpleName + "_category_idx" INDEX(category.name)
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
   

@@ -681,6 +681,15 @@ object Exchange extends Publisher {
       case _ => SZ
     }
   }
+  
+  def isIndex(sec: Sec): Boolean = {
+    if (sec == null || sec.exchange == null) return false
+    sec.exchange match {
+      case SS => sec.uniSymbol.startsWith("00")
+      case SZ => sec.uniSymbol.startsWith("39")
+      case _ => false
+    }
+  }
 
   def indexOfExchange(exchange: Exchange) = {
     val map = mutable.Map[String, Seq[Sec]]()

@@ -258,8 +258,8 @@ object Evt {
   def main(args: Array[String]) {
     //testMatch
     //testObject
-    testPrimitives
-    //testVmap
+//    testPrimitives
+    testVmap
     
 //    println(prettyPrint(tagToEvt map (_._2)))
   }
@@ -390,38 +390,38 @@ object Evt {
   private def testVmap {
     import TestAPIs._
     
-    val vmap = mutable.Map[String, Array[_]]()
-    vmap.put(".", Array(1L, 2L, 3L))
-    val map1 = Map() + "123" -> "abc"
-    val map2 = Map() + "123" -> "abc"
-    vmap.put("d", Array(map1, map2))
+//    val vmap = mutable.Map[String, Array[_]]()
+//    vmap.put(".", Array(1L, 2L, 3L))
+//    val map1 = Map() + "123" -> "abc"
+//    val map2 = Map() + "123" -> "abc"
+//    vmap.put("d", Array(map1, map2))
 //    vmap.put("a", Array(1.0, 2.0, 3.0))
 //    vmap.put("b", Array("a", "b", "c"))
 //    vmap.put("c", Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
 
-//    val pc = new PriceCollection
-//    val pd = new PriceDistribution
-//    pd.price = 23.6
-//    pd.volumeDown=2334
-//    pd.volumeUp = 9803
-//    pc.put(pd.price.toString, pd)
-//    val msg = PCEvt(pc)
+    val pc = new PriceCollection
+    val pd = new PriceDistribution
+    pd.price = 23.6
+    pd.volumeDown=2334
+    pd.volumeUp = 9803
+    pc.put(pd.price.toString, pd)
+    val msg = PCEvt(pc)
 
-    val msg = TestVmapEvt(vmap)
-    println("print a map schema.")
-    printSchema(vmap.getClass)
+//    val msg = TestVmapEvt(vmap)
+//    println("print a map schema.")
+    printSchema(pc.getClass)
     
     val avroBytes = toAvro(msg.value, msg.tag)
-    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
-    println("" + avroDatum(".")(0).asInstanceOf[Long])
-    println("" + avroDatum("d")(0).asInstanceOf[collection.Map[String, String]])
-//    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[PriceCollection]
+//    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
+//    println("" + avroDatum(".")(0).asInstanceOf[Long])
+//    println("" + avroDatum("d")(0).asInstanceOf[collection.Map[String, String]])
+    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[PriceCollection]
     println(avroDatum)
     //avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
     val jsonBytes = toJson(msg.value, msg.tag)
-    val jsonDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
-//    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[PriceCollection]
+//    val jsonDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
+    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[PriceCollection]
     println(jsonDatum)    
     //jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
@@ -460,8 +460,8 @@ private[avro] object TestAPIs {
 //  """)
 
   val PCEvt = Evt[PriceCollection](-102)//, "", """
-                                   //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
-                                  // """)
+  //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
+  // """)
 
   case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
     def this() = this(null, 0, 0.0, Array())
@@ -469,116 +469,127 @@ private[avro] object TestAPIs {
   }
 
 
-@serializable
-class PriceCollection extends BelongsToSec with TVal with Flag  {
-  @transient
-  val cal = Calendar.getInstance
-  private var map = mutable.Map[String, PriceDistribution]()
+  @serializable
+  class PriceCollection extends BelongsToSec with TVal with Flag  {
+    @transient
+    val cal = Calendar.getInstance
+    private var map = mutable.Map[String, PriceDistribution]()
 
-  var isTransient = true
+    var isTransient = true
 
-  private var _time: Long = _
-  def time = _time
-  def time_=(time: Long) {this._time = time}
+    private var _time: Long = _
+    def time = _time
+    def time_=(time: Long) {this._time = time}
 
-  private var _flag: Int = 1 // dafault is closed
-  def flag = _flag
-  def flag_=(flag: Int) {this._flag = flag}
+    private var _flag: Int = 1 // dafault is closed
+    def flag = _flag
+    def flag_=(flag: Int) {this._flag = flag}
 
-  def get(price: String) = map.get(price)
+    private val data = new Array[Double](2)
 
-  def put(price: String, pd: PriceDistribution) = {
-    if (map.isEmpty) this.time = pd.time
+    def avgPrice = data(0)
+    def totalVolume = data(1)
+
+    def get(price: String) = map.get(price)
+
+    def put(price: String, pd: PriceDistribution) = {
+      if (map.isEmpty) this.time = pd.time
 
       map.put(price, pd)
+    }
+
+    def keys = map.keys
+
+    def values = map.values
+
+    def isEmpty = map.isEmpty
   }
 
-  def keys = map.keys
+  @serializable
+  class PriceDistribution extends BelongsToSec with TVal with Flag {
 
-  def values = map.values
+    private var _time: Long = _
+    def time = _time
+    def time_=(time: Long) {this._time = time}
 
-  def isEmpty = map.isEmpty
-}
+    private var _flag: Int = 1 // dafault is closed
+    def flag = _flag
+    def flag_=(flag: Int) {this._flag = flag}
 
-@serializable
-class PriceDistribution extends BelongsToSec with TVal with Flag {
+    private val data = new Array[Double](4)
 
-  private var _time: Long = _
-  def time = _time
-  def time_=(time: Long) {this._time = time}
+    def price = data(0)
+    def volumeUp = data(1)
+    def volumeDown = data(2)
+    def volumeEven = data(3)
 
-  private var _flag: Int = 1 // dafault is closed
-  def flag = _flag
-  def flag_=(flag: Int) {this._flag = flag}
+    def price_= (value: Double){ data(0) = value}
+    def volumeUp_= (value: Double){ data(1) = value}
+    def volumeDown_= (value: Double){ data(2) = value}
+    def volumeEven_= (value: Double){ data(3) = value}
 
-  var price: Double =_
-  var volumeUp: Double =_
-  var volumeDown: Double =_
-
-  def copyFrom(another: PriceDistribution) {
-    this.time = another.time
-    this.flag = another.flag
-    this.price = another.price
-    this.volumeUp = another.volumeUp
-    this.volumeDown = another.volumeDown
-  }
-}
-
-trait TVal extends Ordered[TVal] {
-  def time: Long
-  def time_=(time: Long)
-
-  def compare(that: TVal): Int = {
-    if (time > that.time) {
-      1
-    } else if (time < that.time) {
-      -1
-    } else {
-      0
+    def copyFrom(another: PriceDistribution) {
+      this.time = another.time
+      this.flag = another.flag
+      System.arraycopy(another.data, 0, data, 0, data.length)
     }
   }
-}
 
-@serializable
-abstract class BelongsToSec {
-  
-  protected var _uniSymbol: String = _
-  def uniSymbol = _uniSymbol
-  def uniSymbol_=(uniSymbol: String) {
-    this._uniSymbol = uniSymbol
+  trait TVal extends Ordered[TVal] {
+    def time: Long
+    def time_=(time: Long)
+
+    def compare(that: TVal): Int = {
+      if (time > that.time) {
+        1
+      } else if (time < that.time) {
+        -1
+      } else {
+        0
+      }
+    }
   }
-}
-trait Flag {
-  import Flag._
 
-  /** dafault could be set to 1, which is closed_! */
-  def flag: Int
-  def flag_=(flag: Int)
+  @serializable
+  abstract class BelongsToSec {
+  
+    protected var _uniSymbol: String = _
+    def uniSymbol = _uniSymbol
+    def uniSymbol_=(uniSymbol: String) {
+      this._uniSymbol = uniSymbol
+    }
+  }
+  trait Flag {
+    import Flag._
 
-  def closed_? : Boolean = (flag & MaskClosed) == MaskClosed
-  def closed_!   {flag |=  MaskClosed}
-  def unclosed_! {flag &= ~MaskClosed}
+    /** dafault could be set to 1, which is closed_! */
+    def flag: Int
+    def flag_=(flag: Int)
 
-  def justOpen_? : Boolean = (flag & MaskJustOpen) == MaskJustOpen
-  def justOpen_!   {flag |=  MaskJustOpen}
-  def unjustOpen_! {flag &= ~MaskJustOpen}
+    def closed_? : Boolean = (flag & MaskClosed) == MaskClosed
+    def closed_!   {flag |=  MaskClosed}
+    def unclosed_! {flag &= ~MaskClosed}
 
-  /** is this value created/composed by me or loaded from remote or other source */
-  def fromMe_? : Boolean = (flag & MaskFromMe) == MaskFromMe
-  def fromMe_!   {flag |=  MaskFromMe}
-  def unfromMe_! {flag &= ~MaskFromMe}
+    def justOpen_? : Boolean = (flag & MaskJustOpen) == MaskJustOpen
+    def justOpen_!   {flag |=  MaskJustOpen}
+    def unjustOpen_! {flag &= ~MaskJustOpen}
 
-}
+    /** is this value created/composed by me or loaded from remote or other source */
+    def fromMe_? : Boolean = (flag & MaskFromMe) == MaskFromMe
+    def fromMe_!   {flag |=  MaskFromMe}
+    def unfromMe_! {flag &= ~MaskFromMe}
 
-object Flag {
-  // bit masks for flag
-  val MaskClosed    = 1 << 0   // 1   2^^0    000...00000001
-  val MaskVerified  = 1 << 1   // 2   2^^1    000...00000010
-  val MaskFromMe    = 1 << 2   // 4   2^^2    000...00000100
-  val flagbit4      = 1 << 3   // 8   2^^3    000...00001000
-  val flagbit5      = 1 << 4   // 16  2^^4    000...00010000
-  val flagbit6      = 1 << 5   // 32  2^^5    000...00100000
-  val flagbit7      = 1 << 6   // 64  2^^6    000...01000000
-  val MaskJustOpen  = 1 << 7   // 128 2^^7    000...10000000
-}
+  }
+
+  object Flag {
+    // bit masks for flag
+    val MaskClosed    = 1 << 0   // 1   2^^0    000...00000001
+    val MaskVerified  = 1 << 1   // 2   2^^1    000...00000010
+    val MaskFromMe    = 1 << 2   // 4   2^^2    000...00000100
+    val flagbit4      = 1 << 3   // 8   2^^3    000...00001000
+    val flagbit5      = 1 << 4   // 16  2^^4    000...00010000
+    val flagbit6      = 1 << 5   // 32  2^^5    000...00100000
+    val flagbit7      = 1 << 6   // 64  2^^6    000...01000000
+    val MaskJustOpen  = 1 << 7   // 128 2^^7    000...10000000
+  }
 }

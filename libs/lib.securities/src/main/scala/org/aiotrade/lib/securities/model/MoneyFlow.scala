@@ -53,13 +53,19 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._time = time
   }
 
+  private var _lastModify: Long = _
+  def lastModify = _lastModify
+  def lastModify_= (time: Long) {
+    this._lastModify = time
+  }
+
   private var _flag: Int = 1 // dafault is closed
   def flag = _flag 
   def flag_=(flag: Int) {
     this._flag = flag
   }
 
-  private val data = new Array[Double](27)
+  private val data = new Array[Double](29)
   
   def superVolumeIn = data(0)
   def superAmountIn = data(1)
@@ -96,6 +102,8 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
    * Weighted average relative amount.
    */
   def relativeAmount = data(26)
+  def volumnPercentOfMarket = data(27)
+  def netBuyPercent = data(28)
 
   def superVolumeIn_=(v: Double) {data(0) = v}
   def superAmountIn_=(v: Double) {data(1) = v}
@@ -132,7 +140,9 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
    * Weighted average relative amount.
    */
   def relativeAmount_=(v: Double) {data(26) = v}
-  
+  def volumnPercentOfMarket_= (v: Double) {data(27) = v}
+  def netBuyPercent_= (v: Double) {data(28) = v}
+
   // --- no db fields
   
   // sum
@@ -174,6 +184,49 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
 
+  override def equals(another: Any): Boolean = another match{
+    case mf: MoneyFlow =>
+      if (this._sec != mf._sec) return false
+      if (this._uniSymbol != mf._uniSymbol) return false
+      if (this._time != mf._time) return false
+      if (this._flag != mf._flag) return false
+      var i = -1
+      while({i += 1; i<data.length}){
+        if (valueNonEquals(data(i), mf.data(i))) return false
+      }
+      
+      return true
+    case _ => false
+  }
+
+  private def valueNonEquals(a: Double, b: Double) = !valueEquals(a, b)
+  private def valueEquals(a: Double, b: Double): Boolean = {
+    if (a.isNaN && b.isNaN) return true
+    if (a.isNegInfinity && b.isNegInfinity) return true
+    if (a.isInfinite && b.isInfinite) return true
+    math.abs(a - b) < 1e-6
+  }
+
+  final def diffValues(that: MoneyFlow): List[(String, Any, Any)] = {
+    var result: List[(String, Any, Any)] = Nil
+
+    if (this._uniSymbol != that._uniSymbol)
+      result = ("unisymbol", this._uniSymbol, that._uniSymbol) :: result
+
+    if (this._time != that._time)
+      result = ("time", this._time, that._time) :: result
+
+    if (this._flag != that._flag)
+      result = ("flag", this._flag, that._flag) :: result
+
+    var i = -1
+    while({i += 1; i<data.length}){
+      if (valueNonEquals(this.data(i), that.data(i)))
+        result = ("data " + i, this.data(i), that.data(i)) :: result
+    }
+
+    result
+  }
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
@@ -231,7 +284,8 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
           mf.amountOutCount = 1
         }
 
-        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut) //(sec.secInfo.freeFloat * 10000)
+        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut)
+        mf.lastModify = mf.time
       }
 
       mfs
@@ -264,7 +318,8 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
           mf.amountOutCount = 1
         }
 
-        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut) //(sec.secInfo.freeFloat * 10000)
+        mf.relativeAmount = mf.volumeNet / (mf.volumeEven + mf.volumeIn - mf.volumeOut)
+        mf.lastModify = mf.time
       }
 
       mfs
@@ -376,7 +431,8 @@ object MoneyFlows1d extends MoneyFlows {
             x.amountOutCount = 1
           }
 
-          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut) //(sec.secInfo.freeFloat * 10000)
+          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut)
+          x.lastModify = x.time
 
           map.put(x.sec, x)}
 
@@ -420,7 +476,8 @@ object MoneyFlows1d extends MoneyFlows {
           one.amountInCount = 0
           one.amountOutCount = 1
         }
-        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut) //(sec.secInfo.freeFloat * 10000)
+        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut)
+        one.lastModify = one.time
         one
       case None =>
         val newone = new MoneyFlow
@@ -478,7 +535,8 @@ object MoneyFlows1m extends MoneyFlows {
             x.amountOutCount = 1
           }
 
-          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut) //(sec.secInfo.freeFloat * 10000)
+          x.relativeAmount = x.volumeNet / (x.volumeEven + x.volumeIn - x.volumeOut)
+          x.lastModify = x.time
 
           map.put(x.sec, x)}
 
@@ -522,7 +580,8 @@ object MoneyFlows1m extends MoneyFlows {
           one.amountInCount = 0
           one.amountOutCount = 1
         }
-        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut) //(sec.secInfo.freeFloat * 10000)
+        one.relativeAmount = one.volumeNet / (one.volumeEven + one.volumeIn - one.volumeOut)
+        one.lastModify = one.time
         one
       case None =>
         val newone = new MoneyFlow

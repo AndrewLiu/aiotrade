@@ -22,7 +22,7 @@ class EReader extends Thread {
     static final int MARKET_DEPTH_L2    = 13;
     static final int NEWS_BULLETINS    	= 14;
     static final int MANAGED_ACCTS    	= 15;
-    static final int RECEIVE_FA    	    = 16;
+    static final int RECEIVE_FA    	= 16;
     static final int HISTORICAL_DATA    = 17;
     static final int BOND_CONTRACT_DATA = 18;
     static final int SCANNER_PARAMETERS = 19;
@@ -528,15 +528,16 @@ class EReader extends Thread {
                         double high = readDouble();
                         double low = readDouble();
                         double close = readDouble();
+                        double prevClose =  0;
                         int volume = readInt();
                         double WAP = readDouble();
                         String hasGaps = readStr();
-                        m_eWrapper.historicalData(reqId, date, open, high, low,
-                                                close, volume, 1, WAP,
+                        m_eWrapper.historicalData(reqId, date, open, high, low, close,
+                                                    prevClose, volume, 1, WAP,
                                                 Boolean.valueOf(hasGaps).booleanValue());
                       }
                       // send end of dataset marker
-                      m_eWrapper.historicalData(reqId, completedIndicator, -1, -1, -1, -1, -1, 1, -1, false);
+                      m_eWrapper.historicalData(reqId, completedIndicator, -1, -1, -1,-1, -1, -1, 1, -1, false);
                       break;
                     }
                     case SCANNER_PARAMETERS: {

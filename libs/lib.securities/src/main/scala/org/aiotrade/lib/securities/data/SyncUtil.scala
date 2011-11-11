@@ -101,7 +101,6 @@ object SyncUtil {
                                      SecStatuses,
                                      Sectors,
                                      SectorSecs
-                                     //PriceDistributions
   )
 
   def main(args: Array[String]) {
@@ -210,7 +209,7 @@ object SyncUtil {
       // -- basic tables
       Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Exchanges, ExchangeCloseDates,
-      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m,
+      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m, PriceDistributions,
       Tickers, TickersLast, Executions,
       Sectors, SectorSecs,
 

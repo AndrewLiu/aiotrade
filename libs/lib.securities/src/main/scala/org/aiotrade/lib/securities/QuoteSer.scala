@@ -44,7 +44,7 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
+class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _shortName: String = _sec.uniSymbol
@@ -71,9 +71,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
   
   override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate)
 
-  override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
-
   override protected def assignValue(tval: TVal) {
+    super.assignValue(tval)
     val time = tval.time
     tval match {
       case quote: Quote =>
@@ -85,7 +84,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         amount(time) = quote.amount
         prevClose(time) = quote.prevClose
         execCount(time) = quote.execCount
-        turnoverRate(time) = quote.turnoverRate
+        turnoverRate(time) = quote.volume / freeFloat(time)
 
         open_ori(time)  = quote.open
         high_ori(time)  = quote.high
@@ -98,6 +97,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
         prev5Close(time) = if (idx >= 0) prevClose(idx) else prevClose(0)
       case _ => assert(false, "Should pass a Quote type TimeValue")
     }
+
   }
 
   def valueOf(time: Long): Option[Quote] = {
@@ -193,50 +193,34 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) {
       high (i) = h
       low  (i) = l
       open (i) = o
-      close(i) = c      
+      close(i) = c
+      if (prevClose(i) == 0 && i > 0) prevClose(i) = close(i -1)
     }
 
     isAdjusted = b
     
     log.info(serProvider + (if (isAdjusted) " adjusted." else " unadjusted."))
-        
+
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
   def doCalcTurnoverRate{
     if (isLoaded) {
-      calcTurnoverRate
+      calcRateByFreeFloat(turnoverRate, volume)
     } else {
       // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
       var reaction: Reactions.Reaction = null
       reaction = {
         case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
           reactions -= reaction
-          calcTurnoverRate
+          calcRateByFreeFloat(turnoverRate, volume)
       }
       reactions += reaction
 
       // TSerEvent.Loaded may have been missed during above procedure, so confirm it
       if (isLoaded) {
         reactions -= reaction
-        calcTurnoverRate
-      }
-    }
-  }
-
-  private def calcTurnoverRate{
-    val infos = Exchanges.secInfosOf(serProvider)
-    if (infos.isEmpty) return
-    
-    val infoItr = infos.iterator
-    while (infoItr.hasNext) {
-      val info = infoItr.next
-      var i = size
-      while({i -= 1; i >= 0}){
-        val time = timestamps(i)
-        if (time > info.validFrom){
-          turnoverRate(time) = volume(time) / info.freeFloat
-        }
+        calcRateByFreeFloat(turnoverRate, volume)
       }
     }
   }

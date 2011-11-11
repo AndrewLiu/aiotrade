@@ -33,21 +33,23 @@ package org.aiotrade.lib.securities
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, DefaultBaseTSer, TFreq}
-import org.aiotrade.lib.securities.model.MoneyFlow
-import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, TFreq}
+import org.aiotrade.lib.securities.model._
+import org.aiotrade.lib.util.reactors.Reactions
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq) {
+class MoneyFlowSer($sec: Sec, $freq: TFreq) extends FreeFloatSer($sec, $freq) {
 
   private var _shortName: String = ""
-  
+
+  val lastModify = TVar[Long]("LM", Plot.None)
   val amountInCount = TVar[Double]("aIC", Plot.None)
   val amountOutCount = TVar[Double]("aOC", Plot.None)
   val relativeAmount = TVar[Double]("RA", Plot.None)
+  val netBuyPercent = TVar[Double]("NBP", Plot.None)
 
   val volumeIn = TVar[Double]("Vi", Plot.None)
   val amountIn = TVar[Double]("Ai", Plot.None)
@@ -96,10 +98,12 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
   val smallAmountNet  = TVar[Double]("smA", Plot.None)
   
   override protected def assignValue(tval: TVal) {
+    super.assignValue(tval)
+
     val time = tval.time
     tval match {
       case mf: MoneyFlow =>
-        relativeAmount(time) = mf.relativeAmount
+        lastModify(time) = mf.lastModify
         amountInCount(time) = mf.amountInCount
         amountOutCount(time) = mf.amountOutCount
 	
@@ -148,6 +152,9 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
         mediumAmountNet(time) = mf.mediumAmountNet
         smallVolumeNet(time) = mf.smallVolumeNet
         smallAmountNet(time) = mf.smallAmountNet
+
+        relativeAmount(time) = mf.relativeAmount
+        netBuyPercent(time) = mf.volumeNet / freeFloat(time)
       case _ =>
     }
   }
@@ -156,7 +163,9 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     if (exists(time)) {
       val mf = new MoneyFlow
 
+      mf.lastModify = lastModify(time)
       mf.relativeAmount = relativeAmount(time)
+      mf.netBuyPercent = netBuyPercent(time)
       mf.amountInCount = amountInCount(time)
       mf.amountOutCount = amountOutCount(time)
 
@@ -206,6 +215,27 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq)
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
+  def doCalcTurnoverRate{
+    if (isLoaded) {
+      calcRateByFreeFloat(netBuyPercent, volumeNet)
+    } else {
+      // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
+      var reaction: Reactions.Reaction = null
+      reaction = {
+        case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
+          reactions -= reaction
+          calcRateByFreeFloat(netBuyPercent, volumeNet)
+      }
+      reactions += reaction
+
+      // TSerEvent.Loaded may have been missed during above procedure, so confirm it
+      if (isLoaded) {
+        reactions -= reaction
+        calcRateByFreeFloat(netBuyPercent, volumeNet)
+      }
+    }
+  }
+
   override def shortName =  _shortName
   override def shortName_=(name: String) {
     this._shortName = name
@@ -221,9 +251,11 @@ object MoneyFlowSer {
     try {
       val times = vmap(".")
 
+      val lastModify = vmap("LM")
       val amountInCount = vmap("aIC")
       val amountOutCount = vmap("aOC")
       val relativeAmount = vmap("RA")
+      val netBuyPercent = vmap("NBP")
 
       val volumeIns = vmap("Vi")
       val amountIns = vmap("Ai")
@@ -277,9 +309,11 @@ object MoneyFlowSer {
 
         mf.time = times(i).asInstanceOf[Long]
 
+        mf.lastModify = lastModify(i).asInstanceOf[Long]
         mf.amountInCount = amountInCount(i).asInstanceOf[Double]
         mf.amountOutCount = amountOutCount(i).asInstanceOf[Double]
         mf.relativeAmount = relativeAmount(i).asInstanceOf[Double]
+        mf.netBuyPercent = netBuyPercent(i).asInstanceOf[Double]
 
         mf.superVolumeIn = superVolumeIns(i).asInstanceOf[Double]
         mf.superAmountIn = superAmountIns(i).asInstanceOf[Double]

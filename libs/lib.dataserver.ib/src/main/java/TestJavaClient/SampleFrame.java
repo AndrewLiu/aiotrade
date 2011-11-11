@@ -756,14 +756,15 @@ public class SampleFrame extends JFrame implements EWrapper {
         m_TWS.add( "Connected : The list of managed accounts are : [" + accountsList + "]");
     }
 
-    public void historicalData(int reqId, String date, double open, double high, double low,
-                      double close, int volume, double execCount, double WAP, boolean hasGaps) {
+    public void historicalData(int reqId, String date, double open, double high, double low, double close,
+                                    double prevClose, int volume, double execCount, double WAP, boolean hasGaps) {
         m_tickers.add( "id=" + reqId +
                         " date = " + date +
                         " open=" + open +
                         " high=" + high +
                         " low=" + low +
                         " close=" + close +
+                        " prevClose=" + prevClose +
                         " volume=" + volume +
                         " execCount=" + execCount +
                         " WAP=" + WAP +

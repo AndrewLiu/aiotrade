@@ -24,7 +24,23 @@ package object api {
   val QuotesEvt     = Evt[(String, Array[Quote])](11)
   val MoneyFlowEvt  = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
   val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)
-  val PriceDistributionEvt = Evt[PriceCollection](30)
+  val PriceDistributionEvt = Evt[PriceCollection](30, "", schemaJson = """
+      {"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.securities.model",
+              "fields":[{"name":"map","type":["null",
+                                              {"type":"map",
+                                              "values":{"type":"record",
+                                                        "name":"PriceDistribution",
+                                                        "fields":[{"name":"_time","type":["null","long"]},
+                                                                  {"name":"_uniSymbol","type":["null","string"]},
+                                                                  {"name":"_flag","type":["null","int"]},
+                                                                  {"name":"data","type":["null",{"type":"array","items":"double"}]}]}}]},
+                        {"name":"isTransient","type":["null","boolean"]},
+                        {"name":"_time","type":["null","long"]},
+                        {"name":"_uniSymbol","type":["null","string"]},
+                        {"name":"_flag","type":["null","int"]},
+                        {"name":"data","type":["null",{"type":"array","items":"double"}]}]}
+""")
+  
   val PriceDistributionsEvt = Evt[Array[PriceCollection]](31)
 
   // ---

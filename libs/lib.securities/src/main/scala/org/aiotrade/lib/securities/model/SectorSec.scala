@@ -38,7 +38,9 @@ import ru.circumflex.orm.Table
 class SectorSec {
   var sector: Sector = _
   var sec: Sec = _
-  
+
+  var sectorKey: String = _
+  var unisymbol: String = _
   var weight: Float = _
   var validFrom: Long = _
   var validTo: Long = _
