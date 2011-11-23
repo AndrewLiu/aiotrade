@@ -45,6 +45,7 @@ import ru.circumflex.orm._
  * 
  * @author Caoyuan Deng
  */
+@serializable
 class Sector extends CRCLongId {
   var category: String = ""
   var code: String = ""

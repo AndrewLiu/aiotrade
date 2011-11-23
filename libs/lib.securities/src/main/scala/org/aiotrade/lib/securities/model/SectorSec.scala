@@ -37,7 +37,7 @@ import ru.circumflex.orm.Table
  */
 class SectorSec {
   var sector: Sector = _
-  var sec: Sec = _
+  @transient var sec: Sec = _
 
   var sectorKey: String = _
   var unisymbol: String = _
@@ -46,7 +46,7 @@ class SectorSec {
   var validTo: Long = _
   
   override def toString = {
-    "SectorSec(sector.key=" + sector.key + ", " + (if (sec == null) "with null sec ?" else " with good sec") + ")"
+    "SectorSec(sector.key=" + sectorKey + ", " + (if (sec == null) "with null sec ?" else " with good sec") + ")"
   }
 }
 

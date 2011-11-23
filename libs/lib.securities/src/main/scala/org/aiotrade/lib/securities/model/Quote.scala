@@ -85,11 +85,7 @@ class Quote extends BelongsToSec with TVal with Flag {
   def high_=   (v: Double) {data(1) = v}
   def low_=    (v: Double) {data(2) = v}
   def close_=  (v: Double) {data(3) = v}
-  def volume_= (v: Double) {
-    data(4) = v
-    if (sec != null && sec.secInfo != null)
-      turnoverRate = v / sec.secInfo.freeFloat
-  }
+  def volume_= (v: Double) {data(4) = v}
   def amount_= (v: Double) {data(5) = v}
   def vwap_=   (v: Double) {data(6) = v}
   def prevClose_= (v: Double) {data(7) = v}

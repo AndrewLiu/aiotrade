@@ -41,7 +41,8 @@ package org.aiotrade.lib.util
  */
 final case class ValidTime[T](ref: T, validFrom: Long, validTo: Long) {
   def isValid(time: Long): Boolean = {
-    if (validTo == 0) true else (validFrom <= time && validTo > time)
+    if (validFrom <= time && validTo == 0) true
+    else validFrom <= time && validTo > time
   }
   
   def isIn(prevTime: Long, time: Long): Boolean = !isValid(prevTime) && isValid(time)

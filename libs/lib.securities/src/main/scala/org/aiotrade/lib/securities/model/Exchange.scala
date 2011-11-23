@@ -988,6 +988,11 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     secInfo.sec = sec
     secInfo.uniSymbol = sec.uniSymbol
     secInfo.name = name
+    secInfo.validFrom = TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance)
+    if (sec.secInfo != null){
+      secInfo.totalShare = sec.secInfo.totalShare
+      secInfo.freeFloat = sec.secInfo.freeFloat
+    }
     
     try {
       SecInfos.save_!(secInfo)
@@ -1063,6 +1068,13 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       secInfo.sec = sec
       secInfo.uniSymbol = uniSymbol // we cannot trust sec.uniSymbol here, since it may lack secInfo 
       secInfo.name = name
+      secInfo.validFrom = TFreq.DAILY.round(System.currentTimeMillis, Calendar.getInstance)
+
+      if (sec.secInfo != null){
+        secInfo.totalShare = sec.secInfo.totalShare
+        secInfo.freeFloat = sec.secInfo.freeFloat
+      }
+      
       secInfos += secInfo
 
       if (isCurrent) {

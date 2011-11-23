@@ -65,8 +65,9 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
    * item and return it, or just clear it, if it has be there.
    * And that why define some motheds signature begin with internal_, becuase
    * you'd better never think to open these methods to protected or public.
+   * @return Returns the index of time.
    */
-  def createOrClear(time: Long) {
+  def createOrClear(time: Long){
     try {
       writeLock.lock
       /**
@@ -118,7 +119,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
    * @param time
    * @param clearItem
    */
-  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, holder: Holder) {
+  private def internal_addItem_fillTimestamps_InTimeOrder(time: Long, holder: Holder): Int = {
     // @Note: writeLock timestamps only when insert/append it
     val lastOccurredTime = timestamps.lastOccurredTime
     if (time < lastOccurredTime) {
@@ -127,6 +128,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         vars foreach {x => x.put(time, x.NullVal)}
         // as timestamps includes this time, we just always put in a none-null item
         holders.insert(existIdx, holder)
+        return existIdx
       } else {
         val idx = timestamps.indexOfNearestOccurredTimeBehind(time)
         assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
@@ -141,6 +143,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
           vars foreach {x => x.put(time, x.NullVal)}
           holders.insert(idx, holder)
+          return idx
 
           // @todo Not remove it now
 //          if (timestamps.size > MAX_DATA_SIZE){
@@ -163,6 +166,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
         vars foreach {x => x.put(time, x.NullVal)}
         holders += holder
+        return this.size - 1
 
         // @todo Not remove it now.
 //        if (timestamps.size > MAX_DATA_SIZE){
@@ -179,12 +183,14 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       if (existIdx >= 0) {
         vars foreach {x => x.put(time, x.NullVal)}
         holders += holder
+        return size - 1
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
                "Check your code, you are probably from createOrClear(long), " +
                "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(time) +
                " return -1 ?")
+        return -1
         // to avoid concurrent conflict, just do nothing here.
       }
     }

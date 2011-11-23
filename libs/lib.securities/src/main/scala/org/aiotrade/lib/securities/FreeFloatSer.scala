@@ -32,19 +32,19 @@ class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)
     }
 
     val infoItr = infos.iterator
-    var i = size
+    var i = size - 1
     while (infoItr.hasNext) {
       val info = infoItr.next
       var stop = false
-      while({i -= 1; i >= 0 && !stop}){
+      while(i >= 0 && !stop){
         val time = timestamps(i)
         log.fine("Sec=" + info.uniSymbol + ",time = " + time + ", info.validFrom = " + info.validFrom + ", freefloat = " + info.freeFloat)
-        if (time > info.validFrom && info.freeFloat > 0){
+        if (time >= info.validFrom && info.freeFloat > 0){
           col(time) = volume(time) / info.freeFloat
           freeFloat(time) = info.freeFloat
+          i -= 1
         }
         else{
-          i += 1
           stop = true
         }
         log.fine("column (turnoverRate/netBuyPercent)=" + col(time) + ", volume =" + volume(time))
