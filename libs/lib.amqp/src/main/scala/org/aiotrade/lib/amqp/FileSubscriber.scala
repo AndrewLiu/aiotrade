@@ -85,22 +85,18 @@ class FileSubscriber(factory: ConnectionFactory, exchange: String, outputDirPath
       val headers = msg.props.getHeaders
       val body = msg.body.asInstanceOf[Array[Byte]]
 
-      try {
-        var fileName = headers.get("filename").toString
-        var outputFile = new File(outputDir, fileName)
-        var i = 1
-        while (outputFile.exists) {
-          fileName = fileName + "_" + i
-          outputFile = new File(outputDir, fileName)
-          i += 1
-        }
-        
-        val out = new FileOutputStream(outputFile)
-        out.write(body)
-        out.close
-      } catch {
-        case e => e.printStackTrace
+      var fileName = headers.get("filename").toString
+      var outputFile = new File(outputDir, fileName)
+      var i = 1
+      while (outputFile.exists) {
+        fileName = fileName + "_" + i
+        outputFile = new File(outputDir, fileName)
+        i += 1
       }
+        
+      val out = new FileOutputStream(outputFile)
+      out.write(body)
+      out.close
     }
   }
 
@@ -115,25 +111,21 @@ class FileSubscriber(factory: ConnectionFactory, exchange: String, outputDirPath
       val headers = msg.props.getHeaders
       val body = msg.body.asInstanceOf[Array[Byte]]
 
-      try {
-        var fileName = headers.get("filename").toString
-        var outputFile = new File(outputDir, "." + fileName + ".tmp")
-        var i = 1
-        while (outputFile.exists) {
-          fileName = fileName + "_" + i
-          outputFile = new File(outputDir, "." + fileName + ".tmp")
-          i += 1
-        }
-        
-        val out = new FileOutputStream(outputFile)
-        out.write(body)
-        out.close
-
-        outputFile.renameTo(new File(outputDir, fileName))
-        log.info("Received " + fileName)
-      } catch {
-        case e => e.printStackTrace
+      var fileName = headers.get("filename").toString
+      var outputFile = new File(outputDir, "." + fileName + ".tmp")
+      var i = 1
+      while (outputFile.exists) {
+        fileName = fileName + "_" + i
+        outputFile = new File(outputDir, "." + fileName + ".tmp")
+        i += 1
       }
+        
+      val out = new FileOutputStream(outputFile)
+      out.write(body)
+      out.close
+
+      outputFile.renameTo(new File(outputDir, fileName))
+      log.info("Received " + fileName)
     }
   }
 

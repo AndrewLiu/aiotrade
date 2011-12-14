@@ -40,6 +40,7 @@ import java.io.IOException
 import org.aiotrade.lib.avro.Evt
 import scala.collection.mutable
 import scala.concurrent.SyncVar
+import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -67,6 +68,13 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
   private var correlationId = 0L
   /** Should hold strong ref for SyncVarSetterProcessor */
   private val processor = new SyncVarSetterProcessor
+
+  /**
+   * Remove the strong holder of ref.
+   * If the connection closed or shutdown, the connection can not connected again, must create a new connection.
+   * And the old connection must be collected by GC.
+   */ 
+  this.processors -= processor
 
   @throws(classOf[IOException])
   def configure(channel: Channel): Option[Consumer] = {

@@ -145,12 +145,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
    * consumered before processors ready.
    */
   def connect: this.type = {
-    try {
-      doConnect
-    } catch {
-      case _ => // don't log ex here, we hope ShutdownListener will give us the cause
-    }
-
+    doConnect
     this
   }
 
@@ -158,44 +153,51 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   final def consumer = state.consumer
   final def channel = state.channel
 
+  private val shutdownListener = new ShutdownListener {
+    def shutdownCompleted(cause: ShutdownSignalException) {
+      publish(AMQPDisconnected)
+      reconnect(cause)
+    }
+  }
+
   @throws(classOf[IOException])
   private def doConnect {
     log.info("Begin to connect " + factory.getHost + ":" + factory.getPort + "...")
 
-    val connectTry = try {
-      val conn = factory.newConnection
-      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-      conn.addShutdownListener(new ShutdownListener {
-          def shutdownCompleted(cause: ShutdownSignalException) {
-            publish(AMQPDisconnected)
-            reconnect(cause)
-          }
-        })
+    try{
+      val connectTry = try {
+        val conn = factory.newConnection
+        // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+        // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+        conn.addShutdownListener(shutdownListener)
 
-      Left(conn)
-    } catch {
-      case ex => Right(ex)
-    }
+        Left(conn)
+      } catch {
+        case ex => Right(ex)
+      }
       
-    connectTry match {
-      case Left(conn) =>
-        // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
+      connectTry match {
+        case Left(conn) =>
+          // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
         
-        val channel = conn.createChannel
-        val consumer = configure(channel)
+          val channel = conn.createChannel
+          val consumer = configure(channel)
 
-        state = State(Option(conn), Option(channel), consumer)
+          state = State(Option(conn), Option(channel), consumer)
 
-        log.info("Successfully connected at: " + conn.getAddress.getHostAddress + ":" + conn.getPort)
-        reconnectDelay = AMQPDispatcher.defaultReconnectDelay
-        publish(AMQPConnected)
+          log.info("Successfully connected at: " + conn.getAddress.getHostAddress + ":" + conn.getPort)
+          reconnectDelay = AMQPDispatcher.defaultReconnectDelay
+          publish(AMQPConnected)
 
-      case Right(ex) =>
-        publish(AMQPDisconnected)
-        // @Note **only** when there is none created connection, we'll try to reconnect here,
-        // let shutdown listener to handle all other reconnetion needs
-        reconnect(ex)
+        case Right(ex) =>
+          publish(AMQPDisconnected)
+          // @Note **only** when there is none created connection, we'll try to reconnect here,
+          // let shutdown listener to handle all other reconnetion needs
+          reconnect(ex)
+      }
+    }
+    catch{
+      case _ => // don't log ex here, we hope ShutdownListener will give us the cause
     }
   }
 
@@ -207,12 +209,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     
     AMQPDispatcher.timer.schedule(new TimerTask {
         def run {
-          try {
-            reconnectDelay *= 2
-            doConnect
-          } catch {
-            case _ => // don't log ex here, we hope ShutdownListener will give us the cause
-          }
+          reconnectDelay *= 2
+          doConnect
         }
       }, reconnectDelay)
   }
@@ -228,6 +226,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
 
     connection foreach {_conn =>
+      _conn.removeShutdownListener(shutdownListener)
       if (_conn.isOpen) {
         try {
           _conn.close
