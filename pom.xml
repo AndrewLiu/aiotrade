@@ -159,12 +159,11 @@
                 <version>4.7</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.scala-tools.testing</groupId>
-                <artifactId>specs_2.8.1</artifactId>
-                <version>1.6.6</version>
-                <scope>test</scope>
-            </dependency>
+	        <dependency>
+				<groupId>org.scala-tools.testing</groupId>
+				<artifactId>specs_2.9.0-1</artifactId>
+				<version>1.6.8</version>
+			</dependency>
         </dependencies>
     </dependencyManagement>
     

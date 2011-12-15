@@ -185,6 +185,9 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this.isTransient = another.isTransient
     System.arraycopy(another.data, 0, data, 0, data.length)
     this.freeFloat = another.freeFloat
+    if (this.netBuyPercent.isNaN || this.netBuyPercent.isInfinite || this.netBuyPercent.isNegInfinity) this.netBuyPercent = 0
+    if (this.relativeAmount.isNaN || this.relativeAmount.isInfinite || this.relativeAmount.isNegInfinity) this.relativeAmount = 0
+    if (this.volumnPercentOfMarket.isNaN || this.volumnPercentOfMarket.isInfinite || this.volumnPercentOfMarket.isNegInfinity) this.volumnPercentOfMarket = 0
   }
 
   def addBy(another: MoneyFlow) {
@@ -198,7 +201,9 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 
     this.freeFloat += another.freeFloat
     this.netBuyPercent = nbpSum / this.freeFloat
+    if (this.netBuyPercent.isNaN || this.netBuyPercent.isInfinite || this.netBuyPercent.isNegInfinity) this.netBuyPercent = 0
     this.relativeAmount = this.amountNet / (this.amountEven + this.amountIn - this.amountOut)
+    if (this.relativeAmount.isNaN || this.relativeAmount.isInfinite || this.relativeAmount.isNegInfinity) this.relativeAmount = 0
   }
 
   override def equals(another: Any): Boolean = another match{
@@ -207,6 +212,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
       if (this._uniSymbol != mf._uniSymbol) return false
       if (this._time != mf._time) return false
       if (this._flag != mf._flag) return false
+      if (this.freeFloat != mf.freeFloat) return false
       var i = -1
       while({i += 1; i<data.length}){
         if (valueNonEquals(data(i), mf.data(i))) return false
@@ -236,6 +242,9 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     if (this._flag != that._flag)
       result = ("flag", this._flag, that._flag) :: result
 
+    if (this.freeFloat != that.freeFloat)
+      result = ("freeFloat", this.freeFloat, that.freeFloat) :: result
+    
     var i = -1
     while({i += 1; i<data.length}){
       if (valueNonEquals(this.data(i), that.data(i)))
