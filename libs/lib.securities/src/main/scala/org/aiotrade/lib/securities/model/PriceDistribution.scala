@@ -432,7 +432,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         if (j < list1.size) pd1 = list1.get(j)
       }
 
-      retnList += pd
+      if (pd.volumeDown > 1e-6 || pd.volumeUp > 1e-6 || pd.volumeEven > 1e-6) retnList += pd
       i += 1
     }
     return retnList

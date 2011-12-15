@@ -37,7 +37,7 @@
         <profile>
             <id>scala-next</id>
             <properties>
-                <scala.version>2.9.0</scala.version>              
+                <scala.version>2.9.0</scala.version>
             </properties>
         </profile>
         

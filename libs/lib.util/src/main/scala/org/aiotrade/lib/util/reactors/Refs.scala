@@ -43,9 +43,13 @@ trait SingleRefCollection[+A <: AnyRef] extends Iterable[A] { self =>
       while (!ahead && elems.hasNext) {
         // make sure we have a reference to the next element,
         // otherwise it might be garbage collected
-        val next = elems.next.get
-        ahead = next != None
-        if (ahead) hd = next.get
+        val nextValue = elems.next
+        ahead = nextValue != null
+        if (ahead){
+          val next = nextValue.get
+          ahead = next != None
+          if (ahead) hd = next.get
+        }
       }
     def hasNext: Boolean = { skip; ahead }
     def next(): A =

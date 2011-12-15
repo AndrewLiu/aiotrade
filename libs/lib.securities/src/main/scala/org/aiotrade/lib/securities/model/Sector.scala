@@ -54,6 +54,7 @@ class Sector extends CRCLongId {
 //  var secs: List[Sec] = Nil
 //  var Children: Seq[Sector] = Nil
   var childrenString: String = ""
+  var parent: Sector = _
   
   lazy val key = Sector.toKey(category, code)
   
@@ -134,6 +135,10 @@ object Sector {
   
   lazy val sectorToSecValidTimes: collection.Map[String, collection.Seq[ValidTime[Sec]]] = {
     Sectors.sectorToSecValidTimes
+  }
+
+  lazy val secToSectorValidTimes: collection.Map[String, collection.Seq[ValidTime[Sector]]] = {
+    Sectors.secToSectorValidTimes
   }
 
   def toKey(category: String, code: String): String = category + "." + code
@@ -251,10 +256,17 @@ object Sector {
   // --- simple test
   def main(args: Array[String]) {
     try {
-      val secsHolder = SELECT(Secs.*) FROM (Secs) list()
+//      val secsHolder = SELECT(Secs.*) FROM (Secs) list()
+//      val t0 = System.currentTimeMillis
+//      val sectorToSecValidTimes = Sectors.sectorToSecValidTimes
+//      sectorToSecValidTimes foreach println
+
+//      val secsHolder = SELECT(Secs.*) FROM (Secs) list()
+//      val sectorsHolder = SELECT(Sectors.*) FROM (Sectors) list()
       val t0 = System.currentTimeMillis
-      val sectorToSecValidTimes = Sectors.sectorToSecValidTimes
-      sectorToSecValidTimes foreach println
+      val secToSectorValidTimes = Sectors.secToSectorValidTimes
+      secToSectorValidTimes foreach println
+      
       println("Finished in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
       System.exit(0)
     } catch {
@@ -321,7 +333,49 @@ object Sectors extends CRCLongPKTable[Sector] {
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
-  } 
+  }
+
+  /**
+   * @Note: This method can only be called after all sectors have been selected and holded in Memory
+   */
+  private[model] def secToSectorValidTimes = {
+    val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sector]]]()
+
+    val sectorsHolder = try {
+      SELECT(Sectors.*) FROM (Sectors) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    val secsHolder = try {
+      SELECT(Secs.*) FROM (Secs) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    val sectorSecs = try {
+      SELECT (SectorSecs.*) FROM (SectorSecs) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    for (sectorSec <- sectorSecs) {
+      if (sectorSec.sector != null && sectorSec.sec != null) {
+        val key = sectorSec.sec.crckey
+        val validTime = ValidTime(sectorSec.sector, sectorSec.validFrom, sectorSec.validTo)
+        val validTimes = result.get(key) match {
+          case None =>
+            val validTimes = mutable.ListBuffer[ValidTime[Sector]]()
+            result += (key -> validTimes)
+            validTimes
+          case Some(x) => x
+        }
+
+        validTimes += validTime
+      } else {
+        log.warning("SectorSec: " + sectorSec + " has null sec. The id of this sectorSec is: " + SectorSecs.idOf(sectorSec))
+      }
+    }
+
+    result
+  }
   
   /**
    * @Note: This method can only be called after all secs have been selected and holded in Memory

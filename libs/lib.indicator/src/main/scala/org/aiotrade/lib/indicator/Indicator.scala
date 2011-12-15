@@ -36,6 +36,7 @@ import org.aiotrade.lib.math.indicator.Function
 import org.aiotrade.lib.math.indicator.IndicatorHelper
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TVar, BaseTSer}
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.model._
 
 
 /**
@@ -193,6 +194,26 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
   }
         
   protected def compute(fromIdx: Int, size: Int)
+
+//  final def isTradingTime(time: Long): Boolean = {
+//    val sec = this.baseSer.serProvider.asInstanceOf[Sec]
+//    val exchange = sec.exchange
+//    if (exchange.isClosedDate(time))return false
+//    exchange.tradingStatusOf(time) match{
+//      case exchange.PreOpen(_, _) => false
+//      case exchange.OpeningCallAcution(_, _) => false
+//      case exchange.Open(_, _) => true
+//      case exchange.Opening(_, _) => true
+//      case exchange.Break(_, _) => false
+//      case exchange.Close(_, _) => true
+//      case exchange.Closed(_, _) => false
+//      case exchange.ClosedDate(_, _) => false
+//      case exchange.UnknownStatus(_, _) => false
+//      case _ => false
+//    }
+//  }
+//
+//  final def isTradingDate(time: Long): Boolean = !this.baseSer.serProvider.asInstanceOf[Sec].exchange.isClosedDate(time)
     
   /**
    * Define functions

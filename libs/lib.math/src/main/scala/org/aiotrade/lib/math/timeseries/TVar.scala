@@ -48,10 +48,12 @@ trait TVar[V] extends Plottable {
 
   def put(time: Long, value: V): Boolean
   def apply(time: Long): V
+  def apply(time: Long, fromHeadOrTail: Boolean): V
   def apply(idx: Int): V
 
   def update(time: Long, value: V)
   def update(idx: Int, value: V)
+  def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean
 
   def float(time: Long): Float
   def float(idx: Int): Float

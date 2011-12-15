@@ -791,6 +791,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   }
 
   def isIndex = Exchange.isIndex(this)
+  def isStock = Exchange.isStock(this)
 
   private def loadFromPriceDistributionServer(ser: PriceDistributionSer, fromTime: Long, isRealTime: Boolean) {
     val freq = if (isRealTime) TFreq.ONE_SEC else ser.freq

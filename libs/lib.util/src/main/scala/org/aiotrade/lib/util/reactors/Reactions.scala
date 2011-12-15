@@ -10,18 +10,28 @@
 
 package org.aiotrade.lib.util.reactors
 
+import java.util.logging.Logger
+import java.util.logging.Level
 import scala.collection.mutable.{Buffer, ListBuffer}
 
 object Reactions {
   import scala.ref._
 
   class Impl extends Reactions {
+    val log = Logger.getLogger(getClass.getName)
     private val parts: Buffer[Reaction] = new ListBuffer[Reaction]
     def isDefinedAt(e: Any) = parts.exists(_ isDefinedAt e)
     def += (r: Reaction): this.type = { parts += r; this }
     def -= (r: Reaction): this.type = { parts -= r; this }
     def apply(e: Any) {
-      for (p <- parts) if (p isDefinedAt e) p(e)
+      try{
+        for (p <- parts) if (p isDefinedAt e) p(e)
+      }
+      catch{
+        case ex =>
+          log.severe(ex.getMessage)
+          log.severe(ex.getStackTraceString)
+      }
     }
   }
 

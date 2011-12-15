@@ -59,7 +59,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   def sectorKey_=(sectorKey: String) {
     this._sectorKey = sectorKey
   }
-  
+
   val indicators = new ArrayList[(T, ValidTime[Sec])]
   
   private var lastFromTime = Long.MaxValue
@@ -116,8 +116,9 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   }
   
   def descriptor = "(" + this.getClass.getSimpleName + "," + sectorKey + "," + freq.shortName + ")"
-  
+
   override def computeFrom(fromTime0: Long) {
+    
     val (firstTime, lastTime) = firstLastTimeOf(indicators)
     
     val fromTime = if (fromTime0 == 0 || fromTime0 == 1) { // fromTime maybe 1, when called by computeFrom(afterThisTime)

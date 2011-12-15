@@ -691,6 +691,15 @@ object Exchange extends Publisher {
     }
   }
 
+  def isStock(sec: Sec): Boolean = {
+    if (sec == null || sec.exchange == null) return false
+    sec.exchange match {
+      case SS => sec.uniSymbol.startsWith("60") || sec.uniSymbol.startsWith("90")
+      case SZ => sec.uniSymbol.startsWith("00") || sec.uniSymbol.startsWith("30")
+      case _ => false
+    }
+  }
+
   def indexOfExchange(exchange: Exchange) = {
     val map = mutable.Map[String, Seq[Sec]]()
     exchange match{
@@ -941,17 +950,19 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val infos = try {
       if (TickerServer.isServer) {
         val secId = Secs.idOf(sec)
-        SELECT (SecInfos.*) FROM (SecInfos) WHERE (SecInfos.sec.field EQ secId) list()
+        SELECT (SecInfos.*) FROM (SecInfos) WHERE (SecInfos.sec.field EQ secId) ORDER_BY(SecInfos.validFrom) list()
       } else {
-        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list() filter (info => info.sec eq sec)
+        SELECT (SecInfos.*) FROM (AVRO(SecInfos)) ORDER_BY(SecInfos.validFrom) list() filter (info => info.sec eq sec)
       }
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     val cal = util.calendarOf(sec.exchange.timeZone)
-    infos foreach {div => div.validFrom = TFreq.DAILY.round(div.validFrom, cal)}
-    infos.sortWith((a, b) => a.validFrom > b.validFrom)
+    val (sorts, nulls) = infos partition{x => x != null}
+    if (nulls.length > 0)log.info("There is null sec_infos:" + nulls.length)
+    sorts foreach {info => info.validFrom = TFreq.DAILY.round(info.validFrom, cal)}
+    sorts.sortWith((a, b) => a.validFrom > b.validFrom)
   }
 
   def createSimpleSec(uniSymbol: String, name: String, willCommit: Boolean = false) = {

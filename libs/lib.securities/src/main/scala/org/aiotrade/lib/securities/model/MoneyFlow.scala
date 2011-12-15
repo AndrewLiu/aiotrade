@@ -65,7 +65,8 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._flag = flag
   }
 
-  private val data = new Array[Double](29)
+  @transient var freeFloat = 0.0
+  private val data = new Array[Double](30)
   
   def superVolumeIn = data(0)
   def superAmountIn = data(1)
@@ -179,9 +180,25 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     this._sec = another._sec
     this._uniSymbol = another._uniSymbol
     this._time = another._time
+    this._lastModify = another._lastModify
     this._flag = another._flag
     this.isTransient = another.isTransient
     System.arraycopy(another.data, 0, data, 0, data.length)
+    this.freeFloat = another.freeFloat
+  }
+
+  def addBy(another: MoneyFlow) {
+    if (this.time != another.time) return
+    if (another._lastModify > this._lastModify) this._lastModify = another._lastModify
+    val nbpSum = this.netBuyPercent * this.freeFloat + another.netBuyPercent * another.freeFloat
+    var i = -1
+    while({i += 1; i < data.length}){
+      this.data(i) += another.data(i)
+    }
+
+    this.freeFloat += another.freeFloat
+    this.netBuyPercent = nbpSum / this.freeFloat
+    this.relativeAmount = this.amountNet / (this.amountEven + this.amountIn - this.amountOut)
   }
 
   override def equals(another: Any): Boolean = another match{
