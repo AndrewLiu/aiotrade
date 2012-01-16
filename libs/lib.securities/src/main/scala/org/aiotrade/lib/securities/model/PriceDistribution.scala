@@ -93,13 +93,16 @@ class PriceCollection extends BelongsToSec with TVal with Flag  {
     }
 
     if (TFreq.DAILY.round(this.time, cal) == TFreq.DAILY.round(pd.time, cal)){
-      map.put(price, pd)
-
+      val vol0 = map.get(price) match{
+        case Some(pr) => pr.volumeDown + pr.volumeEven + pr.volumeUp
+        case None => 0
+      }
+      
       val vol = pd.volumeUp + pd.volumeDown + pd.volumeEven
-      avgPrice = (avgPrice * totalVolume + pd.price * vol) / (totalVolume + vol)
-      totalVolume += vol
+      avgPrice = (avgPrice * totalVolume + pd.price * (vol - vol0)) / (totalVolume + vol - vol0)
+      totalVolume += vol - vol0
       pd.flag = flag
-
+      map.put(price, pd)
       if (this.closed_?) pd.closed_! else pd.unclosed_!
     }
   }

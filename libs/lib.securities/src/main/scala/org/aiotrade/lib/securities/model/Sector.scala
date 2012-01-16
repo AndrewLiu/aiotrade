@@ -33,9 +33,19 @@ package org.aiotrade.lib.securities.model
 import scala.collection
 import scala.collection.mutable
 import scala.collection.immutable
+import java.util.Calendar
 import java.util.logging.Level
 import java.util.logging.Logger
+import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.securities.SectorMoneyFlowSer
 import org.aiotrade.lib.util.ValidTime
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.datasource.SerProvider
+import org.aiotrade.lib.math.timeseries.datasource.DataContract
+import org.aiotrade.lib.math.timeseries.datasource.DataServer
+import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
+import org.aiotrade.lib.securities.PersistenceManager
+import org.aiotrade.lib.util.reactors.Reactions
 import ru.circumflex.orm._
 
 /**
@@ -46,17 +56,22 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 @serializable
-class Sector extends CRCLongId {
+class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
+  private val log = Logger.getLogger(getClass.getName)
+  private val mutex = new AnyRef()
+  
   var category: String = ""
   var code: String = ""
   var name: String = ""
-  
 //  var secs: List[Sec] = Nil
 //  var Children: Seq[Sector] = Nil
   var childrenString: String = ""
   var parent: Sector = _
-  
   lazy val key = Sector.toKey(category, code)
+  lazy val sectorSnap = new SectorSnap(this)
+
+  @transient private var _realtimeMoneyFlowSer: SectorMoneyFlowSer = _
+  @transient private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, SectorMoneyFlowSer]()
   
   override def hashCode = id.hashCode
   
@@ -65,11 +80,163 @@ class Sector extends CRCLongId {
     case _ => false
   }
 
+  def getSectorSymbol = {
+    val unisymbol = if (crckey.startsWith(Sector.Category.TDXIndustries(0))){
+      val ss = this.crckey.split('.')
+
+      if (ss.length == 3) ss(1) + "." + ss(2)
+      else crckey
+    }
+    else this.crckey
+
+    unisymbol
+  }
+  
   def copyFrom(another: Sector){
     this.code = another.code
     this.name = another.name
     this.crckey = another.crckey
     this.childrenString = another.childrenString
+  }
+
+  type T = SectorMoneyFlowSer
+  type C = MoneyFlowContract
+
+  def isSerCreated(freq: TFreq) = {
+    freqToMoneyFlowSer.get(freq).isDefined
+  }
+
+  def updateSer(freq: TFreq, moneyFlow: MoneyFlow) {
+    freq match {
+      case TFreq.ONE_MIN =>
+        if (isSerCreated(TFreq.ONE_MIN)) {
+          serOf(TFreq.ONE_MIN) foreach (_.updateFrom(moneyFlow))
+        }
+      case TFreq.DAILY =>
+        if (isSerCreated(TFreq.DAILY)) {
+          serOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
+        }
+    }
+  }
+
+  def realtimeMoneyFlowSer = mutex synchronized {
+    if (_realtimeMoneyFlowSer == null) {
+      _realtimeMoneyFlowSer = new SectorMoneyFlowSer(this, TFreq.ONE_MIN)
+      freqToMoneyFlowSer.put(TFreq.ONE_SEC, _realtimeMoneyFlowSer)
+    }
+    _realtimeMoneyFlowSer
+  }
+
+  /**
+   * All values in persistence should have been properly rounded to 00:00 of exchange's local time
+   */
+  def loadMoneyFlowSerFromPersistence(ser: SectorMoneyFlowSer, isRealTime: Boolean): Long = {
+    val mfs = ser.freq match {
+      case TFreq.DAILY   => SectorMoneyFlows1d.closedMoneyFlowOf(this)
+      case TFreq.ONE_MIN => SectorMoneyFlows1m.closedMoneyFlowOf(this)
+      case _ => return 0L
+    }
+
+    ser ++= mfs.toArray
+
+    /**
+     * get the newest time which DataServer will load quotes after this time
+     * if quotes is empty, means no data in db, so, let newestTime = 0, which
+     * will cause loadFromSource load from date: Jan 1, 1970 (timeInMills == 0)
+     */
+    if (!mfs.isEmpty) {
+      val (first, last, isAscending) = if (mfs.head.time < mfs.last.time)
+        (mfs.head, mfs.last, true)
+      else
+        (mfs.last, mfs.head, false)
+
+      ser.publish(TSerEvent.Refresh(ser, uniSymbol, first.time, last.time))
+
+      // should load earlier quotes from data source?
+      val wantTime = if (first.fromMe_?) 0 else {
+        // search the lastFromMe one, if exist, should re-load quotes from data source to override them
+        var lastFromMe: MoneyFlow = null
+        var i = if (isAscending) 0 else mfs.length - 1
+        while (i < mfs.length && i >= 0 && mfs(i).fromMe_?) {
+          lastFromMe = mfs(i)
+          if (isAscending) i += 1 else i -= 1
+        }
+
+        if (lastFromMe != null) lastFromMe.time - 1 else last.time
+      }
+
+      log.info(uniSymbol + "(" + ser.freq + "): loaded from persistence, got MoneyFlows=" + mfs.length +
+               ", loaded: time=" + last.time + ", size=" + ser.size +
+               ", will try to load from data source from: " + wantTime
+      )
+
+      wantTime
+    } else 0L
+  }
+
+  /**
+   * Load sers, can be called to load ser whenever
+   * If there is already a dataServer is running and not finished, don't load again.
+   * @return boolean: if run sucessfully, ie. load begins, return true, else return false.
+   */
+  def loadSer(ser: SectorMoneyFlowSer): Boolean = {
+    if (ser.isInLoading) return true
+
+    ser.isInLoading = true
+
+    val isRealTime = ser eq realtimeMoneyFlowSer
+    // load from persistence
+    val wantTime = loadMoneyFlowSerFromPersistence(ser, isRealTime)
+    
+    true
+  }
+
+  def putSer(ser: SectorMoneyFlowSer) = mutex synchronized {
+    freqToMoneyFlowSer.put(ser.freq, ser)
+  }
+
+  def resetSers: Unit = mutex synchronized {
+    _realtimeMoneyFlowSer = null
+    freqToMoneyFlowSer.clear
+  }
+
+  def uniSymbol: String = crckey
+  def uniSymbol_=(uniSymbol: String) {crckey = uniSymbol}
+
+  def stopAllDataServer {
+    for (contract <- content.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
+         server <- contract.serviceInstance()
+    ) {
+      server.stopRefresh
+    }
+  }
+
+  def serOf(freq: TFreq): Option[SectorMoneyFlowSer] = mutex synchronized {
+    freq match {
+      case TFreq.ONE_SEC => Some(_realtimeMoneyFlowSer)
+      case _ => freqToMoneyFlowSer.get(freq) match {
+          case None => freq match {
+              case TFreq.ONE_MIN | TFreq.DAILY =>
+                val x = new SectorMoneyFlowSer(this, freq)
+                freqToMoneyFlowSer.put(freq, x)
+                Some(x)
+              case _ => None
+            }
+          case some => some
+        }
+    }
+  }
+
+  var description = ""
+  @transient private lazy val _content = PersistenceManager().restoreContent(uniSymbol)
+  def content = _content
+
+  def serProviderOf(uniSymbol: String): Option[Sector] = {
+    Exchange.sectorOf(uniSymbol)
+  }
+
+  def compare(that: Sector): Int = {
+    this.crckey.compare(that.crckey)
   }
 }
 
@@ -152,7 +319,32 @@ object Sector {
       (key, null)
     }
   }
-  
+
+  def setParent(sectors: collection.Map[String, Sector]) = {
+    for((key, sector) <- sectors){
+      if (sector.childrenString.trim != ""){
+        for(key <- sector.childrenString.split('+')){
+          sectors.get(key) match{
+            case Some(sect) => sect.parent = sector
+            case None =>
+          }
+        }
+      }
+    }
+  }
+
+  def createIndexSector(code: String, name: String): Sector = {
+    val sector = new Sector
+    val category = Category.TDXIndustries(0)
+    val crckey = category + "." + code
+    sector.category = category
+    sector.code = code
+    sector.name = name
+    sector.crckey = crckey
+    sector.id = sector.id
+    sector
+  }
+
   def allSectors = sectorToSecValidTimes.keys
   
   def sectorsOf(category: String) = Sectors.sectorsOf(category)
@@ -420,4 +612,63 @@ object Sectors extends CRCLongPKTable[Sector] {
   }
 }
 
+class SectorSnap(val sector: Sector, exchange: Exchange = Exchange.SS) {
+  @transient private val log = Logger.getLogger(this.getClass.getName)
 
+  var dayMoneyFlow: MoneyFlow = _
+  var minMoneyFlow: MoneyFlow = _
+
+  // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker(ticker)
+  @transient private val cal = Calendar.getInstance(exchange.timeZone)
+
+  final def setByMoneyFlow(mf: MoneyFlow): SectorSnap = {
+    val time = mf.lastModify
+    checkDayMoneyFlowAt(time)
+    checkMinMoneyFlowAt(time)
+    this
+  }
+
+  private def checkDayMoneyFlowAt(time: Long): MoneyFlow = {
+    val rounded = TFreq.DAILY.round(time, cal)
+    dayMoneyFlow match {
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
+      case _ => // day changes or null
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.lastModify = time
+        newone.sector = sector
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        exchange.addNewSectorMoneyFlow(TFreq.DAILY, newone)
+        log.info("Created new daily moneyflow for " + sector.uniSymbol)
+
+        dayMoneyFlow = newone
+        newone
+    }
+  }
+
+  private def checkMinMoneyFlowAt(time: Long): MoneyFlow = {
+    val rounded = TFreq.ONE_MIN.round(time, cal)
+    minMoneyFlow match {
+      case oldone: MoneyFlow if oldone.time == rounded =>
+        oldone
+      case _ => // minute changes or null
+        val newone = new MoneyFlow
+        newone.time = rounded
+        newone.lastModify = time
+        newone.sector = sector
+        newone.unclosed_!
+        newone.justOpen_!
+        newone.fromMe_!
+        newone.isTransient = true
+        exchange.addNewSectorMoneyFlow(TFreq.ONE_MIN, newone)
+        log.info("Created new minute moneyflow for " + sector.uniSymbol)
+
+        minMoneyFlow = newone
+        newone
+    }
+  }
+}

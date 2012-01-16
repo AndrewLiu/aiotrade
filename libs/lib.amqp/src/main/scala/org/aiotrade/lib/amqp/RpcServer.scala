@@ -110,7 +110,7 @@ class RpcServer($factory: ConnectionFactory, $exchange: String, val requestQueue
     /**
      * @return AMQPMessage that will be send back to caller
      */
-    protected def process(amqpMsg: AMQPMessage) {
+    def process(amqpMsg: AMQPMessage) {
       amqpMsg match {
         case AMQPMessage(req, reqProps, _)  =>
           val correlationId = reqProps.getCorrelationId

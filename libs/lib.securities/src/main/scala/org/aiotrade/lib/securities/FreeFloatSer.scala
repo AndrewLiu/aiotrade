@@ -16,7 +16,6 @@ class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)
   val freeFloat = TVar[Double]("FF", Plot.None)
 
   private val log = Logger.getLogger(getClass.getName)
-  override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
   override protected def assignValue(tval: TVal) {
     val time = tval.time
@@ -25,7 +24,7 @@ class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)
   }
 
   protected def calcRateByFreeFloat(col: TVar[Double], volume: TVar[Double]){
-    val infos = Exchanges.secInfosOf(serProvider)
+    val infos = Exchanges.secInfosOf(serProvider.asInstanceOf[Sec])
     if (infos.isEmpty) {
       log.info("There is no secinfos of " + serProvider)
       return
@@ -40,15 +39,21 @@ class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)
         val time = timestamps(i)
         log.fine("Sec=" + info.uniSymbol + ",time = " + time + ", info.validFrom = " + info.validFrom + ", freefloat = " + info.freeFloat)
         if (time >= info.validFrom && info.freeFloat > 0){
-          col(time) = volume(time) / info.freeFloat
-          freeFloat(time) = info.freeFloat
+          col(i) = volume(i) / info.freeFloat
+          freeFloat(i) = info.freeFloat
           i -= 1
         }
         else{
           stop = true
         }
-        log.fine("column (turnoverRate/netBuyPercent)=" + col(time) + ", volume =" + volume(time))
+        log.fine("column (turnoverRate/netBuyPercent)=" + col(i) + ", volume =" + volume(i))
       }
+    }
+
+    while (i >= 0){
+      col(i) = 0
+      freeFloat(i) = 0
+      i -= 1
     }
   }
 

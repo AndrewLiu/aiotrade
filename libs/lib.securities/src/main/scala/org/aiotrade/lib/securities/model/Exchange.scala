@@ -153,6 +153,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
 
   private val freqToUnclosedQuotes = mutable.Map[TFreq, ArrayList[Quote]]()
   private val freqToUnclosedMoneyFlows = mutable.Map[TFreq, ArrayList[MoneyFlow]]()
+  private val freqToUnclosedSectorMoneyFlows = mutable.Map[TFreq, ArrayList[MoneyFlow]]()
   private val freqToUnclosedPriceDistributions = mutable.Map[TFreq, ArrayList[PriceCollection]]()
 
   private var _lastDailyRoundedTradingTime: Option[Long] = None
@@ -220,6 +221,15 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     (freqToUnclosedMoneyFlows.get(freq) getOrElse {
         val xs = new ArrayList[MoneyFlow]
         freqToUnclosedMoneyFlows.put(freq, xs)
+        xs
+      }
+    ) += mf
+  }
+
+  def addNewSectorMoneyFlow(freq: TFreq, mf: MoneyFlow) = freqToUnclosedSectorMoneyFlows synchronized {
+    (freqToUnclosedSectorMoneyFlows.get(freq) getOrElse {
+        val xs = new ArrayList[MoneyFlow]
+        freqToUnclosedSectorMoneyFlows.put(freq, xs)
         xs
       }
     ) += mf
@@ -434,6 +444,26 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
       }
 
+      val sectorMfsToClose = freqToUnclosedSectorMoneyFlows synchronized {
+        freq match {
+          case TFreq.DAILY =>
+            freqToUnclosedSectorMoneyFlows.get(freq) match {
+              case Some(unclosed) =>
+                freqToUnclosedSectorMoneyFlows -= freq
+                unclosed.toArray // will close all of them
+              case None => EmptyMoneyFlows
+            }
+          case _ =>
+            freqToUnclosedSectorMoneyFlows.get(freq) match {
+              case Some(unclosed) =>
+                val (toClose, notYet) = unclosed.partition{x => isClosed(freq, statusTime, x.time)}
+                freqToUnclosedSectorMoneyFlows(freq) = notYet
+                toClose.toArray
+              case None => EmptyMoneyFlows
+            }
+        }
+      }
+
       val pdsToClose = freqToUnclosedPriceDistributions synchronized {
         freqToUnclosedPriceDistributions.get(freq) match {
           case Some(unclosed) if freq == TFreq.DAILY =>
@@ -449,20 +479,20 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
       }
 
-      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || sectorMfsToClose.length > 0 || pdsToClose.length > 0) {
         try {
           if (isDailyClosing) {
-            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", pds=" + pdsToClose.length)
+            log.info(this.code + " will do closing in " + dailyCloseDelay + " minutes for (" + freq + "), quotes=" + quotesToClose.length + ", mfs=" + mfsToClose.length + ", sector mfs=" + sectorMfsToClose.length + ", pds=" + pdsToClose.length)
             val closingTask = new Runnable {
               def run {
-                doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
+                doClosing(freq, quotesToClose, mfsToClose, sectorMfsToClose, pdsToClose, alsoSave)
               }
             }
         
             // we'll do daily closing after dailyCloseDelay minutes
             closingScheduler.schedule(closingTask, dailyCloseDelay, TimeUnit.MINUTES)
           } else {
-            doClosing(freq, quotesToClose, mfsToClose, pdsToClose, alsoSave)
+            doClosing(freq, quotesToClose, mfsToClose, sectorMfsToClose, pdsToClose, alsoSave)
           }
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -474,7 +504,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   /**
    * Close and insert daily quotes/moneyflows
    */
-  private def doClosing(freq: TFreq, quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow], pdsToClose: Array[PriceCollection], alsoSave: Boolean) {
+  private def doClosing(freq: TFreq, quotesToClose: Array[Quote], mfsToClose: Array[MoneyFlow], sectorMfsToClose: Array[MoneyFlow], pdsToClose: Array[PriceCollection], alsoSave: Boolean) {
     try {
       if (quotesToClose.length > 0) {
         val time = quotesToClose(0).time
@@ -527,6 +557,29 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
       }
 
+      if (sectorMfsToClose.length > 0) {
+        val time = sectorMfsToClose(0).time
+
+        var i = -1
+        while ({i += 1; i < sectorMfsToClose.length}) {
+          val mfs = sectorMfsToClose(i)
+          mfs.closed_!
+        }
+
+        if (alsoSave) {
+          val t0 = System.currentTimeMillis
+          freq match {
+            case TFreq.DAILY =>
+              log.info(this.code + " closed, saving " + freq + " moneyflows: " + sectorMfsToClose.length)
+              SectorMoneyFlows1d.saveBatch(time, sectorMfsToClose)
+            case TFreq.ONE_MIN =>
+              SectorMoneyFlows1m.saveBatch(time, sectorMfsToClose)
+          }
+          log.info("Saved closed sector moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + sectorMfsToClose.length +
+                   ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
+        }
+      }
+
       if (pdsToClose.length > 0) {
         val time = pdsToClose(0).time
 
@@ -548,7 +601,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
         }
       }
     
-      if (quotesToClose.length > 0 || mfsToClose.length > 0 || pdsToClose.length > 0) {
+      if (quotesToClose.length > 0 || mfsToClose.length > 0 || sectorMfsToClose.length > 0 || pdsToClose.length > 0) {
         COMMIT
         log.info(this.code + " doClosing: committed.")
       }
@@ -593,6 +646,7 @@ object Exchange extends Publisher {
   private var _exchangeToSecs = Map[Exchange, Seq[Sec]]()
   private var _exchangeToUniSymbols = Map[Exchange, Set[String]]()
   private var _uniSymbolToSec = Map[String, Sec]()
+  private var _uniSymbolToSector = Map[String, Sector]()
   private var _searchTextToSecs = Map[String, Seq[Sec]]()
 
   
@@ -631,6 +685,8 @@ object Exchange extends Publisher {
       _exchangeToUniSymbols = exchgToSecInfos map {case (exchg, secInfos) => (exchg, secInfos map (_.uniSymbol.toUpperCase) toSet)}
     
       _uniSymbolToSec = exchgToSecInfos flatMap {case (exchg, secInfos) => secInfos map (x => (x.uniSymbol.toUpperCase, x.sec))}
+
+      _uniSymbolToSector = Sectors.sectorsOf map {x => x.crckey -> x} toMap
     
       // deal with the worst case: a sec has been in db (with crckey) but lacks secInfo (wrongly deleted or other cases)
       // we should add these crckey as unisymbol, to avoid a new sec being created on this crckey(unisymol)
@@ -661,6 +717,7 @@ object Exchange extends Publisher {
   def exchangeToSecs: Map[Exchange, Seq[Sec]] = _exchangeToSecs
   def exchangeToUniSymbols: Map[Exchange, Set[String]] = _exchangeToUniSymbols
   def uniSymbolToSec: Map[String, Sec] = _uniSymbolToSec
+  def uniSymbolToSector: Map[String, Sector] = _uniSymbolToSector
   def searchTextToSecs: Map[String, Seq[Sec]] = _searchTextToSecs
 
   // ----- Major methods
@@ -695,7 +752,7 @@ object Exchange extends Publisher {
     if (sec == null || sec.exchange == null) return false
     sec.exchange match {
       case SS => sec.uniSymbol.startsWith("60") || sec.uniSymbol.startsWith("90")
-      case SZ => sec.uniSymbol.startsWith("00") || sec.uniSymbol.startsWith("30")
+      case SZ => sec.uniSymbol.startsWith("00") || sec.uniSymbol.startsWith("20") || sec.uniSymbol.startsWith("30")
       case _ => false
     }
   }
@@ -719,12 +776,18 @@ object Exchange extends Publisher {
     map
   }
 
+  def indexCodeOfExchange(exchange: Exchange) = exchange match{
+    case SS => List("000001.SS")
+    case SZ => List("399001.SZ", "399106.SZ")
+    case _ => List()
+  }
+
   def exchangeOfIndex(uniSymbol: String): Option[Exchange] = {
     uniSymbol match {
       case "^DJI" => Some(N)
       case "^HSI" => Some(HK)
       case "000001.SS" => Some(SS)
-      case "399001.SZ" => Some(SZ)
+      case "399001.SZ" | "399106.SZ" => Some(SZ)
       case _=> None
     }
   }
@@ -739,6 +802,10 @@ object Exchange extends Publisher {
 
   def secOf(uniSymbol: String): Option[Sec] = {
     uniSymbolToSec.get(uniSymbol.toUpperCase)
+  }
+
+  def sectorOf(uniSymbol: String): Option[Sector] = {
+    uniSymbolToSector.get(uniSymbol)
   }
 
   def checkIfSomethingNew(tickers: Array[Ticker]) {
@@ -971,9 +1038,11 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val sec = new Sec
     sec.crckey = symbol
     sec.exchange = exchange
+    sec.id = sec.id // To calculate the crc32(crckey)
     
     try {
-      Secs.save_!(sec)
+//      Secs.save_!(sec) // Do not use it, because we not use auto id.
+      Secs.insertBatch_!(Array(sec), false)
 
       val secInfo = new SecInfo
       secInfo.sec = sec

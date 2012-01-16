@@ -49,6 +49,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   
   private var _shortName: String = _sec.uniSymbol
   var isAdjusted: Boolean = false
+  override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
     
   val open   = TVar[Double]("O", Plot.Quote)
   val high   = TVar[Double]("H", Plot.Quote)
@@ -187,14 +188,13 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
             o = div.adjust(o)
             c = div.adjust(c)
           }
-        }        
+        }
       }
       
       high (i) = h
       low  (i) = l
       open (i) = o
       close(i) = c
-      if (prevClose(i) == 0 && i > 0) prevClose(i) = close(i -1)
     }
 
     isAdjusted = b
@@ -207,6 +207,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   def doCalcTurnoverRate{
     if (isLoaded) {
       calcRateByFreeFloat(turnoverRate, volume)
+      calPreClose
     } else {
       // to avoid forward reference when "reactions -= reaction", we have to define 'reaction' first
       var reaction: Reactions.Reaction = null
@@ -214,6 +215,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
         case TSerEvent.Loaded(ser: QuoteSer, _, _, _, _, _) if ser eq this =>
           reactions -= reaction
           calcRateByFreeFloat(turnoverRate, volume)
+          calPreClose
       }
       reactions += reaction
 
@@ -221,8 +223,40 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
       if (isLoaded) {
         reactions -= reaction
         calcRateByFreeFloat(turnoverRate, volume)
+        calPreClose
       }
     }
+  }
+  
+  private def calPreClose {
+    if (prevClose(0) == 0) prevClose(0) = open(0)
+    
+    val divs = Exchanges.dividendsOf(serProvider)
+    if (divs.isEmpty) {
+      var i = 0
+      while ({i += 1; i < size}){
+        if (prevClose(i) == 0){
+          prevClose(i) = close_ori(i - 1)
+        }
+      }
+    }
+    else{
+      var i = 0
+      while ({i += 1; i < size}){
+        if (prevClose(i) == 0){
+          prevClose(i) = close_ori(i - 1)
+          val time = TFreq.DAILY.round(timestamps(i), java.util.Calendar.getInstance)
+          val divItr = divs.iterator
+          while (divItr.hasNext) {
+            val div = divItr.next
+            if (time == div.dividendDate) {
+              prevClose(i) = div.adjust(prevClose(i))
+            }
+          }
+        }
+      }
+    }
+    
   }
 
   override def shortName: String = {

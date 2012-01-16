@@ -47,6 +47,18 @@ import scala.collection.mutable
 @serializable
 class MoneyFlow extends BelongsToSec with TVal with Flag {
 
+  @transient protected var _sector: Sector = _
+  def sector = _sector
+  def sector_=(sector: Sector) {
+    if (sector != null) {
+      sector.crckey match {
+        case null | "" => // skip this
+        case x => _uniSymbol = x
+      }
+    }
+    _sector = sector
+  }
+
   private var _time: Long = _
   def time = _time
   def time_=(time: Long) {
@@ -178,16 +190,38 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 
   def copyFrom(another: MoneyFlow) {
     this._sec = another._sec
+    this._sector = another._sector
     this._uniSymbol = another._uniSymbol
     this._time = another._time
     this._lastModify = another._lastModify
     this._flag = another._flag
     this.isTransient = another.isTransient
     System.arraycopy(another.data, 0, data, 0, data.length)
+    if (another.freeFloat.isNaN || another.freeFloat.isInfinite || another.freeFloat.isNegInfinity) another.freeFloat = 0.0
     this.freeFloat = another.freeFloat
     if (this.netBuyPercent.isNaN || this.netBuyPercent.isInfinite || this.netBuyPercent.isNegInfinity) this.netBuyPercent = 0
     if (this.relativeAmount.isNaN || this.relativeAmount.isInfinite || this.relativeAmount.isNegInfinity) this.relativeAmount = 0
     if (this.volumnPercentOfMarket.isNaN || this.volumnPercentOfMarket.isInfinite || this.volumnPercentOfMarket.isNegInfinity) this.volumnPercentOfMarket = 0
+  }
+
+  def clearData{
+    this._time = 0
+    this._lastModify = 0
+    this._flag = 1
+    this.isTransient = true
+    this.freeFloat = 0
+
+    var i = -1
+    while({i += 1; i < data.length})data(i) = 0
+  }
+
+  def isDataOnlyInited: Boolean = {
+    if (this.freeFloat != 0) return false
+
+    var i = -1
+    while({i += 1; i < data.length}) if (data(i) != 0) return false
+
+    return true
   }
 
   def addBy(another: MoneyFlow) {
@@ -199,6 +233,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
       this.data(i) += another.data(i)
     }
 
+    if (another.freeFloat.isNaN || another.freeFloat.isInfinite || another.freeFloat.isNegInfinity) another.freeFloat = 0.0
     this.freeFloat += another.freeFloat
     this.netBuyPercent = nbpSum / this.freeFloat
     if (this.netBuyPercent.isNaN || this.netBuyPercent.isInfinite || this.netBuyPercent.isNegInfinity) this.netBuyPercent = 0
@@ -209,6 +244,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
   override def equals(another: Any): Boolean = another match{
     case mf: MoneyFlow =>
       if (this._sec != mf._sec) return false
+      if (this.sector != mf.sector) return false
       if (this._uniSymbol != mf._uniSymbol) return false
       if (this._time != mf._time) return false
       if (this._flag != mf._flag) return false
@@ -242,7 +278,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
     if (this._flag != that._flag)
       result = ("flag", this._flag, that._flag) :: result
 
-    if (this.freeFloat != that.freeFloat)
+    if (valueNonEquals(this.freeFloat, that.freeFloat))
       result = ("freeFloat", this.freeFloat, that.freeFloat) :: result
     
     var i = -1
@@ -256,7 +292,7 @@ class MoneyFlow extends BelongsToSec with TVal with Flag {
 }
 
 abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
-  private val log = Logger.getLogger(this.getClass.getName)
+  protected val log = Logger.getLogger(this.getClass.getName)
   
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
 
@@ -426,9 +462,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
 }
 
 // --- table
-object MoneyFlows1d extends MoneyFlows {
-  private val log = Logger.getLogger(this.getClass.getName)
-  
+object MoneyFlows1d extends MoneyFlows {  
   private val dailyCache = mutable.Map[Long, mutable.Map[Sec, MoneyFlow]]()
 
   @deprecated
@@ -520,8 +554,6 @@ object MoneyFlows1d extends MoneyFlows {
 }
 
 object MoneyFlows1m extends MoneyFlows {
-  private val log = Logger.getLogger(this.getClass.getName)
-  
   private val config = org.aiotrade.lib.util.config.Config()
   protected val isServer = !config.getBool("dataserver.client", false)
 
@@ -621,4 +653,169 @@ object MoneyFlows1m extends MoneyFlows {
         newone
     }
   }
+}
+
+abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
+  protected val log = Logger.getLogger(this.getClass.getName)
+
+  val sector = "sectors_id" BIGINT() REFERENCES(Sectors)
+  val time = "time" BIGINT()
+
+  val amountInCount = "amountInCount" DOUBLE()
+  val amountOutCount = "amountOutCount" DOUBLE()
+
+  val superVolumeIn = "superVolumeIn" DOUBLE()
+  val superAmountIn = "superAmountIn" DOUBLE()
+  val superVolumeOut = "superVolumeOut" DOUBLE()
+  val superAmountOut = "superAmountOut" DOUBLE()
+  val superVolumeEven = "superVolumeEven" DOUBLE()
+  val superAmountEven = "superAmountEven" DOUBLE()
+
+  val largeVolumeIn = "largeVolumeIn" DOUBLE()
+  val largeAmountIn = "largeAmountIn" DOUBLE()
+  val largeVolumeOut = "largeVolumeOut" DOUBLE()
+  val largeAmountOut = "largeAmountOut" DOUBLE()
+  val largeVolumeEven = "largeVolumeEven" DOUBLE()
+  val largeAmountEven = "largeAmountEven" DOUBLE()
+
+  val mediumVolumeIn = "mediumVolumeIn" DOUBLE()
+  val mediumAmountIn = "mediumAmountIn" DOUBLE()
+  val mediumVolumeOut = "mediumVolumeOut" DOUBLE()
+  val mediumAmountOut = "mediumAmountOut" DOUBLE()
+  val mediumVolumeEven = "mediumVolumeEven" DOUBLE()
+  val mediumAmountEven = "mediumAmountEven" DOUBLE()
+
+  val smallVolumeIn = "smallVolumeIn" DOUBLE()
+  val smallAmountIn = "smallAmountIn" DOUBLE()
+  val smallVolumeOut = "smallVolumeOut" DOUBLE()
+  val smallAmountOut = "smallAmountOut" DOUBLE()
+  val smallVolumeEven = "smallVolumeEven" DOUBLE()
+  val smallAmountEven = "smallAmountEven" DOUBLE()
+
+  val relativeAmount = "relativeAmount" DOUBLE()
+  val volumnPercentOfMarket = "volumnPercentOfMarket" DOUBLE()
+  val netBuyPercent = "netBuyPercent" DOUBLE()
+
+  val flag = "flag" INTEGER()
+
+  val timeIdx = getClass.getSimpleName + "_time_idx" INDEX(time.name)
+
+  /**
+   * Save the sector's money flow
+   * @Note Need to COMMIT after it.
+   */
+  def saveBatch(sector: Sector, sortedMfs: Seq[MoneyFlow]) {
+    if (sortedMfs.isEmpty) return
+
+    val head = sortedMfs.head
+    val last = sortedMfs.last
+    val frTime = math.min(head.time, last.time)
+    val toTime = math.max(head.time, last.time)
+    val exists = mutable.Map[Long, MoneyFlow]()
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.sector.field EQ Sectors.idOf(sector)) AND (this.time GE frTime) AND (this.time LE toTime)
+      ) ORDER_BY (this.time) list
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res foreach {x => exists.put(x.time, x)}
+
+    val (updates, inserts) = sortedMfs.partition(x => exists.contains(x.time))
+    try {
+      for (x <- updates) {
+        val existOne = exists(x.time)
+        existOne.copyFrom(x)
+        this.update_!(existOne)
+      }
+
+      this.insertBatch_!(inserts.toArray)
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+  }
+
+  def saveBatch(atSameTime: Long, mfs: Array[MoneyFlow]) {
+    if (mfs.isEmpty) return
+
+    val exists = mutable.Map[Sec, MoneyFlow]()
+    val res = try {
+      SELECT (this.*) FROM (this) WHERE (
+        (this.time EQ atSameTime) AND (this.sector.field GT 0) AND (this.sector.field LT CRCLongId.MaxId )
+      ) list()
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+    res foreach {x => exists.put(x.sec, x)}
+
+    val updates = new ArrayList[MoneyFlow]()
+    val inserts = new ArrayList[MoneyFlow]()
+    var i = -1
+    while ({i += 1; i < mfs.length}) {
+      val quote = mfs(i)
+      exists.get(quote.sec) match {
+        case Some(existOne) =>
+          existOne.copyFrom(quote)
+          updates += existOne
+        case None =>
+          inserts += quote
+      }
+    }
+
+    try {
+      if (updates.length > 0) {
+        this.updateBatch_!(updates.toArray)
+      }
+      if (inserts.length > 0) {
+        this.insertBatch_!(inserts.toArray)
+      }
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+  }
+
+  def moneyFlowOf(sector: Sector): Seq[MoneyFlow] = {
+    try {
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          this.sector.field EQ Sectors.idOf(sector)
+        ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list}
+
+      mfs foreach {mf => mf.lastModify = mf.time}
+
+      mfs
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+  }
+
+  def closedMoneyFlowOf(sector: Sector): Seq[MoneyFlow] = {
+    val xs = new ArrayList[MoneyFlow]()
+    for (x <- moneyFlowOf(sector) if x.closed_?) {
+      xs += x
+    }
+    xs
+  }
+
+  def closedMoneyFlowOf__filterByDB(sector: Sector): Seq[MoneyFlow] = {
+    try {
+      val mfs = {SELECT (this.*) FROM (this) WHERE (
+          (this.sector.field EQ Sectors.idOf(sector)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
+        ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list}
+
+      mfs foreach {mf => mf.lastModify = mf.time}
+
+      mfs
+    } catch {
+      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+    }
+  }
+
+}
+
+object SectorMoneyFlows1d extends SectorMoneyFlows{
+  
+}
+
+object SectorMoneyFlows1m extends SectorMoneyFlows{
+  
 }

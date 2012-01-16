@@ -134,6 +134,8 @@ object AMQPDispatcher {
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher {
   private val log = Logger.getLogger(getClass.getName)
 
+//  protected def useActor = true
+
   case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
   private var state = State(None, None, None)
 
@@ -164,22 +166,21 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   private def doConnect {
     log.info("Begin to connect " + factory.getHost + ":" + factory.getPort + "...")
 
-    try{
-      val connectTry = try {
-        val conn = factory.newConnection
-        // @Note: Should listen to connection instead of channel on ShutdownSignalException,
-        // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
-        conn.addShutdownListener(shutdownListener)
+    val connectTry = try {
+      val conn = factory.newConnection
+      // @Note: Should listen to connection instead of channel on ShutdownSignalException,
+      // @see com.rabbitmq.client.impl.AMQPConnection.MainLoop
+      conn.addShutdownListener(shutdownListener)
 
-        Left(conn)
-      } catch {
-        case ex => Right(ex)
-      }
+      Left(conn)
+    } catch {
+      case ex => Right(ex)
+    }
       
-      connectTry match {
-        case Left(conn) =>
-          // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
-        
+    connectTry match {
+      case Left(conn) =>
+        // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
+        try{
           val channel = conn.createChannel
           val consumer = configure(channel)
 
@@ -188,16 +189,20 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           log.info("Successfully connected at: " + conn.getAddress.getHostAddress + ":" + conn.getPort)
           reconnectDelay = AMQPDispatcher.defaultReconnectDelay
           publish(AMQPConnected)
-
-        case Right(ex) =>
-          publish(AMQPDisconnected)
-          // @Note **only** when there is none created connection, we'll try to reconnect here,
-          // let shutdown listener to handle all other reconnetion needs
-          reconnect(ex)
-      }
-    }
-    catch{
-      case _ => // don't log ex here, we hope ShutdownListener will give us the cause
+        }
+        catch{
+          case ex => // don't log ex here, we hope ShutdownListener will give us the cause
+            log.log(Level.SEVERE, ex.getMessage, ex)
+            publish(AMQPDisconnected)
+            // @Note **only** when there is none created connection, we'll try to reconnect here,
+            // let shutdown listener to handle all other reconnetion needs
+            reconnect(ex)
+        }
+      case Right(ex) =>
+        publish(AMQPDisconnected)
+        // @Note **only** when there is none created connection, we'll try to reconnect here,
+        // let shutdown listener to handle all other reconnetion needs
+        reconnect(ex)
     }
   }
 
@@ -221,7 +226,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         consumer foreach {case x: DefaultConsumer => _ch.basicCancel(x.getConsumerTag)}
         _ch.close
       } catch {
-        case _ =>
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex)
       }
     }
 
@@ -301,7 +306,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
         
         val outProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
-        
         
         _ch.basicPublish(exchange, routingKey, mandatory, immediate, outProps, body)
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
@@ -399,9 +403,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         }
 
         val fwProps = props.builder.contentType(contentType.mimeType).headers(headers).build
+
         // forward to interested observers for further relay
-        publish(AMQPMessage(content, fwProps, envelope))
-        
+//        if (useActor){
+          for(l <- listeners) log.info(l + ",  state=" + l.getState)
+          publish(AMQPMessage(content, fwProps, envelope))
+//        }
+//        else process(AMQPMessage(content, fwProps, envelope))
+
         log.fine("Forward amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
@@ -412,17 +421,21 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
+  protected def process(msg: AMQPMessage){
+      
+  }
+
   /**
    * Hold strong refs of processors to avoid them to be GCed
    */
-  var processors: List[Processor] = Nil
+  private[amqp] var processors: List[Processor] = Nil
   
   /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
    */
   abstract class Processor extends Reactor {
-    processors ::= this
+    processors synchronized {processors ::= this}
     
     reactions += {
       case amqpMsg: AMQPMessage => process(amqpMsg)

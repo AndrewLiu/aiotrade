@@ -130,7 +130,7 @@ class RelayConsumer(factory: ConnectionFactory, exchange: String, queue: String,
   }
 
   class RelayProcessor extends Processor {
-    protected def process(msg: AMQPMessage) {
+    def process(msg: AMQPMessage) {
       val now = System.currentTimeMillis
 
       log.fine("Received delivery tag: " + msg.envelope.getDeliveryTag)

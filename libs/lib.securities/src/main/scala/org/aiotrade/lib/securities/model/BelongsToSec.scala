@@ -42,7 +42,7 @@ package org.aiotrade.lib.securities.model
  */
 @serializable
 abstract class BelongsToSec {
-  
+
   protected var _uniSymbol: String = _
   def uniSymbol = _uniSymbol
   def uniSymbol_=(uniSymbol: String) {

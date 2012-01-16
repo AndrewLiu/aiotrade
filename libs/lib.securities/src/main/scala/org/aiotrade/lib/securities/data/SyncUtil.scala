@@ -55,6 +55,8 @@ import org.aiotrade.lib.securities.model.ExchangeCloseDates
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MoneyFlows1d
 import org.aiotrade.lib.securities.model.MoneyFlows1m
+import org.aiotrade.lib.securities.model.SectorMoneyFlows1d
+import org.aiotrade.lib.securities.model.SectorMoneyFlows1m
 import org.aiotrade.lib.securities.model.PriceDistributions
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
@@ -209,7 +211,7 @@ object SyncUtil {
       // -- basic tables
       Companies, Secs, SecDividends, SecInfos, SecIssues, SecStatuses,
       Exchanges, ExchangeCloseDates,
-      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m, PriceDistributions,
+      Quotes1d, Quotes1m, MoneyFlows1d, MoneyFlows1m, SectorMoneyFlows1d, SectorMoneyFlows1m, PriceDistributions,
       Tickers, TickersLast, Executions,
       Sectors, SectorSecs,
 

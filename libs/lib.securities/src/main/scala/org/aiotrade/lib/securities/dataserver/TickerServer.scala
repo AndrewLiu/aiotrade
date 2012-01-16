@@ -42,6 +42,7 @@ import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Executions
 import org.aiotrade.lib.securities.model.MarketDepth
 import org.aiotrade.lib.securities.model.Quote
+import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.SecSnap
 import org.aiotrade.lib.securities.model.Ticker
 import org.aiotrade.lib.securities.model.TickersLast
@@ -80,6 +81,8 @@ abstract class TickerServer extends DataServer[Ticker] {
   private val allExecutions = new ArrayList[Execution]
   private val allUpdatedDailyQuotes = new ArrayList[Quote]
   private val allUpdatedMinuteQuotes = new ArrayList[Quote]
+  private val allUpdatedDailyMoneyFlows = new ArrayList[MoneyFlow]
+  private val allUpdatedMinuteMoneyFlows = new ArrayList[MoneyFlow]
 
   private val exchangeToLastTime = mutable.Map[Exchange, Long]()
 
@@ -143,6 +146,8 @@ abstract class TickerServer extends DataServer[Ticker] {
     allExecutions.clear
     allUpdatedDailyQuotes.clear
     allUpdatedMinuteQuotes.clear
+    allUpdatedDailyMoneyFlows.clear
+    allUpdatedMinuteMoneyFlows.clear
 
     exchangeToLastTime.clear
 
@@ -156,6 +161,8 @@ abstract class TickerServer extends DataServer[Ticker] {
       val isDayFirst = ticker.isDayFirst
       val dayQuote = secSnap.dayQuote
       val minQuote = secSnap.minQuote
+      val dayMoneyFlow = secSnap.dayMoneyFlow
+      val minMoneyFlow = secSnap.minMoneyFlow
 
       log.fine("Composing from ticker: " + ticker + ", lasticker: " + lastTicker)
 
@@ -177,6 +184,8 @@ abstract class TickerServer extends DataServer[Ticker] {
         tickerValid = true
         
         dayQuote.unjustOpen_!
+        dayMoneyFlow.unjustOpen_!
+        minMoneyFlow.unjustOpen_!
 
         minQuote.unjustOpen_!
         minQuote.open   = ticker.dayOpen
@@ -261,6 +270,16 @@ abstract class TickerServer extends DataServer[Ticker] {
             minQuote.volume += execution.volume
             minQuote.amount += execution.amount
           }
+          else{
+            if (dayMoneyFlow.isDataOnlyInited) {
+              allUpdatedDailyMoneyFlows += dayMoneyFlow
+              dayMoneyFlow.lastModify = ticker.time
+            }
+            if (minMoneyFlow.isDataOnlyInited) {
+              allUpdatedMinuteMoneyFlows += minMoneyFlow
+              minMoneyFlow.lastModify = ticker.time
+            }
+          }
 
         } else {
           log.warning("Discard ticker: " + ticker.uniSymbol + " -> time=" + ticker.time + ", but lastTicker.time=" + lastTicker.time)
@@ -340,7 +359,14 @@ abstract class TickerServer extends DataServer[Ticker] {
     if (allUpdatedMinuteQuotes.length > 0) {
       TickerServer.publish(api.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
     }
-    
+
+    if (allUpdatedDailyMoneyFlows.length > 0) {
+      TickerServer.publish(api.MoneyFlowsEvt(TFreq.DAILY.shortName, allUpdatedDailyMoneyFlows.toArray))
+    }
+    if (allUpdatedMinuteMoneyFlows.length > 0) {
+      TickerServer.publish(api.MoneyFlowsEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteMoneyFlows.toArray))
+    }
+
     // batch save to db
 
     val (tickersLastToInsert, tickersLastToUpdate) = tickersLast.partition(_.isTransient)

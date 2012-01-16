@@ -79,9 +79,10 @@ class FileSubscriber(factory: ConnectionFactory, exchange: String, outputDirPath
   } else {
     assert(outputDir.isDirectory, "outputDir should be director: " + outputDir)
   }
-  
+
+
   class DefaultProcessor extends Processor {
-    protected def process(msg: AMQPMessage) {
+    def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
       val body = msg.body.asInstanceOf[Array[Byte]]
 
@@ -107,7 +108,7 @@ class FileSubscriber(factory: ConnectionFactory, exchange: String, outputDirPath
   class SafeProcessor extends Processor {
     private val log = Logger.getLogger(this.getClass.getName)
     
-    protected def process(msg: AMQPMessage) {
+    def process(msg: AMQPMessage) {
       val headers = msg.props.getHeaders
       val body = msg.body.asInstanceOf[Array[Byte]]
 

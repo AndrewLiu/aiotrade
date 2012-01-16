@@ -74,7 +74,8 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
    * If the connection closed or shutdown, the connection can not connected again, must create a new connection.
    * And the old connection must be collected by GC.
    */ 
-  this.processors -= processor
+//  this.processors -= processor
+  this.deafTo(this)
 
   @throws(classOf[IOException])
   def configure(channel: Channel): Option[Consumer] = {
@@ -195,18 +196,36 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
     syncVar
   }
 
+//  override protected def useActor = false
+//  override def process(amqpMsg: AMQPMessage) {
+//    amqpMsg match {
+//      case AMQPMessage(res, props, _) =>
+//        val replyId = props.getCorrelationId
+////          log.info("Reply id=" + replyId)
+//        continuationMap synchronized {
+//          continuationMap.remove(replyId) match{
+//            case Some(syncVar) => syncVar.set(res)
+//            case None =>
+//          }
+//        }
+//
+//      case x => log.warning("Wrong msg: " + x)
+//    }
+//  }
+
   class SyncVarSetterProcessor extends Processor {
-    protected def process(amqpMsg: AMQPMessage) {
+    def process(amqpMsg: AMQPMessage) {
       amqpMsg match {
         case AMQPMessage(res, props, _) =>
           val replyId = props.getCorrelationId
+//          log.info("Reply id=" + replyId)
           continuationMap synchronized {
             continuationMap.remove(replyId) match{
               case Some(syncVar) => syncVar.set(res)
               case None =>
             }
           }
-          
+
         case x => log.warning("Wrong msg: " + x)
       }
     }
