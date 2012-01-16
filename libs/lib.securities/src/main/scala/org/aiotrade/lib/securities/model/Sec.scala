@@ -80,7 +80,6 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
-  import Sec._
   private val log = Logger.getLogger(this.getClass.getName)
 
   // --- database fields
@@ -353,7 +352,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         val tarSer = new QuoteSer(this, freq)
         val combiner = new QuoteSerCombiner(srcSer, tarSer, exchange.timeZone)
         
-        combiner.computeFrom(0) // don't remove me, see notice above.
+        combiner.compute(0) // don't remove me, see notice above.
         freqToQuoteSer.put(tarSer.freq, tarSer)
         Some(tarSer)
       case None => None
