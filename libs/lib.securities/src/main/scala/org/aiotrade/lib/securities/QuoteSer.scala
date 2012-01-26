@@ -204,6 +204,8 @@ object QuoteSer {
   private val log = Logger.getLogger(this.getClass.getName)
   
   def importFrom(vmap: collection.Map[String, Array[_]]): Array[Quote] = {
+    if (vmap.isEmpty) return Array()
+    
     val quotes = new ArrayList[Quote]()
     try {
       val times   = vmap(".")
