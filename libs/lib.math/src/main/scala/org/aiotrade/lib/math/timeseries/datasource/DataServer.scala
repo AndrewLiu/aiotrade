@@ -113,7 +113,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
     case RequestData(afterTime, contracts) =>
       try {
         flowCount += 1
-        log.info("Got RequestData message, going to request data, flowCount=" + flowCount)
+        log.info("Got RequestData message, going to request data for " + contracts.map(_.srcSymbol) + ", flowCount=" + flowCount)
         requestData(afterTime, contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
@@ -137,7 +137,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   // --- public interfaces
 
   def loadData(afterTime: Long, contracts: Iterable[C]) {
-    log.info("Fired RequestData message")
+    log.info("Fired RequestData message for " + contracts.map(_.srcSymbol))
     // transit to async load reactor to avoid shared variables lock (loadedTime etc)
     publish(RequestData(afterTime, contracts))
   }
