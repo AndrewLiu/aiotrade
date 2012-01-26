@@ -150,7 +150,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             Some(x.asInstanceOf[T])
           case _ => None
         }
-      case some => some
+      case Some(x) => Some(x.clone.asInstanceOf[T]) // all secs may share same content instance
     }
   }
 
@@ -715,6 +715,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
     
     dataContractOf(classOf[QuoteContract], freq) match {
       case Some(contract) =>
+        log.info("Quote Contract's identityHashCode=" + System.identityHashCode(contract))
         contract.serviceInstance() match {
           case Some(quoteServer) =>
             contract.srcSymbol = quoteServer.toSrcSymbol(uniSymbol)
