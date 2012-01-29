@@ -55,7 +55,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   type C <: DataContract[_]
 
-  private case class RequestData(afterTime: Long, contract: Iterable[C])
+  private case class RequestData(contracts: Iterable[C])
   case class DataLoaded(values: Array[V], contract: C)
   case object DataProcessed
 
@@ -69,8 +69,6 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   /** a quick seaching map */
   private val _refreshSymbolToContract = mutable.Map[String, C]()
   // --- Above maps should be created once here, since server may be singleton
-
-  protected var loadedTime: Long = _
 
   private var isRefreshable = false
 
@@ -101,7 +99,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
         try {
           flowCount += 1
           log.fine("Got HeartBeat message, going to request data, flowCount=" + flowCount)
-          requestData(loadedTime, subscribedContracts)
+          requestData(subscribedContracts)
         } catch {
           case ex => log.log(Level.WARNING, ex.getMessage, ex)
         }
@@ -110,11 +108,11 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       }
       flowCount = math.max(0, flowCount) // avoid too big gap
       
-    case RequestData(afterTime, contracts) =>
+    case RequestData(contracts) =>
       try {
         flowCount += 1
         log.info("Got RequestData message, going to request data for " + contracts.map(_.srcSymbol) + ", flowCount=" + flowCount)
-        requestData(afterTime, contracts)
+        requestData(contracts)
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
@@ -124,7 +122,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       try {
         flowCount -= 1
         log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
-        loadedTime = math.max(processData(values, contract), loadedTime) // @todo, loadedTime should be from requestData
+        contract.loadedTime = math.max(processData(values, contract), contract.loadedTime) // @todo, loadedTime should be from requestData
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }
@@ -136,10 +134,10 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   // --- public interfaces
 
-  def loadData(afterTime: Long, contracts: Iterable[C]) {
+  def loadData(contracts: Iterable[C]) {
     log.info("Fired RequestData message for " + contracts.map(_.srcSymbol))
     // transit to async load reactor to avoid shared variables lock (loadedTime etc)
-    publish(RequestData(afterTime, contracts))
+    publish(RequestData(contracts))
   }
 
   /**
@@ -147,11 +145,11 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * It should publish DataLoaded event to enable processData and fire chained events, 
    * such as TSerEvent.Loaded etc.
    *
-   * @param afterThisTime. When afterThisTime equals ANCIENT_TIME, you should process this condition.
+   * @note If contract.fromTime equals ANCIENT_TIME, you may need to process this condition.
    * @param contracts
    * @publish DataLoaded
    */
-  protected def requestData(afterThisTime: Long, contracts: Iterable[C])
+  protected def requestData(contracts: Iterable[C])
 
   /**
    * Publish loaded data to local reactor (including this DataServer instance), 

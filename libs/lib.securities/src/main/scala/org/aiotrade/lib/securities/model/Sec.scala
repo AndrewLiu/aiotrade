@@ -549,7 +549,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             listenTo(ser)
 
             ser.isInLoading = true
-            richInfoHisServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            richInfoHisServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -737,7 +738,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            quoteServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            quoteServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -771,7 +773,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            moneyFlowServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            moneyFlowServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -805,7 +808,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            priceDistributionServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            priceDistributionServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }

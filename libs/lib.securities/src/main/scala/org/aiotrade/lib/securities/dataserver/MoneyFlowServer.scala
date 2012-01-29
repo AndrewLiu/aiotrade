@@ -24,12 +24,12 @@ abstract class MoneyFlowServer extends DataServer[MoneyFlow] {
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
   protected def processData(mfs: Array[MoneyFlow], contract: MoneyFlowContract): Long = {
-    var frTime = loadedTime
-    var toTime = loadedTime
-
     val uniSymbol = toUniSymbol(contract.srcSymbol)
-    val sec = Exchange.secOf(uniSymbol).get
+    val sec = Exchange.secOf(uniSymbol).getOrElse(return contract.loadedTime)
     log.info("Got Moneyflows from source of " + uniSymbol + "(" + contract.freq + "), size=" + mfs.length)
+
+    var frTime = contract.loadedTime
+    var toTime = contract.loadedTime
     var i = -1
     while ({i += 1; i < mfs.length}) {
       val mf = mfs(i)
@@ -62,6 +62,7 @@ abstract class MoneyFlowServer extends DataServer[MoneyFlow] {
       startRefresh
     }
     
+    contract.loadedTime = toTime
     toTime
   }
 

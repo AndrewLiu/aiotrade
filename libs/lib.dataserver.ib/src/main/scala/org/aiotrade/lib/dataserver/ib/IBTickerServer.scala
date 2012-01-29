@@ -65,7 +65,7 @@ object IBTickerServer extends TickerServer with Singleton {
     ibWrapper.cancelMktDataRequest(contract.reqId)
   }
 
-  private def request(fromTime: Long, contracts: Iterable[TickerContract]) {
+  private def request(contracts: Iterable[TickerContract]) {
     for (contract <- contracts if !ibWrapper.isMktDataRequested(contract.reqId)) {
       /** request seems lost, re-request */
       var m_rc = false
@@ -101,11 +101,10 @@ object IBTickerServer extends TickerServer with Singleton {
     }
   }
 
-  protected def requestData(afterThisTime: Long, contracts: Iterable[TickerContract]) {
+  protected def requestData(contracts: Iterable[TickerContract]) {
     if (!connect) return
 
-    val fromTime = afterThisTime + 1
-    request(fromTime, contracts)
+    request(contracts)
     
     try {
       val tickers = ibWrapper.tickers

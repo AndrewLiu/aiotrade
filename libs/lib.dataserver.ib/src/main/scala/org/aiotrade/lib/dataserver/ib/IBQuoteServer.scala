@@ -81,18 +81,15 @@ object IBQuoteServer extends QuoteServer with Singleton {
   }
 
   @throws(classOf[Exception])
-  protected def request(fromTime: Long, contract: QuoteContract) {
+  protected def request(contract: QuoteContract) {
     val cal = Calendar.getInstance
         
     val storage = new ArrayList[Quote]
         
     var bTime = contract.fromTime
     var eTime = contract.toTime
-    if (fromTime <= ANCIENT_TIME /* @todo */) {
-    } else {
-      bTime = fromTime
+    if (contract.fromTime <= ANCIENT_TIME /* @todo */) {
     }
-        
         
     var m_rc = false
     var m_backfillEndTime: String = null
@@ -248,14 +245,12 @@ object IBQuoteServer extends QuoteServer with Singleton {
     ibWrapper.cancelHisDataRequest(contract.reqId)
   }
     
-  protected def requestData(afterThisTime: Long, contracts: Iterable[QuoteContract]) {
+  protected def requestData(contracts: Iterable[QuoteContract]) {
     if (!connect) return
 
-    val fromTime = afterThisTime + 1
     for (contract <- contracts) {
-      var loadedTime1 = loadedTime
       try {
-        request(fromTime, contract)
+        request(contract)
         val quotes = read(contract)
         if (quotes.length > 0) {
           publishData(DataLoaded(quotes, contract))

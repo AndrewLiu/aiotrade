@@ -211,7 +211,7 @@ object YahooTickerServer extends TickerServer with Singleton {
    *
    * @param afterThisTime from time
    */
-  protected def requestData(afterThisTime: Long, contracts: Iterable[TickerContract]) {
+  protected def requestData(contracts: Iterable[TickerContract]) {
     if (contracts.isEmpty) return
     
     val symbols = contracts map (_.srcSymbol) toArray

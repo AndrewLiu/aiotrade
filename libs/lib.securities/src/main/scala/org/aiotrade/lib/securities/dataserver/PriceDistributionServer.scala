@@ -25,12 +25,12 @@ abstract class  PriceDistributionServer  extends DataServer[PriceCollection]{
    * All price-volume in storage should have been properly rounded to 00:00 of exchange's local time
    */
   protected def processData(pds: Array[PriceCollection], contract: PriceDistributionContract): Long = {
-    var frTime = loadedTime
-    var toTime = loadedTime
-
     val uniSymbol = toUniSymbol(contract.srcSymbol)
-    val sec = Exchange.secOf(uniSymbol).get
+    val sec = Exchange.secOf(uniSymbol).getOrElse(return contract.loadedTime)
     log.info("Got price distributions from source of " + uniSymbol + "(" + contract.freq + "), size=" + pds.length)
+
+    var frTime = contract.loadedTime
+    var toTime = contract.loadedTime
     var i = 0
     while (i < pds.length) {
       val pd = pds(i)
@@ -60,6 +60,7 @@ abstract class  PriceDistributionServer  extends DataServer[PriceCollection]{
       startRefresh
     }
 
+    contract.loadedTime = toTime
     toTime
   }
 
