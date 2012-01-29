@@ -122,7 +122,10 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       try {
         flowCount -= 1
         log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
-        contract.loadedTime = math.max(processData(values, contract), contract.loadedTime) // @todo, loadedTime should be from requestData
+        val loadedTime = processData(values, contract)
+        if (contract ne null) {
+          contract.loadedTime = math.max(loadedTime, contract.loadedTime) // @todo, loadedTime should be from requestData
+        }
       } catch {
         case ex => log.log(Level.WARNING, ex.getMessage, ex)
       }

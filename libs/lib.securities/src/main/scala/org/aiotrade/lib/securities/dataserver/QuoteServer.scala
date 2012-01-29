@@ -59,7 +59,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       log.warning("No sec for: " + uniSymbol)
       return contract.loadedTime
     }    
-    log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
+    log.info("Got quotes from source for " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
 
     var frTime = contract.loadedTime
     var toTime = contract.loadedTime
