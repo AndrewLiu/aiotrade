@@ -596,8 +596,8 @@ object Exchange extends Publisher {
 
   
   // Init all searching tables
-  allExchanges = Exchanges.all()
-
+  allExchanges = Exchanges.allExchanges
+  
   // Init active exchanges
   activeExchanges = config.getList("market.exchanges") match {
     case Seq() => allExchanges
@@ -804,6 +804,15 @@ object Exchanges extends CRCLongPKTable[Exchange] {
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
 
   // --- helper methods
+  
+  def allExchanges: Seq[Exchange] = {
+    if (isServer) {
+      SELECT (Exchanges.*) FROM Exchanges list()
+    } else {
+      SELECT (Exchanges.*) FROM (AVRO(Exchanges)) list()
+    }
+  }
+  
   def secsOf(exchange: Exchange): Seq[Sec] = {
     val t0 = System.currentTimeMillis
     
