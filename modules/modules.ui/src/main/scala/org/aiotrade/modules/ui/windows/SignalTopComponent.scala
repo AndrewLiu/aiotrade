@@ -7,6 +7,7 @@ import java.awt.Font
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.ResourceBundle
+import java.util.logging.Logger
 import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.JTable
@@ -32,6 +33,7 @@ import org.aiotrade.lib.util.swing.action.ViewAction
 import org.openide.windows.TopComponent
 
 class SignalTopComponent extends TopComponent with Reactor {
+  private val log = Logger.getLogger(this.getClass.getName)
   private val BUNDLE = ResourceBundle.getBundle("org.aiotrade.modules.ui.windows.Bundle")
 
   private val tc_id = "SignalTopComponent"
@@ -85,17 +87,21 @@ class SignalTopComponent extends TopComponent with Reactor {
         col match {
           case 0 =>
             val sec = Exchange.secOf(event.symbol).getOrElse(return null)
-            val timeZone = sec.exchange.timeZone
-            val df = event.freq match {
-              case "1D" => new SimpleDateFormat("MM-dd")
-              case "1m" => new SimpleDateFormat("HH:mm")
-              case _ => new SimpleDateFormat("MM-dd")
-            }
-            df.setTimeZone(timeZone)
+            if (sec.exchange != null) {
+              val timeZone = sec.exchange.timeZone
+              val df = event.freq match {
+                case "1D" => new SimpleDateFormat("MM-dd")
+                case "1m" => new SimpleDateFormat("HH:mm")
+                case _ => new SimpleDateFormat("MM-dd")
+              }
+              df.setTimeZone(timeZone)
 
-            val cal = Calendar.getInstance(timeZone)
-            cal.setTimeInMillis(event.signal.time)
-            df format cal.getTime
+              val cal = Calendar.getInstance(timeZone)
+              cal.setTimeInMillis(event.signal.time)
+              df format cal.getTime
+            } else {
+              log.warning("Sec: " + event.symbol + "'s exchange is null!"); null
+            }
           case 1 => event.symbol
           case 2 => event.signal.kind match {
               case Direction.EnterLong  => BUNDLE.getString("enterLong")
