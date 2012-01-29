@@ -136,21 +136,22 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
-  def content = _content
+  def content = _content // common content, all secs may share same content instance, @todo
+  private lazy val selfContent = _content.clone
   
   private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {
-    val contracts = content.lookupDescriptors(tpe)
+    val contracts = selfContent.lookupDescriptors(tpe)
     contracts.find(_.freq == freq) match {
       case None => 
         contracts.find(_.freq == defaultFreq) match {
           case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
             val x = defaultOne.clone//new QuoteContract
             x.freq = freq
-            content.addDescriptor(x)
+            selfContent.addDescriptor(x)
             Some(x.asInstanceOf[T])
           case _ => None
         }
-      case Some(x) => Some(x.clone.asInstanceOf[T]) // all secs may share same content instance
+      case some => some
     }
   }
 
@@ -825,7 +826,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   }
 
   def stopAllDataServer {
-    for (contract <- content.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
+    for (contract <- selfContent.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
          server <- contract.serviceInstance()
     ) {
       server.stopRefresh
