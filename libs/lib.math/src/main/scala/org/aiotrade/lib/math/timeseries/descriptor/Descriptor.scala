@@ -35,11 +35,8 @@ import java.util.logging.Logger
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.util.serialization.BeansDocument
-import org.aiotrade.lib.util.serialization.JavaDocument
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper
-import org.w3c.dom.Element
 
 /**
  * Descriptor is something like NetBeans' DataObject
@@ -198,23 +195,4 @@ abstract class Descriptor[S](
       case ex: CloneNotSupportedException => log.log(Level.SEVERE, ex.getMessage, ex); null
     }
   }
-
-  def writeToBean(doc:BeansDocument): Element = {
-    val bean = doc.createBean(this)
-        
-    doc.valuePropertyOfBean(bean, "active", active)
-    doc.valuePropertyOfBean(bean, "serviceClassName", serviceClassName)
-    doc.innerPropertyOfBean(bean, "freq", freq.writeToBean(doc))
-        
-    bean
-  }
-    
-  def writeToJava(id:String): String = {
-    freq.writeToJava("freq") +
-    JavaDocument.create(id, this.getClass,
-                        "" + serviceClassName +
-                        "freq" +
-                        active)
-  }
-
 }

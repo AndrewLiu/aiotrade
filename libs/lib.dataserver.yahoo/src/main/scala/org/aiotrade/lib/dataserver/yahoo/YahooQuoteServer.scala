@@ -93,19 +93,19 @@ object YahooQuoteServer extends QuoteServer with Singleton {
   protected def request(fromTime: Long, contract: QuoteContract): Option[InputStream] = {
     val cal = Calendar.getInstance
 
-    val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
-      (contract.beginDate, contract.endDate)
+    val (bTime, eTime) = if (fromTime <= ANCIENT_TIME /* @todo */) {
+      (contract.fromTime, contract.toTime)
     } else {
       cal.setTimeInMillis(fromTime)
-      (cal.getTime, new Date)
+      (fromTime, cal.getTimeInMillis)
     }
 
-    cal.setTime(begDate)
+    cal.setTimeInMillis(bTime)
     val a = cal.get(Calendar.MONTH)
     val b = cal.get(Calendar.DAY_OF_MONTH)
     val c = cal.get(Calendar.YEAR)
 
-    cal.setTime(endDate)
+    cal.setTimeInMillis(eTime)
     val d = cal.get(Calendar.MONTH)
     val e = cal.get(Calendar.DAY_OF_MONTH)
     val f = cal.get(Calendar.YEAR)

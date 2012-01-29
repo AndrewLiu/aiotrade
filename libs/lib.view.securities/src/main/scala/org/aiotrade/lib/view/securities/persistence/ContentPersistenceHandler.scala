@@ -52,7 +52,6 @@ object ContentPersistenceHandler {
   def dumpContent(content: Content): String = {
     val buffer = new StringBuilder(500)
     val beans = new BeansDocument
-    beans.appendBean(content.writeToBean(beans))
         
     buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
     //buffer.append("<!DOCTYPE settings PUBLIC \"-//AIOTrade//DTD Content settings 1.0//EN\" >\n")
@@ -80,8 +79,8 @@ object ContentPersistenceHandler {
           buffer.append("refreshable=\"" + contract.isRefreshable + "\" ")
           buffer.append("refreshinterval=\"" + contract.refreshInterval + "\" ")
           try {
-            buffer.append("begdate=\"" + df.valueToString(contract.beginDate.getTime) + "\" ")
-            buffer.append("enddate=\"" + df.valueToString(contract.endDate.getTime) + "\" ")
+            buffer.append("fromTime=\"" + contract.fromTime + "\" ")
+            buffer.append("toTime=\"" + contract.toTime + "\" ")
           } catch {case ex: ParseException => ex.printStackTrace}
           buffer.append("url=\"" + contract.urlString + "\"")
           buffer.append(">\n")

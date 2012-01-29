@@ -778,13 +778,7 @@ object SymbolNodes {
             val content = sec.content
           
             val quoteContract = content.lookupActiveDescriptor(classOf[QuoteContract]).get
-
-            val cal = Calendar.getInstance
-            cal.clear
-
-            cal.setTime(quoteContract.beginDate)
-            val fromTime = cal.getTimeInMillis
-
+            val fromTime = quoteContract.fromTime
             val freq = quoteContract.freq
             PersistenceManager().deleteQuotes(content.uniSymbol, freq, fromTime, Long.MaxValue)
 

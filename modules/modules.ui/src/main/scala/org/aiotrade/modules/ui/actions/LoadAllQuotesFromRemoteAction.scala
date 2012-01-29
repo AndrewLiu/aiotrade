@@ -9,6 +9,7 @@ import org.aiotrade.lib.util.reactors.Reactions
 import org.openide.util.HelpCtx
 import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction
+import scala.concurrent.SyncVar
 
 class LoadAllQuotesFromRemoteAction extends CallableSystemAction with Publisher {
   val log = Logger.getLogger(this.getClass.getName)
@@ -16,14 +17,16 @@ class LoadAllQuotesFromRemoteAction extends CallableSystemAction with Publisher 
   def performAction {
     java.awt.EventQueue.invokeLater(new Runnable {
         def run {
-          log.info("Loading quotes of secs in " + Exchange.activeExchanges);
+          log.info("Loading quotes of secs in " + Exchange.activeExchanges)
           
           // add symbols to exchange folder
           for (exchange <- Exchange.activeExchanges;
                sec <- Exchange.secsOf(exchange);
                ser <- sec.serOf(TFreq.DAILY); if !ser.isLoaded
           ) {
-            log.info("Loading quotes of " + sec.uniSymbol);
+            log.info("Loading quotes of " + sec.uniSymbol)
+            
+            val syncVar = new SyncVar[Boolean]
             sec.loadSer(ser)
             var reaction: Reactions.Reaction = null
             reaction = {
@@ -32,7 +35,12 @@ class LoadAllQuotesFromRemoteAction extends CallableSystemAction with Publisher 
                 deafTo(ser)
                 sec.resetSers // release for memory
                 log.info("Quotes of " + sec.uniSymbol + " loaded.")
+                syncVar.set(true)
             }
+            reactions += reaction
+            listenTo(ser)
+            
+            //syncVar.get
           }
         }
       })

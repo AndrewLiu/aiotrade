@@ -36,7 +36,6 @@ import java.awt.Image
 import java.io.File
 import java.io.IOException
 import java.util.Calendar
-import java.util.Date
 import java.util.TimeZone
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -87,14 +86,11 @@ object IBQuoteServer extends QuoteServer with Singleton {
         
     val storage = new ArrayList[Quote]
         
-    var bDate = new Date
-    var eDate = new Date
+    var bTime = contract.fromTime
+    var eTime = contract.toTime
     if (fromTime <= ANCIENT_TIME /* @todo */) {
-      bDate = contract.beginDate
-      eDate = contract.endDate
     } else {
-      cal.setTimeInMillis(fromTime)
-      bDate = cal.getTime
+      bTime = fromTime
     }
         
         
@@ -139,8 +135,8 @@ object IBQuoteServer extends QuoteServer with Singleton {
       m_order.m_goodTillDate = ""
             
       /** set historical data fields: */
-            
-      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate)
+      cal.setTimeInMillis(eTime)
+      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(cal.getTime)
             
       val freq = contract.freq
             
