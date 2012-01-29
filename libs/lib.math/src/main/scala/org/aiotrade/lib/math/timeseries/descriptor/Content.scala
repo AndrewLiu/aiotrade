@@ -144,13 +144,17 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
     try {
       val newone = super.clone.asInstanceOf[Content]
       newone.withActionsHelper = new WithActionsHelper(newone)
-      newone.descriptorBuf foreach {_.containerContent = newone}
+      newone.descriptorBuf = descriptorBuf map {x => 
+        val y = x.clone
+        y.containerContent = newone
+        y
+      }
       newone
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); null 
     }
   }
-            
+
   def addAction(action: Action): Action = {
     withActionsHelper.addAction(action)
   }
