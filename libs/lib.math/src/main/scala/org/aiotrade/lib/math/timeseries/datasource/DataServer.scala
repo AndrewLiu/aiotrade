@@ -41,6 +41,7 @@ import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
 
 /**
@@ -57,7 +58,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   private case class RequestData(contracts: Iterable[C])
   case class DataLoaded(values: Array[V], contract: C)
-  case object DataProcessed
+  case class DataProcessed(contract: C)
 
   protected val EmptyValues = Array[V]()
   protected val ANCIENT_TIME: Long = Long.MinValue
@@ -89,17 +90,16 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * the consumer.
    */
   private var flowCount: Int = _ // flow control that tries to balance request and process
+  // --- a proxy actor for HeartBeat event etc, which will detect the speed of
+  // refreshing requests, if consumer can not catch up the producer, will drop
+  // some requests.
   reactions += {
-    // --- a proxy actor for HeartBeat event etc, which will detect the speed of
-    // refreshing requests, if consumer can not catch up the producer, will drop
-    // some requests.
     case HeartBeat(interval) =>
       if (isRefreshable && flowCount < 5) {
         // refresh from loadedTime for subscribedContracts
         try {
-          flowCount += 1
           log.fine("Got HeartBeat message, going to request data, flowCount=" + flowCount)
-          requestData(subscribedContracts)
+          requestActor ! RequestData(subscribedContracts)
         } catch {
           case ex => log.log(Level.WARNING, ex.getMessage, ex)
         }
@@ -107,40 +107,56 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
         flowCount -= 1 // give chance to requestData
       }
       flowCount = math.max(0, flowCount) // avoid too big gap
-      
-    case RequestData(contracts) =>
-      try {
-        flowCount += 1
-        log.info("Got RequestData message, going to request data for " + contracts.map(_.srcSymbol) + ", flowCount=" + flowCount)
-        requestData(contracts)
-      } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
-      }
-      
-    case DataLoaded(values, contract) =>
-      val t0 = System.currentTimeMillis
-      try {
-        flowCount -= 1
-        log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
-        val loadedTime = processData(values, contract)
-        if (contract ne null) {
-          contract.loadedTime = math.max(loadedTime, contract.loadedTime) // @todo, loadedTime should be from requestData
-        }
-      } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
-      }
-      
-      publish(DataProcessed)
-      log.info("Processed data in " + (System.currentTimeMillis - t0) + "ms")
   }
   listenTo(DataServer)
+
+  
+  /**
+   * We'll separate requestActor and processActor, so the request and process routines can be balanced a bit.
+   * Otherwise, if the RequestData messages were sent batched, there will be no change to fetch DataLoaded message
+   * before RequestData
+   */
+  private val requestActor = new Reactor {
+    reactions += {
+      case RequestData(contracts) =>
+        try {
+          flowCount += 1
+          log.info("Got RequestData message, going to request data, flowCount=" + flowCount)
+          requestData(contracts)
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+    }
+  }
+
+  private val processActor = new Reactor {
+    reactions += {
+      // @Note 'contract' may be null, for instance: batch tickers loaded with multiple symbols.
+      case DataLoaded(values, contract) =>
+        val t0 = System.currentTimeMillis
+        try {
+          flowCount -= 1
+          log.info("Got DataLoaded message, going to process data, flowCount=" + flowCount)
+          val loadedTime = processData(values, contract)
+          if (contract ne null) {
+            log.info("Processed data for " + contract.srcSymbol)
+            contract.loadedTime = math.max(loadedTime, contract.loadedTime)
+          }
+        } catch {
+          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        }
+      
+        publish(DataProcessed(contract))
+        log.info("Processed data in " + (System.currentTimeMillis - t0) + "ms")
+    }
+  }
 
   // --- public interfaces
 
   def loadData(contracts: Iterable[C]) {
     log.info("Fired RequestData message for " + contracts.map(_.srcSymbol))
-    // transit to async load reactor to avoid shared variables lock (loadedTime etc)
-    publish(RequestData(contracts))
+    // transit to async load reactor to put requests in queue (actor's mailbox)
+    requestActor ! RequestData(contracts)
   }
 
   /**
@@ -162,7 +178,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
    * @See reactions += {...}
    */
   protected def publishData(msg: Any) {
-    publish(msg)
+    processActor ! msg
   }
     
   /**
