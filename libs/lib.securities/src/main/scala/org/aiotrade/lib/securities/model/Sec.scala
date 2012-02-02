@@ -976,10 +976,12 @@ class SecSnap(val sec: Sec) {
     val rounded = TFreq.DAILY.round(time, cal)
     dayQuote match {
       case oldone: Quote if oldone.time == rounded =>
+        oldone.lastModify = time
         oldone
       case _ => // day changes or null
         val newone = new Quote
         newone.time = rounded
+        newone.lastModify = time
         newone.sec = sec
         newone.prevClose = newTicker.prevClose
         newone.unclosed_!
@@ -1040,10 +1042,12 @@ class SecSnap(val sec: Sec) {
     val rounded = TFreq.ONE_MIN.round(time, cal)
     minQuote match {
       case oldone: Quote if oldone.time == rounded =>
+        oldone.lastModify = time
         oldone
       case _ => // minute changes or null
         val newone = new Quote
         newone.time = rounded
+        newone.lastModify = time
         newone.sec = sec
         newone.prevClose = newTicker.prevClose
         newone.unclosed_!

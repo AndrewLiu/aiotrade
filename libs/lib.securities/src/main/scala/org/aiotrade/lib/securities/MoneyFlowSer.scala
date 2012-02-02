@@ -215,7 +215,7 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends FreeFloatSer($sec, $freq) {
     publish(TSerEvent.Updated(this, "", time, time))
   }
 
-  def doCalcTurnoverRate{
+  def doCalcRate{
     if (isLoaded) {
       calcRateByFreeFloat(netBuyPercent, volumeNet)
     } else {

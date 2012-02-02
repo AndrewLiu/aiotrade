@@ -270,15 +270,12 @@ abstract class TickerServer extends DataServer[Ticker] {
             minQuote.volume += execution.volume
             minQuote.amount += execution.amount
           }
-          else{
-            if (dayMoneyFlow.isDataOnlyInited) {
-              allUpdatedDailyMoneyFlows += dayMoneyFlow
-              dayMoneyFlow.lastModify = ticker.time
-            }
-            if (minMoneyFlow.isDataOnlyInited) {
-              allUpdatedMinuteMoneyFlows += minMoneyFlow
-              minMoneyFlow.lastModify = ticker.time
-            }
+          else if (minMoneyFlow.isDataOnlyInited){
+            allUpdatedMinuteMoneyFlows += minMoneyFlow
+            minMoneyFlow.lastModify = ticker.time
+              
+            allUpdatedDailyMoneyFlows += dayMoneyFlow
+            dayMoneyFlow.lastModify = ticker.time
           }
 
         } else {
@@ -302,6 +299,7 @@ abstract class TickerServer extends DataServer[Ticker] {
 
         // update daily quote and ser
         dayQuote.updateDailyQuoteByTicker(ticker)
+//        minQuote.lastModify = ticker.time
 
         // updated quote ser
         sec.updateQuoteSer(TFreq.DAILY, dayQuote)
@@ -360,11 +358,9 @@ abstract class TickerServer extends DataServer[Ticker] {
       TickerServer.publish(api.QuotesEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteQuotes.toArray))
     }
 
-    if (allUpdatedDailyMoneyFlows.length > 0) {
-      TickerServer.publish(api.MoneyFlowsEvt(TFreq.DAILY.shortName, allUpdatedDailyMoneyFlows.toArray))
-    }
     if (allUpdatedMinuteMoneyFlows.length > 0) {
-      TickerServer.publish(api.MoneyFlowsEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteMoneyFlows.toArray))
+      TickerServer.publish(("null", api.MoneyFlowsEvt(TFreq.ONE_MIN.shortName, allUpdatedMinuteMoneyFlows.toArray)))
+      TickerServer.publish(("null", api.MoneyFlowsEvt(TFreq.DAILY.shortName, allUpdatedDailyMoneyFlows.toArray)))
     }
 
     // batch save to db

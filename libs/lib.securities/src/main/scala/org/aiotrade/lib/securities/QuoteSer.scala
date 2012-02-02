@@ -50,7 +50,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   private var _shortName: String = _sec.uniSymbol
   var isAdjusted: Boolean = false
   override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
-    
+
+  val lastModify = TVar[Long]("LM", Plot.None)
   val open   = TVar[Double]("O", Plot.Quote)
   val high   = TVar[Double]("H", Plot.Quote)
   val low    = TVar[Double]("L", Plot.Quote)
@@ -70,13 +71,14 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
 
   val isClosed = TVar[Boolean]()
   
-  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate)
+  override val exportableVars = List(lastModify, open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate)
 
   override protected def assignValue(tval: TVal) {
     super.assignValue(tval)
     val time = tval.time
     tval match {
       case quote: Quote =>
+        lastModify(time) = quote.lastModify
         open(time)   = quote.open
         high(time)   = quote.high
         low(time)    = quote.low
@@ -104,6 +106,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   def valueOf(time: Long): Option[Quote] = {
     if (exists(time)) {
       val quote = new Quote
+      quote.lastModify = lastModify(time)
       quote.open   = open(time)
       quote.high   = high(time)
       quote.low    = low(time)
@@ -204,7 +207,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
 
-  def doCalcTurnoverRate{
+  def doCalcRate{
     if (isLoaded) {
       calcRateByFreeFloat(turnoverRate, volume)
       calPreClose
@@ -276,6 +279,7 @@ object QuoteSer {
     val quotes = new ArrayList[Quote]()
     try {
       val times   = vmap(".")
+      val lastModifies = vmap("LM")
       val opens   = vmap("O")
       val highs   = vmap("H")
       val lows    = vmap("L")
@@ -291,6 +295,7 @@ object QuoteSer {
         val quote = new Quote
 
         // the time should be properly set to 00:00 of exchange location's local time, i.e. rounded to TFreq.DAILY
+        quote.lastModify = lastModifies(i).asInstanceOf[Long]
         quote.time   = times(i).asInstanceOf[Long]
         quote.open   = opens(i).asInstanceOf[Double]
         quote.high   = highs(i).asInstanceOf[Double]

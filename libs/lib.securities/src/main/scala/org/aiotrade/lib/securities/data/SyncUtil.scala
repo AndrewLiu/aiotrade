@@ -107,8 +107,8 @@ object SyncUtil {
 
   def main(args: Array[String]) {
     try {
-//      exportAvroDataFileFromProductionMysql()
-      importAvroDataFileToTestMysql()
+      exportAvroDataFileFromProductionMysql()
+//      importAvroDataFileToTestMysql()
       //test()
       println("Finished!")
       System.exit(0)

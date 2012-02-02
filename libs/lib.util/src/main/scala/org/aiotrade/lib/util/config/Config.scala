@@ -29,6 +29,7 @@ object Config {
   private var _config: net.lag.configgy.Config = _
 
   def apply(fileName: String = null): net.lag.configgy.Config = {
+    println("aaaaaaaaaa")
     if (_config == null) {
       val classLoader = Thread.currentThread.getContextClassLoader
 

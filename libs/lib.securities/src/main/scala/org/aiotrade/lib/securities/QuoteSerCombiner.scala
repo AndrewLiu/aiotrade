@@ -42,7 +42,7 @@ import scala.collection.mutable.WeakHashMap
 /**
  * @Note to get this Combiner react to srcSer, it should be held as strong ref by some instances
  *
- * @todo deal with adjusted
+ * @todo 5 min quotes in 9:25 will appears long quote line.
  * @author Caoyuan Deng
  */
 class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) extends Reactor {

@@ -11,7 +11,7 @@ import org.aiotrade.lib.math.timeseries.{TVar, TVal, DefaultBaseTSer, TFreq}
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Sec
 
-class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)  {
+abstract class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)  {
 
   val freeFloat = TVar[Double]("FF", Plot.None)
 
@@ -22,6 +22,8 @@ class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)
     val idx = this.indexOfOccurredTime(time) - 1
     if (idx >= 0) freeFloat(time) = freeFloat(idx)
   }
+
+  def doCalcRate
 
   protected def calcRateByFreeFloat(col: TVar[Double], volume: TVar[Double]){
     val infos = Exchanges.secInfosOf(serProvider.asInstanceOf[Sec])

@@ -406,7 +406,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
         // forward to interested observers for further relay
 //        if (useActor){
-          for(l <- listeners) log.info(l + ",  state=" + l.getState)
+          for(l <- listeners if l != this) log.info(l + ",  state=" + l.getState)
           publish(AMQPMessage(content, fwProps, envelope))
 //        }
 //        else process(AMQPMessage(content, fwProps, envelope))

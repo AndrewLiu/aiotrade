@@ -58,6 +58,12 @@ class Quote extends BelongsToSec with TVal with Flag {
     this._time = time
   }
 
+  private var _lastModify: Long = _
+  def lastModify = _lastModify
+  def lastModify_= (time: Long) {
+    this._lastModify = time
+  }
+
   private var _flag: Int = 1 // dafault is closed
   def flag = _flag 
   def flag_=(flag: Int) {
@@ -118,6 +124,7 @@ class Quote extends BelongsToSec with TVal with Flag {
    * This quote must be a daily quote
    */
   def updateDailyQuoteByTicker(ticker: Ticker) {
+    lastModify = ticker.time
     open   = ticker.dayOpen
     high   = ticker.dayHigh
     low    = ticker.dayLow
@@ -130,7 +137,7 @@ class Quote extends BelongsToSec with TVal with Flag {
 
   override def toString = {
     val sb = new StringBuilder()
-    sb.append("Quote(").append(util.formatTime(time))
+    sb.append("Quote(").append(uniSymbol).append(",").append(util.formatTime(time))
     sb.append(",O:").append(open)
     sb.append(",H:").append(high)
     sb.append(",L:").append(low)
@@ -168,9 +175,11 @@ abstract class Quotes extends Table[Quote] with TableEx {
 
   def quotesOf(sec: Sec): Seq[Quote] = {
     try {
-      SELECT (this.*) FROM (this) WHERE (
+      val list1 = SELECT (this.*) FROM (this) WHERE (
         this.sec.field EQ Secs.idOf(sec)
-      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list
+      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list;
+      list1 foreach{ x => x.lastModify = x.time}
+      list1
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -186,9 +195,11 @@ abstract class Quotes extends Table[Quote] with TableEx {
 
   def closedQuotesOf_filterByDB(sec: Sec): Seq[Quote] = {
     try {
-      SELECT (this.*) FROM (this) WHERE (
+      val list1 = SELECT (this.*) FROM (this) WHERE (
         (this.sec.field EQ Secs.idOf(sec)) AND (ORM.dialect.bitAnd(this.relationName + ".flag", Flag.MaskClosed) EQ Flag.MaskClosed)
-      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list
+      ) ORDER_BY (this.time DESC) LIMIT(MAX_DATA_LENGTH) list;
+      list1 foreach{ x => x.lastModify = x.time}
+      list1
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -275,7 +286,9 @@ object Quotes1d extends Quotes {
       SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
-    } 
+    }
+
+    res foreach{ x => x.lastModify = x.time}
     res.headOption
   }
 
@@ -295,7 +308,7 @@ object Quotes1d extends Quotes {
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
-        res foreach {x => map.put(x.sec, x)}
+        res foreach {x => x.lastModify = x.time; map.put(x.sec, x)}
 
         map
     }
@@ -307,6 +320,7 @@ object Quotes1d extends Quotes {
       case None =>
         val newone = new Quote
         newone.time = dailyRoundedTime
+        newone.lastModify = dailyRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!
@@ -330,10 +344,12 @@ object Quotes1d extends Quotes {
     res.headOption match {
       case Some(one) =>
         one.isTransient = false
+        one.lastModify  = one.time
         one
       case None =>
         val newone = new Quote
         newone.time = dailyRoundedTime
+        newone.lastModify = dailyRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!
@@ -351,9 +367,11 @@ object Quotes1d extends Quotes {
     val rounded = TFreq.DAILY.round(time, cal)
 
     try {
-      SELECT (Quotes1d.*) FROM (Quotes1d JOIN Secs) WHERE (
+      val list1 = SELECT (Quotes1d.*) FROM (Quotes1d JOIN Secs) WHERE (
         (this.time EQ rounded) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
-      ) list
+      ) list;
+      list1 foreach{ x => x.lastModify = x.time}
+      list1
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -361,11 +379,13 @@ object Quotes1d extends Quotes {
 
   def lastDailyQuotesOf(exchange: Exchange): Seq[Quote] = {
     try {
-      SELECT (Quotes1d.*) FROM Quotes1d WHERE (
+      val list1 = SELECT (Quotes1d.*) FROM Quotes1d WHERE (
         Quotes1d.time EQ (
           SELECT (MAX(Quotes1d.time)) FROM (Quotes1d JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange))
         )
-      ) list
+      ) list;
+      list1 foreach{ x => x.lastModify = x.time}
+      list1
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -385,9 +405,11 @@ object Quotes1m extends Quotes {
 
   def mintueQuotesOf(sec: Sec, dailyRoundedTime: Long): Seq[Quote] = {    
     try {
-      SELECT (this.*) FROM (this) WHERE (
+      val list1 = SELECT (this.*) FROM (this) WHERE (
         this.sec.field EQ Secs.idOf(sec) AND (this.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
-      ) ORDER_BY (this.time DESC)  list
+      ) ORDER_BY (this.time DESC)  list;
+      list1 foreach{ x => x.lastModify = x.time}
+      list1
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
@@ -417,7 +439,7 @@ object Quotes1m extends Quotes {
         } catch {
           case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
-        res foreach {x => map.put(x.sec, x)}
+        res foreach {x => x.lastModify = x.time; map.put(x.sec, x)}
 
         map
     }
@@ -429,6 +451,7 @@ object Quotes1m extends Quotes {
       case None =>
         val newone = new Quote
         newone.time = minuteRoundedTime
+        newone.lastModify = minuteRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!
@@ -451,10 +474,12 @@ object Quotes1m extends Quotes {
     res match {
       case Seq(one) =>
         one.isTransient = false
+        one.lastModify = one.time
         one
       case Seq() =>
         val newone = new Quote
         newone.time = minuteRoundedTime
+        newone.lastModify = minuteRoundedTime
         newone.sec = sec
         newone.unclosed_!
         newone.justOpen_!

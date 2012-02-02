@@ -280,13 +280,10 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
     cal.getTimeInMillis
   }
 
-  /**
-   * @todo
-   */
   def isClosedDate(cal: Calendar): Boolean = {
     cal.get(Calendar.DAY_OF_WEEK) match {
       case Calendar.SUNDAY | Calendar.SATURDAY => true
-      case _ => false // @todo
+      case _ => false // @todo process holiday
     }
   }
 

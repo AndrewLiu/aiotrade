@@ -200,7 +200,6 @@ object PriceDistributions  extends Table[PriceDistribution] {
           map.unclosed_!
           map.justOpen_!
           map.fromMe_!
-          //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
         }
         map
     }
@@ -224,7 +223,6 @@ object PriceDistributions  extends Table[PriceDistribution] {
       map.unclosed_!
       map.justOpen_!
       map.fromMe_!
-      //sec.exchange.addNewPriceDistribution(TFreq.DAILY, map) @todo
     }
     map
   }
