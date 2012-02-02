@@ -67,7 +67,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
     /**
      * Creates new form ImportSymbolDialog
      */
-    public ImportSymbolDialog(Component parent, QuoteContract quoteContract, boolean newSymbol) {
+    public ImportSymbolDialog(Component parent, QuoteContract quoteContract, boolean isNewSymbol) {
         this.parent = parent;
         this.quoteContract = quoteContract;
         initComponents();
@@ -79,7 +79,7 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         }
         dataSourceComboBox.setModel(new DefaultComboBoxModel(servers.toArray()));
 
-        QuoteContract quoteContractTemplate = newSymbol
+        QuoteContract quoteContractTemplate = isNewSymbol
                 ? UserOptionsManager.currentPreferredQuoteContract()
                 : quoteContract;
         if (quoteContractTemplate == null) {
@@ -99,9 +99,11 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
 
         pathField.setText(quoteContractTemplate.urlString());
         stockSymbolsField.setText(quoteContractTemplate.srcSymbol());
-
-        fromDateField.setValue(quoteContractTemplate.beginDate());
-        toDateField.setValue(Calendar.getInstance().getTime());
+        
+        Calendar cal = Calendar.getInstance();
+        toDateField.setValue(cal.getTime());
+        cal.setTimeInMillis(quoteContractTemplate.fromTime());
+        fromDateField.setValue(cal.getTime());
         DateFormat format = DateFormat.getDateInstance(DateFormat.DEFAULT);
         if (format instanceof SimpleDateFormat) {
             String pattern = new StringBuffer("(").append(((SimpleDateFormat) format).toPattern()).append(")").toString();
@@ -153,8 +155,11 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         quoteContract.active_$eq(true);
         quoteContract.serviceClassName_$eq(selectedServer.getClass().getName());
         quoteContract.srcSymbol_$eq(stockSymbolsField.getText().trim().toUpperCase());
-        quoteContract.beginDate_$eq((Date) fromDateField.getValue());
-        quoteContract.endDate_$eq((Date) toDateField.getValue());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime((Date) fromDateField.getValue());
+        quoteContract.fromTime_$eq(cal.getTimeInMillis());
+        cal.setTime((Date) toDateField.getValue());
+        quoteContract.toTime_$eq(cal.getTimeInMillis());
         quoteContract.urlString_$eq(pathField.getText().trim());
 
         UserOptionsManager.currentPreferredQuoteContract_$eq(quoteContract);
@@ -487,7 +492,9 @@ public class ImportSymbolDialog extends javax.swing.JPanel {
         }
         String selectedDfStr = selectedServer.defaultDatePattern();
         SimpleDateFormat sdf = new SimpleDateFormat(selectedDfStr, Locale.US);
-        dateFormatSample.setText(sdf.format(quoteContract.beginDate()));
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(quoteContract.fromTime());
+        dateFormatSample.setText(sdf.format(cal.getTime()));
         formatStringField.setText(selectedDfStr);
     }//GEN-LAST:event_dataSourceComboBoxItemStateChanged
 

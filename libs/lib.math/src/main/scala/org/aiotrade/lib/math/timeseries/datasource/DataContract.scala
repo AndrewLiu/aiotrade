@@ -31,14 +31,10 @@
 package org.aiotrade.lib.math.timeseries.datasource
 
 import java.util.Calendar
-import java.util.Date
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
-import org.aiotrade.lib.util.serialization.BeansDocument
-import org.aiotrade.lib.util.serialization.JavaDocument
-import org.w3c.dom.Element
 
 /**
  * Securities' data source request contract. It know how to find and invoke
@@ -65,10 +61,9 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
   var isRefreshable: Boolean = false
   var refreshInterval: Int = 5000 // ms
 
-  private val cal = Calendar.getInstance
-  var endDate = cal.getTime
-  cal.set(1970, Calendar.JANUARY, 1)
-  var beginDate = cal.getTime
+  var toTime = Calendar.getInstance.getTimeInMillis
+  var fromTime = 0L
+  var loadedTime = 0L
 
   def isFreqSupported(freq: TFreq): Boolean
   
@@ -88,40 +83,6 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
     } catch {
       case ex: CloneNotSupportedException => log.log(Level.SEVERE, ex.getMessage, ex); null
     }
-  }
-
-  override def writeToBean(doc: BeansDocument): Element = {
-    val bean = super.writeToBean(doc)
-
-    doc.valuePropertyOfBean(bean, "symbol", srcSymbol)
-    doc.valuePropertyOfBean(bean, "datePattern", datePattern)
-
-    val begDateBean = doc.createBean(beginDate)
-    doc.innerPropertyOfBean(bean, "begDate", begDateBean)
-    doc.valueConstructorArgOfBean(begDateBean, 0, beginDate.getTime)
-
-    val endDateBean = doc.createBean(endDate)
-    doc.innerPropertyOfBean(bean, "endDate", endDateBean)
-    doc.valueConstructorArgOfBean(endDateBean, 0, endDate.getTime)
-
-    doc.valuePropertyOfBean(bean, "urlString", urlString)
-    doc.valuePropertyOfBean(bean, "refreshable", isRefreshable)
-    doc.valuePropertyOfBean(bean, "refreshInterval", refreshInterval)
-
-    bean
-  }
-
-  override def writeToJava(id: String): String = {
-    super.writeToJava(id) +
-    JavaDocument.set(id, "setSymbol", "" + srcSymbol) +
-    JavaDocument.set(id, "setDateFormatPattern", "" + datePattern) +
-    JavaDocument.create("begDate", classOf[Date], beginDate.getTime.asInstanceOf[AnyRef]) +
-    JavaDocument.set(id, "setBegDate", "begDate") +
-    JavaDocument.create("endDate", classOf[Date], endDate.getTime.asInstanceOf[AnyRef]) +
-    JavaDocument.set(id, "setEndDate", "endDate") +
-    JavaDocument.set(id, "setUrlString", urlString) +
-    JavaDocument.set(id, "setRefreshable", isRefreshable) +
-    JavaDocument.set(id, "setRefreshInterval", refreshInterval)
   }
 }
 

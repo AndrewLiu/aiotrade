@@ -136,17 +136,18 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   private var _richInfoHisContracts : Seq[RichInfoHisContract] = _
   
   def defaultFreq = if (_defaultFreq == null) TFreq.DAILY else _defaultFreq
-  def content = _content
+  def content = _content // common content, all secs may share same content instance, @todo
+  private lazy val selfContent = _content.clone
   
   private def dataContractOf[T <: DataContract[_]](tpe: Class[T], freq: TFreq): Option[T] = {
-    val contracts = content.lookupDescriptors(tpe)
+    val contracts = selfContent.lookupDescriptors(tpe)
     contracts.find(_.freq == freq) match {
       case None => 
         contracts.find(_.freq == defaultFreq) match {
           case Some(defaultOne) if defaultOne.isFreqSupported(freq) =>
             val x = defaultOne.clone//new QuoteContract
             x.freq = freq
-            content.addDescriptor(x)
+            selfContent.addDescriptor(x)
             Some(x.asInstanceOf[T])
           case _ => None
         }
@@ -557,7 +558,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             listenTo(ser)
 
             ser.isInLoading = true
-            richInfoHisServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            richInfoHisServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -726,6 +728,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
     
     dataContractOf(classOf[QuoteContract], freq) match {
       case Some(contract) =>
+        log.info("Quote Contract's identityHashCode=" + System.identityHashCode(contract))
         contract.serviceInstance() match {
           case Some(quoteServer) =>
             contract.srcSymbol = quoteServer.toSrcSymbol(uniSymbol)
@@ -746,7 +749,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            quoteServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            quoteServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -780,7 +784,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            moneyFlowServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            moneyFlowServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -817,7 +822,8 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
             reactions += reaction
             listenTo(ser)
 
-            priceDistributionServer.loadData(fromTime - 1, List(contract))
+            contract.fromTime = fromTime
+            priceDistributionServer.loadData(List(contract))
 
           case _ => ser.isLoaded = true
         }
@@ -838,7 +844,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   }
 
   def stopAllDataServer {
-    for (contract <- content.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
+    for (contract <- selfContent.lookupDescriptors(classOf[DataContract[DataServer[_]]]);
          server <- contract.serviceInstance()
     ) {
       server.stopRefresh

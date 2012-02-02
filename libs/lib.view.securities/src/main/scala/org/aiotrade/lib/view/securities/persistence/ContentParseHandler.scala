@@ -32,7 +32,6 @@ package org.aiotrade.lib.view.securities.persistence
 
 import java.text.NumberFormat
 import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import org.aiotrade.lib.charting.chart.handledchart.HandledChart
 import org.aiotrade.lib.charting.chart.segment.ValuePoint
@@ -313,15 +312,10 @@ class ContentParseHandler extends DefaultHandler {
     dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
         
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-        
     try {
-      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
-      dataContract.beginDate = calendar.getTime
-            
-      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
-      dataContract.endDate = calendar.getTime
-    } catch {case ex: ParseException => ex.printStackTrace}
+      dataContract.fromTime = meta.getValue("fromTime").trim.toLong
+      dataContract.toTime = meta.getValue("toTime").trim.toLong
+    } catch {case ex: Exception => ex.printStackTrace}
         
     dataContract.urlString = meta.getValue("url")
         
@@ -371,15 +365,10 @@ class ContentParseHandler extends DefaultHandler {
     dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
 
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-
     try {
-      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
-      dataContract.beginDate = calendar.getTime
-
-      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
-      dataContract.endDate = calendar.getTime
-    } catch {case ex: ParseException => ex.printStackTrace}
+      dataContract.fromTime = meta.getValue("fromTime").trim.toLong
+      dataContract.toTime = meta.getValue("toTime").trim.toLong
+    } catch {case ex: Exception => ex.printStackTrace}
 
     dataContract.urlString = meta.getValue("url")
 
@@ -408,15 +397,10 @@ class ContentParseHandler extends DefaultHandler {
     dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
 
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-
     try {
-      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
-      dataContract.beginDate = calendar.getTime
-
-      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
-      dataContract.endDate = calendar.getTime
-    } catch {case ex: ParseException => ex.printStackTrace}
+      dataContract.fromTime = meta.getValue("fromTime").trim.toLong
+      dataContract.toTime = meta.getValue("toTime").trim.toLong
+    } catch {case ex: Exception => ex.printStackTrace}
 
     dataContract.urlString = meta.getValue("url")
 
@@ -460,15 +444,10 @@ class ContentParseHandler extends DefaultHandler {
     dataContract.isRefreshable = meta.getValue("refreshable").trim.toBoolean
     dataContract.refreshInterval = meta.getValue("refreshinterval").trim.toInt
 
-    val sdf = new SimpleDateFormat("yyyy-MM-dd")
-
     try {
-      calendar.setTime(sdf.parse(meta.getValue("begdate").trim))
-      dataContract.beginDate = calendar.getTime
-
-      calendar.setTime(sdf.parse(meta.getValue("enddate").trim))
-      dataContract.endDate = calendar.getTime
-    } catch {case ex: ParseException => ex.printStackTrace}
+      dataContract.fromTime = meta.getValue("fromTime").trim.toLong
+      dataContract.toTime = meta.getValue("toTime").trim.toLong
+    } catch {case ex: Exception => ex.printStackTrace}
 
     dataContract.urlString = meta.getValue("url")
 

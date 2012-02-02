@@ -34,7 +34,7 @@ import java.awt.Image
 import java.io.{BufferedReader, File, InputStreamReader, InputStream}
 import java.net.{HttpURLConnection, URL}
 import java.text.{DateFormat, ParseException, SimpleDateFormat}
-import java.util.{Calendar, Date, Locale, TimeZone}
+import java.util.{Calendar, Locale, TimeZone}
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
@@ -90,22 +90,23 @@ object YahooQuoteServer extends QuoteServer with Singleton {
    * http://table.finance.yahoo.com/table.csv?s=^HSI&a=01&b=20&c=1990&d=07&e=18&f=2005&g=d&ignore=.csv
    */
   @throws(classOf[Exception])
-  protected def request(fromTime: Long, contract: QuoteContract): Option[InputStream] = {
+  protected def request(contract: QuoteContract): Option[InputStream] = {
+    val fromTime = contract.fromTime
     val cal = Calendar.getInstance
 
-    val (begDate, endDate ) = if (fromTime <= ANCIENT_TIME /* @todo */) {
-      (contract.beginDate, contract.endDate)
+    val (bTime, eTime) = if (fromTime <= ANCIENT_TIME /* @todo */) {
+      (contract.fromTime, contract.toTime)
     } else {
       cal.setTimeInMillis(fromTime)
-      (cal.getTime, new Date)
+      (fromTime, cal.getTimeInMillis)
     }
 
-    cal.setTime(begDate)
+    cal.setTimeInMillis(bTime)
     val a = cal.get(Calendar.MONTH)
     val b = cal.get(Calendar.DAY_OF_MONTH)
     val c = cal.get(Calendar.YEAR)
 
-    cal.setTime(endDate)
+    cal.setTimeInMillis(eTime)
     val d = cal.get(Calendar.MONTH)
     val e = cal.get(Calendar.DAY_OF_MONTH)
     val f = cal.get(Calendar.YEAR)
@@ -144,7 +145,9 @@ object YahooQuoteServer extends QuoteServer with Singleton {
    * @return readed time
    */
   @throws(classOf[Exception])
-  protected def read(fromTime: Long, contract: QuoteContract, is: InputStream): Array[Quote] = {
+  protected def read(contract: QuoteContract, is: InputStream): Array[Quote] = {
+    val fromTime = contract.fromTime
+    
     val reader = new BufferedReader(new InputStreamReader(is))
     /** skip first line */
     val s = reader.readLine
@@ -208,13 +211,12 @@ object YahooQuoteServer extends QuoteServer with Singleton {
     quotes.toArray
   }
 
-  protected def requestData(afterThisTime: Long, contracts: Iterable[QuoteContract]) {
-    val fromTime = afterThisTime + 1
+  protected def requestData(contracts: Iterable[QuoteContract]) {
     for (contract <- contracts) {
       try {
-        request(fromTime, contract) match {
+        request(contract) match {
           case Some(is) =>
-            val quotes = read(fromTime, contract, is)
+            val quotes = read(contract, is)
             if (quotes.length > 0) {
               publishData(DataLoaded(quotes, contract))
             }

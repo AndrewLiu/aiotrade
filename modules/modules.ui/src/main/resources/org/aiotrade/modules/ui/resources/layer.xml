@@ -3,6 +3,7 @@
 <filesystem>
     <folder name="Actions">
         <file name="org-aiotrade-modules-ui-options-general-MarketNewsAction.instance"/>
+        <file name="org-aiotrade-modules-ui-actions-LoadAllQuotesFromRemoteAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-AddExchangeSymbolsAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-AddSymbolAction.instance"/>
         <file name="org-aiotrade-modules-ui-actions-AddStatisticChartAction.instance"/>
@@ -34,6 +35,10 @@
 
     <folder name="Menu">
         <folder name="File">
+            <file name="LoadAllQuotesFromRemoteAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-LoadAllQuotesFromRemoteAction.instance"/>
+                <attr name="position" intvalue="100"/>
+            </file>
             <!--file name="AddSymbolAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-AddSymbolAction.instance"/>
                 <attr name="position" intvalue="100"/>
@@ -94,7 +99,7 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SaveToImageAction.instance"/>
             </file>
             <attr name = "SystemFileSystem.localizingBundle"
-                stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
+                  stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
             <!--file name="org-aiotrade-modules-ui-actions-SaveToCustomSizeImageAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SaveToCustomSizeImageAction.instance"/>
             </file-->
@@ -112,7 +117,7 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-AddStatisticChartAction.instance"/>
             </file>
             <attr name = "SystemFileSystem.localizingBundle"
-                stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
+                  stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
         </folder>
 
         <folder name="Draw">
@@ -127,7 +132,7 @@
                 <attr name="originalFile" stringvalue="Actions/org-aiotrade-modules-ui-actions-SwitchHideShowDrawingLineAction.instance"/>
             </file>
             <attr name = "SystemFileSystem.localizingBundle"
-                stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
+                  stringvalue="org.aiotrade.modules.ui.resources.Bundle"/>
         </folder>
 
         <folder name="QuickSearch">

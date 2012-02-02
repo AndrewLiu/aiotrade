@@ -54,16 +54,15 @@ abstract class QuoteServer extends DataServer[Quote] {
    * All quotes in storage should have been properly rounded to 00:00 of exchange's local time
    */
   protected def processData(quotes: Array[Quote], contract: QuoteContract): Long = {
-    var frTime = loadedTime
-    var toTime = loadedTime
-
     val uniSymbol = toUniSymbol(contract.srcSymbol)
     val sec = Exchange.secOf(uniSymbol) getOrElse {
       log.warning("No sec for: " + uniSymbol)
-      return loadedTime
-    }
-    
-    log.info("Got quotes from source of " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
+      return contract.loadedTime
+    }    
+    log.info("Got quotes from source for " + uniSymbol + "(" + contract.freq + "), size=" + quotes.length)
+
+    var frTime = contract.loadedTime
+    var toTime = contract.loadedTime
     var i = -1
     while ({i += 1; i < quotes.length}) {
       val quote = quotes(i)
@@ -98,6 +97,7 @@ abstract class QuoteServer extends DataServer[Quote] {
       startRefresh
     }
     
+    contract.loadedTime = toTime
     toTime
   }
 

@@ -4,7 +4,7 @@
         <source active="true" class="org.aiotrade.lib.dataserver.yahoo.YahooQuoteServer"
                 symbol="hsi" seckind="Stock" exchange="" primaryexchange="" currency="HKD"
                 dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="5000"
-                begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
+                fromTime="0" toTime="1327814337627" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
         </source>
     </sources>
     <indicators>
@@ -48,13 +48,13 @@
     <richinfosources>
         <richinfosource active="true" class="" symbol="hsi"
                 dateformat="dd-MMM-yy" nunits="1" unit="Second" refreshable="true" refreshinterval="5000"
-                begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
+                fromTime="0" toTime="1327814337627" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
         </richinfosource>
     </richinfosources>
     <richinfohissources>
         <richinfohissource active="true" class="" symbol="hsi"
                 dateformat="dd-MMM-yy" nunits="1" unit="Day" refreshable="false" refreshinterval="5000"
-                begdate="1990-10-30" enddate="2005-11-24" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
+                fromTime="0" toTime="1327814337627" url="file:D:\my-documents\aiotradedata\csv\HSI.csv">
         </richinfohissource>
     </richinfohissources>
     

@@ -35,11 +35,9 @@ import java.util.logging.Logger
 import javax.swing.Action
 import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
-import org.aiotrade.lib.util.serialization.BeansDocument
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper
 import org.aiotrade.lib.util.swing.action.SaveAction
-import org.w3c.dom.Element
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -146,13 +144,17 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
     try {
       val newone = super.clone.asInstanceOf[Content]
       newone.withActionsHelper = new WithActionsHelper(newone)
-      newone.descriptorBuf foreach {_.containerContent = newone}
+      newone.descriptorBuf = descriptorBuf map {x => 
+        val y = x.clone
+        y.containerContent = newone
+        y
+      }
       newone
     } catch {
       case ex => log.log(Level.WARNING, ex.getMessage, ex); null 
     }
   }
-            
+
   def addAction(action: Action): Action = {
     withActionsHelper.addAction(action)
   }
@@ -163,17 +165,6 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
     
   def createDefaultActions: Array[Action] = {
     Array(new ContentSaveAction)
-  }
-    
-  def writeToBean(doc: BeansDocument): Element = {
-    val bean = doc.createBean(this)
-        
-    val list = doc.listPropertyOfBean(bean, "descriptors")
-    for (descriptor <- descriptorBuf) {
-      doc.innerElementOfList(list, descriptor.writeToBean(doc))
-    }
-        
-    bean
   }
     
   private class ContentSaveAction extends SaveAction {

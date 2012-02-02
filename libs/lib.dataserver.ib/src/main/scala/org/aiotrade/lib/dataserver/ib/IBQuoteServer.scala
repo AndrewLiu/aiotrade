@@ -36,7 +36,6 @@ import java.awt.Image
 import java.io.File
 import java.io.IOException
 import java.util.Calendar
-import java.util.Date
 import java.util.TimeZone
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -82,21 +81,15 @@ object IBQuoteServer extends QuoteServer with Singleton {
   }
 
   @throws(classOf[Exception])
-  protected def request(fromTime: Long, contract: QuoteContract) {
+  protected def request(contract: QuoteContract) {
     val cal = Calendar.getInstance
         
     val storage = new ArrayList[Quote]
         
-    var bDate = new Date
-    var eDate = new Date
-    if (fromTime <= ANCIENT_TIME /* @todo */) {
-      bDate = contract.beginDate
-      eDate = contract.endDate
-    } else {
-      cal.setTimeInMillis(fromTime)
-      bDate = cal.getTime
+    var bTime = contract.fromTime
+    var eTime = contract.toTime
+    if (contract.fromTime <= ANCIENT_TIME /* @todo */) {
     }
-        
         
     var m_rc = false
     var m_backfillEndTime: String = null
@@ -139,8 +132,8 @@ object IBQuoteServer extends QuoteServer with Singleton {
       m_order.m_goodTillDate = ""
             
       /** set historical data fields: */
-            
-      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(eDate)
+      cal.setTimeInMillis(eTime)
+      m_backfillEndTime = ibWrapper.getTwsDateFormart.format(cal.getTime)
             
       val freq = contract.freq
             
@@ -252,14 +245,12 @@ object IBQuoteServer extends QuoteServer with Singleton {
     ibWrapper.cancelHisDataRequest(contract.reqId)
   }
     
-  protected def requestData(afterThisTime: Long, contracts: Iterable[QuoteContract]) {
+  protected def requestData(contracts: Iterable[QuoteContract]) {
     if (!connect) return
 
-    val fromTime = afterThisTime + 1
     for (contract <- contracts) {
-      var loadedTime1 = loadedTime
       try {
-        request(fromTime, contract)
+        request(contract)
         val quotes = read(contract)
         if (quotes.length > 0) {
           publishData(DataLoaded(quotes, contract))
