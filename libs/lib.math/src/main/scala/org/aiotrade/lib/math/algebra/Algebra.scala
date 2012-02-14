@@ -54,5 +54,39 @@ object Algebra {
     }
     max
   }
+  
+  def toArray(A: Matrix): Array[Array[Double]] = {
+    checkSquare(A)
+    val n = A.numCols
+    val V = new Array[Array[Double]](n, n)
+    for (slice <- A) {
+      val row = slice.index
+      for (element <- slice.vector) {
+        V(row)(element.index) = element.get
+      }
+    }
+    V
+  }
+
+  def isSymmetric(matrix: Array[Array[Double]]): Boolean = {
+    var i = 0
+    while (i < matrix.length) {
+      var j = 0 
+      while (j<i) {
+        if (matrix(i)(j) != matrix(j)(i)) {
+          return false
+        }
+        j += 1
+      }
+      i += 1
+    }
+    true
+  }
+
+  def checkSquare(matrix: Matrix) = {
+    if(matrix.numRows != matrix.numCols) {
+      throw new IllegalArgumentException("Matrix must be square")     
+    }
+  }
 
 }

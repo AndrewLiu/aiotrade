@@ -26,7 +26,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
   private var cdivr: Double = _
   private var cdivi: Double = _
   
-  if (EigenvalueDecomposition.isSymmetric(V)) {
+  if (Algebra.isSymmetric(V)) {
     // Tridiagonalize.
     tred2()
 
@@ -55,7 +55,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
   }
 
   def this(A: Matrix) = {
-    this(EigenvalueDecomposition.toArray(A))
+    this(Algebra.toArray(A))
   }
 
   private def cdiv(xr: Double, xi: Double, yr: Double, yi: Double) {
@@ -840,7 +840,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
 
           var g = d(l)
           var p = (d(l + 1) - g) / (2.0 * e(l))
-          var r = EigenvalueDecomposition.hypot(p, 1.0)
+          var r = Algebra.hypot(p, 1.0)
           if (p < 0) {
             r = -r
           }
@@ -871,7 +871,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
             s2 = s
             g = c * e(i)
             h = c * p
-            r = EigenvalueDecomposition.hypot(p, e(i))
+            r = Algebra.hypot(p, e(i))
             e(i + 1) = s * r
             s = e(i) / r
             c = p / r
@@ -1082,55 +1082,4 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
     V(n - 1)(n - 1) = 1.0
     e(0) = 0.0
   }
-}
-
-object EigenvalueDecomposition {
-  private def toArray(A: Matrix): Array[Array[Double]] = {
-    checkSquare(A)
-    val n = A.numCols
-    val V = new Array[Array[Double]](n, n)
-    for (slice <- A) {
-      val row = slice.index
-      for (element <- slice.vector) {
-        V(row)(element.index) = element.get
-      }
-    }
-    V
-  }
-
-  private def isSymmetric(matrix: Array[Array[Double]]): Boolean = {
-    var i = 0
-    while (i < matrix.length) {
-      var j = 0 
-      while (j<i) {
-        if (matrix(i)(j) != matrix(j)(i)) {
-          return false
-        }
-        j += 1
-      }
-      i += 1
-    }
-    true
-  }
-
-  def checkSquare(matrix: Matrix) = {
-    if(matrix.numRows != matrix.numCols) {
-      throw new IllegalArgumentException("Matrix must be square")     
-    }
-  }
-
-  def hypot(a: Double, b: Double): Double = {
-    var r = 0.0
-    if (math.abs(a) > math.abs(b)) {
-      r = b / a
-      r = math.abs(a) * math.sqrt(1 + r * r)
-    } else if (b != 0) {
-      r = a / b
-      r = math.abs(b) * math.sqrt(1 + r * r)
-    } else {
-      r = 0.0
-    }
-    r
-  }
-
 }
