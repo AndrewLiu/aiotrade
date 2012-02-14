@@ -4,6 +4,8 @@ package org.aiotrade.lib.math.algebra
  * Constructs and returns a new singular value decomposition object; The
  * decomposed matrices can be retrieved via instance methods of the returned
  * decomposition object.
+ * @see http://en.wikipedia.org/wiki/Singular_value_decomposition
+ * also @see http://en.wikipedia.org/wiki/Eigenvalue,_eigenvector_and_eigenspace
  * 
  * @param arg
  *            A rectangular matrix.
@@ -32,8 +34,8 @@ class SingularValueDecomposition(arg: Matrix) {
   private val u = new Array[Array[Double]](m, math.min(m, n))
   private val v = new Array[Array[Double]](n, n)
   
-  /**To handle the case where numRows() < numCols() and to use the fact that SVD(A')=VSU'=> SVD(A')'=SVD(A)**/
-  private var transpositionNeeded = false;
+  /** To handle the case where numRows < numCols and to use the fact that SVD(A')=VSU'=> SVD(A')'=SVD(A)**/
+  private var transpositionNeeded = false
   
   def init(arg: Matrix) {
     var i = 0
@@ -294,7 +296,7 @@ class SingularValueDecomposition(arg: Matrix) {
     // Main iteration loop for the singular values.
     
     val pp = p - 1
-    //Int iter = 0;
+    //Int iter = 0
     val eps = math.pow(2.0, -52.0)
     while (p > 0) {
       // Here is where a test for too many iterations would go.
@@ -430,7 +432,7 @@ class SingularValueDecomposition(arg: Matrix) {
           if (b != 0.0 || c != 0.0) {
             shift = math.sqrt(b * b + c)
             if (b < 0.0) {
-              shift = -shift;
+              shift = -shift
             }
             shift = c / (b + shift)
           }
@@ -480,7 +482,7 @@ class SingularValueDecomposition(arg: Matrix) {
             j += 1
           }
           e(p - 2) = f
-          //iter += 1;
+          //iter += 1
         
           // Convergence.
         
@@ -529,7 +531,7 @@ class SingularValueDecomposition(arg: Matrix) {
               k += 1
             }
           }
-          //iter = 0;
+          //iter = 0
           p -= 1
         case _ =>
           throw new IllegalStateException()
@@ -604,7 +606,7 @@ class SingularValueDecomposition(arg: Matrix) {
    * @return <tt>V</tt>
    */
   def getV: Matrix = {
-    if (transpositionNeeded) { //case numRows() < numCols()
+    if (transpositionNeeded) { // case numRows < numCols
       val numCols = math.min(m + 1, n)
       val r = DenseMatrix(m, numCols)
       var i = 0
@@ -635,7 +637,7 @@ class SingularValueDecomposition(arg: Matrix) {
   def rank: Int = {
     val eps = math.pow(2.0, -52.0)
     val tol = math.max(m, n) * s(0) * eps
-    var r = 0;
+    var r = 0
     for (value <- s) {
       if (value > tol) {
         r += 1
