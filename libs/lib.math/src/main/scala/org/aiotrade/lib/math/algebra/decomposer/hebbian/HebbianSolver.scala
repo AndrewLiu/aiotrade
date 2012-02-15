@@ -1,7 +1,6 @@
 package org.aiotrade.lib.math.algebra.decomposer.hebbian
 
 import java.util.Properties
-import java.util.Random
 
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
@@ -14,6 +13,7 @@ import org.aiotrade.lib.math.algebra.Vector
 import org.aiotrade.lib.math.algebra.decomposer.AsyncEigenVerifier
 import org.aiotrade.lib.math.algebra.decomposer.EigenStatus
 import org.aiotrade.lib.math.algebra.decomposer.SingularVectorVerifier
+import org.aiotrade.lib.math.random.RandomUtils
 
 /**
  * The Hebbian solver is an iterative, sparse, singular value decomposition solver, based on the paper
@@ -43,7 +43,7 @@ class HebbianSolver(updater: EigenUpdater,
   private val log = Logger.getLogger(this.getClass.getName)
   private val DEBUG = false
 
-  private final val rng: Random = new Random()
+  private final val rng = RandomUtils.getRandom
 
   private var numPasses = 0
 
@@ -223,7 +223,7 @@ class HebbianSolver(updater: EigenUpdater,
     var index = 0
     var v: Vector = null
     do {
-      val r = rng.nextDouble()
+      val r = rng.nextDouble
       index = (r * corpus.numRows).toInt
       v = corpus.viewRow(index)
     } while (v == null || v.norm(2) == 0 || v.getNumNondefaultElements < 5)
