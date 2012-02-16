@@ -1,6 +1,8 @@
 package org.aiotrade.lib.math.algebra
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.CardinalityException
+import org.aiotrade.lib.math.IndexException
 import scala.collection.mutable
 
 

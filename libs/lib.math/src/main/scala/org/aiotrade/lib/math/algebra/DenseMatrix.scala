@@ -1,5 +1,7 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.CardinalityException
+import org.aiotrade.lib.math.IndexException
 
 /** Matrix of doubles implemented using a 2-d array */
 class DenseMatrix private (private var values: Array[Array[Double]]) extends AbstractMatrix(values.length, values(0).length) {
@@ -7,7 +9,7 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
   override 
   def clone: Matrix = {
     val x = super.clone.asInstanceOf[DenseMatrix]
-    x.values = new Array[Array[Double]](values.length, values(0).length)
+    x.values = new Array[Array[Double]](values.length)
     var i = 0
     while (i < values.length) {
       x.values(i) = values(i).clone
@@ -130,15 +132,23 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
 }
 
 object DenseMatrix {
-  def apply(values: Array[Array[Double]]) = {
-    val xs = new Array[Array[Double]](values.length,  values(0).length)
-    // be careful, need to clone the columns too
-    var i = 0
-    while (i < xs.length) {
-      xs(i) = values(i).clone
-      i += 1
+  def apply(values: Array[Array[Double]], shallowCopy: Boolean) = {
+    if (shallowCopy) {
+      new DenseMatrix(values)
+    } else {
+      val xs = new Array[Array[Double]](values.length)
+      // be careful, need to clone the columns too
+      var i = 0
+      while (i < xs.length) {
+        xs(i) = values(i).clone
+        i += 1
+      }
+      new DenseMatrix(xs)
     }
-    new DenseMatrix(xs)
+  }
+
+  def apply(values: Array[Array[Double]]) = {
+    new DenseMatrix(values)
   }
 
   def apply(rows: Int, columns: Int) = {

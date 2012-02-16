@@ -1,5 +1,8 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.CardinalityException
+import org.aiotrade.lib.math.IndexException
+
 /** Implements subset view of a Matrix */
 /**
  * Construct a view of the matrix with given offset and cardinality

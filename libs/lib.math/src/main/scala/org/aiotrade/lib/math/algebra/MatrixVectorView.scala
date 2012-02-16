@@ -1,5 +1,6 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.IndexException
 import java.util.NoSuchElementException
 
 /**

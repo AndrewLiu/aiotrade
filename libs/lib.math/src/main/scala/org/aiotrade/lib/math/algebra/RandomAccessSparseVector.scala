@@ -2,6 +2,7 @@ package org.aiotrade.lib.math.algebra
 
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.CardinalityException
 import scala.collection.mutable
 
 

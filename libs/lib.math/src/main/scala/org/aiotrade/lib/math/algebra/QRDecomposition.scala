@@ -1,5 +1,6 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.FastMath
 import org.aiotrade.lib.math.Functions
 import java.util.Locale
 
@@ -56,7 +57,7 @@ class QRDecomposition(a: Matrix) {
 
       var i = k
       while (i < originalRows) { // fixes bug reported by hong.44@osu.edu
-        nrm = Algebra.hypot(nrm, qr.getQuick(i, k))
+        nrm = FastMath.hypot(nrm, qr.getQuick(i, k))
         i += 1
       }
 

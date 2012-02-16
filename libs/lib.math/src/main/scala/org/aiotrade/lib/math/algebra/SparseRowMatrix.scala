@@ -1,5 +1,8 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.CardinalityException
+import org.aiotrade.lib.math.IndexException
+
 /**
  * sparse matrix with general element values whose rows are accessible quickly. Implemented as a row array of
  * either SequentialAccessSparseVectors or RandomAccessSparseVectors.

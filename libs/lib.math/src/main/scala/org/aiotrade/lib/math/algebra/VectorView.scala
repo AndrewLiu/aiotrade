@@ -1,5 +1,6 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.IndexException
 
 /** Implements subset view of a Vector */
 class VectorView private (private var vector: Vector, private var offset: Int, cardinality: Int) extends AbstractVector(cardinality) {

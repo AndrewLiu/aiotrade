@@ -1,4 +1,4 @@
-package org.aiotrade.lib.math.algebra
+package org.aiotrade.lib.math
 
 /**
  * Exception thrown when a matrix or vector is accessed at an index, or dimension,

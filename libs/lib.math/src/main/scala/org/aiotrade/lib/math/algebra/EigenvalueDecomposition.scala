@@ -1,5 +1,7 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.FastMath
+
 @serializable
 final class EigenvalueDecomposition(V: Array[Array[Double]]) {
 
@@ -26,7 +28,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
   private var cdivr: Double = _
   private var cdivi: Double = _
   
-  if (Algebra.isSymmetric(V)) {
+  if (Matrix.isSymmetric(V)) {
     // Tridiagonalize.
     tred2()
 
@@ -55,7 +57,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
   }
 
   def this(A: Matrix) = {
-    this(Algebra.toArray(A))
+    this(Matrix.toArray(A))
   }
 
   private def cdiv(xr: Double, xi: Double, yr: Double, yi: Double) {
@@ -840,7 +842,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
 
           var g = d(l)
           var p = (d(l + 1) - g) / (2.0 * e(l))
-          var r = Algebra.hypot(p, 1.0)
+          var r = FastMath.hypot(p, 1.0)
           if (p < 0) {
             r = -r
           }
@@ -871,7 +873,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
             s2 = s
             g = c * e(i)
             h = c * p
-            r = Algebra.hypot(p, e(i))
+            r = FastMath.hypot(p, e(i))
             e(i + 1) = s * r
             s = e(i) / r
             c = p / r

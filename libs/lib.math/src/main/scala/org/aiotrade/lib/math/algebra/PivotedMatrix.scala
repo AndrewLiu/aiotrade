@@ -1,5 +1,7 @@
 package org.aiotrade.lib.math.algebra
 
+import org.aiotrade.lib.math.IndexException
+
 /**
  * Matrix that allows transparent row and column permutation.
  */

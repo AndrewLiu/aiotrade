@@ -2,6 +2,8 @@ package org.aiotrade.lib.math.algebra
 
 
 /** The basic interface including numerous convenience functions */
+import org.aiotrade.lib.math.Precision
+
 @cloneable
 trait Matrix extends VectorIterable {
 
@@ -390,4 +392,98 @@ trait Matrix extends VectorIterable {
    * @return A vector that shares storage with the original matrix.
    */
   def viewDiagonal: Vector
+}
+
+object Matrix {
+  
+  /**
+   * Compute Maximum Absolute Row Sum Norm of input Matrix m
+   * http://mathworld.wolfram.com/MaximumAbsoluteRowSumNorm.html 
+   */
+  def getNorm(m: Matrix): Double = {
+    var max = 0.0;
+    var i = 0
+    while (i < m.numRows) {
+      var sum = 0;
+      val cv = m.viewRow(i)
+      var j = 0
+      while (j < cv.size) {
+        sum += math.abs(cv.getQuick(j)).toInt
+        j += 1
+      }
+      if (sum > max) {
+        max = sum
+      }
+      i += 1
+    }
+    max
+  }
+  
+  def toArray(m: Matrix): Array[Array[Double]] = {
+    checkSquare(m)
+    val n = m.numCols
+    val V = new Array[Array[Double]](n, n)
+    for (slice <- m) {
+      val row = slice.index
+      for (element <- slice.vector) {
+        V(row)(element.index) = element.get
+      }
+    }
+    V
+  }
+
+  def isSymmetric(matrix: Array[Array[Double]]): Boolean = {
+    var i = 0
+    while (i < matrix.length) {
+      var j = 0 
+      while (j < i) {
+        if (matrix(i)(j) != matrix(j)(i)) {
+          return false
+        }
+        j += 1
+      }
+      i += 1
+    }
+    true
+  }
+  
+  /**
+   * Check if a matrix is symmetric.
+   *
+   * @param matrix Matrix to check.
+   * @param raiseException If {@code true}, the method will throw an
+   * exception if {@code matrix} is not symmetric.
+   * @return {@code true} if {@code matrix} is symmetric.
+   * @throws NonSymmetricMatrixException if the matrix is not symmetric and
+   * {@code raiseException} is {@code true}.
+   */
+  def isSymmetric(matrix: Matrix): Boolean = {
+    val rows = matrix.numRows
+    val columns = matrix.numCols
+    val eps = 10 * rows * columns * Precision.EPSILON
+    var i = 0
+    while (i < rows) {
+      var j = i + 1
+      while (j < columns) {
+        val mij = matrix.getQuick(i, j)
+        val mji = matrix.getQuick(j, i)
+        if (math.abs(mij - mji) > (math.max(math.abs(mij), math.abs(mji)) * eps)) {
+          return false
+        }
+        j += 1
+      }
+      i += 1
+    }
+    true
+  }
+  
+  def isSquare(m: Matrix): Boolean = {
+    m.numCols == m.numRows
+  }
+  
+  def checkSquare(m: Matrix) = {
+    if (!isSquare(m)) {
+      throw new IllegalArgumentException("Matrix must be square")     
+    }
+  }
 }

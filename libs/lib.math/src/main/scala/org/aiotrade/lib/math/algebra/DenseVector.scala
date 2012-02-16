@@ -2,7 +2,10 @@ package org.aiotrade.lib.math.algebra
 
 
 /** Implements vector as an array of doubles */
+import org.aiotrade.lib.math.CardinalityException
 import org.aiotrade.lib.math.Functions
+import org.aiotrade.lib.math.IndexException
+
 
 class DenseVector private (private var values: Array[Double]) extends AbstractVector(values.length) {
 

@@ -1,4 +1,4 @@
-package org.aiotrade.lib.math.algebra
+package org.aiotrade.lib.math
 
 /**
  * Exception thrown when there is a cardinality mismatch in matrix or vector operations.
