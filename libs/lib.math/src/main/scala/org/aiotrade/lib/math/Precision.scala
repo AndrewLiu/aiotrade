@@ -12,13 +12,13 @@ object Precision {
    * Smallest positive number such that {@code 1 - EPSILON} is not
    * numerically equal to 1: {@value}.
    */
-  val EPSILON: Double = math.pow(2, -53) //0x1.0p-53
+  val EPSILON: Double = FastMath.pow(2, -53) //0x1.0p-53
   /**
    * Safe minimum, such that {@code 1 / SAFE_MIN} does not overflow.
    * In IEEE 754 arithmetic, this is also the smallest normalized
    * number 2<sup>-1022</sup>: {@value}.
    */
-  val SAFE_MIN: Double = math.pow(2, -1022) //0x1.0p-1022
+  val SAFE_MIN: Double = FastMath.pow(2, -1022) //0x1.0p-1022
   /** Offset to order signed Double numbers lexicographically. */
   val SGN_MASK = 0x8000000000000000L
   /** Offset to order signed Double numbers lexicographically. */
