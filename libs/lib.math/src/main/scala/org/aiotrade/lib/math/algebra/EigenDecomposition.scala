@@ -3,7 +3,6 @@ package org.aiotrade.lib.math.algebra
 import org.aiotrade.lib.math.CardinalityException
 
 import org.aiotrade.lib.math.Precision
-import org.aiotrade.lib.math.FastMath
 
 /**
  * Calculates the eigen decomposition of a real <strong>symmetric</strong>
@@ -264,7 +263,7 @@ class EigenDecomposition private (main: Array[Double], secondary: Array[Double],
         maxAbsoluteValue = math.abs(realEigenvalues(i))
       }
       if (math.abs(e(i)) > maxAbsoluteValue) {
-        maxAbsoluteValue = FastMath.abs(e(i))
+        maxAbsoluteValue = math.abs(e(i))
       }
       i += 1
     }
@@ -275,7 +274,7 @@ class EigenDecomposition private (main: Array[Double], secondary: Array[Double],
         if (math.abs(realEigenvalues(i)) <= Precision.EPSILON * maxAbsoluteValue) {
           realEigenvalues(i) = 0
         }
-        if (FastMath.abs(e(i)) <= Precision.EPSILON * maxAbsoluteValue) {
+        if (math.abs(e(i)) <= Precision.EPSILON * maxAbsoluteValue) {
           e(i) = 0
         }
         i += 1
@@ -319,7 +318,7 @@ class EigenDecomposition private (main: Array[Double], secondary: Array[Double],
             val h = c * e(i)
             if (math.abs(p) >= math.abs(q)) {
               c = q / p
-              t = FastMath.sqrt(c * c + 1.0)
+              t = math.sqrt(c * c + 1.0)
               e(i + 1) = p * t
               s = 1.0 / t
               c = c * s
@@ -395,7 +394,7 @@ class EigenDecomposition private (main: Array[Double], secondary: Array[Double],
     i = 0
     while (i < n) {
       if (math.abs(realEigenvalues(i)) > maxAbsoluteValue) {
-        maxAbsoluteValue = FastMath.abs(realEigenvalues(i))
+        maxAbsoluteValue = math.abs(realEigenvalues(i))
       }
       i += 1
     }

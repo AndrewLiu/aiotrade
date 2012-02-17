@@ -12,13 +12,13 @@ object Precision {
    * Smallest positive number such that {@code 1 - EPSILON} is not
    * numerically equal to 1: {@value}.
    */
-  val EPSILON: Double = FastMath.pow(2, -53) //0x1.0p-53
+  val EPSILON: Double = math.pow(2, -53) //0x1.0p-53
   /**
    * Safe minimum, such that {@code 1 / SAFE_MIN} does not overflow.
    * In IEEE 754 arithmetic, this is also the smallest normalized
    * number 2<sup>-1022</sup>: {@value}.
    */
-  val SAFE_MIN: Double = FastMath.pow(2, -1022) //0x1.0p-1022
+  val SAFE_MIN: Double = math.pow(2, -1022) //0x1.0p-1022
   /** Offset to order signed Double numbers lexicographically. */
   val SGN_MASK = 0x8000000000000000L
   /** Offset to order signed Double numbers lexicographically. */
@@ -349,7 +349,7 @@ object Precision {
    * @since 1.1 (previously in {@code MathUtils}, moved as of version 3.0)
    */
   def round(x: Float, scale: Int, roundingMethod: Int): Float = {
-    val sign = FastMath.copySign(1f, x)
+    val sign = java.lang.Math.copySign(1f, x)
     val factor = math.pow(10.0f, scale).toFloat * sign
     roundUnscaled(x * factor, sign, roundingMethod).toFloat / factor
   }
@@ -370,54 +370,54 @@ object Precision {
     val roundedUnscaled = roundingMethod match {
       case BigDecimal.ROUND_CEILING =>
         if (sign == -1) {
-          FastMath.floor(FastMath.nextAfter(unscaled, Double.NegativeInfinity))
+          math.floor(java.lang.Math.nextAfter(unscaled, Double.NegativeInfinity))
         } else {
-          FastMath.ceil(FastMath.nextAfter(unscaled, Double.PositiveInfinity))
+          math.ceil(java.lang.Math.nextAfter(unscaled, Double.PositiveInfinity))
         }
       case BigDecimal.ROUND_DOWN =>
-        FastMath.floor(FastMath.nextAfter(unscaled, Double.NegativeInfinity))
+        math.floor(java.lang.Math.nextAfter(unscaled, Double.NegativeInfinity))
       case BigDecimal.ROUND_FLOOR =>
         if (sign == -1) {
-          FastMath.ceil(FastMath.nextAfter(unscaled, Double.PositiveInfinity))
+          math.ceil(java.lang.Math.nextAfter(unscaled, Double.PositiveInfinity))
         } else {
-          FastMath.floor(FastMath.nextAfter(unscaled, Double.NegativeInfinity))
+          math.floor(java.lang.Math.nextAfter(unscaled, Double.NegativeInfinity))
         }
       case BigDecimal.ROUND_HALF_DOWN => 
-        val unscaledTmp = FastMath.nextAfter(unscaled, Double.NegativeInfinity)
-        val fraction = unscaledTmp - FastMath.floor(unscaledTmp)
+        val unscaledTmp = java.lang.Math.nextAfter(unscaled, Double.NegativeInfinity)
+        val fraction = unscaledTmp - math.floor(unscaledTmp)
         if (fraction > 0.5) {
-          FastMath.ceil(unscaledTmp)
+          math.ceil(unscaledTmp)
         } else {
-          FastMath.floor(unscaledTmp)
+          math.floor(unscaledTmp)
         }
       case BigDecimal.ROUND_HALF_EVEN =>
-        val fraction = unscaled - FastMath.floor(unscaled)
+        val fraction = unscaled - math.floor(unscaled)
         if (fraction > 0.5) {
-          FastMath.ceil(unscaled)
+          math.ceil(unscaled)
         } else if (fraction < 0.5) {
-          FastMath.floor(unscaled)
+          math.floor(unscaled)
         } else {
           // The following equality test is intentional and needed for rounding purposes
-          if (FastMath.floor(unscaled) / 2.0 == FastMath.floor(FastMath.floor(unscaled) / 2.0)) { // even
-            FastMath.floor(unscaled)
+          if (math.floor(unscaled) / 2.0 == math.floor(math.floor(unscaled) / 2.0)) { // even
+            math.floor(unscaled)
           } else { // odd
-            FastMath.ceil(unscaled)
+            math.ceil(unscaled)
           }
         }
       case BigDecimal.ROUND_HALF_UP =>
-        val unscaledTmp = FastMath.nextAfter(unscaled, Double.PositiveInfinity)
-        val fraction = unscaledTmp - FastMath.floor(unscaledTmp)
+        val unscaledTmp = java.lang.Math.nextAfter(unscaled, Double.PositiveInfinity)
+        val fraction = unscaledTmp - math.floor(unscaledTmp)
         if (fraction >= 0.5) {
-          FastMath.ceil(unscaled)
+          math.ceil(unscaled)
         } else {
-          FastMath.floor(unscaled)
+          math.floor(unscaled)
         }
       case BigDecimal.ROUND_UNNECESSARY =>
-        if (unscaled != FastMath.floor(unscaled)) {
+        if (unscaled != math.floor(unscaled)) {
           throw new ArithmeticException()
         } else unscaled
       case BigDecimal.ROUND_UP =>
-        FastMath.ceil(FastMath.nextAfter(unscaled,  Double.PositiveInfinity))
+        math.ceil(java.lang.Math.nextAfter(unscaled,  Double.PositiveInfinity))
       case _ =>
         throw new IllegalArgumentException("invalid rounding method {0}, valid methods: {1} ({2}), {3} ({4}), {5} ({6}), {7} ({8}), {9} ({10}), {11} ({12}), {13} ({14}), {15} ({16})".format(
             roundingMethod,
@@ -456,7 +456,7 @@ object Precision {
   def main(args: Array[String]) {
     println("EPSILON = " + Precision.EPSILON)
     println("SAFE_MIN = " + Precision.SAFE_MIN)
-    println("FastMath.hypot(8.5, 11.19) = " + FastMath.hypot(8.5, 11.19))
+    println("Math.hypot(8.5, 11.19) = " + java.lang.Math.hypot(8.5, 11.19))
   }
   
 }

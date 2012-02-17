@@ -10,8 +10,6 @@ package org.aiotrade.lib.math.algebra
  * @param arg
  *            A rectangular matrix.
  */
-import org.aiotrade.lib.math.FastMath
-
 @serializable
 class SingularValueDecomposition(arg: Matrix) {
   
@@ -71,7 +69,7 @@ class SingularValueDecomposition(arg: Matrix) {
         s(k) = 0
         var i = k
         while (i < m) {
-          s(k) = FastMath.hypot(s(k), a(i)(k))
+          s(k) = java.lang.Math.hypot(s(k), a(i)(k))
           i += 1
         }
         if (s(k) != 0.0) {
@@ -128,7 +126,7 @@ class SingularValueDecomposition(arg: Matrix) {
         e(k) = 0
         var i = k + 1
         while (i < n) {
-          e(k) = FastMath.hypot(e(k), e(i))
+          e(k) = java.lang.Math.hypot(e(k), e(i))
           i += 1
         }
         if (e(k) != 0.0) {
@@ -368,7 +366,7 @@ class SingularValueDecomposition(arg: Matrix) {
           e(p - 2) = 0.0
           var j = p - 2
           while (j >= k) {
-            var t = FastMath.hypot(s(j), f)
+            var t = java.lang.Math.hypot(s(j), f)
             val cs = s(j) / t
             val sn = f / t
             s(j) = t
@@ -395,7 +393,7 @@ class SingularValueDecomposition(arg: Matrix) {
           e(k - 1) = 0.0
           var j = k
           while (j < p) {
-            var t = FastMath.hypot(s(j), f)
+            var t = java.lang.Math.hypot(s(j), f)
             val cs = s(j) / t
             val sn = f / t
             s(j) = t
@@ -445,7 +443,7 @@ class SingularValueDecomposition(arg: Matrix) {
           
           var j = k
           while (j < p - 1) {
-            var t = FastMath.hypot(f, g)
+            var t = java.lang.Math.hypot(f, g)
             var cs = f / t
             var sn = g / t
             if (j != k) {
@@ -464,7 +462,7 @@ class SingularValueDecomposition(arg: Matrix) {
                 i += 1
               }
             }
-            t = FastMath.hypot(f, g)
+            t = java.lang.Math.hypot(f, g)
             cs = f / t
             sn = g / t
             s(j) = t
