@@ -53,9 +53,9 @@ class SecInfo extends BelongsToSec {
   var upperLimit: Double = -1
   var lowerLimit: Double = -1
 
-  private var _id: Long = _
-  def id = _id
-  def id_= (id: Long){_id = id}
+//  private var _id: Long = _
+//  def id = _id
+//  def id_= (id: Long){_id = id}
 
   override def toString = {
     "SecInfo(uniSymbol=" + uniSymbol + ")"

@@ -46,9 +46,9 @@ class SecDividend extends BelongsToSec  {
   private var _adjWeight: Double = _
   private var _adjOffset: Double = _
   
-  private var _id: Long = _
-  def id = _id
-  def id_= (id: Long){_id = id}
+//  private var _id: Long = _
+//  def id = _id
+//  def id_= (id: Long){_id = id}
 
   def adjWeight = if (hasAccurateParams) shareAfterward else _adjWeight
   def adjWeight_=(adjWeight: Double) {

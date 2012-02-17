@@ -64,6 +64,9 @@ object Packaging {
     if (dotGit.exists) {
       dotGit.renameTo(new File(destPath, "dotgit"))
     }
+    else{
+      log.info("There is no file of " + dotGit.getPath)
+    }
   }
 
 }

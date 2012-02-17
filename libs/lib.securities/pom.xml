@@ -164,8 +164,8 @@
                                             <mainClass>org.aiotrade.lib.securities.data.Packaging</mainClass>
                                             <args>
                                                 <arg>${basedir}/src/main/resources/data</arg>
-                                                <arg>http://jc1.foundersc.com/git/aiotrade-data.git</arg> <!-- sourceUri -->
-                                                <arg>refs/heads/test</arg> <!-- the default branch that will be checkedout after clone -->
+                                                <arg>http://jc1.foundersc.com/git/aiotrade-data1.git</arg> <!-- sourceUri -->
+                                                <arg>refs/heads/master</arg> <!-- the default branch that will be checkedout after clone -->
                                             </args>
                                         </launcher>
                                     </launchers>

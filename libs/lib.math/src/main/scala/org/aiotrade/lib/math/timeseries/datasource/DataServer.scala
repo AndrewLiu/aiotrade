@@ -121,7 +121,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
       case RequestData(contracts) =>
         try {
           flowCount += 1
-          log.info("Got RequestData message, going to request data, flowCount=" + flowCount)
+          log.fine("Got RequestData message, going to request data, flowCount=" + flowCount)
           requestData(contracts)
         } catch {
           case ex => log.log(Level.WARNING, ex.getMessage, ex)

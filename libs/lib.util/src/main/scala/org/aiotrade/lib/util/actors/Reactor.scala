@@ -10,6 +10,7 @@
 
 package org.aiotrade.lib.util.actors
 
+import java.util.logging.Logger
 import org.aiotrade.lib.util.reactors.Reactions
 import scala.actors.Actor._
 
@@ -17,6 +18,7 @@ import scala.actors.Actor._
  * The counterpart to publishers. Listens to events from registered publishers.
  */
 trait Reactor extends scala.actors.Reactor[Any] {
+  private val log = Logger.getLogger("Reactor")
   private case object Stop
   
   /**
@@ -24,7 +26,7 @@ trait Reactor extends scala.actors.Reactor[Any] {
    */
   val reactions: Reactions = new Reactions.Impl += {
     case Stop => exit
-    case _ => // it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction
+    case x => //log.info("it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction for:\n" + x)
   }
   
   start
