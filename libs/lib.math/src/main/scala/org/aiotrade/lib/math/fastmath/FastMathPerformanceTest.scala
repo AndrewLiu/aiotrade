@@ -1,4 +1,4 @@
-package org.aiotrade.lib.math
+package org.aiotrade.lib.math.fastmath
 
 
 /**

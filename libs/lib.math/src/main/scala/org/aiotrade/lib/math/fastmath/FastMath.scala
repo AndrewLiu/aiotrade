@@ -1,5 +1,6 @@
-package org.aiotrade.lib.math
+package org.aiotrade.lib.math.fastmath
 
+import org.aiotrade.lib.math.Precision
 
 /**
  * Faster, more accurate, portable alternative to {@link Math} and

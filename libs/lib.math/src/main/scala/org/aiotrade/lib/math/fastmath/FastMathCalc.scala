@@ -1,6 +1,8 @@
-package org.aiotrade.lib.math
+package org.aiotrade.lib.math.fastmath
+
 
 import java.io.PrintStream
+import org.aiotrade.lib.math.CardinalityException
 
 /**
  *
