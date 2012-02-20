@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 import java.util.Random
 
 final class RandomWrapper(fixedSeed: Long) extends Random {
-  private val STANDARD_SEED = "Mahout=Hadoop+ML".getBytes(Charset.forName("US_ASCII"))
+  private val STANDARD_SEED = "Mahout=Hadoop+ML".getBytes(Charset.forName("US-ASCII"))
   private val SEED_GENERATOR = FastRandomSeedGenerator
 
   private var random: Random = buildRandom()

@@ -510,7 +510,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     }
 
     /* special case: we only need to iterate over the non-zero elements of the vector to add */
-    if (Functions.PLUS.equals(function)) {
+    if (Functions.PLUS == function) {
       val nonZeroElements = other.iterateNonZero
       while (nonZeroElements.hasNext) {
         val e = nonZeroElements.next

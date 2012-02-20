@@ -86,67 +86,67 @@ object Functions {
    * <H3>Unary functions</H3>
    */
   /** Function that returns <tt>math.abs(a)</tt>. */
-  def ABS = (a: Double) => math.abs(a)
+  val ABS = (a: Double) => math.abs(a)
 
   /** Function that returns <tt>math.acos(a)</tt>. */
-  def ACOS = (a: Double) => math.acos(a)
+  val ACOS = (a: Double) => math.acos(a)
 
   /** Function that returns <tt>math.asin(a)</tt>. */
-  def ASIN = (a: Double) => math.asin(a)
+  val ASIN = (a: Double) => math.asin(a)
 
   /** Function that returns <tt>math.atan(a)</tt>. */
-  def ATAN = (a: Double) => math.atan(a)
+  val ATAN = (a: Double) => math.atan(a)
 
   /** Function that returns <tt>math.ceil(a)</tt>. */
-  def CEIL = (a: Double) => math.ceil(a)
+  val CEIL = (a: Double) => math.ceil(a)
 
   /** Function that returns <tt>math.cos(a)</tt>. */
-  def COS = (a: Double) => math.cos(a)
+  val COS = (a: Double) => math.cos(a)
 
   /** Function that returns <tt>math.exp(a)</tt>. */
-  def EXP = (a: Double) => math.exp(a)
+  val EXP = (a: Double) => math.exp(a)
 
   /** Function that returns <tt>math.floor(a)</tt>. */
-  def FLOOR = (a: Double) => math.floor(a)
+  val FLOOR = (a: Double) => math.floor(a)
 
   /** Function that returns its argument. */
-  def IDENTITY = (a: Double) => a
+  val IDENTITY = (a: Double) => a
 
   /** Function that returns <tt>1.0 / a</tt>. */
-  def INV = (a: Double) => 1.0 / a
+  val INV = (a: Double) => 1.0 / a
 
   /** Function that returns <tt>math.log(a)</tt>. */
-  def LOGARITHM = (a: Double) =>  math.log(a)
+  val LOGARITHM = (a: Double) =>  math.log(a)
 
   /** Function that returns <tt>math.log(a) / math.log(2)</tt>. */
-  def LOG2 = (a: Double) => math.log(a) * 1.4426950408889634
+  val LOG2 = (a: Double) => math.log(a) * 1.4426950408889634
 
   /** Function that returns <tt>-a</tt>. */
-  def NEGATE = (a: Double) => -a
+  val NEGATE = (a: Double) => -a
 
   /** Function that returns <tt>math.rint(a)</tt>. */
-  def RINT = (a: Double) => math.rint(a)
+  val RINT = (a: Double) => math.rint(a)
 
   /** Function that returns <tt>a < 0 ? -1 : a > 0 ? 1 : 0</tt>. */
-  def SIGN = (a: Double) => if (a < 0) -1 else if (a > 0) 1.0 else 0.0
+  val SIGN = (a: Double) => if (a < 0) -1 else if (a > 0) 1.0 else 0.0
 
   /** Function that returns <tt>math.sin(a)</tt>. */
-  def SIN = (a: Double) => math.sin(a)
+  val SIN = (a: Double) => math.sin(a)
 
   /** Function that returns <tt>math.sqrt(a)</tt>. */
-  def SQRT = (a: Double) => math.sqrt(a)
+  val SQRT = (a: Double) => math.sqrt(a)
 
   /** Function that returns <tt>a * a</tt>. */
-  def SQUARE = (a: Double) => a * a
+  val SQUARE = (a: Double) => a * a
 
   /** Function that returns <tt> 1 / (1 + exp(-a) </tt> */
-  def SIGMOID = (a: Double) => 1.0 / (1.0 + math.exp(-a))
+  val SIGMOID = (a: Double) => 1.0 / (1.0 + math.exp(-a))
 
   /** Function that returns <tt> a * (1-a) </tt> */
-  def SIGMOIDGRADIENT = (a: Double) => a * (1.0 - a)
+  val SIGMOIDGRADIENT = (a: Double) => a * (1.0 - a)
 
   /** Function that returns <tt>math.tan(a)</tt>. */
-  def TAN = (a: Double) => math.tan(a)
+  val TAN = (a: Double) => math.tan(a)
 
 
   /*
@@ -154,61 +154,61 @@ object Functions {
    */
 
   /** Function that returns <tt>math.atan2(a,b)</tt>. */
-  def ATAN2 = (a: Double, b: Double) => math.atan2(a, b)
+  val ATAN2 = (a: Double, b: Double) => math.atan2(a, b)
 
   /** Function that returns <tt>a < b ? -1 : a > b ? 1 : 0</tt>. */
-  def COMPARE = (a: Double, b: Double) => if (a < b) -1 else if (a > b) 1.0 else 0.0
+  val COMPARE = (a: Double, b: Double) => if (a < b) -1 else if (a > b) 1.0 else 0.0
 
   /** Function that returns <tt>a / b</tt>. */
-  def DIV = (a: Double, b: Double) => a / b
+  val DIV = (a: Double, b: Double) => a / b
 
   /** Function that returns <tt>a == b ? 1 : 0</tt>. */
-  def EQUALS = (a: Double, b: Double) => if (a == b) 1.0 else 0.0
+  val EQUALS = (a: Double, b: Double) => if (a == b) 1.0 else 0.0
 
   /** Function that returns <tt>a > b ? 1 : 0</tt>. */
-  def GREATER = (a: Double, b: Double) => if (a > b) 1.0 else 0.0
+  val GREATER = (a: Double, b: Double) => if (a > b) 1.0 else 0.0
 
   /** Function that returns <tt>math.IEEEremainder(a,b)</tt>. */
-  def IEEE_REMAINDER = (a: Double, b: Double) => math.IEEEremainder(a, b)
+  val IEEE_REMAINDER = (a: Double, b: Double) => math.IEEEremainder(a, b)
 
   /** Function that returns <tt>a == b</tt>. */
-  def IS_EQUAL = (a: Double, b: Double) => a == b
+  val IS_EQUAL = (a: Double, b: Double) => a == b
 
   /** Function that returns <tt>a < b</tt>. */
-  def IS_LESS = (a: Double, b: Double) => a < b
+  val IS_LESS = (a: Double, b: Double) => a < b
 
   /** Function that returns <tt>a > b</tt>. */
-  def IS_GREATER = (a: Double, b: Double) => a > b
+  val IS_GREATER = (a: Double, b: Double) => a > b
 
   /** Function that returns <tt>a < b ? 1 : 0</tt>. */
-  def LESS = (a: Double, b: Double) => if (a < b) 1.0 else 0.0
+  val LESS = (a: Double, b: Double) => if (a < b) 1.0 else 0.0
 
   /** Function that returns <tt>math.log(a) / math.log(b)</tt>. */
-  def LG = (a: Double, b: Double) => math.log(a) / math.log(b)
+  val LG = (a: Double, b: Double) => math.log(a) / math.log(b)
 
   /** Function that returns <tt>math.max(a,b)</tt>. */
-  def MAX = (a: Double, b: Double) =>  math.max(a, b)
+  val MAX = (a: Double, b: Double) =>  math.max(a, b)
 
   /** Function that returns <tt>math.min(a,b)</tt>. */
-  def MIN = (a: Double, b: Double) => math.min(a, b)
+  val MIN = (a: Double, b: Double) => math.min(a, b)
 
   /** Function that returns <tt>a - b</tt>. */
-  def MINUS = plusMult(-1)
+  val MINUS = plusMult(-1)
 
   /** Function that returns <tt>a % b</tt>. */
-  def MOD = (a: Double, b: Double) => a % b
+  val MOD = (a: Double, b: Double) => a % b
 
   /** Function that returns <tt>a * b</tt>. */
-  def MULT = (a: Double, b: Double) => a * b
+  val MULT = (a: Double, b: Double) => a * b
   
   /** Function that returns <tt>a + b</tt>. */
-  def PLUS = (a: Double, b: Double) => a + b
+  val PLUS = (a: Double, b: Double) => a + b
 
   /** Function that returns <tt>math.abs(a) + math.abs(b)</tt>. */
-  def PLUS_ABS = (a: Double, b: Double) => math.abs(a) + math.abs(b)
+  val PLUS_ABS = (a: Double, b: Double) => math.abs(a) + math.abs(b)
 
   /** Function that returns <tt>math.pow(a,b)</tt>. */
-  def POW = (a: Double, b: Double) => math.pow(a, b)
+  val POW = (a: Double, b: Double) => math.pow(a, b)
 
   /**
    * Constructs a function that returns <tt>(from<=a && a<=to) ? 1 : 0</tt>. <tt>a</tt> is a variable, <tt>from</tt> and

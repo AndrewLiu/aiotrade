@@ -26,7 +26,7 @@ object FastRandomSeedGenerator extends SeedGenerator {
     var savedException: SeedException = null
     for (generator <- generators) {
       try {
-        generator.generateSeed(length)
+        return generator.generateSeed(length)
       } catch {
         case ex: SeedException =>
           if (savedException != null) {
@@ -35,10 +35,11 @@ object FastRandomSeedGenerator extends SeedGenerator {
           savedException = ex
       }
     }
+    
     if (savedException != null) {
       throw savedException
     } else {
-      throw new IllegalStateException("Couldn't generate seed, but didn't find an exception.  Can't happen.")
+      throw new IllegalStateException("Couldn't generate seed, but didn't find an exception. Can't happen.")
     }
   }
 }
