@@ -131,8 +131,8 @@ class PivotedMatrix private (val base: Matrix, val rowPivot: Array[Int], val col
    * @return the Double at the index
    */
   override
-  def getQuick(row: Int, column: Int): Double = {
-     base.getQuick(rowPivot(row), columnPivot(column))
+  def apply(row: Int, column: Int): Double = {
+     base(rowPivot(row), columnPivot(column))
   }
 
   /**
@@ -165,8 +165,8 @@ class PivotedMatrix private (val base: Matrix, val rowPivot: Array[Int], val col
    * @param value  a Double value to set
    */
   override
-  def setQuick(row: Int, column: Int, value: Double) {
-    base.setQuick(rowPivot(row), columnPivot(column), value)
+  def update(row: Int, column: Int, value: Double) {
+    base(rowPivot(row), columnPivot(column)) = value
   }
 
   /**

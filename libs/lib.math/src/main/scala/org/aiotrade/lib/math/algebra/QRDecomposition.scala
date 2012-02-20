@@ -56,14 +56,14 @@ class QRDecomposition(a: Matrix) {
 
       var i = k
       while (i < originalRows) { // fixes bug reported by hong.44@osu.edu
-        nrm = java.lang.Math.hypot(nrm, qr.getQuick(i, k))
+        nrm = java.lang.Math.hypot(nrm, qr(i, k))
         i += 1
       }
 
 
       if (nrm != 0.0) {
         // Form k-th Householder vector.
-        if (qr.getQuick(k, k) < 0) {
+        if (qr(k, k) < 0) {
           nrm = -nrm
         }
         QRcolumnsPart(k).assign(Functions.div(nrm))
@@ -73,7 +73,7 @@ class QRDecomposition(a: Matrix) {
          }
          */
 
-        qr.setQuick(k, k, qr.getQuick(k, k) + 1)
+        qr(k, k) = qr(k, k) + 1
 
         // Apply transformation to remaining columns.
         var j = k + 1
@@ -89,19 +89,19 @@ class QRDecomposition(a: Matrix) {
            s += QR[i][k]*QR[i][j]
            }
            */
-          s = -s / qr.getQuick(k, k)
+          s = -s / qr(k, k)
           //QRcolumnsPart[j].assign(QRcolumns[k], F.plusMult(s))
 
           var i = k
           while (i < originalRows) {
-            qr.setQuick(i, j, qr.getQuick(i, j) + s * qr.getQuick(i, k))
+            qr(i, j) = qr(i, j) + s * qr(i, k)
             i += 1
           }
           
           j += 1
         }
       }
-      rDiag.setQuick(k, -nrm)
+      rDiag(k) = -nrm
       
       k += 1
     }
@@ -148,11 +148,11 @@ class QRDecomposition(a: Matrix) {
       var j = 0
       while (j < originalColumns) {
         if (i < j) {
-          r.setQuick(i, j, qr.getQuick(i, j))
+          r(i, j) = qr(i, j)
         } else if (i == j) {
-          r.setQuick(i, j, rDiag.getQuick(i))
+          r(i, j) = rDiag(i)
         } else {
-          r.setQuick(i, j, 0)
+          r(i, j) = 0
         }
         j += 1
       }
@@ -169,7 +169,7 @@ class QRDecomposition(a: Matrix) {
   def hasFullRank: Boolean = {
     var j = 0
     while (j < originalColumns) {
-      if (rDiag.getQuick(j) == 0) {
+      if (rDiag(j) == 0) {
         return false
       }
       j += 1

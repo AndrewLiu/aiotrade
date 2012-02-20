@@ -160,14 +160,14 @@ trait Vector extends Iterable[Vector.Element] {
    * @param index an int index
    * @return the Double at the index
    */
-  def getQuick(index: Int): Double
+  def apply(index: Int): Double
 
   /**
    * Return an empty vector of the same underlying class as the receiver
    *
    * @return a Vector
    */
-  def like: Vector
+  def like(): Vector
 
   /**
    * Return a new vector containing the element by element difference of the recipient and the argument
@@ -267,7 +267,7 @@ trait Vector extends Iterable[Vector.Element] {
    * @param index an int index into the receiver
    * @param value a Double value to set
    */
-  def setQuick(index: Int, value: Double)
+  def update(index: Int, value: Double)
 
   /**
    * Return the number of values in the recipient which are not the default value.  For instance, for a

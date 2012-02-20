@@ -36,12 +36,12 @@ class SparseColumnMatrix private (_rows: Int, _columns: Int, private var columnV
   }
 
   override
-  def getQuick(row: Int, column: Int): Double = {
-    if (columnVectors(column) == null) 0.0 else columnVectors(column).getQuick(row)
+  def apply(row: Int, column: Int): Double = {
+    if (columnVectors(column) == null) 0.0 else columnVectors(column)(row)
   }
 
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     SparseColumnMatrix(rowSize, columnSize)
   }
 
@@ -51,11 +51,11 @@ class SparseColumnMatrix private (_rows: Int, _columns: Int, private var columnV
   }
 
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     if (columnVectors(column) == null) {
       columnVectors(column) = RandomAccessSparseVector(rowSize)
     }
-    columnVectors(column).setQuick(row, value)
+    columnVectors(column)(row) = value
   }
 
   override
@@ -111,7 +111,7 @@ class SparseColumnMatrix private (_rows: Int, _columns: Int, private var columnV
     }
     var col = 0
     while (col < columnSize) {
-      columnVectors(col).setQuick(row, other.getQuick(col))
+      columnVectors(col)(row) = other(col)
       col += 1
     }
     this

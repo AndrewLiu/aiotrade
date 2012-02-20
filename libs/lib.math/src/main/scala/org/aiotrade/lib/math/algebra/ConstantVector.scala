@@ -76,7 +76,7 @@ class ConstantVector private (value: Double, _size: Int) extends AbstractVector(
    * @return the Double at the index
    */
   override
-  def getQuick(index: Int): Double = {
+  def apply(index: Int): Double = {
     value;
   }
 
@@ -86,7 +86,7 @@ class ConstantVector private (value: Double, _size: Int) extends AbstractVector(
    * @return a Vector
    */
   override
-  def like: Vector = {
+  def like(): Vector = {
     DenseVector(size)
   }
 
@@ -97,7 +97,7 @@ class ConstantVector private (value: Double, _size: Int) extends AbstractVector(
    * @param value a Double value to set
    */
   override
-  def setQuick(index: Int, value: Double) {
+  def update(index: Int, value: Double) {
     throw new UnsupportedOperationException("Can't set a value in a constant matrix")
   }
 

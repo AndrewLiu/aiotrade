@@ -6,10 +6,10 @@ import java.util.NoSuchElementException
 /**
  * Provides a virtual vector that is really a row or column or diagonal of a matrix.
  */
-class MatrixVectorView private (private var matrix: Matrix, 
-                                private var row: Int, private var column: Int, 
-                                private var rowStride: Int, 
-                                private var columnStride: Int) extends AbstractVector(MatrixVectorView.viewSize(matrix, row, column, rowStride, columnStride)) {
+class MatrixVectorView protected (private var matrix: Matrix, 
+                                  private var row: Int, private var column: Int, 
+                                  private var rowStride: Int, 
+                                  private var columnStride: Int) extends AbstractVector(MatrixVectorView.viewSize(matrix, row, column, rowStride, columnStride)) {
  
   if (row < 0 || row > matrix.rowSize) {
     throw new IndexException(row, matrix.rowSize)
@@ -46,9 +46,9 @@ class MatrixVectorView private (private var matrix: Matrix,
       private val r = new LocalElement(0)
       private var i: Int = 0
 
-      def hasNext = i < size
+      def hasNext = i < MatrixVectorView.this.size
       def next: Element = {
-        if (i >= size) {
+        if (i >= MatrixVectorView.this.size) {
           throw new NoSuchElementException
         }
         r.index = i
@@ -77,8 +77,8 @@ class MatrixVectorView private (private var matrix: Matrix,
    * @return the Double at the index
    */
   override
-  def getQuick(index: Int): Double = {
-    matrix.getQuick(row + rowStride * index, column + columnStride * index)
+  def apply(index: Int): Double = {
+    matrix(row + rowStride * index, column + columnStride * index)
   }
 
   /**
@@ -86,70 +86,70 @@ class MatrixVectorView private (private var matrix: Matrix,
    *
    * @return a Vector
    */
-  override
-  def like: Vector = {
-    matrix.like(size, 1).viewColumn(0)
-  }
-
-  /**
-   * Set the value at the given index, without checking bounds
-   *
-   * @param index an Int index into the receiver
-   * @param value a Double value to set
-   */
-  override
-  def setQuick(index: Int, value: Double) {
-    matrix.setQuick(row + rowStride * index, column + columnStride * index, value)
-  }
-
-  /**
-   * Return the number of values in the recipient
-   *
-   * @return an Int
-   */
-  override
-  def getNumNondefaultElements: Int = {
-    size
-  }
-
-  /**
-   * Subclasses must override to return an appropriately sparse or dense result
-   *
-   * @param rows    the row cardinality
-   * @param columns the column cardinality
-   * @return a Matrix
-   */
-  override
-  protected[algebra] def matrixLike(rows: Int, columns: Int): Matrix = {
-    val offset = Array(row, column)
-    val size = Array(if (rowStride == 0) 1 else rowStride, if (columnStride == 0) 1 else columnStride)
-    matrix.viewPart(offset, size)
-  }
-
-  override
-  def clone: Vector = {
-    val r = super.clone.asInstanceOf[MatrixVectorView]
-    r.matrix = matrix.clone
-    r.row = row
-    r.column = column
-    r.rowStride = rowStride
-    r.columnStride = columnStride
-    r
-  }
-}
-
-object MatrixVectorView {
-  def apply(matrix: Matrix, row: Int, column: Int, rowStride: Int, columnStride: Int) = new MatrixVectorView(matrix, row, column, rowStride, columnStride)
-  
-  private def viewSize(matrix: Matrix, row: Int, column: Int, rowStride: Int, columnStride: Int): Int = {
-    if (rowStride != 0 && columnStride != 0) {
-      val n1 = (matrix.numRows - row) / rowStride
-      val n2 = (matrix.numCols - column) / columnStride
-      return math.min(n1, n2)
-    } else if (rowStride > 0) {
-      return (matrix.numRows - row) / rowStride
-    } else {
-      return (matrix.numCols - column) / columnStride
+   override
+   def like(): Vector = {
+      matrix.like(size, 1).viewColumn(0)
     }
-  }
-}
+
+   /**
+    * Set the value at the given index, without checking bounds
+    *
+    * @param index an Int index into the receiver
+    * @param value a Double value to set
+    */
+   override
+   def update(index: Int, value: Double) {
+      matrix(row + rowStride * index, column + columnStride * index) = value
+    }
+
+   /**
+    * Return the number of values in the recipient
+    *
+    * @return an Int
+    */
+   override
+   def getNumNondefaultElements: Int = {
+      size
+    }
+
+   /**
+    * Subclasses must override to return an appropriately sparse or dense result
+    *
+    * @param rows    the row cardinality
+    * @param columns the column cardinality
+    * @return a Matrix
+    */
+   override
+   protected[algebra] def matrixLike(rows: Int, columns: Int): Matrix = {
+      val offset = Array(row, column)
+      val size = Array(if (rowStride == 0) 1 else rowStride, if (columnStride == 0) 1 else columnStride)
+      matrix.viewPart(offset, size)
+    }
+
+   override
+   def clone: Vector = {
+      val r = super.clone.asInstanceOf[MatrixVectorView]
+      r.matrix = matrix.clone
+      r.row = row
+      r.column = column
+      r.rowStride = rowStride
+      r.columnStride = columnStride
+      r
+    }
+   }
+
+   object MatrixVectorView {
+      def apply(matrix: Matrix, row: Int, column: Int, rowStride: Int, columnStride: Int) = new MatrixVectorView(matrix, row, column, rowStride, columnStride)
+  
+      private def viewSize(matrix: Matrix, row: Int, column: Int, rowStride: Int, columnStride: Int): Int = {
+        if (rowStride != 0 && columnStride != 0) {
+          val n1 = (matrix.numRows - row) / rowStride
+          val n2 = (matrix.numCols - column) / columnStride
+          return math.min(n1, n2)
+        } else if (rowStride > 0) {
+          return (matrix.numRows - row) / rowStride
+        } else {
+          return (matrix.numCols - column) / columnStride
+        }
+      }
+    }

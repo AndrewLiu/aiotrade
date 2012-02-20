@@ -7,7 +7,7 @@ import org.aiotrade.lib.math.Functions
 import org.aiotrade.lib.math.IndexException
 
 
-class DenseVector private (private var values: Array[Double]) extends AbstractVector(values.length) {
+class DenseVector protected (private var values: Array[Double]) extends AbstractVector(values.length) {
 
   /** For serialization purposes only */
   def this() = {
@@ -42,7 +42,7 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
     val max = size
     var i = 0
     while (i < max) {
-      val value = this.getQuick(i)
+      val value = this.apply(i)
       result += value * value
       i += 1
     }
@@ -50,17 +50,17 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
   }
 
   override
-  def getQuick(index: Int): Double = {
+  def apply(index: Int): Double = {
     values(index)
   }
 
   override
-  def like: DenseVector = {
+  def like(): DenseVector = {
     DenseVector(size)
   }
 
   override
-  def setQuick(index: Int, value: Double) {
+  def update(index: Int, value: Double) {
     lengthSquared = -1.0
     values(index) = value
   }
@@ -77,7 +77,7 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
     if (size != other.size) {
       throw new CardinalityException(size, other.size)
     }
-    // is there some other way to know if function.apply(0, x) = x for all x?
+    // is there some other way to know if function(0, x) = x for all x?
     function match {
       case f: Functions.PlusMult =>
         val it = other.iterateNonZero
@@ -88,7 +88,7 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
       case _ =>
         var i = 0
         while (i < size) {
-          values(i) = function(values(i), other.getQuick(i))
+          values(i) = function(values(i), other(i))
           i += 1
         }
     }
@@ -177,10 +177,10 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
     private var index = 0
 
     def hasNext = {
-      while (index < size && values(index) == 0.0) {
+      while (index < DenseVector.this.size && values(index) == 0.0) {
         index += 1
       }
-      index < size
+      index < DenseVector.this.size
     }
     def next = {
       if (hasNext) {
@@ -198,7 +198,7 @@ class DenseVector private (private var values: Array[Double]) extends AbstractVe
     private val element = new DenseElement()
     element.index = -1
 
-    def hasNext = element.index + 1 < size
+    def hasNext = element.index + 1 < DenseVector.this.size
     def next = {
       if (hasNext) {
         element.index += 1

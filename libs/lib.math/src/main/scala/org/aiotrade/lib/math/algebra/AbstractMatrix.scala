@@ -136,7 +136,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        setQuick(row, col, value)
+        this(row, col) = value
         col += 1
       }
       row += 1
@@ -155,7 +155,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
       if (columns == values(row).length) {
         var col = 0
         while (col < columns) {
-          setQuick(row, col, values(row)(col))
+          this(row, col) = values(row)(col)
           col += 1
         }
       } else {
@@ -179,7 +179,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        setQuick(row, col, function(getQuick(row, col), other.getQuick(row, col)))
+        this(row, col) = function(this(row, col), other(row, col))
         col += 1
       }
       row += 1
@@ -200,7 +200,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        setQuick(row, col, other.getQuick(row, col))
+        this(row, col) = other(row, col)
         col += 1
       }
       row += 1
@@ -215,7 +215,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        setQuick(row, col, function(getQuick(row, col)))
+        this(row, col) = function(this(row, col))
         col += 1
       }
       row += 1
@@ -301,7 +301,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     }
 
     if (rows == 2) {
-      return getQuick(0, 0) * getQuick(1, 1) - getQuick(0, 1) * getQuick(1, 0)
+      return this(0, 0) * this(1, 1) - this(0, 1) * this(1, 0)
     } else {
       // TODO: this really should just be one line:
       // TODO: new CholeskyDecomposition(this).getL().viewDiagonal().aggregate(Functions.TIMES)
@@ -319,13 +319,13 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
             if (k == i) {
               flag = true
             } else {
-              minor.set(j - 1, if (flag) k - 1 else k, getQuick(j, k))
+              minor.set(j - 1, if (flag) k - 1 else k, this(j, k))
             }
             k += 1
           }
           j += 1
         }
-        ret += getQuick(0, i) * sign * minor.determinant
+        ret += this(0, i) * sign * minor.determinant
         sign *= -1
         
         i += 1
@@ -360,7 +360,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rowSize) {
       var col = 0
       while (col < columnSize) {
-        result.setQuick(row, col, getQuick(row, col) / x)
+        result(row, col) = this(row, col) / x
         col += 1
       }
       row += 1
@@ -375,7 +375,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     if (column < 0 || column >= columnSize) {
       throw new IndexException(column, columnSize)
     }
-    getQuick(row, column)
+    this(row, column)
   }
 
   def minus(other: Matrix): Matrix = {
@@ -392,7 +392,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        result.setQuick(row, col, getQuick(row, col) - other.getQuick(row, col))
+        result(row, col) = this(row, col) - other(row, col)
         col += 1
       }
       row += 1
@@ -408,7 +408,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        result.setQuick(row, col, getQuick(row, col) + x)
+        result(row, col) = this(row, col) + x
         col += 1
       }
       row += 1
@@ -430,7 +430,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        result.setQuick(row, col, getQuick(row, col) + other.getQuick(row, col))
+        result(row, col) = this(row, col) + other(row, col)
         col += 1
       }
       row += 1
@@ -445,7 +445,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     if (column < 0 || column >= columnSize) {
       throw new IndexException(column, columnSize)
     }
-    setQuick(row, column, value)
+    this(row, column) = value
   }
 
   def set(row: Int, data: Array[Double]) {
@@ -459,7 +459,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     }
     var i = 0
     while (i < columns) {
-      setQuick(row, i, data(i))
+      this(row, i) = data(i)
       i += 1
     }
   }
@@ -472,7 +472,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        result.setQuick(row, col, getQuick(row, col) * x)
+        result(row, col) = this(row, col) * x
         col += 1
       }
       row += 1
@@ -495,10 +495,10 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
         var sum = 0.0
         var k = 0
         while (k < columns) {
-          sum += getQuick(row, k) * other.getQuick(k, col)
+          sum += this(row, k) * other(k, col)
           k += 1
         }
-        result.setQuick(row, col, sum)
+        result(row, col) = sum
         col += 1
       }
       row += 1
@@ -515,7 +515,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     val w = DenseVector(rows)
     var row = 0
     while (row < rows) {
-      w.setQuick(row, v.dot(viewRow(row)))
+      w(row) = v.dot(viewRow(row))
       row += 1
     }
     w
@@ -548,7 +548,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rows) {
       var col = 0
       while (col < columns) {
-        result.setQuick(col, row, getQuick(row, col))
+        result(col, row) = this(row, col)
         col += 1
       }
       row += 1
@@ -566,7 +566,7 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
     while (row < rowSize) {
       var col = 0
       while (col < columnSize) {
-        result += getQuick(row, col)
+        result += this(row, col)
         col += 1
       }
       row += 1
@@ -587,26 +587,30 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
       this(m, offset, true)
     }
 
-    override def clone: Vector = {
+    override 
+    def clone: Vector = {
       val v = DenseVector(size)
       v.assign(this, Functions.PLUS)
       v
     }
 
-    override def isDense: Boolean = {
-       true
+    override 
+    def isDense: Boolean = {
+      true
     }
 
-    override def isSequentialAccess: Boolean = {
-       true
+    override 
+    def isSequentialAccess: Boolean = {
+      true
     }
 
     override 
     protected[algebra] def matrixLike(rows: Int, columns: Int): Matrix = {
-       matrix.like(rows, columns)
+      matrix.like(rows, columns)
     }
 
-    override def iterator: Iterator[Element] = {
+    override 
+    def iterator: Iterator[Element] = {
       return new Iterator[Element]() {
         private var index: Int = _
         def hasNext = index < size
@@ -627,27 +631,31 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
      * TODO: This could be optimized to at least skip empty rows if there are many of them.
      * @return an iterator (currently dense).
      */
-    override def iterateNonZero: Iterator[Element] = {
-      return iterator
+    override 
+    def iterateNonZero: Iterator[Element] = {
+      iterator
     }
 
-    override def getElement(i: Int): Element = {
+    override 
+    def getElement(i: Int): Element = {
       new Element() {
         def index: Int = i
         
-        def get: Double = getQuick(i)
+        def get: Double = apply(i)
         def set(value: Double) {
-          setQuick(i, value)
+          update(i, value)
         }
       }
     }
 
-    override def getQuick(index: Int): Double = {
+    override 
+    def apply(index: Int): Double = {
       val v = if (rowToColumn) matrix.viewColumn(index) else matrix.viewRow(index)
-      if (v == null) 0.0 else v.getQuick(transposeOffset)
+      if (v == null) 0.0 else v(transposeOffset)
     }
 
-    override def setQuick(index: Int, value: Double) {
+    override 
+    def update(index: Int, value: Double) {
       var v = if (rowToColumn) matrix.viewColumn(index) else matrix.viewRow(index)
       if (v == null) {
         v = newVector(numCols)
@@ -657,14 +665,15 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
           matrix.assignRow(index, v)
         }
       }
-      v.setQuick(transposeOffset, value)
+      v(transposeOffset) = value
     }
 
     protected def newVector(cardinality: Int): Vector = {
       DenseVector(cardinality)
     }
 
-    override def like: Vector = {
+    override 
+    def like(): Vector = {
       DenseVector(size)
     }
 
@@ -677,8 +686,9 @@ abstract class AbstractMatrix protected (protected var rows: Int, protected var 
      *
      * @return the number of nonzero entries
      */
-    override def getNumNondefaultElements: Int = {
-      return size
+    override 
+    def getNumNondefaultElements: Int = {
+      size
     }
   }
 

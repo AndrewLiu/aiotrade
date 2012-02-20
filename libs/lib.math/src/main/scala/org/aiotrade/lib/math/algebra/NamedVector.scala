@@ -1,6 +1,6 @@
 package org.aiotrade.lib.math.algebra
 
-class NamedVector private (private val delegate: Vector, private val name: String) extends Vector {
+class NamedVector private (private val delegate: Vector, val name: String) extends Vector {
 
   /** For serialization only */
   def this() = this(null, null)
@@ -111,13 +111,13 @@ class NamedVector private (private val delegate: Vector, private val name: Strin
   }
 
   override
-  def getQuick(index: Int): Double = {
-    delegate.getQuick(index)
+  def apply(index: Int): Double = {
+    delegate.apply(index)
   }
 
   override
-  def like: NamedVector = {
-    new NamedVector(delegate.like, name)
+  def like(): NamedVector = {
+    NamedVector(delegate.like, name)
   }
 
   override
@@ -186,8 +186,8 @@ class NamedVector private (private val delegate: Vector, private val name: Strin
   }
 
   override
-  def setQuick(index: Int, value: Double) {
-    delegate.setQuick(index, value)
+  def update(index: Int, value: Double) {
+    delegate.update(index, value)
   }
 
   override

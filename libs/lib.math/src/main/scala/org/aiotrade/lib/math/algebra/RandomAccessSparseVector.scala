@@ -51,7 +51,7 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
     val it = other.iterateNonZero
     var e: Element = null
     while (it.hasNext && {e = it.next; e != null}) {
-      setQuick(e.index, e.get)
+      this(e.index) = e.get
     }
     this
   }
@@ -69,12 +69,12 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
   def isSequentialAccess = false
 
   override
-  def getQuick(index: Int): Double = {
+  def apply(index: Int): Double = {
     values.get(index).get
   }
 
   override
-  def setQuick(index: Int, value: Double) {
+  def update(index: Int, value: Double) {
     lengthSquared = -1.0
     if (value == 0.0) {
       values -= index
@@ -89,7 +89,7 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
   }
 
   override
-  def like: RandomAccessSparseVector = {
+  def like(): RandomAccessSparseVector = {
     RandomAccessSparseVector(size, values.size)
   }
 
@@ -132,9 +132,9 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
 
     private final val element = new RandomAccessElement()
     element.index = -1
-    def hasNext = element.index + 1 < size
+    def hasNext = element.index + 1 < RandomAccessSparseVector.this.size
     def next: Element = {
-      if (element.index + 1 < size) {
+      if (element.index + 1 < RandomAccessSparseVector.this.size) {
         element.index += 1
         element
       } else {

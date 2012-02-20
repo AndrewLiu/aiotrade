@@ -13,10 +13,10 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     if (size < 1) {
       throw new IllegalArgumentException("Cannot aggregate empty vector")
     }
-    var result = map(getQuick(0))
+    var result = map(this(0))
     var i = 1
     while (i < size) {
-      result = aggregator(result, map(getQuick(i)))
+      result = aggregator(result, map(this(i)))
       i += 1
     }
     result
@@ -26,10 +26,10 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     if (size < 1) {
       throw new IllegalArgumentException("Cannot aggregate empty vector")
     }
-    var result = combiner(getQuick(0), other.getQuick(0))
+    var result = combiner(this(0), other(0))
     var i = 1
     while (i < size) {
-      result = aggregator(result, combiner(getQuick(i), other.getQuick(i)))
+      result = aggregator(result, combiner(this(i), other(i)))
       i += 1
     }
     result
@@ -124,7 +124,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     val itr = iterateNonZero
     while (itr.hasNext) {
       val element = itr.next
-      result += element.get * x.getQuick(element.index)
+      result += element.get * x(element.index)
     }
     result
   }
@@ -143,7 +143,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     if (index < 0 || index >= size) {
       throw new IndexException(index, size)
     }
-    getQuick(index)
+    this(index)
   }
 
   def getElement(index: Int): Element = {
@@ -161,7 +161,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     while (itr.hasNext) {
       val thatElement = itr.next
       val index = thatElement.index
-      result.setQuick(index, this.getQuick(index) - thatElement.get)
+      result(index) = this(index) - thatElement.get
     }
     result
   }
@@ -270,7 +270,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     while (itr.hasNext) {
       val e = itr.next
       val value = e.get
-      d += value * (value - 2.0 * randomlyAccessed.getQuick(e.index))
+      d += value * (value - 2.0 * randomlyAccessed(e.index))
     }
     //assert d > -1.0e-9; // round-off errors should never be too far off!
     math.abs(d)
@@ -368,7 +368,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     val size = result.size
     var i = 0
     while (i < size) {
-      result.setQuick(i, getQuick(i) + x)
+      result(i) = this(i) + x
       i += 1
     }
     result
@@ -389,7 +389,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     while (itr.hasNext) {
       val e = itr.next
       val index = e.index
-      result.setQuick(index, this.getQuick(index) + e.get)
+      result(index) = this(index) + e.get
     }
     result
   }
@@ -398,7 +398,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     if (index < 0 || index >= size) {
       throw new IndexException(index, size)
     }
-    setQuick(index, value)
+    this(index) = value
   }
 
   def times(x: Double): Vector = {
@@ -437,7 +437,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     val itr = result.iterateNonZero
     while (itr.hasNext) {
       val element = itr.next
-      element.set(element.get * from.getQuick(element.index))
+      element.set(element.get * from(element.index))
     }
 
     result
@@ -456,7 +456,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
   def assign(value: Double): Vector = {
     var i = 0
     while (i < size) {
-      setQuick(i, value)
+      this(i) = value
       i += 1
     }
     this
@@ -468,7 +468,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     }
     var i = 0
     while (i < size) {
-      setQuick(i, values(i))
+      this(i) = values(i)
       i += 1
     }
     this
@@ -480,7 +480,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     }
     var i = 0
     while (i < size) {
-      setQuick(i, other.getQuick(i))
+      this(i) = other(i)
       i += 1
     }
     this
@@ -514,12 +514,12 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
       val nonZeroElements = other.iterateNonZero
       while (nonZeroElements.hasNext) {
         val e = nonZeroElements.next
-        setQuick(e.index, function(getQuick(e.index), e.get))
+        this(e.index) = function(this(e.index), e.get)
       }
     } else {
       var i = 0
       while (i < size) {
-        setQuick(i, function(getQuick(i), other.getQuick(i)))
+        this(i) = function(this(i), other(i))
         i += 1
       }
     }
@@ -530,7 +530,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     val result = matrixLike(size, other.size)
     var row = 0
     while (row < size) {
-      result.assignRow(row, other.times(getQuick(row)))
+      result.assignRow(row, other.times(this(row)))
       row += 1
     }
     result
@@ -571,7 +571,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
       } else {
         var index = 0
         while (index < size) {
-          if (getQuick(index) != that.getQuick(index)) {
+          if (this(index) != that(index)) {
             return false
           }
           index += 1
@@ -590,7 +590,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     sb.append('{')
     var index = 0
     while (index < size) {
-      val value = getQuick(index)
+      val value = this(index)
       if (value != 0.0) {
         sb.append(if (dictionary != null && dictionary.length > index) dictionary(index) else index)
         sb.append(':')
@@ -609,9 +609,9 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
 
 
   protected final class LocalElement(var index: Int) extends Element {
-    def get = getQuick(index)
+    def get = AbstractVector.this(index)
     def set(value: Double) {
-      setQuick(index, value)
+      AbstractVector.this(index) = value
     }
   }
 }

@@ -78,7 +78,7 @@ class SequentialAccessSparseVector private (cardinality: Int, private var values
         val itr = other.iterateNonZero
         while (itr.hasNext) {
           val e = itr.next
-          setQuick(e.index, e.get)
+          this(e.index) = e.get
         }
     }
     this
@@ -109,12 +109,12 @@ class SequentialAccessSparseVector private (cardinality: Int, private var values
   def isSequentialAccess = true
 
   override
-  def getQuick(index: Int): Double = {
+  def apply(index: Int): Double = {
     values.get(index)
   }
 
   override
-  def setQuick(index: Int, value: Double) {
+  def update(index: Int, value: Double) {
     lengthSquared = -1
     values.set(index, value)
   }
@@ -125,7 +125,7 @@ class SequentialAccessSparseVector private (cardinality: Int, private var values
   }
 
   override
-  def like: SequentialAccessSparseVector = {
+  def like(): SequentialAccessSparseVector = {
     SequentialAccessSparseVector(size, values.numMappings)
   }
 
@@ -151,7 +151,7 @@ class SequentialAccessSparseVector private (cardinality: Int, private var values
     while (itr.hasNext) {
       val e = itr.next
       val index = e.index
-      result.setQuick(index, that.getQuick(index) - e.get)
+      result(index) = that(index) - e.get
     }
     result.assign(Functions.NEGATE)
     result

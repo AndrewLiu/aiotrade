@@ -37,7 +37,7 @@ class DiagonalMatrix private (diagonal: Vector) extends AbstractMatrix(diagonal.
    * @return the Double at the index
    */
   override
-  def getQuick(row: Int, column: Int): Double = {
+  def apply(row: Int, column: Int): Double = {
     if (row == column) {
       diagonal.get(row)
     } else {
@@ -51,7 +51,7 @@ class DiagonalMatrix private (diagonal: Vector) extends AbstractMatrix(diagonal.
    * @return a Matrix
    */
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     SparseRowMatrix(rowSize, columnSize)
   }
 
@@ -68,7 +68,7 @@ class DiagonalMatrix private (diagonal: Vector) extends AbstractMatrix(diagonal.
   }
 
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     if (row == column) {
       diagonal.set(row, value)
     } else {

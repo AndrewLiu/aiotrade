@@ -501,7 +501,7 @@ object EigenDecomposition {
         val s: Double = v.dot(b) / realEigenvalues(i)
         var j = 0
         while (j < m) {
-          bp(j) += s * v.getQuick(j)
+          bp(j) += s * v(j)
           j += 1
         }
         i += 1
@@ -528,7 +528,7 @@ object EigenDecomposition {
       while (k < nColB) {
         var i = 0
         while (i < m) {
-          tmpCol(i) = b.getQuick(i, k)
+          tmpCol(i) = b(i, k)
           bp(i)(k)  = 0
           i += 1
         }
@@ -538,13 +538,13 @@ object EigenDecomposition {
           var s = 0.0
           var j = 0
           while (j < m) {
-            s += v.getQuick(j) * tmpCol(j)
+            s += v(j) * tmpCol(j)
             j += 1
           }
           s /= realEigenvalues(i)
           j = 0
           while (j < m) {
-            bp(j)(k) += s * v.getQuick(j)
+            bp(j)(k) += s * v(j)
             j += 1
           }
           i += 1
@@ -594,7 +594,7 @@ object EigenDecomposition {
           var k = 0
           while (k < m) {
             val vK = eigenvectors(k)
-            invIJ += vK.getQuick(i) * vK.getQuick(j) / realEigenvalues(k)
+            invIJ += vK(i) * vK(j) / realEigenvalues(k)
             k += 1
           }
           invI(j) = invIJ

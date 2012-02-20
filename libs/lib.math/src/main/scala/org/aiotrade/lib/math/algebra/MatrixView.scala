@@ -43,13 +43,13 @@ class MatrixView private (private var matrix: Matrix, private var offset: Array[
   }
 
   override
-  def getQuick(row: Int, column: Int): Double = {
+  def apply(row: Int, column: Int): Double = {
     import AbstractMatrix._
-    matrix.getQuick(offset(ROW) + row, offset(COL) + column)
+    matrix(offset(ROW) + row, offset(COL) + column)
   }
 
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     matrix.like(rowSize, columnSize)
   }
 
@@ -59,9 +59,9 @@ class MatrixView private (private var matrix: Matrix, private var offset: Array[
   }
 
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     import AbstractMatrix._
-    matrix.setQuick(offset(ROW) + row, offset(COL) + column, value)
+    matrix(offset(ROW) + row, offset(COL) + column) = value
   }
 
   override
@@ -99,7 +99,7 @@ class MatrixView private (private var matrix: Matrix, private var offset: Array[
     }
     var row = 0
     while (row < rowSize) {
-      matrix.setQuick(row + offset(ROW), column + offset(COL), other.getQuick(row))
+      matrix(row + offset(ROW), column + offset(COL)) = other(row)
       row += 1
     }
     this
@@ -113,7 +113,7 @@ class MatrixView private (private var matrix: Matrix, private var offset: Array[
     }
     var col = 0
     while (col < columnSize) {
-      matrix.setQuick(row + offset(ROW), col + offset(COL), other.getQuick(col))
+      matrix(row + offset(ROW), col + offset(COL)) = other(col)
       col += 1
     }
     this

@@ -3,6 +3,7 @@ package org.aiotrade.lib.math.random
 import java.util.Collections
 import java.util.Random
 import java.util.WeakHashMap
+import scala.collection.mutable
 
 /**
  * <p>
@@ -20,6 +21,8 @@ object RandomUtils {
   val MAX_INT_SMALLER_TWIN_PRIME = 2147482949
 
   private val INSTANCES = Collections.synchronizedMap(new WeakHashMap[RandomWrapper, Boolean]())
+  
+  private val SHUFFLE_THRESHOLD = 5
   
   def useTestSeed {
     RandomWrapper.useTestSeed
@@ -137,4 +140,42 @@ object RandomUtils {
     }
   }
   
+  def shuffle[T: Manifest](seq: Seq[T]): Seq[T] = {
+    val rnd = getRandom
+    seq match {
+      case xs: mutable.IndexedSeq[T] =>
+        val n = xs.length
+        var i = n
+        while (i > 1) {
+          swap(xs, i - 1, rnd.nextInt(i))
+          i -= 1
+        }
+        xs
+        
+      case list: List[T] =>
+        val xs = seq.toArray
+        val n = xs.length
+        var i = n
+        while (i > 1) {
+          swap(xs, i - 1, rnd.nextInt(i))
+          i -= 1
+        }
+        
+        var newSeq = List[T]()
+        i = 0
+        while (i < n) {
+          newSeq ::= xs(i)
+          i += 1
+        }
+        newSeq
+        
+      case _ => seq // @todo
+    }
+  }
+  
+  private def swap[T](list: mutable.IndexedSeq[T], i: Int, j: Int) {
+    val tmp = list(i)
+    list(i) = list(j)
+    list(j) = tmp
+  }
 }

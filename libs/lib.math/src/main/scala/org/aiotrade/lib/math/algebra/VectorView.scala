@@ -30,16 +30,18 @@ class VectorView private (private var vector: Vector, private var offset: Int, c
   def isSequentialAccess = vector.isSequentialAccess
 
   override
-  def like: VectorView = new VectorView(vector.like, offset, size)
-
+  def like(): VectorView = {
+    new VectorView(vector.like, offset, size)
+  }
+  
   override
-  def getQuick(index: Int): Double = {
-    vector.getQuick(offset + index)
+  def apply(index: Int): Double = {
+    vector.apply(offset + index)
   }
 
   override
-  def setQuick(index: Int, value: Double) {
-    vector.setQuick(offset + index, value)
+  def update(index: Int, value: Double) {
+    vector.update(offset + index, value)
   }
 
   override
@@ -135,7 +137,7 @@ class VectorView private (private var vector: Vector, private var offset: Int, c
     val n = size
     var i = 0
     while (i < n) {
-      val value = getQuick(i)
+      val value = this(i)
       result += value * value
       i += 1
     }
@@ -148,7 +150,7 @@ class VectorView private (private var vector: Vector, private var offset: Int, c
     val n = size
     var i = 0
     while (i < n) {
-      val delta = getQuick(i) - v.getQuick(i)
+      val delta = this(i) - v(i)
       result += delta * delta
       i += 1
     }

@@ -154,14 +154,17 @@ trait Matrix extends VectorIterable {
    * @param column an Int column index
    * @return the Double at the index
    */
-  def getQuick(row: Int, column: Int): Double
+  def apply(row: Int, column: Int): Double
 
   /**
    * Return an empty matrix of the same underlying class as the receiver
-   *
+   * 
+   * @note this method should be like() instead of like, other wise a call as
+   * m.like(rows, columns) may be compiled to m.like.apply(rows, columns)
+   * 
    * @return a Matrix
    */
-  def like: Matrix
+  def like(): Matrix
 
   /**
    * Returns an empty matrix of the same underlying class as the receiver and of the specified size.
@@ -216,7 +219,7 @@ trait Matrix extends VectorIterable {
    * @param column an Int column index into the receiver
    * @param value  a Double value to set
    */
-  def setQuick(row: Int, column: Int, value: Double)
+  def update(row: Int, column: Int, value: Double)
 
   /**
    * Return the number of values in the recipient
@@ -408,7 +411,7 @@ object Matrix {
       val cv = m.viewRow(i)
       var j = 0
       while (j < cv.size) {
-        sum += math.abs(cv.getQuick(j)).toInt
+        sum += math.abs(cv(j)).toInt
         j += 1
       }
       if (sum > max) {
@@ -465,8 +468,8 @@ object Matrix {
     while (i < rows) {
       var j = i + 1
       while (j < columns) {
-        val mij = matrix.getQuick(i, j)
-        val mji = matrix.getQuick(j, i)
+        val mij = matrix(i, j)
+        val mji = matrix(j, i)
         if (math.abs(mij - mji) > (math.max(math.abs(mij), math.abs(mji)) * eps)) {
           return false
         }

@@ -32,7 +32,7 @@ class RandomTrinaryMatrix private (seed: Int, _rows: Int, _columns: Int, highQua
    * @return the Double at the index
    */
   override
-  def getQuick(row: Int, column: Int): Double = {
+  def apply(row: Int, column: Int): Double = {
     import RandomTrinaryMatrix._
 
     if (highQuality) {
@@ -54,7 +54,7 @@ class RandomTrinaryMatrix private (seed: Int, _rows: Int, _columns: Int, highQua
    * @return a Matrix
    */
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     DenseMatrix(rowSize, columnSize)
   }
 
@@ -78,7 +78,7 @@ class RandomTrinaryMatrix private (seed: Int, _rows: Int, _columns: Int, highQua
    * @param value  a Double value to set
    */
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     throw new UnsupportedOperationException("Can't assign to read-only matrix")
   }
 

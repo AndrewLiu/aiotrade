@@ -4,7 +4,7 @@ import org.aiotrade.lib.math.CardinalityException
 import org.aiotrade.lib.math.IndexException
 
 /** Matrix of doubles implemented using a 2-d array */
-class DenseMatrix private (private var values: Array[Array[Double]]) extends AbstractMatrix(values.length, values(0).length) {
+class DenseMatrix protected (private var values: Array[Array[Double]]) extends AbstractMatrix(values.length, values(0).length) {
   
   override 
   def clone: Matrix = {
@@ -19,12 +19,12 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
   }
   
   override
-  def getQuick(row: Int, column: Int): Double = {
+  def apply(row: Int, column: Int): Double = {
     values(row)(column)
   }
   
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     like(rowSize, columnSize)
   }
   
@@ -34,7 +34,7 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
   }
   
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     values(row)(column) = value
   }
 
@@ -99,7 +99,7 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
     }
     var row = 0
     while (row < rowSize) {
-      values(row)(column) = other.getQuick(row)
+      values(row)(column) = other(row)
       row += 1
     }
     this
@@ -115,7 +115,7 @@ class DenseMatrix private (private var values: Array[Array[Double]]) extends Abs
     }
     var col = 0
     while (col < columnSize) {
-      values(row)(col) = other.getQuick(col)
+      values(row)(col) = other(col)
       col += 1
     }
     this

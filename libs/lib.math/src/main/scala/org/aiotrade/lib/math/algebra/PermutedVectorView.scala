@@ -112,8 +112,8 @@ class PermutedVectorView private (vector: Vector, pivot: Array[Int], unpivot: Ar
    * @return the Double at the index
    */
   override
-  def getQuick(index: Int): Double = {
-    vector.getQuick(pivot(index))
+  def apply(index: Int): Double = {
+    vector.apply(pivot(index))
   }
 
   /**
@@ -122,8 +122,8 @@ class PermutedVectorView private (vector: Vector, pivot: Array[Int], unpivot: Ar
    * @return a Vector
    */
   override
-  def like: Vector = {
-    vector.like
+  def like(): Vector = {
+    vector.like()
   }
 
   /**
@@ -133,8 +133,8 @@ class PermutedVectorView private (vector: Vector, pivot: Array[Int], unpivot: Ar
    * @param value a Double value to set
    */
   override
-  def setQuick(index: Int, value: Double) {
-    vector.setQuick(pivot(index), value)
+  def update(index: Int, value: Double) {
+    vector.update(pivot(index), value)
   }
 
   /**

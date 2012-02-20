@@ -49,15 +49,15 @@ class SparseMatrix private (_rows: Int, _columns: Int, private var rowVectors: c
   }
   
   override
-  def getQuick(row: Int, column: Int): Double = {
+  def apply(row: Int, column: Int): Double = {
     rowVectors.get(row) match {
-      case Some(r) => r.getQuick(column)
+      case Some(r) => r(column)
       case _ => 0.0
     }
   }
   
   override
-  def like: Matrix = {
+  def like(): Matrix = {
     SparseMatrix(rowSize, columnSize)
   }
   
@@ -67,7 +67,7 @@ class SparseMatrix private (_rows: Int, _columns: Int, private var rowVectors: c
   }
   
   override
-  def setQuick(row: Int, column: Int, value: Double) {
+  def update(row: Int, column: Int, value: Double) {
     val r = rowVectors.get(row) match {
       case Some(r) => r
       case _ => 
@@ -75,7 +75,7 @@ class SparseMatrix private (_rows: Int, _columns: Int, private var rowVectors: c
         rowVectors += (row -> r)
         r
     }
-    r.setQuick(column, value)
+    r(column) = value
   }
   
   override
@@ -115,7 +115,7 @@ class SparseMatrix private (_rows: Int, _columns: Int, private var rowVectors: c
     }
     var row = 0
     while (row < rowSize) {
-      val v = other.getQuick(row)
+      val v = other(row)
       if (v != 0.0) {
         val r = rowVectors.get(row) match {
           case Some(x) => x
@@ -125,7 +125,7 @@ class SparseMatrix private (_rows: Int, _columns: Int, private var rowVectors: c
             x
         }
         
-        r.setQuick(column, v)
+        r(column) = v
       }
       row += 1
     }
