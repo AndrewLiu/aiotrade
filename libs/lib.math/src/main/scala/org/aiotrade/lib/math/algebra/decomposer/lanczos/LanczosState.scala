@@ -17,16 +17,16 @@ class LanczosState(val corpus: VectorIterable, desiredRank: Int, initialVector: 
   protected val singularVectors = new mutable.HashMap[Int, Vector]()
   setBasisVector(0, initialVector)
 
-  def getRightSingularVector(i: Int ): Vector = {
-    singularVectors(i)
+  def getRightSingularVector(i: Int ): Option[Vector] = {
+    singularVectors.get(i)
   }
 
-  def getSingularValue(i: Int): Double = {
-    singularValues(i)
+  def getSingularValue(i: Int): Option[Double] = {
+    singularValues.get(i)
   }
 
-  def getBasisVector(i: Int): Vector = {
-    basis(i)
+  def getBasisVector(i: Int): Option[Vector] = {
+    basis.get(i)
   }
 
   def getBasisSize: Int = {

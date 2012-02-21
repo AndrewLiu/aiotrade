@@ -1,9 +1,24 @@
 package org.aiotrade.lib.math.algebra
 
 
-/** The basic interface including numerous convenience functions */
 import org.aiotrade.lib.math.Precision
 
+/** 
+ * The basic interface including numerous convenience functions 
+ * 
+ *             m x n matrix
+ * a(i,j)
+ *          n columns --> j+
+ *  m
+ * rows [ a(0,0) a(0,1) a(0,2) ... |
+ *      [ a(1,0) a(1,1) a(1,2) ... |
+ *  |   [ a(2,0) a(2,1) a(2,2) ... |
+ *  |   [   .      .      .     .  |
+ *  V   [   .      .      .     .  |
+ *      [   .      .      .     .  |
+ *  i+
+ *      
+ */
 @cloneable
 trait Matrix extends VectorIterable {
 

@@ -54,17 +54,17 @@ class LanczosSolver {
 
   def solve(state: LanczosState, desiredRank: Int, isSymmetric: Boolean) {
     val corpus = state.corpus
-    log.info("Finding {} singular vectors of matrix with {} rows, via Lanczos".format(desiredRank, corpus.numRows))
+    log.info("Finding %s singular vectors of matrix with %s rows, via Lanczos".format(desiredRank, corpus.numRows))
     var i = state.iterationNumber
-    var currentVector = state.getBasisVector(i - 1)
-    var previousVector = state.getBasisVector(i - 2)
+    var currentVector = state.getBasisVector(i - 1).getOrElse(null)
+    var previousVector = state.getBasisVector(i - 2).getOrElse(null)
     var beta = 0.0
     val triDiag = state.diagonalMatrix
     var continue = true
     while (i < desiredRank && continue) {
-      startTime(TimingSection.ITERATE);
+      startTime(TimingSection.ITERATE)
       val nextVector = if (isSymmetric) corpus.times(currentVector) else corpus.timesSquared(currentVector)
-      log.info("{} passes through the corpus so far...".format(i))
+      log.info("%s passes through the corpus so far...".format(i))
       if (state.scaleFactor <= 0) {
         state.scaleFactor = calculateScaleFactor(nextVector)
       }
@@ -76,13 +76,13 @@ class LanczosSolver {
       val alpha = currentVector.dot(nextVector)
       nextVector.assign(currentVector, new PlusMult(-alpha))
       endTime(TimingSection.ITERATE);
-      startTime(TimingSection.ORTHOGANLIZE);
-      orthoganalizeAgainstAllButLast(nextVector, state);
-      endTime(TimingSection.ORTHOGANLIZE);
+      startTime(TimingSection.ORTHOGANLIZE)
+      orthoganalizeAgainstAllButLast(nextVector, state)
+      endTime(TimingSection.ORTHOGANLIZE)
       // and normalize
       beta = nextVector.norm(2)
       if (outOfRange(beta) || outOfRange(alpha)) {
-        log.warning("Lanczos parameters out of range: alpha = {}, beta = {}.  Bailing out early!".format(alpha, beta))
+        log.warning("Lanczos parameters out of range: alpha = %s, beta = %s.  Bailing out early!".format(alpha, beta))
         continue = false
       } else {
         nextVector.assign(new Scale(1 / beta))
@@ -103,22 +103,22 @@ class LanczosSolver {
 
     log.info("Lanczos iteration complete - now to diagonalize the tri-diagonal auxiliary matrix.");
     // at this point, have tridiag all filled out, and basis is all filled out, and orthonormalized
-    val decomp = new EigenvalueDecomposition(triDiag);
+    val decomp = new EigenvalueDecomposition(triDiag)
 
     val eigenVects = decomp.getV
     val eigenVals = decomp.getRealEigenvalues
-    endTime(TimingSection.TRIDIAG_DECOMP);
+    endTime(TimingSection.TRIDIAG_DECOMP)
     startTime(TimingSection.FINAL_EIGEN_CREATE)
     var row = 0
     while (row < i) {
-      var realEigen: Vector = null;
+      var realEigen: Vector = null
       // the eigenvectors live as columns of V, in reverse order.  Weird but true.
       val ejCol = eigenVects.viewColumn(i - row - 1)
       val size = math.min(ejCol.size, state.getBasisSize)
       var j = 0
       while (j < size) {
         val d = ejCol.get(j);
-        val rowJ = state.getBasisVector(j)
+        val rowJ = state.getBasisVector(j).getOrElse(null)
         if(realEigen == null) {
           realEigen = rowJ.like
         }
@@ -131,7 +131,7 @@ class LanczosSolver {
       if(!isSymmetric) {
         e = math.sqrt(e)
       }
-      log.info("Eigenvector {} found with eigenvalue {}".format(row, e))
+      log.info("Eigenvector %s found with eigenvalue %s".format(row, e))
       state.setSingularValue(row, e)
       row += 1
     }
@@ -146,7 +146,7 @@ class LanczosSolver {
   protected def orthoganalizeAgainstAllButLast(nextVector: Vector, state: LanczosState) {
     var i = 0
     while (i < state.iterationNumber) {
-      val basisVector = state.getBasisVector(i)
+      val basisVector = state.getBasisVector(i).getOrElse(null)
       var alpha = 0.0
       if (basisVector == null || {alpha = nextVector.dot(basisVector); alpha == 0.0}) {
         // continue
