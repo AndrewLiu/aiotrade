@@ -248,7 +248,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
 
         val itemBuf = new ArrayList[VecItem]
         for (i <- 0 until src.dimension) {
-          val value = src.apply(i)
+          val value = src(i)
           if (value != 0) {
             itemBuf += new VecItem(i, value)
           }
@@ -289,7 +289,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     val result = new SparseVec(dimension)
         
     for (i <- 0 until dimension) {
-      val value = apply(i) + operand(i)
+      val value = this(i) + operand(i)
       if (value != 0) {
         result(i) = value
       }
@@ -304,7 +304,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     val result = new SparseVec(dimension)
         
     for (i <- 0 until operand.dimension) {
-      val value = apply(i) - operand(i)
+      val value = this(i) - operand(i)
       if (value != 0) {
         result(i) = value
       }
@@ -436,7 +436,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
        * @NOTICE
        * source.nextDouble() returns a pseudorandom value between 0.0 and 1.0
        */
-      update(i, source.nextDouble * (max - min) + min)
+      this(i) = source.nextDouble * (max - min) + min
     }
   }
 
@@ -446,7 +446,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
         
     result.append("[")
     for (i <- 0 until dimension) {
-      result.append(apply(i)).append(ITEM_SEPARATOR)
+      result.append(this(i)).append(ITEM_SEPARATOR)
     }
     result.append("]")
         

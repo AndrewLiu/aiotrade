@@ -39,7 +39,5 @@ package org.aiotrade.lib.math.vector
  * 
  * @author Caoyuan Deng
  */
-import java.io.Serializable
-
-case class VecItem(var index: Int, var value: Double) extends Serializable {
-}
+@serializable
+case class VecItem(var index: Int, var value: Double)

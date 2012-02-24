@@ -84,10 +84,10 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     val length = size
     val result = new Array[Double](length)
         
-    if (length > 0 && apply(0).isInstanceOf[Number]) {
+    if (length > 0 && this(0).isInstanceOf[Number]) {
       var i = 0
       while (i < length) {
-        result(i) = apply(i).asInstanceOf[Number].doubleValue
+        result(i) = this(i).asInstanceOf[Number].doubleValue
         i += 1
       }
     }
@@ -95,11 +95,11 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     result
   }
 
-  def float(time: Long): Float = toFloat(apply(time))
-  def float(idx: Int): Float = toFloat(apply(idx))
+  def float(time: Long): Float = toFloat(this(time))
+  def float(idx: Int): Float = toFloat(this(idx))
 
-  def double(time: Long): Double = toDouble(apply(time))
-  def double(idx: Int): Double = toDouble(apply(idx))
+  def double(time: Long): Double = toDouble(this(time))
+  def double(idx: Int): Double = toDouble(this(idx))
 
   private def toFloat(v: V): Float = {
     v match {
