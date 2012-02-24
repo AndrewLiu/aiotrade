@@ -405,11 +405,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         val fwProps = props.builder.contentType(contentType.mimeType).headers(headers).build
 
         // forward to interested observers for further relay
-//        if (useActor){
+        if (useActor){
 //          for(l <- listeners if l != this) log.info(l + ",  state=" + l.getState)
           publish(AMQPMessage(content, fwProps, envelope))
-//        }
-//        else process(AMQPMessage(content, fwProps, envelope))
+        }
+        else process(content, fwProps, envelope)
 
         log.fine("Forward amqp message: " + content)
         log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
@@ -421,9 +421,8 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     }
   }
 
-  protected def process(msg: AMQPMessage){
-      
-  }
+  protected def useActor = true
+  protected def process(res: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null){}
 
   /**
    * Hold strong refs of processors to avoid them to be GCed

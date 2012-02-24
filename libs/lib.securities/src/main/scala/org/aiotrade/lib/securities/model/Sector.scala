@@ -99,8 +99,8 @@ class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
     this.childrenString = another.childrenString
   }
 
-  type T = SectorMoneyFlowSer
-  type C = MoneyFlowContract
+  @transient type T = SectorMoneyFlowSer
+  @transient type C = MoneyFlowContract
 
   def isSerCreated(freq: TFreq) = {
     freqToMoneyFlowSer.get(freq).isDefined

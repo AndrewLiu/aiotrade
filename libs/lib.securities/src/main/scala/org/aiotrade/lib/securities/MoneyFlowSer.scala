@@ -240,3 +240,21 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends FreeFloatSer($sec, $freq) {
   }
     
 }
+
+/**
+ * Simple test.
+ */
+//object MoneyFlowSer{
+//  def main(args: Array[String]){
+//    val mfs = new MoneyFlowSer(null, TFreq.DAILY)
+//    var c = mfs.getClass
+//    while (c != null){
+//      println("\n\n\n\n" + c + ", name=" + c.getName)
+//      c.getDeclaredFields foreach {x => println(x + ", name=" + x.getName)}
+//
+//      c = c.getSuperclass
+//    }
+//
+//    exit(0)
+//  }
+//}

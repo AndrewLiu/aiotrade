@@ -34,13 +34,13 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Consumer
+import com.rabbitmq.client.Envelope
 import com.rabbitmq.client.ShutdownSignalException
 import java.io.EOFException
 import java.io.IOException
 import org.aiotrade.lib.avro.Evt
 import scala.collection.mutable
 import scala.concurrent.SyncVar
-import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -67,15 +67,16 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
   /** Contains the most recently-used request correlation ID */
   private var correlationId = 0L
   /** Should hold strong ref for SyncVarSetterProcessor */
-  private val processor = new SyncVarSetterProcessor
+//  private val processor = new SyncVarSetterProcessor
 
   /**
    * Remove the strong holder of ref.
    * If the connection closed or shutdown, the connection can not connected again, must create a new connection.
    * And the old connection must be collected by GC.
-   */ 
+   */
 //  this.processors -= processor
   this.deafTo(this)
+
 
   @throws(classOf[IOException])
   def configure(channel: Channel): Option[Consumer] = {
@@ -196,39 +197,33 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
     syncVar
   }
 
-//  override protected def useActor = false
-//  override def process(amqpMsg: AMQPMessage) {
-//    amqpMsg match {
-//      case AMQPMessage(res, props, _) =>
-//        val replyId = props.getCorrelationId
-////          log.info("Reply id=" + replyId)
-//        continuationMap synchronized {
-//          continuationMap.remove(replyId) match{
-//            case Some(syncVar) => syncVar.set(res)
-//            case None =>
-//          }
-//        }
-//
-//      case x => log.warning("Wrong msg: " + x)
-//    }
-//  }
-
-  class SyncVarSetterProcessor extends Processor {
-    def process(amqpMsg: AMQPMessage) {
-      amqpMsg match {
-        case AMQPMessage(res, props, _) =>
-          val replyId = props.getCorrelationId
-//          log.info("Reply id=" + replyId)
-          continuationMap synchronized {
-            continuationMap.remove(replyId) match{
-              case Some(syncVar) => syncVar.set(res)
-              case None =>
-            }
-          }
-
-        case x => log.warning("Wrong msg: " + x)
+  override protected def useActor = false
+  override def process(res: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null) {
+    val replyId = props.getCorrelationId
+//    log.info("Reply id=" + replyId)
+    continuationMap synchronized {
+      continuationMap.remove(replyId) match{
+        case Some(syncVar) => syncVar.set(res)
+        case None =>
       }
     }
   }
-
+  
+//  class SyncVarSetterProcessor extends Processor{
+//    def process(amqpMsg: AMQPMessage) {
+//      amqpMsg match {
+//        case AMQPMessage(res, props, _) =>
+//          val replyId = props.getCorrelationId
+////          log.info("Reply id=" + replyId)
+//          continuationMap synchronized {
+//            continuationMap.remove(replyId) match{
+//              case Some(syncVar) => syncVar.set(res)
+//              case None =>
+//            }
+//          }
+//
+//        case x => log.warning("Wrong msg: " + x)
+//      }
+//    }
+//  }
 }

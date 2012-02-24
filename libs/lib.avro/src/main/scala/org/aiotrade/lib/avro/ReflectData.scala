@@ -438,7 +438,7 @@ class ReflectData protected() extends SpecificData {
         while ({i += 1; i < fields.length}) {
           val field = fields(i)
           if ((field.getModifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
-            val name = field.getName
+            val name = field.toString // the sub-class and the super-class may have fields with same name, do not use the method  "getName".
             if (nameToFields.contains(name)) {
               throw new AvroTypeException(c+" contains two fields named: "+field)
             } else {
