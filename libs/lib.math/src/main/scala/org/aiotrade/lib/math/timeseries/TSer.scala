@@ -115,6 +115,14 @@ trait TSer extends Publisher {
   def grids: Array[Double]
 }
 
+trait TSerEvent {
+  def source: TSer
+  def symbol: String
+  def fromTime: Long
+  def toTime: Long
+  def lastObject: AnyRef // object the event carries (it can be any thing other than a SerItem)
+  def callback: TSerEvent.Callback
+}
 object TSerEvent {
   type Callback = () => Unit
 
@@ -180,14 +188,4 @@ object TSerEvent {
     Some((e.source, e.symbol, e.fromTime, e.toTime, e.lastObject, e.callback))
   }
 }
-
-abstract class TSerEvent {
-  def source: TSer
-  def symbol: String
-  def fromTime: Long
-  def toTime: Long
-  def lastObject: AnyRef // object the event carries (it can be any thing other than a SerItem)
-  def callback: TSerEvent.Callback
-}
-
 
