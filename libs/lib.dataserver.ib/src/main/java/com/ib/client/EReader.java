@@ -533,11 +533,11 @@ class EReader extends Thread {
                         double WAP = readDouble();
                         String hasGaps = readStr();
                         m_eWrapper.historicalData(reqId, date, open, high, low, close,
-                                                    prevClose, volume, 1, WAP,
+                                                    prevClose, volume, WAP,
                                                 Boolean.valueOf(hasGaps).booleanValue());
                       }
                       // send end of dataset marker
-                      m_eWrapper.historicalData(reqId, completedIndicator, -1, -1, -1,-1, -1, -1, 1, -1, false);
+                      m_eWrapper.historicalData(reqId, completedIndicator, -1, -1, -1,-1, -1, -1, 1, false);
                       break;
                     }
                     case SCANNER_PARAMETERS: {
