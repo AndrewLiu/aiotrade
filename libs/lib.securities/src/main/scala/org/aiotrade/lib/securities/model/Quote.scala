@@ -135,7 +135,38 @@ class Quote extends BelongsToSec with TVal with Flag {
     execCount += 1
   }
 
-  override def toString = {
+  def toShape: Quote.Shape = {
+    val body = math.abs(close - open)
+    val upperShadow = high - math.max(close, open)
+    val lowerShadow = math.min(close, open) - low
+    val isWhite = close >= open
+    
+    if (body == 0 && upperShadow != 0 && lowerShadow != 0) {
+      Quote.Doji
+    } else {
+      if (upperShadow == 0 && lowerShadow == 0) {
+        if (isWhite) Quote.MarubozuWhite else Quote.MarubozuBlack
+      } else if (upperShadow == 0 && lowerShadow != 0) {
+        if (isWhite) Quote.ClosingMarubozuWhite else Quote.OpeningMarubozuBlack
+      } else if (upperShadow != 0 && lowerShadow == 0) {
+        if (isWhite) Quote.OpeningMarubozuWhite else Quote.ClosingMarubozuBlack
+      } else {
+        val bodyProportion = body / (body + upperShadow + lowerShadow)
+        if (bodyProportion > 0.618) {
+          if (body / open > 0.0618) {
+            if (isWhite) Quote.LongDayWhite else Quote.LongDayBlack
+          } else {
+            if (isWhite) Quote.ShortDayWhite else Quote.ShortDayBlack
+          }
+        } else {
+          if (isWhite) Quote.SpinningTopWhite else Quote.SpinningTopBlack
+        }
+      }
+    }
+  }  
+  
+  override 
+  def toString = {
     val sb = new StringBuilder()
     sb.append("Quote(").append(uniSymbol).append(",").append(util.formatTime(time))
     sb.append(",O:").append(open)
@@ -532,5 +563,130 @@ object Quote {
 
     quotes.toArray
   }
+  
+  /**
+   * http://candlestickforum.com/PPF/Parameters/16_19_/candlestick.asp
+   * http://stockcharts.com/school/doku.php?id=chart_school:chart_analysis:introduction_to_cand
+   */
+  trait Shape
+  
+  /**
+   * A long day represents a large price move from open to close. Long represents 
+   * the length of the candle body. What qualifies a candle body to be considered 
+   * long? That is a question that has to be answered relative to the chart being 
+   * analyzed. The recent price action of a stock will determine whether a "long" 
+   * candle has been formed. Analysis of the previous two or three weeks of trading 
+   * should be a current representative sample of the price action.
+   * 
+   *  |    |
+   * +-+  +-+
+   * | |  |#|
+   * | |  |#|
+   * | |  |#|
+   * +-+  +-+
+   *  |    |
+   */
+  case object LongDayWhite extends Shape
+  case object LongDayBlack extends Shape
+  
+  /**
+   * Short days can be interpreted by the same analytical process of the long candles. 
+   * There are a large percentage of the trading days that do not fall into either
+   * of these two catagories.
+   * 
+   *  |    |
+   * +-+  +-+
+   * | |  |/|
+   * +-+  +-+
+   *  |    |
+   */
+  case object ShortDayWhite extends Shape
+  case object ShortDayBlack extends Shape
+  
+  /**
+   * In Japanese, Marubozu means close cropped or close-cut. Bald or Shaven Head 
+   * are more commonly used in candlestick analysis. It's meaning reflects the 
+   * fact that there are no shadows extending from either end of the body.
+   * 
+   * The White Marubozu is a long white body with no shadows on either end. This 
+   * is an extremely strong pattern. Consider how it is formed. It opens on the 
+   * low and immediately heads up. It continues upward until it closes, on its high.
+   * Counter to the Black Marubozu, it is often the first part of a bullish continuation 
+   * pattern or bearish reversal pattern. It is called a Major Yang or Marubozu of Yang.
+   * 
+   * A long black body with no shadows at either end is known as a Black Marubozu. 
+   * It is considered a weak indicator. It is often identified in a bearish continuation 
+   * or bullish reversal pattern, especially if it occurs during a downtrend. A long
+   * black candle could represent the final sell off, making it an "alert" to a 
+   * bullish reversal setting up. The Japanese often call it the Major Yin or Marubozu of Yin.
+   * 
+   * +-+  +-+
+   * | |  |/|
+   * | |  |/|
+   * +-+  +-+
+   */
+  case object MarubozuWhite extends Shape
+  case object MarubozuBlack extends Shape
+  
+  /**
+   * A Closing Marubozu has no shadow at it's closing end. A white body will not 
+   * have a shadow at the top. A black body will not have a shadow at the bottom. 
+   * In both cases, these are strong signals corresponding to the direction that 
+   * they each represent.
+   * 
+   *       |
+   * +-+  +-+
+   * | |  |/|
+   * | |  |/|
+   * +-+  +-+
+   *  | 
+   */
+  case object ClosingMarubozuWhite extends Shape
+  case object ClosingMarubozuBlack extends Shape
+  
+  /**
+   * The Opening Marubozu has no shadows extending from the open price end of the body. 
+   * A white body would not have a shadow at the bottom end , the black candle would 
+   * not have a shadow at it's top end. Though these are strong signals, they are 
+   * not as strong as the Closing Marubozu.
+   * 
+   *  |
+   * +-+  +-+
+   * | |  |/|
+   * | |  |/|
+   * +-+  +-+
+   *       |
+   */
+  case object OpeningMarubozuWhite extends Shape
+  case object OpeningMarubozuBlack extends Shape
+  
+  /**
+   * Spinning Tops are depicted with small bodies relative to the shadows. This 
+   * demonstrates some indecision on the part of the bulls and the bears. They are 
+   * considered neutral when trading in a sideways market. However, in a trending 
+   * or oscillating market, a relatively good rule of thumb is that the next days 
+   * trading will probably move in the direction of the opening price. The size of 
+   * the shadow is not as important as  the size of the body for forming a Spinning Top.
+   *  |    |
+   *  |    |
+   * +-+  +/+
+   * +-+  +/+
+   *  |    |
+   *  |    |
+   */
+  case object SpinningTopWhite extends Shape
+  case object SpinningTopBlack extends Shape
+  
+  /**
+   * The Doji is one of the most important signals in candlestick analysis. It is 
+   * formed when the open and the close are the same or very near the same. The 
+   * lengths of the shadows can vary. The longer the shadows are, the more significance 
+   * the Doji becomes. More will be explained about the Doji in the next few pages. 
+   * ALWAYS pay attention to the Doji.
+   *   |
+   *  -+-
+   *   |
+   */
+  case object Doji extends Shape
   
 }
