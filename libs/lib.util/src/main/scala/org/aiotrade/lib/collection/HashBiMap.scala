@@ -9,11 +9,6 @@ import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 import scala.collection.JavaConversions._
 
-object HashBiMap extends MutableMapFactory[HashBiMap] {
-  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), HashBiMap[A, B]] = new MapCanBuildFrom[A, B]
-  def empty[A, B]: HashBiMap[A, B] = new HashBiMap[A, B]
-}
-
 @serializable @SerialVersionUID(1L)
 class HashBiMap[A, B](forward: ConcurrentHashMap[A, B], backward: ConcurrentHashMap[B, A]
 ) extends Map[A, B]
@@ -107,3 +102,10 @@ class HashBiMap[A, B](forward: ConcurrentHashMap[A, B], backward: ConcurrentHash
     }
   }
 }
+
+object HashBiMap extends MutableMapFactory[HashBiMap] {
+  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), HashBiMap[A, B]] = new MapCanBuildFrom[A, B]
+  def empty[A, B]: HashBiMap[A, B] = new HashBiMap[A, B]
+}
+
+

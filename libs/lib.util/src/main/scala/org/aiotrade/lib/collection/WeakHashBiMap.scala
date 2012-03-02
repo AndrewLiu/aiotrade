@@ -31,13 +31,6 @@ class WeakValue[A, B](val key: A, val value: B, q: ReferenceQueue[B]) extends We
   }
 }
 
-object WeakHashBiMap extends MutableMapFactory[WeakHashBiMap] {
-  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakHashBiMap[A, B]] = new MapCanBuildFrom[A, B]
-  def empty[A, B]: WeakHashBiMap[A, B] = new WeakHashBiMap[A, B]
-
-
-}
-
 @serializable @SerialVersionUID(1L)
 class WeakHashBiMap[A, B](forward: HashMap[A, Reference[B]], backward: HashMap[Reference[B], A]
 ) extends Map[A, B]
@@ -163,5 +156,10 @@ class WeakHashBiMap[A, B](forward: HashMap[A, Reference[B]], backward: HashMap[R
       remove(ref.key)
     }
   }
+}
+
+object WeakHashBiMap extends MutableMapFactory[WeakHashBiMap] {
+  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakHashBiMap[A, B]] = new MapCanBuildFrom[A, B]
+  def empty[A, B]: WeakHashBiMap[A, B] = new WeakHashBiMap[A, B]
 }
 
