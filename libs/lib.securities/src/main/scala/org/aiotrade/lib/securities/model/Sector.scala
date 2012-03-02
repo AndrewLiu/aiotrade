@@ -45,36 +45,25 @@ import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.dataserver.MoneyFlowContract
 import org.aiotrade.lib.securities.PersistenceManager
-import org.aiotrade.lib.util.reactors.Reactions
 import ru.circumflex.orm._
 
 /**
  * Fullcode is defined as two parts:
- *   1st part is caterogy (6 chars), 
+ *   1st part is caterogy (6 chars),
  *   2nd part is code/subcategory (max 20 chars)
- * 
+ *
  * @author Caoyuan Deng
  */
-@serializable
-class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
+class Sector extends LightSector with SerProvider with Ordered[Sector] {
   private val log = Logger.getLogger(getClass.getName)
   private val mutex = new AnyRef()
-  
-  var category: String = ""
-  var code: String = ""
-  var name: String = ""
-//  var secs: List[Sec] = Nil
-//  var Children: Seq[Sector] = Nil
-  var childrenString: String = ""
-  var parent: Sector = _
-  lazy val key = Sector.toKey(category, code)
-  lazy val sectorSnap = new SectorSnap(this)
 
-  @transient private var _realtimeMoneyFlowSer: SectorMoneyFlowSer = _
-  @transient private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, SectorMoneyFlowSer]()
-  
+  lazy val sectorSnap = new SectorSnap(this)
+  private var _realtimeMoneyFlowSer: SectorMoneyFlowSer = _
+  private lazy val freqToMoneyFlowSer = mutable.Map[TFreq, SectorMoneyFlowSer]()
+
   override def hashCode = id.hashCode
-  
+
   override def equals(that: Any) = that match {
     case x: Sector => this.crckey == x.crckey
     case _ => false
@@ -91,16 +80,9 @@ class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
 
     unisymbol
   }
-  
-  def copyFrom(another: Sector){
-    this.code = another.code
-    this.name = another.name
-    this.crckey = another.crckey
-    this.childrenString = another.childrenString
-  }
 
-  @transient type T = SectorMoneyFlowSer
-  @transient type C = MoneyFlowContract
+  type T = SectorMoneyFlowSer
+  type C = MoneyFlowContract
 
   def isSerCreated(freq: TFreq) = {
     freqToMoneyFlowSer.get(freq).isDefined
@@ -187,7 +169,7 @@ class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
     val isRealTime = ser eq realtimeMoneyFlowSer
     // load from persistence
     val wantTime = loadMoneyFlowSerFromPersistence(ser, isRealTime)
-    
+
     true
   }
 
@@ -228,7 +210,7 @@ class Sector extends SerProvider with CRCLongId with Ordered[Sector] {
   }
 
   var description = ""
-  @transient private lazy val _content = PersistenceManager().restoreContent(uniSymbol)
+  private lazy val _content = PersistenceManager().restoreContent(uniSymbol)
   def content = _content
 
   def serProviderOf(uniSymbol: String): Option[Sector] = {
@@ -244,13 +226,13 @@ object Sector {
 
   // max 6 chars
   object Category {
-    
+
     // security kind
-    val Kind = "KIND" 
-    
+    val Kind = "KIND"
+
     // exchange
     val Exchange = "EXCHAN"
-    
+
     // industries
     val IndustryA = "008001"
     val IndustryB = "008002"
@@ -260,19 +242,19 @@ object Sector {
 
     // tdx industries
     val TDXIndustries = Array("008011","008012","008013","008014","008015","008018")
-    
+
     // boards
     val Board = "BOARD"
-    
+
     // joint
-    val Joint = "JOINT" 
+    val Joint = "JOINT"
 
     // custom
     val Custom = "CUSTOM"
   }
-  
+
   // --- subcategories/code
-  
+
   object Kind {
     val Index = "INDEX"                 // 指数
     val Stock = "STOCK"                 // 股票
@@ -284,14 +266,14 @@ object Sector {
     val Option = "OPTION"                // 期权
     val Treasury = "TREASURY"              // 国债
     val AdditionalShareOffer = "ADDSHAOFFER"  // 增发
-    val ConvertibleBond = "CONVBOND"       // 可转换债券    
+    val ConvertibleBond = "CONVBOND"       // 可转换债券
     val TreasuryRepurchase = "TREASREP"    // 国债回购
   }
-  
+
   // --- code of 'board'
   object Board {
     val Main = "MAIN"
-    
+
     val AShare = "ASHARE"
     val BShare = "BSHARE"
     val HShare = "HSHARE"
@@ -299,7 +281,7 @@ object Sector {
     val SME = "SME" // Small and Medium-sized Enterprised board
     val GEM = "GEM" // Growth Enterprises Market board
   }
-  
+
   lazy val sectorToSecValidTimes: collection.Map[String, collection.Seq[ValidTime[Sec]]] = {
     Sectors.sectorToSecValidTimes
   }
@@ -346,25 +328,25 @@ object Sector {
   }
 
   def allSectors = sectorToSecValidTimes.keys
-  
+
   def sectorsOf(category: String) = Sectors.sectorsOf(category)
   def sectorsOf = Sectors.sectorsOf
-  
+
   def secsOf(sector: Sector): Seq[Sec] = Sectors.secsOf(sector)
   def secsOf(key: String): Seq[Sec] = withKey(key) match {
     case Some(sector) => secsOf(sector)
     case None => Nil
   }
-  
+
   def withKey(key: String): Option[Sector] = Sectors.withKey(key)
   def withCategoryCode(category: String, code: String): Option[Sector] = Sectors.withCategoryCode(category, code)
-  
+
   def cnSymbolToSectorKey(uniSymbol: String): Seq[String] = {
     var sectorKeys = List[String]()
     uniSymbol.toUpperCase.split('.') match {
-      case Array(symbol, "SS") => 
+      case Array(symbol, "SS") =>
         sectorKeys ::= toKey(Category.Exchange, "SS")
-        
+
         if (symbol.startsWith("000")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Index)
         } else if (symbol.startsWith("009") || symbol.startsWith("010") || symbol.startsWith("020")) {
@@ -372,7 +354,7 @@ object Sector {
         } else if (symbol.startsWith("600") || symbol.startsWith("601")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.AShare)
-        } else if (symbol.startsWith("900")) { 
+        } else if (symbol.startsWith("900")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.BShare)
         } else if (symbol.startsWith("500") || symbol.startsWith("510")) {
@@ -383,13 +365,13 @@ object Sector {
           sectorKeys ::= toKey(Category.Kind, Kind.ConvertibleBond)
         } else if (symbol.startsWith("120") || symbol.startsWith("129")) { // enterprised bond
           sectorKeys ::= toKey(Category.Kind, Kind.Bond)
-        } else if (symbol.startsWith("1")) { 
+        } else if (symbol.startsWith("1")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Bond)
         }
 
-      case Array(symbol, "SZ") => 
+      case Array(symbol, "SZ") =>
         sectorKeys ::= toKey(Category.Exchange, "SZ")
-        
+
         if (symbol.startsWith("00")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.AShare)
@@ -403,9 +385,9 @@ object Sector {
           sectorKeys ::= toKey(Category.Kind, Kind.Warrant)
           sectorKeys ::= toKey(Category.Board, Board.AShare)
         } else if (symbol.startsWith("101")) { // 国债券挂牌分销
-          sectorKeys ::= toKey(Category.Kind, Kind.Treasury) 
+          sectorKeys ::= toKey(Category.Kind, Kind.Treasury)
         } else if (symbol.startsWith("109")) { // 地方政府债券
-          sectorKeys ::= toKey(Category.Kind, Kind.Bond) 
+          sectorKeys ::= toKey(Category.Kind, Kind.Bond)
         } else if (symbol.startsWith("10")) {  // 国债现货
           sectorKeys ::= toKey(Category.Kind, Kind.Treasury)
         } else if (symbol.startsWith("111")) { // 企业债券
@@ -418,9 +400,9 @@ object Sector {
           sectorKeys ::= toKey(Category.Kind, Kind.ConvertibleBond)
         } else if (symbol.startsWith("13")) {
           sectorKeys ::= toKey(Category.Kind, Kind.TreasuryRepurchase)
-        } else if (symbol.startsWith("15") || symbol.startsWith("16") || symbol.startsWith("18")) { 
+        } else if (symbol.startsWith("15") || symbol.startsWith("16") || symbol.startsWith("18")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Fund)
-        } else if (symbol.startsWith("20")) { 
+        } else if (symbol.startsWith("20")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.BShare)
         } else if (symbol.startsWith("28")) {
@@ -438,13 +420,13 @@ object Sector {
         } else if (symbol.startsWith("39")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Index)
         }
-      case _ => 
+      case _ =>
     }
-    sectorKeys  
+    sectorKeys
   }
-  
+
   def apply(category: String, code: String) = new Sector()
-  
+
   // --- simple test
   def main(args: Array[String]) {
     try {
@@ -458,7 +440,7 @@ object Sector {
       val t0 = System.currentTimeMillis
       val secToSectorValidTimes = Sectors.secToSectorValidTimes
       secToSectorValidTimes foreach println
-      
+
       println("Finished in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
       System.exit(0)
     } catch {
@@ -471,7 +453,7 @@ object Sector {
 // --- table
 object Sectors extends CRCLongPKTable[Sector] {
   private val log = Logger.getLogger(this.getClass.getName)
-  
+
   val category = "category" VARCHAR(6) DEFAULT("''")
   val code = "code" VARCHAR(20) DEFAULT("''")
   val name = "name" VARCHAR(60) DEFAULT("''")
@@ -481,10 +463,10 @@ object Sectors extends CRCLongPKTable[Sector] {
 
   val categoryIdx = getClass.getSimpleName + "_category_idx" INDEX(category.name)
   val codeIdx = getClass.getSimpleName + "_code_idx" INDEX(code.name)
-  
-  
+
+
   // --- helpers:
-  
+
   private[model] def allSectors: Seq[String] = {
     val res = try {
       SELECT (Sectors.*) FROM (Sectors) list()
@@ -493,14 +475,14 @@ object Sectors extends CRCLongPKTable[Sector] {
     }
     res map (_.key)
   }
-  
+
   private[model] def sectorsOf(category: String): Seq[Sector] = {
     try {
       SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
-  } 
+  }
 
   private[model] def sectorsOf(): Seq[Sector] = {
     SELECT (Sectors.*) FROM (Sectors) list()
@@ -513,12 +495,12 @@ object Sectors extends CRCLongPKTable[Sector] {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
-  
+
   private[model] def withKey(key: String): Option[Sector] = {
     val (category, code) = Sector.toCategoryCode(key)
     withCategoryCode(category, code)
   }
-  
+
   private[model] def withCategoryCode(category: String, code: String): Option[Sector] = {
     try {
       SELECT (Sectors.*) FROM (Sectors) WHERE ((Sectors.category EQ category) AND (Sectors.code EQ code)) unique()
@@ -568,13 +550,13 @@ object Sectors extends CRCLongPKTable[Sector] {
 
     result
   }
-  
+
   /**
    * @Note: This method can only be called after all secs have been selected and holded in Memory
    */
   private[model] def sectorToSecValidTimes = {
     val result = mutable.HashMap[String, mutable.ListBuffer[ValidTime[Sec]]]()
-    
+
     val secsHolder = try {
       SELECT(Secs.*) FROM (Secs) list()
     } catch {
@@ -595,31 +577,31 @@ object Sectors extends CRCLongPKTable[Sector] {
         val key = sectorSec.sector.key
         val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
         val validTimes = result.get(key) match {
-          case None => 
+          case None =>
             val validTimes = mutable.ListBuffer[ValidTime[Sec]]()
             result += (key -> validTimes)
             validTimes
           case Some(x) => x
         }
-      
+
         validTimes += validTime
       } else {
         log.warning("SectorSec: " + sectorSec + " has null sec. The id of this sectorSec is: " + SectorSecs.idOf(sectorSec))
       }
     }
-    
+
     result
   }
 }
 
 class SectorSnap(val sector: Sector, exchange: Exchange = Exchange.SS) {
-  @transient private val log = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   var dayMoneyFlow: MoneyFlow = _
   var minMoneyFlow: MoneyFlow = _
 
   // it's not thread safe, but we know it won't be accessed parallel, @see sequenced accessing in setByTicker(ticker)
-  @transient private val cal = Calendar.getInstance(exchange.timeZone)
+  private val cal = Calendar.getInstance(exchange.timeZone)
 
   final def setByMoneyFlow(mf: MoneyFlow): SectorSnap = {
     val time = mf.lastModify

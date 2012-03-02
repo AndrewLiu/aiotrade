@@ -36,7 +36,7 @@ import ru.circumflex.orm.Table
  * @author Caoyuan Deng
  */
 class SectorSec {
-  var sector: Sector = _
+  @transient var sector: Sector = _
   @transient var sec: Sec = _
 
   var sectorKey: String = _
@@ -44,7 +44,7 @@ class SectorSec {
   var weight: Float = _
   var validFrom: Long = _
   var validTo: Long = _
-  
+
   override def toString = {
     "SectorSec(sector.key=" + sectorKey + ", " + (if (sec == null) "with null sec ?" else " with good sec") + ")"
   }
@@ -53,11 +53,11 @@ class SectorSec {
 object SectorSecs extends Table[SectorSec] {
   val sector  = "sectors_id" BIGINT() REFERENCES(Sectors)
   val sec = "secs_id" BIGINT() REFERENCES(Secs)
-  
+
   val weight = "weight" FLOAT()
   val validFrom = "validFrom" BIGINT()
   val validTo = "validTo" BIGINT()
-  
+
   val sectorIdx = getClass.getSimpleName + "_sector_idx" INDEX(sector.name)
   val secIdx = getClass.getSimpleName + "_sec_idx" INDEX(sec.name)
   val validFromIdx = getClass.getSimpleName + "_validFrom_idx" INDEX(validFrom.name)
