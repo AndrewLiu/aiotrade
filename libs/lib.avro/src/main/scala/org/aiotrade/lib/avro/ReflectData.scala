@@ -35,12 +35,12 @@ object ReflectData {
       makeNullable(schema)
     }
   }
-  
+
   private val INSTANCE = new ReflectData()
 
   /** Return the singleton instance. */
   def get() = INSTANCE
-  
+
   private val classLoader = Thread.currentThread.getContextClassLoader
   private val FIELD_CACHE = new java.util.concurrent.ConcurrentHashMap[Class[_], java.util.Map[String, Field]]()
 
@@ -90,9 +90,9 @@ object ReflectData {
   }
 
   private val BYTES_CLASS = Array[Byte]().getClass
-  
+
   private val THROWABLE_MESSAGE = makeNullable(Schema.create(Schema.Type.STRING))
-  
+
   /** Create and return a union of the null schema and the provided schema. */
   def makeNullable(schema: Schema) = {
     Schema.createUnion(java.util.Arrays.asList(Schema.create(Schema.Type.NULL), schema))
@@ -102,7 +102,7 @@ object ReflectData {
 /** Utilities to use existing Java classes and interfaces via reflection. */
 class ReflectData protected() extends SpecificData {
 
-  override 
+  override
   def getClassName(schema: Schema): String = {
     super.getClassName(schema).replace("_DOLLAR_", "$")
   }
@@ -122,7 +122,7 @@ class ReflectData protected() extends SpecificData {
               case _ => v
             }
           } else v
-          
+
           field.set(record, value)
         } catch {
           case ex: IllegalAccessException => throw new AvroRuntimeException(ex)
@@ -134,7 +134,7 @@ class ReflectData protected() extends SpecificData {
   def getField(record: AnyRef, name: String, position: Int): AnyRef = {
     record match {
       case x: IndexedRecord => super.getField(record, name, position)
-      case _ =>    
+      case _ =>
         try {
           ReflectData.getField(record.getClass, name).get(record)
         } catch {
@@ -155,7 +155,7 @@ class ReflectData protected() extends SpecificData {
     datum.isInstanceOf[java.util.Collection[_]] || datum.isInstanceOf[collection.Seq[_]] || datum.getClass.isArray()
   }
 
-  override 
+  override
   protected def isMap(datum: AnyRef): Boolean = {
     datum.isInstanceOf[java.util.Map[_, _]] || datum.isInstanceOf[collection.Map[_, _]]
   }
@@ -190,7 +190,7 @@ class ReflectData protected() extends SpecificData {
           }
         }
         true
-        
+
       case ARRAY =>
         if (datum.getClass.isArray) {    // array
           val length = java.lang.reflect.Array.getLength(datum)
@@ -200,7 +200,7 @@ class ReflectData protected() extends SpecificData {
           }
           return true
         }
-        
+
         datum match {
           case xs: java.util.Collection[_] =>          // collection
             val itr = xs.iterator
@@ -218,7 +218,7 @@ class ReflectData protected() extends SpecificData {
             true
           case _ => false
         }
-        
+
       case MAP =>
         datum match {
           case map: java.util.Map[_, _] =>
@@ -256,7 +256,7 @@ class ReflectData protected() extends SpecificData {
         val classProp = schema.getProp(ReflectData.CLASS_PROP)
         if (classOf[Short].getName == classProp || classOf[java.lang.Short].getName == classProp)
           java.lang.Short.TYPE
-        else 
+        else
           super.getClass(schema)
       case _ => super.getClass(schema)
     }
@@ -267,7 +267,7 @@ class ReflectData protected() extends SpecificData {
     import ClassHelper._
     tpe.getGenericComponentType match {
       case ByteType => Schema.create(Schema.Type.BYTES) // byte array
-      case c: Class[_] => 
+      case c: Class[_] =>
         val c1 = c.asInstanceOf[Class[_]] // cheat createSchema for lack of Manifest
         val schema = Schema.createArray(createSchema(c1, names))
         setElement(schema, c)
@@ -278,7 +278,7 @@ class ReflectData protected() extends SpecificData {
         schema
     }
   }
-  
+
   override
   protected def createSchema(tpe: ParameterizedType, names: java.util.Map[String, Schema]): Schema = {
     val raw = tpe.getRawType.asInstanceOf[Class[_]]
@@ -298,7 +298,7 @@ class ReflectData protected() extends SpecificData {
       super.createSchema(tpe, names)
     }
   }
-  
+
   override
   protected def createSchema[T <: GenericDeclaration](tpe: TypeVariable[T], names: java.util.Map[String, Schema]): Schema = {
     tpe.getGenericDeclaration match {
@@ -306,7 +306,7 @@ class ReflectData protected() extends SpecificData {
       case gtype => throw new AvroTypeException("Unknown type: " + gtype)
     }
   }
-  
+
   override
   protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
     import ClassHelper._
@@ -315,40 +315,40 @@ class ReflectData protected() extends SpecificData {
         val schema = Schema.create(Schema.Type.INT)
         schema.addProp(ReflectData.CLASS_PROP, classOf[Short].getName)
         schema
-      
+
       case c: Class[_] if c.isArray =>
         c.getComponentType match {
-          case ByteType => 
+          case ByteType =>
             Schema.create(Schema.Type.BYTES) // byte array
-          case component => 
+          case component =>
             val schema = Schema.createArray(createSchema(component, names))
             setElement(schema, component)
             schema
         }
-        
+
       case c: Class[T] if classOf[CharSequence].isAssignableFrom(c) => // String
         Schema.create(Schema.Type.STRING) // String
-      
+
       case c: Class[T] if c.isPrimitive || classOf[Number].isAssignableFrom(c) || c == JVoidClass || c == JBooleanClass || c == BooleanClass => // primitive
         super.createSchema(tpe, names)
-      
+
       case c: Class[T] if isTupleClass(c) || isCollectionClass(c) || isMapClass(c) =>
         super.createSchema(tpe, names)
-        
-      case c: Class[T] => // other Class      
+
+      case c: Class[T] => // other Class
         val fullName = c.getName
         names.get(fullName) match {
           case null =>
             val name = if (isScalaSingletonObject(c)) { // scala singleton object
               c.getSimpleName.replace("$", "_DOLLAR_")
             } else c.getSimpleName
-            
+
             val space = if (c.getEnclosingClass != null) { // nested class
               c.getEnclosingClass.getName + "$"
             } else {
               if (c.getPackage == null) "" else c.getPackage.getName
             }
-            
+
             val union = c.getAnnotation(classOf[Union])
             if (union != null) { // union annotated
               return getAnnotatedUnion(union, names)
@@ -358,9 +358,9 @@ class ReflectData protected() extends SpecificData {
               return result
             } else if (classOf[IndexedRecord].isAssignableFrom(c)) { // specific
               return super.createSchema(tpe, names)
-            } 
+            }
 
-            val schema = 
+            val schema =
               if (c.isEnum) { // Enum
                 val symbols = new java.util.ArrayList[String]()
                 val constants = c.getEnumConstants.asInstanceOf[Array[Enum[_]]]
@@ -392,33 +392,33 @@ class ReflectData protected() extends SpecificData {
                 schema.setFields(fields)
                 schema
               }
-            
+
             names.put(fullName, schema)
             schema
           case schema => schema
         }
-        
+
       case _ => super.createSchema(tpe, names)
     }
   }
 
 
   // if array element type is a class with a union annotation, note it
-  // this is required because we cannot set a property on the union itself 
+  // this is required because we cannot set a property on the union itself
   private def setElement(schema: Schema, element: Type) {
     element match {
       case c: Class[_] =>
         val union = c.getAnnotation(classOf[Union])
         if (union != null) // element is annotated union
           schema.addProp(ReflectData.ELEMENT_PROP, c.getName)
-      case _ => 
+      case _ =>
     }
   }
 
   // construct a schema from a union annotation
   private def getAnnotatedUnion(union: Union, names: java.util.Map[String, Schema]): Schema = {
     val branches = new java.util.ArrayList[Schema]()
-    for (branch <- union.value) 
+    for (branch <- union.value)
       branches.add(createSchema(branch, names))
     Schema.createUnion(branches)
   }
@@ -460,7 +460,7 @@ class ReflectData protected() extends SpecificData {
       case x: TypeVariable[_] => createSchema(x, names)
       case x: Class[_] => val c = x.asInstanceOf[Class[_]]; createSchema(c, names)
     }
-    
+
     if (field.isAnnotationPresent(classOf[Nullable])) // nullable
       ReflectData.makeNullable(schema)
     else
@@ -518,7 +518,7 @@ class ReflectData protected() extends SpecificData {
       val paramName = if (paramNames.length == paramTypes.length) paramNames(i) else (paramSchema.getName + i)
       fields.add(new Schema.Field(paramName, paramSchema, null /* doc */, null))
     }
-    
+
     val request = Schema.createRecord(fields)
 
     val union = method.getAnnotation(classOf[Union])
