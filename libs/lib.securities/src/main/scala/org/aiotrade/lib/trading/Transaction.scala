@@ -9,7 +9,7 @@ trait Transaction {
   def time: Long
   def description: String
   def amount: Double
-  def transactions: Array[Transaction]
+  def subTransactions: Array[Transaction]
   
   /**
    * Gets the order that originated this transaction, if any.
@@ -26,34 +26,32 @@ class ExpenseTransaction(val time: Long, val amount: Double) extends Transaction
   val id = UUID.randomUUID.getMostSignificantBits
   val description = "Expenses"
   val order: Order = null
-  val transactions: Array[Transaction] = Array[Transaction]()
+  val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-class SecurityTransaction(val sec: Sec, quantity: Double, price: Double) extends Transaction {
+class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
-  val time = System.currentTimeMillis
   val description = "%s %s at %s".format(sec.uniSymbol, quantity, price)
   val amount = quantity * price
   val order: Order = null
-  val transactions: Array[Transaction] = Array[Transaction]()
+  val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-class TradeTransaction(val order: Order, chunks: Array[Transaction], expenses: Transaction) extends Transaction {
+class TradeTransaction(val time: Long, val order: Order, chunks: Array[Transaction], expenses: Transaction) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
-  val time = System.currentTimeMillis
   val description = "Order %s".format(order)
 
-  val transactions = if (expenses != null) {
+  val subTransactions = if (expenses != null) {
     (new ArrayList() ++ chunks + expenses).toArray
   } else chunks
 
   val amount = {
-    var value = 0.0
+    var sum = 0.0
     var i = 0
-    while (i < transactions.length) {
-      value += transactions(i).amount
+    while (i < subTransactions.length) {
+      sum += subTransactions(i).amount
       i += 1
     }
-    value
+    sum
   }
 }

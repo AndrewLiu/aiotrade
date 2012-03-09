@@ -27,7 +27,7 @@ class Account(var description: String, val currency: Currency = Currency.getInst
   def transactions = _transactions.toArray
   def positions = _positions.toArray
 
-  def processCompletedOrder(order: Order) {
+  def processCompletedOrder(time: Long, order: Order) {
     val expenses = if (expenseScheme != null) {
       order.side match {
         case OrderSide.Buy => expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
@@ -36,7 +36,7 @@ class Account(var description: String, val currency: Currency = Currency.getInst
       }
     } else Double.NaN
     
-    val transaction = new TradeTransaction(order, order.transactions, if (expenses != Double.NaN) new ExpenseTransaction(expenses) else null)
+    val transaction = new TradeTransaction(time, order, order.transactions, if (expenses != Double.NaN) new ExpenseTransaction(expenses) else null)
     _transactions += transaction
 
     _balance -= transaction.amount
@@ -46,12 +46,12 @@ class Account(var description: String, val currency: Currency = Currency.getInst
     
     _positions find (_.sec == order.sec) match {
       case None => 
-        val position = new Position(order.sec, quantity, averagePrice)
+        val position = Position(time, order.sec, quantity, averagePrice)
         _positions += position
         publish(PositionOpened(this, position))
         
       case Some(position) =>
-        position.add(quantity, averagePrice)
+        position.add(time, quantity, averagePrice)
         if (position.quantity == 0) {
           _positions -= position
           publish(PositionClosed(this, position))
