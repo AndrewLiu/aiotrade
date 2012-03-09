@@ -4,11 +4,10 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 
 class Position private (private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
+  def this() = this(Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
+
   private var _subPositions: ArrayList[Position] = null
   private var _currentPrice = Double.NaN
-  
-  // for serialization
-  def this() = this(Long.MinValue, null, Double.NaN, Double.NaN)
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
   

@@ -22,7 +22,7 @@ import javax.swing.table.TableCellRenderer
 import org.aiotrade.lib.collection.ArrayList
 import javax.swing.table.TableRowSorter
 import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.math.signal.Direction
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalX
 import org.aiotrade.lib.securities.model.Exchange
@@ -104,10 +104,10 @@ class SignalTopComponent extends TopComponent with Reactor {
             }
           case 1 => event.symbol
           case 2 => event.signal.kind match {
-              case Direction.EnterLong  => BUNDLE.getString("enterLong")
-              case Direction.ExitLong   => BUNDLE.getString("exitLong")
-              case Direction.EnterShort => BUNDLE.getString("enterShort")
-              case Direction.ExitShort  => BUNDLE.getString("exitShort")
+              case Side.EnterLong  => BUNDLE.getString("enterLong")
+              case Side.ExitLong   => BUNDLE.getString("exitLong")
+              case Side.EnterShort => BUNDLE.getString("enterShort")
+              case Side.ExitShort  => BUNDLE.getString("exitShort")
             }
           case 3 => event.signal.id + "号"
           case _ => null

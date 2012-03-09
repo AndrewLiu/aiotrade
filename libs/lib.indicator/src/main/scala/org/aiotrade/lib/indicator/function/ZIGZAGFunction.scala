@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.indicator.Factor
@@ -46,7 +47,7 @@ class ZIGZAGFunction extends Function {
   val _peakLo    = TVar[Double]()
   val _peakHiIdx = TVar[Int]()
   val _peakLoIdx = TVar[Int]()
-  val _direction = TVar[Direction]()
+  val _side = TVar[Side]()
     
   val _zigzag       = TVar[Double]()
   val _pseudoZigzag = TVar[Double]()
@@ -95,7 +96,7 @@ class ZIGZAGFunction extends Function {
         
     /** set pseudo zigzag to the last peakHi/Lo in current trend */
     if (lastIdx >= 0) {
-      if (_direction(lastIdx) == Direction.Long) {
+      if (_side(lastIdx) == Side.EnterLong) {
         val lastPeakHiIdx = _peakHiIdx(lastIdx)
         _pseudoZigzag(lastPeakHiIdx) = H(lastPeakHiIdx)
       } else {
@@ -110,7 +111,7 @@ class ZIGZAGFunction extends Function {
         
     if (i == 0) {
             
-      _direction(i) = Direction.Long
+      _side(i) = Side.EnterLong
       _zigzag(i) = Null.Double
       _pseudoZigzag(i) = Null.Double
       _peakHi(i) = H(i)
@@ -120,11 +121,11 @@ class ZIGZAGFunction extends Function {
             
     } else {
             
-      if (_direction(i - 1) == Direction.Long) {
+      if (_side(i - 1) == Side.EnterLong) {
                 
         if ((H(i) - _peakHi(i - 1)) / _peakHi(i - 1) <= -percent.value) {
           /** turn over to short trend */
-          _direction(i) = Direction.Short
+          _side(i) = Side.ExitLong
                     
           /** and we get a new zigzag peak of high at (idx - 1) */
           val newZigzagIdx = _peakHiIdx(i - 1)
@@ -135,7 +136,7 @@ class ZIGZAGFunction extends Function {
                     
         } else {
           /** long trend goes on */
-          _direction(i) = _direction(i - 1)
+          _side(i) = _side(i - 1)
                     
           if (H(i) > _peakHi(i - 1)) {
             /** new high */
@@ -153,7 +154,7 @@ class ZIGZAGFunction extends Function {
                 
         if ((L(i) - _peakLo(i - 1)) / _peakLo(i - 1) >= percent.value) {
           /** turn over to long trend */
-          _direction(i) = Direction.Long
+          _side(i) = Side.EnterLong
                     
           /** and we get a new zigzag peak of low at (idx - 1) */
           val newZigzagIdx = _peakLoIdx(i - 1)
@@ -164,7 +165,7 @@ class ZIGZAGFunction extends Function {
                     
         } else {
           /** short trend goes on */
-          _direction(i) = _direction(i - 1)
+          _side(i) = _side(i - 1)
                     
           if (L(i) < _peakLo(i - 1)) {
             /** new low */
@@ -194,7 +195,7 @@ class ZIGZAGFunction extends Function {
     var break = false
     while (i < size && !break) {
       computeTo(sessionId, i);
-      if (i > 0 && _direction(i - 1) != _direction(i)) {
+      if (i > 0 && _side(i - 1) != _side(i)) {
         /** a turn over happened */
         break = true
       }
@@ -215,7 +216,7 @@ class ZIGZAGFunction extends Function {
     var break = false
     while (i < size && !break) {
       computeTo(sessionId, i)
-      if (i > 0 && _direction(i - 1) != _direction(i)) {
+      if (i > 0 && _side(i - 1) != _side(i)) {
         /** a turn over happened */
         break = true
       }
@@ -225,10 +226,10 @@ class ZIGZAGFunction extends Function {
     _pseudoZigzag(idx)
   }
 
-  def zigzagDirection(sessionId: Long, idx: Int): Direction = {
+  def zigzagSide(sessionId: Long, idx: Int): Side = {
     /**
      * @NOTICE
-     * as zigzag direction 's value is decided by future (+n step) idx, we should
+     * as zigzag Side 's value is decided by future (+n step) idx, we should
      * go on computing untill a turn over happened.
      */
     val size = baseSer.size
@@ -236,14 +237,14 @@ class ZIGZAGFunction extends Function {
     var break = false
     while (i < size && !break) {
       computeTo(sessionId, i)
-      if (i > 0 && _direction(i - 1) != _direction(i)) {
+      if (i > 0 && _side(i - 1) != _side(i)) {
         /** a turn over happened */
         break = true
       }
       i += 1
     }
         
-    _direction(idx)
+    _side(idx)
   }
 }
 

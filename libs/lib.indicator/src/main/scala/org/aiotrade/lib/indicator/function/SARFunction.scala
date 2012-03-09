@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.indicator.Factor
 
@@ -41,9 +42,9 @@ class SARFunction extends Function {
     
   var initial, step, maximum: Factor = _
     
-  val _direction = TVar[Direction]()
-  val _ep        = TVar[Double]()
-  val _af        = TVar[Double]()
+  val _side = TVar[Side]()
+  val _ep   = TVar[Double]()
+  val _af   = TVar[Double]()
     
   val _sar = TVar[Double]()
     
@@ -58,7 +59,7 @@ class SARFunction extends Function {
   protected def computeSpot(i: Int): Unit = {
     if (i == 0) {
             
-      _direction(i) = Direction.Long
+      _side(i) = Side.EnterLong
             
       val currLow = L(i)
       _sar(i) = currLow
@@ -70,7 +71,7 @@ class SARFunction extends Function {
             
     } else {
             
-      if (_direction(i - 1) == Direction.Long) {
+      if (_side(i - 1) == Side.EnterLong) {
         /** in long-term */
                 
         val currHigh = H(i)
@@ -90,7 +91,7 @@ class SARFunction extends Function {
         if (_sar(i) >= currHigh) {
           /** turn to short-term */
                     
-          _direction(i) = Direction.Short
+          _side(i) = Side.ExitLong
                     
           _sar(i) = currHigh
                     
@@ -100,7 +101,7 @@ class SARFunction extends Function {
         } else {
           /** still in long-term */
                     
-          _direction(i) = Direction.Long
+          _side(i) = Side.EnterLong
         }
                 
       } else {
@@ -121,7 +122,7 @@ class SARFunction extends Function {
         if (_sar(i) <= currLow) {
           /** turn to long-term */
                     
-          _direction(i) = Direction.Long
+          _side(i) = Side.EnterLong
                     
           _sar(i) = currLow
                     
@@ -131,7 +132,7 @@ class SARFunction extends Function {
         } else {
           /** still in short-term */
                     
-          _direction(i) = Direction.Short
+          _side(i) = Side.ExitLong
         }
       }
             
@@ -144,10 +145,10 @@ class SARFunction extends Function {
     _sar(idx)
   }
     
-  def sarDirection(sessionId: Long, idx: Int): Direction = {
+  def sarSide(sessionId: Long, idx: Int): Side = {
     computeTo(sessionId, idx)
         
-    _direction(idx)
+    _side(idx)
   }
 }
 

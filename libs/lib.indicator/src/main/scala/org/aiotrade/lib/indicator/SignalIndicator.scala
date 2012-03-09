@@ -32,10 +32,10 @@ package org.aiotrade.lib.indicator
 
 import java.awt.Color
 import java.util.logging.Logger
+import org.aiotrade.lib.math.signal.Corner
 import org.aiotrade.lib.math.signal.Kind
-import org.aiotrade.lib.math.signal.Direction
-import org.aiotrade.lib.math.signal.Position
 import org.aiotrade.lib.math.signal.Mark
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Sign
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
@@ -64,8 +64,8 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     val time = baseSer.timestamps(idx)
 
     val signal = kind match {
-      case x: Direction => Sign(time, x, id, text, color)
-      case x: Position  => Mark(time, x, id, text, color)
+      case x: Side   => Sign(time, x, id, text, color)
+      case x: Corner => Mark(time, x, id, text, color)
     }
 
     signalVar(idx) match {
@@ -81,68 +81,68 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
     }
   }
 
-  protected def mark(idx: Int, position: Position): Mark = {
-    mark(idx, position, 0, null, null)
+  protected def mark(idx: Int, corner: Corner): Mark = {
+    mark(idx, corner, 0, null, null)
   }
 
-  protected def mark(idx: Int, position: Position, id: Int): Mark = {
-    mark(idx, position, id, null, null)
+  protected def mark(idx: Int, corner: Corner, id: Int): Mark = {
+    mark(idx, corner, id, null, null)
   }
 
-  protected def mark(idx: Int, position: Position, color: Color): Mark = {
-    mark(idx, position, 0, null, color)
+  protected def mark(idx: Int, corner: Corner, color: Color): Mark = {
+    mark(idx, corner, 0, null, color)
   }
 
-  protected def mark(idx: Int, position: Position, id: Int, color: Color): Mark = {
-    mark(idx, position, id, null, color)
+  protected def mark(idx: Int, corner: Corner, id: Int, color: Color): Mark = {
+    mark(idx, corner, id, null, color)
   }
 
-  protected def mark(idx: Int, position: Position, text: String): Mark = {
-    mark(idx, position, 0, text, null)
+  protected def mark(idx: Int, corner: Corner, text: String): Mark = {
+    mark(idx, corner, 0, text, null)
   }
 
-  protected def mark(idx: Int, position: Position, id: Int, text: String): Mark = {
-    mark(idx, position, id, text, null)
+  protected def mark(idx: Int, corner: Corner, id: Int, text: String): Mark = {
+    mark(idx, corner, id, text, null)
   }
 
-  protected def mark(idx: Int, position: Position, text: String, color: Color): Mark = {
-    signal[Mark](idx, position, 0, text, color)._1
+  protected def mark(idx: Int, corner: Corner, text: String, color: Color): Mark = {
+    signal[Mark](idx, corner, 0, text, color)._1
   }
 
-  protected def mark(idx: Int, position: Position, id: Int = 0, text: String = null, color: Color = null): Mark = {
-    signal[Mark](idx, position, id, text, color)._1
+  protected def mark(idx: Int, corner: Corner, id: Int = 0, text: String = null, color: Color = null): Mark = {
+    signal[Mark](idx, corner, id, text, color)._1
   }
 
-  protected def sign(idx: Int, direction: Direction): Sign = {
-    sign(idx, direction)
+  protected def sign(idx: Int, side: Side): Sign = {
+    sign(idx, side)
   }
 
-  protected def sign(idx: Int, direction: Direction, id: Int): Sign = {
-    sign(idx, direction, id)
+  protected def sign(idx: Int, side: Side, id: Int): Sign = {
+    sign(idx, side, id)
   }
 
-  protected def sign(idx: Int, direction: Direction, color: Color): Sign = {
-    sign(idx, direction, 0, null, color)
+  protected def sign(idx: Int, side: Side, color: Color): Sign = {
+    sign(idx, side, 0, null, color)
   }
 
-  protected def sign(idx: Int, direction: Direction, id: Int, color: Color): Sign = {
-    sign(idx, direction, id, null, color)
+  protected def sign(idx: Int, side: Side, id: Int, color: Color): Sign = {
+    sign(idx, side, id, null, color)
   }
 
-  protected def sign(idx: Int, direction: Direction, text: String): Sign = {
-    sign(idx, direction, 0, text, null)
+  protected def sign(idx: Int, side: Side, text: String): Sign = {
+    sign(idx, side, 0, text, null)
   }
 
-  protected def sign(idx: Int, direction: Direction, id: Int, text: String): Sign = {
-    sign(idx, direction, id, text, null)
+  protected def sign(idx: Int, side: Side, id: Int, text: String): Sign = {
+    sign(idx, side, id, text, null)
   }
 
-  protected def sign(idx: Int, direction: Direction, text: String, color: Color): Sign = {
-    sign(idx, direction, 0, text, color)
+  protected def sign(idx: Int, side: Side, text: String, color: Color): Sign = {
+    sign(idx, side, 0, text, color)
   }
 
-  protected def sign(idx: Int, direction: Direction, id: Int = 0, text: String = null, color: Color = null): Sign = {
-    val (sign, isNewOne) = signal[Sign](idx, direction, id, text, color)
+  protected def sign(idx: Int, side: Side, id: Int = 0, text: String = null, color: Color = null): Sign = {
+    val (sign, isNewOne) = signal[Sign](idx, side, id, text, color)
     if (isNewOne) {
       log.info("Signal sign: " + sign)
       Signal.publish(SignalEvent(this, sign))

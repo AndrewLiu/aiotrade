@@ -34,6 +34,7 @@ import org.aiotrade.lib.indicator.function._
 import org.aiotrade.lib.math.indicator.Factor
 import org.aiotrade.lib.math.indicator.Function
 import org.aiotrade.lib.math.indicator.IndicatorHelper
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, TVar, BaseTSer}
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model._
@@ -396,8 +397,8 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
     Function(classOf[SARFunction], baseSer, initial, step, maximum).sar(sessionId, idx)
   }
     
-  final protected def sarDirection(idx: Int, initial: Factor, step: Factor, maximum: Factor): Direction = {
-    Function(classOf[SARFunction], baseSer, initial, step, maximum).sarDirection(sessionId, idx)
+  final protected def sarSide(idx: Int, initial: Factor, step: Factor, maximum: Factor): Side = {
+    Function(classOf[SARFunction], baseSer, initial, step, maximum).sarSide(sessionId, idx)
   }
     
   final protected def stochK(idx: Int, period: Factor, periodK: Factor): Double = {
@@ -424,8 +425,8 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
     Function(classOf[ZIGZAGFunction], baseSer, percent).pseudoZigzag(sessionId, idx)
   }
     
-  final protected def zigzagDirection(idx: Int, percent: Factor): Direction = {
-    Function(classOf[ZIGZAGFunction], baseSer, percent).zigzagDirection(sessionId, idx)
+  final protected def zigzagSide(idx: Int, percent: Factor): Side = {
+    Function(classOf[ZIGZAGFunction], baseSer, percent).zigzagSide(sessionId, idx)
   }
     
   override def dispose {
