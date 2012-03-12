@@ -96,7 +96,7 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
     _transactions += transaction
   }
   
-  def fill(size: Double, price: Double): OrderStatus =  {
+  def fill(time: Long, size: Double, price: Double): OrderStatus =  {
     var totalPrice = filledQuantity * averagePrice
     val remainQuantity = quantity - filledQuantity
 
@@ -114,9 +114,9 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
     if (executedQuantity > 0) {
       side match {
         case OrderSide.Buy | OrderSide.BuyCover =>
-          addTransaction(new SecurityTransaction(sec, executedQuantity, price))
+          addTransaction(new SecurityTransaction(time, sec, executedQuantity, price))
         case OrderSide.Sell | OrderSide.SellShort =>
-          addTransaction(new SecurityTransaction(sec, -executedQuantity, price))
+          addTransaction(new SecurityTransaction(time, sec, -executedQuantity, price))
         case _ =>
       }
     }
@@ -125,7 +125,7 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
 
     if (filledQuantity == quantity) {
       status = OrderStatus.Filled
-      account.processCompletedOrder(this)
+      account.processCompletedOrder(time, this)
     } else {
       status = OrderStatus.Partial
     }

@@ -55,37 +55,37 @@ case class SignalsX(symbol: String, name: String, freq: String, signals: Array[S
  *   Don't write Sign/Mark as case class
  */
 class Sign private (time: => Long, 
-                    kind: => Direction, 
+                    kind: => Side, 
                     id: => Int, 
                     text: => String, 
                     color: => Color
 ) extends Signal(time, kind, id, text, color) {
-  def this() = this(0L, Direction.EnterLong, 0, null, null) /* for serializable */
-  override def kind = super.kind.asInstanceOf[Direction]
+  def this() = this(0L, Side.EnterLong, 0, null, null) /* for serializable */
+  override def kind = super.kind.asInstanceOf[Side]
 }
 
 object Sign {
-  def apply(time: Long, kind: Direction, id: Int = 0, text: String = null, color: Color = null) = new Sign(time, kind, id, text, color)
-  def unapply(v: Signal): Option[(Long, Direction, Int, String, Color)] = v.kind match {
-    case dire: Direction => Some((v.time, dire, v.id, v.text, v.color))
+  def apply(time: Long, kind: Side, id: Int = 0, text: String = null, color: Color = null) = new Sign(time, kind, id, text, color)
+  def unapply(v: Signal): Option[(Long, Side, Int, String, Color)] = v.kind match {
+    case side: Side => Some((v.time, side, v.id, v.text, v.color))
     case _ => None
   }
 }
 
 class Mark private (time: => Long, 
-                    kind: => Position, 
+                    kind: => Corner, 
                     id: => Int, 
                     text: => String, 
                     color: => Color
 ) extends Signal(time, kind, id, text, color) {
-  def this() = this(0L, Position.Lower, 0, null, null) /* for serializable */
-  override def kind = super.kind.asInstanceOf[Position]
+  def this() = this(0L, Corner.Lower, 0, null, null) /* for serializable */
+  override def kind = super.kind.asInstanceOf[Corner]
 }
 
 object Mark {
-  def apply(time: Long, kind: Position, id: Int = 0, text: String = null, color: Color = null) = new Mark(time, kind, id, text, color)
-  def unapply(v: Signal): Option[(Long, Position, Int, String, Color)] = v.kind match {
-    case posi: Position => Some((v.time, posi, v.id, v.text, v.color))
+  def apply(time: Long, kind: Corner, id: Int = 0, text: String = null, color: Color = null) = new Mark(time, kind, id, text, color)
+  def unapply(v: Signal): Option[(Long, Corner, Int, String, Color)] = v.kind match {
+    case corner: Corner => Some((v.time, corner, v.id, v.text, v.color))
     case _ => None
   }
 }
@@ -95,8 +95,8 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
 
   def kind: Kind = _kind
   
-  def isSign = kind.isDirection
-  def isMark = kind.isPosition
+  def isSign = kind.isSide
+  def isMark = kind.isCorner
     
   def hasText = text != null
 
@@ -130,23 +130,23 @@ object Signal extends Publisher {
   // --- simple test
   def main(args: Array[String]) {
     try {
-      val posi = new Position(-1)
-      val matchPosi = posi match {
-        case Position.Lower => false
-        case Position.Upper => true
+      val corner = new Corner(-1)
+      val matchCorner = corner match {
+        case Corner.Lower => false
+        case Corner.Upper => true
       }
-      assert(matchPosi)
-      println(matchPosi)
+      assert(matchCorner)
+      println(matchCorner)
 
-      val dire = new Direction(4)
-      val matchDire = dire match {
-        case Direction.EnterLong => false
-        case Direction.ExitShort => true
+      val side = new Side(4)
+      val matchSide = side match {
+        case Side.EnterLong => false
+        case Side.ExitShort => true
       }
-      assert(matchDire)
-      println(matchDire)
+      assert(matchSide)
+      println(matchSide)
     
-      val sign = new Signal(0, Direction.EnterLong)
+      val sign = new Signal(0, Side.EnterLong)
       val matchSign = sign match {
         case Mark(time, kind, _, _, _) => println(kind); false
         case Sign(time, kind, _, _, _) => println(kind); true
@@ -155,7 +155,7 @@ object Signal extends Publisher {
       assert(matchSign)
       println(matchSign)
     
-      val mark = new Signal(0, Position.Lower)
+      val mark = new Signal(0, Corner.Lower)
       val matchMark = mark match {
         case Sign(time, kind, _, _, _) => println(kind); false
         case Mark(time, kind, _, _, _) => println(kind); true

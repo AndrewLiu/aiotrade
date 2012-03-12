@@ -382,16 +382,28 @@ object Functions {
   final class Mult(var multiplicator: Double) extends Function1[Double, Double] {
     def apply(a: Double): Double = a * multiplicator
   }
+  object Mult {
+    def apply(multiplicator: Double) = new Mult(multiplicator)
+  }
   
   final class PlusMult(var multiplicator: Double) extends Function2[Double, Double, Double] {
     def apply(a: Double, b: Double): Double = a + b * multiplicator
+  }
+  object PlusMult {
+    def apply(multiplicator: Double) = new PlusMult(multiplicator)
   }
   
   final class SquareRootFunction extends Function1[Double, Double] {
     def apply(a: Double): Double = math.sqrt(a)
   }
+  object SquareRootFunction {
+    def apply() = new SquareRootFunction()
+  }
   
   final class TimesFunction extends Function2[Double, Double, Double] {
     def apply(x: Double, y: Double): Double = x * y
+  }
+  object TimesFunction {
+    def apply() = new TimesFunction()
   }
 }

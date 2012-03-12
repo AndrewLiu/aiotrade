@@ -30,16 +30,16 @@
  */
 package org.aiotrade.lib.charting.chart
 
+import java.awt.Font
 import org.aiotrade.lib.charting.widget.Arrow
 import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.Label
 import org.aiotrade.lib.charting.widget.WidgetModel
-import java.awt.Font
 import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.math.signal.Direction
-import org.aiotrade.lib.math.signal.Position
+import org.aiotrade.lib.math.signal.Corner
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
 
 /**
@@ -95,8 +95,8 @@ class SignalChart extends AbstractChart {
               // appoint a reference value for this sign as the drawing position
               val refValue = if (m.lowVar != null && m.highVar != null) {
                 signal.kind match {
-                  case Direction.EnterLong | Direction.ExitShort  | Position.Lower => m.lowVar(time)
-                  case Direction.ExitLong  | Direction.EnterShort | Position.Upper => m.highVar(time)
+                  case Side.EnterLong | Side.ExitShort  | Corner.Lower => m.lowVar(time)
+                  case Side.ExitLong  | Side.EnterShort | Corner.Upper => m.highVar(time)
                   case _ => Null.Double
                 }
               } else 0.0
@@ -111,7 +111,7 @@ class SignalChart extends AbstractChart {
                 }
 
                 signal.kind match {
-                  case Direction.EnterLong | Direction.ExitShort | Position.Lower =>
+                  case Side.EnterLong | Side.ExitShort | Corner.Lower =>
                     var height = 12
                     var filled = false
                     if (signal.isSign) {
@@ -133,7 +133,7 @@ class SignalChart extends AbstractChart {
 
                     dyUp += (1 + height)
                     
-                  case Direction.ExitLong | Direction.EnterShort | Position.Upper =>
+                  case Side.ExitLong | Side.EnterShort | Corner.Upper =>
                     var height = 12
                     var filled = false
                     if (signal.isSign) {

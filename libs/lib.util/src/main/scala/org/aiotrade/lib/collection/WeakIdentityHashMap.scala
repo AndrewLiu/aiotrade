@@ -5,11 +5,6 @@ import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 
-object WeakIdentityHashMap extends MutableMapFactory[WeakIdentityHashMap] {
-  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakIdentityHashMap[A, B]] = new MapCanBuildFrom[A, B]
-  def empty[A, B]: WeakIdentityHashMap[A, B] = new WeakIdentityHashMap[AnyRef, B].asInstanceOf[WeakIdentityHashMap[A, B]]
-}
-
 @serializable @SerialVersionUID(1L)
 class WeakIdentityHashMap[A, B](
   protected implicit val m: Manifest[A]
@@ -90,4 +85,10 @@ class WeakIdentityHashMap[A, B](
     init[B](in, new WeakEntry(_, _, queue))
   }
 }
+
+object WeakIdentityHashMap extends MutableMapFactory[WeakIdentityHashMap] {
+  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakIdentityHashMap[A, B]] = new MapCanBuildFrom[A, B]
+  def empty[A, B]: WeakIdentityHashMap[A, B] = new WeakIdentityHashMap[AnyRef, B].asInstanceOf[WeakIdentityHashMap[A, B]]
+}
+
 

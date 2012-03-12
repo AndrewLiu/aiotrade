@@ -443,7 +443,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
   /**
    * All quotes in persistence should have been properly rounded to 00:00 of exchange's local time
    */
-  private def loadSerFromPersistence(ser: QuoteSer, isRealTime: Boolean): Long = {
+  def loadSerFromPersistence(ser: QuoteSer, isRealTime: Boolean): Long = {
     val quotes = if (isRealTime) {
 
       val dailyRoundedTime = exchange.lastDailyRoundedTradingTime match {

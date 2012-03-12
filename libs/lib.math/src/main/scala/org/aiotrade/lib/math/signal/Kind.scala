@@ -39,8 +39,8 @@ class Kind(_id: Int) {
 
   protected[signal] def id: Int = _id
   
-  def isDirection: Boolean = id > 0
-  def isPosition:  Boolean = id < 0
+  def isSide:   Boolean = id > 0
+  def isCorner: Boolean = id < 0
   
   override def hashCode = _id
   
@@ -62,38 +62,38 @@ class Kind(_id: Int) {
 
 object Kind {
   def withId(id: Int): Kind = id match {
-    case  1 => Direction.EnterLong
-    case  2 => Direction.ExitLong
-    case  3 => Direction.EnterShort
-    case  4 => Direction.ExitShort
+    case  1 => Side.EnterLong
+    case  2 => Side.ExitLong
+    case  3 => Side.EnterShort
+    case  4 => Side.ExitShort
       
-    case -1 => Position.Upper
-    case -2 => Position.Lower
+    case -1 => Corner.Upper
+    case -2 => Corner.Lower
   }  
 }
 
-class Direction(_id: => Int) extends Kind(_id) {
+class Side(_id: => Int) extends Kind(_id) {
   def this() = this(0) /* for serializable */  
 }
 
-object Direction {
-  val EnterLong  = new Direction(1)
-  val ExitLong   = new Direction(2)
-  val EnterShort = new Direction(3)
-  val ExitShort  = new Direction(4)
+object Side {
+  val EnterLong  = new Side(1)
+  val ExitLong   = new Side(2)
+  val EnterShort = new Side(3)
+  val ExitShort  = new Side(4)
 
-  def withId(id: Int): Direction = Kind.withId(id).asInstanceOf[Direction]
+  def withId(id: Int): Side = Kind.withId(id).asInstanceOf[Side]
 }
 
-class Position(_id: => Int) extends Kind(_id) {
+class Corner(_id: => Int) extends Kind(_id) {
   def this() = this(0) /* for serializable */  
 }
 
-object Position {
-  val Upper = new Position(-1)
-  val Lower = new Position(-2)
+object Corner {
+  val Upper = new Corner(-1)
+  val Lower = new Corner(-2)
 
-  def withId(id: Int): Position = Kind.withId(id).asInstanceOf[Position]
+  def withId(id: Int): Corner = Kind.withId(id).asInstanceOf[Corner]
 }
 
 

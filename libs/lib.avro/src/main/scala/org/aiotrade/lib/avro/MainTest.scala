@@ -224,18 +224,18 @@ object MainTest {
   def testCaseObject(contentType: Int) {
     println("\n==== test case object ====")
     
-    val schema = getSchema(classOf[Position])
+    val schema = getSchema(classOf[Corner])
     println(schema.toString)
     
     // encode
-    val bytes = Avro.encode(Position.Lower, schema, contentType)
+    val bytes = Avro.encode(Corner.Lower, schema, contentType)
     println(new String(bytes, "UTF-8"))
     // decode
     val decoded = Avro.decode(bytes, schema, classOf[Kind], contentType).get
     println(decoded)
     
     decoded match {
-      case Position.Lower => println("Sucess")
+      case Corner.Lower => println("Sucess")
       case _ => println("Failure")
     }
   }
@@ -257,17 +257,17 @@ object MainTest {
     var close = 10.1
     private var volumn = 100
     
-    @transient private var position: Position = Position.Lower // todo, it's difficult to avro scala singleton object
+    @transient private var corner: Corner = Corner.Lower // todo, it's difficult to avro scala singleton object
     
     override def toString = 
-      "Ticker(data=" + data.mkString("[", ",", "]") + ", flag=" + flag + ", open=" + open + ", close=" + close + ", high=" + high + ", postion=" + position + ")"
+      "Ticker(data=" + data.mkString("[", ",", "]") + ", flag=" + flag + ", open=" + open + ", close=" + close + ", high=" + high + ", corner=" + corner + ")"
   }
   
   
   // test data --- case object
   object Kind {
     def withId(id: Byte): Kind = {
-      if (isSign(id)) Direction.withId(id) else Position.withId(id)
+      if (isSign(id)) Side.withId(id) else Corner.withId(id)
     }
 
     def isSign(id: Byte): Boolean = id > 0
@@ -275,29 +275,29 @@ object MainTest {
 
   abstract class Kind {def id: Byte}
 
-  class Direction(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
-  object Direction {
-    case object EnterLong  extends Direction(1)
-    case object ExitLong   extends Direction(2)
-    case object EnterShort extends Direction(3)
-    case object ExitShort  extends Direction(4)
+  class Side(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
+  object Side {
+    case object EnterLong  extends Side(1)
+    case object ExitLong   extends Side(2)
+    case object EnterShort extends Side(3)
+    case object ExitShort  extends Side(4)
 
-    def withId(id: Byte): Direction = id match {
-      case 1 => Direction.EnterLong
-      case 2 => Direction.ExitLong
-      case 3 => Direction.EnterShort
-      case 4 => Direction.ExitShort
+    def withId(id: Byte): Side = id match {
+      case 1 => Side.EnterLong
+      case 2 => Side.ExitLong
+      case 3 => Side.EnterShort
+      case 4 => Side.ExitShort
     }
   }
 
-  class Position(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
-  object Position {
-    case object Upper extends Position(-1)
-    case object Lower extends Position(-2)
+  class Corner(val id: Byte) extends Kind {def this() = this(0) /* make it serializable */}
+  object Corner {
+    case object Upper extends Corner(-1)
+    case object Lower extends Corner(-2)
 
-    def withId(id: Byte): Position = id match {
-      case -1 => Position.Upper
-      case -2 => Position.Lower
+    def withId(id: Byte): Corner = id match {
+      case -1 => Corner.Upper
+      case -2 => Corner.Lower
     }
   }
 }

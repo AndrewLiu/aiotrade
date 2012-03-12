@@ -32,6 +32,7 @@ package org.aiotrade.lib.indicator.function
 
 import org.aiotrade.lib.math.timeseries.{DefaultTSer, BaseTSer,TVar, Null}
 import org.aiotrade.lib.math.indicator.Factor
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.securities.QuoteSer
 
 /**
@@ -315,8 +316,8 @@ abstract class Function extends DefaultTSer
     Function(classOf[SARFunction], baseSer, initial, step, maximum).sar(sessionId, idx)
   }
     
-  final protected def sarDirection(idx: Int, initial: Factor, step: Factor, maximum: Factor) :Direction = {
-    Function(classOf[SARFunction], baseSer, initial, step, maximum).sarDirection(sessionId, idx)
+  final protected def sarSide(idx: Int, initial: Factor, step: Factor, maximum: Factor): Side = {
+    Function(classOf[SARFunction], baseSer, initial, step, maximum).sarSide(sessionId, idx)
   }
     
   final protected def stochK(idx: Int, period: Factor, periodK: Factor): Double = {
@@ -343,8 +344,8 @@ abstract class Function extends DefaultTSer
     Function(classOf[ZIGZAGFunction], baseSer, percent).pseudoZigzag(sessionId, idx)
   }
     
-  final protected def zigzagDirection(idx: Int, percent: Factor) :Direction = {
-    Function(classOf[ZIGZAGFunction], baseSer, percent).zigzagDirection(sessionId, idx)
+  final protected def zigzagSide(idx: Int, percent: Factor): Side = {
+    Function(classOf[ZIGZAGFunction], baseSer, percent).zigzagSide(sessionId, idx)
   }
     
     

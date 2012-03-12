@@ -5,11 +5,6 @@ import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 
-object WeakKeyHashMap extends MutableMapFactory[WeakKeyHashMap] {
-  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakKeyHashMap[A, B]] = new MapCanBuildFrom[A, B]
-  def empty[A, B]: WeakKeyHashMap[A, B] = new WeakKeyHashMap[A, B]
-}
-
 @serializable @SerialVersionUID(1L)
 class WeakKeyHashMap[A, B] extends Map[A, B]
                               with MapLike[A, B, WeakKeyHashMap[A, B]]
@@ -87,5 +82,10 @@ class WeakKeyHashMap[A, B] extends Map[A, B]
   private def readObject(in: java.io.ObjectInputStream) {
     init[B](in, new WeakEntry(_, _, queue))
   }
+}
+
+object WeakKeyHashMap extends MutableMapFactory[WeakKeyHashMap] {
+  implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), WeakKeyHashMap[A, B]] = new MapCanBuildFrom[A, B]
+  def empty[A, B]: WeakKeyHashMap[A, B] = new WeakKeyHashMap[A, B]
 }
 

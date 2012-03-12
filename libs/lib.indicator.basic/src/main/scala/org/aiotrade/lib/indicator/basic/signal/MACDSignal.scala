@@ -31,7 +31,7 @@
 package org.aiotrade.lib.indicator.basic.signal
 
 import org.aiotrade.lib.indicator.SignalIndicator
-import org.aiotrade.lib.math.signal.Direction
+import org.aiotrade.lib.math.signal.Side
 
 /**
  *
@@ -58,11 +58,11 @@ class MACDSignal extends SignalIndicator {
       _osc(i) = _macd(i) - _signal(i)
 
       if (crossOver(i, _macd, _signal)) {
-        sign(i, Direction.EnterLong)
+        sign(i, Side.EnterLong)
       }
 
       if (crossUnder(i, _macd, _signal)) {
-        sign(i, Direction.ExitLong)
+        sign(i, Side.ExitLong)
       }
 
       i += 1
