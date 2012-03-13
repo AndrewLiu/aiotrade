@@ -1,31 +1,31 @@
 /*
  * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *  o Redistributions of source code must retain the above copyright notice, 
- *    this list of conditions and the following disclaimer. 
- *    
- *  o Redistributions in binary form must reproduce the above copyright notice, 
- *    this list of conditions and the following disclaimer in the documentation 
- *    and/or other materials provided with the distribution. 
- *    
- *  o Neither the name of AIOTrade Computing Co. nor the names of 
- *    its contributors may be used to endorse or promote products derived 
- *    from this software without specific prior written permission. 
- *    
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+ *
+ *  o Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  o Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  o Neither the name of AIOTrade Computing Co. nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.amqp
@@ -97,7 +97,7 @@ case object AMQPConnected
 case object AMQPDisconnected
 
 object AMQPExchange {
-    
+
   /**
    * Each AMQP broker declares one instance of each supported exchange type on it's
    * own (for every virtual host). These exchanges are named after the their type
@@ -120,7 +120,8 @@ object AMQPExchange {
 }
 
 object AMQPDispatcher {
-  private val defaultReconnectDelay = 3000
+  private val defaultReconnectDelay = 5000
+  private val maxReconnectDelay = 1800000 // = 30 * 60 * 1000  half an hour.
   private lazy val timer = new Timer("AMQPReconnectTimer")
 }
 
@@ -128,7 +129,7 @@ object AMQPDispatcher {
  * The dispatcher that listens over the AMQP message endpoint.
  * It manages a list of subscribers to the trade message and also sends AMQP
  * messages coming in to the queue/exchange to the list of observers.
- * 
+ *
  * @author Caoyuan Deng
  */
 abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) extends Publisher {
@@ -176,7 +177,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     } catch {
       case ex => Right(ex)
     }
-      
+
     connectTry match {
       case Left(conn) =>
         // we won't catch exceptions thrown during the following procedure, since we need them to fire ShutdownSignalException
@@ -211,10 +212,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
     log.log(Level.WARNING, cause.getMessage, cause)
 
     disconnect
-    
+
     AMQPDispatcher.timer.schedule(new TimerTask {
         def run {
           reconnectDelay *= 2
+          if (reconnectDelay > AMQPDispatcher.maxReconnectDelay) reconnectDelay = AMQPDispatcher.maxReconnectDelay
           doConnect
         }
       }, reconnectDelay)
@@ -250,11 +252,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
    * @param mandatory means:
    *    Put this message on at least one queue. If you can't, send it back to me.
    * @param immediate means:
-   *    If there is at least one consumer connected to my queue that can take delivery of a message 
-   *    right this moment, deliver this message to them immediately. If there are no consumers 
-   *    connected then there's no point in having my message consumed later and they'll never see it. 
-   *    They snooze, they lose     
-   * 
+   *    If there is at least one consumer connected to my queue that can take delivery of a message
+   *    right this moment, deliver this message to them immediately. If there are no consumers
+   *    connected then there's no point in having my message consumed later and they'll never see it.
+   *    They snooze, they lose
+   *
    * @throws IOException if an error is encountered
    * @return the newly created and registered (queue, consumer)
    */
@@ -267,27 +269,27 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
   ) {
     channel foreach {_ch =>
       val contentType = props.getContentType match {
-        case null | "" => DEFAULT_CONTENT_TYPE 
+        case null | "" => DEFAULT_CONTENT_TYPE
         case x => ContentType(x)
       }
-      
+
       val headers = Option(props.getHeaders) getOrElse new java.util.HashMap[String, AnyRef](1)
-    
+
       try {
         import ContentType._
         val encodedBody = contentType.mimeType match {
-          case JSON.mimeType => 
+          case JSON.mimeType =>
             content match {
               case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
             Serializer.encodeJson(content)
-          case AVRO.mimeType => 
+          case AVRO.mimeType =>
             content match {
               case msg: Msg[_] => headers.put(TAG, msg.tag.asInstanceOf[AnyRef])
               case _ => // todo
             }
-            Serializer.encodeAvro(content)  
+            Serializer.encodeAvro(content)
 
           case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.encodeJava(content)
           case OCTET_STREAM.mimeType => content.asInstanceOf[Array[Byte]]
@@ -298,15 +300,15 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           case null | "" => GZIP
           case x => x
         }
-      
+
         val body = contentEncoding match {
           case GZIP => Serializer.gzip(encodedBody)
           case LZMA => Serializer.lzma(encodedBody)
           case _ => encodedBody
         }
-        
+
         val outProps = props.builder.contentType(contentType.mimeType).contentEncoding(contentEncoding).headers(headers).build
-        
+
         _ch.basicPublish(exchange, routingKey, mandatory, immediate, outProps, body)
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
       } catch {
@@ -385,18 +387,18 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         import ContentType._
         val content = contentType.mimeType match {
           case JSON.mimeType => headers.get(TAG) match {
-              case tag: java.lang.Integer => 
+              case tag: java.lang.Integer =>
                 val value = Serializer.decodeJson(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)
               case _ => null
             }
           case AVRO.mimeType => headers.get(TAG) match {
-              case tag: java.lang.Integer => 
+              case tag: java.lang.Integer =>
                 val value = Serializer.decodeAvro(unzippedBody, tag.intValue)
                 Msg(tag.intValue, value)
               case _ => null
             }
-            
+
           case JAVA_SERIALIZED_OBJECT.mimeType => Serializer.decodeJava(unzippedBody)
           case OCTET_STREAM.mimeType => unzippedBody
           case _ => unzippedBody
@@ -428,14 +430,14 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
    * Hold strong refs of processors to avoid them to be GCed
    */
   private[amqp] var processors: List[Processor] = Nil
-  
+
   /**
    * Processor that will automatically added as listener of this AMQPDispatcher
    * and process AMQPMessage via process(msg)
    */
   abstract class Processor extends Reactor {
     processors synchronized {processors ::= this}
-    
+
     reactions += {
       case amqpMsg: AMQPMessage => process(amqpMsg)
     }
