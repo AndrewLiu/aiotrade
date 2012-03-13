@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities
 
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{DefaultBaseTSer, TFreq, TSerEvent, TVal}
+import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TVal}
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec

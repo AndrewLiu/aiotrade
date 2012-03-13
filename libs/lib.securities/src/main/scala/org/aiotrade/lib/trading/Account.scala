@@ -12,7 +12,7 @@ class Account(var description: String, val currency: Currency = Currency.getInst
   private var _balance = 0.0
   private var _transactions = new ArrayList[Transaction]()
   private var _positions = new ArrayList[Position]()
-  private var _expenseScheme: ExpenseScheme = _
+  private var _expenseScheme: ExpenseScheme = NoExpensesScheme
 
   def balance: Double = _balance
   def balance_=(balance: Double) {
@@ -28,15 +28,13 @@ class Account(var description: String, val currency: Currency = Currency.getInst
   def positions = _positions.toArray
 
   def processCompletedOrder(time: Long, order: Order) {
-    val expenses = if (expenseScheme != null) {
-      order.side match {
-        case OrderSide.Buy => expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
-        case OrderSide.Sell => expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
-        case _ => Double.NaN
-      }
-    } else Double.NaN
+    val expenses = order.side match {
+      case OrderSide.Buy => expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
+      case OrderSide.Sell => expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
+      case _ => 0.0
+    }
     
-    val transaction = new TradeTransaction(time, order, order.transactions, if (expenses != Double.NaN) new ExpenseTransaction(expenses) else null)
+    val transaction = new TradeTransaction(time, order, order.transactions, if (expenses != 0.0) new ExpenseTransaction(expenses) else null)
     _transactions += transaction
 
     _balance -= transaction.amount
