@@ -220,13 +220,16 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
    */
   def nearestIndexOfOccurredTime(time: Long): Int
     
-    /**
-     * return index of nearest behind time (include this time (if exist)),
-     * @param time the time, inclusive
-     */
+  /**
+   * @param time the time, inclusive
+   * @return index of nearest behind time (include this time (if exist)),
+   */
   def indexOfNearestOccurredTimeBehind(time: Long): Int
     
-  /** return index of nearest before or equal(if exist) time */
+  /** 
+   * @param time the time, inclusive
+   * @return index of nearest before or equal(if exist) time 
+   */
   def indexOfNearestOccurredTimeBefore(time: Long): Int
     
   def firstOccurredTime: Long
@@ -238,16 +241,9 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
   def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator
 
   /**
-   *this should not be abstract method to get scalac knowing it's a override of
+   * This should not be an abstract method so that scalac knows it's a override of
    * @cloneable instead of java.lang.Object#clone
    */
   override def clone: TStamps = {super.clone; this}
 }
-
-
-
-
-
-
-
 

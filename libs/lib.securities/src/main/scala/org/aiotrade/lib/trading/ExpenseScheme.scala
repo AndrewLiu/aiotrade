@@ -99,8 +99,6 @@ abstract class ChineseExpenseScheme extends ExpenseScheme {
     transferFee * (quantity / 1000 + 1)
   }
   
-  val a = ShanghaiExpenseScheme(0.1)
-  
   def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
     math.max(brokerageRate * (quantity * averagePrice), minimumBrokerageFee) + 
     transferFee * (quantity / 1000 + 1) + 
