@@ -40,6 +40,8 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
   
   private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
+  private val width = 1200
+  private val height = 900
 
   private val imageFileDir = {
     if (imageFileDirStr != null) {
@@ -93,7 +95,7 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
       dataChart.setTitle("Profit Monitoring")
       dataChart.setCreateSymbols(false)
       dataChart.setLegendVisible(false)
-      dataChart.setPrefHeight(700)
+      dataChart.setPrefHeight(0.8 * height)
 
       val xAxisRef = new CategoryAxis()
       xAxisRef.setLabel("Time")
@@ -105,7 +107,7 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
       
       vbox.getChildren.add(dataChart)
       vbox.getChildren.add(referChart)
-      scene = new Scene(vbox, 1200, 900)
+      scene = new Scene(vbox, width, height)
       scene.getStylesheets.add(cssUrl)
           
       fxPanel.setScene(scene)
