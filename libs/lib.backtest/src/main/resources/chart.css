@@ -1,0 +1,12 @@
+/* 
+    Document   : chart
+    Created on : Mar 8, 2012, 9:30:53 PM
+    Author     : dcaoyuan
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+.chart-series-line {    
+    -fx-stroke-width: 1px;
+    -fx-effect: null;
+}
