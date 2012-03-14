@@ -14,8 +14,8 @@ class Account(name: String, numPortfolios: Int) {
   private var reportDatas: List[ReportData] = Nil
 
   var referProfit = 1.0
-  val continualProfit = Array.fill(numPortfolios){1.0}
-  val continualProfits = Array.fill(numPortfolios){new ArrayList[TimedProfit]}
+  val continuousProfit = Array.fill(numPortfolios){1.0}
+  val continuousProfits = Array.fill(numPortfolios){new ArrayList[TimedProfit]}
     
   def process(time: Long, portfolios: Array[Portfolio], referProfitRatio: Double): List[ReportData] = {
     referProfit *= (1 + referProfitRatio)
@@ -28,13 +28,13 @@ class Account(name: String, numPortfolios: Int) {
       val portfolio = portfolios(i)
 
       val periodProfitRatio = if (portfolio.profit.isNaN) 0.0 else portfolio.profit 
-      val newProfit = continualProfit(i) * (1 + periodProfitRatio)
+      val newProfit = continuousProfit(i) * (1 + periodProfitRatio)
           
       val arbitragerProfit = newProfit - referProfit
       
       if (!newProfit.isNaN) {
-        continualProfit(i) = newProfit
-        continualProfits(i) += TimedProfit(time, newProfit)
+        continuousProfit(i) = newProfit
+        continuousProfits(i) += TimedProfit(time, newProfit)
         reportDatas ::= ReportData(name, i, time, arbitragerProfit * 100)
       }
       print("%s profit % 3.2f%%, wins % 3.2f%% -- ".format(i, newProfit * 100, arbitragerProfit * 100))
@@ -49,8 +49,8 @@ class Account(name: String, numPortfolios: Int) {
   def reportAll {
     println("=== " + name + " ===")
     var i = 0
-    while (i < continualProfits.length) {
-      val profits = continualProfits(i)
+    while (i < continuousProfits.length) {
+      val profits = continuousProfits(i)
       println(i)
       println(profits.map(_.time).mkString("(", ",", ")"))
       println(profits.map(_.profit).mkString("(", ",", ")"))
