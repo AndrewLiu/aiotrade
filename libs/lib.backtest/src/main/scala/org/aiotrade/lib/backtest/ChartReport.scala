@@ -121,6 +121,7 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
     runInFXThread {
       dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
       dataChart.setTitle("Profit Monitoring - " + param)
+      referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
     }
   }
   
