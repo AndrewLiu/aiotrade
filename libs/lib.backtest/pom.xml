@@ -71,17 +71,14 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
                     <launchers>
-                        <!-- mvn scala:run -Dlauncher=backtest -DaddArgs=chart -->
+                        <!-- mvn scala:run -Dlauncher=backtest -->
                         <launcher>
                             <id>backtest</id>
-                            <mainClass>org.aiotrade.lib.backtest.Sample</mainClass>
+                            <mainClass>org.aiotrade.lib.backtest.ChartReport</mainClass>
                             <!-- args are optional. If you need/which to specify some additional arguments at call time, -->
                             <!-- use "-DaddArgs=arg1|arg2|arg3" ('|' is used as separator) -->
                             <args>
                             </args>
-                            <jvmArgs>
-                                <jvmArg>-Xmx1024m</jvmArg>
-                            </jvmArgs>
                         </launcher>
                     </launchers>
                 </configuration>

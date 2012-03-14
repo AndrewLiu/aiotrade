@@ -5,7 +5,9 @@ import java.awt.Container
 import java.awt.image.BufferedImage
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
+import java.util.Random
 import java.util.logging.Level
 import java.util.logging.Logger
 import javafx.application.Platform
@@ -18,6 +20,7 @@ import javafx.scene.chart.CategoryAxis
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.XYChart
+import javafx.scene.layout.VBox
 import javax.imageio.ImageIO
 import javax.swing.JFrame
 import javax.swing.JOptionPane
@@ -57,7 +60,8 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
   private var frame: JFrame = _
   private var fxPanel: JFXPanel = _
   private var scene: Scene = _
-  private var lineChart: LineChart[String, Number] = _
+  private var dataChart: LineChart[String, Number] = _
+  private var referChart: LineChart[String, Number] = _
   
   initAndShowGUI
 
@@ -79,38 +83,42 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
     frame.add(fxPanel, BorderLayout.CENTER)
 
     runInFXThread {
+      val vbox = new VBox()
+
       val xAxis = new CategoryAxis()
-      //xAxis.setAutoRanging(false)
-      //xAxis.setLowerBound(0)
-      //xAxis.setUpperBound(100)
       xAxis.setLabel("Time")
       val yAxis = new NumberAxis()
-      //yAxis.setAutoRanging(true)
-      //yAxis.setLowerBound(-100)
-      //xAxis.setUpperBound(100)
-          
-      lineChart = new LineChart[String, Number](xAxis, yAxis)
-      lineChart.setTitle("Profit Monitoring")
-      lineChart.setCreateSymbols(false)
-      lineChart.setLegendVisible(false)
+      
+      dataChart = new LineChart[String, Number](xAxis, yAxis)
+      dataChart.setTitle("Profit Monitoring")
+      dataChart.setCreateSymbols(false)
+      dataChart.setLegendVisible(false)
+      dataChart.setPrefHeight(700)
 
-      //val root = new VBox()
-      //root.getChildren.add(lineChart)
-      scene = new Scene(lineChart, 1200, 900)
+      val xAxisRef = new CategoryAxis()
+      xAxisRef.setLabel("Time")
+      val yAxisRef = new NumberAxis()
+      
+      referChart = new LineChart[String, Number](xAxisRef, yAxisRef)
+      referChart.setCreateSymbols(false)
+      referChart.setLegendVisible(false)
+      
+      vbox.getChildren.add(dataChart)
+      vbox.getChildren.add(referChart)
+      scene = new Scene(vbox, 1200, 900)
       scene.getStylesheets.add(cssUrl)
           
       fxPanel.setScene(scene)
       frame.pack
       frame.setVisible(true)
-      println("GUI inited")
     }
   }
   
   private def startNewRound(param: Param) {
     idToSeries.clear
     runInFXThread {
-      lineChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
-      lineChart.setTitle("Profit Monitoring - " + param)
+      dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
+      dataChart.setTitle("Profit Monitoring - " + param)
     }
   }
   
@@ -119,7 +127,11 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
     runInFXThread {
       val id = data.name + data.id
       val series = idToSeries.getOrElse(id, {
-          val x = createSeries(data.name + "-" + data.id)
+          val x = if (data.name.contains("Refer")) {
+            createSeries(data.name + "-" + data.id, true)
+          } else {
+            createSeries(data.name + "-" + data.id)
+          }
           idToSeries += (id -> x)
           x
         }
@@ -129,13 +141,13 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
     }
   }
   
-  private def createSeries(name: String): XYChart.Series[String, Number] = {
+  private def createSeries(name: String, isRefer: Boolean = false): XYChart.Series[String, Number] = {
     val series = new XYChart.Series[String, Number]()
     series.setName(name)
-    lineChart.getData.add(series)
+    (if (isRefer) referChart else dataChart).getData.add(series)
     series
   }
-  
+
   private def saveImage(param: Param) {
     if (imageFileDir != null) {
       val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
@@ -147,11 +159,9 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
   private def saveImage(container: Container, bounds: Bounds, file: File)  {
     try {
       val name = file.getName
-      val dot = name.lastIndexOf(".")
-      val ext = if (dot >= 0) {
-        name.substring(dot + 1)
-      } else {
-        "jpg"
+      val ext = name.lastIndexOf(".") match {
+        case dot if dot >= 0 => name.substring(dot + 1)
+        case _ => "jpg"
       }
       ImageIO.write(toBufferedImage(container, bounds), ext, file)
       println("=== Image saved ===")
@@ -184,5 +194,24 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
     Platform.runLater(new Runnable {
         def run = block // @Note don't write as: def run {block}
       })
+  }
+}
+
+object ChartReport {
+  
+  // -- simple test
+  def main(args: Array[String]) {
+    val cal = Calendar.getInstance
+    val pub = new Publisher {}
+    // should hold chartReport instance, otherwise it may be GCed and cannot receive message. 
+    val chartReport = new ChartReport(pub, null)
+    
+    val random = new Random(System.currentTimeMillis)
+    cal.add(Calendar.DAY_OF_YEAR, -10)
+    for (i <- 1 to 10) {
+      cal.add(Calendar.DAY_OF_YEAR, i)
+      //chartReport.updateData(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))
+      pub.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))
+    }
   }
 }
