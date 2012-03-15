@@ -46,7 +46,8 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
       i += 1
     }
     
-    reportDatas.toArray.clone
+    // returns immutable reportDatas, so we can reuse reportDatas in parallel safely.
+    reportDatas.toArray
   }
 
   def reportAll {
