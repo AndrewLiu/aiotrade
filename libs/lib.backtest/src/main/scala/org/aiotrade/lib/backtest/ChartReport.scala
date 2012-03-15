@@ -95,7 +95,7 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
       dataChart.setTitle("Profit Monitoring")
       dataChart.setCreateSymbols(false)
       dataChart.setLegendVisible(false)
-      dataChart.setPrefHeight(0.8 * height)
+      dataChart.setPrefHeight(0.9 * height)
 
       val xAxisRef = new CategoryAxis()
       xAxisRef.setLabel("Time")

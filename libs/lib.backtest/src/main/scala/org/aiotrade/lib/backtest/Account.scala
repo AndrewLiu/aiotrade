@@ -14,13 +14,15 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
 
   private val reportDatas = new ArrayList[ReportData]()
 
+  var betaShortProfit = 1.0
   var referProfit = 1.0
   val continuousProfit = Array.fill(numPortfolios){1.0}
   val continuousProfits = Array.fill(numPortfolios){new ArrayList[TimedProfit]}
     
-  def process(time: Long, portfolios: Array[Portfolio], referProfitRatio: Double): Array[ReportData] = {
+  def process(time: Long, portfolios: Array[Portfolio], referProfitRatio: Double, isUnderShort: Boolean): Array[ReportData] = {
     reportDatas.clear
 
+    if (isUnderShort) betaShortProfit *= (1 - referProfitRatio)
     referProfit *= (1 + referProfitRatio)
     println("=== %s, referProfit % 3.2f%%, delta % 3.2f%%".format(name, referProfit * 100, referProfitRatio * 100))
     
@@ -33,7 +35,7 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
       val periodProfitRatio = if (portfolio.profit.isNaN) 0.0 else portfolio.profit 
       val newProfit = continuousProfit(i) * (1 + periodProfitRatio)
           
-      val arbitragerProfit = newProfit - referProfit
+      val arbitragerProfit = (newProfit - 1) + (betaShortProfit - 1)
       
       if (!newProfit.isNaN) {
         continuousProfit(i) = newProfit
