@@ -46,7 +46,7 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
       i += 1
     }
     
-    reportDatas.toArray
+    reportDatas.toArray.clone
   }
 
   def reportAll {
