@@ -139,7 +139,6 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
           x
         }
       )
-      df.format(new Date(data.time))
       series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
     }
   }

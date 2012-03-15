@@ -2,26 +2,29 @@ package org.aiotrade.lib.backtest
 
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.trading.Portfolio
+import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class Account(name: String, numPortfolios: Int) {
+class Account(name: String, numPortfolios: Int) extends Publisher {
   case class TimedProfit(time: Long, profit: Double)
 
-  private var reportDatas: List[ReportData] = Nil
+  private val reportDatas = new ArrayList[ReportData]()
 
   var referProfit = 1.0
   val continuousProfit = Array.fill(numPortfolios){1.0}
   val continuousProfits = Array.fill(numPortfolios){new ArrayList[TimedProfit]}
     
-  def process(time: Long, portfolios: Array[Portfolio], referProfitRatio: Double): List[ReportData] = {
+  def process(time: Long, portfolios: Array[Portfolio], referProfitRatio: Double): Array[ReportData] = {
+    reportDatas.clear
+
     referProfit *= (1 + referProfitRatio)
     println("=== %s, referProfit % 3.2f%%, delta % 3.2f%%".format(name, referProfit * 100, referProfitRatio * 100))
     
-    reportDatas = Nil
+    reportDatas += ReportData("Refer", 0, time, referProfit * 100 - 100)
     
     var i = 0
     while (i < portfolios.length) {
@@ -35,7 +38,7 @@ class Account(name: String, numPortfolios: Int) {
       if (!newProfit.isNaN) {
         continuousProfit(i) = newProfit
         continuousProfits(i) += TimedProfit(time, newProfit)
-        reportDatas ::= ReportData(name, i, time, arbitragerProfit * 100)
+        reportDatas += ReportData(name, i, time, arbitragerProfit * 100)
       }
       print("%s profit % 3.2f%%, wins % 3.2f%% -- ".format(i, newProfit * 100, arbitragerProfit * 100))
       println(portfolio)
@@ -43,7 +46,7 @@ class Account(name: String, numPortfolios: Int) {
       i += 1
     }
     
-    reportDatas
+    reportDatas.toArray
   }
 
   def reportAll {
