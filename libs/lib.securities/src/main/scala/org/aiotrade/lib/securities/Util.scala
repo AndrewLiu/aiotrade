@@ -21,17 +21,29 @@ import ru.circumflex.orm._
  */
 object Util {
   private val log = Logger.getLogger(this.getClass.getName)
-  
+  private val config = org.aiotrade.lib.util.config.Config()
+  private val isServer = !config.getBool("dataserver.client", false)
+
   def getSecsOfSector(category: String) = {
-    val sectors = SELECT (Sectors.*) FROM (AVRO(Sectors)) list()
+    val sectors = if (isServer) {
+      SELECT (Sectors.*) FROM (Sectors) list()
+    } else {
+      SELECT (Sectors.*) FROM (AVRO(Sectors)) list()
+    }
     sectors foreach {x => log.info("%s, category=%s, id=%s".format(x.name, x.category, Sectors.idOf(x)))}
     val sector = sectors.find(_.category == category).get
     val sectorId = Sectors.idOf(sector)
     val secsHolder = Exchange.uniSymbolToSec
-    val secs = SELECT (SectorSecs.*) FROM (AVRO(SectorSecs)) list() filter {x => 
-      (x.sector eq sector) && (x.validTo == 0)
-    } map {x => x.sec}
-    secs.toSet.toArray
+    val secs = if (isServer) {
+      SELECT (SectorSecs.*) FROM (SectorSecs) list() filter {x => 
+        (x.sector eq sector) && (x.validTo == 0)
+      } map {x => x.sec}
+    } else {
+      SELECT (SectorSecs.*) FROM (AVRO(SectorSecs)) list() filter {x => 
+        (x.sector eq sector) && (x.validTo == 0)
+      } map {x => x.sec}
+    }
+    secs.toSet.toArray // toSet to remove duplicate sec
   }
 
   /**

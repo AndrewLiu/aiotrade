@@ -62,8 +62,8 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
   private var frame: JFrame = _
   private var fxPanel: JFXPanel = _
   private var scene: Scene = _
-  private var dataChart: LineChart[String, Number] = _
-  private var referChart: LineChart[String, Number] = _
+  var dataChart: LineChart[String, Number] = _
+  var referChart: LineChart[String, Number] = _
   
   initAndShowGUI
 
