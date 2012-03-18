@@ -84,7 +84,7 @@ case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level
   }
 }
 
-abstract class ChineseExpenseScheme extends ExpenseScheme {
+abstract class ChinaExpenseScheme extends ExpenseScheme {
   /** Applied on both side of sell and buy, usally 0.5% - 0.05%, 0.08%  */
   def brokerageRate: Double
   /** Applied on sell side, 0.1%  */
@@ -95,16 +95,32 @@ abstract class ChineseExpenseScheme extends ExpenseScheme {
   def minimumBrokerageFee: Double
   
   def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
-    math.max(brokerageRate * (quantity * averagePrice), minimumBrokerageFee) + 
+    val amount = quantity * averagePrice
+    math.max(brokerageRate * amount, minimumBrokerageFee) + 
     transferFee * (quantity / 1000 + 1)
   }
   
   def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
-    math.max(brokerageRate * (quantity * averagePrice), minimumBrokerageFee) + 
+    val amount = quantity * averagePrice
+    math.max(brokerageRate * amount, minimumBrokerageFee) + 
     transferFee * (quantity / 1000 + 1) + 
-    stamptaxRate * (quantity * averagePrice)
+    stamptaxRate * amount
   }
 }
 
-case class ShanghaiExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 1.0, minimumBrokerageFee: Double = 5.0) extends ChineseExpenseScheme
-case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 0.0, minimumBrokerageFee: Double = 5.0) extends ChineseExpenseScheme
+case class ShanghaiExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 1.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
+case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 0.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
+
+case class ChinaFinanceFutureScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.00005) extends ExpenseScheme {
+  val pricePerPoint = 300.0
+  
+  def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
+    val amount = quantity * averagePrice
+    (brokerageRate + stamptaxRate) * amount
+  }
+
+  def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
+    val amount = quantity * averagePrice
+    (brokerageRate + stamptaxRate) * amount
+  }
+}

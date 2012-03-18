@@ -30,7 +30,7 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
     while (i < portfolios.length) {
       val portfolio = portfolios(i)
 
-      val stockProfitRatio = if (portfolio.profit.isNaN) 0.0 else portfolio.profit 
+      val stockProfitRatio = noNaN(portfolio.profit)
       val futureProfitRatio = referProfitRatio
       val newProfitRatio = if (isUnderShort) -futureProfitRatio else stockProfitRatio
       val newProfit = continuousProfit(i) * (1 + newProfitRatio)
@@ -50,6 +50,8 @@ class Account(name: String, numPortfolios: Int) extends Publisher {
     reportDatas.toArray
   }
 
+  private def noNaN(v: Double): Double = if (v.isNaN) 0.0 else v
+  
   def reportAll {
     println("=== " + name + " ===")
     var i = 0

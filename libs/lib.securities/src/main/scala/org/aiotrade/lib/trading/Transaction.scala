@@ -41,9 +41,13 @@ class TradeTransaction(val time: Long, val order: Order, chunks: Array[Transacti
   val id = UUID.randomUUID.getMostSignificantBits
   val description = "Order %s".format(order)
 
-  val subTransactions = if (expenses != null) {
-    (new ArrayList() ++ chunks + expenses).toArray
-  } else chunks
+  val subTransactions = {
+    val xs = new ArrayList[Transaction]() ++= chunks
+    if (expenses != null) {
+      xs += expenses
+    }
+    xs.toArray
+  }
 
   val amount = {
     var sum = 0.0
