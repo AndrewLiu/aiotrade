@@ -3,16 +3,35 @@ package org.aiotrade.lib.trading
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Sec
+import scala.collection.mutable
 
 class PaperBroker(val id: Long, val name: String) extends Broker {
   private val log = Logger.getLogger(getClass.getName)
   private val idFormatter = new SimpleDateFormat("yyMMddHHmmssSSS")
+  
+  /** immutable constant */
+  private val EMPTY_EXECUTORS = new mutable.HashSet[OrderExecutor]()
+  
+  private val pendingSecToExecutors = new mutable.HashMap[Sec, mutable.HashSet[OrderExecutor]]()
 
-  private val pendingExecutors = new ArrayList[OrderExecutor]()
+  val allowedSides = List(
+    OrderSide.Buy, 
+    OrderSide.Sell
+  )
+
+  val allowedTypes = List(
+    OrderType.Limit, 
+    OrderType.Market
+  )
+  
+  val allowedValidity = List(
+    OrderValidity.Day
+  )
+
+  val allowedRoutes = List[OrderRoute]()
 
   def connect {
     // for paper broker, listenTo ticker server
@@ -34,21 +53,7 @@ class PaperBroker(val id: Long, val name: String) extends Broker {
     sec.uniSymbol
   }
 
-  def allowedSides = Array(
-    OrderSide.Buy, OrderSide.Sell
-  )
-
-  def allowedTypes = Array(
-    OrderType.Limit, OrderType.Market
-  )
-  
-  def allowedValidity = Array(
-    OrderValidity.Day
-  )
-
-  def allowedRoutes = Array[OrderRoute]()
-
-  def orderExecutors = pendingExecutors synchronized {pendingExecutors.toArray}
+  def orderExecutors = pendingSecToExecutors
   
   @throws(classOf[BrokerException])
   def prepareOrder(order: Order): OrderExecutor = {
@@ -65,75 +70,82 @@ class PaperBroker(val id: Long, val name: String) extends Broker {
    * call me to execute the orders
    */
   def processTrade(sec: Sec, execution: Execution) {
-    val deltas = new ArrayList[OrderDelta]()
+    var deltas = List[OrderDelta]()
 
-    val executors = pendingExecutors synchronized {
-      pendingExecutors.toArray
-    }
+    val executors = pendingSecToExecutors synchronized {pendingSecToExecutors.getOrElse(sec, EMPTY_EXECUTORS)}
     
-    val executorsToRemove = new ArrayList[OrderExecutor]()
-    var i = 0
-    while (i < executors.length) {
-      val executor = executors(i)
+    var executorsToRemove = List[OrderExecutor]()
+    for (executor <- executors) {
       val order = executor.order
-      if (order.sec == sec) {
-        val newStatus = order.status match {
-          case OrderStatus.PendingNew | OrderStatus.Partial =>
-            order.tpe match {
-              case OrderType.Market =>
-                deltas += OrderDelta.Updated(executor)
-                order.fill(execution.time, execution.volume, execution.price)
+      order.status match {
+        case OrderStatus.PendingNew | OrderStatus.Partial =>
+          order.tpe match {
+            
+            case OrderType.Market =>
+              deltas ::= OrderDelta.Updated(executor)
+              order.fill(execution.time, execution.price, execution.volume)
                 
-              case OrderType.Limit =>
-                order.side match {
-                  case OrderSide.Buy if execution.price <= order.price =>
-                    deltas += OrderDelta.Updated(executor)
-                    order.fill(execution.time, execution.volume, execution.price)
+            case OrderType.Limit =>
+              order.side match {
+                case OrderSide.Buy if execution.price <= order.price =>
+                  deltas ::= OrderDelta.Updated(executor)
+                  order.fill(execution.time, execution.price, execution.volume)
                     
-                  case OrderSide.Sell if execution.price >= order.price => 
-                    deltas += new OrderDelta.Updated(executor)
-                    order.fill(execution.time, execution.volume, execution.price)
+                case OrderSide.Sell if execution.price >= order.price => 
+                  deltas ::= new OrderDelta.Updated(executor)
+                  order.fill(execution.time, execution.price, execution.volume)
 
-                  case _ => order.status
-                }
+                case _ =>
+              }
                 
-              case _ => order.status
-            }
+            case _ =>
+          }
           
-          case _ => order.status
-        }
-        
-        if (newStatus == OrderStatus.Filled) {
-          executorsToRemove += executor
-        }
+        case _ =>
       }
-      i += 1
+        
+      if (order.status == OrderStatus.Filled) {
+        executorsToRemove ::= executor
+      }
     }
     
     if (executorsToRemove.length > 0) {
-      pendingExecutors synchronized {pendingExecutors --= executorsToRemove}
+      pendingSecToExecutors synchronized {
+        executors --= executorsToRemove
+        if (executors.isEmpty) {
+          pendingSecToExecutors -= sec
+        } else {
+          pendingSecToExecutors(sec) = executors
+        }
+      }
     }
 
     if (deltas.length > 0) {
-      publish(OrderDeltasEvent(this, deltas.toArray))
+      publish(OrderDeltasEvent(this, deltas))
     }
   }
-
-
 
   def accounts: Array[Account] = {
     Array[Account]() // @todo get from db
   }
   
-  private class PaperOrderExecutor(_order: Order) extends OrderExecutor(this, _order) {
-
+  private class PaperOrderExecutor(_order: => Order) extends OrderExecutor(this, _order) {
+    
     @throws(classOf[BrokerException])
     override 
     def cancel {
-      pendingExecutors synchronized {pendingExecutors -= this}
+      pendingSecToExecutors synchronized {
+        val executors = pendingSecToExecutors.getOrElse(order.sec, EMPTY_EXECUTORS)
+        executors -= this
+        if (executors.isEmpty) {
+          pendingSecToExecutors -= order.sec
+        } else {
+          pendingSecToExecutors(order.sec) = executors
+        }
+      }
       
       order.status = OrderStatus.Canceled
-
+      
       log.info("Order Cancelled: %s".format(order))
         
       broker.publish(OrderDeltasEvent(broker, Array(OrderDelta.Updated(this))))
@@ -142,7 +154,11 @@ class PaperBroker(val id: Long, val name: String) extends Broker {
     @throws(classOf[BrokerException])
     override
     def submit {
-      pendingExecutors synchronized {pendingExecutors += this}
+      pendingSecToExecutors synchronized {
+        val executors = pendingSecToExecutors.getOrElse(order.sec, new mutable.HashSet[OrderExecutor]())
+        executors += this
+        pendingSecToExecutors(order.sec) = executors
+      }
 
       order.id = (idFormatter.format(new Date())).toLong
       order.status = OrderStatus.PendingNew

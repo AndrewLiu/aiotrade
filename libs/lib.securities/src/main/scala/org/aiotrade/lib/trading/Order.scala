@@ -6,7 +6,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
 
-class Order protected (val account: Account, val tpe: OrderType, val side: OrderSide, val sec: Sec, val quantity: Double, val price: Double, var route: OrderRoute) extends Publisher {
+class Order(val account: Account, val sec: Sec, val quantity: Double, val price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _id: Long = _
@@ -92,31 +92,23 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
   }
   
   def transactions = _transactions.toArray
-  def addTransaction(transaction: Transaction) {
-    _transactions += transaction
-  }
   
-  def fill(time: Long, size: Double, price: Double): OrderStatus =  {
+  def fill(time: Long, price: Double, size: Double) {
     var totalPrice = filledQuantity * averagePrice
     val remainQuantity = quantity - filledQuantity
 
-    val executedQuantity = if (size > remainQuantity) {
-      // should only happen in case of paper work
-      remainQuantity
-    } else {
-      size
-    }
+    val executedQuantity = math.min(size, remainQuantity)
     
-    filledQuantity += executedQuantity
+    _filledQuantity += executedQuantity
     totalPrice += executedQuantity * price
-    averagePrice = totalPrice / filledQuantity
+    _averagePrice = totalPrice / _filledQuantity
 
     if (executedQuantity > 0) {
       side match {
         case OrderSide.Buy | OrderSide.BuyCover =>
-          addTransaction(new SecurityTransaction(time, sec, executedQuantity, price))
+          _transactions += SecurityTransaction(time, sec,  executedQuantity, price)
         case OrderSide.Sell | OrderSide.SellShort =>
-          addTransaction(new SecurityTransaction(time, sec, -executedQuantity, price))
+          _transactions += SecurityTransaction(time, sec, -executedQuantity, price)
         case _ =>
       }
     }
@@ -125,12 +117,11 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
 
     if (filledQuantity == quantity) {
       status = OrderStatus.Filled
-      account.processCompletedOrder(time, this)
     } else {
       status = OrderStatus.Partial
     }
-    
-    status
+
+    account.processFilledOrder(time, this)
   }
   
   override
@@ -150,20 +141,6 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
   }
 }
 
-object Order {
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double, price: Double, route: OrderRoute) = {
-    new Order(account, tpe, side, sec, quantity, price, route)
-  }
-  
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double, price: Double) = {
-    new Order(account, tpe, side, sec, quantity, price, null)
-  }
-
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double) = {
-    new Order(account, OrderType.Market, side, sec, quantity, Double.NaN, null)
-  }
-}
-
 trait OrderRoute {
   def id: String
   def name: String
@@ -173,8 +150,8 @@ abstract class OrderSide(val name: String)
 object OrderSide {
   case object Buy extends OrderSide("Buy")
   case object Sell extends OrderSide("Sell")
-  case object BuyCover extends OrderSide("BuyCover")
   case object SellShort extends OrderSide("SellShort")
+  case object BuyCover extends OrderSide("BuyCover")
 }
 
 abstract class OrderType(val name: String)
