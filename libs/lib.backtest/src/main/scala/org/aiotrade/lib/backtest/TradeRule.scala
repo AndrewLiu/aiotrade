@@ -4,6 +4,8 @@ package org.aiotrade.lib.backtest
  * 
  * @author Caoyuan Deng
  */
+import org.aiotrade.lib.trading.Position
+
 class TradeRule {
   var quantityPerLot = 100
   var tradableProportionOfVolume = 0.1
@@ -37,8 +39,14 @@ class TradeRule {
   
   def sellTimeRule {}
   
-  def stopRule(current: Double, highest: Double, lowest: Double, entry: Double, isExitedSecPicking: Boolean): Boolean = {
-    val profit = (current - entry) / entry
-    profit < 0.05 || isExitedSecPicking
+  def cutLossRule(position: Position): Boolean = {
+    val profit = (position.currentPrice - position.price) / position.price
+    profit < -0.05
+  }
+  
+  def takeProfitRule(position: Position): Boolean = {
+    val profit = (position.currentPrice - position.price) / position.price
+    val maxProfit = (position.highestPrice - position.price) / position.price
+    profit < maxProfit * 0.4
   }
 }

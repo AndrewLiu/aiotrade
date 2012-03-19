@@ -1,16 +1,21 @@
 package org.aiotrade.lib.backtest
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.SectorSec
 import org.aiotrade.lib.util.ValidTime
+import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
+
+case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class SecPicking {
+class SecPicking extends Publisher {
+  private var prevTime = 0L
   private val secValidTimes = new ArrayList[ValidTime[Sec]]
   private val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
   
@@ -23,6 +28,20 @@ class SecPicking {
       case Nil => secToValidTimes -= secValidTime.ref
       case xs => secToValidTimes(secValidTime.ref) = xs
     }
+  }
+  
+  def go(time: Long) {
+    var i = 0
+    while (i < secValidTimes.length) {
+      val secValidTime = secValidTimes(i)
+      if (secValidTime.isValid(time) && !secValidTime.isValid(prevTime)) {
+        publish(SecPickingEvent(secValidTime, Side.EnterPicking))
+      } else if (!secValidTime.isValid(time) && secValidTime.isValid(prevTime)) {
+        publish(SecPickingEvent(secValidTime, Side.ExitPicking))
+      }
+      i += 1
+    }
+    prevTime = time
   }
   
   def +(secValidTime: ValidTime[Sec]) {

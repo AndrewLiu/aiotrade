@@ -1,6 +1,7 @@
 package org.aiotrade.lib.trading
 
 
+import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
@@ -22,9 +23,14 @@ trait Broker extends Publisher {
   def getSymbolFromSecurity(sec: Sec)
   def accounts: Array[Account]
   def orderExecutors: collection.Map[Sec, collection.Iterable[OrderExecutor]]
-  
+
   @throws(classOf[BrokerException])
   def prepareOrder(order: Order): OrderExecutor
+  
+  /**
+   * Used only for paper work
+   */
+  def processTrade(execution: Execution) {}
 }
 
 

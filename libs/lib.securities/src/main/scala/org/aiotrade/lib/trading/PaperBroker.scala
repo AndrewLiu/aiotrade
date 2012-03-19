@@ -72,9 +72,11 @@ class PaperBroker(val name: String) extends Broker {
   /**
    * call me to execute the orders
    */
-  def processTrade(sec: Sec, execution: Execution) {
+  override 
+  def processTrade(execution: Execution) {
     var deltas = List[OrderDelta]()
 
+    val sec = execution.sec
     val executors = pendingSecToExecutors synchronized {pendingSecToExecutors.getOrElse(sec, EMPTY_EXECUTORS)}
     
     var executorsToRemove = List[OrderExecutor]()
