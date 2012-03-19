@@ -1,4 +1,4 @@
-package org.aiotrade.lib.securities
+package org.aiotrade.lib
 
 
 import java.util.logging.Logger
@@ -19,7 +19,7 @@ import ru.circumflex.orm._
  * 
  * @author Caoyuan Deng
  */
-object Util {
+package object securities {
   private val log = Logger.getLogger(this.getClass.getName)
   private val config = org.aiotrade.lib.util.config.Config()
   private val isServer = !config.getBool("dataserver.client", false)
@@ -95,7 +95,7 @@ object Util {
     
     val referTimes = new ArrayList[Long]()
     var i = 0
-    var n = math.min(quotes.length, referTimePeriod)
+    var n = scala.math.min(quotes.length, referTimePeriod)
     while (i < n) {
       referTimes += quotes(n - i - 1).time
       i += 1

@@ -6,6 +6,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
@@ -15,6 +16,7 @@ import org.aiotrade.lib.trading.Order
 import org.aiotrade.lib.trading.OrderSide
 import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
+import org.aiotrade.lib.util.ValidTime
 import scala.collection.mutable
 
 case class Trigger(sec: Sec, time: Long, side: Side)
@@ -241,15 +243,23 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
 }
 
 object TradingService {
-  
   private val df = new SimpleDateFormat("yyyy.MM.dd")
   
-  def main(args: Array[String]) {
+  def init = {
+    val CSI300Category = "008011"
+    val secs = securities.getSecsOfSector(CSI300Category)
     val referSec = Exchange.secOf("000001.SS").get
-    val referSer = referSec.serOf(TFreq.DAILY).get
-    referSec.loadSerFromPersistence(referSer, false)
+    val referSer = securities.loadSers(secs, referSec, TFreq.DAILY)
+    val goodSecs = secs.filter{_.serOf(TFreq.DAILY).get.size > 0}
+    println("Number of good secs: " + goodSecs.length)
+    (goodSecs, referSer)
+  }
+
+  def main(args: Array[String]) {
+    val (secs, referSer) = init
     
     val secPicking = new SecPicking()
+    secPicking ++= secs map (ValidTime(_, 0, 0))
     
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     val tradeRule = new TradeRule()

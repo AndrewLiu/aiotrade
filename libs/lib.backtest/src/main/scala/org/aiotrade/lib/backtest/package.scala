@@ -1,7 +1,7 @@
 package org.aiotrade.lib
 
 
-package backtest {
+package object backtest {
   trait Param {
     def shortDescription: String
   }
