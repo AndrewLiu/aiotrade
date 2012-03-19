@@ -7,7 +7,9 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
   def this() = this(Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
 
   private var _subPositions: ArrayList[Position] = null
-  private var _currentPrice = Double.NaN
+  private var _currentPrice = _price
+  private var _highestPrice = _price
+  private var _lowestPrice = _price
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
   
@@ -40,8 +42,16 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
     _price = price
   }
   
+  def currentPrice = _currentPrice
+  def highestPrice = _highestPrice
+  def lowestPrice = _lowestPrice
+  
   def update(currentPrice: Double) {
-    if (!currentPrice.isNaN) _currentPrice = currentPrice
+    if (!currentPrice.isNaN) {
+      _currentPrice = currentPrice
+      _highestPrice = math.max(_highestPrice, currentPrice)
+      _lowestPrice = math.min(_lowestPrice, currentPrice)
+    }
   }
   
   def add(time: Long, quantity: Double, price: Double) {

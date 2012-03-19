@@ -4,10 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.signal.Side
-import org.aiotrade.lib.math.signal.Sign
-import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
-import org.aiotrade.lib.math.signal.SignalX
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
@@ -20,23 +17,25 @@ import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
 import scala.collection.mutable
 
-case class Trigger(sec: Sec, qouteSer: QuoteSer, time: Long, side: Side)
-case class TradeTime(time: Long, index: Int, referIndex: Int)
+case class Trigger(sec: Sec, time: Long, side: Side)
 
 /**
  * 
  * @author Caoyuan Deng
  */
 class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking) {
-  private val log = Logger.getLogger(this.getClass.getName)
+  protected val log = Logger.getLogger(this.getClass.getName)
   
-  private val timestamps = referSer.timestamps.clone
-  private val freq = referSer.freq
-  private val broker = new PaperBroker("Backtest")
+  protected val timestamps = referSer.timestamps.clone
+  protected val freq = referSer.freq
+  protected val broker = new PaperBroker("Backtest")
   
-  private val pendingOrders = new ArrayList[OrderCompose]()
-  
-  private var currentReferIdx = -1
+  protected val triggers = new mutable.HashSet[Trigger]()
+  protected val pendingOrders = new ArrayList[OrderCompose]()
+  protected var buyingOrders = List[Order]()
+  protected var sellingOrders = List[Order]()
+
+  protected var closedReferIdx = 0
   
   class OrderCompose(val sec: Sec, val side: OrderSide, decisionReferIdx: Int) {
     val ser = sec.serOf(freq).get
@@ -61,7 +60,7 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     }
         
     def after(idx: Int) = {
-      _afterIdx = idx
+      _afterIdx += idx
       this
     }
     
@@ -87,23 +86,34 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
           }
         case _ =>
       }
-        
+
       new Order(account, sec, _quantity, _price, side)
     }
   }
+    
+  protected def closedTime = timestamps(closedReferIdx)
   
-  private val triggers = new ArrayList[Trigger]()
-  
-  def signalGot(signal: SignalEvent) {
-    triggers += toTrigger(signal)
+  private def signalGot(signalEvt: SignalEvent) {
+    triggers += toTrigger(signalEvt)
   }
   
-  private def toTrigger(signal: SignalEvent) = {
-    val sec = signal.source.baseSer.serProvider.asInstanceOf[Sec]
-    val ser = sec.serOf(freq).get
-    val time = signal.signal.time
-    val side = signal.signal.kind.asInstanceOf[Side]
-    Trigger(sec, ser, time, side)
+  private def toTrigger(signalEvt: SignalEvent) = {
+    val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
+    val time = signalEvt.signal.time
+    val side = signalEvt.signal.kind.asInstanceOf[Side]
+    Trigger(sec, time, side)
+  }
+  
+  protected def buy(sec: Sec): OrderCompose = {
+    val order = new OrderCompose(sec, OrderSide.Buy, closedReferIdx)
+    pendingOrders += order
+    order
+  }
+
+  protected def sell(sec: Sec): OrderCompose = {
+    val order = new OrderCompose(sec, OrderSide.Sell, closedReferIdx)
+    pendingOrders += order
+    order
   }
   
   def go(fromTime: Long, toTime: Long) {
@@ -111,25 +121,29 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     var i = fromIdx
     while (i <= toIdx) {
-      currentReferIdx = i
-      at(i, timestamps(i))
+      closedReferIdx = i
+      executeOrders
+      updatePositionsPrice
+      at(i)
+      processStopCondition
       processPendingOrders
       i += 1
     }
   }
   
   /**
-   * @param idx: index of timestamps
-   * @param time: current time
+   * At close of period idx, define the trading action for next period. 
+   * @Note Override this method for your action.
+   * @param idx: index of closed/passed period, this period was just closed/passed.
    */
-  def at(idx: Int, time: Long) {
-    val triggers = scanTriggers(idx - 1)
-    for (Trigger(sec, qouteSer, triggerTime, side) <- triggers) {
+  def at(idx: Int) {
+    val triggers = scanTriggers(idx)
+    for (Trigger(sec, triggerTime, side) <- triggers) {
       side match {
         case Side.EnterLong =>
-          buy (sec)
+          buy (sec) after (1)
         case Side.ExitLong =>
-          sell (sec)
+          sell (sec) after (1)
         case Side.EnterShort =>
         case Side.ExitShort =>
         case _ =>
@@ -137,29 +151,31 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     }
   }
   
-  def buy(sec: Sec): OrderCompose = {
-    val order = new OrderCompose(sec, OrderSide.Buy, currentReferIdx)
-    pendingOrders += order
-    order
+  protected def processStopCondition {
+    for ((sec, position) <- account.positions) {
+      if (tradeRule.stopRule(position.currentPrice, position.highestPrice, position.lowestPrice, position.price, secPicking.isValid(sec, closedTime))) {
+        sell (sec) quantity (position.quantity) after (1)
+      }
+    }
   }
 
-  def sell(sec: Sec): OrderCompose = {
-    val order = new OrderCompose(sec, OrderSide.Sell, currentReferIdx)
-    pendingOrders += order
-    order
+  private def updatePositionsPrice {
+    for ((sec, position) <- account.positions; ser <- sec.serOf(freq)) {
+      position.update(ser.close(closedTime))
+    }
   }
-  
+
   private def processPendingOrders {
-    val time = timestamps(currentReferIdx)
+    val time = closedTime
     var toRemove = List[OrderCompose]()
     var currentBuy = List[OrderCompose]()
     var currentSell = List[OrderCompose]()
     var i = 0
     while (i < pendingOrders.length) {
       val order = pendingOrders(i)
-      if (order.referIndex < currentReferIdx) {
+      if (order.referIndex <= closedReferIdx) {
         toRemove ::= order
-      } else if (order.referIndex == currentReferIdx) {
+      } else if (order.referIndex == closedReferIdx + 1) { // next trading day
         if (order.ser.exists(time)) {
           order.side match {
             case OrderSide.Buy => currentBuy ::= order
@@ -169,7 +185,7 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
         } else {
           order.side match {
             case OrderSide.Buy => // @todo pending after n days?
-            case OrderSide.Sell => order after (1)
+            case OrderSide.Sell => order after (1) // pending 1 day
             case _ =>
           }
         }
@@ -178,29 +194,31 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     }
     
     val fundPerSec = account.balance / currentBuy.length
-    val buyOrders = currentBuy map {x => x fund (fundPerSec) toOrder}
-    val sellOrders = currentSell map {x => x toOrder}
+    buyingOrders = currentBuy map {x => x fund (fundPerSec) toOrder}
+    sellingOrders = currentSell map {x => x toOrder}
     
-    // sell first. How about the returning funds?
-    sellOrders map broker.prepareOrder foreach {orderExecutor => 
-      orderExecutor.submit
-      pseudoExecute(orderExecutor.order)
-    }
-    
-    buyOrders map broker.prepareOrder foreach {orderExecutor => 
-      orderExecutor.submit
-      pseudoExecute(orderExecutor.order)
-    }
-
     // @todo process unfilled orders from broker
     pendingOrders synchronized {
       pendingOrders --= toRemove
     }
   }
   
+  private def executeOrders {
+    // sell first?. How about the returning funds?
+    sellingOrders map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoExecute(orderExecutor.order)
+    }
+    
+    buyingOrders map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoExecute(orderExecutor.order)
+    }
+  }
+  
   private def pseudoExecute(order: Order) {
     val execution = new Execution
-    execution.time = order.time
+    execution.time = closedTime
     execution.price = order.price
     execution.volume = order.quantity
     broker.processTrade(order.sec, execution)
@@ -213,16 +231,13 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
   
   protected def scanTriggers(fromTime: Long, toTime: Long): List[Trigger] = {
     var result = List[Trigger]()
-    var i = 0
-    while (i < triggers.length) {
-      val trigger = triggers(i)
+    for (trigger <- triggers) {
       if (trigger.time >= fromTime && trigger.time <= toTime && secPicking.isValid(trigger.sec, toTime)) {
         result ::= trigger
       }
-      i += 1
     }
     result
-  }
+  }  
 }
 
 object TradingService {
@@ -234,20 +249,20 @@ object TradingService {
     val referSer = referSec.serOf(TFreq.DAILY).get
     referSec.loadSerFromPersistence(referSer, false)
     
-    val secPicking = new SecPicking
+    val secPicking = new SecPicking()
     
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
-    val tradeRule = new TradeRule
+    val tradeRule = new TradeRule()
     
     val tradingService = new TradingService(account, tradeRule, referSer, secPicking) {
       override 
-      def at(idx: Int, time: Long) {
-        for (Trigger(sec, qouteSer, triggerTime, side) <- scanTriggers(idx - 1)) {
+      def at(idx: Int) {
+        for (Trigger(sec, triggerTime, side) <- scanTriggers(idx)) {
           side match {
             case Side.EnterLong =>
-              buy (sec) fund (1000.0) after(1)
+              buy (sec) after (1)
             case Side.ExitLong =>
-              sell (sec)
+              sell (sec) after (1)
             case Side.EnterShort =>
             case Side.ExitShort =>
             case _ =>

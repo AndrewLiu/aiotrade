@@ -37,7 +37,8 @@ class TradeRule {
   
   def sellTimeRule {}
   
-  def stopLossRule {}
-  
-  def stopProfitRule {}
+  def stopRule(current: Double, highest: Double, lowest: Double, entry: Double, isExitedSecPicking: Boolean): Boolean = {
+    val profit = (current - entry) / entry
+    profit < 0.05 || isExitedSecPicking
+  }
 }
