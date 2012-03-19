@@ -2,15 +2,18 @@ package org.aiotrade.lib.trading
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.UUID
 import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Sec
 import scala.collection.mutable
 
-class PaperBroker(val id: Long, val name: String) extends Broker {
+class PaperBroker(val name: String) extends Broker {
   private val log = Logger.getLogger(getClass.getName)
-  private val idFormatter = new SimpleDateFormat("yyMMddHHmmssSSS")
+  private val orderIdFormatter = new SimpleDateFormat("yyMMddHHmmssSSS")
+  
+  val id: Long = UUID.randomUUID.getMostSignificantBits
   
   /** immutable constant */
   private val EMPTY_EXECUTORS = new mutable.HashSet[OrderExecutor]()
@@ -160,7 +163,7 @@ class PaperBroker(val id: Long, val name: String) extends Broker {
         pendingSecToExecutors(order.sec) = executors
       }
 
-      order.id = (idFormatter.format(new Date())).toLong
+      order.id = orderIdFormatter.format(new Date()).toLong
       order.status = OrderStatus.PendingNew
 
       log.info("Order Submitted: %s".format(order))

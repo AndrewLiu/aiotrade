@@ -11,7 +11,7 @@ import scala.collection.mutable
 class Account(private var _description: String, private var _balance: Double, private var _expenseScheme: ExpenseScheme = NoExpensesScheme, 
               val currency: Currency = Currency.getInstance(Locale.getDefault)) extends Publisher {
   
-  val id: Long = UUID.randomUUID.getMostSignificantBits
+  val id = UUID.randomUUID.getMostSignificantBits
   
   private val _transactions = new ArrayList[Transaction]()
   private val _secToPositions = new mutable.HashMap[Sec, Position]()

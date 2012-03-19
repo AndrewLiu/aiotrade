@@ -11,11 +11,14 @@ import org.aiotrade.lib.math.signal.SignalX
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.trading.Account
 import org.aiotrade.lib.trading.Order
 import org.aiotrade.lib.trading.OrderSide
+import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
+import scala.collection.mutable
 
 case class Trigger(sec: Sec, qouteSer: QuoteSer, time: Long, side: Side)
 case class TradeTime(time: Long, index: Int, referIndex: Int)
@@ -29,11 +32,14 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
   
   private val timestamps = referSer.timestamps.clone
   private val freq = referSer.freq
+  private val broker = new PaperBroker("Backtest")
+  
+  private val pendingOrders = new ArrayList[OrderCompose]()
   
   private var currentReferIdx = -1
   
-  class OrderCompose(sec: Sec, side: OrderSide) {
-    private val ser = sec.serOf(freq).get
+  class OrderCompose(val sec: Sec, val side: OrderSide, decisionReferIdx: Int) {
+    val ser = sec.serOf(freq).get
     private var _price = Double.NaN
     private var _fund = Double.NaN
     private var _quantity = Double.NaN
@@ -58,33 +64,31 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
       _afterIdx = idx
       this
     }
+    
+    def referIndex = decisionReferIdx + _afterIdx
 
-    def toOrder = {
-      val time = timestamps(currentReferIdx + _afterIdx)
-      if (ser.exists(time)) {
-        val idx = ser.indexOfOccurredTime(time)
-        side match {
-          case OrderSide.Buy =>
-            if (_price.isNaN) {
-              _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
-            }
-            if (_quantity.isNaN) {
-              _quantity += tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
-            }
-          case OrderSide.Sell =>
-            if (_price.isNaN) {
-              _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
-            }
-            if (_quantity.isNaN) {
-              _quantity -= tradeRule.sellQuantityRule(ser.volume(idx), _price, _quantity)
-            }
-          case _ =>
-        }
-        
-        new Order(account, sec, _quantity, _price, side)
-      } else {
-        null
+    def toOrder() = {
+      val time = timestamps(referIndex)
+      val idx = ser.indexOfOccurredTime(time)
+      side match {
+        case OrderSide.Buy =>
+          if (_price.isNaN) {
+            _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+          }
+          if (_quantity.isNaN) {
+            _quantity += tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
+          }
+        case OrderSide.Sell =>
+          if (_price.isNaN) {
+            _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+          }
+          if (_quantity.isNaN) {
+            _quantity -= tradeRule.sellQuantityRule(ser.volume(idx), _price, _quantity)
+          }
+        case _ =>
       }
+        
+      new Order(account, sec, _quantity, _price, side)
     }
   }
   
@@ -109,6 +113,7 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     while (i <= toIdx) {
       currentReferIdx = i
       at(i, timestamps(i))
+      processPendingOrders
       i += 1
     }
   }
@@ -122,9 +127,9 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
     for (Trigger(sec, qouteSer, triggerTime, side) <- triggers) {
       side match {
         case Side.EnterLong =>
-          buy (sec) fund (1000.0) after(1)
+          buy (sec)
         case Side.ExitLong =>
-          sell (sec) fund (1000.0) 
+          sell (sec)
         case Side.EnterShort =>
         case Side.ExitShort =>
         case _ =>
@@ -133,11 +138,72 @@ class TradingService(account: Account, tradeRule: TradeRule, referSer: QuoteSer,
   }
   
   def buy(sec: Sec): OrderCompose = {
-    new OrderCompose(sec, OrderSide.Buy)
+    val order = new OrderCompose(sec, OrderSide.Buy, currentReferIdx)
+    pendingOrders += order
+    order
   }
 
   def sell(sec: Sec): OrderCompose = {
-    new OrderCompose(sec, OrderSide.Sell)
+    val order = new OrderCompose(sec, OrderSide.Sell, currentReferIdx)
+    pendingOrders += order
+    order
+  }
+  
+  private def processPendingOrders {
+    val time = timestamps(currentReferIdx)
+    var toRemove = List[OrderCompose]()
+    var currentBuy = List[OrderCompose]()
+    var currentSell = List[OrderCompose]()
+    var i = 0
+    while (i < pendingOrders.length) {
+      val order = pendingOrders(i)
+      if (order.referIndex < currentReferIdx) {
+        toRemove ::= order
+      } else if (order.referIndex == currentReferIdx) {
+        if (order.ser.exists(time)) {
+          order.side match {
+            case OrderSide.Buy => currentBuy ::= order
+            case OrderSide.Sell => currentSell ::= order
+            case _ =>
+          }
+        } else {
+          order.side match {
+            case OrderSide.Buy => // @todo pending after n days?
+            case OrderSide.Sell => order after (1)
+            case _ =>
+          }
+        }
+      }
+      i += 1
+    }
+    
+    val fundPerSec = account.balance / currentBuy.length
+    val buyOrders = currentBuy map {x => x fund (fundPerSec) toOrder}
+    val sellOrders = currentSell map {x => x toOrder}
+    
+    // sell first. How about the returning funds?
+    sellOrders map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoExecute(orderExecutor.order)
+    }
+    
+    buyOrders map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoExecute(orderExecutor.order)
+    }
+
+    // @todo process unfilled orders from broker
+    pendingOrders synchronized {
+      pendingOrders --= toRemove
+    }
+  }
+  
+  private def pseudoExecute(order: Order) {
+    val execution = new Execution
+    execution.time = order.time
+    execution.price = order.price
+    execution.volume = order.quantity
+    broker.processTrade(order.sec, execution)
   }
   
   protected def scanTriggers(fromIdx: Int, toIdx: Int = -1): List[Trigger] = {
@@ -172,14 +238,26 @@ object TradingService {
     
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     val tradeRule = new TradeRule
-    val tradingService = new TradingService(account, tradeRule, referSer, secPicking)
+    
+    val tradingService = new TradingService(account, tradeRule, referSer, secPicking) {
+      override 
+      def at(idx: Int, time: Long) {
+        for (Trigger(sec, qouteSer, triggerTime, side) <- scanTriggers(idx - 1)) {
+          side match {
+            case Side.EnterLong =>
+              buy (sec) fund (1000.0) after(1)
+            case Side.ExitLong =>
+              sell (sec)
+            case Side.EnterShort =>
+            case Side.ExitShort =>
+            case _ =>
+          }
+        }
+      }
+    }
     
     val fromTime = df.parse("2011.4.3").getTime
     val toTime = df.parse("2012.4.3").getTime
     tradingService.go(fromTime, toTime)
-  }
-  
-  def mego(idx: Int, time: Long) {
-    
   }
 }

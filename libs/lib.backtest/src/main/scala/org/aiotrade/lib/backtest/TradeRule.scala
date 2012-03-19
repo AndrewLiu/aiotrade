@@ -33,11 +33,11 @@ class TradeRule {
     (quantity % quantityPerLot - 1) * quantityPerLot
   }
   
-  def buyTimeRule()
+  def buyTimeRule {}
   
-  def sellTimeRule()
+  def sellTimeRule {}
   
-  def stopLossRule()
+  def stopLossRule {}
   
-  def stopProfitRule()
+  def stopProfitRule {}
 }
