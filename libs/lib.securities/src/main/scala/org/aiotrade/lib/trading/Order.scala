@@ -1,5 +1,6 @@
 package org.aiotrade.lib.trading
 
+import java.util.Date
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
@@ -127,7 +128,7 @@ class Order(val account: Account, val sec: Sec, val quantity: Double, val price:
   override
   def toString = {
     val sb = new StringBuilder()
-    sb.append("Order: time=" + time)
+    sb.append("Order: time=" + new Date(time))
     sb.append(", sec=" + sec.uniSymbol)
     sb.append(", tpe=" + tpe)
     sb.append(", side=" + side)

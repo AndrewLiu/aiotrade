@@ -8,24 +8,31 @@ import java.util.Locale
 import java.util.UUID
 import scala.collection.mutable
 
-class Account(private var _description: String, private var _balance: Double, private var _expenseScheme: ExpenseScheme = NoExpensesScheme, 
+class Account(private var _description: String, 
+              private var _balance: Double, 
+              private var _expenseScheme: ExpenseScheme = NoExpensesScheme, 
               val currency: Currency = Currency.getInstance(Locale.getDefault)) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
   
   private val _transactions = new ArrayList[Transaction]()
   private val _secToPositions = new mutable.HashMap[Sec, Position]()
+  
+  val initialAsset = _balance
+  def asset = {
+    _balance + _secToPositions.foldRight(0.0){(x, s) => s + x._2.asset}
+  }
+
+  def balance: Double = _balance
+  def increaseCash(cash: Double) {
+    _balance += cash
+  }
 
   def description = _description
   def description(description: String) {
     _description = description
   }
   
-  def balance: Double = _balance
-  def increaseCash(cash: Double) {
-    _balance += cash
-  }
-
   def expenseScheme = _expenseScheme
   def expenseScheme_=(expenseScheme: ExpenseScheme) {
     _expenseScheme = expenseScheme
@@ -33,7 +40,7 @@ class Account(private var _description: String, private var _balance: Double, pr
 
   def positions = _secToPositions
   def transactions = _transactions.toArray
-
+  
   def processFilledOrder(time: Long, order: Order) {
     val expenses = order.side match {
       case OrderSide.Buy => _expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)

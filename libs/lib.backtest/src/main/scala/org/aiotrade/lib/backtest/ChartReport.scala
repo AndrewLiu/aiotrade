@@ -32,7 +32,7 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Reactor {
+class ChartReport(imageFileDirStr: String) extends Reactor {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val df = new SimpleDateFormat("yy.MM.dd")
@@ -76,7 +76,6 @@ class ChartReport(dataPublisher: Publisher, imageFileDirStr: String) extends Rea
       updateData(data)
     case _ =>
   }
-  listenTo(dataPublisher)
   
   private def initAndShowGUI {
     frame = new JFrame()
@@ -206,7 +205,8 @@ object ChartReport {
     val cal = Calendar.getInstance
     val pub = new Publisher {}
     // should hold chartReport instance, otherwise it may be GCed and cannot receive message. 
-    val chartReport = new ChartReport(pub, null)
+    val chartReport = new ChartReport(null)
+    chartReport.listenTo(pub)
     
     val random = new Random(System.currentTimeMillis)
     cal.add(Calendar.DAY_OF_YEAR, -10)

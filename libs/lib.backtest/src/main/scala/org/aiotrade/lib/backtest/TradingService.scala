@@ -1,5 +1,6 @@
 package org.aiotrade.lib.backtest
 
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
@@ -66,23 +67,25 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     case _ =>
   }
 
-  initSignalIndicators
-  
   private def initSignalIndicators {
+    val t0 = System.currentTimeMillis
     if (signalIndTemplates.nonEmpty) {
       listenTo(Signal)
     
       for ((sec, _) <- secPicking.secToValidTimes;
            ser <- sec.serOf(freq);
-           signalIndTemplate <- signalIndTemplates
+           signalIndTemplate <- signalIndTemplates;
+           indClass = signalIndTemplate.getClass;
+           factor = signalIndTemplate.factors
       ) {
-        val ind = signalIndTemplate.getClass.newInstance.asInstanceOf[SignalIndicator]
-        ind.factors = signalIndTemplate.factors
+        val ind = indClass.newInstance.asInstanceOf[SignalIndicator]
+        ind.factors = factor
         ind.set(ser)
         ind.computeFrom(0)
         signalIndicators += ind
       }
     }
+    log.info("Inited singals in " + (System.currentTimeMillis - t0) / 1000 + "s.")
   }
   
   protected def closedTime = timestamps(closedReferIdx)
@@ -102,6 +105,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   }
   
   def go(fromTime: Long, toTime: Long) {
+    initSignalIndicators
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     var i = fromIdx
@@ -110,8 +114,9 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       executeOrders
       updatePositionsPrice
 
-      publish(ReportData(account.description, 0, closedTime, account.balance))
+      publish(ReportData(account.description, 0, closedTime, account.asset / account.initialAsset * 100))
 
+      // todo process unfilled orders
       secPicking.go(closedTime)
       checkStopCondition
       at(i)
@@ -194,9 +199,9 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
         i += 1
       }
     
-      val fundPerSec = account.balance / buying.length
-      buyingOrders = buying map {x => x fund (fundPerSec) toOrder}
-      sellingOrders = selling map {x => x toOrder}
+      val fundPerSec = account.balance / buying.length // @todo expenses
+      buyingOrders = buying flatMap {_ fund (fundPerSec) toOrder}
+      sellingOrders = selling flatMap {x => x toOrder}
     
       // @todo process unfilled orders from broker
       pendingOrders synchronized {
@@ -206,13 +211,13 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   }
   
   private def executeOrders {
-    // sell first?. How about the returning funds?
-    sellingOrders map broker.prepareOrder foreach {orderExecutor => 
+    // sell first?. If so, how about the returning funds?
+    buyingOrders map broker.prepareOrder foreach {orderExecutor => 
       orderExecutor.submit
       pseudoExecute(orderExecutor.order)
     }
-    
-    buyingOrders map broker.prepareOrder foreach {orderExecutor => 
+
+    sellingOrders map broker.prepareOrder foreach {orderExecutor => 
       orderExecutor.submit
       pseudoExecute(orderExecutor.order)
     }
@@ -271,7 +276,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     
     def referIndex = referIdxAtDecision + _afterIdx
 
-    def toOrder() = {
+    def toOrder: Option[Order] = {
       val time = timestamps(referIndex)
       val idx = ser.indexOfOccurredTime(time)
       side match {
@@ -292,10 +297,16 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
         case _ =>
       }
 
-      new Order(account, sec, _quantity, _price, side)
+      if (_quantity > 0) {
+        val order = new Order(account, sec, _quantity, _price, side)
+        order.time = time
+        Some(order)
+      } else {
+        None
+      }
     }
   }
-    
+
 }
 
 object TradingService {
@@ -321,6 +332,16 @@ object TradingService {
    */
   def main(args: Array[String]) {
     import org.aiotrade.lib.indicator.basic.signal._
+
+    val df = new SimpleDateFormat("yyyy.MM.dd")
+    val report = new Publisher {
+      reactions += {
+        case ReportData(name, id, time, value) => 
+          println(df.format(new Date(time)) + ": " + value)
+      }
+    }
+    val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
+    val chartReport = new ChartReport(imageFileDir)
     
     val (secs, referSer) = init
     
@@ -351,17 +372,15 @@ object TradingService {
         }
       }
     }
-
-    val df = new SimpleDateFormat("yyyy.MM.dd")
-    val report = new Publisher {
-      reactions += {
-        case ReportData(_, _, time, value) => println(df.format(new Date(time)) + ": " + value)
-      }
-    }
-    report.listenTo(tradingService)
     
+    report.listenTo(tradingService)
+    chartReport.listenTo(tradingService)
+
     val fromTime = df.parse("2011.04.03").getTime
     val toTime = df.parse("2012.04.03").getTime
+    
+    report.publish(RoundStarted(NoParam))
     tradingService.go(fromTime, toTime)
+    report.publish(RoundFinished(NoParam))
   }
 }

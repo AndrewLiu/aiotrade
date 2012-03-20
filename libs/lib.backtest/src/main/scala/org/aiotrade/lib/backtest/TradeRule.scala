@@ -18,21 +18,21 @@ class TradeRule {
     o
   }
   
-  def buyQuantityRule(volume: Double, price: Double, fund: Double) = {
-    val quantity = maxQuoantity(volume, price, fund)
+  def buyQuantityRule(volume: Double, price: Double, fund: Double): Int = {
+    val quantity = maxQuantity(volume, price, fund)
     roundQuantity(quantity)
   }
   
-  def sellQuantityRule(volume: Double, price: Double, quantity: Double) = {
-    math.max(quantity, volume * tradableProportionOfVolume)
+  def sellQuantityRule(volume: Double, price: Double, quantity: Double): Int = {
+    math.min(quantity, volume * tradableProportionOfVolume).toInt
   }
 
-  protected def maxQuoantity(volume: Double, price: Double, fund: Double) = {
-    math.max((fund / (price * quantityPerLot)) * quantityPerLot, volume * tradableProportionOfVolume).toInt
+  protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
+    math.min(fund / price, volume * tradableProportionOfVolume)
   }
   
-  protected def roundQuantity(quantity: Double) = {
-    (quantity % quantityPerLot - 1) * quantityPerLot
+  protected def roundQuantity(quantity: Double): Int = {
+    quantity.toInt / quantityPerLot * quantityPerLot
   }
   
   def buyTimeRule {}

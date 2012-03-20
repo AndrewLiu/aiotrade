@@ -6,6 +6,10 @@ package object backtest {
     def shortDescription: String
   }
   
+  object NoParam extends Param {
+    val shortDescription = ""
+  }
+  
   case class RoundStarted(params: Param)
   case class RoundFinished(params: Param)
 
