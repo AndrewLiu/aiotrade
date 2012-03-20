@@ -46,13 +46,15 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
      with Builder[A, ArrayList[A]]
      with ResizableArray[A] {
 
-  override def companion: GenericCompanion[ArrayList] = ArrayList
+  override 
+  def companion: GenericCompanion[ArrayList] = ArrayList
 
   def this()(implicit m: Manifest[A]) = this(16)
 
   def clear() { reduceToSize(0) }
 
-  override def sizeHint(len: Int) {
+  override 
+  def sizeHint(len: Int) {
     if (len > size && len >= 1) {
       val newarray = makeArray(len)
       Array.copy(array, 0, newarray, 0, size0)
@@ -79,20 +81,21 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @param xs  the itertable object.
    *  @return    the updated buffer.
    */
-  override def ++=(xs: TraversableOnce[A]): this.type = {
+  override 
+  def ++=(xs: TraversableOnce[A]): this.type = {
     val len = xs match {
-      case xs: IndexedSeq[_] => xs.length
+      case xs: IndexedSeq[A] => xs.length
       case _ => xs.size
     }
     ensureSize(size0 + len)
     xs match {
-      /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
-      case xs: WrappedArray[_] =>
+      /** a Traversable Array instance will always be converted to WrappedArray, @see https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
+      case xs: WrappedArray[A] =>
         Array.copy(xs.array, 0, array, size0, len)
         size0 += len
         this
-      case xs: IndexedSeq[_] =>
-        xs.copyToArray(array.asInstanceOf[scala.Array[Any]], size0, len)
+      case xs: IndexedSeq[A] =>
+        xs.copyToArray(array, size0, len)
         size0 += len
         this
       case _ =>
@@ -122,7 +125,8 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @param xs  the iterable object.
    *  @return    the updated buffer.
    */
-  override def ++=:(xs: TraversableOnce[A]): this.type = { insertAll(0, xs.toTraversable); this }
+  override 
+  def ++=:(xs: TraversableOnce[A]): this.type = { insertAll(0, xs.toTraversable); this }
 
   /** Inserts new elements at the index <code>n</code>. Opposed to method
    *  <code>update</code>, this method will not replace an element with a
@@ -135,17 +139,17 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
   def insertAll(n: Int, seq: Traversable[A]) {
     if ((n < 0) || (n > size0)) throw new IndexOutOfBoundsException(n.toString)
     val len = seq match {
-      case xs: IndexedSeq[_] => xs.length
+      case xs: IndexedSeq[A] => xs.length
       case _ => seq.size
     }
     ensureSize(size0 + len)
     copy(n, n + len, size0 - n)
     seq match {
-      /** @todo: https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
-      case xs: WrappedArray[_] =>
+      /** a Traversable Array instance will always be converted to WrappedArray, @see https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
+      case xs: WrappedArray[A] =>
         Array.copy(xs.array, 0, array, n, len)
       case _ =>
-        seq.copyToArray(array.asInstanceOf[scala.Array[Any]], n)
+        seq.copyToArray(array, n)
     }
     size0 += len
   }
@@ -179,13 +183,15 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @return an <code>ArrayList</code> with the same elements.
    */
-  override def clone(): ArrayList[A] = new ArrayList[A](this.size) ++= this
+  override 
+  def clone(): ArrayList[A] = new ArrayList[A](this.size) ++= this
 
   def result: ArrayList[A] = this
 
   /** Defines the prefix of the string representation.
    */
-  override def stringPrefix: String = "ArrayList"
+  override 
+  def stringPrefix: String = "ArrayList"
 
   /**
    * We need this toArray to export an array with the original type element instead of
@@ -205,7 +211,8 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     res
   }
   
-  override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
+  override 
+  def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     Array.copy(array, 0, xs, start, len)
   }
 
@@ -223,17 +230,20 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
 
   // --- overrided methods for performance
 
-  override def head: A = {
+  override 
+  def head: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(0)
   }
 
-  override def last: A = {
+  override 
+  def last: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(size - 1)
   }
 
-  override def reverse: ArrayList[A] = {
+  override 
+  def reverse: ArrayList[A] = {
     val reversed = new ArrayList[A](this.size)
     var i = 0
     while (i < size) {
@@ -243,7 +253,8 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     reversed
   }
 
-  override def partition(p: A => Boolean): (ArrayList[A], ArrayList[A]) = {
+  override 
+  def partition(p: A => Boolean): (ArrayList[A], ArrayList[A]) = {
     val l, r = new ArrayList[A]
     for (x <- this) (if (p(x)) l else r) += x
     (l, r)
