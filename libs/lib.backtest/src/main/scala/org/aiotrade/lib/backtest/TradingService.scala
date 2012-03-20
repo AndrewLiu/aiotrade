@@ -1,6 +1,7 @@
 package org.aiotrade.lib.backtest
 
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.SignalIndicator
@@ -21,7 +22,7 @@ import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
 import org.aiotrade.lib.util.ValidTime
-import org.aiotrade.lib.util.actors.Reactor
+import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
 
 case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
@@ -30,7 +31,7 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Reactor {
+class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   protected val timestamps = referSer.timestamps.clone
@@ -46,11 +47,22 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
-      triggers += Trigger(secValidTime.ref, getPosition(secValidTime.ref), secValidTime.validFrom, side)
+      val position = getPosition(secValidTime.ref)
+      side match {
+        case Side.ExitPicking if position == null =>
+        case _ => triggers += Trigger(secValidTime.ref, position, secValidTime.validFrom, side)
+      }
     
     case signalEvt@SignalEvent(ind, signal) if signalIndicators.contains(ind) && signal.isSign =>
-      triggers += toTrigger(signalEvt)
-
+      val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
+      val time = signalEvt.signal.time
+      val side = signalEvt.signal.kind.asInstanceOf[Side]
+      val position = getPosition(sec)
+      side match {
+        case (Side.ExitLong | Side.ExitShort | Side.ExitPicking | Side.CutLoss | Side.TakeProfit) if (position == null) =>
+        case _ => triggers += Trigger(sec, position, time, side)
+      }
+      
     case _ =>
   }
 
@@ -77,14 +89,6 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   
   protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
   
-  private def toTrigger(signalEvt: SignalEvent) = {
-    val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
-    val time = signalEvt.signal.time
-    val side = signalEvt.signal.kind.asInstanceOf[Side]
-    val position = getPosition(sec)
-    Trigger(sec, position, time, side)
-  }
-  
   protected def buy(sec: Sec): OrderCompose = {
     val order = new OrderCompose(sec, OrderSide.Buy, closedReferIdx)
     pendingOrders += order
@@ -104,8 +108,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     while (i <= toIdx) {
       closedReferIdx = i
       executeOrders
-      println(account.balance)
       updatePositionsPrice
+
+      publish(ReportData(account.description, 0, closedTime, account.balance))
+
       secPicking.go(closedTime)
       checkStopCondition
       at(i)
@@ -150,46 +156,52 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   }
 
   private def updatePositionsPrice {
-    for ((sec, position) <- account.positions; ser <- sec.serOf(freq)) {
-      position.update(ser.close(closedTime))
+    for ((sec, position) <- account.positions; 
+         ser <- sec.serOf(freq); 
+         idx = ser.indexOfOccurredTime(closedTime) if idx >= 0
+    ) {
+      position.update(ser.close(idx))
     }
   }
 
   private def processPendingOrders {
-    val time = closedTime
-    var toRemove = List[OrderCompose]()
-    var buying = List[OrderCompose]()
-    var selling = List[OrderCompose]()
-    var i = 0
-    while (i < pendingOrders.length) {
-      val order = pendingOrders(i)
-      if (order.referIndex <= closedReferIdx) {
-        toRemove ::= order
-      } else if (order.referIndex == closedReferIdx + 1) { // next trading day
-        if (order.ser.exists(time)) {
-          order.side match {
-            case OrderSide.Buy => buying ::= order
-            case OrderSide.Sell => selling ::= order
-            case _ =>
-          }
-        } else {
-          order.side match {
-            case OrderSide.Buy => // @todo pending after n days?
-            case OrderSide.Sell => order after (1) // pending 1 day
-            case _ =>
+    val orderSubmitReferIdx = closedReferIdx + 1 // next trading day
+    if (orderSubmitReferIdx < timestamps.length) {
+      val orderSubmitReferTime = timestamps(orderSubmitReferIdx)
+      var toRemove = List[OrderCompose]()
+      var buying = List[OrderCompose]()
+      var selling = List[OrderCompose]()
+      var i = 0
+      while (i < pendingOrders.length) {
+        val order = pendingOrders(i)
+        if (order.referIndex < orderSubmitReferIdx) {
+          toRemove ::= order
+        } else if (order.referIndex == orderSubmitReferIdx) { 
+          if (order.ser.exists(orderSubmitReferTime)) {
+            order.side match {
+              case OrderSide.Buy => buying ::= order
+              case OrderSide.Sell => selling ::= order
+              case _ =>
+            }
+          } else {
+            order.side match {
+              case OrderSide.Buy => // @todo pending after n days?
+              case OrderSide.Sell => order after (1) // pending 1 day
+              case _ =>
+            }
           }
         }
+        i += 1
       }
-      i += 1
-    }
     
-    val fundPerSec = account.balance / buying.length
-    buyingOrders = buying map {x => x fund (fundPerSec) toOrder}
-    sellingOrders = selling map {x => x toOrder}
+      val fundPerSec = account.balance / buying.length
+      buyingOrders = buying map {x => x fund (fundPerSec) toOrder}
+      sellingOrders = selling map {x => x toOrder}
     
-    // @todo process unfilled orders from broker
-    pendingOrders synchronized {
-      pendingOrders --= toRemove
+      // @todo process unfilled orders from broker
+      pendingOrders synchronized {
+        pendingOrders --= toRemove
+      }
     }
   }
   
@@ -268,14 +280,14 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
             _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity += tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
+            _quantity = tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
           }
         case OrderSide.Sell =>
           if (_price.isNaN) {
             _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity -= tradeRule.sellQuantityRule(ser.volume(idx), _price, _quantity)
+            _quantity = tradeRule.sellQuantityRule(ser.volume(idx), _price, _fund)
           }
         case _ =>
       }
@@ -287,7 +299,6 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 }
 
 object TradingService {
-  private val df = new SimpleDateFormat("yyyy.MM.dd")
   
   def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
@@ -340,6 +351,14 @@ object TradingService {
         }
       }
     }
+
+    val df = new SimpleDateFormat("yyyy.MM.dd")
+    val report = new Publisher {
+      reactions += {
+        case ReportData(_, _, time, value) => println(df.format(new Date(time)) + ": " + value)
+      }
+    }
+    report.listenTo(tradingService)
     
     val fromTime = df.parse("2011.04.03").getTime
     val toTime = df.parse("2012.04.03").getTime
