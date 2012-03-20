@@ -3,6 +3,7 @@ package org.aiotrade.lib.backtest
 import java.text.SimpleDateFormat
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.TFreq
@@ -28,7 +29,7 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking) extends Reactor {
+class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndClasses: Class[_ <: SignalIndicator]*) extends Reactor {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   protected val timestamps = referSer.timestamps.clone
@@ -104,6 +105,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   protected def closedTime = timestamps(closedReferIdx)
   
   protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
+  
+  private def initSignals {
+    
+  }
   
   private def signalGot(signalEvt: SignalEvent) {
     triggers += toTrigger(signalEvt)
@@ -269,6 +274,14 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 object TradingService {
   private val df = new SimpleDateFormat("yyyy.MM.dd")
   
+  def initSignalIndicator[T <: SignalIndicator](signalClass: Class[T], baseSer: QuoteSer, factors: Array[Double]): T = {
+    val ind = signalClass.newInstance.asInstanceOf[T]
+    ind.set(baseSer)
+    ind.factorValues = factors
+    ind.computeFrom(0)
+    ind
+  }
+  
   def init = {
     val CSI300Category = "008011"
     val secs = securities.getSecsOfSector(CSI300Category)
@@ -288,8 +301,10 @@ object TradingService {
     val broker = new PaperBroker("Backtest")
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     val tradeRule = new TradeRule()
+    val signalIndClass = classOf[org.aiotrade.lib.indicator.basic.signal.MACDSignal]
     
-    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking) {
+    
+    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, signalIndClass) {
       override 
       def at(idx: Int) {
         val triggers = scanTriggers(idx)
@@ -299,8 +314,6 @@ object TradingService {
               buy (sec) after (1)
             case Side.ExitLong =>
               sell (sec) after (1)
-            case Side.EnterShort =>
-            case Side.ExitShort =>
             case Side.CutLoss => 
               sell (sec) quantity (position.quantity) after (1)
             case Side.TakeProfit =>
@@ -311,8 +324,8 @@ object TradingService {
       }
     }
     
-    val fromTime = df.parse("2011.4.3").getTime
-    val toTime = df.parse("2012.4.3").getTime
+    val fromTime = df.parse("2011.04.03").getTime
+    val toTime = df.parse("2012.04.03").getTime
     tradingService.go(fromTime, toTime)
   }
 }
