@@ -104,6 +104,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     while (i <= toIdx) {
       closedReferIdx = i
       executeOrders
+      println(account.balance)
       updatePositionsPrice
       secPicking.go(closedTime)
       checkStopCondition
@@ -288,7 +289,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 object TradingService {
   private val df = new SimpleDateFormat("yyyy.MM.dd")
   
-  def createSignalIndicatorTemplate[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
+  def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
     ind.factorValues = factors
     ind
@@ -308,6 +309,8 @@ object TradingService {
    * Simple test
    */
   def main(args: Array[String]) {
+    import org.aiotrade.lib.indicator.basic.signal._
+    
     val (secs, referSer) = init
     
     val secPicking = new SecPicking()
@@ -316,9 +319,9 @@ object TradingService {
     val broker = new PaperBroker("Backtest")
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     val tradeRule = new TradeRule()
-    val signalIndTemplate = createSignalIndicatorTemplate(classOf[org.aiotrade.lib.indicator.basic.signal.MACDSignal], Array(12, 26, 9))
+    val indTemplate = createIndicator(classOf[MACDSignal], Array(12, 26, 9))
     
-    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, signalIndTemplate) {
+    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, indTemplate) {
       override 
       def at(idx: Int) {
         val triggers = scanTriggers(idx)

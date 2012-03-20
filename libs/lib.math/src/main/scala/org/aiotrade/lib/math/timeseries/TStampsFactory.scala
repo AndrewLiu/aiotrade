@@ -301,7 +301,8 @@ object TStampsFactory {
       new ItrOnOccurred(freq, fromTime, toTime, timeZone)
     }
 
-    override def clone :TStamps = {
+    override 
+    def clone: TStamps = {
       val res = new TStampsOnOccurred(this.size)
       res ++= this
       res

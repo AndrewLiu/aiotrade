@@ -79,12 +79,14 @@ trait ResizableArray[A] extends IndexedSeq[A]
    *  @param  start starting index.
    *  @param  len number of elements to copy
    */
-  override def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
+  override 
+  def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     val len1 = len min (xs.length - start) min length
     Array.copy(array, 0, xs, start, len1)
   }
 
-  override def foreach[U](f: A =>  U) {
+  override 
+  def foreach[U](f: A =>  U) {
     var i = 0
     while (i < size) {
       f(array(i).asInstanceOf[A])
