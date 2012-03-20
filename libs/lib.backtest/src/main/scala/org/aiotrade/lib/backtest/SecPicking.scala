@@ -17,7 +17,7 @@ case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
 class SecPicking extends Publisher {
   private var prevTime = 0L
   private val secValidTimes = new ArrayList[ValidTime[Sec]]
-  private val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
+  val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
   
   private def addToMap(secValidTime: ValidTime[Sec]) {
     secToValidTimes(secValidTime.ref) = secValidTime :: secToValidTimes.getOrElse(secValidTime.ref, Nil)

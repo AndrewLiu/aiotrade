@@ -3,8 +3,9 @@ package org.aiotrade.lib.backtest
 import java.text.SimpleDateFormat
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.indicator.SignalIndicator
+import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
+import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.signal.SignalEvent
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities
@@ -29,12 +30,13 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndClasses: Class[_ <: SignalIndicator]*) extends Reactor {
+class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Reactor {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   protected val timestamps = referSer.timestamps.clone
   protected val freq = referSer.freq
-  
+
+  protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
   protected val triggers = new mutable.HashSet[Trigger]()
   protected val pendingOrders = new ArrayList[OrderCompose]()
   protected var buyingOrders = List[Order]()
@@ -45,74 +47,35 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
       triggers += Trigger(secValidTime.ref, getPosition(secValidTime.ref), secValidTime.validFrom, side)
+    
+    case signalEvt@SignalEvent(ind, signal) if signalIndicators.contains(ind) && signal.isSign =>
+      triggers += toTrigger(signalEvt)
+
     case _ =>
   }
+
+  initSignalIndicators
   
-  class OrderCompose(val sec: Sec, val side: OrderSide, decisionReferIdx: Int) {
-    val ser = sec.serOf(freq).get
-    private var _price = Double.NaN
-    private var _fund = Double.NaN
-    private var _quantity = Double.NaN
-    private var _afterIdx = 0
-
-    def price(price: Double) = {
-      _price = price
-      this
-    }
-
-    def fund(fund: Double) = {
-      _fund = fund
-      this
-    }
+  private def initSignalIndicators {
+    if (signalIndTemplates.nonEmpty) {
+      listenTo(Signal)
     
-    def quantity(quantity: Double) = {
-      _quantity = quantity
-      this
-    }
-        
-    def after(idx: Int) = {
-      _afterIdx += idx
-      this
-    }
-    
-    def referIndex = decisionReferIdx + _afterIdx
-
-    def toOrder() = {
-      val time = timestamps(referIndex)
-      val idx = ser.indexOfOccurredTime(time)
-      side match {
-        case OrderSide.Buy =>
-          if (_price.isNaN) {
-            _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
-          }
-          if (_quantity.isNaN) {
-            _quantity += tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
-          }
-        case OrderSide.Sell =>
-          if (_price.isNaN) {
-            _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
-          }
-          if (_quantity.isNaN) {
-            _quantity -= tradeRule.sellQuantityRule(ser.volume(idx), _price, _quantity)
-          }
-        case _ =>
+      for ((sec, _) <- secPicking.secToValidTimes;
+           ser <- sec.serOf(freq);
+           signalIndTemplate <- signalIndTemplates
+      ) {
+        val ind = signalIndTemplate.getClass.newInstance.asInstanceOf[SignalIndicator]
+        ind.factors = signalIndTemplate.factors
+        ind.set(ser)
+        ind.computeFrom(0)
+        signalIndicators += ind
       }
-
-      new Order(account, sec, _quantity, _price, side)
     }
   }
-    
+  
   protected def closedTime = timestamps(closedReferIdx)
   
   protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
-  
-  private def initSignals {
-    
-  }
-  
-  private def signalGot(signalEvt: SignalEvent) {
-    triggers += toTrigger(signalEvt)
-  }
   
   private def toTrigger(signalEvt: SignalEvent) = {
     val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
@@ -172,10 +135,6 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
         case _ =>
       }
     }
-  }
-  
-  protected def collectSignals {
-    
   }
   
   protected def checkStopCondition {
@@ -268,21 +227,74 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       }
     }
     result
-  }  
+  }
+  
+  class OrderCompose(val sec: Sec, val side: OrderSide, referIdxAtDecision: Int) {
+    val ser = sec.serOf(freq).get
+    private var _price = Double.NaN
+    private var _fund = Double.NaN
+    private var _quantity = Double.NaN
+    private var _afterIdx = 0
+
+    def price(price: Double) = {
+      _price = price
+      this
+    }
+
+    def fund(fund: Double) = {
+      _fund = fund
+      this
+    }
+    
+    def quantity(quantity: Double) = {
+      _quantity = quantity
+      this
+    }
+        
+    def after(idx: Int) = {
+      _afterIdx += idx
+      this
+    }
+    
+    def referIndex = referIdxAtDecision + _afterIdx
+
+    def toOrder() = {
+      val time = timestamps(referIndex)
+      val idx = ser.indexOfOccurredTime(time)
+      side match {
+        case OrderSide.Buy =>
+          if (_price.isNaN) {
+            _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+          }
+          if (_quantity.isNaN) {
+            _quantity += tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
+          }
+        case OrderSide.Sell =>
+          if (_price.isNaN) {
+            _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+          }
+          if (_quantity.isNaN) {
+            _quantity -= tradeRule.sellQuantityRule(ser.volume(idx), _price, _quantity)
+          }
+        case _ =>
+      }
+
+      new Order(account, sec, _quantity, _price, side)
+    }
+  }
+    
 }
 
 object TradingService {
   private val df = new SimpleDateFormat("yyyy.MM.dd")
   
-  def initSignalIndicator[T <: SignalIndicator](signalClass: Class[T], baseSer: QuoteSer, factors: Array[Double]): T = {
+  def createSignalIndicatorTemplate[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
-    ind.set(baseSer)
     ind.factorValues = factors
-    ind.computeFrom(0)
     ind
   }
   
-  def init = {
+  private def init = {
     val CSI300Category = "008011"
     val secs = securities.getSecsOfSector(CSI300Category)
     val referSec = Exchange.secOf("000001.SS").get
@@ -292,6 +304,9 @@ object TradingService {
     (goodSecs, referSer)
   }
 
+  /**
+   * Simple test
+   */
   def main(args: Array[String]) {
     val (secs, referSer) = init
     
@@ -301,10 +316,9 @@ object TradingService {
     val broker = new PaperBroker("Backtest")
     val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     val tradeRule = new TradeRule()
-    val signalIndClass = classOf[org.aiotrade.lib.indicator.basic.signal.MACDSignal]
+    val signalIndTemplate = createSignalIndicatorTemplate(classOf[org.aiotrade.lib.indicator.basic.signal.MACDSignal], Array(12, 26, 9))
     
-    
-    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, signalIndClass) {
+    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, signalIndTemplate) {
       override 
       def at(idx: Int) {
         val triggers = scanTriggers(idx)
