@@ -98,7 +98,6 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
         val ind = org.aiotrade.lib.math.indicator.Indicator(m.erasure.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
         indicators += ((ind, secValidTime))
-//        ind.computeFrom(0)
         Some(ind)
       case _ => None
     }
