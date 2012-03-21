@@ -24,8 +24,8 @@ class Account(private var _description: String,
   }
 
   def balance: Double = _balance
-  def increaseCash(cash: Double) {
-    _balance += cash
+  def increaseFund(fund: Double) {
+    _balance += fund
   }
 
   def description = _description

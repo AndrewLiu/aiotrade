@@ -7,8 +7,8 @@ package org.aiotrade.lib.backtest
 import org.aiotrade.lib.trading.Position
 
 class TradeRule {
-  var quantityPerLot = 100
-  var tradableProportionOfVolume = 0.1
+  val quantityPerLot = 100
+  val tradableProportionOfVolume = 0.1
 
   def buyPriceRule(o: Double, h: Double, l: Double, c: Double): Double = {
     o
@@ -24,20 +24,16 @@ class TradeRule {
   }
   
   def sellQuantityRule(volume: Double, price: Double, quantity: Double): Int = {
-    math.min(quantity, volume * tradableProportionOfVolume).toInt
+    math.min(quantity, volume * quantityPerLot * tradableProportionOfVolume).toInt
   }
 
   protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
-    math.min(fund / price, volume * tradableProportionOfVolume)
+    math.min(fund / price, volume * quantityPerLot * tradableProportionOfVolume)
   }
   
   protected def roundQuantity(quantity: Double): Int = {
     quantity.toInt / quantityPerLot * quantityPerLot
   }
-  
-  def buyTimeRule {}
-  
-  def sellTimeRule {}
   
   def cutLossRule(position: Position): Boolean = {
     val profit = (position.currentPrice - position.price) / position.price

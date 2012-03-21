@@ -4,7 +4,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
@@ -40,11 +39,11 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 
   protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
   protected val triggers = new mutable.HashSet[Trigger]()
-  protected val pendingOrders = new ArrayList[OrderCompose]()
+  protected var pendingOrders = List[OrderCompose]()
   protected var buyingOrders = List[Order]()
   protected var sellingOrders = List[Order]()
 
-  protected var closedReferIdx = 0
+  protected var closeReferIdx = 0
   
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
@@ -88,19 +87,19 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     log.info("Inited singals in " + (System.currentTimeMillis - t0) / 1000 + "s.")
   }
   
-  protected def closedTime = timestamps(closedReferIdx)
+  protected def closeTime = timestamps(closeReferIdx)
   
   protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
   
   protected def buy(sec: Sec): OrderCompose = {
-    val order = new OrderCompose(sec, OrderSide.Buy, closedReferIdx)
-    pendingOrders += order
+    val order = new OrderCompose(sec, OrderSide.Buy, closeReferIdx)
+    pendingOrders ::= order
     order
   }
 
   protected def sell(sec: Sec): OrderCompose = {
-    val order = new OrderCompose(sec, OrderSide.Sell, closedReferIdx)
-    pendingOrders += order
+    val order = new OrderCompose(sec, OrderSide.Sell, closeReferIdx)
+    pendingOrders ::= order
     order
   }
   
@@ -110,14 +109,14 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     var i = fromIdx
     while (i <= toIdx) {
-      closedReferIdx = i
+      closeReferIdx = i
       executeOrders
       updatePositionsPrice
 
-      publish(ReportData(account.description, 0, closedTime, account.asset / account.initialAsset * 100))
+      publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
 
       // todo process unfilled orders
-      secPicking.go(closedTime)
+      secPicking.go(closeTime)
       checkStopCondition
       at(i)
       processPendingOrders
@@ -152,10 +151,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   protected def checkStopCondition {
     for ((sec, position) <- account.positions) {
       if (tradeRule.cutLossRule(position)) {
-        triggers += Trigger(sec, position, closedTime, Side.CutLoss)
+        triggers += Trigger(sec, position, closeTime, Side.CutLoss)
       }
       if (tradeRule.takeProfitRule(position)) {
-        triggers += Trigger(sec, position, closedTime, Side.TakeProfit)
+        triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
       }
     }
   }
@@ -163,29 +162,27 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   private def updatePositionsPrice {
     for ((sec, position) <- account.positions; 
          ser <- sec.serOf(freq); 
-         idx = ser.indexOfOccurredTime(closedTime) if idx >= 0
+         idx = ser.indexOfOccurredTime(closeTime) if idx >= 0
     ) {
       position.update(ser.close(idx))
     }
   }
 
-  private def processPendingOrders {
-    val orderSubmitReferIdx = closedReferIdx + 1 // next trading day
+  private def processPendingOrders: Unit = {
+    val orderSubmitReferIdx = closeReferIdx + 1 // next trading day
     if (orderSubmitReferIdx < timestamps.length) {
       val orderSubmitReferTime = timestamps(orderSubmitReferIdx)
-      var toRemove = List[OrderCompose]()
-      var buying = List[OrderCompose]()
-      var selling = List[OrderCompose]()
-      var i = 0
-      while (i < pendingOrders.length) {
-        val order = pendingOrders(i)
+      var expired = List[OrderCompose]()
+      var buying = new mutable.HashMap[Sec, OrderCompose]()
+      var selling = new mutable.HashMap[Sec, OrderCompose]()
+      for (order <- pendingOrders) {
         if (order.referIndex < orderSubmitReferIdx) {
-          toRemove ::= order
+          expired ::= order
         } else if (order.referIndex == orderSubmitReferIdx) { 
           if (order.ser.exists(orderSubmitReferTime)) {
             order.side match {
-              case OrderSide.Buy => buying ::= order
-              case OrderSide.Sell => selling ::= order
+              case OrderSide.Buy => buying(order.sec) = order
+              case OrderSide.Sell => selling(order.sec) = order
               case _ =>
             }
           } else {
@@ -196,18 +193,43 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
             }
           }
         }
-        i += 1
       }
-    
-      val fundPerSec = account.balance / buying.length // @todo expenses
-      buyingOrders = buying flatMap {_ fund (fundPerSec) toOrder}
-      sellingOrders = selling flatMap {x => x toOrder}
+
+      val conflicts = for (sec <- buying.keysIterator if selling.contains(sec)) yield sec
+      val buyingx = (buying -- conflicts).values.toList
+      val sellingx = (selling -- conflicts).values.toList
+
+      val estimateFundPerSec = account.balance / buyingx.size 
+      buyingOrders = buyingx flatMap {_ fund (estimateFundPerSec) toOrder}
+      adjustBuyingOrders(buyingOrders)
+      sellingOrders = sellingx flatMap {_ toOrder}
     
       // @todo process unfilled orders from broker
-      pendingOrders synchronized {
-        pendingOrders --= toRemove
+      pendingOrders --= expired
+      pendingOrders --= buyingx
+      pendingOrders --= sellingx
+    }
+  }
+  
+  /** 
+   * Adjust orders for expenses etc, by reducing quantities (or number of orders @todo)
+   */
+  private def adjustBuyingOrders(buyingOrders: List[Order]) {
+    var orders = buyingOrders.sortBy(_.price)
+    var amount = 0.0
+    while ({amount = calcTotalFund(buyingOrders); amount > account.balance}) {
+      orders match {
+        case order :: tail =>
+          order.quantity -= tradeRule.quantityPerLot
+          orders = tail
+        case Nil => 
+          orders = buyingOrders
       }
     }
+  }
+  
+  private def calcTotalFund(orders: List[Order]) = {
+    orders.foldLeft(0.0){(s, x) => s + x.quantity * x.price + account.expenseScheme.getBuyExpenses(x.quantity, x.price)}
   }
   
   private def executeOrders {
@@ -221,12 +243,14 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       orderExecutor.submit
       pseudoExecute(orderExecutor.order)
     }
+    
+    println(new Date(closeTime) + ": buying: " + buyingOrders.size + ", selling: " + sellingOrders.size + ", balance: " + account.balance)
   }
   
   private def pseudoExecute(order: Order) {
     val execution = new Execution
     execution.sec = order.sec
-    execution.time = closedTime
+    execution.time = closeTime
     execution.price = order.price
     execution.volume = order.quantity
     broker.processTrade(execution)
@@ -269,8 +293,9 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       this
     }
         
-    def after(idx: Int) = {
-      _afterIdx += idx
+    /** on t + idx */
+    def after(i: Int) = {
+      _afterIdx += i
       this
     }
     
@@ -379,8 +404,8 @@ object TradingService {
     val fromTime = df.parse("2011.04.03").getTime
     val toTime = df.parse("2012.04.03").getTime
     
-    report.publish(RoundStarted(NoParam))
+    tradingService.publish(RoundStarted(NoParam))
     tradingService.go(fromTime, toTime)
-    report.publish(RoundFinished(NoParam))
+    tradingService.publish(RoundFinished(NoParam))
   }
 }

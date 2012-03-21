@@ -7,7 +7,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
 
-class Order(val account: Account, val sec: Sec, val quantity: Double, val price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
+class Order(val account: Account, val sec: Sec, var quantity: Double, var price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _id: Long = _

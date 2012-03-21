@@ -8,6 +8,8 @@ package object backtest {
   
   object NoParam extends Param {
     val shortDescription = ""
+    override 
+    def toString = "P()"
   }
   
   case class RoundStarted(params: Param)
