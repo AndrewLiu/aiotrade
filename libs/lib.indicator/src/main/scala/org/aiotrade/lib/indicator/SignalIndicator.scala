@@ -144,7 +144,7 @@ abstract class SignalIndicator($baseSer: BaseTSer) extends Indicator($baseSer) w
   protected def sign(idx: Int, side: Side, id: Int = 0, text: String = null, color: Color = null): Sign = {
     val (sign, isNewOne) = signal[Sign](idx, side, id, text, color)
     if (isNewOne) {
-      log.info("Signal sign: " + sign)
+      log.info("Signal: " + sign)
       Signal.publish(SignalEvent(this, sign))
     }
     sign

@@ -34,6 +34,8 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
 class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
+  private case class Go(fromTime: Long, toTime: Long)
+  
   protected val timestamps = referSer.timestamps.clone
   protected val freq = referSer.freq
 
@@ -54,15 +56,20 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       }
     
     case signalEvt@SignalEvent(ind, signal) if signalIndicators.contains(ind) && signal.isSign =>
+      log.info("Got signal: " + signalEvt)
       val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
       val time = signalEvt.signal.time
       val side = signalEvt.signal.kind.asInstanceOf[Side]
       val position = getPosition(sec)
       side match {
-        case (Side.ExitLong | Side.ExitShort | Side.ExitPicking | Side.CutLoss | Side.TakeProfit) if (position == null) =>
+        case (Side.ExitLong | Side.ExitShort | Side.ExitPicking | Side.CutLoss | Side.TakeProfit) if position == null =>
         case _ => triggers += Trigger(sec, position, time, side)
       }
       
+    case Go(fromTime, toTime) =>
+      log.info("Got Go")
+      doGo(fromTime, toTime)
+
     case _ =>
   }
 
@@ -78,13 +85,14 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
            factor = signalIndTemplate.factors
       ) {
         val ind = indClass.newInstance.asInstanceOf[SignalIndicator]
+        // @Note should add to signalIndicators before compute, otherwise, the published signal may be dropped in reactions 
+        signalIndicators += ind 
         ind.factors = factor
         ind.set(ser)
         ind.computeFrom(0)
-        signalIndicators += ind
       }
     }
-    log.info("Inited singals in " + (System.currentTimeMillis - t0) / 1000 + "s.")
+    log.info("Inited singals in %ss.".format((System.currentTimeMillis - t0) / 1000))
   }
   
   protected def closeTime = timestamps(closeReferIdx)
@@ -103,8 +111,18 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     order
   }
   
+  /**
+   * Main entrance for outside caller.
+   * 
+   * @Note we use publish(Go) to make sure doGo(...) happens only after all signals 
+   *       were published (during initSignalIndicators).
+   */ 
   def go(fromTime: Long, toTime: Long) {
     initSignalIndicators
+    publish(Go(fromTime, toTime))
+  }
+  
+  private def doGo(fromTime: Long, toTime: Long) {
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     var i = fromIdx
@@ -112,10 +130,13 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       closeReferIdx = i
       executeOrders
       updatePositionsPrice
+      // @todo process unfilled orders
 
       publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
 
-      // todo process unfilled orders
+      // -- todays ordered processed, no begin to check new conditions and 
+      // -- prepare new orders according today's close status.
+      
       secPicking.go(closeTime)
       checkStopCondition
       at(i)
@@ -236,18 +257,20 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     // sell first?. If so, how about the returning funds?
     buyingOrders map broker.prepareOrder foreach {orderExecutor => 
       orderExecutor.submit
-      pseudoExecute(orderExecutor.order)
+      pseudoProcessTrade(orderExecutor.order)
     }
 
     sellingOrders map broker.prepareOrder foreach {orderExecutor => 
       orderExecutor.submit
-      pseudoExecute(orderExecutor.order)
+      pseudoProcessTrade(orderExecutor.order)
     }
     
-    println(new Date(closeTime) + ": buying: " + buyingOrders.size + ", selling: " + sellingOrders.size + ", balance: " + account.balance)
+    log.info("%1$tY.%1$tm.%1$td: bought=%2$s, sold=%3$s, balance=%4$s".format(
+        new Date(closeTime), buyingOrders.size, sellingOrders.size, account.balance)
+    )
   }
   
-  private def pseudoExecute(order: Order) {
+  private def pseudoProcessTrade(order: Order) {
     val execution = new Execution
     execution.sec = order.sec
     execution.time = closeTime
@@ -256,19 +279,15 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     broker.processTrade(execution)
   }
   
-  protected def scanTriggers(fromIdx: Int, toIdx: Int = -1): List[Trigger] = {
+  protected def scanTriggers(fromIdx: Int, toIdx: Int = -1): mutable.HashSet[Trigger] = {
     val toIdx1 = if (toIdx == -1) fromIdx else toIdx
     scanTriggers(timestamps(math.max(fromIdx, 0)), timestamps(math.max(toIdx1, 0)))
   }
   
-  protected def scanTriggers(fromTime: Long, toTime: Long): List[Trigger] = {
-    var result = List[Trigger]()
-    for (trigger <- triggers) {
-      if (trigger.time >= fromTime && trigger.time <= toTime && secPicking.isValid(trigger.sec, toTime)) {
-        result ::= trigger
-      }
+  protected def scanTriggers(fromTime: Long, toTime: Long): mutable.HashSet[Trigger] = {
+    triggers filter {x => 
+      x.time >= fromTime && x.time <= toTime && secPicking.isValid(x.sec, toTime)
     }
-    result
   }
   
   class OrderCompose(val sec: Sec, val side: OrderSide, referIdxAtDecision: Int) {
@@ -386,12 +405,16 @@ object TradingService {
           side match {
             case Side.EnterLong =>
               buy (sec) after (1)
+              
             case Side.ExitLong =>
               sell (sec) after (1)
+              
             case Side.CutLoss => 
               sell (sec) quantity (position.quantity) after (1)
+              
             case Side.TakeProfit =>
               sell (sec) quantity (position.quantity) after (1)
+              
             case _ =>
           }
         }
