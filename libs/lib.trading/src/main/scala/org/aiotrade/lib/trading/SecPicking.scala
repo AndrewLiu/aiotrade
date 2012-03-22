@@ -1,4 +1,4 @@
-package org.aiotrade.lib.backtest
+package org.aiotrade.lib.trading
 
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.signal.Side

@@ -1,4 +1,4 @@
-package org.aiotrade.lib.backtest
+package org.aiotrade.lib.trading.backtest
 
 import org.aiotrade.lib.trading.Account
 

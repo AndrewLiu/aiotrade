@@ -1,4 +1,4 @@
-package org.aiotrade.lib
+package org.aiotrade.lib.trading
 
 /**
  * @author Caoyuan Deng

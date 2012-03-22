@@ -1,10 +1,9 @@
-package org.aiotrade.lib.backtest
+package org.aiotrade.lib.trading
 
 /**
  * 
  * @author Caoyuan Deng
  */
-import org.aiotrade.lib.trading.Position
 
 class TradeRule {
   val quantityPerLot = 100

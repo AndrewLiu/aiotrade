@@ -107,7 +107,7 @@
         <profile>
             <id>javafx</id>
             <modules>
-                <module>lib.backtest</module>
+                <module>lib.trading</module>
             </modules>
         </profile>
     </profiles>

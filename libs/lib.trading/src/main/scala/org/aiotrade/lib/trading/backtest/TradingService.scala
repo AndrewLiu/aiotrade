@@ -1,4 +1,4 @@
-package org.aiotrade.lib.backtest
+package org.aiotrade.lib.trading.backtest
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -20,7 +20,10 @@ import org.aiotrade.lib.trading.Order
 import org.aiotrade.lib.trading.OrderSide
 import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.Position
+import org.aiotrade.lib.trading.SecPicking
+import org.aiotrade.lib.trading.SecPickingEvent
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
+import org.aiotrade.lib.trading.TradeRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable

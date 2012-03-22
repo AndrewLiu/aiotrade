@@ -18,10 +18,10 @@
     *
     **************************************************************************************************************** -->
     <groupId>org.aiotrade</groupId>
-    <artifactId>lib-backtest</artifactId>
+    <artifactId>lib-trading</artifactId>
     <version>1.0-SNAPSHOT</version>
     
-    <name>lib-backtest</name>
+    <name>lib-trading</name>
     
     <dependencies>
         <dependency>
@@ -74,7 +74,7 @@
                         <!-- mvn scala:run -Dlauncher=backtest -->
                         <launcher>
                             <id>chart</id>
-                            <mainClass>org.aiotrade.lib.backtest.ChartReport</mainClass>
+                            <mainClass>org.aiotrade.lib.trading.backtest.ChartReport</mainClass>
                             <!-- args are optional. If you need/which to specify some additional arguments at call time, -->
                             <!-- use "-DaddArgs=arg1|arg2|arg3" ('|' is used as separator) -->
                             <args>
@@ -82,7 +82,7 @@
                         </launcher>
                         <launcher>
                             <id>backtest</id>
-                            <mainClass>org.aiotrade.lib.backtest.TradingService</mainClass>
+                            <mainClass>org.aiotrade.lib.trading.backtest.TradingService</mainClass>
                             <jvmArgs>
                                 <jvmArg>-Xmx2048m</jvmArg>
                             </jvmArgs>
