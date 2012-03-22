@@ -116,8 +116,8 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
   }
   
   private def startNewRound(param: Param) {
-    idToSeries.clear
     runInFXThread {
+      idToSeries.clear
       dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
       dataChart.setTitle("Profit Monitoring - " + param)
       referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
@@ -134,7 +134,7 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
           } else {
             createSeries(data.name + "-" + data.id)
           }
-          idToSeries += (id -> x)
+          idToSeries(id) = x
           x
         }
       )
@@ -150,10 +150,12 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
   }
 
   private def saveImage(param: Param) {
-    if (imageFileDir != null) {
-      val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
-      val boundbox = new BoundingBox(0, 0, frame.getWidth, frame.getHeight)
-      saveImage(frame, boundbox, file)
+    runInFXThread {
+      if (imageFileDir != null) {
+        val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
+        val boundbox = new BoundingBox(0, 0, frame.getWidth, frame.getHeight)
+        saveImage(frame, boundbox, file)
+      }
     }
   }
   

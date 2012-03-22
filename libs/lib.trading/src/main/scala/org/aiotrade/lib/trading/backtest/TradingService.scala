@@ -49,6 +49,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   protected var sellingOrders = List[Order]()
 
   protected var closeReferIdx = 0
+  protected var referPrice0 = Double.NaN
   
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
@@ -128,6 +129,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   private def doGo(fromTime: Long, toTime: Long) {
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    referPrice0 = referSer.open(fromIdx)
     var i = fromIdx
     while (i <= toIdx) {
       closeReferIdx = i
@@ -136,6 +138,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       // @todo process unfilled orders
 
       TradingService.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      TradingService.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
@@ -394,6 +397,8 @@ object TradingService extends Publisher {
     
     val report = new Publisher {
       reactions += {
+        case RoundStarted(param) =>
+          println("== " + param + " ==")
         case ReportData(name, id, time, value) => 
           println(df.format(new Date(time)) + ": " + value)
       }
@@ -448,6 +453,7 @@ object TradingService extends Publisher {
       TradingService.publish(RoundStarted(param))
       tradingService.go(fromTime, toTime)
       TradingService.publish(RoundFinished(param))
+      System.gc
     }
     
     println("Done!")
