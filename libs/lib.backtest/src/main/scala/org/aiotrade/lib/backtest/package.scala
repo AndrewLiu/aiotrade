@@ -1,15 +1,16 @@
 package org.aiotrade.lib
 
-
-package object backtest {
+/**
+ * @author Caoyuan Deng
+ */
+package backtest {
   trait Param {
-    def shortDescription: String
+    def shortDescription: String = toString
   }
   
   object NoParam extends Param {
-    val shortDescription = ""
-    override 
-    def toString = "P()"
+    override val shortDescription = ""
+    override def toString = "P()"
   }
   
   case class RoundStarted(params: Param)

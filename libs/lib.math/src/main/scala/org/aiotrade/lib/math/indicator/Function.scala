@@ -49,7 +49,7 @@ object Function {
     val id = idOf(klass, baseSer, args: _*)
     idToFunction.get(id) match {
       case null =>
-        /** if got none from functionSet, try to create new one */
+        /** if got none from idToFunction, try to create new one */
         try {
           val function = klass.newInstance
           /** don't forget to call set(baseSer, args) immediatley */
@@ -61,6 +61,10 @@ object Function {
         }
       case x => x.asInstanceOf[T]
     }
+  }
+  
+  def releaseAll() {
+    idToFunction.clear
   }
 }
 

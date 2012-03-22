@@ -204,6 +204,10 @@ object Indicator {
     }
   }
 
+  def releaseAll() {
+    idToIndicator.clear
+  }
+  
   def displayName(ser: TSer): String = ser match {
     case x: Indicator => displayName(ser.shortName, x.factors)
     case _ => ser.shortName

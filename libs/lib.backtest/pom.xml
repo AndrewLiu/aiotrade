@@ -84,7 +84,7 @@
                             <id>backtest</id>
                             <mainClass>org.aiotrade.lib.backtest.TradingService</mainClass>
                             <jvmArgs>
-                                <jvmArg>-Xmx1024m</jvmArg>
+                                <jvmArg>-Xmx2048m</jvmArg>
                             </jvmArgs>
                         </launcher>
                     </launchers>

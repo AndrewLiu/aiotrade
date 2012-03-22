@@ -56,8 +56,8 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       }
     
     case signalEvt@SignalEvent(ind, signal) if signalIndicators.contains(ind) && signal.isSign =>
-      log.info("Got signal: " + signalEvt)
       val sec = signalEvt.source.baseSer.serProvider.asInstanceOf[Sec]
+      log.info("Got signal: sec=%s, signal=%s".format(sec.uniSymbol, signal))
       val time = signalEvt.signal.time
       val side = signalEvt.signal.kind.asInstanceOf[Side]
       val position = getPosition(sec)
@@ -132,7 +132,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       updatePositionsPrice
       // @todo process unfilled orders
 
-      publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      TradingService.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
@@ -143,6 +143,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       processPendingOrders
       i += 1
     }
+    
+    // release resources. @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
+    deafTo(Signal)
+    org.aiotrade.lib.math.indicator.Function.releaseAll
   }
   
   /**
@@ -353,7 +357,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 
 }
 
-object TradingService {
+object TradingService extends Publisher {
   
   def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
@@ -366,7 +370,7 @@ object TradingService {
     val secs = securities.getSecsOfSector(CSI300Category)
     val referSec = Exchange.secOf("000001.SS").get
     val referSer = securities.loadSers(secs, referSec, TFreq.DAILY)
-    val goodSecs = secs.filter{_.serOf(TFreq.DAILY).get.size > 0}
+    val goodSecs = secs filter {_.serOf(TFreq.DAILY).get.size > 0}
     println("Number of good secs: " + goodSecs.length)
     (goodSecs, referSer)
   }
@@ -377,7 +381,14 @@ object TradingService {
   def main(args: Array[String]) {
     import org.aiotrade.lib.indicator.basic.signal._
 
+    case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
+      override def shortDescription = List(faster, slow, signal).mkString("_")
+    }
+    
     val df = new SimpleDateFormat("yyyy.MM.dd")
+    val fromTime = df.parse("2011.04.03").getTime
+    val toTime = df.parse("2012.04.03").getTime
+    
     val report = new Publisher {
       reactions += {
         case ReportData(name, id, time, value) => 
@@ -387,48 +398,55 @@ object TradingService {
     val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
     val chartReport = new ChartReport(imageFileDir)
     
+    report.listenTo(TradingService)
+    chartReport.listenTo(TradingService)
+
     val (secs, referSer) = init
     
     val secPicking = new SecPicking()
     secPicking ++= secs map (ValidTime(_, 0, 0))
     
-    val broker = new PaperBroker("Backtest")
-    val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
-    val tradeRule = new TradeRule()
-    val indTemplate = createIndicator(classOf[MACDSignal], Array(12, 26, 9))
+    for {
+      fasterPeriod <- List(5, 8, 12)
+      slowPeriod <- List(26, 30, 55) if slowPeriod > fasterPeriod
+      signalPeriod <- List(5, 9)
+      param = TestParam(fasterPeriod, slowPeriod, signalPeriod)
+    } {
+      val broker = new PaperBroker("Backtest")
+      val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     
-    val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, indTemplate) {
-      override 
-      def at(idx: Int) {
-        val triggers = scanTriggers(idx)
-        for (Trigger(sec, position, triggerTime, side) <- triggers) {
-          side match {
-            case Side.EnterLong =>
-              buy (sec) after (1)
+      val tradeRule = new TradeRule()
+      val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
+    
+      val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, indTemplate) {
+        override 
+        def at(idx: Int) {
+          val triggers = scanTriggers(idx)
+          for (Trigger(sec, position, triggerTime, side) <- triggers) {
+            side match {
+              case Side.EnterLong =>
+                buy (sec) after (1)
               
-            case Side.ExitLong =>
-              sell (sec) after (1)
+              case Side.ExitLong =>
+                sell (sec) after (1)
               
-            case Side.CutLoss => 
-              sell (sec) quantity (position.quantity) after (1)
+              case Side.CutLoss => 
+                sell (sec) quantity (position.quantity) after (1)
               
-            case Side.TakeProfit =>
-              sell (sec) quantity (position.quantity) after (1)
+              case Side.TakeProfit =>
+                sell (sec) quantity (position.quantity) after (1)
               
-            case _ =>
+              case _ =>
+            }
           }
         }
       }
+    
+      TradingService.publish(RoundStarted(param))
+      tradingService.go(fromTime, toTime)
+      TradingService.publish(RoundFinished(param))
     }
     
-    report.listenTo(tradingService)
-    chartReport.listenTo(tradingService)
-
-    val fromTime = df.parse("2011.04.03").getTime
-    val toTime = df.parse("2012.04.03").getTime
-    
-    tradingService.publish(RoundStarted(NoParam))
-    tradingService.go(fromTime, toTime)
-    tradingService.publish(RoundFinished(NoParam))
+    println("Done!")
   }
 }
